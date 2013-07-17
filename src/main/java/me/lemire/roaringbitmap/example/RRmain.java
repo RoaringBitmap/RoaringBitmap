@@ -1,7 +1,10 @@
-package me.lemire.roaringbitmap;
+package me.lemire.roaringbitmap.example;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
+
+import me.lemire.roaringbitmap.Container;
+import me.lemire.roaringbitmap.RoaringBitmap;
 
 
 public class RRmain {
@@ -27,9 +30,9 @@ public class RRmain {
         
         RoaringBitmap rrxor = RoaringBitmap.xor(rr, rr2);
         
-        final Iterator<Entry<Short, Container>> p1 = rr.c.entrySet().iterator();
-        final Iterator<Entry<Short, Container>> p2 = rr2.c.entrySet().iterator();
-        final Iterator<Entry<Short, Container>> p5 = rrxor.c.entrySet().iterator();
+        final Iterator<Entry<Short, Container>> p1 = rr.highlowcontainer.entrySet().iterator();
+        final Iterator<Entry<Short, Container>> p2 = rr2.highlowcontainer.entrySet().iterator();
+        final Iterator<Entry<Short, Container>> p5 = rrxor.highlowcontainer.entrySet().iterator();
         Entry<Short, Container> s1;
         
         System.out.println("\n rr : ");
@@ -52,7 +55,7 @@ public class RRmain {
         while (p5.hasNext()) 
         { s1=p5.next(); System.out.print("  "+s1.getKey().shortValue()); }
                 
-        RoaringBitmap.afficher(rrxor);
+        RoaringBitmap.display(rrxor);
         
         /*int x = 472537;
         System.out.println("\nhigh bits = "+Util.highbits(x)+" low bits = "+(short) Util.lowbits(x));
