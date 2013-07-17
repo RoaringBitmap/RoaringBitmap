@@ -3,7 +3,6 @@ package me.lemire.roaringbitmap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import junit.framework.Assert;
 
 public class RRmain {
 	/**
