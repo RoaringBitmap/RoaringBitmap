@@ -14,48 +14,33 @@ public class Util {
 		if(value1 instanceof ArrayContainer) {
 			if(value2 instanceof ArrayContainer)
 				return ((ArrayContainer) value1).and((ArrayContainer)value2);
-			else {
-				return ((BitmapContainer)value2).and((ArrayContainer) value1);
-			}
-		} else {
-			if(value2 instanceof ArrayContainer)
-				return ((BitmapContainer) value1).and((ArrayContainer)value2);
-			else {
-				return ((BitmapContainer)value2).and((BitmapContainer) value1);
-			}
+			return ((BitmapContainer)value2).and((ArrayContainer) value1);
 		}
+		if(value2 instanceof ArrayContainer)
+			return ((BitmapContainer) value1).and((ArrayContainer)value2);
+		return ((BitmapContainer)value2).and((BitmapContainer) value1);
 	}
 	
 	public static Container or(Container value1,  Container value2) {
 		if(value1 instanceof ArrayContainer) {
 			if(value2 instanceof ArrayContainer)
 				return ((ArrayContainer) value1).or((ArrayContainer)value2);
-			else {
-				return ((BitmapContainer)value2).or((ArrayContainer) value1);
-			}
-		} else {
-			if(value2 instanceof ArrayContainer)
-				return ((BitmapContainer) value1).or((ArrayContainer)value2);
-			else {
-				return ((BitmapContainer)value2).or((BitmapContainer) value1);
-			}
+			return ((BitmapContainer)value2).or((ArrayContainer) value1);
 		}
+		if(value2 instanceof ArrayContainer)
+			return ((BitmapContainer) value1).or((ArrayContainer)value2);
+		return ((BitmapContainer)value2).or((BitmapContainer) value1);
 	}
 	
 	public static Container xor(Container value1,  Container value2) {
 		if(value1 instanceof ArrayContainer) {
 			if(value2 instanceof ArrayContainer)
 				return ((ArrayContainer) value1).xor((ArrayContainer)value2);
-			else {
-				return ((BitmapContainer)value2).xor((ArrayContainer) value1);
-			}
-		} else {
-			if(value2 instanceof ArrayContainer)
-				return ((BitmapContainer) value1).xor((ArrayContainer)value2);
-			else {
-				return ((BitmapContainer)value2).xor((BitmapContainer) value1);
-			}
+			return ((BitmapContainer)value2).xor((ArrayContainer) value1);
 		}
+		if(value2 instanceof ArrayContainer)
+			return ((BitmapContainer) value1).xor((ArrayContainer)value2);
+		return ((BitmapContainer)value2).xor((BitmapContainer) value1);
 	}
 	
 	public static int localintersect2by2(final short[] set1, final int length1,

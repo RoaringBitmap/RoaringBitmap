@@ -18,6 +18,7 @@ public class ArrayContainer implements Container {
 	public ArrayContainer() {
 	}
 
+	@Override
 	public boolean contains(short x) {
 		return Arrays.binarySearch(content, 0, cardinality, x) >= 0;
 	}
@@ -26,6 +27,7 @@ public class ArrayContainer implements Container {
 	 * running time is in O(n) time if insert is not in order.
 	 * 
 	 */
+	@Override
 	public Container add(short x) {
 		int loc = Arrays.binarySearch(content, 0, cardinality, x);
 		if (loc < 0) {
@@ -35,13 +37,15 @@ public class ArrayContainer implements Container {
 				return a;
 			}
 			// insertion
-			System.arraycopy(content, -loc - 1, content, -loc, cardinality + loc + 1);
+			System.arraycopy(content, -loc - 1, content, -loc, cardinality
+					+ loc + 1);
 			content[-loc - 1] = x;
 			++cardinality;
 		}
 		return this;
 	}
 
+	@Override
 	public Container remove(short x) {
 		int loc = Arrays.binarySearch(content, 0, cardinality, x);
 		if (loc >= 0) {
@@ -53,58 +57,70 @@ public class ArrayContainer implements Container {
 		return this;
 	}
 
+	@Override
 	public int getCardinality() {
 		return cardinality;
 	}
 
+	@Override
 	public Iterator<Short> iterator() {
 		return new Iterator<Short>() {
 			short pos = 0;
 
+			@Override
 			public boolean hasNext() {
 				return pos < ArrayContainer.this.cardinality;
 			}
 
+			@Override
 			public Short next() {
-				return ArrayContainer.this.content[pos++];
+				return new Short(ArrayContainer.this.content[pos++]);
 			}
 
+			@Override
 			public void remove() {
 				ArrayContainer.this.remove(pos);
 			}
 		};
 	}
 
-	public  ArrayContainer and( ArrayContainer value2) {
+	public ArrayContainer and(ArrayContainer value2) {
 		ArrayContainer value1 = this;
-		ArrayContainer answer = new ArrayContainer();	
-		answer.cardinality = Util.localintersect2by2(value1.content, value1.getCardinality(), 
-		                     value2.content, value2.getCardinality(),answer.content ); //diminuer nbr params
+		ArrayContainer answer = new ArrayContainer();
+		answer.cardinality = Util.localintersect2by2(value1.content,
+				value1.getCardinality(), value2.content,
+				value2.getCardinality(), answer.content); // diminuer nbr params
 		return answer;
 	}
-	
-	public  Container or( ArrayContainer value2) {
+
+	public Container or(ArrayContainer value2) {
 		ArrayContainer value1 = this;
-		ArrayContainer answer = new ArrayContainer();	
-		answer.cardinality = Util.union2by2(value1.content, value1.getCardinality(), 
-		                     value2.content, value2.getCardinality(),answer.content ); //diminuer nbr params
-		if(answer.cardinality>=1024) return new BitmapContainer(answer);
+		ArrayContainer answer = new ArrayContainer();
+		answer.cardinality = Util.union2by2(value1.content,
+				value1.getCardinality(), value2.content,
+				value2.getCardinality(), answer.content); // diminuer nbr params
+		if (answer.cardinality >= 1024)
+			return new BitmapContainer(answer);
 		return answer;
 	}
-	
-	public  Container xor( ArrayContainer value2) {
+
+	public Container xor(ArrayContainer value2) {
 		ArrayContainer value1 = this;
-		ArrayContainer answer = new ArrayContainer();	
-		answer.cardinality = Util.ExclusiveUnion2by2(value1.content, value1.getCardinality(), 
-		                     value2.content, value2.getCardinality(),answer.content ); //diminuer nbr params
-		if(answer.cardinality==0) return null;
-		if(answer.cardinality>=1024) return new BitmapContainer(answer);
+		ArrayContainer answer = new ArrayContainer();
+		answer.cardinality = Util.ExclusiveUnion2by2(value1.content,
+				value1.getCardinality(), value2.content,
+				value2.getCardinality(), answer.content); // diminuer nbr params
+		if (answer.cardinality == 0)
+			return null;
+		if (answer.cardinality >= 1024)
+			return new BitmapContainer(answer);
 		return answer;
 	}
 
 	@Override
 	public void afficher() {
 		// TODO Auto-generated method stub
-		for (int i=0; i<this.cardinality; i++) System.out.print(this.content[i]+" ");
+		for (int i = 0; i < this.cardinality; i++)
+			System.out.print(this.content[i] + " ");
 	}
 }

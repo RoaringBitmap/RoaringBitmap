@@ -25,14 +25,10 @@ public class RRmain {
         for(int k = 65535; k<65535+4000;++k) rr2.add(k);
         for(int k = 6*65535; k<6*65535+1000;++k) rr2.add(k);
         
-        RoaringBitmap rror = RoaringBitmap.or(rr, rr2);
-        RoaringBitmap rrand = RoaringBitmap.and(rr, rr2);
         RoaringBitmap rrxor = RoaringBitmap.xor(rr, rr2);
         
         final Iterator<Entry<Short, Container>> p1 = rr.c.entrySet().iterator();
         final Iterator<Entry<Short, Container>> p2 = rr2.c.entrySet().iterator();
-        final Iterator<Entry<Short, Container>> p3 = rror.c.entrySet().iterator();
-        final Iterator<Entry<Short, Container>> p4 = rrand.c.entrySet().iterator();
         final Iterator<Entry<Short, Container>> p5 = rrxor.c.entrySet().iterator();
         Entry<Short, Container> s1;
         

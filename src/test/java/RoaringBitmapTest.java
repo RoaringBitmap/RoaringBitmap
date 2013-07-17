@@ -1,16 +1,13 @@
 
 import java.util.Arrays;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.Vector;
-
 import junit.framework.Assert;
 import me.lemire.roaringbitmap.ArrayContainer;
 import me.lemire.roaringbitmap.BitmapContainer;
-import me.lemire.roaringbitmap.Container;
 import me.lemire.roaringbitmap.RoaringBitmap;
-
 import org.junit.Test;
+
+@SuppressWarnings("static-method")
 public class RoaringBitmapTest {
 	@Test
 	public void arraytest() {
@@ -187,18 +184,18 @@ public class RoaringBitmapTest {
 	
 	@Test 
 	public void ortest3() {
-		Vector V1 = new Vector<Integer>(); Vector V2 = new Vector<Integer>();
+		Vector<Integer> V1 = new Vector<Integer>(); Vector<Integer> V2 = new Vector<Integer>();
 		
 		RoaringBitmap rr = new RoaringBitmap();
-		for(int k = 4000; k<4256;++k) {rr.add(k); V1.add(k); }//Seq
-        for(int k = 65536; k<65536+4000;++k) {rr.add(k); V1.add(k); } //bitmap
-        for(int k = 4*65535; k<4*65535+4000;++k) {rr.add(k); V1.add(k); } //4 ds seq et 3996 bitmap
-        for(int k = 6*65535; k<6*65535+1000;++k) {rr.add(k); V1.add(k); } //6 ds seq et 994 ds bitmap
+		for(int k = 4000; k<4256;++k) {rr.add(k); V1.add(new Integer(k)); }//Seq
+        for(int k = 65536; k<65536+4000;++k) {rr.add(k); V1.add(new Integer(k)); } //bitmap
+        for(int k = 4*65535; k<4*65535+4000;++k) {rr.add(k); V1.add(new Integer(k)); } //4 ds seq et 3996 bitmap
+        for(int k = 6*65535; k<6*65535+1000;++k) {rr.add(k); V1.add(new Integer(k)); } //6 ds seq et 994 ds bitmap
         
 		RoaringBitmap rr2 = new RoaringBitmap();
 		for(int k = 4000; k<4256;++k) rr2.add(k); 
         for(int k = 65536; k<65536+4000;++k) rr2.add(k);
-        for(int k = 7*65535; k<7*65535+2000;++k) {rr2.add(k); V1.add(k); }        
+        for(int k = 7*65535; k<7*65535+2000;++k) {rr2.add(k); V1.add(new Integer(k)); }        
 		
         RoaringBitmap rror = RoaringBitmap.or(rr, rr2);       			
 		boolean valide = true;
@@ -206,7 +203,7 @@ public class RoaringBitmapTest {
 		//Si tous les elements de rror sont dans V1 et que tous les elements de V1 sont dans rror(V2)
 		//alors V1 == rror
 		
-		for(int i : rror)  {if(!V1.contains(i)) valide=false; V2.add(i);}				
+		for(int i : rror)  {if(!V1.contains(new Integer(i))) valide=false; V2.add(new Integer(i));}				
 		for(int i=0; i<V1.size(); i++) 
 			if(!V2.contains(V1.elementAt(i))) valide=false;
 		
@@ -215,18 +212,18 @@ public class RoaringBitmapTest {
 	
 	@Test 
 	public void xortest1() {
-		Vector V1 = new Vector<Integer>(); Vector V2 = new Vector<Integer>();
+		Vector<Integer> V1 = new Vector<Integer>(); Vector<Integer> V2 = new Vector<Integer>();
 		
 		RoaringBitmap rr = new RoaringBitmap();
 		for(int k = 4000; k<4256;++k) {rr.add(k); }//Seq
         for(int k = 65536; k<65536+4000;++k) {rr.add(k); } //bitmap
-        for(int k = 4*65535; k<4*65535+4000;++k) {rr.add(k); V1.add(k); } //4 in seq et 3996 in bitmap
-        for(int k = 6*65535; k<6*65535+1000;++k) {rr.add(k); V1.add(k); } //6 in seq et 994 in bitmap
+        for(int k = 4*65535; k<4*65535+4000;++k) {rr.add(k); V1.add(new Integer(k)); } //4 in seq et 3996 in bitmap
+        for(int k = 6*65535; k<6*65535+1000;++k) {rr.add(k); V1.add(new Integer(k)); } //6 in seq et 994 in bitmap
         
 		RoaringBitmap rr2 = new RoaringBitmap();
 		for(int k = 4000; k<4256;++k) rr2.add(k); 
         for(int k = 65536; k<65536+4000;++k) rr2.add(k);
-        for(int k = 7*65535; k<7*65535+2000;++k) {rr2.add(k); V1.add(k); }        
+        for(int k = 7*65535; k<7*65535+2000;++k) {rr2.add(k); V1.add(new Integer(k)); }        
 		
         RoaringBitmap rrxor = RoaringBitmap.xor(rr, rr2);       			
 		boolean valide = true;
@@ -234,7 +231,7 @@ public class RoaringBitmapTest {
 		//Si tous les elements de rror sont dans V1 et que tous les elements de V1 sont dans rror(V2)
 		//alors V1 == rror
 		
-		for(int i : rrxor)  {if(!V1.contains(i)) valide=false; V2.add(i);}				
+		for(int i : rrxor)  {if(!V1.contains(new Integer(i))) valide=false; V2.add(new Integer(i));}				
 		for(int i=0; i<V1.size() && valide; i++) 
 			if(!V2.contains(V1.elementAt(i))) valide=false;
 		

@@ -17,10 +17,12 @@ public class BitmapContainer implements Container {
 			bitmap[x / 64] |= (1l << (x % 64));
 	}
 
+	@Override
 	public boolean contains(short i) {
 		return (bitmap[i / 64] & (1l << (i % 64))) != 0;
 	}
 
+	@Override
 	public Container add(short i) {
 		if (!contains(i)) {
 			bitmap[i / 64] |= (1l << (i % 64));
@@ -29,6 +31,7 @@ public class BitmapContainer implements Container {
 		return this;
 	}
 
+	@Override
 	public Container remove(short x) {
 		if (contains(x)) {
 			--cardinality;
@@ -78,20 +81,24 @@ public class BitmapContainer implements Container {
 		Arrays.fill(bitmap, 0);
 	}
 
+	@Override
 	public Iterator<Short> iterator() {
 		return new Iterator<Short>() {
 			int i = BitmapContainer.this.nextSetBit(0);
 
+			@Override
 			public boolean hasNext() {
 				return i >= 0;
 			}
 
+			@Override
 			public Short next() {
 				short j = (short) i;
 				i = BitmapContainer.this.nextSetBit(i + 1);
-				return j;
+				return new Short(j);
 			}
 
+			@Override
 			public void remove() {
 				BitmapContainer.this.remove((short) i);
 			}
@@ -99,6 +106,7 @@ public class BitmapContainer implements Container {
 		};
 	}
 
+	@Override
 	public int getCardinality() {
 		return cardinality;
 	}
@@ -176,6 +184,7 @@ public class BitmapContainer implements Container {
 		return answer;
 	}
 	
+	@Override
 	public void afficher() {
 		int i=this.nextSetBit(0); 
 		do { System.out.print(i+" p "); i=this.nextSetBit(i+1); }while(i>=0);
