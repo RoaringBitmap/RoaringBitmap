@@ -4,13 +4,14 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 public class BitmapContainer implements Container {
-	long[] bitmap = new long[(1 << 16) / 64]; //65535 entiers peuvent y être stockés
+	long[] bitmap = new long[(1 << 16) / 64]; // 65535 entiers peuvent y être
+												// stockés
 	int cardinality;
-	
+
 	public BitmapContainer() {
 		this.cardinality = 0;
 	}
-	
+
 	public BitmapContainer(ArrayContainer arrayContainer) {
 		this.cardinality = arrayContainer.cardinality;
 		for (short x : arrayContainer.content)
@@ -110,83 +111,107 @@ public class BitmapContainer implements Container {
 	public int getCardinality() {
 		return cardinality;
 	}
-	
-	public  Container and( BitmapContainer value2) {
+
+	public Container and(BitmapContainer value2) {
 		BitmapContainer value1 = this;
 		BitmapContainer answer = new BitmapContainer();
-		for(int k = 0; k<answer.bitmap.length;++k) //optimiser à max(last set bit of value1, value2)
-			{ answer.bitmap[k]=value1.bitmap[k]&value2.bitmap[k];		
-			  answer.cardinality+=Long.bitCount(answer.bitmap[k]);
-			}
-		if(cardinality < 1024)
+		for (int k = 0; k < answer.bitmap.length; ++k) // optimiser à max(last
+														// set bit of value1,
+														// value2)
+		{
+			answer.bitmap[k] = value1.bitmap[k] & value2.bitmap[k];
+			answer.cardinality += Long.bitCount(answer.bitmap[k]);
+		}
+		if (cardinality < 1024)
 			return new ArrayContainer(answer);
 		return answer;
-	}	
+	}
 
-	public  ArrayContainer and(ArrayContainer value2) //intersect de 2 seq d'entiers
+	public ArrayContainer and(ArrayContainer value2) // intersect de 2 seq
+														// d'entiers
 	{
 		BitmapContainer value1 = this;
 		ArrayContainer answer = new ArrayContainer();
-		for(int k=0;k<value2.getCardinality();++k)
-			if(value1.contains(value2.content[k]))
-			answer.content[answer.cardinality++]=value2.content[k];
+		for (int k = 0; k < value2.getCardinality(); ++k)
+			if (value1.contains(value2.content[k]))
+				answer.content[answer.cardinality++] = value2.content[k];
 		return answer;
 	}
-	
-	public  BitmapContainer or(ArrayContainer value2) //intersect de 2 seq d'entiers
+
+	public BitmapContainer or(ArrayContainer value2) // intersect de 2 seq
+														// d'entiers
 	{
 		BitmapContainer value1 = this;
 		BitmapContainer answer = new BitmapContainer();
-		for(int k=0; k<value2.getCardinality(); ++k)
-			if(!value1.contains(value2.content[k])) // si la val de la seq !exist on l'ajoute ds le bitmap
-				answer.bitmap[value2.content[k] / 64] |= (1l << (value2.content[k] % 64)); 
-				
+		for (int k = 0; k < value2.getCardinality(); ++k)
+			if (!value1.contains(value2.content[k])) // si la val de la seq
+														// !exist on l'ajoute ds
+														// le bitmap
+				answer.bitmap[value2.content[k] / 64] |= (1l << (value2.content[k] % 64));
+
 		return answer;
 	}
-	
-	public  Container or( BitmapContainer value2) {
+
+	public Container or(BitmapContainer value2) {
 		BitmapContainer value1 = this;
 		BitmapContainer answer = new BitmapContainer();
-		for(int k = 0; k<answer.bitmap.length;++k) //optimiser à min(last set bit of value1, value2)
-			{ answer.bitmap[k]=value1.bitmap[k]|value2.bitmap[k];
-			  answer.cardinality+=Long.bitCount(answer.bitmap[k]);
-			}
-		if(cardinality < 1024)
+		for (int k = 0; k < answer.bitmap.length; ++k) // optimiser à min(last
+														// set bit of value1,
+														// value2)
+		{
+			answer.bitmap[k] = value1.bitmap[k] | value2.bitmap[k];
+			answer.cardinality += Long.bitCount(answer.bitmap[k]);
+		}
+		if (cardinality < 1024)
 			return new ArrayContainer(answer);
 		return answer;
 	}
-	
-	public  Container xor(ArrayContainer value2) //intersect de 2 seq d'entiers
+
+	public Container xor(ArrayContainer value2) // intersect de 2 seq d'entiers
 	{
 		BitmapContainer value1 = this;
 		BitmapContainer answer = new BitmapContainer();
-		for(int k=0; k<value2.getCardinality(); ++k)
-			if(!value1.contains(value2.content[k])) // si la val de la seq !exist on l'ajoute ds le bitmap
-				{answer.bitmap[value2.content[k] / 64] |= (1l << (value2.content[k] % 64));
-				 answer.cardinality++;
-				}
-			else answer.bitmap[value2.content[k] / 64] &= ~(1l << (value2.content[k] % 64));
-		if (answer.cardinality==0) return null;
-		if(answer.cardinality<1024) return new ArrayContainer(answer);
-		return answer;
-	}	
-	
-	public  Container xor( BitmapContainer value2) {
-		BitmapContainer value1 = this;
-		BitmapContainer answer = new BitmapContainer();
-		for(int k = 0; k<answer.bitmap.length;++k)
-			{answer.bitmap[k]=value1.bitmap[k] ^ value2.bitmap[k];
-			 answer.cardinality+=Long.bitCount(answer.bitmap[k]);
-			}		
-		if(answer.cardinality==0) return null;	
-		if(answer.cardinality < 1024)
+		for (int k = 0; k < value2.getCardinality(); ++k)
+			if (!value1.contains(value2.content[k])) // si la val de la seq
+														// !exist on l'ajoute ds
+														// le bitmap
+			{
+				answer.bitmap[value2.content[k] / 64] |= (1l << (value2.content[k] % 64));
+				answer.cardinality++;
+			} else
+				answer.bitmap[value2.content[k] / 64] &= ~(1l << (value2.content[k] % 64));
+		//if (answer.cardinality == 0)
+		//	return null;// why on Earth?
+		if (answer.cardinality < 1024)
 			return new ArrayContainer(answer);
 		return answer;
 	}
-	
+
+	public Container xor(BitmapContainer value2) {
+		BitmapContainer value1 = this;
+		BitmapContainer answer = new BitmapContainer();
+		for (int k = 0; k < answer.bitmap.length; ++k) {
+			answer.bitmap[k] = value1.bitmap[k] ^ value2.bitmap[k];
+			answer.cardinality += Long.bitCount(answer.bitmap[k]);
+		}
+		//if (answer.cardinality == 0)
+		//	return null;// why on Earth?
+		if (answer.cardinality < 1024)
+			return new ArrayContainer(answer);
+		return answer;
+	}
+
 	@Override
-	public void afficher() {
-		int i=this.nextSetBit(0); 
-		do { System.out.print(i+" p "); i=this.nextSetBit(i+1); }while(i>=0);
+	public String toString() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("{");
+		int i = this.nextSetBit(0);
+		do {
+			sb.append("i");
+			i = this.nextSetBit(i + 1);
+			if(i >= 0) sb.append(",");
+		} while (i >= 0);
+		sb.append("}");
+		return sb.toString();
 	}
 }

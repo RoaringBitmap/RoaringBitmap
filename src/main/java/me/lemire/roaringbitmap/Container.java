@@ -6,6 +6,5 @@ public interface Container extends Iterable<Short>{
 	public Container remove(short x);
 	public boolean contains(short x);
 	public int getCardinality();
-	public void afficher();
 
 }

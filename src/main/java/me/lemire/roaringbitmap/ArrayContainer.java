@@ -110,17 +110,26 @@ public class ArrayContainer implements Container {
 		answer.cardinality = Util.ExclusiveUnion2by2(value1.content,
 				value1.getCardinality(), value2.content,
 				value2.getCardinality(), answer.content); // diminuer nbr params
-		if (answer.cardinality == 0)
-			return null;
+		//if (answer.cardinality == 0)
+		//	return null;// Daniel: why on Earth???
 		if (answer.cardinality >= 1024)
 			return new BitmapContainer(answer);
 		return answer;
 	}
 
 	@Override
-	public void afficher() {
-		// TODO Auto-generated method stub
-		for (int i = 0; i < this.cardinality; i++)
-			System.out.print(this.content[i] + " ");
+	public String toString() {
+		if (this.cardinality == 0)
+			return "{}";
+		StringBuffer sb = new StringBuffer();
+		sb.append("{");
+		for (int i = 0; i < this.cardinality - 1; i++) {
+			sb.append(this.content[i]);
+			sb.append(",");
+		}
+		sb.append(this.content[this.cardinality - 1]);
+		sb.append("}");
+		return sb.toString();
 	}
+
 }

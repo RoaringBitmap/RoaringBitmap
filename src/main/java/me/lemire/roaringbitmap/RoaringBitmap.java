@@ -7,23 +7,7 @@ import java.util.TreeMap;
 
 public class RoaringBitmap implements Iterable<Integer> {
 
-	public SortedMap<Short, Container> highlowcontainer = new TreeMap<Short, Container>(); // does not
-																		// have
-																		// to be
-																		// a
-																		// tree
-
-	public static void display(RoaringBitmap x) {
-		final Iterator<Entry<Short, Container>> p1 = x.highlowcontainer.entrySet().iterator();
-		Entry<Short, Container> s1;
-
-		while (p1.hasNext()) {
-			s1 = p1.next();
-			System.out.println("\n" + s1.getKey().shortValue());
-			Container c = s1.getValue();
-			c.afficher();
-		}
-	}
+	public SortedMap<Short, Container> highlowcontainer = new TreeMap<Short, Container>(); 
 
 	public void add(int x) {
 		short hb = Util.highbits(x);
@@ -44,6 +28,10 @@ public class RoaringBitmap implements Iterable<Integer> {
 			Entry<Short, Container> s2 = p2.next();
 			int cas = 0;
 			do {
+				/**
+				 * Daniel: I think you can rewrite this without the switch/case. 
+				 * Please do so.
+				 */
 				switch (cas) {
 				case 1:
 					s1 = p1.next();
@@ -66,8 +54,9 @@ public class RoaringBitmap implements Iterable<Integer> {
 						break main;
 					cas = 2;
 				} else { // égalité
-					answer.highlowcontainer.put(s1.getKey(),
-							Util.and(s1.getValue(), s2.getValue()));
+					Container a = Util.and(s1.getValue(), s2.getValue());
+					if(a.getCardinality() > 0)
+						answer.highlowcontainer.put(s1.getKey(),a);
 					if (!p1.hasNext())
 						break main;
 					if (!p2.hasNext())
@@ -90,7 +79,9 @@ public class RoaringBitmap implements Iterable<Integer> {
 			int cas = 0;
 
 			while (true) {
-				// System.out.println("Compare "+s1.getKey().shortValue()+" et "+s2.getKey().shortValue());
+				/**
+				 * Daniel: Please write this without a switch case. It is a bit ugly.
+				 */
 				switch (cas) {
 				case 1:
 					s1 = p1.next();
@@ -170,7 +161,12 @@ public class RoaringBitmap implements Iterable<Integer> {
 			int cas = 0;
 
 			while (true) {
-				// System.out.println("Compare "+s1.getKey().shortValue()+" et "+s2.getKey().shortValue());
+				/**
+				 * Daniel: I think you can rewrite this without the switch. 
+				 * Please do so.
+				 */
+				
+				
 				switch (cas) {
 				case 1:
 					s1 = p1.next();
@@ -214,10 +210,8 @@ public class RoaringBitmap implements Iterable<Integer> {
 					}
 					cas = 2;
 				} else { // égalité
-					// System.out.println(s1.getKey().shortValue()+" = "+s2.getKey().shortValue());
-					Container C = null;
-					C = Util.xor(s1.getValue(), s2.getValue());
-					if (C != null)
+					Container C = Util.xor(s1.getValue(), s2.getValue());
+					if (C.getCardinality() > 0)
 						answer.highlowcontainer.put(s1.getKey(), C);
 					if (!p1.hasNext()) { // System.out.println("while s1 = s2 !p1");
 						while (p2.hasNext()) {

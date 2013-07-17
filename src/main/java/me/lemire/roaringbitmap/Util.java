@@ -79,18 +79,17 @@ public class Util {
 		return pos;
 	}
 
-	//@SuppressWarnings("unused")
 	static public int union2by2(final short[] set1, final int length1,
 			final short[] set2, final int length2, final short[] buffer) {
 		int pos = 0;
 		int k1 = 0, k2 = 0;
 		if (0 == length1) {
-			for(int k = 0; k < length1; ++k) //ne sert à rien
+			for(int k = 0; k < length1; ++k) 
 				buffer[k] = set1[k];
 			return length1;
 		}
 		if (0 == length2) {
-			for(int k = 0; k < length2; ++k) //ne sert à rien
+			for(int k = 0; k < length2; ++k) 
 				buffer[k] = set2[k];
 			return length2;		
 		}
