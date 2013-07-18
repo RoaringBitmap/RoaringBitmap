@@ -180,8 +180,8 @@ public class BitmapContainer implements Container {
 				answer.cardinality++;
 			} else
 				answer.bitmap[value2.content[k] / 64] &= ~(1l << (value2.content[k] % 64));
-		//if (answer.cardinality == 0)
-		//	return null;// why on Earth?
+		// if (answer.cardinality == 0)
+		// return null;// why on Earth?
 		if (answer.cardinality < 1024)
 			return new ArrayContainer(answer);
 		return answer;
@@ -194,8 +194,8 @@ public class BitmapContainer implements Container {
 			answer.bitmap[k] = value1.bitmap[k] ^ value2.bitmap[k];
 			answer.cardinality += Long.bitCount(answer.bitmap[k]);
 		}
-		//if (answer.cardinality == 0)
-		//	return null;// why on Earth?
+		// if (answer.cardinality == 0)
+		// return null;// why on Earth?
 		if (answer.cardinality < 1024)
 			return new ArrayContainer(answer);
 		return answer;
@@ -209,7 +209,8 @@ public class BitmapContainer implements Container {
 		do {
 			sb.append("i");
 			i = this.nextSetBit(i + 1);
-			if(i >= 0) sb.append(",");
+			if (i >= 0)
+				sb.append(",");
 		} while (i >= 0);
 		sb.append("}");
 		return sb.toString();
