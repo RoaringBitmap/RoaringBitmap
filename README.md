@@ -1,8 +1,8 @@
 RoaringBitmap
 =============
 
-This is a first prototype of a new format for (compressed) bitmap indexes. The
-goal is to beat JavaEWAH and other alternatives, at least some of the time.
+This is a first prototype of a new format for (compressed) bitmap indexes. 
+The goal is to beat JavaEWAH and other alternatives, at least some of the time.
 
 Usage:
 
