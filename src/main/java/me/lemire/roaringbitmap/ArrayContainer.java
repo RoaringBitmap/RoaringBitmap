@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 public class ArrayContainer implements Container {
-	short[] content = new short[2048];// we don't want more than 1024
+	public short[] content = new short[1024];// we don't want more than 1024 2048
 	int cardinality = 0;
 
 	public ArrayContainer(BitmapContainer bitmapContainer) {
@@ -36,7 +36,8 @@ public class ArrayContainer implements Container {
 				a.add(x);
 				return a;
 			}
-			// insertion
+			// insertion : shift the elements > x by one position to the right 
+			//and put x in its appropriate place
 			System.arraycopy(content, -loc - 1, content, -loc, cardinality
 					+ loc + 1);
 			content[-loc - 1] = x;
@@ -130,6 +131,12 @@ public class ArrayContainer implements Container {
 		sb.append(this.content[this.cardinality - 1]);
 		sb.append("}");
 		return sb.toString();
+	}
+
+	@Override
+	public int getSizeInBits() {
+		// TODO Auto-generated method stub
+		return content.length*16;
 	}
 
 }

@@ -4,8 +4,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 public class BitmapContainer implements Container {
-	long[] bitmap = new long[(1 << 16) / 64]; // 65535 entiers peuvent y être
-												// stockés
+	long[] bitmap = new long[(1 << 16) / 64]; //a max of 65535 integers
+											  // with 1024 chunks of 64 bits each	
 	int cardinality;
 
 	public BitmapContainer() {
@@ -15,18 +15,23 @@ public class BitmapContainer implements Container {
 	public BitmapContainer(ArrayContainer arrayContainer) {
 		this.cardinality = arrayContainer.cardinality;
 		for (short x : arrayContainer.content)
-			bitmap[x / 64] |= (1l << (x % 64));
+			bitmap[Math.abs(x) / 64] |= (1l << (x % 64));			
 	}
 
 	@Override
-	public boolean contains(short i) {
-		return (bitmap[i / 64] & (1l << (i % 64))) != 0;
+	public boolean contains(short i) {		
+		//try {
+			return (bitmap[Math.abs(i / 64)] & (1l << (i % 64))) != 0;
+		
+		// } catch (ArrayIndexOutOfBoundsException e) 
+		        //{System.out.println("i = "+(short)Math.abs((short)i)); System.exit(0);}
+		
 	}
 
 	@Override
 	public Container add(short i) {
 		if (!contains(i)) {
-			bitmap[i / 64] |= (1l << (i % 64));
+			bitmap[Math.abs(i / 64)] |= (1l << (i % 64));
 			++cardinality;
 		}
 		return this;
@@ -127,8 +132,7 @@ public class BitmapContainer implements Container {
 		return answer;
 	}
 
-	public ArrayContainer and(ArrayContainer value2) // intersect de 2 seq
-														// d'entiers
+	public ArrayContainer and(ArrayContainer value2) 
 	{
 		BitmapContainer value1 = this;
 		ArrayContainer answer = new ArrayContainer();
@@ -138,8 +142,7 @@ public class BitmapContainer implements Container {
 		return answer;
 	}
 
-	public BitmapContainer or(ArrayContainer value2) // intersect de 2 seq
-														// d'entiers
+	public BitmapContainer or(ArrayContainer value2) 
 	{
 		BitmapContainer value1 = this;
 		BitmapContainer answer = new BitmapContainer();
@@ -147,16 +150,16 @@ public class BitmapContainer implements Container {
 			if (!value1.contains(value2.content[k])) // si la val de la seq
 														// !exist on l'ajoute ds
 														// le bitmap
-				answer.bitmap[value2.content[k] / 64] |= (1l << (value2.content[k] % 64));
-
+				answer.bitmap[Math.abs(value2.content[k]) / 64] |= (1l << (value2.content[k] % 64));								
+				
 		return answer;
 	}
 
 	public Container or(BitmapContainer value2) {
 		BitmapContainer value1 = this;
 		BitmapContainer answer = new BitmapContainer();
-		for (int k = 0; k < answer.bitmap.length; ++k) // optimiser à min(last
-														// set bit of value1,
+		for (int k = 0; k < answer.bitmap.length; ++k) // optimise to min(last
+														// set bit of value1 and
 														// value2)
 		{
 			answer.bitmap[k] = value1.bitmap[k] | value2.bitmap[k];
@@ -165,6 +168,14 @@ public class BitmapContainer implements Container {
 		if (cardinality < 1024)
 			return new ArrayContainer(answer);
 		return answer;
+	}
+
+	@Override
+	public int getSizeInBits() {
+		// TODO Auto-generated method stub		
+		//the standard size is 1024 chunks*64bits each=65536 bits, 
+		//each 1 bit represents an integer between 0 and 65535
+		return 65536; 
 	}
 
 	public Container xor(ArrayContainer value2) // intersect de 2 seq d'entiers
@@ -176,10 +187,10 @@ public class BitmapContainer implements Container {
 														// !exist on l'ajoute ds
 														// le bitmap
 			{
-				answer.bitmap[value2.content[k] / 64] |= (1l << (value2.content[k] % 64));
+				answer.bitmap[Math.abs(value2.content[k]) / 64] |= (1l << (value2.content[k] % 64));
 				answer.cardinality++;
 			} else
-				answer.bitmap[value2.content[k] / 64] &= ~(1l << (value2.content[k] % 64));
+				answer.bitmap[Math.abs(value2.content[k]) / 64] &= ~(1l << (value2.content[k] % 64));
 		// if (answer.cardinality == 0)
 		// return null;// why on Earth?
 		if (answer.cardinality < 1024)
@@ -207,7 +218,7 @@ public class BitmapContainer implements Container {
 		sb.append("{");
 		int i = this.nextSetBit(0);
 		do {
-			sb.append("i");
+			sb.append(i);
 			i = this.nextSetBit(i + 1);
 			if (i >= 0)
 				sb.append(",");

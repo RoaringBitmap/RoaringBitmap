@@ -31,7 +31,7 @@ public class RRmain {
         final Iterator<Entry<Short, Container>> p5 = rrxor.highlowcontainer.entrySet().iterator();
         Entry<Short, Container> s1;
         
-        System.out.println("\n rr : ");
+        System.out.println("\n rr new version: ");
         while (p1.hasNext()) 
         { s1=p1.next(); System.out.print("  "+s1.getKey().shortValue()/*+" "+s1.getValue().getCardinality()*/);}
         

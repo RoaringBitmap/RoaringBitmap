@@ -1,14 +1,17 @@
 package me.lemire.roaringbitmap;
 
+import java.util.Comparator;
+import java.util.PriorityQueue;
+
 public class Util {
 	public static short highbits(int x) {
 		return (short) (x >>> 16);
 	}
 
 	public static short lowbits(int x) {
-		//return (short) (x & 0xFFFF);
-		return (short) (x & 65535);
-	}
+		return (short)(x & 0xFFFF);
+		//return (short) (x & 65535);
+	}	
 
 	public static Container and(Container value1,  Container value2) {
 		if(value1 instanceof ArrayContainer) {

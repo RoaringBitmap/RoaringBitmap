@@ -200,6 +200,26 @@ public class RoaringBitmap implements Iterable<Integer> {
 		return answer;
 	}
 
+	public void getIntegers(int array[]) {
+		array = new int[this.getCardinality()];
+		int pos=0;
+		final Iterator<Entry<Short, Container>> p1 = this.highlowcontainer
+				.entrySet().iterator();
+		Entry<Short, Container> s; 
+		do
+		{
+			s = p1.next();
+			if(s.getValue() instanceof ArrayContainer)
+				for(int i=0; i<s.getValue().getCardinality(); i++)
+			    array[pos++] = (16 << s.getKey().shortValue()) |
+				               ((ArrayContainer)s.getValue()).content[i];
+			else if(s.getValue() instanceof BitmapContainer)
+				for(int i=((BitmapContainer)s.getValue()).nextSetBit(0); i>=0; 
+						i=((BitmapContainer)s.getValue()).nextSetBit(i+1))
+			array[pos++] = (16 << s.getKey().shortValue()) | i;
+		} while(p1.hasNext());		
+	}
+	
 	public void remove(int x) {
 		short hb = Util.highbits(x);
 		if (highlowcontainer.containsValue(hb)) {
@@ -279,5 +299,33 @@ public class RoaringBitmap implements Iterable<Integer> {
 				RoaringBitmap.this.remove(actualval);
 			}
 		}.init();
+	}
+	
+	public int getSizeInBytes(){
+		int size = 0;
+		final Iterator<Entry<Short, Container>> p1 = this.highlowcontainer
+				.entrySet().iterator();
+		Entry<Short, Container> s;
+		do{
+			s=p1.next();
+			// we add the 16 highbits of a node and the size of its leafs
+			size+=16+this.highlowcontainer.get(s.getKey()).getSizeInBits();
+		}while(p1.hasNext());
+		
+		return size/8;
+	}
+	
+	public int getCardinality(){
+		int size = 0;
+		final Iterator<Entry<Short, Container>> p1 = this.highlowcontainer
+				.entrySet().iterator();
+		Entry<Short, Container> s;
+		do {
+			s=p1.next();
+			// we add the 16 highbits of a node and the size of its leafs
+			size+=this.highlowcontainer.get(s.getKey()).getCardinality();
+		} while(p1.hasNext());
+		
+		return size;
 	}
 }
