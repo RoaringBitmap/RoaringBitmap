@@ -23,8 +23,9 @@ public class Benchmark {
 	
 	public static void testRoaringBitmap(int[][] data1, int[][] data2, int repeat, DecimalFormat df){
 		System.out.println("# RoaringBitmap");
-		System.out
-				.println("# size, construction time, time to recover set bits, time to compute unions  and intersections ");
+		System.out.println("# size, construction time, time to recover set bits, " +
+				"time to compute unions (OR), intersections (AND) " +
+				"and exclusive unions (XOR) ");
 		long bef, aft;
 		String line = "";		
 		int N = data1.length;
@@ -84,13 +85,24 @@ public class Benchmark {
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
+		// logical xor + retrieval
+				bef = System.currentTimeMillis();
+				for (int r = 0; r < repeat; ++r) {
+					RoaringBitmap rbxor = RoaringBitmap.xor(roaring, roaring2); 
+					int array [] = null;
+					rbxor.getIntegers(array);			
+				}
+				aft = System.currentTimeMillis();
+				line += "\t" + df.format((aft - bef) / 1000.0);
+		
 		System.out.println(line);		
 	}
 	
 	public static void testBitSet(int[][] data, int[][] data2, int repeat, DecimalFormat df) {
 		System.out.println("# BitSet");
 		System.out.println("# size, construction time, time to recover set bits, " +
-						"time to compute unions  and intersections ");
+						"time to compute unions (OR), intersections (AND) " +
+						"and exclusive unions (XOR) ");
 		long bef, aft;
 		String line = "";		
 		int N = data.length;
@@ -171,6 +183,26 @@ public class Benchmark {
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		// logical xor + retrieval
+				bef = System.currentTimeMillis();
+				for (int r = 0; r < repeat; ++r) {
+					BitSet bitmapxor1 = (BitSet) bitmap[0].clone();
+					BitSet bitmapxor2 = (BitSet) bitmap2[0].clone();
+					for (int k = 1; k < N; ++k) {				
+						bitmapxor1.xor(bitmap[k]);
+						bitmapxor2.xor(bitmap2[k]);
+					}
+					bitmapxor1.xor(bitmapxor2);
+					int[] array = new int[bitmapxor1.cardinality()];
+					int pos = 0;
+					for (int i = bitmapxor1.nextSetBit(0); i >= 0; i = bitmapxor1
+								.nextSetBit(i + 1)) {
+						array[pos++] = i;
+					}					   
+				}
+				aft = System.currentTimeMillis();
+				line += "\t" + df.format((aft - bef) / 1000.0);
 
 		System.out.println(line);		
 	}

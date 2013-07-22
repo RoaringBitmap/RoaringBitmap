@@ -9,8 +9,8 @@ public class Util {
 	}
 
 	public static short lowbits(int x) {
-		return (short)(x & 0xFFFF);
-		//return (short) (x & 65535);
+		//return (short)(x & 0xFFFF);
+		return (short) (x & 65535);
 	}	
 
 	public static Container and(Container value1,  Container value2) {

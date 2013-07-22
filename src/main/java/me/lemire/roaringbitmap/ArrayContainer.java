@@ -4,13 +4,13 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 public class ArrayContainer implements Container {
-	public short[] content = new short[1024];// we don't want more than 1024 2048
+	public short[] content = new short[2048];// we don't want more than 1024
 	int cardinality = 0;
 
 	public ArrayContainer(BitmapContainer bitmapContainer) {
 		this.cardinality = bitmapContainer.cardinality;
 		for (short i = bitmapContainer.nextSetBit((short) 0); i >= 0; i = bitmapContainer
-				.nextSetBit((short) (i + 1))) {
+				.nextSetBit(Math.abs(i + 1))) {
 			content[cardinality++] = i;
 		}
 	}
@@ -136,7 +136,7 @@ public class ArrayContainer implements Container {
 	@Override
 	public int getSizeInBits() {
 		// TODO Auto-generated method stub
-		return content.length*16;
+		return this.cardinality*16;
 	}
 
 }
