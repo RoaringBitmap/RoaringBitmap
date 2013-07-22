@@ -11,7 +11,8 @@ public final class IntUtil {
     if(set.length == 0) throw new RuntimeException("nothing");
     PriorityQueue<int[]> pq = new PriorityQueue<int[]>(set.length,
       new Comparator<int[]>(){
-        public int compare(int[] a, int[] b) {
+        @Override
+		public int compare(int[] a, int[] b) {
           return a.length - b.length;
         }}
      );

@@ -1,8 +1,5 @@
 package me.lemire.roaringbitmap;
 
-import java.util.Comparator;
-import java.util.PriorityQueue;
-
 public class Util {
 	public static short highbits(int x) {
 		return (short) (x >>> 16);

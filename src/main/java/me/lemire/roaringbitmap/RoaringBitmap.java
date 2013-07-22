@@ -2,19 +2,19 @@ package me.lemire.roaringbitmap;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.SortedMap;
 import java.util.TreeMap;
 
-public class RoaringBitmap implements Iterable<Integer> {
+public class RoaringBitmap implements Iterable<Integer>, Cloneable {
 
-	public SortedMap<Short, Container> highlowcontainer = new TreeMap<Short, Container>(); // does
+	public TreeMap<Short, Container> highlowcontainer = new TreeMap<Short, Container>(); // does
 																							// not
-																							// have
-																							// to
+					
 																							// be
 																							// a
-																							// tree
-
+	public void set(int x) {
+		 add(x);
+	}
+	
 	public void add(int x) {
 		short hb = Util.highbits(x);
 		if (highlowcontainer.containsKey(hb)) {
@@ -129,6 +129,11 @@ public class RoaringBitmap implements Iterable<Integer> {
 		}
 		return answer;
 	}
+	
+	public void validate() {
+		for (Container C: this.highlowcontainer.values())
+			C.validate();
+	}
 
 	public static RoaringBitmap xor(RoaringBitmap x1, RoaringBitmap x2) {
 		RoaringBitmap answer = new RoaringBitmap();
@@ -200,13 +205,13 @@ public class RoaringBitmap implements Iterable<Integer> {
 		return answer;
 	}
 
-	public void getIntegers(int array[]) {
-		array = new int[this.getCardinality()];
+	public int[] getIntegers() {
+		int[] array = new int[this.getCardinality()];
 		int pos=0;
 		final Iterator<Entry<Short, Container>> p1 = this.highlowcontainer
 				.entrySet().iterator();
 		Entry<Short, Container> s; 
-		do
+		while(p1.hasNext())
 		{
 			s = p1.next();
 			if(s.getValue() instanceof ArrayContainer)
@@ -217,7 +222,8 @@ public class RoaringBitmap implements Iterable<Integer> {
 				for(int i=((BitmapContainer)s.getValue()).nextSetBit(0); i>=0; 
 						i=((BitmapContainer)s.getValue()).nextSetBit(i+1))
 			array[pos++] = (16 << s.getKey().shortValue()) | i;
-		} while(p1.hasNext());		
+		}	
+		return array;
 	}
 	
 	public void remove(int x) {
@@ -320,12 +326,27 @@ public class RoaringBitmap implements Iterable<Integer> {
 		final Iterator<Entry<Short, Container>> p1 = this.highlowcontainer
 				.entrySet().iterator();
 		Entry<Short, Container> s;
-		do {
+		while(p1.hasNext()) {
 			s=p1.next();
 			// we add the 16 highbits of a node and the size of its leafs
 			size+=this.highlowcontainer.get(s.getKey()).getCardinality();
-		} while(p1.hasNext());
+		} 
 		
 		return size;
+	}
+	
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public RoaringBitmap clone() {
+		try {
+			RoaringBitmap x = (RoaringBitmap) super.clone();
+			x.highlowcontainer = (TreeMap<Short, Container>) highlowcontainer
+					.clone();
+			return x;
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+			throw new RuntimeException("shouldn't happen");
+		}
 	}
 }

@@ -3,35 +3,38 @@ package me.lemire.roaringbitmap;
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class BitmapContainer implements Container {
+public class BitmapContainer implements Container, Cloneable {
 	long[] bitmap = new long[(1 << 16) / 64]; //a max of 65535 integers
 											  // with 1024 chunks of 64 bits each	
 	int cardinality;
 
+	
 	public BitmapContainer() {
 		this.cardinality = 0;
+	}
+	
+	public static int toIntUnsigned(short x) {
+		return x & 0xFFFF;
 	}
 
 	public BitmapContainer(ArrayContainer arrayContainer) {
 		this.cardinality = arrayContainer.cardinality;
-		for (short x : arrayContainer.content)
-			bitmap[Math.abs(x) / 64] |= (1l << (x % 64));			
+		for(int k = 0; k < arrayContainer.cardinality; ++k) {
+			final short x = arrayContainer.content[k];
+			bitmap[toIntUnsigned(x)/64] |= (1l << x % 64);
+		}
+
 	}
 
 	@Override
-	public boolean contains(short i) {		
-		//try {
-			return (bitmap[Math.abs(i / 64)] & (1l << (i % 64))) != 0;
-		
-		// } catch (ArrayIndexOutOfBoundsException e) 
-		        //{System.out.println("i = "+(short)Math.abs((short)i)); System.exit(0);}
-		
+	public boolean contains(short i) {
+			return (bitmap[toIntUnsigned(i)/64] & (1l << (i % 64))) != 0;		
 	}
 
 	@Override
 	public Container add(short i) {
 		if (!contains(i)) {
-			bitmap[Math.abs(i / 64)] |= (1l << (i % 64));
+			bitmap[toIntUnsigned(i)/64] |= (1l << (i % 64));
 			++cardinality;
 		}
 		return this;
@@ -50,17 +53,18 @@ public class BitmapContainer implements Container {
 
 	// for(int i=bs.nextSetBit(0); i>=0; i=bs.nextSetBit(i+1)) { // operate on
 	// index i here }
-	public short nextSetBit(int i) {
+	public int nextSetBit(int i) {
 		int x = i / 64;
+		if(x>=bitmap.length) return -1;
 		long w = bitmap[x];
 		w >>>= (i % 64);
 		if (w != 0) {
-			return (short) (i + Long.numberOfTrailingZeros(w));
+			return i + Long.numberOfTrailingZeros(w);
 		}
 		++x;
 		for (; x < bitmap.length; ++x) {
 			if (bitmap[x] != 0) {
-				return (short) (x * 64 + Long.numberOfTrailingZeros(bitmap[x]));
+				return x * 64 + Long.numberOfTrailingZeros(bitmap[x]);
 			}
 		}
 		return -1;
@@ -127,7 +131,8 @@ public class BitmapContainer implements Container {
 			answer.bitmap[k] = value1.bitmap[k] & value2.bitmap[k];
 			answer.cardinality += Long.bitCount(answer.bitmap[k]);
 		}
-		if (cardinality < 1024)
+
+		if (answer.cardinality < 1024)
 			return new ArrayContainer(answer);
 		return answer;
 	}
@@ -150,8 +155,8 @@ public class BitmapContainer implements Container {
 			if (!value1.contains(value2.content[k])) // si la val de la seq
 														// !exist on l'ajoute ds
 														// le bitmap
-				answer.bitmap[Math.abs(value2.content[k]) / 64] |= (1l << (value2.content[k] % 64));								
-				
+				answer.bitmap[toIntUnsigned(value2.content[k])/64 ] |= (1l << (value2.content[k] % 64));								
+		answer.cardinality = answer.expensiveComputeCardinality();
 		return answer;
 	}
 
@@ -165,14 +170,13 @@ public class BitmapContainer implements Container {
 			answer.bitmap[k] = value1.bitmap[k] | value2.bitmap[k];
 			answer.cardinality += Long.bitCount(answer.bitmap[k]);
 		}
-		if (cardinality < 1024)
+		if (answer.cardinality < 1024)
 			return new ArrayContainer(answer);
 		return answer;
 	}
 
 	@Override
 	public int getSizeInBits() {
-		// TODO Auto-generated method stub		
 		//the standard size is 1024 chunks*64bits each=65536 bits, 
 		//each 1 bit represents an integer between 0 and 65535
 		return 65536; 
@@ -187,12 +191,11 @@ public class BitmapContainer implements Container {
 														// !exist on l'ajoute ds
 														// le bitmap
 			{
-				answer.bitmap[Math.abs(value2.content[k]) / 64] |= (1l << (value2.content[k] % 64));
+				answer.bitmap[toIntUnsigned(value2.content[k])/64 ] |= (1l << (value2.content[k] % 64));
 				answer.cardinality++;
 			} else
-				answer.bitmap[Math.abs(value2.content[k]) / 64] &= ~(1l << (value2.content[k] % 64));
-		// if (answer.cardinality == 0)
-		// return null;// why on Earth?
+				answer.bitmap[toIntUnsigned(value2.content[k])/64] &= ~(1l << (value2.content[k] % 64));
+
 		if (answer.cardinality < 1024)
 			return new ArrayContainer(answer);
 		return answer;
@@ -205,8 +208,7 @@ public class BitmapContainer implements Container {
 			answer.bitmap[k] = value1.bitmap[k] ^ value2.bitmap[k];
 			answer.cardinality += Long.bitCount(answer.bitmap[k]);
 		}
-		// if (answer.cardinality == 0)
-		// return null;// why on Earth?
+
 		if (answer.cardinality < 1024)
 			return new ArrayContainer(answer);
 		return answer;
@@ -215,15 +217,54 @@ public class BitmapContainer implements Container {
 	@Override
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
+		int counter = 0;
 		sb.append("{");
 		int i = this.nextSetBit(0);
-		do {
+		while (i >= 0) {
 			sb.append(i);
+			++counter;
 			i = this.nextSetBit(i + 1);
 			if (i >= 0)
 				sb.append(",");
-		} while (i >= 0);
+		} 
 		sb.append("}");
+		System.out.println("cardinality = "+cardinality+" "+counter);
 		return sb.toString();
 	}
+
+	private int expensiveComputeCardinality() {
+		int counter = 0;
+		for(long x : this.bitmap)
+			counter += Long.bitCount(x);
+		return counter;
+	}
+	
+	
+	@Override
+	public void validate() {
+		int counter = 0;
+		{
+			int i = this.nextSetBit(0);
+			while (i >= 0) {
+				++counter;
+				i = this.nextSetBit(i + 1);
+			}
+		}
+		if(expensiveComputeCardinality() != counter) throw
+		new RuntimeException("problem");
+		if(expensiveComputeCardinality()!= cardinality) throw new RuntimeException(expensiveComputeCardinality()+" "+cardinality);
+	}
+	 
+	@Override
+	public BitmapContainer clone() {
+		try {
+			BitmapContainer x = (BitmapContainer) super.clone();
+			x.cardinality = this.cardinality;
+			x.bitmap = Arrays.copyOf(bitmap,bitmap.length);
+			return x;
+		} catch (CloneNotSupportedException e) {
+			throw new java.lang.RuntimeException();
+		}
+	}
+
 }
