@@ -6,9 +6,7 @@ import java.util.Iterator;
 public class ArrayContainer implements Container, Cloneable {
 	public short[] content;
 	int cardinality = 0;
-	
-	
-
+		
 	public ArrayContainer(BitmapContainer bitmapContainer) {
 		content = new short[bitmapContainer.cardinality];
 		this.cardinality = bitmapContainer.cardinality;
@@ -20,16 +18,18 @@ public class ArrayContainer implements Container, Cloneable {
 		if(pos != this.cardinality) throw new RuntimeException("bug");
 		Arrays.sort(content);
 	}
+	
 	public ArrayContainer(int capacity) {
 		content = new short[capacity];
 	}
+	
 	public ArrayContainer() {
 		content = new short[2048];// we don't want more than 1024
 	}
 
 	@Override
 	public boolean contains(short x) {
-		return Arrays.binarySearch(content, 0, cardinality, x) >= 0;
+		return Arrays.binarySearch(content, 0, cardinality, (short)x) >= 0;
 	}
 
 	/**
@@ -38,7 +38,7 @@ public class ArrayContainer implements Container, Cloneable {
 	 */
 	@Override
 	public Container add(short x) {
-		int loc = Arrays.binarySearch(content, 0, cardinality, x);
+		int loc = Arrays.binarySearch(content, 0, cardinality, (short)x);
 		if (loc < 0) {
 			if (cardinality == content.length) {
 				BitmapContainer a = new BitmapContainer(this);
@@ -49,7 +49,7 @@ public class ArrayContainer implements Container, Cloneable {
 			//and put x in its appropriate place
 			System.arraycopy(content, -loc - 1, content, -loc, cardinality
 					+ loc + 1);
-			content[-loc - 1] = x;
+			content[-loc - 1] = (short)x;
 			++cardinality;
 		}
 		return this;
@@ -121,7 +121,7 @@ public class ArrayContainer implements Container, Cloneable {
 		if(this.cardinality == 0) return;
 		short val1 = this.content[0];
 		for(int k = 1; k< this.cardinality; ++k) {
-			if(val1>this.content[k]) throw new RuntimeException("bug");
+			if(val1>this.content[k]) throw new RuntimeException("bug : content's not sorted");
 			val1 = this.content[k];
 		}
 	}

@@ -252,7 +252,8 @@ public class BitmapContainer implements Container, Cloneable {
 		}
 		if(expensiveComputeCardinality() != counter) throw
 		new RuntimeException("problem");
-		if(expensiveComputeCardinality()!= cardinality) throw new RuntimeException(expensiveComputeCardinality()+" "+cardinality);
+		if(expensiveComputeCardinality()!= cardinality) 
+			throw new RuntimeException(expensiveComputeCardinality()+" "+cardinality);
 	}
 	 
 	@Override
@@ -266,5 +267,4 @@ public class BitmapContainer implements Container, Cloneable {
 			throw new java.lang.RuntimeException();
 		}
 	}
-
 }

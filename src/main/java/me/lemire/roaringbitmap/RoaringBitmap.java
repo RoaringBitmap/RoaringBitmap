@@ -286,24 +286,24 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable {
 				return this;
 			}
 
-			@Override
-			public Integer next() {
-				int lowerbits = child.next().shortValue() & 0xFFFF;
-				actualval = lowerbits | parentw;
-				if (!child.hasNext()) {
-					if (parent.hasNext()) {
-						Entry<Short, Container> esc = parent.next();
-						parentw = esc.getKey().shortValue() << 16;
-						child = esc.getValue().iterator();
-					}
-				}
+	@Override
+	public Integer next() {
+	int lowerbits = child.next().shortValue() & 0xFFFF;
+	actualval = lowerbits | parentw;
+	if (!child.hasNext()) {
+	if (parent.hasNext()) {
+		Entry<Short, Container> esc = parent.next();
+		parentw = esc.getKey().shortValue() << 16;
+		child = esc.getValue().iterator();
+	}
+	}
 				return actualval;
-			}
+	}
 
-			@Override
-			public void remove() {
-				RoaringBitmap.this.remove(actualval);
-			}
+	@Override
+	public void remove() {
+	RoaringBitmap.this.remove(actualval);
+	}
 		}.init();
 	}
 	
