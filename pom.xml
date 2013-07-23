@@ -36,9 +36,7 @@
 <dependency>
     <artifactId>SparseBitmap</artifactId>
     <groupId>com.googlecode.sparsebitmap</groupId>
-     <version>0.0.4</version>
-    <scope>system</scope>
-    <systemPath>${basedir}/lib/SparseBitmap-0.0.4-SNAPSHOT.jar</systemPath>
+     <version>0.0.3</version>
 </dependency>
 <dependency>
     <artifactId>WAHBitset</artifactId>
