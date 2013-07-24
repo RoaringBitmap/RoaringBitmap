@@ -17,6 +17,8 @@
           </license>
         </licenses>
 	<dependencyManagement>
+	
+	
 		<dependencies>
 			<dependency>
 				<groupId>junit</groupId>
@@ -26,6 +28,31 @@
 		</dependencies>
 	</dependencyManagement>
 	<dependencies>
+	 <dependency>
+     <groupId>com.googlecode.javaewah</groupId>
+     <artifactId>JavaEWAH</artifactId>
+     <version>0.7.1</version>
+     </dependency>
+<dependency>
+    <artifactId>SparseBitmap</artifactId>
+    <groupId>com.googlecode.sparsebitmap</groupId>
+     <version>0.0.3</version>
+</dependency>
+<dependency>
+    <artifactId>WAHBitset</artifactId>
+    <groupId>org.devbrat.util.WAHBitSet</groupId>
+     <version>0.1.0</version>
+    <scope>system</scope>
+    <systemPath>${basedir}/lib/compressedbitset-0.1.jar</systemPath>
+</dependency>
+
+<dependency>
+    <artifactId>ConciseSet</artifactId>
+    <groupId>it.uniroma3.mat.extendedset.intset.ConciseSet</groupId>
+     <version>2.2.0</version>
+    <scope>system</scope>
+    <systemPath>${basedir}/lib/extendedset_2.2.jar</systemPath>
+</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -41,7 +68,7 @@
   <artifactId>exec-maven-plugin</artifactId>
   <version>1.1</version>
   <configuration>
-    <mainClass>something</mainClass>
+    <mainClass>me.lemire.roaringbitmap.experiments.Benchmark</mainClass>
   </configuration>
 </plugin>
 			<plugin>

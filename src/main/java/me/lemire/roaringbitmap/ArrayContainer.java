@@ -29,7 +29,7 @@ public class ArrayContainer implements Container, Cloneable {
 
 	@Override
 	public boolean contains(short x) {
-		return Arrays.binarySearch(content, 0, cardinality, (short)x) >= 0;
+		return Arrays.binarySearch(content, 0, cardinality, x) >= 0;
 	}
 
 	/**
@@ -38,7 +38,7 @@ public class ArrayContainer implements Container, Cloneable {
 	 */
 	@Override
 	public Container add(short x) {
-		int loc = Arrays.binarySearch(content, 0, cardinality, (short)x);
+		int loc = Arrays.binarySearch(content, 0, cardinality, x);
 		if (loc < 0) {
 			if (cardinality == content.length) {
 				BitmapContainer a = new BitmapContainer(this);
@@ -49,7 +49,7 @@ public class ArrayContainer implements Container, Cloneable {
 			//and put x in its appropriate place
 			System.arraycopy(content, -loc - 1, content, -loc, cardinality
 					+ loc + 1);
-			content[-loc - 1] = (short)x;
+			content[-loc - 1] = x;
 			++cardinality;
 		}
 		return this;

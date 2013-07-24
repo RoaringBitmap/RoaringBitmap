@@ -13,5 +13,6 @@ mvn compile will compile
 mvn test will run the unit tests
 mvn package will package in a jar (found in target)
 
+mvn exec:java will run a benchmark
 
 Note: Eclipse supports maven projects (though a plugin might be required)
