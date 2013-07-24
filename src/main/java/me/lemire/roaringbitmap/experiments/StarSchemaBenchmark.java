@@ -2,28 +2,82 @@ package me.lemire.roaringbitmap.experiments;
 
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.BitSet;
 import java.util.Iterator;
-
-import me.lemire.roaringbitmap.RoaringBitmap;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+import java.util.Vector;
 
 import org.devbrat.util.WAHBitSet;
-import sparsebitmap.SparseBitmap;
+
 import com.googlecode.javaewah.EWAHCompressedBitmap;
 import com.googlecode.javaewah32.EWAHCompressedBitmap32;
 
-public class Benchmark {
+import me.lemire.roaringbitmap.BitmapContainer;
+import me.lemire.roaringbitmap.RoaringBitmap;
 
+public class StarSchemaBenchmark {	
+		
+	static TreeMap<String, Vector<Integer>> BitmapIdx = new TreeMap<String, Vector<Integer>>();
 	/**
 	 * @param args
-	 */
+	 */ 
 	public static void main(String[] args) {
-		test(10, 18, 10);
-	}	
-
-	public static void testRoaringBitmap(int[][] data, int[][] data2, int repeat, DecimalFormat df) {
-		System.out.println("# RoaringBitmap");
+		// TODO Auto-generated method stub
+		StarSchemaBenchmark ssb = new StarSchemaBenchmark();
+		ssb.BuildingSSBbitmaps();
+		
+		DecimalFormat df = new DecimalFormat("0.###");				
+		ssb.testRoaringBitmap(10, df);
+		ssb.testBitSet(10, df);	
+		ssb.testConciseSet(10, df);
+		//ssb.testWAH32(10, df);
+		ssb.testEWAH64(10, df);
+		ssb.testEWAH32(10, df);
+		
+		//System.out.println(ssb.toString());
+	}
+		
+	public void BuildingSSBbitmaps() {
+		try
+		{
+		   String chemin = "G:/Downloads/smallssb.csv";
+		   BufferedReader fichier_source = new BufferedReader(new FileReader(chemin));
+		   String chaine;
+		   int row = 1;
+		 
+		   try {
+			while((chaine = fichier_source.readLine())!= null)
+			   {			      
+			         String[] tabChaine = chaine.split(",");
+			         
+			         for(int i=0; i<tabChaine.length; i++)
+			        	 //System.out.print(tabChaine[i]+" ");System.out.println();
+			        	 if(BitmapIdx.containsKey("C"+i+"_"+tabChaine[i]))			        		 
+			        		 BitmapIdx.get("C"+i+"_"+tabChaine[i]).add(row);
+			        	 
+			         else {			        	 
+			        	 Vector<Integer> bitmap = new Vector<Integer>();
+			        	 bitmap.add(row);
+			        	 BitmapIdx.put("C"+i+"_"+tabChaine[i], bitmap);			        	 
+			         }
+			         row++;
+			   }		   
+			fichier_source.close();
+		   } catch (IOException e1) {e1.printStackTrace();}            
+		}
+		catch (FileNotFoundException e)		{
+		   System.out.println("Sorry, file not found !");
+		}	
+	}
+	
+	public void testRoaringBitmap(int repeat, DecimalFormat df) {
+		System.out.println("# RoaringBitmap on Star Schema Benchmark");
 		System.out.println("# size, construction time, time to recover set bits, " +
 						"time to compute unions (OR), intersections (AND) " +
 						"and exclusive unions (XOR) ");
@@ -31,20 +85,25 @@ public class Benchmark {
 		long bef, aft;		
 		String line = "";		
 		int bogus  = 0;
-		int N = data.length;
+		int N = BitmapIdx.size()/2;
 		bef = System.currentTimeMillis();
 		RoaringBitmap[] bitmap = new RoaringBitmap[N];
 		int size = 0;
-		for (int r = 0; r < repeat; ++r) {
+		
+		//for (int r = 0; r < repeat; ++r) {
 			size = 0;
+			final Iterator<Entry<String, Vector<Integer>>> I = BitmapIdx.entrySet().iterator();
+			Entry<String, Vector<Integer>> s; 		
+			
 			for (int k = 0; k < N; ++k) {
 				bitmap[k] = new RoaringBitmap();
-				for (int x = 0; x < data[k].length; ++x) {
-					bitmap[k].set(data[k][x]);
-				}
+				s=I.next();
+				for(int j=0; j<s.getValue().size(); j++)
+				bitmap[k].set(s.getValue().elementAt(j));
+				
 				size += bitmap[k].getSizeInBytes();
 			}
-		}
+		//}
 		aft = System.currentTimeMillis();
 		line += "\t" + size / 1024;
 		line += "\t" + df.format((aft - bef) / 1000.0);
@@ -60,12 +119,18 @@ public class Benchmark {
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
 		//Creating and filling the second roaringBitmap index
+		//final Iterator<Entry<String, Vector<Integer>>> I = this.BitmapIdx.entrySet().iterator();
+		//Entry<String, Vector<Integer>> s; 				
 		RoaringBitmap[] bitmap2 = new RoaringBitmap[N];
 		for (int k = 0; k < N; ++k) {
 			bitmap2[k] = new RoaringBitmap();
-			for (int x = 0; x < data2[k].length; ++x)
-				bitmap2[k].set(data2[k][x]);						
+			while(I.hasNext()) {
+				s=I.next();
+				for(int j=0; j<s.getValue().size(); j++)
+				bitmap2[k].set(s.getValue().elementAt(j));
+			}
 		}
+		
 		for(RoaringBitmap rb: bitmap2) rb.validate();	
 		
 		// logical or + retrieval
@@ -172,27 +237,32 @@ public class Benchmark {
 		System.out.println("# ignore this "+bogus);
 	}
 	
-	public static void testBitSet(int[][] data, int[][] data2, int repeat, DecimalFormat df) {
+	public void testBitSet(int repeat, DecimalFormat df) {
 		System.out.println("# BitSet");
 		System.out.println("# size, construction time, time to recover set bits, " +
 						"time to compute unions (OR), intersections (AND) " +
 						"and exclusive unions (XOR) ");
 		long bef, aft;
 		String line = "";		
-		int N = data.length;
+		int N = BitmapIdx.size()/2;
 		bef = System.currentTimeMillis();
 		BitSet[] bitmap = new BitSet[N];
-		int size = 0;
-		for (int r = 0; r < repeat; ++r) {
-			size = 0;
-			for (int k = 0; k < N; ++k) {
-				bitmap[k] = new BitSet();
-				for (int x = 0; x < data[k].length; ++x) {
-					bitmap[k].set(data[k][x]);
-				}
-				size += bitmap[k].size() / 8;
-			}
+		int size;
+		
+		//for (int r = 0; r < repeat; ++r) {
+		size = 0;
+		final Iterator<Entry<String, Vector<Integer>>> I = BitmapIdx.entrySet().iterator();
+		Entry<String, Vector<Integer>> s; 			
+						
+		for (int k = 0; k < N; ++k) {
+			bitmap[k] = new BitSet();
+			s=I.next();
+			for(int j=0; j<s.getValue().size(); j++)
+			bitmap[k].set(s.getValue().elementAt(j));
+				
+			size += bitmap[k].size() / 8;
 		}
+		//}
 		aft = System.currentTimeMillis();
 		line += "\t" + size / 1024;
 		line += "\t" + df.format((aft - bef) / 1000.0);
@@ -214,9 +284,12 @@ public class Benchmark {
 		BitSet[] bitmap2 = new BitSet[N];
 		for (int k = 0; k < N; ++k) {
 			bitmap2[k] = new BitSet();
-			for (int x = 0; x < data2[k].length; ++x)
-				bitmap2[k].set(data2[k][x]);						
-		}
+			while(I.hasNext()) {
+				s=I.next();
+				for(int j=0; j<s.getValue().size(); j++)
+				bitmap2[k].set(s.getValue().elementAt(j));
+			}
+		}			
 		
 		// logical or + retrieval
 		bef = System.currentTimeMillis();
@@ -280,28 +353,114 @@ public class Benchmark {
 				line += "\t" + df.format((aft - bef) / 1000.0);
 
 		System.out.println(line);		
+	}	
+	
+	public void testConciseSet(int repeat, DecimalFormat df) {
+		System.out
+				.println("# ConciseSet 32 bit using the extendedset_2.2 library");
+		System.out
+				.println("# size, construction time, time to recover set bits, time to compute unions  and intersections ");
+		long bef, aft;
+		String line = "";
+		
+		int N = BitmapIdx.size()/2;
+		bef = System.currentTimeMillis();
+		ConciseSet[] bitmap = new ConciseSet[N];
+		int size = 0;
+		//for (int r = 0; r < repeat; ++r) {
+			size = 0;
+			final Iterator<Entry<String, Vector<Integer>>> I = BitmapIdx.entrySet().iterator();
+			Entry<String, Vector<Integer>> s; 			
+				
+			for (int k = 0; k < N; ++k) {
+				bitmap[k] = new ConciseSet();
+				s=I.next();
+				for(int j=0; j<s.getValue().size(); j++)
+				bitmap[k].add(s.getValue().elementAt(j));
+				
+				size += (int) (bitmap[k].size() * bitmap[k]
+						.collectionCompressionRatio()) * 4;
+			}
+		//}
+		aft = System.currentTimeMillis();
+		line += "\t" + size / 1024;
+		line += "\t" + df.format((aft - bef) / 1000.0);
+		// uncompressing
+		bef = System.currentTimeMillis();
+		for (int r = 0; r < repeat; ++r)
+			for (int k = 0; k < N; ++k) {
+				int[] array = bitmap[k].toArray();				
+			}
+		aft = System.currentTimeMillis();
+		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		//Creating and filling the 2nd Concise index
+		ConciseSet[] bitmap2 = new ConciseSet[N];
+		for (int k = 0; k < N; ++k) {
+			bitmap2[k] = new ConciseSet();
+			while(I.hasNext()) {
+				s=I.next();
+				for(int j=0; j<s.getValue().size(); j++)
+				bitmap2[k].add(s.getValue().elementAt(j));
+			}						
+		}
+				
+		// logical or + retrieval
+		bef = System.currentTimeMillis();
+		for (int r = 0; r < repeat; ++r) {
+			ConciseSet bitmapor1 = bitmap[0].clone();
+			ConciseSet bitmapor2 = bitmap2[0].clone();
+			for (int k = 1; k < N; ++k) {				
+				bitmapor1.union(bitmap[k]);
+				bitmapor2.union(bitmap2[k]);
+			}
+			bitmapor1.union(bitmapor2);
+			int[] array = bitmapor1.toArray();									   
+			}	
+		aft = System.currentTimeMillis();
+		line += "\t" + df.format((aft - bef) / 1000.0);
+				
+		// logical and + retrieval
+		bef = System.currentTimeMillis();
+		for (int r = 0; r < repeat; ++r) {
+			ConciseSet bitmapand1 = bitmap[0].clone();
+			ConciseSet bitmapand2 = bitmap2[0].clone();
+			for (int k = 1; k < N; ++k) {				
+				bitmapand1.union(bitmap[k]);
+				bitmapand2.union(bitmap2[k]);
+			}
+			bitmapand1.intersection(bitmapand2);
+			int[] array = bitmapand1.toArray();									   
+		}	
+		aft = System.currentTimeMillis();
+		line += "\t" + df.format((aft - bef) / 1000.0);
+		System.out.println(line);
 	}
-
-	public static void testWAH32(int[][] data, int[][] data2, int repeat, DecimalFormat df) {
+	
+	public void testWAH32(int repeat, DecimalFormat df) {
 		System.out.println("# WAH 32 bit using the compressedbitset library");
 		System.out.println("# size, construction time, time to recover set bits, " +
 						"time to compute unions (OR), intersections (AND)");
 		long bef, aft;
 		String line = "";		
-		int N = data.length;
+		int N = BitmapIdx.size()/2;
 		bef = System.currentTimeMillis();
 		WAHBitSet[] bitmap = new WAHBitSet[N];
 		int size = 0;
-		for (int r = 0; r < repeat; ++r) {
+		//for (int r = 0; r < repeat; ++r) {
 			size = 0;
+			final Iterator<Entry<String, Vector<Integer>>> I = BitmapIdx.entrySet().iterator();
+			Entry<String, Vector<Integer>> s; 			
+			
 			for (int k = 0; k < N; ++k) {
 				bitmap[k] = new WAHBitSet();
-				for (int x = 0; x < data[k].length; ++x) {
-					bitmap[k].set(data[k][x]);
-				}
+				s=I.next();
+				for(int j=0; j<s.getValue().size(); j++)
+				bitmap[k].set(s.getValue().elementAt(j));
+				
 				size += bitmap[k].memSize()*4;
 			}
-		}
+		//}
 		aft = System.currentTimeMillis();
 		line += "\t" + size / 1024;
 		line += "\t" + df.format((aft - bef) / 1000.0);
@@ -322,8 +481,11 @@ public class Benchmark {
 		WAHBitSet[] bitmap2 = new WAHBitSet[N];
 		for (int k = 0; k < N; ++k) {
 			bitmap2[k] = new WAHBitSet();
-			for (int x = 0; x < data2[k].length; ++x)
-				bitmap2[k].set(data2[k][x]);						
+			while(I.hasNext()) {
+				s=I.next();
+				for(int j=0; j<s.getValue().size(); j++)
+				bitmap2[k].set(s.getValue().elementAt(j));
+			}						
 		}
 		
 		// logical or + retrieval
@@ -366,188 +528,30 @@ public class Benchmark {
 
 		System.out.println(line);		
 	}
-
-	public static void testConciseSet(int[][] data, int[][] data2, int repeat, DecimalFormat df) {
-		System.out
-				.println("# ConciseSet 32 bit using the extendedset_2.2 library");
-		System.out
-				.println("# size, construction time, time to recover set bits, time to compute unions  and intersections ");
-		long bef, aft;
-		String line = "";
-		
-		int N = data.length;
-		bef = System.currentTimeMillis();
-		ConciseSet[] bitmap = new ConciseSet[N];
-		int size = 0;
-		for (int r = 0; r < repeat; ++r) {
-			size = 0;
-			for (int k = 0; k < N; ++k) {
-				bitmap[k] = new ConciseSet();
-				for (int x = 0; x < data[k].length; ++x) {
-					bitmap[k].add(data[k][x]);
-				}
-				size += (int) (bitmap[k].size() * bitmap[k]
-						.collectionCompressionRatio()) * 4;
-			}
-		}
-		aft = System.currentTimeMillis();
-		line += "\t" + size / 1024;
-		line += "\t" + df.format((aft - bef) / 1000.0);
-		// uncompressing
-		bef = System.currentTimeMillis();
-		for (int r = 0; r < repeat; ++r)
-			for (int k = 0; k < N; ++k) {
-				int[] array = bitmap[k].toArray();				
-			}
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
-		
-		//Creating and filling the 2nd Concise index
-		ConciseSet[] bitmap2 = new ConciseSet[N];
-		for (int k = 0; k < N; ++k) {
-			bitmap2[k] = new ConciseSet();
-			for (int x = 0; x < data2[k].length; ++x)
-				bitmap2[k].add(data2[k][x]);						
-			}
-				
-		// logical or + retrieval
-		bef = System.currentTimeMillis();
-		for (int r = 0; r < repeat; ++r) {
-			ConciseSet bitmapor1 = bitmap[0].clone();
-			ConciseSet bitmapor2 = bitmap2[0].clone();
-			for (int k = 1; k < N; ++k) {				
-				bitmapor1.union(bitmap[k]);
-				bitmapor2.union(bitmap2[k]);
-			}
-			bitmapor1.union(bitmapor2);
-			int[] array = bitmapor1.toArray();									   
-			}	
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
-				
-		// logical and + retrieval
-		bef = System.currentTimeMillis();
-		for (int r = 0; r < repeat; ++r) {
-			ConciseSet bitmapand1 = bitmap[0].clone();
-			ConciseSet bitmapand2 = bitmap2[0].clone();
-			for (int k = 1; k < N; ++k) {				
-				bitmapand1.union(bitmap[k]);
-				bitmapand2.union(bitmap2[k]);
-			}
-			bitmapand1.intersection(bitmapand2);
-			int[] array = bitmapand1.toArray();									   
-		}	
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
-		System.out.println(line);
-	}
 	
-	public static void testSparseBitmap(int[][] data, int[][] data2, int repeat, DecimalFormat df) {
-		System.out.println("# simple sparse bitmap implementation");
-		System.out
-				.println("# size, construction time, time to recover set bits, time to compute unions (OR), intersections (AND) and exclusive unions (XOR) ");
-		long bef, aft;
-		String line = "";
-		int N = data.length;
-		bef = System.currentTimeMillis();
-		SparseBitmap[] bitmap = new SparseBitmap[N];
-		int size = 0;
-		for (int r = 0; r < repeat; ++r) {
-			size = 0;
-			for (int k = 0; k < N; ++k) {
-				bitmap[k] = new SparseBitmap();
-				for (int x = 0; x < data[k].length; ++x) {
-					bitmap[k].set(data[k][x]);
-				}
-				size += bitmap[k].sizeInBytes();
-			}
-		}
-		aft = System.currentTimeMillis();
-		line += "\t" + size / 1024;
-		line += "\t" + df.format((aft - bef) / 1000.0);
-		// uncompressing
-		bef = System.currentTimeMillis();
-		for (int r = 0; r < repeat; ++r)
-			for (int k = 0; k < N; ++k) {
-				int[] array = bitmap[k].toArray();
-			}
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
-		
-		//Creating and filling the 2nd SparseBitmap index
-		SparseBitmap[] bitmap2 = new SparseBitmap[N];
-		for (int k = 0; k < N; ++k) {
-			bitmap2[k] = new SparseBitmap();
-			for (int x = 0; x < data2[k].length; ++x)
-			bitmap2[k].set(data2[k][x]);						
-		}
-		
-		// logical or + retrieval
-		bef = System.currentTimeMillis();
-		for (int r = 0; r < repeat; ++r) {
-			SparseBitmap bitmapor1 = new SparseBitmap();
-			SparseBitmap bitmapor2 = new SparseBitmap();
-			for (int k = 0; k < N; ++k) {				
-				bitmapor1.or(bitmap[k]);
-				bitmapor2.or(bitmap2[k]);
-			}
-		bitmapor1.or(bitmapor2);
-				int[] array = bitmapor1.toArray();
-			}
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
-		
-		// logical xor + retrieval
-		bef = System.currentTimeMillis();
-		for (int r = 0; r < repeat; ++r) {
-			SparseBitmap bitmapxor1 = new SparseBitmap();
-			SparseBitmap bitmapxor2 = new SparseBitmap();
-			for (int k = 0; k < N; ++k) {				
-				bitmapxor1.xor(bitmap[k]);
-				bitmapxor2.xor(bitmap2[k]);
-			}
-		bitmapxor1.xor(bitmapxor2);
-				int[] array = bitmapxor1.toArray();
-			}
-		aft = System.currentTimeMillis();
-		String xorTime = "\t" + df.format((aft - bef) / 1000.0);
-		
-		// logical and + retrieval
-		bef = System.currentTimeMillis();
-		for (int r = 0; r < repeat; ++r) {			
-			for (int k = 1; k < N; ++k) {				
-				bitmap[0].and(bitmap[k]);
-				bitmap2[0].and(bitmap2[k]);
-			}
-		bitmap[0].and(bitmap2[0]);
-		int[] array = bitmap[0].toArray();
-		}
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0) + xorTime;
-
-		System.out.println(line);		
-	}
-
-	public static void testEWAH64(int[][] data, int[][] data2, int repeat, DecimalFormat df) {
-		System.out.println("# EWAH using the javaewah library");
+	public void testEWAH64(int repeat, DecimalFormat df) {
+		System.out.println("# EWAH 64bits using the javaewah library");
 		System.out
 				.println("# size, construction time, time to recover set bits, time to compute unions  and intersections ");
 		long bef, aft;
 		String line = "";		
-		int N = data.length;
+		int N = BitmapIdx.size()/2;
 		bef = System.currentTimeMillis();
 		EWAHCompressedBitmap[] ewah = new EWAHCompressedBitmap[N];
 		int size = 0;
-		for (int r = 0; r < repeat; ++r) {
+		//for (int r = 0; r < repeat; ++r) {
+			final Iterator<Entry<String, Vector<Integer>>> I = BitmapIdx.entrySet().iterator();
+			Entry<String, Vector<Integer>> s; 			
+			
 			size = 0;
 			for (int k = 0; k < N; ++k) {
 				ewah[k] = new EWAHCompressedBitmap();
-				for (int x = 0; x < data[k].length; ++x) {
-					ewah[k].set(data[k][x]);
-				}
+				s=I.next();
+				for(int j=0; j<s.getValue().size(); j++)
+				ewah[k].set(s.getValue().elementAt(j));
 				size += ewah[k].sizeInBytes();
 			}
-		}
+		//}
 		aft = System.currentTimeMillis();
 		line += "\t" + size / 1024;
 		line += "\t" + df.format((aft - bef) / 1000.0);
@@ -565,8 +569,11 @@ public class Benchmark {
 		EWAHCompressedBitmap[] ewah2 = new EWAHCompressedBitmap[N];
 		for (int k = 0; k < N; ++k) {
 			ewah2[k] = new EWAHCompressedBitmap();
-			for (int x = 0; x < data2[k].length; ++x)
-				ewah2[k].set(data2[k][x]);						
+			while(I.hasNext()) {
+				s=I.next();
+				for(int j=0; j<s.getValue().size(); j++)
+				ewah2[k].set(s.getValue().elementAt(j));
+			}						
 		}
 		
 		// fast logical or + retrieval
@@ -622,28 +629,32 @@ public class Benchmark {
 		
 		System.out.println(line);
 	}
-
-	public static void testEWAH32(int[][] data, int[][] data2, int repeat, DecimalFormat df) {
+	
+	public void testEWAH32(int repeat, DecimalFormat df) {
 		System.out.println("# EWAH 32-bit using the javaewah library");
 		System.out
 				.println("# size, construction time, time to recover set bits, time to compute unions  and intersections ");
 		long bef, aft;
 		String line = "";
 		long bogus = 0;
-		int N = data.length;
+		int N = BitmapIdx.size()/2;
 		bef = System.currentTimeMillis();
 		EWAHCompressedBitmap32[] ewah = new EWAHCompressedBitmap32[N];
-		int size = 0;
-		for (int r = 0; r < repeat; ++r) {
-			size = 0;
-			for (int k = 0; k < N; ++k) {
-				ewah[k] = new EWAHCompressedBitmap32();
-				for (int x = 0; x < data[k].length; ++x) {
-					ewah[k].set(data[k][x]);
-				}
-				size += ewah[k].sizeInBytes();
-			}
+		int size;
+		//for (int r = 0; r < repeat; ++r) {
+		final Iterator<Entry<String, Vector<Integer>>> I = BitmapIdx.entrySet().iterator();
+		Entry<String, Vector<Integer>> s; 			
+		
+		size = 0;
+		for (int k = 0; k < N; ++k) {
+			ewah[k] = new EWAHCompressedBitmap32();
+			s=I.next();
+			for(int j=0; j<s.getValue().size(); j++)
+			ewah[k].set(s.getValue().elementAt(j));
+			
+		size += ewah[k].sizeInBytes();
 		}
+		//}
 		aft = System.currentTimeMillis();
 		line += "\t" + size / 1024;
 		line += "\t" + df.format((aft - bef) / 1000.0);
@@ -661,8 +672,11 @@ public class Benchmark {
 		EWAHCompressedBitmap32[] ewah2 = new EWAHCompressedBitmap32[N];
 		for (int k = 0; k < N; ++k) {
 			ewah2[k] = new EWAHCompressedBitmap32();
-			for (int x = 0; x < data2[k].length; ++x)
-				ewah2[k].set(data2[k][x]);						
+			while(I.hasNext()) {
+				s=I.next();
+				for(int j=0; j<s.getValue().size(); j++)
+				ewah2[k].set(s.getValue().elementAt(j));
+			}						
 		}
 		
 		// fast logical or + retrieval
@@ -719,48 +733,19 @@ public class Benchmark {
 		System.out.println(line);
 	}
 	
-	public static void test(int N, int nbr, int repeat) {
-		DecimalFormat df = new DecimalFormat("0.###");
-		ClusteredDataGenerator cdg = new ClusteredDataGenerator();
-		System.out.println("# For each instance, we report the size, the construction time, ");
-		System.out.println("# the time required to recover the set bits,");
-		System.out
-				.println("# and the time required to compute logical ors (unions) between lots of bitmaps.");
-		for (int sparsity = 1; sparsity < 31 - nbr; sparsity++) {
-			int[][] data = new int[N][];
-			int[][] data2 = new int[N][];
-			int Max = (1 << (nbr + sparsity));
-			System.out.println("# generating random data...");
-			//Generating the first set
-			int[] inter = cdg.generateClustered(1 << (nbr / 2), Max);
-			int counter = 0;
-			for (int k = 0; k < N; ++k) {
-				data[k] = IntUtil.unite(inter,
-						cdg.generateClustered(1 << nbr, Max));
-				counter += data[k].length;
-			}
-			//Generating the 2nd set
-			inter = cdg.generateClustered(1 << (nbr / 2), Max);
-			counter = 0;
-			for (int k = 0; k < N; ++k) {
-				data2[k] = IntUtil.unite(inter,
-						cdg.generateClustered(1 << nbr, Max));
-				counter += data2[k].length;
-			}
-			System.out.println("# generating random data... ok.");
-			System.out.println("#  average set bit per 32-bit word = "
-					+ df.format((counter / (data.length / 32.0 * Max))));
-
-			// building			
-			testBitSet(data, data2, repeat, df);
-			testRoaringBitmap(data, data2, repeat, df);
-			testWAH32(data, data2, repeat, df);
-			testConciseSet(data, data2, repeat, df);
-			testSparseBitmap(data, data2, repeat, df);
-			testEWAH64(data, data2, repeat, df);
-			testEWAH32(data, data2, repeat, df);
-			
-			System.out.println();
-		}
+	@Override
+	public String toString() {
+		StringBuffer sb = new StringBuffer();
+		final Iterator<Entry<String, Vector<Integer>>> I = this.BitmapIdx.entrySet().iterator();
+		Entry<String, Vector<Integer>> s; 
+		int counter = 0;
+		
+		while(I.hasNext()) {
+			s = I.next();
+			counter++;
+			sb.append(s.getKey()+" :: "+s.getValue().toString()+"\n");
+		}		
+		System.out.println("cardinality = "+BitmapIdx.size()+" "+counter);
+		return sb.toString();
 	}
 }
