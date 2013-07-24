@@ -25,6 +25,10 @@ public class StarSchemaBenchmark {
 	/**
 	 * Please use ArrayList instead of Vector. For speed.
 	 */
+	/**
+	 * TODO: use one TreeMap per column instead of one giant
+	 * TreeMap that confounds all columns.
+	 */
 	static TreeMap<String, ArrayList<Integer>> BitmapIdx = new TreeMap<String, ArrayList<Integer>>();
 	/**
 	 * @param args
