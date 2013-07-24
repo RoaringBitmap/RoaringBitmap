@@ -374,6 +374,7 @@ public class Benchmark {
 				.println("# size, construction time, time to recover set bits, time to compute unions  and intersections ");
 		long bef, aft;
 		String line = "";
+		int bogus = 0;
 		
 		int N = data.length;
 		bef = System.currentTimeMillis();
@@ -397,7 +398,8 @@ public class Benchmark {
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r)
 			for (int k = 0; k < N; ++k) {
-				int[] array = bitmap[k].toArray();				
+				int[] array = bitmap[k].toArray();	
+				bogus += array.length;
 			}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
@@ -420,7 +422,8 @@ public class Benchmark {
 				bitmapor2.union(bitmap2[k]);
 			}
 			bitmapor1.union(bitmapor2);
-			int[] array = bitmapor1.toArray();									   
+			int[] array = bitmapor1.toArray();	
+			bogus += array.length;
 			}	
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
@@ -435,11 +438,14 @@ public class Benchmark {
 				bitmapand2.union(bitmap2[k]);
 			}
 			bitmapand1.intersection(bitmapand2);
-			int[] array = bitmapand1.toArray();									   
+			int[] array = bitmapand1.toArray();	
+			bogus += array.length;
 		}	
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		System.out.println(line);
+		System.out.println("# ignore this "+bogus);
+
 	}
 	
 	public static void testSparseBitmap(int[][] data, int[][] data2, int repeat, DecimalFormat df) {
@@ -447,6 +453,7 @@ public class Benchmark {
 		System.out
 				.println("# size, construction time, time to recover set bits, time to compute unions (OR), intersections (AND) and exclusive unions (XOR) ");
 		long bef, aft;
+		int bogus = 0;
 		String line = "";
 		int N = data.length;
 		bef = System.currentTimeMillis();
@@ -470,6 +477,7 @@ public class Benchmark {
 		for (int r = 0; r < repeat; ++r)
 			for (int k = 0; k < N; ++k) {
 				int[] array = bitmap[k].toArray();
+				bogus += array.length;
 			}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
@@ -493,6 +501,7 @@ public class Benchmark {
 			}
 		bitmapor1.or(bitmapor2);
 				int[] array = bitmapor1.toArray();
+				bogus += array.length;
 			}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
@@ -508,6 +517,7 @@ public class Benchmark {
 			}
 		bitmapxor1.xor(bitmapxor2);
 				int[] array = bitmapxor1.toArray();
+				bogus += array.length;
 			}
 		aft = System.currentTimeMillis();
 		String xorTime = "\t" + df.format((aft - bef) / 1000.0);
@@ -521,11 +531,14 @@ public class Benchmark {
 			}
 		bitmap[0].and(bitmap2[0]);
 		int[] array = bitmap[0].toArray();
+		bogus += array.length;
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0) + xorTime;
 
 		System.out.println(line);		
+		System.out.println("# ignore this "+bogus);
+
 	}
 
 	public static void testEWAH64(int[][] data, int[][] data2, int repeat, DecimalFormat df) {
@@ -534,6 +547,7 @@ public class Benchmark {
 				.println("# size, construction time, time to recover set bits, time to compute unions  and intersections ");
 		long bef, aft;
 		String line = "";		
+		int bogus = 0;
 		int N = data.length;
 		bef = System.currentTimeMillis();
 		EWAHCompressedBitmap[] ewah = new EWAHCompressedBitmap[N];
@@ -557,6 +571,7 @@ public class Benchmark {
 		for (int r = 0; r < repeat; ++r)
 			for (int k = 0; k < N; ++k) {
 				int[] array = ewah[k].toArray();
+				bogus += array.length;
 			}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
@@ -573,14 +588,15 @@ public class Benchmark {
 		bef = System.currentTimeMillis();
 		try {
 		for (int r = 0; r < repeat; ++r) {
-			EWAHCompressedBitmap ewahor1 = (EWAHCompressedBitmap) ewah[0].clone();
-			EWAHCompressedBitmap ewahor2 = (EWAHCompressedBitmap) ewah2[0].clone();
+			EWAHCompressedBitmap ewahor1 = ewah[0].clone();
+			EWAHCompressedBitmap ewahor2 = ewah2[0].clone();
 			for (int k = 1; k < N; ++k) {				
 				ewahor1.or(ewah[k]);
 				ewahor2.or(ewah2[k]);
 			}
 		ewahor1.or(ewahor2);
 		int[] array = ewahor1.toArray();
+		bogus += array.length;
 		}
 		}catch(CloneNotSupportedException e){System.out.println("bug : clone ewah64 or");};		
 		aft = System.currentTimeMillis();
@@ -590,14 +606,15 @@ public class Benchmark {
 		bef = System.currentTimeMillis();
 		try {
 		for (int r = 0; r < repeat; ++r) {
-			EWAHCompressedBitmap ewahand1 = (EWAHCompressedBitmap) ewah[0].clone();
-			EWAHCompressedBitmap ewahand2 = (EWAHCompressedBitmap) ewah2[0].clone();
+			EWAHCompressedBitmap ewahand1 = ewah[0].clone();
+			EWAHCompressedBitmap ewahand2 = ewah2[0].clone();
 			for (int k = 1; k < N; ++k) {				
 				ewahand1.and(ewah[k]);
 				ewahand2.and(ewah2[k]);
 			}
 		ewahand1.and(ewahand2);
 		int[] array = ewahand1.toArray();
+		bogus += array.length;
 		}
 		}catch(CloneNotSupportedException e){System.out.println("bug : clone ewah64 and");};		
 		aft = System.currentTimeMillis();
@@ -607,20 +624,23 @@ public class Benchmark {
 		bef = System.currentTimeMillis();
 		try {
 		for (int r = 0; r < repeat; ++r) {
-			EWAHCompressedBitmap ewahxor1 = (EWAHCompressedBitmap) ewah[0].clone();
-			EWAHCompressedBitmap ewahxor2 = (EWAHCompressedBitmap) ewah2[0].clone();
+			EWAHCompressedBitmap ewahxor1 = ewah[0].clone();
+			EWAHCompressedBitmap ewahxor2 = ewah2[0].clone();
 			for (int k = 1; k < N; ++k) {				
 				ewahxor1.xor(ewah[k]);
 				ewahxor2.xor(ewah2[k]);
 			}
 		ewahxor1.xor(ewahxor2);
 		int[] array = ewahxor1.toArray();
+		bogus += array.length;
 		}
 		}catch(CloneNotSupportedException e){System.out.println("bug : clone ewah64 xor");};		
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);		
 		
 		System.out.println(line);
+		System.out.println("# ignore this "+bogus);
+
 	}
 
 	public static void testEWAH32(int[][] data, int[][] data2, int repeat, DecimalFormat df) {
@@ -669,14 +689,15 @@ public class Benchmark {
 		bef = System.currentTimeMillis();
 		try {
 		for (int r = 0; r < repeat; ++r) {
-			EWAHCompressedBitmap32 ewahor1 = (EWAHCompressedBitmap32) ewah[0].clone();
-			EWAHCompressedBitmap32 ewahor2 = (EWAHCompressedBitmap32) ewah2[0].clone();
+			EWAHCompressedBitmap32 ewahor1 = ewah[0].clone();
+			EWAHCompressedBitmap32 ewahor2 = ewah2[0].clone();
 			for (int k = 1; k < N; ++k) {				
 				ewahor1.or(ewah[k]);
 				ewahor2.or(ewah2[k]);
 			}
 		ewahor1.or(ewahor2);
 		int[] array = ewahor1.toArray();
+		bogus += array.length;
 		}
 		}catch(CloneNotSupportedException e){System.out.println("bug : clone ewah32 or");};		
 		aft = System.currentTimeMillis();
@@ -686,14 +707,15 @@ public class Benchmark {
 		bef = System.currentTimeMillis();
 		try {
 		for (int r = 0; r < repeat; ++r) {
-			EWAHCompressedBitmap32 ewahand1 = (EWAHCompressedBitmap32) ewah[0].clone();
-			EWAHCompressedBitmap32 ewahand2 = (EWAHCompressedBitmap32) ewah2[0].clone();
+			EWAHCompressedBitmap32 ewahand1 = ewah[0].clone();
+			EWAHCompressedBitmap32 ewahand2 = ewah2[0].clone();
 			for (int k = 1; k < N; ++k) {				
 				ewahand1.and(ewah[k]);
 				ewahand2.and(ewah2[k]);
 			}
 		ewahand1.or(ewahand2);
 		int[] array = ewahand1.toArray();
+		bogus += array.length;
 		}
 		}catch(CloneNotSupportedException e){System.out.println("bug : clone ewah32 and");};		
 		aft = System.currentTimeMillis();
@@ -703,20 +725,23 @@ public class Benchmark {
 		bef = System.currentTimeMillis();
 		try {
 		for (int r = 0; r < repeat; ++r) {
-			EWAHCompressedBitmap32 ewahxor1 = (EWAHCompressedBitmap32) ewah[0].clone();
-			EWAHCompressedBitmap32 ewahxor2 = (EWAHCompressedBitmap32) ewah2[0].clone();
+			EWAHCompressedBitmap32 ewahxor1 = ewah[0].clone();
+			EWAHCompressedBitmap32 ewahxor2 = ewah2[0].clone();
 			for (int k = 1; k < N; ++k) {				
 				ewahxor1.xor(ewah[k]);
 				ewahxor2.xor(ewah2[k]);
 			}
 		ewahxor1.xor(ewahxor2);
 		int[] array = ewahxor1.toArray();
+		bogus += array.length;
 		}
 		}catch(CloneNotSupportedException e){System.out.println("bug : clone ewah32 xor");};		
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);		
 
 		System.out.println(line);
+		System.out.println("# ignore this "+bogus);
+
 	}
 	
 	public static void test(int N, int nbr, int repeat) {
