@@ -21,8 +21,7 @@ public class Benchmark {
 	 */
 	public static void main(String[] args) {
 		test(10, 18, 10);
-	}
-	
+	}	
 
 	public static void testRoaringBitmap(int[][] data, int[][] data2, int repeat, DecimalFormat df) {
 		System.out.println("# RoaringBitmap");
