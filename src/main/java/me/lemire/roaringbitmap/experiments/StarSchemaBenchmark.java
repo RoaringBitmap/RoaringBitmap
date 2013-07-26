@@ -2,9 +2,7 @@ package me.lemire.roaringbitmap.experiments;
 
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 
-import java.awt.Component;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -16,9 +14,6 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.filechooser.FileView;
-import javax.swing.plaf.FileChooserUI;
 
 import org.devbrat.util.WAHBitSet;
 
@@ -36,11 +31,13 @@ public class StarSchemaBenchmark {
 	/**
 	 * TODO: use one TreeMap per column instead of one giant
 	 * TreeMap that confounds all columns.
-	 * 
+	 * Colons was not confound because I have stocked the name of the column
+	 * in the start each value 
 	 * TODO did.
 	 */
 	static TreeMap<String, TreeMap<String,ArrayList<Integer>>> TreeBitmapIdx = 
 			new TreeMap<String, TreeMap<String,ArrayList<Integer>>>();
+	static int nbBitmaps = 0;
 	
 	//static TreeMap<String, ArrayList<Integer>> BitmapIdx = new TreeMap<String, ArrayList<Integer>>();
 	/**
@@ -57,7 +54,7 @@ public class StarSchemaBenchmark {
 		
 		System.out.println("Starting experiments :");
 		DecimalFormat df = new DecimalFormat("0.###");	
-		int repeat = 100;
+		int repeat = 1;
 		StarSchemaBenchmark.testRoaringBitmap(repeat, df);
 		StarSchemaBenchmark.testBitSet(repeat, df);	
 		StarSchemaBenchmark.testConciseSet(repeat, df);
@@ -80,8 +77,7 @@ public class StarSchemaBenchmark {
 			JFileChooser file = new JFileChooser();
 			int val = file.showOpenDialog(null);
 			if(val==JFileChooser.APPROVE_OPTION) 
-				{path = file.getSelectedFile().getAbsolutePath(); 
-				//System.out.println(path); 
+				{path = file.getSelectedFile().getAbsolutePath(); 				 
 				break;
 				} 
 			} while(true);
@@ -97,7 +93,7 @@ public class StarSchemaBenchmark {
 			         String[] tabChaine = chaine.split(",");
 			         
 			         for(int i=0; i<tabChaine.length; i++)
-			        	 //System.out.print(tabChaine[i]+" ");System.out.println();
+			        	 
 			        	 if(TreeBitmapIdx.containsKey("C"+i)) {
 			        		 if(TreeBitmapIdx.get("C"+i).containsKey(tabChaine[i]))			        		 
 			        			 TreeBitmapIdx.get("C"+i).get(tabChaine[i]).add(row);
@@ -105,14 +101,16 @@ public class StarSchemaBenchmark {
 			        			   ArrayList<Integer> bitmap = new ArrayList<Integer>();
 					        	   bitmap.add(row);					        	 
 			        			   TreeBitmapIdx.get("C"+i).put(tabChaine[i], bitmap);
+			        			   nbBitmaps++;
 			        		     }
 			        		 }
 			         else {			        	 
 			        	 ArrayList<Integer> bitmap = new ArrayList<Integer>();
 			        	 bitmap.add(row);
 			        	 TreeMap<String,ArrayList<Integer>> body = new TreeMap<String, ArrayList<Integer>>();
-			        	 body.put(tabChaine[i], bitmap);
-			        	 TreeBitmapIdx.put("C"+i, body);			        	 
+			        	 body.put(tabChaine[i], bitmap);			        	 
+			        	 TreeBitmapIdx.put("C"+i, body);
+			        	 nbBitmaps++;
 			         }
 			         row++;
 			   }		   
@@ -129,7 +127,7 @@ public class StarSchemaBenchmark {
 		System.out.println("# size, construction time, time to recover set bits, " +
 						"time to compute unions (OR), intersections (AND) " +
 						"and exclusive unions (XOR) ");
-		//Calculate the construction time
+		
 		long bef, aft;		
 		String line = "";
 		/**
@@ -137,156 +135,125 @@ public class StarSchemaBenchmark {
 		 * optimize away the computation.
 		 */
 		int bogus  = 0;
-		int N = TreeBitmapIdx.size()/2;
+		int N = nbBitmaps, k, r;
 		int size=0;
 		Iterator<Entry<String, TreeMap<String, ArrayList<Integer>>>> H = null;
 		Entry<String, TreeMap<String, ArrayList<Integer>>> sh;
-		Entry<String, ArrayList<Integer>> s; 
+		Entry<String, ArrayList<Integer>> s; 				
 		
-		bef = System.currentTimeMillis();
-		
+		//Calculating the construction time
+		bef = System.currentTimeMillis();		
 		RoaringBitmap[] bitmap = new RoaringBitmap[N];		
-		for (int r = 0; r < repeat; ++r) {
-			H =	TreeBitmapIdx.entrySet().iterator();
-			size = 0;
-		
-			for (int k = 0; k < N; ++k) {
-				bitmap[k] = new RoaringBitmap();
-				sh=H.next();
-				s=sh.getValue().firstEntry();
-				for(int j=0; j<s.getValue().size(); j++)
-					bitmap[k].set(s.getValue().get(j));
-				
-				size += bitmap[k].getSizeInBytes();
+		for (r = 0; r < repeat; ++r) {
+			int pos = 0	;				
+			H = TreeBitmapIdx.entrySet().iterator();
+			while(H.hasNext()) {				
+				sh = H.next();
+				final Iterator<Entry<String, ArrayList<Integer>>> I = 
+						sh.getValue().entrySet().iterator();
+				while(I.hasNext()) {
+					bitmap[pos] = new RoaringBitmap();
+					s=I.next();				
+					for(int j=0; j<s.getValue().size(); j++)
+						bitmap[pos].set(s.getValue().get(j));
+					pos++;
+				}
 			}
 		}
-		aft = System.currentTimeMillis();
-		line += "\t" + size / 1024;
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		aft = System.currentTimeMillis();				
+		
+		//Validating that ArrayContainers contents are sorted 
+		//and BitmapContainers cardinalities are corrects
 		for(RoaringBitmap rb: bitmap) rb.validate();
+		
+		//Calculating the size
+		for(k=0; k<N; k++)
+			size += bitmap[k].getSizeInBytes(); 
+
+		line += "\t" + size / 1024;
+		line += "\t" + df.format((aft - bef) / 1000.0);		
 		
 		// uncompressing
 		bef = System.currentTimeMillis();
-		for (int r = 0; r < repeat; ++r)
-			for (int k = 0; k < N; ++k) {
+		for (r = 0; r < repeat; ++r)
+			for (k = 0; k < N; ++k) {
 				int[] array = bitmap[k].getIntegers();
 				bogus += array.length;
 			}
 		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		line += "\t" + df.format((aft - bef) / 1000.0);					
 		
-		//Creating and filling the second roaringBitmap index
-		//final Iterator<Entry<String, Vector<Integer>>> I = this.BitmapIdx.entrySet().iterator();
-		//Entry<String, Vector<Integer>> s; 				
-		RoaringBitmap[] bitmap2 = new RoaringBitmap[N];
-		for (int k = 0; k < N; ++k) {
-			bitmap2[k] = new RoaringBitmap();			
-			sh=H.next();
-			s=sh.getValue().firstEntry();
-			for(int j=0; j<s.getValue().size(); j++)
-			bitmap2[k].set(s.getValue().get(j));			
-		}
-		
-		for(RoaringBitmap rb: bitmap2) rb.validate();	
-		
-		// logical or + retrieval
 		{
-			RoaringBitmap bitmapor1 =  bitmap[0].clone();
-			 bitmapor1.validate();
-			RoaringBitmap bitmapor2 =  bitmap2[0].clone();
-			bitmapor2.validate();
-		for (int k = 1; k < N; ++k) {				
+		RoaringBitmap bitmapor1 =  bitmap[0].clone();
+		bitmapor1.validate();
+		for (k = 1; k < N; ++k) {				
 			bitmapor1 = RoaringBitmap.or(bitmapor1,bitmap[k]);
-			bitmapor1.validate();
-			bitmapor2 = RoaringBitmap.or(bitmapor2,bitmap2[k]);
-			bitmapor2.validate();
+			bitmapor1.validate();		
 		}
-
-		bitmapor1 = RoaringBitmap.or(bitmapor1,bitmapor2);
+		
 		int[] array = bitmapor1.getIntegers();
 		bogus += array.length;
 		}
 			
-
+		// logical or + retrieval
 		bef = System.currentTimeMillis();
-		for (int r = 0; r < repeat; ++r) {
-			RoaringBitmap bitmapor1 =  bitmap[0].clone();
-			RoaringBitmap bitmapor2 =  bitmap2[0].clone();
-		for (int k = 1; k < N; ++k) {				
-			bitmapor1 = RoaringBitmap.or(bitmapor1,bitmap[k]);
-			bitmapor2 = RoaringBitmap.or(bitmapor2,bitmap2[k]);
-		}
-
-		bitmapor1 = RoaringBitmap.or(bitmapor1,bitmapor2);
+		for (r = 0; r < repeat; ++r) {
+			RoaringBitmap bitmapor1 =  bitmap[0].clone();			
+		for (k = 1; k < N; ++k)
+			bitmapor1 = RoaringBitmap.or(bitmapor1,bitmap[k]);					
+		
 		int[] array = bitmapor1.getIntegers();
 		bogus += array.length;
-		}
-			
+		}			
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
 		{
 			RoaringBitmap bitmapand1 = bitmap[0].clone();
 			bitmapand1.validate();
-			RoaringBitmap bitmapand2 = bitmap2[0].clone();
-			bitmapand2.validate();
-			for (int k = 1; k < N; ++k) {				
+			for (k = 1; k < N; ++k) {				
 				bitmapand1 = RoaringBitmap.and(bitmapand1, bitmap[k]);
 				bitmapand1.validate();
-				bitmapand2 = RoaringBitmap.and(bitmapand2, bitmap2[k]);
-				bitmapand2.validate();
-			}
-			bitmapand1 = RoaringBitmap.and(bitmapand1, bitmapand2);
-			bitmapand1.validate();
+		   }			
 			int[] array = bitmapand1.getIntegers();
 			bogus += array.length;	
 		}
 		
 		// logical and + retrieval
 		bef = System.currentTimeMillis();
-		for (int r = 0; r < repeat; ++r) {
+		for (r = 0; r < repeat; ++r) {
 			RoaringBitmap bitmapand1 = bitmap[0].clone();
-			RoaringBitmap bitmapand2 = bitmap2[0].clone();
-			for (int k = 1; k < N; ++k) {				
+			for (k = 1; k < N; ++k) {				
 				bitmapand1 = RoaringBitmap.and(bitmapand1, bitmap[k]);
-				bitmapand2 = RoaringBitmap.and(bitmapand2, bitmap2[k]);
 			}
-			bitmapand1 = RoaringBitmap.and(bitmapand1, bitmapand2);
 			int[] array = bitmapand1.getIntegers();
 			bogus += array.length;	
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
-		// logical xor + retrieval
 		{
 			RoaringBitmap bitmapxor1 = bitmap[0].clone();
-			RoaringBitmap bitmapxor2 = bitmap2[0].clone();
-			for (int k = 1; k < N; ++k) {				
+			for (k = 1; k < N; ++k) {				
 				bitmapxor1 =RoaringBitmap.xor( bitmapxor1,bitmap[k]);
 				bitmapxor1.validate();
-				bitmapxor2 = RoaringBitmap.xor( bitmapxor2,bitmap2[k]);
-				bitmapxor2.validate();
 			}
-			bitmapxor1 = RoaringBitmap.xor( bitmapxor1,bitmapxor2);
-			bitmapxor1.validate();
 			int[] array = bitmapxor1.getIntegers();		
 			bogus += array.length;
 		}
 
+		// logical xor + retrieval
 		bef = System.currentTimeMillis();
-				for (int r = 0; r < repeat; ++r) {
-					RoaringBitmap bitmapxor1 = bitmap[0].clone();
-					RoaringBitmap bitmapxor2 = bitmap2[0].clone();
-					for (int k = 1; k < N; ++k) {				
-						bitmapxor1 =RoaringBitmap.xor( bitmapxor1,bitmap[k]);
-						bitmapxor2 = RoaringBitmap.xor( bitmapxor2,bitmap2[k]);
-					}
-					bitmapxor1 = RoaringBitmap.xor( bitmapxor1,bitmapxor2);
-					int[] array = bitmapxor1.getIntegers();		
-					bogus += array.length;
-				}
-				aft = System.currentTimeMillis();
-				line += "\t" + df.format((aft - bef) / 1000.0);
+		for (r = 0; r < repeat; ++r) {
+			RoaringBitmap bitmapxor1 = bitmap[0].clone();
+			for (k = 1; k < N; ++k) 				
+				bitmapxor1 =RoaringBitmap.xor( bitmapxor1,bitmap[k]);
+				
+			int[] array = bitmapxor1.getIntegers();		
+			bogus += array.length;
+		}
+		aft = System.currentTimeMillis();
+		line += "\t" + df.format((aft - bef) / 1000.0);
 
 		System.out.println(line);	
 		System.out.println("# ignore this "+bogus);
@@ -299,7 +266,7 @@ public class StarSchemaBenchmark {
 						"and exclusive unions (XOR) ");
 		long bef, aft;
 		String line = "";		
-		int N = TreeBitmapIdx.size()/2;
+		int N = nbBitmaps;
 		int size=0;
 		Iterator<Entry<String, TreeMap<String, ArrayList<Integer>>>> H = null;
 		Entry<String, TreeMap<String, ArrayList<Integer>>> sh;
@@ -309,20 +276,29 @@ public class StarSchemaBenchmark {
 		
 		BitSet[] bitmap = new BitSet[N];		
 		for (int r = 0; r < repeat; ++r) {
-		H =	TreeBitmapIdx.entrySet().iterator();		 
-		size = 0;		
-			for (int k = 0; k < N; ++k) {
-				bitmap[k] = new BitSet();
-				sh=H.next();
-				s=sh.getValue().firstEntry();
-				for(int j=0; j<s.getValue().size(); j++)
-					bitmap[k].set(s.getValue().get(j));				
-				size += bitmap[k].size() / 8;
+			int pos = 0	;				
+			H = TreeBitmapIdx.entrySet().iterator();
+			while(H.hasNext()) {				
+				sh = H.next();
+				final Iterator<Entry<String, ArrayList<Integer>>> I = 
+						sh.getValue().entrySet().iterator();
+				while(I.hasNext()) {
+					bitmap[pos] = new BitSet();
+					s=I.next();				
+					for(int j=0; j<s.getValue().size(); j++)
+						bitmap[pos].set(s.getValue().get(j));
+					pos++;
+				}
 			}
 		}
 		aft = System.currentTimeMillis();
+		
+		//Calculating the size in bytes
+		for(int k =0; k<N; k++) size += bitmap[k].size() / 8;
+		
 		line += "\t" + size / 1024;
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
 		// uncompressing
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r)
@@ -338,25 +314,22 @@ public class StarSchemaBenchmark {
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
 		//Creating and filling the 2nd bitset index
-		BitSet[] bitmap2 = new BitSet[N];
-		for (int k = 0; k < N; ++k) {
-			bitmap2[k] = new BitSet();			
+		/*BitSet[] bitmap2 = new BitSet[N-N/2];
+		for (int k = N/2; k < N; ++k) {
+			bitmap2[k-N/2] = new BitSet();			
 			sh=H.next();
 			s=sh.getValue().firstEntry();
 			for(int j=0; j<s.getValue().size(); j++)
-			bitmap2[k].set(s.getValue().get(j));			
-		}			
+			bitmap2[k-N/2].set(s.getValue().get(j));			
+		}	*/		
 		
 		// logical or + retrieval
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
 		BitSet bitmapor1 = (BitSet) bitmap[0].clone();
-		BitSet bitmapor2 = (BitSet) bitmap2[0].clone();
 		for (int k = 1; k < N; ++k) {				
 			bitmapor1.or(bitmap[k]);
-			bitmapor2.or(bitmap2[k]);
 		}
-		bitmapor1.or(bitmapor2);
 		int[] array = new int[bitmapor1.cardinality()];
 		int pos = 0;
 		for (int i = bitmapor1.nextSetBit(0); i >= 0; i = bitmapor1
@@ -372,12 +345,9 @@ public class StarSchemaBenchmark {
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
 			BitSet bitmapand1 = (BitSet) bitmap[0].clone();
-			BitSet bitmapand2 = (BitSet) bitmap2[0].clone();
 			for (int k = 1; k < N; ++k) {				
 				bitmapand1.and(bitmap[k]);
-				bitmapand2.and(bitmap2[k]);
 			}
-			bitmapand1.and(bitmapand2);
 			int[] array = new int[bitmapand1.cardinality()];
 			int pos = 0;
 			for (int i = bitmapand1.nextSetBit(0); i >= 0; i = bitmapand1
@@ -389,24 +359,21 @@ public class StarSchemaBenchmark {
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
 		// logical xor + retrieval
-				bef = System.currentTimeMillis();
-				for (int r = 0; r < repeat; ++r) {
-					BitSet bitmapxor1 = (BitSet) bitmap[0].clone();
-					BitSet bitmapxor2 = (BitSet) bitmap2[0].clone();
-					for (int k = 1; k < N; ++k) {				
-						bitmapxor1.xor(bitmap[k]);
-						bitmapxor2.xor(bitmap2[k]);
-					}
-					bitmapxor1.xor(bitmapxor2);
-					int[] array = new int[bitmapxor1.cardinality()];
-					int pos = 0;
-					for (int i = bitmapxor1.nextSetBit(0); i >= 0; i = bitmapxor1
+		bef = System.currentTimeMillis();
+		for (int r = 0; r < repeat; ++r) {
+			BitSet bitmapxor1 = (BitSet) bitmap[0].clone();
+			for (int k = 1; k < N; ++k) {				
+				bitmapxor1.xor(bitmap[k]);
+			}
+			int[] array = new int[bitmapxor1.cardinality()];
+			int pos = 0;
+			for (int i = bitmapxor1.nextSetBit(0); i >= 0; i = bitmapxor1
 								.nextSetBit(i + 1)) {
-						array[pos++] = i;
-					}					   
-				}
-				aft = System.currentTimeMillis();
-				line += "\t" + df.format((aft - bef) / 1000.0);
+				array[pos++] = i;
+			}					   
+		}
+		aft = System.currentTimeMillis();
+		line += "\t" + df.format((aft - bef) / 1000.0);
 
 		System.out.println(line);		
 	}	
@@ -419,7 +386,7 @@ public class StarSchemaBenchmark {
 		long bef, aft;
 		String line = "";
 		int bogus = 0;
-		int N = TreeBitmapIdx.size()/2;
+		int N = nbBitmaps;
 		int size = 0;
 		Iterator<Entry<String, TreeMap<String, ArrayList<Integer>>>> H = null;
 		Entry<String, TreeMap<String, ArrayList<Integer>>> sh;
@@ -429,22 +396,30 @@ public class StarSchemaBenchmark {
 		
 		ConciseSet[] bitmap = new ConciseSet[N];		
 		for (int r = 0; r < repeat; ++r) {
-			H =	TreeBitmapIdx.entrySet().iterator();
-			size = 0;
-		
-			for (int k = 0; k < N; ++k) {
-				bitmap[k] = new ConciseSet();
-				sh=H.next();
-				s=sh.getValue().firstEntry();
-				for(int j=0; j<s.getValue().size(); j++)
-					bitmap[k].add(s.getValue().get(j));
-				
-				size += (int) (bitmap[k].size() * bitmap[k].collectionCompressionRatio()) * 4;
+			int pos = 0	;				
+			H = TreeBitmapIdx.entrySet().iterator();
+			while(H.hasNext()) {				
+				sh = H.next();
+				final Iterator<Entry<String, ArrayList<Integer>>> I = 
+						sh.getValue().entrySet().iterator();
+				while(I.hasNext()) {
+					bitmap[pos] = new ConciseSet();
+					s=I.next();				
+					for(int j=0; j<s.getValue().size(); j++)
+						bitmap[pos].add(s.getValue().get(j));
+					pos++;
+				}
 			}
 		}
 		aft = System.currentTimeMillis();
+		
+		//Calculating the size
+		for(int k=0; k<N; k++)
+		size += (int) (bitmap[k].size() * bitmap[k].collectionCompressionRatio()) * 4;
+		
 		line += "\t" + size / 1024;
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
 		// uncompressing
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r)
@@ -456,25 +431,22 @@ public class StarSchemaBenchmark {
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
 		//Creating and filling the 2nd Concise index
-		ConciseSet[] bitmap2 = new ConciseSet[N];
-		for (int k = 0; k < N; ++k) {
-			bitmap2[k] = new ConciseSet();
+		/*ConciseSet[] bitmap2 = new ConciseSet[N-N/2];
+		for (int k = N/2; k < N-N/2; ++k) {
+			bitmap2[k-N/2] = new ConciseSet();
 			sh=H.next();
 			s=sh.getValue().firstEntry();
 			for(int j=0; j<s.getValue().size(); j++)
-				bitmap2[k].add(s.getValue().get(j));
-		}
+				bitmap2[k-N/2].add(s.getValue().get(j));
+		}*/
 				
 		// logical or + retrieval
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
 			ConciseSet bitmapor1 = bitmap[0].clone();
-			ConciseSet bitmapor2 = bitmap2[0].clone();
 			for (int k = 1; k < N; ++k) {				
 				bitmapor1.union(bitmap[k]);
-				bitmapor2.union(bitmap2[k]);
 			}
-			bitmapor1.union(bitmapor2);
 			int[] array = bitmapor1.toArray();	
 			bogus += array.length;
 			}	
@@ -485,12 +457,9 @@ public class StarSchemaBenchmark {
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
 			ConciseSet bitmapand1 = bitmap[0].clone();
-			ConciseSet bitmapand2 = bitmap2[0].clone();
 			for (int k = 1; k < N; ++k) {				
 				bitmapand1.union(bitmap[k]);
-				bitmapand2.union(bitmap2[k]);
 			}
-			bitmapand1.intersection(bitmapand2);
 			int[] array = bitmapand1.toArray();		
 			bogus += array.length;
 		}	
@@ -507,7 +476,7 @@ public class StarSchemaBenchmark {
 						"time to compute unions (OR), intersections (AND)");
 		long bef, aft;
 		String line = "";		
-		int N = TreeBitmapIdx.size()/2;
+		int N = nbBitmaps;
 		Iterator<Entry<String, TreeMap<String, ArrayList<Integer>>>> H = null;
 		Entry<String, TreeMap<String, ArrayList<Integer>>> sh;
 		Entry<String, ArrayList<Integer>> s; 
@@ -517,19 +486,26 @@ public class StarSchemaBenchmark {
 		
 		WAHBitSet[] bitmap = new WAHBitSet[N];
 		for (int r = 0; r < repeat; ++r) {
-			size = 0;
+			int pos = 0	;				
 			H = TreeBitmapIdx.entrySet().iterator();
-			for (int k = 0; k < N; ++k) {
-				bitmap[k] = new WAHBitSet();
-				sh=H.next();
-				s=sh.getValue().firstEntry();
-				for(int j=0; j<s.getValue().size(); j++)
-					bitmap[k].set(s.getValue().get(j));
-				
-				size += bitmap[k].memSize()*4;
+			while(H.hasNext()) {				
+				sh = H.next();
+				final Iterator<Entry<String, ArrayList<Integer>>> I = 
+						sh.getValue().entrySet().iterator();
+				while(I.hasNext()) {
+					bitmap[pos] = new WAHBitSet();
+					s=I.next();				
+					for(int j=0; j<s.getValue().size(); j++)
+						bitmap[pos].set(s.getValue().get(j));
+					pos++;
+				}
 			}
 		}
 		aft = System.currentTimeMillis();
+		
+		for(int k=0; k<N; k++)
+		size += bitmap[k].memSize()*4;
+		
 		line += "\t" + size / 1024;
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
@@ -547,25 +523,22 @@ public class StarSchemaBenchmark {
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
 		//Creating and filling the 2nd WAH index
-		WAHBitSet[] bitmap2 = new WAHBitSet[N];
-		for (int k = 0; k < N; ++k) {
-			bitmap2[k] = new WAHBitSet();			
+		/*WAHBitSet[] bitmap2 = new WAHBitSet[N-N/2];
+		for (int k = N/2; k < N-N/2; ++k) {
+			bitmap2[k-N/2] = new WAHBitSet();			
 			sh=H.next();
 			s=sh.getValue().firstEntry();
 			for(int j=0; j<s.getValue().size(); j++)
-				bitmap2[k].set(s.getValue().get(j));					
-		}
+				bitmap2[k-N/2].set(s.getValue().get(j));					
+		}*/
 		
 		// logical or + retrieval
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
-		WAHBitSet bitmapor1 = new WAHBitSet();		
-		WAHBitSet bitmapor2 = new WAHBitSet();
+		WAHBitSet bitmapor1 = new WAHBitSet();				
 		for (int k = 0; k < N; ++k) {				
-			bitmapor1.or(bitmap[k]);
-			bitmapor2.or(bitmap2[k]);
-		}
-		bitmapor1.or(bitmapor2);
+			bitmapor1.or(bitmap[k]);			
+		}		
 		int[] array = new int[bitmapor1.cardinality()];
 		int c = 0;
 		for (@SuppressWarnings("unchecked")
@@ -579,12 +552,9 @@ public class StarSchemaBenchmark {
 				bef = System.currentTimeMillis();
 				for (int r = 0; r < repeat; ++r) {
 				WAHBitSet bitmapand1 = bitmap[0];
-				WAHBitSet bitmapand2 = bitmap2[0];
 				for (int k = 1; k < N; ++k) {				
-					bitmapand1.and(bitmap[k]);
-					bitmapand2.and(bitmap2[k]);
-				}
-				bitmapand1.and(bitmapand2);
+					bitmapand1.and(bitmap[k]);					
+				}				
 				int[] array = new int[bitmapand1.cardinality()];
 				int c = 0;
 				for (@SuppressWarnings("unchecked")
@@ -605,7 +575,7 @@ public class StarSchemaBenchmark {
 		long bef, aft;
 		String line = "";		
 		int bogus = 0;
-		int N = TreeBitmapIdx.size()/2;
+		int N = nbBitmaps;
 		Iterator<Entry<String, TreeMap<String, ArrayList<Integer>>>> H = null;
 		Entry<String, TreeMap<String, ArrayList<Integer>>> sh;
 		Entry<String, ArrayList<Integer>> s; 
@@ -615,18 +585,26 @@ public class StarSchemaBenchmark {
 		
 		EWAHCompressedBitmap[] ewah = new EWAHCompressedBitmap[N];		
 		for (int r = 0; r < repeat; ++r) {
-			size = 0;
+			int pos = 0	;				
 			H = TreeBitmapIdx.entrySet().iterator();
-			for (int k = 0; k < N; ++k) {
-				ewah[k] = new EWAHCompressedBitmap();
-				sh=H.next();
-				s=sh.getValue().firstEntry();
-				for(int j=0; j<s.getValue().size(); j++)
-					ewah[k].set(s.getValue().get(j));
-				size += ewah[k].sizeInBytes();
+			while(H.hasNext()) {				
+				sh = H.next();
+				final Iterator<Entry<String, ArrayList<Integer>>> I = 
+						sh.getValue().entrySet().iterator();
+				while(I.hasNext()) {
+					ewah[pos] = new EWAHCompressedBitmap();
+					s=I.next();				
+					for(int j=0; j<s.getValue().size(); j++)
+						ewah[pos].set(s.getValue().get(j));
+					pos++;
+				}
 			}
 		}
 		aft = System.currentTimeMillis();
+		
+		//Calculating size
+		for(int k=0; k<N;k++) size += ewah[k].sizeInBytes();
+		
 		line += "\t" + size / 1024;
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
@@ -641,26 +619,23 @@ public class StarSchemaBenchmark {
 		line += "\t" + df.format((aft - bef) / 1000.0);
 
 		//Creating and filling the 2nd ewah64 index
-		EWAHCompressedBitmap[] ewah2 = new EWAHCompressedBitmap[N];
+		/*EWAHCompressedBitmap[] ewah2 = new EWAHCompressedBitmap[N];
 		for (int k = 0; k < N; ++k) {
 			ewah2[k] = new EWAHCompressedBitmap();			
 			sh=H.next();
 			s=sh.getValue().firstEntry();
 			for(int j=0; j<s.getValue().size(); j++)
 				ewah2[k].set(s.getValue().get(j));
-		}
+		}*/
 		
 		// fast logical or + retrieval
 		bef = System.currentTimeMillis();
 		try {
 		for (int r = 0; r < repeat; ++r) {
 			EWAHCompressedBitmap ewahor1 = ewah[0].clone();
-			EWAHCompressedBitmap ewahor2 = ewah2[0].clone();
 			for (int k = 1; k < N; ++k) {				
-				ewahor1.or(ewah[k]);
-				ewahor2.or(ewah2[k]);
+				ewahor1.or(ewah[k]);				
 			}
-		ewahor1.or(ewahor2);
 		int[] array = ewahor1.toArray();
 		bogus += array.length;
 		}
@@ -673,12 +648,9 @@ public class StarSchemaBenchmark {
 		try {
 		for (int r = 0; r < repeat; ++r) {
 			EWAHCompressedBitmap ewahand1 = ewah[0].clone();
-			EWAHCompressedBitmap ewahand2 = ewah2[0].clone();
 			for (int k = 1; k < N; ++k) {				
-				ewahand1.and(ewah[k]);
-				ewahand2.and(ewah2[k]);
-			}
-		ewahand1.and(ewahand2);
+				ewahand1.and(ewah[k]);			
+			}		
 		int[] array = ewahand1.toArray();
 		bogus += array.length;
 		}
@@ -691,12 +663,9 @@ public class StarSchemaBenchmark {
 		try {
 		for (int r = 0; r < repeat; ++r) {
 			EWAHCompressedBitmap ewahxor1 = ewah[0].clone();
-			EWAHCompressedBitmap ewahxor2 = ewah2[0].clone();
 			for (int k = 1; k < N; ++k) {				
 				ewahxor1.xor(ewah[k]);
-				ewahxor2.xor(ewah2[k]);
 			}
-		ewahxor1.xor(ewahxor2);
 		int[] array = ewahxor1.toArray();
 		bogus += array.length;
 		}
@@ -716,7 +685,7 @@ public class StarSchemaBenchmark {
 		long bef, aft;
 		String line = "";
 		long bogus = 0;
-		int N = TreeBitmapIdx.size()/2;
+		int N = nbBitmaps,k,r;
 		Iterator<Entry<String, TreeMap<String, ArrayList<Integer>>>> H = null;
 		Entry<String, TreeMap<String, ArrayList<Integer>>> sh;
 		Entry<String, ArrayList<Integer>> s;
@@ -725,27 +694,34 @@ public class StarSchemaBenchmark {
 		bef = System.currentTimeMillis();
 		
 		EWAHCompressedBitmap32[] ewah = new EWAHCompressedBitmap32[N];		
-		for (int r = 0; r < repeat; ++r) {		 
-			size = 0;					
+		for (r = 0; r < repeat; ++r) {		 
+			int pos = 0	;				
 			H = TreeBitmapIdx.entrySet().iterator();
-			for (int k = 0; k < N; ++k) {
-				ewah[k] = new EWAHCompressedBitmap32();
+			while(H.hasNext()) {				
 				sh = H.next();
-				s =sh.getValue().firstEntry();
-				for(int j=0; j<s.getValue().size(); j++)
-					ewah[k].set(s.getValue().get(j));
-			
-				size += ewah[k].sizeInBytes();
+				final Iterator<Entry<String, ArrayList<Integer>>> I = 
+						sh.getValue().entrySet().iterator();
+				while(I.hasNext()) {
+					ewah[pos] = new EWAHCompressedBitmap32();
+					s=I.next();				
+					for(int j=0; j<s.getValue().size(); j++)
+						ewah[pos].set(s.getValue().get(j));
+					pos++;
+				}
 			}		
 		}
 		aft = System.currentTimeMillis();
+		
+		//Calculataing size
+		for(k=0; k<N; k++) size += ewah[k].sizeInBytes();
+		
 		line += "\t" + size / 1024;
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
 		// uncompressing
 		bef = System.currentTimeMillis();
-		for (int r = 0; r < repeat; ++r)
-			for (int k = 0; k < N; ++k) {
+		for (r = 0; r < repeat; ++r)
+			for (k = 0; k < N; ++k) {
 				int[] array = ewah[k].toArray();
 				bogus += array.length;
 			}
@@ -753,26 +729,23 @@ public class StarSchemaBenchmark {
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
 		//Creating and filling the 2nd ewah32 index
-		EWAHCompressedBitmap32[] ewah2 = new EWAHCompressedBitmap32[N];
-		for (int k = 0; k < N; ++k) {
+		/*EWAHCompressedBitmap32[] ewah2 = new EWAHCompressedBitmap32[N];
+		for (k = 0; k < N; ++k) {
 			ewah2[k] = new EWAHCompressedBitmap32();			
 			sh=H.next();
 			s= sh.getValue().firstEntry();
 			for(int j=0; j<s.getValue().size(); j++)
 				ewah2[k].set(s.getValue().get(j));									
-		}
+		}*/
 		
 		// fast logical or + retrieval
 		bef = System.currentTimeMillis();
 		try {
-		for (int r = 0; r < repeat; ++r) {
+		for (r = 0; r < repeat; ++r) {
 			EWAHCompressedBitmap32 ewahor1 = ewah[0].clone();
-			EWAHCompressedBitmap32 ewahor2 = ewah2[0].clone();
-			for (int k = 1; k < N; ++k) {				
+			for (k = 1; k < N; ++k) {				
 				ewahor1.or(ewah[k]);
-				ewahor2.or(ewah2[k]);
 			}
-		ewahor1.or(ewahor2);
 		int[] array = ewahor1.toArray();
 		bogus += array.length;
 		}
@@ -783,14 +756,11 @@ public class StarSchemaBenchmark {
 		// fast logical and + retrieval
 		bef = System.currentTimeMillis();
 		try {
-		for (int r = 0; r < repeat; ++r) {
+		for (r = 0; r < repeat; ++r) {
 			EWAHCompressedBitmap32 ewahand1 = ewah[0].clone();
-			EWAHCompressedBitmap32 ewahand2 = ewah2[0].clone();
-			for (int k = 1; k < N; ++k) {				
+			for (k = 1; k < N; ++k) {				
 				ewahand1.and(ewah[k]);
-				ewahand2.and(ewah2[k]);
 			}
-		ewahand1.or(ewahand2);
 		int[] array = ewahand1.toArray();
 		bogus += array.length;
 		}
@@ -801,14 +771,11 @@ public class StarSchemaBenchmark {
 		// fast logical xor + retrieval
 		bef = System.currentTimeMillis();
 		try {
-		for (int r = 0; r < repeat; ++r) {
+		for (r = 0; r < repeat; ++r) {
 			EWAHCompressedBitmap32 ewahxor1 = ewah[0].clone();
-			EWAHCompressedBitmap32 ewahxor2 = ewah2[0].clone();
-			for (int k = 1; k < N; ++k) {				
+			for (k = 1; k < N; ++k) {				
 				ewahxor1.xor(ewah[k]);
-				ewahxor2.xor(ewah2[k]);
 			}
-		ewahxor1.xor(ewahxor2);
 		int[] array = ewahxor1.toArray();
 		bogus += array.length;
 		}
@@ -825,17 +792,20 @@ public class StarSchemaBenchmark {
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		final Iterator<Entry<String, TreeMap<String, ArrayList<Integer>>>> H = 
-				StarSchemaBenchmark.TreeBitmapIdx.entrySet().iterator();		
+				TreeBitmapIdx.entrySet().iterator();		
 		
 		Entry<String, TreeMap<String, ArrayList<Integer>>> sh;
 		Entry<String, ArrayList<Integer>> s; 
 		int counter = 0;
+		
 		while(H.hasNext()) {
 		sh = H.next();
 		sb.append(sh.getKey()+"\n");
-		final Iterator<Entry<String, ArrayList<Integer>>> I = sh.getValue().entrySet().iterator();
+		final Iterator<Entry<String, ArrayList<Integer>>> I = 
+				sh.getValue().entrySet().iterator();
 		while(I.hasNext()) {
-			s = I.next();
+			//s = sh.getValue().firstEntry();
+			s=I.next();
 			counter++;
 			sb.append(s.getKey()+" :: "+s.getValue().toString()+"\n");
 		}		

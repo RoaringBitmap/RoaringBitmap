@@ -346,7 +346,7 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable {
 			return x;
 		} catch (CloneNotSupportedException e) {
 			e.printStackTrace();
-			throw new RuntimeException("shouldn't happen");
+			throw new RuntimeException("shouldn't happen with clone");
 		}
 	}
 }

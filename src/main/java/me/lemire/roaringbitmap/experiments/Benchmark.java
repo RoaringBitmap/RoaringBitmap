@@ -1,7 +1,6 @@
 package me.lemire.roaringbitmap.experiments;
 
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
-
 import java.text.DecimalFormat;
 import java.util.BitSet;
 import java.util.Iterator;

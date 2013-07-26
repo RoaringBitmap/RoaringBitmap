@@ -45,7 +45,7 @@ public class BitmapContainer implements Container, Cloneable {
 		if (contains(x)) {
 			--cardinality;
 			bitmap[x / 64] &= ~(1l << (x % 64));
-			if (cardinality <= 1024)
+			if (cardinality < 1024)
 				return new ArrayContainer(this);
 		}
 		return this;
