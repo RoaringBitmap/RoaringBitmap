@@ -31,8 +31,7 @@ public class StarSchemaBenchmark {
 	/**
 	 * TODO: use one TreeMap per column instead of one giant
 	 * TreeMap that confounds all columns.
-	 * Colons was not confound because I have stocked the name of the column
-	 * in the start each value 
+	 *  
 	 * TODO did.
 	 */
 	static TreeMap<String, TreeMap<String,ArrayList<Integer>>> TreeBitmapIdx = 
@@ -95,7 +94,8 @@ public class StarSchemaBenchmark {
 			         for(int i=0; i<tabChaine.length; i++)
 			        	 
 			        	 if(TreeBitmapIdx.containsKey("C"+i)) {
-			        		 if(TreeBitmapIdx.get("C"+i).containsKey(tabChaine[i]))			        		 
+			        		 if(TreeBitmapIdx.get("C"+i).
+			        				 containsKey(tabChaine[i]))			        		 
 			        			 TreeBitmapIdx.get("C"+i).get(tabChaine[i]).add(row);
 			        		 else {
 			        			   ArrayList<Integer> bitmap = new ArrayList<Integer>();
