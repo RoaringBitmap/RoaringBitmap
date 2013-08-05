@@ -439,7 +439,7 @@ public class StarSchemaBenchmark {
 				bitmapand1 = bitmapand1.intersection(bitmap[k]);
 			}
 			int[] array = bitmapand1.toArray();
-			bogus += array.length;
+			if(array!=null) bogus += array.length;
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
@@ -448,10 +448,10 @@ public class StarSchemaBenchmark {
 		for (int r = 0; r < repeat; ++r) {
 			ConciseSet bitmapand1 = bitmap[0].clone();
 			for (int k = 1; k < N; ++k) {
-				bitmapand1 = bitmapand1.intersection(bitmap[k]);
+				bitmapand1 = bitmapand1.symmetricDifference(bitmap[k]);
 			}
 			int[] array = bitmapand1.toArray();
-			bogus += array.length;
+			if(array!=null) bogus += array.length;
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
