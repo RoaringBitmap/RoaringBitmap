@@ -21,8 +21,6 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 import javax.swing.JFileChooser;
 
-import net.sourceforge.sizeof.SizeOf;
-
 import org.devbrat.util.WAHBitSet;
 
 import com.googlecode.javaewah.EWAHCompressedBitmap;

@@ -1,9 +1,14 @@
 package me.lemire.roaringbitmap;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class ArrayContainer implements Container, Cloneable {
+public class ArrayContainer implements Container, Cloneable, Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	public short[] content;
 	int cardinality = 0;
 		

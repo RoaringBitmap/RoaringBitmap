@@ -1,11 +1,16 @@
 package me.lemire.roaringbitmap;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-public class RoaringBitmap implements Iterable<Integer>, Cloneable {
+public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3L;
 	public TreeMap<Short, Container> highlowcontainer = new TreeMap<Short, Container>(); // does
 																							// not
 					

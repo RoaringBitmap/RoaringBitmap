@@ -1,9 +1,14 @@
 package me.lemire.roaringbitmap;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class BitmapContainer implements Container, Cloneable {
+public class BitmapContainer implements Container, Cloneable, Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2L;
 	long[] bitmap = new long[(1 << 16) / 64]; //a max of 65535 integers
 											  // with 1024 chunks of 64 bits each	
 	int cardinality;
