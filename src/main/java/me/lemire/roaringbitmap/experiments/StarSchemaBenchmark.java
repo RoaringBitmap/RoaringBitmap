@@ -547,7 +547,7 @@ public class StarSchemaBenchmark {
 			Iterator<Integer> i = bitmapand1.iterator(); i.hasNext(); array[c++] = i
 					.next().intValue()) {
 			}
-			bogus += array[array.length-1];
+			if(array.length>0) bogus += array[array.length-1];
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
