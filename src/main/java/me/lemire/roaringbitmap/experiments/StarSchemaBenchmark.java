@@ -421,7 +421,7 @@ public class StarSchemaBenchmark {
 		// logical or + retrieval
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
-			ConciseSet bitmapor1 = bitmap[0];
+			ConciseSet bitmapor1 = bitmap[0].clone();
 			for (int k = 1; k < N; ++k) {
 				bitmapor1 = bitmapor1.union(bitmap[k]);
 			}
@@ -434,7 +434,7 @@ public class StarSchemaBenchmark {
 		// logical and + retrieval
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
-			ConciseSet bitmapand1 = bitmap[0];
+			ConciseSet bitmapand1 = bitmap[0].clone();
 			for (int k = 1; k < N; ++k) {
 				bitmapand1 = bitmapand1.intersection(bitmap[k]);
 			}
@@ -443,6 +443,19 @@ public class StarSchemaBenchmark {
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		// logical xor + retrieval
+		bef = System.currentTimeMillis();
+		for (int r = 0; r < repeat; ++r) {
+			ConciseSet bitmapand1 = bitmap[0].clone();
+			for (int k = 1; k < N; ++k) {
+				bitmapand1 = bitmapand1.intersection(bitmap[k]);
+			}
+			int[] array = bitmapand1.toArray();
+			bogus += array.length;
+		}
+		aft = System.currentTimeMillis();
+		line += "\t" + df.format((aft - bef) / 1000.0);
+
 		System.out.println(line);
 		System.out.println("# ignore this " + bogus);
 
