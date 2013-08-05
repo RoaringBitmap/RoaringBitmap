@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -176,7 +177,7 @@ public class StarSchemaBenchmark {
 		line += "\t" + df.format((aft - bef) / 1000.0);
 
 		{
-			RoaringBitmap bitmapor1 = bitmap[0].clone();
+			RoaringBitmap bitmapor1 = bitmap[0];
 			bitmapor1.validate();
 			for (k = 1; k < N; ++k) {
 				bitmapor1 = RoaringBitmap.or(bitmapor1, bitmap[k]);
@@ -190,7 +191,7 @@ public class StarSchemaBenchmark {
 		// logical or + retrieval
 		bef = System.currentTimeMillis();
 		for (r = 0; r < repeat; ++r) {
-			RoaringBitmap bitmapor1 = bitmap[0].clone();
+			RoaringBitmap bitmapor1 = bitmap[0];
 			for (k = 1; k < N; ++k)
 				bitmapor1 = RoaringBitmap.or(bitmapor1, bitmap[k]);
 
@@ -201,7 +202,7 @@ public class StarSchemaBenchmark {
 		line += "\t" + df.format((aft - bef) / 1000.0);
 
 		{
-			RoaringBitmap bitmapand1 = bitmap[0].clone();
+			RoaringBitmap bitmapand1 = bitmap[0];
 			bitmapand1.validate();
 			for (k = 1; k < N; ++k) {
 				bitmapand1 = RoaringBitmap.and(bitmapand1, bitmap[k]);
@@ -214,7 +215,7 @@ public class StarSchemaBenchmark {
 		// logical and + retrieval
 		bef = System.currentTimeMillis();
 		for (r = 0; r < repeat; ++r) {
-			RoaringBitmap bitmapand1 = bitmap[0].clone();
+			RoaringBitmap bitmapand1 = bitmap[0];
 			for (k = 1; k < N; ++k) {
 				bitmapand1 = RoaringBitmap.and(bitmapand1, bitmap[k]);
 			}
@@ -225,7 +226,7 @@ public class StarSchemaBenchmark {
 		line += "\t" + df.format((aft - bef) / 1000.0);
 
 		{
-			RoaringBitmap bitmapxor1 = bitmap[0].clone();
+			RoaringBitmap bitmapxor1 = bitmap[0];
 			for (k = 1; k < N; ++k) {
 				bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmap[k]);
 				bitmapxor1.validate();
@@ -237,7 +238,7 @@ public class StarSchemaBenchmark {
 		// logical xor + retrieval
 		bef = System.currentTimeMillis();
 		for (r = 0; r < repeat; ++r) {
-			RoaringBitmap bitmapxor1 = bitmap[0].clone();
+			RoaringBitmap bitmapxor1 = bitmap[0];
 			for (k = 1; k < N; ++k)
 				bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmap[k]);
 
@@ -420,9 +421,9 @@ public class StarSchemaBenchmark {
 		// logical or + retrieval
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
-			ConciseSet bitmapor1 = bitmap[0].clone();
+			ConciseSet bitmapor1 = bitmap[0];
 			for (int k = 1; k < N; ++k) {
-				bitmapor1.union(bitmap[k]);
+				bitmapor1 = bitmapor1.union(bitmap[k]);
 			}
 			int[] array = bitmapor1.toArray();
 			bogus += array.length;
@@ -433,9 +434,9 @@ public class StarSchemaBenchmark {
 		// logical and + retrieval
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
-			ConciseSet bitmapand1 = bitmap[0].clone();
+			ConciseSet bitmapand1 = bitmap[0];
 			for (int k = 1; k < N; ++k) {
-				bitmapand1.union(bitmap[k]);
+				bitmapand1 = bitmapand1.intersection(bitmap[k]);
 			}
 			int[] array = bitmapand1.toArray();
 			bogus += array.length;
@@ -505,9 +506,9 @@ public class StarSchemaBenchmark {
 		// logical or + retrieval
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
-			WAHBitSet bitmapor1 = new WAHBitSet();
+			WAHBitSet bitmapor1 = bitmap[0];
 			for (int k = 0; k < N; ++k) {
-				bitmapor1.or(bitmap[k]);
+				bitmapor1 = bitmapor1.or(bitmap[k]);
 			}
 			int[] array = new int[bitmapor1.cardinality()];
 			int c = 0;
@@ -525,7 +526,7 @@ public class StarSchemaBenchmark {
 		for (int r = 0; r < repeat; ++r) {
 			WAHBitSet bitmapand1 = bitmap[0];
 			for (int k = 1; k < N; ++k) {
-				bitmapand1.and(bitmap[k]);
+				bitmapand1= bitmapand1.and(bitmap[k]);
 			}
 			int[] array = new int[bitmapand1.cardinality()];
 			int c = 0;
@@ -598,55 +599,31 @@ public class StarSchemaBenchmark {
 
 		// fast logical or + retrieval
 		bef = System.currentTimeMillis();
-		try {
 			for (int r = 0; r < repeat; ++r) {
-				EWAHCompressedBitmap ewahor1 = ewah[0].clone();
-				for (int k = 1; k < N; ++k) {
-					ewahor1.or(ewah[k]);
-				}
+				EWAHCompressedBitmap ewahor1 = EWAHCompressedBitmap.or(Arrays.copyOf(ewah, N)); 
 				int[] array = ewahor1.toArray();
 				bogus += array.length;
 			}
-		} catch (CloneNotSupportedException e) {
-			System.out.println("bug : clone ewah64 or");
-		}
-		;
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
 
 		// fast logical and + retrieval
 		bef = System.currentTimeMillis();
-		try {
 			for (int r = 0; r < repeat; ++r) {
-				EWAHCompressedBitmap ewahand1 = ewah[0].clone();
-				for (int k = 1; k < N; ++k) {
-					ewahand1.and(ewah[k]);
-				}
+				EWAHCompressedBitmap ewahand1 = EWAHCompressedBitmap.and(Arrays.copyOf(ewah, N)); 
 				int[] array = ewahand1.toArray();
 				bogus += array.length;
 			}
-		} catch (CloneNotSupportedException e) {
-			System.out.println("bug : clone ewah64 and");
-		}
-		;
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
 
 		// fast logical xor + retrieval
 		bef = System.currentTimeMillis();
-		try {
 			for (int r = 0; r < repeat; ++r) {
-				EWAHCompressedBitmap ewahxor1 = ewah[0].clone();
-				for (int k = 1; k < N; ++k) {
-					ewahxor1.xor(ewah[k]);
-				}
+				EWAHCompressedBitmap ewahxor1 = EWAHCompressedBitmap.and(Arrays.copyOf(ewah, N)); 
 				int[] array = ewahxor1.toArray();
 				bogus += array.length;
 			}
-		} catch (CloneNotSupportedException e) {
-			System.out.println("bug : clone ewah64 xor");
-		}
-		;
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
 
@@ -709,55 +686,33 @@ public class StarSchemaBenchmark {
 
 		// fast logical or + retrieval
 		bef = System.currentTimeMillis();
-		try {
 			for (r = 0; r < repeat; ++r) {
-				EWAHCompressedBitmap32 ewahor1 = ewah[0].clone();
-				for (k = 1; k < N; ++k) {
-					ewahor1.or(ewah[k]);
-				}
+				EWAHCompressedBitmap32 ewahor1 = EWAHCompressedBitmap32.or(Arrays.copyOf(ewah, N)); 
 				int[] array = ewahor1.toArray();
 				bogus += array.length;
 			}
-		} catch (CloneNotSupportedException e) {
-			System.out.println("bug : clone ewah32 or");
-		}
-		;
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
 
 		// fast logical and + retrieval
 		bef = System.currentTimeMillis();
-		try {
 			for (r = 0; r < repeat; ++r) {
-				EWAHCompressedBitmap32 ewahand1 = ewah[0].clone();
-				for (k = 1; k < N; ++k) {
-					ewahand1.and(ewah[k]);
-				}
+				EWAHCompressedBitmap32 ewahand1 = 
+						EWAHCompressedBitmap32.and(Arrays.copyOf(ewah, N)); 
 				int[] array = ewahand1.toArray();
 				bogus += array.length;
 			}
-		} catch (CloneNotSupportedException e) {
-			System.out.println("bug : clone ewah32 and");
-		}
-		;
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
 
 		// fast logical xor + retrieval
 		bef = System.currentTimeMillis();
-		try {
 			for (r = 0; r < repeat; ++r) {
-				EWAHCompressedBitmap32 ewahxor1 = ewah[0].clone();
-				for (k = 1; k < N; ++k) {
-					ewahxor1.xor(ewah[k]);
-				}
+				EWAHCompressedBitmap32 ewahxor1 = 
+						EWAHCompressedBitmap32.xor(Arrays.copyOf(ewah, N)); 
 				int[] array = ewahxor1.toArray();
 				bogus += array.length;
 			}
-		} catch (CloneNotSupportedException e) {
-			System.out.println("bug : clone ewah32 xor");
-		}
-		;
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
 
