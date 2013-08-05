@@ -12,7 +12,12 @@ Get maven 2
 mvn compile will compile
 mvn test will run the unit tests
 mvn package will package in a jar (found in target)
-
 mvn exec:java will run a benchmark
+
+Pour lancer un benchmark manuellement, faire  
+mvn package
+cd target
+java -cp "RoaringBitmap-0.0.1-SNAPSHOT.jar:lib/*" me.lemire.roaringbitmap.experiments.Benchmark
+
 
 Note: Eclipse supports maven projects (though a plugin might be required)
