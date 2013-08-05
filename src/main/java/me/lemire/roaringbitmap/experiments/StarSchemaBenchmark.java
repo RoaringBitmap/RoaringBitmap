@@ -12,14 +12,10 @@ import java.util.BitSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-
 import javax.swing.JFileChooser;
-
 import org.devbrat.util.WAHBitSet;
-
 import com.googlecode.javaewah.EWAHCompressedBitmap;
 import com.googlecode.javaewah32.EWAHCompressedBitmap32;
-
 import me.lemire.roaringbitmap.RoaringBitmap;
 
 public class StarSchemaBenchmark {
@@ -37,18 +33,16 @@ public class StarSchemaBenchmark {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		/*
-		 * String defaultpath = "G:/Downloads/smallssb.csv"; if(args.length>0)
-		 * defaultpath = args[0];
-		 */
 		System.out.println("Starting building :");
-		StarSchemaBenchmark.BuildingSSBbitmaps();
-		// StarSchemaBenchmark ssb = new StarSchemaBenchmark();
-		// System.out.println(ssb.toString());
+		if(args.length>0) {
+			StarSchemaBenchmark.BuildingSSBbitmaps(args[0]);
+		} else {
+			StarSchemaBenchmark.BuildingSSBbitmaps(null);			
+		}
 
 		System.out.println("Starting experiments :");
 		DecimalFormat df = new DecimalFormat("0.###");
-		int repeat = 1;
+		int repeat = 3;
 		StarSchemaBenchmark.testRoaringBitmap(repeat, df);
 		StarSchemaBenchmark.testBitSet(repeat, df);
 		StarSchemaBenchmark.testConciseSet(repeat, df);
@@ -57,7 +51,7 @@ public class StarSchemaBenchmark {
 		StarSchemaBenchmark.testEWAH32(repeat, df);
 	}
 
-	public static void BuildingSSBbitmaps() {
+	public static void BuildingSSBbitmaps(String path) {
 		try {
 			/**
 			 * TODO: rely on a standard library like jcvs instead, as this
@@ -65,15 +59,16 @@ public class StarSchemaBenchmark {
 			 * actual CSV files.
 			 * 
 			 */
-			String path;
-			do {
-				JFileChooser file = new JFileChooser();
-				int val = file.showOpenDialog(null);
-				if (val == JFileChooser.APPROVE_OPTION) {
-					path = file.getSelectedFile().getAbsolutePath();
-					break;
-				}
-			} while (true);
+			if(path == null) {
+				do {
+					JFileChooser file = new JFileChooser();
+					int val = file.showOpenDialog(null);
+					if (val == JFileChooser.APPROVE_OPTION) {
+						path = file.getSelectedFile().getAbsolutePath();
+						break;
+					}
+				} while (true);
+			}
 
 			BufferedReader fichier_source = new BufferedReader(new FileReader(
 					path));
@@ -695,7 +690,7 @@ public class StarSchemaBenchmark {
 		}
 		aft = System.currentTimeMillis();
 
-		// Calculataing size
+		// Calculating size
 		for (k = 0; k < N; k++)
 			size += ewah[k].sizeInBytes();
 
