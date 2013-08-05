@@ -100,7 +100,6 @@ public class RoaringBitmapTest {
 	}
 
 	@Test
-	/** Tester la nom répétition de valeurs communes entre les deux ensembles */
 	public void ortest() {
 		RoaringBitmap rr = new RoaringBitmap();
 		for (int k = 0; k < 4000; ++k) {
@@ -130,7 +129,6 @@ public class RoaringBitmapTest {
 	}
 
 	@Test
-	/** Tester l'existence dans le résultat de toutes les valeurs distinctes des deux ensembles */
 	public void ortest2() {
 		int[] arrayrr = new int[4000 + 4000 + 2];
 		int pos = 0;

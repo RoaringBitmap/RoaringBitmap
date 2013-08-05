@@ -124,9 +124,7 @@ public class BitmapContainer implements Container, Cloneable {
 	public Container and(BitmapContainer value2) {
 		BitmapContainer value1 = this;
 		BitmapContainer answer = new BitmapContainer();
-		for (int k = 0; k < answer.bitmap.length; ++k) // optimiser à max(last
-														// set bit of value1,
-														// value2)
+		for (int k = 0; k < answer.bitmap.length; ++k) 
 		{
 			answer.bitmap[k] = value1.bitmap[k] & value2.bitmap[k];
 			answer.cardinality += Long.bitCount(answer.bitmap[k]);

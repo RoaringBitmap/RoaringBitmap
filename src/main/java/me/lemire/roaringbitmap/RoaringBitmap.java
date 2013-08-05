@@ -45,7 +45,7 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable {
 					if (!p2.hasNext())
 						break main;
 					s2 = p2.next();
-				} else { // égalité
+				} else { 
 					Container C = Util.and(s1.getValue(), s2.getValue());
 					if(C.getCardinality()>0)
 					answer.highlowcontainer.put(s1.getKey(),C);
@@ -74,8 +74,6 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable {
 			while (true) {
 				if (s1.getKey().shortValue() < s2.getKey().shortValue()) {
 					answer.highlowcontainer.put(s1.getKey(), s1.getValue());
-					// Si set p1 terminé, alors ajouter ce qui reste de set p2
-					// dans answer
 					if (!p1.hasNext()) { 
 						do {
 							answer.highlowcontainer.put(s2.getKey(),
@@ -89,8 +87,6 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable {
 					s1 = p1.next();
 				} else if (s1.getKey().shortValue() > s2.getKey().shortValue()) { 
 					answer.highlowcontainer.put(s2.getKey(), s2.getValue());
-					// Si set p2 terminé, alors ajouter ce qui reste de set p1
-					// dans answer
 					if (!p2.hasNext()) { 
 						do {
 							answer.highlowcontainer.put(s1.getKey(),
@@ -102,7 +98,7 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable {
 						break main;
 					}
 					s2 = p2.next();
-				} else { // égalité
+				} else { 
 					answer.highlowcontainer.put(s1.getKey(),
 							Util.or(s1.getValue(), s2.getValue()));
 					if (!p1.hasNext()) { 
@@ -148,8 +144,6 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable {
 			while (true) {
 				if (s1.getKey().shortValue() < s2.getKey().shortValue()) {
 					answer.highlowcontainer.put(s1.getKey(), s1.getValue());
-					// Si set p1 terminé, alors ajouter ce qui reste de set p2
-					// dans answer
 					if (!p1.hasNext()) { 
 						do {
 							answer.highlowcontainer.put(s2.getKey(),
@@ -163,8 +157,6 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable {
 					s1 = p1.next();
 				} else if (s1.getKey().shortValue() > s2.getKey().shortValue()) { 
 					answer.highlowcontainer.put(s2.getKey(), s2.getValue());
-					// Si set p2 terminé, alors ajouter ce qui reste de set p1
-					// dans answer
 					if (!p2.hasNext()) { 
 						do {
 							answer.highlowcontainer.put(s1.getKey(),
@@ -176,7 +168,7 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable {
 						break main;
 					}
 					s2 = p2.next();
-				} else { // égalité
+				} else { 
 					Container C = Util.xor(s1.getValue(), s2.getValue());
 					if (C.getCardinality()>0)
 						answer.highlowcontainer.put(s1.getKey(), C);
