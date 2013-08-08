@@ -1,9 +1,10 @@
 package me.lemire.roaringbitmap;
 
+import it.unimi.dsi.fastutil.shorts.Short2ObjectAVLTreeMap;
+
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.TreeMap;
 
 public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable {
 
@@ -11,7 +12,7 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable
 	 * 
 	 */
 	private static final long serialVersionUID = 3L;
-	public TreeMap<Short, Container> highlowcontainer = new TreeMap<Short, Container>(); // does
+	public Short2ObjectAVLTreeMap<Container> highlowcontainer = new Short2ObjectAVLTreeMap<Container>(); // does
 																							// not
 					
 																							// be
@@ -22,9 +23,10 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable
 	
 	public void add(int x) {
 		short hb = Util.highbits(x);
-		if (highlowcontainer.containsKey(hb)) {
-			highlowcontainer.put(hb,
-					highlowcontainer.get(hb).add(Util.lowbits(x)));
+		Container z = highlowcontainer.get(hb);
+		if(z != null) {
+		        Container z2 = z.add(Util.lowbits(x));
+		        if(z2 != z) highlowcontainer.put(hb,z2);
 		} else {
 			ArrayContainer newac = new ArrayContainer();
 			highlowcontainer.put(hb, newac.add(Util.lowbits(x)));
@@ -338,7 +340,7 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable
 	public RoaringBitmap clone() {
 		try {
 			RoaringBitmap x = (RoaringBitmap) super.clone();
-			x.highlowcontainer = (TreeMap<Short, Container>) highlowcontainer
+			x.highlowcontainer = highlowcontainer
 					.clone();
 			return x;
 		} catch (CloneNotSupportedException e) {

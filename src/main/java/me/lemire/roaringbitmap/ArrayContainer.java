@@ -29,7 +29,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 	}
 	
 	public ArrayContainer() {
-		content = new short[2048];// we don't want more than 1024
+		content = new short[1024];// we don't want more than 1024
 	}
 
 	@Override
