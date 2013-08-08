@@ -67,8 +67,7 @@ public class StarSchemaBenchmark {
                 int row = 0;
                 nbBitmaps = 0;
                 TreeBitmapIdx = new ArrayList<TreeMap<String, IntArray>>();
-                Reader source_file = new FileReader(
-                        path);
+                Reader source_file = new FileReader(path);
                 try {
                         CSVReader reader = new CSVReader(source_file);
                         

@@ -1148,7 +1148,7 @@ public class SerializableStarSchemaBenchmark {
 	}
 	
 	static File tmpdatasource;
-
+	
 	public static void BuildingBigSSBbitmaps(String path) throws IOException {
 		String record;
 		tmpdatasource = File.createTempFile("bitmap", "bin");
