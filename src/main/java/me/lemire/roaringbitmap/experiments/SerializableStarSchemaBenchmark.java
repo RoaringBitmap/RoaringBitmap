@@ -38,16 +38,16 @@ public class SerializableStarSchemaBenchmark {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 * @throws CloneNotSupportedException
-	 */
+	 */	
 	public static void main(String[] args) throws IOException,
 			ClassNotFoundException, CloneNotSupportedException {
-
+		
 		System.out.println("Start building :");
 		if (args.length > 0) {
 			SerializableStarSchemaBenchmark.BuildingBigSSBbitmaps(args[0]);
 		} else {
 			SerializableStarSchemaBenchmark.BuildingBigSSBbitmaps(null);
-		}
+			}
 		System.out.println("Start experiments :");
 		DecimalFormat df = new DecimalFormat("0.###");
 		int repeat = 1;
@@ -1150,12 +1150,10 @@ public class SerializableStarSchemaBenchmark {
 	static File tmpdatasource;
 
 	public static void BuildingBigSSBbitmaps(String path) throws IOException {
-
 		String record;
 		tmpdatasource = File.createTempFile("bitmap", "bin");
 		tmpdatasource.deleteOnExit();
-		DataOutputStream oo = new DataOutputStream(new FileOutputStream(
-				tmpdatasource));
+		DataOutputStream oo = new DataOutputStream(new FileOutputStream(tmpdatasource));		
 		if (path == null)
 			do {
 				JFileChooser file = new JFileChooser();
@@ -1176,10 +1174,9 @@ public class SerializableStarSchemaBenchmark {
 			while (column < ArrayLine.length) {
 				row = 0;
 				Bitmaps = new TreeMap<String, ArrayList<Integer>>();
-				BufferedReader source_file = new BufferedReader(new FileReader(
-						path));
+				BufferedReader source_file = new BufferedReader(new FileReader(path));
 
-				while ((record = source_file.readLine()) != null) {
+				while ((record = source_file.readLine()) != null && row <=100000) {
 					ArrayLine = record.split(",");
 					if (Bitmaps.containsKey(ArrayLine[column]))
 						Bitmaps.get(ArrayLine[column]).add(row);
