@@ -31,7 +31,6 @@ import me.lemire.roaringbitmap.RoaringBitmap;
 
 public class SerializableStarSchemaBenchmark {
 
-	static TreeMap<String, TreeMap<String, ArrayList<Integer>>> TreeBitmapIdx = new TreeMap<String, TreeMap<String, ArrayList<Integer>>>();
 	static int nbBitmaps = 0;
 
 	/**
@@ -54,71 +53,10 @@ public class SerializableStarSchemaBenchmark {
 		int repeat = 1;
 		SerializableStarSchemaBenchmark.testRoaringBitmap(repeat, df);
 		SerializableStarSchemaBenchmark.testConciseSet(repeat, df);
-		SerializableStarSchemaBenchmark.testWAH32(repeat, df);
+		//SerializableStarSchemaBenchmark.testWAH32(repeat, df);
 		SerializableStarSchemaBenchmark.testEWAH64(repeat, df);
 		SerializableStarSchemaBenchmark.testEWAH32(repeat, df);
-	}
-
-	public static void BuildingSSBbitmaps() {
-		try {
-			/**
-			 * TODO: rely on a standard library like jcvs instead, as this
-			 * approach might be naive and would probably give you headaches on
-			 * actual CSV files.
-			 * 
-			 */
-			String path;
-			do {
-				JFileChooser file = new JFileChooser();
-				int val = file.showOpenDialog(null);
-				if (val == JFileChooser.CANCEL_OPTION)
-					System.exit(0);
-				if (val == JFileChooser.APPROVE_OPTION) {
-					path = file.getSelectedFile().getAbsolutePath();
-					break;
-				}
-			} while (true);
-
-			BufferedReader source_file = new BufferedReader(
-					new FileReader(path));
-			String record;
-			int row = 1;
-
-			try {
-				while ((record = source_file.readLine()) != null) {
-					String[] ArrayLine = record.split(",");
-
-					for (int i = 0; i < ArrayLine.length; i++)
-						if (TreeBitmapIdx.containsKey("C" + i)) {
-							if (TreeBitmapIdx.get("C" + i).containsKey(
-									ArrayLine[i]))
-								TreeBitmapIdx.get("C" + i).get(ArrayLine[i])
-										.add(row);
-							else {
-								ArrayList<Integer> bitmap = new ArrayList<Integer>();
-								bitmap.add(row);
-								TreeBitmapIdx.get("C" + i).put(ArrayLine[i],
-										bitmap);
-								nbBitmaps++;
-							}
-						} else {
-							ArrayList<Integer> bitmap = new ArrayList<Integer>();
-							bitmap.add(row);
-							TreeMap<String, ArrayList<Integer>> body = new TreeMap<String, ArrayList<Integer>>();
-							body.put(ArrayLine[i], bitmap);
-							TreeBitmapIdx.put("C" + i, body);
-							nbBitmaps++;
-						}
-					row++;
-				}
-				source_file.close();
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
-		} catch (FileNotFoundException e) {
-			System.out.println("Sorry, file not found !");
-		}
-	}
+	}	
 
 	public static void testRoaringBitmap(int repeat, DecimalFormat df)
 			throws FileNotFoundException, IOException, ClassNotFoundException {
@@ -142,7 +80,8 @@ public class SerializableStarSchemaBenchmark {
 		tmpbitmaplocation.deleteOnExit();
 
 		// Calculating the construction time
-		bef = System.currentTimeMillis();
+		long time=0;
+		
 		for (r = 0; r < repeat; ++r) {
 			DataInputStream in = null;
 			ObjectOutputStream oos = null;
@@ -152,10 +91,16 @@ public class SerializableStarSchemaBenchmark {
 						tmpbitmaplocation));
 				int setBit;
 				for (int i = 0; i < N; i++) {
+					bef = System.currentTimeMillis();
 					RoaringBitmap bitmap = new RoaringBitmap();
+					aft = System.currentTimeMillis();
+					time+=aft-bef;
 					try {
 						while ((setBit = in.readInt()) != -1) {
+							bef = System.currentTimeMillis();
 							bitmap.set(setBit);
+							aft = System.currentTimeMillis();
+							time+=aft-bef;
 						}
 					} catch (EOFException e) {
 					}
@@ -189,7 +134,6 @@ public class SerializableStarSchemaBenchmark {
 			if (ois != null)
 				ois.close();
 		}
-		System.out.println("calculate the size");
 
 		// Calculating the size
 		try {
@@ -206,27 +150,29 @@ public class SerializableStarSchemaBenchmark {
 		}
 
 		line += "\t" + size / 1024;
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		line += "\t" + df.format((time) / 1000.0);
 
 		// uncompressing
-		bef = System.currentTimeMillis();
+		time = 0;
 		for (r = 0; r < repeat; ++r)
 			try {
 				ois = new ObjectInputStream(new FileInputStream(
 						tmpbitmaplocation));
 				try {
 					while ((bitmap = (RoaringBitmap) ois.readObject()) != null) {
+						bef = System.currentTimeMillis();
 						int[] array = bitmap.getIntegers();
 						bogus += array.length;
+						aft = System.currentTimeMillis();
+						time += aft-bef;
 					}
-				} catch (EOFException e) {
-				}
+				} catch (EOFException e) {}
 			} finally {
 				if (ois != null)
 					ois.close();
 			}
 		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		line += "\t" + df.format((time) / 1000.0);
 
 		{
 			try {
@@ -250,7 +196,7 @@ public class SerializableStarSchemaBenchmark {
 		}
 
 		// logical or + retrieval
-		bef = System.currentTimeMillis();
+		time = 0;
 		for (r = 0; r < repeat; ++r) {
 			try {
 				ois = new ObjectInputStream(new FileInputStream(
@@ -258,19 +204,25 @@ public class SerializableStarSchemaBenchmark {
 				RoaringBitmap bitmapor1 = (RoaringBitmap) ois.readObject();
 				try {
 					while ((bitmap = (RoaringBitmap) ois.readObject()) != null) {
+						bef = System.currentTimeMillis();
 						bitmapor1 = RoaringBitmap.or(bitmapor1, bitmap);
+						aft = System.currentTimeMillis();
+						time+=aft-bef;
 					}
 				} catch (EOFException e) {
 				}
+				bef = System.currentTimeMillis();
 				int[] array = bitmapor1.getIntegers();
 				bogus += array.length;
+				aft = System.currentTimeMillis();
+				time+=aft-bef;
 			} finally {
 				if (ois != null)
 					ois.close();
 			}
 		}
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		line += "\t" + df.format((time) / 1000.0);
 
 		{
 			try {
@@ -294,7 +246,7 @@ public class SerializableStarSchemaBenchmark {
 		}
 
 		// logical and + retrieval
-		bef = System.currentTimeMillis();
+		time=0;
 		for (r = 0; r < repeat; ++r) {
 			try {
 				ois = new ObjectInputStream(new FileInputStream(
@@ -302,19 +254,25 @@ public class SerializableStarSchemaBenchmark {
 				RoaringBitmap bitmapand1 = (RoaringBitmap) ois.readObject();
 				try {
 					while ((bitmap = (RoaringBitmap) ois.readObject()) != null) {
+						bef = System.currentTimeMillis();
 						bitmapand1 = RoaringBitmap.and(bitmapand1, bitmap);
+						aft = System.currentTimeMillis();
+						time+=aft-bef;
 					}
 				} catch (EOFException e) {
 				}
+				bef = System.currentTimeMillis();
 				int[] array = bitmapand1.getIntegers();
 				bogus += array.length;
+				aft = System.currentTimeMillis();
+				time+=aft-bef;
 			} finally {
 				if (ois != null)
 					ois.close();
 			}
 		}
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		line += "\t" + df.format((time) / 1000.0);
 
 		{
 			try {
@@ -338,7 +296,7 @@ public class SerializableStarSchemaBenchmark {
 		}
 
 		// logical xor + retrieval
-		bef = System.currentTimeMillis();
+		time=0;
 		for (r = 0; r < repeat; ++r) {
 			try {
 				ois = new ObjectInputStream(new FileInputStream(
@@ -346,19 +304,24 @@ public class SerializableStarSchemaBenchmark {
 				RoaringBitmap bitmapxor1 = (RoaringBitmap) ois.readObject();
 				try {
 					while ((bitmap = (RoaringBitmap) ois.readObject()) != null) {
+						bef = System.currentTimeMillis();
 						bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmap);
+						aft = System.currentTimeMillis();
+						time+=aft-bef;
 					}
 				} catch (EOFException e) {
 				}
+				bef = System.currentTimeMillis();
 				int[] array = bitmapxor1.getIntegers();
 				bogus += array.length;
+				aft = System.currentTimeMillis();
+				time+=aft-bef;
 			} finally {
 				if (ois != null)
 					ois.close();
 			}
 		}
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		line += "\t" + df.format((time) / 1000.0);
 
 		System.out.println(line);
 		System.out.println("# ignore this " + bogus);
@@ -1183,32 +1146,7 @@ public class SerializableStarSchemaBenchmark {
 		System.out.println("# ignore this " + bogus);
 		tmpbitmaplocation.delete();
 	}
-
-	@Override
-	public String toString() {
-		StringBuffer sb = new StringBuffer();
-		final Iterator<Entry<String, TreeMap<String, ArrayList<Integer>>>> H = TreeBitmapIdx
-				.entrySet().iterator();
-
-		Entry<String, TreeMap<String, ArrayList<Integer>>> sh;
-		Entry<String, ArrayList<Integer>> s;
-		int counter = 0;
-
-		while (H.hasNext()) {
-			sh = H.next();
-			sb.append(sh.getKey() + "\n");
-			final Iterator<Entry<String, ArrayList<Integer>>> I = sh.getValue()
-					.entrySet().iterator();
-			while (I.hasNext()) {
-				s = I.next();
-				counter++;
-				sb.append(s.getKey() + " :: " + s.getValue().toString() + "\n");
-			}
-		}
-		System.out.println("cardinality = " + counter);
-		return sb.toString();
-	}
-
+	
 	static File tmpdatasource;
 
 	public static void BuildingBigSSBbitmaps(String path) throws IOException {
@@ -1241,8 +1179,7 @@ public class SerializableStarSchemaBenchmark {
 				BufferedReader source_file = new BufferedReader(new FileReader(
 						path));
 
-				while ((record = source_file.readLine()) != null
-						&& row <= 100000) {
+				while ((record = source_file.readLine()) != null) {
 					ArrayLine = record.split(",");
 					if (Bitmaps.containsKey(ArrayLine[column]))
 						Bitmaps.get(ArrayLine[column]).add(row);
@@ -1268,8 +1205,6 @@ public class SerializableStarSchemaBenchmark {
 				Bitmaps = null;
 				source_file = null;
 			}
-		} finally {
-			oo.close();
-		}
+		} finally {	oo.close();	}
 	}
 }
