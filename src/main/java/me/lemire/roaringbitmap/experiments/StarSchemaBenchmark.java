@@ -33,14 +33,14 @@ public class StarSchemaBenchmark {
          * @throws IOException
          */
         public static void main(String[] args) throws IOException {
-                System.out.println("Starting building :");
+                System.out.println("Start building :");
                 if (args.length > 0) {
                         StarSchemaBenchmark.BuildingSSBbitmaps(args[0]);
                 } else {
                         StarSchemaBenchmark.BuildingSSBbitmaps(null);
                 }
 
-                System.out.println("Starting experiments :");
+                System.out.println("Start experiments :");
                 DecimalFormat df = new DecimalFormat("0.###");
                 int repeat = 3;
                 StarSchemaBenchmark.testWAH32(repeat, df);
@@ -435,7 +435,7 @@ public class StarSchemaBenchmark {
                 // logical or + retrieval
                 bef = System.currentTimeMillis();
                 for (int r = 0; r < repeat; ++r) {
-                        ConciseSet bitmapor1 = bitmap[0].clone();
+                        ConciseSet bitmapor1 = bitmap[0].clone();                        
                         for (int k = 1; k < N; ++k) {
                                 bitmapor1 = bitmapor1.union(bitmap[k]);
                         }
@@ -542,8 +542,7 @@ public class StarSchemaBenchmark {
                         int c = 0;
                         for (@SuppressWarnings("unchecked")
                         Iterator<Integer> i = bitmapor1.iterator(); i.hasNext(); array[c++] = i
-                                .next().intValue()) {
-                        }
+                                .next().intValue()) {}
                         bogus += array[array.length - 1];
                 }
                 aft = System.currentTimeMillis();
@@ -560,8 +559,7 @@ public class StarSchemaBenchmark {
                         int c = 0;
                         for (@SuppressWarnings("unchecked")
                         Iterator<Integer> i = bitmapand1.iterator(); i
-                                .hasNext(); array[c++] = i.next().intValue()) {
-                        }
+                                .hasNext(); array[c++] = i.next().intValue()) {}
                         if (array.length > 0)
                                 bogus += array[array.length - 1];
                 }
@@ -648,7 +646,7 @@ public class StarSchemaBenchmark {
                 bef = System.currentTimeMillis();
                 for (int r = 0; r < repeat; ++r) {
                         EWAHCompressedBitmap ewahxor1 = EWAHCompressedBitmap
-                                .and(Arrays.copyOf(ewah, N));
+                                .xor(Arrays.copyOf(ewah, N));
                         int[] array = ewahxor1.toArray();
                         bogus += array.length;
                 }
@@ -743,7 +741,6 @@ public class StarSchemaBenchmark {
 
                 System.out.println(line);
                 System.out.println("# ignore this " + bogus);
-
         }
 
         /*

@@ -80,8 +80,7 @@ public class SerializableStarSchemaBenchmark {
 		tmpbitmaplocation.deleteOnExit();
 
 		// Calculating the construction time
-		long time=0;
-		
+		long time=0;		
 		for (r = 0; r < repeat; ++r) {
 			DataInputStream in = null;
 			ObjectOutputStream oos = null;
@@ -114,7 +113,6 @@ public class SerializableStarSchemaBenchmark {
 					oos.close();
 			}
 		}
-		aft = System.currentTimeMillis();
 
 		ObjectInputStream ois = null;
 		RoaringBitmap bitmap = null;
@@ -209,8 +207,7 @@ public class SerializableStarSchemaBenchmark {
 						aft = System.currentTimeMillis();
 						time+=aft-bef;
 					}
-				} catch (EOFException e) {
-				}
+				} catch (EOFException e) {}
 				bef = System.currentTimeMillis();
 				int[] array = bitmapor1.getIntegers();
 				bogus += array.length;
@@ -220,8 +217,7 @@ public class SerializableStarSchemaBenchmark {
 				if (ois != null)
 					ois.close();
 			}
-		}
-		
+		}		
 		line += "\t" + df.format((time) / 1000.0);
 
 		{
@@ -304,7 +300,7 @@ public class SerializableStarSchemaBenchmark {
 				RoaringBitmap bitmapxor1 = (RoaringBitmap) ois.readObject();
 				try {
 					while ((bitmap = (RoaringBitmap) ois.readObject()) != null) {
-						bef = System.currentTimeMillis();
+						bef = System.currentTimeMillis();						
 						bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmap);
 						aft = System.currentTimeMillis();
 						time+=aft-bef;
@@ -522,9 +518,9 @@ public class SerializableStarSchemaBenchmark {
 		int size = 0;
 		File tmpbitmaplocation = File.createTempFile("bitmap", "bin");
 		tmpbitmaplocation.deleteOnExit();
-
-		bef = System.currentTimeMillis();
-
+		
+		//Building concise bitmaps
+		long time = 0;
 		for (int r = 0; r < repeat; ++r) {
 
 			DataInputStream in = null;
@@ -535,10 +531,16 @@ public class SerializableStarSchemaBenchmark {
 						tmpbitmaplocation));
 				int setBit;
 				for (int i = 0; i < N; i++) {
+					bef = System.currentTimeMillis();
 					ConciseSet bitmap = new ConciseSet();
+					aft = System.currentTimeMillis();
+					time += aft-bef;
 					try {
 						while ((setBit = in.readInt()) != -1) {
+							bef = System.currentTimeMillis();
 							bitmap.add(setBit);
+							aft = System.currentTimeMillis();
+							time += aft-bef;
 						}
 					} catch (EOFException e) {
 					}
@@ -551,8 +553,7 @@ public class SerializableStarSchemaBenchmark {
 				if (oos != null)
 					oos.close();
 			}
-		}
-		aft = System.currentTimeMillis();
+		}		
 
 		ObjectInputStream ois = null;
 		ConciseSet bitmap = null;
@@ -574,30 +575,31 @@ public class SerializableStarSchemaBenchmark {
 		}
 
 		line += "\t" + size / 1024;
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		line += "\t" + df.format((time) / 1000.0);
 
 		// uncompressing
-		bef = System.currentTimeMillis();
+		time = 0;
 		for (int r = 0; r < repeat; ++r)
 			try {
 				ois = new ObjectInputStream(new FileInputStream(
 						tmpbitmaplocation));
 				try {
 					while ((bitmap = (ConciseSet) ois.readObject()) != null) {
+						bef = System.currentTimeMillis();
 						int[] array = bitmap.toArray();
 						bogus += array.length;
+						aft = System.currentTimeMillis();
+						time += aft-bef;
 					}
-				} catch (EOFException e) {
-				}
+				} catch (EOFException e) {}
 			} finally {
 				if (ois != null)
 					ois.close();
 			}
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		line += "\t" + df.format((time) / 1000.0);
 
 		// logical or + retrieval
-		bef = System.currentTimeMillis();
+		time=0;
 		for (int r = 0; r < repeat; ++r) {
 			try {
 				ois = new ObjectInputStream(new FileInputStream(
@@ -605,39 +607,49 @@ public class SerializableStarSchemaBenchmark {
 				ConciseSet bitmapor1 = (ConciseSet) ois.readObject();
 				try {
 					while ((bitmap = (ConciseSet) ois.readObject()) != null) {
+						bef = System.currentTimeMillis();
 						bitmapor1.union(bitmap);
+						aft = System.currentTimeMillis();
+						time += aft-bef;
 					}
 				} catch (EOFException e) {
 				}
+				bef = System.currentTimeMillis();
 				int[] array = bitmapor1.toArray();
 				bogus += array.length;
+				aft = System.currentTimeMillis();
+				time += aft-bef;
 			} finally {
 				if (ois != null)
 					ois.close();
 			}
-		}
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		}		
+		line += "\t" + df.format((time) / 1000.0);
 
 		// logical and + retrieval
-		bef = System.currentTimeMillis();
+		time = 0;
 		try {
 			ois = new ObjectInputStream(new FileInputStream(tmpbitmaplocation));
 			ConciseSet bitmapand1 = (ConciseSet) ois.readObject();
 			try {
 				while ((bitmap = (ConciseSet) ois.readObject()) != null) {
+					bef = System.currentTimeMillis();
 					bitmapand1.intersection(bitmap);
+					aft = System.currentTimeMillis();
+					time += aft-bef;
 				}
 			} catch (EOFException e) {
 			}
+			bef = System.currentTimeMillis();
 			int[] array = bitmapand1.toArray();
 			bogus += array.length;
+			aft = System.currentTimeMillis();
+			time += aft-bef;
 		} finally {
 			if (ois != null)
 				ois.close();
-		}
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		}		
+		line += "\t" + df.format((time) / 1000.0);
 		System.out.println(line);
 		System.out.println("# ignore this " + bogus);
 		tmpbitmaplocation.delete();
@@ -656,7 +668,7 @@ public class SerializableStarSchemaBenchmark {
 		File tmpbitmaplocation = File.createTempFile("bitmap", "bin");
 		tmpbitmaplocation.deleteOnExit();
 
-		bef = System.currentTimeMillis();
+		long time = 0;
 
 		for (int r = 0; r < repeat; ++r) {
 			DataInputStream in = null;
@@ -667,7 +679,10 @@ public class SerializableStarSchemaBenchmark {
 						tmpbitmaplocation));
 				int setBit;
 				for (int i = 0; i < N; i++) {
+					bef = System.currentTimeMillis();
 					WAHBitSet bitmap = new WAHBitSet();
+					aft = System.currentTimeMillis();
+					time += aft-bef;
 					// System.out.println("\nC"+i);
 					try {
 						while ((setBit = in.readInt()) != -1) {
@@ -685,7 +700,6 @@ public class SerializableStarSchemaBenchmark {
 					oos.close();
 			}
 		}
-		aft = System.currentTimeMillis();
 
 		ObjectInputStream ois = null;
 		WAHBitSet bitmap = null;
@@ -706,10 +720,10 @@ public class SerializableStarSchemaBenchmark {
 		}
 
 		line += "\t" + size / 1024;
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		line += "\t" + df.format((time) / 1000.0);
 
 		// uncompressing
-		bef = System.currentTimeMillis();
+		time = 0;
 
 		for (int r = 0; r < repeat; ++r)
 			try {
@@ -717,12 +731,15 @@ public class SerializableStarSchemaBenchmark {
 						tmpbitmaplocation));
 				try {
 					while ((bitmap = (WAHBitSet) ois.readObject()) != null) {
+						bef = System.currentTimeMillis();
 						int[] array = new int[bitmap.cardinality()];
 						int c = 0;
 						for (@SuppressWarnings("unchecked")
 						Iterator<Integer> i = bitmap.iterator(); i.hasNext(); array[c++] = i
-								.next().intValue()) {
-						}
+								.next().intValue()) {}
+						bogus += array[array.length - 1];
+						aft = System.currentTimeMillis();
+						time += aft-bef;
 					}
 				} catch (EOFException e) {
 				}
@@ -732,10 +749,10 @@ public class SerializableStarSchemaBenchmark {
 			}
 
 		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		line += "\t" + df.format((time) / 1000.0);
 
 		// logical or + retrieval
-		bef = System.currentTimeMillis();
+		time = 0;
 		for (int r = 0; r < repeat; ++r) {
 			try {
 				ois = new ObjectInputStream(new FileInputStream(
@@ -743,10 +760,14 @@ public class SerializableStarSchemaBenchmark {
 				WAHBitSet bitmapor1 = (WAHBitSet) ois.readObject();
 				try {
 					while ((bitmap = (WAHBitSet) ois.readObject()) != null) {
+						bef = System.currentTimeMillis();
 						bitmapor1.or(bitmap);
+						aft = System.currentTimeMillis();
+						time += aft-bef;
 					}
 				} catch (EOFException e) {
 				}
+				bef = System.currentTimeMillis();
 				int[] array = new int[bitmapor1.cardinality()];
 				int c = 0;
 				for (@SuppressWarnings("unchecked")
@@ -754,16 +775,18 @@ public class SerializableStarSchemaBenchmark {
 						.next().intValue()) {
 				}
 				bogus += array[array.length - 1];
+				aft = System.currentTimeMillis();
+				time += aft-bef;
 			} finally {
 				if (ois != null)
 					ois.close();
 			}
 		}
 		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		line += "\t" + df.format((time) / 1000.0);
 
 		// logical and + retrieval
-		bef = System.currentTimeMillis();
+		time = 0;
 		for (int r = 0; r < repeat; ++r) {
 			try {
 				ois = new ObjectInputStream(new FileInputStream(
@@ -771,10 +794,14 @@ public class SerializableStarSchemaBenchmark {
 				WAHBitSet bitmapand1 = (WAHBitSet) ois.readObject();
 				try {
 					while ((bitmap = (WAHBitSet) ois.readObject()) != null) {
+						bef = System.currentTimeMillis();
 						bitmapand1.and(bitmap);
+						aft = System.currentTimeMillis();
+						time += aft-bef;
 					}
 				} catch (EOFException e) {
 				}
+				bef = System.currentTimeMillis();
 				int[] array = new int[bitmapand1.cardinality()];
 				int c = 0;
 				for (@SuppressWarnings("unchecked")
@@ -782,13 +809,15 @@ public class SerializableStarSchemaBenchmark {
 						.next().intValue()) {
 				}
 				bogus += array[array.length - 1];
+				aft = System.currentTimeMillis();
+				time += aft-bef;
 			} finally {
 				if (ois != null)
 					ois.close();
 			}
 		}
 		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		line += "\t" + df.format((time) / 1000.0);
 
 		System.out.println(line);
 		System.out.println("# ignore this " + bogus);
@@ -811,7 +840,7 @@ public class SerializableStarSchemaBenchmark {
 		File tmpbitmaplocation = File.createTempFile("bitmap", "bin");
 		tmpbitmaplocation.deleteOnExit();
 
-		bef = System.currentTimeMillis();
+		long time = 0;
 
 		for (int r = 0; r < repeat; ++r) {
 			DataInputStream in = null;
@@ -822,10 +851,16 @@ public class SerializableStarSchemaBenchmark {
 						tmpbitmaplocation));
 				int setBit;
 				for (int i = 0; i < N; i++) {
+					bef = System.currentTimeMillis();
 					EWAHCompressedBitmap bitmap = new EWAHCompressedBitmap();
+					aft = System.currentTimeMillis();
+					time += aft-bef;
 					try {
 						while ((setBit = in.readInt()) != -1) {
+							bef = System.currentTimeMillis();
 							bitmap.set(setBit);
+							aft = System.currentTimeMillis();
+							time += aft-bef;
 						}
 					} catch (EOFException e) {
 					}
@@ -838,8 +873,7 @@ public class SerializableStarSchemaBenchmark {
 				if (oos != null)
 					oos.close();
 			}
-		}
-		aft = System.currentTimeMillis();
+		}		
 
 		ObjectInputStream ois = null;
 		EWAHCompressedBitmap ewah = null;
@@ -859,18 +893,21 @@ public class SerializableStarSchemaBenchmark {
 		}
 
 		line += "\t" + size / 1024;
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		line += "\t" + df.format((time) / 1000.0);
 
 		// uncompressing
-		bef = System.currentTimeMillis();
+		time = 0;
 		for (int r = 0; r < repeat; ++r)
 			try {
 				ois = new ObjectInputStream(new FileInputStream(
 						tmpbitmaplocation));
 				try {
 					while ((ewah = (EWAHCompressedBitmap) ois.readObject()) != null) {
+						bef = System.currentTimeMillis();
 						int[] array = ewah.toArray();
 						bogus += array.length;
+						aft = System.currentTimeMillis();
+						time += aft-bef;
 					}
 				} catch (EOFException e) {
 				}
@@ -885,15 +922,15 @@ public class SerializableStarSchemaBenchmark {
 			System.err.println("Couldn't load the bitmaps.");
 			return;
 		}
+		/* Why another recovering operation ?		
 		for (int k = 0; k < N; ++k) {
 			int[] array = ewah.toArray();
 			bogus += array.length;
-		}
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		}*/
+		line += "\t" + df.format((time) / 1000.0);
 
 		// fast logical or + retrieval
-		bef = System.currentTimeMillis();
+		time = 0;
 		for (int r = 0; r < repeat; ++r) {
 			try {
 				ois = new ObjectInputStream(new FileInputStream(
@@ -902,23 +939,27 @@ public class SerializableStarSchemaBenchmark {
 						.readObject();
 				try {
 					while ((ewah = (EWAHCompressedBitmap) ois.readObject()) != null) {
+						bef = System.currentTimeMillis();						
 						ewahor1.or(ewah);
+						aft = System.currentTimeMillis();
+						time += aft-bef;
 					}
 				} catch (EOFException e) {
 				}
+				bef = System.currentTimeMillis();
 				int[] array = ewahor1.toArray();
 				bogus += array.length;
+				aft = System.currentTimeMillis();
+				time += aft-bef;
 			} finally {
 				if (ois != null)
 					ois.close();
 			}
 		}
-
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		line += "\t" + df.format((time) / 1000.0);
 
 		// fast logical and + retrieval
-		bef = System.currentTimeMillis();
+		time = 0;
 		for (int r = 0; r < repeat; ++r) {
 			try {
 				ois = new ObjectInputStream(new FileInputStream(
@@ -927,23 +968,27 @@ public class SerializableStarSchemaBenchmark {
 						.readObject();
 				try {
 					while ((ewah = (EWAHCompressedBitmap) ois.readObject()) != null) {
+						bef = System.currentTimeMillis();
 						ewahand1.and(ewah);
+						aft = System.currentTimeMillis();
+						time += aft-bef;
 					}
 				} catch (EOFException e) {
 				}
+				bef = System.currentTimeMillis();
 				int[] array = ewahand1.toArray();
 				bogus += array.length;
+				aft = System.currentTimeMillis();
+				time += aft-bef;
 			} finally {
 				if (ois != null)
 					ois.close();
 			}
 		}
-
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		line += "\t" + df.format((time) / 1000.0);
 
 		// fast logical xor + retrieval
-		bef = System.currentTimeMillis();
+		time = 0;
 		for (int r = 0; r < repeat; ++r) {
 			try {
 				ois = new ObjectInputStream(new FileInputStream(
@@ -952,19 +997,23 @@ public class SerializableStarSchemaBenchmark {
 						.readObject();
 				try {
 					while ((ewah = (EWAHCompressedBitmap) ois.readObject()) != null) {
+						bef = System.currentTimeMillis();
 						ewahxor1.xor(ewah);
+						aft = System.currentTimeMillis();
+						time += aft-bef;
 					}
-				} catch (EOFException e) {
-				}
+				} catch (EOFException e) {}
+				bef = System.currentTimeMillis();
 				int[] array = ewahxor1.toArray();
 				bogus += array.length;
+				aft = System.currentTimeMillis();
+				time += aft-bef;
 			} finally {
 				if (ois != null)
 					ois.close();
 			}
 		}
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		line += "\t" + df.format((time) / 1000.0);
 
 		System.out.println(line);
 		System.out.println("# ignore this " + bogus);
@@ -986,10 +1035,9 @@ public class SerializableStarSchemaBenchmark {
 		File tmpbitmaplocation = File.createTempFile("bitmap", "bin");
 		tmpbitmaplocation.deleteOnExit();
 
-		bef = System.currentTimeMillis();
-
+		//Building ewah32 bitmaps
+		long time = 0;
 		for (r = 0; r < repeat; ++r) {
-
 			DataInputStream in = null;
 			ObjectOutputStream oos = null;
 			try {
@@ -998,15 +1046,20 @@ public class SerializableStarSchemaBenchmark {
 						tmpbitmaplocation));
 				int setBit;
 				for (int i = 0; i < N; i++) {
+					bef = System.currentTimeMillis();
 					EWAHCompressedBitmap32 bitmap = new EWAHCompressedBitmap32();
+					aft = System.currentTimeMillis();
+					time += aft-bef;
 					// System.out.println("\nC"+i);
 					try {
 						while ((setBit = in.readInt()) != -1) {
+							bef = System.currentTimeMillis();
 							bitmap.set(setBit);
+							aft = System.currentTimeMillis();
+							time += aft-bef;
 							// System.out.print(setBit+" ");
 						}
-					} catch (EOFException e) {
-					}
+					} catch (EOFException e) {}
 					oos.writeObject(bitmap);
 					bitmap = null;
 				}
@@ -1017,7 +1070,6 @@ public class SerializableStarSchemaBenchmark {
 					oos.close();
 			}
 		}
-		aft = System.currentTimeMillis();
 
 		ObjectInputStream ois = null;
 		EWAHCompressedBitmap32 ewah = null;
@@ -1037,18 +1089,21 @@ public class SerializableStarSchemaBenchmark {
 		}
 
 		line += "\t" + size / 1024;
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		line += "\t" + df.format((time) / 1000.0);
 
 		// uncompressing
-		bef = System.currentTimeMillis();
+		time = 0;
 		for (r = 0; r < repeat; ++r)
 			try {
 				ois = new ObjectInputStream(new FileInputStream(
 						tmpbitmaplocation));
 				try {
 					while ((ewah = (EWAHCompressedBitmap32) ois.readObject()) != null) {
+						bef = System.currentTimeMillis();
 						int[] array = ewah.toArray();
 						bogus += array.length;
+						aft = System.currentTimeMillis();
+						time += aft-bef;
 					}
 				} catch (EOFException e) {
 				}
@@ -1062,16 +1117,15 @@ public class SerializableStarSchemaBenchmark {
 		if (ewah == null) {
 			System.err.println("Couldn't load the bitmaps.");
 			return;
-		}
+		}/*
 		for (k = 0; k < N; ++k) {
 			int[] array = ewah.toArray();
 			bogus += array.length;
-		}
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		}		*/
+		line += "\t" + df.format((time) / 1000.0);
 
 		// fast logical or + retrieval
-		bef = System.currentTimeMillis();
+		time = 0;
 		for (r = 0; r < repeat; ++r) {
 			try {
 				ois = new ObjectInputStream(new FileInputStream(
@@ -1080,22 +1134,27 @@ public class SerializableStarSchemaBenchmark {
 						.readObject();
 				try {
 					while ((ewah = (EWAHCompressedBitmap32) ois.readObject()) != null) {
+						bef = System.currentTimeMillis();
 						ewahor1.or(ewah);
+						aft = System.currentTimeMillis();
+						time += aft-bef;
 					}
 				} catch (EOFException e) {
 				}
+				bef = System.currentTimeMillis();
 				int[] array = ewahor1.toArray();
 				bogus += array.length;
+				aft = System.currentTimeMillis();
+				time += aft-bef;
 			} finally {
 				if (ois != null)
 					ois.close();
 			}
 		}
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		line += "\t" + df.format((time) / 1000.0);
 
 		// fast logical and + retrieval
-		bef = System.currentTimeMillis();
+		time = 0;
 		for (r = 0; r < repeat; ++r) {
 			try {
 				ois = new ObjectInputStream(new FileInputStream(
@@ -1104,22 +1163,27 @@ public class SerializableStarSchemaBenchmark {
 						.readObject();
 				try {
 					while ((ewah = (EWAHCompressedBitmap32) ois.readObject()) != null) {
-						ewahand1.or(ewah);
+						bef = System.currentTimeMillis();
+						ewahand1.and(ewah);
+						aft = System.currentTimeMillis();
+						time += aft-bef;
 					}
 				} catch (EOFException e) {
 				}
+				bef = System.currentTimeMillis();
 				int[] array = ewahand1.toArray();
 				bogus += array.length;
+				aft = System.currentTimeMillis();
+				time += aft-bef;
 			} finally {
 				if (ois != null)
 					ois.close();
 			}
 		}
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		line += "\t" + df.format((time) / 1000.0);
 
 		// fast logical xor + retrieval
-		bef = System.currentTimeMillis();
+		time = 0;
 		for (r = 0; r < repeat; ++r) {
 			try {
 				ois = new ObjectInputStream(new FileInputStream(
@@ -1128,19 +1192,24 @@ public class SerializableStarSchemaBenchmark {
 						.readObject();
 				try {
 					while ((ewah = (EWAHCompressedBitmap32) ois.readObject()) != null) {
-						ewahxor1.or(ewah);
+						bef = System.currentTimeMillis();
+						ewahxor1.xor(ewah);
+						aft = System.currentTimeMillis();
+						time += aft-bef;
 					}
 				} catch (EOFException e) {
 				}
+				bef = System.currentTimeMillis();
 				int[] array = ewahxor1.toArray();
 				bogus += array.length;
+				aft = System.currentTimeMillis();
+				time += aft-bef;
 			} finally {
 				if (ois != null)
 					ois.close();
 			}
 		}
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		line += "\t" + df.format((time) / 1000.0);
 
 		System.out.println(line);
 		System.out.println("# ignore this " + bogus);
