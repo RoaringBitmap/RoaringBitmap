@@ -43,12 +43,12 @@ public class StarSchemaBenchmark {
                 System.out.println("Starting experiments :");
                 DecimalFormat df = new DecimalFormat("0.###");
                 int repeat = 3;
-                StarSchemaBenchmark.testRoaringBitmap(repeat, df);
-                StarSchemaBenchmark.testBitSet(repeat, df);
-                StarSchemaBenchmark.testConciseSet(repeat, df);
                 StarSchemaBenchmark.testWAH32(repeat, df);
                 StarSchemaBenchmark.testEWAH64(repeat, df);
                 StarSchemaBenchmark.testEWAH32(repeat, df);
+                StarSchemaBenchmark.testRoaringBitmap(repeat, df);
+                StarSchemaBenchmark.testBitSet(repeat, df);
+                StarSchemaBenchmark.testConciseSet(repeat, df);
         }
 
         public static void BuildingSSBbitmaps(String path) throws IOException {
@@ -126,6 +126,11 @@ public class StarSchemaBenchmark {
                         if(x==null) {
                                 System.out.println("Column "+D+" has been disabled (high cardinality) ");
                                 continue;
+                        }
+                        if(x.size() * 10 >= row) {
+                                System.out.println("Disabling high cardinality column "+D+" got "+x.size()+ " distinct values over "+row+" rows");
+                                nbBitmaps -= x.size();
+                                TreeBitmapIdx.set(D,null);
                         }
                         System.out.println("Column "+D+" has "+x.size()+" distinct values");
                         for (IntArray ia : x.values()) {
