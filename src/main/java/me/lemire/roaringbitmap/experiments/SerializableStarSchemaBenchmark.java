@@ -940,7 +940,7 @@ public class SerializableStarSchemaBenchmark {
 				try {
 					while ((ewah = (EWAHCompressedBitmap) ois.readObject()) != null) {
 						bef = System.currentTimeMillis();						
-						ewahor1.or(ewah);
+						ewahor1 = EWAHCompressedBitmap.or(ewahor1, ewah);
 						aft = System.currentTimeMillis();
 						time += aft-bef;
 					}
@@ -969,7 +969,7 @@ public class SerializableStarSchemaBenchmark {
 				try {
 					while ((ewah = (EWAHCompressedBitmap) ois.readObject()) != null) {
 						bef = System.currentTimeMillis();
-						ewahand1.and(ewah);
+						ewahand1 = EWAHCompressedBitmap.and(ewahand1, ewah);
 						aft = System.currentTimeMillis();
 						time += aft-bef;
 					}
@@ -998,7 +998,7 @@ public class SerializableStarSchemaBenchmark {
 				try {
 					while ((ewah = (EWAHCompressedBitmap) ois.readObject()) != null) {
 						bef = System.currentTimeMillis();
-						ewahxor1.xor(ewah);
+						ewahxor1 = EWAHCompressedBitmap.xor(ewahxor1, ewah);
 						aft = System.currentTimeMillis();
 						time += aft-bef;
 					}
@@ -1135,7 +1135,7 @@ public class SerializableStarSchemaBenchmark {
 				try {
 					while ((ewah = (EWAHCompressedBitmap32) ois.readObject()) != null) {
 						bef = System.currentTimeMillis();
-						ewahor1.or(ewah);
+						ewahor1 = EWAHCompressedBitmap32.or(ewahor1, ewah);
 						aft = System.currentTimeMillis();
 						time += aft-bef;
 					}
@@ -1164,7 +1164,7 @@ public class SerializableStarSchemaBenchmark {
 				try {
 					while ((ewah = (EWAHCompressedBitmap32) ois.readObject()) != null) {
 						bef = System.currentTimeMillis();
-						ewahand1.and(ewah);
+						ewahand1 = EWAHCompressedBitmap32.and(ewahand1, ewah);
 						aft = System.currentTimeMillis();
 						time += aft-bef;
 					}
@@ -1193,12 +1193,11 @@ public class SerializableStarSchemaBenchmark {
 				try {
 					while ((ewah = (EWAHCompressedBitmap32) ois.readObject()) != null) {
 						bef = System.currentTimeMillis();
-						ewahxor1.xor(ewah);
+						ewahxor1 = EWAHCompressedBitmap32.xor(ewahxor1, ewah);
 						aft = System.currentTimeMillis();
 						time += aft-bef;
 					}
-				} catch (EOFException e) {
-				}
+				} catch (EOFException e) {}
 				bef = System.currentTimeMillis();
 				int[] array = ewahxor1.toArray();
 				bogus += array.length;
