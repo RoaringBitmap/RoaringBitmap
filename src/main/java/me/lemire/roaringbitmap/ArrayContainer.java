@@ -32,7 +32,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 		content = new short[1024];// we don't want more than 1024
 	}
 
-	@Override
+	
 	public boolean contains(short x) {
 		return Arrays.binarySearch(content, 0, cardinality, x) >= 0;
 	}
@@ -45,13 +45,14 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 	public Container add(short x) {
 		int loc = Arrays.binarySearch(content, 0, cardinality, x);
 		if (loc < 0) {
+			// Transform the ArrayContainer to a BitmapContainer when cardinality = 1024 
 			if (cardinality == content.length) {
 				BitmapContainer a = new BitmapContainer(this);
 				a.add(x);
 				return a;
 			}
 			// insertion : shift the elements > x by one position to the right 
-			//and put x in its appropriate place
+			// and put x in it's appropriate place
 			System.arraycopy(content, -loc - 1, content, -loc, cardinality
 					+ loc + 1);
 			content[-loc - 1] = x;

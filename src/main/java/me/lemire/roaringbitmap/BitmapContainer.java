@@ -31,15 +31,16 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 
 	}
 
-	@Override
-	public boolean contains(short i) {
-			return (bitmap[toIntUnsigned(i)/64] & (1l << (i % 64))) != 0;		
+	
+	public boolean contains(int i) {
+			return (bitmap[i/64] & (1l << (i % 64))) != 0;		
 	}
 
 	@Override
 	public Container add(short i) {
-		if (!contains(i)) {
-			bitmap[toIntUnsigned(i)/64] |= (1l << (i % 64));
+		int x = toIntUnsigned(i);
+		if (!contains(x)) {
+			bitmap[x/64] |= (1l << (x % 64));
 			++cardinality;
 		}
 		return this;
@@ -145,7 +146,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		BitmapContainer value1 = this;
 		ArrayContainer answer = new ArrayContainer();
 		for (int k = 0; k < value2.getCardinality(); ++k)
-			if (value1.contains(value2.content[k]))
+			if (value1.contains(toIntUnsigned(value2.content[k])))
 				answer.content[answer.cardinality++] = value2.content[k];
 		return answer;
 	}
@@ -155,7 +156,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		BitmapContainer value1 = this;
 		BitmapContainer answer = new BitmapContainer();
 		for (int k = 0; k < value2.getCardinality(); ++k)
-			if (!value1.contains(value2.content[k])) // si la val de la seq
+			if (!value1.contains(toIntUnsigned(value2.content[k]))) // si la val de la seq
 														// !exist on l'ajoute ds
 														// le bitmap
 				answer.bitmap[toIntUnsigned(value2.content[k])/64 ] |= (1l << (value2.content[k] % 64));								
@@ -190,7 +191,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		BitmapContainer value1 = this;
 		BitmapContainer answer = new BitmapContainer();
 		for (int k = 0; k < value2.getCardinality(); ++k)
-			if (!value1.contains(value2.content[k])) // si la val de la seq
+			if (!value1.contains(toIntUnsigned(value2.content[k]))) // si la val de la seq
 														// !exist on l'ajoute ds
 														// le bitmap
 			{

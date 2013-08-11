@@ -16,12 +16,8 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable
 																							// not
 					
 																							// be
-																							// a
+																							// 	
 	public void set(int x) {
-		 add(x);
-	}
-	
-	public void add(int x) {
 		short hb = Util.highbits(x);
 		Container z = highlowcontainer.get(hb);
 		if(z != null) {
@@ -238,8 +234,12 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable
 
 	public boolean contains(int x) {
 		short hb = Util.highbits(x);
-		if (highlowcontainer.containsValue(hb))
-			return highlowcontainer.get(hb).contains(Util.lowbits(x));
+		if (highlowcontainer.containsKey(hb)) {
+			Container C = highlowcontainer.get(hb); 
+			if(C instanceof BitmapContainer)
+			 return ((BitmapContainer) C).contains(BitmapContainer.toIntUnsigned(Util.lowbits(x)));
+			else return ((ArrayContainer) C).contains(Util.lowbits(x));
+		}
 		return false;
 	}
 
