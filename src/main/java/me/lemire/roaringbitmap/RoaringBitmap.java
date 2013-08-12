@@ -16,6 +16,9 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable
 																							// not
 					
 																							// be
+        public void add(int x) {
+                set(x);
+        }
 																							// 	
 	public void set(int x) {
 		short hb = Util.highbits(x);
