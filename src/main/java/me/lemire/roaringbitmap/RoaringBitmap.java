@@ -14,12 +14,17 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable
 	private static final long serialVersionUID = 3L;
 	public Short2ObjectAVLTreeMap<Container> highlowcontainer = new Short2ObjectAVLTreeMap<Container>(); // does
 																							// not
-					
-																							// be
+
+        /**
+         * set the value to "true", whether it already appears on not.
+         */     																									// be
         public void add(int x) {
                 set(x);
         }
-																							// 	
+	
+        /**
+         * set the value to "true", whether it already appears on not.
+         */ 	
 	public void set(int x) {
 		short hb = Util.highbits(x);
 		Container z = highlowcontainer.get(hb);
@@ -208,18 +213,14 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable
 		int pos=0;
 		final Iterator<Entry<Short, Container>> p1 = this.highlowcontainer
 				.entrySet().iterator();
-		Entry<Short, Container> s; 
 		while(p1.hasNext())
 		{
-			s = p1.next();
-			if(s.getValue() instanceof ArrayContainer)
-				for(int i=0; i<s.getValue().getCardinality(); i++)
-			    array[pos++] = (16 << s.getKey().shortValue()) |
-				               ((ArrayContainer)s.getValue()).content[i];
-			else if(s.getValue() instanceof BitmapContainer)
-				for(int i=((BitmapContainer)s.getValue()).nextSetBit(0); i>=0; 
-						i=((BitmapContainer)s.getValue()).nextSetBit(i+1))
-			array[pos++] = (16 << s.getKey().shortValue()) | i;
+		        final Entry<Short, Container> s = p1.next();
+			final short hs = s.getKey().shortValue();
+			final ShortIterator si = s.getValue().getShortIterator();
+			while(si.hasNext()) {
+			        array[pos++] = (hs<<16) | si.next();
+			}
 		}	
 		return array;
 	}
@@ -255,7 +256,7 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable
 			int parentw;
 			int actualval;
 
-			Iterator<Short> child;
+			ShortIterator child;
 
 			@Override
 			public boolean hasNext() {
@@ -266,37 +267,34 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable
 				if (parent.hasNext()) {
 					Entry<Short, Container> esc = parent.next();
 					parentw = esc.getKey().shortValue() << 16;
-					child = esc.getValue().iterator();
+					child = esc.getValue().getShortIterator();
 				} else {
-					child = new Iterator<Short>() {
-						@Override
-						public boolean hasNext() {
-							return false;
-						}
+				        child = new ShortIterator() {
 
-						@Override
-						public Short next() {
-							return null;
-						}
+                                                @Override
+                                                public boolean hasNext() {
+                                                        return false;
+                                                }
 
-						@Override
-						public void remove() {
-						}
+                                                @Override
+                                                public short next() {
+                                                        return 0;
+                                                }};
+				        
 
-					};
 				}
 				return this;
 			}
 
 	@Override
 	public Integer next() {
-	int lowerbits = child.next().shortValue() & 0xFFFF;
+	int lowerbits = child.next() & 0xFFFF;
 	actualval = lowerbits | parentw;
 	if (!child.hasNext()) {
 	if (parent.hasNext()) {
 		Entry<Short, Container> esc = parent.next();
 		parentw = esc.getKey().shortValue() << 16;
-		child = esc.getValue().iterator();
+		child = esc.getValue().getShortIterator();
 	}
 	}
 				return actualval;

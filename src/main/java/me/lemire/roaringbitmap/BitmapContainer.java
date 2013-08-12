@@ -38,11 +38,10 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 
 	@Override
 	public Container add(short i) {
-		int x = toIntUnsigned(i);
-		if (!contains(x)) {
-			bitmap[x/64] |= (1l << (x % 64));
-			++cardinality;
-		}
+		final int x = toIntUnsigned(i);
+		final long previous = bitmap[x/64];
+		if(previous != (bitmap[x/64] |= (1l << (x % 64))) )
+		        ++cardinality;
 		return this;
 	}
 
@@ -271,4 +270,25 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 			throw new java.lang.RuntimeException();
 		}
 	}
+
+        @Override
+        public ShortIterator getShortIterator() {
+                return new ShortIterator() {
+                        int i = BitmapContainer.this.nextSetBit(0);
+
+                        @Override
+                        public boolean hasNext() {
+                                return i >= 0;
+                        }
+
+                        @Override
+                        public short next() {
+                                short j = (short) i;
+                                i = BitmapContainer.this.nextSetBit(i + 1);
+                                return j;
+                        }
+
+                };
+
+        }
 }

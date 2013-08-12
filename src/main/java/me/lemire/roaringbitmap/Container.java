@@ -7,4 +7,5 @@ public interface Container extends Iterable<Short>{
 	public int getCardinality();
     public int getSizeInBits();
     public void validate();
+    public ShortIterator getShortIterator();
 }

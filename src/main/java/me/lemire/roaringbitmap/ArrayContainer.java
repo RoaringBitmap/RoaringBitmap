@@ -176,4 +176,21 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 		}
 	}
 
+        @Override
+        public ShortIterator getShortIterator() {
+                return new ShortIterator() {
+                        short pos = 0;
+
+                        @Override
+                        public boolean hasNext() {
+                                return pos < ArrayContainer.this.cardinality;
+                        }
+
+                        @Override
+                        public short next() {
+                                return ArrayContainer.this.content[pos++];
+                        }
+                };
+        }
+
 }
