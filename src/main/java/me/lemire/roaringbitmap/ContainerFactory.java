@@ -10,6 +10,8 @@ import java.util.ArrayList;
 public class ContainerFactory {
         
         static ArrayList<ArrayContainer> buffer = new  ArrayList<ArrayContainer>();
+        static ArrayList<BitmapContainer> bbuffer = new  ArrayList<BitmapContainer>();
+
         static int capacity = 10; 
         public static ArrayContainer getArrayContainer() {
                 if(buffer.isEmpty())
@@ -17,13 +19,36 @@ public class ContainerFactory {
                 else 
                     return buffer.remove(buffer.size()-1);
         }
+        public static ArrayContainer getArrayContainer(BitmapContainer ac) {
+                ArrayContainer bc = buffer.isEmpty() ?  new ArrayContainer(): buffer.remove(buffer.size()-1);
+                bc.loadData(ac);
+                return bc;
+        }
+        
+        public static BitmapContainer getBitmapContainer() {
+                if(bbuffer.isEmpty())
+                        return new BitmapContainer();
+                else 
+                    return bbuffer.remove(buffer.size()-1);
+        }
+
+        public static BitmapContainer getBitmapContainer(ArrayContainer ac) {
+                BitmapContainer bc = bbuffer.isEmpty() ?  new BitmapContainer(): bbuffer.remove(buffer.size()-1);
+                bc.loadData(ac);
+                return bc;
+        }
         
         public static void putBackInStore(ArrayContainer x) {
                 if(capacity < buffer.size()) {
                         x.clear();
                         buffer.add(x);
                 }
-                
+        }
+        public static void putBackInStore(BitmapContainer x) {
+                if(capacity < buffer.size()) {
+                        x.clear();
+                        bbuffer.add(x);
+                }
         }
 
 }

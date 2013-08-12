@@ -11,29 +11,32 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 	private static final long serialVersionUID = 1L;
 	public short[] content;
 	int cardinality = 0;
-		
-	public ArrayContainer(BitmapContainer bitmapContainer) {
-		content = new short[bitmapContainer.cardinality];
-		this.cardinality = bitmapContainer.cardinality;
-		int pos = 0;
-		for (int i = bitmapContainer.nextSetBit( 0); i >= 0; i = bitmapContainer
-				.nextSetBit(i + 1)) {
-			content[pos++] = (short)i;
-		}
-		if(pos != this.cardinality) throw new RuntimeException("bug");
-		//Arrays.sort(content);
+	public final static int  DEFAULTMAXSIZE = 1024;
+	
+	public void loadData(BitmapContainer bitmapContainer) {
+	        if(content.length < bitmapContainer.cardinality)
+	                content = new short[bitmapContainer.cardinality];
+                this.cardinality = bitmapContainer.cardinality;
+                int pos = 0;
+                for (int i = bitmapContainer.nextSetBit( 0); i >= 0; i = bitmapContainer
+                                .nextSetBit(i + 1)) {
+                        content[pos++] = (short)i;
+                }
+                if(pos != this.cardinality) throw new RuntimeException("bug");
 	}
+		
 	
 	public ArrayContainer(int capacity) {
 		content = new short[capacity];
 	}
 	
 	public ArrayContainer() {
-		content = new short[1024];// we don't want more than 1024
+		content = new short[DEFAULTMAXSIZE];// we don't want more than DEFAULTMAXSIZE
 	}
 
 	
-	public boolean contains(short x) {
+	@Override
+        public boolean contains(short x) {
 		return Util.unsigned_binarySearch(content, 0, cardinality, x) >= 0;
 	}
 
@@ -45,7 +48,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 	public Container add(short x) {
 	        if(( cardinality == 0 )  || (Util.toIntUnsigned(x) > content[cardinality-1])) {
 	                if (cardinality == content.length) {
-                                BitmapContainer a = new BitmapContainer(this);
+                                BitmapContainer a = ContainerFactory.getBitmapContainer(this);
                                 a.add(x);
                                 return a;
                         }
@@ -54,9 +57,9 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 	        }
 		int loc = Util.unsigned_binarySearch(content, 0, cardinality, x);
 		if (loc < 0) {
-			// Transform the ArrayContainer to a BitmapContainer when cardinality = 1024 
+			// Transform the ArrayContainer to a BitmapContainer when cardinality = DEFAULTMAXSIZE 
 			if (cardinality == content.length) {
-				BitmapContainer a = new BitmapContainer(this);
+				BitmapContainer a = ContainerFactory.getBitmapContainer(this);
 				a.add(x);
 				return a;
 			}
@@ -126,8 +129,8 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 		answer.cardinality = Util.unsigned_union2by2(value1.content,
 				value1.getCardinality(), value2.content,
 				value2.getCardinality(), answer.content); // diminuer nbr params
-		if (answer.cardinality >= 1024)
-			return new BitmapContainer(answer);
+		if (answer.cardinality >= DEFAULTMAXSIZE)
+			return ContainerFactory.getBitmapContainer(answer);
 		return answer;
 	}
 	
@@ -148,8 +151,8 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 		answer.cardinality = Util.unsigned_exclusiveunion2by2(value1.content,
 				value1.getCardinality(), value2.content,
 				value2.getCardinality(), answer.content); 
-		if (answer.cardinality >= 1024)
-			return new BitmapContainer(answer);
+		if (answer.cardinality >= DEFAULTMAXSIZE)
+			return ContainerFactory.getBitmapContainer(answer);
 		return answer;
 	}
 
