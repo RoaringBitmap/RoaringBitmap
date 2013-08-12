@@ -18,15 +18,13 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		this.cardinality = 0;
 	}
 	
-	public static int toIntUnsigned(short x) {
-		return x & 0xFFFF;
-	}
+	
 
 	public BitmapContainer(ArrayContainer arrayContainer) {
 		this.cardinality = arrayContainer.cardinality;
 		for(int k = 0; k < arrayContainer.cardinality; ++k) {
 			final short x = arrayContainer.content[k];
-			bitmap[toIntUnsigned(x)/64] |= (1l << x % 64);
+			bitmap[Util.toIntUnsigned(x)/64] |= (1l << (x % 64));
 		}
 
 	}
@@ -38,7 +36,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 
 	@Override
 	public Container add(short i) {
-		final int x = toIntUnsigned(i);
+		final int x = Util.toIntUnsigned(i);
 		final long previous = bitmap[x/64];
 		if(previous != (bitmap[x/64] |= (1l << (x % 64))) )
 		        ++cardinality;
@@ -145,7 +143,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		BitmapContainer value1 = this;
 		ArrayContainer answer = new ArrayContainer();
 		for (int k = 0; k < value2.getCardinality(); ++k)
-			if (value1.contains(toIntUnsigned(value2.content[k])))
+			if (value1.contains(Util.toIntUnsigned(value2.content[k])))
 				answer.content[answer.cardinality++] = value2.content[k];
 		return answer;
 	}
@@ -155,10 +153,10 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		BitmapContainer value1 = this;
 		BitmapContainer answer = new BitmapContainer();
 		for (int k = 0; k < value2.getCardinality(); ++k)
-			if (!value1.contains(toIntUnsigned(value2.content[k]))) // si la val de la seq
+			if (!value1.contains(Util.toIntUnsigned(value2.content[k]))) // si la val de la seq
 														// !exist on l'ajoute ds
 														// le bitmap
-				answer.bitmap[toIntUnsigned(value2.content[k])/64 ] |= (1l << (value2.content[k] % 64));								
+				answer.bitmap[Util.toIntUnsigned(value2.content[k])/64 ] |= (1l << (value2.content[k] % 64));								
 		answer.cardinality = answer.expensiveComputeCardinality();
 		return answer;
 	}
@@ -190,14 +188,14 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		BitmapContainer value1 = this;
 		BitmapContainer answer = new BitmapContainer();
 		for (int k = 0; k < value2.getCardinality(); ++k)
-			if (!value1.contains(toIntUnsigned(value2.content[k]))) // si la val de la seq
+			if (!value1.contains(Util.toIntUnsigned(value2.content[k]))) // si la val de la seq
 														// !exist on l'ajoute ds
 														// le bitmap
 			{
-				answer.bitmap[toIntUnsigned(value2.content[k])/64 ] |= (1l << (value2.content[k] % 64));
+				answer.bitmap[Util.toIntUnsigned(value2.content[k])/64 ] |= (1l << (value2.content[k] % 64));
 				answer.cardinality++;
 			} else
-				answer.bitmap[toIntUnsigned(value2.content[k])/64] &= ~(1l << (value2.content[k] % 64));
+				answer.bitmap[Util.toIntUnsigned(value2.content[k])/64] &= ~(1l << (value2.content[k] % 64));
 
 		if (answer.cardinality < 1024)
 			return new ArrayContainer(answer);

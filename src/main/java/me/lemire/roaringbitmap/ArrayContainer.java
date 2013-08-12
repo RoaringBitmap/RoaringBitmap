@@ -21,7 +21,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 			content[pos++] = (short)i;
 		}
 		if(pos != this.cardinality) throw new RuntimeException("bug");
-		Arrays.sort(content);
+		//Arrays.sort(content);
 	}
 	
 	public ArrayContainer(int capacity) {
@@ -34,7 +34,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 
 	
 	public boolean contains(short x) {
-		return Arrays.binarySearch(content, 0, cardinality, x) >= 0;
+		return Util.unsigned_binarySearch(content, 0, cardinality, x) >= 0;
 	}
 
 	/**
@@ -43,7 +43,16 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 	 */
 	@Override
 	public Container add(short x) {
-		int loc = Arrays.binarySearch(content, 0, cardinality, x);
+	        if(( cardinality == 0 )  || (Util.toIntUnsigned(x) > content[cardinality-1])) {
+	                if (cardinality == content.length) {
+                                BitmapContainer a = new BitmapContainer(this);
+                                a.add(x);
+                                return a;
+                        }
+	                content[cardinality++] = x;
+	                return this;
+	        }
+		int loc = Util.unsigned_binarySearch(content, 0, cardinality, x);
 		if (loc < 0) {
 			// Transform the ArrayContainer to a BitmapContainer when cardinality = 1024 
 			if (cardinality == content.length) {
@@ -63,7 +72,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 
 	@Override
 	public Container remove(short x) {
-		int loc = Arrays.binarySearch(content, 0, cardinality, x);
+		int loc = Util.unsigned_binarySearch(content, 0, cardinality, x);
 		if (loc >= 0) {
 			// insertion
 			System.arraycopy(content, loc + 1, content, loc, cardinality - loc
@@ -104,7 +113,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 		ArrayContainer value1 = this;
 		final int desiredcapacity = Math.min(value1.getCardinality(),  value2.getCardinality());
 		ArrayContainer answer = new ArrayContainer(desiredcapacity);
-		answer.cardinality = Util.localintersect2by2(value1.content,
+		answer.cardinality = Util.unsigned_intersect2by2(value1.content,
 				value1.getCardinality(), value2.content,
 				value2.getCardinality(), answer.content); // diminuer nbr params
 		return answer;
@@ -114,7 +123,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 		ArrayContainer value1 = this;
 		final int desiredcapacity = Math.min(value1.getCardinality() + value2.getCardinality(),65536);
 		ArrayContainer answer = new ArrayContainer(desiredcapacity);
-		answer.cardinality = Util.union2by2(value1.content,
+		answer.cardinality = Util.unsigned_union2by2(value1.content,
 				value1.getCardinality(), value2.content,
 				value2.getCardinality(), answer.content); // diminuer nbr params
 		if (answer.cardinality >= 1024)
@@ -127,7 +136,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 		if(this.cardinality == 0) return;
 		short val1 = this.content[0];
 		for(int k = 1; k< this.cardinality; ++k) {
-			if(val1>this.content[k]) throw new RuntimeException("bug : content's not sorted");
+			if(Util.toIntUnsigned(val1)>Util.toIntUnsigned(this.content[k])) throw new RuntimeException("bug : content's not sorted");
 			val1 = this.content[k];
 		}
 	}
@@ -136,7 +145,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 		ArrayContainer value1 = this;
 		final int desiredcapacity = Math.min(value1.getCardinality() + value2.getCardinality(),65536);
 		ArrayContainer answer = new ArrayContainer(desiredcapacity);
-		answer.cardinality = Util.ExclusiveUnion2by2(value1.content,
+		answer.cardinality = Util.unsigned_exclusiveunion2by2(value1.content,
 				value1.getCardinality(), value2.content,
 				value2.getCardinality(), answer.content); 
 		if (answer.cardinality >= 1024)
@@ -191,6 +200,12 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
                                 return ArrayContainer.this.content[pos++];
                         }
                 };
+        }
+
+        @Override
+        public void clear() {
+                cardinality = 0;
+                
         }
 
 }
