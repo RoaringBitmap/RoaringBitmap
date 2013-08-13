@@ -125,56 +125,57 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 	}
 
 	public Container and(BitmapContainer value2) {
-		BitmapContainer value1 = this;
+		
 		BitmapContainer answer = new BitmapContainer();
 		for (int k = 0; k < answer.bitmap.length; ++k) 
 		{
-			answer.bitmap[k] = value1.bitmap[k] & value2.bitmap[k];
-			answer.cardinality += Long.bitCount(answer.bitmap[k]);
+			answer.bitmap[k] = this.bitmap[k] & value2.bitmap[k];
+			if(answer.bitmap[k]!=0)
+				answer.cardinality += Long.bitCount(answer.bitmap[k]);
 		}
 
-		if (answer.cardinality < ArrayContainer.DEFAULTMAXSIZE)
+		if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
 			return ContainerFactory.getArrayContainer(answer);
 		return answer;
 	}
 
 	public ArrayContainer and(ArrayContainer value2) 
-	{
-		BitmapContainer value1 = this;
+	{		
 		ArrayContainer answer = new ArrayContainer();
 		for (int k = 0; k < value2.getCardinality(); ++k)
-			if (value1.contains(value2.content[k]))
+			if (this.contains(value2.content[k]))
 				answer.content[answer.cardinality++] = value2.content[k];
 		return answer;
 	}
 
 	public BitmapContainer or(ArrayContainer value2) 
-	{
-		BitmapContainer value1 = this;
+	{		
 		BitmapContainer answer = new BitmapContainer();
-		for (int k = 0; k < value2.getCardinality(); ++k)					
-			answer.bitmap[Util.toIntUnsigned(value2.content[k])/64 ] |= (1l << (value2.content[k] % 64));
-		answer.cardinality = answer.expensiveComputeCardinality();
+		for (int k = 0; k < value2.getCardinality(); ++k)	{				
+			int i = Util.toIntUnsigned(value2.content[k])/64;
+			answer.bitmap[i] = this.bitmap[i] | (1l << (Util.toIntUnsigned(value2.content[k]) % 64));
+			if(answer.bitmap[i]!=0)
+				answer.cardinality += Long.bitCount(answer.bitmap[k]);
+		}
 		return answer;
 	}
 
 	public Container or(BitmapContainer value2) {
-		BitmapContainer value1 = this;
+		
 		BitmapContainer answer = new BitmapContainer();
 		for (int k = 0; k < answer.bitmap.length; ++k) 
 		{
-			answer.bitmap[k] = value1.bitmap[k] | value2.bitmap[k];
-			answer.cardinality += Long.bitCount(answer.bitmap[k]);
+			answer.bitmap[k] = this.bitmap[k] | value2.bitmap[k];
+			if(answer.bitmap[k]!=0)
+	        	answer.cardinality += Long.bitCount(answer.bitmap[k]);
 		}
-		if (answer.cardinality < ArrayContainer.DEFAULTMAXSIZE)
-			return ContainerFactory.getArrayContainer(answer);
 		return answer;
 	}
 
 	@Override
 	public int getSizeInBits() {
 		//the standard size is DEFAULTMAXSIZE chunks*64bits each=65536 bits, 
-		//each 1 bit represents an integer between 0 and 65535
+		//each 1 bit represents an integer from 0 to 65535
 		return 65536; 
 	}
 
@@ -183,24 +184,27 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		BitmapContainer answer = new BitmapContainer();
 		for (int k = 0; k < value2.getCardinality(); ++k) {
 		        final int index = Util.toIntUnsigned(value2.content[k])/64;
-		        answer.bitmap[index] = this.bitmap[index] ^ (1l << (value2.content[k] % 64));
-		
+		        answer.bitmap[index] = this.bitmap[index] ^ (1l << (Util.toIntUnsigned(value2.content[k]) % 64));
+		        if(answer.bitmap[index]!=0)
+		        	answer.cardinality += Long.bitCount(answer.bitmap[index]);
 		}
-		answer.cardinality = answer.expensiveComputeCardinality();
-		if (answer.cardinality < ArrayContainer.DEFAULTMAXSIZE)
+		
+	//answer.cardinality = answer.expensiveComputeCardinality(); //cardinality+=Long.bitCount() in for loop ?
+		if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
 			return ContainerFactory.getArrayContainer(answer);
 		return answer;
 	}
 
 	public Container xor(BitmapContainer value2) {
-		BitmapContainer value1 = this;
+		
 		BitmapContainer answer = new BitmapContainer();
 		for (int k = 0; k < answer.bitmap.length; ++k) {
-			answer.bitmap[k] = value1.bitmap[k] ^ value2.bitmap[k];
-			answer.cardinality += Long.bitCount(answer.bitmap[k]);
+			answer.bitmap[k] = this.bitmap[k] ^ value2.bitmap[k];
+			if(answer.bitmap[k]!=0)
+				answer.cardinality += Long.bitCount(answer.bitmap[k]);
 		}
 
-		if (answer.cardinality < ArrayContainer.DEFAULTMAXSIZE)
+		if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
 			return ContainerFactory.getArrayContainer(answer);
 		return answer;
 	}

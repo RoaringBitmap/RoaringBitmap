@@ -14,7 +14,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 	public final static int  DEFAULTMAXSIZE = 1024;
 	
 	public void loadData(BitmapContainer bitmapContainer) {
-	        if(content.length < bitmapContainer.cardinality)
+	        if(content.length < bitmapContainer.cardinality) //It should be not possible
 	                content = new short[bitmapContainer.cardinality];
                 this.cardinality = bitmapContainer.cardinality;
                 int pos = 0;
@@ -33,7 +33,6 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 	public ArrayContainer() {
 		content = new short[DEFAULTMAXSIZE];// we don't want more than DEFAULTMAXSIZE
 	}
-
 	
 	@Override
         public boolean contains(short x) {
@@ -118,7 +117,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 		ArrayContainer answer = new ArrayContainer(desiredcapacity);
 		answer.cardinality = Util.unsigned_intersect2by2(value1.content,
 				value1.getCardinality(), value2.content,
-				value2.getCardinality(), answer.content); // diminuer nbr params
+				value2.getCardinality(), answer.content);
 		return answer;
 	}
 
@@ -128,8 +127,8 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 		ArrayContainer answer = new ArrayContainer(desiredcapacity);
 		answer.cardinality = Util.unsigned_union2by2(value1.content,
 				value1.getCardinality(), value2.content,
-				value2.getCardinality(), answer.content); // diminuer nbr params
-		if (answer.cardinality >= DEFAULTMAXSIZE)
+				value2.getCardinality(), answer.content);
+		if (answer.cardinality > DEFAULTMAXSIZE)
 			return ContainerFactory.getBitmapContainer(answer);
 		return answer;
 	}
@@ -151,7 +150,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 		answer.cardinality = Util.unsigned_exclusiveunion2by2(value1.content,
 				value1.getCardinality(), value2.content,
 				value2.getCardinality(), answer.content); 
-		if (answer.cardinality >= DEFAULTMAXSIZE)
+		if (answer.cardinality > DEFAULTMAXSIZE)
 			return ContainerFactory.getBitmapContainer(answer);
 		return answer;
 	}
@@ -207,8 +206,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 
         @Override
         public void clear() {
-                cardinality = 0;
-                
+                cardinality = 0;                
         }
 
 }

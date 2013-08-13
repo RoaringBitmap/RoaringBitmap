@@ -19,10 +19,11 @@ public class ContainerFactory {
                 else 
                     return buffer.remove(buffer.size()-1);
         }
-        public static ArrayContainer getArrayContainer(BitmapContainer ac) {
-                ArrayContainer bc = buffer.isEmpty() ?  new ArrayContainer(): buffer.remove(buffer.size()-1);
-                bc.loadData(ac);
-                return bc;
+        public static ArrayContainer getArrayContainer(BitmapContainer bc) {
+                ArrayContainer ac = buffer.isEmpty() ?  new ArrayContainer(): buffer.remove(buffer.size()-1);
+                ac.loadData(bc);
+                putBackInStore(bc); //Conserving the bitmapContainer
+                return ac;
         }
         
         public static BitmapContainer getBitmapContainer() {
@@ -35,6 +36,7 @@ public class ContainerFactory {
         public static BitmapContainer getBitmapContainer(ArrayContainer ac) {
                 BitmapContainer bc = bbuffer.isEmpty() ?  new BitmapContainer(): bbuffer.remove(buffer.size()-1);
                 bc.loadData(ac);
+                putBackInStore(ac); //After transformation, the ArrayContainer is conserved
                 return bc;
         }
         

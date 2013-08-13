@@ -119,8 +119,8 @@ public class Util {
 }
 
         
-                static public int unsigned_union2by2(final short[] set1, final int length1,
-                        final short[] set2, final int length2, final short[] buffer) {
+        static public int unsigned_union2by2(final short[] set1, final int length1,
+        					final short[] set2, final int length2, final short[] buffer) {
                 int pos = 0;
                 int k1 = 0, k2 = 0;
                 if (0 == length1) {
@@ -142,7 +142,7 @@ public class Util {
                                                 buffer[pos++] = set2[k2];
                                         break;
                                 }
-                        } else if (set1[k1] == set2[k2]) {
+                        } else if (toIntUnsigned(set1[k1]) == toIntUnsigned(set2[k2])) {
                                 buffer[pos++] = set1[k1];
                                 ++k1;
                                 ++k2;
@@ -170,7 +170,7 @@ public class Util {
         }
 
                 
-                static public int oldunion2by2(final short[] set1, final int length1,
+       static public int oldunion2by2(final short[] set1, final int length1,
 			final short[] set2, final int length2, final short[] buffer) {
 		int pos = 0;
 		int k1 = 0, k2 = 0;
@@ -317,7 +317,7 @@ public class Util {
 	                                                        buffer[pos++] = set2[k2];
 	                                                break;
 	                                        }
-	                                } else if (set1[k1] == set2[k2]) {                                      
+	                                } else if (toIntUnsigned(set1[k1]) == toIntUnsigned(set2[k2])) {                                      
 	                                        ++k1;
 	                                        ++k2;
 	                                        if (k1 >= length1) {
