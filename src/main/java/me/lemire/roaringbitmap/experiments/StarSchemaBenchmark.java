@@ -43,12 +43,12 @@ public class StarSchemaBenchmark {
                 System.out.println("Start experiments :");
                 DecimalFormat df = new DecimalFormat("0.###");
                 int repeat = 3;
-                //StarSchemaBenchmark.testWAH32(repeat, df);
-                //StarSchemaBenchmark.testEWAH64(repeat, df);
-                //StarSchemaBenchmark.testEWAH32(repeat, df);
+                StarSchemaBenchmark.testWAH32(repeat, df);
+                StarSchemaBenchmark.testEWAH64(repeat, df);
+                StarSchemaBenchmark.testEWAH32(repeat, df);
                 StarSchemaBenchmark.testRoaringBitmap(repeat, df);
-                //StarSchemaBenchmark.testBitSet(repeat, df);
-                //StarSchemaBenchmark.testConciseSet(repeat, df);
+                StarSchemaBenchmark.testBitSet(repeat, df);
+                StarSchemaBenchmark.testConciseSet(repeat, df);
         }
 
         public static void BuildingSSBbitmaps(String path) throws IOException {
@@ -173,7 +173,7 @@ public class StarSchemaBenchmark {
                         }
                 }
                 aft = System.currentTimeMillis();
-/*
+
                 // Validating that ArrayContainers contents are sorted
                 // and BitmapContainers cardinalities are corrects
                 for (RoaringBitmap rb : bitmap)
@@ -183,11 +183,11 @@ public class StarSchemaBenchmark {
                 for (k = 0; k < N; k++)
                         size += bitmap[k].getSizeInBytes();
 
-                line += "\t" + size / 1024;*/
+                line += "\t" + size / 1024;
                 line += "\t" + df.format((aft - bef) / 1000.0);
 
                 // uncompressing
-              /*  bef = System.currentTimeMillis();
+                bef = System.currentTimeMillis();
                 for (r = 0; r < repeat; ++r)
                         for (k = 0; k < N; ++k) {
                                 int[] array = bitmap[k].getIntegers();
@@ -197,11 +197,10 @@ public class StarSchemaBenchmark {
                 line += "\t" + df.format((aft - bef) / 1000.0);
 
                 {
-                        RoaringBitmap bitmapor1 = bitmap[0];
+                        RoaringBitmap bitmapor1 = bitmap[0].clone();
                         bitmapor1.validate();
                         for (k = 1; k < N; ++k) {
-                                bitmapor1 = RoaringBitmap.or(bitmapor1,
-                                        bitmap[k]);
+                                bitmapor1 = RoaringBitmap.or(bitmapor1, bitmap[k]);
                                 bitmapor1.validate();
                         }
 
@@ -272,7 +271,7 @@ public class StarSchemaBenchmark {
                         bogus += array.length;
                 }
                 aft = System.currentTimeMillis();
-                line += "\t" + df.format((aft - bef) / 1000.0);*/
+                line += "\t" + df.format((aft - bef) / 1000.0);
 
                 System.out.println(line);
                 System.out.println("# ignore this " + bogus);
