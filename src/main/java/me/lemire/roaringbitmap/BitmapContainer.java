@@ -203,10 +203,10 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		BitmapContainer answer = new BitmapContainer();
 		for (int k = 0; k < answer.bitmap.length; ++k) {
 			answer.bitmap[k] = this.bitmap[k] ^ value2.bitmap[k];
-			if(answer.bitmap[k]!=0)
-				answer.cardinality += Long.bitCount(answer.bitmap[k]);
+			//if(answer.bitmap[k]!=0)
+				//answer.cardinality += Long.bitCount(answer.bitmap[k]);
 		}
-
+		answer.cardinality = answer.expensiveComputeCardinality();
 		if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
 			return ContainerFactory.getArrayContainer(answer);
 		return answer;
@@ -250,7 +250,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		}
 		if(expensiveComputeCardinality() != counter) throw
 		new RuntimeException("problem");
-		if(expensiveComputeCardinality()!= cardinality) 
+		if(expensiveComputeCardinality()!= this.cardinality) 
 			throw new RuntimeException("bug : "+expensiveComputeCardinality()+" "+this.cardinality);
 	}
 	 
