@@ -47,7 +47,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 			--cardinality;
 			bitmap[x / 64] &= ~(1l << (x % 64));
 			if (cardinality < ArrayContainer.DEFAULTMAXSIZE) {
-				return ContainerFactory.getArrayContainer(this);
+				return ContainerFactory.transformToArrayContainer(this);
 			}
 		}
 		return this;
@@ -135,7 +135,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		}
 		answer.cardinality = answer.expensiveComputeCardinality();
 		if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
-			return ContainerFactory.getArrayContainer(answer);
+			return ContainerFactory.transformToArrayContainer(answer);
 		return answer;
 	}
 
@@ -194,7 +194,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		
 	answer.cardinality = answer.expensiveComputeCardinality();
 		if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
-			return ContainerFactory.getArrayContainer(answer);
+			return ContainerFactory.transformToArrayContainer(answer);
 		return answer;
 	}
 
@@ -208,7 +208,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		}
 		answer.cardinality = answer.expensiveComputeCardinality();
 		if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
-			return ContainerFactory.getArrayContainer(answer);
+			return ContainerFactory.transformToArrayContainer(answer);
 		return answer;
 	}
 

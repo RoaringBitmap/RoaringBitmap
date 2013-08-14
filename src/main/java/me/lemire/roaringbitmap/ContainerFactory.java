@@ -19,13 +19,19 @@ public class ContainerFactory {
                 else 
                     return buffer.remove(buffer.size()-1);
         }
-        public static ArrayContainer getArrayContainer(BitmapContainer bc) {
+        public static ArrayContainer copyToArrayContainer(BitmapContainer bc) {
                 ArrayContainer ac = buffer.isEmpty() ?  new ArrayContainer(): buffer.remove(buffer.size()-1);
                 ac.loadData(bc);
-                putBackInStore(bc); //The bitmapContainer will be emptied and conserved
                 return ac;
         }
         
+        public static ArrayContainer transformToArrayContainer(BitmapContainer bc) {
+                ArrayContainer ac = buffer.isEmpty() ?  new ArrayContainer(): buffer.remove(buffer.size()-1);
+                ac.loadData(bc);
+                putBackInStore(bc);
+                return ac;
+        }
+
         public static BitmapContainer getBitmapContainer() {
                 if(Bbuffer.isEmpty())
                         return new BitmapContainer();
@@ -33,10 +39,15 @@ public class ContainerFactory {
                     return Bbuffer.remove(Bbuffer.size()-1);
         }
 
-        public static BitmapContainer getBitmapContainer(ArrayContainer ac) {
+        public static BitmapContainer copyToArrayContainer(ArrayContainer ac) {
                 BitmapContainer bc = Bbuffer.isEmpty() ?  new BitmapContainer(): Bbuffer.remove(Bbuffer.size()-1);
                 bc.loadData(ac);
-                putBackInStore(ac); //After transformation, the ArrayContainer will be emptied and conserved
+                return bc;
+        }
+        public static BitmapContainer transformToBitmapContainer(ArrayContainer ac) {
+                BitmapContainer bc = Bbuffer.isEmpty() ?  new BitmapContainer(): Bbuffer.remove(Bbuffer.size()-1);
+                bc.loadData(ac);
+                putBackInStore(ac);
                 return bc;
         }
         

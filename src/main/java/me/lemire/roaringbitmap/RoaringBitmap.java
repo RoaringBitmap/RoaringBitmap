@@ -31,7 +31,6 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable
 		if(z != null) {
 		        Container z2 = z.add(Util.lowbits(x));
 		        if(z2 != z) {
-		          ContainerFactory.putBackInStore((ArrayContainer)z); //Conserving the ArrayContainer object  
 		          highlowcontainer.put(hb,z2); //Replace the ArrayContainer by the new bitmapContainer
 		        }
 		} else {

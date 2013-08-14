@@ -47,7 +47,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 	public Container add(short x) {
 	        if(( cardinality == 0 )  || (Util.toIntUnsigned(x) > content[cardinality-1])) {
 	                if (cardinality == content.length) {
-                                BitmapContainer a = ContainerFactory.getBitmapContainer(this);
+                                BitmapContainer a = ContainerFactory.transformToBitmapContainer(this);
                                 a.add(x);
                                 return a;
                         }
@@ -58,7 +58,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 		if (loc < 0) {
 			// Transform the ArrayContainer to a BitmapContainer when cardinality = DEFAULTMAXSIZE 
 			if (cardinality == content.length) {
-				BitmapContainer a = ContainerFactory.getBitmapContainer(this);
+				BitmapContainer a = ContainerFactory.transformToBitmapContainer(this);
 				a.add(x);
 				return a;
 			}
@@ -129,7 +129,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 				value1.getCardinality(), value2.content,
 				value2.getCardinality(), answer.content);
 		if (answer.cardinality > DEFAULTMAXSIZE)
-			return ContainerFactory.getBitmapContainer(answer);
+			return ContainerFactory.transformToBitmapContainer(answer);
 		return answer;
 	}
 	
@@ -151,7 +151,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 				value1.getCardinality(), value2.content,
 				value2.getCardinality(), answer.content); 
 		if (answer.cardinality > DEFAULTMAXSIZE)
-			return ContainerFactory.getBitmapContainer(answer);
+			return ContainerFactory.transformToBitmapContainer(answer);
 		return answer;
 	}
 

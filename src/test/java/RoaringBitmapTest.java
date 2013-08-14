@@ -70,7 +70,7 @@ public class RoaringBitmapTest {
 		RoaringBitmap rr2 = new RoaringBitmap();
 		rr2.add(13);
 		RoaringBitmap rrand = RoaringBitmap.and(rr, rr2);
-
+		
 		int[] array = new int[1];
 		int pos = 0;
 		for (int i : rrand) {
