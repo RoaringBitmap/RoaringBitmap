@@ -19,7 +19,7 @@ public class ClusteredDataGenerator {
     for (int k = 0; k < v.length; ++k)
       array[k + offset] = Min + v[k];
   }
-
+  
   void fillClustered(int[] array, int offset, int length, int Min, int Max) {
     final int range = Max - Min;
     if ((range == length) || (length <= 10)) {

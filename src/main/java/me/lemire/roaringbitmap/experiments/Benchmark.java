@@ -19,7 +19,8 @@ public class Benchmark {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		test(10, 18, 10);
+		//test(10, 18, 10);
+		ZipfianTests(10, 10);
 	}
 
 	public static void testRoaringBitmap(int[][] data, int[][] data2,
@@ -769,6 +770,7 @@ public class Benchmark {
 			int[][] data2 = new int[N][];
 			int Max = (1 << (nbr + sparsity));
 			System.out.println("# generating random data...");
+			
 			// Generating the first set
 			int[] inter = cdg.generateClustered(1 << (nbr / 2), Max);
 			int counter = 0;
@@ -799,6 +801,38 @@ public class Benchmark {
 			testEWAH32(data, data2, repeat, df);
 
 			System.out.println();
+		}
+	}
+
+	/**
+	 * Generating N sets of nbInts integers uzing Zipfian distribution
+	 * @param N number of generated sets of integers
+	 * @param repeat number of repetitions
+	 */
+	public static void ZipfianTests(int N, int repeat) {
+		
+		int SetSize = 20;//(int) Math.pow(10, 5);
+		ZipfianDistribution zpf = new ZipfianDistribution();
+		
+		for( double sparsity = 0.0001; sparsity<=1; sparsity*=10.0 )
+		{
+			double max = SetSize/sparsity;
+			int data[][] = new int[N][];
+			
+			System.out.println("\n\ndensity = "+sparsity);
+			
+			for(int i=0; i<N; i++)
+			{					
+				System.out.println();
+				data[i] = zpf.GenartingInts(SetSize, max);
+				
+				for(int j=0; j<data[i].length; j++)
+					System.out.print(data[i][j]+" ");
+				
+			}
+			
+			// Start experiments with Zipfian data distribution
+			
 		}
 	}
 }
