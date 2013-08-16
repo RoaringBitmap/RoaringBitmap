@@ -456,7 +456,7 @@ public class Benchmark {
 			}
 			bitmapand1.intersection(bitmapand2);
 			int[] array = bitmapand1.toArray();
-			bogus += array.length;
+			if(array!=null) bogus += array.length;
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
@@ -471,7 +471,7 @@ public class Benchmark {
 			}
 			bitmapand1.symmetricDifference(bitmapand2);
 			int[] array = bitmapand1.toArray();
-			bogus += array.length;
+			if(array!=null) bogus += array.length;
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
@@ -811,27 +811,61 @@ public class Benchmark {
 	 */
 	public static void ZipfianTests(int N, int repeat) {
 		
-		int SetSize = 20;//(int) Math.pow(10, 5);
+		DecimalFormat df = new DecimalFormat("0.###");
+		//int SetSize = 20;//(int) Math.pow(10, 5);
 		ZipfianDistribution zpf = new ZipfianDistribution();
 		
-		for( double sparsity = 0.0001; sparsity<=1; sparsity*=10.0 )
+		System.out
+		.println("# For each instance, we report the size, the construction time, ");
+System.out.println("# the time required to recover the set bits,");
+System.out
+		.println("# and the time required to compute logical ors (unions) between lots of bitmaps.");
+		
+		for( double density = 0.0001; density<=1; density*=10.0 )
 		{
-			double max = SetSize/sparsity;
+			double max = 1000000;
+			int SetSize = (int) (max*density);
+			//double max = nbSetBits/density;
 			int data[][] = new int[N][];
+			int data2[][] = new int[N][];
 			
-			System.out.println("\n\ndensity = "+sparsity);
+			System.out.println("\n\ndensity = "+density);
+			System.out.println("# generating random data...");
 			
 			for(int i=0; i<N; i++)
 			{					
-				System.out.println();
+				//System.out.println();
 				data[i] = zpf.GenartingInts(SetSize, max);
+				data2[i] = zpf.GenartingInts(SetSize, max);
 				
+				Arrays.sort(data[i]);
+				Arrays.sort(data2[i]);
+				
+				/*System.out.println("\n\n data1");
 				for(int j=0; j<data[i].length; j++)
 					System.out.print(data[i][j]+" ");
+				System.out.println("\n data2");				
+				for(int j=0; j<data2[i].length; j++)
+					System.out.print(data2[i][j]+" ");*/
 				
 			}
 			
 			// Start experiments with Zipfian data distribution
+			System.out.println("\n# generating random data... ok.");
+			System.out.println("#  density = "+ density);
+
+			// building
+			//testBitSet(data, data2, repeat, df);
+			testRoaringBitmap(data, data2, repeat, df);
+			try {
+			testWAH32(data, data2, repeat, df);
+			}catch(AssertionError e) {System.out.println("Sorry I've a problem. Please check with my library !\n");}
+			testConciseSet(data, data2, repeat, df);
+			testSparseBitmap(data, data2, repeat, df);
+			testEWAH64(data, data2, repeat, df);
+			testEWAH32(data, data2, repeat, df);
+
+			System.out.println();
 			
 		}
 	}
