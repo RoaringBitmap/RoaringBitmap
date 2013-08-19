@@ -44,15 +44,20 @@ public class Benchmark {
 				bitmap[k] = new RoaringBitmap();
 				for (int x = 0; x < data[k].length; ++x) {
 					bitmap[k].set(data[k][x]);
-				}
-				size += bitmap[k].getSizeInBytes();
+				}				
+				if(r==0) System.out.println(bitmap[k].toString());
 			}
 		}
 		aft = System.currentTimeMillis();
+		
+		for(int k=0; k<N; k++) size += bitmap[k].getSizeInBytes();
+		
 		line += "\t" + size / 1024;
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
 		for (RoaringBitmap rb : bitmap)
 			rb.validate();
+		
 		// uncompressing
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r)
@@ -87,6 +92,8 @@ public class Benchmark {
 			}
 
 			bitmapor1 = RoaringBitmap.or(bitmapor1, bitmapor2);
+			bitmapor1.validate();
+			System.out.println("nbOR = "+RoaringBitmap.nbOR);
 			int[] array = bitmapor1.getIntegers();
 			bogus += array.length;
 		}
@@ -107,6 +114,7 @@ public class Benchmark {
 
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
 		{
 			RoaringBitmap bitmapand1 = bitmap[0];
 			bitmapand1.validate();
@@ -120,6 +128,7 @@ public class Benchmark {
 			}
 			bitmapand1 = RoaringBitmap.and(bitmapand1, bitmapand2);
 			bitmapand1.validate();
+			System.out.println("nbAND = "+RoaringBitmap.nbAND);
 			int[] array = bitmapand1.getIntegers();
 			bogus += array.length;
 
@@ -153,6 +162,7 @@ public class Benchmark {
 			}
 			bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmapxor2);
 			bitmapxor1.validate();
+			System.out.println("nbXOR = "+RoaringBitmap.nbXOR);
 			int[] array = bitmapxor1.getIntegers();
 			bogus += array.length;
 		}
@@ -817,8 +827,8 @@ public class Benchmark {
 		
 		System.out
 		.println("# For each instance, we report the size, the construction time, ");
-System.out.println("# the time required to recover the set bits,");
-System.out
+		System.out.println("# the time required to recover the set bits,");
+		System.out
 		.println("# and the time required to compute logical ors (unions) between lots of bitmaps.");
 		
 		for( double density = 0.0001; density<=1; density*=10.0 )
@@ -846,8 +856,7 @@ System.out
 					System.out.print(data[i][j]+" ");
 				System.out.println("\n data2");				
 				for(int j=0; j<data2[i].length; j++)
-					System.out.print(data2[i][j]+" ");*/
-				
+					System.out.print(data2[i][j]+" ");*/				
 			}
 			
 			// Start experiments with Zipfian data distribution
@@ -859,14 +868,13 @@ System.out
 			testRoaringBitmap(data, data2, repeat, df);
 			try {
 			testWAH32(data, data2, repeat, df);
-			}catch(AssertionError e) {System.out.println("Sorry I've a problem. Please check with my library !\n");}
+			} catch(AssertionError e) {System.out.println("Sorry ! I've a problem. Please check with my library !\n");}
 			testConciseSet(data, data2, repeat, df);
-			testSparseBitmap(data, data2, repeat, df);
+			//testSparseBitmap(data, data2, repeat, df);
 			testEWAH64(data, data2, repeat, df);
 			testEWAH32(data, data2, repeat, df);
 
-			System.out.println();
-			
+			System.out.println();			
 		}
 	}
 }

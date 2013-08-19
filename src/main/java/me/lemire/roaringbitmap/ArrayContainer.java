@@ -2,6 +2,7 @@ package me.lemire.roaringbitmap;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 
 public class ArrayContainer implements Container, Cloneable, Serializable {
@@ -11,10 +12,10 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 	private static final long serialVersionUID = 1L;
 	public short[] content;
 	int cardinality = 0;
-	public final static int  DEFAULTMAXSIZE = 1024;
+	public final static int  DEFAULTMAXSIZE = 1024;	
 	
 	public void loadData(BitmapContainer bitmapContainer) {
-	        if(content.length < bitmapContainer.cardinality) //It should be not possible
+	        if(content.length < bitmapContainer.cardinality)
 	                content = new short[bitmapContainer.cardinality];
                 this.cardinality = bitmapContainer.cardinality;
                 int pos = 0;
@@ -45,6 +46,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 	 */
 	@Override
 	public Container add(short x) {
+		
 	        if(( cardinality == 0 )  || (Util.toIntUnsigned(x) > content[cardinality-1])) {
 	                if (cardinality == content.length) {
                                 BitmapContainer a = ContainerFactory.transformToBitmapContainer(this);
@@ -137,9 +139,19 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 	public void validate() {
 		if(this.cardinality == 0) return;
 		short val1 = this.content[0];
+		HashSet<Short> hs = new HashSet<Short>();
+		hs.add(val1);
 		for(int k = 1; k< this.cardinality; ++k) {
-			if(Util.toIntUnsigned(val1)>Util.toIntUnsigned(this.content[k])) throw new RuntimeException("bug : content's not sorted");
+			if(Util.toIntUnsigned(val1)>Util.toIntUnsigned(this.content[k])) 
+				throw new RuntimeException("bug : content's not sorted");
 			val1 = this.content[k];
+			hs.add(val1);
+		}
+		if(hs.size()!=this.cardinality){ 
+			/*Short rep = null; int i, j=0;
+			main : for (i=1; i<content.length; i++)
+				for(j=0; j<i; j++) if(content[i]==content[j]) {rep = content[i]; break main;}*/			
+			throw new RuntimeException("bug : ArrayContainer with repeated values");			
 		}
 	}
 

@@ -13,7 +13,7 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable
 	 */
 	private static final long serialVersionUID = 3L;
 	public Short2ObjectAVLTreeMap<Container> highlowcontainer = new Short2ObjectAVLTreeMap<Container>(); // does
-																							// not
+	public static int nbOR = 0, nbAND=0, nbXOR=0;																						// not
 
         /**
          * set the value to "true", whether it already appears on not.
@@ -56,17 +56,15 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable
 						break main;
 					s1 = p1.next();
 				} else if (s1.getKey().shortValue() > s2.getKey().shortValue()) {
-					if (!p2.hasNext())
-						break main;
+					if (!p2.hasNext())	break main;
 					s2 = p2.next();
 				} else { 
+					nbAND++;
 					Container C = Util.and(s1.getValue(), s2.getValue());
 					if(C.getCardinality()>0)
-					answer.highlowcontainer.put(s1.getKey(),C);
-					if (!p1.hasNext())
-						break main;
-					if (!p2.hasNext())
-						break main;
+						answer.highlowcontainer.put(s1.getKey(),C);
+					if (!p1.hasNext())	break main;
+					if (!p2.hasNext())	break main;
 					s1 = p1.next();
 					s2 = p2.next();
 				}
@@ -112,7 +110,8 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable
 						break main;
 					}
 					s2 = p2.next();
-				} else { 
+				} else {
+					nbOR++;
 					answer.highlowcontainer.put(s1.getKey(),
 							Util.or(s1.getValue(), s2.getValue()));
 					if (!p1.hasNext()) { 
@@ -183,6 +182,7 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable
 					}
 					s2 = p2.next();
 				} else { 
+					nbXOR++;
 					Container C = Util.xor(s1.getValue(), s2.getValue());
 					if (C.getCardinality()>0)
 						answer.highlowcontainer.put(s1.getKey(), C);
@@ -335,8 +335,7 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable
 		
 		return size;
 	}
-	
-	
+		
 	@SuppressWarnings("unchecked")
 	@Override
 	public RoaringBitmap clone() {
@@ -349,5 +348,31 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable
 			e.printStackTrace();
 			throw new RuntimeException("shouldn't happen with clone");
 		}
+	}
+
+	@Override
+	public String toString(){
+		int nbNodes = this.highlowcontainer.size();
+		int nbArrayC = 0, nbBitmapC=0, minAC=1024, maxAC=0, minBC=65535, maxBC=0, card, avAC=0, avBC=0;
+		for (Container C : this.highlowcontainer.values())
+			if(C instanceof ArrayContainer) {
+				nbArrayC++;
+				card = C.getCardinality(); 
+				if(card<minAC) minAC=C.getCardinality();
+				if(card>maxAC) maxAC=C.getCardinality();
+				avAC+=card;
+			}
+			else {
+				nbBitmapC++;
+				card = C.getCardinality();
+				if(C.getCardinality()<minBC) minBC=C.getCardinality();
+				if(C.getCardinality()>maxBC) maxBC=C.getCardinality();
+				avBC+=card;
+			}
+		try {avAC/=nbArrayC;}catch(ArithmeticException e)	{avAC=0;}
+		try {avBC/=nbBitmapC;}catch(ArithmeticException e)	{avBC=0;} 
+		String desc = "We have "+nbNodes+" nodes with "+nbArrayC+" ArrayContainers min : "+minAC+" max : "+maxAC
+			+" average : "+avAC+" and "+nbBitmapC+" BitmapContainers min : "+minBC+" max : "+maxBC+" avBC : "+avBC;
+		return desc;		
 	}
 }

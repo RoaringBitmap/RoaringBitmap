@@ -14,19 +14,22 @@ public class ZipfianDistribution {
 		if(SetSize==max){ 
 			for(int i=0; i<max; i++) array[i] = i;
 			return array;
-		}
-		
-		HashSet hs = new HashSet();
-		int hsSize = 0;
-		
-		while(hs.size()<SetSize) {
-			double a = this.rand.nextDouble();
-			int val = (int) (Math.pow(a, 2) * max);
-			hs.add(val);
-			if(hs.size()>0) array[hs.size()-1] = val;
 		}		
 		
+		int pos=0;
+		while(pos<SetSize) {
+			double a = this.rand.nextDouble();
+			int val = (int) (Math.pow(a, 2) * max);			
+			if(!contains(array, val)) array[pos++] = val;
+		}				
 		return array;
+	}
+	
+	private boolean contains(int[] array, int val) {
+		for(int i=0; i<array.length; i++) 
+			if(array[i]==val) return true;
+		
+		return false;
 	}
 
 }
