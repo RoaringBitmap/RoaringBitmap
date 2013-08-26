@@ -15,21 +15,21 @@ public class ZipfianDistribution {
 			for(int i=0; i<max; i++) array[i] = i;
 			return array;
 		}		
+		HashSet<Integer> hs = new HashSet<Integer>();
 		
-		int pos=0;
-		while(pos<SetSize) {
+		while(hs.size()<SetSize) {
 			double a = this.rand.nextDouble();
 			int val = (int) (Math.pow(a, 2) * max);			
-			if(!contains(array, val)) array[pos++] = val;
-		}				
+			hs.add(val);
+		}
+		Object[] tab = hs.toArray();
+		for(int i=0; i<tab.length; i++) array[i]=(Integer) tab[i];
 		return array;
 	}
 	
 	private boolean contains(int[] array, int val) {
 		for(int i=0; i<array.length; i++) 
-			if(array[i]==val) return true;
-		
+			if(array[i]==val) return true;		
 		return false;
 	}
-
 }

@@ -12,7 +12,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 	private static final long serialVersionUID = 1L;
 	public short[] content;
 	int cardinality = 0;
-	public final static int  DEFAULTMAXSIZE = 1024;	
+	public final static int  DEFAULTMAXSIZE = 4096;	
 	
 	public void loadData(BitmapContainer bitmapContainer) {
 	        if(content.length < bitmapContainer.cardinality)
@@ -23,7 +23,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
                                 .nextSetBit(i + 1)) {
                         content[pos++] = (short)i;
                 }
-                if(pos != this.cardinality) throw new RuntimeException("bug");
+                if(pos != this.cardinality) throw new RuntimeException("bug "+pos+" "+this.cardinality);
 	}
 		
 	
@@ -125,7 +125,9 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 
 	public Container or(ArrayContainer value2) {
 		ArrayContainer value1 = this;
-		final int desiredcapacity = Math.min(value1.getCardinality() + value2.getCardinality(),65536);
+		int tailleAC = value1.getCardinality()+value2.getCardinality();
+		final int desiredcapacity = tailleAC > 65535 ? 65535 : tailleAC;
+		//final int desiredcapacity = Math.min(value1.getCardinality() + value2.getCardinality(),65536);
 		ArrayContainer answer = new ArrayContainer(desiredcapacity);
 		answer.cardinality = Util.unsigned_union2by2(value1.content,
 				value1.getCardinality(), value2.content,
@@ -147,12 +149,8 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 			val1 = this.content[k];
 			hs.add(val1);
 		}
-		if(hs.size()!=this.cardinality){ 
-			/*Short rep = null; int i, j=0;
-			main : for (i=1; i<content.length; i++)
-				for(j=0; j<i; j++) if(content[i]==content[j]) {rep = content[i]; break main;}*/			
-			throw new RuntimeException("bug : ArrayContainer with repeated values");			
-		}
+		if(hs.size()!=this.cardinality)		
+			throw new RuntimeException("bug : ArrayContainer with repeated values");	
 	}
 
 	public Container xor(ArrayContainer value2) {
@@ -202,7 +200,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
         @Override
         public ShortIterator getShortIterator() {
                 return new ShortIterator() {
-                        short pos = 0;
+                        int pos = 0;
 
                         @Override
                         public boolean hasNext() {
@@ -211,7 +209,15 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 
                         @Override
                         public short next() {
-                                return ArrayContainer.this.content[pos++];
+                        	try { int i = ArrayContainer.this.content[pos]; 
+                        			i++;
+                               }catch (ArrayIndexOutOfBoundsException e) 
+                                {
+                            	   System.out.println(" pos = "+pos);
+                            	   e.printStackTrace();
+                            	   System.exit(0);
+                                }
+                        	 return ArrayContainer.this.content[pos++];
                         }
                 };
         }
@@ -220,5 +226,4 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
         public void clear() {
                 cardinality = 0;                
         }
-
 }

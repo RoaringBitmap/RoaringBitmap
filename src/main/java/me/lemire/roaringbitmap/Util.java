@@ -6,8 +6,7 @@ public class Util {
 	}
 
 	public static short lowbits(int x) {
-		return (short)(x & 0xFFFF);
-		//return (short) (x & 65535);		
+		return (short)(x & 0xFFFF);		
 	}	
 
 	public static Container and(Container value1,  Container value2) {
@@ -82,7 +81,8 @@ public class Util {
 	public final static int toIntUnsigned(short x) {
                 return x & 0xFFFF;
         }
-        public static int unsigned_intersect2by2(final short[] set1, final int length1,
+	
+	public static int unsigned_intersect2by2(final short[] set1, final int length1,
                 final short[] set2, final int length2, final short[] buffer) {
         if ((0 == length1) || (0 == length2))
                 return 0;
@@ -134,7 +134,11 @@ public class Util {
                         return length2;         
                 }
                 while (true) {
-                        if (toIntUnsigned(set1[k1]) < toIntUnsigned(set2[k2])) {
+                	int val1, val2;
+                	val1 = set1[k1] < 0 ? toIntUnsigned(set1[k1]) : set1[k1];
+                	val2 = set2[k2]<0 ? toIntUnsigned(set2[k2]) : set2[k2];
+                	
+                        if (val1 < val2) {
                                 buffer[pos++] = set1[k1];
                                 ++k1;
                                 if (k1 >= length1) {
@@ -142,7 +146,7 @@ public class Util {
                                                 buffer[pos++] = set2[k2];
                                         break;
                                 }
-                        } else if (toIntUnsigned(set1[k1]) == toIntUnsigned(set2[k2])) {
+                        } else if (val1 == val2) {
                                 buffer[pos++] = set1[k1];
                                 ++k1;
                                 ++k2;
@@ -156,7 +160,7 @@ public class Util {
                                                 buffer[pos++] = set1[k1];
                                         break;
                                 }
-                        } else {// if (set1[k1]>set2[k2]) {
+                        } else {// if (set1[k1]>set2[k2])
                                 buffer[pos++] = set2[k2];
                                 ++k2;
                                 if (k2 >= length2) {
@@ -294,11 +298,11 @@ public class Util {
 
 
 	        //@SuppressWarnings("unused")
-	                static public int unsigned_exclusiveunion2by2(final short[] set1, final int length1,
-	                                final short[] set2, final int length2, final short[] buffer) {
-	                        int pos = 0;
-	                        int k1 = 0, k2 = 0;
-	                        if (0 == length1) {
+	    static public int unsigned_exclusiveunion2by2(final short[] set1, final int length1,
+	    		final short[] set2, final int length2, final short[] buffer) {
+	            int pos = 0;
+	            int k1 = 0, k2 = 0;
+	            if (0 == length1) {
 	                                for(int k = 0; k < length1; ++k) 
 	                                        buffer[k] = set1[k];
 	                                return length1;
@@ -309,7 +313,11 @@ public class Util {
 	                                return length2;         
 	                        }
 	                        while (true) {
-	                                if (toIntUnsigned(set1[k1]) < toIntUnsigned(set2[k2])) {
+	                        	int val1, val2;
+	                        	val1 = set1[k1] < 0 ? toIntUnsigned(set1[k1]) : set1[k1];
+	                        	val2 = set2[k2]<0 ? toIntUnsigned(set2[k2]) : set2[k2];
+	                        	
+	                                if (val1 < val2) {
 	                                        buffer[pos++] = set1[k1];
 	                                        ++k1;
 	                                        if (k1 >= length1) {
@@ -317,7 +325,7 @@ public class Util {
 	                                                        buffer[pos++] = set2[k2];
 	                                                break;
 	                                        }
-	                                } else if (toIntUnsigned(set1[k1]) == toIntUnsigned(set2[k2])) {                                      
+	                                } else if (val1 == val2) {                                      
 	                                        ++k1;
 	                                        ++k2;
 	                                        if (k1 >= length1) {
@@ -330,7 +338,7 @@ public class Util {
 	                                                        buffer[pos++] = set1[k1];
 	                                                break;
 	                                        }
-	                                } else {// if (set1[k1]>set2[k2])
+	                                } else {// if (val1>val2)
 	                                        buffer[pos++] = set2[k2];
 	                                        ++k2;
 	                                        if (k2 >= length2) {
