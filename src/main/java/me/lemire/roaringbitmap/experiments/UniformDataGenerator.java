@@ -33,11 +33,6 @@ public class UniformDataGenerator {
                 if (N > Max)
                         throw new RuntimeException("not possible");
                 int[] ans = new int[N];
-                if (N == Max) {
-                        for (int k = 0; k < N; ++k)
-                                ans[k] = k;
-                        return ans;
-                }
                 HashSet<Integer> s = new HashSet<Integer>();
                 while (s.size() < N)
                         s.add(new Integer(this.rand.nextInt(Max)));
@@ -49,9 +44,32 @@ public class UniformDataGenerator {
         }
 
         /**
+        * output all integers from the range [0,Max) that are not
+        * in the array
+        */
+        static int[] negate(int[] x, int Max) {
+                int[] ans = new int[Max - x.length];
+                int i = 0;
+                int c = 0;
+                for (int j = 0; j < x.length; ++j) {
+                        int v = x[j];
+                        for (; i < v; ++i)
+                                ans[c++] = i;
+                        ++i;
+                }
+                while (c < ans.length)
+                        ans[c++] = i++;
+                return ans;
+        }
+
+
+        /**
          * generates randomly N distinct integers from 0 to Max.
          */
         public int[] generateUniform(int N, int Max) {
+                if(N * 2 > Max) {
+                        return negate( generateUniform(Max - N, Max), Max );
+                }
                 if (2048 * N > Max)
                         return generateUniformBitmap(N, Max);
                 return generateUniformHash(N, Max);
@@ -64,11 +82,6 @@ public class UniformDataGenerator {
                 if (N > Max)
                         throw new RuntimeException("not possible");
                 int[] ans = new int[N];
-                if (N == Max) {
-                        for (int k = 0; k < N; ++k)
-                                ans[k] = k;
-                        return ans;
-                }
                 BitSet bs = new BitSet(Max);
                 int cardinality = 0;
                 while (cardinality < N) {

@@ -22,7 +22,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
                 
                 for(int k = 0; k < arrayContainer.cardinality; ++k) {
                         final short x = arrayContainer.content[k];
-                        bitmap[Util.toIntUnsigned(x)/64] |= (1l << (x % 64));
+                        bitmap[Util.toIntUnsigned(x)/64] |= (1l << x);
                 }                
 	}
 
@@ -30,14 +30,14 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 	@Override
         public boolean contains(short i) {
 	        final int x = Util.toIntUnsigned(i);
-		return (bitmap[x/64] & (1l << (x % 64))) != 0;		
+		return (bitmap[x/64] & (1l << x )) != 0;		
 	}
 
 	@Override
 	public Container add(short i) {
 		final int x = Util.toIntUnsigned(i);
 		final long previous = bitmap[x/64];
-		if(previous != (bitmap[x/64] |= (1l << (x % 64))) )
+		if(previous != (bitmap[x/64] |= (1l << x)) )
 		        ++cardinality;
 		return this;
 	}
@@ -46,7 +46,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 	public Container remove(short x) {
 		if (contains(x)) {
 			--cardinality;
-			bitmap[x / 64] &= ~(1l << (x % 64));
+			bitmap[x / 64] &= ~(1l << x );
 			if (cardinality < ArrayContainer.DEFAULTMAXSIZE) {
 				return ContainerFactory.transformToArrayContainer(this);
 			}
@@ -58,7 +58,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		int x = i / 64;
 		if(x>=bitmap.length) return -1;
 		long w = bitmap[x];
-		w >>>= (i % 64);
+		w >>>= i;
 		if (w != 0) {
 			return i + Long.numberOfTrailingZeros(w);
 		}
@@ -74,7 +74,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 	public short nextUnsetBit(int i) {
 		int x = i / 64;
 		long w = ~bitmap[x];
-		w >>>= (i % 64);
+		w >>>= i;
 		if (w != 0) {
 			return (short) (i + Long.numberOfTrailingZeros(w));
 		}
@@ -151,18 +151,11 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		BitmapContainer answer = new BitmapContainer();
 		for (int k = 0; k < value2.cardinality; ++k)	{				
 			int i = Util.toIntUnsigned(value2.content[k])/64;
-			long previous = answer.bitmap[i];
-			if(previous==0) {
-				answer.bitmap[i] = this.bitmap[i] | (1l << (value2.content[k] % 64));
-				answer.cardinality += Long.bitCount(answer.bitmap[i]);
-			}
-			else {				
-				answer.bitmap[i] = answer.bitmap[i] | (1l << (value2.content[k] % 64));
-    	   		long newv = answer.bitmap[i];
-    	   		if(previous<0 && newv>=0) answer.cardinality--;
-    	   		else if((previous>0 && newv<0)||(previous<newv)) answer.cardinality++;    	   		
-			}			 			
-		}
+			// DL: I have considerably simplified the code here. Removed the branching.
+			cardinality += (answer.bitmap[i] & (1l << value2.content[k])) >>> value2.content[k] ;// in Java, shifts are always "modulo"
+			answer.bitmap[i] = answer.bitmap[i]
+                                        | (1l << value2.content[k]);
+                }
 		return answer;
 	}
 
@@ -172,7 +165,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		for (int k = 0; k < answer.bitmap.length; ++k) 
 		{
 			answer.bitmap[k] = this.bitmap[k] | value2.bitmap[k];
-			if(answer.bitmap[k]!=0)
+			//if(answer.bitmap[k]!=0) //DL: I am not sure that the branching helps here. Would need to benchmark this.
 	        	answer.cardinality += Long.bitCount(answer.bitmap[k]);
 		}		
 		return answer;
@@ -190,18 +183,10 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		BitmapContainer answer = new BitmapContainer();
 		for (int k = 0; k < value2.getCardinality(); ++k) {
 		        final int index = Util.toIntUnsigned(value2.content[k])/64;
-		        long previous = answer.bitmap[index];
-		       if(previous == 0) { 
-		    	   answer.bitmap[index] = this.bitmap[index] ^ (1l << (value2.content[k] % 64));
-		    	   answer.cardinality += Long.bitCount(answer.bitmap[index]);
-		       }
-		       else {
-		    	   		answer.bitmap[index] ^=  (1l << (value2.content[k] % 64));
-		    	   		long newv = answer.bitmap[index];
-		    	   		if(previous<0 && newv>=0) answer.cardinality--;
-		    	   		else if((previous>=0 && newv<0) || (previous<newv)) answer.cardinality++;
-		    	   		else if(previous>newv) answer.cardinality--;
-		       		}
+		        // DL: I have considerably simplified the code here, removing the branching
+                        cardinality += (answer.bitmap[index] ^ (1l << value2.content[k] )) >>> value2.content[k] ;
+                        answer.bitmap[index] = answer.bitmap[index]
+                                        ^ (1l << value2.content[k] );
 		}		
 		if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
 			return ContainerFactory.transformToArrayContainer(answer);

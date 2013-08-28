@@ -209,14 +209,6 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 
                         @Override
                         public short next() {
-                        	try { int i = ArrayContainer.this.content[pos]; 
-                        			i++;
-                               }catch (ArrayIndexOutOfBoundsException e) 
-                                {
-                            	   System.out.println(" pos = "+pos);
-                            	   e.printStackTrace();
-                            	   System.exit(0);
-                                }
                         	 return ArrayContainer.this.content[pos++];
                         }
                 };

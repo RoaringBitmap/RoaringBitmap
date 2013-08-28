@@ -134,11 +134,18 @@ public class Util {
                         return length2;         
                 }
                 while (true) {
-                	int val1, val2;
-                	val1 = set1[k1] < 0 ? toIntUnsigned(set1[k1]) : set1[k1];
-                	val2 = set2[k2]<0 ? toIntUnsigned(set2[k2]) : set2[k2];
-                	
-                        if (val1 < val2) {
+                        ////////////////////
+                        // DL: the toIntUnsigned function is very, very cheap. It 
+                        // probably comes for free. Please benchmark it.
+                        // all the work you do to did here almost sure makes things slower.
+                        // not that branching is relatively slow... so these <0 ?...: ... are costing you
+                        // unless the processor is smart enough to optimize it away.
+                        ///////////////////////
+                	//int val1, val2;
+                	//val1 = set1[k1] < 0 ? toIntUnsigned(set1[k1]) : set1[k1];
+                	//val2 = set2[k2]<0 ? toIntUnsigned(set2[k2]) : set2[k2];
+                       if (toIntUnsigned(set1[k1]) < toIntUnsigned(set2[k2])) {
+                       //if (val1 < val2) {
                                 buffer[pos++] = set1[k1];
                                 ++k1;
                                 if (k1 >= length1) {
@@ -146,7 +153,8 @@ public class Util {
                                                 buffer[pos++] = set2[k2];
                                         break;
                                 }
-                        } else if (val1 == val2) {
+                        } else  if (toIntUnsigned(set1[k1]) == toIntUnsigned(set2[k2])) {
+                        //} else if (val1 == val2) {
                                 buffer[pos++] = set1[k1];
                                 ++k1;
                                 ++k2;
@@ -313,11 +321,17 @@ public class Util {
 	                                return length2;         
 	                        }
 	                        while (true) {
-	                        	int val1, val2;
-	                        	val1 = set1[k1] < 0 ? toIntUnsigned(set1[k1]) : set1[k1];
-	                        	val2 = set2[k2]<0 ? toIntUnsigned(set2[k2]) : set2[k2];
-	                        	
-	                                if (val1 < val2) {
+	                                ////////////////////
+	                                // DL: the toIntUnsigned function is very, very cheap. It 
+	                                // probably comes for free. Please benchmark it.
+	                                // all the work you do to did here almost sure makes things slower.
+	                                // not that branching is relatively slow... so these <0 ?...: ... are costing you
+	                                // unless the processor is smart enough to optimize it away.
+	                                ///////////////////////
+	                                //int val1, val2;
+	                                //val1 = set1[k1] < 0 ? toIntUnsigned(set1[k1]) : set1[k1];
+	                                //val2 = set2[k2]<0 ? toIntUnsigned(set2[k2]) : set2[k2];
+	                               if (toIntUnsigned(set1[k1]) < toIntUnsigned(set2[k2])) {
 	                                        buffer[pos++] = set1[k1];
 	                                        ++k1;
 	                                        if (k1 >= length1) {
@@ -325,7 +339,7 @@ public class Util {
 	                                                        buffer[pos++] = set2[k2];
 	                                                break;
 	                                        }
-	                                } else if (val1 == val2) {                                      
+	                                } else if (toIntUnsigned(set1[k1]) == toIntUnsigned(set2[k2]))  {                                      
 	                                        ++k1;
 	                                        ++k2;
 	                                        if (k1 >= length1) {
