@@ -25,6 +25,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
                 }
                 if(pos != this.cardinality) throw new RuntimeException("bug "+pos+" "+this.cardinality);
 	}
+	
 		
 	
 	public ArrayContainer(int capacity) {
@@ -116,7 +117,9 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 	public ArrayContainer and(ArrayContainer value2) {
 		ArrayContainer value1 = this;
 		final int desiredcapacity = Math.min(value1.getCardinality(),  value2.getCardinality());
-		ArrayContainer answer = new ArrayContainer(desiredcapacity);
+		ArrayContainer answer = ContainerFactory.getArrayContainer();
+		if(answer.content.length<desiredcapacity)
+		        answer.content = new short[desiredcapacity];
 		answer.cardinality = Util.unsigned_intersect2by2(value1.content,
 				value1.getCardinality(), value2.content,
 				value2.getCardinality(), answer.content);
@@ -128,7 +131,9 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 		int tailleAC = value1.getCardinality()+value2.getCardinality();
 		final int desiredcapacity = tailleAC > 65535 ? 65535 : tailleAC;
 		//final int desiredcapacity = Math.min(value1.getCardinality() + value2.getCardinality(),65536);
-		ArrayContainer answer = new ArrayContainer(desiredcapacity);
+                ArrayContainer answer = ContainerFactory.getArrayContainer();
+                if(answer.content.length<desiredcapacity)
+                        answer.content = new short[desiredcapacity];
 		answer.cardinality = Util.unsigned_union2by2(value1.content,
 				value1.getCardinality(), value2.content,
 				value2.getCardinality(), answer.content);
@@ -156,7 +161,9 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 	public Container xor(ArrayContainer value2) {
 		ArrayContainer value1 = this;
 		final int desiredcapacity = Math.min(value1.getCardinality() + value2.getCardinality(),65536);
-		ArrayContainer answer = new ArrayContainer(desiredcapacity);
+                ArrayContainer answer = ContainerFactory.getArrayContainer();
+                if(answer.content.length<desiredcapacity)
+                        answer.content = new short[desiredcapacity];
 		answer.cardinality = Util.unsigned_exclusiveunion2by2(value1.content,
 				value1.getCardinality(), value2.content,
 				value2.getCardinality(), answer.content); 
