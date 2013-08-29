@@ -3,6 +3,7 @@ import java.util.Vector;
 import junit.framework.Assert;
 import me.lemire.roaringbitmap.ArrayContainer;
 import me.lemire.roaringbitmap.BitmapContainer;
+import me.lemire.roaringbitmap.Container;
 import me.lemire.roaringbitmap.RoaringBitmap;
 import org.junit.Test;
 
@@ -22,6 +23,11 @@ public class RoaringBitmapTest {
                         Assert.assertEquals(
                                 ac.getCardinality(), 100);
                 }
+                for(short k = 0; k < 100; ++k) {
+                        ac.remove(k);
+                        Assert.assertEquals(
+                                ac.getCardinality(), 100 - k - 1);
+                }
         }
 
         @Test
@@ -36,6 +42,17 @@ public class RoaringBitmapTest {
                         ac.add(k);
                         Assert.assertEquals(
                                 ac.getCardinality(), 100);
+                }
+                Assert.assertEquals(
+                        ac.getCardinality(), 100);
+                for(short k = 0; k < 100; ++k) {
+                        Container z = ac.remove(k);
+                        if(z instanceof ArrayContainer) {
+                                ac = new BitmapContainer();
+                                ac.loadData((ArrayContainer)z);
+                        }
+                        Assert.assertEquals(
+                                ac.getCardinality(), 100 - k - 1);
                 }
         }
 
@@ -100,6 +117,21 @@ public class RoaringBitmapTest {
                                 Assert.assertEquals(RoaringBitmap.xor(rb, rb2)
                                         .getCardinality(), 2 * N - 2 * N
                                         / offset);
+                                for (int k = 0; k < N; k++) {
+                                        Assert.assertTrue(rb.contains(k * gap));
+                                        rb.remove(k * gap);
+                                        Assert.assertFalse(rb.contains(k * gap));
+                                        Assert.assertEquals(
+                                                rb.getCardinality(), N - k - 1);
+                                }
+                                for (int k = 0; k < N; k++) {
+                                        Assert.assertTrue(rb2.contains(k * gap * offset));
+                                        rb2.remove(k * gap * offset);
+                                        Assert.assertFalse(rb2.contains(k * gap * offset));
+                                        Assert.assertEquals(
+                                                rb2.getCardinality(), N - k - 1);
+                                }
+                 
                         }
                 }
         }

@@ -81,7 +81,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 			// insertion
 			System.arraycopy(content, loc + 1, content, loc, cardinality - loc
 					- 1);
-			++cardinality;
+			--cardinality;
 		}
 		return this;
 	}

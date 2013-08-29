@@ -45,8 +45,8 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 	@Override
 	public Container remove(short x) {
 		if (contains(x)) {
-			--cardinality;
-			bitmap[x / 64] &= ~(1l << x );
+	                --cardinality;
+	                bitmap[x / 64] &= ~(1l << x );
 			if (cardinality < ArrayContainer.DEFAULTMAXSIZE) {
 				return ContainerFactory.transformToArrayContainer(this);
 			}
@@ -200,7 +200,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		BitmapContainer answer = new BitmapContainer();
 		for (int k = 0; k < answer.bitmap.length; ++k) {
 			answer.bitmap[k] = this.bitmap[k] ^ value2.bitmap[k];
-			if(answer.bitmap[k]!=0)
+			//if(answer.bitmap[k]!=0) // probably not wise performance-wise
 				answer.cardinality += Long.bitCount(answer.bitmap[k]);
 		}
 		if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
