@@ -17,8 +17,7 @@ public class ContainerFactory {
         public static ArrayContainer getArrayContainer() {
                 if(buffer.isEmpty())
                         return new ArrayContainer();
-                else 
-                    return buffer.remove(buffer.size()-1);
+                return buffer.remove(buffer.size()-1);
         }
         
         public static ArrayContainer copyToArrayContainer(BitmapContainer bc) {
@@ -55,8 +54,7 @@ public class ContainerFactory {
         public static BitmapContainer getBitmapContainer() {
                 if(Bbuffer.isEmpty())
                         return new BitmapContainer();
-                else 
-                    return Bbuffer.remove(Bbuffer.size()-1);
+                return Bbuffer.remove(Bbuffer.size()-1);
         }
 
         public static BitmapContainer copyToArrayContainer(ArrayContainer ac) {
@@ -83,5 +81,11 @@ public class ContainerFactory {
                         Bbuffer.add(x);
                 }
         }
-
+        
+        public static boolean isInStore(BitmapContainer x) {
+                return Bbuffer.indexOf(x) >=0;
+        }
+        public static boolean isInStore(ArrayContainer x) {
+                return buffer.indexOf(x) >=0;
+        }
 }

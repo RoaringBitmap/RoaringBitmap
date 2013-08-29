@@ -225,4 +225,5 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
         public void clear() {
                 cardinality = 0;                
         }
+        
 }

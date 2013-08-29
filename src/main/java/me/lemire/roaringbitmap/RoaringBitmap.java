@@ -352,7 +352,6 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable
 		return size;
 	}
 		
-	@SuppressWarnings("unchecked")
 	@Override
 	public RoaringBitmap clone() {
 		try {
@@ -391,4 +390,23 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable
 			+" average : "+avAC+" and "+nbBitmapC+" BitmapContainers min : "+minBC+" max : "+maxBC+" avBC : "+avBC;
 		return desc;		
 	}
+	
+	/**
+	 * A RoaringBitmap is made of several container. The containers
+	 * can be reused if the RoaringBitmap object is going to be discarded.
+	 * Note that it is unsafe to keep accessing the RoaringBitmap object after
+	 * this call.
+	 */
+        public void recycleContainers() {
+                for (Container c : highlowcontainer.values()) {
+                        if (c instanceof ArrayContainer) {
+                                ContainerFactory
+                                        .putBackInStore((ArrayContainer) c);
+
+                        } else if (c instanceof BitmapContainer) {
+                                ContainerFactory
+                                        .putBackInStore((BitmapContainer) c);
+                        }
+                }
+        }
 }

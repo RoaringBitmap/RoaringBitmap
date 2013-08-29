@@ -83,6 +83,7 @@ public class RoaringBitmapTest {
                 final int N = 1024;
                 for (int gap = 7; gap < 100000; gap *= 10) {
                         for (int offset = 2; offset <= 1024; offset *= 2) {
+                                System.gc();
                                 System.out.println("testing cardinality with gap = "+gap+" and offset = "+offset);
                                 RoaringBitmap rb = new RoaringBitmap();
                                 for (int k = 0; k < N; k++) {
@@ -131,6 +132,9 @@ public class RoaringBitmapTest {
                                         Assert.assertEquals(
                                                 rb2.getCardinality(), N - k - 1);
                                 }
+                                rb.recycleContainers();
+                                rb2.recycleContainers();
+                                
                  
                         }
                 }
