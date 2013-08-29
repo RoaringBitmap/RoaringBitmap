@@ -45,8 +45,8 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 	@Override
 	public Container remove(short x) {
 		if (contains(x)) {
-			--cardinality;
-			bitmap[x / 64] &= ~(1l << x );
+	                --cardinality;
+	                bitmap[x / 64] &= ~(1l << x );
 			if (cardinality < ArrayContainer.DEFAULTMAXSIZE) {
 				return ContainerFactory.transformToArrayContainer(this);
 			}
@@ -125,7 +125,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 
 	public Container and(BitmapContainer value2) {
 		
-		BitmapContainer answer = new BitmapContainer();
+		BitmapContainer answer = ContainerFactory.getBitmapContainer();
 		for (int k = 0; k < answer.bitmap.length; ++k) 
 		{
 			answer.bitmap[k] = this.bitmap[k] & value2.bitmap[k];
@@ -139,7 +139,9 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 
 	public ArrayContainer and(ArrayContainer value2) 
 	{		
-		ArrayContainer answer = new ArrayContainer();
+		ArrayContainer answer = ContainerFactory.getArrayContainer();
+		if(answer.content.length<value2.content.length)
+		        answer.content = new short[value2.content.length];
 		for (int k = 0; k < value2.getCardinality(); ++k)
 			if (this.contains(value2.content[k]))
 				answer.content[answer.cardinality++] = value2.content[k];
@@ -148,7 +150,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 
 	public BitmapContainer or(ArrayContainer value2) 
 	{		
-		BitmapContainer answer = new BitmapContainer();
+		BitmapContainer answer = ContainerFactory.getCopyOfBitmapContainer(this);
 		for (int k = 0; k < value2.cardinality; ++k)	{				
 			int i = Util.toIntUnsigned(value2.content[k])/64;
 			// DL: I have considerably simplified the code here. Removed the branching.
@@ -161,7 +163,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 
 	public Container or(BitmapContainer value2) {
 		
-		BitmapContainer answer = new BitmapContainer();
+		BitmapContainer answer = ContainerFactory.getBitmapContainer();
 		for (int k = 0; k < answer.bitmap.length; ++k) 
 		{
 			answer.bitmap[k] = this.bitmap[k] | value2.bitmap[k];
@@ -180,7 +182,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 
 	public Container xor(ArrayContainer value2) 
 	{
-		BitmapContainer answer = new BitmapContainer();
+		BitmapContainer answer = ContainerFactory.getCopyOfBitmapContainer(this);
 		for (int k = 0; k < value2.getCardinality(); ++k) {
 		        final int index = Util.toIntUnsigned(value2.content[k])/64;
 		        // DL: I have considerably simplified the code here, removing the branching
@@ -197,10 +199,10 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 
 	public Container xor(BitmapContainer value2) {
 		
-		BitmapContainer answer = new BitmapContainer();
+		BitmapContainer answer = ContainerFactory.getBitmapContainer();
 		for (int k = 0; k < answer.bitmap.length; ++k) {
 			answer.bitmap[k] = this.bitmap[k] ^ value2.bitmap[k];
-			if(answer.bitmap[k]!=0)
+			//if(answer.bitmap[k]!=0) // probably not wise performance-wise
 				answer.cardinality += Long.bitCount(answer.bitmap[k]);
 		}
 		if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
@@ -255,7 +257,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		try {
 			BitmapContainer x = (BitmapContainer) super.clone();
 			x.cardinality = this.cardinality;
-			x.bitmap = Arrays.copyOf(bitmap,bitmap.length);
+	                System.arraycopy(this.bitmap, 0, x.bitmap, 0, x.bitmap.length);
 			return x;
 		} catch (CloneNotSupportedException e) {
 			throw new java.lang.RuntimeException();

@@ -230,11 +230,12 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable
 	
 	public void remove(int x) {
 		final short hb = Util.highbits(x);
-		if (highlowcontainer.containsValue(hb)) {
-			Container cc = highlowcontainer.get(hb).remove(Util.lowbits(x));
-			if (cc.getCardinality() == 0)
+		if (highlowcontainer.containsKey(hb)) {
+	                Container corig = highlowcontainer.get(hb);
+		        Container cc = corig.remove(Util.lowbits(x));
+		        if (cc.getCardinality() == 0)
 				highlowcontainer.remove(hb);
-			else
+			else if(cc != corig)
 				highlowcontainer.put(hb, cc);
 		}
 	}

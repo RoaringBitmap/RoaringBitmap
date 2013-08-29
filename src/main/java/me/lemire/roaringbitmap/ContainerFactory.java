@@ -1,6 +1,7 @@
 package me.lemire.roaringbitmap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * The goal of the factory is to reused discarded container.
@@ -19,6 +20,7 @@ public class ContainerFactory {
                 else 
                     return buffer.remove(buffer.size()-1);
         }
+        
         public static ArrayContainer copyToArrayContainer(BitmapContainer bc) {
                 ArrayContainer ac = buffer.isEmpty() ?  new ArrayContainer(): buffer.remove(buffer.size()-1);
                 ac.loadData(bc);
@@ -30,6 +32,24 @@ public class ContainerFactory {
                 ac.loadData(bc);
                 putBackInStore(bc);
                 return ac;
+        }
+        public static BitmapContainer getCopyOfBitmapContainer(BitmapContainer bc) {
+                if(Bbuffer.isEmpty())
+                        return bc.clone();
+                BitmapContainer ans =  Bbuffer.remove(Bbuffer.size()-1);
+                ans.cardinality = bc.cardinality;
+                System.arraycopy(bc.bitmap, 0, ans.bitmap, 0, bc.bitmap.length);
+                return ans;
+        }
+        public static ArrayContainer getCopyOfArrayContainer(ArrayContainer ac) {
+                if(buffer.isEmpty())
+                        return ac.clone();
+                ArrayContainer ans =  buffer.remove(buffer.size()-1);
+                ans.cardinality = ac.cardinality;
+                if(ans.content.length>=ac.content.length)
+                        System.arraycopy(ac.content, 0, ans.content, 0, ac.cardinality);
+                else ans.content = Arrays.copyOf(ac.content,ac.content.length);
+                return ans;
         }
 
         public static BitmapContainer getBitmapContainer() {
