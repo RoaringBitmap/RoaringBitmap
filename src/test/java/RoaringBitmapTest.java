@@ -8,6 +8,102 @@ import org.junit.Test;
 
 @SuppressWarnings("static-method")
 public class RoaringBitmapTest {
+
+        @Test
+        public void ArrayContainerCardinalityTest() {
+                ArrayContainer ac = new ArrayContainer();
+                for(short k = 0; k < 100; ++k) {
+                        ac.add(k);
+                        Assert.assertEquals(
+                                ac.getCardinality(), k+1);
+                }
+                for(short k = 0; k < 100; ++k) {
+                        ac.add(k);
+                        Assert.assertEquals(
+                                ac.getCardinality(), 100);
+                }
+        }
+
+        @Test
+        public void BitmapContainerCardinalityTest() {
+                BitmapContainer ac = new BitmapContainer();
+                for(short k = 0; k < 100; ++k) {
+                        ac.add(k);
+                        Assert.assertEquals(
+                                ac.getCardinality(), k+1);
+                }
+                for(short k = 0; k < 100; ++k) {
+                        ac.add(k);
+                        Assert.assertEquals(
+                                ac.getCardinality(), 100);
+                }
+        }
+
+        @Test
+        public void simplecardinalityTest() {
+                final int N =  512;
+                final int gap = 70;
+                
+                RoaringBitmap rb = new RoaringBitmap();
+                for (int k = 0; k < N; k++) {
+                        rb.add(k * gap);
+                        Assert.assertEquals(
+                                rb.getCardinality(), k + 1);
+                }
+                Assert.assertEquals(
+                        rb.getCardinality(), N);
+                for (int k = 0; k < N; k++) {
+                        rb.add(k * gap);
+                        Assert.assertEquals(
+                                rb.getCardinality(), N);
+                }
+          
+        }
+
+        @Test
+        public void cardinalityTest() {
+                System.out.println("Testing cardinality computations (can take a few minutes)");
+                final int N = 1024;
+                for (int gap = 7; gap < 100000; gap *= 10) {
+                        for (int offset = 2; offset <= 1024; offset *= 2) {
+                                System.out.println("testing cardinality with gap = "+gap+" and offset = "+offset);
+                                RoaringBitmap rb = new RoaringBitmap();
+                                for (int k = 0; k < N; k++) {
+                                        rb.add(k * gap);
+                                        Assert.assertEquals(
+                                                rb.getCardinality(), k + 1);
+                                }
+                                Assert.assertEquals(
+                                        rb.getCardinality(), N);
+                                for (int k = 0; k < N; k++) {
+                                        rb.add(k * gap);
+                                        Assert.assertEquals(
+                                                rb.getCardinality(), N);
+                                }
+                                RoaringBitmap rb2 = new RoaringBitmap();
+                                for (int k = 0; k < N; k++) {
+                                        rb2.add(k * gap * offset);
+                                        Assert.assertEquals(
+                                                rb2.getCardinality(), k + 1);
+                                }
+                                Assert.assertEquals(
+                                        rb2.getCardinality(), N);
+                                for (int k = 0; k < N; k++) {
+                                        rb2.add(k * gap * offset);
+                                        Assert.assertEquals(
+                                                rb2.getCardinality(), N);
+                                }
+                                Assert.assertEquals(RoaringBitmap.and(rb, rb2)
+                                        .getCardinality(), N / offset);
+                                Assert.assertEquals(RoaringBitmap.or(rb, rb2)
+                                        .getCardinality(), 2 * N - N / offset);
+                                Assert.assertEquals(RoaringBitmap.xor(rb, rb2)
+                                        .getCardinality(), 2 * N - 2 * N
+                                        / offset);
+                        }
+                }
+        }
+        
 	@Test
 	public void arraytest() {
 		ArrayContainer rr = new ArrayContainer();

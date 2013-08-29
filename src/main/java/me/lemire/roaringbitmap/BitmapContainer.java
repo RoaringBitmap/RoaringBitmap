@@ -184,7 +184,9 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		for (int k = 0; k < value2.getCardinality(); ++k) {
 		        final int index = Util.toIntUnsigned(value2.content[k])/64;
 		        // DL: I have considerably simplified the code here, removing the branching
-                        cardinality += (answer.bitmap[index] ^ (1l << value2.content[k] )) >>> value2.content[k] ;
+		        // Look at next line: no branching, just fast arithmetic
+                        cardinality +=  ((answer.bitmap[index] ^ (1l << value2.content[k] )) - 
+                                (answer.bitmap[index] & (1l << value2.content[k] ))) >>> value2.content[k];
                         answer.bitmap[index] = answer.bitmap[index]
                                         ^ (1l << value2.content[k] );
 		}		

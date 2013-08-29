@@ -26,16 +26,15 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable
          * set the value to "true", whether it already appears on not.
          */ 	
 	public void set(int x) {
-		short hb = Util.highbits(x);
+		final short hb = Util.highbits(x);
 		Container z = highlowcontainer.get(hb);
 		if(z != null) {
 		        Container z2 = z.add(Util.lowbits(x));
-		        if(z2 != z) {		          
+                        if(z2 != z) {		          
 		          highlowcontainer.put(hb,z2); //Replace the ArrayContainer by the new bitmapContainer
 		        }
 		} else {
 			ArrayContainer newac = ContainerFactory.getArrayContainer();
-			//BitmapContainer newBC = ContainerFactory.getBitmapContainer();
 			highlowcontainer.put(hb, newac.add(Util.lowbits(x)));
 		}
 	}
@@ -230,7 +229,7 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable
 	}
 	
 	public void remove(int x) {
-		short hb = Util.highbits(x);
+		final short hb = Util.highbits(x);
 		if (highlowcontainer.containsValue(hb)) {
 			Container cc = highlowcontainer.get(hb).remove(Util.lowbits(x));
 			if (cc.getCardinality() == 0)
@@ -241,7 +240,7 @@ public class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable
 	}
 
 	public boolean contains(int x) {
-		short hb = Util.highbits(x);
+		final short hb = Util.highbits(x);
 		if (highlowcontainer.containsKey(hb)) {
 			Container C = highlowcontainer.get(hb);
 			return C.contains(Util.lowbits(x));

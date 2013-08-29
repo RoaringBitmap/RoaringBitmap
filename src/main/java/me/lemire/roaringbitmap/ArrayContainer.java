@@ -47,7 +47,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 	@Override
 	public Container add(short x) {
 		
-	        if(( cardinality == 0 )  || (Util.toIntUnsigned(x) > content[cardinality-1])) {
+	        if(( cardinality == 0 )  || (Util.toIntUnsigned(x) > Util.toIntUnsigned(content[cardinality-1]))) {
 	                if (cardinality == content.length) {
                                 BitmapContainer a = ContainerFactory.transformToBitmapContainer(this);
                                 a.add(x);
