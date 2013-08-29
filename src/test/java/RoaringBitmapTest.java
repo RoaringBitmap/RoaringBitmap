@@ -1,9 +1,10 @@
+
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Vector;
 import junit.framework.Assert;
 import me.lemire.roaringbitmap.ArrayContainer;
 import me.lemire.roaringbitmap.BitmapContainer;
-import me.lemire.roaringbitmap.Container;
 import me.lemire.roaringbitmap.RoaringBitmap;
 import org.junit.Test;
 
@@ -23,11 +24,6 @@ public class RoaringBitmapTest {
                         Assert.assertEquals(
                                 ac.getCardinality(), 100);
                 }
-                for(short k = 0; k < 100; ++k) {
-                        ac.remove(k);
-                        Assert.assertEquals(
-                                ac.getCardinality(), 100 - k - 1);
-                }
         }
 
         @Test
@@ -42,17 +38,6 @@ public class RoaringBitmapTest {
                         ac.add(k);
                         Assert.assertEquals(
                                 ac.getCardinality(), 100);
-                }
-                Assert.assertEquals(
-                        ac.getCardinality(), 100);
-                for(short k = 0; k < 100; ++k) {
-                        Container z = ac.remove(k);
-                        if(z instanceof ArrayContainer) {
-                                ac = new BitmapContainer();
-                                ac.loadData((ArrayContainer)z);
-                        }
-                        Assert.assertEquals(
-                                ac.getCardinality(), 100 - k - 1);
                 }
         }
 
@@ -82,9 +67,8 @@ public class RoaringBitmapTest {
                 System.out.println("Testing cardinality computations (can take a few minutes)");
                 final int N = 1024;
                 for (int gap = 7; gap < 100000; gap *= 10) {
+                        System.out.println("testing cardinality with gap = "+gap);
                         for (int offset = 2; offset <= 1024; offset *= 2) {
-                                System.gc();
-                                System.out.println("testing cardinality with gap = "+gap+" and offset = "+offset);
                                 RoaringBitmap rb = new RoaringBitmap();
                                 for (int k = 0; k < N; k++) {
                                         rb.add(k * gap);
@@ -118,27 +102,13 @@ public class RoaringBitmapTest {
                                 Assert.assertEquals(RoaringBitmap.xor(rb, rb2)
                                         .getCardinality(), 2 * N - 2 * N
                                         / offset);
-                                for (int k = 0; k < N; k++) {
-                                        Assert.assertTrue(rb.contains(k * gap));
-                                        rb.remove(k * gap);
-                                        Assert.assertFalse(rb.contains(k * gap));
-                                        Assert.assertEquals(
-                                                rb.getCardinality(), N - k - 1);
-                                }
-                                for (int k = 0; k < N; k++) {
-                                        Assert.assertTrue(rb2.contains(k * gap * offset));
-                                        rb2.remove(k * gap * offset);
-                                        Assert.assertFalse(rb2.contains(k * gap * offset));
-                                        Assert.assertEquals(
-                                                rb2.getCardinality(), N - k - 1);
-                                }
                                 rb.recycleContainers();
                                 rb2.recycleContainers();
-                                
-                 
                         }
                 }
         }
+        
+    
         
 	@Test
 	public void arraytest() {
@@ -330,32 +300,57 @@ public class RoaringBitmapTest {
 
 	@Test
 	public void ortest3() {
-		Vector<Integer> V1 = new Vector<Integer>();
-		Vector<Integer> V2 = new Vector<Integer>();
+	        System.out.println("ortest3 (can take some time)");
+		HashSet<Integer> V1 = new HashSet<Integer>();
+		HashSet<Integer> V2 = new HashSet<Integer>();
 
 		RoaringBitmap rr = new RoaringBitmap();
-		for (int k = 4000; k < 4256; ++k) {
+		RoaringBitmap rr2 = new RoaringBitmap();
+		//For the first 65536: rr2 has a bitmap container, and rr has an array container. 
+		//We will check the union between a BitmapCintainer and an arrayContainer  
+		for (int k = 0; k < 4000; ++k){
+			rr2.add(k);
+			V1.add(new Integer(k));
+		}
+		for (int k = 3500; k < 4500; ++k) {
 			rr.add(k);
 			V1.add(new Integer(k));
-		}// Seq
-		for (int k = 65536; k < 65536 + 4000; ++k) {
+		}
+		for (int k = 4000; k < 65000; ++k){
+			rr2.add(k);
+			V1.add(new Integer(k));
+		}
+		
+		//In the second node of each roaring bitmap, we have two bitmap containers. 
+		//So, we will check the union between two BitmapContainers
+		for (int k = 65536; k < 65536 + 10000; ++k) {
 			rr.add(k);
 			V1.add(new Integer(k));
-		} // bitmap
-		for (int k = 4 * 65535; k < 4 * 65535 + 4000; ++k) {
-			rr.add(k);
+		}
+		
+		for (int k = 65536; k < 65536 + 14000; ++k) {
+			rr2.add(k);
 			V1.add(new Integer(k));
-		} // 4 ds seq et 3996 bitmap
+		}
+		
+		//In the 3rd node of each Roaring Bitmap, we have an ArrayContainer, so, we will try the union between two 
+		//ArrayContainers. 
+		for (int k = 4 * 65535; k < 4 * 65535 + 1000; ++k) {
+			rr.add(k);
+			V1.add(new Integer(k));			
+		} 
+		
+		for (int k = 4 * 65535; k < 4 * 65535 + 800; ++k) {
+			rr2.add(k);
+			V1.add(new Integer(k));			
+		} 
+
+		//For the rest, we will check if the union will take them in the result
 		for (int k = 6 * 65535; k < 6 * 65535 + 1000; ++k) {
 			rr.add(k);
 			V1.add(new Integer(k));
-		} // 6 ds seq et 994 ds bitmap
-
-		RoaringBitmap rr2 = new RoaringBitmap();
-		for (int k = 4000; k < 4256; ++k)
-			rr2.add(k);
-		for (int k = 65536; k < 65536 + 4000; ++k)
-			rr2.add(k);
+		} 
+				
 		for (int k = 7 * 65535; k < 7 * 65535 + 2000; ++k) {
 			rr2.add(k);
 			V1.add(new Integer(k));
@@ -368,15 +363,25 @@ public class RoaringBitmapTest {
 		// V1 sont dans rror(V2)
 		// alors V1 == rror
 
+		Object[] tab = V1.toArray();
+		Vector<Integer> vector = new Vector<Integer>();
+		for(int i=0; i<tab.length; i++)
+			vector.add((Integer) tab[i]);		
+		
 		for (int i : rror) {
-			if (!V1.contains(new Integer(i)))
+			if (!vector.contains(new Integer(i))) {
+				System.out.println(" "+i);
 				valide = false;
+			}
 			V2.add(new Integer(i));
 		}
 		for (int i = 0; i < V1.size(); i++)
-			if (!V2.contains(V1.elementAt(i)))
+			if (!V2.contains(vector.elementAt(i))){
 				valide = false;
-
+				System.out.println(" "+vector.elementAt(i));
+			}
+		
+		
 		Assert.assertEquals(valide, true);
 	}
 
@@ -428,5 +433,5 @@ public class RoaringBitmapTest {
 				valide = false;
 
 		Assert.assertEquals(valide, true);
-	}
+	}	
 }
