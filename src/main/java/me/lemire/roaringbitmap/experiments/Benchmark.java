@@ -85,18 +85,24 @@ public class Benchmark {
 			RoaringBitmap bitmapor2 = bitmap2[0];
 			bitmapor2.validate();
 			for (int k = 1; k < N; ++k) {
+                                bitmap[k].validate();
 				bitmapor1 = RoaringBitmap.or(bitmapor1, bitmap[k]);
 				bitmapor1.validate();
+                                bitmap[k].validate();
 				bitmapor2 = RoaringBitmap.or(bitmapor2, bitmap2[k]);
 				bitmapor2.validate();
+	                        bitmap2[k].validate();
 			}
 
 			bitmapor1 = RoaringBitmap.or(bitmapor1, bitmapor2);
 			bitmapor1.validate();
-			System.out.println("nbOR = "+RoaringBitmap.nbOR);
 			int[] array = bitmapor1.getIntegers();
 			bogus += array.length;
 		}
+                for (int k = 0; k < N; ++k) {
+                        bitmap[k].validate();
+                        bitmap2[k].validate();
+                }
 
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
@@ -128,7 +134,6 @@ public class Benchmark {
 			}
 			bitmapand1 = RoaringBitmap.and(bitmapand1, bitmapand2);
 			bitmapand1.validate();
-			System.out.println("nbAND = "+RoaringBitmap.nbAND);
 			int[] array = bitmapand1.getIntegers();
 			bogus += array.length;
 
@@ -162,7 +167,6 @@ public class Benchmark {
 			}
 			bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmapxor2);
 			bitmapxor1.validate();
-			System.out.println("nbXOR = "+RoaringBitmap.nbXOR);
 			int[] array = bitmapxor1.getIntegers();
 			bogus += array.length;
 		}

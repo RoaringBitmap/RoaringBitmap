@@ -5,6 +5,7 @@ import java.util.Map.Entry;
 
 import me.lemire.roaringbitmap.Container;
 import me.lemire.roaringbitmap.RoaringBitmap;
+import me.lemire.roaringbitmap.Util;
 
 
 public class RRmain {
@@ -43,20 +44,8 @@ public class RRmain {
         while (p5.hasNext()) 
         { s1=p5.next(); System.out.print("  "+s1.getKey().shortValue()); }
                 
-        display(rror);
+        Util.display(rror);
         
-	}
-
-	public static void display(RoaringBitmap x) {
-		final Iterator<Entry<Short, Container>> p1 = x.highlowcontainer.entrySet().iterator();
-		Entry<Short, Container> s1;
-
-		while (p1.hasNext()) {
-			s1 = p1.next();
-			System.out.println("\n" + s1.getKey().shortValue());
-			Container c = s1.getValue();
-			System.out.println(c.toString());
-		}
 	}
 
 }

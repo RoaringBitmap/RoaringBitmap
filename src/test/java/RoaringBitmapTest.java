@@ -59,6 +59,7 @@ public class RoaringBitmapTest {
                         Assert.assertEquals(
                                 rb.getCardinality(), N);
                 }
+                rb.validate(); 
           
         }
 
@@ -104,7 +105,9 @@ public class RoaringBitmapTest {
                                         / offset);
                                 rb.recycleContainers();
                                 rb2.recycleContainers();
-                        }
+                                rb.validate();
+                                rb2.validate();
+                      }
                 }
         }
         
@@ -159,6 +162,7 @@ public class RoaringBitmapTest {
 			array[pos++] = i;
 		}
 		Assert.assertTrue(Arrays.equals(array, a));
+		rr.validate();
 	}
 
 	@Test
@@ -179,6 +183,7 @@ public class RoaringBitmapTest {
 			array[pos++] = i;
 		}
 		Assert.assertEquals(array[0], 13);
+		rr.validate();
 	}
 
 	@Test
@@ -199,6 +204,7 @@ public class RoaringBitmapTest {
 			array[pos++] = i;
 		}
 		Assert.assertEquals(array[0], 13);
+		rr.validate();
 	}
 
 	@Test
@@ -228,6 +234,7 @@ public class RoaringBitmapTest {
 		}
 
 		Assert.assertTrue(Arrays.equals(array, arrayrr));
+		rr.validate();
 	}
 
 	@Test
@@ -258,6 +265,7 @@ public class RoaringBitmapTest {
 		}
 
 		Assert.assertTrue(Arrays.equals(arrayor, arrayrr));
+		rr.validate();
 	}
 
 	@Test
@@ -295,6 +303,8 @@ public class RoaringBitmapTest {
 			arrayres[pos++] = i;
 
 		Assert.assertTrue(Arrays.equals(arrayand, arrayres));
+		
+		rr.validate();
 
 	}
 
@@ -383,6 +393,7 @@ public class RoaringBitmapTest {
 		
 		
 		Assert.assertEquals(valide, true);
+		rr.validate();
 	}
 
 	@Test

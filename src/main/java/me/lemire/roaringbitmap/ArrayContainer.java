@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 
-public class ArrayContainer implements Container, Cloneable, Serializable {
+public final class ArrayContainer implements Container, Cloneable, Serializable {
 	/**
 	 * 
 	 */
@@ -14,7 +14,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 	int cardinality = 0;
 	public final static int  DEFAULTMAXSIZE = 4096;	
 	
-	public void loadData(BitmapContainer bitmapContainer) {
+	public void loadData(final BitmapContainer bitmapContainer) {
 	        if(content.length < bitmapContainer.cardinality)
 	                content = new short[bitmapContainer.cardinality];
                 this.cardinality = bitmapContainer.cardinality;
@@ -28,7 +28,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 	
 		
 	
-	public ArrayContainer(int capacity) {
+	public ArrayContainer(final int capacity) {
 		content = new short[capacity];
 	}
 	
@@ -37,7 +37,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 	}
 	
 	@Override
-        public boolean contains(short x) {
+        public boolean contains(final short x) {
 		return Util.unsigned_binarySearch(content, 0, cardinality, x) >= 0;
 	}
 
@@ -46,7 +46,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 	 * 
 	 */
 	@Override
-	public Container add(short x) {
+	public Container add(final short x) {
 		
 	        if(( cardinality == 0 )  || (Util.toIntUnsigned(x) > Util.toIntUnsigned(content[cardinality-1]))) {
 	                if (cardinality == content.length) {
@@ -76,8 +76,8 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 	}
 
 	@Override
-	public Container remove(short x) {
-		int loc = Util.unsigned_binarySearch(content, 0, cardinality, x);
+	public Container remove(final short x) {
+	        final int loc = Util.unsigned_binarySearch(content, 0, cardinality, x);
 		if (loc >= 0) {
 			// insertion
 			System.arraycopy(content, loc + 1, content, loc, cardinality - loc
@@ -114,7 +114,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 		};
 	}
 
-	public ArrayContainer and(ArrayContainer value2) {
+	public ArrayContainer and(final ArrayContainer value2) {
 		ArrayContainer value1 = this;
 		final int desiredcapacity = Math.min(value1.getCardinality(),  value2.getCardinality());
 		ArrayContainer answer = ContainerFactory.getArrayContainer();
@@ -126,12 +126,11 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 		return answer;
 	}
 
-	public Container or(ArrayContainer value2) {
-		ArrayContainer value1 = this;
+	public Container or(final ArrayContainer value2) {
+	        final ArrayContainer value1 = this;
 		int tailleAC = value1.getCardinality()+value2.getCardinality();
 		final int desiredcapacity = tailleAC > 65535 ? 65535 : tailleAC;
-		//final int desiredcapacity = Math.min(value1.getCardinality() + value2.getCardinality(),65536);
-                ArrayContainer answer = ContainerFactory.getArrayContainer();
+		ArrayContainer answer = ContainerFactory.getArrayContainer();
                 if(answer.content.length<desiredcapacity)
                         answer.content = new short[desiredcapacity];
 		answer.cardinality = Util.unsigned_union2by2(value1.content,
@@ -158,8 +157,8 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 			throw new RuntimeException("bug : ArrayContainer with repeated values");	
 	}
 
-	public Container xor(ArrayContainer value2) {
-		ArrayContainer value1 = this;
+	public Container xor(final ArrayContainer value2) {
+	        final ArrayContainer value1 = this;
 		final int desiredcapacity = Math.min(value1.getCardinality() + value2.getCardinality(),65536);
                 ArrayContainer answer = ContainerFactory.getArrayContainer();
                 if(answer.content.length<desiredcapacity)
@@ -195,7 +194,7 @@ public class ArrayContainer implements Container, Cloneable, Serializable {
 	@Override
 	public ArrayContainer clone() {
 		try {
-			ArrayContainer x = (ArrayContainer) super.clone();
+		        final ArrayContainer x = (ArrayContainer) super.clone();
 			x.cardinality = this.cardinality;
 			x.content = Arrays.copyOf(content,content.length);
 			return x;

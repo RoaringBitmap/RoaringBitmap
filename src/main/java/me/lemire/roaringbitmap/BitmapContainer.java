@@ -4,10 +4,8 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class BitmapContainer implements Container, Cloneable, Serializable {
-	/**
-	 * 
-	 */
+public final class BitmapContainer implements Container, Cloneable, Serializable {
+
 	private static final long serialVersionUID = 2L;
 	long[] bitmap = new long[(1 << 16) / 64]; //a max of 65535 integers
 	int cardinality;
@@ -17,7 +15,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		this.cardinality = 0;
 	}
 	
-	public void loadData(ArrayContainer arrayContainer) {
+	public void loadData(final ArrayContainer arrayContainer) {
                 this.cardinality = arrayContainer.cardinality;
                 
                 for(int k = 0; k < arrayContainer.cardinality; ++k) {
@@ -28,13 +26,13 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 
 	
 	@Override
-        public boolean contains(short i) {
+        public boolean contains(final short i) {
 	        final int x = Util.toIntUnsigned(i);
 		return (bitmap[x/64] & (1l << x )) != 0;		
 	}
 
 	@Override
-	public Container add(short i) {
+	public Container add(final short i) {
 		final int x = Util.toIntUnsigned(i);
 		final long previous = bitmap[x/64];
 		if(previous != (bitmap[x/64] |= (1l << x)) )
@@ -43,7 +41,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 	}
 
 	@Override
-	public Container remove(short x) {
+	public Container remove(final short x) {
 		if (contains(x)) {
 	                --cardinality;
 	                bitmap[x / 64] &= ~(1l << x );
@@ -54,8 +52,8 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		return this;
 	}
 
-	public int nextSetBit(int i) {
-		int x = i / 64;
+	public int nextSetBit(final int i) {
+	        int x = i / 64;
 		if(x>=bitmap.length) return -1;
 		long w = bitmap[x];
 		w >>>= i;
@@ -71,7 +69,7 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		return -1;
 	}
 
-	public short nextUnsetBit(int i) {
+	public short nextUnsetBit(final int i) {
 		int x = i / 64;
 		long w = ~bitmap[x];
 		w >>>= i;
@@ -123,13 +121,12 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		return cardinality;
 	}
 
-	public Container and(BitmapContainer value2) {
-		
-		BitmapContainer answer = ContainerFactory.getBitmapContainer();
+	public Container and(final BitmapContainer value2) {
+	        final BitmapContainer answer = ContainerFactory.getBitmapContainer();
 		for (int k = 0; k < answer.bitmap.length; ++k) 
 		{
 			answer.bitmap[k] = this.bitmap[k] & value2.bitmap[k];
-			if(answer.bitmap[k]!=0)
+			if(answer.bitmap[k]!=0)// this might happen often enough, but performance effect should be checked
 				answer.cardinality += Long.bitCount(answer.bitmap[k]);
 		}
 		if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
@@ -137,9 +134,9 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		return answer;
 	}
 
-	public ArrayContainer and(ArrayContainer value2) 
+	public ArrayContainer and(final ArrayContainer value2) 
 	{		
-		ArrayContainer answer = ContainerFactory.getArrayContainer();
+	        final ArrayContainer answer = ContainerFactory.getArrayContainer();
 		if(answer.content.length<value2.content.length)
 		        answer.content = new short[value2.content.length];
 		for (int k = 0; k < value2.getCardinality(); ++k)
@@ -148,22 +145,20 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		return answer;
 	}
 
-	public BitmapContainer or(ArrayContainer value2) 
+	public BitmapContainer or(final ArrayContainer value2) 
 	{		
-		BitmapContainer answer = ContainerFactory.getCopyOfBitmapContainer(this);
+	        final BitmapContainer answer = ContainerFactory.getCopyOfBitmapContainer(this);
 		for (int k = 0; k < value2.cardinality; ++k)	{				
-			int i = Util.toIntUnsigned(value2.content[k])/64;
-			// DL: I have considerably simplified the code here. Removed the branching.
-			cardinality += (answer.bitmap[i] & (1l << value2.content[k])) >>> value2.content[k] ;// in Java, shifts are always "modulo"
+		        final int i = Util.toIntUnsigned(value2.content[k])/64;
+			answer.cardinality += ((~answer.bitmap[i]) & (1l << value2.content[k])) >>> value2.content[k] ;// in Java, shifts are always "modulo"
 			answer.bitmap[i] = answer.bitmap[i]
                                         | (1l << value2.content[k]);
-                }
+		}
 		return answer;
 	}
 
-	public Container or(BitmapContainer value2) {
-		
-		BitmapContainer answer = ContainerFactory.getBitmapContainer();
+	public Container or(final BitmapContainer value2) {
+	        final BitmapContainer answer = ContainerFactory.getBitmapContainer();
 		for (int k = 0; k < answer.bitmap.length; ++k) 
 		{
 			answer.bitmap[k] = this.bitmap[k] | value2.bitmap[k];
@@ -180,18 +175,17 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		return 65536; 
 	}
 
-	public Container xor(ArrayContainer value2) 
+	public Container xor(final ArrayContainer value2) 
 	{
-		BitmapContainer answer = ContainerFactory.getCopyOfBitmapContainer(this);
+	        final BitmapContainer answer = ContainerFactory.getCopyOfBitmapContainer(this);
+
 		for (int k = 0; k < value2.getCardinality(); ++k) {
 		        final int index = Util.toIntUnsigned(value2.content[k])/64;
-		        // DL: I have considerably simplified the code here, removing the branching
-		        // Look at next line: no branching, just fast arithmetic
-                        cardinality +=  ((answer.bitmap[index] ^ (1l << value2.content[k] )) - 
-                                (answer.bitmap[index] & (1l << value2.content[k] ))) >>> value2.content[k];
+		        answer.cardinality +=  1- 2*((answer.bitmap[index] & (1l << value2.content[k] )) >>> value2.content[k]);
                         answer.bitmap[index] = answer.bitmap[index]
                                         ^ (1l << value2.content[k] );
-		}		
+
+		}	
 		if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
 			return ContainerFactory.transformToArrayContainer(answer);
 		return answer;
@@ -199,11 +193,11 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 
 	public Container xor(BitmapContainer value2) {
 		
-		BitmapContainer answer = ContainerFactory.getBitmapContainer();
+	        final BitmapContainer answer = ContainerFactory.getBitmapContainer();
 		for (int k = 0; k < answer.bitmap.length; ++k) {
 			answer.bitmap[k] = this.bitmap[k] ^ value2.bitmap[k];
 			//if(answer.bitmap[k]!=0) // probably not wise performance-wise
-				answer.cardinality += Long.bitCount(answer.bitmap[k]);
+			answer.cardinality += Long.bitCount(answer.bitmap[k]);
 		}
 		if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
 			return ContainerFactory.transformToArrayContainer(answer);
@@ -249,15 +243,15 @@ public class BitmapContainer implements Container, Cloneable, Serializable {
 		int card = this.expensiveComputeCardinality();
 		if(card != counter) throw	new RuntimeException("problem"); 
 		if(card != this.cardinality)
-		throw new RuntimeException("bug : "+card+" "+this.cardinality);
+		throw new RuntimeException("bug : true cardinality is "+card+", precomputed cardinality is"+this.cardinality);
 	}
 	 
 	@Override
 	public BitmapContainer clone() {
 		try {
-			BitmapContainer x = (BitmapContainer) super.clone();
+		        final BitmapContainer x = (BitmapContainer) super.clone();
 			x.cardinality = this.cardinality;
-	                System.arraycopy(this.bitmap, 0, x.bitmap, 0, x.bitmap.length);
+			x.bitmap = Arrays.copyOf(this.bitmap, this.bitmap.length);
 			return x;
 		} catch (CloneNotSupportedException e) {
 			throw new java.lang.RuntimeException();

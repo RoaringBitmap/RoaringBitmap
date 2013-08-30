@@ -8,7 +8,7 @@ import java.util.Arrays;
  *
  *
  */
-public class ContainerFactory {
+public  final class ContainerFactory {
         
         static ArrayList<ArrayContainer> buffer = new  ArrayList<ArrayContainer>();
         static ArrayList<BitmapContainer> Bbuffer = new  ArrayList<BitmapContainer>();
