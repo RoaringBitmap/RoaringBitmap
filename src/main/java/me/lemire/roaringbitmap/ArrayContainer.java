@@ -189,9 +189,13 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 
 	@Override
 	public int getSizeInBits() {
-		return this.cardinality*16;
+		return this.cardinality*16 + 32;
 	}
-	
+	@Override
+        public int getSizeInBytes() {
+                return this.cardinality*2  + 4;
+        }
+        
 	@Override
 	public ArrayContainer clone() {
 		try {

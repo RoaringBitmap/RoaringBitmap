@@ -172,9 +172,13 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 	public int getSizeInBits() {
 		//the standard size is DEFAULTMAXSIZE chunks * 64bits each=65536 bits, 
 		//each 1 bit represents an integer from 0 to 65535
-		return 65536; 
+		return 65536 + 32; 
 	}
-
+	@Override
+        public int getSizeInBytes() {
+                return this.bitmap.length * 8 + 4;
+        }
+        
 	public Container xor(final ArrayContainer value2) 
 	{
 	        final BitmapContainer answer = ContainerFactory.getCopyOfBitmapContainer(this);

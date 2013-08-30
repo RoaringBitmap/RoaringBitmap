@@ -352,31 +352,19 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
         }
 	
 	public int getSizeInBytes(){
-	        int size = 0;
-		final Iterator<Entry<Short, Container>> p1 = this.highlowcontainer
-				.entrySet().iterator();
-		Entry<Short, Container> s;
-		do{
-			s=p1.next();
-			// we add the 16 highbits of a node and the size of its leafs
-			size+=16+this.highlowcontainer.get(s.getKey()).getSizeInBits();
-		}while(p1.hasNext());
-		
-		return size/8;
+                int size = 0;
+	        for(Container c:  this.highlowcontainer.values()) {
+	                size+=2+c.getSizeInBytes();
+	        }
+	        return size;
 	}
 	
 	
 	public int getCardinality(){
 		int size = 0;
-		final Iterator<Entry<Short, Container>> p1 = this.highlowcontainer
-				.entrySet().iterator();
-		Entry<Short, Container> s;
-		while(p1.hasNext()) {
-			s=p1.next();
-			// we add the 16 highbits of a node and the size of its leafs
-			size+=this.highlowcontainer.get(s.getKey()).getCardinality();
-		} 
-		
+	        for(Container c:  this.highlowcontainer.values()) {
+                        size+=c.getCardinality();
+                }
 		return size;
 	}
 		

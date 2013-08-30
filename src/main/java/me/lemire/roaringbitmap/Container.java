@@ -8,6 +8,7 @@ public interface Container extends Iterable<Short>{
 	public boolean contains(short x);
 	public void clear();
     public int getSizeInBits();
+    public int getSizeInBytes();
     public void validate();
     public ShortIterator getShortIterator();
 }
