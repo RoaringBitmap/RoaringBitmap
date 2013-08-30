@@ -115,6 +115,7 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 	}
 
 	public ArrayContainer and(final ArrayContainer value2) {
+
 		ArrayContainer value1 = this;
 		final int desiredcapacity = Math.min(value1.getCardinality(),  value2.getCardinality());
 		ArrayContainer answer = ContainerFactory.getArrayContainer();

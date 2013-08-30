@@ -1,6 +1,8 @@
 package me.lemire.roaringbitmap;
 
 import it.unimi.dsi.fastutil.shorts.Short2ObjectAVLTreeMap;
+import it.unimi.dsi.fastutil.shorts.ShortBidirectionalIterator;
+import it.unimi.dsi.fastutil.shorts.ShortSortedSet;
 
 import java.io.Serializable;
 import java.util.Iterator;
@@ -41,27 +43,25 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 
 	public static RoaringBitmap and(final RoaringBitmap x1, final RoaringBitmap x2) {
 	        final RoaringBitmap answer = new RoaringBitmap();
-		final Iterator<Entry<Short, Container>> p1 = x1.highlowcontainer
-				.entrySet().iterator();
-		final Iterator<Entry<Short, Container>> p2 = x2.highlowcontainer
-				.entrySet().iterator();
+	        final ShortBidirectionalIterator p1 = x1.highlowcontainer.keySet().iterator();
+	        final ShortBidirectionalIterator p2 = x2.highlowcontainer.keySet().iterator();
 		main: if (p1.hasNext() && p2.hasNext()) {
-		        Entry<Short, Container> s1 = p1.next();
-		        Entry<Short, Container> s2 = p2.next();
+		        short s1 = p1.next();
+		        short s2 = p2.next();
 
 			do {
-				if (s1.getKey().shortValue() < s2.getKey().shortValue()) {
+				if (s1 < s2) {
 					if (!p1.hasNext())
 						break main;
 					s1 = p1.next();
-				} else if (s1.getKey().shortValue() > s2.getKey().shortValue()) {
+				} else if (s1 > s2) {
 					if (!p2.hasNext())	break main;
 					s2 = p2.next();
 				} else { 
 					//nbAND++;
-					Container C = Util.and(s1.getValue(), s2.getValue());
+					Container C = Util.and(x1.highlowcontainer.get(s1), x2.highlowcontainer.get(s2));
 					if(C.getCardinality()>0)
-						answer.highlowcontainer.put(s1.getKey(),C);
+						answer.highlowcontainer.put(s1,C);
 					if (!p1.hasNext())	break main;
 					if (!p2.hasNext())	break main;
 					s1 = p1.next();
@@ -71,7 +71,44 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 		}
 		return answer;
 	}
+	
+	// DL: I have a theory that this might be suboptimal, see and().
+        public static RoaringBitmap oldand(final RoaringBitmap x1, final RoaringBitmap x2) {
+                System.out.println("and");
+                final RoaringBitmap answer = new RoaringBitmap();
+                final Iterator<Entry<Short, Container>> p1 = x1.highlowcontainer
+                                .entrySet().iterator();
+                final Iterator<Entry<Short, Container>> p2 = x2.highlowcontainer
+                                .entrySet().iterator();
+                main: if (p1.hasNext() && p2.hasNext()) {
+                        Entry<Short, Container> s1 = p1.next();
+                        Entry<Short, Container> s2 = p2.next();
 
+                        do {
+                                if (s1.getKey().shortValue() < s2.getKey().shortValue()) {
+                                        if (!p1.hasNext())
+                                                break main;
+                                        s1 = p1.next();
+                                } else if (s1.getKey().shortValue() > s2.getKey().shortValue()) {
+                                        if (!p2.hasNext())      break main;
+                                        s2 = p2.next();
+                                } else { 
+                                        System.out.println("got match, going down to container");
+                                        //nbAND++;
+                                        Container C = Util.and(s1.getValue(), s2.getValue());
+                                        if(C.getCardinality()>0)
+                                                answer.highlowcontainer.put(s1.getKey(),C);
+                                        if (!p1.hasNext())      break main;
+                                        if (!p2.hasNext())      break main;
+                                        s1 = p1.next();
+                                        s2 = p2.next();
+                                }
+                        } while (true);
+                }
+                return answer;
+        }
+
+	
 	public static RoaringBitmap or(final RoaringBitmap x1, final RoaringBitmap x2) {
 	        final RoaringBitmap answer = new RoaringBitmap();
 		final Iterator<Entry<Short, Container>> p1 = x1.highlowcontainer

@@ -15,8 +15,9 @@ public  final class ContainerFactory {
 
         static int capacity = 10; 
         public static ArrayContainer getArrayContainer() {
-                if(buffer.isEmpty())
+                if(buffer.isEmpty()) {
                         return new ArrayContainer();
+                }
                 return buffer.remove(buffer.size()-1);
         }
         
