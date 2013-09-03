@@ -33,6 +33,7 @@ public  final class ContainerFactory {
                 putBackInStore(bc);
                 return ac;
         }
+        
         public static BitmapContainer getCopyOfBitmapContainer(BitmapContainer bc) {
                 if(Bbuffer.isEmpty())
                         return bc.clone();
@@ -41,6 +42,7 @@ public  final class ContainerFactory {
                 System.arraycopy(bc.bitmap, 0, ans.bitmap, 0, bc.bitmap.length);
                 return ans;
         }
+        
         public static ArrayContainer getCopyOfArrayContainer(ArrayContainer ac) {
                 if(buffer.isEmpty())
                         return ac.clone();

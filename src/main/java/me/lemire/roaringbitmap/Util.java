@@ -90,7 +90,7 @@ public final class Util {
                                 ++k2;
                                 if (k2 == length2)
                                         break;
-                        }
+                        		}
                 }
                 return pos;
         }

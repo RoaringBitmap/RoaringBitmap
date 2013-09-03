@@ -31,10 +31,10 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 		final short hb = Util.highbits(x);
 		final Container z = highlowcontainer.get(hb);
 		if(z != null) {
-		        Container z2 = z.add(Util.lowbits(x));
-                        if(z2 != z) {		          
-		          highlowcontainer.put(hb,z2); //Replace the ArrayContainer by the new bitmapContainer
-		        }
+		  Container z2 = z.add(Util.lowbits(x));
+          if(z2 != z) {		          
+		    highlowcontainer.put(hb,z2); //Replace the ArrayContainer by the new bitmapContainer
+          }
 		} else {
 			ArrayContainer newac = ContainerFactory.getArrayContainer();
 			highlowcontainer.put(hb, newac.add(Util.lowbits(x)));
@@ -48,7 +48,6 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 		main: if (p1.hasNext() && p2.hasNext()) {
 		        short s1 = p1.next();
 		        short s2 = p2.next();
-
 			do {
 				if (s1 < s2) {
 					if (!p1.hasNext())
@@ -58,7 +57,6 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 					if (!p2.hasNext())	break main;
 					s2 = p2.next();
 				} else { 
-					//nbAND++;
 					Container C = Util.and(x1.highlowcontainer.get(s1), x2.highlowcontainer.get(s2));
 					if(C.getCardinality()>0)
 						answer.highlowcontainer.put(s1,C);
@@ -110,7 +108,7 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 
 	
 	public static RoaringBitmap or(final RoaringBitmap x1, final RoaringBitmap x2) {
-	        final RoaringBitmap answer = new RoaringBitmap();
+	    final RoaringBitmap answer = new RoaringBitmap();
 		final Iterator<Entry<Short, Container>> p1 = x1.highlowcontainer
 				.entrySet().iterator();
 		final Iterator<Entry<Short, Container>> p2 = x2.highlowcontainer

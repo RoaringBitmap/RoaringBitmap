@@ -149,7 +149,7 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 	{		
 	        final BitmapContainer answer = ContainerFactory.getCopyOfBitmapContainer(this);
 		for (int k = 0; k < value2.cardinality; ++k)	{				
-		        final int i = Util.toIntUnsigned(value2.content[k])/64;
+		        final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
 			answer.cardinality += ((~answer.bitmap[i]) & (1l << value2.content[k])) >>> value2.content[k] ;// in Java, shifts are always "modulo"
 			answer.bitmap[i] = answer.bitmap[i]
                                         | (1l << value2.content[k]);
@@ -166,7 +166,7 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 	        	answer.cardinality += Long.bitCount(answer.bitmap[k]);
 		}		
 		return answer;
-	}
+	}	
 
 	@Override
 	public int getSizeInBits() {
@@ -184,7 +184,7 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 	        final BitmapContainer answer = ContainerFactory.getCopyOfBitmapContainer(this);
 
 		for (int k = 0; k < value2.getCardinality(); ++k) {
-		        final int index = Util.toIntUnsigned(value2.content[k])/64;
+		        final int index = Util.toIntUnsigned(value2.content[k]) >>> 6;
 		        answer.cardinality +=  1- 2*((answer.bitmap[index] & (1l << value2.content[k] )) >>> value2.content[k]);
                         answer.bitmap[index] = answer.bitmap[index]
                                         ^ (1l << value2.content[k] );
@@ -194,19 +194,83 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 			return ContainerFactory.transformToArrayContainer(answer);
 		return answer;
 	}
-
-	public Container xor(BitmapContainer value2) {
-		
-	        final BitmapContainer answer = ContainerFactory.getBitmapContainer();
-		for (int k = 0; k < answer.bitmap.length; ++k) {
-			answer.bitmap[k] = this.bitmap[k] ^ value2.bitmap[k];
-			//if(answer.bitmap[k]!=0) // probably not wise performance-wise
-			answer.cardinality += Long.bitCount(answer.bitmap[k]);
-		}
-		if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
-			return ContainerFactory.transformToArrayContainer(answer);
-		return answer;
+	
+	public Container xor(BitmapContainer value2) {		
+        final BitmapContainer answer = ContainerFactory.getBitmapContainer();
+	for (int k = 0; k < answer.bitmap.length; ++k) {
+		answer.bitmap[k] = this.bitmap[k] ^ value2.bitmap[k];
+		//if(answer.bitmap[k]!=0) // probably not wise performance-wise
+		answer.cardinality += Long.bitCount(answer.bitmap[k]);
 	}
+	if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
+		return ContainerFactory.transformToArrayContainer(answer);
+	return answer;
+	}
+	
+	public Container inPlaceAND(final BitmapContainer B2) {
+		this.cardinality = 0;
+		for(int k=0; k<this.bitmap.length; k++) {
+			this.bitmap[k] &= B2.bitmap[k];
+			this.cardinality += Long.bitCount(this.bitmap[k]);
+		}
+		return this;
+	}
+	
+	public ArrayContainer inPlaceAND(final ArrayContainer value2) 
+	{		
+		short[] newContent = new short[value2.content.length]; //I think it's more efficient than using remove
+		int card = 0;
+	   for (int k = 0; k < value2.getCardinality(); ++k)
+	   if (this.contains(value2.content[k]))
+				newContent[card++] = value2.content[k];
+	   value2.content = newContent;
+	   value2.cardinality = card;
+	   return value2;
+	}
+	
+	public Container inPlaceOR(final BitmapContainer B2) {
+		this.cardinality = 0;
+		for(int k=0; k<this.bitmap.length; k++) {
+			this.bitmap[k] |= B2.bitmap[k];
+			this.cardinality += Long.bitCount(this.bitmap[k]);
+		}
+		return this;
+	}
+	
+	public BitmapContainer inPlaceOR(final ArrayContainer value2) 
+	{		
+	     for (int k = 0; k < value2.cardinality; ++k)	{				
+		    final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
+			this.cardinality += ((~this.bitmap[i]) & (1l << value2.content[k])) >>> value2.content[k] ;// in Java, shifts are always "modulo"
+			this.bitmap[i] |= (1l << value2.content[k]);
+		}
+		return this;
+	}
+	
+	public Container inPlaceXOR(BitmapContainer B2) {
+	this.cardinality = 0;
+	for (int k = 0; k < this.bitmap.length; ++k) {
+		this.bitmap[k] ^= B2.bitmap[k];
+		//if(answer.bitmap[k]!=0) // probably not wise performance-wise
+		this.cardinality += Long.bitCount(this.bitmap[k]);
+	}
+	if (this.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
+		return ContainerFactory.transformToArrayContainer(this);
+	return this;
+	}
+	
+	public Container inPlaceXOR(final ArrayContainer value2) 
+	{
+	    for (int k = 0; k < value2.getCardinality(); ++k) {
+		    final int index = Util.toIntUnsigned(value2.content[k]) >>> 6;
+		    this.cardinality +=  1- 2*((this.bitmap[index] & (1l << value2.content[k] )) >>> value2.content[k]);
+            this.bitmap[index] = this.bitmap[index]
+                                        ^ (1l << value2.content[k] );
+		}	
+		if (this.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
+			return ContainerFactory.transformToArrayContainer(this);
+		return this;
+	}	
 
 	@Override
 	public String toString() {
@@ -262,8 +326,8 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 		}
 	}
 
-        @Override
-        public ShortIterator getShortIterator() {
+   @Override
+   	public ShortIterator getShortIterator() {
                 return new ShortIterator() {
                         int i = BitmapContainer.this.nextSetBit(0);
 

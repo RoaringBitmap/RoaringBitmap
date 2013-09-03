@@ -12,7 +12,7 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 	private static final long serialVersionUID = 1L;
 	public short[] content;
 	int cardinality = 0;
-	public final static int  DEFAULTMAXSIZE = 4096;	
+	public final static int  DEFAULTMAXSIZE = 1024;	
 	
 	public void loadData(final BitmapContainer bitmapContainer) {
 	        if(content.length < bitmapContainer.cardinality)
@@ -126,6 +126,19 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 				value2.getCardinality(), answer.content);
 		return answer;
 	}
+	
+	public ArrayContainer inPlaceAND(final ArrayContainer value2) {
+		ArrayContainer value1 = this;
+		final int desiredcapacity = value1.getCardinality() <= value2.getCardinality() ? value1.getCardinality() : 
+									value2.getCardinality();
+		short[] newContent = new short[desiredcapacity];
+		int card = 0;
+		for(int i=0; i<desiredcapacity; i++)
+			if(value2.contains(value1.content[i])) newContent[card++] = value1.content[i];
+		this.content = newContent;
+		this.cardinality = card;
+		return this;
+	}
 
 	public Container or(final ArrayContainer value2) {
 	        final ArrayContainer value1 = this;
@@ -142,6 +155,50 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 		return answer;
 	}
 	
+	public Container inPlaceOR(final ArrayContainer value2) {
+        final ArrayContainer value1 = this;
+        int tailleAC = value1.getCardinality()+value2.getCardinality();
+        final int desiredcapacity = tailleAC > 65535 ? 65535 : tailleAC;
+        short[] newContent = new short[desiredcapacity];
+        int card = Util.unsigned_union2by2(value1.content,
+            					value1.getCardinality(), value2.content,
+            					value2.getCardinality(), newContent);
+        this.content = newContent;
+        this.cardinality = card;
+        if (this.cardinality > DEFAULTMAXSIZE)
+           	return ContainerFactory.transformToBitmapContainer(this);
+        return this;
+	}		
+
+	public Container xor(final ArrayContainer value2) {
+	        final ArrayContainer value1 = this;
+		final int desiredcapacity = Math.min(value1.getCardinality() + value2.getCardinality(),65536);
+                ArrayContainer answer = ContainerFactory.getArrayContainer();
+                if(answer.content.length<desiredcapacity)
+                        answer.content = new short[desiredcapacity];
+		answer.cardinality = Util.unsigned_exclusiveunion2by2(value1.content,
+				value1.getCardinality(), value2.content,
+				value2.getCardinality(), answer.content); 
+		if (answer.cardinality > DEFAULTMAXSIZE)
+			return ContainerFactory.transformToBitmapContainer(answer);
+		return answer;
+	}
+	
+	public Container inPlaceXOR(final ArrayContainer value2) {
+        final ArrayContainer value1 = this;
+        final int lentgh = value1.getCardinality() + value2.getCardinality();
+	final int desiredcapacity = lentgh <= 65536 ? lentgh : 65536;
+            short[] newContent = new short[desiredcapacity];
+	int card = Util.unsigned_exclusiveunion2by2(value1.content,
+			value1.getCardinality(), value2.content,
+			value2.getCardinality(), newContent);
+	this.content = newContent;
+	this.cardinality = card; 
+	if (this.cardinality > DEFAULTMAXSIZE)
+		return ContainerFactory.transformToBitmapContainer(this);
+	return this;
+	}
+	
 	@Override
 	public void validate() {
 		if(this.cardinality == 0) return;
@@ -156,20 +213,6 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 		}
 		if(hs.size()!=this.cardinality)		
 			throw new RuntimeException("bug : ArrayContainer with repeated values");	
-	}
-
-	public Container xor(final ArrayContainer value2) {
-	        final ArrayContainer value1 = this;
-		final int desiredcapacity = Math.min(value1.getCardinality() + value2.getCardinality(),65536);
-                ArrayContainer answer = ContainerFactory.getArrayContainer();
-                if(answer.content.length<desiredcapacity)
-                        answer.content = new short[desiredcapacity];
-		answer.cardinality = Util.unsigned_exclusiveunion2by2(value1.content,
-				value1.getCardinality(), value2.content,
-				value2.getCardinality(), answer.content); 
-		if (answer.cardinality > DEFAULTMAXSIZE)
-			return ContainerFactory.transformToBitmapContainer(answer);
-		return answer;
 	}
 
 	@Override

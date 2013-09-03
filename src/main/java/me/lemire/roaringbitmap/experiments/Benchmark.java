@@ -2,25 +2,60 @@ package me.lemire.roaringbitmap.experiments;
 
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
+import java.util.Vector;
 
+import me.lemire.roaringbitmap.FastAggregation;
 import me.lemire.roaringbitmap.RoaringBitmap;
 
 import org.devbrat.util.WAHBitSet;
 import sparsebitmap.SparseBitmap;
+import LineCharts.LineChartDemo1;
+import LineCharts.LineChartPoint;
+
 import com.googlecode.javaewah.EWAHCompressedBitmap;
 import com.googlecode.javaewah32.EWAHCompressedBitmap32;
 
 public class Benchmark {
-
+	
+	static ArrayList<Vector<LineChartPoint>> SizeGraphCoordinates;
+	static ArrayList<Vector<LineChartPoint>> OrGraphCoordinates;
+	static ArrayList<Vector<LineChartPoint>> XorGraphCoordinates;
+	static ArrayList<Vector<LineChartPoint>> AndGraphCoordinates;
+	static int nbTechnique = 6;
+	static int FastAgregate = 1;
+	static int ClassicAgregate = 0;
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
 		//test(10, 18, 10);
-		ZipfianTests(10, 10);
+		if(args.length>0)
+		ZipfianTests(10, 10, args[0]);
+		else System.out.println("Please, specify the path where the graphics will be stored");
+	}
+	
+	private static RoaringBitmap fastOR(RoaringBitmap[] tabRB) {
+		return FastAggregation.or(tabRB);
+	}
+	
+	private static RoaringBitmap fastXOR(RoaringBitmap[] tabRB) {
+		return FastAggregation.xor(tabRB);
+	}
+	
+	private static RoaringBitmap fastAND(RoaringBitmap[] tabRB) {
+		return FastAggregation.and(tabRB);
+	}
+	
+	private static RoaringBitmap simpleOR(RoaringBitmap[] tabRB) {
+		RoaringBitmap rb = tabRB[0];
+		for(int i=0; i<tabRB.length; i++) {
+			rb = RoaringBitmap.or(rb, tabRB[1]);
+		}
+		return rb;
 	}
 
 	public static void testRoaringBitmap(int[][] data, int[][] data2,
@@ -34,10 +69,10 @@ public class Benchmark {
 		long bef, aft;
 		String line = "";
 		int bogus = 0;
-		int N = data.length;
+		int N = data.length, size = 0;
+		
 		bef = System.currentTimeMillis();
-		RoaringBitmap[] bitmap = new RoaringBitmap[N];
-		int size = 0;
+		RoaringBitmap[] bitmap = new RoaringBitmap[N];		
 		for (int r = 0; r < repeat; ++r) {
 			size = 0;
 			for (int k = 0; k < N; ++k) {
@@ -45,15 +80,22 @@ public class Benchmark {
 				for (int x = 0; x < data[k].length; ++x) {
 					bitmap[k].set(data[k][x]);
 				}				
-				if(r==0) System.out.println(bitmap[k].toString());
+				//if(r==0) System.out.println(bitmap[k].toString());				
 			}
 		}
 		aft = System.currentTimeMillis();
 		
+		//System.out.println("Average nb of shorts per node in this bitmap = "+bitmap[bitmap.length-1].getAverageNbIntsPerNode());
+		
 		for(int k=0; k<N; k++) size += bitmap[k].getSizeInBytes();
+		
+		//SizeGraphCoordiantes.get(1).add(new LineChartPint());
 		
 		line += "\t" + size / 1024;
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		SizeGraphCoordinates.get(0).lastElement().setGname("Roaring Bitmap");
+		SizeGraphCoordinates.get(0).lastElement().setY(size/1024);
 		
 		for (RoaringBitmap rb : bitmap)
 			rb.validate();
@@ -66,8 +108,8 @@ public class Benchmark {
 				bogus += array.length;
 			}
 		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
-
+		line += "\t" + df.format((aft - bef) / 1000.0);		
+		
 		// Creating and filling the second roaringBitmap index
 		RoaringBitmap[] bitmap2 = new RoaringBitmap[N];
 		for (int k = 0; k < N; ++k) {
@@ -85,41 +127,40 @@ public class Benchmark {
 			RoaringBitmap bitmapor2 = bitmap2[0];
 			bitmapor2.validate();
 			for (int k = 1; k < N; ++k) {
-                                bitmap[k].validate();
 				bitmapor1 = RoaringBitmap.or(bitmapor1, bitmap[k]);
 				bitmapor1.validate();
-                                bitmap[k].validate();
 				bitmapor2 = RoaringBitmap.or(bitmapor2, bitmap2[k]);
 				bitmapor2.validate();
-	                        bitmap2[k].validate();
 			}
 
 			bitmapor1 = RoaringBitmap.or(bitmapor1, bitmapor2);
 			bitmapor1.validate();
+			//System.out.println("nbOR = "+RoaringBitmap.nbOR);
 			int[] array = bitmapor1.getIntegers();
 			bogus += array.length;
 		}
-                for (int k = 0; k < N; ++k) {
-                        bitmap[k].validate();
-                        bitmap2[k].validate();
-                }
 
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
 			RoaringBitmap bitmapor1 = bitmap[0];
 			RoaringBitmap bitmapor2 = bitmap2[0];
-			for (int k = 1; k < N; ++k) {
+			/*for (int k = 1; k < N; ++k) {
 				bitmapor1 = RoaringBitmap.or(bitmapor1, bitmap[k]);
 				bitmapor2 = RoaringBitmap.or(bitmapor2, bitmap2[k]);
-			}
-
+			}*/
+			bitmapor1 = fastOR(bitmap);
+			bitmapor2= fastOR(bitmap2);
 			bitmapor1 = RoaringBitmap.or(bitmapor1, bitmapor2);
+			
 			int[] array = bitmapor1.getIntegers();
 			bogus += array.length;
 		}
 
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		OrGraphCoordinates.get(0).lastElement().setGname("Roaring Bitmap");
+		OrGraphCoordinates.get(0).lastElement().setY((aft - bef) / 1000.0);
 		
 		{
 			RoaringBitmap bitmapand1 = bitmap[0];
@@ -134,6 +175,7 @@ public class Benchmark {
 			}
 			bitmapand1 = RoaringBitmap.and(bitmapand1, bitmapand2);
 			bitmapand1.validate();
+			//System.out.println("nbAND = "+RoaringBitmap.nbAND);
 			int[] array = bitmapand1.getIntegers();
 			bogus += array.length;
 
@@ -144,16 +186,21 @@ public class Benchmark {
 		for (int r = 0; r < repeat; ++r) {
 			RoaringBitmap bitmapand1 = bitmap[0];
 			RoaringBitmap bitmapand2 = bitmap2[0];
-			for (int k = 1; k < N; ++k) {
+			/*for (int k = 1; k < N; ++k) {
 				bitmapand1 = RoaringBitmap.and(bitmapand1, bitmap[k]);
 				bitmapand2 = RoaringBitmap.and(bitmapand2, bitmap2[k]);
-			}
+			}*/
+			bitmapand1 = fastAND(bitmap);
+			bitmapand2 = fastAND(bitmap2);
 			bitmapand1 = RoaringBitmap.and(bitmapand1, bitmapand2);
 			int[] array = bitmapand1.getIntegers();
 			bogus += array.length;
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		AndGraphCoordinates.get(0).lastElement().setGname("Roaring Bitmap");
+		AndGraphCoordinates.get(0).lastElement().setY((aft - bef) / 1000.0);
 
 		// logical xor + retrieval
 		{
@@ -165,8 +212,9 @@ public class Benchmark {
 				bitmapxor2 = RoaringBitmap.xor(bitmapxor2, bitmap2[k]);
 				bitmapxor2.validate();
 			}
-			bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmapxor2);
+			
 			bitmapxor1.validate();
+			//System.out.println("nbXOR = "+RoaringBitmap.nbXOR);
 			int[] array = bitmapxor1.getIntegers();
 			bogus += array.length;
 		}
@@ -175,16 +223,21 @@ public class Benchmark {
 		for (int r = 0; r < repeat; ++r) {
 			RoaringBitmap bitmapxor1 = bitmap[0];
 			RoaringBitmap bitmapxor2 = bitmap2[0];
-			for (int k = 1; k < N; ++k) {
+			/*for (int k = 1; k < N; ++k) {
 				bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmap[k]);
 				bitmapxor2 = RoaringBitmap.xor(bitmapxor2, bitmap2[k]);
-			}
+			}*/
+			bitmapxor1 = fastXOR(bitmap);
+			bitmapxor2 = fastXOR(bitmap2);
 			bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmapxor2);
 			int[] array = bitmapxor1.getIntegers();
 			bogus += array.length;
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		XorGraphCoordinates.get(0).lastElement().setGname("Roaring Bitmap");
+		XorGraphCoordinates.get(0).lastElement().setY((aft - bef) / 1000.0);
 
 		System.out.println(line);
 		System.out.println("# ignore this " + bogus);
@@ -199,21 +252,22 @@ public class Benchmark {
 						+ "and exclusive unions (XOR) ");
 		long bef, aft;
 		String line = "";
-		int N = data.length;
+		int N = data.length, size = 0;
+		
 		bef = System.currentTimeMillis();
-		BitSet[] bitmap = new BitSet[N];
-		int size = 0;
+		BitSet[] bitmap = new BitSet[N];		
 		for (int r = 0; r < repeat; ++r) {
-			size = 0;
 			for (int k = 0; k < N; ++k) {
 				bitmap[k] = new BitSet();
 				for (int x = 0; x < data[k].length; ++x) {
 					bitmap[k].set(data[k][x]);
-				}
-				size += bitmap[k].size() / 8;
+				}				
 			}
 		}
 		aft = System.currentTimeMillis();
+		
+		for(int k=0; k<N; k++) size += bitmap[k].size() / 8;
+		
 		line += "\t" + size / 1024;
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		// uncompressing
@@ -311,23 +365,28 @@ public class Benchmark {
 		long bef, aft;
 		int bogus = 0;
 		String line = "";
-		int N = data.length;
+		int N = data.length, size = 0;
 		bef = System.currentTimeMillis();
 		WAHBitSet[] bitmap = new WAHBitSet[N];
-		int size = 0;
+		
 		for (int r = 0; r < repeat; ++r) {
-			size = 0;
 			for (int k = 0; k < N; ++k) {
 				bitmap[k] = new WAHBitSet();
 				for (int x = 0; x < data[k].length; ++x) {
 					bitmap[k].set(data[k][x]);
-				}
-				size += bitmap[k].memSize() * 4;
+				}			
 			}
 		}
 		aft = System.currentTimeMillis();
+		
+		for(int k=0; k<N; k++) size += bitmap[k].memSize() * 4;
+		
 		line += "\t" + size / 1024;
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		SizeGraphCoordinates.get(1).lastElement().setGname("WAH 32bit");
+		SizeGraphCoordinates.get(1).lastElement().setY(size/1024);
+		
 		// uncompressing
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r)
@@ -371,6 +430,9 @@ public class Benchmark {
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		OrGraphCoordinates.get(1).lastElement().setGname("WAH 32bit");
+		OrGraphCoordinates.get(1).lastElement().setY((aft - bef) / 1000.0);
 
 		// logical and + retrieval
 		bef = System.currentTimeMillis();
@@ -392,6 +454,12 @@ public class Benchmark {
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		AndGraphCoordinates.get(1).lastElement().setGname("WAH 32bit");
+		AndGraphCoordinates.get(1).lastElement().setY((aft - bef) / 1000.0);
+		
+		XorGraphCoordinates.get(1).lastElement().setGname("WAH 32bit");
+		XorGraphCoordinates.get(1).lastElement().setY(0.0);
 
 		System.out.println(line);
 		System.out.println("# ignore this " + bogus);
@@ -407,24 +475,29 @@ public class Benchmark {
 		String line = "";
 		int bogus = 0;
 
-		int N = data.length;
+		int N = data.length, size = 0;
 		bef = System.currentTimeMillis();
 		ConciseSet[] bitmap = new ConciseSet[N];
-		int size = 0;
-		for (int r = 0; r < repeat; ++r) {
-			size = 0;
+		
+		for (int r = 0; r < repeat; ++r) {			
 			for (int k = 0; k < N; ++k) {
 				bitmap[k] = new ConciseSet();
 				for (int x = 0; x < data[k].length; ++x) {
 					bitmap[k].add(data[k][x]);
 				}
-				size += (int) (bitmap[k].size() * bitmap[k]
-						.collectionCompressionRatio()) * 4;
 			}
 		}
 		aft = System.currentTimeMillis();
+		
+		for (int k=0; k<N; k++)
+		size += (int) (bitmap[k].size() * bitmap[k].collectionCompressionRatio()) * 4;
+		
 		line += "\t" + size / 1024;
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		SizeGraphCoordinates.get(2).lastElement().setGname("Concise");
+		SizeGraphCoordinates.get(2).lastElement().setY(size/1024);
+		
 		// uncompressing
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r)
@@ -458,6 +531,9 @@ public class Benchmark {
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		OrGraphCoordinates.get(2).lastElement().setGname("Concise");
+		OrGraphCoordinates.get(2).lastElement().setY((aft - bef) / 1000.0);
 
 		// logical and + retrieval
 		bef = System.currentTimeMillis();
@@ -474,6 +550,10 @@ public class Benchmark {
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		AndGraphCoordinates.get(2).lastElement().setGname("Concise");
+		AndGraphCoordinates.get(2).lastElement().setY((aft - bef) / 1000.0);
+		
 		// logical xor + retrieval
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
@@ -489,6 +569,9 @@ public class Benchmark {
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		XorGraphCoordinates.get(2).lastElement().setGname("Concise");
+		XorGraphCoordinates.get(2).lastElement().setY((aft - bef) / 1000.0);
 
 		System.out.println(line);
 		System.out.println("# ignore this " + bogus);
@@ -518,8 +601,15 @@ public class Benchmark {
 			}
 		}
 		aft = System.currentTimeMillis();
+		
+		for (int k=0; k<N; k++)
+			size += bitmap[k].sizeInBytes();
 		line += "\t" + size / 1024;
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		SizeGraphCoordinates.get(3).lastElement().setGname("Sparse Bitmap");
+		SizeGraphCoordinates.get(3).lastElement().setY(size/1024);
+		
 		// uncompressing
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r)
@@ -553,6 +643,9 @@ public class Benchmark {
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		OrGraphCoordinates.get(3).lastElement().setGname("Sparse Bitmap");
+		OrGraphCoordinates.get(3).lastElement().setY((aft - bef) / 1000.0);
 
 		// logical xor + retrieval
 		bef = System.currentTimeMillis();
@@ -569,6 +662,9 @@ public class Benchmark {
 		}
 		aft = System.currentTimeMillis();
 		String xorTime = "\t" + df.format((aft - bef) / 1000.0);
+		
+		XorGraphCoordinates.get(3).lastElement().setGname("Sparse Bitmap");
+		XorGraphCoordinates.get(3).lastElement().setY((aft - bef) / 1000.0);
 
 		// logical and + retrieval
 		bef = System.currentTimeMillis();
@@ -583,10 +679,12 @@ public class Benchmark {
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0) + xorTime;
+		
+		AndGraphCoordinates.get(3).lastElement().setGname("Sparse Bitmap");
+		AndGraphCoordinates.get(3).lastElement().setY((aft - bef) / 1000.0);
 
 		System.out.println(line);
 		System.out.println("# ignore this " + bogus);
-
 	}
 
 	public static void testEWAH64(int[][] data, int[][] data2, int repeat,
@@ -608,13 +706,19 @@ public class Benchmark {
 				for (int x = 0; x < data[k].length; ++x) {
 					ewah[k].set(data[k][x]);
 				}
-				size += ewah[k].sizeInBytes();
 			}
 		}
 		aft = System.currentTimeMillis();
+		
+		for (int k=0; k<N; k++)
+			size += ewah[k].sizeInBytes();
+		
 		line += "\t" + size / 1024;
 		line += "\t" + df.format((aft - bef) / 1000.0);
-
+		
+		SizeGraphCoordinates.get(4).lastElement().setGname("Ewah 64bits");
+		SizeGraphCoordinates.get(4).lastElement().setY(size/1024);
+		
 		// uncompressing
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r)
@@ -646,6 +750,9 @@ public class Benchmark {
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		OrGraphCoordinates.get(4).lastElement().setGname("Ewah 64bits");
+		OrGraphCoordinates.get(4).lastElement().setY((aft - bef) / 1000.0);
 
 		// fast logical and + retrieval
 		bef = System.currentTimeMillis();
@@ -660,6 +767,9 @@ public class Benchmark {
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		AndGraphCoordinates.get(4).lastElement().setGname("Ewah 64bits");
+		AndGraphCoordinates.get(4).lastElement().setY((aft - bef) / 1000.0);
 
 		// fast logical xor + retrieval
 		bef = System.currentTimeMillis();
@@ -675,6 +785,9 @@ public class Benchmark {
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		XorGraphCoordinates.get(4).lastElement().setGname("Ewah 64bits");
+		XorGraphCoordinates.get(4).lastElement().setY((aft - bef) / 1000.0);
 
 		System.out.println(line);
 		System.out.println("# ignore this " + bogus);
@@ -700,12 +813,19 @@ public class Benchmark {
 				for (int x = 0; x < data[k].length; ++x) {
 					ewah[k].set(data[k][x]);
 				}
-				size += ewah[k].sizeInBytes();
 			}
 		}
 		aft = System.currentTimeMillis();
+		
+		for (int k=0; k<N; k++)
+			size += ewah[k].sizeInBytes();
+		
 		line += "\t" + size / 1024;
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		SizeGraphCoordinates.get(5).lastElement().setGname("Ewah 32");
+		SizeGraphCoordinates.get(5).lastElement().setY(size/1024);
+		
 		// uncompressing
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r)
@@ -737,6 +857,9 @@ public class Benchmark {
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		OrGraphCoordinates.get(5).lastElement().setGname("Ewah 32");
+		OrGraphCoordinates.get(5).lastElement().setY((aft - bef) / 1000.0);
 
 		// fast logical and + retrieval
 		bef = System.currentTimeMillis();
@@ -751,6 +874,9 @@ public class Benchmark {
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		AndGraphCoordinates.get(5).lastElement().setGname("Ewah 32");
+		AndGraphCoordinates.get(5).lastElement().setY((aft - bef) / 1000.0);
 
 		// fast logical xor + retrieval
 		bef = System.currentTimeMillis();
@@ -765,6 +891,9 @@ public class Benchmark {
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+		XorGraphCoordinates.get(5).lastElement().setGname("Ewah 32");
+		XorGraphCoordinates.get(5).lastElement().setY((aft - bef) / 1000.0);
 
 		System.out.println(line);
 		System.out.println("# ignore this " + bogus);
@@ -823,28 +952,46 @@ public class Benchmark {
 	 * @param N number of generated sets of integers
 	 * @param repeat number of repetitions
 	 */
-	public static void ZipfianTests(int N, int repeat) {
+	public static void ZipfianTests(int N, int repeat, String path) {
 		
 		DecimalFormat df = new DecimalFormat("0.###");
-		//int SetSize = 20;//(int) Math.pow(10, 5);
-		ZipfianDistribution zpf = new ZipfianDistribution();
+		ZipfianDistribution zpf = new ZipfianDistribution();							
 		
-		System.out
-		.println("# For each instance, we report the size, the construction time, ");
+		System.out.println("# For each instance, we report the size, the construction time, ");
 		System.out.println("# the time required to recover the set bits,");
 		System.out
 		.println("# and the time required to compute logical ors (unions) between lots of bitmaps.");
 		
-		for( double density = 0.0001; density<=1; density*=10.0 )
+		for(double k=0.0001; k<1.0; k*=10) {
+		SizeGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
+		OrGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
+		AndGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
+		XorGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();	
+		
+		for(int i =0; i< nbTechnique; i++) {
+			SizeGraphCoordinates.add(new Vector<LineChartPoint>());
+			OrGraphCoordinates.add(new Vector<LineChartPoint>());
+			AndGraphCoordinates.add(new Vector<LineChartPoint>());
+			XorGraphCoordinates.add(new Vector<LineChartPoint>());
+		}
+		for( double density = k; density<k*10.0; density+=density/*=10.0*/ )
 		{
-			double max = 1000000;
+			if(density>=0.7) 
+				density=0.6;
+			double max = 10000000;
 			int SetSize = (int) (max*density);
-			//double max = nbSetBits/density;
 			int data[][] = new int[N][];
 			int data2[][] = new int[N][];
 			
 			System.out.println("\n\ndensity = "+density);
 			System.out.println("# generating random data...");
+			
+			for(int i =0; i< nbTechnique; i++){
+				SizeGraphCoordinates.get(i).add(new LineChartPoint(0.0, String.valueOf(density), null));
+				OrGraphCoordinates.get(i).add(new LineChartPoint(0.0, String.valueOf(density), null));
+				AndGraphCoordinates.get(i).add(new LineChartPoint(0.0, String.valueOf(density), null));
+				XorGraphCoordinates.get(i).add(new LineChartPoint(0.0, String.valueOf(density), null));
+			}
 			
 			for(int i=0; i<N; i++)
 			{					
@@ -864,21 +1011,25 @@ public class Benchmark {
 			}
 			
 			// Start experiments with Zipfian data distribution
-			System.out.println("\n# generating random data... ok.");
+			System.out.println("# generating random data... ok.");
 			System.out.println("#  density = "+ density);
 
 			// building
 			//testBitSet(data, data2, repeat, df);
 			testRoaringBitmap(data, data2, repeat, df);
-			try {
 			testWAH32(data, data2, repeat, df);
-			} catch(AssertionError e) {System.out.println("Sorry ! I've a problem. Please check with my library !\n");}
 			testConciseSet(data, data2, repeat, df);
-			//testSparseBitmap(data, data2, repeat, df);
+			testSparseBitmap(data, data2, repeat, df);
 			testEWAH64(data, data2, repeat, df);
 			testEWAH32(data, data2, repeat, df);
-
+			
 			System.out.println();			
+		}		
+
+		LineChartDemo1 SizeGraphe = new LineChartDemo1("Line Chart Size "+k+"_"+(k*10),SizeGraphCoordinates, path);
+		LineChartDemo1 OrGraphe = new LineChartDemo1("Line Chart OR "+k+"_"+(k*10),OrGraphCoordinates, path);
+		LineChartDemo1 AndGraphe = new LineChartDemo1("Line Chart AND "+k+"_"+(k*10),AndGraphCoordinates, path);
+		LineChartDemo1 XorGraphe = new LineChartDemo1("Line Chart XOR "+k+"_"+(k*10),XorGraphCoordinates, path);
 		}
 	}
 }
