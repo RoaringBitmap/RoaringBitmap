@@ -33,6 +33,13 @@
      <artifactId>JavaEWAH</artifactId>
      <version>0.7.1</version>
      </dependency>
+<!-- this might be removed in the final version -->
+<dependency>
+	<groupId>jfree</groupId>
+	<artifactId>jfreechart</artifactId>
+	<version>1.0.13</version>
+</dependency>
+
 <dependency>
 	<groupId>it.unimi.dsi</groupId>
 	<artifactId>fastutil</artifactId>
