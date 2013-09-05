@@ -595,7 +595,7 @@ public class Benchmark {
                         ConciseSet bitmapand2 = ConciseSetUtil.fastAND(bitmap2);
                         bitmapand1 = bitmapand1.intersection(bitmapand2);
                         int[] array = bitmapand1.toArray();
-                        bogus += array.length;
+                        if(array!=null) bogus += array.length;
                 }
                 aft = System.currentTimeMillis();
                 line += "\t" + df.format((aft - bef) / 1000.0);

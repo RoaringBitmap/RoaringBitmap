@@ -20,7 +20,7 @@ public class ConciseSetUtil {
                                 }
                         });
                 for (ConciseSet x : bitmaps) {
-                        pq.add(x);
+                        pq.add(x.clone());
                 }
                 while (pq.size() > 1) {
                         ConciseSet x1 = pq.poll();
@@ -40,7 +40,7 @@ public class ConciseSetUtil {
                                 }
                         });
                 for (ConciseSet x : bitmaps) {
-                        pq.add(x);
+                        pq.add(x.clone());
                 }
                 while (pq.size() > 1) {
                         ConciseSet x1 = pq.poll();
