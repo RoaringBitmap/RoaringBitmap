@@ -12,7 +12,7 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 	private static final long serialVersionUID = 1L;
 	public short[] content;
 	int cardinality = 0;
-	public final static int  DEFAULTMAXSIZE = 1024;	
+	public final static int  DEFAULTMAXSIZE = 4096;	
 	
 	public void loadData(final BitmapContainer bitmapContainer) {
 	        if(content.length < bitmapContainer.cardinality)
