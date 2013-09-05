@@ -33,9 +33,12 @@ public class Benchmark {
 	 */
 	public static void main(String[] args) {
 		//test(10, 18, 10);
-		if(args.length>0)
-		ZipfianTests(10, 10, args[0]);
-		else System.out.println("Please, specify the path where the graphics will be stored");
+                if (args.length > 0)
+                        ZipfianTests(10, 10, args[0]);
+                else {
+                        // System.out.println("Please, specify the path where the graphics will be stored");
+                        ZipfianTests(10, 10, null);// no plots needed
+                }
 	}
 	
 	private static RoaringBitmap fastOR(RoaringBitmap[] tabRB) {
@@ -50,13 +53,13 @@ public class Benchmark {
 		return FastAggregation.and(tabRB);
 	}
 	
-	private static RoaringBitmap simpleOR(RoaringBitmap[] tabRB) {
+	/*private static RoaringBitmap simpleOR(RoaringBitmap[] tabRB) {
 		RoaringBitmap rb = tabRB[0];
 		for(int i=0; i<tabRB.length; i++) {
 			rb = RoaringBitmap.or(rb, tabRB[1]);
 		}
 		return rb;
-	}
+	}*/
 
 	public static void testRoaringBitmap(int[][] data, int[][] data2,
 			int repeat, DecimalFormat df) {
@@ -1025,11 +1028,22 @@ public class Benchmark {
 			
 			System.out.println();			
 		}		
+		
+                        if (path != null) {
 
-		LineChartDemo1 SizeGraphe = new LineChartDemo1("Line Chart Size "+k+"_"+(k*10),SizeGraphCoordinates, path);
-		LineChartDemo1 OrGraphe = new LineChartDemo1("Line Chart OR "+k+"_"+(k*10),OrGraphCoordinates, path);
-		LineChartDemo1 AndGraphe = new LineChartDemo1("Line Chart AND "+k+"_"+(k*10),AndGraphCoordinates, path);
-		LineChartDemo1 XorGraphe = new LineChartDemo1("Line Chart XOR "+k+"_"+(k*10),XorGraphCoordinates, path);
+                                new LineChartDemo1(
+                                        "Line Chart Size " + k + "_" + (k * 10),
+                                        SizeGraphCoordinates, path);
+                                 new LineChartDemo1(
+                                        "Line Chart OR " + k + "_" + (k * 10),
+                                        OrGraphCoordinates, path);
+                                new LineChartDemo1(
+                                        "Line Chart AND " + k + "_" + (k * 10),
+                                        AndGraphCoordinates, path);
+                                new LineChartDemo1(
+                                        "Line Chart XOR " + k + "_" + (k * 10),
+                                        XorGraphCoordinates, path);
+                        }
 		}
 	}
 }

@@ -1030,7 +1030,7 @@ public class SerializableStarSchemaBenchmark {
 		long bef, aft;
 		String line = "";
 		long bogus = 0;
-		int N = nbBitmaps, k, r;
+		int N = nbBitmaps,  r;
 		int size = 0;
 		File tmpbitmaplocation = File.createTempFile("bitmap", "bin");
 		tmpbitmaplocation.deleteOnExit();

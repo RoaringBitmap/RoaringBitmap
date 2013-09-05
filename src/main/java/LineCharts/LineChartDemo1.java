@@ -47,13 +47,8 @@ import org.jfree.ui.ApplicationFrame;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -67,8 +62,6 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.LineAndShapeRenderer;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
-import org.jfree.ui.ApplicationFrame;
-import org.jfree.ui.RefineryUtilities;
 
 /**
  * A simple demonstration application showing how to create a line chart using data from a
@@ -76,7 +69,9 @@ import org.jfree.ui.RefineryUtilities;
  */
 public class LineChartDemo1 extends ApplicationFrame {
 
-    /**
+        private static final long serialVersionUID = 1L;
+
+/**
      * Creates a new demo.
      *
      * @param title  the frame title.
@@ -101,7 +96,7 @@ public class LineChartDemo1 extends ApplicationFrame {
      * 
      * @return The dataset.
      */
-    private CategoryDataset createDataset(final ArrayList<Vector<LineChartPoint>> coordinates) {               
+    private static CategoryDataset createDataset(final ArrayList<Vector<LineChartPoint>> coordinates) {               
 
         // create the dataset...
         final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
@@ -123,7 +118,7 @@ public class LineChartDemo1 extends ApplicationFrame {
      * 
      * @return The chart.
      */
-    private JFreeChart createChart(final CategoryDataset dataset, final String title) {
+    private static JFreeChart createChart(final CategoryDataset dataset, final String title) {
         
         // create the chart...
         final JFreeChart chart = ChartFactory.createLineChart(
@@ -174,18 +169,5 @@ public class LineChartDemo1 extends ApplicationFrame {
         
         return chart;
     }
-    
-    /**
-     * Starting point for the demonstration application.
-     *
-     * @param args  ignored.
-     */
-    public static void main(final String[] args) {
-
-        /*final LineChartDemo1 demo = new LineChartDemo1("Line Chart Demo");
-        demo.pack();
-        RefineryUtilities.centerFrameOnScreen(demo);
-            
-        demo.setVisible(true);*/
-    }
+ 
 }

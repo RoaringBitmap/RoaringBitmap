@@ -27,9 +27,5 @@ public class ZipfianDistribution {
 		return array;
 	}
 	
-	private boolean contains(int[] array, int val) {
-		for(int i=0; i<array.length; i++) 
-			if(array[i]==val) return true;		
-		return false;
-	}
+	
 }

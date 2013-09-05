@@ -2,7 +2,6 @@ package me.lemire.roaringbitmap;
 
 import it.unimi.dsi.fastutil.shorts.Short2ObjectAVLTreeMap;
 import it.unimi.dsi.fastutil.shorts.ShortBidirectionalIterator;
-import it.unimi.dsi.fastutil.shorts.ShortSortedSet;
 
 import java.io.Serializable;
 import java.util.Iterator;
@@ -15,7 +14,6 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 	 */
 	private static final long serialVersionUID = 3L;
 	public Short2ObjectAVLTreeMap<Container> highlowcontainer = new Short2ObjectAVLTreeMap<Container>(); // does
-	//public static int nbOR = 0, nbAND=0, nbXOR=0;																						// not
 
         /**
          * set the value to "true", whether it already appears on not.
