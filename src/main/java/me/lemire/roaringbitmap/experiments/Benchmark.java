@@ -622,7 +622,7 @@ public class Benchmark {
                         ConciseSet bitmapxor2 = ConciseSetUtil.fastXOR(bitmap2);
                         bitmapxor1 = bitmapxor1.intersection(bitmapxor2);
                         int[] array = bitmapxor1.toArray();
-                        bogus += array.length;
+                        if(array != null) bogus += array.length;
                 }
                 aft = System.currentTimeMillis();
                 line += "\t" + df.format((aft - bef) / 1000.0);
