@@ -414,7 +414,6 @@ public class Benchmark {
 		}
 
 		// logical or + retrieval
-		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
 			WAHBitSet bitmapor1 = new WAHBitSet();
 			WAHBitSet bitmapor2 = new WAHBitSet();
@@ -431,14 +430,29 @@ public class Benchmark {
 			}
 			bogus += c;
 		}
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+		
+                // logical or + retrieval
+                bef = System.currentTimeMillis();
+                for (int r = 0; r < repeat; ++r) {
+                        WAHBitSet bitmapor1 = WAHBitSetUtil.fastOR(bitmap);
+                        WAHBitSet bitmapor2 = WAHBitSetUtil.fastOR(bitmap2);
+                        bitmapor1 = bitmapor1.or(bitmapor2);
+                        int[] array = new int[bitmapor1.cardinality()];
+                        int c = 0;
+                        for (@SuppressWarnings("unchecked")
+                        Iterator<Integer> i = bitmapor1.iterator(); i.hasNext(); array[c++] = i
+                                        .next().intValue()) {
+                        }
+                        bogus += c;
+                }
+                aft = System.currentTimeMillis();
+                line += "\t" + df.format((aft - bef) / 1000.0);
+
 		
 		OrGraphCoordinates.get(1).lastElement().setGname("WAH 32bit");
 		OrGraphCoordinates.get(1).lastElement().setY((aft - bef) / 1000.0);
 
 		// logical and + retrieval
-		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
 			WAHBitSet bitmapand1 = bitmap[0];
 			WAHBitSet bitmapand2 = bitmap2[0];
@@ -455,8 +469,22 @@ public class Benchmark {
 			}
 			bogus += c;
 		}
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+
+                bef = System.currentTimeMillis();
+                for (int r = 0; r < repeat; ++r) {
+                        WAHBitSet bitmapand1 = WAHBitSetUtil.fastAND(bitmap);
+                        WAHBitSet bitmapand2 = WAHBitSetUtil.fastAND(bitmap2);
+                        bitmapand1 = bitmapand1.and(bitmapand2);
+                        int[] array = new int[bitmapand1.cardinality()];
+                        int c = 0;
+                        for (@SuppressWarnings("unchecked")
+                        Iterator<Integer> i = bitmapand1.iterator(); i
+                                .hasNext(); array[c++] = i.next().intValue()) {
+                        }
+                        bogus += c;
+                }
+                aft = System.currentTimeMillis();
+                line += "\t" + df.format((aft - bef) / 1000.0);
 		
 		AndGraphCoordinates.get(1).lastElement().setGname("WAH 32bit");
 		AndGraphCoordinates.get(1).lastElement().setY((aft - bef) / 1000.0);
@@ -520,7 +548,6 @@ public class Benchmark {
 		}
 
 		// logical or + retrieval
-		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
 			ConciseSet bitmapor1 = bitmap[0].clone();
 			ConciseSet bitmapor2 = bitmap2[0].clone();
@@ -532,14 +559,24 @@ public class Benchmark {
 			int[] array = bitmapor1.toArray();
 			bogus += array.length;
 		}
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+
+                bef = System.currentTimeMillis();
+                for (int r = 0; r < repeat; ++r) {
+                        ConciseSet bitmapor1 = ConciseSetUtil.fastOR(bitmap);
+                        ConciseSet bitmapor2 = ConciseSetUtil.fastOR(bitmap2);
+                        bitmapor1 = bitmapor1.union(bitmapor2);
+                        int[] array = bitmapor1.toArray();
+                        bogus += array.length;
+                }
+                aft = System.currentTimeMillis();
+                line += "\t" + df.format((aft - bef) / 1000.0);
+		
+
 		
 		OrGraphCoordinates.get(2).lastElement().setGname("Concise");
 		OrGraphCoordinates.get(2).lastElement().setY((aft - bef) / 1000.0);
 
 		// logical and + retrieval
-		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
 			ConciseSet bitmapand1 = bitmap[0].clone();
 			ConciseSet bitmapand2 = bitmap2[0].clone();
@@ -551,14 +588,23 @@ public class Benchmark {
 			int[] array = bitmapand1.toArray();
 			if(array!=null) bogus += array.length;
 		}
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+
+                bef = System.currentTimeMillis();
+                for (int r = 0; r < repeat; ++r) {
+                        ConciseSet bitmapand1 = ConciseSetUtil.fastAND(bitmap);
+                        ConciseSet bitmapand2 = ConciseSetUtil.fastAND(bitmap2);
+                        bitmapand1 = bitmapand1.intersection(bitmapand2);
+                        int[] array = bitmapand1.toArray();
+                        bogus += array.length;
+                }
+                aft = System.currentTimeMillis();
+                line += "\t" + df.format((aft - bef) / 1000.0);
+
 		
 		AndGraphCoordinates.get(2).lastElement().setGname("Concise");
 		AndGraphCoordinates.get(2).lastElement().setY((aft - bef) / 1000.0);
 		
 		// logical xor + retrieval
-		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
 			ConciseSet bitmapand1 = bitmap[0].clone();
 			ConciseSet bitmapand2 = bitmap2[0].clone();
@@ -570,8 +616,17 @@ public class Benchmark {
 			int[] array = bitmapand1.toArray();
 			if(array!=null) bogus += array.length;
 		}
-		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);
+                bef = System.currentTimeMillis();
+                for (int r = 0; r < repeat; ++r) {
+                        ConciseSet bitmapxor1 = ConciseSetUtil.fastXOR(bitmap);
+                        ConciseSet bitmapxor2 = ConciseSetUtil.fastXOR(bitmap2);
+                        bitmapxor1 = bitmapxor1.intersection(bitmapxor2);
+                        int[] array = bitmapxor1.toArray();
+                        bogus += array.length;
+                }
+                aft = System.currentTimeMillis();
+                line += "\t" + df.format((aft - bef) / 1000.0);
+
 		
 		XorGraphCoordinates.get(2).lastElement().setGname("Concise");
 		XorGraphCoordinates.get(2).lastElement().setY((aft - bef) / 1000.0);
