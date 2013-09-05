@@ -211,29 +211,25 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 		this.cardinality = 0;
 		for(int k=0; k<this.bitmap.length; k++) {
 			this.bitmap[k] &= B2.bitmap[k];
-			this.cardinality += Long.bitCount(this.bitmap[k]);
+			//this.cardinality += Long.bitCount(this.bitmap[k]);
 		}
+		this.cardinality = this.expensiveComputeCardinality();
 		return this;
 	}
 	
 	public ArrayContainer inPlaceAND(final ArrayContainer value2) 
 	{		
-		short[] newContent = new short[value2.content.length]; //I think it's more efficient than using remove
-		int card = 0;
-	   for (int k = 0; k < value2.getCardinality(); ++k)
-	   if (this.contains(value2.content[k]))
-				newContent[card++] = value2.content[k];
-	   value2.content = newContent;
-	   value2.cardinality = card;
-	   return value2;
+		ArrayContainer val1 = ContainerFactory.transformToArrayContainer(this);		
+	   return val1.inPlaceAND(value2);
 	}
 	
 	public Container inPlaceOR(final BitmapContainer B2) {
 		this.cardinality = 0;
 		for(int k=0; k<this.bitmap.length; k++) {
 			this.bitmap[k] |= B2.bitmap[k];
-			this.cardinality += Long.bitCount(this.bitmap[k]);
+			//this.cardinality += Long.bitCount(this.bitmap[k]);
 		}
+		this.cardinality = this.expensiveComputeCardinality();
 		return this;
 	}
 	
@@ -241,9 +237,10 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 	{		
 	     for (int k = 0; k < value2.cardinality; ++k)	{				
 		    final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
-			this.cardinality += ((~this.bitmap[i]) & (1l << value2.content[k])) >>> value2.content[k] ;// in Java, shifts are always "modulo"
+			//this.cardinality += ((~this.bitmap[i]) & (1l << value2.content[k])) >>> value2.content[k] ;// in Java, shifts are always "modulo"
 			this.bitmap[i] |= (1l << value2.content[k]);
 		}
+	    this.cardinality = this.expensiveComputeCardinality();
 		return this;
 	}
 	
@@ -252,8 +249,9 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 	for (int k = 0; k < this.bitmap.length; ++k) {
 		this.bitmap[k] ^= B2.bitmap[k];
 		//if(answer.bitmap[k]!=0) // probably not wise performance-wise
-		this.cardinality += Long.bitCount(this.bitmap[k]);
+		//this.cardinality += Long.bitCount(this.bitmap[k]);
 	}
+	this.cardinality = this.expensiveComputeCardinality();
 	if (this.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
 		return ContainerFactory.transformToArrayContainer(this);
 	return this;
@@ -263,10 +261,11 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 	{
 	    for (int k = 0; k < value2.getCardinality(); ++k) {
 		    final int index = Util.toIntUnsigned(value2.content[k]) >>> 6;
-		    this.cardinality +=  1- 2*((this.bitmap[index] & (1l << value2.content[k] )) >>> value2.content[k]);
+		    //this.cardinality +=  1- 2*((this.bitmap[index] & (1l << value2.content[k] )) >>> value2.content[k]);
             this.bitmap[index] = this.bitmap[index]
                                         ^ (1l << value2.content[k] );
 		}	
+	    this.cardinality = this.expensiveComputeCardinality();
 		if (this.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
 			return ContainerFactory.transformToArrayContainer(this);
 		return this;

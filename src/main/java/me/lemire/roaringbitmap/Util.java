@@ -25,6 +25,20 @@ public final class Util {
                                 .and((ArrayContainer) value2);
                 return ((BitmapContainer) value2).and((BitmapContainer) value1);
         }
+        
+        protected static Container inPlaceAND(Container value1, Container value2) {
+            if (value1 instanceof ArrayContainer) {
+                    if (value2 instanceof ArrayContainer)
+                            return ((ArrayContainer) value1)
+                                    .inPlaceAND((ArrayContainer) value2);
+                    return ((BitmapContainer) value2)
+                            .inPlaceAND((ArrayContainer) value1);
+            }
+            if (value2 instanceof ArrayContainer)
+                    return ((BitmapContainer) value1)
+                            .inPlaceAND((ArrayContainer) value2);
+            return ((BitmapContainer) value2).inPlaceAND((BitmapContainer) value1);
+    }
 
         protected static Container or(Container value1, Container value2) {
                 if (value1 instanceof ArrayContainer) {
@@ -39,6 +53,20 @@ public final class Util {
                                 .or((ArrayContainer) value2);
                 return ((BitmapContainer) value2).or((BitmapContainer) value1);
         }
+        
+        protected static Container inPlaceOR(Container value1, Container value2) {
+            if (value1 instanceof ArrayContainer) {
+                    if (value2 instanceof ArrayContainer)
+                            return ((ArrayContainer) value1)
+                                    .inPlaceOR((ArrayContainer) value2);
+                    return ((BitmapContainer) value2)
+                            .inPlaceOR((ArrayContainer) value1);
+            }
+            if (value2 instanceof ArrayContainer)
+                    return ((BitmapContainer) value1)
+                            .inPlaceOR((ArrayContainer) value2);
+            return ((BitmapContainer) value2).inPlaceOR((BitmapContainer) value1);
+    }
 
         protected static Container xor(Container value1, Container value2) {
                 if (value1 instanceof ArrayContainer) {
@@ -52,6 +80,20 @@ public final class Util {
                         return ((BitmapContainer) value1)
                                 .xor((ArrayContainer) value2);
                 return ((BitmapContainer) value2).xor((BitmapContainer) value1);
+        }
+        
+        protected static Container inPlaceXOR(Container value1, Container value2) {
+            if (value1 instanceof ArrayContainer) {
+                    if (value2 instanceof ArrayContainer)
+                            return ((ArrayContainer) value1)
+                                    .inPlaceXOR((ArrayContainer) value2);
+                    return ((BitmapContainer) value2)
+                            .inPlaceXOR((ArrayContainer) value1);
+            }
+            if (value2 instanceof ArrayContainer)
+                    return ((BitmapContainer) value1)
+                            .inPlaceXOR((ArrayContainer) value2);
+            return ((BitmapContainer) value2).inPlaceXOR((BitmapContainer) value1);
         }
 
         public final static int toIntUnsigned(short x) {

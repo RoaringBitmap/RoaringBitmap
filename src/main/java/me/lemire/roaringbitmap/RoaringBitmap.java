@@ -38,6 +38,11 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 			highlowcontainer.put(hb, newac.add(Util.lowbits(x)));
 		}
 	}
+	
+	public void validate() {
+		for (Container C: this.highlowcontainer.values())
+			C.validate();
+	}
 
 	public static RoaringBitmap and(final RoaringBitmap x1, final RoaringBitmap x2) {
 	        final RoaringBitmap answer = new RoaringBitmap();
@@ -68,8 +73,38 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 		return answer;
 	}
 	
+	public static RoaringBitmap inPlaceAND(final RoaringBitmap x1, final RoaringBitmap x2) {
+        final ShortBidirectionalIterator p1 = x1.highlowcontainer.keySet().iterator();
+        final ShortBidirectionalIterator p2 = x2.highlowcontainer.keySet().iterator();
+	main: if (p1.hasNext() && p2.hasNext()) {
+	        short s1 = p1.next();
+	        short s2 = p2.next();
+		do {
+			if (s1 < s2) {
+				if (!p1.hasNext())
+					break main;				
+				x1.highlowcontainer.remove(s1);
+				s1 = p1.next();
+			} else if (s1 > s2) {
+				if (!p2.hasNext())	break main;
+				s2 = p2.next();
+			} else { 
+				Container C = Util.inPlaceAND(x1.highlowcontainer.get(s1), 
+						x2.highlowcontainer.get(s2));
+				if(C.getCardinality()>0)
+					x1.highlowcontainer.put(s1,C);
+				if (!p1.hasNext())	break main;
+				if (!p2.hasNext())	break main;
+				s1 = p1.next();
+				s2 = p2.next();
+			}
+		} while (true);
+	}
+	return x1;
+}
+	
 	// DL: I have a theory that this might be suboptimal, see and().
-        public static RoaringBitmap oldand(final RoaringBitmap x1, final RoaringBitmap x2) {
+    public static RoaringBitmap oldand(final RoaringBitmap x1, final RoaringBitmap x2) {
                 System.out.println("and");
                 final RoaringBitmap answer = new RoaringBitmap();
                 final Iterator<Entry<Short, Container>> p1 = x1.highlowcontainer
@@ -103,7 +138,6 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
                 }
                 return answer;
         }
-
 	
 	public static RoaringBitmap or(final RoaringBitmap x1, final RoaringBitmap x2) {
 	    final RoaringBitmap answer = new RoaringBitmap();
@@ -170,11 +204,59 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 		return answer;
 	}
 	
-	public void validate() {
-		for (Container C: this.highlowcontainer.values())
-			C.validate();
-	}
+	public static RoaringBitmap inPlaceOR(final RoaringBitmap x1, final RoaringBitmap x2) {
+	    //final RoaringBitmap answer = new RoaringBitmap();
+		final Iterator<Entry<Short, Container>> p1 = x1.highlowcontainer
+				.entrySet().iterator();
+		final Iterator<Entry<Short, Container>> p2 = x2.highlowcontainer
+				.entrySet().iterator();
+		main: if (p1.hasNext() && p2.hasNext()) {
+			Entry<Short, Container> s1 = p1.next();
+			Entry<Short, Container> s2 = p2.next();
 
+			while (true) {
+				if (s1.getKey().shortValue() < s2.getKey().shortValue()) {
+					//x1.highlowcontainer.put(s1.getKey(), s1.getValue());
+					if (!p1.hasNext()) { 
+						do {
+							x1.highlowcontainer.put(s2.getKey(),
+									s2.getValue());
+							if (!p2.hasNext())
+								break;
+							s2 = p2.next();
+						} while (true);
+						break main;
+					}
+					s1 = p1.next();
+				} else if (s1.getKey().shortValue() > s2.getKey().shortValue()) { 
+					x1.highlowcontainer.put(s2.getKey(), s2.getValue());
+					if (!p2.hasNext())						
+						break main;
+					
+					s2 = p2.next();
+				} else {
+					//nbOR++;
+					x1.highlowcontainer.put(s1.getKey(),
+							Util.inPlaceOR(s1.getValue(), s2.getValue()));
+					if (!p1.hasNext()) { 
+						while (p2.hasNext()) {
+							s2 = p2.next();
+							x1.highlowcontainer.put(s2.getKey(),s2.getValue());
+						}
+						break main;
+					}
+
+					if (!p2.hasNext())						
+						break main;
+					
+					s1 = p1.next();
+					s2 = p2.next();
+				}
+			}
+		}
+		return x1;
+	}
+	
 	public static RoaringBitmap xor(final RoaringBitmap x1, final RoaringBitmap x2) {
 	        final RoaringBitmap answer = new RoaringBitmap();
 		final Iterator<Entry<Short, Container>> p1 = x1.highlowcontainer
@@ -241,6 +323,61 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 		}
 		return answer;
 	}
+	
+	public static RoaringBitmap inPlaceXOR(final RoaringBitmap x1, final RoaringBitmap x2) {
+       // final RoaringBitmap answer = new RoaringBitmap();
+	final Iterator<Entry<Short, Container>> p1 = x1.highlowcontainer
+			.entrySet().iterator();
+	final Iterator<Entry<Short, Container>> p2 = x2.highlowcontainer
+			.entrySet().iterator();
+	main: if (p1.hasNext() && p2.hasNext()) {
+		Entry<Short, Container> s1 = p1.next();
+		Entry<Short, Container> s2 = p2.next();
+
+		while (true) {
+			if (s1.getKey().shortValue() < s2.getKey().shortValue()) {
+				
+				if (!p1.hasNext()) { 
+					do {
+						x1.highlowcontainer.put(s2.getKey(),
+								s2.getValue());
+						if (!p2.hasNext())
+							break;
+						s2 = p2.next();
+					} while (true);
+					break main;
+				}
+				s1 = p1.next();
+			} else if (s1.getKey().shortValue() > s2.getKey().shortValue()) { 
+				x1.highlowcontainer.put(s2.getKey(), s2.getValue());
+				if (!p2.hasNext()) 
+					break main;
+				
+				s2 = p2.next();
+			} else { 
+				//nbXOR++;
+				Container C = Util.inPlaceXOR(s1.getValue(), s2.getValue());
+				if (C.getCardinality()>0)
+					x1.highlowcontainer.put(s1.getKey(), C);
+				if (!p1.hasNext()) {
+					while (p2.hasNext()) {
+						s2 = p2.next();
+						x1.highlowcontainer.put(s2.getKey(),
+								s2.getValue());
+					}
+					break main;
+				}
+
+				if (!p2.hasNext()) 
+					break main;
+				
+				s1 = p1.next();
+				s2 = p2.next();
+			}
+		}
+	}
+	return x1;
+}
 
 	public int[] getIntegers() {
 	        final int[] array = new int[this.getCardinality()];
@@ -267,7 +404,7 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 		        final Container corig = highlowcontainer.get(hb);
 		        final Container cc = corig.remove(Util.lowbits(x));
 		        if (cc.getCardinality() == 0)
-				highlowcontainer.remove(hb);
+		        	highlowcontainer.remove(hb);
 			else if(cc != corig)
 				highlowcontainer.put(hb, cc);
 		}

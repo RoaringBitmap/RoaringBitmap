@@ -1,5 +1,7 @@
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Vector;
 import junit.framework.Assert;
@@ -65,10 +67,10 @@ public class RoaringBitmapTest {
 
         @Test
         public void cardinalityTest() {
-                System.out.println("Testing cardinality computations (can take a few minutes)");
+                //System.out.println("Testing cardinality computations (can take a few minutes)");
                 final int N = 1024;
                 for (int gap = 7; gap < 100000; gap *= 10) {
-                        System.out.println("testing cardinality with gap = "+gap);
+                       // System.out.println("testing cardinality with gap = "+gap);
                         for (int offset = 2; offset <= 1024; offset *= 2) {
                                 RoaringBitmap rb = new RoaringBitmap();
                                 for (int k = 0; k < N; k++) {
@@ -270,18 +272,28 @@ public class RoaringBitmapTest {
 
 	@Test
 	public void andtest3() {
-		int[] arrayand = new int[5256];
-		int[] arrayres = new int[5256];
+		int[] arrayand = new int[20000];
+		int[] arrayres = new int[20000];
 		int pos = 0;
 		RoaringBitmap rr = new RoaringBitmap();
 		for (int k = 4000; k < 4256; ++k)
-			rr.add(k); // Seq
+			rr.add(k); 
 		for (int k = 65536; k < 65536 + 4000; ++k)
-			rr.add(k); // bitmap
-		for (int k = 4 * 65535; k < 4 * 65535 + 4000; ++k)
-			rr.add(k); // 4 ds seq et 3996 bitmap
-		for (int k = 6 * 65535; k < 6 * 65535 + 1000; ++k)
-			rr.add(k); // 6 ds seq et 994 ds bitmap
+			rr.add(k); 
+		for (int k = 3 * 65536; k < 3 * 65536 + 1000; ++k)
+			rr.add(k);
+		for (int k = 3 * 65536 + 1000; k < 3 * 65536 + 7000; ++k)
+			rr.add(k);
+		for (int k = 3 * 65536 + 7000; k < 3 * 65536 + 9000; ++k)
+			rr.add(k);
+		for (int k = 4 * 65535; k < 4 * 65535 + 7000; ++k)
+			rr.add(k); 
+		for (int k = 6 * 65535; k < 6 * 65535 + 10000; ++k)
+			rr.add(k); 
+		for (int k = 8 * 65535; k < 8 * 65535 + 1000; ++k)
+			rr.add(k);
+		for (int k = 9 * 65535; k < 9 * 65535 + 30000; ++k)
+			rr.add(k);
 
 		RoaringBitmap rr2 = new RoaringBitmap();
 		for (int k = 4000; k < 4256; ++k) {
@@ -292,9 +304,19 @@ public class RoaringBitmapTest {
 			rr2.add(k);
 			arrayand[pos++] = k;
 		}
+		for (int k = 3 * 65536 + 1000; k < 3 * 65536 + 7000; ++k) {
+			rr2.add(k);
+			arrayand[pos++] = k;
+		}			
 		for (int k = 6 * 65535; k < 6 * 65535 + 1000; ++k) {
 			rr2.add(k);
 			arrayand[pos++] = k;
+		}
+		for (int k = 7 * 65535; k < 7 * 65535 + 1000; ++k) {
+			rr2.add(k);
+		}
+		for (int k = 10 * 65535; k < 10 * 65535 + 5000; ++k) {
+			rr2.add(k);
 		}
 
 		RoaringBitmap rrand = RoaringBitmap.and(rr, rr2);
@@ -305,12 +327,11 @@ public class RoaringBitmapTest {
 		Assert.assertTrue(Arrays.equals(arrayand, arrayres));
 		
 		rr.validate();
-
 	}
 
 	@Test
 	public void ortest3() {
-	        System.out.println("ortest3 (can take some time)");
+	    //System.out.println("ortest3 (can take some time)");
 		HashSet<Integer> V1 = new HashSet<Integer>();
 		HashSet<Integer> V2 = new HashSet<Integer>();
 
@@ -380,7 +401,7 @@ public class RoaringBitmapTest {
 		
 		for (int i : rror) {
 			if (!vector.contains(new Integer(i))) {
-				System.out.println(" "+i);
+				//System.out.println(" "+i);
 				valide = false;
 			}
 			V2.add(new Integer(i));
@@ -388,7 +409,7 @@ public class RoaringBitmapTest {
 		for (int i = 0; i < V1.size(); i++)
 			if (!V2.contains(vector.elementAt(i))){
 				valide = false;
-				System.out.println(" "+vector.elementAt(i));
+				//System.out.println(" "+vector.elementAt(i));
 			}
 		
 		
@@ -398,30 +419,53 @@ public class RoaringBitmapTest {
 
 	@Test
 	public void xortest1() {
-		Vector<Integer> V1 = new Vector<Integer>();
-		Vector<Integer> V2 = new Vector<Integer>();
+		HashSet<Integer> V1 = new HashSet<Integer>();
+		HashSet<Integer> V2 = new HashSet<Integer>();
 
 		RoaringBitmap rr = new RoaringBitmap();
-		for (int k = 4000; k < 4256; ++k) {
+		RoaringBitmap rr2 = new RoaringBitmap();
+		//For the first 65536: rr2 has a bitmap container, and rr has an array container. 
+		//We will check the union between a BitmapCintainer and an arrayContainer  
+		for (int k = 0; k < 4000; ++k){
+			rr2.add(k);
+			if(k<3500) V1.add(new Integer(k));
+		}
+		for (int k = 3500; k < 4500; ++k) {
+			rr.add(k);			
+		}
+		for (int k = 4000; k < 65000; ++k){
+			rr2.add(k);
+		if(k>=4500) V1.add(new Integer(k));
+		}
+				
+		//In the second node of each roaring bitmap, we have two bitmap containers. 
+		//So, we will check the union between two BitmapContainers
+		for (int k = 65536; k < 65536 + 30000; ++k) {
+			rr.add(k);			
+		}
+				
+		for (int k = 65536; k < 65536 + 50000; ++k) {
+			rr2.add(k);
+			if(k>=65536+30000) V1.add(new Integer(k));
+		}
+				
+		//In the 3rd node of each Roaring Bitmap, we have an ArrayContainer. So, we will try the union between two 
+		//ArrayContainers. 
+		for (int k = 4 * 65535; k < 4 * 65535 + 1000; ++k) {
 			rr.add(k);
-		}// Seq
-		for (int k = 65536; k < 65536 + 4000; ++k) {
-			rr.add(k);
-		} // bitmap
-		for (int k = 4 * 65535; k < 4 * 65535 + 4000; ++k) {
-			rr.add(k);
-			V1.add(new Integer(k));
-		} // 4 in seq et 3996 in bitmap
+			if(k>=4*65535+800) V1.add(new Integer(k));			
+		} 
+				
+		for (int k = 4 * 65535; k < 4 * 65535 + 800; ++k) {
+			rr2.add(k);		
+		} 
+
+		//For the rest, we will check if the union will take them in the result
 		for (int k = 6 * 65535; k < 6 * 65535 + 1000; ++k) {
 			rr.add(k);
 			V1.add(new Integer(k));
-		} // 6 in seq et 994 in bitmap
-
-		RoaringBitmap rr2 = new RoaringBitmap();
-		for (int k = 4000; k < 4256; ++k)
-			rr2.add(k);
-		for (int k = 65536; k < 65536 + 4000; ++k)
-			rr2.add(k);
+		} 
+					
 		for (int k = 7 * 65535; k < 7 * 65535 + 2000; ++k) {
 			rr2.add(k);
 			V1.add(new Integer(k));
@@ -433,16 +477,261 @@ public class RoaringBitmapTest {
 		// Si tous les elements de rror sont dans V1 et que tous les elements de
 		// V1 sont dans rror(V2)
 		// alors V1 == rror
-
+		Object[] tab = V1.toArray();
+		Vector<Integer> vector = new Vector<Integer>();
+		for(int i=0; i<tab.length; i++)
+			vector.add((Integer) tab[i]);		
+				
 		for (int i : rrxor) {
-			if (!V1.contains(new Integer(i)))
+			if (!vector.contains(new Integer(i))) {
+				System.out.println(" "+i);
 				valide = false;
+			}
 			V2.add(new Integer(i));
 		}
-		for (int i = 0; i < V1.size() && valide; i++)
-			if (!V2.contains(V1.elementAt(i)))
+		for (int i = 0; i < V1.size(); i++)
+			if (!V2.contains(vector.elementAt(i))){
 				valide = false;
-
+				System.out.println(" "+vector.elementAt(i));
+			}
+				
+				
 		Assert.assertEquals(valide, true);
+		rr.validate();
+	}
+	
+	@Test
+	public void inPlaceANDtest() {
+		ArrayList<Integer> arrayand = new ArrayList<Integer>();
+		ArrayList<Integer> arrayres = new ArrayList<Integer>();
+		RoaringBitmap rr = new RoaringBitmap();
+		for (int k = 4000; k < 4256; ++k)
+			rr.add(k); 
+		for (int k = 65536; k < 65536 + 4000; ++k)
+			rr.add(k); 
+		for (int k = 3 * 65536; k < 3 * 65536 + 9000; ++k)
+			rr.add(k);
+		for (int k = 4 * 65535; k < 4 * 65535 + 7000; ++k)
+			rr.add(k); 
+		for (int k = 6 * 65535; k < 6 * 65535 + 10000; ++k)
+			rr.add(k); 
+		for (int k = 8 * 65535; k < 8 * 65535 + 1000; ++k)
+			rr.add(k);
+		for (int k = 9 * 65535; k < 9 * 65535 + 30000; ++k)
+			rr.add(k);
+
+		RoaringBitmap rr2 = new RoaringBitmap();
+		for (int k = 4000; k < 4256; ++k) {
+			rr2.add(k);
+			arrayand.add(k);
+		}
+		for (int k = 65536; k < 65536 + 4000; ++k) {
+			rr2.add(k);
+			arrayand.add(k);
+		}
+		for (int k = 3 * 65536 + 2000; k < 3 * 65536 + 6000; ++k) {
+			rr2.add(k);
+			arrayand.add(k);
+		}			
+		for (int k = 6 * 65535; k < 6 * 65535 + 1000; ++k) {
+			rr2.add(k);
+			arrayand.add(k);
+		}
+		for (int k = 7 * 65535; k < 7 * 65535 + 1000; ++k) {
+			rr2.add(k);
+		}
+		for (int k = 10 * 65535; k < 10 * 65535 + 5000; ++k) {
+			rr2.add(k);
+		}
+
+		RoaringBitmap rrand = RoaringBitmap.inPlaceAND(rr, rr2);
+		boolean valide = true; 
+		for (int i : rrand) {
+			if(!arrayand.contains(i)){
+				System.out.println("inPlaceAND and : "+i);
+				valide = false;
+			}
+			arrayres.add(i);
+		}
+		
+		for(int i=0; i<arrayand.size(); i++){
+			if(!arrayres.contains(arrayand.get(i))) { 
+				System.out.println("inPLaceAND res : "+arrayand.get(i));
+				valide = false;
+			}
+		}
+		
+		Assert.assertTrue(valide);
+		//Assert.assertTrue(Arrays.equals(arrayand.toArray(taband), arrayres.toArray(tabres)));		
+		rr.validate();
 	}	
+	
+	@Test
+	public void inPlaceORtest() {
+	        //System.out.println("ortest3 (can take some time)");
+		HashSet<Integer> V1 = new HashSet<Integer>();
+		HashSet<Integer> V2 = new HashSet<Integer>();
+
+		RoaringBitmap rr = new RoaringBitmap();
+		RoaringBitmap rr2 = new RoaringBitmap();
+		//For the first 65536: rr2 has a bitmap container, and rr has an array container. 
+		//We will check the union between a BitmapCintainer and an arrayContainer  
+		for (int k = 0; k < 4000; ++k){
+			rr2.add(k);
+			V1.add(new Integer(k));
+		}
+		for (int k = 3500; k < 4500; ++k) {
+			rr.add(k);
+			V1.add(new Integer(k));
+		}
+		for (int k = 4000; k < 65000; ++k){
+			rr2.add(k);
+			V1.add(new Integer(k));
+		}
+		
+		//In the second node of each roaring bitmap, we have two bitmap containers. 
+		//So, we will check the union between two BitmapContainers
+		for (int k = 65536; k < 65536 + 10000; ++k) {
+			rr.add(k);
+			V1.add(new Integer(k));
+		}
+		
+		for (int k = 65536; k < 65536 + 14000; ++k) {
+			rr2.add(k);
+			V1.add(new Integer(k));
+		}
+		
+		//In the 3rd node of each Roaring Bitmap, we have an ArrayContainer, so, we will try the union between two 
+		//ArrayContainers. 
+		for (int k = 4 * 65535; k < 4 * 65535 + 1000; ++k) {
+			rr.add(k);
+			V1.add(new Integer(k));			
+		} 
+		
+		for (int k = 4 * 65535; k < 4 * 65535 + 800; ++k) {
+			rr2.add(k);
+			V1.add(new Integer(k));			
+		} 
+
+		//For the rest, we will check if the union will take them in the result
+		for (int k = 6 * 65535; k < 6 * 65535 + 6000; ++k) {
+			rr.add(k);
+			V1.add(new Integer(k));
+		} 
+				
+		for (int k = 7 * 65535; k < 7 * 65535 + 2000; ++k) {
+			rr2.add(k);
+			V1.add(new Integer(k));
+		}
+
+		RoaringBitmap rror = RoaringBitmap.inPlaceOR(rr, rr2);
+		boolean valide = true;
+
+		// Si tous les elements de rror sont dans V1 et que tous les elements de
+		// V1 sont dans rror(V2)
+		// alors V1 == rror
+
+		Object[] tab = V1.toArray();
+		Vector<Integer> vector = new Vector<Integer>();
+		for(int i=0; i<tab.length; i++)
+			vector.add((Integer) tab[i]);		
+		
+		for (int i : rror) {
+			if (!vector.contains(new Integer(i))) {
+				//System.out.println(" "+i);
+				valide = false;
+			}
+			V2.add(new Integer(i));
+		}
+		for (int i = 0; i < V1.size(); i++)
+			if (!V2.contains(vector.elementAt(i))){
+				valide = false;
+				//System.out.println(" "+vector.elementAt(i));
+			}
+		
+		
+		Assert.assertEquals(valide, true);
+		rr.validate();
+	}
+
+	@Test
+	public void inPlaceXORtest() {
+		HashSet<Integer> V1 = new HashSet<Integer>();
+		HashSet<Integer> V2 = new HashSet<Integer>();
+
+		RoaringBitmap rr = new RoaringBitmap();
+		RoaringBitmap rr2 = new RoaringBitmap();
+		//For the first 65536: rr2 has a bitmap container, and rr has an array container. 
+		//We will check the union between a BitmapCintainer and an arrayContainer  
+		for (int k = 0; k < 4000; ++k){
+			rr2.add(k);
+			if(k<3500) V1.add(new Integer(k));
+		}
+		for (int k = 3500; k < 4500; ++k) {
+			rr.add(k);			
+		}
+		for (int k = 4000; k < 65000; ++k){
+			rr2.add(k);
+		if(k>=4500) V1.add(new Integer(k));
+		}
+				
+		//In the second node of each roaring bitmap, we have two bitmap containers. 
+		//So, we will check the union between two BitmapContainers
+		for (int k = 65536; k < 65536 + 30000; ++k) {
+			rr.add(k);			
+		}
+				
+		for (int k = 65536; k < 65536 + 50000; ++k) {
+			rr2.add(k);
+			if(k>=65536+30000) V1.add(new Integer(k));
+		}
+				
+		//In the 3rd node of each Roaring Bitmap, we have an ArrayContainer. So, we will try the union between two 
+		//ArrayContainers. 
+		for (int k = 4 * 65536; k < 4 * 65536 + 1000; ++k) {
+			rr.add(k);
+			if(k>=4*65536+800) V1.add(new Integer(k));			
+		} 
+				
+		for (int k = 4 * 65536; k < 4 * 65536 + 800; ++k) {
+			rr2.add(k);		
+		} 
+
+		//For the rest, we will check if the union will take them in the result
+		for (int k = 6 * 65536; k < 6 * 65536 + 1000; ++k) {
+			rr.add(k);
+			V1.add(new Integer(k));
+		} 
+					
+		for (int k = 7 * 65536; k < 7 * 65536 + 2000; ++k) {
+			rr2.add(k);
+			V1.add(new Integer(k));
+		}
+
+		RoaringBitmap rrxor = RoaringBitmap.inPlaceXOR(rr, rr2);
+		boolean valide = true;
+
+		//if V1 contains all rror(V2) elements, and rrxor(V2) contains all V1 elements
+		//than V1 == rror		
+		Object[] tab = V1.toArray();
+		Vector<Integer> vector = new Vector<Integer>();
+		for(int i=0; i<tab.length; i++)
+			vector.add((Integer) tab[i]);		
+				
+		for (int i : rrxor) {
+			if (!vector.contains(new Integer(i))) {
+				System.out.println("rrxor "+i);
+				valide = false;
+			}
+			V2.add(new Integer(i));
+		}
+		for (int i = 0; i < V1.size(); i++)
+			if (!V2.contains(vector.elementAt(i))){
+				valide = false;
+				System.out.println(" "+vector.elementAt(i));
+			}				
+				
+		Assert.assertEquals(valide, true);
+		rr.validate();
+	}
 }

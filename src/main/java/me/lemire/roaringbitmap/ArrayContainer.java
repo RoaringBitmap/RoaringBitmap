@@ -128,13 +128,23 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 	}
 	
 	public ArrayContainer inPlaceAND(final ArrayContainer value2) {
-		ArrayContainer value1 = this;
-		final int desiredcapacity = value1.getCardinality() <= value2.getCardinality() ? value1.getCardinality() : 
-									value2.getCardinality();
-		short[] newContent = new short[desiredcapacity];
+		
+		ArrayContainer small, big;
+		if(this.getCardinality() <= value2.getCardinality()) {
+			small = this;
+			big = value2;
+		}
+		else { 	small = value2;
+				big = this;
+			}
+		
+		final int desiredcapacity = small.getCardinality();
+		short[] newContent = new short[desiredcapacity];//I think it's better than removes in O(nxn) 		
+		
 		int card = 0;
 		for(int i=0; i<desiredcapacity; i++)
-			if(value2.contains(value1.content[i])) newContent[card++] = value1.content[i];
+			if(big.contains(small.content[i])) 
+				newContent[card++] = small.content[i];
 		this.content = newContent;
 		this.cardinality = card;
 		return this;
@@ -156,6 +166,7 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 	}
 	
 	public Container inPlaceOR(final ArrayContainer value2) {
+		//Using inPlace operations on arrays is very expensive. Each modification needs O(n) shifts   
         final ArrayContainer value1 = this;
         int tailleAC = value1.getCardinality()+value2.getCardinality();
         final int desiredcapacity = tailleAC > 65535 ? 65535 : tailleAC;

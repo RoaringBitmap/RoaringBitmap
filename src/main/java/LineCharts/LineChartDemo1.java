@@ -123,8 +123,8 @@ public class LineChartDemo1 extends ApplicationFrame {
         // create the chart...
         final JFreeChart chart = ChartFactory.createLineChart(
             title,       // chart title
-            "Type",                    // domain axis label
-            "Value",                   // range axis label
+            "Density",                    // domain axis label
+            "Time",                   // range axis label
             dataset,                   // data
             PlotOrientation.VERTICAL,  // orientation
             true,                      // include legend
