@@ -1,4 +1,4 @@
-package LineCharts;
+package me.lemire.roaringbitmap.experiments.LineCharts;
 import org.jfree.ui.ApplicationFrame;
 
 

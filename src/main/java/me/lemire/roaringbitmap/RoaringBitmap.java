@@ -73,7 +73,8 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 		return answer;
 	}
 	
-	public static RoaringBitmap inPlaceAND(final RoaringBitmap x1, final RoaringBitmap x2) {
+	public void inPlaceAND(final RoaringBitmap x2) {
+	        final RoaringBitmap x1 = this;
         final ShortBidirectionalIterator p1 = x1.highlowcontainer.keySet().iterator();
         final ShortBidirectionalIterator p2 = x2.highlowcontainer.keySet().iterator();
 	main: if (p1.hasNext() && p2.hasNext()) {
@@ -100,7 +101,6 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 			}
 		} while (true);
 	}
-	return x1;
 }
 	
 	// DL: I have a theory that this might be suboptimal, see and().
@@ -204,7 +204,8 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 		return answer;
 	}
 	
-	public static RoaringBitmap inPlaceOR(final RoaringBitmap x1, final RoaringBitmap x2) {
+	public void inPlaceOR (final RoaringBitmap x2) {
+	        final RoaringBitmap x1 = this;
 	    //final RoaringBitmap answer = new RoaringBitmap();
 		final Iterator<Entry<Short, Container>> p1 = x1.highlowcontainer
 				.entrySet().iterator();
@@ -254,7 +255,6 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 				}
 			}
 		}
-		return x1;
 	}
 	
 	public static RoaringBitmap xor(final RoaringBitmap x1, final RoaringBitmap x2) {
@@ -324,7 +324,8 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 		return answer;
 	}
 	
-	public static RoaringBitmap inPlaceXOR(final RoaringBitmap x1, final RoaringBitmap x2) {
+	public  void inPlaceXOR(final RoaringBitmap x2) {
+	        final RoaringBitmap x1 = this;
        // final RoaringBitmap answer = new RoaringBitmap();
 	final Iterator<Entry<Short, Container>> p1 = x1.highlowcontainer
 			.entrySet().iterator();
@@ -376,7 +377,6 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 			}
 		}
 	}
-	return x1;
 }
 
 	public int[] getIntegers() {

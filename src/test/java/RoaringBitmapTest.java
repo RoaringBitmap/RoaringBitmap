@@ -1,7 +1,6 @@
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Vector;
 import junit.framework.Assert;
@@ -10,7 +9,7 @@ import me.lemire.roaringbitmap.BitmapContainer;
 import me.lemire.roaringbitmap.RoaringBitmap;
 import org.junit.Test;
 
-@SuppressWarnings("static-method")
+@SuppressWarnings({ "static-method", "deprecation" })
 public class RoaringBitmapTest {
 
         @Test
@@ -543,8 +542,8 @@ public class RoaringBitmapTest {
 		for (int k = 10 * 65535; k < 10 * 65535 + 5000; ++k) {
 			rr2.add(k);
 		}
-
-		RoaringBitmap rrand = RoaringBitmap.inPlaceAND(rr, rr2);
+		rr.inPlaceAND(rr2);
+		RoaringBitmap rrand = rr;
 		boolean valide = true; 
 		for (int i : rrand) {
 			if(!arrayand.contains(i)){
@@ -623,8 +622,8 @@ public class RoaringBitmapTest {
 			rr2.add(k);
 			V1.add(new Integer(k));
 		}
-
-		RoaringBitmap rror = RoaringBitmap.inPlaceOR(rr, rr2);
+		rr.inPlaceOR(rr2);
+		RoaringBitmap rror = rr;
 		boolean valide = true;
 
 		// Si tous les elements de rror sont dans V1 et que tous les elements de
@@ -708,7 +707,8 @@ public class RoaringBitmapTest {
 			V1.add(new Integer(k));
 		}
 
-		RoaringBitmap rrxor = RoaringBitmap.inPlaceXOR(rr, rr2);
+		rr.inPlaceXOR(rr2);
+		RoaringBitmap rrxor = rr;
 		boolean valide = true;
 
 		//if V1 contains all rror(V2) elements, and rrxor(V2) contains all V1 elements

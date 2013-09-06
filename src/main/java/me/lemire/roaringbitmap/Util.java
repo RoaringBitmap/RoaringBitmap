@@ -31,12 +31,11 @@ public final class Util {
                     if (value2 instanceof ArrayContainer)
                             return ((ArrayContainer) value1)
                                     .inPlaceAND((ArrayContainer) value2);
-                    return ((BitmapContainer) value2)
-                            .inPlaceAND((ArrayContainer) value1);
+                    return 
+                            ((ArrayContainer) value1).inPlaceAND((BitmapContainer) value2);
             }
             if (value2 instanceof ArrayContainer)
-                    return ((BitmapContainer) value1)
-                            .inPlaceAND((ArrayContainer) value2);
+                    return ((ArrayContainer) value2).inPlaceAND((BitmapContainer) value1);
             return ((BitmapContainer) value2).inPlaceAND((BitmapContainer) value1);
     }
 

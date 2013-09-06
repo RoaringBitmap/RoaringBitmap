@@ -8,13 +8,12 @@ import java.util.BitSet;
 import java.util.Iterator;
 import java.util.Vector;
 
-import me.lemire.roaringbitmap.FastAggregation;
-import me.lemire.roaringbitmap.RoaringBitmap;
+import me.lemire.roaringbitmap.*;
+import me.lemire.roaringbitmap.experiments.LineCharts.LineChartDemo1;
+import me.lemire.roaringbitmap.experiments.LineCharts.LineChartPoint;
 
 import org.devbrat.util.WAHBitSet;
 import sparsebitmap.SparseBitmap;
-import LineCharts.LineChartDemo1;
-import LineCharts.LineChartPoint;
 
 import com.googlecode.javaewah.EWAHCompressedBitmap;
 import com.googlecode.javaewah32.EWAHCompressedBitmap32;
@@ -42,7 +41,7 @@ public class Benchmark {
                 }
 	}
 	
-	private static RoaringBitmap fastOR(RoaringBitmap[] tabRB) {
+	/*private static RoaringBitmap fastOR(RoaringBitmap[] tabRB) {
 		return FastAggregation.or(tabRB);
 	}
 	
@@ -52,7 +51,7 @@ public class Benchmark {
 	
 	private static RoaringBitmap fastAND(RoaringBitmap[] tabRB) {
 		return FastAggregation.and(tabRB);
-	}
+	}*/
 	
 	/*private static RoaringBitmap simpleOR(RoaringBitmap[] tabRB) {
 		RoaringBitmap rb = tabRB[0];
@@ -134,13 +133,13 @@ public class Benchmark {
 				bitmapor1.validate();
 				bitmapor2 = RoaringBitmap.or(bitmapor2, bitmap2[k]);
 				bitmapor2.validate();*/
-				bitmapor1 = RoaringBitmap.inPlaceOR(bitmapor1, bitmap[k]);
+				bitmapor1.inPlaceOR(bitmap[k]);
 				bitmapor1.validate();
-				bitmapor2 = RoaringBitmap.inPlaceOR(bitmapor2, bitmap2[k]);
+				bitmapor2.inPlaceOR(bitmap2[k]);
 				bitmapor2.validate();
 			}
 
-			bitmapor1 = RoaringBitmap.inPlaceOR(bitmapor1, bitmapor2);
+			bitmapor1.inPlaceOR(bitmapor2);
 			bitmapor1.validate();
 			//System.out.println("nbOR = "+RoaringBitmap.nbOR);
 			int[] array = bitmapor1.getIntegers();
@@ -160,10 +159,10 @@ public class Benchmark {
 			bitmapor1 = RoaringBitmap.or(bitmapor1, bitmapor2);*/
 			
 			for (int k = 1; k < N; ++k) {
-				bitmapor1 = RoaringBitmap.inPlaceOR(bitmapor1, bitmap[k]);
-				bitmapor2 = RoaringBitmap.inPlaceOR(bitmapor2, bitmap2[k]);
+				bitmapor1.inPlaceOR(bitmap[k]);
+				bitmapor2.inPlaceOR(bitmap2[k]);
 			}
-			bitmapor1 = RoaringBitmap.inPlaceOR(bitmapor1, bitmapor2);
+			bitmapor1.inPlaceOR(bitmapor2);
 			
 			int[] array = bitmapor1.getIntegers();
 			bogus += array.length;
@@ -181,12 +180,12 @@ public class Benchmark {
 			RoaringBitmap bitmapand2 = bitmap2[0].clone();
 			bitmapand2.validate();
 			for (int k = 1; k < N; ++k) {
-				bitmapand1 = RoaringBitmap.inPlaceAND(bitmapand1, bitmap[k]);
+				bitmapand1.inPlaceAND( bitmap[k]);
 				bitmapand1.validate();
-				bitmapand2 = RoaringBitmap.inPlaceAND(bitmapand2, bitmap2[k]);
+				bitmapand2.inPlaceAND( bitmap2[k]);
 				bitmapand2.validate();
 			}
-			bitmapand1 = RoaringBitmap.inPlaceAND(bitmapand1, bitmapand2);
+			bitmapand1.inPlaceAND(bitmapand2);
 			bitmapand1.validate();
 			//System.out.println("nbAND = "+RoaringBitmap.nbAND);
 			int[] array = bitmapand1.getIntegers();
@@ -207,10 +206,10 @@ public class Benchmark {
 			bitmapand2 = fastAND(bitmap2);
 			bitmapand1 = RoaringBitmap.and(bitmapand1, bitmapand2);*/
 			for (int k = 1; k < N; ++k) {
-				bitmapand1 = RoaringBitmap.inPlaceAND(bitmapand1, bitmap[k]);
-				bitmapand2 = RoaringBitmap.inPlaceAND(bitmapand2, bitmap2[k]);
+				bitmapand1.inPlaceAND(bitmap[k]);
+				bitmapand2.inPlaceAND(bitmap2[k]);
 			}
-			bitmapand1 = RoaringBitmap.inPlaceAND(bitmapand1, bitmapand2);
+			bitmapand1.inPlaceAND(bitmapand2);
 			int[] array = bitmapand1.getIntegers();
 			bogus += array.length;
 		}
@@ -248,10 +247,10 @@ public class Benchmark {
 			bitmapxor2 = fastXOR(bitmap2);
 			bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmapxor2);*/
 			for (int k = 1; k < N; ++k) {
-				bitmapxor1 = RoaringBitmap.inPlaceXOR(bitmapxor1, bitmap[k]);
-				bitmapxor2 = RoaringBitmap.inPlaceXOR(bitmapxor2, bitmap2[k]);
+				bitmapxor1.inPlaceXOR(bitmap[k]);
+				bitmapxor2.inPlaceXOR(bitmap2[k]);
 			}
-			bitmapxor1 = RoaringBitmap.inPlaceXOR(bitmapxor1, bitmapxor2);
+			bitmapxor1.inPlaceXOR( bitmapxor2);
 			
 			int[] array = bitmapxor1.getIntegers();
 			bogus += array.length;
@@ -1033,7 +1032,8 @@ public class Benchmark {
 	public static void ZipfianTests(int N, int repeat, String path) {
 		
 		DecimalFormat df = new DecimalFormat("0.###");
-		ZipfianDistribution zpf = new ZipfianDistribution();	
+		System.out.println("WARNING: Though I am called ZipfianTests, I am using a uniform data generator. Maybe a better design would use the same method and have the data type as a parameter.");
+		//ZipfianDistribution zpf = new ZipfianDistribution();	
 		uniform = new UniformDataGenerator();
 		
 		/*System.out.println("# For each instance, we report the size, the construction time, ");

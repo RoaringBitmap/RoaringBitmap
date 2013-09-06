@@ -12,43 +12,49 @@ public class ConciseSetUtil {
         }
 
         protected static ConciseSet fastOR(ConciseSet... bitmaps) {
-                PriorityQueue<ConciseSet> pq = new PriorityQueue<ConciseSet>(
-                        bitmaps.length, new Comparator<ConciseSet>() {
+                PriorityQueue<ConciseSetPointer> pq = new PriorityQueue<ConciseSetPointer>(
+                        bitmaps.length, new Comparator<ConciseSetPointer>() {
                                 @Override
-                                public int compare(ConciseSet a, ConciseSet b) {
-                                        return sizeInBytes(a) - sizeInBytes(b);
+                                public int compare(ConciseSetPointer a, ConciseSetPointer b) {
+                                        return sizeInBytes(a.cs) - sizeInBytes(b.cs);
                                 }
                         });
                 for (ConciseSet x : bitmaps) {
-                        pq.add(x.clone());
+                        pq.add(new ConciseSetPointer(x, true));
                 }
                 while (pq.size() > 1) {
-                        ConciseSet x1 = pq.poll();
-                        ConciseSet x2 = pq.poll();
-                        x1.union(x2);
+                        ConciseSetPointer x1 = pq.poll();
+                        ConciseSetPointer x2 = pq.poll();
+                        if(x1.needsCloning)
+                                x1.cs = x1.cs.clone();
+                        x1.cs.union(x2.cs);
+                        x1.needsCloning = false;
                         pq.add(x1);
                 }
-                return pq.poll();
+                return pq.poll().cs;
         }
 
         protected static ConciseSet fastXOR(ConciseSet... bitmaps) {
-                PriorityQueue<ConciseSet> pq = new PriorityQueue<ConciseSet>(
-                        bitmaps.length, new Comparator<ConciseSet>() {
+                PriorityQueue<ConciseSetPointer> pq = new PriorityQueue<ConciseSetPointer>(
+                        bitmaps.length, new Comparator<ConciseSetPointer>() {
                                 @Override
-                                public int compare(ConciseSet a, ConciseSet b) {
-                                        return sizeInBytes(a) - sizeInBytes(b);
+                                public int compare(ConciseSetPointer a, ConciseSetPointer b) {
+                                        return sizeInBytes(a.cs) - sizeInBytes(b.cs);
                                 }
                         });
                 for (ConciseSet x : bitmaps) {
-                        pq.add(x.clone());
+                        pq.add(new ConciseSetPointer(x, true));
                 }
                 while (pq.size() > 1) {
-                        ConciseSet x1 = pq.poll();
-                        ConciseSet x2 = pq.poll();
-                        x1.symmetricDifference(x2);
+                        ConciseSetPointer x1 = pq.poll();
+                        ConciseSetPointer x2 = pq.poll();
+                        if(x1.needsCloning)
+                                x1.cs = x1.cs.clone();
+                        x1.cs.symmetricDifference(x2.cs);
+                        x1.needsCloning = false;
                         pq.add(x1);
                 }
-                return pq.poll();
+                return pq.poll().cs;
         }
 
         protected static ConciseSet fastAND(ConciseSet... bitmaps) {
@@ -67,4 +73,14 @@ public class ConciseSetUtil {
                 return answer;
         }
 
+}
+
+class ConciseSetPointer {
+        ConciseSet cs;
+        boolean needsCloning;
+        public ConciseSetPointer(ConciseSet c, boolean mustclone) {
+                needsCloning = mustclone;
+                cs = c;
+                
+        }
 }

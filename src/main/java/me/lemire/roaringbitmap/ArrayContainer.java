@@ -128,25 +128,10 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 	}
 	
 	public ArrayContainer inPlaceAND(final ArrayContainer value2) {
-		
-		ArrayContainer small, big;
-		if(this.getCardinality() <= value2.getCardinality()) {
-			small = this;
-			big = value2;
-		}
-		else { 	small = value2;
-				big = this;
-			}
-		
-		final int desiredcapacity = small.getCardinality();
-		short[] newContent = new short[desiredcapacity];//I think it's better than removes in O(nxn) 		
-		
-		int card = 0;
-		for(int i=0; i<desiredcapacity; i++)
-			if(big.contains(small.content[i])) 
-				newContent[card++] = small.content[i];
-		this.content = newContent;
-		this.cardinality = card;
+	        ArrayContainer value1 = this;
+	        value1.cardinality = Util.unsigned_intersect2by2(value1.content,
+                        value1.getCardinality(), value2.content,
+                        value2.getCardinality(), value1.content);
 		return this;
 	}
 
@@ -282,6 +267,17 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
         @Override
         public void clear() {
                 cardinality = 0;                
+        }
+
+
+
+        public Container inPlaceAND(BitmapContainer value2) {
+                int pos = 0;
+                for(int k = 0; k < cardinality; ++k)
+                        if(value2.contains(this.content[k]))
+                                this.content[pos++] = this.content[k];
+                cardinality = pos;
+                return this;
         }
         
 }
