@@ -1170,9 +1170,9 @@ public class Benchmark {
 			File file = new File(Benchmarkdirs+"/Benchmark.txt");
 			
 			// if file doesnt exists, then create it
-			/*if (!file.exists()) {
+			if (!file.exists()) {
 				file.createNewFile();
-			}*/
+			}
 			
 			
 		
@@ -1189,7 +1189,7 @@ public class Benchmark {
 				+"# and the time required to compute logical ors (unions) between lots of bitmaps.\n\n");
 	} catch (IOException e) {e.printStackTrace();}
 		
-		for(double k=0.0001; k<0.001; k*=10) {
+		for(double k=0.0001; k<1.0; k*=10) {
 		SizeGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
 		OrGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
 		AndGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
@@ -1271,20 +1271,20 @@ public class Benchmark {
 			System.out.println();		
 		}		
                         if (path != null) {
-                        		path+= distribution==distUniform ? "/Uniform/" : "/Zipf/";
-                        		path+="Charts/";
+                        		String p = distribution==distUniform ? path+"/Uniform/" : path+"/Zipf/";
+                        		p+="Charts/";
                                 new LineChartDemo1(
                                         "Line Chart Size " + k + "_" + (k * 10),
-                                        SizeGraphCoordinates, path);
+                                        SizeGraphCoordinates, p);
                                  new LineChartDemo1(
                                         "Line Chart OR " + k + "_" + (k * 10),
-                                        OrGraphCoordinates, path);
+                                        OrGraphCoordinates, p);
                                 new LineChartDemo1(
                                         "Line Chart AND " + k + "_" + (k * 10),
-                                        AndGraphCoordinates, path);
+                                        AndGraphCoordinates, p);
                                 new LineChartDemo1(
                                         "Line Chart XOR " + k + "_" + (k * 10),
-                                        XorGraphCoordinates, path);
+                                        XorGraphCoordinates, p);
                         }
 		}
 		try {
