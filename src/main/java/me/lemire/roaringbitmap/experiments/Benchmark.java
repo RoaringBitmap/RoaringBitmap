@@ -1,6 +1,11 @@
 package me.lemire.roaringbitmap.experiments;
 
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,30 +33,35 @@ public class Benchmark {
 	static int FastAgregate = 1;
 	static int ClassicAgregate = 0;
 	private static UniformDataGenerator uniform;
+	private static int distUniform = 1;
+	private static int distZipf = 0;
+	private static BufferedWriter bw = null;
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
 		//test(10, 18, 10);
-                if (args.length > 0)
-                        ZipfianTests(10, 10, args[0]);
+                if (args.length > 0) {                    
+                	ZipfianTests(10, 10, args[0], distUniform);
+                	bw=null;
+                	ZipfianTests(10, 10, args[0], distZipf);
+                }
                 else {
-                        // System.out.println("Please, specify the path where the graphics will be stored");
-                        ZipfianTests(10, 10, null);// no plots needed
+                        ZipfianTests(10, 10, null, distUniform);// no plots needed
                 }
 	}
 	
-	/*private static RoaringBitmap fastOR(RoaringBitmap[] tabRB) {
-		return FastAggregation.or(tabRB);
+	private static RoaringBitmap fastOR(RoaringBitmap[] tabRB) {
+		return FastAggregation.inplace_or(tabRB);
 	}
 	
 	private static RoaringBitmap fastXOR(RoaringBitmap[] tabRB) {
-		return FastAggregation.xor(tabRB);
+		return FastAggregation.inplace_xor(tabRB);
 	}
 	
 	private static RoaringBitmap fastAND(RoaringBitmap[] tabRB) {
-		return FastAggregation.and(tabRB);
-	}*/
+		return FastAggregation.inplace_and(tabRB);
+	}
 	
 	/*private static RoaringBitmap simpleOR(RoaringBitmap[] tabRB) {
 		RoaringBitmap rb = tabRB[0];
@@ -67,6 +77,12 @@ public class Benchmark {
 				.println("# size, construction time, time to recover set bits, "
 						+ "time to compute unions (OR), intersections (AND) "
 						+ "and exclusive unions (XOR) ");
+		try {
+			bw.write("\n"+"# RoaringBitmap\n"+"# size, construction time, time to recover set bits, "
+							+ "time to compute unions (OR), intersections (AND) "
+							+ "and exclusive unions (XOR) ");
+		} catch (IOException e1) {e1.printStackTrace();}
+		
 		// Calculate the construction time
 		long bef, aft;
 		String line = "";
@@ -93,7 +109,7 @@ public class Benchmark {
 		
 		//SizeGraphCoordiantes.get(1).add(new LineChartPint());
 		
-		line += "\t" + size / 1024;
+		line += "\t" + (size / 1024);
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
 		SizeGraphCoordinates.get(0).lastElement().setGname("Roaring Bitmap");
@@ -123,24 +139,31 @@ public class Benchmark {
 			rb.validate();
 
 		// logical or + retrieval
-		{
-			RoaringBitmap bitmapor1 = bitmap[0].clone();
-			bitmapor1.validate();
-			RoaringBitmap bitmapor2 = bitmap2[0].clone();
-			bitmapor2.validate();
+		{			
+			//RoaringBitmap bitmapor1 = null;
+			//RoaringBitmap bitmapor2 = null;			
+			RoaringBitmap bitmapor1 = bitmap[0];//.clone();
+			RoaringBitmap bitmapor2 = bitmap2[0];//.clone();
+			//bitmapor1.validate();
+			//bitmapor2.validate();
 			for (int k = 1; k < N; ++k) {
-				/*bitmapor1 = RoaringBitmap.or(bitmapor1, bitmap[k]);
+				bitmapor1 = RoaringBitmap.or(bitmapor1, bitmap[k]);
 				bitmapor1.validate();
 				bitmapor2 = RoaringBitmap.or(bitmapor2, bitmap2[k]);
-				bitmapor2.validate();*/
-				bitmapor1.inPlaceOR(bitmap[k]);
+				bitmapor2.validate();
+				/*bitmapor1.inPlaceOR(bitmap[k]);
 				bitmapor1.validate();
 				bitmapor2.inPlaceOR(bitmap2[k]);
-				bitmapor2.validate();
+				bitmapor2.validate();*/
 			}
-
-			bitmapor1.inPlaceOR(bitmapor2);
+			bitmapor1 = RoaringBitmap.or(bitmapor1, bitmapor2);
 			bitmapor1.validate();
+			/*bitmapor1 = fastOR(bitmap);
+			bitmapor1.validate();
+			bitmapor2 = fastOR(bitmap2);
+			bitmapor1.validate();*/
+			//bitmapor1.inPlaceOR(bitmapor2);
+			//bitmapor1.validate();
 			//System.out.println("nbOR = "+RoaringBitmap.nbOR);
 			int[] array = bitmapor1.getIntegers();
 			bogus += array.length;
@@ -148,21 +171,24 @@ public class Benchmark {
 
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
-			RoaringBitmap bitmapor1 = bitmap[0].clone();
-			RoaringBitmap bitmapor2 = bitmap2[0].clone();
-			/*for (int k = 1; k < N; ++k) {
-				bitmapor1 = RoaringBitmap.or(bitmapor1, bitmap[k]);
-				bitmapor2 = RoaringBitmap.or(bitmapor2, bitmap2[k]);
-			}*/
-			/*bitmapor1 = fastOR(bitmap);
-			bitmapor2= fastOR(bitmap2);
-			bitmapor1 = RoaringBitmap.or(bitmapor1, bitmapor2);*/
+			RoaringBitmap bitmapor1 = bitmap[0];//.clone();
+			RoaringBitmap bitmapor2 = bitmap2[0];//.clone();
+			//RoaringBitmap bitmapor1 = null;
+			//RoaringBitmap bitmapor2 = null;
 			
 			for (int k = 1; k < N; ++k) {
+				bitmapor1 = RoaringBitmap.or(bitmapor1, bitmap[k]);
+				bitmapor2 = RoaringBitmap.or(bitmapor2, bitmap2[k]);
+			}
+			//bitmapor1 = fastOR(bitmap);
+			//bitmapor2= fastOR(bitmap2);
+			bitmapor1 = RoaringBitmap.or(bitmapor1, bitmapor2);
+			
+			/*for (int k = 1; k < N; ++k) {
 				bitmapor1.inPlaceOR(bitmap[k]);
 				bitmapor2.inPlaceOR(bitmap2[k]);
 			}
-			bitmapor1.inPlaceOR(bitmapor2);
+			bitmapor1.inPlaceOR(bitmapor2);*/
 			
 			int[] array = bitmapor1.getIntegers();
 			bogus += array.length;
@@ -175,41 +201,59 @@ public class Benchmark {
 		OrGraphCoordinates.get(0).lastElement().setY((aft - bef) / 1000.0);
 		
 		{
-			RoaringBitmap bitmapand1 = bitmap[0].clone();
+			RoaringBitmap bitmapand1 = bitmap[0];//.clone();			
+			RoaringBitmap bitmapand2 = bitmap2[0];//.clone();
 			bitmapand1.validate();
-			RoaringBitmap bitmapand2 = bitmap2[0].clone();
 			bitmapand2.validate();
 			for (int k = 1; k < N; ++k) {
+				bitmapand1 = RoaringBitmap.and(bitmapand1, bitmap[k]);
+				bitmapand1.validate();
+				bitmapand2 = RoaringBitmap.and(bitmapand2, bitmap2[k]);
+				bitmapand2.validate();
+			}
+			bitmapand1 = RoaringBitmap.and(bitmapand1, bitmapand2);
+			bitmapand1.validate();
+			/*for (int k = 1; k < N; ++k) {
 				bitmapand1.inPlaceAND( bitmap[k]);
 				bitmapand1.validate();
 				bitmapand2.inPlaceAND( bitmap2[k]);
 				bitmapand2.validate();
-			}
-			bitmapand1.inPlaceAND(bitmapand2);
+			}*/
+			/*bitmapand1 = fastAND(bitmap);
 			bitmapand1.validate();
+			bitmapand2 = fastAND(bitmap2);
+			bitmapand2.validate();*/
+			//bitmapand1.inPlaceAND(bitmapand2);
+			//bitmapand1.validate();
 			//System.out.println("nbAND = "+RoaringBitmap.nbAND);
 			int[] array = bitmapand1.getIntegers();
 			bogus += array.length;
-
 		}
 
 		// logical and + retrieval
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
-			RoaringBitmap bitmapand1 = bitmap[0].clone();
-			RoaringBitmap bitmapand2 = bitmap2[0].clone();
-			/*for (int k = 1; k < N; ++k) {
+			RoaringBitmap bitmapand1 = bitmap[0];
+										//null;//
+										//bitmap[0].clone();
+			RoaringBitmap bitmapand2 = bitmap2[0];
+										//null;//
+										//bitmap2[0].clone();
+			
+			for (int k = 1; k < N; ++k) {
 				bitmapand1 = RoaringBitmap.and(bitmapand1, bitmap[k]);
 				bitmapand2 = RoaringBitmap.and(bitmapand2, bitmap2[k]);
-			}*/
-			/*bitmapand1 = fastAND(bitmap);
-			bitmapand2 = fastAND(bitmap2);
-			bitmapand1 = RoaringBitmap.and(bitmapand1, bitmapand2);*/
-			for (int k = 1; k < N; ++k) {
+			}
+			//bitmapand1 = fastAND(bitmap);
+			//bitmapand2 = fastAND(bitmap2);
+			//bitmapand1 = RoaringBitmap.and(bitmapand1, bitmapand2);
+			/*for (int k = 1; k < N; ++k) {
 				bitmapand1.inPlaceAND(bitmap[k]);
 				bitmapand2.inPlaceAND(bitmap2[k]);
 			}
-			bitmapand1.inPlaceAND(bitmapand2);
+			bitmapand1.inPlaceAND(bitmapand2);*/
+			bitmapand1 = RoaringBitmap.and(bitmapand1, bitmapand2);
+			
 			int[] array = bitmapand1.getIntegers();
 			bogus += array.length;
 		}
@@ -221,15 +265,31 @@ public class Benchmark {
 
 		// logical xor + retrieval
 		{
-			RoaringBitmap bitmapxor1 = bitmap[0].clone();
-			RoaringBitmap bitmapxor2 = bitmap2[0].clone();
+			RoaringBitmap bitmapxor1 = bitmap[0]; 
+					//null;//
+			//bitmap[0].clone();
+			RoaringBitmap bitmapxor2 = bitmap2[0]; 
+					//null;
+					//bitmap2[0].clone();
 			for (int k = 1; k < N; ++k) {
 				bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmap[k]);
 				bitmapxor1.validate();
 				bitmapxor2 = RoaringBitmap.xor(bitmapxor2, bitmap2[k]);
 				bitmapxor2.validate();
+				
+				//bitmapxor1.inPlaceXOR(bitmap[k]);
+				//bitmapxor1.validate();
+				//bitmapxor2.inPlaceXOR(bitmap2[k]);
+				//bitmapxor2.validate();
 			}			
+			bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmapxor2);
 			bitmapxor1.validate();
+			/*bitmapxor1 = fastXOR(bitmap);
+			bitmapxor1.validate();
+			bitmapxor2 = fastXOR(bitmap2);
+			bitmapxor2.validate();*/
+			//bitmapxor1.inPlaceXOR(bitmapxor2);
+			//bitmapxor1.validate();
 			//System.out.println("nbXOR = "+RoaringBitmap.nbXOR);
 			int[] array = bitmapxor1.getIntegers();
 			bogus += array.length;
@@ -237,20 +297,23 @@ public class Benchmark {
 
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
-			RoaringBitmap bitmapxor1 = bitmap[0].clone();
-			RoaringBitmap bitmapxor2 = bitmap2[0].clone();
-			/*for (int k = 1; k < N; ++k) {
+			RoaringBitmap bitmapxor1 = bitmap[0];//.clone();
+			RoaringBitmap bitmapxor2 = bitmap2[0];//.clone();
+			//RoaringBitmap bitmapxor1 = null;
+			//RoaringBitmap bitmapxor2 = null;
+			for (int k = 1; k < N; ++k) {
 				bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmap[k]);
 				bitmapxor2 = RoaringBitmap.xor(bitmapxor2, bitmap2[k]);
-			}*/
+			}
+			bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmapxor2);
 			/*bitmapxor1 = fastXOR(bitmap);
 			bitmapxor2 = fastXOR(bitmap2);
-			bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmapxor2);*/
-			for (int k = 1; k < N; ++k) {
+			bitmapxor1.inPlaceXOR(bitmapxor2);*/
+			/*for (int k = 1; k < N; ++k) {
 				bitmapxor1.inPlaceXOR(bitmap[k]);
 				bitmapxor2.inPlaceXOR(bitmap2[k]);
 			}
-			bitmapxor1.inPlaceXOR( bitmapxor2);
+			bitmapxor1.inPlaceXOR(bitmapxor2);*/
 			
 			int[] array = bitmapxor1.getIntegers();
 			bogus += array.length;
@@ -263,6 +326,11 @@ public class Benchmark {
 
 		System.out.println(line);
 		System.out.println("# ignore this " + bogus);
+		try {
+			bw.write("\n"+line);
+			bw.write("\n# ignore this " + bogus+"\n\n");
+		} catch (IOException e) {e.printStackTrace();}
+		
 	}
 
 	public static void testBitSet(int[][] data, int[][] data2, int repeat,
@@ -272,6 +340,11 @@ public class Benchmark {
 				.println("# size, construction time, time to recover set bits, "
 						+ "time to compute unions (OR), intersections (AND) "
 						+ "and exclusive unions (XOR) ");
+		try {
+			bw.write("\n"+"# BitSet\n"+"# size, construction time, time to recover set bits, "
+							+ "time to compute unions (OR), intersections (AND) "
+							+ "and exclusive unions (XOR) ");
+		} catch (IOException e1) {e1.printStackTrace();}
 		long bef, aft;
 		String line = "";
 		int N = data.length, size = 0;
@@ -376,6 +449,9 @@ public class Benchmark {
 		line += "\t" + df.format((aft - bef) / 1000.0);
 
 		System.out.println(line);
+		try {
+			bw.write("\n"+line+"\n\n");
+		} catch (IOException e) {e.printStackTrace();}
 	}
 
 	public static void testWAH32(int[][] data, int[][] data2, int repeat,
@@ -384,6 +460,11 @@ public class Benchmark {
 		System.out
 				.println("# size, construction time, time to recover set bits, "
 						+ "time to compute unions (OR), intersections (AND)");
+		try {
+			bw.write("\n"+"# WAH32bits\n"+"# size, construction time, time to recover set bits, "
+							+ "time to compute unions (OR), intersections (AND) "
+							+ "and exclusive unions (XOR) ");
+		} catch (IOException e1) {e1.printStackTrace();}
 		long bef, aft;
 		int bogus = 0;
 		String line = "";
@@ -513,6 +594,10 @@ public class Benchmark {
 
 		System.out.println(line);
 		System.out.println("# ignore this " + bogus);
+		try {
+			bw.write("\n"+line);
+			bw.write("\n# ignore this " + bogus+"\n\n");
+		} catch (IOException e) {e.printStackTrace();}
 	}
 
 	public static void testConciseSet(int[][] data, int[][] data2, int repeat,
@@ -521,6 +606,11 @@ public class Benchmark {
 				.println("# ConciseSet 32 bit using the extendedset_2.2 library");
 		System.out
 				.println("# size, construction time, time to recover set bits, time to compute unions  and intersections ");
+		try {
+			bw.write("\n"+"# ConciseSet\n"+"# size, construction time, time to recover set bits, "
+							+ "time to compute unions (OR), intersections (AND) "
+							+ "and exclusive unions (XOR) ");
+		} catch (IOException e1) {e1.printStackTrace();}
 		long bef, aft;
 		String line = "";
 		int bogus = 0;
@@ -652,7 +742,10 @@ public class Benchmark {
 
 		System.out.println(line);
 		System.out.println("# ignore this " + bogus);
-
+		try {
+			bw.write("\n"+line);
+			bw.write("\n# ignore this " + bogus+"\n\n");
+		} catch (IOException e) {e.printStackTrace();}
 	}
 
 	public static void testSparseBitmap(int[][] data, int[][] data2,
@@ -660,6 +753,11 @@ public class Benchmark {
 		System.out.println("# simple sparse bitmap implementation");
 		System.out
 				.println("# size, construction time, time to recover set bits, time to compute unions (OR), intersections (AND) and exclusive unions (XOR) ");
+		try {
+			bw.write("\n"+"# simple sparse bitmap\n"+"# size, construction time, time to recover set bits, "
+							+ "time to compute unions (OR), intersections (AND) "
+							+ "and exclusive unions (XOR) ");
+		} catch (IOException e1) {e1.printStackTrace();}
 		long bef, aft;
 		int bogus = 0;
 		String line = "";
@@ -762,6 +860,10 @@ public class Benchmark {
 
 		System.out.println(line);
 		System.out.println("# ignore this " + bogus);
+		try {
+			bw.write("\n"+line);
+			bw.write("\n# ignore this " + bogus+"\n\n");
+		} catch (IOException e) {e.printStackTrace();}
 	}
 
 	public static void testEWAH64(int[][] data, int[][] data2, int repeat,
@@ -769,6 +871,11 @@ public class Benchmark {
 		System.out.println("# EWAH using the javaewah library");
 		System.out
 				.println("# size, construction time, time to recover set bits, time to compute unions  and intersections ");
+		try {
+			bw.write("\n"+"# EWAH64bits\n"+"# size, construction time, time to recover set bits, "
+							+ "time to compute unions (OR), intersections (AND) "
+							+ "and exclusive unions (XOR) ");
+		} catch (IOException e1) {e1.printStackTrace();}
 		long bef, aft;
 		String line = "";
 		int bogus = 0;
@@ -868,7 +975,10 @@ public class Benchmark {
 
 		System.out.println(line);
 		System.out.println("# ignore this " + bogus);
-
+		try {
+			bw.write("\n"+line);
+			bw.write("\n# ignore this " + bogus+"\n\n");
+		} catch (IOException e) {e.printStackTrace();}
 	}
 
 	public static void testEWAH32(int[][] data, int[][] data2, int repeat,
@@ -876,6 +986,11 @@ public class Benchmark {
 		System.out.println("# EWAH 32-bit using the javaewah library");
 		System.out
 				.println("# size, construction time, time to recover set bits, time to compute unions  and intersections ");
+		try {
+			bw.write("\n"+"# EWAH32bits\n"+"# size, construction time, time to recover set bits, "
+							+ "time to compute unions (OR), intersections (AND) "
+							+ "and exclusive unions (XOR) ");
+		} catch (IOException e1) {e1.printStackTrace();}
 		long bef, aft;
 		String line = "";
 		long bogus = 0;
@@ -974,7 +1089,10 @@ public class Benchmark {
 
 		System.out.println(line);
 		System.out.println("# ignore this " + bogus);
-
+		try {
+			bw.write("\n"+line);
+			bw.write("\n# ignore this " + bogus+"\n\n");
+		} catch (IOException e) {e.printStackTrace();}
 	}
 
 	public static void test(int N, int nbr, int repeat) {
@@ -1029,19 +1147,49 @@ public class Benchmark {
 	 * @param N number of generated sets of integers
 	 * @param repeat number of repetitions
 	 */
-	public static void ZipfianTests(int N, int repeat, String path) {
+	public static void ZipfianTests(int N, int repeat, String path, int distribution) {
 		
 		DecimalFormat df = new DecimalFormat("0.###");
-		System.out.println("WARNING: Though I am called ZipfianTests, I am using a uniform data generator. Maybe a better design would use the same method and have the data type as a parameter.");
-		//ZipfianDistribution zpf = new ZipfianDistribution();	
+		System.out.println("WARNING: Though I am called ZipfianTests, " +
+				"I am using a uniform data generator. Maybe a better design would use the same method " +
+				"and have the data type as a parameter.");
+		ZipfianDistribution zpf = new ZipfianDistribution();	
 		uniform = new UniformDataGenerator();
 		
-		/*System.out.println("# For each instance, we report the size, the construction time, ");
+		String Chartdirs = distribution == distUniform ? path+File.separator+"Uniform"+File.separator+"Charts" : 
+							path+File.separator+"Zipf"+File.separator+"Charts";
+		String Benchmarkdirs = distribution == distUniform ? path+File.separator+"Uniform"+File.separator+"Benchmark" : 
+			path+File.separator+"Zipf"+File.separator+"Benchmark";
+		try {
+			boolean success = (new File(Chartdirs).mkdirs());
+			boolean success2 = (new File(Benchmarkdirs).mkdirs());
+			if(success) System.out.println("folders created with success");
+		}	catch(Exception e) {e.getMessage();}
+		
+		try {			 
+			File file = new File(Benchmarkdirs+"/Benchmark.txt");
+			
+			// if file doesnt exists, then create it
+			/*if (!file.exists()) {
+				file.createNewFile();
+			}*/
+			
+			
+		
+		System.out.println("# For each instance, we report the size, the construction time, ");
 		System.out.println("# the time required to recover the set bits,");
 		System.out
-		.println("# and the time required to compute logical ors (unions) between lots of bitmaps.");*/
+		.println("# and the time required to compute logical ors (unions) between lots of bitmaps.");
 		
-		for(double k=0.0001; k<1.0; k*=10) {
+		FileWriter fw = new FileWriter(file.getAbsoluteFile());
+		bw = new BufferedWriter(fw);
+		bw.write("\n# For each instance, we report the size, the construction time, \n"
+				+"# the time required to recover the set bits,"
+				+"# and the time required to compute logical ors (unions) between lots of bitmaps."
+				+"# and the time required to compute logical ors (unions) between lots of bitmaps.\n\n");
+	} catch (IOException e) {e.printStackTrace();}
+		
+		for(double k=0.0001; k<0.001; k*=10) {
 		SizeGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
 		OrGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
 		AndGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
@@ -1064,6 +1212,11 @@ public class Benchmark {
 			
 			System.out.println("\n\ndensity = "+density);
 			System.out.println("# generating random data...");
+			try {
+				bw.write("\n\n\ndensity = "+density+
+						"\n# generating random data...");
+			} catch (IOException e1) 
+				{e1.printStackTrace();}
 			
 			for(int i =0; i< nbTechnique; i++) {
 				SizeGraphCoordinates.get(i).add(new LineChartPoint(0.0, String.valueOf(density), null));
@@ -1075,8 +1228,11 @@ public class Benchmark {
 			for(int i=0; i<N; i++)
 			{					
 				//System.out.println();
-				data[i] = uniform.generateUniform(SetSize, max);//zpf.GenartingInts(SetSize, max);
-				data2[i] = uniform.generateUniform(SetSize, max);//zpf.GenartingInts(SetSize, max);
+				data[i] = distribution == distUniform ? uniform.generateUniform(SetSize, max) 
+								: zpf.GenartingInts(SetSize, max);						
+						
+				data2[i] = distribution == distUniform ? uniform.generateUniform(SetSize, max) 
+							: zpf.GenartingInts(SetSize, max);
 				
 				Arrays.sort(data[i]);
 				Arrays.sort(data2[i]);				
@@ -1098,7 +1254,11 @@ public class Benchmark {
 			// Start experiments with Zipfian data distribution
 			System.out.println("# generating random data... ok.");
 			System.out.println("#  density = "+ density+" nb setBits = "+SetSize);
-
+			try {
+				bw.write("\n# generating random data... ok.\n"
+						+"#  density = "+ density+" nb setBits = "+SetSize);
+			} catch (IOException e) 
+				{e.printStackTrace();}
 			// building
 			//testBitSet(data, data2, repeat, df);
 			testRoaringBitmap(data, data2, repeat, df);
@@ -1110,9 +1270,9 @@ public class Benchmark {
 			
 			System.out.println();		
 		}		
-		
                         if (path != null) {
-
+                        		path+= distribution==distUniform ? "/Uniform/" : "/Zipf/";
+                        		path+="Charts/";
                                 new LineChartDemo1(
                                         "Line Chart Size " + k + "_" + (k * 10),
                                         SizeGraphCoordinates, path);
@@ -1127,5 +1287,8 @@ public class Benchmark {
                                         XorGraphCoordinates, path);
                         }
 		}
+		try {
+			bw.close();
+		} catch (IOException e) {e.printStackTrace();	}
 	}
 }

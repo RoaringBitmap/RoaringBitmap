@@ -124,7 +124,7 @@ public class LineChartDemo1 extends ApplicationFrame {
         final JFreeChart chart = ChartFactory.createLineChart(
             title,       // chart title
             "Density",                    // domain axis label
-            "Time",                   // range axis label
+            "Size (KB)",                   // range axis label
             dataset,                   // data
             PlotOrientation.VERTICAL,  // orientation
             true,                      // include legend
