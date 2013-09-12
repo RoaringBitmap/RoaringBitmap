@@ -33,6 +33,7 @@ public class Benchmark {
 	static int FastAgregate = 1;
 	static int ClassicAgregate = 0;
 	private static UniformDataGenerator uniform;
+	private static int distClustered = 2;
 	private static int distUniform = 1;
 	private static int distZipf = 0;
 	private static BufferedWriter bw = null;
@@ -42,13 +43,15 @@ public class Benchmark {
 	public static void main(String[] args) {
 		//test(10, 18, 10);
                 if (args.length > 0) {                    
-                	ZipfianTests(10, 10, args[0], distUniform);
-                	bw=null;
-                	ZipfianTests(10, 10, args[0], distZipf);
+                	Tests(10, 10, args[0], distUniform);
+                	Tests(10, 10, args[0], distZipf);
+                	Tests(10, 10, args[0], distClustered);
                 }
                 else {
-                        ZipfianTests(10, 10, null, distUniform);// no plots needed
-                }
+                        Tests(10, 10, null, distUniform);// no plots needed
+                        Tests(10, 10, null, distZipf);
+                        Tests(10, 10, null, distClustered);
+                	}
 	}
 	
 	private static RoaringBitmap fastOR(RoaringBitmap[] tabRB) {
@@ -1147,7 +1150,7 @@ public class Benchmark {
 	 * @param N number of generated sets of integers
 	 * @param repeat number of repetitions
 	 */
-	public static void ZipfianTests(int N, int repeat, String path, int distribution) {
+	public static void Tests(int N, int repeat, String path, int distribution) {
 		
 		DecimalFormat df = new DecimalFormat("0.###");
 		System.out.println("WARNING: Though I am called ZipfianTests, " +
@@ -1155,12 +1158,28 @@ public class Benchmark {
 				"and have the data type as a parameter.");
 		ZipfianDistribution zpf = new ZipfianDistribution();	
 		uniform = new UniformDataGenerator();
+		ClusteredDataGenerator cdg = new ClusteredDataGenerator();
 		
-		String Chartdirs = distribution == distUniform ? path+File.separator+"Uniform"+File.separator+"Charts" : 
-							path+File.separator+"Zipf"+File.separator+"Charts";
-		String Benchmarkdirs = distribution == distUniform ? path+File.separator+"Uniform"+File.separator+"Benchmark" : 
-			path+File.separator+"Zipf"+File.separator+"Benchmark";
-		try {
+		String Chartdirs = null, Benchmarkdirs = null;
+		
+		//Creating charts folders
+		switch(distribution) {
+		case 0 : Chartdirs = path+File.separator+"Benchmarks"+File.separator+"Zipf"+File.separator+"Charts"; break;
+		case 1 : Chartdirs = path+File.separator+"Benchmarks"+File.separator+"Uniform"+File.separator+"Charts";	break;
+		case 2 : Chartdirs = path+File.separator+"Benchmarks"+File.separator+"Clustered"+File.separator+"Charts"; break;
+		default : System.out.println("Can you hoose a distribution ?");
+				  System.exit(0);
+		}
+		//Creating benchmarks folders
+		switch(distribution) {
+		case 0 : Benchmarkdirs = path+File.separator+"Benchmarks"+File.separator+"Zipf"+File.separator+"Benchmark"; break;
+		case 1 : Benchmarkdirs = path+File.separator+"Benchmarks"+File.separator+"Uniform"+File.separator+"Benchmark";	break;
+		case 2 : Benchmarkdirs = path+File.separator+"Benchmarks"+File.separator+"Clustered"+File.separator+"Benchmark"; break;
+		default : System.out.println("Can you hoose a distribution ?");
+				  System.exit(0);
+		}
+		
+	try {
 			boolean success = (new File(Chartdirs).mkdirs());
 			boolean success2 = (new File(Benchmarkdirs).mkdirs());
 			if(success) System.out.println("folders created with success");
@@ -1172,9 +1191,7 @@ public class Benchmark {
 			// if file doesnt exists, then create it
 			if (!file.exists()) {
 				file.createNewFile();
-			}
-			
-			
+			}			
 		
 		System.out.println("# For each instance, we report the size, the construction time, ");
 		System.out.println("# the time required to recover the set bits,");
@@ -1225,14 +1242,24 @@ public class Benchmark {
 				XorGraphCoordinates.get(i).add(new LineChartPoint(0.0, String.valueOf(density), null));
 			}
 			
+			// Generating the first set
+			int[] inter = cdg.generateClustered(1 << (18 / 2), max);
+			
 			for(int i=0; i<N; i++)
-			{					
-				//System.out.println();
-				data[i] = distribution == distUniform ? uniform.generateUniform(SetSize, max) 
-								: zpf.GenartingInts(SetSize, max);						
-						
-				data2[i] = distribution == distUniform ? uniform.generateUniform(SetSize, max) 
-							: zpf.GenartingInts(SetSize, max);
+			{	
+				switch (distribution) {
+				case 0 : data[i] = zpf.GenartingInts(SetSize, max);
+						data2[i] = zpf.GenartingInts(SetSize, max);
+						break;
+				case 1 : data[i] = uniform.generateUniform(SetSize, max);
+						 data2[i] = uniform.generateUniform(SetSize, max);
+						 break;
+				case 2 : data[i] = IntUtil.unite(inter, cdg.generateClustered(1 << 18, max));
+						 data2[i] = IntUtil.unite(inter, cdg.generateClustered(1 << 18, max));
+						 break;
+				default : System.out.println("Launching tests aborted");
+							System.exit(0);
+				}				
 				
 				Arrays.sort(data[i]);
 				Arrays.sort(data2[i]);				
@@ -1271,8 +1298,15 @@ public class Benchmark {
 			System.out.println();		
 		}		
                         if (path != null) {
-                        		String p = distribution==distUniform ? path+"/Uniform/" : path+"/Zipf/";
-                        		p+="Charts/";
+                        		String p = null; 
+                        		switch(distribution) {
+                        		case 0 : p = path+"/Benchmarks/Zipf/Charts/"; break;
+                        		case 1 : p = path+"/Benchmarks/Uniform/Charts/";break;
+                        		case 2 : p = path+"/Benchmarks/Clustered/Charts/"; break;
+                        		default : System.out.println("Can you hoose a distribution ?");
+                        				  System.exit(0);
+                        		}
+                        		
                                 new LineChartDemo1(
                                         "Line Chart Size " + k + "_" + (k * 10),
                                         SizeGraphCoordinates, p);
@@ -1289,6 +1323,6 @@ public class Benchmark {
 		}
 		try {
 			bw.close();
-		} catch (IOException e) {e.printStackTrace();	}
+		} catch (IOException e) {e.printStackTrace();}
 	}
 }
