@@ -7,9 +7,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -37,6 +39,7 @@ public class Benchmark {
 	private static int distUniform = 1;
 	private static int distZipf = 0;
 	private static BufferedWriter bw = null;
+	private static int max = 10000000;
 	/**
 	 * @param args
 	 */
@@ -1182,28 +1185,44 @@ public class Benchmark {
 	try {
 			boolean success = (new File(Chartdirs).mkdirs());
 			boolean success2 = (new File(Benchmarkdirs).mkdirs());
-			if(success) System.out.println("folders created with success");
+			if(success & success2) System.out.println("folders created with success");
 		}	catch(Exception e) {e.getMessage();}
 		
 		try {			 
 			File file = new File(Benchmarkdirs+"/Benchmark.txt");
 			
-			// if file doesnt exists, then create it
+			// if file doesn't exists, then create it
 			if (!file.exists()) {
 				file.createNewFile();
 			}			
-		
+			Date date = new Date();
+		    SimpleDateFormat dateFormatComp;
+		 
+		    dateFormatComp = new SimpleDateFormat("dd MMM yyyy hh:mm:ss a");
+		    //System.out.println(dateFormatComp.format(date));
+		    
 		System.out.println("# For each instance, we report the size, the construction time, ");
 		System.out.println("# the time required to recover the set bits,");
 		System.out
-		.println("# and the time required to compute logical ors (unions) between lots of bitmaps.");
+		.println("# and the time required to compute logical ors (unions) between lots of bitmaps." +
+				"\n\n# Bitmaps cardinality = "+max
+				+"\n# "+dateFormatComp.format(date)
+				+"\n# "+System.getProperty("os.name")
+				+"\n# Java "+System.getProperty("java.version"));
+		
 		
 		FileWriter fw = new FileWriter(file.getAbsoluteFile());
 		bw = new BufferedWriter(fw);
 		bw.write("\n# For each instance, we report the size, the construction time, \n"
 				+"# the time required to recover the set bits,"
 				+"# and the time required to compute logical ors (unions) between lots of bitmaps."
-				+"# and the time required to compute logical ors (unions) between lots of bitmaps.\n\n");
+				+"# and the time required to compute logical ors (unions) between lots of bitmaps." +
+				"\n\n" +
+				 "# Bitmaps cardinality = "+max
+				+"\n# "+dateFormatComp.format(date)
+				+"\n# "+System.getProperty("os.name")
+				+"\n# Java "+System.getProperty("java.version")
+				);
 	} catch (IOException e) {e.printStackTrace();}
 		
 		for(double k=0.0001; k<1.0; k*=10) {
@@ -1221,8 +1240,7 @@ public class Benchmark {
 		for( double density = k; density<k*10.0; density+=density/*=10.0*/ )
 		{
 			if(density>=0.7) 
-				density=0.6;
-			int max = 10000000;
+				density=0.6;			
 			int SetSize = (int) (max*density);
 			int data[][] = new int[N][];
 			int data2[][] = new int[N][];
@@ -1310,7 +1328,7 @@ public class Benchmark {
                                 new LineChartDemo1(
                                         "Line Chart Size " + k + "_" + (k * 10),
                                         SizeGraphCoordinates, p);
-                                 new LineChartDemo1(
+                                new LineChartDemo1(
                                         "Line Chart OR " + k + "_" + (k * 10),
                                         OrGraphCoordinates, p);
                                 new LineChartDemo1(
