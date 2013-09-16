@@ -108,10 +108,10 @@ public final class Util {
                 } else if (set2.length * 64 < set1.length) {
                         return unsigned_onesidedgallopingintersect2by2(set2,
                                 length2, set1, length1, buffer);
-                } else {
+                } else 
                         return unsigned_localintersect2by2(set1, length1, set2,
                                 length2, buffer);
-                }
+                		
         }
 
         protected static int unsigned_onesidedgallopingintersect2by2(final short[] smallset,
@@ -142,12 +142,9 @@ public final class Util {
                                 if (k1 == largelength)
                                         break mainwhile;
                         }
-
                 }
                 return pos;
-
         }
-
 
         /**
          * Find the smallest integer larger than pos such that array[pos]>= min. If
@@ -202,8 +199,6 @@ public final class Util {
                 return upper;
 
         }
-
-
         
         protected static int unsigned_localintersect2by2(final short[] set1,
                 final int length1, final short[] set2, final int length2,
@@ -358,7 +353,7 @@ public final class Util {
                                                 buffer[pos++] = set1[k1];
                                         break;
                                 }
-                        }
+                        	}
                 }
                 return pos;
         }
@@ -389,7 +384,5 @@ public final class Util {
                         System.out.println(c.toString());
                 }
         }
-
-
 
 }

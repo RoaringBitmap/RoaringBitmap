@@ -17,7 +17,7 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 
         /**
          * set the value to "true", whether it already appears on not.
-         */     																									// be
+         */     																									
         public void add(final int x) {
                 set(x);
         }

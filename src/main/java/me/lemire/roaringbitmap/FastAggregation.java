@@ -44,7 +44,7 @@ public class FastAggregation {
                         bitmaps.length, new Comparator<RoaringBitmapPointer>() {
                                 @Override
                                 public int compare(RoaringBitmapPointer a, RoaringBitmapPointer b) {
-                                        return a.cs.getSizeInBytes() - b.cs.getSizeInBytes();
+                                        return  a.cs.getSizeInBytes() - b.cs.getSizeInBytes();
                                 }
                         });
                 for (RoaringBitmap x : bitmaps) {
