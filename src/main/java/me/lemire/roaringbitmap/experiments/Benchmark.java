@@ -35,25 +35,32 @@ public class Benchmark {
 	static int FastAgregate = 1;
 	static int ClassicAgregate = 0;
 	private static UniformDataGenerator uniform;
+	private static ZipfianDistribution zpf;
+	private static ClusteredDataGenerator cdg;
 	private static int distClustered = 2;
 	private static int distUniform = 1;
 	private static int distZipf = 0;
+	private static int classic = 0;
+	private static int Fast = 1;
+	private static int inPlace = 2;
+	private static int FastinPlace = 3;
 	private static BufferedWriter bw = null;
 	private static int max = 10000000;
+	private static int nbBitmaps = 10;
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
 		//test(10, 18, 10);
                 if (args.length > 0) {                    
-                	Tests(10, 10, args[0], distUniform);
-                	Tests(10, 10, args[0], distZipf);
-                	Tests(10, 10, args[0], distClustered);
+                	Tests(nbBitmaps, 10, args[0], distUniform);
+                	Tests(nbBitmaps, 10, args[0], distZipf);
+                	Tests(nbBitmaps, 10, args[0], distClustered);
                 }
                 else {
-                        Tests(10, 10, null, distUniform);// no plots needed
-                        Tests(10, 10, null, distZipf);
-                        Tests(10, 10, null, distClustered);
+                        Tests(nbBitmaps, 10, null, distUniform);// no plots needed
+                        Tests(nbBitmaps, 10, null, distZipf);
+                        Tests(nbBitmaps, 10, null, distClustered);
                 	}
 	}
 	
@@ -75,9 +82,223 @@ public class Benchmark {
 			rb = RoaringBitmap.or(rb, tabRB[1]);
 		return rb;
 	}*/
+	
+	/**
+	 * Generating N sets of nbInts integers using Zipfian distribution.
+	 * @param N number of generated sets of integers
+	 * @param repeat number of repetitions
+	 */
+	public static void Tests(int N, int repeat, String path, int distribution) {
+		
+		DecimalFormat df = new DecimalFormat("0.###");
+		System.out.println("WARNING: Though I am called ZipfianTests, " +
+				"I am using a uniform data generator. Maybe a better design would use the same method " +
+				"and have the data type as a parameter.");
+		zpf = new ZipfianDistribution();	
+		uniform = new UniformDataGenerator();
+		cdg = new ClusteredDataGenerator();	
+		
+		String distdir = null;
+
+		//Creating the distribution folder
+		switch(distribution) {
+		case 0 : distdir = path+File.separator+"Benchmarks_"+System.getProperty("os.arch")+File.separator+"Zipf"; break;
+		case 1 : distdir = path+File.separator+"Benchmarks_"+System.getProperty("os.arch")+File.separator+"Uniform";break;
+		case 2 : distdir = path+File.separator+"Benchmarks_"+System.getProperty("os.arch")+File.separator+"Clustered"; break;
+		default : System.out.println("Can you choose a distribution ?");
+				  System.exit(0);
+		}
+		
+		launchBenchmark(distribution, N, repeat, df, distdir, classic);
+		launchBenchmark(distribution, N, repeat, df, distdir, Fast);
+		launchBenchmark(distribution, N, repeat, df, distdir, inPlace);
+		launchBenchmark(distribution, N, repeat, df, distdir, FastinPlace);
+	}
+	
+		public static void launchBenchmark(int distribution, int N, int repeat, 
+			DecimalFormat df, String distdir, int optimisation) {
+		
+		String Chartsdir = null, Benchmarkdir = null, optdir = null;	
+		
+		//Creating the kind of optimization folder
+		switch(optimisation) {
+		case 0 : optdir = distdir+File.separator+"RoaringBitmap_Classic"; break;
+		case 1 : optdir = distdir+File.separator+"RoaringBitmap_FastAggregations";	break;
+		case 2 : optdir = distdir+File.separator+"RoaringBitmap_inPlace"; break;
+		case 3 : optdir = distdir+File.separator+"RoaringBitmap_FastAgg_inPlace"; break;
+		default : System.out.println("Can you choose a distribution ?");
+				  System.exit(0);
+		}
+		
+		//Creating the charts folder		
+		Chartsdir = optdir+File.separator+"Charts";
+		
+		//Creating the benchmark results folder
+		Benchmarkdir = optdir+File.separator+"Benchmark";
+		
+		try {
+			boolean success = (new File(Chartsdir).mkdirs());
+			boolean success2 = (new File(Benchmarkdir).mkdirs());
+			if(success & success2) System.out.println("folders created with success");
+		}	catch(Exception e) {e.getMessage();}
+		
+		try {			 
+			File file = new File(Benchmarkdir+"/Benchmark.txt");
+			
+			// if file doesn't exists, then create it
+			if (!file.exists()) 
+				file.createNewFile();
+						
+			Date date = new Date();
+		    SimpleDateFormat dateFormatComp;
+		 
+		    dateFormatComp = new SimpleDateFormat("dd MMM yyyy hh:mm:ss a");
+		    //System.out.println(dateFormatComp.format(date));
+		    String[] op = {"Classic", "FastAggregations", "inPlace operations", "FastAggregations & inPlace operations"};
+		    
+		    System.out.println("# For each instance, we report the size, the construction time, ");
+		    System.out.println("# the time required to recover the set bits,");
+		    System.out
+		    .println("# and the time required to compute logical ors (unions) between lots of bitmaps." +
+		    		"\n\n" 
+		    		+"# Number of bitmaps = "+N
+		    		+"\n# Bitmaps cardinality = "+max
+		    		+"\n# Optimisation = "+op[optimisation]
+		    		+"\n# "+dateFormatComp.format(date)
+		    		+"\n# CPU = "+System.getProperty("os.arch")
+		    		+"\n# "+System.getProperty("os.name")
+		    		+"\n# Java "+System.getProperty("java.version"));		
+		
+		FileWriter fw = new FileWriter(file.getAbsoluteFile());
+		bw = new BufferedWriter(fw);
+		bw.write("\n# For each instance, we report the size, the construction time, \n"
+				+"# the time required to recover the set bits,"
+				+"# and the time required to compute logical ors (unions) between lots of bitmaps."
+				+"# and the time required to compute logical ors (unions) between lots of bitmaps." +
+				"\n\n" +
+				 "# Number of bitmaps = "+N
+				+"\n# Bitmaps cardinality = "+max 
+				+"\n# Optimisation = "+op[optimisation]
+				+"\n# "+dateFormatComp.format(date)
+				+"\n# CPU = "+System.getenv("PROCESSOR_ARCHITECTURE")
+				+"\n# "+System.getProperty("os.name")
+				+"\n# Java "+System.getProperty("java.version")
+				);
+	} catch (IOException e) {e.printStackTrace();}
+		
+		for(double k=0.0001; k<0.001; k*=10) {
+			SizeGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
+			OrGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
+			AndGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
+			XorGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();	
+			
+			for(int i =0; i< nbTechnique; i++) {
+				SizeGraphCoordinates.add(new Vector<LineChartPoint>());
+				OrGraphCoordinates.add(new Vector<LineChartPoint>());
+				AndGraphCoordinates.add(new Vector<LineChartPoint>());
+				XorGraphCoordinates.add(new Vector<LineChartPoint>());
+			}
+			for( double density = k; density<k*10.0; density+=density/*=10.0*/ )
+			{
+				if(density>=0.7) 
+					density=0.6;			
+				int SetSize = (int) (max*density);
+				int data[][] = new int[N][];
+				int data2[][] = new int[N][];
+				
+				System.out.println("\n\ndensity = "+density);
+				System.out.println("# generating random data...");
+				try {
+					bw.write("\n\n\ndensity = "+density+
+							"\n# generating random data...");
+				} catch (IOException e1) 
+					{e1.printStackTrace();}
+				
+				for(int i =0; i< nbTechnique; i++) {
+					SizeGraphCoordinates.get(i).add(new LineChartPoint(0.0, String.valueOf(density), null));
+					OrGraphCoordinates.get(i).add(new LineChartPoint(0.0, String.valueOf(density), null));
+					AndGraphCoordinates.get(i).add(new LineChartPoint(0.0, String.valueOf(density), null));
+					XorGraphCoordinates.get(i).add(new LineChartPoint(0.0, String.valueOf(density), null));
+				}
+				
+				// Generating the first set				
+				for(int i=0; i<N; i++)
+				{	
+					switch (distribution) {
+					case 0 : data[i] = zpf.GenartingInts(SetSize, max);
+							data2[i] = zpf.GenartingInts(SetSize, max);
+							break;
+					case 1 : data[i] = uniform.generateUniform(SetSize, max);
+							 data2[i] = uniform.generateUniform(SetSize, max);
+							 break;
+					case 2 : int[] inter = cdg.generateClustered(1 << (18 / 2), max);
+							 data[i] = IntUtil.unite(inter, cdg.generateClustered(1 << 18, max));
+							 data2[i] = IntUtil.unite(inter, cdg.generateClustered(1 << 18, max));
+							 break;
+					default : System.out.println("Launching tests aborted");
+							  System.exit(0);
+					}				
+					
+					Arrays.sort(data[i]);
+					Arrays.sort(data2[i]);				
+					
+					/*System.out.println("\n\n data1");
+					int bigger = 0, aver = 0, val1 = data[i][0];
+					for(int j=1; j<data[i].length; j++){
+						bigger = bigger < Math.abs(data[i][j]-val1) ? (data[i][j]-val1) : bigger;
+						aver += Math.abs(data[i][j] - val1);
+						val1=data[i][j];
+						//System.out.println(data[i][j]+" ");
+					}
+					System.out.println(bigger+" "+" average = "+(aver/data[i].length));*/
+					/*System.out.println("\n data2");				
+					for(int j=0; j<data2[i].length; j++)
+						System.out.println(data2[i][j]+" ");*/				
+				}
+				
+				// Start experiments with Zipfian data distribution
+				System.out.println("# generating random data... ok.");
+				System.out.println("#  density = "+ density+" nb setBits = "+SetSize);
+				try {
+					bw.write("\n# generating random data... ok.\n"
+							+"#  density = "+ density+" nb setBits = "+SetSize);
+				} catch (IOException e) 
+					{e.printStackTrace();}
+				
+				// Launching benchmarks				
+				//testBitSet(data, data2, repeat, df);
+				testRoaringBitmap(data, data2, repeat, df, optimisation);
+				testWAH32(data, data2, repeat, df, optimisation);
+				testConciseSet(data, data2, repeat, df, optimisation);
+				testSparseBitmap(data, data2, repeat, df, optimisation);
+				testEWAH64(data, data2, repeat, df, optimisation);
+				testEWAH32(data, data2, repeat, df, optimisation);
+				System.out.println();		
+			}		
+	                        if (Chartsdir != null) {
+	                        		String p = Chartsdir+File.separator;	                        		
+	                        		
+	                                new LineChartDemo1(
+	                                        "Line Chart Size " + k + "_" + (k * 10),
+	                                        SizeGraphCoordinates, p);
+	                                new LineChartDemo1(
+	                                        "Line Chart OR " + k + "_" + (k * 10),
+	                                        OrGraphCoordinates, p);
+	                                new LineChartDemo1(
+	                                        "Line Chart AND " + k + "_" + (k * 10),
+	                                        AndGraphCoordinates, p);
+	                                new LineChartDemo1(
+	                                        "Line Chart XOR " + k + "_" + (k * 10),
+	                                        XorGraphCoordinates, p);
+	                        }	            
+			}
+		try {
+    		bw.close();
+    	} catch (IOException e) {e.printStackTrace();}
+	}
 
 	public static void testRoaringBitmap(int[][] data, int[][] data2,
-			int repeat, DecimalFormat df) {
+			int repeat, DecimalFormat df, int optimisation) {
 		System.out.println("# RoaringBitmap");
 		System.out
 				.println("# size, construction time, time to recover set bits, "
@@ -145,57 +366,89 @@ public class Benchmark {
 			rb.validate();
 
 		// logical or + retrieval
+		{
+		RoaringBitmap bitmapor1 = null, bitmapor2;
+		switch(optimisation)
 		{			
-			//RoaringBitmap bitmapor1 = null;
-			//RoaringBitmap bitmapor2 = null;			
-			RoaringBitmap bitmapor1 = bitmap[0];//.clone();
-			RoaringBitmap bitmapor2 = bitmap2[0];//.clone();
-			//bitmapor1.validate();
-			//bitmapor2.validate();
-			for (int k = 1; k < N; ++k) {
-				bitmapor1 = RoaringBitmap.or(bitmapor1, bitmap[k]);
+		case 0 : bitmapor1 = bitmap[0];
+				 bitmapor2 = bitmap2[0];	
+				for (int k = 1; k < N; ++k) {
+					bitmapor1 = RoaringBitmap.or(bitmapor1, bitmap[k]);
+					bitmapor1.validate();
+					bitmapor2 = RoaringBitmap.or(bitmapor2, bitmap2[k]);
+					bitmapor2.validate();
+				}
+				bitmapor1 = RoaringBitmap.or(bitmapor1, bitmapor2);
 				bitmapor1.validate();
-				bitmapor2 = RoaringBitmap.or(bitmapor2, bitmap2[k]);
-				bitmapor2.validate();
-				/*bitmapor1.inPlaceOR(bitmap[k]);
-				bitmapor1.validate();
-				bitmapor2.inPlaceOR(bitmap2[k]);
-				bitmapor2.validate();*/
+				break;
+		case 1 : bitmapor1 = null;
+				 bitmapor2 = null;
+				 bitmapor1 = FastAggregation.or(bitmap);
+				 bitmapor1.validate();
+				 bitmapor2 = FastAggregation.or(bitmap2);
+				 bitmapor2.validate();
+				 bitmapor1 = RoaringBitmap.or(bitmapor1, bitmapor2);
+				 bitmapor1.validate();
+				 break;
+		case 2 : bitmapor1 = bitmap[0].clone();
+				 bitmapor2 = bitmap2[0].clone();
+				 for (int k = 1; k < N; ++k) {
+					 bitmapor1.inPlaceOR(bitmap[k]);
+					 bitmapor1.validate();
+					 bitmapor2.inPlaceOR(bitmap2[k]);
+					 bitmapor2.validate();
+				 }
+				 bitmapor1.inPlaceOR(bitmapor2);
+				 bitmapor1.validate();
+				 break;
+		case 3 : bitmapor1 = null;
+		 		bitmapor2 = null;
+		 		bitmapor1 = FastAggregation.inplace_or(bitmap);
+		 		bitmapor1.validate();
+		 		bitmapor2 = FastAggregation.inplace_or(bitmap2);
+		 		bitmapor2.validate();
+		 		bitmapor1.inPlaceOR(bitmapor2);
+		 		bitmapor1.validate();
+		 		break;
 			}
-			bitmapor1 = RoaringBitmap.or(bitmapor1, bitmapor2);
-			bitmapor1.validate();
-			/*bitmapor1 = fastOR(bitmap);
-			bitmapor1.validate();
-			bitmapor2 = fastOR(bitmap2);
-			bitmapor1.validate();*/
-			//bitmapor1.inPlaceOR(bitmapor2);
-			//bitmapor1.validate();
-			//System.out.println("nbOR = "+RoaringBitmap.nbOR);
 			int[] array = bitmapor1.getIntegers();
 			bogus += array.length;
 		}
 
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
-			RoaringBitmap bitmapor1 = bitmap[0];//.clone();
-			RoaringBitmap bitmapor2 = bitmap2[0];//.clone();
-			//RoaringBitmap bitmapor1 = null;
-			//RoaringBitmap bitmapor2 = null;
-			
-			for (int k = 1; k < N; ++k) {
-				bitmapor1 = RoaringBitmap.or(bitmapor1, bitmap[k]);
-				bitmapor2 = RoaringBitmap.or(bitmapor2, bitmap2[k]);
-			}
-			//bitmapor1 = fastOR(bitmap);
-			//bitmapor2= fastOR(bitmap2);
-			bitmapor1 = RoaringBitmap.or(bitmapor1, bitmapor2);
-			
-			/*for (int k = 1; k < N; ++k) {
-				bitmapor1.inPlaceOR(bitmap[k]);
-				bitmapor2.inPlaceOR(bitmap2[k]);
-			}
-			bitmapor1.inPlaceOR(bitmapor2);*/
-			
+			RoaringBitmap bitmapor1 = null, bitmapor2;
+			switch(optimisation)
+			{			
+			case 0 : bitmapor1 = bitmap[0];
+					 bitmapor2 = bitmap2[0];	
+					for (int k = 1; k < N; ++k) {
+						bitmapor1 = RoaringBitmap.or(bitmapor1, bitmap[k]);
+						bitmapor2 = RoaringBitmap.or(bitmapor2, bitmap2[k]);
+					}
+					bitmapor1 = RoaringBitmap.or(bitmapor1, bitmapor2);
+					break;
+			case 1 : bitmapor1 = null;
+					 bitmapor2 = null;
+					 bitmapor1 = FastAggregation.or(bitmap);
+					 bitmapor2 = FastAggregation.or(bitmap2);
+					 bitmapor1 = RoaringBitmap.or(bitmapor1, bitmapor2);
+					 break;
+			case 2 : bitmapor1 = bitmap[0].clone();
+					 bitmapor2 = bitmap2[0].clone();
+					 for (int k = 1; k < N; ++k) {
+						 bitmapor1.inPlaceOR(bitmap[k]);
+						 bitmapor2.inPlaceOR(bitmap2[k]);
+					 }
+					 bitmapor1.inPlaceOR(bitmapor2);
+					 break;
+			case 3 : bitmapor1 = null;
+			 		bitmapor2 = null;
+			 		bitmapor1 = FastAggregation.inplace_or(bitmap);
+			 		bitmapor2 = FastAggregation.inplace_or(bitmap2);
+			 		bitmapor1.inPlaceOR(bitmapor2);
+			 		break;
+				}
 			int[] array = bitmapor1.getIntegers();
 			bogus += array.length;
 		}
@@ -206,62 +459,93 @@ public class Benchmark {
 		OrGraphCoordinates.get(0).lastElement().setGname("Roaring Bitmap");
 		OrGraphCoordinates.get(0).lastElement().setY((aft - bef) / 1000.0);
 		
-		{
-			RoaringBitmap bitmapand1 = bitmap[0];//.clone();			
-			RoaringBitmap bitmapand2 = bitmap2[0];//.clone();
-			bitmapand1.validate();
-			bitmapand2.validate();
-			for (int k = 1; k < N; ++k) {
-				bitmapand1 = RoaringBitmap.and(bitmapand1, bitmap[k]);
-				bitmapand1.validate();
-				bitmapand2 = RoaringBitmap.and(bitmapand2, bitmap2[k]);
-				bitmapand2.validate();
-			}
-			bitmapand1 = RoaringBitmap.and(bitmapand1, bitmapand2);
-			bitmapand1.validate();
-			/*for (int k = 1; k < N; ++k) {
-				bitmapand1.inPlaceAND( bitmap[k]);
-				bitmapand1.validate();
-				bitmapand2.inPlaceAND( bitmap2[k]);
-				bitmapand2.validate();
-			}*/
-			/*bitmapand1 = fastAND(bitmap);
-			bitmapand1.validate();
-			bitmapand2 = fastAND(bitmap2);
-			bitmapand2.validate();*/
-			//bitmapand1.inPlaceAND(bitmapand2);
-			//bitmapand1.validate();
-			//System.out.println("nbAND = "+RoaringBitmap.nbAND);
-			int[] array = bitmapand1.getIntegers();
-			bogus += array.length;
-		}
-
 		// logical and + retrieval
+		{
+			RoaringBitmap bitmapand1 = null, bitmapand2;
+			switch(optimisation)
+			{			
+			case 0 : bitmapand1 = bitmap[0];
+					 bitmapand2 = bitmap2[0];	
+					for (int k = 1; k < N; ++k) {
+						bitmapand1 = RoaringBitmap.or(bitmapand1, bitmap[k]);
+						bitmapand1.validate();
+						bitmapand2 = RoaringBitmap.or(bitmapand2, bitmap2[k]);
+						bitmapand2.validate();
+					}
+					bitmapand1 = RoaringBitmap.or(bitmapand1, bitmapand2);
+					bitmapand1.validate();
+					break;
+			case 1 : bitmapand1 = null;
+					 bitmapand2 = null;
+					 bitmapand1 = FastAggregation.and(bitmap);
+					 bitmapand1.validate();
+					 bitmapand2 = FastAggregation.and(bitmap2);
+					 bitmapand2.validate();
+					 bitmapand1 = RoaringBitmap.and(bitmapand1, bitmapand2);
+					 bitmapand1.validate();
+					 break;
+			case 2 : bitmapand1 = bitmap[0].clone();
+					 bitmapand2 = bitmap2[0].clone();
+					 for (int k = 1; k < N; ++k) {
+						 bitmapand1.inPlaceOR(bitmap[k]);
+						 bitmapand1.validate();
+						 bitmapand2.inPlaceOR(bitmap2[k]);
+						 bitmapand2.validate();
+					 }
+					 bitmapand1.inPlaceOR(bitmapand2);
+					 bitmapand1.validate();
+					 break;
+			case 3 : bitmapand1 = null;
+			 		bitmapand2 = null;
+			 		bitmapand1 = FastAggregation.inplace_or(bitmap);
+			 		bitmapand1.validate();
+			 		bitmapand2 = FastAggregation.inplace_or(bitmap2);
+			 		bitmapand2.validate();
+			 		bitmapand1.inPlaceOR(bitmapand2);
+			 		bitmapand1.validate();
+			 		break;
+				}
+				int[] array = bitmapand1.getIntegers();
+				bogus += array.length;
+			}
+
+		
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
-			RoaringBitmap bitmapand1 = bitmap[0];
-										//null;//
-										//bitmap[0].clone();
-			RoaringBitmap bitmapand2 = bitmap2[0];
-										//null;//
-										//bitmap2[0].clone();
-			
-			for (int k = 1; k < N; ++k) {
-				bitmapand1 = RoaringBitmap.and(bitmapand1, bitmap[k]);
-				bitmapand2 = RoaringBitmap.and(bitmapand2, bitmap2[k]);
-			}
-			//bitmapand1 = fastAND(bitmap);
-			//bitmapand2 = fastAND(bitmap2);
-			//bitmapand1 = RoaringBitmap.and(bitmapand1, bitmapand2);
-			/*for (int k = 1; k < N; ++k) {
-				bitmapand1.inPlaceAND(bitmap[k]);
-				bitmapand2.inPlaceAND(bitmap2[k]);
-			}
-			bitmapand1.inPlaceAND(bitmapand2);*/
-			bitmapand1 = RoaringBitmap.and(bitmapand1, bitmapand2);
-			
-			int[] array = bitmapand1.getIntegers();
-			bogus += array.length;
+			RoaringBitmap bitmapand1 = null, bitmapand2;
+			switch(optimisation)
+			{			
+			case 0 : bitmapand1 = bitmap[0];
+					 bitmapand2 = bitmap2[0];	
+					for (int k = 1; k < N; ++k) {
+						bitmapand1 = RoaringBitmap.and(bitmapand1, bitmap[k]);
+						bitmapand2 = RoaringBitmap.and(bitmapand2, bitmap2[k]);
+					}
+					bitmapand1 = RoaringBitmap.and(bitmapand1, bitmapand2);
+					break;
+			case 1 : bitmapand1 = null;
+					 bitmapand2 = null;
+					 bitmapand1 = FastAggregation.and(bitmap);
+					 bitmapand2 = FastAggregation.and(bitmap2);
+					 bitmapand1 = RoaringBitmap.and(bitmapand1, bitmapand2);
+					 break;
+			case 2 : bitmapand1 = bitmap[0].clone();
+					 bitmapand2 = bitmap2[0].clone();
+					 for (int k = 1; k < N; ++k) {
+						 bitmapand1.inPlaceAND(bitmap[k]);
+						 bitmapand2.inPlaceAND(bitmap2[k]);
+					 }
+					 bitmapand1.inPlaceAND(bitmapand2);
+					 break;
+			case 3 : bitmapand1 = null;
+			 		bitmapand2 = null;
+			 		bitmapand1 = FastAggregation.inplace_and(bitmap);
+			 		bitmapand2 = FastAggregation.inplace_and(bitmap2);
+			 		bitmapand1.inPlaceAND(bitmapand2);
+			 		break;
+				}
+				int[] array = bitmapand1.getIntegers();
+				bogus += array.length;
 		}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
@@ -271,56 +555,96 @@ public class Benchmark {
 
 		// logical xor + retrieval
 		{
-			RoaringBitmap bitmapxor1 = bitmap[0]; 
-					//null;//
-			//bitmap[0].clone();
-			RoaringBitmap bitmapxor2 = bitmap2[0]; 
-					//null;
-					//bitmap2[0].clone();
-			for (int k = 1; k < N; ++k) {
-				bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmap[k]);
-				bitmapxor1.validate();
-				bitmapxor2 = RoaringBitmap.xor(bitmapxor2, bitmap2[k]);
-				bitmapxor2.validate();
-				
-				//bitmapxor1.inPlaceXOR(bitmap[k]);
-				//bitmapxor1.validate();
-				//bitmapxor2.inPlaceXOR(bitmap2[k]);
-				//bitmapxor2.validate();
-			}			
-			bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmapxor2);
-			bitmapxor1.validate();
-			/*bitmapxor1 = fastXOR(bitmap);
-			bitmapxor1.validate();
-			bitmapxor2 = fastXOR(bitmap2);
-			bitmapxor2.validate();*/
-			//bitmapxor1.inPlaceXOR(bitmapxor2);
-			//bitmapxor1.validate();
-			//System.out.println("nbXOR = "+RoaringBitmap.nbXOR);
+			RoaringBitmap bitmapxor1 = null, bitmapxor2;
+			switch(optimisation)
+			{			
+			case 0 : //classic
+					 bitmapxor1 = bitmap[0];
+					 bitmapxor2 = bitmap2[0];	
+					for (int k = 1; k < N; ++k) {
+						bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmap[k]);
+						bitmapxor1.validate();
+						bitmapxor2 = RoaringBitmap.xor(bitmapxor2, bitmap2[k]);
+						bitmapxor2.validate();
+					}
+					bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmapxor2);
+					bitmapxor1.validate();
+					break;
+			case 1 : //Using FastAggregations
+					 bitmapxor1 = null;
+					 bitmapxor2 = null;
+					 bitmapxor1 = FastAggregation.xor(bitmap);
+					 bitmapxor1.validate();
+					 bitmapxor2 = FastAggregation.xor(bitmap2);
+					 bitmapxor2.validate();
+					 bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmapxor2);
+					 bitmapxor1.validate();
+					 break;
+			case 2 : //Using inPlace operations
+					 bitmapxor1 = bitmap[0].clone();
+					 bitmapxor2 = bitmap2[0].clone();
+					 for (int k = 1; k < N; ++k) {
+						 bitmapxor1.inPlaceXOR(bitmap[k]);
+						 bitmapxor1.validate();
+						 bitmapxor2.inPlaceXOR(bitmap2[k]);
+						 bitmapxor2.validate();
+					 }
+					 bitmapxor1.inPlaceXOR(bitmapxor2);
+					 bitmapxor1.validate();
+					 break;
+			case 3 : //Using FastAggregations and inPlace operations 
+					bitmapxor1 = null;
+			 		bitmapxor2 = null;
+			 		bitmapxor1 = FastAggregation.inplace_xor(bitmap);
+			 		bitmapxor1.validate();
+			 		bitmapxor2 = FastAggregation.inplace_xor(bitmap2);
+			 		bitmapxor2.validate();
+			 		bitmapxor1.inPlaceXOR(bitmapxor2);
+			 		bitmapxor1.validate();
+			 		break;
+			}
 			int[] array = bitmapxor1.getIntegers();
 			bogus += array.length;
-		}
+			}
 
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
-			RoaringBitmap bitmapxor1 = bitmap[0];//.clone();
-			RoaringBitmap bitmapxor2 = bitmap2[0];//.clone();
-			//RoaringBitmap bitmapxor1 = null;
-			//RoaringBitmap bitmapxor2 = null;
-			for (int k = 1; k < N; ++k) {
-				bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmap[k]);
-				bitmapxor2 = RoaringBitmap.xor(bitmapxor2, bitmap2[k]);
+			RoaringBitmap bitmapxor1 = null, bitmapxor2;
+			switch(optimisation)
+			{			
+			case 0 : //classic
+					 bitmapxor1 = bitmap[0];
+					 bitmapxor2 = bitmap2[0];	
+					for (int k = 1; k < N; ++k) {
+						bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmap[k]);
+						bitmapxor2 = RoaringBitmap.xor(bitmapxor2, bitmap2[k]);
+					}
+					bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmapxor2);
+					break;
+			case 1 : //Using FastAggregations
+					 bitmapxor1 = null;
+					 bitmapxor2 = null;
+					 bitmapxor1 = FastAggregation.xor(bitmap);
+					 bitmapxor2 = FastAggregation.xor(bitmap2);
+					 bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmapxor2);
+					 break;
+			case 2 : //Using inPlace operations
+					 bitmapxor1 = bitmap[0].clone();
+					 bitmapxor2 = bitmap2[0].clone();
+					 for (int k = 1; k < N; ++k) {
+						 bitmapxor1.inPlaceXOR(bitmap[k]);
+						 bitmapxor2.inPlaceXOR(bitmap2[k]);
+					 }
+					 bitmapxor1.inPlaceXOR(bitmapxor2);
+					 break;
+			case 3 : //Using FastAggregations and inPlace operations 
+					bitmapxor1 = null;
+			 		bitmapxor2 = null;
+			 		bitmapxor1 = FastAggregation.inplace_xor(bitmap);
+			 		bitmapxor2 = FastAggregation.inplace_xor(bitmap2);
+			 		bitmapxor1.inPlaceXOR(bitmapxor2);
+			 		break;
 			}
-			bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmapxor2);
-			/*bitmapxor1 = fastXOR(bitmap);
-			bitmapxor2 = fastXOR(bitmap2);
-			bitmapxor1.inPlaceXOR(bitmapxor2);*/
-			/*for (int k = 1; k < N; ++k) {
-				bitmapxor1.inPlaceXOR(bitmap[k]);
-				bitmapxor2.inPlaceXOR(bitmap2[k]);
-			}
-			bitmapxor1.inPlaceXOR(bitmapxor2);*/
-			
 			int[] array = bitmapxor1.getIntegers();
 			bogus += array.length;
 		}
@@ -333,17 +657,15 @@ public class Benchmark {
 		System.out.println(line);
 		System.out.println("# ignore this " + bogus);
 		try {
-			bw.write("\n"+line);
-			bw.write("\n# ignore this " + bogus+"\n\n");
-		} catch (IOException e) {e.printStackTrace();}
-		
+				bw.write("\n"+line);
+				bw.write("\n# ignore this " + bogus+"\n\n");
+			} catch (IOException e) {e.printStackTrace();}
 	}
 
 	public static void testBitSet(int[][] data, int[][] data2, int repeat,
-			DecimalFormat df) {
+		DecimalFormat df, int optimisation) {
 		System.out.println("# BitSet");
-		System.out
-				.println("# size, construction time, time to recover set bits, "
+		System.out.println("# size, construction time, time to recover set bits, "
 						+ "time to compute unions (OR), intersections (AND) "
 						+ "and exclusive unions (XOR) ");
 		try {
@@ -461,7 +783,7 @@ public class Benchmark {
 	}
 
 	public static void testWAH32(int[][] data, int[][] data2, int repeat,
-			DecimalFormat df) {
+			DecimalFormat df, int optimisation) {
 		System.out.println("# WAH 32 bit using the compressedbitset library");
 		System.out
 				.println("# size, construction time, time to recover set bits, "
@@ -518,38 +840,34 @@ public class Benchmark {
 			for (int x = 0; x < data2[k].length; ++x)
 				bitmap2[k].set(data2[k][x]);
 		}
-
-		// logical or + retrieval
-		for (int r = 0; r < repeat; ++r) {
-			WAHBitSet bitmapor1 = new WAHBitSet();
-			WAHBitSet bitmapor2 = new WAHBitSet();
-			for (int k = 0; k < N; ++k) {
-				bitmapor1 = bitmapor1.or(bitmap[k]);
-				bitmapor2 = bitmapor2.or(bitmap2[k]);
-			}
-			bitmapor1 = bitmapor1.or(bitmapor2);
-			int[] array = new int[bitmapor1.cardinality()];
-			int c = 0;
-			for (@SuppressWarnings("unchecked")
-			Iterator<Integer> i = bitmapor1.iterator(); i.hasNext(); array[c++] = i
-					.next().intValue()) {
-			}
-			bogus += c;
-		}
 		
-                // logical or + retrieval
-                bef = System.currentTimeMillis();
-                for (int r = 0; r < repeat; ++r) {
-                        WAHBitSet bitmapor1 = WAHBitSetUtil.fastOR(bitmap);
-                        WAHBitSet bitmapor2 = WAHBitSetUtil.fastOR(bitmap2);
-                        bitmapor1 = bitmapor1.or(bitmapor2);
-                        int[] array = new int[bitmapor1.cardinality()];
-                        int c = 0;
-                        for (@SuppressWarnings("unchecked")
-                        Iterator<Integer> i = bitmapor1.iterator(); i.hasNext(); array[c++] = i
+       // logical or + retrieval
+       bef = System.currentTimeMillis();
+       for (int r = 0; r < repeat; ++r) {
+   			WAHBitSet bitmapor1 = null, bitmapor2;
+       		switch(optimisation) {		
+                case 0 :
+                case 2 : bitmapor1 = bitmap[0];
+                		 bitmapor2 = bitmap2[0];	
+                		 for (int k = 1; k < N; ++k) {
+                			bitmapor1 = bitmapor1.or(bitmap[k]);
+                		 	bitmapor2 = bitmapor2.or(bitmap2[k]);
+                		 }
+                		 	bitmapor1 = bitmapor1.or(bitmapor2);
+               		 		break;
+                case 1 : 
+                case 3 : bitmapor1 = WAHBitSetUtil.fastOR(bitmap);
+               			 bitmapor2 = WAHBitSetUtil.fastOR(bitmap2);
+               			 bitmapor1 = bitmapor1.or(bitmapor2);
+               			 break;                		  
+                }
+                int[] array = new int[bitmapor1.cardinality()];
+                int c = 0;
+                for (@SuppressWarnings("unchecked")
+                Iterator<Integer> i = bitmapor1.iterator(); i.hasNext(); array[c++] = i
                                         .next().intValue()) {
-                        }
-                        bogus += c;
+                }
+                bogus += c;
                 }
                 aft = System.currentTimeMillis();
                 line += "\t" + df.format((aft - bef) / 1000.0);
@@ -559,38 +877,36 @@ public class Benchmark {
 		OrGraphCoordinates.get(1).lastElement().setY((aft - bef) / 1000.0);
 
 		// logical and + retrieval
+		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
-			WAHBitSet bitmapand1 = bitmap[0];
-			WAHBitSet bitmapand2 = bitmap2[0];
-			for (int k = 1; k < N; ++k) {
-				bitmapand1 = bitmapand1.and(bitmap[k]);
-				bitmapand2 = bitmapand2.and(bitmap2[k]);
-			}
-			bitmapand1 = bitmapand1.and(bitmapand2);
-			int[] array = new int[bitmapand1.cardinality()];
-			int c = 0;
-			for (@SuppressWarnings("unchecked")
-			Iterator<Integer> i = bitmapand1.iterator(); i.hasNext(); array[c++] = i
-					.next().intValue()) {
-			}
-			bogus += c;
+			WAHBitSet bitmapand1 = null, bitmapand2;
+    		switch(optimisation)
+    		{		
+    		case 0 :
+    		case 2 : bitmapand1 = bitmap[0];
+    				 bitmapand2 = bitmap2[0];	
+    				 for (int k = 1; k < N; ++k) {
+    					bitmapand1 = bitmapand1.or(bitmap[k]);
+    				 	bitmapand2 = bitmapand2.or(bitmap2[k]);
+    				 }
+    				 bitmapand1 = bitmapand1.and(bitmapand2);
+   		 		 	 break;
+    		case 1 : 
+    		case 3 : bitmapand1 = WAHBitSetUtil.fastAND(bitmap);
+   		 			 bitmapand2 = WAHBitSetUtil.fastAND(bitmap2);
+   		  			 bitmapand1 = bitmapand1.and(bitmapand2);
+   		 			 break;                		  
+    		}
+    		int[] array = new int[bitmapand1.cardinality()];
+        	int c = 0;
+        	for (@SuppressWarnings("unchecked")
+        	Iterator<Integer> i = bitmapand1.iterator(); i.hasNext(); array[c++] = i
+                            .next().intValue()) {
+        	}
+        	bogus += c;
 		}
-
-                bef = System.currentTimeMillis();
-                for (int r = 0; r < repeat; ++r) {
-                        WAHBitSet bitmapand1 = WAHBitSetUtil.fastAND(bitmap);
-                        WAHBitSet bitmapand2 = WAHBitSetUtil.fastAND(bitmap2);
-                        bitmapand1 = bitmapand1.and(bitmapand2);
-                        int[] array = new int[bitmapand1.cardinality()];
-                        int c = 0;
-                        for (@SuppressWarnings("unchecked")
-                        Iterator<Integer> i = bitmapand1.iterator(); i
-                                .hasNext(); array[c++] = i.next().intValue()) {
-                        }
-                        bogus += c;
-                }
-                aft = System.currentTimeMillis();
-                line += "\t" + df.format((aft - bef) / 1000.0);
+        aft = System.currentTimeMillis();
+        line += "\t" + df.format((aft - bef) / 1000.0);
 		
 		AndGraphCoordinates.get(1).lastElement().setGname("WAH 32bit");
 		AndGraphCoordinates.get(1).lastElement().setY((aft - bef) / 1000.0);
@@ -607,7 +923,7 @@ public class Benchmark {
 	}
 
 	public static void testConciseSet(int[][] data, int[][] data2, int repeat,
-			DecimalFormat df) {
+			DecimalFormat df, int optimisation) {
 		System.out
 				.println("# ConciseSet 32 bit using the extendedset_2.2 library");
 		System.out
@@ -663,27 +979,30 @@ public class Benchmark {
 		}
 
 		// logical or + retrieval
+		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
-			ConciseSet bitmapor1 = bitmap[0].clone();
-			ConciseSet bitmapor2 = bitmap2[0].clone();
-			for (int k = 1; k < N; ++k) {
-				bitmapor1 = bitmapor1.union(bitmap[k]);
-				bitmapor2 = bitmapor2.union(bitmap2[k]);
-			}
-			bitmapor1 = bitmapor1.union(bitmapor2);
-			int[] array = bitmapor1.toArray();
-			bogus += array.length;
+   			ConciseSet bitmapor1 = null;
+			ConciseSet bitmapor2;
+       		switch(optimisation) {		
+                case 0 :
+                case 2 : bitmapor1 = bitmap[0];
+                		 bitmapor2 = bitmap2[0];	
+                		 for (int k = 1; k < N; ++k) {
+                			bitmapor1 = bitmapor1.union(bitmap[k]);
+                		 	bitmapor2 = bitmapor2.union(bitmap2[k]);
+                		 }
+                		 	bitmapor1 = bitmapor1.union(bitmapor2);
+               		 		break;
+                case 1 : 
+                case 3 : bitmapor1 = ConciseSetUtil.fastOR(bitmap);
+               			 bitmapor2 = ConciseSetUtil.fastOR(bitmap2);
+               			 bitmapor1 = bitmapor1.union(bitmapor2);
+               			 break;                		  
+            }
+       		int[] array = bitmapor1.toArray();
+            if(array!=null) bogus += array.length;
 		}
-
-                bef = System.currentTimeMillis();
-                for (int r = 0; r < repeat; ++r) {
-                        ConciseSet bitmapor1 = ConciseSetUtil.fastOR(bitmap);
-                        ConciseSet bitmapor2 = ConciseSetUtil.fastOR(bitmap2);
-                        bitmapor1 = bitmapor1.union(bitmapor2);
-                        int[] array = bitmapor1.toArray();
-                        bogus += array.length;
-                }
-                aft = System.currentTimeMillis();
+            aft = System.currentTimeMillis();
                 line += "\t" + df.format((aft - bef) / 1000.0);
 		
 
@@ -692,25 +1011,28 @@ public class Benchmark {
 		OrGraphCoordinates.get(2).lastElement().setY((aft - bef) / 1000.0);
 
 		// logical and + retrieval
-		for (int r = 0; r < repeat; ++r) {
-			ConciseSet bitmapand1 = bitmap[0].clone();
-			ConciseSet bitmapand2 = bitmap2[0].clone();
-			for (int k = 1; k < N; ++k) {
-				bitmapand1 = bitmapand1.intersection(bitmap[k]);
-				bitmapand2 = bitmapand2.intersection(bitmap2[k]);
-			}
-			bitmapand1.intersection(bitmapand2);
-			int[] array = bitmapand1.toArray();
-			if(array!=null) bogus += array.length;
-		}
-
                 bef = System.currentTimeMillis();
                 for (int r = 0; r < repeat; ++r) {
-                        ConciseSet bitmapand1 = ConciseSetUtil.fastAND(bitmap);
-                        ConciseSet bitmapand2 = ConciseSetUtil.fastAND(bitmap2);
-                        bitmapand1 = bitmapand1.intersection(bitmapand2);
-                        int[] array = bitmapand1.toArray();
-                        if(array!=null) bogus += array.length;
+           			ConciseSet bitmapand1 = null;
+        			ConciseSet bitmapand2;
+               		switch(optimisation) {		
+                        case 0 :
+                        case 2 : bitmapand1 = bitmap[0];
+                        		 bitmapand2 = bitmap2[0];	
+                        		 for (int k = 1; k < N; ++k) {
+                        			bitmapand1 = bitmapand1.intersection(bitmap[k]);
+                        		 	bitmapand2 = bitmapand2.intersection(bitmap2[k]);
+                        		 }
+                        		 	bitmapand1 = bitmapand1.intersection(bitmapand2);
+                       		 		break;
+                        case 1 : 
+                        case 3 : bitmapand1 = ConciseSetUtil.fastAND(bitmap);
+                       			 bitmapand2 = ConciseSetUtil.fastAND(bitmap2);
+                       			 bitmapand1 = bitmapand1.intersection(bitmapand2);
+                       			 break;                		  
+                    }
+               		int[] array = bitmapand1.toArray();
+                    if(array!=null) bogus += array.length;
                 }
                 aft = System.currentTimeMillis();
                 line += "\t" + df.format((aft - bef) / 1000.0);
@@ -720,24 +1042,28 @@ public class Benchmark {
 		AndGraphCoordinates.get(2).lastElement().setY((aft - bef) / 1000.0);
 		
 		// logical xor + retrieval
-		for (int r = 0; r < repeat; ++r) {
-			ConciseSet bitmapand1 = bitmap[0].clone();
-			ConciseSet bitmapand2 = bitmap2[0].clone();
-			for (int k = 1; k < N; ++k) {
-				bitmapand1 = bitmapand1.symmetricDifference(bitmap[k]);
-				bitmapand2 = bitmapand2.symmetricDifference(bitmap2[k]);
-			}
-			bitmapand1.symmetricDifference(bitmapand2);
-			int[] array = bitmapand1.toArray();
-			if(array!=null) bogus += array.length;
-		}
                 bef = System.currentTimeMillis();
                 for (int r = 0; r < repeat; ++r) {
-                        ConciseSet bitmapxor1 = ConciseSetUtil.fastXOR(bitmap);
-                        ConciseSet bitmapxor2 = ConciseSetUtil.fastXOR(bitmap2);
-                        bitmapxor1 = bitmapxor1.intersection(bitmapxor2);
-                        int[] array = bitmapxor1.toArray();
-                        if(array != null) bogus += array.length;
+                	ConciseSet bitmapxor1 = null;
+        			ConciseSet bitmapxor2;
+               		switch(optimisation) {		
+                        case 0 :
+                        case 2 : bitmapxor1 = bitmap[0];
+                        		 bitmapxor2 = bitmap2[0];	
+                        		 for (int k = 1; k < N; ++k) {
+                        			bitmapxor1 = bitmapxor1.intersection(bitmap[k]);
+                        		 	bitmapxor2 = bitmapxor2.intersection(bitmap2[k]);
+                        		 }
+                        		 	bitmapxor1 = bitmapxor1.intersection(bitmapxor2);
+                       		 		break;
+                        case 1 : 
+                        case 3 : bitmapxor1 = ConciseSetUtil.fastAND(bitmap);
+                       			 bitmapxor2 = ConciseSetUtil.fastAND(bitmap2);
+                       			 bitmapxor1 = bitmapxor1.intersection(bitmapxor2);
+                       			 break;                		  
+                    }
+               		int[] array = bitmapxor1.toArray();
+                    if(array!=null) bogus += array.length;
                 }
                 aft = System.currentTimeMillis();
                 line += "\t" + df.format((aft - bef) / 1000.0);
@@ -755,7 +1081,7 @@ public class Benchmark {
 	}
 
 	public static void testSparseBitmap(int[][] data, int[][] data2,
-			int repeat, DecimalFormat df) {
+			int repeat, DecimalFormat df, int optimisation) {
 		System.out.println("# simple sparse bitmap implementation");
 		System.out
 				.println("# size, construction time, time to recover set bits, time to compute unions (OR), intersections (AND) and exclusive unions (XOR) ");
@@ -873,7 +1199,7 @@ public class Benchmark {
 	}
 
 	public static void testEWAH64(int[][] data, int[][] data2, int repeat,
-			DecimalFormat df) {
+			DecimalFormat df, int optimisation) {
 		System.out.println("# EWAH using the javaewah library");
 		System.out
 				.println("# size, construction time, time to recover set bits, time to compute unions  and intersections ");
@@ -930,12 +1256,26 @@ public class Benchmark {
 		// fast logical or + retrieval
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
-			EWAHCompressedBitmap ewahor1 = EWAHCompressedBitmap.or(Arrays
-					.copyOf(ewah, N));
-			EWAHCompressedBitmap ewahor2 = EWAHCompressedBitmap.or(Arrays
-					.copyOf(ewah2, N));
-			ewahor1 = ewahor1.or(ewahor2);
-			int[] array = ewahor1.toArray();
+			EWAHCompressedBitmap bitmapor1 = null, bitmapor2;
+       		switch(optimisation) {		
+                case 0 :
+                case 2 : bitmapor1 = ewah[0];
+                		 bitmapor2 = ewah2[0];	
+                		 for (int k = 1; k < N; ++k) {
+                			bitmapor1 = bitmapor1.or(ewah[k]);
+                		 	bitmapor2 = bitmapor2.or(ewah2[k]);
+                		 }
+                		 	bitmapor1 = bitmapor1.or(bitmapor2);
+               		 		break;
+                case 1 : 
+                case 3 : bitmapor1 = EWAHCompressedBitmap.or(Arrays
+    					.copyOf(ewah, N));
+               			 bitmapor2 = EWAHCompressedBitmap.or(Arrays
+             					.copyOf(ewah2, N));
+               			 bitmapor1 = bitmapor1.or(bitmapor2);
+               			 break;                		  
+            }       		
+			int[] array = bitmapor1.toArray();
 			bogus += array.length;
 		}
 		aft = System.currentTimeMillis();
@@ -947,12 +1287,26 @@ public class Benchmark {
 		// fast logical and + retrieval
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
-			EWAHCompressedBitmap ewahand1 = EWAHCompressedBitmap.and(Arrays
-					.copyOf(ewah, N));
-			EWAHCompressedBitmap ewahand2 = EWAHCompressedBitmap.and(Arrays
-					.copyOf(ewah2, N));
-			ewahand1 = ewahand1.and(ewahand2);
-			int[] array = ewahand1.toArray();
+			EWAHCompressedBitmap bitmapand1 = null, bitmapand2;
+       		switch(optimisation) {		
+                case 0 :
+                case 2 : bitmapand1 = ewah[0];
+                		 bitmapand2 = ewah2[0];	
+                		 for (int k = 1; k < N; ++k) {
+                			bitmapand1 = bitmapand1.and(ewah[k]);
+                		 	bitmapand2 = bitmapand2.and(ewah2[k]);
+                		 }
+                		 	bitmapand1 = bitmapand1.and(bitmapand2);
+               		 		break;
+                case 1 : 
+                case 3 : bitmapand1 = EWAHCompressedBitmap.and(Arrays
+    					.copyOf(ewah, N));
+               			 bitmapand2 = EWAHCompressedBitmap.and(Arrays
+             					.copyOf(ewah2, N));
+               			 bitmapand1 = bitmapand1.and(bitmapand2);
+               			 break;                		  
+            }       		
+			int[] array = bitmapand1.toArray();
 			bogus += array.length;
 		}
 		aft = System.currentTimeMillis();
@@ -964,13 +1318,26 @@ public class Benchmark {
 		// fast logical xor + retrieval
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
-			EWAHCompressedBitmap ewahxor1 = EWAHCompressedBitmap.xor(Arrays
-					.copyOf(ewah, N));
-			EWAHCompressedBitmap ewahxor2 = EWAHCompressedBitmap.xor(Arrays
-					.copyOf(ewah2, N));
-			;
-			ewahxor1 = ewahxor1.xor(ewahxor2);
-			int[] array = ewahxor1.toArray();
+			EWAHCompressedBitmap bitmapxor1 = null, bitmapxor2;
+       		switch(optimisation) {		
+                case 0 :
+                case 2 : bitmapxor1 = ewah[0];
+                		 bitmapxor2 = ewah2[0];	
+                		 for (int k = 1; k < N; ++k) {
+                			bitmapxor1 = bitmapxor1.xor(ewah[k]);
+                		 	bitmapxor2 = bitmapxor2.xor(ewah2[k]);
+                		 }
+                		 	bitmapxor1 = bitmapxor1.xor(bitmapxor2);
+               		 		break;
+                case 1 : 
+                case 3 : bitmapxor1 = EWAHCompressedBitmap.xor(Arrays
+    					.copyOf(ewah, N));
+               			 bitmapxor2 = EWAHCompressedBitmap.xor(Arrays
+             					.copyOf(ewah2, N));
+               			 bitmapxor1 = bitmapxor1.xor(bitmapxor2);
+               			 break;                		  
+            }       		
+			int[] array = bitmapxor1.toArray();
 			bogus += array.length;
 		}
 		aft = System.currentTimeMillis();
@@ -988,7 +1355,7 @@ public class Benchmark {
 	}
 
 	public static void testEWAH32(int[][] data, int[][] data2, int repeat,
-			DecimalFormat df) {
+			DecimalFormat df, int optimisation) {
 		System.out.println("# EWAH 32-bit using the javaewah library");
 		System.out
 				.println("# size, construction time, time to recover set bits, time to compute unions  and intersections ");
@@ -1045,12 +1412,26 @@ public class Benchmark {
 		// fast logical or + retrieval
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
-			EWAHCompressedBitmap32 ewahor1 = EWAHCompressedBitmap32.or(Arrays
-					.copyOf(ewah, N));
-			EWAHCompressedBitmap32 ewahor2 = EWAHCompressedBitmap32.or(Arrays
-					.copyOf(ewah2, N));
-			ewahor1 = ewahor1.or(ewahor2);
-			int[] array = ewahor1.toArray();
+			EWAHCompressedBitmap32 bitmapor1 = null, bitmapor2;
+       		switch(optimisation) {		
+                case 0 :
+                case 2 : bitmapor1 = ewah[0];
+                		 bitmapor2 = ewah2[0];	
+                		 for (int k = 1; k < N; ++k) {
+                			bitmapor1 = bitmapor1.or(ewah[k]);
+                		 	bitmapor2 = bitmapor2.or(ewah2[k]);
+                		 }
+                		 	bitmapor1 = bitmapor1.or(bitmapor2);
+               		 		break;
+                case 1 : 
+                case 3 : bitmapor1 = EWAHCompressedBitmap32.or(Arrays
+    					.copyOf(ewah, N));
+               			 bitmapor2 = EWAHCompressedBitmap32.or(Arrays
+             					.copyOf(ewah2, N));
+               			 bitmapor1 = bitmapor1.or(bitmapor2);
+               			 break;                		  
+            }       		
+			int[] array = bitmapor1.toArray();
 			bogus += array.length;
 		}
 		aft = System.currentTimeMillis();
@@ -1062,12 +1443,26 @@ public class Benchmark {
 		// fast logical and + retrieval
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
-			EWAHCompressedBitmap32 ewahand1 = EWAHCompressedBitmap32.and(Arrays
-					.copyOf(ewah, N));
-			EWAHCompressedBitmap32 ewahand2 = EWAHCompressedBitmap32.and(Arrays
-					.copyOf(ewah2, N));
-			ewahand1 = ewahand1.and(ewahand2);
-			int[] array = ewahand1.toArray();
+			EWAHCompressedBitmap32 bitmapand1 = null, bitmapand2;
+       		switch(optimisation) {		
+                case 0 :
+                case 2 : bitmapand1 = ewah[0];
+                		 bitmapand2 = ewah2[0];	
+                		 for (int k = 1; k < N; ++k) {
+                			bitmapand1 = bitmapand1.and(ewah[k]);
+                		 	bitmapand2 = bitmapand2.and(ewah2[k]);
+                		 }
+                		 	bitmapand1 = bitmapand1.and(bitmapand2);
+               		 		break;
+                case 1 : 
+                case 3 : bitmapand1 = EWAHCompressedBitmap32.and(Arrays
+    					.copyOf(ewah, N));
+               			 bitmapand2 = EWAHCompressedBitmap32.and(Arrays
+             					.copyOf(ewah2, N));
+               			 bitmapand1 = bitmapand1.and(bitmapand2);
+               			 break;                		  
+            }       		
+			int[] array = bitmapand1.toArray();
 			bogus += array.length;
 		}
 		aft = System.currentTimeMillis();
@@ -1079,12 +1474,26 @@ public class Benchmark {
 		// fast logical xor + retrieval
 		bef = System.currentTimeMillis();
 		for (int r = 0; r < repeat; ++r) {
-			EWAHCompressedBitmap32 ewahxor1 = EWAHCompressedBitmap32.xor(Arrays
-					.copyOf(ewah, N));
-			EWAHCompressedBitmap32 ewahxor2 = EWAHCompressedBitmap32.or(Arrays
-					.copyOf(ewah2, N));
-			ewahxor1 = ewahxor1.xor(ewahxor2);
-			int[] array = ewahxor1.toArray();
+			EWAHCompressedBitmap32 bitmapxor1 = null, bitmapxor2;
+       		switch(optimisation) {		
+                case 0 :
+                case 2 : bitmapxor1 = ewah[0];
+                		 bitmapxor2 = ewah2[0];	
+                		 for (int k = 1; k < N; ++k) {
+                			bitmapxor1 = bitmapxor1.xor(ewah[k]);
+                		 	bitmapxor2 = bitmapxor2.xor(ewah2[k]);
+                		 }
+                		 	bitmapxor1 = bitmapxor1.xor(bitmapxor2);
+               		 		break;
+                case 1 : 
+                case 3 : bitmapxor1 = EWAHCompressedBitmap32.xor(Arrays
+    					.copyOf(ewah, N));
+               			 bitmapxor2 = EWAHCompressedBitmap32.xor(Arrays
+             					.copyOf(ewah2, N));
+               			 bitmapxor1 = bitmapxor1.xor(bitmapxor2);
+               			 break;                		  
+            }       		
+			int[] array = bitmapxor1.toArray();
 			bogus += array.length;
 		}
 		aft = System.currentTimeMillis();
@@ -1136,211 +1545,16 @@ public class Benchmark {
 					+ df.format((counter / (data.length / 32.0 * Max))));
 
 			// building
-			testBitSet(data, data2, repeat, df);
-			testRoaringBitmap(data, data2, repeat, df);
-			testWAH32(data, data2, repeat, df);
-			testConciseSet(data, data2, repeat, df);
-			testSparseBitmap(data, data2, repeat, df);
-			testEWAH64(data, data2, repeat, df);
-			testEWAH32(data, data2, repeat, df);
+			//testBitSet(data, data2, repeat, df);
+			//testRoaringBitmap(data, data2, repeat, df,);
+			//testWAH32(data, data2, repeat, df);
+			//testConciseSet(data, data2, repeat, df);
+			//testSparseBitmap(data, data2, repeat, df);
+			//testEWAH64(data, data2, repeat, df);
+			//testEWAH32(data, data2, repeat, df);
 
 			System.out.println();
 		}
 	}
 
-	/**
-	 * Generating N sets of nbInts integers uzing Zipfian distribution
-	 * @param N number of generated sets of integers
-	 * @param repeat number of repetitions
-	 */
-	public static void Tests(int N, int repeat, String path, int distribution) {
-		
-		DecimalFormat df = new DecimalFormat("0.###");
-		System.out.println("WARNING: Though I am called ZipfianTests, " +
-				"I am using a uniform data generator. Maybe a better design would use the same method " +
-				"and have the data type as a parameter.");
-		ZipfianDistribution zpf = new ZipfianDistribution();	
-		uniform = new UniformDataGenerator();
-		ClusteredDataGenerator cdg = new ClusteredDataGenerator();
-		
-		String Chartdirs = null, Benchmarkdirs = null;
-		
-		//Creating charts folders
-		switch(distribution) {
-		case 0 : Chartdirs = path+File.separator+"Benchmarks"+File.separator+"Zipf"+File.separator+"Charts"; break;
-		case 1 : Chartdirs = path+File.separator+"Benchmarks"+File.separator+"Uniform"+File.separator+"Charts";	break;
-		case 2 : Chartdirs = path+File.separator+"Benchmarks"+File.separator+"Clustered"+File.separator+"Charts"; break;
-		default : System.out.println("Can you hoose a distribution ?");
-				  System.exit(0);
-		}
-		//Creating benchmarks folders
-		switch(distribution) {
-		case 0 : Benchmarkdirs = path+File.separator+"Benchmarks"+File.separator+"Zipf"+File.separator+"Benchmark"; break;
-		case 1 : Benchmarkdirs = path+File.separator+"Benchmarks"+File.separator+"Uniform"+File.separator+"Benchmark";	break;
-		case 2 : Benchmarkdirs = path+File.separator+"Benchmarks"+File.separator+"Clustered"+File.separator+"Benchmark"; break;
-		default : System.out.println("Can you hoose a distribution ?");
-				  System.exit(0);
-		}
-		
-	try {
-			boolean success = (new File(Chartdirs).mkdirs());
-			boolean success2 = (new File(Benchmarkdirs).mkdirs());
-			if(success & success2) System.out.println("folders created with success");
-		}	catch(Exception e) {e.getMessage();}
-		
-		try {			 
-			File file = new File(Benchmarkdirs+"/Benchmark.txt");
-			
-			// if file doesn't exists, then create it
-			if (!file.exists()) {
-				file.createNewFile();
-			}			
-			Date date = new Date();
-		    SimpleDateFormat dateFormatComp;
-		 
-		    dateFormatComp = new SimpleDateFormat("dd MMM yyyy hh:mm:ss a");
-		    //System.out.println(dateFormatComp.format(date));
-		    
-		System.out.println("# For each instance, we report the size, the construction time, ");
-		System.out.println("# the time required to recover the set bits,");
-		System.out
-		.println("# and the time required to compute logical ors (unions) between lots of bitmaps." +
-				"\n\n# Bitmaps cardinality = "+max
-				+"\n# "+dateFormatComp.format(date)
-				+"\n# "+System.getProperty("os.name")
-				+"\n# Java "+System.getProperty("java.version"));
-		
-		
-		FileWriter fw = new FileWriter(file.getAbsoluteFile());
-		bw = new BufferedWriter(fw);
-		bw.write("\n# For each instance, we report the size, the construction time, \n"
-				+"# the time required to recover the set bits,"
-				+"# and the time required to compute logical ors (unions) between lots of bitmaps."
-				+"# and the time required to compute logical ors (unions) between lots of bitmaps." +
-				"\n\n" +
-				 "# Bitmaps cardinality = "+max
-				+"\n# "+dateFormatComp.format(date)
-				+"\n# "+System.getProperty("os.name")
-				+"\n# Java "+System.getProperty("java.version")
-				);
-	} catch (IOException e) {e.printStackTrace();}
-		
-		for(double k=0.0001; k<1.0; k*=10) {
-		SizeGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
-		OrGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
-		AndGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
-		XorGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();	
-		
-		for(int i =0; i< nbTechnique; i++) {
-			SizeGraphCoordinates.add(new Vector<LineChartPoint>());
-			OrGraphCoordinates.add(new Vector<LineChartPoint>());
-			AndGraphCoordinates.add(new Vector<LineChartPoint>());
-			XorGraphCoordinates.add(new Vector<LineChartPoint>());
-		}
-		for( double density = k; density<k*10.0; density+=density/*=10.0*/ )
-		{
-			if(density>=0.7) 
-				density=0.6;			
-			int SetSize = (int) (max*density);
-			int data[][] = new int[N][];
-			int data2[][] = new int[N][];
-			
-			System.out.println("\n\ndensity = "+density);
-			System.out.println("# generating random data...");
-			try {
-				bw.write("\n\n\ndensity = "+density+
-						"\n# generating random data...");
-			} catch (IOException e1) 
-				{e1.printStackTrace();}
-			
-			for(int i =0; i< nbTechnique; i++) {
-				SizeGraphCoordinates.get(i).add(new LineChartPoint(0.0, String.valueOf(density), null));
-				OrGraphCoordinates.get(i).add(new LineChartPoint(0.0, String.valueOf(density), null));
-				AndGraphCoordinates.get(i).add(new LineChartPoint(0.0, String.valueOf(density), null));
-				XorGraphCoordinates.get(i).add(new LineChartPoint(0.0, String.valueOf(density), null));
-			}
-			
-			// Generating the first set
-			int[] inter = cdg.generateClustered(1 << (18 / 2), max);
-			
-			for(int i=0; i<N; i++)
-			{	
-				switch (distribution) {
-				case 0 : data[i] = zpf.GenartingInts(SetSize, max);
-						data2[i] = zpf.GenartingInts(SetSize, max);
-						break;
-				case 1 : data[i] = uniform.generateUniform(SetSize, max);
-						 data2[i] = uniform.generateUniform(SetSize, max);
-						 break;
-				case 2 : data[i] = IntUtil.unite(inter, cdg.generateClustered(1 << 18, max));
-						 data2[i] = IntUtil.unite(inter, cdg.generateClustered(1 << 18, max));
-						 break;
-				default : System.out.println("Launching tests aborted");
-							System.exit(0);
-				}				
-				
-				Arrays.sort(data[i]);
-				Arrays.sort(data2[i]);				
-				
-				/*System.out.println("\n\n data1");
-				int bigger = 0, aver = 0, val1 = data[i][0];
-				for(int j=1; j<data[i].length; j++){
-					bigger = bigger < Math.abs(data[i][j]-val1) ? (data[i][j]-val1) : bigger;
-					aver += Math.abs(data[i][j] - val1);
-					val1=data[i][j];
-					//System.out.println(data[i][j]+" ");
-				}
-				System.out.println(bigger+" "+" average = "+(aver/data[i].length));*/
-				/*System.out.println("\n data2");				
-				for(int j=0; j<data2[i].length; j++)
-					System.out.println(data2[i][j]+" ");*/				
-			}
-			
-			// Start experiments with Zipfian data distribution
-			System.out.println("# generating random data... ok.");
-			System.out.println("#  density = "+ density+" nb setBits = "+SetSize);
-			try {
-				bw.write("\n# generating random data... ok.\n"
-						+"#  density = "+ density+" nb setBits = "+SetSize);
-			} catch (IOException e) 
-				{e.printStackTrace();}
-			// building
-			//testBitSet(data, data2, repeat, df);
-			testRoaringBitmap(data, data2, repeat, df);
-			testWAH32(data, data2, repeat, df);
-			testConciseSet(data, data2, repeat, df);
-			testSparseBitmap(data, data2, repeat, df);
-			testEWAH64(data, data2, repeat, df);
-			testEWAH32(data, data2, repeat, df);
-			
-			System.out.println();		
-		}		
-                        if (path != null) {
-                        		String p = null; 
-                        		switch(distribution) {
-                        		case 0 : p = path+"/Benchmarks/Zipf/Charts/"; break;
-                        		case 1 : p = path+"/Benchmarks/Uniform/Charts/";break;
-                        		case 2 : p = path+"/Benchmarks/Clustered/Charts/"; break;
-                        		default : System.out.println("Can you hoose a distribution ?");
-                        				  System.exit(0);
-                        		}
-                        		
-                                new LineChartDemo1(
-                                        "Line Chart Size " + k + "_" + (k * 10),
-                                        SizeGraphCoordinates, p);
-                                new LineChartDemo1(
-                                        "Line Chart OR " + k + "_" + (k * 10),
-                                        OrGraphCoordinates, p);
-                                new LineChartDemo1(
-                                        "Line Chart AND " + k + "_" + (k * 10),
-                                        AndGraphCoordinates, p);
-                                new LineChartDemo1(
-                                        "Line Chart XOR " + k + "_" + (k * 10),
-                                        XorGraphCoordinates, p);
-                        }
-		}
-		try {
-			bw.close();
-		} catch (IOException e) {e.printStackTrace();}
-	}
 }
