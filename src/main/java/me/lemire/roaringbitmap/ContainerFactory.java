@@ -54,6 +54,10 @@ public  final class ContainerFactory {
                 return ans;
         }
 
+        /**
+         * Warning: the BitmapContainer won't be initialized as empty.
+         * @return a BitmapContainer
+         */
         public static BitmapContainer getBitmapContainer() {
                 if(Bbuffer.isEmpty())
                         return new BitmapContainer();
@@ -66,7 +70,13 @@ public  final class ContainerFactory {
                 return bc;
         }
         public static BitmapContainer transformToBitmapContainer(ArrayContainer ac) {
-                BitmapContainer bc = Bbuffer.isEmpty() ?  new BitmapContainer(): Bbuffer.remove(Bbuffer.size()-1);
+                BitmapContainer bc;
+                if(Bbuffer.isEmpty())
+                        bc = new BitmapContainer();
+                else  {
+                        bc = Bbuffer.remove(Bbuffer.size()-1);
+                        bc.clear(); // we need to clear it up
+                }
                 bc.loadData(ac);
                 putBackInStore(ac);
                 return bc;
