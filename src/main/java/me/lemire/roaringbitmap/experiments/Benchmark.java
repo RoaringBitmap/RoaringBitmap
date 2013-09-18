@@ -54,9 +54,9 @@ public class Benchmark {
 	public static void main(String[] args) {
 		//test(10, 18, 10);
                 if (args.length > 0) {                    
-                	//Tests(nbBitmaps, 10, args[0], distUniform);
+                	Tests(nbBitmaps, 10, args[0], distUniform);
                 	Tests(nbBitmaps, 10, args[0], distZipf);
-                	//Tests(nbBitmaps, 10, args[0], distClustered);
+                	Tests(nbBitmaps, 10, args[0], distClustered);
                 }
                 else {
                         Tests(nbBitmaps, 10, null, distUniform);// no plots needed
@@ -188,7 +188,7 @@ public class Benchmark {
 				);
 	} catch (IOException e) {e.printStackTrace();}
 		
-		for(double k=0.01; k<1.0; k*=10) {
+		for(double k=0.0001; k<1.0; k*=10) {
 			SizeGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
 			OrGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
 			AndGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
