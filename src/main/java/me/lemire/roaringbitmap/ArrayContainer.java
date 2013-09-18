@@ -60,7 +60,7 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 		int loc = Util.unsigned_binarySearch(content, 0, cardinality, x);
 		if (loc < 0) {
 			// Transform the ArrayContainer to a BitmapContainer when cardinality = DEFAULTMAXSIZE 
-			if (cardinality == content.length) {
+			if (cardinality > DEFAULTMAXSIZE) {
 				BitmapContainer a = ContainerFactory.transformToBitmapContainer(this);
 				a.add(x);
 				return a;
@@ -145,7 +145,7 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 		answer.cardinality = Util.unsigned_union2by2(value1.content,
 				value1.getCardinality(), value2.content,
 				value2.getCardinality(), answer.content);
-		if (answer.cardinality > DEFAULTMAXSIZE)
+		if (answer.cardinality >= DEFAULTMAXSIZE)
 			return ContainerFactory.transformToBitmapContainer(answer);
 		return answer;
 	}
@@ -161,7 +161,7 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
             					value2.getCardinality(), newContent);
         this.content = newContent;
         this.cardinality = card;
-        if (this.cardinality > DEFAULTMAXSIZE)
+        if (this.cardinality >= DEFAULTMAXSIZE)
            	return ContainerFactory.transformToBitmapContainer(this);
         return this;
 	}		
@@ -175,7 +175,7 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 		answer.cardinality = Util.unsigned_exclusiveunion2by2(value1.content,
 				value1.getCardinality(), value2.content,
 				value2.getCardinality(), answer.content); 
-		if (answer.cardinality > DEFAULTMAXSIZE)
+		if (answer.cardinality >= DEFAULTMAXSIZE)
 			return ContainerFactory.transformToBitmapContainer(answer);
 		return answer;
 	}
@@ -190,7 +190,7 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 			value2.getCardinality(), newContent);
 	this.content = newContent;
 	this.cardinality = card; 
-	if (this.cardinality > DEFAULTMAXSIZE)
+	if (this.cardinality >= DEFAULTMAXSIZE)
 		return ContainerFactory.transformToBitmapContainer(this);
 	return this;
 	}

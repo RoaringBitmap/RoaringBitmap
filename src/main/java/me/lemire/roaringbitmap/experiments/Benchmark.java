@@ -47,22 +47,21 @@ public class Benchmark {
 	private static BufferedWriter bw = null;
 	private static int max = 10000000;
 	private static int nbBitmaps = 10;
+	private static String CPU = "IntelCorei3_M330";
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
 		//test(10, 18, 10);
                 if (args.length > 0) {                    
-                	Tests(nbBitmaps, 10, args[0], distUniform);
+                	//Tests(nbBitmaps, 10, args[0], distUniform);
                 	Tests(nbBitmaps, 10, args[0], distZipf);
-                	Tests(nbBitmaps, 10, args[0], distClustered);
+                	//Tests(nbBitmaps, 10, args[0], distClustered);
                 }
                 else {
-                        
-                        System.out.println("No output path specified, will default on current directory.");
-                        Tests(nbBitmaps, 10, ".", distUniform);// no plots needed
-                        Tests(nbBitmaps, 10, ".", distZipf);
-                        Tests(nbBitmaps, 10, ".", distClustered);
+                        Tests(nbBitmaps, 10, null, distUniform);// no plots needed
+                        Tests(nbBitmaps, 10, null, distZipf);
+                        Tests(nbBitmaps, 10, null, distClustered);
                 	}
 	}
 	
@@ -91,9 +90,7 @@ public class Benchmark {
 	 * @param repeat number of repetitions
 	 */
 	public static void Tests(int N, int repeat, String path, int distribution) {
-	        if(path == null) {
-	                throw new RuntimeException("I need an output path.");
-	        }
+		
 		DecimalFormat df = new DecimalFormat("0.###");
 		System.out.println("WARNING: Though I am called ZipfianTests, " +
 				"I am using a uniform data generator. Maybe a better design would use the same method " +
@@ -103,16 +100,15 @@ public class Benchmark {
 		cdg = new ClusteredDataGenerator();	
 		
 		String distdir = null;
-		
+
 		//Creating the distribution folder
 		switch(distribution) {
-		case 0 : distdir = path+File.separator+"Benchmarks_"+System.getProperty("os.arch")+File.separator+"Zipf"; break;
-		case 1 : distdir = path+File.separator+"Benchmarks_"+System.getProperty("os.arch")+File.separator+"Uniform";break;
-		case 2 : distdir = path+File.separator+"Benchmarks_"+System.getProperty("os.arch")+File.separator+"Clustered"; break;
+		case 0 : distdir = path+File.separator+"Benchmarks_"+CPU+File.separator+"Zipf"; break;
+		case 1 : distdir = path+File.separator+"Benchmarks_"+CPU+File.separator+"Uniform";break;
+		case 2 : distdir = path+File.separator+"Benchmarks_"+CPU+File.separator+"Clustered";break;
 		default : System.out.println("Can you choose a distribution ?");
 				  System.exit(0);
 		}
-		
 		
 		launchBenchmark(distribution, N, repeat, df, distdir, classic);
 		launchBenchmark(distribution, N, repeat, df, distdir, Fast);
@@ -120,7 +116,7 @@ public class Benchmark {
 		launchBenchmark(distribution, N, repeat, df, distdir, FastinPlace);
 	}
 	
-		public static void launchBenchmark(int distribution, int N, int repeat, 
+	public static void launchBenchmark(int distribution, int N, int repeat, 
 			DecimalFormat df, String distdir, int optimisation) {
 		
 		String Chartsdir = null, Benchmarkdir = null, optdir = null;	
@@ -175,6 +171,7 @@ public class Benchmark {
 		    		+"\n# Java "+System.getProperty("java.version"));		
 		
 		FileWriter fw = new FileWriter(file.getAbsoluteFile());
+		bw=null;
 		bw = new BufferedWriter(fw);
 		bw.write("\n# For each instance, we report the size, the construction time, \n"
 				+"# the time required to recover the set bits,"
@@ -191,7 +188,7 @@ public class Benchmark {
 				);
 	} catch (IOException e) {e.printStackTrace();}
 		
-		for(double k=0.0001; k<1.0; k*=10) {
+		for(double k=0.01; k<1.0; k*=10) {
 			SizeGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
 			OrGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
 			AndGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
@@ -854,7 +851,7 @@ public class Benchmark {
                 case 0 :
                 case 2 : bitmapor1 = bitmap[0];
                 		 bitmapor2 = bitmap2[0];	
-                		 for (int k = 1; k < N; ++k) {
+                		 for (int k = 1; k < N; ++k) {            			 
                 			bitmapor1 = bitmapor1.or(bitmap[k]);
                 		 	bitmapor2 = bitmapor2.or(bitmap2[k]);
                 		 }
@@ -990,8 +987,8 @@ public class Benchmark {
 			ConciseSet bitmapor2;
        		switch(optimisation) {		
                 case 0 :
-                case 2 : bitmapor1 = bitmap[0];
-                		 bitmapor2 = bitmap2[0];	
+                case 2 : bitmapor1 = bitmap[0].clone();
+                		 bitmapor2 = bitmap2[0].clone();	
                 		 for (int k = 1; k < N; ++k) {
                 			bitmapor1 = bitmapor1.union(bitmap[k]);
                 		 	bitmapor2 = bitmapor2.union(bitmap2[k]);
@@ -1022,8 +1019,8 @@ public class Benchmark {
         			ConciseSet bitmapand2;
                		switch(optimisation) {		
                         case 0 :
-                        case 2 : bitmapand1 = bitmap[0];
-                        		 bitmapand2 = bitmap2[0];	
+                        case 2 : bitmapand1 = bitmap[0].clone();
+                        		 bitmapand2 = bitmap2[0].clone();	
                         		 for (int k = 1; k < N; ++k) {
                         			bitmapand1 = bitmapand1.intersection(bitmap[k]);
                         		 	bitmapand2 = bitmapand2.intersection(bitmap2[k]);
@@ -1053,18 +1050,18 @@ public class Benchmark {
         			ConciseSet bitmapxor2;
                		switch(optimisation) {		
                         case 0 :
-                        case 2 : bitmapxor1 = bitmap[0];
-                        		 bitmapxor2 = bitmap2[0];	
+                        case 2 : bitmapxor1 = bitmap[0].clone();
+                        		 bitmapxor2 = bitmap2[0].clone();	
                         		 for (int k = 1; k < N; ++k) {
-                        			bitmapxor1 = bitmapxor1.intersection(bitmap[k]);
-                        		 	bitmapxor2 = bitmapxor2.intersection(bitmap2[k]);
+                        			bitmapxor1 = bitmapxor1.symmetricDifference(bitmap[k]);
+                        		 	bitmapxor2 = bitmapxor2.symmetricDifference(bitmap2[k]);
                         		 }
-                        		 	bitmapxor1 = bitmapxor1.intersection(bitmapxor2);
+                        		 	bitmapxor1 = bitmapxor1.symmetricDifference(bitmapxor2);
                        		 		break;
                         case 1 : 
-                        case 3 : bitmapxor1 = ConciseSetUtil.fastAND(bitmap);
-                       			 bitmapxor2 = ConciseSetUtil.fastAND(bitmap2);
-                       			 bitmapxor1 = bitmapxor1.intersection(bitmapxor2);
+                        case 3 : bitmapxor1 = ConciseSetUtil.fastXOR(bitmap);
+                       			 bitmapxor2 = ConciseSetUtil.fastXOR(bitmap2);
+                       			 bitmapxor1 = bitmapxor1.symmetricDifference(bitmapxor2);
                        			 break;                		  
                     }
                		int[] array = bitmapxor1.toArray();
@@ -1332,13 +1329,13 @@ public class Benchmark {
                 			bitmapxor1 = bitmapxor1.xor(ewah[k]);
                 		 	bitmapxor2 = bitmapxor2.xor(ewah2[k]);
                 		 }
-                		 	bitmapxor1 = bitmapxor1.xor(bitmapxor2);
-               		 		break;
+                		 bitmapxor1 = bitmapxor1.xor(bitmapxor2);
+               		 	 break;
                 case 1 : 
                 case 3 : bitmapxor1 = EWAHCompressedBitmap.xor(Arrays
-    					.copyOf(ewah, N));
+    									.copyOf(ewah, N));
                			 bitmapxor2 = EWAHCompressedBitmap.xor(Arrays
-             					.copyOf(ewah2, N));
+               					 					.copyOf(ewah2, N));
                			 bitmapxor1 = bitmapxor1.xor(bitmapxor2);
                			 break;                		  
             }       		

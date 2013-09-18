@@ -21,7 +21,7 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
                 for(int k = 0; k < arrayContainer.cardinality; ++k) {
                         final short x = arrayContainer.content[k];
                         bitmap[Util.toIntUnsigned(x)/64] |= (1l << x);
-                }                
+                }               
 	}
 
 	
@@ -125,7 +125,7 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 
 	public Container and(final BitmapContainer value2) {
 	        final BitmapContainer answer = ContainerFactory.getUnintializedBitmapContainer();
-		answer.cardinality = 0;
+	        answer.cardinality = 0;
 	        for (int k = 0; k < answer.bitmap.length; ++k) 
 		{
 			answer.bitmap[k] = this.bitmap[k] & value2.bitmap[k];
