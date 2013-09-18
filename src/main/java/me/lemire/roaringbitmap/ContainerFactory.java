@@ -13,7 +13,8 @@ public  final class ContainerFactory {
         static ArrayList<ArrayContainer> buffer = new  ArrayList<ArrayContainer>();
         static ArrayList<BitmapContainer> Bbuffer = new  ArrayList<BitmapContainer>();
 
-        static int capacity = 10; 
+        static int capacity = 10;
+        
         public static ArrayContainer getArrayContainer() {
                 if(buffer.isEmpty()) {
                         return new ArrayContainer();
@@ -54,6 +55,9 @@ public  final class ContainerFactory {
                 return ans;
         }
 
+        /**
+         * @return a BitmapContainer
+         */
         public static BitmapContainer getBitmapContainer() {
                 if(Bbuffer.isEmpty())
                         return new BitmapContainer();
@@ -66,7 +70,7 @@ public  final class ContainerFactory {
                 return bc;
         }
         public static BitmapContainer transformToBitmapContainer(ArrayContainer ac) {
-                BitmapContainer bc = Bbuffer.isEmpty() ?  new BitmapContainer(): Bbuffer.remove(Bbuffer.size()-1);
+                BitmapContainer bc = Bbuffer.isEmpty()? new BitmapContainer(): Bbuffer.remove(Bbuffer.size()-1);
                 bc.loadData(ac);
                 putBackInStore(ac);
                 return bc;
