@@ -87,8 +87,10 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 
 	@Override
         public void clear() {
-		this.cardinality = 0;
-		Arrays.fill(bitmap, 0);
+	        if(cardinality != 0) {
+		  cardinality = 0;
+		  Arrays.fill(bitmap, 0);
+	        }
 	}
 
 	@Override
