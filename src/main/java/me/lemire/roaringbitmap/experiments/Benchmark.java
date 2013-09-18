@@ -182,7 +182,7 @@ public class Benchmark {
 				+"\n# Bitmaps cardinality = "+max 
 				+"\n# Optimisation = "+op[optimisation]
 				+"\n# "+dateFormatComp.format(date)
-				+"\n# CPU = "+System.getenv("PROCESSOR_ARCHITECTURE")
+				+"\n# CPU = "+System.getenv("os.arch")
 				+"\n# "+System.getProperty("os.name")
 				+"\n# Java "+System.getProperty("java.version")
 				);
