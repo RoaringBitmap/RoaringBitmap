@@ -6,6 +6,7 @@ import java.util.Vector;
 import junit.framework.Assert;
 import me.lemire.roaringbitmap.ArrayContainer;
 import me.lemire.roaringbitmap.BitmapContainer;
+import me.lemire.roaringbitmap.ContainerFactory;
 import me.lemire.roaringbitmap.RoaringBitmap;
 import org.junit.Test;
 
@@ -733,5 +734,63 @@ public class RoaringBitmapTest {
 				
 		Assert.assertEquals(valide, true);
 		rr.validate();
+	}
+
+	@Test
+	public void ContainerFactory() {
+		BitmapContainer bc1, bc2, bc3;
+		ArrayContainer ac1, ac2, ac3;
+		
+		bc1 = new BitmapContainer();
+		bc2 = new BitmapContainer();
+		bc3 = new BitmapContainer();
+		ac1 = new ArrayContainer();
+		ac2 = new ArrayContainer();
+		ac3 = new ArrayContainer();
+		
+		for(short i=0; i<5000; i++)
+			bc1.add((short)(i*70));
+		for(short i=0; i<5000; i++)
+			bc2.add((short)(i*70));
+		for(short i=0; i<5000; i++)
+			bc3.add((short)(i*70));
+		ContainerFactory.putBackInStore(bc1);
+		ContainerFactory.putBackInStore(bc2);
+		ContainerFactory.putBackInStore(bc3);
+		
+		for(short i=0; i<4000; i++)
+			ac1.add((short)(i*50));
+		for(short i=0; i<4000; i++)
+			ac2.add((short)(i*50));
+		for(short i=0; i<4000; i++)
+			ac3.add((short)(i*50));
+		
+		BitmapContainer rbc; 
+		
+		rbc = ContainerFactory.transformToBitmapContainer(ac1.clone());
+		Assert.assertTrue(validate(rbc, ac1));
+		rbc = ContainerFactory.transformToBitmapContainer(ac2.clone());
+		Assert.assertTrue(validate(rbc, ac2));
+		rbc = ContainerFactory.transformToBitmapContainer(ac3.clone());
+		Assert.assertTrue(validate(rbc, ac3));
+	}
+	
+	boolean validate(BitmapContainer bc, ArrayContainer ac) {
+		//Checking the cardinalities of each container
+		
+		if(bc.getCardinality() != ac.getCardinality()) return false;
+		// Checking that the two containers contain the same values
+		int counter = 0;
+		
+			int i = bc.nextSetBit(0);
+			while (i >= 0) {
+				++counter;
+				if(!ac.contains((short)i)) return false;
+				i = bc.nextSetBit(i + 1);
+			}
+		
+		//checking the cardinality of the BitmapContainer
+		if(counter!=bc.getCardinality()) return false;
+		return true;
 	}
 }
