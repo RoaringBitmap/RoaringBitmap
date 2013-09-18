@@ -544,6 +544,7 @@ public class RoaringBitmapTest {
 			rr2.add(k);
 		}
 		rr.inPlaceAND(rr2);
+		rr.validate();
 		RoaringBitmap rrand = rr;
 		boolean valide = true; 
 		for (int i : rrand) {
@@ -624,6 +625,7 @@ public class RoaringBitmapTest {
 			V1.add(new Integer(k));
 		}
 		rr.inPlaceOR(rr2);
+		rr.validate();
 		RoaringBitmap rror = rr;
 		boolean valide = true;
 
@@ -709,6 +711,7 @@ public class RoaringBitmapTest {
 		}
 
 		rr.inPlaceXOR(rr2);
+		rr.validate();
 		RoaringBitmap rrxor = rr;
 		boolean valide = true;
 
@@ -778,14 +781,22 @@ public class RoaringBitmapTest {
 	boolean validate(BitmapContainer bc, ArrayContainer ac) {
 		//Checking the cardinalities of each container
 		
-		if(bc.getCardinality() != ac.getCardinality()) return false;
+		if(bc.getCardinality() != ac.getCardinality()) {
+		        System.out.println("cardinality differs");
+		        return false;
+		}
 		// Checking that the two containers contain the same values
 		int counter = 0;
 		
 			int i = bc.nextSetBit(0);
 			while (i >= 0) {
 				++counter;
-				if(!ac.contains((short)i)) return false;
+				if(!ac.contains((short)i)){
+				        System.out.println("content differs");
+				        System.out.println(bc);
+				        System.out.println(ac);
+				        return false;
+				}
 				i = bc.nextSetBit(i + 1);
 			}
 		

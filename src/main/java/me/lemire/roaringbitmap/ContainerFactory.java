@@ -13,7 +13,7 @@ public  final class ContainerFactory {
         static ArrayList<ArrayContainer> buffer = new  ArrayList<ArrayContainer>();
         static ArrayList<BitmapContainer> Bbuffer = new  ArrayList<BitmapContainer>();
 
-        static int capacity = 10;
+        public static int capacity = 128;
         
         public static ArrayContainer getArrayContainer() {
                 if(buffer.isEmpty()) {
@@ -56,21 +56,36 @@ public  final class ContainerFactory {
         }
 
         /**
+         * The returned BitmapContainer will not be initialized as empty by default.
+         * Called "clear" if needed.
+         * 
          * @return a BitmapContainer
          */
-        public static BitmapContainer getBitmapContainer() {
+        public static BitmapContainer getUnintializedBitmapContainer() {
                 if(Bbuffer.isEmpty())
                         return new BitmapContainer();
                 return Bbuffer.remove(Bbuffer.size()-1);
         }
 
         public static BitmapContainer copyToArrayContainer(ArrayContainer ac) {
-                BitmapContainer bc = Bbuffer.isEmpty() ?  new BitmapContainer(): Bbuffer.remove(Bbuffer.size()-1);
+                BitmapContainer bc;
+                if(Bbuffer.isEmpty())
+                        bc =  new BitmapContainer();
+                else {
+                        bc = Bbuffer.remove(Bbuffer.size()-1);
+                        bc.clear();
+                }
                 bc.loadData(ac);
                 return bc;
         }
         public static BitmapContainer transformToBitmapContainer(ArrayContainer ac) {
-                BitmapContainer bc = Bbuffer.isEmpty()? new BitmapContainer(): Bbuffer.remove(Bbuffer.size()-1);
+                BitmapContainer bc;
+                if(Bbuffer.isEmpty())
+                        bc =  new BitmapContainer();
+                else {
+                        bc = Bbuffer.remove(Bbuffer.size()-1);
+                        bc.clear();
+                }
                 bc.loadData(ac);
                 putBackInStore(ac);
                 return bc;
@@ -84,7 +99,7 @@ public  final class ContainerFactory {
         }
         public static void putBackInStore(BitmapContainer x) {
                 if(capacity > Bbuffer.size()) {
-                        x.clear();
+                        //x.clear();// this is expensive and should be delayed
                         Bbuffer.add(x);
                 }
         }

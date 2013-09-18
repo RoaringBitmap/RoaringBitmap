@@ -122,8 +122,9 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 	}
 
 	public Container and(final BitmapContainer value2) {
-	        final BitmapContainer answer = ContainerFactory.getBitmapContainer();
-		for (int k = 0; k < answer.bitmap.length; ++k) 
+	        final BitmapContainer answer = ContainerFactory.getUnintializedBitmapContainer();
+		answer.cardinality = 0;
+	        for (int k = 0; k < answer.bitmap.length; ++k) 
 		{
 			answer.bitmap[k] = this.bitmap[k] & value2.bitmap[k];
 			if(answer.bitmap[k]!=0)// this might happen often enough, but performance effect should be checked
@@ -158,7 +159,8 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 	}
 
 	public Container or(final BitmapContainer value2) {
-	        final BitmapContainer answer = ContainerFactory.getBitmapContainer();
+	        final BitmapContainer answer = ContainerFactory.getUnintializedBitmapContainer();
+	        answer.cardinality = 0;
 		for (int k = 0; k < answer.bitmap.length; ++k) 
 		{
 			answer.bitmap[k] = this.bitmap[k] | value2.bitmap[k];
@@ -196,7 +198,8 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 	}
 	
 	public Container xor(BitmapContainer value2) {		
-        final BitmapContainer answer = ContainerFactory.getBitmapContainer();
+        final BitmapContainer answer = ContainerFactory.getUnintializedBitmapContainer();
+        answer.cardinality = 0;
 	for (int k = 0; k < answer.bitmap.length; ++k) {
 		answer.bitmap[k] = this.bitmap[k] ^ value2.bitmap[k];
 		//if(answer.bitmap[k]!=0) // probably not wise performance-wise
@@ -235,11 +238,6 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 			this.cardinality += ((~this.bitmap[i]) & (1l << value2.content[k])) >>> value2.content[k] ;// in Java, shifts are always "modulo"
 			this.bitmap[i] |= (1l << value2.content[k]);
 		}
-	     
-	     //DL: Please don't call "expensiveComputeCardinality" here unless you have benchmarked
-	     // it and you know it is faster. If there is
-	     // a bug above, please write a unit test for it.
-	    //this.cardinality = this.expensiveComputeCardinality();
 		return this;
 	}
 	
@@ -263,11 +261,9 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
                         this.cardinality += 1 - 2 * ((this.bitmap[index] & (1l << value2.content[k])) >>> value2.content[k]);
                         this.bitmap[index] ^=  (1l << value2.content[k]);
                 }
-                // DL: Please don't call "expensiveComputeCardinality" unless your benchmarks
-                // should that it is faster. Debug code above, use unit tests to report problem.
-                // this.cardinality = this.expensiveComputeCardinality();
                 if (this.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
                         return ContainerFactory.transformToArrayContainer(this);
+                
                 return this;
 	}	
 
@@ -345,4 +341,5 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
                 };
 
         }
+   
 }

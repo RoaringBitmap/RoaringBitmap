@@ -58,9 +58,11 @@ public class Benchmark {
                 	Tests(nbBitmaps, 10, args[0], distClustered);
                 }
                 else {
-                        Tests(nbBitmaps, 10, null, distUniform);// no plots needed
-                        Tests(nbBitmaps, 10, null, distZipf);
-                        Tests(nbBitmaps, 10, null, distClustered);
+                        
+                        System.out.println("No output path specified, will default on current directory.");
+                        Tests(nbBitmaps, 10, ".", distUniform);// no plots needed
+                        Tests(nbBitmaps, 10, ".", distZipf);
+                        Tests(nbBitmaps, 10, ".", distClustered);
                 	}
 	}
 	
@@ -89,7 +91,9 @@ public class Benchmark {
 	 * @param repeat number of repetitions
 	 */
 	public static void Tests(int N, int repeat, String path, int distribution) {
-		
+	        if(path == null) {
+	                throw new RuntimeException("I need an output path.");
+	        }
 		DecimalFormat df = new DecimalFormat("0.###");
 		System.out.println("WARNING: Though I am called ZipfianTests, " +
 				"I am using a uniform data generator. Maybe a better design would use the same method " +
@@ -99,7 +103,7 @@ public class Benchmark {
 		cdg = new ClusteredDataGenerator();	
 		
 		String distdir = null;
-
+		
 		//Creating the distribution folder
 		switch(distribution) {
 		case 0 : distdir = path+File.separator+"Benchmarks_"+System.getProperty("os.arch")+File.separator+"Zipf"; break;
@@ -108,6 +112,7 @@ public class Benchmark {
 		default : System.out.println("Can you choose a distribution ?");
 				  System.exit(0);
 		}
+		
 		
 		launchBenchmark(distribution, N, repeat, df, distdir, classic);
 		launchBenchmark(distribution, N, repeat, df, distdir, Fast);
