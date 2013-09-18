@@ -56,7 +56,6 @@ public  final class ContainerFactory {
         }
 
         /**
-         * Warning: the BitmapContainer won't be initialized as empty.
          * @return a BitmapContainer
          */
         public static BitmapContainer getBitmapContainer() {
