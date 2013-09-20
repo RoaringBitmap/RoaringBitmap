@@ -76,10 +76,11 @@ public class LineChartDemo1 extends ApplicationFrame {
      *
      * @param title  the frame title.
      */
-    public LineChartDemo1(final String title, final ArrayList<Vector<LineChartPoint>> coordinates, String path) {
+    public LineChartDemo1(final String title, final String uniteCol, final ArrayList<Vector<LineChartPoint>> coordinates, 
+    		String path) {
         super(title);
         final CategoryDataset dataset = createDataset(coordinates);
-        final JFreeChart chart = createChart(dataset, title);
+        final JFreeChart chart = createChart(dataset, title, uniteCol);
         final ChartPanel chartPanel = new ChartPanel(chart);
         chartPanel.setPreferredSize(new Dimension(500, 270));
         setContentPane(chartPanel);
@@ -118,13 +119,13 @@ public class LineChartDemo1 extends ApplicationFrame {
      * 
      * @return The chart.
      */
-    private static JFreeChart createChart(final CategoryDataset dataset, final String title) {
+    private static JFreeChart createChart(final CategoryDataset dataset, final String title, final String uniteCol) {
         
         // create the chart...
         final JFreeChart chart = ChartFactory.createLineChart(
             title,       // chart title
             "Density",                    // domain axis label
-            "Size (KB)",                   // range axis label
+            uniteCol,                   // range axis label
             dataset,                   // data
             PlotOrientation.VERTICAL,  // orientation
             true,                      // include legend

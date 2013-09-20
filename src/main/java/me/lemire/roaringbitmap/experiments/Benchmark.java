@@ -281,16 +281,16 @@ public class Benchmark {
 	                        		String p = Chartsdir+File.separator;	                        		
 	                        		
 	                                new LineChartDemo1(
-	                                        "Line Chart Size " + k + "_" + (k * 10),
+	                                        "Line_Chart_Compression_size_" + k + "_" + (k * 10), "size (KB)",
 	                                        SizeGraphCoordinates, p);
 	                                new LineChartDemo1(
-	                                        "Line Chart OR " + k + "_" + (k * 10),
+	                                        "Line_Chart_OR_times_" + k + "_" + (k * 10),"Time (sec)",
 	                                        OrGraphCoordinates, p);
 	                                new LineChartDemo1(
-	                                        "Line Chart AND " + k + "_" + (k * 10),
+	                                        "Line_Chart_AND_times_" + k + "_" + (k * 10),"Time (sec)",
 	                                        AndGraphCoordinates, p);
 	                                new LineChartDemo1(
-	                                        "Line Chart XOR " + k + "_" + (k * 10),
+	                                        "Line_Chart_XOR_times_" + k + "_" + (k * 10),"Time (sec)",
 	                                        XorGraphCoordinates, p);
 	                        }	            
 			}
@@ -353,7 +353,7 @@ public class Benchmark {
 			size += bitmap2[k].getSizeInBytes(); //second array (bitmap2)
 		}
 		
-		int cardinality = 0;
+		int cardinality = 0, BC = 0, nbIntAC = 0;
 		int size2 = 0;
 		//Size with verification
 		for(int k=0; k<N; k++) {
@@ -363,14 +363,18 @@ public class Benchmark {
 			//calculating the size of lowBits in nodes of all RoaringBitmaps in the array bitmap
 			for (int x : nbInts) {
 				cardinality+=x;
-				if(x>=ArrayContainer.DEFAULTMAXSIZE) size2+=8192; //if a bitmap container
-				if(x< ArrayContainer.DEFAULTMAXSIZE) size2+=x*2 + 4; //if an array container
+				if(x>=ArrayContainer.DEFAULTMAXSIZE) 
+					{size2+=8192; BC++;}//if a bitmap container
+				if(x< ArrayContainer.DEFAULTMAXSIZE) 
+					{size2+=x*2 + 4; nbIntAC+=x;} //if an array container
 			}
 			//calculating the size of lowBits in nodes of all RoaringBitmaps in the array bitmap2
 			nbInts = bitmap2[k].getIntsPerNode();
 			for (int x : nbInts) {
-				if(x>=ArrayContainer.DEFAULTMAXSIZE) size2+=8192; //if a bitmap container
-				if(x< ArrayContainer.DEFAULTMAXSIZE) size2+=x*2 + 4; //if an array container
+				if(x>=ArrayContainer.DEFAULTMAXSIZE) 
+					{size2+=8192; BC++;}//if a bitmap container
+				if(x< ArrayContainer.DEFAULTMAXSIZE) 
+					{size2+=x*2 + 4; nbIntAC+=x;}//if an array container
 			}
 		}
 		
@@ -685,10 +689,11 @@ public class Benchmark {
 		XorGraphCoordinates.get(0).lastElement().setY((aft - bef) / 1000.0);
 
 		System.out.println(line+" Real size = "+size2+" Cardinality = "+cardinality
-				+" nbNodes = "+bitmap[1].getNbNodes());
+				+" nbNodes = "+bitmap[1].getNbNodes()+" BC = "+BC+" nbIntsAC = "+nbIntAC);
 		System.out.println("# ignore this " + bogus);
 		try {
-				bw.write("\n"+line+" Real size = "+size2+" Cardinality = "+cardinality);
+				bw.write("\n"+line+" Real size = "+size2+" Cardinality = "+cardinality
+						+" nbNodes = "+bitmap[1].getNbNodes()+" BC = "+BC+" nbIntsAC = "+nbIntAC);
 				bw.write("\n# ignore this " + bogus+"\n\n");
 			} catch (IOException e) {e.printStackTrace();}
 	}
