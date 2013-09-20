@@ -688,11 +688,12 @@ public class Benchmark {
 		XorGraphCoordinates.get(0).lastElement().setY((aft - bef) / 1000.0);
 
 		System.out.println(line+"\n# Real size = "+size2
-				+" nbNodes = "+bitmap[1].getNbNodes()+" BC = "+BC+" nbIntsAC = "+nbIntAC+"\n# bits/int = "+Math.ceil(size/cardinality));
+				+" nbNodes = "+bitmap[1].getNbNodes()+" BC = "+BC+" nbIntsAC = "+nbIntAC
+				+"\n# bits/int = "+Math.ceil(size*8/cardinality));
 		System.out.println("# ignore this " + bogus);
 		try {
 				bw.write("\n"+line+"\n# Real size = "+size2+" nbNodes = "+bitmap[1].getNbNodes()
-						+" BC = "+BC+" nbIntsAC = "+nbIntAC+"\n# bits/int = "+Math.ceil(size/cardinality));
+						+" BC = "+BC+" nbIntsAC = "+nbIntAC+"\n# bits/int = "+Math.ceil(size*8/cardinality));
 				bw.write("\n# ignore this " + bogus+"\n\n");
 			} catch (IOException e) {e.printStackTrace();}
 	}
@@ -967,10 +968,10 @@ public class Benchmark {
 		XorGraphCoordinates.get(1).lastElement().setGname("WAH 32bit");
 		XorGraphCoordinates.get(1).lastElement().setY(0.0);
 
-		System.out.println(line+"\n# bits/int = "+Math.ceil(size/cardinality));
+		System.out.println(line+"\n# bits/int = "+Math.ceil(size*8/cardinality));
 		System.out.println("# ignore this " + bogus);
 		try {
-			bw.write("\n"+line+"\n# bits/int = "+Math.ceil(size/cardinality));
+			bw.write("\n"+line+"\n# bits/int = "+Math.ceil(size*8/cardinality));
 			bw.write("\n# ignore this " + bogus+"\n\n");
 		} catch (IOException e) {e.printStackTrace();}
 	}
@@ -1136,10 +1137,10 @@ public class Benchmark {
 		XorGraphCoordinates.get(2).lastElement().setGname("Concise");
 		XorGraphCoordinates.get(2).lastElement().setY((aft - bef) / 1000.0);
 
-		System.out.println(line+"\n# bits/int = "+Math.ceil(size/cardinality));
+		System.out.println(line+"\n# bits/int = "+Math.ceil(size*8/cardinality));
 		System.out.println("# ignore this " + bogus);
 		try {
-			bw.write("\n"+line+"\n# bits/int = "+Math.ceil(size/cardinality));
+			bw.write("\n"+line+"\n# bits/int = "+Math.ceil(size*8/cardinality));
 			bw.write("\n# ignore this " + bogus+"\n\n");
 		} catch (IOException e) {e.printStackTrace();}
 	}
@@ -1259,10 +1260,10 @@ public class Benchmark {
 		AndGraphCoordinates.get(3).lastElement().setGname("Sparse Bitmap");
 		AndGraphCoordinates.get(3).lastElement().setY((aft - bef) / 1000.0);
 
-		System.out.println(line+"\n# bits/int = "+Math.ceil(size/cardinality));
+		System.out.println(line+"\n# bits/int = "+Math.ceil(size*8/cardinality));
 		System.out.println("# ignore this " + bogus);
 		try {
-			bw.write("\n"+line+"\n# bits/int = "+Math.ceil(size/cardinality));
+			bw.write("\n"+line+"\n# bits/int = "+Math.ceil(size*8/cardinality));
 			bw.write("\n# ignore this " + bogus+"\n\n");
 		} catch (IOException e) {e.printStackTrace();}
 	}
@@ -1425,10 +1426,10 @@ public class Benchmark {
 		XorGraphCoordinates.get(4).lastElement().setGname("Ewah 64bits");
 		XorGraphCoordinates.get(4).lastElement().setY((aft - bef) / 1000.0);
 
-		System.out.println(line+"\n# bits/int = "+Math.ceil(size/cardinality));
+		System.out.println(line+"\n# bits/int = "+Math.ceil(size*8/cardinality));
 		System.out.println("# ignore this " + bogus);
 		try {
-			bw.write("\n"+line+"\n# bits/int = "+Math.ceil(size/cardinality));
+			bw.write("\n"+line+"\n# bits/int = "+Math.ceil(size*8/cardinality));
 			bw.write("\n# ignore this " + bogus+"\n\n");
 		} catch (IOException e) {e.printStackTrace();}
 	}
@@ -1593,10 +1594,10 @@ public class Benchmark {
 		XorGraphCoordinates.get(5).lastElement().setGname("Ewah 32");
 		XorGraphCoordinates.get(5).lastElement().setY((aft - bef) / 1000.0);
 
-		System.out.println(line+"\n# bits/int = "+Math.ceil(size/cardinality));
+		System.out.println(line+"\n# bits/int = "+Math.ceil(size*8/cardinality));
 		System.out.println("# ignore this " + bogus);
 		try {
-			bw.write("\n"+line+"\n# bits/int = "+Math.ceil(size/cardinality));
+			bw.write("\n"+line+"\n# bits/int = "+Math.ceil(size*8/cardinality));
 			bw.write("\n# ignore this " + bogus+"\n\n");
 		} catch (IOException e) {e.printStackTrace();}
 	}
