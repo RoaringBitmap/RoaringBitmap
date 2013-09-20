@@ -492,6 +492,21 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 	        return size;
 	}
 	
+	/**
+	 * return an array that contains the number of short integers in each node. 
+	 * The number of short integers of the i th node will be stocked in the array's position i.
+	 * @return int[] number of short integers per node   
+	 */
+	public int[] getIntsPerNode () {
+		int nb[] = new int[this.highlowcontainer.size()], pos = 0;
+		for (Container c : this.highlowcontainer.values())
+			nb[pos++] = c.getCardinality();
+		return nb;
+	}
+	
+	public int getNbNodes() {
+		return this.highlowcontainer.size();
+	}
 	
 	public int getCardinality(){
 		int size = 0;

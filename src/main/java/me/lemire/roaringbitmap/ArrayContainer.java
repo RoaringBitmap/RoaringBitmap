@@ -49,7 +49,7 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 	public Container add(final short x) {
 		
 	        if(( cardinality == 0 )  || (Util.toIntUnsigned(x) > Util.toIntUnsigned(content[cardinality-1]))) {
-	                if (cardinality == content.length) {
+	                if (cardinality >= DEFAULTMAXSIZE) {
                                 BitmapContainer a = ContainerFactory.transformToBitmapContainer(this);
                                 a.add(x);
                                 return a;
@@ -60,7 +60,7 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 		int loc = Util.unsigned_binarySearch(content, 0, cardinality, x);
 		if (loc < 0) {
 			// Transform the ArrayContainer to a BitmapContainer when cardinality = DEFAULTMAXSIZE 
-			if (cardinality > DEFAULTMAXSIZE) {
+			if (cardinality >= DEFAULTMAXSIZE) {
 				BitmapContainer a = ContainerFactory.transformToBitmapContainer(this);
 				a.add(x);
 				return a;
@@ -233,6 +233,7 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 	@Override
         public int getSizeInBytes() {
                 return this.cardinality*2  + 4;
+			
         }
         
 	@Override

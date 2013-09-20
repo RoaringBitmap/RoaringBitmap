@@ -180,7 +180,7 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 	}
 	@Override
         public int getSizeInBytes() {
-                return this.bitmap.length * 8 + 4;
+                return this.bitmap.length * 8;
         }
         
 	public Container xor(final ArrayContainer value2) 
@@ -216,9 +216,9 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 		this.cardinality = 0;
 		for(int k=0; k<this.bitmap.length; k++) {
 			this.bitmap[k] &= B2.bitmap[k];
-			//this.cardinality += Long.bitCount(this.bitmap[k]);
+			this.cardinality += Long.bitCount(this.bitmap[k]);
 		}
-		this.cardinality = this.expensiveComputeCardinality();
+		//this.cardinality = this.expensiveComputeCardinality();
 		return this;
 	}
 	
@@ -227,9 +227,9 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 		this.cardinality = 0;
 		for(int k=0; k<this.bitmap.length; k++) {
 			this.bitmap[k] |= B2.bitmap[k];
-			//this.cardinality += Long.bitCount(this.bitmap[k]);
+			this.cardinality += Long.bitCount(this.bitmap[k]);
 		}
-		this.cardinality = this.expensiveComputeCardinality();
+		//this.cardinality = this.expensiveComputeCardinality();
 		return this;
 	}
 	
@@ -248,9 +248,9 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 	for (int k = 0; k < this.bitmap.length; ++k) {
 		this.bitmap[k] ^= B2.bitmap[k];
 		//if(answer.bitmap[k]!=0) // probably not wise performance-wise
-		//this.cardinality += Long.bitCount(this.bitmap[k]);
+		this.cardinality += Long.bitCount(this.bitmap[k]);
 	}
-	this.cardinality = this.expensiveComputeCardinality();
+	//this.cardinality = this.expensiveComputeCardinality();
 	if (this.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
 		return ContainerFactory.transformToArrayContainer(this);
 	return this;

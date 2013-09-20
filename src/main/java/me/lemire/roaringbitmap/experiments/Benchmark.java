@@ -54,9 +54,9 @@ public class Benchmark {
 	public static void main(String[] args) {
 		//test(10, 18, 10);
                 if (args.length > 0) {                    
-                	Tests(nbBitmaps, 10, args[0], distUniform);
+                	//Tests(nbBitmaps, 10, args[0], distUniform);
                 	Tests(nbBitmaps, 10, args[0], distZipf);
-                	Tests(nbBitmaps, 10, args[0], distClustered);
+                	//Tests(nbBitmaps, 10, args[0], distClustered);
                 }
                 else {
                         Tests(nbBitmaps, 10, null, distUniform);// no plots needed
@@ -103,17 +103,17 @@ public class Benchmark {
 
 		//Creating the distribution folder
 		switch(distribution) {
-		case 0 : distdir = path+File.separator+"Benchmarks_"+CPU+File.separator+"Zipf"; break;
-		case 1 : distdir = path+File.separator+"Benchmarks_"+CPU+File.separator+"Uniform";break;
-		case 2 : distdir = path+File.separator+"Benchmarks_"+CPU+File.separator+"Clustered";break;
+		case 0 : distdir = path+File.separator+"Benchmarks_n"+CPU+File.separator+"Zipf"; break;
+		case 1 : distdir = path+File.separator+"Benchmarks_n"+CPU+File.separator+"Uniform";break;
+		case 2 : distdir = path+File.separator+"Benchmarks_n"+CPU+File.separator+"Clustered";break;
 		default : System.out.println("Can you choose a distribution ?");
 				  System.exit(0);
 		}
 		
 		launchBenchmark(distribution, N, repeat, df, distdir, classic);
-		launchBenchmark(distribution, N, repeat, df, distdir, Fast);
-		launchBenchmark(distribution, N, repeat, df, distdir, inPlace);
-		launchBenchmark(distribution, N, repeat, df, distdir, FastinPlace);
+		//launchBenchmark(distribution, N, repeat, df, distdir, Fast);
+		//launchBenchmark(distribution, N, repeat, df, distdir, inPlace);
+		//launchBenchmark(distribution, N, repeat, df, distdir, FastinPlace);
 	}
 	
 	public static void launchBenchmark(int distribution, int N, int repeat, 
@@ -270,11 +270,11 @@ public class Benchmark {
 				// Launching benchmarks				
 				//testBitSet(data, data2, repeat, df);
 				testRoaringBitmap(data, data2, repeat, df, optimisation);
-				testWAH32(data, data2, repeat, df, optimisation);
-				testConciseSet(data, data2, repeat, df, optimisation);
-				testSparseBitmap(data, data2, repeat, df, optimisation);
-				testEWAH64(data, data2, repeat, df, optimisation);
-				testEWAH32(data, data2, repeat, df, optimisation);
+				testWAH32(        data.clone(), data2.clone(), repeat, df, optimisation);
+				testConciseSet(   data.clone(), data2.clone(), repeat, df, optimisation);
+				testSparseBitmap( data.clone(), data2.clone(), repeat, df, optimisation);
+				testEWAH64(       data.clone(), data2.clone(), repeat, df, optimisation);
+				testEWAH32(       data.clone(), data2.clone(), repeat, df, optimisation);
 				System.out.println();		
 			}		
 	                        if (Chartsdir != null) {
@@ -312,7 +312,7 @@ public class Benchmark {
 							+ "and exclusive unions (XOR) ");
 		} catch (IOException e1) {e1.printStackTrace();}
 		
-		// Calculate the construction time
+		// Calculating the construction time
 		long bef, aft;
 		String line = "";
 		int bogus = 0;
@@ -332,13 +332,51 @@ public class Benchmark {
 		}
 		aft = System.currentTimeMillis();
 		
+		for (RoaringBitmap rb : bitmap)
+			rb.validate();
+		
+		// Building the second array of RoaringBitmaps
+		RoaringBitmap[] bitmap2 = new RoaringBitmap[N];
+		for (int k = 0; k < N; ++k) {
+			bitmap2[k] = new RoaringBitmap();
+			for (int x = 0; x < data2[k].length; ++x)
+				bitmap2[k].set(data2[k][x]);
+		}
+		for (RoaringBitmap rb : bitmap2)
+			rb.validate();
+		
 		//System.out.println("Average nb of shorts per node in this bitmap = "+bitmap[bitmap.length-1].getAverageNbIntsPerNode());
 		
-		for(int k=0; k<N; k++) size += bitmap[k].getSizeInBytes();
+		//Calculating the all RoaringBitmaps size 
+		for(int k=0; k<N; k++) {
+			size += bitmap[k].getSizeInBytes(); //first array (bitmap)
+			size += bitmap2[k].getSizeInBytes(); //second array (bitmap2)
+		}
 		
-		//SizeGraphCoordiantes.get(1).add(new LineChartPint());
+		int cardinality = 0;
+		int size2 = 0;
+		//Size with verification
+		for(int k=0; k<N; k++) {
+			size2 += bitmap[k].getNbNodes()*2;
+			size2 += bitmap2[k].getNbNodes()*2; 
+			int[] nbInts = bitmap[k].getIntsPerNode();
+			//calculating the size of lowBits in nodes of all RoaringBitmaps in the array bitmap
+			for (int x : nbInts) {
+				cardinality+=x;
+				if(x>=ArrayContainer.DEFAULTMAXSIZE) size2+=8192; //if a bitmap container
+				if(x< ArrayContainer.DEFAULTMAXSIZE) size2+=x*2 + 4; //if an array container
+			}
+			//calculating the size of lowBits in nodes of all RoaringBitmaps in the array bitmap2
+			nbInts = bitmap2[k].getIntsPerNode();
+			for (int x : nbInts) {
+				if(x>=ArrayContainer.DEFAULTMAXSIZE) size2+=8192; //if a bitmap container
+				if(x< ArrayContainer.DEFAULTMAXSIZE) size2+=x*2 + 4; //if an array container
+			}
+		}
 		
-		line += "\t" + (size / 1024);
+		cardinality/=N; //Fixing the cardinality per one RoaringBitmap
+		
+		line += "\t" + (size);
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
 		SizeGraphCoordinates.get(0).lastElement().setGname("Roaring Bitmap");
@@ -355,17 +393,7 @@ public class Benchmark {
 				bogus += array.length;
 			}
 		aft = System.currentTimeMillis();
-		line += "\t" + df.format((aft - bef) / 1000.0);		
-		
-		// Creating and filling the second roaringBitmap index
-		RoaringBitmap[] bitmap2 = new RoaringBitmap[N];
-		for (int k = 0; k < N; ++k) {
-			bitmap2[k] = new RoaringBitmap();
-			for (int x = 0; x < data2[k].length; ++x)
-				bitmap2[k].set(data2[k][x]);
-		}
-		for (RoaringBitmap rb : bitmap2)
-			rb.validate();
+		line += "\t" + df.format((aft - bef) / 1000.0);					
 
 		// logical or + retrieval
 		{
@@ -656,10 +684,11 @@ public class Benchmark {
 		XorGraphCoordinates.get(0).lastElement().setGname("Roaring Bitmap");
 		XorGraphCoordinates.get(0).lastElement().setY((aft - bef) / 1000.0);
 
-		System.out.println(line);
+		System.out.println(line+" Real size = "+size2+" Cardinality = "+cardinality
+				+" nbNodes = "+bitmap[1].getNbNodes());
 		System.out.println("# ignore this " + bogus);
 		try {
-				bw.write("\n"+line);
+				bw.write("\n"+line+" Real size = "+size2+" Cardinality = "+cardinality);
 				bw.write("\n# ignore this " + bogus+"\n\n");
 			} catch (IOException e) {e.printStackTrace();}
 	}
@@ -691,9 +720,21 @@ public class Benchmark {
 		}
 		aft = System.currentTimeMillis();
 		
-		for(int k=0; k<N; k++) size += bitmap[k].size() / 8;
+
+		// Creating and filling the 2nd bitset index
+		BitSet[] bitmap2 = new BitSet[N];
+		for (int k = 0; k < N; ++k) {
+			bitmap2[k] = new BitSet();
+			for (int x = 0; x < data2[k].length; ++x)
+				bitmap2[k].set(data2[k][x]);
+		}
 		
-		line += "\t" + size / 1024;
+		for(int k=0; k<N; k++) {
+			size += bitmap[k].size() / 8;
+			size += bitmap2[k].size() / 8;
+		}
+		
+		line += "\t" + size;
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		// uncompressing
 		bef = System.currentTimeMillis();
@@ -708,14 +749,6 @@ public class Benchmark {
 			}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
-
-		// Creating and filling the 2nd bitset index
-		BitSet[] bitmap2 = new BitSet[N];
-		for (int k = 0; k < N; ++k) {
-			bitmap2[k] = new BitSet();
-			for (int x = 0; x < data2[k].length; ++x)
-				bitmap2[k].set(data2[k][x]);
-		}
 
 		// logical or + retrieval
 		bef = System.currentTimeMillis();
@@ -799,6 +832,8 @@ public class Benchmark {
 		int bogus = 0;
 		String line = "";
 		int N = data.length, size = 0;
+		
+		//Calculating the construction time
 		bef = System.currentTimeMillis();
 		WAHBitSet[] bitmap = new WAHBitSet[N];
 		
@@ -812,13 +847,31 @@ public class Benchmark {
 		}
 		aft = System.currentTimeMillis();
 		
-		for(int k=0; k<N; k++) size += bitmap[k].memSize() * 4;
+		// Creating and filling the 2nd WAH index
+		WAHBitSet[] bitmap2 = new WAHBitSet[N];
+		for (int k = 0; k < N; ++k) {
+			bitmap2[k] = new WAHBitSet();
+			for (int x = 0; x < data2[k].length; ++x)
+				bitmap2[k].set(data2[k][x]);
+		}
 		
-		line += "\t" + size / 1024;
+		for(int k=0; k<N; k++) {
+			size += bitmap[k].memSize() * 4;
+			size += bitmap2[k].memSize() * 4;
+		}
+		
+		line += "\t" + size;
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
 		SizeGraphCoordinates.get(1).lastElement().setGname("WAH 32bit");
 		SizeGraphCoordinates.get(1).lastElement().setY(size/1024);
+		
+		int cardinality = 0;
+		//calculating the cardinality per EwahBitmap
+		for(int k=0; k<N; k++)
+			cardinality += bitmap[k].cardinality();
+		
+		cardinality/=N;
 		
 		// uncompressing
 		bef = System.currentTimeMillis();
@@ -834,14 +887,6 @@ public class Benchmark {
 			}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
-
-		// Creating and filling the 2nd WAH index
-		WAHBitSet[] bitmap2 = new WAHBitSet[N];
-		for (int k = 0; k < N; ++k) {
-			bitmap2[k] = new WAHBitSet();
-			for (int x = 0; x < data2[k].length; ++x)
-				bitmap2[k].set(data2[k][x]);
-		}
 		
        // logical or + retrieval
        bef = System.currentTimeMillis();
@@ -916,10 +961,10 @@ public class Benchmark {
 		XorGraphCoordinates.get(1).lastElement().setGname("WAH 32bit");
 		XorGraphCoordinates.get(1).lastElement().setY(0.0);
 
-		System.out.println(line);
+		System.out.println(line+" cardinality = "+cardinality);
 		System.out.println("# ignore this " + bogus);
 		try {
-			bw.write("\n"+line);
+			bw.write("\n"+line+" cardinality = "+cardinality);
 			bw.write("\n# ignore this " + bogus+"\n\n");
 		} catch (IOException e) {e.printStackTrace();}
 	}
@@ -953,14 +998,30 @@ public class Benchmark {
 		}
 		aft = System.currentTimeMillis();
 		
-		for (int k=0; k<N; k++)
-		size += (int) (bitmap[k].size() * bitmap[k].collectionCompressionRatio()) * 4;
+		// Creating and filling the 2nd Concise index
+		ConciseSet[] bitmap2 = new ConciseSet[N];
+		for (int k = 0; k < N; ++k) {
+			bitmap2[k] = new ConciseSet();
+			for (int x = 0; x < data2[k].length; ++x)
+				bitmap2[k].add(data2[k][x]);
+		}
 		
-		line += "\t" + size / 1024;
+		for (int k=0; k<N; k++) {
+		size += (int) (bitmap[k].size() * bitmap[k].collectionCompressionRatio()) * 4;
+		size += (int) (bitmap2[k].size() * bitmap2[k].collectionCompressionRatio()) * 4;
+		}
+		
+		line += "\t" + size;
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
 		SizeGraphCoordinates.get(2).lastElement().setGname("Concise");
 		SizeGraphCoordinates.get(2).lastElement().setY(size/1024);
+		
+		int cardinality = 0;
+		//calculating the cardinality per EwahBitmap
+		for(int k=0; k<N; k++)
+			cardinality += bitmap[k].toArray().length;
+		cardinality/=N;
 		
 		// uncompressing
 		bef = System.currentTimeMillis();
@@ -971,14 +1032,6 @@ public class Benchmark {
 			}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
-
-		// Creating and filling the 2nd Concise index
-		ConciseSet[] bitmap2 = new ConciseSet[N];
-		for (int k = 0; k < N; ++k) {
-			bitmap2[k] = new ConciseSet();
-			for (int x = 0; x < data2[k].length; ++x)
-				bitmap2[k].add(data2[k][x]);
-		}
 
 		// logical or + retrieval
 		bef = System.currentTimeMillis();
@@ -1074,10 +1127,10 @@ public class Benchmark {
 		XorGraphCoordinates.get(2).lastElement().setGname("Concise");
 		XorGraphCoordinates.get(2).lastElement().setY((aft - bef) / 1000.0);
 
-		System.out.println(line);
+		System.out.println(line+" cardinality = "+cardinality);
 		System.out.println("# ignore this " + bogus);
 		try {
-			bw.write("\n"+line);
+			bw.write("\n"+line+" cardinality = "+cardinality);
 			bw.write("\n# ignore this " + bogus+"\n\n");
 		} catch (IOException e) {e.printStackTrace();}
 	}
@@ -1098,22 +1151,35 @@ public class Benchmark {
 		int N = data.length;
 		bef = System.currentTimeMillis();
 		SparseBitmap[] bitmap = new SparseBitmap[N];
-		int size = 0;
-		for (int r = 0; r < repeat; ++r) {
-			size = 0;
+		
+		for (int r = 0; r < repeat; ++r) {			
 			for (int k = 0; k < N; ++k) {
 				bitmap[k] = new SparseBitmap();
 				for (int x = 0; x < data[k].length; ++x) {
 					bitmap[k].set(data[k][x]);
 				}
-				size += bitmap[k].sizeInBytes();
 			}
 		}
 		aft = System.currentTimeMillis();
 		
-		for (int k=0; k<N; k++)
+		// Creating and filling the 2nd SparseBitmap index
+		SparseBitmap[] bitmap2 = new SparseBitmap[N];
+		for (int k = 0; k < N; ++k) {
+			bitmap2[k] = new SparseBitmap();
+			for (int x = 0; x < data2[k].length; ++x)
+				bitmap2[k].set(data2[k][x]);
+		}
+		
+		//Calculating the size
+		int size = 0, cardinality = 0;
+		for (int k=0; k<N; k++) {
 			size += bitmap[k].sizeInBytes();
-		line += "\t" + size / 1024;
+			size += bitmap2[k].sizeInBytes();
+			cardinality += bitmap[k].cardinality;
+		}		
+		cardinality/=N;
+		
+		line += "\t" + size;
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
 		SizeGraphCoordinates.get(3).lastElement().setGname("Sparse Bitmap");
@@ -1128,14 +1194,6 @@ public class Benchmark {
 			}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
-
-		// Creating and filling the 2nd SparseBitmap index
-		SparseBitmap[] bitmap2 = new SparseBitmap[N];
-		for (int k = 0; k < N; ++k) {
-			bitmap2[k] = new SparseBitmap();
-			for (int x = 0; x < data2[k].length; ++x)
-				bitmap2[k].set(data2[k][x]);
-		}
 
 		// logical or + retrieval
 		bef = System.currentTimeMillis();
@@ -1192,10 +1250,10 @@ public class Benchmark {
 		AndGraphCoordinates.get(3).lastElement().setGname("Sparse Bitmap");
 		AndGraphCoordinates.get(3).lastElement().setY((aft - bef) / 1000.0);
 
-		System.out.println(line);
+		System.out.println(line+" cardinality = "+cardinality);
 		System.out.println("# ignore this " + bogus);
 		try {
-			bw.write("\n"+line);
+			bw.write("\n"+line+" cardinality = "+cardinality);
 			bw.write("\n# ignore this " + bogus+"\n\n");
 		} catch (IOException e) {e.printStackTrace();}
 	}
@@ -1214,11 +1272,11 @@ public class Benchmark {
 		String line = "";
 		int bogus = 0;
 		int N = data.length;
+		//Calculating the construction time and building the 1st array of ewah bitmaps 
 		bef = System.currentTimeMillis();
 		EWAHCompressedBitmap[] ewah = new EWAHCompressedBitmap[N];
-		int size = 0;
-		for (int r = 0; r < repeat; ++r) {
-			size = 0;
+		
+		for (int r = 0; r < repeat; ++r) {			
 			for (int k = 0; k < N; ++k) {
 				ewah[k] = new EWAHCompressedBitmap();
 				for (int x = 0; x < data[k].length; ++x) {
@@ -1228,10 +1286,29 @@ public class Benchmark {
 		}
 		aft = System.currentTimeMillis();
 		
-		for (int k=0; k<N; k++)
-			size += ewah[k].sizeInBytes();
+		// Creating and filling the 2nd array of ewah64 bitmaps
+		EWAHCompressedBitmap[] ewah2 = new EWAHCompressedBitmap[N];
+		for (int k = 0; k < N; ++k) {
+			ewah2[k] = new EWAHCompressedBitmap();
+			for (int x = 0; x < data2[k].length; ++x)
+				ewah2[k].set(data2[k][x]);
+		}
 		
-		line += "\t" + size / 1024;
+		int size = 0;
+		for (int k=0; k<N; k++) {
+			size += ewah[k].sizeInBytes();
+			size += ewah2[k].sizeInBytes();
+		}
+		
+		//Calculating the cardinality from the 1st array bitmaps
+		int cardinality = 0;
+		for(int k=0; k<N; k++) {
+			cardinality += ewah[k].toArray().length;
+		}
+		
+		cardinality/=N;
+		
+		line += "\t" + size;
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
 		SizeGraphCoordinates.get(4).lastElement().setGname("Ewah 64bits");
@@ -1246,14 +1323,6 @@ public class Benchmark {
 			}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
-
-		// Creating and filling the 2nd ewah64 index
-		EWAHCompressedBitmap[] ewah2 = new EWAHCompressedBitmap[N];
-		for (int k = 0; k < N; ++k) {
-			ewah2[k] = new EWAHCompressedBitmap();
-			for (int x = 0; x < data2[k].length; ++x)
-				ewah2[k].set(data2[k][x]);
-		}
 
 		// fast logical or + retrieval
 		bef = System.currentTimeMillis();
@@ -1348,10 +1417,10 @@ public class Benchmark {
 		XorGraphCoordinates.get(4).lastElement().setGname("Ewah 64bits");
 		XorGraphCoordinates.get(4).lastElement().setY((aft - bef) / 1000.0);
 
-		System.out.println(line);
+		System.out.println(line+" cardinality = "+cardinality);
 		System.out.println("# ignore this " + bogus);
 		try {
-			bw.write("\n"+line);
+			bw.write("\n"+line+" cardinality = "+cardinality);
 			bw.write("\n# ignore this " + bogus+"\n\n");
 		} catch (IOException e) {e.printStackTrace();}
 	}
@@ -1370,11 +1439,12 @@ public class Benchmark {
 		String line = "";
 		long bogus = 0;
 		int N = data.length;
+		
+		//Calculating the construction time and building the 1st array of ewah32 bitmaps 
 		bef = System.currentTimeMillis();
 		EWAHCompressedBitmap32[] ewah = new EWAHCompressedBitmap32[N];
-		int size = 0;
-		for (int r = 0; r < repeat; ++r) {
-			size = 0;
+		
+		for (int r = 0; r < repeat; ++r) {			
 			for (int k = 0; k < N; ++k) {
 				ewah[k] = new EWAHCompressedBitmap32();
 				for (int x = 0; x < data[k].length; ++x) {
@@ -1384,14 +1454,31 @@ public class Benchmark {
 		}
 		aft = System.currentTimeMillis();
 		
-		for (int k=0; k<N; k++)
-			size += ewah[k].sizeInBytes();
+		// Creating and filling the 2nd array of ewah32 bitmaps
+		EWAHCompressedBitmap32[] ewah2 = new EWAHCompressedBitmap32[N];
+		for (int k = 0; k < N; ++k) {
+			ewah2[k] = new EWAHCompressedBitmap32();
+			for (int x = 0; x < data2[k].length; ++x)
+				ewah2[k].set(data2[k][x]);
+		}
 		
-		line += "\t" + size / 1024;
+		int size = 0;
+		for (int k=0; k<N; k++) {
+			size += ewah[k].sizeInBytes();
+			size += ewah2[k].sizeInBytes();
+		}
+		
+		line += "\t" + size;
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
 		SizeGraphCoordinates.get(5).lastElement().setGname("Ewah 32");
 		SizeGraphCoordinates.get(5).lastElement().setY(size/1024);
+		
+		int cardinality = 0;
+		//calculating the cardinality per EwahBitmap
+		for(int k=0; k<N; k++)
+			cardinality += ewah[k].toArray().length;
+		cardinality /= N;
 		
 		// uncompressing
 		bef = System.currentTimeMillis();
@@ -1402,14 +1489,6 @@ public class Benchmark {
 			}
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
-
-		// Creating and filling the 2nd ewah32 index
-		EWAHCompressedBitmap32[] ewah2 = new EWAHCompressedBitmap32[N];
-		for (int k = 0; k < N; ++k) {
-			ewah2[k] = new EWAHCompressedBitmap32();
-			for (int x = 0; x < data2[k].length; ++x)
-				ewah2[k].set(data2[k][x]);
-		}
 
 		// fast logical or + retrieval
 		bef = System.currentTimeMillis();
@@ -1504,10 +1583,10 @@ public class Benchmark {
 		XorGraphCoordinates.get(5).lastElement().setGname("Ewah 32");
 		XorGraphCoordinates.get(5).lastElement().setY((aft - bef) / 1000.0);
 
-		System.out.println(line);
+		System.out.println(line+" cardinality = "+cardinality);
 		System.out.println("# ignore this " + bogus);
 		try {
-			bw.write("\n"+line);
+			bw.write("\n"+line+" cardinality = "+cardinality);
 			bw.write("\n# ignore this " + bogus+"\n\n");
 		} catch (IOException e) {e.printStackTrace();}
 	}
