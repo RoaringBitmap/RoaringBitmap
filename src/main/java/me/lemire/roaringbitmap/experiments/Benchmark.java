@@ -303,11 +303,11 @@ public class Benchmark {
 			int repeat, DecimalFormat df, int optimisation) {
 		System.out.println("# RoaringBitmap");
 		System.out
-				.println("# size, construction time, time to recover set bits, "
+				.println("# cardinality, size, construction time, time to recover set bits, "
 						+ "time to compute unions (OR), intersections (AND) "
 						+ "and exclusive unions (XOR) ");
 		try {
-			bw.write("\n"+"# RoaringBitmap\n"+"# size, construction time, time to recover set bits, "
+			bw.write("\n"+"# RoaringBitmap\n"+"# cardinality, size, construction time, time to recover set bits, "
 							+ "time to compute unions (OR), intersections (AND) "
 							+ "and exclusive unions (XOR) ");
 		} catch (IOException e1) {e1.printStackTrace();}
@@ -371,16 +371,15 @@ public class Benchmark {
 			//calculating the size of lowBits in nodes of all RoaringBitmaps in the array bitmap2
 			nbInts = bitmap2[k].getIntsPerNode();
 			for (int x : nbInts) {
+				cardinality+=x;
 				if(x>=ArrayContainer.DEFAULTMAXSIZE) 
 					{size2+=8192; BC++;}//if a bitmap container
 				if(x< ArrayContainer.DEFAULTMAXSIZE) 
 					{size2+=x*2 + 4; nbIntAC+=x;}//if an array container
 			}
-		}
+		}		
 		
-		cardinality/=N; //Fixing the cardinality per one RoaringBitmap
-		
-		line += "\t" + (size);
+		line += "\t"+cardinality+"\t" + size;
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
 		SizeGraphCoordinates.get(0).lastElement().setGname("Roaring Bitmap");
@@ -688,12 +687,12 @@ public class Benchmark {
 		XorGraphCoordinates.get(0).lastElement().setGname("Roaring Bitmap");
 		XorGraphCoordinates.get(0).lastElement().setY((aft - bef) / 1000.0);
 
-		System.out.println(line+" Real size = "+size2+" Cardinality = "+cardinality
-				+" nbNodes = "+bitmap[1].getNbNodes()+" BC = "+BC+" nbIntsAC = "+nbIntAC);
+		System.out.println(line+"\n# Real size = "+size2
+				+" nbNodes = "+bitmap[1].getNbNodes()+" BC = "+BC+" nbIntsAC = "+nbIntAC+"\n# bits/int = "+Math.ceil(size/cardinality));
 		System.out.println("# ignore this " + bogus);
 		try {
-				bw.write("\n"+line+" Real size = "+size2+" Cardinality = "+cardinality
-						+" nbNodes = "+bitmap[1].getNbNodes()+" BC = "+BC+" nbIntsAC = "+nbIntAC);
+				bw.write("\n"+line+"\n# Real size = "+size2+" nbNodes = "+bitmap[1].getNbNodes()
+						+" BC = "+BC+" nbIntsAC = "+nbIntAC+"\n# bits/int = "+Math.ceil(size/cardinality));
 				bw.write("\n# ignore this " + bogus+"\n\n");
 			} catch (IOException e) {e.printStackTrace();}
 	}
@@ -826,10 +825,10 @@ public class Benchmark {
 			DecimalFormat df, int optimisation) {
 		System.out.println("# WAH 32 bit using the compressedbitset library");
 		System.out
-				.println("# size, construction time, time to recover set bits, "
+				.println("# cardinality, size, construction time, time to recover set bits, "
 						+ "time to compute unions (OR), intersections (AND)");
 		try {
-			bw.write("\n"+"# WAH32bits\n"+"# size, construction time, time to recover set bits, "
+			bw.write("\n"+"# WAH32bits\n"+"# cardinality, size, construction time, time to recover set bits, "
 							+ "time to compute unions (OR), intersections (AND) "
 							+ "and exclusive unions (XOR) ");
 		} catch (IOException e1) {e1.printStackTrace();}
@@ -865,18 +864,20 @@ public class Benchmark {
 			size += bitmap2[k].memSize() * 4;
 		}
 		
-		line += "\t" + size;
+		int cardinality = 0;
+		//calculating the all cardinality
+		for(int k=0; k<N; k++){
+			cardinality += bitmap[k].cardinality();
+			cardinality += bitmap2[k].cardinality();
+		}
+		
+		line += "\t"+cardinality+"\t" + size;
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
 		SizeGraphCoordinates.get(1).lastElement().setGname("WAH 32bit");
 		SizeGraphCoordinates.get(1).lastElement().setY(size/1024);
 		
-		int cardinality = 0;
-		//calculating the cardinality per EwahBitmap
-		for(int k=0; k<N; k++)
-			cardinality += bitmap[k].cardinality();
 		
-		cardinality/=N;
 		
 		// uncompressing
 		bef = System.currentTimeMillis();
@@ -966,10 +967,10 @@ public class Benchmark {
 		XorGraphCoordinates.get(1).lastElement().setGname("WAH 32bit");
 		XorGraphCoordinates.get(1).lastElement().setY(0.0);
 
-		System.out.println(line+" cardinality = "+cardinality);
+		System.out.println(line+"\n# bits/int = "+Math.ceil(size/cardinality));
 		System.out.println("# ignore this " + bogus);
 		try {
-			bw.write("\n"+line+" cardinality = "+cardinality);
+			bw.write("\n"+line+"\n# bits/int = "+Math.ceil(size/cardinality));
 			bw.write("\n# ignore this " + bogus+"\n\n");
 		} catch (IOException e) {e.printStackTrace();}
 	}
@@ -979,9 +980,9 @@ public class Benchmark {
 		System.out
 				.println("# ConciseSet 32 bit using the extendedset_2.2 library");
 		System.out
-				.println("# size, construction time, time to recover set bits, time to compute unions  and intersections ");
+				.println("# cardinality, size, construction time, time to recover set bits, time to compute unions  and intersections ");
 		try {
-			bw.write("\n"+"# ConciseSet\n"+"# size, construction time, time to recover set bits, "
+			bw.write("\n"+"# ConciseSet\n"+"# cardinality, size, construction time, time to recover set bits, "
 							+ "time to compute unions (OR), intersections (AND) "
 							+ "and exclusive unions (XOR) ");
 		} catch (IOException e1) {e1.printStackTrace();}
@@ -1016,17 +1017,20 @@ public class Benchmark {
 		size += (int) (bitmap2[k].size() * bitmap2[k].collectionCompressionRatio()) * 4;
 		}
 		
-		line += "\t" + size;
+		int cardinality = 0;
+		//calculating all bitmaps the cardinality
+		for(int k=0; k<N; k++) {
+			cardinality += bitmap[k].toArray().length;
+			cardinality += bitmap2[k].toArray().length;
+		}
+		
+		line += "\t"+cardinality+"\t" + size;
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
 		SizeGraphCoordinates.get(2).lastElement().setGname("Concise");
 		SizeGraphCoordinates.get(2).lastElement().setY(size/1024);
 		
-		int cardinality = 0;
-		//calculating the cardinality per EwahBitmap
-		for(int k=0; k<N; k++)
-			cardinality += bitmap[k].toArray().length;
-		cardinality/=N;
+		
 		
 		// uncompressing
 		bef = System.currentTimeMillis();
@@ -1132,10 +1136,10 @@ public class Benchmark {
 		XorGraphCoordinates.get(2).lastElement().setGname("Concise");
 		XorGraphCoordinates.get(2).lastElement().setY((aft - bef) / 1000.0);
 
-		System.out.println(line+" cardinality = "+cardinality);
+		System.out.println(line+"\n# bits/int = "+Math.ceil(size/cardinality));
 		System.out.println("# ignore this " + bogus);
 		try {
-			bw.write("\n"+line+" cardinality = "+cardinality);
+			bw.write("\n"+line+"\n# bits/int = "+Math.ceil(size/cardinality));
 			bw.write("\n# ignore this " + bogus+"\n\n");
 		} catch (IOException e) {e.printStackTrace();}
 	}
@@ -1144,9 +1148,9 @@ public class Benchmark {
 			int repeat, DecimalFormat df, int optimisation) {
 		System.out.println("# simple sparse bitmap implementation");
 		System.out
-				.println("# size, construction time, time to recover set bits, time to compute unions (OR), intersections (AND) and exclusive unions (XOR) ");
+				.println("# cardinality, size, construction time, time to recover set bits, time to compute unions (OR), intersections (AND) and exclusive unions (XOR) ");
 		try {
-			bw.write("\n"+"# simple sparse bitmap\n"+"# size, construction time, time to recover set bits, "
+			bw.write("\n"+"# simple sparse bitmap\n"+"# cardinality, size, construction time, time to recover set bits, "
 							+ "time to compute unions (OR), intersections (AND) "
 							+ "and exclusive unions (XOR) ");
 		} catch (IOException e1) {e1.printStackTrace();}
@@ -1181,10 +1185,10 @@ public class Benchmark {
 			size += bitmap[k].sizeInBytes();
 			size += bitmap2[k].sizeInBytes();
 			cardinality += bitmap[k].cardinality;
+			cardinality += bitmap2[k].cardinality;
 		}		
-		cardinality/=N;
 		
-		line += "\t" + size;
+		line += "\t"+cardinality+"\t" + size;
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
 		SizeGraphCoordinates.get(3).lastElement().setGname("Sparse Bitmap");
@@ -1255,10 +1259,10 @@ public class Benchmark {
 		AndGraphCoordinates.get(3).lastElement().setGname("Sparse Bitmap");
 		AndGraphCoordinates.get(3).lastElement().setY((aft - bef) / 1000.0);
 
-		System.out.println(line+" cardinality = "+cardinality);
+		System.out.println(line+"\n# bits/int = "+Math.ceil(size/cardinality));
 		System.out.println("# ignore this " + bogus);
 		try {
-			bw.write("\n"+line+" cardinality = "+cardinality);
+			bw.write("\n"+line+"\n# bits/int = "+Math.ceil(size/cardinality));
 			bw.write("\n# ignore this " + bogus+"\n\n");
 		} catch (IOException e) {e.printStackTrace();}
 	}
@@ -1267,9 +1271,9 @@ public class Benchmark {
 			DecimalFormat df, int optimisation) {
 		System.out.println("# EWAH using the javaewah library");
 		System.out
-				.println("# size, construction time, time to recover set bits, time to compute unions  and intersections ");
+				.println("# cardinality, size, construction time, time to recover set bits, time to compute unions  and intersections ");
 		try {
-			bw.write("\n"+"# EWAH64bits\n"+"# size, construction time, time to recover set bits, "
+			bw.write("\n"+"# EWAH64bits\n"+"# cardinality, size, construction time, time to recover set bits, "
 							+ "time to compute unions (OR), intersections (AND) "
 							+ "and exclusive unions (XOR) ");
 		} catch (IOException e1) {e1.printStackTrace();}
@@ -1309,11 +1313,10 @@ public class Benchmark {
 		int cardinality = 0;
 		for(int k=0; k<N; k++) {
 			cardinality += ewah[k].toArray().length;
+			cardinality += ewah2[k].toArray().length;
 		}
 		
-		cardinality/=N;
-		
-		line += "\t" + size;
+		line += "\t"+cardinality+"\t" + size;
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
 		SizeGraphCoordinates.get(4).lastElement().setGname("Ewah 64bits");
@@ -1422,10 +1425,10 @@ public class Benchmark {
 		XorGraphCoordinates.get(4).lastElement().setGname("Ewah 64bits");
 		XorGraphCoordinates.get(4).lastElement().setY((aft - bef) / 1000.0);
 
-		System.out.println(line+" cardinality = "+cardinality);
+		System.out.println(line+"\n# bits/int = "+Math.ceil(size/cardinality));
 		System.out.println("# ignore this " + bogus);
 		try {
-			bw.write("\n"+line+" cardinality = "+cardinality);
+			bw.write("\n"+line+"\n# bits/int = "+Math.ceil(size/cardinality));
 			bw.write("\n# ignore this " + bogus+"\n\n");
 		} catch (IOException e) {e.printStackTrace();}
 	}
@@ -1434,9 +1437,9 @@ public class Benchmark {
 			DecimalFormat df, int optimisation) {
 		System.out.println("# EWAH 32-bit using the javaewah library");
 		System.out
-				.println("# size, construction time, time to recover set bits, time to compute unions  and intersections ");
+				.println("# cardinality, size, construction time, time to recover set bits, time to compute unions  and intersections ");
 		try {
-			bw.write("\n"+"# EWAH32bits\n"+"# size, construction time, time to recover set bits, "
+			bw.write("\n"+"# EWAH32bits\n"+"# cardinality, size, construction time, time to recover set bits, "
 							+ "time to compute unions (OR), intersections (AND) "
 							+ "and exclusive unions (XOR) ");
 		} catch (IOException e1) {e1.printStackTrace();}
@@ -1473,17 +1476,19 @@ public class Benchmark {
 			size += ewah2[k].sizeInBytes();
 		}
 		
-		line += "\t" + size;
+		int cardinality = 0;
+		//calculating the cardinality per EwahBitmap
+		for(int k=0; k<N; k++) {
+			cardinality += ewah[k].toArray().length;
+			cardinality += ewah2[k].toArray().length;
+		}
+		
+		line += "\t"+cardinality+"\t" + size;
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		
 		SizeGraphCoordinates.get(5).lastElement().setGname("Ewah 32");
 		SizeGraphCoordinates.get(5).lastElement().setY(size/1024);
 		
-		int cardinality = 0;
-		//calculating the cardinality per EwahBitmap
-		for(int k=0; k<N; k++)
-			cardinality += ewah[k].toArray().length;
-		cardinality /= N;
 		
 		// uncompressing
 		bef = System.currentTimeMillis();
@@ -1588,10 +1593,10 @@ public class Benchmark {
 		XorGraphCoordinates.get(5).lastElement().setGname("Ewah 32");
 		XorGraphCoordinates.get(5).lastElement().setY((aft - bef) / 1000.0);
 
-		System.out.println(line+" cardinality = "+cardinality);
+		System.out.println(line+"\n# bits/int = "+Math.ceil(size/cardinality));
 		System.out.println("# ignore this " + bogus);
 		try {
-			bw.write("\n"+line+" cardinality = "+cardinality);
+			bw.write("\n"+line+"\n# bits/int = "+Math.ceil(size/cardinality));
 			bw.write("\n# ignore this " + bogus+"\n\n");
 		} catch (IOException e) {e.printStackTrace();}
 	}
