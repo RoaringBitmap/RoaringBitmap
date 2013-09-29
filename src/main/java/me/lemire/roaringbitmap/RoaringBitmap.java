@@ -4,8 +4,13 @@ import it.unimi.dsi.fastutil.shorts.Short2ObjectAVLTreeMap;
 import it.unimi.dsi.fastutil.shorts.ShortBidirectionalIterator;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable {
 
@@ -14,13 +19,15 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 	 */
 	private static final long serialVersionUID = 3L;
 	public Short2ObjectAVLTreeMap<Container> highlowcontainer = new Short2ObjectAVLTreeMap<Container>(); // does
-
-        /**
-         * set the value to "true", whether it already appears on not.
-         */     																									// be
-        public void add(final int x) {
-                set(x);
-        }
+	//public SortedMap<Short, Container> highlowcontainer = new SortedMap<Short, Container>();
+	//SpeedyArray highlowcontainer = null;
+       
+	/**
+   * set the value to "true", whether it already appears on not.
+   */     																									
+   public void add(final int x) {
+      set(x);
+   }
 	
         /**
          * set the value to "true", whether it already appears on not.
@@ -40,8 +47,10 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 	}
 	
 	public void validate() {
-		for (Container C: this.highlowcontainer.values())
-			C.validate();
+		/*for (int i=0; i<this.highlowcontainer.getCardinality(); i++)
+				this.highlowcontainer.getArray()[i].value.validate();*/
+				for (Container C : highlowcontainer.values())
+					C.validate();
 	}
 
 	public static RoaringBitmap and(final RoaringBitmap x1, final RoaringBitmap x2) {
@@ -380,7 +389,7 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 }
 
 	public int[] getIntegers() {
-	        final int[] array = new int[this.getCardinality()];
+	    final int[] array = new int[this.getCardinality()];
 		int pos=0;
 		final Iterator<Entry<Short, Container>> p1 = this.highlowcontainer
 				.entrySet().iterator();

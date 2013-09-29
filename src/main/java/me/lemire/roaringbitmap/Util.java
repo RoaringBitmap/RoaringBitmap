@@ -50,7 +50,7 @@ public final class Util {
                 if (value2 instanceof ArrayContainer)
                         return ((BitmapContainer) value1)
                                 .or((ArrayContainer) value2);
-                return ((BitmapContainer) value2).or((BitmapContainer) value1);
+                return ((BitmapContainer) value2).or((BitmapContainer) value1);                 
         }
         
         protected static Container inPlaceOR(Container value1, Container value2) {
@@ -202,7 +202,6 @@ public final class Util {
                 return upper;
 
         }
-
 
         
         protected static int unsigned_localintersect2by2(final short[] set1,
