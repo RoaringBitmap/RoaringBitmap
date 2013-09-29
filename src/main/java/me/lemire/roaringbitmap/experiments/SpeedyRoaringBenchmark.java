@@ -188,7 +188,7 @@ public class SpeedyRoaringBenchmark {
 				);
 	} catch (IOException e) {e.printStackTrace();}
 		
-		for(double k=0.0001; k<0.01; k*=10) {
+		for(double k=0.0001; k<1.0; k*=10) {
 			SizeGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
 			OrGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
 			AndGraphCoordinates = new ArrayList<Vector<LineChartPoint>>();
