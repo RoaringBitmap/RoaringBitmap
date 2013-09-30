@@ -64,6 +64,14 @@
 </dependency>
 
 <dependency>
+    <artifactId>SizeOf</artifactId>
+    <groupId>net.sourceforge</groupId>
+     <version>1.0-SNAPSHOT</version>
+    <scope>system</scope>
+    <systemPath>${basedir}/lib/SizeOf.jar</systemPath>
+</dependency>
+
+<dependency>
     <artifactId>WAHBitset</artifactId>
     <groupId>org.devbrat.util.WAHBitSet</groupId>
      <version>0.1.0</version>
