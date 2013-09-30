@@ -54,6 +54,7 @@ public class SpeedyRoaringBenchmark {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+	        SizeOf.setMinSizeToLog(0);// disable warmings
 		//test(10, 18, 10);
                 if (args.length > 0) {                    
                 	//Tests(nbBitmaps, 10, args[0], distUniform);
@@ -383,7 +384,7 @@ public class SpeedyRoaringBenchmark {
 		}		
 		
 		//Memory size in MegaBytes
-		sizeOf = ((SizeOf.deepSizeOf(bitmap)+SizeOf.deepSizeOf(bitmap2))/1048576); 
+		sizeOf = ((SizeOf.deepSizeOf(bitmap)+SizeOf.deepSizeOf(bitmap2))); 
 		
 		line += "\t"+cardinality+"\t" + size +"\t"+ sizeOf;
 		line += "\t" + df.format((aft - bef) / 1000.0);
@@ -881,7 +882,7 @@ public class SpeedyRoaringBenchmark {
 		
 		//Memory size in MegaBytes
 		long sizeOf = 0;
-		sizeOf = ((SizeOf.deepSizeOf(bitmap)+SizeOf.deepSizeOf(bitmap2))/1048576);
+		sizeOf = ((SizeOf.deepSizeOf(bitmap)+SizeOf.deepSizeOf(bitmap2)));
 		
 		line += "\t"+cardinality+"\t" + size+"\t"+sizeOf;
 		line += "\t" + df.format((aft - bef) / 1000.0);
@@ -1038,7 +1039,7 @@ public class SpeedyRoaringBenchmark {
 		
 		//Memory size in MegaBytes
 				long sizeOf = 0;
-				sizeOf = ((SizeOf.deepSizeOf(bitmap)+SizeOf.deepSizeOf(bitmap2))/1048576);
+				sizeOf = ((SizeOf.deepSizeOf(bitmap)+SizeOf.deepSizeOf(bitmap2)));
 				
 		line += "\t"+cardinality+"\t" + size+"\t"+sizeOf;
 		line += "\t" + df.format((aft - bef) / 1000.0);
@@ -1206,7 +1207,7 @@ public class SpeedyRoaringBenchmark {
 		
 		//Memory size in MegaBytes
 		long sizeOf = 0;
-		sizeOf = ((SizeOf.deepSizeOf(bitmap)+SizeOf.deepSizeOf(bitmap2))/1048576);
+		sizeOf = ((SizeOf.deepSizeOf(bitmap)+SizeOf.deepSizeOf(bitmap2)));
 				
 		line += "\t"+cardinality+"\t" + size+"\t"+sizeOf;
 		line += "\t" + df.format((aft - bef) / 1000.0);
@@ -1333,7 +1334,7 @@ public class SpeedyRoaringBenchmark {
 		
 		//Memory size in MegaBytes
 		long sizeOf = 0;
-		sizeOf = ((SizeOf.deepSizeOf(bitmap)+SizeOf.deepSizeOf(bitmap2))/1048576);
+		sizeOf = ((SizeOf.deepSizeOf(bitmap)+SizeOf.deepSizeOf(bitmap2)));
 				
 		line += "\t"+cardinality+"\t" + size+"\t"+sizeOf;
 		line += "\t" + df.format((aft - bef) / 1000.0);
@@ -1489,7 +1490,7 @@ public class SpeedyRoaringBenchmark {
 		
 		//Memory size in MegaBytes
 		long sizeOf = 0;
-		sizeOf = ((SizeOf.deepSizeOf(ewah)+SizeOf.deepSizeOf(ewah2))/1048576);
+		sizeOf = ((SizeOf.deepSizeOf(ewah)+SizeOf.deepSizeOf(ewah2)));
 				
 		line += "\t"+cardinality+"\t" + size+"\t"+sizeOf;
 		line += "\t" + df.format((aft - bef) / 1000.0);
@@ -1660,7 +1661,7 @@ public class SpeedyRoaringBenchmark {
 		
 		//Memory size in MegaBytes
 		long sizeOf = 0;
-		sizeOf = ((SizeOf.deepSizeOf(ewah)+SizeOf.deepSizeOf(ewah2))/1048576);
+		sizeOf = ((SizeOf.deepSizeOf(ewah)+SizeOf.deepSizeOf(ewah2)));
 				
 		line += "\t"+cardinality+"\t" + size+"\t"+sizeOf;
 		line += "\t" + df.format((aft - bef) / 1000.0);

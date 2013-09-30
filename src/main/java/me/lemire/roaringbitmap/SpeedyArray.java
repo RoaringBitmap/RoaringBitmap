@@ -41,21 +41,26 @@ public class SpeedyArray implements Cloneable {
 		}
 	}
 	
-	public void extendArray() { 
-	// size + 1 could overflow
-    if (this.nbKeys == this.array.length) {
-            int newcapacity;
-            if (this.array.length < 4) {
-                    newcapacity = 4;
-            } else if (this.array.length < 1024) {
-                    newcapacity = 2 * this.array.length; // grow fast initially
-            } else {
-                    newcapacity = 5 * this.array.length / 4; // inspired by Go, see
-                    										// http://golang.org/src/pkg/runtime/slice.c#L131
-            		}
-            this.array = Arrays.copyOf(this.array, newcapacity);
-    	}
-	}
+        public void extendArray() {
+                // size + 1 could overflow
+                if (this.nbKeys == this.array.length) {
+                        int newcapacity;
+                        if (this.array.length < 4) {
+                                newcapacity = 4;
+                        } else if (this.array.length < 1024) {
+                                newcapacity = 2 * this.array.length; // grow
+                                                                     // fast
+                                                                     // initially
+                        } else {
+                                newcapacity = 5 * this.array.length / 4; // inspired
+                                                                         // by
+                                                                         // Go,
+                                                                         // see
+                                                                         // http://golang.org/src/pkg/runtime/slice.c#L131
+                        }
+                        this.array = Arrays.copyOf(this.array, newcapacity);
+                }
+        }
 	
 	public boolean remove(short key) {
 		int i = binarySearch(0, nbKeys, key);
@@ -111,7 +116,8 @@ public class SpeedyArray implements Cloneable {
 		return this.nbKeys;
 	}
 	
-	public SpeedyArray clone() throws CloneNotSupportedException {
+	@Override
+        public SpeedyArray clone() throws CloneNotSupportedException {
 		SpeedyArray sa;
 		sa = (SpeedyArray) super.clone();
 		sa.array = Arrays.copyOf(this.array, this.nbKeys);
@@ -119,7 +125,7 @@ public class SpeedyArray implements Cloneable {
 		return sa;
 	}
 	
-	public int linearSearch(Element[] array2, int nbKeys, short key){
+	public static int linearSearch(Element[] array2, int nbKeys, short key){
 		int i;
 		for(i=0; i<nbKeys && array2[i].key!=key; i++); 
 		if(i==nbKeys) return -1;
