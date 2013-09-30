@@ -48,7 +48,7 @@ public class TestsSpeedyRoaringBitmap {
                 final int N =  512;
                 final int gap = 70;
                 
-                SpeedyRoaringBitmap rb = new SpeedyRoaringBitmap(512);
+                SpeedyRoaringBitmap rb = new SpeedyRoaringBitmap();
                 for (int k = 0; k < N; k++) {
                         rb.add(k * gap);
                         Assert.assertEquals(
@@ -72,7 +72,7 @@ public class TestsSpeedyRoaringBitmap {
                 for (int gap = 7; gap < 100000; gap *= 10) {
                        //System.out.println("testing cardinality with gap = "+gap);
                         for (int offset = 2; offset <= 1024; offset *= 2) {
-                                SpeedyRoaringBitmap rb = new SpeedyRoaringBitmap(100000);
+                                SpeedyRoaringBitmap rb = new SpeedyRoaringBitmap();
                                 for (int k = 0; k < N; k++) {
                                         rb.add(k * gap);
                                         Assert.assertEquals(
@@ -86,7 +86,7 @@ public class TestsSpeedyRoaringBitmap {
                                                 rb.getCardinality(), N);
                                 }
                                 
-                                SpeedyRoaringBitmap rb2 = new SpeedyRoaringBitmap(100000);                                 
+                                SpeedyRoaringBitmap rb2 = new SpeedyRoaringBitmap();                                 
                                 
                                 for (int k = 0; k < N; k++) {
                                         rb2.add(k * gap * offset);
@@ -151,7 +151,7 @@ public class TestsSpeedyRoaringBitmap {
 
 	@Test
 	public void basictest() {
-		SpeedyRoaringBitmap rr = new SpeedyRoaringBitmap(5000);
+		SpeedyRoaringBitmap rr = new SpeedyRoaringBitmap();
 		int[] a = new int[4002];
 		int pos = 0;
 		for (int k = 0; k < 4000; ++k) {
@@ -168,7 +168,7 @@ public class TestsSpeedyRoaringBitmap {
 			array[pos++] = i;
 		}*/
 		
-		System.out.println("rr : "+array.length+" a : "+a.length);
+		//System.out.println("rr : "+array.length+" a : "+a.length);
 		for(int i=0; i<array.length; i++)
 			if(array[i]!=a[i]) 
 				System.out.println("rr : "+array[i]+" a : "+a[i]);
@@ -179,13 +179,13 @@ public class TestsSpeedyRoaringBitmap {
 
 	@Test
 	public void andtest() {
-		SpeedyRoaringBitmap rr = new SpeedyRoaringBitmap(5000);
+		SpeedyRoaringBitmap rr = new SpeedyRoaringBitmap();
 		for (int k = 0; k < 4000; ++k) {
 			rr.add(k);
 		}
 		rr.add(100000);
 		rr.add(110000);
-		SpeedyRoaringBitmap rr2 = new SpeedyRoaringBitmap(2);
+		SpeedyRoaringBitmap rr2 = new SpeedyRoaringBitmap();
 		rr2.add(13);
 		SpeedyRoaringBitmap rrand = SpeedyRoaringBitmap.and(rr, rr2);
 		
@@ -197,13 +197,13 @@ public class TestsSpeedyRoaringBitmap {
 
 	@Test
 	public void andtest2() {
-		SpeedyRoaringBitmap rr = new SpeedyRoaringBitmap(5000);
+		SpeedyRoaringBitmap rr = new SpeedyRoaringBitmap();
 		for (int k = 0; k < 4000; ++k) {
 			rr.add(k);
 		}
 		rr.add(100000);
 		rr.add(110000);
-		SpeedyRoaringBitmap rr2 = new SpeedyRoaringBitmap(5000);
+		SpeedyRoaringBitmap rr2 = new SpeedyRoaringBitmap();
 		rr2.add(13);
 		SpeedyRoaringBitmap rrand = SpeedyRoaringBitmap.and(rr, rr2);
 
@@ -214,13 +214,13 @@ public class TestsSpeedyRoaringBitmap {
 
 	@Test
 	public void ortest() {
-		SpeedyRoaringBitmap rr = new SpeedyRoaringBitmap(5000);
+		SpeedyRoaringBitmap rr = new SpeedyRoaringBitmap();
 		for (int k = 0; k < 4000; ++k) {
 			rr.add(k);
 		}
 		rr.add(100000);
 		rr.add(110000);
-		SpeedyRoaringBitmap rr2 = new SpeedyRoaringBitmap(5000);
+		SpeedyRoaringBitmap rr2 = new SpeedyRoaringBitmap();
 		for (int k = 0; k < 4000; ++k) {
 			rr2.add(k);
 		}
@@ -238,14 +238,14 @@ public class TestsSpeedyRoaringBitmap {
 	public void ortest2() {
 		int[] arrayrr = new int[4000 + 4000 + 2];
 		int pos = 0;
-		SpeedyRoaringBitmap rr = new SpeedyRoaringBitmap(5000);
+		SpeedyRoaringBitmap rr = new SpeedyRoaringBitmap();
 		for (int k = 0; k < 4000; ++k) {
 			rr.add(k);
 			arrayrr[pos++] = k;
 		}
 		rr.add(100000);
 		rr.add(110000);
-		SpeedyRoaringBitmap rr2 = new SpeedyRoaringBitmap(5000);
+		SpeedyRoaringBitmap rr2 = new SpeedyRoaringBitmap();
 		for (int k = 4000; k < 8000; ++k) {
 			rr2.add(k);
 			arrayrr[pos++] = k;
@@ -266,7 +266,7 @@ public class TestsSpeedyRoaringBitmap {
 	public void andtest3() {
 		int[] arrayand = new int[11256];
 		int pos = 0;
-		SpeedyRoaringBitmap rr = new SpeedyRoaringBitmap((9*65536));
+		SpeedyRoaringBitmap rr = new SpeedyRoaringBitmap();
 		for (int k = 4000; k < 4256; ++k)
 			rr.add(k); 
 		for (int k = 65536; k < 65536 + 4000; ++k)
@@ -286,7 +286,7 @@ public class TestsSpeedyRoaringBitmap {
 		for (int k = 9 * 65536; k < 9 * 65536 + 30000; ++k)
 			rr.add(k);
 
-		SpeedyRoaringBitmap rr2 = new SpeedyRoaringBitmap(10*65536);
+		SpeedyRoaringBitmap rr2 = new SpeedyRoaringBitmap();
 		for (int k = 4000; k < 4256; ++k) {
 			rr2.add(k);
 			arrayand[pos++] = k;
@@ -329,8 +329,8 @@ public class TestsSpeedyRoaringBitmap {
 		HashSet<Integer> V1 = new HashSet<Integer>();
 		HashSet<Integer> V2 = new HashSet<Integer>();
 
-		SpeedyRoaringBitmap rr = new SpeedyRoaringBitmap(7*65536);
-		SpeedyRoaringBitmap rr2 = new SpeedyRoaringBitmap(7*65536);
+		SpeedyRoaringBitmap rr = new SpeedyRoaringBitmap();
+		SpeedyRoaringBitmap rr2 = new SpeedyRoaringBitmap();
 		//For the first 65536: rr2 has a bitmap container, and rr has an array container. 
 		//We will check the union between a BitmapCintainer and an arrayContainer  
 		for (int k = 0; k < 4000; ++k){
@@ -415,8 +415,8 @@ public class TestsSpeedyRoaringBitmap {
 		HashSet<Integer> V1 = new HashSet<Integer>();
 		HashSet<Integer> V2 = new HashSet<Integer>();
 
-		SpeedyRoaringBitmap rr = new SpeedyRoaringBitmap(7*65536);
-		SpeedyRoaringBitmap rr2 = new SpeedyRoaringBitmap(7*65536);
+		SpeedyRoaringBitmap rr = new SpeedyRoaringBitmap();
+		SpeedyRoaringBitmap rr2 = new SpeedyRoaringBitmap();
 		//For the first 65536: rr2 has a bitmap container, and rr has an array container. 
 		//We will check the union between a BitmapCintainer and an arrayContainer  
 		for (int k = 0; k < 4000; ++k){
@@ -561,11 +561,11 @@ public class TestsSpeedyRoaringBitmap {
 	
 	@Test
 	public void removeSpeedyArrayTest() {
-		SpeedyRoaringBitmap rb = new SpeedyRoaringBitmap(50);
-		for(int i=0; i<1000000; i++)
+		SpeedyRoaringBitmap rb = new SpeedyRoaringBitmap();
+		for(int i=0; i<10000; i++)
 			rb.add(i);
 		
-		for(int i=1000000; i>0; i++) {
+		for(int i=10000; i>0; i++) {
 			rb.highlowcontainer.remove(Util.highbits(i));
 			Assert.assertEquals(rb.contains(i), false);
 		}

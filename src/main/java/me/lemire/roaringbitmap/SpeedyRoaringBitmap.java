@@ -11,8 +11,8 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
 	private static final long serialVersionUID = 3L;
 	public SpeedyArray highlowcontainer = null;
        
-	public SpeedyRoaringBitmap(int nbKeys) {
-		highlowcontainer = new SpeedyArray(nbKeys);
+	public SpeedyRoaringBitmap() {
+		highlowcontainer = new SpeedyArray();
 	}
 	
 	/**
@@ -41,13 +41,13 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
 	
 	public void validate() {
 		for (int i=0; i<this.highlowcontainer.getnbKeys(); i++)
-				this.highlowcontainer.getArray()[i].value.validate();
-				
+				this.highlowcontainer.getArray()[i].value.validate();				
 	}
 
 	public static SpeedyRoaringBitmap and(final SpeedyRoaringBitmap x1, final SpeedyRoaringBitmap x2) {
-	    final SpeedyRoaringBitmap answer = new SpeedyRoaringBitmap(x1.getNbNodes()>=x2.getNbNodes()?x1.getNbNodes()
-	        		:x2.getNbNodes());
+	    //final SpeedyRoaringBitmap answer = new SpeedyRoaringBitmap(x1.getNbNodes()>=x2.getNbNodes()?x1.getNbNodes()
+	        		//:x2.getNbNodes());
+		final SpeedyRoaringBitmap answer = new SpeedyRoaringBitmap();
 	    int pos1 = 0, pos2 = 0;
 	    int length1 = x1.highlowcontainer.getnbKeys(), 
 	        	length2 = x2.highlowcontainer.getnbKeys();
@@ -120,9 +120,10 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
 }
 	
 	public static SpeedyRoaringBitmap or(final SpeedyRoaringBitmap x1, final SpeedyRoaringBitmap x2) {
-		int desiredcapacity = x1.getNbNodes()+x2.getNbNodes()>65536?x1.getNbNodes()+x2.getNbNodes():65536;
-	    final SpeedyRoaringBitmap answer = new SpeedyRoaringBitmap(desiredcapacity);
-	    int pos1 = 0, pos2 = 0;
+		//int desiredcapacity = x1.getNbNodes()+x2.getNbNodes()>65536?x1.getNbNodes()+x2.getNbNodes():65536;
+	    //final SpeedyRoaringBitmap answer = new SpeedyRoaringBitmap(desiredcapacity);
+		final SpeedyRoaringBitmap answer = new SpeedyRoaringBitmap();
+		int pos1 = 0, pos2 = 0;
         int length1 = x1.highlowcontainer.getnbKeys(), 
         	length2 = x2.highlowcontainer.getnbKeys();
         
@@ -244,9 +245,10 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
 	}
 	
 	public static SpeedyRoaringBitmap xor(final SpeedyRoaringBitmap x1, final SpeedyRoaringBitmap x2) {
-		int desiredcapacity = x1.getNbNodes()+x2.getNbNodes()>65536?x1.getNbNodes()+x2.getNbNodes():65536;
-	    final SpeedyRoaringBitmap answer = new SpeedyRoaringBitmap(desiredcapacity);
-	    int pos1 = 0, pos2 = 0;
+		//int desiredcapacity = x1.getNbNodes()+x2.getNbNodes()>65536?x1.getNbNodes()+x2.getNbNodes():65536;
+	    //final SpeedyRoaringBitmap answer = new SpeedyRoaringBitmap(desiredcapacity);
+		final SpeedyRoaringBitmap answer = new SpeedyRoaringBitmap();
+		int pos1 = 0, pos2 = 0;
         int length1 = x1.highlowcontainer.getnbKeys(), 
         	length2 = x2.highlowcontainer.getnbKeys();
         

@@ -102,9 +102,9 @@ public class SpeedyRoaringBenchmark {
 
 		//Creating the distribution folder
 		switch(distribution) {
-		case 0 : distdir = path+File.separator+"Benchmarks_n"+CPU+File.separator+"Zipf"; break;
-		case 1 : distdir = path+File.separator+"Benchmarks_n"+CPU+File.separator+"Uniform";break;
-		case 2 : distdir = path+File.separator+"Benchmarks_n"+CPU+File.separator+"Clustered";break;
+		case 0 : distdir = path+File.separator+"Benchmarks_"+CPU+File.separator+"Zipf"; break;
+		case 1 : distdir = path+File.separator+"Benchmarks_"+CPU+File.separator+"Uniform";break;
+		case 2 : distdir = path+File.separator+"Benchmarks_"+CPU+File.separator+"Clustered";break;
 		default : System.out.println("Can you choose a distribution ?");
 				  System.exit(0);
 		}
@@ -323,7 +323,7 @@ public class SpeedyRoaringBenchmark {
 		for (int r = 0; r < repeat; ++r) {
 			size = 0;
 			for (int k = 0; k < N; ++k) {
-				bitmap[k] = new SpeedyRoaringBitmap(200);
+				bitmap[k] = new SpeedyRoaringBitmap();
 				for (int x = 0; x < data[k].length; ++x) {
 					bitmap[k].set(data[k][x]);
 				}				
@@ -338,7 +338,7 @@ public class SpeedyRoaringBenchmark {
 		// Building the second array of RoaringBitmaps
 		SpeedyRoaringBitmap[] bitmap2 = new SpeedyRoaringBitmap[N];
 		for (int k = 0; k < N; ++k) {
-			bitmap2[k] = new SpeedyRoaringBitmap(200);
+			bitmap2[k] = new SpeedyRoaringBitmap();
 			for (int x = 0; x < data2[k].length; ++x)
 				bitmap2[k].set(data2[k][x]);
 		}

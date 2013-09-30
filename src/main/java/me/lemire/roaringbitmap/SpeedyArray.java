@@ -1,11 +1,14 @@
 package me.lemire.roaringbitmap;
 
-public class SpeedyArray {
+import java.util.Arrays;
+
+public class SpeedyArray implements Cloneable {
 	Element[] array = null;
 	int nbKeys = 0;
+	static int initialCapacity = 4;
 	
-	public SpeedyArray(int capacity) {
-		this.array = new Element[capacity];
+	public SpeedyArray() {
+		this.array = new Element[initialCapacity];
 	}
 	
 	public class Element {
@@ -25,16 +28,33 @@ public class SpeedyArray {
 	
 	public void put(short key, Container value) {
 		
-		int i = //linearSearch(array, nbKeys, key);
-				binarySearch(0, nbKeys, key);
+		int i = binarySearch(0, nbKeys, key);
+		
 		if(i<0) { //if a new key
+			extendArray();
 			System.arraycopy(array, -i - 1, array, -i, nbKeys + i + 1);
 			array[-i - 1] = new Element(key, value);
 			nbKeys++;
 		}
-		else {	//When the key exist yet		
+		else {	//When the key exists yet		
 			this.array[i].value = value;
 		}
+	}
+	
+	public void extendArray() { 
+	// size + 1 could overflow
+    if (this.nbKeys == this.array.length) {
+            int newcapacity;
+            if (this.array.length < 4) {
+                    newcapacity = 4;
+            } else if (this.array.length < 1024) {
+                    newcapacity = 2 * this.array.length; // grow fast initially
+            } else {
+                    newcapacity = 5 * this.array.length / 4; // inspired by Go, see
+                    										// http://golang.org/src/pkg/runtime/slice.c#L131
+            		}
+            this.array = Arrays.copyOf(this.array, newcapacity);
+    	}
 	}
 	
 	public boolean remove(short key) {
@@ -48,12 +68,12 @@ public class SpeedyArray {
 	}
 	
 	public void putEnd(short key, Container value) {
+		extendArray();
 		this.array[this.nbKeys++] = new Element(key, value);		
 	}
 	
 	public Container get(short x) {
-		int i = //linearSearch(array, nbKeys, x);
-				this.binarySearch(0, nbKeys, x);
+		int i = this.binarySearch(0, nbKeys, x);
 		if(i<0) return null;
 		return this.array[i].value;
 	}
@@ -79,6 +99,10 @@ public class SpeedyArray {
 		return false;
 	}
 	
+	public void clear() {
+		this.nbKeys = 0;
+	}
+	
 	public Element[] getArray() {
 		return this.array;
 	}
@@ -87,9 +111,10 @@ public class SpeedyArray {
 		return this.nbKeys;
 	}
 	
-	public SpeedyArray clone() {
-		SpeedyArray sa = new SpeedyArray(this.nbKeys);
-		sa.array = this.array.clone();
+	public SpeedyArray clone() throws CloneNotSupportedException {
+		SpeedyArray sa;
+		sa = (SpeedyArray) super.clone();
+		sa.array = Arrays.copyOf(this.array, this.nbKeys);
 		sa.nbKeys = this.nbKeys;
 		return sa;
 	}
