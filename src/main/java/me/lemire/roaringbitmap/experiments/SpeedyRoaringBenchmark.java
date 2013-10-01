@@ -282,7 +282,7 @@ public class SpeedyRoaringBenchmark {
 				testSparseBitmap( data.clone(), data2.clone(), repeat, df, optimisation);
 				testSparseBitSet( data.clone(), data2.clone(), repeat, df, optimisation);
 				testEWAH64(       data.clone(), data2.clone(), repeat, df, optimisation);
-				testEWAH32(       data.clone(), data2.clone(), repeat, df, optimisation);
+				//testEWAH32(       data.clone(), data2.clone(), repeat, df, optimisation);
 				System.out.println();		
 			}		
                         if (Chartsdir != null) {

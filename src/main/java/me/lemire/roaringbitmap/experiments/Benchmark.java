@@ -274,7 +274,7 @@ public class Benchmark {
 				testConciseSet(   data.clone(), data2.clone(), repeat, df, optimisation);
 				testSparseBitmap( data.clone(), data2.clone(), repeat, df, optimisation);
 				testEWAH64(       data.clone(), data2.clone(), repeat, df, optimisation);
-				testEWAH32(       data.clone(), data2.clone(), repeat, df, optimisation);
+				///testEWAH32(       data.clone(), data2.clone(), repeat, df, optimisation);
 				System.out.println();		
 			}		
                         if (Chartsdir != null) {
