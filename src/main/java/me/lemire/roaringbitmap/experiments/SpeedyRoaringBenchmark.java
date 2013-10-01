@@ -285,22 +285,35 @@ public class SpeedyRoaringBenchmark {
 				testEWAH32(       data.clone(), data2.clone(), repeat, df, optimisation);
 				System.out.println();		
 			}		
-	                        if (Chartsdir != null) {
-	                        		String p = Chartsdir+File.separator;	                        		
-	                        		
-	                                new LineChartDemo1(
-	                                        "Line_Chart_Compression_size_" + k + "_" + (k * 10), "size (KB)",
-	                                        SizeGraphCoordinates, p);
-	                                new LineChartDemo1(
-	                                        "Line_Chart_OR_times_" + k + "_" + (k * 10),"Time (sec)",
-	                                        OrGraphCoordinates, p);
-	                                new LineChartDemo1(
-	                                        "Line_Chart_AND_times_" + k + "_" + (k * 10),"Time (sec)",
-	                                        AndGraphCoordinates, p);
-	                                new LineChartDemo1(
-	                                        "Line_Chart_XOR_times_" + k + "_" + (k * 10),"Time (sec)",
-	                                        XorGraphCoordinates, p);
-	                        }	            
+                        if (Chartsdir != null) {
+                                String p = Chartsdir + File.separator;
+                                try {
+                                        new LineChartDemo1(
+                                                "Line_Chart_Compression_size_"
+                                                        + k + "_" + (k * 10),
+                                                "size (KB)",
+                                                SizeGraphCoordinates, p);
+                                        new LineChartDemo1(
+                                                "Line_Chart_OR_times_" + k
+                                                        + "_" + (k * 10),
+                                                "Time (sec)",
+                                                OrGraphCoordinates, p);
+                                        new LineChartDemo1(
+                                                "Line_Chart_AND_times_" + k
+                                                        + "_" + (k * 10),
+                                                "Time (sec)",
+                                                AndGraphCoordinates, p);
+                                        new LineChartDemo1(
+                                                "Line_Chart_XOR_times_" + k
+                                                        + "_" + (k * 10),
+                                                "Time (sec)",
+                                                XorGraphCoordinates, p);
+                                } catch (java.awt.HeadlessException e) {
+                                        System.out
+                                                .println("Running in headless mode. Graphical visualization disabled.");
+                                }
+
+                        }
 			}
 		try {
     		bw.close();
