@@ -28,6 +28,8 @@ Some benchmark require SizeOf.jar for memory usage estimation. Try:
 Note that it is always possible to combine command lines this way:
 
 * mvn -Dmaven.test.skip=true package && cd target && java -javaagent:lib/SizeOf.jar -cp "RoaringBitmap-0.0.1-SNAPSHOT.jar:lib/*" me.lemire.roaringbitmap.experiments.SpeedyRoaringBenchmark
-Note: Eclipse supports maven projects (though a plugin might be required)
 
 In this way, if one command fails, the executation of the following is stopped.
+
+
+Note: Eclipse supports maven projects (though a plugin might be required)

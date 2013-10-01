@@ -11,4 +11,5 @@ public interface Container extends Iterable<Short>{
     public int getSizeInBytes();
     public void validate();
     public ShortIterator getShortIterator();
+    public void trim();
 }

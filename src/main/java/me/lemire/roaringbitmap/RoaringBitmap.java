@@ -524,7 +524,15 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
                 }
 		return size;
 	}
-		
+
+	/**
+	 * Reduce memory usage.
+	 */
+        public void trim(){
+                for(Container c:  this.highlowcontainer.values()) {
+                        c.trim();
+                }
+        }	
 	@Override
 	public RoaringBitmap clone() {
 		try {

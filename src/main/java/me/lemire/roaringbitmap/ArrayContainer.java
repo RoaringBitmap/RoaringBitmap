@@ -6,13 +6,13 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 public final class ArrayContainer implements Container, Cloneable, Serializable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+	
+        private static final long serialVersionUID = 1L;
+	protected static final int DEFAULTMAXSIZE = 4096; 
+	private static final int DEFAULTINITSIZE = 4; 
+
 	public short[] content;
 	int cardinality = 0;
-	public final static int  DEFAULTMAXSIZE = 4096;	
 	
 	public void loadData(final BitmapContainer bitmapContainer) {
 	        if(content.length < bitmapContainer.cardinality)
@@ -33,13 +33,20 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 	}
 	
 	public ArrayContainer() {
-		content = new short[DEFAULTMAXSIZE];// we don't want more than DEFAULTMAXSIZE
+	        this(DEFAULTINITSIZE);
 	}
 	
 	@Override
         public boolean contains(final short x) {
 		return Util.unsigned_binarySearch(content, 0, cardinality, x) >= 0;
 	}
+	
+	private void increaseCapacity() {
+	        int newcapacity = this.content.length * 5/ 4;
+	        if(newcapacity > ArrayContainer.DEFAULTMAXSIZE) newcapacity = ArrayContainer.DEFAULTMAXSIZE;
+	        this.content = Arrays.copyOf(this.content, newcapacity);
+	}
+	
 
 	/**
 	 * running time is in O(n) time if insert is not in order.
@@ -54,6 +61,7 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
                                 a.add(x);
                                 return a;
                         }
+	                if(cardinality >= this.content.length) increaseCapacity();
 	                content[cardinality++] = x;
 	                return this;
 	        }
@@ -65,6 +73,7 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 				a.add(x);
 				return a;
 			}
+                        if(cardinality >= this.content.length) increaseCapacity();
 			// insertion : shift the elements > x by one position to the right 
 			// and put x in it's appropriate place
 			System.arraycopy(content, -loc - 1, content, -loc, cardinality
@@ -279,6 +288,13 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
                                 this.content[pos++] = this.content[k];
                 cardinality = pos;
                 return this;
+        }
+
+
+
+        @Override
+        public void trim() {
+                this.content = Arrays.copyOf(this.content, this.cardinality);
         }
         
 }

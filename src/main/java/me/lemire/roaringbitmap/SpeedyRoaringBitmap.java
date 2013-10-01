@@ -422,6 +422,13 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
                 }
 	        return size;
 	}
+        public void trim(){
+                for (int i=0; i<this.highlowcontainer.getnbKeys(); i++) 
+                {
+                        this.highlowcontainer.getArray()[i].value.trim();
+                        
+                }
+        }
 	
 	public Container get(short key) {
 		return this.highlowcontainer.get(key);

@@ -343,5 +343,9 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
                 };
 
         }
-   
+
+   @Override
+   public void trim() {
+   }
+
 }
