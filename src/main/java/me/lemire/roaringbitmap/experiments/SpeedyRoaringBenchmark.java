@@ -106,6 +106,7 @@ public class SpeedyRoaringBenchmark {
 		String distdir = null;
 
 		//Creating the distribution folder
+		if(path!=null)
 		switch(distribution) {
 		case 0 : distdir = path+File.separator+"Benchmarks_DynamiqueSpeedy_"+CPU+File.separator+"Zipf"; break;
 		case 1 : distdir = path+File.separator+"Benchmarks_DynamiqueSpeedy_"+CPU+File.separator+"Uniform";break;
@@ -127,6 +128,7 @@ public class SpeedyRoaringBenchmark {
 		DecimalFormat df = new DecimalFormat("0.###");
 		
 		//Creating the kind of optimization folder
+		if(distdir!=null)
 		switch(optimisation) {
 		case 0 : optdir = distdir+File.separator+"RoaringBitmap_Classic"; break;
 		case 1 : optdir = distdir+File.separator+"RoaringBitmap_FastAggregations";	break;
@@ -136,10 +138,12 @@ public class SpeedyRoaringBenchmark {
 				  System.exit(0);
 		}
 		
-		//Creating the charts folder		
+		//Creating the charts folder
+		if(optdir!=null)
 		Chartsdir = optdir+File.separator+"Charts";
 		
 		//Creating the benchmark results folder
+		if(optdir!=null)
 		Benchmarkdir = optdir+File.separator+"Benchmark";
 		
 		try {
@@ -282,7 +286,7 @@ public class SpeedyRoaringBenchmark {
 				testSparseBitmap( data.clone(), data2.clone(), repeat, df, optimisation);
 				testSparseBitSet( data.clone(), data2.clone(), repeat, df, optimisation);
 				testEWAH64(       data.clone(), data2.clone(), repeat, df, optimisation);
-				//testEWAH32(       data.clone(), data2.clone(), repeat, df, optimisation);
+				testEWAH32(       data.clone(), data2.clone(), repeat, df, optimisation);
 				System.out.println();		
 			}		
                         if (Chartsdir != null) {
@@ -308,7 +312,7 @@ public class SpeedyRoaringBenchmark {
                                                         + "_" + (k * 10),
                                                 "Time (sec)",
                                                 XorGraphCoordinates, p);
-                                } catch (java.awt.HeadlessException e) {
+                                } catch (Exception e) {
                                         System.out
                                                 .println("Running in headless mode. Graphical visualization disabled.");
                                 }
