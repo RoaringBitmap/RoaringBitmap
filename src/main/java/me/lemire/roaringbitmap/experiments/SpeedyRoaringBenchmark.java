@@ -16,10 +16,8 @@ import java.util.Iterator;
 import java.util.Random;
 import java.util.Vector;
 
-import javax.annotation.Generated;
 
 import me.lemire.roaringbitmap.*;
-import me.lemire.roaringbitmap.SpeedyArray.Element;
 import me.lemire.roaringbitmap.experiments.LineCharts.LineChartDemo1;
 import me.lemire.roaringbitmap.experiments.LineCharts.LineChartPoint;
 
@@ -73,25 +71,6 @@ public class SpeedyRoaringBenchmark {
                         Tests(nbBitmaps, 10, null, distClustered);
                 	}
 	}
-	
-	/*private static SpeedyRoaringBitmap fastOR(SpeedyRoaringBitmap[] tabRB) {
-		return new FastAggregation.inplace_or(tabRB);
-	}
-	
-	private static SpeedyRoaringBitmap fastXOR(SpeedyRoaringBitmap[] tabRB) {
-		return //FastAggregation.inplace_xor(tabRB);
-	}
-	
-	private static SpeedyRoaringBitmap fastAND(SpeedyRoaringBitmap[] tabRB) {
-		return FastAggregation.inplace_and(tabRB);
-	}*/
-	
-	/*private static RoaringBitmap simpleOR(RoaringBitmap[] tabRB) {
-		RoaringBitmap rb = tabRB[0];
-		for(int i=0; i<tabRB.length; i++) 
-			rb = RoaringBitmap.or(rb, tabRB[1]);
-		return rb;
-	}*/
 	
 	/**
 	 * Generating N sets of nbInts integers using Zipfian distribution.
@@ -296,9 +275,10 @@ public class SpeedyRoaringBenchmark {
 				
 				// Launching benchmarks				
 				//testBitSet(data, data2, repeat, df);
-                testSpeedyRoaringBitmap(data.clone(), data2.clone(), repeat, df, optimisation, randIntsArray);
+                                testSpeedyRoaringBitmap(data.clone(), data2.clone(), repeat, df, optimisation, randIntsArray);
 				testRoaringBitmap(data.clone(), data2.clone(), repeat, df, optimisation, randIntsArray);
 				testWAH32(        data.clone(), data2.clone(), repeat, df, optimisation, randIntsArray);
+                                testWAHViaConciseSet(   data.clone(), data2.clone(), repeat, df, optimisation, randIntsArray);
 				testConciseSet(   data.clone(), data2.clone(), repeat, df, optimisation, randIntsArray);
 				testSparseBitmap( data.clone(), data2.clone(), repeat, df, optimisation, randIntsArray);
 				testSparseBitSet( data.clone(), data2.clone(), repeat, df, optimisation, randIntsArray);
@@ -1605,11 +1585,11 @@ public class SpeedyRoaringBenchmark {
 
 		//Testing get time
 		bef = System.currentTimeMillis();
-		/*for (int i=0; i<N; i++)
+		for (int i=0; i<N; i++)
 			for(int k=0; k<randIntsArray.length; k++) {
-				bitmap[i].get(randIntsArray[k]);
-				bitmap2[i].get(randIntsArray[k]);
-			}*/
+				bitmap[i].contains(randIntsArray[k]);// not to be confused with "get".
+				bitmap2[i].contains(randIntsArray[k]);
+			}
 		aft = System.currentTimeMillis();
 		String getTime = df.format((aft - bef) / 1000.0);
 		
@@ -1624,6 +1604,224 @@ public class SpeedyRoaringBenchmark {
 			bw.write("\n# ignore this " + bogus+"\n\n");
 		} catch (IOException e) {e.printStackTrace();}
 	}
+
+        public static void testWAHViaConciseSet(int[][] data, int[][] data2,
+                int repeat, DecimalFormat df, int optimisation,
+                int[] randIntsArray) {
+                System.out
+                        .println("# WAH 32 bit using the extendedset_2.2 library");
+                System.out
+                        .println("# cardinality, size(bytes), memory size(bytes), construction time, time to recover set bits, time to compute unions  and intersections ");
+                try {
+                        bw.write("\n"
+                                + "# WAHViaConciseSet\n"
+                                + "# cardinality, size, construction time, time to recover set bits, "
+                                + "time to compute unions (OR), intersections (AND) "
+                                + "and exclusive unions (XOR) ");
+                } catch (IOException e1) {
+                        e1.printStackTrace();
+                }
+                long bef, aft;
+                String line = "";
+                int bogus = 0;
+
+                int N = data.length, size = 0;
+                bef = System.currentTimeMillis();
+                ConciseSet[] bitmap = new ConciseSet[N];
+
+                for (int r = 0; r < repeat; ++r) {
+                        for (int k = 0; k < N; ++k) {
+                                bitmap[k] = new ConciseSet(true);
+                                for (int x = 0; x < data[k].length; ++x) {
+                                        bitmap[k].add(data[k][x]);
+                                }
+                        }
+                }
+                aft = System.currentTimeMillis();
+
+                // Creating and filling the 2nd Concise index
+                ConciseSet[] bitmap2 = new ConciseSet[N];
+                for (int k = 0; k < N; ++k) {
+                        bitmap2[k] = new ConciseSet(true);
+                        for (int x = 0; x < data2[k].length; ++x)
+                                bitmap2[k].add(data2[k][x]);
+                }
+
+                for (int k = 0; k < N; k++) {
+                        size += (int) (bitmap[k].size() * bitmap[k]
+                                .collectionCompressionRatio()) * 4;
+                        size += (int) (bitmap2[k].size() * bitmap2[k]
+                                .collectionCompressionRatio()) * 4;
+                }
+
+                int cardinality = 0;
+                // calculating all bitmaps the cardinality
+                for (int k = 0; k < N; k++) {
+                        cardinality += bitmap[k].toArray().length;
+                        cardinality += bitmap2[k].toArray().length;
+                }
+
+                // Memory size in bytes
+                long sizeOf = 0;
+                sizeOf = ((SizeOf.deepSizeOf(bitmap) + SizeOf
+                        .deepSizeOf(bitmap2)));
+
+                line += "\t" + cardinality + "\t" + size + "\t" + sizeOf;
+                line += "\t" + df.format((aft - bef) / 1000.0);
+
+                SizeGraphCoordinates.get(2).lastElement().setGname("Concise");
+                SizeGraphCoordinates.get(2).lastElement().setY(size / 1024);
+
+                // uncompressing
+                bef = System.currentTimeMillis();
+                for (int r = 0; r < repeat; ++r)
+                        for (int k = 0; k < N; ++k) {
+                                int[] array = bitmap[k].toArray();
+                                bogus += array.length;
+                        }
+                aft = System.currentTimeMillis();
+                line += "\t" + df.format((aft - bef) / 1000.0);
+
+                // logical or + retrieval
+                bef = System.currentTimeMillis();
+                for (int r = 0; r < repeat; ++r) {
+                        ConciseSet bitmapor1 = null;
+                        ConciseSet bitmapor2;
+                        switch (optimisation) {
+                        case 0:
+                        case 2:
+                                bitmapor1 = bitmap[0].clone();
+                                bitmapor2 = bitmap2[0].clone();
+                                for (int k = 1; k < N; ++k) {
+                                        bitmapor1 = bitmapor1.union(bitmap[k]);
+                                        bitmapor2 = bitmapor2.union(bitmap2[k]);
+                                }
+                                bitmapor1 = bitmapor1.union(bitmapor2);
+                                break;
+                        case 1:
+                        case 3:
+                                bitmapor1 = ConciseSetUtil.fastOR(bitmap);
+                                bitmapor2 = ConciseSetUtil.fastOR(bitmap2);
+                                bitmapor1 = bitmapor1.union(bitmapor2);
+                                break;
+                        }
+                        int[] array = bitmapor1.toArray();
+                        if (array != null)
+                                bogus += array.length;
+                }
+                aft = System.currentTimeMillis();
+                line += "\t" + df.format((aft - bef) / 1000.0);
+
+                OrGraphCoordinates.get(2).lastElement().setGname("Concise");
+                OrGraphCoordinates.get(2).lastElement()
+                        .setY((aft - bef) / 1000.0);
+
+                // logical and + retrieval
+                bef = System.currentTimeMillis();
+                for (int r = 0; r < repeat; ++r) {
+                        ConciseSet bitmapand1 = null;
+                        ConciseSet bitmapand2;
+                        switch (optimisation) {
+                        case 0:
+                        case 2:
+                                bitmapand1 = bitmap[0].clone();
+                                bitmapand2 = bitmap2[0].clone();
+                                for (int k = 1; k < N; ++k) {
+                                        bitmapand1 = bitmapand1
+                                                .intersection(bitmap[k]);
+                                        bitmapand2 = bitmapand2
+                                                .intersection(bitmap2[k]);
+                                }
+                                bitmapand1 = bitmapand1
+                                        .intersection(bitmapand2);
+                                break;
+                        case 1:
+                        case 3:
+                                bitmapand1 = ConciseSetUtil.fastAND(bitmap);
+                                bitmapand2 = ConciseSetUtil.fastAND(bitmap2);
+                                bitmapand1 = bitmapand1
+                                        .intersection(bitmapand2);
+                                break;
+                        }
+                        int[] array = bitmapand1.toArray();
+                        if (array != null)
+                                bogus += array.length;
+                }
+                aft = System.currentTimeMillis();
+                line += "\t" + df.format((aft - bef) / 1000.0);
+
+                AndGraphCoordinates.get(2).lastElement().setGname("Concise");
+                AndGraphCoordinates.get(2).lastElement()
+                        .setY((aft - bef) / 1000.0);
+
+                // logical xor + retrieval
+                bef = System.currentTimeMillis();
+                for (int r = 0; r < repeat; ++r) {
+                        ConciseSet bitmapxor1 = null;
+                        ConciseSet bitmapxor2;
+                        switch (optimisation) {
+                        case 0:
+                        case 2:
+                                bitmapxor1 = bitmap[0].clone();
+                                bitmapxor2 = bitmap2[0].clone();
+                                for (int k = 1; k < N; ++k) {
+                                        bitmapxor1 = bitmapxor1
+                                                .symmetricDifference(bitmap[k]);
+                                        bitmapxor2 = bitmapxor2
+                                                .symmetricDifference(bitmap2[k]);
+                                }
+                                bitmapxor1 = bitmapxor1
+                                        .symmetricDifference(bitmapxor2);
+                                break;
+                        case 1:
+                        case 3:
+                                bitmapxor1 = ConciseSetUtil.fastXOR(bitmap);
+                                bitmapxor2 = ConciseSetUtil.fastXOR(bitmap2);
+                                bitmapxor1 = bitmapxor1
+                                        .symmetricDifference(bitmapxor2);
+                                break;
+                        }
+                        int[] array = bitmapxor1.toArray();
+                        if (array != null)
+                                bogus += array.length;
+                }
+                aft = System.currentTimeMillis();
+                line += "\t" + df.format((aft - bef) / 1000.0);
+
+                XorGraphCoordinates.get(2).lastElement().setGname("Concise");
+                XorGraphCoordinates.get(2).lastElement()
+                        .setY((aft - bef) / 1000.0);
+
+                // Testing get time
+                bef = System.currentTimeMillis();
+                for (int i = 0; i < N; i++)
+                        for (int k = 0; k < randIntsArray.length; k++) {
+                                bitmap[i].contains(randIntsArray[k]);// not to
+                                                                     // be
+                                                                     // confused
+                                                                     // with
+                                                                     // "get".
+                                bitmap2[i].contains(randIntsArray[k]);
+                        }
+                aft = System.currentTimeMillis();
+                String getTime = df.format((aft - bef) / 1000.0);
+
+                System.out.println(line + "\n# get time = " + getTime
+                        + "\n# bits/int = "
+                        + df.format(((float) size * 8 / (float) cardinality)));
+                System.out.println("# ignore this " + bogus);
+                try {
+                        bw.write("\n"
+                                + line
+                                + "\n# get time = "
+                                + getTime
+                                + "\n# bits/int = "
+                                + df.format(((float) size * 8 / (float) cardinality)));
+                        bw.write("\n# ignore this " + bogus + "\n\n");
+                } catch (IOException e) {
+                        e.printStackTrace();
+                }
+        }
 
 	public static void testSparseBitmap(int[][] data, int[][] data2,
 			int repeat, DecimalFormat df, int optimisation, int[] randIntsArray) {

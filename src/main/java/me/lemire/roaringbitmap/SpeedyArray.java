@@ -2,7 +2,7 @@ package me.lemire.roaringbitmap;
 
 import java.util.Arrays;
 
-public class SpeedyArray implements Cloneable {
+public final class SpeedyArray implements Cloneable {
 	Element[] array = null;
 	int nbKeys = 0;
 	static int initialCapacity = 4;

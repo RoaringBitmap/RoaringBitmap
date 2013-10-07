@@ -4,13 +4,8 @@ import it.unimi.dsi.fastutil.shorts.Short2ObjectAVLTreeMap;
 import it.unimi.dsi.fastutil.shorts.ShortBidirectionalIterator;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable {
 
@@ -396,11 +391,11 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 		while(p1.hasNext())
 		{
 		        final Entry<Short, Container> s = p1.next();
-			final short hs = s.getKey().shortValue();
+			final int hs = s.getKey().shortValue() << 16;
 			final ShortIterator si = s.getValue().getShortIterator();
 			while(si.hasNext()) {
 			        array[pos++] 
-			        		= (hs<<16) | 
+			        		= hs | 
 			        			si.next();
 			}
 		}	
@@ -409,23 +404,35 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 	
 	public void remove(final int x) {
 		final short hb = Util.highbits(x);
-		if (highlowcontainer.containsKey(hb)) {
+		final Container corig = highlowcontainer.get(hb);
+		if(corig == null) return; //key not present
+                final Container cc = corig.remove(Util.lowbits(x));
+                if (cc.getCardinality() == 0)
+                                highlowcontainer.remove(hb);
+                else if(cc != corig)
+                                highlowcontainer.put(hb, cc);
+                
+		/*if (highlowcontainer.containsKey(hb)) {
 		        final Container corig = highlowcontainer.get(hb);
 		        final Container cc = corig.remove(Util.lowbits(x));
 		        if (cc.getCardinality() == 0)
 		        	highlowcontainer.remove(hb);
 			else if(cc != corig)
 				highlowcontainer.put(hb, cc);
-		}
+		}*/
 	}
 
 	public boolean contains(final int x) {
 		final short hb = Util.highbits(x);
+		final Container C = highlowcontainer.get(hb);
+		if(C == null) return false;
+                return C.contains(Util.lowbits(x));
+		/*
 		if (highlowcontainer.containsKey(hb)) {
 		        final Container C = highlowcontainer.get(hb);
 			return C.contains(Util.lowbits(x));
 		}
-		return false;
+		return false;*/
 	}
 
         @Override
