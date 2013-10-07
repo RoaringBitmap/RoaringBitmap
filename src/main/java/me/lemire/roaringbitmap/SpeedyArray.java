@@ -23,7 +23,6 @@ public class SpeedyArray implements Cloneable {
 	
 	public boolean ContainsKey(short x) {
 		return (binarySearch(0, nbKeys, x) >= 0);
-		//return (linearSearch(array, nbKeys, x)>=0);
 	}
 	
 	public void put(short key, Container value) {

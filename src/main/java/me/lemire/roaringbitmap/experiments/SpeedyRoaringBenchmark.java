@@ -13,7 +13,10 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Random;
 import java.util.Vector;
+
+import javax.annotation.Generated;
 
 import me.lemire.roaringbitmap.*;
 import me.lemire.roaringbitmap.SpeedyArray.Element;
@@ -121,6 +124,18 @@ public class SpeedyRoaringBenchmark {
 		//launchBenchmark(distribution, N, repeat, df, distdir, FastinPlace);
 	}
 	
+	private static int[] getRandomIntArray(int length) {
+		int[] array = new int[length];
+		Random rand = new Random();
+		
+		for(int i=0; i<length; i++) {
+			double x = rand.nextDouble();
+			array[i] = (int)(Math.pow(x,2)*max);
+		}
+		
+		return array;
+	}
+	
 	public static void launchBenchmark(int distribution, int N, int repeat, 
 			String distdir, int optimisation) {
 		
@@ -138,7 +153,10 @@ public class SpeedyRoaringBenchmark {
 				  System.exit(0);
 		}
 		
-		//Creating the charts folder
+		//Generating a random integers array
+		int[] randIntsArray = getRandomIntArray(10000);  
+		
+		//Creating the charts folder		
 		if(optdir!=null)
 		Chartsdir = optdir+File.separator+"Charts";
 		
@@ -209,7 +227,7 @@ public class SpeedyRoaringBenchmark {
 				AndGraphCoordinates.add(new Vector<LineChartPoint>());
 				XorGraphCoordinates.add(new Vector<LineChartPoint>());
 			}
-			for( double density = k; density<k*10.0; density+=density/*=10.0*/ )
+			for( double density = k; density<k*10.0; density+=density )
 			{
 				if(density>=0.7) 
 					density=0.6;			
@@ -278,15 +296,14 @@ public class SpeedyRoaringBenchmark {
 				
 				// Launching benchmarks				
 				//testBitSet(data, data2, repeat, df);
-                                testSpeedyRoaringBitmap(data.clone(), data2.clone(), repeat, df, optimisation);
-
-				testRoaringBitmap(data.clone(), data2.clone(), repeat, df, optimisation);
-				testWAH32(        data.clone(), data2.clone(), repeat, df, optimisation);
-				testConciseSet(   data.clone(), data2.clone(), repeat, df, optimisation);
-				testSparseBitmap( data.clone(), data2.clone(), repeat, df, optimisation);
-				testSparseBitSet( data.clone(), data2.clone(), repeat, df, optimisation);
-				testEWAH64(       data.clone(), data2.clone(), repeat, df, optimisation);
-				testEWAH32(       data.clone(), data2.clone(), repeat, df, optimisation);
+                testSpeedyRoaringBitmap(data.clone(), data2.clone(), repeat, df, optimisation, randIntsArray);
+				testRoaringBitmap(data.clone(), data2.clone(), repeat, df, optimisation, randIntsArray);
+				testWAH32(        data.clone(), data2.clone(), repeat, df, optimisation, randIntsArray);
+				testConciseSet(   data.clone(), data2.clone(), repeat, df, optimisation, randIntsArray);
+				testSparseBitmap( data.clone(), data2.clone(), repeat, df, optimisation, randIntsArray);
+				testSparseBitSet( data.clone(), data2.clone(), repeat, df, optimisation, randIntsArray);
+				testEWAH64(       data.clone(), data2.clone(), repeat, df, optimisation, randIntsArray);
+				testEWAH32(       data.clone(), data2.clone(), repeat, df, optimisation, randIntsArray);
 				System.out.println();		
 			}		
                         if (Chartsdir != null) {
@@ -325,7 +342,7 @@ public class SpeedyRoaringBenchmark {
 	}
 
 	public static void testRoaringBitmap(int[][] data, int[][] data2,
-			int repeat, DecimalFormat df, int optimisation) {
+			int repeat, DecimalFormat df, int optimisation, int[] randIntsArray) {
 		System.out.println("# RoaringBitmap");
 		System.out
 				.println("# cardinality, size, construction time, time to recover set bits, "
@@ -699,20 +716,34 @@ public class SpeedyRoaringBenchmark {
 		XorGraphCoordinates.get(0).lastElement().setGname("Roaring Bitmap");
 		XorGraphCoordinates.get(0).lastElement().setY((aft - bef) / 1000.0);
 
-		System.out.println(line+"\n# Real size = "+size
+		//Testing get time
+		bef = System.currentTimeMillis();
+		for (int i=0; i<N; i++)
+			for(int k=0; k<randIntsArray.length; k++) {
+				bitmap[i].contains(randIntsArray[k]);
+				bitmap2[i].contains(randIntsArray[k]);
+			}
+		aft = System.currentTimeMillis();
+		String getTime = df.format((aft - bef) / 1000.0);
+		
+		System.out.println(line
+				+"\n# get time = "+getTime
+				+"\n# Real size = "+size
 				+" nbNodes = "+bitmap[1].getNbNodes()+" BC = "+BC+" nbIntsAC = "+nbIntAC
 				+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
 		System.out.println("# ignore this " + bogus);
 		try {
-				bw.write("\n"+line+"\n# Real size = "+size+" nbNodes = "+bitmap[1].getNbNodes()
+				bw.write("\n"+line
+						+"\n# get time = "+getTime
+						+"\n# Real size = "+size+" nbNodes = "+bitmap[1].getNbNodes()
 						+" BC = "+BC+" nbIntsAC = "+nbIntAC
 						+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
 				bw.write("\n# ignore this " + bogus+"\n\n");
 			} catch (IOException e) {e.printStackTrace();}
 	}
 
-        public static void testSpeedyRoaringBitmap(int[][] data, int[][] data2,
-                int repeat, DecimalFormat df, int optimisation) {
+    public static void testSpeedyRoaringBitmap(int[][] data, int[][] data2,
+                int repeat, DecimalFormat df, int optimisation, int[] randIntsArray) {
         System.out.println("# SpeedyRoaringBitmap");
         System.out
                         .println("# cardinality, size, construction time, time to recover set bits, "
@@ -1083,21 +1114,34 @@ public class SpeedyRoaringBenchmark {
         XorGraphCoordinates.get(0).lastElement().setGname("Roaring Bitmap");
         XorGraphCoordinates.get(0).lastElement().setY((aft - bef) / 1000.0);
 
-        System.out.println(line+"\n# Real size = "+size
+      //Testing get time
+      		bef = System.currentTimeMillis();
+      		for (int i=0; i<N; i++)
+      			for(int k=0; k<randIntsArray.length; k++) {
+      				bitmap[i].contains(randIntsArray[k]);
+      				bitmap2[i].contains(randIntsArray[k]);
+      			}
+      		aft = System.currentTimeMillis();
+      		String getTime = df.format((aft - bef) / 1000.0);
+        
+        System.out.println(line
+        				+"\n# get time = "+getTime
+           				+"\n# Real size = "+size
                         +" nbNodes = "+bitmap[1].getNbNodes()+" BC = "+BC+" nbIntsAC = "+nbIntAC
                         +"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
         System.out.println("# ignore this " + bogus);
         try {
-                        bw.write("\n"+line+"\n# Real size = "+size+" nbNodes = "+bitmap[1].getNbNodes()
-                                        +" BC = "+BC+" nbIntsAC = "+nbIntAC
-                                        +"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
+                        bw.write("\n"+line
+                        		+"\n# get time = "+getTime
+                        		+"\n# Real size = "+size+" nbNodes = "+bitmap[1].getNbNodes()
+                                +" BC = "+BC+" nbIntsAC = "+nbIntAC
+                                +"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
                         bw.write("\n# ignore this " + bogus+"\n\n");
                 } catch (IOException e) {e.printStackTrace();}
 }
-
 	
 	public static void testBitSet(int[][] data, int[][] data2, int repeat,
-		DecimalFormat df, int optimisation) {
+		DecimalFormat df, int optimisation, int[] randIntsArray) {
 		System.out.println("# BitSet");
 		System.out.println("# size, construction time, time to recover set bits, "
 						+ "time to compute unions (OR), intersections (AND) "
@@ -1214,6 +1258,8 @@ public class SpeedyRoaringBenchmark {
 		aft = System.currentTimeMillis();
 		line += "\t" + df.format((aft - bef) / 1000.0);
 
+		
+		
 		System.out.println(line);
 		try {
 			bw.write("\n"+line+"\n\n");
@@ -1221,7 +1267,7 @@ public class SpeedyRoaringBenchmark {
 	}
 
 	public static void testWAH32(int[][] data, int[][] data2, int repeat,
-			DecimalFormat df, int optimisation) {
+			DecimalFormat df, int optimisation, int[] randIntsArray) {
 		System.out.println("# WAH 32 bit using the compressedbitset library");
 		System.out
 				.println("# cardinality, size(bytes), memory size(bytes), construction time, time to recover set bits, "
@@ -1370,16 +1416,30 @@ public class SpeedyRoaringBenchmark {
 		XorGraphCoordinates.get(1).lastElement().setGname("WAH 32bit");
 		XorGraphCoordinates.get(1).lastElement().setY(0.0);
 
-		System.out.println(line+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
+		//Testing get time
+				bef = System.currentTimeMillis();
+				for (int i=0; i<N; i++)
+					for(int k=0; k<randIntsArray.length; k++) {
+						bitmap[i].get(randIntsArray[k]);
+						bitmap2[i].get(randIntsArray[k]);
+					}
+				aft = System.currentTimeMillis();
+				String getTime = df.format((aft - bef) / 1000.0);
+		
+		System.out.println(line
+				+"\n# get time = "+getTime
+				+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
 		System.out.println("# ignore this " + bogus);
 		try {
-			bw.write("\n"+line+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
+			bw.write("\n"+line
+					+"\n# get time = "+getTime
+					+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
 			bw.write("\n# ignore this " + bogus+"\n\n");
 		} catch (IOException e) {e.printStackTrace();}
 	}
 
 	public static void testConciseSet(int[][] data, int[][] data2, int repeat,
-			DecimalFormat df, int optimisation) {
+			DecimalFormat df, int optimisation, int[] randIntsArray) {
 		System.out
 				.println("# ConciseSet 32 bit using the extendedset_2.2 library");
 		System.out
@@ -1543,16 +1603,30 @@ public class SpeedyRoaringBenchmark {
 		XorGraphCoordinates.get(2).lastElement().setGname("Concise");
 		XorGraphCoordinates.get(2).lastElement().setY((aft - bef) / 1000.0);
 
-		System.out.println(line+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
+		//Testing get time
+		bef = System.currentTimeMillis();
+		/*for (int i=0; i<N; i++)
+			for(int k=0; k<randIntsArray.length; k++) {
+				bitmap[i].get(randIntsArray[k]);
+				bitmap2[i].get(randIntsArray[k]);
+			}*/
+		aft = System.currentTimeMillis();
+		String getTime = df.format((aft - bef) / 1000.0);
+		
+		System.out.println(line
+				+"\n# get time = "+getTime
+				+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
 		System.out.println("# ignore this " + bogus);
 		try {
-			bw.write("\n"+line+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
+			bw.write("\n"+line
+					+"\n# get time = "+getTime
+					+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
 			bw.write("\n# ignore this " + bogus+"\n\n");
 		} catch (IOException e) {e.printStackTrace();}
 	}
 
 	public static void testSparseBitmap(int[][] data, int[][] data2,
-			int repeat, DecimalFormat df, int optimisation) {
+			int repeat, DecimalFormat df, int optimisation, int[] randIntsArray) {
 		System.out.println("# simple sparse bitmap implementation");
 		System.out
 				.println("# cardinality, size(bytes), memory size(bytes), construction time, time to recover set bits, time to compute unions (OR), intersections (AND) and exclusive unions (XOR) ");
@@ -1669,7 +1743,7 @@ public class SpeedyRoaringBenchmark {
 		
 		AndGraphCoordinates.get(3).lastElement().setGname("Sparse Bitmap");
 		AndGraphCoordinates.get(3).lastElement().setY((aft - bef) / 1000.0);
-
+		
 		System.out.println(line+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
 		System.out.println("# ignore this " + bogus);
 		try {
@@ -1679,7 +1753,7 @@ public class SpeedyRoaringBenchmark {
 	}
 
 	public static void testSparseBitSet(int[][] data, int[][] data2,
-		int repeat, DecimalFormat df, int optimisation) {
+		int repeat, DecimalFormat df, int optimisation, int[] randIntsArray) {
 		System.out.println("# sparse BitSet implementation");
 		System.out
 				.println("# cardinality, size(bytes), memory size(bytes), construction time, time to recover set bits, time to compute unions (OR), intersections (AND) and exclusive unions (XOR) ");
@@ -1821,16 +1895,30 @@ public class SpeedyRoaringBenchmark {
 		AndGraphCoordinates.get(4).lastElement().setGname("Sparse BitSet");
 		AndGraphCoordinates.get(4).lastElement().setY((aft - bef) / 1000.0);
 
-		System.out.println(line+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
+		//Testing get time
+		bef = System.currentTimeMillis();
+		for (int i=0; i<N; i++)
+			for(int k=0; k<randIntsArray.length; k++) {
+				bitmap[i].get(randIntsArray[k]);
+				bitmap2[i].get(randIntsArray[k]);
+			}
+		aft = System.currentTimeMillis();
+		String getTime = df.format((aft - bef) / 1000.0);
+		
+		System.out.println(line
+				+"\n# get time = "+getTime
+				+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
 		System.out.println("# ignore this " + bogus);
 		try {
-			bw.write("\n"+line+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
+			bw.write("\n"+line
+					+"\n# get time = "+getTime
+					+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
 			bw.write("\n# ignore this " + bogus+"\n\n");
 		} catch (IOException e) {e.printStackTrace();}
 }
 
 	public static void testEWAH64(int[][] data, int[][] data2, int repeat,
-			DecimalFormat df, int optimisation) {
+			DecimalFormat df, int optimisation, int[] randIntsArray) {
 		System.out.println("# EWAH using the javaewah library");
 		System.out
 				.println("# cardinality, size (bytes), memory size (bytes), construction time, time to recover set bits, time to compute unions  and intersections ");
@@ -1993,16 +2081,30 @@ public class SpeedyRoaringBenchmark {
 		XorGraphCoordinates.get(5).lastElement().setGname("Ewah 64bits");
 		XorGraphCoordinates.get(5).lastElement().setY((aft - bef) / 1000.0);
 
-		System.out.println(line+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
+		//Testing get time
+		bef = System.currentTimeMillis();
+		for (int i=0; i<N; i++)
+			for(int k=0; k<randIntsArray.length; k++) {
+				ewah[i].get(randIntsArray[k]);
+				ewah2[i].get(randIntsArray[k]);
+			}
+		aft = System.currentTimeMillis();
+		String getTime = df.format((aft - bef) / 1000.0);
+		
+		System.out.println(line
+				+"\n# get time = "+getTime
+				+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
 		System.out.println("# ignore this " + bogus);
 		try {
-			bw.write("\n"+line+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
+			bw.write("\n"+line
+					+"\n# get time = "+getTime
+					+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
 			bw.write("\n# ignore this " + bogus+"\n\n");
 		} catch (IOException e) {e.printStackTrace();}
 	}
 
 	public static void testEWAH32(int[][] data, int[][] data2, int repeat,
-			DecimalFormat df, int optimisation) {
+			DecimalFormat df, int optimisation, int[] randIntsArray) {
 		System.out.println("# EWAH 32-bit using the javaewah library");
 		System.out
 				.println("# cardinality, size(bytes), memory size(bytes), construction time, time to recover set bits, time to compute unions  and intersections ");
@@ -2167,12 +2269,25 @@ public class SpeedyRoaringBenchmark {
 		XorGraphCoordinates.get(6).lastElement().setGname("Ewah 32");
 		XorGraphCoordinates.get(6).lastElement().setY((aft - bef) / 1000.0);
 
-		System.out.println(line+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
+		//Testing get time
+		bef = System.currentTimeMillis();
+		for (int i=0; i<N; i++)
+			for(int k=0; k<randIntsArray.length; k++) {
+				ewah[i].get(randIntsArray[k]);
+				ewah2[i].get(randIntsArray[k]);
+			}
+		aft = System.currentTimeMillis();
+		String getTime = df.format((aft - bef) / 1000.0);
+		
+		System.out.println(line
+				+"\n# get time = "+getTime
+				+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
 		System.out.println("# ignore this " + bogus);
 		try {
-			bw.write("\n"+line+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
+			bw.write("\n"+line
+					+"\n# get time = "+getTime
+					+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
 			bw.write("\n# ignore this " + bogus+"\n\n");
 		} catch (IOException e) {e.printStackTrace();}
-	}
-		
+	}		
 }
