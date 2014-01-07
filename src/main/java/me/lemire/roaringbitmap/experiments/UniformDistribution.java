@@ -3,12 +3,11 @@ package me.lemire.roaringbitmap.experiments;
 import java.util.HashSet;
 import java.util.Random;
 
-public class ZipfianDistribution {
-	
+public class UniformDistribution {
 	Random rand = new Random();
 
 	/*
-	 * Generating integers with a Zipfian distribution
+	 * Generating integers with a uniform distribution as described by Concise paper method
 	 * SetSize the cardinality of the bitmaps. Number of distinct ints to generate
 	 * max the upper bound. The ints are generated from the range [0, max]  
 	 */
@@ -24,13 +23,12 @@ public class ZipfianDistribution {
 		
 		while(hs.size()<SetSize) {
 			double a = this.rand.nextDouble();
-			int val = (int) Math.floor(Math.pow(a, 2) * max);			
+			int val = (int) Math.floor(a * max);			
 			hs.add(val);
 		}
 		Object[] tab = hs.toArray();
 		for(int i=0; i<tab.length; i++) array[i]=(Integer) tab[i];
 		return array;
 	}
-	
 	
 }

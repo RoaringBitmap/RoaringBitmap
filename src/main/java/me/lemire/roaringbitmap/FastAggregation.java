@@ -118,7 +118,7 @@ public class FastAggregation {
        public static RoaringBitmap  and(RoaringBitmap... bitmaps) {
                if(bitmaps.length == 0) return new RoaringBitmap();
                RoaringBitmap[] array = Arrays.copyOf(bitmaps, bitmaps.length);
-               Arrays.sort(array,new Comparator<RoaringBitmap>() {
+               Arrays.sort(array, new Comparator<RoaringBitmap>() {
                                        @Override
                                        public int compare(RoaringBitmap a, RoaringBitmap b) {
                                                return a.getSizeInBytes() - b.getSizeInBytes();

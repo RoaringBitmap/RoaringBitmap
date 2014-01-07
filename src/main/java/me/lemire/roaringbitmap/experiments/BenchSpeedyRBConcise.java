@@ -6,6 +6,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ import com.googlecode.javaewah.EWAHCompressedBitmap;
 import com.googlecode.javaewah32.EWAHCompressedBitmap32;
 import net.sourceforge.sizeof.*;
 
-public class SpeedyRoaringBenchmark {
+public class BenchSpeedyRBConcise {
 	
 	static ArrayList<Vector<LineChartPoint>> SizeGraphCoordinates;
 	static ArrayList<Vector<LineChartPoint>> OrGraphCoordinates;
@@ -40,7 +41,7 @@ public class SpeedyRoaringBenchmark {
 	static int nbTechnique = 7;
 	static int FastAgregate = 1;
 	static int ClassicAgregate = 0;
-	private static UniformDataGenerator uniform;
+	private static UniformDistribution uniform;
 	private static ZipfianDistribution zpf;
 	private static ClusteredDataGenerator cdg;
 	private static int distClustered = 2;
@@ -51,8 +52,8 @@ public class SpeedyRoaringBenchmark {
 	private static int inPlace = 2;
 	private static int FastinPlace = 3;
 	private static BufferedWriter bw = null;
-	private static int max = 10000000;
-	private static int nbBitmaps = 10;
+	private static int SetSize = (int) Math.pow(10, 5);
+	private static int BitmapsPerSet = 1;
 	private static String CPU = "IntelCorei3_M330";
 	/**
 	 * @param args
@@ -63,14 +64,14 @@ public class SpeedyRoaringBenchmark {
 	        SizeOf.setMinSizeToLog(0);// disable warnings
 		//test(10, 18, 10);
                 if (args.length > 0) {                    
-                	//Tests(nbBitmaps, 10, args[0], distUniform);
-                	Tests(nbBitmaps, 10, args[0], distZipf);
+                	//Tests(BitmapsPerSet, 10, args[0], distUniform);
+                	Tests(BitmapsPerSet, 10, args[0], distZipf);
                 	//Tests(nbBitmaps, 10, args[0], distClustered);
                 }
                 else {
-                        Tests(nbBitmaps, 10, null, distUniform);// no plots needed
-                        Tests(nbBitmaps, 10, null, distZipf);
-                        Tests(nbBitmaps, 10, null, distClustered);
+                        //Tests(BitmapsPerSet, 10, null, distUniform);// no plots needed
+                        //Tests(BitmapsPerSet, 10, null, distZipf);
+                        //Tests(BitmapsPerSet, 10, null, distClustered);
                 	}
 	}
 	
@@ -99,21 +100,23 @@ public class SpeedyRoaringBenchmark {
 	 * @param repeat number of repetitions
 	 */
 	public static void Tests(int N, int repeat, String path, int distribution) {				
-		System.out.println("WARNING: Though I am called ZipfianTests, " +
-				"I am using a uniform data generator. Maybe a better design would use the same method " +
-				"and have the data type as a parameter.");
+		System.out.println("Distribution (0:zipf, 1:uniform, 2:clustered) :: "+distribution);
 		zpf = new ZipfianDistribution();	
-		uniform = new UniformDataGenerator();
+		uniform = new UniformDistribution();
 		cdg = new ClusteredDataGenerator();	
 		
 		String distdir = null;
-
+		
+		DateFormat format = new SimpleDateFormat("yyyy_MM_dd_HH_mm");
+		Date date = new Date();
+		String sysdate = format.format(date);
+		
 		//Creating the distribution folder
 		if(path!=null)
 		switch(distribution) {
-		case 0 : distdir = path+File.separator+"Benchmarks_DynamiqueSpeedy_"+CPU+File.separator+"Zipf"; break;
-		case 1 : distdir = path+File.separator+"Benchmarks_DynamiqueSpeedy_"+CPU+File.separator+"Uniform";break;
-		case 2 : distdir = path+File.separator+"Benchmarks_DynamiqueSpeedy_"+CPU+File.separator+"Clustered";break;
+		case 0 : distdir = path+File.separator+"Benchmarks_DynamiqueSpeedy_"+sysdate+CPU+File.separator+"Zipf"; break;
+		case 1 : distdir = path+File.separator+"Benchmarks_DynamiqueSpeedy_"+sysdate+CPU+File.separator+"Uniform";break;
+		case 2 : distdir = path+File.separator+"Benchmarks_DynamiqueSpeedy_"+sysdate+CPU+File.separator+"Clustered";break;
 		default : System.out.println("Can you choose a distribution ?");
 				  System.exit(0);
 		}
@@ -130,7 +133,7 @@ public class SpeedyRoaringBenchmark {
 		
 		for(int i=0; i<length; i++) {
 			double x = rand.nextDouble();
-			array[i] = (int)(Math.pow(x,2)*max);
+			array[i] = (int)(x*SetSize);
 		}
 		
 		return array;
@@ -149,11 +152,11 @@ public class SpeedyRoaringBenchmark {
 		case 1 : optdir = distdir+File.separator+"RoaringBitmap_FastAggregations";	break;
 		case 2 : optdir = distdir+File.separator+"RoaringBitmap_inPlace"; break;
 		case 3 : optdir = distdir+File.separator+"RoaringBitmap_FastAgg_inPlace"; break;
-		default : System.out.println("Can you choose a distribution ?");
+		default : System.out.println("Please, choose a distribution ?");
 				  System.exit(0);
 		}
 		
-		//Generating a random integers array
+		//Generating an array of random integers
 		int[] randIntsArray = getRandomIntArray(10000);  
 		
 		//Creating the charts folder		
@@ -190,7 +193,7 @@ public class SpeedyRoaringBenchmark {
 		    .println("# and the time required to compute logical ors (unions) between lots of bitmaps." +
 		    		"\n\n" 
 		    		+"# Number of bitmaps = "+N
-		    		+"\n# Bitmaps cardinality = "+max
+		    		+"\n# Bitmaps cardinality = "+SetSize
 		    		+"\n# Optimisation = "+op[optimisation]
 		    		+"\n# "+dateFormatComp.format(date)
 		    		+"\n# CPU = "+System.getProperty("os.arch")
@@ -206,7 +209,7 @@ public class SpeedyRoaringBenchmark {
 				+"# and the time required to compute logical ors (unions) between lots of bitmaps." +
 				"\n\n" +
 				 "# Number of bitmaps = "+N
-				+"\n# Bitmaps cardinality = "+max 
+				+"\n# Bitmaps cardinality = "+SetSize 
 				+"\n# Optimisation = "+op[optimisation]
 				+"\n# "+dateFormatComp.format(date)
 				+"\n# CPU = "+System.getenv("os.arch")
@@ -231,7 +234,8 @@ public class SpeedyRoaringBenchmark {
 			{
 				if(density>=0.7) 
 					density=0.6;			
-				int SetSize = (int) (max*density);
+				
+				int max = (int)(SetSize/density);
 				int data[][] = new int[N][];
 				int data2[][] = new int[N][];
 				
@@ -255,10 +259,10 @@ public class SpeedyRoaringBenchmark {
 				{	
 					switch (distribution) {
 					case 0 : data[i] = zpf.GenartingInts(SetSize, max);
-							data2[i] = zpf.GenartingInts(SetSize, max);
+							 data2[i] = zpf.GenartingInts(SetSize, max);
 							break;
-					case 1 : data[i] = uniform.generateUniform(SetSize, max);
-							 data2[i] = uniform.generateUniform(SetSize, max);
+					case 1 : data[i] = uniform.GenartingInts(SetSize, max);
+							 data2[i] = uniform.GenartingInts(SetSize, max);
 							 break;
 					case 2 : int[] inter = cdg.generateClustered(1 << (18 / 2), max);
 							 data[i] = IntUtil.unite(inter, cdg.generateClustered(1 << 18, max));
@@ -295,7 +299,7 @@ public class SpeedyRoaringBenchmark {
 					{e.printStackTrace();}
 				
 				// Launching benchmarks				
-				//testBitSet(data, data2, repeat, df);
+				testBitSet(data.clone(), data2.clone(), repeat, df, optimisation, randIntsArray);
                 testSpeedyRoaringBitmap(data.clone(), data2.clone(), repeat, df, optimisation, randIntsArray);
 				testRoaringBitmap(data.clone(), data2.clone(), repeat, df, optimisation, randIntsArray);
 				testWAH32(        data.clone(), data2.clone(), repeat, df, optimisation, randIntsArray);
@@ -345,7 +349,7 @@ public class SpeedyRoaringBenchmark {
 			int repeat, DecimalFormat df, int optimisation, int[] randIntsArray) {
 		System.out.println("# RoaringBitmap");
 		System.out
-				.println("# cardinality, size, construction time, time to recover set bits, "
+				.println("# cardinality, size(bytes), memory size(bytes), construction time, time to recover set bits, "
 						+ "time to compute unions (OR), intersections (AND) "
 						+ "and exclusive unions (XOR) ");
 		try {
@@ -729,13 +733,13 @@ public class SpeedyRoaringBenchmark {
 		System.out.println(line
 				+"\n# get time = "+getTime
 				+"\n# Real size = "+size
-				+" nbNodes = "+bitmap[1].getNbNodes()+" BC = "+BC+" nbIntsAC = "+nbIntAC
+				+" nbNodes = "+bitmap[0].getNbNodes()+" BC = "+BC+" nbIntsAC = "+nbIntAC
 				+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
 		System.out.println("# ignore this " + bogus);
 		try {
 				bw.write("\n"+line
 						+"\n# get time = "+getTime
-						+"\n# Real size = "+size+" nbNodes = "+bitmap[1].getNbNodes()
+						+"\n# Real size = "+size+" nbNodes = "+bitmap[0].getNbNodes()
 						+" BC = "+BC+" nbIntsAC = "+nbIntAC
 						+"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
 				bw.write("\n# ignore this " + bogus+"\n\n");
@@ -745,8 +749,7 @@ public class SpeedyRoaringBenchmark {
     public static void testSpeedyRoaringBitmap(int[][] data, int[][] data2,
                 int repeat, DecimalFormat df, int optimisation, int[] randIntsArray) {
         System.out.println("# SpeedyRoaringBitmap");
-        System.out
-                        .println("# cardinality, size, construction time, time to recover set bits, "
+        System.out.println("# cardinality, size(bytes), memory size(bytes), construction time, time to recover set bits, "
                                         + "time to compute unions (OR), intersections (AND) "
                                         + "and exclusive unions (XOR) ");
         try {
@@ -1127,13 +1130,13 @@ public class SpeedyRoaringBenchmark {
         System.out.println(line
         				+"\n# get time = "+getTime
            				+"\n# Real size = "+size
-                        +" nbNodes = "+bitmap[1].getNbNodes()+" BC = "+BC+" nbIntsAC = "+nbIntAC
+                        +" nbNodes = "+bitmap[0].getNbNodes()+" BC = "+BC+" nbIntsAC = "+nbIntAC
                         +"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
         System.out.println("# ignore this " + bogus);
         try {
                         bw.write("\n"+line
                         		+"\n# get time = "+getTime
-                        		+"\n# Real size = "+size+" nbNodes = "+bitmap[1].getNbNodes()
+                        		+"\n# Real size = "+size+" nbNodes = "+bitmap[0].getNbNodes()
                                 +" BC = "+BC+" nbIntsAC = "+nbIntAC
                                 +"\n# bits/int = "+df.format(((float)size*8/(float)cardinality)));
                         bw.write("\n# ignore this " + bogus+"\n\n");
@@ -1143,13 +1146,13 @@ public class SpeedyRoaringBenchmark {
 	public static void testBitSet(int[][] data, int[][] data2, int repeat,
 		DecimalFormat df, int optimisation, int[] randIntsArray) {
 		System.out.println("# BitSet");
-		System.out.println("# size, construction time, time to recover set bits, "
-						+ "time to compute unions (OR), intersections (AND) "
-						+ "and exclusive unions (XOR) ");
+		System.out.println("# cardinality, size(bytes), memory size(bytes), construction time, time to recover set bits, "
+                + "time to compute unions (OR), intersections (AND) "
+                + "and exclusive unions (XOR) ");
 		try {
-			bw.write("\n"+"# BitSet\n"+"# size, construction time, time to recover set bits, "
-							+ "time to compute unions (OR), intersections (AND) "
-							+ "and exclusive unions (XOR) ");
+			bw.write("\n"+"# BitSet\n"+"# cardinality, size(bytes), memory size(bytes), construction time, time to recover set bits, "
+                    + "time to compute unions (OR), intersections (AND) "
+                    + "and exclusive unions (XOR) ");
 		} catch (IOException e1) {e1.printStackTrace();}
 		long bef, aft;
 		String line = "";
@@ -1181,7 +1184,18 @@ public class SpeedyRoaringBenchmark {
 			size += bitmap2[k].size() / 8;
 		}
 		
-		line += "\t" + size;
+		long sizeOf = 0; 
+		int cardinality = 0;
+		//Size with verification
+		for(int k=0; k<N; k++) {
+			cardinality += bitmap[k].cardinality();
+                    cardinality += bitmap2[k].cardinality();
+		}		
+		
+		//Memory size in bytes
+		sizeOf = ((SizeOf.deepSizeOf(bitmap)+SizeOf.deepSizeOf(bitmap2))); 
+		
+		line += "\t"+cardinality+"\t" + size +"\t"+ sizeOf;
 		line += "\t" + df.format((aft - bef) / 1000.0);
 		// uncompressing
 		bef = System.currentTimeMillis();
@@ -1461,7 +1475,13 @@ public class SpeedyRoaringBenchmark {
 			for (int k = 0; k < N; ++k) {
 				bitmap[k] = new ConciseSet();
 				for (int x = 0; x < data[k].length; ++x) {
-					bitmap[k].add(data[k][x]);
+					try{bitmap[k].add(data[k][x]);
+					
+					}catch(IndexOutOfBoundsException e){e.printStackTrace(); 
+														System.out.println("taille = "+data[k].length+
+																" want to add "+data[k][x]);
+														System.exit(0);
+														}
 				}
 			}
 		}
