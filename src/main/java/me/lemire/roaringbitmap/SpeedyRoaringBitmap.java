@@ -51,7 +51,11 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
 	    int pos1 = 0, pos2 = 0;
 	    int length1 = x1.highlowcontainer.getnbKeys(), 
 	        	length2 = x2.highlowcontainer.getnbKeys();
-	        
+
+            /*
+             * This could be optimized quite a bit when one bitmap is much smaller than the other
+             * one.
+             */
 		main: if (pos1 < length1 && pos2 < length2) {
 		        short s1 = x1.highlowcontainer.getArray()[pos1].key;
 		        short s2 = x2.highlowcontainer.getArray()[pos2].key;
@@ -84,6 +88,10 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
 	
 	public void inPlaceAND(final SpeedyRoaringBitmap x2) {
 		 
+	     /*
+	      * This could be optimized quite a bit when one bitmap is much smaller than the other
+	      * one.
+	      */
 	    int pos1 = 0, pos2 = 0;
 	    int length1 = this.getNbNodes(), 
 	        length2 = x2.getNbNodes();
@@ -375,18 +383,12 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
 		int pos=0, pos2=0;
 		while(pos<this.highlowcontainer.getnbKeys())
 		{
-			final short hs = this.highlowcontainer.getArray()[pos].key;
-			if(hs<0) System.out.println("negatif hs : "+array[pos2-1]+" hs : "+hs);
-			short s = hs;
+			final int hs = Util.toIntUnsigned(this.highlowcontainer.getArray()[pos].key) << 16;
 			final ShortIterator si = this.highlowcontainer.getArray()[pos++].value.getShortIterator();
+			
 			while(si.hasNext()) {
-				array[pos2] = Util.toIntUnsigned(hs);
-				array[pos2] = (array[pos2]<<16);
-				short s2 = si.next();
-			     array[pos2++] 
-			        		|=  
-			        			Util.toIntUnsigned(s2);
-			     if(array[pos2-1]<0) System.out.println("negatif : "+array[pos2-1]+" hs : "+hs+" s : "+s+" s2 : "+s2);
+			        array[pos2++] 
+			        		= hs | Util.toIntUnsigned(si.next());
 			}
 		}	
 		return array;
@@ -394,23 +396,31 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
 	
 	public void remove(final int x) {
 		final short hb = Util.highbits(x);
-		if (highlowcontainer.ContainsKey(hb)) {
-		        final Container corig = highlowcontainer.get(hb);
-		        final Container cc = corig.remove(Util.lowbits(x));
-		        if (cc.getCardinality() == 0)
-		        	highlowcontainer.remove(hb);
-			else if(cc != corig)
-				highlowcontainer.put(hb, cc);
-		}
+	        final Container corig = highlowcontainer.get(hb);
+	        if(corig == null) return; 
+                final Container cc = corig.remove(Util.lowbits(x));
+                if (cc.getCardinality() == 0)
+                        highlowcontainer.remove(hb);
+                else if(cc != corig)
+                        highlowcontainer.put(hb, cc);
 	}
 
 	public boolean contains(final int x) {
 		final short hb = Util.highbits(x);
+                final Container C = highlowcontainer.get(hb);
+                if(C == null) return false;
+                return C.contains(Util.lowbits(x));
+
+		/*
+		// Daniel: this is pretty bad as you have *two* look-ups!
+		// This could translate into *two* binary searches!
 		if (highlowcontainer.ContainsKey(hb)) {
 		        final Container C = highlowcontainer.get(hb);
 			return C.contains(Util.lowbits(x));
 		}
 		return false;
+
+		*/
 	}
         	
 	public int getSizeInBytes(){
