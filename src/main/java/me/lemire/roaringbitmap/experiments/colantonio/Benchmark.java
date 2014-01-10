@@ -24,9 +24,6 @@ import it.uniroma3.mat.extendedset.intset.ConciseSet;
  *  
  * Time measurement are expressed in nanoseconds. Each experiment is
  * performed 100 times, and the average reported.
- *
- * Note that during a first pass, we repeat each test only once and
- * we use smaller arrays.
  *  
  * @author Daniel Lemire
  * 
