@@ -55,6 +55,7 @@ public class BenchSpeedyRBConcise {
 	private static int SetSize = (int) Math.pow(10, 5);
 	private static int BitmapsPerSet = 1;
 	private static String CPU = "IntelCorei3_M330";
+	//AmdBulldozer
 	/**
 	 * @param args
 	 */
@@ -69,9 +70,9 @@ public class BenchSpeedyRBConcise {
                 	//Tests(nbBitmaps, 10, args[0], distClustered);
                 }
                 else {
-                        //Tests(BitmapsPerSet, 10, null, distUniform);// no plots needed
-                        //Tests(BitmapsPerSet, 10, null, distZipf);
-                        //Tests(BitmapsPerSet, 10, null, distClustered);
+                        Tests(BitmapsPerSet, 10, null, distUniform);// no plots needed
+                        Tests(BitmapsPerSet, 10, null, distZipf);
+                        Tests(BitmapsPerSet, 10, null, distClustered);
                 	}
 	}
 	
@@ -107,16 +108,13 @@ public class BenchSpeedyRBConcise {
 		
 		String distdir = null;
 		
-		DateFormat format = new SimpleDateFormat("yyyy_MM_dd_HH_mm");
-		Date date = new Date();
-		String sysdate = format.format(date);
 		
 		//Creating the distribution folder
 		if(path!=null)
 		switch(distribution) {
-		case 0 : distdir = path+File.separator+"Benchmarks_DynamiqueSpeedy_"+CPU+File.separator+"Zipf"; break;
-		case 1 : distdir = path+File.separator+"Benchmarks_DynamiqueSpeedy_"+CPU+File.separator+"Uniform";break;
-		case 2 : distdir = path+File.separator+"Benchmarks_DynamiqueSpeedy_"+CPU+File.separator+"Clustered";break;
+		case 0 : distdir = path+File.separator+"ConciseTests_DynamicArray_"+CPU+File.separator+"Zipf"; break;
+		case 1 : distdir = path+File.separator+"ConciseTests_DynamicArray_"+CPU+File.separator+"Uniform";break;
+		case 2 : distdir = path+File.separator+"ConciseTests_DynamicArray_"+CPU+File.separator+"Clustered";break;
 		default : System.out.println("Can you choose a distribution ?");
 				  System.exit(0);
 		}
@@ -753,7 +751,7 @@ public class BenchSpeedyRBConcise {
                                         + "time to compute unions (OR), intersections (AND) "
                                         + "and exclusive unions (XOR) ");
         try {
-                bw.write("\n"+"# RoaringBitmap\n"+"# cardinality, size(bytes), memory size(bytes), construction time, time to recover set bits, "
+                bw.write("\n"+"# SpeedyRoaringBitmap\n"+"# cardinality, size(bytes), memory size(bytes), construction time, time to recover set bits, "
                                                 + "time to compute unions (OR), intersections (AND) "
                                                 + "and exclusive unions (XOR) ");
         } catch (IOException e1) {e1.printStackTrace();}
