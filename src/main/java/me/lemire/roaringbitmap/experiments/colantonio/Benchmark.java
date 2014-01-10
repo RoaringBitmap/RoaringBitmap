@@ -19,7 +19,7 @@ import it.uniroma3.mat.extendedset.intset.ConciseSet;
  * 
  * Like them, we "Max/Cardinality" to mean the ratio
  * between the maximal value (i.e., the number range) and the cardinality
- * of the set—that is, the inverse of the density.
+ * of the set that is, the inverse of the density.
  *
  *  
  * Time measurement are expressed in nanoseconds. Each experiment is
