@@ -70,7 +70,7 @@ public class DataGenerator {
                 //integer corresponding to floor(max * a^4) was added, where
                 //max in [1.2 * 10^ 5, 6 * 10^9]. In this way, we generated skewed
                 //data such that most of the integers were concentrated to lower 
-                //values, while numbers with high values were very sparse.                 HashSet<Integer> hash = new HashSet<Integer>();
+                //values, while numbers with high values were very sparse.                 
                 //////////////////
                 if(max<=N) 
                         throw new IllegalArgumentException("parameter should be larger than N");
@@ -78,7 +78,7 @@ public class DataGenerator {
                 int loopcount = 0;
                 while(hash.size()<N) {
                         double a = rand.nextDouble();
-                        int x = (int) Math.floor(a*a * max);
+                        int x = (int) Math.floor(a*a*a*a * max);// see paper at the end of page 3 by Colantonio and Di Pietro, they clearly state that it is a^4
                         hash.add(x);
                         if(loopcount++ > 10*N) throw new RuntimeException("zipfian generation is too expensive");
                 }
