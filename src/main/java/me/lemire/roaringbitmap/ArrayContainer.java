@@ -8,7 +8,7 @@ import java.util.Iterator;
 public final class ArrayContainer implements Container, Cloneable, Serializable {
 	
         private static final long serialVersionUID = 1L;
-	protected static final int DEFAULTMAXSIZE = 4096; 
+	protected static final int DEFAULTMAXSIZE = 1024;//To minimize storage, use 4096; D. L. changed this back to 1024 on jan. 9th 2014 to max. perf.
 	private static final int DEFAULTINITSIZE = 4; 
 
 	public short[] content;

@@ -19,6 +19,7 @@ To run a benchmark manually, do
 * mvn package (you may use mvn -Dmaven.test.skip=true package)
 * cd target
 * java -cp "RoaringBitmap-0.0.1-SNAPSHOT.jar:lib/*" me.lemire.roaringbitmap.experiments.Benchmark
+or $ java -cp "RoaringBitmap-0.0.1-SNAPSHOT.jar:lib/*" me.lemire.roaringbitmap.experiments.colantonio.Benchmark
 
 Some benchmark require SizeOf.jar for memory usage estimation. Try:
 * mvn package (you may use mvn -Dmaven.test.skip=true package)
