@@ -119,7 +119,8 @@ public class Benchmark {
                                 .println("# (first columns are timings, then bits/int)");
                 if (verbose)
                         System.out
-                                .println("# density\tbitset\t\tconcise\t\twah\t\tspeedyroaring");
+                                .println("# density\tbitset\t\tconcise\t\twah\t\tspeedyroaring" +
+                                		"\t\t\t\tbitset\t\tconcise\t\twah\t\tspeedyroaring");
                 DataGenerator gen = new DataGenerator(N);
                 for (double d = 0.005; d <= 0.999; d *= 1.2) {
                         double[] timings = new double[4];
@@ -226,13 +227,17 @@ public class Benchmark {
                         System.out
                                 .println("# (first columns are timings, then bits/int)");
                 if (verbose)
-                        System.out
-                                .println("# max/card\tbitset\t\tconcise\t\twah\t\tspeedyroaring");
+                	System.out
+                    .println("# density\tbitset\t\tconcise\t\twah\t\tspeedyroaring" +
+                    		"\t\t\t\tbitset\t\tconcise\t\twah\t\tspeedyroaring");
                 DataGenerator gen = new DataGenerator(N);
-                for (double max = 1.2 * gen.N; max <= gen.N * 2 * 10000; max *= 1.9) {
+                //This strategy gives too big ints that leads to overheads with the ConciseSet library 
+               // for (double max = 1.2 * gen.N; max <= gen.N * 2 * 10000; max *= 1.9) { 
+                for (double d = 0.005; d <= 0.999; d *= 1.2){
                         double[] timings = new double[4];
                         double[] storageinbits = new double[4];
-
+                        int max = (int) (N / d);
+                        
                         for (int times = 0; times < TIMES; ++times) {
                                 int[] v1 = gen.getZipfian(max);
                                 int[] v2 = gen.getZipfian(max);
@@ -303,16 +308,16 @@ public class Benchmark {
                         if (verbose)
                                 System.out.println("\t\t\t"
                                         + dfb.format(storageinbits[0]
-                                                / (2 * TIMES * gen.N))
+                                                / (TIMES * gen.N))
                                         + "   "
                                         + dfb.format(storageinbits[1]
-                                                / (2 * TIMES * gen.N))
+                                                / (TIMES * gen.N))
                                         + "   "
                                         + dfb.format(storageinbits[2]
-                                                / (2 * TIMES * gen.N))
+                                                / (TIMES * gen.N))
                                         + "   "
                                         + dfb.format(storageinbits[3]
-                                                / (2 * TIMES * gen.N)));
+                                                / (TIMES * gen.N)));
 
                 }
                 if (out)

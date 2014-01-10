@@ -6,7 +6,7 @@ import java.util.Random;
 /**
  * 
  * This is a data generator object reproducing the models used
- * by Colantonio and Di Pietro, Concise: Compressed ’n’ Composable Integer Set
+ * by Colantonio and Di Pietro, Concise: Compressed n Composable Integer Set
  * 
  * @author Daniel Lemire
  *
@@ -78,7 +78,7 @@ public class DataGenerator {
                 int loopcount = 0;
                 while(hash.size()<N) {
                         double a = rand.nextDouble();
-                        int x = (int) Math.floor(a*a*a*a * max);
+                        int x = (int) Math.floor(a*a * max);
                         hash.add(x);
                         if(loopcount++ > 10*N) throw new RuntimeException("zipfian generation is too expensive");
                 }
