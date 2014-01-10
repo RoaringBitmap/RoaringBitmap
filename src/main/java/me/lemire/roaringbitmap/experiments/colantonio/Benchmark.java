@@ -10,14 +10,14 @@ import it.uniroma3.mat.extendedset.intset.ConciseSet;
  * This a reproduction of the benchmark used by Colantonio and Di Pietro,
  * Concise: Compressed ’n’ Composable Integer Set
  * 
- * While they report “Compression” as the ratio between the number of 32-bit words
+ * While they report "Compression" as the ratio between the number of 32-bit words
  * required to represent the compressed bitmap and the cardinality
  * of the integer set, we report the number of bits per integer.
  * 
- *  Like them, we use “Density” mean  the ratio between the cardinality
+ *  Like them, we use "Density" mean  the ratio between the cardinality
  * of the set and the number range. 
  * 
- * Like them, we “Max/Cardinality” to mean the ratio
+ * Like them, we "Max/Cardinality" to mean the ratio
  * between the maximal value (i.e., the number range) and the cardinality
  * of the set—that is, the inverse of the density.
  *
