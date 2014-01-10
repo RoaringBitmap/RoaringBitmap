@@ -86,24 +86,22 @@ public class Benchmark {
                 System.out.println("# processors: "+Runtime.getRuntime().availableProcessors());
                 System.out.println("# max mem.: "+Runtime.getRuntime().maxMemory());
                 System.out.println("########");
-                uniformtest(false, 10, 10000);//warming up
-                zipfiantest(false, 10, 10000);//warming up
                 int N = 100000;
+                DataGenerator gen = new DataGenerator(N);
                 int TIMES = 100;
-                System.out.println("# starting uniform test, please wait... (go grab a coffee)");
-                uniformtest(true, TIMES, N);
-                System.out.println();
-                System.out.println("# starting zipfian test, please wait... (go grab a coffee)");
-                zipfiantest(true, TIMES, N);
+                gen.setUniform();
+                test(gen,true, TIMES);
+                gen.setZipfian();
+                test(gen,true, TIMES);
                 System.out.println();
        }
 
         /**
+         * @param gen data generator
          * @param verbose whether to print out the result
          * @param TIMES how many times should we run each test
-         * @param N size of the sets
          */
-        public static void uniformtest(final boolean verbose, final int TIMES, final int N) {
+        public static void test(final DataGenerator gen, final boolean verbose, final int TIMES) {
                 if (!verbose)
                         System.out
                                 .println("# running a dry run (can take a long time)");
@@ -112,16 +110,19 @@ public class Benchmark {
                 DecimalFormat df = new DecimalFormat("0.000E0");
                 DecimalFormat dfb = new DecimalFormat("000.0");
                 if (verbose)
-                        System.out
-                                .println("### uniform test (intersection times in ns)");
+                        if(gen.is_zipfian())
+                                System.out
+                                .println("### zipfian test");
+                         else
+                              System.out
+                                .println("### uniform test");
                 if (verbose)
                         System.out
-                                .println("# (first columns are timings, then bits/int)");
+                                .println("# first columns are timings [intersection times in ns], then bits/int");
                 if (verbose)
                         System.out
                                 .println("# density\tbitset\t\tconcise\t\twah\t\tspeedyroaring" +
-                                		"\t\t\t\tbitset\t\tconcise\t\twah\t\tspeedyroaring");
-                DataGenerator gen = new DataGenerator(N);
+                                		"\t\tbitset\t\tconcise\t\twah\t\tspeedyroaring");
                 for (double d = 0.005; d <= 0.999; d *= 1.2) {
                         double[] timings = new double[4];
                         double[] storageinbits = new double[4];
@@ -192,13 +193,13 @@ public class Benchmark {
                                 System.out.println("\t\t\t"
                                         + dfb.format(storageinbits[0]
                                                 / (2 * TIMES * gen.N))
-                                        + "   "
+                                        + "\t\t"
                                         + dfb.format(storageinbits[1]
                                                 / (2 * TIMES * gen.N))
-                                        + "   "
+                                        + "\t\t"
                                         + dfb.format(storageinbits[2]
                                                 / (2 * TIMES * gen.N))
-                                        + "   "
+                                        + "\t\t"
                                         + dfb.format(storageinbits[3]
                                                 / (2 * TIMES * gen.N)));
 
@@ -206,125 +207,5 @@ public class Benchmark {
                 System.out.println("#ignore = " + bogus);
         }
         
-        /**
-         * @param verbose whether to print out the result
-         * @param TIMES how many times should we run each test
-         * @param N size of the sets
-         */
-        public static void zipfiantest(boolean verbose, int TIMES, int N) {
-                if (!verbose)
-                        System.out.println("# running a dry run");
-                int bogus = 0;
-                long bef, aft;
-                boolean out = false;
-                DecimalFormat df = new DecimalFormat("0.000E0");
-                DecimalFormat dfb = new DecimalFormat("000.0");
-
-                if (verbose)
-                        System.out
-                                .println("### zipfian test (intersection times in ns)");
-                if (verbose)
-                        System.out
-                                .println("# (first columns are timings, then bits/int)");
-                if (verbose)
-                	System.out
-                    .println("# density\tbitset\t\tconcise\t\twah\t\tspeedyroaring" +
-                    		"\t\t\t\tbitset\t\tconcise\t\twah\t\tspeedyroaring");
-                DataGenerator gen = new DataGenerator(N);
-                //This strategy gives too big ints that leads to overheads with the ConciseSet library 
-               // for (double max = 1.2 * gen.N; max <= gen.N * 2 * 10000; max *= 1.9) { 
-                for (double d = 0.005; d <= 0.999; d *= 1.2){
-                        double[] timings = new double[4];
-                        double[] storageinbits = new double[4];
-                        int max = (int) (N / d);
-                        
-                        for (int times = 0; times < TIMES; ++times) {
-                                int[] v1 = gen.getZipfian(max);
-                                int[] v2 = gen.getZipfian(max);
-                                //
-                                try {
-                                        BitSet b1 = toBitSet(v1);
-                                        BitSet b2 = toBitSet(v2);
-                                        storageinbits[0] += b1.size()
-                                                + b2.size();
-                                        bef = System.nanoTime();
-                                        b1.and(b2);
-                                        aft = System.nanoTime();
-                                        bogus += b1.length();
-                                        timings[0] += aft - bef;
-                                } catch (java.lang.OutOfMemoryError e) {
-                                        timings[0] = Integer.MAX_VALUE;
-                                        out = true;
-                                }
-                                //
-                                ConciseSet cs1 = toConciseSet(v1);
-                                ConciseSet cs2 = toConciseSet(v2);
-                                storageinbits[1] += cs1.size()
-                                        * cs1.collectionCompressionRatio() * 4
-                                        * 8;
-                                storageinbits[1] += cs2.size()
-                                        * cs2.collectionCompressionRatio() * 4
-                                        * 8;
-                                bef = System.nanoTime();
-                                cs1.intersection(cs2);
-                                aft = System.nanoTime();
-                                bogus += cs1.size();
-                                timings[1] += aft - bef;
-                                //
-                                ConciseSet wah1 = toWAHConciseSet(v1);
-                                ConciseSet wah2 = toWAHConciseSet(v2);
-                                storageinbits[2] += wah1.size()
-                                        * wah1.collectionCompressionRatio() * 4
-                                        * 8;
-                                storageinbits[2] += wah2.size()
-                                        * wah2.collectionCompressionRatio() * 4
-                                        * 8;
-                                bef = System.nanoTime();
-                                wah1.intersection(wah2);
-                                aft = System.nanoTime();
-                                bogus += wah1.size();
-                                timings[2] += aft - bef;
-                                //
-                                SpeedyRoaringBitmap rb1 = toSpeedyRoaringBitmap(v1);
-                                SpeedyRoaringBitmap rb2 = toSpeedyRoaringBitmap(v2);
-                                bef = System.nanoTime();
-                                rb1.inPlaceAND(rb2);
-                                aft = System.nanoTime();
-                                bogus += rb1.getCardinality();
-                                timings[3] += aft - bef;
-                                storageinbits[3] += rb1.getSizeInBytes() * 8;
-                                storageinbits[3] += rb2.getSizeInBytes() * 8;
-                        }
-                        if (verbose)
-                                System.out.print(df.format(max / gen.N)
-                                        + "\t\t"
-                                        + df.format(timings[0] / TIMES)
-                                        + "\t\t"
-                                        + df.format(timings[1] / TIMES)
-                                        + "\t\t"
-                                        + df.format(timings[2] / TIMES)
-                                        + "\t\t"
-                                        + df.format(timings[3] / TIMES));
-                        if (verbose)
-                                System.out.println("\t\t\t"
-                                        + dfb.format(storageinbits[0]
-                                                / (2 * TIMES * gen.N))
-                                        + "   "
-                                        + dfb.format(storageinbits[1]
-                                                / (2 * TIMES * gen.N))
-                                        + "   "
-                                        + dfb.format(storageinbits[2]
-                                                / (2 * TIMES * gen.N))
-                                        + "   "
-                                        + dfb.format(storageinbits[3]
-                                                / (2 * TIMES * gen.N)));
-
-                }
-                if (out)
-                        System.out
-                                .println("# you got OutOfMemoryError, please grant more memory");
-                System.out.println("#ignore = " + bogus);
-        }
-
 }
 
