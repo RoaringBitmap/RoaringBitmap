@@ -8,7 +8,7 @@ import it.uniroma3.mat.extendedset.intset.ConciseSet;
 /**
  * 
  * This a reproduction of the benchmark used by Colantonio and Di Pietro,
- * Concise: Compressed ’n’ Composable Integer Set
+ * Concise: Compressed 'n' Composable Integer Set
  * 
  * While they report "Compression" as the ratio between the number of 32-bit words
  * required to represent the compressed bitmap and the cardinality
@@ -79,7 +79,7 @@ public class Benchmark {
          */
         public static void main(final String[] args) {
                 System.out.println("# This benchmark emulates what Colantonio and Di Pietro,");
-                System.out.println("#  did in Concise: Compressed ’n’ Composable Integer Set");
+                System.out.println("#  did in Concise: Compressed 'n' Composable Integer Set");
                 System.out.println("########");
                 System.out.println("# "+System.getProperty("java.vendor")+" "+System.getProperty("java.version")+" "+System.getProperty("java.vm.name"));
                 System.out.println("# "+System.getProperty("os.name")+" "+System.getProperty("os.arch")+" "+System.getProperty("os.version"));
