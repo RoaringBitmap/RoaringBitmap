@@ -308,16 +308,16 @@ public class Benchmark {
                         if (verbose)
                                 System.out.println("\t\t\t"
                                         + dfb.format(storageinbits[0]
-                                                / (TIMES * gen.N))
+                                                / (2 * TIMES * gen.N))
                                         + "   "
                                         + dfb.format(storageinbits[1]
-                                                / (TIMES * gen.N))
+                                                / (2 * TIMES * gen.N))
                                         + "   "
                                         + dfb.format(storageinbits[2]
-                                                / (TIMES * gen.N))
+                                                / (2 * TIMES * gen.N))
                                         + "   "
                                         + dfb.format(storageinbits[3]
-                                                / (TIMES * gen.N)));
+                                                / (2 * TIMES * gen.N)));
 
                 }
                 if (out)
