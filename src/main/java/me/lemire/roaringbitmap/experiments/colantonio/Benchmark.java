@@ -132,10 +132,11 @@ public class Benchmark {
                                 int[] v1 = gen.getUniform(d);
                                 int[] v2 = gen.getUniform(d);
                                 //
-                                BitSet b1 = toBitSet(v1);
+                                BitSet borig1 = toBitSet(v1);
                                 BitSet b2 = toBitSet(v2);
-                                storageinbits[0] += b1.size() + b2.size();
+                                storageinbits[0] += borig1.size() + b2.size();
                                 bef = System.nanoTime();
+                                BitSet b1 = (BitSet) borig1.clone(); // for fair comparison (not inplace)
                                 b1.and(b2);
                                 aft = System.nanoTime();
                                 bogus += b1.length();
