@@ -124,7 +124,7 @@ public class Benchmark {
                         System.out
                                 .println("# density\tbitset\t\tconcise\t\twah\t\tspeedyroaring" +
                                 		"\t\tbitset\t\tconcise\t\twah\t\tspeedyroaring");
-                for (double d = 0.005; d <= 0.999; d *= 1.2) {
+                for (double d = 0.001; d <= 0.999; d *= 1.2) {
                         double[] timings = new double[4];
                         double[] storageinbits = new double[4];
 
@@ -183,7 +183,7 @@ public class Benchmark {
                                 SpeedyRoaringBitmap rb1 = toSpeedyRoaringBitmap(v1);
                                 SpeedyRoaringBitmap rb2 = toSpeedyRoaringBitmap(v2);
                                 bef = System.nanoTime();
-                                rb1.inPlaceAND(rb2);
+                                rb1 = SpeedyRoaringBitmap.and(rb1,rb2);
                                 aft = System.nanoTime();
                                 // we verify the answer
                                 if(!Arrays.equals(rb1.getIntegers(), toArray(b1)))

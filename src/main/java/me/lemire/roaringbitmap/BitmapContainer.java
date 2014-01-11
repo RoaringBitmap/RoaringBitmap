@@ -199,18 +199,21 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 		return answer;
 	}
 	
-	public Container xor(BitmapContainer value2) {		
-        final BitmapContainer answer = ContainerFactory.getUnintializedBitmapContainer();
-        answer.cardinality = 0;
-	for (int k = 0; k < answer.bitmap.length; ++k) {
-		answer.bitmap[k] = this.bitmap[k] ^ value2.bitmap[k];
-		//if(answer.bitmap[k]!=0) // probably not wise performance-wise
-		answer.cardinality += Long.bitCount(answer.bitmap[k]);
-	}
-	if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
-		return ContainerFactory.transformToArrayContainer(answer);
-	return answer;
-	}
+        public Container xor(BitmapContainer value2) {
+                final BitmapContainer answer = ContainerFactory
+                        .getUnintializedBitmapContainer();
+                answer.cardinality = 0;
+                for (int k = 0; k < answer.bitmap.length; ++k) {
+                        answer.bitmap[k] = this.bitmap[k] ^ value2.bitmap[k];
+                        // if(answer.bitmap[k]!=0) // probably not wise
+                        // performance-wise
+                        answer.cardinality += Long.bitCount(answer.bitmap[k]);
+                }
+                if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
+                        return ContainerFactory
+                                .transformToArrayContainer(answer);
+                return answer;
+        }
 	
 	public Container inPlaceAND(final BitmapContainer B2) {
 		this.cardinality = 0;
@@ -218,7 +221,6 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 			this.bitmap[k] &= B2.bitmap[k];
 			this.cardinality += Long.bitCount(this.bitmap[k]);
 		}
-		//this.cardinality = this.expensiveComputeCardinality();
 		return this;
 	}
 	
@@ -229,45 +231,45 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 			this.bitmap[k] |= B2.bitmap[k];
 			this.cardinality += Long.bitCount(this.bitmap[k]);
 		}
-		//this.cardinality = this.expensiveComputeCardinality();
 		return this;
 	}
 	
-	public BitmapContainer inPlaceOR(final ArrayContainer value2) 
-	{		
-	     for (int k = 0; k < value2.cardinality; ++k)	{				
-		    final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
-			this.cardinality += ((~this.bitmap[i]) & (1l << value2.content[k])) >>> value2.content[k] ;// in Java, shifts are always "modulo"
-			this.bitmap[i] |= (1l << value2.content[k]);
-		}
-		return this;
-	}
-	
-	public Container inPlaceXOR(BitmapContainer B2) {
-	this.cardinality = 0;
-	for (int k = 0; k < this.bitmap.length; ++k) {
-		this.bitmap[k] ^= B2.bitmap[k];
-		//if(answer.bitmap[k]!=0) // probably not wise performance-wise
-		this.cardinality += Long.bitCount(this.bitmap[k]);
-	}
-	//this.cardinality = this.expensiveComputeCardinality();
-	if (this.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
-		return ContainerFactory.transformToArrayContainer(this);
-	return this;
-	}
-	
-	public Container inPlaceXOR(final ArrayContainer value2) 
-	{
-                for (int k = 0; k < value2.getCardinality(); ++k) {
-                        final int index = Util.toIntUnsigned(value2.content[k]) >>> 6;
-                        this.cardinality += 1 - 2 * ((this.bitmap[index] & (1l << value2.content[k])) >>> value2.content[k]);
-                        this.bitmap[index] ^=  (1l << value2.content[k]);
+        public BitmapContainer inPlaceOR(final ArrayContainer value2) {
+                for (int k = 0; k < value2.cardinality; ++k) {
+                        final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
+                        this.cardinality += ((~this.bitmap[i]) & (1l << value2.content[k])) >>> value2.content[k];// in
+                                                                                                                  // Java,
+                                                                                                                  // shifts
+                                                                                                                  // are
+                                                                                                                  // always
+                                                                                                                  // "modulo"
+                        this.bitmap[i] |= (1l << value2.content[k]);
+                }
+                return this;
+        }
+
+        public Container inPlaceXOR(BitmapContainer B2) {
+                this.cardinality = 0;
+                for (int k = 0; k < this.bitmap.length; ++k) {
+                        this.bitmap[k] ^= B2.bitmap[k];
+                        this.cardinality += Long.bitCount(this.bitmap[k]);
                 }
                 if (this.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
                         return ContainerFactory.transformToArrayContainer(this);
-                
                 return this;
-	}	
+        }
+	
+        public Container inPlaceXOR(final ArrayContainer value2) {
+                for (int k = 0; k < value2.getCardinality(); ++k) {
+                        final int index = Util.toIntUnsigned(value2.content[k]) >>> 6;
+                        this.cardinality += 1 - 2 * ((this.bitmap[index] & (1l << value2.content[k])) >>> value2.content[k]);
+                        this.bitmap[index] ^= (1l << value2.content[k]);
+                }
+                if (this.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
+                        return ContainerFactory.transformToArrayContainer(this);
+
+                return this;
+        }
 
 	@Override
 	public String toString() {
@@ -288,6 +290,9 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 	}
 
 	private int expensiveComputeCardinality() {
+	        /**
+                 * TODO: More of a debugging routine. Should be pruned before release.
+                 */
 		int counter = 0;
 		for(long x : this.bitmap)
 			counter += Long.bitCount(x);
@@ -297,6 +302,9 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 	
 	@Override
 	public void validate() {
+	        /**
+                 * TODO: More of a debugging routine. Should be pruned before release.
+                 */
 		int counter = 0;
 		{
 			int i = this.nextSetBit(0);
@@ -311,19 +319,19 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 		throw new RuntimeException("bug : true cardinality is "+card+", precomputed cardinality is"+this.cardinality);
 	}
 	 
-	@Override
-	public BitmapContainer clone() {
-		try {
-		        final BitmapContainer x = (BitmapContainer) super.clone();
-			x.cardinality = this.cardinality;
-			x.bitmap = Arrays.copyOf(this.bitmap, this.bitmap.length);
-			return x;
-		} catch (CloneNotSupportedException e) {
-			throw new java.lang.RuntimeException();
-		}
-	}
-
-   @Override
+	   
+        @Override
+        public BitmapContainer clone() {
+                try {
+                        final BitmapContainer x = (BitmapContainer) super.clone();
+                        x.cardinality = this.cardinality;
+                        x.bitmap = Arrays.copyOf(this.bitmap, this.bitmap.length);
+                        return x;
+                } catch (CloneNotSupportedException e) {
+                        throw new java.lang.RuntimeException();
+                }
+        }
+        @Override
    	public ShortIterator getShortIterator() {
                 return new ShortIterator() {
                         int i = BitmapContainer.this.nextSetBit(0);

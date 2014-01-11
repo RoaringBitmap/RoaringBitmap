@@ -8,7 +8,7 @@ import java.util.Iterator;
 public final class ArrayContainer implements Container, Cloneable, Serializable {
 	
         private static final long serialVersionUID = 1L;
-	protected static final int DEFAULTMAXSIZE = 1024;//To minimize storage, use 4096; D. L. changed this back to 1024 on jan. 9th 2014 to max. perf.
+	protected static final int DEFAULTMAXSIZE = 4096;
 	private static final int DEFAULTINITSIZE = 4; 
 
 	public short[] content;
@@ -159,21 +159,24 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 		return answer;
 	}
 	
-	public Container inPlaceOR(final ArrayContainer value2) {
-		//Using inPlace operations on arrays is very expensive. Each modification needs O(n) shifts   
-        final ArrayContainer value1 = this;
-        int tailleAC = value1.getCardinality()+value2.getCardinality();
-        final int desiredcapacity = tailleAC > 65535 ? 65535 : tailleAC;
-        short[] newContent = new short[desiredcapacity];
-        int card = Util.unsigned_union2by2(value1.content,
-            					value1.getCardinality(), value2.content,
-            					value2.getCardinality(), newContent);
-        this.content = newContent;
-        this.cardinality = card;
-        if (this.cardinality >= DEFAULTMAXSIZE)
-           	return ContainerFactory.transformToBitmapContainer(this);
-        return this;
-	}		
+        public Container inPlaceOR(final ArrayContainer value2) {
+                // Using inPlace operations on arrays is very expensive. Each
+                // modification needs O(n) shifts
+                final ArrayContainer value1 = this;
+                int tailleAC = value1.getCardinality()
+                        + value2.getCardinality();
+                final int desiredcapacity = tailleAC > 65535 ? 65535 : tailleAC;
+                short[] newContent = new short[desiredcapacity];
+                int card = Util.unsigned_union2by2(value1.content,
+                        value1.getCardinality(), value2.content,
+                        value2.getCardinality(), newContent);
+                this.content = newContent;
+                this.cardinality = card;
+                if (this.cardinality >= DEFAULTMAXSIZE)
+                        return ContainerFactory
+                                .transformToBitmapContainer(this);
+                return this;
+        }
 
 	public Container xor(final ArrayContainer value2) {
 	        final ArrayContainer value1 = this;
@@ -189,23 +192,28 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 		return answer;
 	}
 	
-	public Container inPlaceXOR(final ArrayContainer value2) {
-        final ArrayContainer value1 = this;
-        final int lentgh = value1.getCardinality() + value2.getCardinality();
-	final int desiredcapacity = lentgh <= 65536 ? lentgh : 65536;
-            short[] newContent = new short[desiredcapacity];
-	int card = Util.unsigned_exclusiveunion2by2(value1.content,
-			value1.getCardinality(), value2.content,
-			value2.getCardinality(), newContent);
-	this.content = newContent;
-	this.cardinality = card; 
-	if (this.cardinality >= DEFAULTMAXSIZE)
-		return ContainerFactory.transformToBitmapContainer(this);
-	return this;
-	}
+        public Container inPlaceXOR(final ArrayContainer value2) {
+                final ArrayContainer value1 = this;
+                final int lentgh = value1.getCardinality()
+                        + value2.getCardinality();
+                final int desiredcapacity = lentgh <= 65536 ? lentgh : 65536;
+                short[] newContent = new short[desiredcapacity];
+                int card = Util.unsigned_exclusiveunion2by2(value1.content,
+                        value1.getCardinality(), value2.content,
+                        value2.getCardinality(), newContent);
+                this.content = newContent;
+                this.cardinality = card;
+                if (this.cardinality >= DEFAULTMAXSIZE)
+                        return ContainerFactory
+                                .transformToBitmapContainer(this);
+                return this;
+        }
 	
 	@Override
 	public void validate() {
+	        /**
+                 * TODO: More of a debugging routine. Should be pruned before release.
+                 */
 		if(this.cardinality == 0) return;
 		short val1 = this.content[0];
 		HashSet<Short> hs = new HashSet<Short>();

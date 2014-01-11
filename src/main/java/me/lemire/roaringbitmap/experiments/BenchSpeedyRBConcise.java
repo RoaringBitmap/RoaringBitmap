@@ -851,7 +851,7 @@ public class BenchSpeedyRBConcise {
                          bitmapor1 = SpeedyRoaringBitmap.or(bitmapor1, bitmapor2);
                          bitmapor1.validate();
                          break;*/
-        case 2 : bitmapor1 = bitmap[0].clone();
+        /*case 2 : bitmapor1 = bitmap[0].clone();
                          bitmapor2 = bitmap2[0].clone();
                          for (int k = 1; k < N; ++k) {
                                  bitmapor1.inPlaceOR(bitmap[k]);
@@ -861,7 +861,7 @@ public class BenchSpeedyRBConcise {
                          }
                          bitmapor1.inPlaceOR(bitmapor2);
                          bitmapor1.validate();
-                         break;
+                         break;*/
         /*case 3 : bitmapor1 = null;
                         bitmapor2 = null;
                         bitmapor1 = FastAggregation.inplace_or(bitmap);
@@ -895,14 +895,14 @@ public class BenchSpeedyRBConcise {
                                  bitmapor2 = FastAggregation.or(bitmap2);
                                  bitmapor1 = SpeedyRoaringBitmap.or(bitmapor1, bitmapor2);
                                  break;*/
-                case 2 : bitmapor1 = bitmap[0].clone();
+                /*case 2 : bitmapor1 = bitmap[0].clone();
                                  bitmapor2 = bitmap2[0].clone();
                                  for (int k = 1; k < N; ++k) {
                                          bitmapor1.inPlaceOR(bitmap[k]);
                                          bitmapor2.inPlaceOR(bitmap2[k]);
                                  }
                                  bitmapor1.inPlaceOR(bitmapor2);
-                                 break;
+                                 break;*/
                 /*case 3 : bitmapor1 = null;
                                 bitmapor2 = null;
                                 bitmapor1 = FastAggregation.inplace_or(bitmap);
@@ -945,7 +945,7 @@ public class BenchSpeedyRBConcise {
                                  bitmapand1 = SpeedyRoaringBitmap.and(bitmapand1, bitmapand2);
                                  bitmapand1.validate();
                                  break;*/
-                case 2 : bitmapand1 = bitmap[0].clone();
+                /*case 2 : bitmapand1 = bitmap[0].clone();
                                  bitmapand2 = bitmap2[0].clone();
                                  for (int k = 1; k < N; ++k) {
                                          bitmapand1.inPlaceOR(bitmap[k]);
@@ -955,7 +955,7 @@ public class BenchSpeedyRBConcise {
                                  }
                                  bitmapand1.inPlaceOR(bitmapand2);
                                  bitmapand1.validate();
-                                 break;
+                                 break;*/
                 /*case 3 : bitmapand1 = null;
                                 bitmapand2 = null;
                                 bitmapand1 = FastAggregation.inplace_or(bitmap);
@@ -990,14 +990,14 @@ public class BenchSpeedyRBConcise {
                                  bitmapand2 = FastAggregation.and(bitmap2);
                                  bitmapand1 = SpeedyRoaringBitmap.and(bitmapand1, bitmapand2);
                                  break;*/
-                case 2 : bitmapand1 = bitmap[0].clone();
+                /*case 2 : bitmapand1 = bitmap[0].clone();
                                  bitmapand2 = bitmap2[0].clone();
                                  for (int k = 1; k < N; ++k) {
                                          bitmapand1.inPlaceAND(bitmap[k]);
                                          bitmapand2.inPlaceAND(bitmap2[k]);
                                  }
                                  bitmapand1.inPlaceAND(bitmapand2);
-                                 break;
+                                 break;*/
                 /*case 3 : bitmapand1 = null;
                                 bitmapand2 = null;
                                 bitmapand1 = FastAggregation.inplace_and(bitmap);
@@ -1041,7 +1041,7 @@ public class BenchSpeedyRBConcise {
                                  bitmapxor1 = SpeedyRoaringBitmap.xor(bitmapxor1, bitmapxor2);
                                  bitmapxor1.validate();
                                  break;*/
-                case 2 : //Using inPlace operations
+                /*case 2 : //Using inPlace operations
                                  bitmapxor1 = bitmap[0].clone();
                                  bitmapxor2 = bitmap2[0].clone();
                                  for (int k = 1; k < N; ++k) {
@@ -1052,7 +1052,7 @@ public class BenchSpeedyRBConcise {
                                  }
                                  bitmapxor1.inPlaceXOR(bitmapxor2);
                                  bitmapxor1.validate();
-                                 break;
+                                 break;*/
                 /*case 3 : //Using FastAggregations and inPlace operations 
                                 bitmapxor1 = null;
                                 bitmapxor2 = null;
@@ -1089,7 +1089,7 @@ public class BenchSpeedyRBConcise {
                                  bitmapxor2 = FastAggregation.xor(bitmap2);
                                  bitmapxor1 = SpeedyRoaringBitmap.xor(bitmapxor1, bitmapxor2);
                                  break;*/
-                case 2 : //Using inPlace operations
+                /*case 2 : //Using inPlace operations
                                  bitmapxor1 = bitmap[0].clone();
                                  bitmapxor2 = bitmap2[0].clone();
                                  for (int k = 1; k < N; ++k) {
@@ -1097,7 +1097,7 @@ public class BenchSpeedyRBConcise {
                                          bitmapxor2.inPlaceXOR(bitmap2[k]);
                                  }
                                  bitmapxor1.inPlaceXOR(bitmapxor2);
-                                 break;
+                                 break;*/
                 /*case 3 : //Using FastAggregations and inPlace operations 
                                 bitmapxor1 = null;
                                 bitmapxor2 = null;

@@ -105,8 +105,6 @@ public class RoaringBitmapTest {
                                 Assert.assertEquals(RoaringBitmap.xor(rb, rb2)
                                         .getCardinality(), 2 * N - 2 * N
                                         / offset);
-                                rb.recycleContainers();
-                                rb2.recycleContainers();
                                 rb.validate();
                                 rb2.validate();
                       }
@@ -757,9 +755,6 @@ public class RoaringBitmapTest {
 			bc2.add((short)(i*70));
 		for(short i=0; i<5000; i++)
 			bc3.add((short)(i*70));
-		ContainerFactory.putBackInStore(bc1);
-		ContainerFactory.putBackInStore(bc2);
-		ContainerFactory.putBackInStore(bc3);
 		
 		for(short i=0; i<4000; i++)
 			ac1.add((short)(i*50));

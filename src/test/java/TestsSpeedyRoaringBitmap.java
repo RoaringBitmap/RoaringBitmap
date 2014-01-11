@@ -9,7 +9,10 @@ import me.lemire.roaringbitmap.*;
 import me.lemire.roaringbitmap.SpeedyArray.Element;
 
 import org.junit.Test;
-
+/**
+ * TODO: this need cleaning
+ *
+ */
 @SuppressWarnings({ "static-method", "deprecation" })
 public class TestsSpeedyRoaringBitmap {
 
@@ -49,8 +52,10 @@ public class TestsSpeedyRoaringBitmap {
                 final int gap = 70;
                 
                 SpeedyRoaringBitmap rb = new SpeedyRoaringBitmap();
+                //System.out.println(rb.getCardinality());
                 for (int k = 0; k < N; k++) {
                         rb.add(k * gap);
+                  //      System.out.println(k+" "+rb.getCardinality());        
                         Assert.assertEquals(
                                 rb.getCardinality(), k + 1);
                 }
@@ -109,8 +114,8 @@ public class TestsSpeedyRoaringBitmap {
                                 Assert.assertEquals(SpeedyRoaringBitmap.xor(rb, rb2)
                                         .getCardinality(), 2 * N - 2 * N
                                         / offset);
-                                rb.recycleContainers();
-                                rb2.recycleContainers();
+                                //rb.recycleContainers();
+                                //rb2.recycleContainers();
                                 rb.validate();
                                 rb2.validate();
                       }
@@ -511,9 +516,6 @@ public class TestsSpeedyRoaringBitmap {
 			bc2.add((short)(i*70));
 		for(short i=0; i<5000; i++)
 			bc3.add((short)(i*70));
-		ContainerFactory.putBackInStore(bc1);
-		ContainerFactory.putBackInStore(bc2);
-		ContainerFactory.putBackInStore(bc3);
 		
 		for(short i=0; i<4000; i++)
 			ac1.add((short)(i*50));

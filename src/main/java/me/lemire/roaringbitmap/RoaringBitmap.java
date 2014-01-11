@@ -6,7 +6,9 @@ import it.unimi.dsi.fastutil.shorts.ShortBidirectionalIterator;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map.Entry;
-
+/**
+ * TODO: This class is now obsolete.
+ */
 public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable {
 
 	/**
@@ -555,6 +557,10 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 
 	@Override
 	public String toString(){
+	        /**
+	         * TODO: This toString is really more
+	         * of a debugging routine. Should be removed in the final version.
+	         */
 		int nbNodes = this.highlowcontainer.size();
 		int nbArrayC = 0, nbBitmapC=0, minAC=1024, maxAC=0, minBC=65535, maxBC=0, card, avAC=0, avBC=0;
 		for (Container C : this.highlowcontainer.values())
@@ -579,22 +585,5 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 		return desc;		
 	}
 	
-	/**
-	 * A RoaringBitmap is made of several container. The containers
-	 * can be reused if the RoaringBitmap object is going to be discarded.
-	 * Note that it is unsafe to keep accessing the RoaringBitmap object after
-	 * this call.
-	 */
-        public void recycleContainers() {
-                for (Container c : highlowcontainer.values()) {
-                        if (c instanceof ArrayContainer) {
-                                ContainerFactory
-                                        .putBackInStore((ArrayContainer) c);
 
-                        } else if (c instanceof BitmapContainer) {
-                                ContainerFactory
-                                        .putBackInStore((BitmapContainer) c);
-                        }
-                }
-        }
 }

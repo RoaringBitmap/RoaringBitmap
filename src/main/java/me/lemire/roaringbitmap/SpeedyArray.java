@@ -11,7 +11,7 @@ public final class SpeedyArray implements Cloneable {
 		this.array = new Element[initialCapacity];
 	}
 	
-	public class Element {
+	public final class Element {
 		public short key;
 		public Container value=null;
 	
@@ -47,15 +47,9 @@ public final class SpeedyArray implements Cloneable {
                         if (this.array.length < 4) {
                                 newcapacity = 4;
                         } else if (this.array.length < 1024) {
-                                newcapacity = 2 * this.array.length; // grow
-                                                                     // fast
-                                                                     // initially
+                                newcapacity = 2 * this.array.length;
                         } else {
-                                newcapacity = 5 * this.array.length / 4; // inspired
-                                                                         // by
-                                                                         // Go,
-                                                                         // see
-                                                                         // http://golang.org/src/pkg/runtime/slice.c#L131
+                                newcapacity = 5 * this.array.length / 4; 
                         }
                         this.array = Arrays.copyOf(this.array, newcapacity);
                 }
@@ -82,27 +76,6 @@ public final class SpeedyArray implements Cloneable {
 		return this.array[i].value;
 	}
 	
-	public void InsertionSort() {
-		for (int j=1; j<nbKeys; j++) {
-			Element e = array[j];
-			int key = Util.toIntUnsigned(e.key);			
-			int i = j-1;
-			
-			while(i>0 && Util.toIntUnsigned(array[i].key)>key) {
-				array[i+1] = array[i];
-				i--;
-			}
-			array[i+1] = e;
-		}
-	}
-	
-	public boolean validateOrdering() {
-		int i;
-		for (i=1; i<nbKeys && Util.toIntUnsigned(array[i-1].key)<=Util.toIntUnsigned(array[i].key); i++);
-		if(i==nbKeys) return true;
-		return false;
-	}
-	
 	public void clear() {
 		this.nbKeys = 0;
 	}
@@ -124,29 +97,24 @@ public final class SpeedyArray implements Cloneable {
 		return sa;
 	}
 	
-	public static int linearSearch(Element[] array2, int nbKeys, short key){
-		int i;
-		for(i=0; i<nbKeys && array2[i].key!=key; i++); 
-		if(i==nbKeys) return -1;
-		return i;
-	}
 	
-    public int binarySearch(int begin, int end, short key) {
-            int low = begin;
-            int high = end-1;
-            int ikey = Util.toIntUnsigned(key);
+        public int binarySearch(int begin, int end, short key) {
+                int low = begin;
+                int high = end - 1;
+                int ikey = Util.toIntUnsigned(key);
 
-            while (low <= high) {
-                    int middleIndex = (low + high) >>> 1;
-                    int middleValue = Util.toIntUnsigned(array[middleIndex].key);
+                while (low <= high) {
+                        int middleIndex = (low + high) >>> 1;
+                        int middleValue = Util
+                                .toIntUnsigned(array[middleIndex].key);
 
-                    if (middleValue < ikey)
-                            low = middleIndex + 1;
-                    else if (middleValue > ikey)
-                            high = middleIndex - 1;
-                    else
-                            return middleIndex;
-            }
-            return -(low + 1);
-    }
+                        if (middleValue < ikey)
+                                low = middleIndex + 1;
+                        else if (middleValue > ikey)
+                                high = middleIndex - 1;
+                        else
+                                return middleIndex;
+                }
+                return -(low + 1);
+        }
 }
