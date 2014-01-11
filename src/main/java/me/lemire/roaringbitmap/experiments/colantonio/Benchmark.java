@@ -1,6 +1,7 @@
 package me.lemire.roaringbitmap.experiments.colantonio;
 
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.BitSet;
 import me.lemire.roaringbitmap.SpeedyRoaringBitmap;
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
@@ -138,13 +139,17 @@ public class Benchmark {
                                 b1.and(b2);
                                 aft = System.nanoTime();
                                 bogus += b1.length();
+                                b2 = null;
                                 timings[0] += aft - bef;
                                 //
                                 ConciseSet cs1 = toConciseSet(v1);
                                 ConciseSet cs2 = toConciseSet(v2);
                                 bef = System.nanoTime();
-                                cs1.intersection(cs2);
+                                cs1 = cs1.intersection(cs2);
                                 aft = System.nanoTime();
+                                // we verify the answer
+                                if(!Arrays.equals(cs1.toArray(), toArray(b1)))
+                                        throw new RuntimeException("bug");
                                 bogus += cs1.size();
                                 timings[1] += aft - bef;
                                 storageinbits[1] += cs1.size()
@@ -153,13 +158,17 @@ public class Benchmark {
                                 storageinbits[1] += cs2.size()
                                         * cs2.collectionCompressionRatio() * 4
                                         * 8;
-
+                                cs1 = null;
+                                cs2 = null;
                                 //
                                 ConciseSet wah1 = toWAHConciseSet(v1);
                                 ConciseSet wah2 = toWAHConciseSet(v2);
                                 bef = System.nanoTime();
-                                wah1.intersection(wah2);
+                                wah1 = wah1.intersection(wah2);
                                 aft = System.nanoTime();
+                                // we verify the answer
+                                if(!Arrays.equals(wah1.toArray(), toArray(b1)))
+                                        throw new RuntimeException("bug");
                                 bogus += wah1.size();
                                 timings[2] += aft - bef;
                                 storageinbits[2] += wah1.size()
@@ -168,16 +177,23 @@ public class Benchmark {
                                 storageinbits[2] += wah2.size()
                                         * wah2.collectionCompressionRatio() * 4
                                         * 8;
+                                wah1 = null;
+                                wah2 = null;
                                 //
                                 SpeedyRoaringBitmap rb1 = toSpeedyRoaringBitmap(v1);
                                 SpeedyRoaringBitmap rb2 = toSpeedyRoaringBitmap(v2);
                                 bef = System.nanoTime();
                                 rb1.inPlaceAND(rb2);
                                 aft = System.nanoTime();
+                                // we verify the answer
+                                if(!Arrays.equals(rb1.getIntegers(), toArray(b1)))
+                                        throw new RuntimeException("bug");
                                 bogus += rb1.getCardinality();
                                 timings[3] += aft - bef;
                                 storageinbits[3] += rb1.getSizeInBytes() * 8;
                                 storageinbits[3] += rb2.getSizeInBytes() * 8;
+                                rb1 = null;
+                                rb2 = null;
 
                         }
                         if (verbose)
@@ -207,5 +223,13 @@ public class Benchmark {
                 System.out.println("#ignore = " + bogus);
         }
         
+        private static int[] toArray(final BitSet bs) {
+                int[] a = new int[bs.cardinality()];
+                int pos = 0;
+                for (int x = bs.nextSetBit(0); x >= 0; x = bs.nextSetBit(x + 1))
+                        a[pos++] = x;
+                return a;
+        }
+
 }
 
