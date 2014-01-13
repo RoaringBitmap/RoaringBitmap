@@ -261,13 +261,13 @@ public class Benchmark {
                                         + "\t\t"
                                         + df.format(timings[3] / TIMES));
                                 System.out.print("\t\t\t"
-                                        + df.format(appendTimes[0] / TIMES * gen.N)
+                                        + df.format(appendTimes[0] / (TIMES * gen.N))
                                         + "\t"
-                                        + df.format(appendTimes[1] / TIMES * gen.N)
+                                        + df.format(appendTimes[1] / (TIMES * gen.N))
                                         + "\t"
-                                        + df.format(appendTimes[2] / TIMES * gen.N)
+                                        + df.format(appendTimes[2] / (TIMES * gen.N))
                                         + "\t"
-                                        + df.format(appendTimes[3] / TIMES * gen.N));
+                                        + df.format(appendTimes[3] / (TIMES * gen.N)));
                         }
                         if (verbose)
                                 if (sizeof)
