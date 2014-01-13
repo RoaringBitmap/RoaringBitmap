@@ -44,8 +44,6 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
 	}
 	
 	public void validate() {
-		/*for (int i=0; i<this.highlowcontainer.getCardinality(); i++)
-				this.highlowcontainer.getArray()[i].value.validate();*/
 				for (Container C : highlowcontainer.values())
 					C.validate();
 	}

@@ -136,7 +136,19 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 		return answer;
 	}
 	
-	public ArrayContainer inPlaceAND(final ArrayContainer value2) {
+        public ArrayContainer andNot(final ArrayContainer value2) {
+                ArrayContainer value1 = this;
+                final int desiredcapacity = value1.getCardinality();
+                ArrayContainer answer = ContainerFactory.getArrayContainer();
+                if(answer.content.length<desiredcapacity)
+                        answer.content = new short[desiredcapacity];
+                answer.cardinality = Util.unsigned_difference(value1.content,
+                                value1.getCardinality(), value2.content,
+                                value2.getCardinality(), answer.content);
+                return answer;
+        }	
+        
+        public ArrayContainer inPlaceAND(final ArrayContainer value2) {
 	        ArrayContainer value1 = this;
 	        value1.cardinality = Util.unsigned_intersect2by2(value1.content,
                         value1.getCardinality(), value2.content,

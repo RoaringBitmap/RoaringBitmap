@@ -192,7 +192,6 @@ public class Benchmark {
                                 //
                                 ConciseSet wah1 = toWAHConciseSet(v1);
                                 ConciseSet wah2 = toWAHConciseSet(v2);
-                                
                                 storageinbits[2] += wah1.size()
                                         * wah1.collectionCompressionRatio() * 4
                                         * 8;

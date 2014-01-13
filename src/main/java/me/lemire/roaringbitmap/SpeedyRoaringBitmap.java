@@ -99,6 +99,70 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
                 }
                 return answer;
         }
+        public static SpeedyRoaringBitmap andNot(final SpeedyRoaringBitmap x1,
+                final SpeedyRoaringBitmap x2) {
+                final SpeedyRoaringBitmap answer = new SpeedyRoaringBitmap();
+                int pos1 = 0, pos2 = 0;
+                int length1 = x1.highlowcontainer.getnbKeys(), length2 = x2.highlowcontainer
+                        .getnbKeys();
+                main: if (pos1 < length1 && pos2 < length2) {
+                        short s1 = x1.highlowcontainer.getArray()[pos1].key;
+                        short s2 = x2.highlowcontainer.getArray()[pos2].key;
+                        do {
+                                if (s1 < s2) {
+                                        pos1++;
+                                        if (pos1 == length1)
+                                                break main;
+                                        s1 = x1.highlowcontainer.getArray()[pos1].key;
+                                } else if (s1 > s2) {
+                                        pos2++;
+                                        if (pos2 == length2) {
+                                                do {
+                                                        answer.highlowcontainer
+                                                                .putEnd(s1,
+                                                                        x1.highlowcontainer
+                                                                                .get(s1));
+                                                        pos1++;
+                                                        if (pos1 == length1)
+                                                                break;
+                                                        s1 = x1.highlowcontainer
+                                                                .getArray()[pos1].key;
+                                                } while (true);
+                                                break main;
+                                        }
+                                        s2 = x2.highlowcontainer.getArray()[pos2].key;
+                                } else {
+                                        Container C = Util.andNot(
+                                                x1.highlowcontainer.get(s1),
+                                                x2.highlowcontainer.get(s2));
+                                        if (C.getCardinality() > 0)
+                                                answer.highlowcontainer.putEnd(
+                                                        s1, C);
+                                        pos1++;
+                                        pos2++;
+                                        if (pos1 == length1)
+                                                break main;
+                                        if (pos2 == length2){
+                                                do {
+                                                        answer.highlowcontainer
+                                                                .putEnd(s1,
+                                                                        x1.highlowcontainer
+                                                                                .get(s1));
+                                                        pos1++;
+                                                        if (pos1 == length1)
+                                                                break;
+                                                        s1 = x1.highlowcontainer
+                                                                .getArray()[pos1].key;
+                                                } while (true);
+                                                break main;
+                                        }
+                                        s1 = x1.highlowcontainer.getArray()[pos1].key;
+                                        s2 = x2.highlowcontainer.getArray()[pos2].key;
+                                }
+                        } while (true);
+                }
+                return answer;
+        }
 
 
         public static SpeedyRoaringBitmap or(final SpeedyRoaringBitmap x1,

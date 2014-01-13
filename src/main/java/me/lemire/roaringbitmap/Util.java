@@ -25,6 +25,19 @@ public final class Util {
                                 .and((ArrayContainer) value2);
                 return ((BitmapContainer) value2).and((BitmapContainer) value1);
         }
+        protected static Container andNot(Container value1, Container value2) {
+                if (value1 instanceof ArrayContainer) {
+                        if (value2 instanceof ArrayContainer)
+                                return ((ArrayContainer) value1)
+                                        .andNot((ArrayContainer) value2);
+                        return ((BitmapContainer) value2)
+                                .andNot((ArrayContainer) value1);
+                }
+                if (value2 instanceof ArrayContainer)
+                        return ((BitmapContainer) value1)
+                                .andNot((ArrayContainer) value2);
+                return ((BitmapContainer) value2).andNot((BitmapContainer) value1);
+        }
 
         protected static Container inPlaceAND(Container value1, Container value2) {
                 if (value1 instanceof ArrayContainer) {
@@ -262,12 +275,12 @@ public final class Util {
                 final short[] buffer) {
                 int pos = 0;
                 int k1 = 0, k2 = 0;
-                if (0 == length1) {
+                if (0 == length2) {
                         for (int k = 0; k < length1; ++k)
                                 buffer[k] = set1[k];
                         return length1;
                 }
-                if (0 == length2) {
+                if (0 == length1) {
                         for (int k = 0; k < length2; ++k)
                                 buffer[k] = set2[k];
                         return length2;
@@ -333,12 +346,12 @@ public final class Util {
                 final short[] buffer) {
                 int pos = 0;
                 int k1 = 0, k2 = 0;
-                if (0 == length1) {
+                if (0 == length2) {
                         for (int k = 0; k < length1; ++k)
                                 buffer[k] = set1[k];
                         return length1;
                 }
-                if (0 == length2) {
+                if (0 == length1) {
                         for (int k = 0; k < length2; ++k)
                                 buffer[k] = set2[k];
                         return length2;
@@ -367,6 +380,48 @@ public final class Util {
                                 }
                         } else {// if (val1>val2)
                                 buffer[pos++] = set2[k2];
+                                ++k2;
+                                if (k2 >= length2) {
+                                        for (; k1 < length1; ++k1)
+                                                buffer[pos++] = set1[k1];
+                                        break;
+                                }
+                        }
+                }
+                return pos;
+        }
+        static protected int unsigned_difference(final short[] set1,
+                final int length1, final short[] set2, final int length2,
+                final short[] buffer) {
+                int pos = 0;
+                int k1 = 0, k2 = 0;
+                if (0 == length2) {
+                        for (int k = 0; k < length1; ++k)
+                                buffer[k] = set1[k];
+                        return length1;
+                }
+                if (0 == length1) {
+                        return 0;
+                }
+                while (true) {
+                        if (toIntUnsigned(set1[k1]) < toIntUnsigned(set2[k2])) {
+                                buffer[pos++] = set1[k1];
+                                ++k1;
+                                if (k1 >= length1) {
+                                        break;
+                                }
+                        } else if (toIntUnsigned(set1[k1]) == toIntUnsigned(set2[k2])) {
+                                ++k1;
+                                ++k2;
+                                if (k1 >= length1) {
+                                        break;
+                                }
+                                if (k2 >= length2) {
+                                        for (; k1 < length1; ++k1)
+                                                buffer[pos++] = set1[k1];
+                                        break;
+                                }
+                        } else {// if (val1>val2)
                                 ++k2;
                                 if (k2 >= length2) {
                                         for (; k1 < length1; ++k1)
