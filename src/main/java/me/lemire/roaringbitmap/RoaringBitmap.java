@@ -503,7 +503,7 @@ public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serial
         }
 	
 	public int getSizeInBytes(){
-                int size = 0;
+                int size = this.highlowcontainer.size() * 4;
 	        for(Container c:  this.highlowcontainer.values()) {
 	                size+=2+c.getSizeInBytes();
 	        }

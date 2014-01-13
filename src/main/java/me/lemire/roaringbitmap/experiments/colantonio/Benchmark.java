@@ -3,6 +3,8 @@ package me.lemire.roaringbitmap.experiments.colantonio;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.BitSet;
+
+import net.sourceforge.sizeof.SizeOf;
 import me.lemire.roaringbitmap.SpeedyRoaringBitmap;
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 
@@ -88,12 +90,24 @@ public class Benchmark {
                 System.out.println("# max mem.: "+Runtime.getRuntime().maxMemory());
                 System.out.println("########");
                 int N = 100000;
+                boolean sizeof = true;
+                try {
+                        SizeOf.setMinSizeToLog(0);
+                        SizeOf.skipStaticField(true);
+                        //SizeOf.skipFinalField(true);
+                        SizeOf.deepSizeOf(args);
+                } catch (IllegalStateException e) {
+                        sizeof = false;
+                        System.out
+                                .println("# disabling sizeOf, run  -javaagent:lib/SizeOf.jar or equiv. to enable");
+                }
+                
                 DataGenerator gen = new DataGenerator(N);
                 int TIMES = 100;
                 gen.setUniform();
-                test(gen,true, TIMES);
+                test(gen,true, TIMES,sizeof);
                 gen.setZipfian();
-                test(gen,true, TIMES);
+                test(gen,true, TIMES,sizeof);
                 System.out.println();
        }
 
@@ -102,7 +116,7 @@ public class Benchmark {
          * @param verbose whether to print out the result
          * @param TIMES how many times should we run each test
          */
-        public static void test(final DataGenerator gen, final boolean verbose, final int TIMES) {
+        public static void test(final DataGenerator gen, final boolean verbose, final int TIMES, boolean sizeof) {
                 if (!verbose)
                         System.out
                                 .println("# running a dry run (can take a long time)");
@@ -120,113 +134,148 @@ public class Benchmark {
                 if (verbose)
                         System.out
                                 .println("# first columns are timings [intersection times in ns], then bits/int");
+                if(verbose && sizeof)
+                        System.out.println("# For size (last columns), first column is estimated, second is sizeof");
                 if (verbose)
                         System.out
-                                .println("# density\tbitset\t\tconcise\t\twah\t\tspeedyroaring" +
-                                		"\t\tbitset\t\tconcise\t\twah\t\tspeedyroaring");
+                                .print("# density\tbitset\tconcise\twah\troar");
+                if(verbose)
+                        if(sizeof) 
+                                System.out
+                                .println("\tbitset\tbitset\tconcise\tconcise\twah\twah\troar\troar");
+                        else
+                                System.out
+                                .println("\tbitset\tconcise\twah\troar");
                 for (double d = 0.001; d <= 0.999; d *= 1.2) {
                         double[] timings = new double[4];
                         double[] storageinbits = new double[4];
+                        double[] truestorageinbits = new double[4];
 
                         for (int times = 0; times < TIMES; ++times) {
-                        	int[] v1, v2;
-                        	if(!gen.is_zipfian()) { //Uniform tests
-                                v1 = gen.getUniform(d);
-                                v2 = gen.getUniform(d);
-                        	}
-                        	else { //Zipfian tests
-                        		v1=gen.getZipfian(d);
-                        		v2=gen.getZipfian(d);
-                        	}
+                        	int[] v1 = gen.getRandomArray(d);
+                        	int[] v2 = gen.getRandomArray(d);
                                 //
-                                BitSet borig1 = toBitSet(v1);
+                                BitSet borig1 = toBitSet(v1); // we will clone it
                                 BitSet b2 = toBitSet(v2);
                                 storageinbits[0] += borig1.size() + b2.size();
+                                if(sizeof) truestorageinbits[0] += SizeOf.deepSizeOf(borig1)*8 + SizeOf.deepSizeOf(b2)*2;                              
                                 bef = System.nanoTime();
                                 BitSet b1 = (BitSet) borig1.clone(); // for fair comparison (not inplace)
                                 b1.and(b2);
                                 aft = System.nanoTime();
                                 bogus += b1.length();
+                                borig1 = null;
                                 b2 = null;
+                                int[] trueintersection = toArray(b1);
+                                b1 = null;
                                 timings[0] += aft - bef;
                                 //
                                 ConciseSet cs1 = toConciseSet(v1);
                                 ConciseSet cs2 = toConciseSet(v2);
-                                bef = System.nanoTime();
-                                cs1 = cs1.intersection(cs2);
-                                aft = System.nanoTime();
-                                // we verify the answer
-                                if(!Arrays.equals(cs1.toArray(), toArray(b1)))
-                                        throw new RuntimeException("bug");
-                                bogus += cs1.size();
-                                timings[1] += aft - bef;
                                 storageinbits[1] += cs1.size()
                                         * cs1.collectionCompressionRatio() * 4
                                         * 8;
                                 storageinbits[1] += cs2.size()
                                         * cs2.collectionCompressionRatio() * 4
                                         * 8;
+                                if(sizeof) truestorageinbits[1] += SizeOf.deepSizeOf(cs1)*8 + SizeOf.deepSizeOf(cs2)*2;                              
+                                bef = System.nanoTime();
+                                cs1 = cs1.intersection(cs2);
+                                aft = System.nanoTime();
+                                // we verify the answer
+                                if(!Arrays.equals(cs1.toArray(), trueintersection))
+                                        throw new RuntimeException("bug");
+                                bogus += cs1.size();
+                                timings[1] += aft - bef;
                                 cs1 = null;
                                 cs2 = null;
                                 //
                                 ConciseSet wah1 = toWAHConciseSet(v1);
                                 ConciseSet wah2 = toWAHConciseSet(v2);
-                                bef = System.nanoTime();
-                                wah1 = wah1.intersection(wah2);
-                                aft = System.nanoTime();
-                                // we verify the answer
-                                if(!Arrays.equals(wah1.toArray(), toArray(b1)))
-                                        throw new RuntimeException("bug");
-                                bogus += wah1.size();
-                                timings[2] += aft - bef;
+                                
                                 storageinbits[2] += wah1.size()
                                         * wah1.collectionCompressionRatio() * 4
                                         * 8;
                                 storageinbits[2] += wah2.size()
                                         * wah2.collectionCompressionRatio() * 4
                                         * 8;
+                                if(sizeof) truestorageinbits[2] += SizeOf.deepSizeOf(wah1)*8 + SizeOf.deepSizeOf(wah2)*2;                              
+                                bef = System.nanoTime();
+                                wah1 = wah1.intersection(wah2);
+                                aft = System.nanoTime();
+                                // we verify the answer
+                                if(!Arrays.equals(wah1.toArray(), trueintersection))
+                                        throw new RuntimeException("bug");
+                                bogus += wah1.size();
+                                timings[2] += aft - bef;
                                 wah1 = null;
                                 wah2 = null;
                                 //
                                 SpeedyRoaringBitmap rb1 = toSpeedyRoaringBitmap(v1);
                                 SpeedyRoaringBitmap rb2 = toSpeedyRoaringBitmap(v2);
+                                storageinbits[3] += rb1.getSizeInBytes() * 8;
+                                storageinbits[3] += rb2.getSizeInBytes() * 8;
+                                if(sizeof) truestorageinbits[3] += SizeOf.deepSizeOf(rb1)*8 + SizeOf.deepSizeOf(rb2)*2;                              
                                 bef = System.nanoTime();
                                 rb1 = SpeedyRoaringBitmap.and(rb1,rb2);
                                 aft = System.nanoTime();
                                 // we verify the answer
-                                if(!Arrays.equals(rb1.getIntegers(), toArray(b1)))
+                                if(!Arrays.equals(rb1.getIntegers(), trueintersection))
                                         throw new RuntimeException("bug");
                                 bogus += rb1.getCardinality();
                                 timings[3] += aft - bef;
-                                storageinbits[3] += rb1.getSizeInBytes() * 8;
-                                storageinbits[3] += rb2.getSizeInBytes() * 8;
+
                                 rb1 = null;
                                 rb2 = null;
-
                         }
                         if (verbose)
                                 System.out.print(df.format(d) + "\t"
                                         + df.format(timings[0] / TIMES)
-                                        + "\t\t"
+                                        + "\t"
                                         + df.format(timings[1] / TIMES)
-                                        + "\t\t"
+                                        + "\t"
                                         + df.format(timings[2] / TIMES)
-                                        + "\t\t"
+                                        + "\t"
                                         + df.format(timings[3] / TIMES));
                         if (verbose)
-                                System.out.println("\t\t\t"
-                                        + dfb.format(storageinbits[0]
-                                                / (2 * TIMES * gen.N))
-                                        + "\t\t"
-                                        + dfb.format(storageinbits[1]
-                                                / (2 * TIMES * gen.N))
-                                        + "\t\t"
-                                        + dfb.format(storageinbits[2]
-                                                / (2 * TIMES * gen.N))
-                                        + "\t\t"
-                                        + dfb.format(storageinbits[3]
-                                                / (2 * TIMES * gen.N)));
-
+                                if (sizeof)
+                                        System.out.println("\t"
+                                                + dfb.format(storageinbits[0]
+                                                        / (2 * TIMES * gen.N))
+                                                + "\t"
+                                                + dfb.format(truestorageinbits[0]
+                                                        / (2 * TIMES * gen.N))
+                                                + "\t"
+                                                + dfb.format(storageinbits[1]
+                                                        / (2 * TIMES * gen.N))
+                                                + "\t"
+                                                + dfb.format(truestorageinbits[1]
+                                                        / (2 * TIMES * gen.N))
+                                                + "\t"
+                                                + dfb.format(storageinbits[2]
+                                                        / (2 * TIMES * gen.N))
+                                                + "\t"
+                                                + dfb.format(truestorageinbits[2]
+                                                        / (2 * TIMES * gen.N))
+                                                + "\t"
+                                                + dfb.format(storageinbits[3]
+                                                        / (2 * TIMES * gen.N))
+                                                + "\t"
+                                                + dfb.format(truestorageinbits[3]
+                                                        / (2 * TIMES * gen.N)));
+                                else
+                                        System.out.println("\t"
+                                                + dfb.format(storageinbits[0]
+                                                        / (2 * TIMES * gen.N))
+                                                + "\t"
+                                                + dfb.format(storageinbits[1]
+                                                        / (2 * TIMES * gen.N))
+                                                + "\t"
+                                                + dfb.format(storageinbits[2]
+                                                        / (2 * TIMES * gen.N))
+                                                + "\t"
+                                                + dfb.format(storageinbits[3]
+                                                        / (2 * TIMES * gen.N)));
                 }
                 System.out.println("#ignore = " + bogus);
         }

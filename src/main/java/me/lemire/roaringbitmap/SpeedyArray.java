@@ -5,7 +5,7 @@ import java.util.Arrays;
 public final class SpeedyArray implements Cloneable {
 	Element[] array = null;
 	int nbKeys = 0;
-	static int initialCapacity = 4;
+	final static int initialCapacity = 4;
 	
 	public SpeedyArray() {
 		this.array = new Element[initialCapacity];

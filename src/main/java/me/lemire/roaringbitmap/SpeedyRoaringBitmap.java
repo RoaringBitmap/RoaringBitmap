@@ -319,7 +319,7 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
         }
 
         public int getSizeInBytes() {
-                int size = 0;
+                int size = 8;
                 for (int i = 0; i < this.highlowcontainer.getnbKeys(); i++) {
                         Container c = this.highlowcontainer.getArray()[i].value;
                         size += 2 + c.getSizeInBytes();
