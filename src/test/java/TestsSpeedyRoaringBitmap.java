@@ -78,6 +78,7 @@ public class TestsSpeedyRoaringBitmap {
                        //System.out.println("testing cardinality with gap = "+gap);
                         for (int offset = 2; offset <= 1024; offset *= 2) {
                                 SpeedyRoaringBitmap rb = new SpeedyRoaringBitmap();
+                                //check the add of new values
                                 for (int k = 0; k < N; k++) {
                                         rb.add(k * gap);
                                         Assert.assertEquals(
@@ -85,6 +86,7 @@ public class TestsSpeedyRoaringBitmap {
                                 }
                                 Assert.assertEquals(
                                         rb.getCardinality(), N);
+                                //check the add of existing values
                                 for (int k = 0; k < N; k++) {
                                         rb.add(k * gap);
                                         Assert.assertEquals(

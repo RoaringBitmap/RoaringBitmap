@@ -73,7 +73,7 @@ public class DataGenerator {
                 //at each generation of a pseudo-random number a in [0, 1), 
                 //in uniform sets an integer corresponding to floor(a * max) was added,
                 //where max = 
-                //105/d by varying d (the density) from 0.005 to 0.999.
+                //105/d by varying d (the density) from 0.001 to 0.999.
                 //////////////////
                 if((d<0) || (d>0.999)) throw new IllegalArgumentException("parameter should be in [0.005,0.999]");
                 final HashSet<Integer> hash = new HashSet<Integer>();
