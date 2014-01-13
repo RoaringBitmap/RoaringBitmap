@@ -129,8 +129,15 @@ public class Benchmark {
                         double[] storageinbits = new double[4];
 
                         for (int times = 0; times < TIMES; ++times) {
-                                int[] v1 = gen.getUniform(d);
-                                int[] v2 = gen.getUniform(d);
+                        	int[] v1, v2;
+                        	if(!gen.is_zipfian()) { //Uniform tests
+                                v1 = gen.getUniform(d);
+                                v2 = gen.getUniform(d);
+                        	}
+                        	else { //Zipfian tests
+                        		v1=gen.getZipfian(d);
+                        		v2=gen.getZipfian(d);
+                        	}
                                 //
                                 BitSet borig1 = toBitSet(v1);
                                 BitSet b2 = toBitSet(v2);
