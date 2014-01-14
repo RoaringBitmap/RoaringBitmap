@@ -103,10 +103,10 @@ public class Benchmark {
                 }
                 
                 DataGenerator gen = new DataGenerator(N);
-                int TIMES = 10;
-                gen.setZipfian();
-                test(gen,true, TIMES,sizeof);
+                int TIMES = 100;
                 gen.setUniform();
+                test(gen,true, TIMES,sizeof);
+                gen.setZipfian();
                 test(gen,true, TIMES,sizeof);
                 System.out.println();
        }

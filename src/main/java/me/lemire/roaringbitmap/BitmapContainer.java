@@ -51,13 +51,11 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
                         if ((bitmap[x/64] & (1l << x )) != 0) {
                                 --cardinality;
                                 bitmap[x / 64] &= ~(1l << x );
-                                validate();
                                 return ContainerFactory.transformToArrayContainer(this);
                         }
                 } 
                 cardinality -= (bitmap[x/64] & (1l << x ))>>>x;
                 bitmap[x / 64] &= ~(1l << x );
-                validate();
                 return this;
         }
 
