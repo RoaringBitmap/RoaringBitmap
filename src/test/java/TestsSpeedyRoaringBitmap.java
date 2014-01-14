@@ -170,11 +170,6 @@ public class TestsSpeedyRoaringBitmap {
 		a[pos++] = 110000;
 		int[] array = rr.getIntegers();
 		pos = 0;
-		/*for (int i : rr) {
-			array[pos++] = i;
-		}*/
-		
-		//System.out.println("rr : "+array.length+" a : "+a.length);
 		for(int i=0; i<array.length; i++)
 			if(array[i]!=a[i]) 
 				System.out.println("rr : "+array[i]+" a : "+a[i]);

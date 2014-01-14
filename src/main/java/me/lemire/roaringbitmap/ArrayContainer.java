@@ -118,7 +118,8 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 
 			@Override
 			public void remove() {
-				ArrayContainer.this.remove(pos);
+			        ArrayContainer.this.remove((short) (pos-1));
+			        pos--;
 			}
 		};
 	}

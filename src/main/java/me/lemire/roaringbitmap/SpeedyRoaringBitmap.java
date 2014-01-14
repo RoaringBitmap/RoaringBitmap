@@ -1,6 +1,7 @@
 package me.lemire.roaringbitmap;
 
 import java.io.Serializable;
+import java.util.Iterator;
 import me.lemire.roaringbitmap.SpeedyArray.Element;
 
 /**
@@ -30,15 +31,9 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
          */
         public void set(final int x) {
                 final short hb = Util.highbits(x);
-                final Container z = highlowcontainer.get(hb);
-                if (z != null) {
-                        Container z2 = z.add(Util.lowbits(x));
-                        if (z2 != z) {
-                                highlowcontainer.put(hb, z2); // Replace the
-                                                              // ArrayContainer
-                                                              // by the new
-                                                              // bitmapContainer
-                        }
+                int i = highlowcontainer.getIndex(hb);
+                if (i >= 0) {
+                        highlowcontainer.getAtIndex(i).value = highlowcontainer.getAtIndex(i).value.add(Util.lowbits(x));
                 } else {
                         ArrayContainer newac = ContainerFactory
                                 .getArrayContainer();
@@ -50,39 +45,40 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
                 /**
                  * TODO: More of a debugging routine. Should be pruned before release.
                  */
-                for (int i = 0; i < this.highlowcontainer.getnbKeys(); i++)
-                        this.highlowcontainer.getArray()[i].value.validate();
+                for (int i = 0; i < this.highlowcontainer.size(); i++)
+                        this.highlowcontainer.getAtIndex(i).value.validate();
         }
+        
 
         public static SpeedyRoaringBitmap and(final SpeedyRoaringBitmap x1,
                 final SpeedyRoaringBitmap x2) {
                 final SpeedyRoaringBitmap answer = new SpeedyRoaringBitmap();
                 int pos1 = 0, pos2 = 0;
-                int length1 = x1.highlowcontainer.getnbKeys(), length2 = x2.highlowcontainer
-                        .getnbKeys();
+                int length1 = x1.highlowcontainer.size(), length2 = x2.highlowcontainer
+                        .size();
 
                 /*
                  * TODO: This could be optimized quite a bit when one bitmap is much
                  * smaller than the other one.
                  */
                 main: if (pos1 < length1 && pos2 < length2) {
-                        short s1 = x1.highlowcontainer.getArray()[pos1].key;
-                        short s2 = x2.highlowcontainer.getArray()[pos2].key;
+                        short s1 = x1.highlowcontainer.getAtIndex(pos1).key;
+                        short s2 = x2.highlowcontainer.getAtIndex(pos2).key;
                         do {
                                 if (s1 < s2) {
                                         pos1++;
                                         if (pos1 == length1)
                                                 break main;
-                                        s1 = x1.highlowcontainer.getArray()[pos1].key;
+                                        s1 = x1.highlowcontainer.getAtIndex(pos1).key;
                                 } else if (s1 > s2) {
                                         pos2++;
                                         if (pos2 == length2)
                                                 break main;
-                                        s2 = x2.highlowcontainer.getArray()[pos2].key;
+                                        s2 = x2.highlowcontainer.getAtIndex(pos2).key;
                                 } else {
                                         Container C = Util.and(
-                                                x1.highlowcontainer.get(s1),
-                                                x2.highlowcontainer.get(s2));
+                                                x1.highlowcontainer.getAtIndex(pos1).value,
+                                                x2.highlowcontainer.getAtIndex(pos2).value);
                                         if (C.getCardinality() > 0)
                                                 answer.highlowcontainer.putEnd(
                                                         s1, C);
@@ -92,8 +88,8 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
                                                 break main;
                                         if (pos2 == length2)
                                                 break main;
-                                        s1 = x1.highlowcontainer.getArray()[pos1].key;
-                                        s2 = x2.highlowcontainer.getArray()[pos2].key;
+                                        s1 = x1.highlowcontainer.getAtIndex(pos1).key;
+                                        s2 = x2.highlowcontainer.getAtIndex(pos2).key;
                                 }
                         } while (true);
                 }
@@ -103,21 +99,21 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
                 final SpeedyRoaringBitmap x2) {
                 final SpeedyRoaringBitmap answer = new SpeedyRoaringBitmap();
                 int pos1 = 0, pos2 = 0;
-                int length1 = x1.highlowcontainer.getnbKeys(), length2 = x2.highlowcontainer
-                        .getnbKeys();
+                int length1 = x1.highlowcontainer.size(), length2 = x2.highlowcontainer
+                        .size();
                 main: if (pos1 < length1 && pos2 < length2) {
-                        short s1 = x1.highlowcontainer.getArray()[pos1].key;
-                        short s2 = x2.highlowcontainer.getArray()[pos2].key;
+                        short s1 = x1.highlowcontainer.getAtIndex(pos1).key;
+                        short s2 = x2.highlowcontainer.getAtIndex(pos2).key;
                         do {
                                 if (s1 < s2) {
                                         answer.highlowcontainer
                                         .putEnd(s1,
                                                 x1.highlowcontainer
-                                                        .get(s1));
+                                                        .getAtIndex(pos1).value);
                                         pos1++;
                                         if (pos1 == length1)
                                                 break main;
-                                        s1 = x1.highlowcontainer.getArray()[pos1].key;
+                                        s1 = x1.highlowcontainer.getAtIndex(pos1).key;
                                 } else if (s1 > s2) {
                                         pos2++;
                                         if (pos2 == length2) {
@@ -125,20 +121,20 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
                                                         answer.highlowcontainer
                                                                 .putEnd(s1,
                                                                         x1.highlowcontainer
-                                                                                .get(s1));
+                                                                                .getAtIndex(pos1).value);
                                                         pos1++;
                                                         if (pos1 == length1)
                                                                 break;
                                                         s1 = x1.highlowcontainer
-                                                                .getArray()[pos1].key;
+                                                                .getAtIndex(pos1).key;
                                                 } while (true);
                                                 break main;
                                         }
-                                        s2 = x2.highlowcontainer.getArray()[pos2].key;
+                                        s2 = x2.highlowcontainer.getAtIndex(pos2).key;
                                 } else {
                                         Container C = Util.andNot(
-                                                x1.highlowcontainer.get(s1),
-                                                x2.highlowcontainer.get(s2));
+                                                x1.highlowcontainer.getAtIndex(pos1).value,
+                                                x2.highlowcontainer.getAtIndex(pos2).value);
                                         if (C.getCardinality() > 0)
                                                 answer.highlowcontainer.putEnd(
                                                         s1, C);
@@ -148,23 +144,23 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
                                                 break main;
                                         if (pos2 == length2){
                                                 s1 = x1.highlowcontainer
-                                                        .getArray()[pos1].key;
+                                                        .getAtIndex(pos1).key;
                                                 do {
 
                                                         answer.highlowcontainer
                                                                 .putEnd(s1,
                                                                         x1.highlowcontainer
-                                                                                .get(s1));
+                                                                                .getAtIndex(pos1).value);
                                                         pos1++;
                                                         if (pos1 == length1)
                                                                 break;
                                                         s1 = x1.highlowcontainer
-                                                                .getArray()[pos1].key;
+                                                                .getAtIndex(pos1).key;
                                                 } while (true);
                                                 break main;
                                         }
-                                        s1 = x1.highlowcontainer.getArray()[pos1].key;
-                                        s2 = x2.highlowcontainer.getArray()[pos2].key;
+                                        s1 = x1.highlowcontainer.getAtIndex(pos1).key;
+                                        s2 = x2.highlowcontainer.getAtIndex(pos2).key;
                                 }
                         } while (true);
                 }
@@ -177,68 +173,68 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
                 final SpeedyRoaringBitmap x2) {
                 final SpeedyRoaringBitmap answer = new SpeedyRoaringBitmap();
                 int pos1 = 0, pos2 = 0;
-                int length1 = x1.highlowcontainer.getnbKeys(), length2 = x2.highlowcontainer
-                        .getnbKeys();
+                int length1 = x1.highlowcontainer.size(), length2 = x2.highlowcontainer
+                        .size();
 
                 main: if (pos1 < length1 && pos2 < length2) {
-                        short s1 = x1.highlowcontainer.getArray()[pos1].key;
-                        short s2 = x2.highlowcontainer.getArray()[pos2].key;
+                        short s1 = x1.highlowcontainer.getAtIndex(pos1).key;
+                        short s2 = x2.highlowcontainer.getAtIndex(pos2).key;
 
                         while (true) {
                                 if (s1 < s2) {
                                         answer.highlowcontainer.putEnd(s1,
-                                                x1.highlowcontainer.get(s1));
+                                                x1.highlowcontainer.getAtIndex(pos1).value);
                                         pos1++;
                                         if (pos1 == length1) {
                                                 do {
                                                         answer.highlowcontainer
                                                                 .putEnd(s2,
                                                                         x2.highlowcontainer
-                                                                                .get(s2));
+                                                                                .getAtIndex(pos2).value);
                                                         pos2++;
                                                         if (pos2 == length2)
                                                                 break;
                                                         s2 = x2.highlowcontainer
-                                                                .getArray()[pos2].key;
+                                                                .getAtIndex(pos2).key;
                                                 } while (true);
                                                 break main;
                                         }
-                                        s1 = x1.highlowcontainer.getArray()[pos1].key;
+                                        s1 = x1.highlowcontainer.getAtIndex(pos1).key;
                                 } else if (s1 > s2) {
                                         answer.highlowcontainer.putEnd(s2,
-                                                x2.highlowcontainer.get(s2));
+                                                x2.highlowcontainer.getAtIndex(pos2).value);
                                         pos2++;
                                         if (pos2 == length2) {
                                                 do {
                                                         answer.highlowcontainer
                                                                 .putEnd(s1,
                                                                         x1.highlowcontainer
-                                                                                .get(s1));
+                                                                                .getAtIndex(pos1).value);
                                                         pos1++;
                                                         if (pos1 == length1)
                                                                 break;
                                                         s1 = x1.highlowcontainer
-                                                                .getArray()[pos1].key;
+                                                                .getAtIndex(pos1).key;
                                                 } while (true);
                                                 break main;
                                         }
-                                        s2 = x2.highlowcontainer.getArray()[pos2].key;
+                                        s2 = x2.highlowcontainer.getAtIndex(pos2).key;
                                 } else {
                                         // nbOR++;
                                         answer.highlowcontainer
                                                 .putEnd(s1,
-                                                        Util.or(x1.get(s1),
-                                                                x2.get(s2)));
+                                                        Util.or(x1.highlowcontainer.getAtIndex(pos1).value,
+                                                                x2.highlowcontainer.getAtIndex(pos2).value));
                                         pos1++;
                                         pos2++;
                                         if (pos1 == length1) {
                                                 while (pos2 < length2) {
                                                         s2 = x2.highlowcontainer
-                                                                .getArray()[pos2].key;
+                                                                .getAtIndex(pos2).key;
                                                         answer.highlowcontainer
                                                                 .putEnd(s2,
                                                                         x2.highlowcontainer
-                                                                                .get(s2));
+                                                                                .getAtIndex(pos2).value);
                                                         pos2++;
                                                 }
                                                 break main;
@@ -247,17 +243,17 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
                                         if (pos2 == length2) {
                                                 while (pos1 < length1) {
                                                         s1 = x1.highlowcontainer
-                                                                .getArray()[pos1].key;
+                                                                .getAtIndex(pos1).key;
                                                         answer.highlowcontainer
                                                                 .put(s1,
                                                                         x1.highlowcontainer
-                                                                                .get(s1));
+                                                                                .getAtIndex(pos1).value);
                                                         pos1++;
                                                 }
                                                 break main;
                                         }
-                                        s1 = x1.highlowcontainer.getArray()[pos1].key;
-                                        s2 = x2.highlowcontainer.getArray()[pos2].key;
+                                        s1 = x1.highlowcontainer.getAtIndex(pos1).key;
+                                        s2 = x2.highlowcontainer.getAtIndex(pos2).key;
                                 }
                         }
                 }
@@ -268,66 +264,65 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
                 final SpeedyRoaringBitmap x2) {
                 final SpeedyRoaringBitmap answer = new SpeedyRoaringBitmap();
                 int pos1 = 0, pos2 = 0;
-                int length1 = x1.highlowcontainer.getnbKeys(), length2 = x2.highlowcontainer
-                        .getnbKeys();
+                int length1 = x1.highlowcontainer.size(), length2 = x2.highlowcontainer
+                        .size();
 
                 main: if (pos1 < length1 && pos2 < length2) {
-                        short s1 = x1.highlowcontainer.getArray()[pos1].key;
-                        short s2 = x2.highlowcontainer.getArray()[pos2].key;
+                        short s1 = x1.highlowcontainer.getAtIndex(pos1).key;
+                        short s2 = x2.highlowcontainer.getAtIndex(pos2).key;
 
                         while (true) {
                                 if (s1 < s2) {
                                         answer.highlowcontainer.putEnd(s1,
-                                                x1.highlowcontainer.get(s1));
+                                                x1.highlowcontainer.getAtIndex(pos1).value);
                                         pos1++;
                                         if (pos1 == length1) {
                                                 do {
                                                         answer.highlowcontainer
                                                                 .putEnd(s2,
                                                                         x2.highlowcontainer
-                                                                                .get(s2));
+                                                                                .getAtIndex(pos2).value);
                                                         pos2++;
                                                         if (pos2 == length2)
                                                                 break;
                                                         s2 = x2.highlowcontainer
-                                                                .getArray()[pos2].key;
+                                                                .getAtIndex(pos2).key;
                                                 } while (true);
                                                 break main;
                                         }
-                                        s1 = x1.highlowcontainer.getArray()[pos1].key;
+                                        s1 = x1.highlowcontainer.getAtIndex(pos1).key;
                                 } else if (s1 > s2) {
                                         answer.highlowcontainer.putEnd(s2,
-                                                x2.highlowcontainer.get(s2));
+                                                x2.highlowcontainer.getAtIndex(pos2).value);
                                         pos2++;
                                         if (pos2 == length2) {
                                                 do {
                                                         answer.highlowcontainer
                                                                 .putEnd(s1,
-                                                                        x1.highlowcontainer
-                                                                                .get(s1));
+                                                                        x1.highlowcontainer.getAtIndex(pos1).value);
                                                         pos1++;
                                                         if (pos1 == length1)
                                                                 break;
                                                         s1 = x1.highlowcontainer
-                                                                .getArray()[pos1].key;
+                                                                .getAtIndex(pos1).key;
                                                 } while (true);
                                                 break main;
                                         }
-                                        s2 = x2.highlowcontainer.getArray()[pos2].key;
+                                        s2 = x2.highlowcontainer.getAtIndex(pos2).key;
                                 } else {
                                         // nbXOR++;
                                         answer.highlowcontainer.putEnd(s1, Util
-                                                .xor(x1.get(s1), x2.get(s2)));
+                                                .xor(x1.highlowcontainer.getAtIndex(pos1).value, x2.highlowcontainer.getAtIndex(pos2).value));
                                         pos1++;
                                         pos2++;
                                         if (pos1 == length1) {
                                                 while (pos2 < length2) {
                                                         s2 = x2.highlowcontainer
-                                                                .getArray()[pos2].key;
+                                                                .getAtIndex(pos2).key;
                                                         answer.highlowcontainer
                                                                 .putEnd(s2,
                                                                         x2.highlowcontainer
-                                                                                .get(s2));
+                                                                                .getAtIndex(pos2).value);
                                                         pos2++;
                                                 }
                                                 break main;
@@ -336,27 +331,79 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
                                         if (pos2 == length2) {
                                                 while (pos1 < length1) {
                                                         s1 = x1.highlowcontainer
-                                                                .getArray()[pos1].key;
+                                                                .getAtIndex(pos1).key;
                                                         answer.highlowcontainer
                                                                 .putEnd(s1,
                                                                         x1.highlowcontainer
-                                                                                .get(s1));
+                                                                                .getAtIndex(pos1).value);
                                                         pos1++;
                                                 }
                                                 break main;
                                         }
-                                        s1 = x1.highlowcontainer.getArray()[pos1].key;
-                                        s2 = x2.highlowcontainer.getArray()[pos2].key;
+                                        s1 = x1.highlowcontainer.getAtIndex(pos1).key;
+                                        s2 = x2.highlowcontainer.getAtIndex(pos2).key;
                                 }
                         }
                 }
                 return answer;
         }
+        /**
+         * iterate over the positions of the true values. 
+         * TODO: test this (include remove)
+         * @return the iterator
+         */
+        public Iterator<Integer> iterator() {
+                return new Iterator<Integer>() {
+                        short pos = 0;
+                        int hs = 0;
+                        int x;
+                        Iterator<Short> iter;
+
+                        public Iterator<Integer> init() {
+                                if (pos < SpeedyRoaringBitmap.this.highlowcontainer
+                                        .size()) {
+                                        iter = SpeedyRoaringBitmap.this.highlowcontainer
+                                                .getAtIndex(pos).value.iterator();
+                                        hs = Util
+                                                .toIntUnsigned(SpeedyRoaringBitmap.this.highlowcontainer
+                                                        .getArray()[pos].key) << 16;
+                                }
+                                return this;
+                        }
+
+                        @Override
+                        public boolean hasNext() {
+                                return pos < SpeedyRoaringBitmap.this.highlowcontainer
+                                        .size();
+                        }
+
+                        @Override
+                        public Integer next() {
+                                x = Util.toIntUnsigned(iter.next())
+                                        | hs;
+                                if (!iter.hasNext()) {
+                                        ++pos;
+                                        init();
+                                }
+                                return x;
+                        }
+
+                        @Override
+                        public void remove() {
+                              if((x & hs) == hs) {// still in same container
+                                      iter.remove();
+                              } else {
+                                      SpeedyRoaringBitmap.this.remove(x);
+                              }
+                        }
+
+                }.init();
+        }
 
         public int[] getIntegers() {
                 final int[] array = new int[this.getCardinality()];
                 int pos = 0, pos2 = 0;
-                while (pos < this.highlowcontainer.getnbKeys()) {
+                while (pos < this.highlowcontainer.size()) {
                         final int hs = Util.toIntUnsigned(this.highlowcontainer
                                 .getArray()[pos].key) << 16;
                         final ShortIterator si = this.highlowcontainer
@@ -372,19 +419,17 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
 
         public void remove(final int x) {
                 final short hb = Util.highbits(x);
-                final Container corig = highlowcontainer.get(hb);
-                if (corig == null)
+                int i = highlowcontainer.getIndex(hb);
+                if (i < 0)
                         return;
-                final Container cc = corig.remove(Util.lowbits(x));
-                if (cc.getCardinality() == 0)
-                        highlowcontainer.remove(hb);
-                else if (cc != corig)
-                        highlowcontainer.put(hb, cc);
+                highlowcontainer.getAtIndex(i).value = highlowcontainer.getAtIndex(i).value.remove(Util.lowbits(x));
+                if (highlowcontainer.getAtIndex(i).value.getCardinality() == 0)
+                        highlowcontainer.removeAtIndex(i);
         }
 
         public boolean contains(final int x) {
                 final short hb = Util.highbits(x);
-                final Container C = highlowcontainer.get(hb);
+                final Container C = highlowcontainer.getContainer(hb);
                 if (C == null)
                         return false;
                 return C.contains(Util.lowbits(x));
@@ -392,7 +437,7 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
 
         public int getSizeInBytes() {
                 int size = 8;
-                for (int i = 0; i < this.highlowcontainer.getnbKeys(); i++) {
+                for (int i = 0; i < this.highlowcontainer.size(); i++) {
                         Container c = this.highlowcontainer.getArray()[i].value;
                         size += 2 + c.getSizeInBytes();
                 }
@@ -400,13 +445,13 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
         }
 
         public void trim() {
-                for (int i = 0; i < this.highlowcontainer.getnbKeys(); i++) {
+                for (int i = 0; i < this.highlowcontainer.size(); i++) {
                         this.highlowcontainer.getArray()[i].value.trim();
                 }
         }
 
-        public Container get(short key) {
-                return this.highlowcontainer.get(key);
+        public Container getContainer(short key) {
+                return this.highlowcontainer.getContainer(key);
         }
 
         public boolean containsKey(short key) {
@@ -432,8 +477,8 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
                  * TODO: More of a debugging routine. 
                  * Should be removed in the final version or move to Util.
                  */
-                int nb[] = new int[this.highlowcontainer.getnbKeys()], pos = 0;
-                for (int i = 0; i < this.highlowcontainer.getnbKeys(); i++)
+                int nb[] = new int[this.highlowcontainer.size()], pos = 0;
+                for (int i = 0; i < this.highlowcontainer.size(); i++)
                         nb[pos++] = this.highlowcontainer.getArray()[i].value
                                 .getCardinality();
                 return nb;
@@ -444,7 +489,7 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
                  * TODO: More of a debugging routine. 
                  * Should be removed in the final version or moved to Util.
                  */
-                return this.highlowcontainer.getnbKeys();
+                return this.highlowcontainer.size();
         }
 
         public int getCardinality() {
@@ -476,9 +521,9 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
                  * TODO: This toString is really more
                  * of a debugging routine. Should be removed in the final version.
                  */
-                int nbNodes = this.highlowcontainer.getnbKeys();
+                int nbNodes = this.highlowcontainer.size();
                 int nbArrayC = 0, nbBitmapC = 0, minAC = 1024, maxAC = 0, minBC = 65535, maxBC = 0, card, avAC = 0, avBC = 0;
-                for (int i = 0; i < this.highlowcontainer.getnbKeys(); i++) {
+                for (int i = 0; i < this.highlowcontainer.size(); i++) {
                         Container C = this.highlowcontainer.getArray()[i].value;
                         if (C instanceof ArrayContainer) {
                                 nbArrayC++;
