@@ -176,6 +176,7 @@ public class Benchmark {
                                 BitSet b1 = (BitSet) borig1.clone(); // for fair comparison (not inplace)
                                 b1.and(b2);
                                 aft = System.nanoTime();
+                                timings[0] += aft - bef;
                                 bogus += b1.length();
                                 //Remove times
                                 int toRemove = v1[gen.rand.nextInt(gen.N)];
@@ -189,7 +190,6 @@ public class Benchmark {
                                 b2 = null;
                                 int[] trueintersection = toArray(b1);
                                 b1 = null;
-                                timings[0] += aft - bef;
                                 // Concise
                                 //Append times
                                 bef = System.nanoTime();
