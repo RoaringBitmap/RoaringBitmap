@@ -1,6 +1,7 @@
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Vector;
@@ -114,8 +115,6 @@ public class TestsSpeedyRoaringBitmap {
                                 Assert.assertEquals(SpeedyRoaringBitmap.xor(rb, rb2)
                                         .getCardinality(), 2 * N - 2 * N
                                         / offset);
-                                //rb.recycleContainers();
-                                //rb2.recycleContainers();
                                 rb.validate();
                                 rb2.validate();
                       }
@@ -560,6 +559,68 @@ public class TestsSpeedyRoaringBitmap {
 		if(counter!=bc.getCardinality()) return false;
 		return true;
 	}
+	
+	public static boolean equals(BitSet bs, SpeedyRoaringBitmap rr) {
+	        int[] a = new int[bs.cardinality()];
+                int pos = 0;
+                for (int x = bs.nextSetBit(0); x >= 0; x = bs.nextSetBit(x + 1))
+                        a[pos++] = x;
+                return Arrays.equals(rr.getIntegers(),a);
+	}
+	
+        @Test
+        public void randomTest() {
+                final int N = 65536 * 16;
+                for (int gap = 1; gap <= 65536; gap *= 2) {
+                        BitSet bs1 = new BitSet();
+                        SpeedyRoaringBitmap rb1 = new SpeedyRoaringBitmap();
+                        for (int x = 0; x <= N; ++x) {
+                                bs1.set(x);
+                                rb1.set(x);
+                        }
+                        for (int offset = 1; offset <= gap; offset *= 2) {
+                                BitSet bs2 = new BitSet();
+                                SpeedyRoaringBitmap rb2 = new SpeedyRoaringBitmap();
+                                for (int x = 0; x <= N; ++x) {
+                                        bs2.set(x + offset);
+                                        rb2.set(x + offset);
+                                }
+                                BitSet clonebs1;
+                                // testing AND
+                                clonebs1 = (BitSet) bs1.clone();
+                                clonebs1.and(bs2);
+                                if (!equals(clonebs1,
+                                        SpeedyRoaringBitmap.and(rb1, rb2)))
+                                        throw new RuntimeException("bug");
+                                // testing OR
+                                clonebs1 = (BitSet) bs1.clone();
+                                clonebs1.or(bs2);
+                                if (!equals(clonebs1,
+                                        SpeedyRoaringBitmap.or(rb1, rb2)))
+                                        throw new RuntimeException("bug");
+                                // testing XOR
+                                clonebs1 = (BitSet) bs1.clone();
+                                clonebs1.xor(bs2);
+                                if (!equals(clonebs1,
+                                        SpeedyRoaringBitmap.xor(rb1, rb2)))
+                                        throw new RuntimeException("bug");
+                                // testing NOTAND
+                                clonebs1 = (BitSet) bs1.clone();
+                                clonebs1.andNot(bs2);
+                                if (!equals(clonebs1,
+                                        SpeedyRoaringBitmap.andNot(rb1, rb2))) {
+                                        throw new RuntimeException("bug");
+                                }
+                                clonebs1 = (BitSet) bs2.clone();
+                                clonebs1.andNot(bs1);
+                                if (!equals(clonebs1,
+                                        SpeedyRoaringBitmap.andNot(rb2, rb1))) {
+                                        throw new RuntimeException("bug");
+                                }
+                        }
+
+                }
+        }
 	
 	@Test
 	public void removeSpeedyArrayTest() {

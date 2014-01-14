@@ -129,8 +129,7 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
 	        for (int k = 0; k < answer.bitmap.length; ++k) 
 		{
 			answer.bitmap[k] = this.bitmap[k] & value2.bitmap[k];
-			if(answer.bitmap[k]!=0)// this might happen often enough, but performance effect should be checked
-				answer.cardinality += Long.bitCount(answer.bitmap[k]);
+		        answer.cardinality += Long.bitCount(answer.bitmap[k]);
 		}
 		if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
 			return ContainerFactory.transformToArrayContainer(answer);
@@ -140,11 +139,12 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
         public Container andNot(final BitmapContainer value2) {
                 final BitmapContainer answer = ContainerFactory.getUnintializedBitmapContainer();
                 answer.cardinality = 0;
+
                 for (int k = 0; k < answer.bitmap.length; ++k) 
                 {
                         answer.bitmap[k] = this.bitmap[k] & (~value2.bitmap[k]);
-                        if(answer.bitmap[k]!=0)// this might happen often enough, but performance effect should be checked
-                                answer.cardinality += Long.bitCount(answer.bitmap[k]);
+                        answer.cardinality += Long.bitCount(answer.bitmap[k]);
+
                 }
                 if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
                         return ContainerFactory.transformToArrayContainer(answer);
@@ -167,7 +167,7 @@ public final class BitmapContainer implements Container, Cloneable, Serializable
                         final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
                         answer.bitmap[i] = answer.bitmap[i]
                                         & (~ (1l << value2.content[k]));
-                        answer.cardinality -= (answer.bitmap[i] ^ answer.bitmap[i])>>value2.content[k];// subtract one if they differ
+                        answer.cardinality -= (answer.bitmap[i] ^ this.bitmap[i])>>value2.content[k];// subtract one if they differ
                 }
                 if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
                         return ContainerFactory.transformToArrayContainer(answer);

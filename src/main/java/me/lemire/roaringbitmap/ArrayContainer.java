@@ -316,5 +316,19 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
         public void trim() {
                 this.content = Arrays.copyOf(this.content, this.cardinality);
         }
+
+
+
+        public ArrayContainer andNot(BitmapContainer value2) {
+                final ArrayContainer answer = ContainerFactory.getArrayContainer();
+                if(answer.content.length<this.content.length)
+                        answer.content = new short[this.content.length];
+                int pos = 0;
+                for(int k = 0; k < cardinality; ++k)
+                        if(!value2.contains(this.content[k]))
+                                answer.content[pos++] = this.content[k];
+                answer.cardinality = pos;
+                return answer;
+        }
         
 }

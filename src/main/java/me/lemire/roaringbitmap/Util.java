@@ -30,13 +30,13 @@ public final class Util {
                         if (value2 instanceof ArrayContainer)
                                 return ((ArrayContainer) value1)
                                         .andNot((ArrayContainer) value2);
-                        return ((BitmapContainer) value2)
-                                .andNot((ArrayContainer) value1);
+                        return ((ArrayContainer) value1)
+                                .andNot((BitmapContainer) value2);
                 }
                 if (value2 instanceof ArrayContainer)
                         return ((BitmapContainer) value1)
                                 .andNot((ArrayContainer) value2);
-                return ((BitmapContainer) value2).andNot((BitmapContainer) value1);
+                return ((BitmapContainer) value1).andNot((BitmapContainer) value2);
         }
 
         protected static Container inPlaceAND(Container value1, Container value2) {

@@ -110,6 +110,10 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
                         short s2 = x2.highlowcontainer.getArray()[pos2].key;
                         do {
                                 if (s1 < s2) {
+                                        answer.highlowcontainer
+                                        .putEnd(s1,
+                                                x1.highlowcontainer
+                                                        .get(s1));
                                         pos1++;
                                         if (pos1 == length1)
                                                 break main;
@@ -143,7 +147,10 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
                                         if (pos1 == length1)
                                                 break main;
                                         if (pos2 == length2){
+                                                s1 = x1.highlowcontainer
+                                                        .getArray()[pos1].key;
                                                 do {
+
                                                         answer.highlowcontainer
                                                                 .putEnd(s1,
                                                                         x1.highlowcontainer
@@ -161,6 +168,7 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
                                 }
                         } while (true);
                 }
+                
                 return answer;
         }
 
