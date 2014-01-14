@@ -180,7 +180,7 @@ public class Benchmark {
                             //Remove times
                                 int toRemove = v1[gen.rand.nextInt(gen.N)];
                                 bef = System.nanoTime();
-                                removeBitSet(borig1, toRemove);
+                                borig1.clear(toRemove);
                                 aft = System.nanoTime();
                                 removeTimes[0] += aft-bef;
                                 bogus += borig1.size();
@@ -215,7 +215,7 @@ public class Benchmark {
                                 timings[1] += aft - bef;
                             //Removal times
                                 bef = System.nanoTime();
-                                removeConciseSet(cs1, toRemove);
+                                cs1.remove(toRemove);
                                 aft = System.nanoTime();
                                 removeTimes[1] += aft-bef;
                                 bogus += cs1.size();
@@ -249,7 +249,7 @@ public class Benchmark {
                                 timings[2] += aft - bef;
                           //Removing times
                                 bef = System.nanoTime();
-                                removeWAHConciseSet(wah1, toRemove);                                
+                                wah1.remove(toRemove);                                
                                 aft = System.nanoTime();
                                 removeTimes[2] += aft-bef;
                                 bogus += wah1.size();
@@ -278,7 +278,7 @@ public class Benchmark {
                                 timings[3] += aft - bef;
                          //Remove times
                                 bef = System.nanoTime();
-                                removeSpeedyRoaring(rb1, toRemove);
+                                rb1.remove(toRemove);
                                 aft = System.nanoTime();
                                 removeTimes[3] += aft-bef;
                                 bogus += rb1.getCardinality();
@@ -352,22 +352,6 @@ public class Benchmark {
                                                         / (2 * TIMES * gen.N)));
                 }
                 System.out.println("#ignore = " + bogus);
-        }
-        
-        private static void removeBitSet(BitSet borig, int x) {        	
-        		borig.clear(x);        	
-        }
-        
-        private static void removeConciseSet(ConciseSet cs1, int x) {        	
-    		cs1.remove(x);        		
-        }
-        
-        private static void removeWAHConciseSet(ConciseSet wah1, int x) {        	
-        		wah1.remove(x);        	
-        }
-        
-        private static void removeSpeedyRoaring(SpeedyRoaringBitmap sr1, int x) {        	
-        		sr1.remove(x);        	
         }
         
         private static int[] toArray(final BitSet bs) {
