@@ -133,30 +133,39 @@ public class Benchmark {
                                 .println("### uniform test");
                 if (verbose)
                         System.out
-                                .println("# first columns are timings [intersection times in ns], then bits/int");
+                                .println("# first columns are timings [intersection times in ns], then append times in ns, then bits/int");
                 if(verbose && sizeof)
                         System.out.println("# For size (last columns), first column is estimated, second is sizeof");
                 if (verbose)
                         System.out
-                                .print("# density\tbitset\tconcise\twah\troar");
+                                .print("# density\tbitset\t\tconcise\t\twah\t\troar"+
+                                		"\t\t\tbitset\t\tconcise\t\twah\t\tspeedyroaring");
                 if(verbose)
                         if(sizeof) 
                                 System.out
-                                .println("\tbitset\tbitset\tconcise\tconcise\twah\twah\troar\troar");
+                                .println("\t\t\tbitset\tbitset\tconcise\tconcise\twah\twah\troar\troar");
                         else
                                 System.out
-                                .println("\tbitset\tconcise\twah\troar");
+                                .println("\t\t\tbitset\t\tconcise\t\twah\t\troar");
                 for (double d = 0.001; d <= 0.999; d *= 1.2) {
                         double[] timings = new double[4];
                         double[] storageinbits = new double[4];
                         double[] truestorageinbits = new double[4];
+                        double[] appendTimes = new double[4];
 
                         for (int times = 0; times < TIMES; ++times) {
                         	int[] v1 = gen.getRandomArray(d);
                         	int[] v2 = gen.getRandomArray(d);
-                                //
-                                BitSet borig1 = toBitSet(v1); // we will clone it
+                            //
+                        	//Append times
+                    		bef = System.nanoTime();
+                            BitSet borig1 = toBitSet(v1); // we will clone it
+                            aft = System.nanoTime();
+                            bogus += borig1.length();
+                            appendTimes[0] += aft-bef; 
+
                                 BitSet b2 = toBitSet(v2);
+                                //
                                 storageinbits[0] += borig1.size() + b2.size();
                                 if(sizeof) truestorageinbits[0] += SizeOf.deepSizeOf(borig1)*8 + SizeOf.deepSizeOf(b2)*2;                              
                                 bef = System.nanoTime();
@@ -170,7 +179,12 @@ public class Benchmark {
                                 b1 = null;
                                 timings[0] += aft - bef;
                                 //
-                                ConciseSet cs1 = toConciseSet(v1);
+                                //Append times
+                        		bef = System.nanoTime();
+                        		ConciseSet cs1 = toConciseSet(v1);
+                                aft = System.nanoTime();
+                                bogus += cs1.size();
+                                appendTimes[1] += aft-bef;                                
                                 ConciseSet cs2 = toConciseSet(v2);
                                 storageinbits[1] += cs1.size()
                                         * cs1.collectionCompressionRatio() * 4
@@ -190,7 +204,12 @@ public class Benchmark {
                                 cs1 = null;
                                 cs2 = null;
                                 //
-                                ConciseSet wah1 = toWAHConciseSet(v1);
+                              //Append times
+                        		bef = System.nanoTime();
+                        		ConciseSet wah1 = toWAHConciseSet(v1);
+                                aft = System.nanoTime();
+                                bogus += wah1.size();
+                                appendTimes[2] += aft-bef;                                
                                 ConciseSet wah2 = toWAHConciseSet(v2);
                                 storageinbits[2] += wah1.size()
                                         * wah1.collectionCompressionRatio() * 4
@@ -210,7 +229,12 @@ public class Benchmark {
                                 wah1 = null;
                                 wah2 = null;
                                 //
-                                SpeedyRoaringBitmap rb1 = toSpeedyRoaringBitmap(v1);
+                              //Append times
+                        		bef = System.nanoTime();
+                        		SpeedyRoaringBitmap rb1 = toSpeedyRoaringBitmap(v1);
+                                aft = System.nanoTime();
+                                bogus += rb1.getCardinality();
+                                appendTimes[3] += aft-bef;
                                 SpeedyRoaringBitmap rb2 = toSpeedyRoaringBitmap(v2);
                                 storageinbits[3] += rb1.getSizeInBytes() * 8;
                                 storageinbits[3] += rb2.getSizeInBytes() * 8;
@@ -227,18 +251,27 @@ public class Benchmark {
                                 rb1 = null;
                                 rb2 = null;
                         }
-                        if (verbose)
-                                System.out.print(df.format(d) + "\t"
+                        if (verbose) {
+                                System.out.print(df.format(d)+"\t"
                                         + df.format(timings[0] / TIMES)
-                                        + "\t"
+                                        + "\t\t"
                                         + df.format(timings[1] / TIMES)
-                                        + "\t"
+                                        + "\t\t"
                                         + df.format(timings[2] / TIMES)
-                                        + "\t"
+                                        + "\t\t"
                                         + df.format(timings[3] / TIMES));
+                                System.out.print("\t\t\t"
+                                        + df.format(appendTimes[0] / (TIMES * gen.N))
+                                        + "\t"
+                                        + df.format(appendTimes[1] / (TIMES * gen.N))
+                                        + "\t"
+                                        + df.format(appendTimes[2] / (TIMES * gen.N))
+                                        + "\t"
+                                        + df.format(appendTimes[3] / (TIMES * gen.N)));
+                        }
                         if (verbose)
                                 if (sizeof)
-                                        System.out.println("\t"
+                                        System.out.println("\t\t\t"
                                                 + dfb.format(storageinbits[0]
                                                         / (2 * TIMES * gen.N))
                                                 + "\t"
@@ -263,16 +296,16 @@ public class Benchmark {
                                                 + dfb.format(truestorageinbits[3]
                                                         / (2 * TIMES * gen.N)));
                                 else
-                                        System.out.println("\t"
+                                        System.out.println("\t\t\t"
                                                 + dfb.format(storageinbits[0]
                                                         / (2 * TIMES * gen.N))
-                                                + "\t"
+                                                + "\t\t"
                                                 + dfb.format(storageinbits[1]
                                                         / (2 * TIMES * gen.N))
-                                                + "\t"
+                                                + "\t\t"
                                                 + dfb.format(storageinbits[2]
                                                         / (2 * TIMES * gen.N))
-                                                + "\t"
+                                                + "\t\t"
                                                 + dfb.format(storageinbits[3]
                                                         / (2 * TIMES * gen.N)));
                 }
