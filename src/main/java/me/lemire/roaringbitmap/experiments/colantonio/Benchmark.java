@@ -3,6 +3,7 @@ package me.lemire.roaringbitmap.experiments.colantonio;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Locale;
 
 import net.sourceforge.sizeof.SizeOf;
 import me.lemire.roaringbitmap.SpeedyRoaringBitmap;
@@ -81,6 +82,7 @@ public class Benchmark {
          * @param args command line arguments
          */
         public static void main(final String[] args) {
+                Locale.setDefault(Locale.US);
                 System.out.println("# This benchmark emulates what Colantonio and Di Pietro,");
                 System.out.println("#  did in Concise: Compressed 'n' Composable Integer Set");
                 System.out.println("########");
