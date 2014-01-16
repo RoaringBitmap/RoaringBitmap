@@ -118,7 +118,7 @@ public class Benchmark {
             try {
             		String folderPath;
             		folderPath = (args[0]==null) ? "" : args[0];
-            		folderPath+="/tree/master/scripts";
+            		folderPath+="/scripts";
             		new File(folderPath).mkdirs();
                 	File file = new File(folderPath+"/Benchmark.txt");
 					FileWriter fw = new FileWriter(file.getAbsoluteFile());
