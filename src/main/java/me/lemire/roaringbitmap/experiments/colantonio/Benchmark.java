@@ -108,6 +108,7 @@ public class Benchmark {
                 int TIMES = 100;
                 gen.setUniform();
                 test(gen,true, TIMES,sizeof);
+                System.out.println();
                 gen.setZipfian();
                 test(gen,true, TIMES,sizeof);
                 System.out.println();
@@ -151,7 +152,7 @@ public class Benchmark {
                         else
                                 System.out
                                 .println("\t\tbitset\t\tconcise\t\twah\t\troar");
-                for (double d = 0.001; d <= 0.999; d *= 1.2) {
+                for (double d = 0.0009765625; d <= 0.999; d *= 2) {
                         double[] timings = new double[4];
                         double[] storageinbits = new double[4];
                         double[] truestorageinbits = new double[4];
