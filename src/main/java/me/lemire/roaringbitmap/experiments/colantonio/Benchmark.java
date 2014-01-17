@@ -152,7 +152,7 @@ public class Benchmark {
                         else
                                 System.out
                                 .println("\t\tbitset\t\tconcise\t\twah\t\troar");
-                for (double d = 0.0009765625; d <= 0.999; d *= 2) {
+                for (double d = 0.0009765625; d <= 1.000; d *= 2) {
                         double[] timings = new double[4];
                         double[] storageinbits = new double[4];
                         double[] truestorageinbits = new double[4];
