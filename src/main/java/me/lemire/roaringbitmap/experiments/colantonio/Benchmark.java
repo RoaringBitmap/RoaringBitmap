@@ -1,5 +1,9 @@
 package me.lemire.roaringbitmap.experiments.colantonio;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -33,7 +37,7 @@ import it.uniroma3.mat.extendedset.intset.ConciseSet;
  * 
  */
 public class Benchmark {
-
+	private static String line = "";
         /**
          * @param a an array of integers
          * @return a bitset representing the provided integers
@@ -82,15 +86,15 @@ public class Benchmark {
          * @param args command line arguments
          */
         public static void main(final String[] args) {
-                Locale.setDefault(Locale.US);
-                System.out.println("# This benchmark emulates what Colantonio and Di Pietro,");
-                System.out.println("#  did in Concise: Compressed 'n' Composable Integer Set");
-                System.out.println("########");
-                System.out.println("# "+System.getProperty("java.vendor")+" "+System.getProperty("java.version")+" "+System.getProperty("java.vm.name"));
-                System.out.println("# "+System.getProperty("os.name")+" "+System.getProperty("os.arch")+" "+System.getProperty("os.version"));
-                System.out.println("# processors: "+Runtime.getRuntime().availableProcessors());
-                System.out.println("# max mem.: "+Runtime.getRuntime().maxMemory());
-                System.out.println("########");
+        		Locale.setDefault(Locale.US);
+                line+="# This benchmark emulates what Colantonio and Di Pietro,\n";
+                line+="#  did in Concise: Compressed 'n' Composable Integer Set\n";
+                line+="########\n";
+                line+="# "+System.getProperty("java.vendor")+" "+System.getProperty("java.version")+" "+System.getProperty("java.vm.name")+"\n";
+                line+="# "+System.getProperty("os.name")+" "+System.getProperty("os.arch")+" "+System.getProperty("os.version")+"\n";
+                line+="# processors: "+Runtime.getRuntime().availableProcessors()+"\n";
+                line+="# max mem.: "+Runtime.getRuntime().maxMemory()+"\n";
+                line+="########\n";                
                 int N = 100000;
                 boolean sizeof = true;
                 try {
@@ -100,17 +104,28 @@ public class Benchmark {
                         SizeOf.deepSizeOf(args);
                 } catch (IllegalStateException e) {
                         sizeof = false;
-                        System.out
-                                .println("# disabling sizeOf, run  -javaagent:lib/SizeOf.jar or equiv. to enable");
+                        line+="# disabling sizeOf, run  -javaagent:lib/SizeOf.jar or equiv. to enable\n";
                 }
-                
+                System.out.print(line);
                 DataGenerator gen = new DataGenerator(N);
                 int TIMES = 100;
                 gen.setUniform();
                 test(gen,true, TIMES,sizeof);
                 gen.setZipfian();
                 test(gen,true, TIMES,sizeof);
-                System.out.println();
+                
+                //Creating a file and printing results on it
+            try {
+            		String folderPath;
+            		folderPath = (args[0]==null) ? "" : args[0];
+            		folderPath+="/scripts";
+            		new File(folderPath).mkdirs();
+                	File file = new File(folderPath+"/Benchmark.txt");
+					FileWriter fw = new FileWriter(file.getAbsoluteFile());
+					BufferedWriter bw = new BufferedWriter(fw);
+					bw.write(line);
+					bw.close();
+				} catch (IOException e) {e.printStackTrace();}
        }
 
         /**
@@ -118,8 +133,9 @@ public class Benchmark {
          * @param verbose whether to print out the result
          * @param TIMES how many times should we run each test
          */
-        public static void test(final DataGenerator gen, final boolean verbose, final int TIMES, boolean sizeof) {
-                if (!verbose)
+        public static void test(final DataGenerator gen, final boolean verbose, final int TIMES, boolean sizeof) {        	
+        		String newTest = "";
+        		if (!verbose)
                         System.out
                                 .println("# running a dry run (can take a long time)");
                 int bogus = 0;
@@ -128,30 +144,30 @@ public class Benchmark {
                 DecimalFormat dfb = new DecimalFormat("000.0");
                 if (verbose)
                         if(gen.is_zipfian())
-                                System.out
-                                .println("### zipfian test");
+                                newTest+="### zipfian test\n";
                          else
-                              System.out
-                                .println("### uniform test");
+                        	 newTest+="### uniform test\n";
                 if (verbose)
-                        System.out
-                                .println("# first columns are timings [intersection times in ns], then append times in ns, " +
-                                    "then removes times in ns, then bits/int");
+                	newTest+="# first columns are timings [intersection times in ns], then append times in ns, " +
+                                    "then removes times in ns, then bits/int\n";
                 if(verbose && sizeof)
-                        System.out.println("# For size (last columns), first column is estimated, second is sizeof");
+                	newTest+="# For size (last columns), first column is estimated, second is sizeof\n";
                 if (verbose)
-                        System.out
-                                .print("# density\tbitset\t\tconcise\t\twah\t\troar"+
+                	newTest+="# density\tbitset\t\tconcise\t\twah\t\troar"+
                                     "\t\t\tbitset\t\tconcise\t\twah\t\tspeedyroaring"+
-                                    "\t\t\tbitset\t\tconcise\t\twah\t\tspeedyroaring");
+                                    "\t\t\tbitset\t\tconcise\t\twah\t\tspeedyroaring";
                 if(verbose)
                         if(sizeof) 
-                                System.out
-                                .println("\t\tbitset\tbitset\tconcise\tconcise\twah\twah\troar\troar");
+                        	newTest+="\t\tbitset\tbitset\tconcise\tconcise\twah\twah\troar\troar";
                         else
-                                System.out
-                                .println("\t\tbitset\t\tconcise\t\twah\t\troar");
+                        	newTest+="\t\tbitset\t\tconcise\t\twah\t\troar"; 
+                if(verbose){
+                	System.out.println(newTest);
+                	line+=newTest;
+                }
+                
                 for (double d = 0.001; d <= 0.999; d *= 1.2) {
+                		String newLine ="";
                         double[] timings = new double[4];
                         double[] storageinbits = new double[4];
                         double[] truestorageinbits = new double[4];
@@ -291,35 +307,36 @@ public class Benchmark {
                                 rb1 = null;
                                 rb2 = null;
                         }
+                        
                         if (verbose) {
-                                System.out.print(df.format(d)+"\t"
+                                newLine+= df.format(d)+"\t"
                                         + df.format(timings[0] / TIMES)
                                         + "\t\t"
                                         + df.format(timings[1] / TIMES)
                                         + "\t\t"
                                         + df.format(timings[2] / TIMES)
                                         + "\t\t"
-                                        + df.format(timings[3] / TIMES));
-                                System.out.print("\t\t\t"
+                                        + df.format(timings[3] / TIMES);
+                                newLine+= "\t\t\t"
                                         + df.format(appendTimes[0] / (TIMES * gen.N))
                                         + "\t\t"
                                         + df.format(appendTimes[1] / (TIMES * gen.N))
                                         + "\t\t"
                                         + df.format(appendTimes[2] / (TIMES * gen.N))
                                         + "\t\t"
-                                        + df.format(appendTimes[3] / (TIMES * gen.N)));
-                                System.out.print("\t\t\t\t"
+                                        + df.format(appendTimes[3] / (TIMES * gen.N));
+                                newLine += "\t\t\t\t"
                                         + df.format(removeTimes[0] / TIMES)
                                         + "\t\t"
                                         + df.format(removeTimes[1] / TIMES)
                                         + "\t\t"
                                         + df.format(removeTimes[2] / TIMES)
                                         + "\t\t"
-                                        + df.format(removeTimes[3] / TIMES));
+                                        + df.format(removeTimes[3] / TIMES);
                         }
                         if (verbose)
                                 if (sizeof)
-                                        System.out.println("\t\t\t\t"
+                                	newLine += "\t\t\t"
                                                 + dfb.format(storageinbits[0]
                                                         / (2 * TIMES * gen.N))
                                                 + "\t"
@@ -342,9 +359,9 @@ public class Benchmark {
                                                         / (2 * TIMES * gen.N))
                                                 + "\t"
                                                 + dfb.format(truestorageinbits[3]
-                                                        / (2 * TIMES * gen.N)));
+                                                        / (2 * TIMES * gen.N));
                                 else
-                                        System.out.println("\t\t\t"
+                                	newLine += "\t\t\t"
                                                 + dfb.format(storageinbits[0]
                                                         / (2 * TIMES * gen.N))
                                                 + "\t\t"
@@ -355,7 +372,11 @@ public class Benchmark {
                                                         / (2 * TIMES * gen.N))
                                                 + "\t\t"
                                                 + dfb.format(storageinbits[3]
-                                                        / (2 * TIMES * gen.N)));
+                                                        / (2 * TIMES * gen.N));
+                    if(verbose) {
+                        System.out.println(newLine);
+                        line+=newLine+"\n";
+                    }                    
                 }
                 System.out.println("#ignore = " + bogus);
         }
