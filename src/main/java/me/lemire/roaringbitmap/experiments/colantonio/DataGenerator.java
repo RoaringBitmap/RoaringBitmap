@@ -65,7 +65,7 @@ public class DataGenerator {
         /**
          * Generate a random array (sorted integer set)
          * 
-         * @param d should vary from 0 to 0.999
+         * @param d should vary from 0 to 1.000
          * @return an array with a uniform distribution
          */
         public int[] getUniform(double d) {
@@ -75,9 +75,15 @@ public class DataGenerator {
                 //where max = 
                 //105/d by varying d (the density) from 0.001 to 0.999.
                 //////////////////
-                if((d<0) || (d>0.999)) throw new IllegalArgumentException("parameter should be in [0.005,0.999]");
+                if((d<0) || (d>1.000)) throw new IllegalArgumentException("parameter should be in [0.005,0.999]");
+                if(d>=0.99) {
+                        int[] answer = new int[N];
+                        for(int k = 0; k<N;++k) answer[k] = k;
+                        return answer;
+                }
                 final HashSet<Integer> hash = new HashSet<Integer>();
                 final double max = N / d;
+                
                 while(hash.size()<N) {
                         final double a = rand.nextDouble();
                         final int x = (int) Math.floor(a * max);
@@ -94,7 +100,7 @@ public class DataGenerator {
         /**
          * Generate a random array (sorted integer set)
          * 
-         * @param d should vary from 0 to 0.999
+         * @param d should vary from 0 to 1.000
          * @return an array with a zipfian distribution
          */
         public int[] getZipfian(double d) {
@@ -110,7 +116,12 @@ public class DataGenerator {
                 // end of page 3, they clearly state that it is a^4
                 // However, the version that they published (IPL) states a^2.
                 ////////////////
-                if((d<0) || (d>0.999)) throw new IllegalArgumentException("parameter should be in [0.005,0.999]");
+                if((d<0) || (d>1.000)) throw new IllegalArgumentException("parameter should be in [0.005,0.999]");
+                if(d>=0.99) {
+                        int[] answer = new int[N];
+                        for(int k = 0; k<N;++k) answer[k] = k;
+                        return answer;
+                }
                 final double max = N / d;
                 HashSet<Integer> hash = new HashSet<Integer>();
                 int loopcount = 0;
