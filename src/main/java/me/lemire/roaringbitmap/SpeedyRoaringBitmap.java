@@ -18,6 +18,17 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
         public SpeedyRoaringBitmap() {
                 highlowcontainer = new SpeedyArray();
         }
+       
+       /**
+	* reset to an empty bitmap; result occupies as much space
+        *  a newly created bitmap.
+	*/
+       //OFK: I don't see any sneaky other places where references to the
+       // containers are kept; hopefully this will free up the associated 
+       // containers (at GC time)
+        public void clear() {
+	    highlowcontainer = new SpeedyArray(); // lose references
+	}
 
         /**
          * set the value to "true", whether it already appears on not.

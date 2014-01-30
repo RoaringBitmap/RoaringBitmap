@@ -411,6 +411,21 @@ public class TestsSpeedyRoaringBitmap {
 		rr.validate();
 	}
 
+    @Test
+	public void ortest4() {	
+	SpeedyRoaringBitmap rb = new SpeedyRoaringBitmap();
+	SpeedyRoaringBitmap rb2 = new SpeedyRoaringBitmap();
+
+        for(int i=0; i<200000; i += 4) 
+	    rb2.add(i);
+        for(int i=200000; i<400000; i += 14)
+	    rb2.add(i);
+
+	// check or against an empty bitmap
+	SpeedyRoaringBitmap orresult = SpeedyRoaringBitmap.or(rb,rb2);
+	Assert.assertEquals(rb2.getCardinality(),orresult.getCardinality());
+    }
+
 	@Test
 	public void xortest1() {
 		HashSet<Integer> V1 = new HashSet<Integer>();
@@ -631,4 +646,43 @@ public class TestsSpeedyRoaringBitmap {
 		}
 			
 	}
+
+    @Test
+	public void clearTest() {
+	SpeedyRoaringBitmap rb = new SpeedyRoaringBitmap();
+        for(int i=0; i<200000; i += 7)  // dense
+	    rb.add(i);
+        for(int i=200000; i<400000; i += 177)  // sparse
+	    rb.add(i);
+
+	SpeedyRoaringBitmap rb2 = new SpeedyRoaringBitmap();
+	SpeedyRoaringBitmap rb3 = new SpeedyRoaringBitmap();
+        for(int i=0; i<200000; i += 4) 
+	    rb2.add(i);
+        for(int i=200000; i<400000; i += 14)
+	    rb2.add(i);
+
+	rb.clear();
+	Assert.assertEquals(0,rb.getCardinality());
+	Assert.assertTrue(0 != rb2.getCardinality());
+
+	rb.add(4); rb3.add(4);
+	SpeedyRoaringBitmap andresult = SpeedyRoaringBitmap.and(rb,rb2);
+	SpeedyRoaringBitmap orresult = SpeedyRoaringBitmap.or(rb,rb2);
+	
+	Assert.assertEquals(1,andresult.getCardinality());
+	Assert.assertEquals(rb2.getCardinality(),orresult.getCardinality());
+
+        for(int i=0; i<200000; i += 4) {
+	    rb.add(i); rb3.add(i);
+	}
+        for(int i=200000; i<400000; i += 114) {
+	    rb.add(i); rb3.add(i);
+	}
+
+	int[] arrayrr = rb.getIntegers();
+	int[] arrayrr3 = rb3.getIntegers();
+		
+	Assert.assertTrue(Arrays.equals(arrayrr, arrayrr3));
+    }
 }

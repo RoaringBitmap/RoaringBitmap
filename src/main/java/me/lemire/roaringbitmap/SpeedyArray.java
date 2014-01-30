@@ -54,7 +54,8 @@ public final class SpeedyArray implements Cloneable {
                         this.array = Arrays.copyOf(this.array, newcapacity);
                 }
         }
-        
+
+    // OFK: shouldn't we null the last entry? Risk of memory leak?
         public void removeAtIndex(int i) {
                 System.arraycopy(array, i+1, array, i, nbKeys - i - 1);
                 nbKeys--;
@@ -86,6 +87,7 @@ public final class SpeedyArray implements Cloneable {
                 return this.array[i];
         }
 
+    // OFK: shouldn't we null the array elements? (Memory leak)
         public void clear() {
                 this.nbKeys = 0;
         }
