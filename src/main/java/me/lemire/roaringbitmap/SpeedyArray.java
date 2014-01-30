@@ -95,9 +95,7 @@ public final class SpeedyArray implements Cloneable {
                 // size + 1 could overflow
                 if (this.size + k >= this.array.length) {
                         int newcapacity;
-                        if (this.array.length < 4) {
-                                newcapacity = this.size + k;
-                        } else if (this.array.length < 1024) {
+                        if (this.array.length < 1024) {
                                 newcapacity = 2 * (this.size + k);
                         } else {
                                 newcapacity = 5 * (this.size + k) / 4;
@@ -106,6 +104,7 @@ public final class SpeedyArray implements Cloneable {
                 }
         }
 
+        // involves a binary search
         public Container getContainer(short x) {
                 int i = this.binarySearch(0, size, x);
                 if (i < 0)
@@ -116,8 +115,13 @@ public final class SpeedyArray implements Cloneable {
         public Container getContainerAtIndex(int i) {
                 return this.array[i].value;
         }
-
+        
+        // involves a binary search
         public int getIndex(short x) {
+                // before the binary search, we optimize for frequent cases
+                if ((size == 0) || (array[size - 1].key == x))
+                         return size - 1;
+                // no luck we have to go through the list
                 return this.binarySearch(0, size, x);
         }
 
@@ -127,17 +131,12 @@ public final class SpeedyArray implements Cloneable {
 
     
         
-        // if i is positive, the replace the existing key-value
-        // otherwise, insert at -i
-        public void putKeyValueAt(int i, short key, Container value) {
-                if (i < 0) { // if a new key
+        // insert a new key, it is assumed that it does not exist
+        public void insertNewKeyValueAt(int i, short key, Container value) {
                         extendArray(1);
-                        System.arraycopy(array, -i - 1, array, -i, size + i + 1);
-                        array[-i - 1] = new Element(key, value);
+                        System.arraycopy(array, i, array, i+1, size - i);
+                        array[i] = new Element(key, value);
                         size++;
-                } else { // When the key exists yet
-                        this.array[i].value = value;
-                }
         }
 
         public boolean remove(short key) {

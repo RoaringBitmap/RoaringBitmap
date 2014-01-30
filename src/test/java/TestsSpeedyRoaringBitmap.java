@@ -254,10 +254,8 @@ public class TestsSpeedyRoaringBitmap {
 
         @Test
         public void cardinalityTest() {
-                // System.out.println("Testing cardinality computations (can take a few minutes)");
                 final int N = 1024;
                 for (int gap = 7; gap < 100000; gap *= 10) {
-                        // System.out.println("testing cardinality with gap = "+gap);
                         for (int offset = 2; offset <= 1024; offset *= 2) {
                                 SpeedyRoaringBitmap rb = new SpeedyRoaringBitmap();
                                 // check the add of new values
@@ -440,7 +438,6 @@ public class TestsSpeedyRoaringBitmap {
 
         @Test
         public void ortest3() {
-                // System.out.println("ortest3 (can take some time)");
                 HashSet<Integer> V1 = new HashSet<Integer>();
                 HashSet<Integer> V2 = new HashSet<Integer>();
 
@@ -516,7 +513,6 @@ public class TestsSpeedyRoaringBitmap {
 
                 for (int i : rror.getIntegers()) {
                         if (!vector.contains(new Integer(i))) {
-                                // System.out.println(" "+i);
                                 valide = false;
                         }
                         V2.add(new Integer(i));
@@ -524,7 +520,6 @@ public class TestsSpeedyRoaringBitmap {
                 for (int i = 0; i < V1.size(); i++)
                         if (!V2.contains(vector.elementAt(i))) {
                                 valide = false;
-                                // System.out.println(" "+vector.elementAt(i));
                         }
 
                 Assert.assertEquals(valide, true);
@@ -635,10 +630,8 @@ public class TestsSpeedyRoaringBitmap {
                 final int gap = 70;
 
                 SpeedyRoaringBitmap rb = new SpeedyRoaringBitmap();
-                // System.out.println(rb.getCardinality());
                 for (int k = 0; k < N; k++) {
                         rb.add(k * gap);
-                        // System.out.println(k+" "+rb.getCardinality());
                         Assert.assertEquals(rb.getCardinality(), k + 1);
                 }
                 Assert.assertEquals(rb.getCardinality(), N);
@@ -727,7 +720,6 @@ public class TestsSpeedyRoaringBitmap {
 
                 for (int i : rrxor.getIntegers()) {
                         if (!vector.contains(new Integer(i))) {
-                                System.out.println(" " + i);
                                 valide = false;
                         }
                         V2.add(new Integer(i));
@@ -735,7 +727,6 @@ public class TestsSpeedyRoaringBitmap {
                 for (int i = 0; i < V1.size(); i++)
                         if (!V2.contains(vector.elementAt(i))) {
                                 valide = false;
-                                System.out.println(" " + vector.elementAt(i));
                         }
 
                 Assert.assertEquals(valide, true);

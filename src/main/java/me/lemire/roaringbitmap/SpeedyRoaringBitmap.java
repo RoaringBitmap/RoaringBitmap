@@ -205,7 +205,7 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
          */
         public void set(final int x) {
                 final short hb = Util.highbits(x);
-                int i = highlowcontainer.getIndex(hb);
+                final int i = highlowcontainer.getIndex(hb);
                 if (i >= 0) {
                         highlowcontainer.setContainerAtIndex(
                                 i,
@@ -214,7 +214,7 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
                 } else {
                         ArrayContainer newac = ContainerFactory
                                 .getArrayContainer();
-                        highlowcontainer.putKeyValueAt(i,hb, newac.add(Util.lowbits(x)));
+                        highlowcontainer.insertNewKeyValueAt(-i-1,hb, newac.add(Util.lowbits(x)));
                 }
         }
 
