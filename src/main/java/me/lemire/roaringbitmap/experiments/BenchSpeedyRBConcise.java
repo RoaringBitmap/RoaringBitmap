@@ -20,7 +20,6 @@ import java.util.Vector;
 import javax.annotation.Generated;
 
 import me.lemire.roaringbitmap.*;
-import me.lemire.roaringbitmap.SpeedyArray.Element;
 import me.lemire.roaringbitmap.experiments.LineCharts.LineChartDemo1;
 import me.lemire.roaringbitmap.experiments.LineCharts.LineChartPoint;
 

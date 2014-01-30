@@ -232,7 +232,7 @@ public final class IntUtil {
 	 * @param array
 	 * @param pos
 	 * @param min
-	 * @return
+	 * @return smallest integer
 	 */
 	public static int advanceUntil(int[] array, int pos, int length, int min) {
 		int lower = pos+1;
