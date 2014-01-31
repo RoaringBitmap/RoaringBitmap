@@ -169,6 +169,13 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
                 return this;
         }
 
+        public ArrayContainer inPlaceANDNOT(final ArrayContainer value2) {
+                cardinality = Util.unsigned_difference(content,
+                        cardinality, value2.content,
+                        value2.getCardinality(), content);
+                return this;
+        }
+
         public Container inPlaceAND(BitmapContainer value2) {
                 int pos = 0;
                 for (int k = 0; k < cardinality; ++k)
@@ -178,6 +185,16 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
                 return this;
         }
 
+
+        public Container inPlaceANDNOT(BitmapContainer value2) {
+                int pos = 0;
+                for (int k = 0; k < cardinality; ++k)
+                        if (!value2.contains(this.content[k]))
+                                this.content[pos++] = this.content[k];
+                cardinality = pos;
+                return this;
+        }
+        
         public Container inPlaceOR(final ArrayContainer value2) {
                 // Using inPlace operations on arrays is very expensive. Each
                 // modification needs O(n) shifts

@@ -53,6 +53,20 @@ public final class Util {
                 return ((BitmapContainer) value2)
                         .inPlaceAND((BitmapContainer) value1);
         }
+        protected static Container inPlaceANDNOT(Container value1, Container value2) {
+                if (value1 instanceof ArrayContainer) {
+                        if (value2 instanceof ArrayContainer)
+                                return ((ArrayContainer) value1)
+                                        .inPlaceANDNOT((ArrayContainer) value2);
+                        return ((ArrayContainer) value1)
+                                .inPlaceANDNOT((BitmapContainer) value2);
+                }
+                if (value2 instanceof ArrayContainer)
+                        return ((BitmapContainer) value1)
+                                .inPlaceANDNOT((ArrayContainer) value2);
+                return ((BitmapContainer) value1)
+                        .inPlaceANDNOT((BitmapContainer) value2);
+        }
 
         protected static Container or(Container value1, Container value2) {
                 if (value1 instanceof ArrayContainer) {

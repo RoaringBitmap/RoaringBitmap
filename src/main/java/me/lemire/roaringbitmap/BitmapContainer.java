@@ -171,7 +171,28 @@ public final class BitmapContainer implements Container, Cloneable,
                 }
                 return this;
         }
-
+        public Container inPlaceANDNOT(final BitmapContainer B2) {
+                this.cardinality = 0;
+                for (int k = 0; k < this.bitmap.length; k++) {
+                        this.bitmap[k] &= ~B2.bitmap[k];
+                        this.cardinality += Long.bitCount(this.bitmap[k]);
+                }
+                if (cardinality <= ArrayContainer.DEFAULTMAXSIZE)
+                        return ContainerFactory
+                                .transformToArrayContainer(this);
+                return this;
+        }
+        public Container inPlaceANDNOT(final ArrayContainer B2) {
+                this.cardinality = 0;
+                for (int k = 0; k < B2.cardinality; ++k) {
+                                this.remove(B2.content[k]);
+                }
+                if (cardinality <= ArrayContainer.DEFAULTMAXSIZE)
+                        return ContainerFactory
+                                .transformToArrayContainer(this);
+                return this;
+        }
+        
         public BitmapContainer inPlaceOR(final ArrayContainer value2) {
                 for (int k = 0; k < value2.cardinality; ++k) {
                         final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
