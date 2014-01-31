@@ -276,7 +276,7 @@ public class TestsSpeedyRoaringBitmap {
 
                                 for (int k = 0; k < N; k++) {
                                         rb2.add(k * gap * offset);
-                                         Assert.assertEquals(
+                                        Assert.assertEquals(
                                                 rb2.getCardinality(), k + 1);
                                 }
 
@@ -384,6 +384,175 @@ public class TestsSpeedyRoaringBitmap {
                 Assert.assertTrue(validate(rbc, ac2));
                 rbc = ContainerFactory.transformToBitmapContainer(ac3.clone());
                 Assert.assertTrue(validate(rbc, ac3));
+        }
+
+        @Test
+        public void inPlaceANDNOTtest() {
+                SpeedyRoaringBitmap rr = new SpeedyRoaringBitmap();
+                for (int k = 4000; k < 4256; ++k)
+                        rr.add(k);
+                for (int k = 65536; k < 65536 + 4000; ++k)
+                        rr.add(k);
+                for (int k = 3 * 65536; k < 3 * 65536 + 9000; ++k)
+                        rr.add(k);
+                for (int k = 4 * 65535; k < 4 * 65535 + 7000; ++k)
+                        rr.add(k);
+                for (int k = 6 * 65535; k < 6 * 65535 + 10000; ++k)
+                        rr.add(k);
+                for (int k = 8 * 65535; k < 8 * 65535 + 1000; ++k)
+                        rr.add(k);
+                for (int k = 9 * 65535; k < 9 * 65535 + 30000; ++k)
+                        rr.add(k);
+
+                SpeedyRoaringBitmap rr2 = new SpeedyRoaringBitmap();
+                for (int k = 4000; k < 4256; ++k) {
+                        rr2.add(k);
+                }
+                for (int k = 65536; k < 65536 + 4000; ++k) {
+                        rr2.add(k);
+                }
+                for (int k = 3 * 65536 + 2000; k < 3 * 65536 + 6000; ++k) {
+                        rr2.add(k);
+                }
+                for (int k = 6 * 65535; k < 6 * 65535 + 1000; ++k) {
+                        rr2.add(k);
+                }
+                for (int k = 7 * 65535; k < 7 * 65535 + 1000; ++k) {
+                        rr2.add(k);
+                }
+                for (int k = 10 * 65535; k < 10 * 65535 + 5000; ++k) {
+                        rr2.add(k);
+                }
+                SpeedyRoaringBitmap correct = SpeedyRoaringBitmap.andNot(rr,
+                        rr2);
+                rr.andNot(rr2);
+                Assert.assertTrue(correct.equals(rr));
+        }
+
+        @Test
+        public void inPlaceANDtest() {
+                SpeedyRoaringBitmap rr = new SpeedyRoaringBitmap();
+                for (int k = 4000; k < 4256; ++k)
+                        rr.add(k);
+                for (int k = 65536; k < 65536 + 4000; ++k)
+                        rr.add(k);
+                for (int k = 3 * 65536; k < 3 * 65536 + 9000; ++k)
+                        rr.add(k);
+                for (int k = 4 * 65535; k < 4 * 65535 + 7000; ++k)
+                        rr.add(k);
+                for (int k = 6 * 65535; k < 6 * 65535 + 10000; ++k)
+                        rr.add(k);
+                for (int k = 8 * 65535; k < 8 * 65535 + 1000; ++k)
+                        rr.add(k);
+                for (int k = 9 * 65535; k < 9 * 65535 + 30000; ++k)
+                        rr.add(k);
+
+                SpeedyRoaringBitmap rr2 = new SpeedyRoaringBitmap();
+                for (int k = 4000; k < 4256; ++k) {
+                        rr2.add(k);
+                }
+                for (int k = 65536; k < 65536 + 4000; ++k) {
+                        rr2.add(k);
+                }
+                for (int k = 3 * 65536 + 2000; k < 3 * 65536 + 6000; ++k) {
+                        rr2.add(k);
+                }
+                for (int k = 6 * 65535; k < 6 * 65535 + 1000; ++k) {
+                        rr2.add(k);
+                }
+                for (int k = 7 * 65535; k < 7 * 65535 + 1000; ++k) {
+                        rr2.add(k);
+                }
+                for (int k = 10 * 65535; k < 10 * 65535 + 5000; ++k) {
+                        rr2.add(k);
+                }
+                SpeedyRoaringBitmap correct = SpeedyRoaringBitmap.and(rr, rr2);
+                rr.and(rr2);
+                Assert.assertTrue(correct.equals(rr));
+        }
+
+        @Test
+        public void inPlaceORtest() {
+                SpeedyRoaringBitmap rr = new SpeedyRoaringBitmap();
+                for (int k = 4000; k < 4256; ++k)
+                        rr.add(k);
+                for (int k = 65536; k < 65536 + 4000; ++k)
+                        rr.add(k);
+                for (int k = 3 * 65536; k < 3 * 65536 + 9000; ++k)
+                        rr.add(k);
+                for (int k = 4 * 65535; k < 4 * 65535 + 7000; ++k)
+                        rr.add(k);
+                for (int k = 6 * 65535; k < 6 * 65535 + 10000; ++k)
+                        rr.add(k);
+                for (int k = 8 * 65535; k < 8 * 65535 + 1000; ++k)
+                        rr.add(k);
+                for (int k = 9 * 65535; k < 9 * 65535 + 30000; ++k)
+                        rr.add(k);
+
+                SpeedyRoaringBitmap rr2 = new SpeedyRoaringBitmap();
+                for (int k = 4000; k < 4256; ++k) {
+                        rr2.add(k);
+                }
+                for (int k = 65536; k < 65536 + 4000; ++k) {
+                        rr2.add(k);
+                }
+                for (int k = 3 * 65536 + 2000; k < 3 * 65536 + 6000; ++k) {
+                        rr2.add(k);
+                }
+                for (int k = 6 * 65535; k < 6 * 65535 + 1000; ++k) {
+                        rr2.add(k);
+                }
+                for (int k = 7 * 65535; k < 7 * 65535 + 1000; ++k) {
+                        rr2.add(k);
+                }
+                for (int k = 10 * 65535; k < 10 * 65535 + 5000; ++k) {
+                        rr2.add(k);
+                }
+                SpeedyRoaringBitmap correct = SpeedyRoaringBitmap.or(rr, rr2);
+                rr.or(rr2);
+                Assert.assertTrue(correct.equals(rr));
+        }
+
+        @Test
+        public void inPlaceXORtest() {
+                SpeedyRoaringBitmap rr = new SpeedyRoaringBitmap();
+                for (int k = 4000; k < 4256; ++k)
+                        rr.add(k);
+                for (int k = 65536; k < 65536 + 4000; ++k)
+                        rr.add(k);
+                for (int k = 3 * 65536; k < 3 * 65536 + 9000; ++k)
+                        rr.add(k);
+                for (int k = 4 * 65535; k < 4 * 65535 + 7000; ++k)
+                        rr.add(k);
+                for (int k = 6 * 65535; k < 6 * 65535 + 10000; ++k)
+                        rr.add(k);
+                for (int k = 8 * 65535; k < 8 * 65535 + 1000; ++k)
+                        rr.add(k);
+                for (int k = 9 * 65535; k < 9 * 65535 + 30000; ++k)
+                        rr.add(k);
+
+                SpeedyRoaringBitmap rr2 = new SpeedyRoaringBitmap();
+                for (int k = 4000; k < 4256; ++k) {
+                        rr2.add(k);
+                }
+                for (int k = 65536; k < 65536 + 4000; ++k) {
+                        rr2.add(k);
+                }
+                for (int k = 3 * 65536 + 2000; k < 3 * 65536 + 6000; ++k) {
+                        rr2.add(k);
+                }
+                for (int k = 6 * 65535; k < 6 * 65535 + 1000; ++k) {
+                        rr2.add(k);
+                }
+                for (int k = 7 * 65535; k < 7 * 65535 + 1000; ++k) {
+                        rr2.add(k);
+                }
+                for (int k = 10 * 65535; k < 10 * 65535 + 5000; ++k) {
+                        rr2.add(k);
+                }
+                SpeedyRoaringBitmap correct = SpeedyRoaringBitmap.xor(rr, rr2);
+                rr.xor(rr2);
+                Assert.assertTrue(correct.equals(rr));
         }
 
         @Test

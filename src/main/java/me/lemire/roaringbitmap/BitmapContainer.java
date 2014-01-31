@@ -183,7 +183,6 @@ public final class BitmapContainer implements Container, Cloneable,
                 return this;
         }
         public Container inPlaceANDNOT(final ArrayContainer B2) {
-                this.cardinality = 0;
                 for (int k = 0; k < B2.cardinality; ++k) {
                                 this.remove(B2.content[k]);
                 }

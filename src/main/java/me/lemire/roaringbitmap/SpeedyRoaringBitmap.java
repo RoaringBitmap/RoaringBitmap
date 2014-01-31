@@ -6,7 +6,7 @@ import java.util.Iterator;
 /**
  * TODO: This class should be renamed RoaringBitmap.
  */
-public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
+public final class SpeedyRoaringBitmap implements Cloneable, Serializable, Iterable<Integer>  {
 
         public SpeedyRoaringBitmap() {
                 highlowcontainer = new SpeedyArray();
@@ -203,16 +203,13 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
                         short s2 = x2.highlowcontainer.getKeyAtIndex(pos2);
                         do {
                                 if (s1 < s2) {
-                                        pos1++;
-                                        if (pos1 == length1)
-                                                break main;
-                                        s1 = highlowcontainer
-                                                .getKeyAtIndex(pos1);
-                                } else if (s1 > s2) {
                                         highlowcontainer.removeAtIndex(pos1);
                                         --length1;
                                         if(pos1==length1)
                                                 break main;
+                                        s1 = highlowcontainer
+                                                .getKeyAtIndex(pos1);
+                                } else if (s1 > s2) {
                                         pos2++;
                                         if (pos2 == length2)
                                                 break main;
@@ -267,7 +264,7 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
                                                 .getKeyAtIndex(pos2);
                                 } else {
                                         Container C = Util
-                                                .inPlaceAND(
+                                                .inPlaceANDNOT(
                                                         highlowcontainer
                                                                 .getContainerAtIndex(pos1),
                                                         x2.highlowcontainer
@@ -364,9 +361,6 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
                                         s1 = highlowcontainer
                                                 .getKeyAtIndex(pos1);
                                 } else if (s1 > s2) {
-                                        highlowcontainer.insertNewKeyValueAt(pos1, s2, x2.highlowcontainer.getContainerAtIndex(pos2));
-                                        pos1++;
-                                        length1++;
                                         pos2++;
                                         if (pos2 == length2) {
                                                 break main;
@@ -378,8 +372,8 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable {
                                                 .getContainerAtIndex(pos1), x2.highlowcontainer
                                                 .getContainerAtIndex(pos2));
                                         if(C.getCardinality()>0) {
-                                                pos1++;
                                                 this.highlowcontainer.setContainerAtIndex(pos1, C);
+                                                pos1++;
                                         } else {
                                                 highlowcontainer.removeAtIndex(pos1);
                                                 --length1;
