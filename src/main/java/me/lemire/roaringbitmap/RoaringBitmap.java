@@ -1,587 +1,717 @@
 package me.lemire.roaringbitmap;
 
-import it.unimi.dsi.fastutil.shorts.Short2ObjectAVLTreeMap;
-import it.unimi.dsi.fastutil.shorts.ShortBidirectionalIterator;
-
 import java.io.Serializable;
 import java.util.Iterator;
-import java.util.Map.Entry;
-/**
- * TODO: This class is now obsolete.
- */
-public final class RoaringBitmap implements Iterable<Integer>, Cloneable, Serializable {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 3L;
-	public Short2ObjectAVLTreeMap<Container> highlowcontainer = new Short2ObjectAVLTreeMap<Container>(); // does
-	//public SortedMap<Short, Container> highlowcontainer = new SortedMap<Short, Container>();
-	//SpeedyArray highlowcontainer = null;
-       
-	/**
-   * set the value to "true", whether it already appears on not.
-   */     																									
-   public void add(final int x) {
-      set(x);
-   }
-	
+
+public final class RoaringBitmap implements Cloneable, Serializable,
+        Iterable<Integer> {
+
+        public RoaringBitmap() {
+                highlowcontainer = new RoaringArray();
+        }
+
+
         /**
          * set the value to "true", whether it already appears on not.
-         */ 	
-	public void set(final int x) {
-		final short hb = Util.highbits(x);
-		final Container z = highlowcontainer.get(hb);
-		if(z != null) {
-		  Container z2 = z.add(Util.lowbits(x));
-          if(z2 != z) {		          
-		    highlowcontainer.put(hb,z2); //Replace the ArrayContainer by the new bitmapContainer
-          }
-		} else {
-			ArrayContainer newac = ContainerFactory.getArrayContainer();
-			highlowcontainer.put(hb, newac.add(Util.lowbits(x)));
-		}
-	}
-	
-	public void validate() {
-				for (Container C : highlowcontainer.values())
-					C.validate();
-	}
+         */
+        public void add(final int x) {
+                final short hb = Util.highbits(x);
+                final int i = highlowcontainer.getIndex(hb);
+                if (i >= 0) {
+                        highlowcontainer.setContainerAtIndex(
+                                i,
+                                highlowcontainer.getContainerAtIndex(i).add(
+                                        Util.lowbits(x)));
+                } else {
+                        final ArrayContainer newac = ContainerFactory
+                                .getArrayContainer();
+                        highlowcontainer.insertNewKeyValueAt(-i - 1, hb,
+                                newac.add(Util.lowbits(x)));
+                }
+        }
 
-	public static RoaringBitmap and(final RoaringBitmap x1, final RoaringBitmap x2) {
-	        final RoaringBitmap answer = new RoaringBitmap();
-	        final ShortBidirectionalIterator p1 = x1.highlowcontainer.keySet().iterator();
-	        final ShortBidirectionalIterator p2 = x2.highlowcontainer.keySet().iterator();
-		main: if (p1.hasNext() && p2.hasNext()) {
-		        short s1 = p1.next();
-		        short s2 = p2.next();
-			do {
-				if (s1 < s2) {
-					if (!p1.hasNext())
-						break main;
-					s1 = p1.next();
-				} else if (s1 > s2) {
-					if (!p2.hasNext())	break main;
-					s2 = p2.next();
-				} else { 
-					Container C = Util.and(x1.highlowcontainer.get(s1), x2.highlowcontainer.get(s2));
-					if(C.getCardinality()>0)
-						answer.highlowcontainer.put(s1,C);
-					if (!p1.hasNext())	break main;
-					if (!p2.hasNext())	break main;
-					s1 = p1.next();
-					s2 = p2.next();
-				}
-			} while (true);
-		}
-		return answer;
-	}
-	
-	public void inPlaceAND(final RoaringBitmap x2) {
-	        final RoaringBitmap x1 = this;
-        final ShortBidirectionalIterator p1 = x1.highlowcontainer.keySet().iterator();
-        final ShortBidirectionalIterator p2 = x2.highlowcontainer.keySet().iterator();
-	main: if (p1.hasNext() && p2.hasNext()) {
-	        short s1 = p1.next();
-	        short s2 = p2.next();
-		do {
-			if (s1 < s2) {
-				if (!p1.hasNext())
-					break main;				
-				x1.highlowcontainer.remove(s1);
-				s1 = p1.next();
-			} else if (s1 > s2) {
-				if (!p2.hasNext())	break main;
-				s2 = p2.next();
-			} else { 
-				Container C = Util.inPlaceAND(x1.highlowcontainer.get(s1), 
-						x2.highlowcontainer.get(s2));
-				if(C.getCardinality()>0)
-					x1.highlowcontainer.put(s1,C);
-				if (!p1.hasNext())	break main;
-				if (!p2.hasNext())	break main;
-				s1 = p1.next();
-				s2 = p2.next();
-			}
-		} while (true);
-	}
-}
-	
-	// DL: I have a theory that this might be suboptimal, see and().
-    public static RoaringBitmap oldand(final RoaringBitmap x1, final RoaringBitmap x2) {
-                System.out.println("and");
-                final RoaringBitmap answer = new RoaringBitmap();
-                final Iterator<Entry<Short, Container>> p1 = x1.highlowcontainer
-                                .entrySet().iterator();
-                final Iterator<Entry<Short, Container>> p2 = x2.highlowcontainer
-                                .entrySet().iterator();
-                main: if (p1.hasNext() && p2.hasNext()) {
-                        Entry<Short, Container> s1 = p1.next();
-                        Entry<Short, Container> s2 = p2.next();
-
+        public void and(final RoaringBitmap x2) {
+                int pos1 = 0, pos2 = 0;
+                int length1 = highlowcontainer.size();
+                final int length2 = x2.highlowcontainer.size();
+                /*
+                 * TODO: This could be optimized quite a bit when one bitmap is
+                 * much smaller than the other one.
+                 */
+                main: if (pos1 < length1 && pos2 < length2) {
+                        short s1 = highlowcontainer.getKeyAtIndex(pos1);
+                        short s2 = x2.highlowcontainer.getKeyAtIndex(pos2);
                         do {
-                                if (s1.getKey().shortValue() < s2.getKey().shortValue()) {
-                                        if (!p1.hasNext())
+                                if (s1 < s2) {
+                                        highlowcontainer.removeAtIndex(pos1);
+                                        --length1;
+                                        if (pos1 == length1)
                                                 break main;
-                                        s1 = p1.next();
-                                } else if (s1.getKey().shortValue() > s2.getKey().shortValue()) {
-                                        if (!p2.hasNext())      break main;
-                                        s2 = p2.next();
-                                } else { 
-                                        System.out.println("got match, going down to container");
-                                        //nbAND++;
-                                        Container C = Util.and(s1.getValue(), s2.getValue());
-                                        if(C.getCardinality()>0)
-                                                answer.highlowcontainer.put(s1.getKey(),C);
-                                        if (!p1.hasNext())      break main;
-                                        if (!p2.hasNext())      break main;
-                                        s1 = p1.next();
-                                        s2 = p2.next();
+                                        s1 = highlowcontainer
+                                                .getKeyAtIndex(pos1);
+                                } else if (s1 > s2) {
+                                        pos2++;
+                                        if (pos2 == length2)
+                                                break main;
+                                        s2 = x2.highlowcontainer
+                                                .getKeyAtIndex(pos2);
+                                } else {
+                                        final Container C = highlowcontainer
+                                                .getContainerAtIndex(pos1)
+                                                .and(x2.highlowcontainer
+                                                        .getContainerAtIndex(pos2));
+                                        if (C.getCardinality() > 0) {
+                                                this.highlowcontainer
+                                                        .setContainerAtIndex(
+                                                                pos1, C);
+                                                pos1++;
+                                        } else {
+                                                highlowcontainer
+                                                        .removeAtIndex(pos1);
+                                                --length1;
+                                        }
+                                        pos2++;
+                                        if ((pos1 == length1)
+                                                || (pos2 == length2))
+                                                break main;
+                                        s1 = highlowcontainer
+                                                .getKeyAtIndex(pos1);
+                                        s2 = x2.highlowcontainer
+                                                .getKeyAtIndex(pos2);
                                 }
                         } while (true);
                 }
-                return answer;
         }
-	
-	public static RoaringBitmap or(final RoaringBitmap x1, final RoaringBitmap x2) {
-	    final RoaringBitmap answer = new RoaringBitmap();
-		final Iterator<Entry<Short, Container>> p1 = x1.highlowcontainer
-				.entrySet().iterator();
-		final Iterator<Entry<Short, Container>> p2 = x2.highlowcontainer
-				.entrySet().iterator();
-		main: if (p1.hasNext() && p2.hasNext()) {
-			Entry<Short, Container> s1 = p1.next();
-			Entry<Short, Container> s2 = p2.next();
 
-			while (true) {
-				if (s1.getKey().shortValue() < s2.getKey().shortValue()) {
-					answer.highlowcontainer.put(s1.getKey(), s1.getValue());
-					if (!p1.hasNext()) { 
-						do {
-							answer.highlowcontainer.put(s2.getKey(),
-									s2.getValue());
-							if (!p2.hasNext())
-								break;
-							s2 = p2.next();
-						} while (true);
-						break main;
-					}
-					s1 = p1.next();
-				} else if (s1.getKey().shortValue() > s2.getKey().shortValue()) { 
-					answer.highlowcontainer.put(s2.getKey(), s2.getValue());
-					if (!p2.hasNext()) { 
-						do {
-							answer.highlowcontainer.put(s1.getKey(),
-									s1.getValue());
-							if (!p1.hasNext())
-								break;
-							s1 = p1.next();
-						} while (true);
-						break main;
-					}
-					s2 = p2.next();
-				} else {
-					//nbOR++;
-					answer.highlowcontainer.put(s1.getKey(),
-							Util.or(s1.getValue(), s2.getValue()));
-					if (!p1.hasNext()) { 
-						while (p2.hasNext()) {
-							s2 = p2.next();
-							answer.highlowcontainer.put(s2.getKey(),s2.getValue());
-						}
-						break main;
-					}
+        public void andNot(final RoaringBitmap x2) {
+                int pos1 = 0, pos2 = 0;
+                int length1 = highlowcontainer.size();
+                final int length2 = x2.highlowcontainer.size();
+                main: if (pos1 < length1 && pos2 < length2) {
+                        short s1 = highlowcontainer.getKeyAtIndex(pos1);
+                        short s2 = x2.highlowcontainer.getKeyAtIndex(pos2);
+                        do {
+                                if (s1 < s2) {
+                                        pos1++;
+                                        if (pos1 == length1)
+                                                break main;
+                                        s1 = highlowcontainer
+                                                .getKeyAtIndex(pos1);
+                                } else if (s1 > s2) {
+                                        pos2++;
+                                        if (pos2 == length2) {
+                                                break main;
+                                        }
+                                        s2 = x2.highlowcontainer
+                                                .getKeyAtIndex(pos2);
+                                } else {
+                                        final Container C = highlowcontainer
+                                                .getContainerAtIndex(pos1)
+                                                .andNot(x2.highlowcontainer
+                                                        .getContainerAtIndex(pos2));
+                                        if (C.getCardinality() > 0) {
+                                                this.highlowcontainer
+                                                        .setContainerAtIndex(
+                                                                pos1, C);
+                                                pos1++;
+                                        } else {
+                                                highlowcontainer
+                                                        .removeAtIndex(pos1);
+                                                --length1;
+                                        }
+                                        pos2++;
+                                        if ((pos1 == length1)
+                                                || (pos2 == length2))
+                                                break main;
+                                        s1 = highlowcontainer
+                                                .getKeyAtIndex(pos1);
+                                        s2 = x2.highlowcontainer
+                                                .getKeyAtIndex(pos2);
+                                }
+                        } while (true);
+                }
+        }
 
-					if (!p2.hasNext()) { 
-						while (p1.hasNext()) {
-							s1 = p1.next();
-							answer.highlowcontainer.put(s1.getKey(),
-									s1.getValue());
-						}
-						break main;
-					}
-					s1 = p1.next();
-					s2 = p2.next();
-				}
-			}
-		}
-		return answer;
-	}
-	
-	public void inPlaceOR (final RoaringBitmap x2) {
-	        final RoaringBitmap x1 = this;
-	    //final RoaringBitmap answer = new RoaringBitmap();
-		final Iterator<Entry<Short, Container>> p1 = x1.highlowcontainer
-				.entrySet().iterator();
-		final Iterator<Entry<Short, Container>> p2 = x2.highlowcontainer
-				.entrySet().iterator();
-		main: if (p1.hasNext() && p2.hasNext()) {
-			Entry<Short, Container> s1 = p1.next();
-			Entry<Short, Container> s2 = p2.next();
-
-			while (true) {
-				if (s1.getKey().shortValue() < s2.getKey().shortValue()) {
-					//x1.highlowcontainer.put(s1.getKey(), s1.getValue());
-					if (!p1.hasNext()) { 
-						do {
-							x1.highlowcontainer.put(s2.getKey(),
-									s2.getValue());
-							if (!p2.hasNext())
-								break;
-							s2 = p2.next();
-						} while (true);
-						break main;
-					}
-					s1 = p1.next();
-				} else if (s1.getKey().shortValue() > s2.getKey().shortValue()) { 
-					x1.highlowcontainer.put(s2.getKey(), s2.getValue());
-					if (!p2.hasNext())						
-						break main;
-					
-					s2 = p2.next();
-				} else {
-					//nbOR++;
-					x1.highlowcontainer.put(s1.getKey(),
-							Util.inPlaceOR(s1.getValue(), s2.getValue()));
-					if (!p1.hasNext()) { 
-						while (p2.hasNext()) {
-							s2 = p2.next();
-							x1.highlowcontainer.put(s2.getKey(),s2.getValue());
-						}
-						break main;
-					}
-
-					if (!p2.hasNext())						
-						break main;
-					
-					s1 = p1.next();
-					s2 = p2.next();
-				}
-			}
-		}
-	}
-	
-	public static RoaringBitmap xor(final RoaringBitmap x1, final RoaringBitmap x2) {
-	        final RoaringBitmap answer = new RoaringBitmap();
-		final Iterator<Entry<Short, Container>> p1 = x1.highlowcontainer
-				.entrySet().iterator();
-		final Iterator<Entry<Short, Container>> p2 = x2.highlowcontainer
-				.entrySet().iterator();
-		main: if (p1.hasNext() && p2.hasNext()) {
-			Entry<Short, Container> s1 = p1.next();
-			Entry<Short, Container> s2 = p2.next();
-
-			while (true) {
-				if (s1.getKey().shortValue() < s2.getKey().shortValue()) {
-					answer.highlowcontainer.put(s1.getKey(), s1.getValue());
-					if (!p1.hasNext()) { 
-						do {
-							answer.highlowcontainer.put(s2.getKey(),
-									s2.getValue());
-							if (!p2.hasNext())
-								break;
-							s2 = p2.next();
-						} while (true);
-						break main;
-					}
-					s1 = p1.next();
-				} else if (s1.getKey().shortValue() > s2.getKey().shortValue()) { 
-					answer.highlowcontainer.put(s2.getKey(), s2.getValue());
-					if (!p2.hasNext()) { 
-						do {
-							answer.highlowcontainer.put(s1.getKey(),
-									s1.getValue());
-							if (!p1.hasNext())
-								break;
-							s1 = p1.next();
-						} while (true);
-						break main;
-					}
-					s2 = p2.next();
-				} else { 
-					//nbXOR++;
-					Container C = Util.xor(s1.getValue(), s2.getValue());
-					if (C.getCardinality()>0)
-						answer.highlowcontainer.put(s1.getKey(), C);
-					if (!p1.hasNext()) {
-						while (p2.hasNext()) {
-							s2 = p2.next();
-							answer.highlowcontainer.put(s2.getKey(),
-									s2.getValue());
-						}
-						break main;
-					}
-
-					if (!p2.hasNext()) {
-						while (p1.hasNext()) {
-							s1 = p1.next();
-							answer.highlowcontainer.put(s1.getKey(),
-									s1.getValue());
-						}
-						break main;
-					}
-					s1 = p1.next();
-					s2 = p2.next();
-				}
-			}
-		}
-		return answer;
-	}
-	
-	public  void inPlaceXOR(final RoaringBitmap x2) {
-	        final RoaringBitmap x1 = this;
-       // final RoaringBitmap answer = new RoaringBitmap();
-	final Iterator<Entry<Short, Container>> p1 = x1.highlowcontainer
-			.entrySet().iterator();
-	final Iterator<Entry<Short, Container>> p2 = x2.highlowcontainer
-			.entrySet().iterator();
-	main: if (p1.hasNext() && p2.hasNext()) {
-		Entry<Short, Container> s1 = p1.next();
-		Entry<Short, Container> s2 = p2.next();
-
-		while (true) {
-			if (s1.getKey().shortValue() < s2.getKey().shortValue()) {
-				
-				if (!p1.hasNext()) { 
-					do {
-						x1.highlowcontainer.put(s2.getKey(),
-								s2.getValue());
-						if (!p2.hasNext())
-							break;
-						s2 = p2.next();
-					} while (true);
-					break main;
-				}
-				s1 = p1.next();
-			} else if (s1.getKey().shortValue() > s2.getKey().shortValue()) { 
-				x1.highlowcontainer.put(s2.getKey(), s2.getValue());
-				if (!p2.hasNext()) 
-					break main;
-				
-				s2 = p2.next();
-			} else { 
-				//nbXOR++;
-				Container C = Util.inPlaceXOR(s1.getValue(), s2.getValue());
-				if (C.getCardinality()>0)
-					x1.highlowcontainer.put(s1.getKey(), C);
-				if (!p1.hasNext()) {
-					while (p2.hasNext()) {
-						s2 = p2.next();
-						x1.highlowcontainer.put(s2.getKey(),
-								s2.getValue());
-					}
-					break main;
-				}
-
-				if (!p2.hasNext()) 
-					break main;
-				
-				s1 = p1.next();
-				s2 = p2.next();
-			}
-		}
-	}
-}
-
-	public int[] getIntegers() {
-	    final int[] array = new int[this.getCardinality()];
-		int pos=0;
-		final Iterator<Entry<Short, Container>> p1 = this.highlowcontainer
-				.entrySet().iterator();
-		while(p1.hasNext())
-		{
-		        final Entry<Short, Container> s = p1.next();
-			final int hs = s.getKey().shortValue() << 16;
-			final ShortIterator si = s.getValue().getShortIterator();
-			while(si.hasNext()) {
-			        array[pos++] 
-			        		= hs | 
-			        			si.next();
-			}
-		}	
-		return array;
-	}
-	
-	public void remove(final int x) {
-		final short hb = Util.highbits(x);
-		final Container corig = highlowcontainer.get(hb);
-		if(corig == null) return; //key not present
-                final Container cc = corig.remove(Util.lowbits(x));
-                if (cc.getCardinality() == 0)
-                                highlowcontainer.remove(hb);
-                else if(cc != corig)
-                                highlowcontainer.put(hb, cc);
-                
-		/*if (highlowcontainer.containsKey(hb)) {
-		        final Container corig = highlowcontainer.get(hb);
-		        final Container cc = corig.remove(Util.lowbits(x));
-		        if (cc.getCardinality() == 0)
-		        	highlowcontainer.remove(hb);
-			else if(cc != corig)
-				highlowcontainer.put(hb, cc);
-		}*/
-	}
-
-	public boolean contains(final int x) {
-		final short hb = Util.highbits(x);
-		final Container C = highlowcontainer.get(hb);
-		if(C == null) return false;
-                return C.contains(Util.lowbits(x));
-		/*
-		if (highlowcontainer.containsKey(hb)) {
-		        final Container C = highlowcontainer.get(hb);
-			return C.contains(Util.lowbits(x));
-		}
-		return false;*/
-	}
+        /**
+         * reset to an empty bitmap; result occupies as much space a newly
+         * created bitmap.
+         */
+        public void clear() {
+                highlowcontainer = new RoaringArray(); // lose references
+        }
 
         @Override
+        public RoaringBitmap clone() {
+                try {
+                        final RoaringBitmap x = (RoaringBitmap) super.clone();
+                        x.highlowcontainer = highlowcontainer.clone();
+                        return x;
+                } catch (final CloneNotSupportedException e) {
+                        e.printStackTrace();
+                        throw new RuntimeException(
+                                "shouldn't happen with clone");
+                }
+        }
+
+        public boolean contains(final int x) {
+                final short hb = Util.highbits(x);
+                final Container C = highlowcontainer.getContainer(hb);
+                if (C == null)
+                        return false;
+                return C.contains(Util.lowbits(x));
+        }
+
+        /**
+         * public Container getContainer(short key) { return
+         * this.highlowcontainer.getContainer(key); }
+         */
+
+        public boolean containsKey(short key) {
+                return this.highlowcontainer.ContainsKey(key);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+                if (o instanceof RoaringBitmap) {
+                        final RoaringBitmap srb = (RoaringBitmap) o;
+                        return srb.highlowcontainer
+                                .equals(this.highlowcontainer);
+                }
+                return false;
+        }
+
+
+        public int getCardinality() {
+                int size = 0;
+                for (int i = 0; i < this.highlowcontainer.size(); i++) {
+                        size += this.highlowcontainer.getContainerAtIndex(i)
+                                .getCardinality();
+                }
+                return size;
+        }
+
+        public int getSizeInBytes() {
+                int size = 8;
+                for (int i = 0; i < this.highlowcontainer.size(); i++) {
+                        final Container c = this.highlowcontainer
+                                .getContainerAtIndex(i);
+                        size += 2 + c.getSizeInBytes();
+                }
+                return size;
+        }
+
+        /**
+         * iterate over the positions of the true values. 
+         * 
+         * @return the iterator
+         */
+        @Override
         public Iterator<Integer> iterator() {
-                final Iterator<Entry<Short, Container>> parent = highlowcontainer
-                        .entrySet().iterator();
-
                 return new Iterator<Integer>() {
-                        int parentw;
-                        int actualval;
-
-                        ShortIterator child;
-
                         @Override
                         public boolean hasNext() {
-                                return child.hasNext();
+                                return pos < RoaringBitmap.this.highlowcontainer
+                                        .size();
                         }
 
                         public Iterator<Integer> init() {
-                                if (parent.hasNext()) {
-                                        Entry<Short, Container> esc = parent
-                                                .next();
-                                        parentw = esc.getKey().shortValue() << 16;
-                                        child = esc.getValue()
-                                                .getShortIterator();
-                                } else {
-                                        child = new ShortIterator() {
-
-                                                @Override
-                                                public boolean hasNext() {
-                                                        return false;
-                                                }
-
-                                                @Override
-                                                public short next() {
-                                                        return 0;
-                                                }
-                                        };
-
+                                if (pos < RoaringBitmap.this.highlowcontainer
+                                        .size()) {
+                                        iter = RoaringBitmap.this.highlowcontainer
+                                                .getContainerAtIndex(pos)
+                                                .iterator();
+                                        hs = Util
+                                                .toIntUnsigned(RoaringBitmap.this.highlowcontainer
+                                                        .getKeyAtIndex(pos)) << 16;
                                 }
                                 return this;
                         }
 
                         @Override
                         public Integer next() {
-                                int lowerbits = child.next() & 0xFFFF;
-                                actualval = lowerbits | parentw;
-                                if (!child.hasNext()) {
-                                        if (parent.hasNext()) {
-                                                Entry<Short, Container> esc = parent
-                                                        .next();
-                                                parentw = esc.getKey()
-                                                        .shortValue() << 16;
-                                                child = esc.getValue()
-                                                        .getShortIterator();
-                                        }
+                                x = Util.toIntUnsigned(iter.next()) | hs;
+                                if (!iter.hasNext()) {
+                                        ++pos;
+                                        init();
                                 }
-                                return actualval;
+                                return x;
                         }
 
                         @Override
                         public void remove() {
-                                RoaringBitmap.this.remove(actualval);
+                                if ((x & hs) == hs) {// still in same container
+                                        iter.remove();
+                                } else {
+                                        RoaringBitmap.this.remove(x);
+                                }
                         }
+
+                        int hs = 0;
+
+                        Iterator<Short> iter;
+
+                        short pos = 0;
+
+                        int x;
+
                 }.init();
         }
-	
-	public int getSizeInBytes(){
-                int size = this.highlowcontainer.size() * 4;
-	        for(Container c:  this.highlowcontainer.values()) {
-	                size+=2+c.getSizeInBytes();
-	        }
-	        return size;
-	}
-	
-	/**
-	 * return an array that contains the number of short integers in each node. 
-	 * The number of short integers of the i th node will be stocked in the array's position i.
-	 * @return int[] number of short integers per node   
-	 */
-	public int[] getIntsPerNode () {
-		int nb[] = new int[this.highlowcontainer.size()], pos = 0;
-		for (Container c : this.highlowcontainer.values())
-			nb[pos++] = c.getCardinality();
-		return nb;
-	}
-	
-	public int getNbNodes() {
-		return this.highlowcontainer.size();
-	}
-	
-	public int getCardinality(){
-		int size = 0;
-	        for(Container c:  this.highlowcontainer.values()) {
-                        size+=c.getCardinality();
-                }
-		return size;
-	}
 
-	/**
-	 * Reduce memory usage.
-	 */
-        public void trim(){
-                for(Container c:  this.highlowcontainer.values()) {
-                        c.trim();
-                }
-        }	
-	@Override
-	public RoaringBitmap clone() {
-		try {
-			RoaringBitmap x = (RoaringBitmap) super.clone();
-			x.highlowcontainer = highlowcontainer
-					.clone();
-			return x;
-		} catch (CloneNotSupportedException e) {
-			e.printStackTrace();
-			throw new RuntimeException("shouldn't happen with clone");
-		}
-	}
+        public void or(final RoaringBitmap x2) {
+                int pos1 = 0, pos2 = 0;
+                int length1 = highlowcontainer.size();
+                final int length2 = x2.highlowcontainer.size();
+                main: if (pos1 < length1 && pos2 < length2) {
+                        short s1 = highlowcontainer.getKeyAtIndex(pos1);
+                        short s2 = x2.highlowcontainer.getKeyAtIndex(pos2);
 
-	@Override
-	public String toString(){
-	        /**
-	         * TODO: This toString is really more
-	         * of a debugging routine. Should be removed in the final version.
-	         */
-		int nbNodes = this.highlowcontainer.size();
-		int nbArrayC = 0, nbBitmapC=0, minAC=1024, maxAC=0, minBC=65535, maxBC=0, card, avAC=0, avBC=0;
-		for (Container C : this.highlowcontainer.values())
-			if(C instanceof ArrayContainer) {
-				nbArrayC++;
-				card = C.getCardinality(); 
-				if(card<minAC) minAC=C.getCardinality();
-				if(card>maxAC) maxAC=C.getCardinality();
-				avAC+=card;
-			}
-			else {
-				nbBitmapC++;
-				card = C.getCardinality();
-				if(C.getCardinality()<minBC) minBC=C.getCardinality();
-				if(C.getCardinality()>maxBC) maxBC=C.getCardinality();
-				avBC+=card;
-			}
-		try {avAC/=nbArrayC;}catch(ArithmeticException e)	{avAC=0;}
-		try {avBC/=nbBitmapC;}catch(ArithmeticException e)	{avBC=0;} 
-		String desc = "We have "+nbNodes+" nodes with "+nbArrayC+" ArrayContainers min : "+minAC+" max : "+maxAC
-			+" average : "+avAC+" and "+nbBitmapC+" BitmapContainers min : "+minBC+" max : "+maxBC+" avBC : "+avBC;
-		return desc;		
-	}
-	
+                        while (true) {
+                                if (s1 < s2) {
+                                        pos1++;
+                                        if (pos1 == length1) {
+                                                break main;
+                                        }
+                                        s1 = highlowcontainer
+                                                .getKeyAtIndex(pos1);
+                                } else if (s1 > s2) {
+                                        highlowcontainer
+                                                .insertNewKeyValueAt(
+                                                        pos1,
+                                                        s2,
+                                                        x2.highlowcontainer
+                                                                .getContainerAtIndex(pos2));
+                                        pos1++;
+                                        length1++;
+                                        pos2++;
+                                        if (pos2 == length2) {
+                                                break main;
+                                        }
+                                        s2 = x2.highlowcontainer
+                                                .getKeyAtIndex(pos2);
+                                } else {
+                                        this.highlowcontainer
+                                                .setContainerAtIndex(
+                                                        pos1,
+                                                        highlowcontainer
+                                                                .getContainerAtIndex(
+                                                                        pos1)
+                                                                .or(x2.highlowcontainer
+                                                                        .getContainerAtIndex(pos2)));
+                                        pos1++;
+                                        pos2++;
+                                        if ((pos1 == length1)
+                                                || (pos2 == length2)) {
+                                                break main;
+                                        }
+                                        s1 = highlowcontainer
+                                                .getKeyAtIndex(pos1);
+                                        s2 = x2.highlowcontainer
+                                                .getKeyAtIndex(pos2);
+                                }
+                        }
+                }
+                if (pos1 == length1) {
+                        highlowcontainer.appendCopy(x2.highlowcontainer, pos2,
+                                length2);
+                }
+        }
+
+        public void remove(final int x) {
+                final short hb = Util.highbits(x);
+                final int i = highlowcontainer.getIndex(hb);
+                if (i < 0)
+                        return;
+                highlowcontainer.setContainerAtIndex(i, highlowcontainer
+                        .getContainerAtIndex(i).remove(Util.lowbits(x)));
+                if (highlowcontainer.getContainerAtIndex(i).getCardinality() == 0)
+                        highlowcontainer.removeAtIndex(i);
+        }
+
+        public int[] toArray() {
+                final int[] array = new int[this.getCardinality()];
+                int pos = 0, pos2 = 0;
+                while (pos < this.highlowcontainer.size()) {
+                        final int hs = Util.toIntUnsigned(this.highlowcontainer
+                                .getKeyAtIndex(pos)) << 16;
+                        final ShortIterator si = this.highlowcontainer
+                                .getContainerAtIndex(pos++).getShortIterator();
+
+                        while (si.hasNext()) {
+                                array[pos2++] = hs
+                                        | Util.toIntUnsigned(si.next());
+                        }
+                }
+                return array;
+        }
+
+        /**
+         * A string describing the bitmap.
+         * 
+         * @return the string
+         */
+        @Override
+        public String toString() {
+                final StringBuffer answer = new StringBuffer();
+                final IntIterator i = this.getIntIterator();
+                answer.append("{");
+                if (i.hasNext())
+                        answer.append(i.next());
+                while (i.hasNext()) {
+                        answer.append(",");
+                        answer.append(i.next());
+                }
+                answer.append("}");
+                return answer.toString();
+        }
+
+        public void trim() {
+                for (int i = 0; i < this.highlowcontainer.size(); i++) {
+                        this.highlowcontainer.getContainerAtIndex(i).trim();
+                }
+        }
+
+        public void xor(final RoaringBitmap x2) {
+                int pos1 = 0, pos2 = 0;
+                int length1 = highlowcontainer.size();
+                final int length2 = x2.highlowcontainer.size();
+
+                main: if (pos1 < length1 && pos2 < length2) {
+                        short s1 = highlowcontainer.getKeyAtIndex(pos1);
+                        short s2 = x2.highlowcontainer.getKeyAtIndex(pos2);
+
+                        while (true) {
+                                if (s1 < s2) {
+                                        pos1++;
+                                        if (pos1 == length1) {
+                                                break main;
+                                        }
+                                        s1 = highlowcontainer
+                                                .getKeyAtIndex(pos1);
+                                } else if (s1 > s2) {
+                                        pos2++;
+                                        if (pos2 == length2) {
+                                                break main;
+                                        }
+                                        s2 = x2.highlowcontainer
+                                                .getKeyAtIndex(pos2);
+                                } else {
+                                        final Container C = highlowcontainer
+                                                .getContainerAtIndex(pos1)
+                                                .xor(x2.highlowcontainer
+                                                        .getContainerAtIndex(pos2));
+                                        if (C.getCardinality() > 0) {
+                                                this.highlowcontainer
+                                                        .setContainerAtIndex(
+                                                                pos1, C);
+                                                pos1++;
+                                        } else {
+                                                highlowcontainer
+                                                        .removeAtIndex(pos1);
+                                                --length1;
+                                        }
+                                        pos2++;
+                                        if ((pos1 == length1)
+                                                || (pos2 == length2)) {
+                                                break main;
+                                        }
+                                        s1 = highlowcontainer
+                                                .getKeyAtIndex(pos1);
+                                        s2 = x2.highlowcontainer
+                                                .getKeyAtIndex(pos2);
+                                }
+                        }
+                }
+                if (pos1 == length1) {
+                        highlowcontainer.appendCopy(x2.highlowcontainer, pos2,
+                                length2);
+                }
+        }
+
+        private IntIterator getIntIterator() {
+                return new IntIterator() {
+                        @Override
+                        public boolean hasNext() {
+                                return pos < RoaringBitmap.this.highlowcontainer
+                                        .size();
+                        }
+
+                        public IntIterator init() {
+                                if (pos < RoaringBitmap.this.highlowcontainer
+                                        .size()) {
+                                        iter = RoaringBitmap.this.highlowcontainer
+                                                .getContainerAtIndex(pos)
+                                                .iterator();
+                                        hs = Util
+                                                .toIntUnsigned(RoaringBitmap.this.highlowcontainer
+                                                        .getKeyAtIndex(pos)) << 16;
+                                }
+                                return this;
+                        }
+
+                        @Override
+                        public int next() {
+                                x = Util.toIntUnsigned(iter.next()) | hs;
+                                if (!iter.hasNext()) {
+                                        ++pos;
+                                        init();
+                                }
+                                return x;
+                        }
+
+                        @Override
+                        public void remove() {
+                                if ((x & hs) == hs) {// still in same container
+                                        iter.remove();
+                                } else {
+                                        RoaringBitmap.this.remove(x);
+                                }
+                        }
+
+                        int hs = 0;
+
+                        Iterator<Short> iter;
+
+                        short pos = 0;
+
+                        int x;
+
+                }.init();
+        }
+
+        public static RoaringBitmap and(final RoaringBitmap x1,
+                final RoaringBitmap x2) {
+                final RoaringBitmap answer = new RoaringBitmap();
+                int pos1 = 0, pos2 = 0;
+                final int length1 = x1.highlowcontainer.size(), length2 = x2.highlowcontainer
+                        .size();
+
+                /*
+                 * TODO: This could be optimized quite a bit when one bitmap is
+                 * much smaller than the other one.
+                 */
+                main: if (pos1 < length1 && pos2 < length2) {
+                        short s1 = x1.highlowcontainer.getKeyAtIndex(pos1);
+                        short s2 = x2.highlowcontainer.getKeyAtIndex(pos2);
+                        do {
+                                if (s1 < s2) {
+                                        pos1++;
+                                        if (pos1 == length1)
+                                                break main;
+                                        s1 = x1.highlowcontainer
+                                                .getKeyAtIndex(pos1);
+                                } else if (s1 > s2) {
+                                        pos2++;
+                                        if (pos2 == length2)
+                                                break main;
+                                        s2 = x2.highlowcontainer
+                                                .getKeyAtIndex(pos2);
+                                } else {
+                                        final Container C = x1.highlowcontainer
+                                                .getContainerAtIndex(pos1)
+                                                .and(x2.highlowcontainer
+                                                        .getContainerAtIndex(pos2));
+                                        if (C.getCardinality() > 0)
+                                                answer.highlowcontainer.append(
+                                                        s1, C);
+                                        pos1++;
+                                        pos2++;
+                                        if ((pos1 == length1)
+                                                || (pos2 == length2))
+                                                break main;
+                                        s1 = x1.highlowcontainer
+                                                .getKeyAtIndex(pos1);
+                                        s2 = x2.highlowcontainer
+                                                .getKeyAtIndex(pos2);
+                                }
+                        } while (true);
+                }
+                return answer;
+        }
+
+        public static RoaringBitmap andNot(final RoaringBitmap x1,
+                final RoaringBitmap x2) {
+                final RoaringBitmap answer = new RoaringBitmap();
+                int pos1 = 0, pos2 = 0;
+                final int length1 = x1.highlowcontainer.size(), length2 = x2.highlowcontainer
+                        .size();
+                main: if (pos1 < length1 && pos2 < length2) {
+                        short s1 = x1.highlowcontainer.getKeyAtIndex(pos1);
+                        short s2 = x2.highlowcontainer.getKeyAtIndex(pos2);
+                        do {
+                                if (s1 < s2) {
+                                        answer.highlowcontainer.appendCopy(
+                                                x1.highlowcontainer, pos1);
+                                        pos1++;
+                                        if (pos1 == length1)
+                                                break main;
+                                        s1 = x1.highlowcontainer
+                                                .getKeyAtIndex(pos1);
+                                } else if (s1 > s2) {
+                                        pos2++;
+                                        if (pos2 == length2) {
+                                                break main;
+                                        }
+                                        s2 = x2.highlowcontainer
+                                                .getKeyAtIndex(pos2);
+                                } else {
+                                        final Container C = x1.highlowcontainer
+                                                .getContainerAtIndex(pos1)
+                                                .andNot(x2.highlowcontainer
+                                                        .getContainerAtIndex(pos2));
+                                        if (C.getCardinality() > 0)
+                                                answer.highlowcontainer.append(
+                                                        s1, C);
+                                        pos1++;
+                                        pos2++;
+                                        if ((pos1 == length1)
+                                                || (pos2 == length2))
+                                                break main;
+                                        s1 = x1.highlowcontainer
+                                                .getKeyAtIndex(pos1);
+                                        s2 = x2.highlowcontainer
+                                                .getKeyAtIndex(pos2);
+                                }
+                        } while (true);
+                }
+                if (pos2 == length2) {
+                        answer.highlowcontainer.appendCopy(x1.highlowcontainer,
+                                pos1, length1);
+                }
+                return answer;
+        }
+
+        public static RoaringBitmap bitmapOf(int... dat) {
+                final RoaringBitmap ans = new RoaringBitmap();
+                for (final int i : dat)
+                        ans.add(i);
+                return ans;
+        }
+
+        public static RoaringBitmap or(final RoaringBitmap x1,
+                final RoaringBitmap x2) {
+                final RoaringBitmap answer = new RoaringBitmap();
+                int pos1 = 0, pos2 = 0;
+                final int length1 = x1.highlowcontainer.size(), length2 = x2.highlowcontainer
+                        .size();
+                main: if (pos1 < length1 && pos2 < length2) {
+                        short s1 = x1.highlowcontainer.getKeyAtIndex(pos1);
+                        short s2 = x2.highlowcontainer.getKeyAtIndex(pos2);
+
+                        while (true) {
+                                if (s1 < s2) {
+                                        answer.highlowcontainer.appendCopy(
+                                                x1.highlowcontainer, pos1);
+                                        pos1++;
+                                        if (pos1 == length1) {
+                                                break main;
+                                        }
+                                        s1 = x1.highlowcontainer
+                                                .getKeyAtIndex(pos1);
+                                } else if (s1 > s2) {
+                                        answer.highlowcontainer.appendCopy(
+                                                x2.highlowcontainer, pos2);
+                                        pos2++;
+                                        if (pos2 == length2) {
+                                                break main;
+                                        }
+                                        s2 = x2.highlowcontainer
+                                                .getKeyAtIndex(pos2);
+                                } else {
+                                        answer.highlowcontainer
+                                                .append(s1,
+                                                        x1.highlowcontainer
+                                                                .getContainerAtIndex(
+                                                                        pos1)
+                                                                .or(x2.highlowcontainer
+                                                                        .getContainerAtIndex(pos2)));
+                                        pos1++;
+                                        pos2++;
+                                        if ((pos1 == length1)
+                                                || (pos2 == length2)) {
+                                                break main;
+                                        }
+                                        s1 = x1.highlowcontainer
+                                                .getKeyAtIndex(pos1);
+                                        s2 = x2.highlowcontainer
+                                                .getKeyAtIndex(pos2);
+                                }
+                        }
+                }
+                if (pos1 == length1) {
+                        answer.highlowcontainer.appendCopy(x2.highlowcontainer,
+                                pos2, length2);
+                } else if (pos2 == length2) {
+                        answer.highlowcontainer.appendCopy(x1.highlowcontainer,
+                                pos1, length1);
+                }
+                return answer;
+        }
+
+        public static RoaringBitmap xor(final RoaringBitmap x1,
+                final RoaringBitmap x2) {
+                final RoaringBitmap answer = new RoaringBitmap();
+                int pos1 = 0, pos2 = 0;
+                final int length1 = x1.highlowcontainer.size(), length2 = x2.highlowcontainer
+                        .size();
+
+                main: if (pos1 < length1 && pos2 < length2) {
+                        short s1 = x1.highlowcontainer.getKeyAtIndex(pos1);
+                        short s2 = x2.highlowcontainer.getKeyAtIndex(pos2);
+
+                        while (true) {
+                                if (s1 < s2) {
+                                        answer.highlowcontainer.appendCopy(
+                                                x1.highlowcontainer, pos1);
+                                        pos1++;
+                                        if (pos1 == length1) {
+                                                break main;
+                                        }
+                                        s1 = x1.highlowcontainer
+                                                .getKeyAtIndex(pos1);
+                                } else if (s1 > s2) {
+                                        answer.highlowcontainer.appendCopy(
+                                                x2.highlowcontainer, pos2);
+                                        pos2++;
+                                        if (pos2 == length2) {
+                                                break main;
+                                        }
+                                        s2 = x2.highlowcontainer
+                                                .getKeyAtIndex(pos2);
+                                } else {
+                                        final Container C = x1.highlowcontainer
+                                                .getContainerAtIndex(pos1)
+                                                .xor(x2.highlowcontainer
+                                                        .getContainerAtIndex(pos2));
+                                        if (C.getCardinality() > 0)
+                                                answer.highlowcontainer.append(
+                                                        s1, C);
+                                        pos1++;
+                                        pos2++;
+                                        if ((pos1 == length1)
+                                                || (pos2 == length2)) {
+                                                break main;
+                                        }
+                                        s1 = x1.highlowcontainer
+                                                .getKeyAtIndex(pos1);
+                                        s2 = x2.highlowcontainer
+                                                .getKeyAtIndex(pos2);
+                                }
+                        }
+                }
+                if (pos1 == length1) {
+                        answer.highlowcontainer.appendCopy(x2.highlowcontainer,
+                                pos2, length2);
+                } else if (pos2 == length2) {
+                        answer.highlowcontainer.appendCopy(x1.highlowcontainer,
+                                pos1, length1);
+                }
+
+                return answer;
+        }
+
+        public RoaringArray highlowcontainer = null;
+
+        private static final long serialVersionUID = 3L;
 
 }

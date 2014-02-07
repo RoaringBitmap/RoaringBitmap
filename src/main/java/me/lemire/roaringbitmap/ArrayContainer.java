@@ -2,17 +2,19 @@ package me.lemire.roaringbitmap;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Iterator;
 
-public final class ArrayContainer implements Container, Cloneable, Serializable {
+public final class ArrayContainer extends Container implements Cloneable,
+        Serializable {
 
         public ArrayContainer() {
                 this(DEFAULTINITSIZE);
         }
+
         public ArrayContainer(final int capacity) {
                 content = new short[capacity];
         }
+
         /**
          * running time is in O(n) time if insert is not in order.
          * 
@@ -51,6 +53,7 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
                 return this;
         }
 
+        @Override
         public ArrayContainer and(final ArrayContainer value2) {
 
                 ArrayContainer value1 = this;
@@ -65,6 +68,13 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
                                 value2.getCardinality(), answer.content);
                 return answer;
         }
+
+        @Override
+        public Container and(BitmapContainer x) {
+                return x.and(this);
+        }
+
+        @Override
         public ArrayContainer andNot(final ArrayContainer value2) {
                 ArrayContainer value1 = this;
                 final int desiredcapacity = value1.getCardinality();
@@ -77,6 +87,7 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
                 return answer;
         }
 
+        @Override
         public ArrayContainer andNot(BitmapContainer value2) {
                 final ArrayContainer answer = ContainerFactory
                         .getArrayContainer();
@@ -97,14 +108,10 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 
         @Override
         public ArrayContainer clone() {
-                try {
-                        final ArrayContainer x = (ArrayContainer) super.clone();
-                        x.cardinality = this.cardinality;
-                        x.content = Arrays.copyOf(content, content.length);
-                        return x;
-                } catch (CloneNotSupportedException e) {
-                        throw new java.lang.RuntimeException();
-                }
+                final ArrayContainer x = (ArrayContainer) super.clone();
+                x.cardinality = this.cardinality;
+                x.content = Arrays.copyOf(content, content.length);
+                return x;
         }
 
         @Override
@@ -160,7 +167,8 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
 
         }
 
-        public ArrayContainer inPlaceAND(final ArrayContainer value2) {
+        @Override
+        public ArrayContainer iand(final ArrayContainer value2) {
                 ArrayContainer value1 = this;
                 value1.cardinality = Util
                         .unsigned_intersect2by2(value1.content,
@@ -169,14 +177,8 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
                 return this;
         }
 
-        public ArrayContainer inPlaceANDNOT(final ArrayContainer value2) {
-                cardinality = Util.unsigned_difference(content,
-                        cardinality, value2.content,
-                        value2.getCardinality(), content);
-                return this;
-        }
-
-        public Container inPlaceAND(BitmapContainer value2) {
+        @Override
+        public Container iand(BitmapContainer value2) {
                 int pos = 0;
                 for (int k = 0; k < cardinality; ++k)
                         if (value2.contains(this.content[k]))
@@ -185,8 +187,32 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
                 return this;
         }
 
+        @Override
+        public ArrayContainer iandNot(final ArrayContainer value2) {
+                this.getCardinality();
+                this.cardinality = Util.unsigned_difference(this.content,
+                        this.getCardinality(), value2.content,
+                        value2.getCardinality(), this.content);
+                return this;
+        }
 
-        public Container inPlaceANDNOT(BitmapContainer value2) {
+        @Override
+        public ArrayContainer iandNot(BitmapContainer value2) {
+                int pos = 0;
+                for (int k = 0; k < cardinality; ++k)
+                        if (!value2.contains(this.content[k]))
+                                this.content[pos++] = this.content[k];
+                this.cardinality = pos;
+                return this;
+        }
+
+        public ArrayContainer iandNOT(final ArrayContainer value2) {
+                cardinality = Util.unsigned_difference(content, cardinality,
+                        value2.content, value2.getCardinality(), content);
+                return this;
+        }
+
+        public Container iandNOT(BitmapContainer value2) {
                 int pos = 0;
                 for (int k = 0; k < cardinality; ++k)
                         if (!value2.contains(this.content[k]))
@@ -194,8 +220,9 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
                 cardinality = pos;
                 return this;
         }
-        
-        public Container inPlaceOR(final ArrayContainer value2) {
+
+        @Override
+        public Container ior(final ArrayContainer value2) {
                 // Using inPlace operations on arrays is very expensive. Each
                 // modification needs O(n) shifts
                 final ArrayContainer value1 = this;
@@ -214,21 +241,9 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
                 return this;
         }
 
-        public Container inPlaceXOR(final ArrayContainer value2) {
-                final ArrayContainer value1 = this;
-                final int lentgh = value1.getCardinality()
-                        + value2.getCardinality();
-                final int desiredcapacity = lentgh <= 65536 ? lentgh : 65536;
-                short[] newContent = new short[desiredcapacity];
-                int card = Util.unsigned_exclusiveunion2by2(value1.content,
-                        value1.getCardinality(), value2.content,
-                        value2.getCardinality(), newContent);
-                this.content = newContent;
-                this.cardinality = card;
-                if (this.cardinality >= DEFAULTMAXSIZE)
-                        return ContainerFactory
-                                .transformToBitmapContainer(this);
-                return this;
+        @Override
+        public Container ior(BitmapContainer x) {
+                return x.or(this);
         }
 
         @Override
@@ -255,6 +270,29 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
                 };
         }
 
+        @Override
+        public Container ixor(final ArrayContainer value2) {
+                final ArrayContainer value1 = this;
+                final int lentgh = value1.getCardinality()
+                        + value2.getCardinality();
+                final int desiredcapacity = lentgh <= 65536 ? lentgh : 65536;
+                short[] newContent = new short[desiredcapacity];
+                int card = Util.unsigned_exclusiveunion2by2(value1.content,
+                        value1.getCardinality(), value2.content,
+                        value2.getCardinality(), newContent);
+                this.content = newContent;
+                this.cardinality = card;
+                if (this.cardinality >= DEFAULTMAXSIZE)
+                        return ContainerFactory
+                                .transformToBitmapContainer(this);
+                return this;
+        }
+
+        @Override
+        public Container ixor(BitmapContainer x) {
+                return x.xor(this);
+        }
+
         public void loadData(final BitmapContainer bitmapContainer) {
                 if (content.length < bitmapContainer.cardinality)
                         content = new short[bitmapContainer.cardinality];
@@ -269,6 +307,7 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
                                 + this.cardinality);
         }
 
+        @Override
         public Container or(final ArrayContainer value2) {
                 final ArrayContainer value1 = this;
                 int tailleAC = value1.getCardinality()
@@ -284,6 +323,11 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
                         return ContainerFactory
                                 .transformToBitmapContainer(answer);
                 return answer;
+        }
+
+        @Override
+        public Container or(BitmapContainer x) {
+                return x.or(this);
         }
 
         @Override
@@ -320,29 +364,6 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
         }
 
         @Override
-        public void validate() {
-                /**
-                 * TODO: More of a debugging routine. Should be pruned before
-                 * release.
-                 */
-                if (this.cardinality == 0)
-                        return;
-                short val1 = this.content[0];
-                HashSet<Short> hs = new HashSet<Short>();
-                hs.add(val1);
-                for (int k = 1; k < this.cardinality; ++k) {
-                        if (Util.toIntUnsigned(val1) > Util
-                                .toIntUnsigned(this.content[k]))
-                                throw new RuntimeException(
-                                        "bug : content's not sorted");
-                        val1 = this.content[k];
-                        hs.add(val1);
-                }
-                if (hs.size() != this.cardinality)
-                        throw new RuntimeException(
-                                "bug : ArrayContainer with repeated values");
-        }
-
         public Container xor(final ArrayContainer value2) {
                 final ArrayContainer value1 = this;
                 final int desiredcapacity = Math.min(value1.getCardinality()
@@ -360,6 +381,11 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
                 return answer;
         }
 
+        @Override
+        public Container xor(BitmapContainer x) {
+                return x.xor(this);
+        }
+
         private void increaseCapacity() {
                 int newcapacity = this.content.length * 5 / 4;
                 if (newcapacity > ArrayContainer.DEFAULTMAXSIZE)
@@ -368,9 +394,7 @@ public final class ArrayContainer implements Container, Cloneable, Serializable 
         }
 
         public short[] content;
-
         int cardinality = 0;
-
         private static final int DEFAULTINITSIZE = 4;
 
         private static final long serialVersionUID = 1L;

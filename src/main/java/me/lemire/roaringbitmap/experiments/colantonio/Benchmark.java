@@ -6,7 +6,7 @@ import java.util.BitSet;
 import java.util.Locale;
 
 import net.sourceforge.sizeof.SizeOf;
-import me.lemire.roaringbitmap.SpeedyRoaringBitmap;
+import me.lemire.roaringbitmap.RoaringBitmap;
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 
 /**
@@ -60,8 +60,8 @@ public class Benchmark {
          * @param a an array of integers
          * @return a SpeedyRoaringBitmap representing the provided integers
          */
-        public static SpeedyRoaringBitmap toSpeedyRoaringBitmap(int[] a) {
-                SpeedyRoaringBitmap rr = new SpeedyRoaringBitmap();
+        public static RoaringBitmap toSpeedyRoaringBitmap(int[] a) {
+                RoaringBitmap rr = new RoaringBitmap();
                 for (int x : a)
                         rr.add(x);
                 return rr;
@@ -264,21 +264,21 @@ public class Benchmark {
                                 //SpeedyRoaringBitmap
                                 //Append times
                                 bef = System.nanoTime();
-                                SpeedyRoaringBitmap rb1 = toSpeedyRoaringBitmap(v1);
+                                RoaringBitmap rb1 = toSpeedyRoaringBitmap(v1);
                                 aft = System.nanoTime();
                                 bogus += rb1.getCardinality();
                                 appendTimes[3] += aft-bef;
-                                SpeedyRoaringBitmap rb2 = toSpeedyRoaringBitmap(v2);
+                                RoaringBitmap rb2 = toSpeedyRoaringBitmap(v2);
                                 //Storage
                                 storageinbits[3] += rb1.getSizeInBytes() * 8;
                                 storageinbits[3] += rb2.getSizeInBytes() * 8;
                                 if(sizeof) truestorageinbits[3] += SizeOf.deepSizeOf(rb1)*8 + SizeOf.deepSizeOf(rb2)*2;                              
                                 //Intersect times
                                 bef = System.nanoTime();
-                                rb1 = SpeedyRoaringBitmap.and(rb1,rb2);
+                                rb1 = RoaringBitmap.and(rb1,rb2);
                                 aft = System.nanoTime();
                                 // we verify the answer
-                                if(!Arrays.equals(rb1.getIntegers(), trueintersection))
+                                if(!Arrays.equals(rb1.toArray(), trueintersection))
                                         throw new RuntimeException("bug");
                                 bogus += rb1.getCardinality();
                                 timings[3] += aft - bef;
@@ -286,7 +286,7 @@ public class Benchmark {
                                 bef = System.nanoTime();
                                 rb2.remove(toRemove);
                                 aft = System.nanoTime();
-                                if(!Arrays.equals(rb2.getIntegers(), b2withremoval)) throw new RuntimeException("bug");
+                                if(!Arrays.equals(rb2.toArray(), b2withremoval)) throw new RuntimeException("bug");
                                 removeTimes[3] += aft-bef;
                                 bogus += rb1.getCardinality();
                                 rb1 = null;
