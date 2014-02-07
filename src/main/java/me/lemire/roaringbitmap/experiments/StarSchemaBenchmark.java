@@ -46,7 +46,7 @@ public class StarSchemaBenchmark {
                 StarSchemaBenchmark.testWAH32(repeat, df);
                 StarSchemaBenchmark.testEWAH64(repeat, df);
                 StarSchemaBenchmark.testEWAH32(repeat, df);
-                StarSchemaBenchmark.testRoaringBitmap(repeat, df);
+                StarSchemaBenchmark.testSpeedyRoaringBitmap(repeat, df);
                 StarSchemaBenchmark.testBitSet(repeat, df);
                 StarSchemaBenchmark.testConciseSet(repeat, df);
         }
@@ -139,8 +139,8 @@ public class StarSchemaBenchmark {
                 }
         }
 
-        public static void testRoaringBitmap(int repeat, DecimalFormat df) {
-                System.out.println("# RoaringBitmap on Star Schema Benchmark");
+        public static void testSpeedyRoaringBitmap(int repeat, DecimalFormat df) {
+                System.out.println("# SpeedyRoaringBitmap on Star Schema Benchmark");
                 System.out
                         .println("# size, construction time, time to recover set bits, "
                                 + "time to compute unions (OR), intersections (AND) "
@@ -166,7 +166,7 @@ public class StarSchemaBenchmark {
                                         .values()) {
                                         bitmap[pos] = new RoaringBitmap();
                                         for (int v = 0; v < ia.size(); ++v) {
-                                                bitmap[pos].set(v);
+                                                bitmap[pos].add(v);
                                         }
                                         ++pos;
                                 }
@@ -174,10 +174,6 @@ public class StarSchemaBenchmark {
                 }
                 aft = System.currentTimeMillis();
 
-                // Validating that ArrayContainers contents are sorted
-                // and BitmapContainers cardinalities are corrects
-                for (RoaringBitmap rb : bitmap)
-                        rb.validate();
 
                 // Calculating the size
                 for (k = 0; k < N; k++)
@@ -190,7 +186,7 @@ public class StarSchemaBenchmark {
                 bef = System.currentTimeMillis();
                 for (r = 0; r < repeat; ++r)
                         for (k = 0; k < N; ++k) {
-                                int[] array = bitmap[k].getIntegers();
+                                int[] array = bitmap[k].toArray();
                                 bogus += array.length;
                         }
                 aft = System.currentTimeMillis();
@@ -198,13 +194,11 @@ public class StarSchemaBenchmark {
 
                 {
                         RoaringBitmap bitmapor1 = bitmap[0].clone();
-                        bitmapor1.validate();
                         for (k = 1; k < N; ++k) {
                                 bitmapor1 = RoaringBitmap.or(bitmapor1, bitmap[k]);
-                                bitmapor1.validate();
                         }
 
-                        int[] array = bitmapor1.getIntegers();
+                        int[] array = bitmapor1.toArray();
                         bogus += array.length;
                 }
 
@@ -216,7 +210,7 @@ public class StarSchemaBenchmark {
                                 bitmapor1 = RoaringBitmap.or(bitmapor1,
                                         bitmap[k]);
 
-                        int[] array = bitmapor1.getIntegers();
+                        int[] array = bitmapor1.toArray();
                         bogus += array.length;
                 }
                 aft = System.currentTimeMillis();
@@ -224,13 +218,11 @@ public class StarSchemaBenchmark {
 
                 {
                         RoaringBitmap bitmapand1 = bitmap[0];
-                        bitmapand1.validate();
                         for (k = 1; k < N; ++k) {
                                 bitmapand1 = RoaringBitmap.and(bitmapand1,
                                         bitmap[k]);
-                                bitmapand1.validate();
                         }
-                        int[] array = bitmapand1.getIntegers();
+                        int[] array = bitmapand1.toArray();
                         bogus += array.length;
                 }
 
@@ -242,7 +234,7 @@ public class StarSchemaBenchmark {
                                 bitmapand1 = RoaringBitmap.and(bitmapand1,
                                         bitmap[k]);
                         }
-                        int[] array = bitmapand1.getIntegers();
+                        int[] array = bitmapand1.toArray();
                         bogus += array.length;
                 }
                 aft = System.currentTimeMillis();
@@ -253,9 +245,8 @@ public class StarSchemaBenchmark {
                         for (k = 1; k < N; ++k) {
                                 bitmapxor1 = RoaringBitmap.xor(bitmapxor1,
                                         bitmap[k]);
-                                bitmapxor1.validate();
                         }
-                        int[] array = bitmapxor1.getIntegers();
+                        int[] array = bitmapxor1.toArray();
                         bogus += array.length;
                 }
 
@@ -267,7 +258,7 @@ public class StarSchemaBenchmark {
                                 bitmapxor1 = RoaringBitmap.xor(bitmapxor1,
                                         bitmap[k]);
 
-                        int[] array = bitmapxor1.getIntegers();
+                        int[] array = bitmapxor1.toArray();
                         bogus += array.length;
                 }
                 aft = System.currentTimeMillis();

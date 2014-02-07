@@ -51,16 +51,16 @@ public class SerializableStarSchemaBenchmark {
 		System.out.println("Start experiments :");
 		DecimalFormat df = new DecimalFormat("0.###");
 		int repeat = 1;
-		SerializableStarSchemaBenchmark.testRoaringBitmap(repeat, df);
+		SerializableStarSchemaBenchmark.testSpeedyRoaringBitmap(repeat, df);
 		SerializableStarSchemaBenchmark.testConciseSet(repeat, df);
 		//SerializableStarSchemaBenchmark.testWAH32(repeat, df);
 		SerializableStarSchemaBenchmark.testEWAH64(repeat, df);
 		SerializableStarSchemaBenchmark.testEWAH32(repeat, df);
 	}	
 
-	public static void testRoaringBitmap(int repeat, DecimalFormat df)
+	public static void testSpeedyRoaringBitmap(int repeat, DecimalFormat df)
 			throws FileNotFoundException, IOException, ClassNotFoundException {
-		System.out.println("# RoaringBitmap on the Star Schema Benchmark");
+		System.out.println("# SpeedyRoaringBitmap on the Star Schema Benchmark");
 		System.out
 				.println("# size, construction time, time to recover set bits, "
 						+ "time to compute unions (OR), intersections (AND) "
@@ -97,7 +97,7 @@ public class SerializableStarSchemaBenchmark {
 					try {
 						while ((setBit = in.readInt()) != -1) {
 							bef = System.currentTimeMillis();
-							bitmap.set(setBit);
+							bitmap.add(setBit);
 							aft = System.currentTimeMillis();
 							time+=aft-bef;
 						}
@@ -116,22 +116,6 @@ public class SerializableStarSchemaBenchmark {
 
 		ObjectInputStream ois = null;
 		RoaringBitmap bitmap = null;
-
-		// Validating that ArrayContainers contents are sorted
-		// and BitmapContainers cardinalities are corrects
-		// for(RoaringBitmap rb: bitmap) rb.validate();
-		try {
-			ois = new ObjectInputStream(new FileInputStream(tmpbitmaplocation));
-			try {
-				while ((bitmap = (RoaringBitmap) ois.readObject()) != null) {
-					bitmap.validate();
-				}
-			} catch (EOFException e) {
-			}
-		} finally {
-			if (ois != null)
-				ois.close();
-		}
 
 		// Calculating the size
 		try {
@@ -159,7 +143,7 @@ public class SerializableStarSchemaBenchmark {
 				try {
 					while ((bitmap = (RoaringBitmap) ois.readObject()) != null) {
 						bef = System.currentTimeMillis();
-						int[] array = bitmap.getIntegers();
+						int[] array = bitmap.toArray();
 						bogus += array.length;
 						aft = System.currentTimeMillis();
 						time += aft-bef;
@@ -177,15 +161,13 @@ public class SerializableStarSchemaBenchmark {
 				ois = new ObjectInputStream(new FileInputStream(
 						tmpbitmaplocation));
 				RoaringBitmap bitmapor1 = (RoaringBitmap) ois.readObject();
-				bitmapor1.validate();
 				try {
 					while ((bitmap = (RoaringBitmap) ois.readObject()) != null) {
 						bitmapor1 = RoaringBitmap.or(bitmapor1, bitmap);
-						bitmapor1.validate();
 					}
 				} catch (EOFException e) {
 				}
-				int[] array = bitmapor1.getIntegers();
+				int[] array = bitmapor1.toArray();
 				bogus += array.length;
 			} finally {
 				if (ois != null)
@@ -209,7 +191,7 @@ public class SerializableStarSchemaBenchmark {
 					}
 				} catch (EOFException e) {}
 				bef = System.currentTimeMillis();
-				int[] array = bitmapor1.getIntegers();
+				int[] array = bitmapor1.toArray();
 				bogus += array.length;
 				aft = System.currentTimeMillis();
 				time+=aft-bef;
@@ -225,15 +207,13 @@ public class SerializableStarSchemaBenchmark {
 				ois = new ObjectInputStream(new FileInputStream(
 						tmpbitmaplocation));
 				RoaringBitmap bitmapand1 = (RoaringBitmap) ois.readObject();
-				bitmapand1.validate();
 				try {
 					while ((bitmap = (RoaringBitmap) ois.readObject()) != null) {
 						bitmapand1 = RoaringBitmap.and(bitmapand1, bitmap);
-						bitmapand1.validate();
 					}
 				} catch (EOFException e) {
 				}
-				int[] array = bitmapand1.getIntegers();
+				int[] array = bitmapand1.toArray();
 				bogus += array.length;
 			} finally {
 				if (ois != null)
@@ -258,7 +238,7 @@ public class SerializableStarSchemaBenchmark {
 				} catch (EOFException e) {
 				}
 				bef = System.currentTimeMillis();
-				int[] array = bitmapand1.getIntegers();
+				int[] array = bitmapand1.toArray();
 				bogus += array.length;
 				aft = System.currentTimeMillis();
 				time+=aft-bef;
@@ -275,15 +255,13 @@ public class SerializableStarSchemaBenchmark {
 				ois = new ObjectInputStream(new FileInputStream(
 						tmpbitmaplocation));
 				RoaringBitmap bitmapxor1 = (RoaringBitmap) ois.readObject();
-				bitmapxor1.validate();
 				try {
 					while ((bitmap = (RoaringBitmap) ois.readObject()) != null) {
 						bitmapxor1 = RoaringBitmap.xor(bitmapxor1, bitmap);
-						bitmapxor1.validate();
 					}
 				} catch (EOFException e) {
 				}
-				int[] array = bitmapxor1.getIntegers();
+				int[] array = bitmapxor1.toArray();
 				bogus += array.length;
 			} finally {
 				if (ois != null)
@@ -308,7 +286,7 @@ public class SerializableStarSchemaBenchmark {
 				} catch (EOFException e) {
 				}
 				bef = System.currentTimeMillis();
-				int[] array = bitmapxor1.getIntegers();
+				int[] array = bitmapxor1.toArray();
 				bogus += array.length;
 				aft = System.currentTimeMillis();
 				time+=aft-bef;

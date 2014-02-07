@@ -13,7 +13,7 @@ import com.googlecode.javaewah32.EWAHCompressedBitmap32;
 //import java.util.*;
 
 import net.sourceforge.sizeof.SizeOf;
-import me.lemire.roaringbitmap.SpeedyRoaringBitmap;
+import me.lemire.roaringbitmap.RoaringBitmap;
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 
 /**
@@ -162,8 +162,8 @@ public class BenchmarkReal {
 
                 /***************************************************************************/
                 if (format.equals(ROARING)) {
-                        final SpeedyRoaringBitmap bm1 =  SpeedyRoaringBitmap.bitmapOf(data1);
-                        final SpeedyRoaringBitmap bm2 = SpeedyRoaringBitmap.bitmapOf(data2);
+                        final RoaringBitmap bm1 =  RoaringBitmap.bitmapOf(data1);
+                        final RoaringBitmap bm2 = RoaringBitmap.bitmapOf(data2);
                         bm1.trim();
                         bm2.trim();
                         if (sizeof) {
@@ -178,10 +178,10 @@ public class BenchmarkReal {
                                 thisTime = avgSeconds(new Computation() {
                                         @Override
                                         public void compute() {
-                                                SpeedyRoaringBitmap result = SpeedyRoaringBitmap
+                                                RoaringBitmap result = RoaringBitmap
                                                         .and(bm1, bm2);
                                                 BenchmarkReal.junk += result
-                                                        .getNbNodes(); // cheap
+                                                        .highlowcontainer.size(); // cheap
                                         }
                                 });
                                 totalTimes.put(timeKey,
@@ -190,10 +190,10 @@ public class BenchmarkReal {
                                 thisTime = avgSeconds(new Computation() {
                                         @Override
                                         public void compute() {
-                                                SpeedyRoaringBitmap result = SpeedyRoaringBitmap
+                                                RoaringBitmap result = RoaringBitmap
                                                         .or(bm1, bm2);
                                                 BenchmarkReal.junk += result
-                                                        .getNbNodes(); // cheap
+                                                        .highlowcontainer.size(); // cheap
                                         }
                                 });
                                 totalTimes.put(timeKey,
@@ -202,10 +202,10 @@ public class BenchmarkReal {
                                 thisTime = avgSeconds(new Computation() {
                                         @Override
                                         public void compute() {
-                                                SpeedyRoaringBitmap result = SpeedyRoaringBitmap
+                                                RoaringBitmap result = RoaringBitmap
                                                         .xor(bm1, bm2);
                                                 BenchmarkReal.junk += result
-                                                        .getNbNodes(); // cheap
+                                                        .highlowcontainer.size(); // cheap
                                         }
                                 });
                                 totalTimes.put(timeKey,
