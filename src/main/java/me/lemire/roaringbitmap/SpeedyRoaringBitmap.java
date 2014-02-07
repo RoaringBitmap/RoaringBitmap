@@ -11,6 +11,13 @@ public final class SpeedyRoaringBitmap implements Cloneable, Serializable, Itera
         public SpeedyRoaringBitmap() {
                 highlowcontainer = new SpeedyArray();
         }
+        
+        public static SpeedyRoaringBitmap bitmapOf(int... dat) {
+                SpeedyRoaringBitmap ans = new SpeedyRoaringBitmap();
+                for (int i : dat)
+                        ans.set(i);
+                return ans;
+        }
 
         /**
          * set the value to "true", whether it already appears on not.
