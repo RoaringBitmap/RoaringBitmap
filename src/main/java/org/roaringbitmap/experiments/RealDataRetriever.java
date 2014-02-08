@@ -1,4 +1,4 @@
-package me.lemire.roaringbitmap.experiments;
+package org.roaringbitmap.experiments;
 import java.io.*;
 import java.util.*;
 

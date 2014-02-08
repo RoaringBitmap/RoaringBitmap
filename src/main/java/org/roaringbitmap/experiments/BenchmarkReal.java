@@ -1,4 +1,4 @@
-package me.lemire.roaringbitmap.experiments;
+package org.roaringbitmap.experiments;
 
 //import org.devbrat.util.WAHBitSet;
 //import sparsebitmap.SparseBitmap;
@@ -8,12 +8,13 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import org.roaringbitmap.RoaringBitmap;
+
 import com.googlecode.javaewah.EWAHCompressedBitmap;
 import com.googlecode.javaewah32.EWAHCompressedBitmap32;
 //import java.util.*;
 
 import net.sourceforge.sizeof.SizeOf;
-import me.lemire.roaringbitmap.RoaringBitmap;
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 
 /**

@@ -1,4 +1,4 @@
-package me.lemire.roaringbitmap;
+package org.roaringbitmap;
 
 public abstract class Container implements Iterable<Short>, Cloneable {
 

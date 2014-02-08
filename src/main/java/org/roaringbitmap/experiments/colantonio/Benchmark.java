@@ -1,12 +1,13 @@
-package me.lemire.roaringbitmap.experiments.colantonio;
+package org.roaringbitmap.experiments.colantonio;
 
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Locale;
 
+import org.roaringbitmap.RoaringBitmap;
+
 import net.sourceforge.sizeof.SizeOf;
-import me.lemire.roaringbitmap.RoaringBitmap;
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 
 /**

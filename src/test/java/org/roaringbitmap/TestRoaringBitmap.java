@@ -1,16 +1,17 @@
+package org.roaringbitmap;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Vector;
 
 import junit.framework.Assert;
-import me.lemire.roaringbitmap.ArrayContainer;
-import me.lemire.roaringbitmap.BitmapContainer;
-import me.lemire.roaringbitmap.ContainerFactory;
-import me.lemire.roaringbitmap.RoaringBitmap;
-import me.lemire.roaringbitmap.Util;
 
 import org.junit.Test;
+import org.roaringbitmap.ArrayContainer;
+import org.roaringbitmap.BitmapContainer;
+import org.roaringbitmap.ContainerFactory;
+import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.Util;
 
 /**
  * 

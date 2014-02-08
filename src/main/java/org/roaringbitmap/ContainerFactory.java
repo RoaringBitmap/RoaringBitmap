@@ -1,4 +1,4 @@
-package me.lemire.roaringbitmap;
+package org.roaringbitmap;
 
 /**
  *

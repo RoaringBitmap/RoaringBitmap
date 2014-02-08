@@ -1,4 +1,4 @@
-package me.lemire.roaringbitmap;
+package org.roaringbitmap;
 
 public final class Util {
         public static short highbits(int x) {

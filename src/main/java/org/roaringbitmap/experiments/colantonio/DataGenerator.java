@@ -1,4 +1,4 @@
-package me.lemire.roaringbitmap.experiments.colantonio;
+package org.roaringbitmap.experiments.colantonio;
 
 import java.util.Arrays;
 import java.util.HashSet;
