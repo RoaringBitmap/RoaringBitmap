@@ -18,19 +18,12 @@ To run a benchmark manually, do
 
 * mvn package (you may use mvn -Dmaven.test.skip=true package)
 * cd target
-* java -cp "RoaringBitmap-0.0.1-SNAPSHOT.jar:lib/*" me.lemire.roaringbitmap.experiments.Benchmark
-or $ java -cp "RoaringBitmap-0.0.1-SNAPSHOT.jar:lib/*" me.lemire.roaringbitmap.experiments.colantonio.Benchmark
+* java -cp RoaringBitmap-0.0.1-SNAPSHOT.jar:lib/* org.roaringbitmap.experiments.colantonio.Benchmark
 
-Some benchmark require SizeOf.jar for memory usage estimation. Try:
+Some benchmarks can use  SizeOf.jar for memory usage estimation. Try:
 * mvn package (you may use mvn -Dmaven.test.skip=true package)
 * cd target
-* java -javaagent:lib/SizeOf.jar -cp "RoaringBitmap-0.0.1-SNAPSHOT.jar:lib/*" me.lemire.roaringbitmap.experiments.SpeedyRoaringBenchmark
-
-Note that it is always possible to combine command lines this way:
-
-* mvn -Dmaven.test.skip=true package && cd target && java -javaagent:lib/SizeOf.jar -cp "RoaringBitmap-0.0.1-SNAPSHOT.jar:lib/*" me.lemire.roaringbitmap.experiments.SpeedyRoaringBenchmark
-
-In this way, if one command fails, the executation of the following is stopped.
+* java -javaagent:lib/SizeOf.jar -cp RoaringBitmap-0.0.1-SNAPSHOT.jar:lib/* org.roaringbitmap.experiments.colantonio.Benchmark
 
 
 Note: Eclipse supports maven projects (though a plugin might be required)
