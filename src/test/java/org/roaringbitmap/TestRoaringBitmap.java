@@ -16,7 +16,7 @@ import org.roaringbitmap.Util;
 /**
  * 
  */
-@SuppressWarnings({ "static-method", "deprecation" })
+@SuppressWarnings({ "static-method", "deprecation","javadoc" })
 public class TestRoaringBitmap {
 
         @Test
@@ -80,6 +80,8 @@ public class TestRoaringBitmap {
 
                 Assert.assertEquals(rb, andNotresult);
                 Assert.assertEquals(rb2, off);
+                rb2.andNot(rb);
+                Assert.assertEquals(rb2, off);
 
         }
 
@@ -94,10 +96,15 @@ public class TestRoaringBitmap {
                 RoaringBitmap rr2 = new RoaringBitmap();
                 rr2.add(13);
                 RoaringBitmap rrand = RoaringBitmap.and(rr, rr2);
-
                 int[] array = rrand.toArray();
 
+                Assert.assertEquals(array.length, 1);
                 Assert.assertEquals(array[0], 13);
+                rr.and(rr2);
+                array = rr.toArray();
+                Assert.assertEquals(array.length, 1);
+                Assert.assertEquals(array[0], 13);
+
         }
 
         @Test
@@ -155,6 +162,7 @@ public class TestRoaringBitmap {
                 RoaringBitmap rrand = RoaringBitmap.and(rr, rr2);
 
                 int[] array = rrand.toArray();
+                Assert.assertEquals(array.length, 1);
                 Assert.assertEquals(array[0], 13);
         }
 
@@ -251,6 +259,9 @@ public class TestRoaringBitmap {
                 for (int i = 200000; i < 400000; i += 14)
                         rb.add(i);
                 Assert.assertEquals(0, andresult.getCardinality());
+                RoaringBitmap rc = RoaringBitmap.and(rb,rb2);
+                rb.and(rb2);
+                Assert.assertEquals(rc.getCardinality(), rb.getCardinality());
 
         }
 
@@ -457,11 +468,11 @@ public class TestRoaringBitmap {
 
                 BitmapContainer rbc;
 
-                rbc = ContainerFactory.transformToBitmapContainer(ac1.clone());
+                rbc = ac1.clone().toBitmapContainer();
                 Assert.assertTrue(validate(rbc, ac1));
-                rbc = ContainerFactory.transformToBitmapContainer(ac2.clone());
+                rbc = ac2.clone().toBitmapContainer();
                 Assert.assertTrue(validate(rbc, ac2));
-                rbc = ContainerFactory.transformToBitmapContainer(ac3.clone());
+                rbc = ac3.clone().toBitmapContainer();
                 Assert.assertTrue(validate(rbc, ac3));
         }
 
@@ -484,6 +495,11 @@ public class TestRoaringBitmap {
                 int[] arrayrr = rr.toArray();
 
                 Assert.assertTrue(Arrays.equals(array, arrayrr));
+
+                rr.or(rr2);
+                int[] arrayirr = rr.toArray();
+                Assert.assertTrue(Arrays.equals(array, arrayirr));
+
         }
 
         @Test
@@ -672,12 +688,21 @@ public class TestRoaringBitmap {
 
                 Assert.assertEquals(rb2.getCardinality() + rb.getCardinality(),
                         orresult2.getCardinality());
+                rb.or(rb2);
+                Assert.assertTrue(rb.equals(orresult2));
 
         }
 
         @Test
         public void randomTest() {
-                final int N = 65536 * 16;
+                rTest(15);
+                rTest(1024);
+                rTest(4096);
+                rTest(65536);
+                rTest(65536*16);
+        }
+        public void rTest(final int N) {
+                System.out.println("rtest N="+N);
                 for (int gap = 1; gap <= 65536; gap *= 2) {
                         BitSet bs1 = new BitSet();
                         RoaringBitmap rb1 = new RoaringBitmap();
@@ -685,6 +710,8 @@ public class TestRoaringBitmap {
                                 bs1.set(x);
                                 rb1.add(x);
                         }
+                        if(bs1.cardinality() != rb1.getCardinality())
+                                throw new RuntimeException("different card");
                         for (int offset = 1; offset <= gap; offset *= 2) {
                                 BitSet bs2 = new BitSet();
                                 RoaringBitmap rb2 = new RoaringBitmap();
@@ -692,37 +719,72 @@ public class TestRoaringBitmap {
                                         bs2.set(x + offset);
                                         rb2.add(x + offset);
                                 }
+                                if(bs2.cardinality() != rb2.getCardinality())
+                                        throw new RuntimeException("different card");
+
                                 BitSet clonebs1;
                                 // testing AND
                                 clonebs1 = (BitSet) bs1.clone();
                                 clonebs1.and(bs2);
                                 if (!equals(clonebs1,
                                         RoaringBitmap.and(rb1, rb2)))
-                                        throw new RuntimeException("bug");
+                                        throw new RuntimeException("bug and");
+
+                                {
+                                        RoaringBitmap t = rb1.clone();
+                                        t.and(rb2);
+                                        if(!t.equals(RoaringBitmap.and(rb1, rb2))) {
+                                                             System.out.println(t.highlowcontainer.getContainerAtIndex(0).getClass().getCanonicalName());
+                                              System.out.println(RoaringBitmap.and(rb1, rb2).highlowcontainer.getContainerAtIndex(0).getClass().getCanonicalName());
+
+                                                throw new RuntimeException("bug and");
+                                        }
+                                }
+
                                 // testing OR
                                 clonebs1 = (BitSet) bs1.clone();
                                 clonebs1.or(bs2);
+
                                 if (!equals(clonebs1,
                                         RoaringBitmap.or(rb1, rb2)))
-                                        throw new RuntimeException("bug");
+                                        throw new RuntimeException("bug or");
+                                {
+                                        RoaringBitmap t = rb1.clone();
+                                        t.or(rb2);
+                                        if(!t.equals(RoaringBitmap.or(rb1, rb2)))
+                                                throw new RuntimeException("bug or");
+                                }
                                 // testing XOR
                                 clonebs1 = (BitSet) bs1.clone();
                                 clonebs1.xor(bs2);
                                 if (!equals(clonebs1,
-                                        RoaringBitmap.xor(rb1, rb2)))
-                                        throw new RuntimeException("bug");
+                                        RoaringBitmap.xor(rb1, rb2))) {
+                                        throw new RuntimeException("bug xor");
+                                }
+                                {
+                                        RoaringBitmap t = rb1.clone();
+                                        t.xor(rb2);
+                                        if(!t.equals(RoaringBitmap.xor(rb1, rb2)))
+                                                throw new RuntimeException("bug xor");
+                                }
                                 // testing NOTAND
                                 clonebs1 = (BitSet) bs1.clone();
                                 clonebs1.andNot(bs2);
                                 if (!equals(clonebs1,
                                         RoaringBitmap.andNot(rb1, rb2))) {
-                                        throw new RuntimeException("bug");
+                                        throw new RuntimeException("bug andnot");
                                 }
                                 clonebs1 = (BitSet) bs2.clone();
                                 clonebs1.andNot(bs1);
                                 if (!equals(clonebs1,
                                         RoaringBitmap.andNot(rb2, rb1))) {
-                                        throw new RuntimeException("bug");
+                                        throw new RuntimeException("bug andnot");
+                                }
+                                {
+                                        RoaringBitmap t = rb1.clone();
+                                        t.andNot(rb2);
+                                        if(!t.equals(RoaringBitmap.andNot(rb1, rb2)))
+                                                throw new RuntimeException("bug");
                                 }
                         }
 
@@ -921,6 +983,8 @@ public class TestRoaringBitmap {
 
                 Assert.assertEquals(rb2.getCardinality() + rb.getCardinality(),
                         xorresult2.getCardinality());
+                rb.xor(rb2);
+                Assert.assertTrue(xorresult2.equals(rb));
 
         }
 

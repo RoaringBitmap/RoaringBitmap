@@ -13,6 +13,8 @@ import java.util.PriorityQueue;
 public class FastAggregation {
         /**
          * Sort the bitmap prior to using the and aggregate.
+         * @param bitmaps input bitmaps
+         * @return aggregated bitmap
          */
         public static RoaringBitmap and(RoaringBitmap... bitmaps) {
                 if (bitmaps.length == 0)
@@ -32,6 +34,8 @@ public class FastAggregation {
 
         /**
          * Uses a priority queue to compute the or aggregate.
+         * @param bitmaps input bitmaps
+         * @return  aggregated bitmap 
          */
         public static RoaringBitmap or(RoaringBitmap... bitmaps) {
                 PriorityQueue<RoaringBitmap> pq = new PriorityQueue<RoaringBitmap>(
@@ -56,6 +60,8 @@ public class FastAggregation {
 
         /**
          * Uses a priority queue to compute the xor aggregate.
+         * @param bitmaps input bitmaps
+         * @return  aggregated bitmap
          */
         public static RoaringBitmap xor(RoaringBitmap... bitmaps) {
                 PriorityQueue<RoaringBitmap> pq = new PriorityQueue<RoaringBitmap>(

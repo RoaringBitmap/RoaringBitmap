@@ -4,9 +4,16 @@ import java.io.Serializable;
 import java.util.Iterator;
 
 
+/**
+ * RoaringBitmap, a compressed alternative to the BitSet.
+ *
+ */
 public final class RoaringBitmap implements Cloneable, Serializable,
         Iterable<Integer> {
 
+        /**
+         * Create an empty bitmap
+         */
         public RoaringBitmap() {
                 highlowcontainer = new RoaringArray();
         }
@@ -14,6 +21,7 @@ public final class RoaringBitmap implements Cloneable, Serializable,
 
         /**
          * set the value to "true", whether it already appears on not.
+         * @param x integer value
          */
         public void add(final int x) {
                 final short hb = Util.highbits(x);
@@ -30,7 +38,12 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                                 newac.add(Util.lowbits(x)));
                 }
         }
-
+        /**
+         * In-place bitwise AND (intersection) operation. The current
+         * bitmap is modified.
+         * 
+         * @param x2 other bitmap
+         */
         public void and(final RoaringBitmap x2) {
                 int pos1 = 0, pos2 = 0;
                 int length1 = highlowcontainer.size();
@@ -59,7 +72,7 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                                 } else {
                                         final Container C = highlowcontainer
                                                 .getContainerAtIndex(pos1)
-                                                .and(x2.highlowcontainer
+                                                .iand(x2.highlowcontainer
                                                         .getContainerAtIndex(pos2));
                                         if (C.getCardinality() > 0) {
                                                 this.highlowcontainer
@@ -82,8 +95,14 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                                 }
                         } while (true);
                 }
+                highlowcontainer.resize(pos1);
         }
-
+        /**
+         * In-place bitwise ANDNOT (difference) operation. The current
+         * bitmap is modified.
+         * 
+         * @param x2 other bitmap
+         */
         public void andNot(final RoaringBitmap x2) {
                 int pos1 = 0, pos2 = 0;
                 int length1 = highlowcontainer.size();
@@ -108,7 +127,7 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                                 } else {
                                         final Container C = highlowcontainer
                                                 .getContainerAtIndex(pos1)
-                                                .andNot(x2.highlowcontainer
+                                                .iandNot(x2.highlowcontainer
                                                         .getContainerAtIndex(pos2));
                                         if (C.getCardinality() > 0) {
                                                 this.highlowcontainer
@@ -154,6 +173,12 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                 }
         }
 
+        /**
+         * Checks whether the value in included, which is equivalent to checking
+         * if the corresponding bit is set (get in BitSet class).
+         * @param x integer value
+         * @return whether the integer value is included.
+         */
         public boolean contains(final int x) {
                 final short hb = Util.highbits(x);
                 final Container C = highlowcontainer.getContainer(hb);
@@ -162,14 +187,6 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                 return C.contains(Util.lowbits(x));
         }
 
-        /**
-         * public Container getContainer(short key) { return
-         * this.highlowcontainer.getContainer(key); }
-         */
-
-        public boolean containsKey(short key) {
-                return this.highlowcontainer.ContainsKey(key);
-        }
 
         @Override
         public boolean equals(Object o) {
@@ -182,6 +199,11 @@ public final class RoaringBitmap implements Cloneable, Serializable,
         }
 
 
+        /**
+         * Returns the number of distinct integers added to the bitmap
+         * (e.g., number of bits set).
+         * @return the cardinality
+         */
         public int getCardinality() {
                 int size = 0;
                 for (int i = 0; i < this.highlowcontainer.size(); i++) {
@@ -191,6 +213,11 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                 return size;
         }
 
+        /**
+         * Estimate of the memory usage of this data structure. This
+         * is not meant to be an exact value.
+         * @return estimated memory usage.
+         */
         public int getSizeInBytes() {
                 int size = 8;
                 for (int i = 0; i < this.highlowcontainer.size(); i++) {
@@ -257,7 +284,13 @@ public final class RoaringBitmap implements Cloneable, Serializable,
 
                 }.init();
         }
-
+        
+        /**
+         * In-place bitwise OR (union) operation. The current
+         * bitmap is modified.
+         * 
+         * @param x2 other bitmap
+         */
         public void or(final RoaringBitmap x2) {
                 int pos1 = 0, pos2 = 0;
                 int length1 = highlowcontainer.size();
@@ -296,7 +329,7 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                                                         highlowcontainer
                                                                 .getContainerAtIndex(
                                                                         pos1)
-                                                                .or(x2.highlowcontainer
+                                                                .ior(x2.highlowcontainer
                                                                         .getContainerAtIndex(pos2)));
                                         pos1++;
                                         pos2++;
@@ -317,6 +350,10 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                 }
         }
 
+        /**
+         * If present remove the specified integers (effectively, sets its bit value to false)
+         * @param x integer value representing the index in a bitmap
+         */
         public void remove(final int x) {
                 final short hb = Util.highbits(x);
                 final int i = highlowcontainer.getIndex(hb);
@@ -328,6 +365,11 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                         highlowcontainer.removeAtIndex(i);
         }
 
+        /**
+         * Return the set values as an array.
+         * 
+         * @return array representing the set values.
+         */
         public int[] toArray() {
                 final int[] array = new int[this.getCardinality()];
                 int pos = 0, pos2 = 0;
@@ -365,12 +407,21 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                 return answer.toString();
         }
 
+        /**
+         * Recover allocated but unused memory. 
+         */
         public void trim() {
                 for (int i = 0; i < this.highlowcontainer.size(); i++) {
                         this.highlowcontainer.getContainerAtIndex(i).trim();
                 }
         }
 
+        /**
+         * In-place bitwise XOR (symmetric difference) operation. The current
+         * bitmap is modified.
+         * 
+         * @param x2 other bitmap
+         */
         public void xor(final RoaringBitmap x2) {
                 int pos1 = 0, pos2 = 0;
                 int length1 = highlowcontainer.size();
@@ -389,6 +440,14 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                                         s1 = highlowcontainer
                                                 .getKeyAtIndex(pos1);
                                 } else if (s1 > s2) {
+                                        highlowcontainer
+                                        .insertNewKeyValueAt(
+                                                pos1,
+                                                s2,
+                                                x2.highlowcontainer
+                                                        .getContainerAtIndex(pos2));
+                                        pos1++;
+                                        length1++;
                                         pos2++;
                                         if (pos2 == length2) {
                                                 break main;
@@ -398,7 +457,7 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                                 } else {
                                         final Container C = highlowcontainer
                                                 .getContainerAtIndex(pos1)
-                                                .xor(x2.highlowcontainer
+                                                .ixor(x2.highlowcontainer
                                                         .getContainerAtIndex(pos2));
                                         if (C.getCardinality() > 0) {
                                                 this.highlowcontainer
@@ -478,7 +537,21 @@ public final class RoaringBitmap implements Cloneable, Serializable,
 
                 }.init();
         }
+        @Override
+        public int hashCode() {
+                return highlowcontainer.hashCode(); 
+        }
 
+
+        /**
+         * Bitwise AND (intersection) operation. The provided bitmaps
+         * are *not* modified. This operation is thread-safe as long as
+         * the provided bitmaps remain unchanged.
+         * 
+         * @param x1 first bitmap
+         * @param x2 other bitmap
+         * @return result of the operation
+         */
         public static RoaringBitmap and(final RoaringBitmap x1,
                 final RoaringBitmap x2) {
                 final RoaringBitmap answer = new RoaringBitmap();
@@ -528,7 +601,15 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                 }
                 return answer;
         }
-
+        /**
+         * Bitwise ANDNOT (difference) operation. The provided bitmaps
+         * are *not* modified. This operation is thread-safe as long as
+         * the provided bitmaps remain unchanged.
+         * 
+         * @param x1 first bitmap
+         * @param x2 other bitmap
+         * @return result of the operation
+         */
         public static RoaringBitmap andNot(final RoaringBitmap x1,
                 final RoaringBitmap x2) {
                 final RoaringBitmap answer = new RoaringBitmap();
@@ -581,13 +662,28 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                 return answer;
         }
 
-        public static RoaringBitmap bitmapOf(int... dat) {
+        /**
+         * Generate a bitmap with the specified values set to true.
+         * The provided integers values don't have to be in sorted order,
+         * but it may be preferable to sort them from a perfomance point of view.
+         * @param dat set values
+         * @return a new bitmap
+         */
+        public static RoaringBitmap bitmapOf(final int... dat) {
                 final RoaringBitmap ans = new RoaringBitmap();
                 for (final int i : dat)
                         ans.add(i);
                 return ans;
         }
-
+        /**
+         * Bitwise OR (union) operation. The provided bitmaps
+         * are *not* modified. This operation is thread-safe as long as
+         * the provided bitmaps remain unchanged.
+         * 
+         * @param x1 first bitmap
+         * @param x2 other bitmap
+         * @return result of the operation
+         */
         public static RoaringBitmap or(final RoaringBitmap x1,
                 final RoaringBitmap x2) {
                 final RoaringBitmap answer = new RoaringBitmap();
@@ -647,7 +743,15 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                 }
                 return answer;
         }
-
+        /**
+         * Bitwise XOR (symmetric difference) operation. The provided bitmaps
+         * are *not* modified. This operation is thread-safe as long as
+         * the provided bitmaps remain unchanged.
+         * 
+         * @param x1 first bitmap
+         * @param x2 other bitmap
+         * @return result of the operation
+         */
         public static RoaringBitmap xor(final RoaringBitmap x1,
                 final RoaringBitmap x2) {
                 final RoaringBitmap answer = new RoaringBitmap();
@@ -710,7 +814,10 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                 return answer;
         }
 
-        public RoaringArray highlowcontainer = null;
+        /**
+         * For expert use
+         */
+        protected RoaringArray highlowcontainer = null;
 
         private static final long serialVersionUID = 3L;
 

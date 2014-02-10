@@ -181,8 +181,7 @@ public class BenchmarkReal {
                                         public void compute() {
                                                 RoaringBitmap result = RoaringBitmap
                                                         .and(bm1, bm2);
-                                                BenchmarkReal.junk += result
-                                                        .highlowcontainer.size(); // cheap
+                                                BenchmarkReal.junk += result.getCardinality(); // cheap
                                         }
                                 });
                                 totalTimes.put(timeKey,
@@ -193,8 +192,7 @@ public class BenchmarkReal {
                                         public void compute() {
                                                 RoaringBitmap result = RoaringBitmap
                                                         .or(bm1, bm2);
-                                                BenchmarkReal.junk += result
-                                                        .highlowcontainer.size(); // cheap
+                                                BenchmarkReal.junk += result.getCardinality(); // cheap
                                         }
                                 });
                                 totalTimes.put(timeKey,
@@ -205,8 +203,7 @@ public class BenchmarkReal {
                                         public void compute() {
                                                 RoaringBitmap result = RoaringBitmap
                                                         .xor(bm1, bm2);
-                                                BenchmarkReal.junk += result
-                                                        .highlowcontainer.size(); // cheap
+                                                BenchmarkReal.junk += result.getCardinality(); // cheap
                                         }
                                 });
                                 totalTimes.put(timeKey,
