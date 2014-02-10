@@ -6,7 +6,7 @@ echo turbo boost status:
 #full weather lead to crash   weather_large_withjan82.csv 
 
 for ds in census-income.csv  ; do
-    java -cp ./target/RoaringBitmap-0.0.1-SNAPSHOT.jar:./target/lib/*  -javaagent:./lib/SizeOf.jar me.lemire.roaringbitmap.experiments.BenchmarkReal real-roaring-datasets $ds $N_EXPER
+    java -cp ./target/RoaringBitmap-0.0.1-SNAPSHOT.jar:./target/lib/*  -javaagent:./lib/SizeOf.jar org.roaringbitmap.experiments.BenchmarkReal real-roaring-datasets $ds $N_EXPER
 done
 
 
