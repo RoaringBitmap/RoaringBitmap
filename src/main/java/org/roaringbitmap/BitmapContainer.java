@@ -459,6 +459,6 @@ public final class BitmapContainer extends Container implements Cloneable,
 
         private static final long serialVersionUID = 2L;
         
-        private static boolean USEINPLACE = false; // optimization flag
+        private static boolean USEINPLACE = true; // optimization flag
 
 }
