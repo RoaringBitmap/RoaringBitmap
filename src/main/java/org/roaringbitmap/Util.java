@@ -1,15 +1,19 @@
 package org.roaringbitmap;
 
+/**
+ * Various useful methods for roaring bitmaps.
+ *
+ */
 public final class Util {
-        public static short highbits(int x) {
+        protected static short highbits(int x) {
                 return (short) (x >>> 16);
         }
 
-        public static short lowbits(int x) {
+        protected static short lowbits(int x) {
                 return (short) (x & 0xFFFF);
         }
 
-        public final static int toIntUnsigned(short x) {
+        protected final static int toIntUnsigned(short x) {
                 return x & 0xFFFF;
         }
 
@@ -122,6 +126,7 @@ public final class Util {
                                 ++k1;
                                 ++k2;
                                 if (k1 >= length1) {
+                                        
                                         break;
                                 }
                                 if (k2 >= length2) {

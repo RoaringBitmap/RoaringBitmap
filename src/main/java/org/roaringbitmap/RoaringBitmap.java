@@ -32,8 +32,7 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                                 highlowcontainer.getContainerAtIndex(i).add(
                                         Util.lowbits(x)));
                 } else {
-                        final ArrayContainer newac = ContainerFactory
-                                .getArrayContainer();
+                        final ArrayContainer newac = new ArrayContainer();
                         highlowcontainer.insertNewKeyValueAt(-i - 1, hb,
                                 newac.add(Util.lowbits(x)));
                 }

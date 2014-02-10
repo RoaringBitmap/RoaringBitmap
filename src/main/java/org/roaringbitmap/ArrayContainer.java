@@ -17,6 +17,12 @@ public final class ArrayContainer extends Container implements Cloneable,
         public ArrayContainer() {
                 this(DEFAULTINITSIZE);
         }
+        
+        private ArrayContainer(int newcard, short[] newcontent) {
+                this.cardinality = newcard;
+                this.content = Arrays.copyOf(newcontent, newcard);
+
+        }
 
         /**
          * Create an array container with specified capacity
@@ -69,7 +75,7 @@ public final class ArrayContainer extends Container implements Cloneable,
                 ArrayContainer value1 = this;
                 final int desiredcapacity = Math.min(value1.getCardinality(),
                         value2.getCardinality());
-                ArrayContainer answer = ContainerFactory.getArrayContainer();
+                ArrayContainer answer = new ArrayContainer();
                 if (answer.content.length < desiredcapacity)
                         answer.content = new short[desiredcapacity];
                 answer.cardinality = Util
@@ -88,9 +94,7 @@ public final class ArrayContainer extends Container implements Cloneable,
         public ArrayContainer andNot(final ArrayContainer value2) {
                 ArrayContainer value1 = this;
                 final int desiredcapacity = value1.getCardinality();
-                ArrayContainer answer = ContainerFactory.getArrayContainer();
-                if (answer.content.length < desiredcapacity)
-                        answer.content = new short[desiredcapacity];
+                ArrayContainer answer = new ArrayContainer(desiredcapacity);
                 answer.cardinality = Util.unsigned_difference(value1.content,
                         value1.getCardinality(), value2.content,
                         value2.getCardinality(), answer.content);
@@ -99,10 +103,7 @@ public final class ArrayContainer extends Container implements Cloneable,
 
         @Override
         public ArrayContainer andNot(BitmapContainer value2) {
-                final ArrayContainer answer = ContainerFactory
-                        .getArrayContainer();
-                if (answer.content.length < this.content.length)
-                        answer.content = new short[this.content.length];
+                final ArrayContainer answer = new ArrayContainer(content.length);
                 int pos = 0;
                 for (int k = 0; k < cardinality; ++k)
                         if (!value2.contains(this.content[k]))
@@ -118,10 +119,7 @@ public final class ArrayContainer extends Container implements Cloneable,
 
         @Override
         public ArrayContainer clone() {
-                final ArrayContainer x = (ArrayContainer) super.clone();
-                x.cardinality = this.cardinality;
-                x.content = Arrays.copyOf(content, x.cardinality);
-                return x;
+                return new ArrayContainer(this.cardinality,this.content);
         }
 
         @Override
@@ -140,7 +138,7 @@ public final class ArrayContainer extends Container implements Cloneable,
                                         return false;
                         }
                         return true;
-                }
+                } 
                 return false;
         }
 
@@ -170,10 +168,6 @@ public final class ArrayContainer extends Container implements Cloneable,
 
                         int pos = 0;
                 };
-        }
-        
-        public int getSizeInBits() {
-                return this.cardinality * 16 + 32;
         }
 
         @Override
@@ -230,12 +224,10 @@ public final class ArrayContainer extends Container implements Cloneable,
 
         @Override
         public Container ior(final ArrayContainer value2) {
-                // Using inPlace operations on arrays is very expensive. Each
-                // modification needs O(n) shifts
                 final ArrayContainer value1 = this;
                 int tailleAC = value1.getCardinality()
                         + value2.getCardinality();
-                final int desiredcapacity = tailleAC > 65535 ? 65535 : tailleAC;
+                final int desiredcapacity = Math.min(BitmapContainer.maxcapacity,tailleAC); 
                 short[] newContent = new short[desiredcapacity];
                 int card = Util.unsigned_union2by2(value1.content,
                         value1.getCardinality(), value2.content,
@@ -279,9 +271,9 @@ public final class ArrayContainer extends Container implements Cloneable,
         @Override
         public Container ixor(final ArrayContainer value2) {
                 final ArrayContainer value1 = this;
-                final int lentgh = value1.getCardinality()
+                final int dlength = value1.getCardinality()
                         + value2.getCardinality();
-                final int desiredcapacity = lentgh <= 65536 ? lentgh : 65536;
+                final int desiredcapacity = dlength <= 65536 ? dlength : 65536;
                 short[] newContent = new short[desiredcapacity];
                 int card = Util.unsigned_exclusiveunion2by2(value1.content,
                         value1.getCardinality(), value2.content,
@@ -303,8 +295,8 @@ public final class ArrayContainer extends Container implements Cloneable,
                 final ArrayContainer value1 = this;
                 int tailleAC = value1.getCardinality()
                         + value2.getCardinality();
-                final int desiredcapacity = tailleAC > 65535 ? 65535 : tailleAC;
-                ArrayContainer answer = ContainerFactory.getArrayContainer();
+                final int desiredcapacity = Math.min(BitmapContainer.maxcapacity, tailleAC);
+                ArrayContainer answer = new ArrayContainer();
                 if (answer.content.length < desiredcapacity)
                         answer.content = new short[desiredcapacity];
                 answer.cardinality = Util.unsigned_union2by2(value1.content,
@@ -369,7 +361,7 @@ public final class ArrayContainer extends Container implements Cloneable,
                 final ArrayContainer value1 = this;
                 final int desiredcapacity = Math.min(value1.getCardinality()
                         + value2.getCardinality(), 65536);
-                ArrayContainer answer = ContainerFactory.getArrayContainer();
+                ArrayContainer answer = new ArrayContainer();
                 if (answer.content.length < desiredcapacity)
                         answer.content = new short[desiredcapacity];
                 answer.cardinality = Util
@@ -396,20 +388,18 @@ public final class ArrayContainer extends Container implements Cloneable,
 
         
         protected void loadData(final BitmapContainer bitmapContainer) {
-                if (content.length < bitmapContainer.cardinality)
-                        content = new short[bitmapContainer.cardinality];
                 this.cardinality = bitmapContainer.cardinality;
                 int pos = 0;
                 for (int i = bitmapContainer.nextSetBit(0); i >= 0; i = bitmapContainer
                         .nextSetBit(i + 1)) {
                         content[pos++] = (short) i;
                 }
-                if (pos != this.cardinality)
-                        throw new RuntimeException("bug " + pos + " "
-                                + this.cardinality);
         }
+
         protected int cardinality = 0;
+        
         protected short[] content;
+        
         private static final int DEFAULTINITSIZE = 4;
 
         private static final long serialVersionUID = 1L;
