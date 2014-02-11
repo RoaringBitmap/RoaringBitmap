@@ -55,13 +55,7 @@
     <groupId>com.googlecode.sparsebitmap</groupId>
      <version>0.0.3</version>
 </dependency>
-<dependency>
-    <artifactId>SparseBitSet</artifactId>
-    <groupId>org.brettw</groupId>
-     <version>1.0-SNAPSHOT</version>
-    <scope>system</scope>
-    <systemPath>${basedir}/lib/SparseBitSet-1.0-SNAPSHOT.jar</systemPath>
-</dependency>
+
 
 <dependency>
     <artifactId>SizeOf</artifactId>
@@ -71,13 +65,7 @@
     <systemPath>${basedir}/lib/SizeOf.jar</systemPath>
 </dependency>
 
-<dependency>
-    <artifactId>WAHBitset</artifactId>
-    <groupId>org.devbrat.util.WAHBitSet</groupId>
-     <version>0.1.0</version>
-    <scope>system</scope>
-    <systemPath>${basedir}/lib/compressedbitset-0.1.jar</systemPath>
-</dependency>
+
 
 <dependency>
     <artifactId>ConciseSet</artifactId>

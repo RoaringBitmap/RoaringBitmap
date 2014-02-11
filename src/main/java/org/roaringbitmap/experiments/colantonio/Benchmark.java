@@ -119,6 +119,7 @@ public class Benchmark {
          * @param gen data generator
          * @param verbose whether to print out the result
          * @param TIMES how many times should we run each test
+         * @param sizeof whether to use the sizeOf library.
          */
         public static void test(final DataGenerator gen, final boolean verbose, final int TIMES, boolean sizeof) {
                 if (!verbose)

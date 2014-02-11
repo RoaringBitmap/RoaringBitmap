@@ -1,4 +1,9 @@
 package org.roaringbitmap;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashSet;
@@ -1059,6 +1064,24 @@ public class TestRoaringBitmap {
                 if (counter != bc.getCardinality())
                         return false;
                 return true;
+        }
+        
+        @Test
+        public void testSerialization() throws IOException, ClassNotFoundException {
+                RoaringBitmap rr = new RoaringBitmap();
+                for(int k =65000; k < 2*65000; ++k)
+                        rr.add(k);
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                // Note: you could use a file output steam instead of ByteArrayOutputStream
+                ObjectOutputStream oo = new ObjectOutputStream(bos);
+                rr.writeExternal(oo);
+                oo.close();
+                RoaringBitmap rrback = new RoaringBitmap();
+                ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
+                rrback.readExternal(new ObjectInputStream(bis));
+                Assert.assertEquals(rr.getCardinality() , rrback.getCardinality());
+                Assert.assertTrue(rr.equals(rrback));
+                        
         }
 
         public static boolean equals(BitSet bs, RoaringBitmap rr) {

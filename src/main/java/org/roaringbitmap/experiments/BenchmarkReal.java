@@ -1,6 +1,5 @@
 package org.roaringbitmap.experiments;
 
-
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Locale;
@@ -122,8 +121,6 @@ public class BenchmarkReal {
                 System.out.println("ignore this " + junk);
         }
 
-
-
         static BitSet toBitSet(int[] dat) {
                 BitSet ans = new BitSet();
                 for (int i : dat)
@@ -160,7 +157,7 @@ public class BenchmarkReal {
 
                 /***************************************************************************/
                 if (format.equals(ROARING)) {
-                        final RoaringBitmap bm1 =  RoaringBitmap.bitmapOf(data1);
+                        final RoaringBitmap bm1 = RoaringBitmap.bitmapOf(data1);
                         final RoaringBitmap bm2 = RoaringBitmap.bitmapOf(data2);
                         bm1.trim();
                         bm2.trim();
@@ -178,7 +175,8 @@ public class BenchmarkReal {
                                         public void compute() {
                                                 RoaringBitmap result = RoaringBitmap
                                                         .and(bm1, bm2);
-                                                BenchmarkReal.junk += result.getCardinality(); // cheap
+                                                BenchmarkReal.junk += result
+                                                        .getCardinality(); // cheap
                                         }
                                 });
                                 totalTimes.put(timeKey,
@@ -189,7 +187,8 @@ public class BenchmarkReal {
                                         public void compute() {
                                                 RoaringBitmap result = RoaringBitmap
                                                         .or(bm1, bm2);
-                                                BenchmarkReal.junk += result.getCardinality(); // cheap
+                                                BenchmarkReal.junk += result
+                                                        .getCardinality(); // cheap
                                         }
                                 });
                                 totalTimes.put(timeKey,
@@ -200,7 +199,8 @@ public class BenchmarkReal {
                                         public void compute() {
                                                 RoaringBitmap result = RoaringBitmap
                                                         .xor(bm1, bm2);
-                                                BenchmarkReal.junk += result.getCardinality(); // cheap
+                                                BenchmarkReal.junk += result
+                                                        .getCardinality(); // cheap
                                         }
                                 });
                                 totalTimes.put(timeKey,

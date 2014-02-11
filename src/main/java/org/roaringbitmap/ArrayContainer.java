@@ -1,5 +1,8 @@
 package org.roaringbitmap;
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -18,18 +21,18 @@ public final class ArrayContainer extends Container implements Cloneable,
                 this(DEFAULTINITSIZE);
         }
         
-        private ArrayContainer(int newcard, short[] newcontent) {
-                this.cardinality = newcard;
-                this.content = Arrays.copyOf(newcontent, newcard);
-
-        }
-
         /**
          * Create an array container with specified capacity
          * @param capacity
          */
         public ArrayContainer(final int capacity) {
                 content = new short[capacity];
+        }
+
+        private ArrayContainer(int newcard, short[] newcontent) {
+                this.cardinality = newcard;
+                this.content = Arrays.copyOf(newcontent, newcard);
+
         }
 
         /**
@@ -313,6 +316,22 @@ public final class ArrayContainer extends Container implements Cloneable,
         }
 
         @Override
+        public void readExternal(ObjectInput in) throws IOException,
+                ClassNotFoundException {
+                byte[] buffer = new byte[2];
+                // little endian
+                in.readFully(buffer);
+                this.cardinality = buffer[0] | (buffer[1]<< 8);
+                if(this.content.length<this.cardinality)
+                        this.content = new short[this.cardinality];
+                for(int k = 0; k < this.cardinality; ++k) {
+                        in.readFully(buffer);
+                        this.content[k] = (short) (((buffer[1]&0xFF)<<8)|(buffer[0]&0xFF));
+                }
+
+        }
+
+        @Override
         public Container remove(final short x) {
                 final int loc = Util.unsigned_binarySearch(content, 0,
                         cardinality, x);
@@ -357,6 +376,17 @@ public final class ArrayContainer extends Container implements Cloneable,
         }
 
         @Override
+        public void writeExternal(ObjectOutput out) throws IOException {
+                out.write((this.cardinality >>> 0) & 0xFF);
+                out.write((this.cardinality >>> 8) & 0xFF);
+                // little endian
+                for(int k = 0; k < this.cardinality; ++k) {
+                        out.write((this.content[k] >>> 0) & 0xFF);
+                        out.write((this.content[k] >>> 8) & 0xFF);
+                }
+        }
+
+        @Override
         public Container xor(final ArrayContainer value2) {
                 final ArrayContainer value1 = this;
                 final int desiredcapacity = Math.min(value1.getCardinality()
@@ -374,6 +404,7 @@ public final class ArrayContainer extends Container implements Cloneable,
                 return answer;
         }
 
+        
         @Override
         public Container xor(BitmapContainer x) {
                 return x.xor(this);
@@ -385,7 +416,6 @@ public final class ArrayContainer extends Container implements Cloneable,
                         newcapacity = ArrayContainer.DEFAULTMAXSIZE;
                 this.content = Arrays.copyOf(this.content, newcapacity);
         }
-
         
         protected void loadData(final BitmapContainer bitmapContainer) {
                 this.cardinality = bitmapContainer.cardinality;
@@ -395,11 +425,11 @@ public final class ArrayContainer extends Container implements Cloneable,
                         content[pos++] = (short) i;
                 }
         }
-
+        
         protected int cardinality = 0;
-        
+
         protected short[] content;
-        
+
         private static final int DEFAULTINITSIZE = 4;
 
         private static final long serialVersionUID = 1L;

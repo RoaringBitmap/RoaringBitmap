@@ -1,10 +1,12 @@
 package org.roaringbitmap;
 
+import java.io.Externalizable;
+
 /**
- * @author lemire
+ * Base container class.
  *
  */
-public abstract class Container implements Iterable<Short>, Cloneable {
+public abstract class Container implements Iterable<Short>, Cloneable,  Externalizable {
 
         /**
          * Add a short to the container. May generate a new container.

@@ -1,12 +1,16 @@
 package org.roaringbitmap;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.Arrays;
 
 /**
  * Specialized array to stored the containers used by a RoaringBitmap.
  *
  */
-public final class RoaringArray implements Cloneable {
+public final class RoaringArray implements Cloneable, Externalizable {
         protected final class Element implements Cloneable {
                 public Element(short key, Container value) {
                         this.key = key;
@@ -29,6 +33,8 @@ public final class RoaringArray implements Cloneable {
                                 return null;
                         }
                 }
+                
+
         }
 
         protected RoaringArray() {
@@ -216,4 +222,45 @@ public final class RoaringArray implements Cloneable {
         protected int size = 0;
 
         final static int initialCapacity = 4;
+
+        @Override
+        public void readExternal(ObjectInput in) throws IOException,
+                ClassNotFoundException {
+                this.clear();
+                byte[] buffer = new byte[2];
+                // little endian
+                in.readFully(buffer);
+                this.size = buffer[0] | (buffer[1]<< 8);
+                if((this.array == null) || (this.array.length < this.size)) this.array = new Element[this.size];
+                for(int k = 0; k < this.size; ++k) {
+                        in.readFully(buffer);
+                        short key  = (short) (buffer[0] | (buffer[1]<< 8));
+                        boolean isbitmap = in.readBoolean();
+                        Container val ;
+                        if(isbitmap) {
+                                val = new BitmapContainer();
+                                val.readExternal(in);
+                        } else {
+                                val = new ArrayContainer(0);
+                                val.readExternal(in);
+                        }
+                        this.array[k] = new Element(key,val);
+                }
+        }
+
+        @Override
+        public void writeExternal(ObjectOutput out) throws IOException {
+                out.write((this.size >>> 0) & 0xFF);
+                out.write((this.size >>> 8) & 0xFF);
+                for(int k = 0; k < size; ++k) {
+                        out.write((this.array[k].key >>> 0) & 0xFF);
+                        out.write((this.array[k].key >>> 8) & 0xFF);
+                        out.writeBoolean(this.array[k].value instanceof BitmapContainer);
+                        array[k].value.writeExternal(out);
+                }
+                
+        }
+        
+        private static final long serialVersionUID = 3L;
+
 }

@@ -1,5 +1,8 @@
 package org.roaringbitmap;
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -357,6 +360,26 @@ public final class BitmapContainer extends Container implements Cloneable,
         }
 
         @Override
+        public void readExternal(ObjectInput in) throws IOException,
+                ClassNotFoundException {
+                byte[] buffer = new byte[8];
+                // little endian
+                this.cardinality = 0;
+                for(int k = 0; k < bitmap.length; ++k) {
+                        in.readFully(buffer);
+                        bitmap[k] = (((long)buffer[7] << 56) +
+                                ((long)(buffer[6] & 255) << 48) +
+                                ((long)(buffer[5] & 255) << 40) +
+                                ((long)(buffer[4] & 255) << 32) +
+                                ((long)(buffer[3] & 255) << 24) +
+                                ((buffer[2] & 255) << 16) +
+                                ((buffer[1] & 255) <<  8) +
+                                ((buffer[0] & 255) <<  0));
+                        this.cardinality += Long.bitCount(bitmap[k]);
+                }
+        }
+
+        @Override
         public Container remove(final short i) {
                 final int x = Util.toIntUnsigned(i);
                 if (cardinality == ArrayContainer.DEFAULTMAXSIZE) {// this is
@@ -408,6 +431,23 @@ public final class BitmapContainer extends Container implements Cloneable,
         }
 
         @Override
+        public void writeExternal(ObjectOutput out) throws IOException {
+                byte[] buffer = new byte[8];
+                // little endian
+                for(long w: bitmap) {
+                        buffer[0] = (byte)(w >>> 0);
+                        buffer[1] = (byte)(w >>> 8);
+                        buffer[2] = (byte)(w >>> 16);
+                        buffer[3] = (byte)(w >>> 24);
+                        buffer[4] = (byte)(w >>> 32);
+                        buffer[5] = (byte)(w >>> 40);
+                        buffer[6] = (byte)(w >>>  48);
+                        buffer[7] = (byte)(w >>>  56);
+                        out.write(buffer, 0, 8);
+                }
+        }
+        
+        @Override
         public Container xor(final ArrayContainer value2) {
                 final BitmapContainer answer = clone();
 
@@ -441,7 +481,7 @@ public final class BitmapContainer extends Container implements Cloneable,
                         return answer.toArrayContainer();
                 return answer;
         }
-        
+
         protected void loadData(final ArrayContainer arrayContainer) {
                 this.cardinality = arrayContainer.cardinality;
 
@@ -450,15 +490,15 @@ public final class BitmapContainer extends Container implements Cloneable,
                         bitmap[Util.toIntUnsigned(x) / 64] |= (1l << x);
                 }
         }
-
+        
         long[] bitmap;
 
         int cardinality;
         
-        protected static int maxcapacity = 1<<16;
-
         private static final long serialVersionUID = 2L;
-        
+
         private static boolean USEINPLACE = true; // optimization flag
+
+        protected static int maxcapacity = 1<<16;
 
 }
