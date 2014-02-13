@@ -95,8 +95,7 @@ public class AsymmetricBenchmark {
                 System.out
                         .println("#  did in Concise: Compressed 'n' Composable Integer Set");
                 System.out.println("#  Except that (1) we aggregate bitmaps of different density");
-                System.out.println("#              (2) we insert values in random order");
-                System.out.println("#              (3) check bits instead of removing them");
+                System.out.println("#              (2) check bits instead of removing them");
                 System.out.println("########");
                 System.out.println("# " + System.getProperty("java.vendor")
                         + " " + System.getProperty("java.version") + " "
@@ -132,15 +131,6 @@ public class AsymmetricBenchmark {
                 System.out.println();
         }
 
-        private static void shuffle(int[] array) {
-                Random rnd = new Random();
-                for (int i = array.length - 1; i > 0; i--) {
-                        int index = rnd.nextInt(i + 1);
-                        final int a = array[index];
-                        array[index] = array[i];
-                        array[i] = a;
-                }
-        }
 
         /**
          * @param gen
@@ -197,8 +187,6 @@ public class AsymmetricBenchmark {
                                 int[] v1 = gen.getRandomArray(d);
                                 int[] v2 = gen.getRandomArray((1 - d)
                                         * r.nextDouble() + d); // v2 is randomly denser
-                                shuffle(v1);// we are going to append in random orders
-                                shuffle(v2);// we are going to append in random orders
                                 // BitSet
                                 // Append times
                                 bef = System.nanoTime();
