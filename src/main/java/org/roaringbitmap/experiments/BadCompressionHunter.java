@@ -31,10 +31,12 @@ public class BadCompressionHunter {
                         ConciseSet ans = new ConciseSet();
                         for (int j : data)
                                 ans.add(j);
-                        double concisesize = ans.collectionCompressionRatio() * 4;
+                        double concisesize = ans.collectionCompressionRatio() * 4 * ans.size();
                         RoaringBitmap rr = RoaringBitmap.bitmapOf(data);
                         double rrsize = rr.getSizeInBytes();
-                        if(rrsize / concisesize < worse) {
+                        if(rrsize / concisesize > worse) {
+                                System.out.println("index = "+i);
+                                System.out.println("cardinality = "+data.length);
                                 System.out.println("concisesize = "+concisesize);
                                 System.out.println("rrsize = "+rrsize);
                                 worse = rrsize / concisesize;
