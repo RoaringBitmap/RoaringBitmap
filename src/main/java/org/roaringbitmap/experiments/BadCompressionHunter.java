@@ -23,7 +23,9 @@ public class BadCompressionHunter {
                 System.out.println(NTRIALS + " tests on " + dataset);
                 double worse = 1;
                 for (int i = 0; i < 2*NTRIALS; ++i) {
+                        try{
                         int[] data = dataSrc.fetchBitPositions(dataset, i);
+                        
                         if (data.length < 1024)
                                 continue;
                         double density = data.length * 1.0 / data[data.length - 1];
@@ -38,11 +40,15 @@ public class BadCompressionHunter {
                                 System.out.println("index = "+i);
                                 System.out.println("cardinality = "+data.length);
                                 System.out.println("concisesize = "+concisesize);
+                                System.out.println("concise bits/int = "+concisesize*8.0/data.length);
                                 System.out.println("rrsize = "+rrsize);
+                                System.out.println("rr bits/int = "+rrsize*8.0/data.length);
                                 worse = rrsize / concisesize;
                                 System.out.println("ratio = "+worse);
                                 System.out.println("density = "+density);
+                                
                         }
+                        } catch(java.lang.RuntimeException e) {}
 
 
                 }
