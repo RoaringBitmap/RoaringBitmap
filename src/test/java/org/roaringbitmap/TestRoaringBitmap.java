@@ -737,18 +737,17 @@ public class TestRoaringBitmap {
                                 if (!equals(clonebs1,
                                         RoaringBitmap.and(rb1, rb2)))
                                         throw new RuntimeException("bug and");
-
                                 {
                                         RoaringBitmap t = rb1.clone();
                                         t.and(rb2);
                                         if (!equals(clonebs1,
                                                 t))
-                                                throw new RuntimeException("bug and");
+                                                throw new RuntimeException("bug inplace and");
                                         if(!t.equals(RoaringBitmap.and(rb1, rb2))) {
                                                              System.out.println(t.highlowcontainer.getContainerAtIndex(0).getClass().getCanonicalName());
                                               System.out.println(RoaringBitmap.and(rb1, rb2).highlowcontainer.getContainerAtIndex(0).getClass().getCanonicalName());
 
-                                                throw new RuntimeException("bug and");
+                                                throw new RuntimeException("bug inplace and");
                                         }
                                 }
 
@@ -805,7 +804,7 @@ public class TestRoaringBitmap {
                                         t.andNot(rb1);
                                         if (!equals(clonebs1,
                                                 t)) {
-                                                throw new RuntimeException("bug andnot");
+                                                throw new RuntimeException("bug inplace andnot");
                                         }
                                         RoaringBitmap g = RoaringBitmap.andNot(rb2, rb1);
                                         if (!equals(clonebs1,

@@ -146,6 +146,13 @@ public final class ArrayContainer extends Container implements Cloneable,
         }
 
         @Override
+        public void fillLeastSignificant16bits(int[] x, int i) {
+                for(int k = 0; k < this.cardinality; ++k)
+                        x[k+i] = Util.toIntUnsigned(this.content[k]);
+                
+        }
+
+        @Override
         public int getCardinality() {
                 return cardinality;
         }
@@ -386,6 +393,7 @@ public final class ArrayContainer extends Container implements Cloneable,
                 }
         }
 
+        
         @Override
         public Container xor(final ArrayContainer value2) {
                 final ArrayContainer value1 = this;
@@ -404,12 +412,11 @@ public final class ArrayContainer extends Container implements Cloneable,
                 return answer;
         }
 
-        
         @Override
         public Container xor(BitmapContainer x) {
                 return x.xor(this);
         }
-
+        
         private void increaseCapacity() {
                 int newcapacity = this.content.length * 5 / 4;
                 if (newcapacity > ArrayContainer.DEFAULTMAXSIZE)
@@ -419,13 +426,9 @@ public final class ArrayContainer extends Container implements Cloneable,
         
         protected void loadData(final BitmapContainer bitmapContainer) {
                 this.cardinality = bitmapContainer.cardinality;
-                int pos = 0;
-                for (int i = bitmapContainer.nextSetBit(0); i >= 0; i = bitmapContainer
-                        .nextSetBit(i + 1)) {
-                        content[pos++] = (short) i;
-                }
+                bitmapContainer.fillArray(content);
         }
-        
+
         protected int cardinality = 0;
 
         protected short[] content;

@@ -5,18 +5,7 @@ package org.roaringbitmap;
  *
  */
 public final class Util {
-        protected static short highbits(int x) {
-                return (short) (x >>> 16);
-        }
-
-        protected static short lowbits(int x) {
-                return (short) (x & 0xFFFF);
-        }
-
-        protected final static int toIntUnsigned(short x) {
-                return x & 0xFFFF;
-        }
-
+        
         /**
          * Find the smallest integer larger than pos such that array[pos]>= min.
          * If none can be found, return length. Based on code by O. Kaser.
@@ -80,6 +69,57 @@ public final class Util {
                 }
                 return upper;
 
+        }
+        
+        protected static void fillArrayAND(short[] container, long[] bitmap1, long[] bitmap2) {
+                int pos = 0;
+                if(bitmap1.length != bitmap2.length) throw new IllegalArgumentException("not supported");
+                for (int k = 0; k < bitmap1.length; ++k) {
+                        long bitset = bitmap1[k] & bitmap2[k];
+                        while (bitset != 0) {
+                                long t = bitset & -bitset;
+                                container[pos++] = (short)( k * 64 + Long.bitCount(t - 1));
+                                bitset ^= t;
+                        }
+                }
+        }
+        protected static void fillArrayANDNOT(short[] container, long[] bitmap1, long[] bitmap2) {
+                int pos = 0;
+                if(bitmap1.length != bitmap2.length) throw new IllegalArgumentException("not supported");
+                for (int k = 0; k < bitmap1.length; ++k) {
+                        long bitset = bitmap1[k] & (~bitmap2[k]);
+                        while (bitset != 0) {
+                                long t = bitset & -bitset;
+                                container[pos++] = (short)( k * 64 + Long.bitCount(t - 1));
+                                bitset ^= t;
+                        }
+                }
+        }
+
+        
+        protected static void fillArrayXOR(short[] container, long[] bitmap1, long[] bitmap2) {
+                int pos = 0;
+                if(bitmap1.length != bitmap2.length) throw new IllegalArgumentException("not supported");
+                for (int k = 0; k < bitmap1.length; ++k) {
+                        long bitset = bitmap1[k] ^ bitmap2[k];
+                        while (bitset != 0) {
+                                long t = bitset & -bitset;
+                                container[pos++] = (short)( k * 64 + Long.bitCount(t - 1));
+                                bitset ^= t;
+                        }
+                }
+        }
+
+        protected static short highbits(int x) {
+                return (short) (x >>> 16);
+        }
+
+        protected static short lowbits(int x) {
+                return (short) (x & 0xFFFF);
+        }
+
+        protected final static int toIntUnsigned(short x) {
+                return x & 0xFFFF;
         }
 
         protected static int unsigned_binarySearch(short[] array, int begin,

@@ -391,13 +391,12 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                 while (pos < this.highlowcontainer.size()) {
                         final int hs = Util.toIntUnsigned(this.highlowcontainer
                                 .getKeyAtIndex(pos)) << 16;
-                        final ShortIterator si = this.highlowcontainer
-                                .getContainerAtIndex(pos++).getShortIterator();
-
-                        while (si.hasNext()) {
-                                array[pos2++] = hs
-                                        | Util.toIntUnsigned(si.next());
-                        }
+                        Container C = this.highlowcontainer
+                                .getContainerAtIndex(pos++);
+                        C.fillLeastSignificant16bits(array, pos2);
+                        final int upto = pos2 + C.getCardinality();
+                        for(; pos2 < upto; ++pos2)
+                                array[pos2] |= hs;
                 }
                 return array;
         }
@@ -572,7 +571,6 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                 int pos1 = 0, pos2 = 0;
                 final int length1 = x1.highlowcontainer.size(), length2 = x2.highlowcontainer
                         .size();
-
                 /*
                  * TODO: This could be optimized quite a bit when one bitmap is
                  * much smaller than the other one.

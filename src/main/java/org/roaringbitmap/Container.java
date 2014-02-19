@@ -89,7 +89,17 @@ public abstract class Container implements Iterable<Short>, Cloneable,  External
          * @return whether the value is in the container
          */
         public abstract boolean contains(short x);
-
+        
+        /**
+         * Fill the least significant 16 bits of the integer array, 
+         * starting at index index, with the short values from this 
+         * container. The caller is responsible to allocate enough room.
+         * The most significant 16 bits of each integer is going to be zero.
+         * 
+         * @param x provided array
+         * @param i  starting index
+         */
+        public abstract void fillLeastSignificant16bits(int[] x, int i);
         /**
          * Computes the distinct number of short values in the
          * container. Can be expected to run in constant time.
