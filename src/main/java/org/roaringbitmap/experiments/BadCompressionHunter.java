@@ -22,10 +22,11 @@ public class BadCompressionHunter {
                 int NTRIALS = Integer.parseInt(args[2]);
                 System.out.println(NTRIALS + " tests on " + dataset);
                 double worse = 1;
+                int counter = 0;
                 for (int i = 0; i < 2*NTRIALS; ++i) {
                         try{
                         int[] data = dataSrc.fetchBitPositions(dataset, i);
-                        
+                        counter ++;
                         if (data.length < 1024)
                                 continue;
                         double density = data.length * 1.0 / data[data.length - 1];
@@ -50,8 +51,8 @@ public class BadCompressionHunter {
                         }
                         } catch(java.lang.RuntimeException e) {}
 
-
                 }
+                System.out.println("Processed "+counter+" bitmaps");
 
                 
         }

@@ -16,12 +16,14 @@ public class BadPerformanceHunter {
 
         static long timeIntersection(BitSet bs1, BitSet bs2) {
                 long duration = Long.MAX_VALUE;
-                for (int k = 0; k < 10; ++k) {
-                        long bef = System.currentTimeMillis();
-                        BitSet bs1c = (BitSet) bs1.clone();
-                        bs1c.and(bs2);
-                        bogus += bs1c.size();
-                        long aft = System.currentTimeMillis();
+                for (int k = 0; k < 3; ++k) {
+                        long bef = System.nanoTime();
+                        for(int j = 0; j < 100; ++j) {
+                          BitSet bs1c = (BitSet) bs1.clone();
+                          bs1c.and(bs2);
+                          bogus += bs1c.size();
+                        }
+                        long aft = System.nanoTime();
                         if (aft - bef < duration)
                                 duration = aft - bef;
                 }
@@ -30,10 +32,12 @@ public class BadPerformanceHunter {
 
         static long timeIntersection(RoaringBitmap bs1, RoaringBitmap bs2) {
                 long duration = Long.MAX_VALUE;
-                for (int k = 0; k < 10; ++k) {
-                        long bef = System.currentTimeMillis();
-                        bogus += RoaringBitmap.and(bs1, bs2).getSizeInBytes();
-                        long aft = System.currentTimeMillis();
+                for (int k = 0; k < 3; ++k) {
+                        long bef = System.nanoTime();
+                        for(int j = 0; j < 100; ++j) {
+                           bogus += RoaringBitmap.and(bs1, bs2).getSizeInBytes();
+                        }
+                        long aft = System.nanoTime();
                         if (aft - bef < duration)
                                 duration = aft - bef;
                 }
@@ -49,12 +53,14 @@ public class BadPerformanceHunter {
                 int NTRIALS = Integer.parseInt(args[2]);
                 System.out.println(NTRIALS + " tests on " + dataset);
                 double worse = 1;
+                int counter = 0;
                 for (int i = 0; i < NTRIALS; ++i) {
                         try {
                                 int[] data1 = dataSrc.fetchBitPositions(
                                         dataset, 2 * i);
                                 int[] data2 = dataSrc.fetchBitPositions(
                                         dataset, 2 * i + 1);
+                                counter ++;
 
                                 if (data1.length < 1024)
                                         continue;
@@ -67,13 +73,13 @@ public class BadPerformanceHunter {
                                 BitSet ans2 = new BitSet();
                                 for (int j : data2)
                                         ans2.set(j);
-                                long bstime = timeIntersection(ans1, ans2);
+                                double bstime = timeIntersection(ans1, ans2);
 
                                 RoaringBitmap rr1 = RoaringBitmap
                                         .bitmapOf(data1);
                                 RoaringBitmap rr2 = RoaringBitmap
                                         .bitmapOf(data2);
-                                long rrtime = timeIntersection(rr1, rr2);
+                                double rrtime = timeIntersection(rr1, rr2);
                                 if (rrtime / bstime > worse) {
                                         System.out.println("index = " + i);
                                         System.out.println("cardinality = "
@@ -89,7 +95,9 @@ public class BadPerformanceHunter {
                         } catch (java.lang.RuntimeException e) {
                         }
 
+
                 }
+                System.out.println("Processed "+counter+" pairs");
 
         }
 }
