@@ -393,10 +393,8 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                                 .getKeyAtIndex(pos)) << 16;
                         Container C = this.highlowcontainer
                                 .getContainerAtIndex(pos++);
-                        C.fillLeastSignificant16bits(array, pos2);
-                        final int upto = pos2 + C.getCardinality();
-                        for(; pos2 < upto; ++pos2)
-                                array[pos2] |= hs;
+                        C.fillLeastSignificant16bits(array, pos2, hs);
+                        pos2 += C.getCardinality();
                 }
                 return array;
         }

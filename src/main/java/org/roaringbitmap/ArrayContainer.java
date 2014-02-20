@@ -146,9 +146,9 @@ public final class ArrayContainer extends Container implements Cloneable,
         }
 
         @Override
-        public void fillLeastSignificant16bits(int[] x, int i) {
+        public void fillLeastSignificant16bits(int[] x, int i, int mask) {
                 for(int k = 0; k < this.cardinality; ++k)
-                        x[k+i] = Util.toIntUnsigned(this.content[k]);
+                        x[k+i] = Util.toIntUnsigned(this.content[k]) | mask ;
                 
         }
 

@@ -132,13 +132,13 @@ public final class BitmapContainer extends Container implements Cloneable,
         }
 
         @Override
-        public void fillLeastSignificant16bits(int[] x, int i) {
+        public void fillLeastSignificant16bits(int[] x, int i, int mask) {
                 int pos = i;
                 for (int k = 0; k < bitmap.length; ++k) {
                         long bitset = bitmap[k];
                         while (bitset != 0) {
                                 long t = bitset & -bitset;
-                                x[pos++] =  k * 64 + Long.bitCount(t - 1);
+                                x[pos++] =  (k * 64 + Long.bitCount(t - 1)) | mask;
                                 bitset ^= t;
                         }
                 }                
