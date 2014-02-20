@@ -14,10 +14,11 @@ import net.sourceforge.sizeof.SizeOf;
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 
 /**
- * O. Kaser's benchmark over real data
+ * O. Kaser's benchmark over real data modified by D. Lemire
+ * so that it processes bitmaps 3-by-3
  * 
  */
-public class BenchmarkReal {
+public class BenchmarkReal3 {
         static final String AND = "AND";
         static final String OR = "OR";
         static final String XOR = "XOR";
@@ -87,9 +88,11 @@ public class BenchmarkReal {
                                         test(op, format, totalTimes,
                                                 totalSizes, sizeof,
                                                 dataSrc.fetchBitPositions(
-                                                        dataset, 2 * i),
+                                                        dataset, 3 * i),
                                                 dataSrc.fetchBitPositions(
-                                                        dataset, 2 * i + 1));
+                                                        dataset, 3 * i + 1),
+                                                dataSrc.fetchBitPositions(
+                                                        dataset, 3 * i + 2));
 
                 if (sizeof) {
                         System.out.println("Size ratios");
@@ -149,7 +152,7 @@ public class BenchmarkReal {
 
         static void test(String op, String format,
                 Map<String, Double> totalTimes, Map<String, Double> totalSizes,
-                boolean sizeof, int[] data1, int[] data2) {
+                boolean sizeof, int[] data1, int[] data2, int[] data3) {
                 String timeKey = op + ";" + format;
                 String spaceKey = format;
 
@@ -158,12 +161,15 @@ public class BenchmarkReal {
                 if (format.equals(ROARING)) {
                         final RoaringBitmap bm1 = RoaringBitmap.bitmapOf(data1);
                         final RoaringBitmap bm2 = RoaringBitmap.bitmapOf(data2);
+                        final RoaringBitmap bm3 = RoaringBitmap.bitmapOf(data3);
                         bm1.trim();
                         bm2.trim();
+                        bm3.trim();
                         if (sizeof) {
                                 long theseSizesInBits = 8 * (SizeOf
                                         .deepSizeOf(bm1) + SizeOf
-                                        .deepSizeOf(bm2));
+                                        .deepSizeOf(bm2)+ SizeOf
+                                        .deepSizeOf(bm3));
                                 totalSizes.put(spaceKey, theseSizesInBits
                                         + totalSizes.get(spaceKey));
                         }
@@ -174,7 +180,8 @@ public class BenchmarkReal {
                                         public void compute() {
                                                 RoaringBitmap result = RoaringBitmap
                                                         .and(bm1, bm2);
-                                                BenchmarkReal.junk += result
+                                                result.and(bm3);
+                                                BenchmarkReal3.junk += result
                                                         .getCardinality(); // cheap
                                         }
                                 });
@@ -186,7 +193,8 @@ public class BenchmarkReal {
                                         public void compute() {
                                                 RoaringBitmap result = RoaringBitmap
                                                         .or(bm1, bm2);
-                                                BenchmarkReal.junk += result
+                                                result.or(bm3);
+                                                BenchmarkReal3.junk += result
                                                         .getCardinality(); // cheap
                                         }
                                 });
@@ -198,7 +206,8 @@ public class BenchmarkReal {
                                         public void compute() {
                                                 RoaringBitmap result = RoaringBitmap
                                                         .xor(bm1, bm2);
-                                                BenchmarkReal.junk += result
+                                                result.xor(bm3);
+                                                BenchmarkReal3.junk += result
                                                         .getCardinality(); // cheap
                                         }
                                 });
@@ -211,10 +220,12 @@ public class BenchmarkReal {
                 else if (format.equals(BITSET)) {
                         final BitSet bm1 = toBitSet(data1);
                         final BitSet bm2 = toBitSet(data2);
+                        final BitSet bm3 = toBitSet(data3);
                         if (sizeof) {
                                 long theseSizesInBits = 8 * (SizeOf
                                         .deepSizeOf(bm1) + SizeOf
-                                        .deepSizeOf(bm2));
+                                        .deepSizeOf(bm2) + SizeOf
+                                        .deepSizeOf(bm3));
                                 totalSizes.put(spaceKey, theseSizesInBits
                                         + totalSizes.get(spaceKey));
                         }
@@ -226,7 +237,8 @@ public class BenchmarkReal {
                                                 BitSet result;
                                                 result = (BitSet) bm1.clone();
                                                 result.and(bm2);
-                                                BenchmarkReal.junk += result
+                                                result.and(bm3);
+                                                BenchmarkReal3.junk += result
                                                         .size(); // cheap
                                         }
                                 });
@@ -239,7 +251,8 @@ public class BenchmarkReal {
                                                 BitSet result;
                                                 result = (BitSet) bm1.clone();
                                                 result.or(bm2);
-                                                BenchmarkReal.junk += result
+                                                result.or(bm3);
+                                                BenchmarkReal3.junk += result
                                                         .size(); // cheap
                                         }
                                 });
@@ -252,7 +265,8 @@ public class BenchmarkReal {
                                                 BitSet result;
                                                 result = (BitSet) bm1.clone();
                                                 result.xor(bm2);
-                                                BenchmarkReal.junk += result
+                                                result.xor(bm3);
+                                                BenchmarkReal3.junk += result
                                                         .size(); // cheap
                                         }
                                 });
@@ -265,10 +279,12 @@ public class BenchmarkReal {
                 else if (format.equals(WAH)) {
                         final ConciseSet bm1 = toConciseWAH(data1);
                         final ConciseSet bm2 = toConciseWAH(data2);
+                        final ConciseSet bm3 = toConciseWAH(data3);
                         if (sizeof) {
                                 long theseSizesInBits = 8 * (SizeOf
                                         .deepSizeOf(bm1) + SizeOf
-                                        .deepSizeOf(bm2));
+                                        .deepSizeOf(bm2)+ SizeOf
+                                        .deepSizeOf(bm3));
                                 totalSizes.put(spaceKey, theseSizesInBits
                                         + totalSizes.get(spaceKey));
                         }
@@ -278,7 +294,8 @@ public class BenchmarkReal {
                                         @Override
                                         public void compute() {
                                                 ConciseSet result = bm1.intersection(bm2);
-                                                BenchmarkReal.junk += result
+                                                result = result.intersection(bm3);
+                                                BenchmarkReal3.junk += result
                                                         .isEmpty() ? 1 : 0; // cheap???
                                         }
                                 });
@@ -290,8 +307,9 @@ public class BenchmarkReal {
                                         @Override
                                         public void compute() {
                                                 ConciseSet result = bm1.union(bm2);
+                                                result = result.union(bm3);
 
-                                                BenchmarkReal.junk += result
+                                                BenchmarkReal3.junk += result
                                                         .isEmpty() ? 1 : 0; // dunno
                                                                             // if
                                                                             // cheap
@@ -306,8 +324,9 @@ public class BenchmarkReal {
                                         @Override
                                         public void compute() {
                                                 ConciseSet result = bm1.symmetricDifference(bm2);
+                                                result = result.symmetricDifference(bm3);
 
-                                                BenchmarkReal.junk += result
+                                                BenchmarkReal3.junk += result
                                                         .isEmpty() ? 1 : 0; // cheap???
                                         }
                                 });
@@ -321,12 +340,16 @@ public class BenchmarkReal {
                                 .bitmapOf(data1);
                         final EWAHCompressedBitmap32 bm2 = EWAHCompressedBitmap32
                                 .bitmapOf(data2);
+                        final EWAHCompressedBitmap32 bm3 = EWAHCompressedBitmap32
+                                .bitmapOf(data3);
                         bm1.trim();
                         bm2.trim();
+                        bm3.trim();
                         if (sizeof) {
                                 long theseSizesInBits = 8 * (SizeOf
                                         .deepSizeOf(bm1) + SizeOf
-                                        .deepSizeOf(bm2));
+                                        .deepSizeOf(bm2)+ SizeOf
+                                        .deepSizeOf(bm3));
                                 totalSizes.put(spaceKey, theseSizesInBits
                                         + totalSizes.get(spaceKey));
                         }
@@ -336,8 +359,8 @@ public class BenchmarkReal {
                                         @Override
                                         public void compute() {
                                                 EWAHCompressedBitmap32 result = EWAHCompressedBitmap32
-                                                        .and(bm1, bm2);
-                                                BenchmarkReal.junk += result
+                                                        .and(bm1, bm2,bm3);
+                                                BenchmarkReal3.junk += result
                                                         .sizeInBits(); // cheap
                                         }
                                 });
@@ -348,8 +371,8 @@ public class BenchmarkReal {
                                         @Override
                                         public void compute() {
                                                 EWAHCompressedBitmap32 result = EWAHCompressedBitmap32
-                                                        .or(bm1, bm2);
-                                                BenchmarkReal.junk += result
+                                                        .or(bm1, bm2,bm3);
+                                                BenchmarkReal3.junk += result
                                                         .sizeInBits(); // cheap
                                         }
                                 });
@@ -360,8 +383,8 @@ public class BenchmarkReal {
                                         @Override
                                         public void compute() {
                                                 EWAHCompressedBitmap32 result = EWAHCompressedBitmap32
-                                                        .xor(bm1, bm2);
-                                                BenchmarkReal.junk += result
+                                                        .xor(bm1, bm2,bm3);
+                                                BenchmarkReal3.junk += result
                                                         .sizeInBits(); // cheap
                                         }
                                 });
@@ -376,12 +399,16 @@ public class BenchmarkReal {
                                 .bitmapOf(data1);
                         final EWAHCompressedBitmap bm2 = EWAHCompressedBitmap
                                 .bitmapOf(data2);
+                        final EWAHCompressedBitmap bm3 = EWAHCompressedBitmap
+                                .bitmapOf(data3);
                         bm1.trim();
                         bm2.trim();
+                        bm3.trim();
                         if (sizeof) {
                                 long theseSizesInBits = 8 * (SizeOf
                                         .deepSizeOf(bm1) + SizeOf
-                                        .deepSizeOf(bm2));
+                                        .deepSizeOf(bm2) + SizeOf
+                                        .deepSizeOf(bm3));
                                 totalSizes.put(spaceKey, theseSizesInBits
                                         + totalSizes.get(spaceKey));
                         }
@@ -391,8 +418,8 @@ public class BenchmarkReal {
                                         @Override
                                         public void compute() {
                                                 EWAHCompressedBitmap result = EWAHCompressedBitmap
-                                                        .and(bm1, bm2);
-                                                BenchmarkReal.junk += result
+                                                        .and(bm1, bm2, bm3);
+                                                BenchmarkReal3.junk += result
                                                         .sizeInBits(); // cheap
                                         }
                                 });
@@ -403,8 +430,8 @@ public class BenchmarkReal {
                                         @Override
                                         public void compute() {
                                                 EWAHCompressedBitmap result = EWAHCompressedBitmap
-                                                        .or(bm1, bm2);
-                                                BenchmarkReal.junk += result
+                                                        .or(bm1, bm2, bm3);
+                                                BenchmarkReal3.junk += result
                                                         .sizeInBits(); // cheap
                                         }
                                 });
@@ -415,8 +442,8 @@ public class BenchmarkReal {
                                         @Override
                                         public void compute() {
                                                 EWAHCompressedBitmap result = EWAHCompressedBitmap
-                                                        .xor(bm1, bm2);
-                                                BenchmarkReal.junk += result
+                                                        .xor(bm1, bm2, bm3);
+                                                BenchmarkReal3.junk += result
                                                         .sizeInBits(); // cheap
                                         }
                                 });
@@ -430,10 +457,12 @@ public class BenchmarkReal {
                 else if (format.equals(CONCISE)) {
                         final ConciseSet bm1 = toConcise(data1);
                         final ConciseSet bm2 = toConcise(data2);
+                        final ConciseSet bm3 = toConcise(data3);
                         if (sizeof) {
                                 long theseSizesInBits = 8 * (SizeOf
                                         .deepSizeOf(bm1) + SizeOf
-                                        .deepSizeOf(bm2));
+                                        .deepSizeOf(bm2) + SizeOf
+                                        .deepSizeOf(bm3));
                                 totalSizes.put(spaceKey, theseSizesInBits
                                         + totalSizes.get(spaceKey));
                         }
@@ -443,7 +472,8 @@ public class BenchmarkReal {
                                         @Override
                                         public void compute() {
                                                 ConciseSet result = bm1.intersection(bm2);
-                                                BenchmarkReal.junk += result
+                                                result = result.intersection(bm3);
+                                                BenchmarkReal3.junk += result
                                                         .isEmpty() ? 1 : 0; // cheap???
                                         }
                                 });
@@ -455,8 +485,9 @@ public class BenchmarkReal {
                                         @Override
                                         public void compute() {
                                                 ConciseSet result = bm1.union(bm2);
+                                                result = result.union(bm3);
 
-                                                BenchmarkReal.junk += result
+                                                BenchmarkReal3.junk += result
                                                         .isEmpty() ? 1 : 0; // dunno
                                                                             // if
                                                                             // cheap
@@ -471,8 +502,9 @@ public class BenchmarkReal {
                                         @Override
                                         public void compute() {
                                                 ConciseSet result = bm1.symmetricDifference(bm2);
+                                                result = result.symmetricDifference(bm3);
 
-                                                BenchmarkReal.junk += result
+                                                BenchmarkReal3.junk += result
                                                         .isEmpty() ? 1 : 0; // cheap???
                                         }
                                 });
