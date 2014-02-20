@@ -153,7 +153,6 @@ public class BenchmarkReal {
                 String timeKey = op + ";" + format;
                 String spaceKey = format;
 
-                // System.out.println("timeKey is "+timeKey);
 
                 /***************************************************************************/
                 if (format.equals(ROARING)) {
@@ -225,11 +224,7 @@ public class BenchmarkReal {
                                         @Override
                                         public void compute() {
                                                 BitSet result;
-                                                // try {
                                                 result = (BitSet) bm1.clone();
-                                                // } catch
-                                                // (CloneNotSupportedException
-                                                // e) {}
                                                 result.and(bm2);
                                                 BenchmarkReal.junk += result
                                                         .size(); // cheap
@@ -242,11 +237,7 @@ public class BenchmarkReal {
                                         @Override
                                         public void compute() {
                                                 BitSet result;
-                                                // try {
                                                 result = (BitSet) bm1.clone();
-                                                // } catch
-                                                // (CloneNotSupportedException
-                                                // e) {}
                                                 result.or(bm2);
                                                 BenchmarkReal.junk += result
                                                         .size(); // cheap
@@ -259,11 +250,7 @@ public class BenchmarkReal {
                                         @Override
                                         public void compute() {
                                                 BitSet result;
-                                                // try {
                                                 result = (BitSet) bm1.clone();
-                                                // } catch
-                                                // (CloneNotSupportedException
-                                                // e) {}
                                                 result.xor(bm2);
                                                 BenchmarkReal.junk += result
                                                         .size(); // cheap
@@ -516,9 +503,6 @@ public class BenchmarkReal {
                         stop = System.nanoTime();
                         elapsedNS = stop - start;
                 } while (elapsedNS < LONG_ENOUGH_NS);
-
-                // System.out.println("ntrials="+ntrials+" elapsedNS is "+elapsedNS);
-
                 /* now things are very hot, so do an actual timing */
                 start = System.nanoTime();
                 for (int i = 0; i < ntrials; ++i) {
