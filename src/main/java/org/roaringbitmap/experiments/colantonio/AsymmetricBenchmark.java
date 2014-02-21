@@ -124,9 +124,11 @@ public class AsymmetricBenchmark {
                 DataGenerator gen = new DataGenerator(N);
                 int TIMES = 100;
                 gen.setUniform();
+                test(gen, false, TIMES, sizeof);
                 test(gen, true, TIMES, sizeof);
                 System.out.println();
                 gen.setZipfian();
+                test(gen, false, TIMES, sizeof);
                 test(gen, true, TIMES, sizeof);
                 System.out.println();
         }
