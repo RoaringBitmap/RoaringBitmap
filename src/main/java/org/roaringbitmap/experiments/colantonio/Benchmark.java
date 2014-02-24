@@ -118,7 +118,7 @@ public class Benchmark {
                                 .println("# disabling sizeOf, run  -javaagent:lib/SizeOf.jar or equiv. to enable");
                 }
                 DataGenerator gen = new DataGenerator(N);
-                int TIMES = 1000;
+                int TIMES = 100;
                 gen.setUniform();
                 test(gen, false, TIMES, sizeof);
                 test(gen, true, TIMES, sizeof);
@@ -156,7 +156,7 @@ public class Benchmark {
                 if (verbose)
                         System.out
                                 .println("# first columns are timings [intersection times in ns], then append times in ns, "
-                                        + "then removes times in ns, then bits/int");
+                                        + "then removes times in ns, then bits/int, then union times");
                 if (verbose && sizeof)
                         System.out
                                 .println("# For size (last columns), first column is estimated, second is sizeof");
@@ -227,11 +227,11 @@ public class Benchmark {
                                 aft = System.nanoTime();
                                 removeTimes[0] += aft - bef;
                                 bogus += borig1.size();
-                                int[] b2withremoval = toArray(b2);
+                                int[] b2withremoval = verbose? null : toArray(b2);
                                 borig1 = null;
                                 b2 = null;
-                                int[] trueintersection = toArray(b1);
-                                int[] trueunion = toArray(b1u);
+                                int[] trueintersection = verbose? null : toArray(b1);
+                                int[] trueunion = verbose? null : toArray(b1u);
                                 b1u = null;
                                 b1 = null;
                                 // Concise
@@ -257,7 +257,7 @@ public class Benchmark {
                                 ConciseSet cs1i = cs1.intersection(cs2);
                                 aft = System.nanoTime();
                                 // we verify the answer
-                                if (!Arrays.equals(cs1i.toArray(),
+                                if(!verbose) if (!Arrays.equals(cs1i.toArray(),
                                         trueintersection))
                                         throw new RuntimeException("bug");
                                 bogus += cs1i.size();
@@ -266,6 +266,7 @@ public class Benchmark {
                                 ConciseSet cs1u = cs1.union(cs2);
                                 aft = System.nanoTime();
                                 // we verify the answer
+                                if(!verbose)
                                 if (!Arrays.equals(cs1u.toArray(), trueunion))
                                         throw new RuntimeException("bug");
                                 bogus += cs1u.size();
@@ -274,7 +275,7 @@ public class Benchmark {
                                 bef = System.nanoTime();
                                 cs2.remove(toRemove);
                                 aft = System.nanoTime();
-                                if (!Arrays
+                                if(!verbose) if (!Arrays
                                         .equals(cs2.toArray(), b2withremoval))
                                         throw new RuntimeException("bug");
                                 removeTimes[1] += aft - bef;
@@ -308,7 +309,7 @@ public class Benchmark {
                                 ConciseSet wah1i = wah1.intersection(wah2);
                                 aft = System.nanoTime();
                                 // we verify the answer
-                                if (!Arrays.equals(wah1i.toArray(),
+                                if(!verbose) if (!Arrays.equals(wah1i.toArray(),
                                         trueintersection))
                                         throw new RuntimeException("bug");
                                 bogus += wah1i.size();
@@ -318,7 +319,7 @@ public class Benchmark {
                                 ConciseSet wah1u = wah1.union(wah2);
                                 aft = System.nanoTime();
                                 // we verify the answer
-                                if (!Arrays.equals(wah1u.toArray(), trueunion))
+                                if(!verbose) if (!Arrays.equals(wah1u.toArray(), trueunion))
                                         throw new RuntimeException("bug");
                                 bogus += wah1u.size();
                                 unions[2] += aft - bef;
@@ -326,7 +327,7 @@ public class Benchmark {
                                 bef = System.nanoTime();
                                 wah2.remove(toRemove);
                                 aft = System.nanoTime();
-                                if (!Arrays.equals(wah2.toArray(),
+                                if(!verbose) if (!Arrays.equals(wah2.toArray(),
                                         b2withremoval))
                                         throw new RuntimeException("bug");
                                 removeTimes[2] += aft - bef;
@@ -357,7 +358,7 @@ public class Benchmark {
                                         .and(rb1, rb2);
                                 aft = System.nanoTime();
                                 // we verify the answer
-                                if (!Arrays.equals(rb1i.toArray(),
+                                if(!verbose) if (!Arrays.equals(rb1i.toArray(),
                                         trueintersection))
                                         throw new RuntimeException("bug");
                                 bogus += rb1i.getCardinality();
@@ -367,7 +368,7 @@ public class Benchmark {
                                 RoaringBitmap rb1u = RoaringBitmap.or(rb1, rb2);
                                 aft = System.nanoTime();
                                 // we verify the answer
-                                if (!Arrays.equals(rb1u.toArray(), trueunion))
+                                if(!verbose) if (!Arrays.equals(rb1u.toArray(), trueunion))
                                         throw new RuntimeException("bug");
                                 bogus += rb1u.getCardinality();
                                 unions[3] += aft - bef;
@@ -375,7 +376,7 @@ public class Benchmark {
                                 bef = System.nanoTime();
                                 rb2.remove(toRemove);
                                 aft = System.nanoTime();
-                                if (!Arrays
+                                if(!verbose) if (!Arrays
                                         .equals(rb2.toArray(), b2withremoval))
                                         throw new RuntimeException("bug");
                                 removeTimes[3] += aft - bef;
@@ -418,7 +419,7 @@ public class Benchmark {
                         if (verbose)
                                 if (sizeof)
                                         System.out
-                                                .println("\t\t\t\t"
+                                                .print("\t\t\t\t"
                                                         + dfb.format(storageinbits[0]
                                                                 / (2 * TIMES * gen.N))
                                                         + "\t"
@@ -443,7 +444,7 @@ public class Benchmark {
                                                         + dfb.format(truestorageinbits[3]
                                                                 / (2 * TIMES * gen.N)));
                                 else
-                                        System.out.println("\t\t\t"
+                                        System.out.print("\t\t\t"
                                                 + dfb.format(storageinbits[0]
                                                         / (2 * TIMES * gen.N))
                                                 + "\t\t"
@@ -456,11 +457,12 @@ public class Benchmark {
                                                 + dfb.format(storageinbits[3]
                                                         / (2 * TIMES * gen.N)));
                         if (verbose)
-                                System.out.print(df.format(d) + "\t"
+                                System.out.print("\t\t\t"
                                         + df.format(unions[0] / TIMES) + "\t\t"
                                         + df.format(unions[1] / TIMES) + "\t\t"
                                         + df.format(unions[2] / TIMES) + "\t\t"
                                         + df.format(unions[3] / TIMES));
+                        if(verbose) System.out.println();
                 }
                 System.out.println("#ignore = " + bogus);
         }
