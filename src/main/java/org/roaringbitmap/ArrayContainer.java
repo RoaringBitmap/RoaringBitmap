@@ -78,9 +78,7 @@ public final class ArrayContainer extends Container implements Cloneable,
                 ArrayContainer value1 = this;
                 final int desiredcapacity = Math.min(value1.getCardinality(),
                         value2.getCardinality());
-                ArrayContainer answer = new ArrayContainer();
-                if (answer.content.length < desiredcapacity)
-                        answer.content = new short[desiredcapacity];
+                ArrayContainer answer = new ArrayContainer(desiredcapacity);
                 answer.cardinality = Util
                         .unsigned_intersect2by2(value1.content,
                                 value1.getCardinality(), value2.content,
@@ -234,19 +232,7 @@ public final class ArrayContainer extends Container implements Cloneable,
 
         @Override
         public Container ior(final ArrayContainer value2) {
-                final ArrayContainer value1 = this;
-                int tailleAC = value1.getCardinality()
-                        + value2.getCardinality();
-                final int desiredcapacity = Math.min(BitmapContainer.maxcapacity,tailleAC); 
-                short[] newContent = new short[desiredcapacity];
-                int card = Util.unsigned_union2by2(value1.content,
-                        value1.getCardinality(), value2.content,
-                        value2.getCardinality(), newContent);
-                this.content = newContent;
-                this.cardinality = card;
-                if (this.cardinality >= DEFAULTMAXSIZE)
-                        return this.toBitmapContainer();
-                return this;
+                return this.or(value2);
         }
 
         @Override
@@ -280,19 +266,7 @@ public final class ArrayContainer extends Container implements Cloneable,
 
         @Override
         public Container ixor(final ArrayContainer value2) {
-                final ArrayContainer value1 = this;
-                final int dlength = value1.getCardinality()
-                        + value2.getCardinality();
-                final int desiredcapacity = dlength <= 65536 ? dlength : 65536;
-                short[] newContent = new short[desiredcapacity];
-                int card = Util.unsigned_exclusiveunion2by2(value1.content,
-                        value1.getCardinality(), value2.content,
-                        value2.getCardinality(), newContent);
-                this.content = newContent;
-                this.cardinality = card;
-                if (this.cardinality >= DEFAULTMAXSIZE)
-                        return this.toBitmapContainer();
-                return this;
+                return this.xor(value2);
         }
 
         @Override
@@ -303,17 +277,31 @@ public final class ArrayContainer extends Container implements Cloneable,
         @Override
         public Container or(final ArrayContainer value2) {
                 final ArrayContainer value1 = this;
-                int tailleAC = value1.getCardinality()
+                int totalCardinality = value1.getCardinality()
                         + value2.getCardinality();
-                final int desiredcapacity = Math.min(BitmapContainer.maxcapacity, tailleAC);
-                ArrayContainer answer = new ArrayContainer();
-                if (answer.content.length < desiredcapacity)
-                        answer.content = new short[desiredcapacity];
+                if(totalCardinality > DEFAULTMAXSIZE) {// it could be a bitmap!
+                        BitmapContainer bc = new BitmapContainer();
+                        for (int k = 0; k < value2.cardinality; ++k) {
+                                final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
+                                bc.bitmap[i] |= (1l << value2.content[k]);
+                        }
+                        for (int k = 0; k < this.cardinality; ++k) {
+                                final int i = Util.toIntUnsigned(this.content[k]) >>> 6;
+                                bc.bitmap[i] |= (1l << this.content[k]);
+                        }
+                        bc.cardinality = 0;
+                        for (long k : bc.bitmap) {
+                                bc.cardinality += Long.bitCount(k);
+                        }
+                        if(bc.cardinality <= DEFAULTMAXSIZE)
+                                return bc.toArrayContainer();
+                        return bc;
+                }
+                final int desiredcapacity = totalCardinality; //Math.min(BitmapContainer.maxcapacity, totalCardinality);
+                ArrayContainer answer = new ArrayContainer(desiredcapacity);
                 answer.cardinality = Util.unsigned_union2by2(value1.content,
                         value1.getCardinality(), value2.content,
                         value2.getCardinality(), answer.content);
-                if (answer.cardinality >= DEFAULTMAXSIZE)
-                        return answer.toBitmapContainer();
                 return answer;
         }
 
@@ -397,18 +385,32 @@ public final class ArrayContainer extends Container implements Cloneable,
         @Override
         public Container xor(final ArrayContainer value2) {
                 final ArrayContainer value1 = this;
-                final int desiredcapacity = Math.min(value1.getCardinality()
-                        + value2.getCardinality(), 65536);
-                ArrayContainer answer = new ArrayContainer();
-                if (answer.content.length < desiredcapacity)
-                        answer.content = new short[desiredcapacity];
+                final int totalCardinality = value1.getCardinality()
+                        + value2.getCardinality();
+                if(totalCardinality > DEFAULTMAXSIZE) {// it could be a bitmap!
+                        BitmapContainer bc = new BitmapContainer();
+                        for (int k = 0; k < value2.cardinality; ++k) {
+                                final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
+                                bc.bitmap[i] ^= (1l << value2.content[k]);
+                        }
+                        for (int k = 0; k < this.cardinality; ++k) {
+                                final int i = Util.toIntUnsigned(this.content[k]) >>> 6;
+                                bc.bitmap[i] ^= (1l << this.content[k]);
+                        }
+                        bc.cardinality = 0;
+                        for (long k : bc.bitmap) {
+                                bc.cardinality += Long.bitCount(k);
+                        }
+                        if(bc.cardinality <= DEFAULTMAXSIZE)
+                                return bc.toArrayContainer();
+                        return bc;
+                }
+                final int desiredcapacity = totalCardinality;
+                ArrayContainer answer = new ArrayContainer(desiredcapacity);
                 answer.cardinality = Util
                         .unsigned_exclusiveunion2by2(value1.content,
                                 value1.getCardinality(), value2.content,
                                 value2.getCardinality(), answer.content);
-
-                if (answer.cardinality >= DEFAULTMAXSIZE)
-                        return answer.toBitmapContainer();
                 return answer;
         }
 
@@ -418,7 +420,9 @@ public final class ArrayContainer extends Container implements Cloneable,
         }
         
         private void increaseCapacity() {
-                int newcapacity = this.content.length * 5 / 4;
+                int newcapacity = this.content.length < 64 ? this.content.length * 2
+                        : this.content.length < 1024 ? this.content.length * 3 / 2
+                                : this.content.length * 5 / 4;
                 if (newcapacity > ArrayContainer.DEFAULTMAXSIZE)
                         newcapacity = ArrayContainer.DEFAULTMAXSIZE;
                 this.content = Arrays.copyOf(this.content, newcapacity);

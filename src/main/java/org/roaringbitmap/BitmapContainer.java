@@ -38,9 +38,7 @@ public final class BitmapContainer extends Container implements Cloneable,
 
         @Override
         public ArrayContainer and(final ArrayContainer value2) {
-                final ArrayContainer answer = new ArrayContainer();
-                if (answer.content.length < value2.content.length)
-                        answer.content = new short[value2.content.length];
+                final ArrayContainer answer = new ArrayContainer(value2.content.length);
                 for (int k = 0; k < value2.getCardinality(); ++k)
                         if (this.contains(value2.content[k]))
                                 answer.content[answer.cardinality++] = value2.content[k];
