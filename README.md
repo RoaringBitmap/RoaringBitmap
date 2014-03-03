@@ -1,9 +1,13 @@
 RoaringBitmap
 =============
 
+Bitsets, also called bitmaps, are commonly used as fast data structure.
+Unfortunately, they can use too much memory. To compensate, we often use
+compressed bitmaps.
 
 Roaring bitmaps are compressed bitmaps which tend to outperform conventional
-compressed bitmaps such as WAH, EWAH, Concise... 
+compressed bitmaps such as WAH, EWAH or Concise. In some instances, it can
+be hundreds of times faster and it often offers significantly better compression. 
 
 
 
