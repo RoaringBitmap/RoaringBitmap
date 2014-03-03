@@ -1,3 +1,7 @@
+/*
+ * Copyright 2013-2014 by Daniel Lemire, Owen Kaser and Samy Chambi
+ * Licensed under the Apache License, Version 2.0.
+ */
 package org.roaringbitmap;
 
 import java.io.IOException;
@@ -266,7 +270,6 @@ public final class BitmapContainer extends Container implements Cloneable,
         }
 
         // complicated so that it should be reasonably efficient even when the ranges are small 
-
         @Override
         public Container inot(final int firstOfRange, final int lastOfRange) {
                 return not(this, firstOfRange, lastOfRange);

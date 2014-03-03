@@ -1,8 +1,15 @@
 RoaringBitmap
 =============
 
+
 Roaring bitmaps are compressed bitmaps which tend to outperform conventional
 compressed bitmaps such as WAH, EWAH, Concise... 
+
+
+
+(c) 2013-2014 Daniel Lemire, Owen Kaser, Samy Chambi
+
+This code is licensed under Apache License, Version 2.0 (ASL2.0). 
 
 
 Documentation

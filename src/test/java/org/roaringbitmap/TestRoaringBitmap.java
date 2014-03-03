@@ -1,3 +1,7 @@
+/*
+ * Copyright 2013-2014 by Daniel Lemire, Owen Kaser and Samy Chambi
+ * Licensed under the Apache License, Version 2.0.
+ */
 package org.roaringbitmap;
 
 import java.io.ByteArrayInputStream;
@@ -8,16 +12,12 @@ import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashSet;
-import java.util.Vector;
 import java.util.Random;
+import java.util.Vector;
 
 import junit.framework.Assert;
 
 import org.junit.Test;
-import org.roaringbitmap.ArrayContainer;
-import org.roaringbitmap.BitmapContainer;
-import org.roaringbitmap.RoaringBitmap;
-import org.roaringbitmap.Util;
 
 /**
  * Generic testing of the roaring bitmaps
@@ -27,7 +27,7 @@ public class TestRoaringBitmap {
 
         @Test
         public void ANDNOTtest() {
-                RoaringBitmap rr = new RoaringBitmap();
+                final RoaringBitmap rr = new RoaringBitmap();
                 for (int k = 4000; k < 4256; ++k)
                         rr.add(k);
                 for (int k = 65536; k < 65536 + 4000; ++k)
@@ -43,7 +43,7 @@ public class TestRoaringBitmap {
                 for (int k = 9 * 65535; k < 9 * 65535 + 30000; ++k)
                         rr.add(k);
 
-                RoaringBitmap rr2 = new RoaringBitmap();
+                final RoaringBitmap rr2 = new RoaringBitmap();
                 for (int k = 4000; k < 4256; ++k) {
                         rr2.add(k);
                 }
@@ -62,15 +62,15 @@ public class TestRoaringBitmap {
                 for (int k = 10 * 65535; k < 10 * 65535 + 5000; ++k) {
                         rr2.add(k);
                 }
-                RoaringBitmap correct = RoaringBitmap.andNot(rr, rr2);
+                final RoaringBitmap correct = RoaringBitmap.andNot(rr, rr2);
                 rr.andNot(rr2);
                 Assert.assertTrue(correct.equals(rr));
         }
 
         @Test
         public void andnottest4() {
-                RoaringBitmap rb = new RoaringBitmap();
-                RoaringBitmap rb2 = new RoaringBitmap();
+                final RoaringBitmap rb = new RoaringBitmap();
+                final RoaringBitmap rb2 = new RoaringBitmap();
 
                 for (int i = 0; i < 200000; i += 4)
                         rb2.add(i);
@@ -79,8 +79,9 @@ public class TestRoaringBitmap {
                 rb2.getCardinality();
 
                 // check or against an empty bitmap
-                RoaringBitmap andNotresult = RoaringBitmap.andNot(rb, rb2);
-                RoaringBitmap off = RoaringBitmap.andNot(rb2, rb);
+                final RoaringBitmap andNotresult = RoaringBitmap
+                        .andNot(rb, rb2);
+                final RoaringBitmap off = RoaringBitmap.andNot(rb2, rb);
 
                 Assert.assertEquals(rb, andNotresult);
                 Assert.assertEquals(rb2, off);
@@ -91,15 +92,15 @@ public class TestRoaringBitmap {
 
         @Test
         public void andtest() {
-                RoaringBitmap rr = new RoaringBitmap();
+                final RoaringBitmap rr = new RoaringBitmap();
                 for (int k = 0; k < 4000; ++k) {
                         rr.add(k);
                 }
                 rr.add(100000);
                 rr.add(110000);
-                RoaringBitmap rr2 = new RoaringBitmap();
+                final RoaringBitmap rr2 = new RoaringBitmap();
                 rr2.add(13);
-                RoaringBitmap rrand = RoaringBitmap.and(rr, rr2);
+                final RoaringBitmap rrand = RoaringBitmap.and(rr, rr2);
                 int[] array = rrand.toArray();
 
                 Assert.assertEquals(array.length, 1);
@@ -113,7 +114,7 @@ public class TestRoaringBitmap {
 
         @Test
         public void ANDtest() {
-                RoaringBitmap rr = new RoaringBitmap();
+                final RoaringBitmap rr = new RoaringBitmap();
                 for (int k = 4000; k < 4256; ++k)
                         rr.add(k);
                 for (int k = 65536; k < 65536 + 4000; ++k)
@@ -129,7 +130,7 @@ public class TestRoaringBitmap {
                 for (int k = 9 * 65535; k < 9 * 65535 + 30000; ++k)
                         rr.add(k);
 
-                RoaringBitmap rr2 = new RoaringBitmap();
+                final RoaringBitmap rr2 = new RoaringBitmap();
                 for (int k = 4000; k < 4256; ++k) {
                         rr2.add(k);
                 }
@@ -148,33 +149,33 @@ public class TestRoaringBitmap {
                 for (int k = 10 * 65535; k < 10 * 65535 + 5000; ++k) {
                         rr2.add(k);
                 }
-                RoaringBitmap correct = RoaringBitmap.and(rr, rr2);
+                final RoaringBitmap correct = RoaringBitmap.and(rr, rr2);
                 rr.and(rr2);
                 Assert.assertTrue(correct.equals(rr));
         }
 
         @Test
         public void andtest2() {
-                RoaringBitmap rr = new RoaringBitmap();
+                final RoaringBitmap rr = new RoaringBitmap();
                 for (int k = 0; k < 4000; ++k) {
                         rr.add(k);
                 }
                 rr.add(100000);
                 rr.add(110000);
-                RoaringBitmap rr2 = new RoaringBitmap();
+                final RoaringBitmap rr2 = new RoaringBitmap();
                 rr2.add(13);
-                RoaringBitmap rrand = RoaringBitmap.and(rr, rr2);
+                final RoaringBitmap rrand = RoaringBitmap.and(rr, rr2);
 
-                int[] array = rrand.toArray();
+                final int[] array = rrand.toArray();
                 Assert.assertEquals(array.length, 1);
                 Assert.assertEquals(array[0], 13);
         }
 
         @Test
         public void andtest3() {
-                int[] arrayand = new int[11256];
+                final int[] arrayand = new int[11256];
                 int pos = 0;
-                RoaringBitmap rr = new RoaringBitmap();
+                final RoaringBitmap rr = new RoaringBitmap();
                 for (int k = 4000; k < 4256; ++k)
                         rr.add(k);
                 for (int k = 65536; k < 65536 + 4000; ++k)
@@ -194,7 +195,7 @@ public class TestRoaringBitmap {
                 for (int k = 9 * 65536; k < 9 * 65536 + 30000; ++k)
                         rr.add(k);
 
-                RoaringBitmap rr2 = new RoaringBitmap();
+                final RoaringBitmap rr2 = new RoaringBitmap();
                 for (int k = 4000; k < 4256; ++k) {
                         rr2.add(k);
                         arrayand[pos++] = k;
@@ -218,9 +219,9 @@ public class TestRoaringBitmap {
                         rr2.add(k);
                 }
 
-                RoaringBitmap rrand = RoaringBitmap.and(rr, rr2);
+                final RoaringBitmap rrand = RoaringBitmap.and(rr, rr2);
 
-                int[] arrayres = rrand.toArray();
+                final int[] arrayres = rrand.toArray();
 
                 for (int i = 0; i < arrayres.length; i++)
                         if (arrayres[i] != arrayand[i])
@@ -232,8 +233,8 @@ public class TestRoaringBitmap {
 
         @Test
         public void andtest4() {
-                RoaringBitmap rb = new RoaringBitmap();
-                RoaringBitmap rb2 = new RoaringBitmap();
+                final RoaringBitmap rb = new RoaringBitmap();
+                final RoaringBitmap rb2 = new RoaringBitmap();
 
                 for (int i = 0; i < 200000; i += 4)
                         rb2.add(i);
@@ -241,8 +242,8 @@ public class TestRoaringBitmap {
                         rb2.add(i);
 
                 // check or against an empty bitmap
-                RoaringBitmap andresult = RoaringBitmap.and(rb, rb2);
-                RoaringBitmap off = RoaringBitmap.and(rb2, rb);
+                final RoaringBitmap andresult = RoaringBitmap.and(rb, rb2);
+                final RoaringBitmap off = RoaringBitmap.and(rb2, rb);
                 Assert.assertTrue(andresult.equals(off));
 
                 Assert.assertEquals(0, andresult.getCardinality());
@@ -252,7 +253,7 @@ public class TestRoaringBitmap {
                 for (int i = 200000; i < 400000; i += 3)
                         rb2.add(i);
                 // check or against an empty bitmap
-                RoaringBitmap andresult2 = RoaringBitmap.and(rb, rb2);
+                final RoaringBitmap andresult2 = RoaringBitmap.and(rb, rb2);
                 Assert.assertEquals(0, andresult.getCardinality());
 
                 Assert.assertEquals(0, andresult2.getCardinality());
@@ -261,7 +262,7 @@ public class TestRoaringBitmap {
                 for (int i = 200000; i < 400000; i += 14)
                         rb.add(i);
                 Assert.assertEquals(0, andresult.getCardinality());
-                RoaringBitmap rc = RoaringBitmap.and(rb, rb2);
+                final RoaringBitmap rc = RoaringBitmap.and(rb, rb2);
                 rb.and(rb2);
                 Assert.assertEquals(rc.getCardinality(), rb.getCardinality());
 
@@ -269,7 +270,7 @@ public class TestRoaringBitmap {
 
         @Test
         public void ArrayContainerCardinalityTest() {
-                ArrayContainer ac = new ArrayContainer();
+                final ArrayContainer ac = new ArrayContainer();
                 for (short k = 0; k < 100; ++k) {
                         ac.add(k);
                         Assert.assertEquals(ac.getCardinality(), k + 1);
@@ -282,13 +283,13 @@ public class TestRoaringBitmap {
 
         @Test
         public void arraytest() {
-                ArrayContainer rr = new ArrayContainer();
+                final ArrayContainer rr = new ArrayContainer();
                 rr.add((short) 110);
                 rr.add((short) 114);
                 rr.add((short) 115);
-                short[] array = new short[3];
+                final short[] array = new short[3];
                 int pos = 0;
-                for (short i : rr)
+                for (final short i : rr)
                         array[pos++] = i;
                 Assert.assertEquals(array[0], (short) 110);
                 Assert.assertEquals(array[1], (short) 114);
@@ -297,8 +298,8 @@ public class TestRoaringBitmap {
 
         @Test
         public void basictest() {
-                RoaringBitmap rr = new RoaringBitmap();
-                int[] a = new int[4002];
+                final RoaringBitmap rr = new RoaringBitmap();
+                final int[] a = new int[4002];
                 int pos = 0;
                 for (int k = 0; k < 4000; ++k) {
                         rr.add(k);
@@ -308,7 +309,7 @@ public class TestRoaringBitmap {
                 a[pos++] = 100000;
                 rr.add(110000);
                 a[pos++] = 110000;
-                int[] array = rr.toArray();
+                final int[] array = rr.toArray();
                 pos = 0;
                 for (int i = 0; i < array.length; i++)
                         if (array[i] != a[i])
@@ -320,7 +321,7 @@ public class TestRoaringBitmap {
 
         @Test
         public void BitmapContainerCardinalityTest() {
-                BitmapContainer ac = new BitmapContainer();
+                final BitmapContainer ac = new BitmapContainer();
                 for (short k = 0; k < 100; ++k) {
                         ac.add(k);
                         Assert.assertEquals(ac.getCardinality(), k + 1);
@@ -333,13 +334,13 @@ public class TestRoaringBitmap {
 
         @Test
         public void bitmaptest() {
-                BitmapContainer rr = new BitmapContainer();
+                final BitmapContainer rr = new BitmapContainer();
                 rr.add((short) 110);
                 rr.add((short) 114);
                 rr.add((short) 115);
-                short[] array = new short[3];
+                final short[] array = new short[3];
                 int pos = 0;
-                for (short i : rr)
+                for (final short i : rr)
                         array[pos++] = i;
                 Assert.assertEquals(array[0], (short) 110);
                 Assert.assertEquals(array[1], (short) 114);
@@ -351,7 +352,7 @@ public class TestRoaringBitmap {
                 final int N = 1024;
                 for (int gap = 7; gap < 100000; gap *= 10) {
                         for (int offset = 2; offset <= 1024; offset *= 2) {
-                                RoaringBitmap rb = new RoaringBitmap();
+                                final RoaringBitmap rb = new RoaringBitmap();
                                 // check the add of new values
                                 for (int k = 0; k < N; k++) {
                                         rb.add(k * gap);
@@ -366,7 +367,7 @@ public class TestRoaringBitmap {
                                                 rb.getCardinality(), N);
                                 }
 
-                                RoaringBitmap rb2 = new RoaringBitmap();
+                                final RoaringBitmap rb2 = new RoaringBitmap();
 
                                 for (int k = 0; k < N; k++) {
                                         rb2.add(k * gap * offset);
@@ -394,7 +395,7 @@ public class TestRoaringBitmap {
 
         @Test
         public void clearTest() {
-                RoaringBitmap rb = new RoaringBitmap();
+                final RoaringBitmap rb = new RoaringBitmap();
                 for (int i = 0; i < 200000; i += 7)
                         // dense
                         rb.add(i);
@@ -402,8 +403,8 @@ public class TestRoaringBitmap {
                         // sparse
                         rb.add(i);
 
-                RoaringBitmap rb2 = new RoaringBitmap();
-                RoaringBitmap rb3 = new RoaringBitmap();
+                final RoaringBitmap rb2 = new RoaringBitmap();
+                final RoaringBitmap rb3 = new RoaringBitmap();
                 for (int i = 0; i < 200000; i += 4)
                         rb2.add(i);
                 for (int i = 200000; i < 400000; i += 14)
@@ -415,8 +416,8 @@ public class TestRoaringBitmap {
 
                 rb.add(4);
                 rb3.add(4);
-                RoaringBitmap andresult = RoaringBitmap.and(rb, rb2);
-                RoaringBitmap orresult = RoaringBitmap.or(rb, rb2);
+                final RoaringBitmap andresult = RoaringBitmap.and(rb, rb2);
+                final RoaringBitmap orresult = RoaringBitmap.or(rb, rb2);
 
                 Assert.assertEquals(1, andresult.getCardinality());
                 Assert.assertEquals(rb2.getCardinality(),
@@ -431,8 +432,8 @@ public class TestRoaringBitmap {
                         rb3.add(i);
                 }
 
-                int[] arrayrr = rb.toArray();
-                int[] arrayrr3 = rb3.toArray();
+                final int[] arrayrr = rb.toArray();
+                final int[] arrayrr3 = rb3.toArray();
 
                 Assert.assertTrue(Arrays.equals(arrayrr, arrayrr3));
         }
@@ -475,13 +476,13 @@ public class TestRoaringBitmap {
 
         @Test
         public void flipTest1() {
-                RoaringBitmap rb = new RoaringBitmap();
+                final RoaringBitmap rb = new RoaringBitmap();
 
                 rb.flip(100000, 200000); // in-place on empty bitmap
-                int rbcard = rb.getCardinality();
+                final int rbcard = rb.getCardinality();
                 Assert.assertEquals(100000, rbcard);
 
-                BitSet bs = new BitSet();
+                final BitSet bs = new BitSet();
                 for (int i = 100000; i < 200000; ++i)
                         bs.set(i);
                 Assert.assertTrue(equals(bs, rb));
@@ -489,14 +490,15 @@ public class TestRoaringBitmap {
 
         @Test
         public void flipTest1A() {
-                RoaringBitmap rb = new RoaringBitmap();
+                final RoaringBitmap rb = new RoaringBitmap();
 
-                RoaringBitmap rb1 = RoaringBitmap.flip(rb, 100000, 200000);
-                int rbcard = rb1.getCardinality();
+                final RoaringBitmap rb1 = RoaringBitmap
+                        .flip(rb, 100000, 200000);
+                final int rbcard = rb1.getCardinality();
                 Assert.assertEquals(100000, rbcard);
                 Assert.assertEquals(0, rb.getCardinality());
 
-                BitSet bs = new BitSet();
+                final BitSet bs = new BitSet();
                 Assert.assertTrue(equals(bs, rb)); // still empty?
                 for (int i = 100000; i < 200000; ++i)
                         bs.set(i);
@@ -505,27 +507,28 @@ public class TestRoaringBitmap {
 
         @Test
         public void flipTest2() {
-                RoaringBitmap rb = new RoaringBitmap();
+                final RoaringBitmap rb = new RoaringBitmap();
 
                 rb.flip(100000, 100000);
-                int rbcard = rb.getCardinality();
+                final int rbcard = rb.getCardinality();
                 Assert.assertEquals(0, rbcard);
 
-                BitSet bs = new BitSet();
+                final BitSet bs = new BitSet();
                 Assert.assertTrue(equals(bs, rb));
         }
 
         @Test
         public void flipTest2A() {
-                RoaringBitmap rb = new RoaringBitmap();
+                final RoaringBitmap rb = new RoaringBitmap();
 
-                RoaringBitmap rb1 = RoaringBitmap.flip(rb, 100000, 100000);
+                final RoaringBitmap rb1 = RoaringBitmap
+                        .flip(rb, 100000, 100000);
                 rb.add(1); // will not affect rb1 (no shared container)
-                int rbcard = rb1.getCardinality();
+                final int rbcard = rb1.getCardinality();
                 Assert.assertEquals(0, rbcard);
                 Assert.assertEquals(1, rb.getCardinality());
 
-                BitSet bs = new BitSet();
+                final BitSet bs = new BitSet();
                 Assert.assertTrue(equals(bs, rb1));
                 bs.set(1);
                 Assert.assertTrue(equals(bs, rb));
@@ -533,15 +536,15 @@ public class TestRoaringBitmap {
 
         @Test
         public void flipTest3() {
-                RoaringBitmap rb = new RoaringBitmap();
+                final RoaringBitmap rb = new RoaringBitmap();
 
                 rb.flip(100000, 200000); // got 100k-199999
                 rb.flip(100000, 199991); // give back 100k-199990
-                int rbcard = rb.getCardinality();
+                final int rbcard = rb.getCardinality();
 
                 Assert.assertEquals(9, rbcard);
 
-                BitSet bs = new BitSet();
+                final BitSet bs = new BitSet();
                 for (int i = 199991; i < 200000; ++i)
                         bs.set(i);
 
@@ -551,14 +554,16 @@ public class TestRoaringBitmap {
         @Test
         public void flipTest3A() {
                 System.out.println("FlipTest3A");
-                RoaringBitmap rb = new RoaringBitmap();
-                RoaringBitmap rb1 = RoaringBitmap.flip(rb, 100000, 200000);
-                RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 100000, 199991);
-                int rbcard = rb2.getCardinality();
+                final RoaringBitmap rb = new RoaringBitmap();
+                final RoaringBitmap rb1 = RoaringBitmap
+                        .flip(rb, 100000, 200000);
+                final RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 100000,
+                        199991);
+                final int rbcard = rb2.getCardinality();
 
                 Assert.assertEquals(9, rbcard);
 
-                BitSet bs = new BitSet();
+                final BitSet bs = new BitSet();
                 for (int i = 199991; i < 200000; ++i)
                         bs.set(i);
 
@@ -568,17 +573,17 @@ public class TestRoaringBitmap {
         @Test
         public void flipTest4() { // fits evenly on both ends
                 System.out.println("FlipTest4");
-                RoaringBitmap rb = new RoaringBitmap();
+                final RoaringBitmap rb = new RoaringBitmap();
                 rb.flip(100000, 200000); // got 100k-199999
                 rb.flip(65536, 4 * 65536);
-                int rbcard = rb.getCardinality();
+                final int rbcard = rb.getCardinality();
 
                 // 65536 to 99999 are 1s
                 // 200000 to 262143 are 1s: total card
 
                 Assert.assertEquals(96608, rbcard);
 
-                BitSet bs = new BitSet();
+                final BitSet bs = new BitSet();
                 for (int i = 65536; i < 100000; ++i)
                         bs.set(i);
                 for (int i = 200000; i < 262144; ++i)
@@ -590,14 +595,16 @@ public class TestRoaringBitmap {
         @Test
         public void flipTest4A() {
                 System.out.println("FlipTest4A");
-                RoaringBitmap rb = new RoaringBitmap();
-                RoaringBitmap rb1 = RoaringBitmap.flip(rb, 100000, 200000);
-                RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 65536, 4 * 65536);
-                int rbcard = rb2.getCardinality();
+                final RoaringBitmap rb = new RoaringBitmap();
+                final RoaringBitmap rb1 = RoaringBitmap
+                        .flip(rb, 100000, 200000);
+                final RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 65536,
+                        4 * 65536);
+                final int rbcard = rb2.getCardinality();
 
                 Assert.assertEquals(96608, rbcard);
 
-                BitSet bs = new BitSet();
+                final BitSet bs = new BitSet();
                 for (int i = 65536; i < 100000; ++i)
                         bs.set(i);
                 for (int i = 200000; i < 262144; ++i)
@@ -610,17 +617,17 @@ public class TestRoaringBitmap {
         public void flipTest5() { // fits evenly on small end, multiple
                                   // containers
                 System.out.println("FlipTest5");
-                RoaringBitmap rb = new RoaringBitmap();
+                final RoaringBitmap rb = new RoaringBitmap();
                 rb.flip(100000, 132000);
                 rb.flip(65536, 120000);
-                int rbcard = rb.getCardinality();
+                final int rbcard = rb.getCardinality();
 
                 // 65536 to 99999 are 1s
                 // 120000 to 131999
 
                 Assert.assertEquals(46464, rbcard);
 
-                BitSet bs = new BitSet();
+                final BitSet bs = new BitSet();
                 for (int i = 65536; i < 100000; ++i)
                         bs.set(i);
                 for (int i = 120000; i < 132000; ++i)
@@ -631,14 +638,16 @@ public class TestRoaringBitmap {
         @Test
         public void flipTest5A() {
                 System.out.println("FlipTest5A");
-                RoaringBitmap rb = new RoaringBitmap();
-                RoaringBitmap rb1 = RoaringBitmap.flip(rb, 100000, 132000);
-                RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 65536, 120000);
-                int rbcard = rb2.getCardinality();
+                final RoaringBitmap rb = new RoaringBitmap();
+                final RoaringBitmap rb1 = RoaringBitmap
+                        .flip(rb, 100000, 132000);
+                final RoaringBitmap rb2 = RoaringBitmap
+                        .flip(rb1, 65536, 120000);
+                final int rbcard = rb2.getCardinality();
 
                 Assert.assertEquals(46464, rbcard);
 
-                BitSet bs = new BitSet();
+                final BitSet bs = new BitSet();
                 for (int i = 65536; i < 100000; ++i)
                         bs.set(i);
                 for (int i = 120000; i < 132000; ++i)
@@ -649,17 +658,17 @@ public class TestRoaringBitmap {
         @Test
         public void flipTest6() { // fits evenly on big end, multiple containers
                 System.out.println("FlipTest6");
-                RoaringBitmap rb = new RoaringBitmap();
+                final RoaringBitmap rb = new RoaringBitmap();
                 rb.flip(100000, 132000);
                 rb.flip(99000, 2 * 65536);
-                int rbcard = rb.getCardinality();
+                final int rbcard = rb.getCardinality();
 
                 // 99000 to 99999 are 1000 1s
                 // 131072 to 131999 are 928 1s
 
                 Assert.assertEquals(1928, rbcard);
 
-                BitSet bs = new BitSet();
+                final BitSet bs = new BitSet();
                 for (int i = 99000; i < 100000; ++i)
                         bs.set(i);
                 for (int i = 2 * 65536; i < 132000; ++i)
@@ -670,14 +679,16 @@ public class TestRoaringBitmap {
         @Test
         public void flipTest6A() {
                 System.out.println("FlipTest6A");
-                RoaringBitmap rb = new RoaringBitmap();
-                RoaringBitmap rb1 = RoaringBitmap.flip(rb, 100000, 132000);
-                RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 99000, 2 * 65536);
-                int rbcard = rb2.getCardinality();
+                final RoaringBitmap rb = new RoaringBitmap();
+                final RoaringBitmap rb1 = RoaringBitmap
+                        .flip(rb, 100000, 132000);
+                final RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 99000,
+                        2 * 65536);
+                final int rbcard = rb2.getCardinality();
 
                 Assert.assertEquals(1928, rbcard);
 
-                BitSet bs = new BitSet();
+                final BitSet bs = new BitSet();
                 for (int i = 99000; i < 100000; ++i)
                         bs.set(i);
                 for (int i = 2 * 65536; i < 132000; ++i)
@@ -688,16 +699,16 @@ public class TestRoaringBitmap {
         @Test
         public void flipTest7() { // within 1 word, first container
                 System.out.println("FlipTest7");
-                RoaringBitmap rb = new RoaringBitmap();
+                final RoaringBitmap rb = new RoaringBitmap();
                 rb.flip(650, 132000);
                 rb.flip(648, 651);
-                int rbcard = rb.getCardinality();
+                final int rbcard = rb.getCardinality();
 
                 // 648, 649, 651-131999
 
                 Assert.assertEquals(132000 - 651 + 2, rbcard);
 
-                BitSet bs = new BitSet();
+                final BitSet bs = new BitSet();
                 bs.set(648);
                 bs.set(649);
                 for (int i = 651; i < 132000; ++i)
@@ -708,16 +719,16 @@ public class TestRoaringBitmap {
         @Test
         public void flipTest7A() { // within 1 word, first container
                 System.out.println("FlipTest7A");
-                RoaringBitmap rb = new RoaringBitmap();
-                RoaringBitmap rb1 = RoaringBitmap.flip(rb, 650, 132000);
-                RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 648, 651);
-                int rbcard = rb2.getCardinality();
+                final RoaringBitmap rb = new RoaringBitmap();
+                final RoaringBitmap rb1 = RoaringBitmap.flip(rb, 650, 132000);
+                final RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 648, 651);
+                final int rbcard = rb2.getCardinality();
 
                 // 648, 649, 651-131999
 
                 Assert.assertEquals(132000 - 651 + 2, rbcard);
 
-                BitSet bs = new BitSet();
+                final BitSet bs = new BitSet();
                 bs.set(648);
                 bs.set(649);
                 for (int i = 651; i < 132000; ++i)
@@ -729,13 +740,13 @@ public class TestRoaringBitmap {
         public void flipTestBig() {
                 final int numCases = 1000000;
                 System.out.println("flipTestBig for " + numCases + " tests");
-                RoaringBitmap rb = new RoaringBitmap();
-                BitSet bs = new BitSet();
-                Random r = new Random(3333);
+                final RoaringBitmap rb = new RoaringBitmap();
+                final BitSet bs = new BitSet();
+                final Random r = new Random(3333);
                 int checkTime = 2;
 
                 for (int i = 0; i < numCases; ++i) {
-                        int start = r.nextInt(65536 * 20);
+                        final int start = r.nextInt(65536 * 20);
                         int end = r.nextInt(65536 * 20);
                         if (r.nextDouble() < 0.1)
                                 end = start + r.nextInt(100);
@@ -745,10 +756,10 @@ public class TestRoaringBitmap {
                                                      // otherwise
                         // insert some more ANDs to keep things sparser
                         if (r.nextDouble() < 0.2) {
-                                RoaringBitmap mask = new RoaringBitmap();
-                                BitSet mask1 = new BitSet();
-                                int startM = r.nextInt(65536 * 20);
-                                int endM = startM + 100000;
+                                final RoaringBitmap mask = new RoaringBitmap();
+                                final BitSet mask1 = new BitSet();
+                                final int startM = r.nextInt(65536 * 20);
+                                final int endM = startM + 100000;
                                 mask.flip(startM, endM);
                                 mask1.flip(startM, endM);
                                 mask.flip(0, 65536 * 20 + 100000);
@@ -758,8 +769,8 @@ public class TestRoaringBitmap {
                         }
                         // see if we can detect incorrectly shared containers
                         if (r.nextDouble() < 0.1) {
-                                RoaringBitmap irrelevant = RoaringBitmap.flip(
-                                        rb, 10, 100000);
+                                final RoaringBitmap irrelevant = RoaringBitmap
+                                        .flip(rb, 10, 100000);
                                 irrelevant.flip(5, 200000);
                                 irrelevant.flip(190000, 260000);
                         }
@@ -777,15 +788,15 @@ public class TestRoaringBitmap {
         public void flipTestBigA() {
                 final int numCases = 1000000;
                 System.out.println("flipTestBigA for " + numCases + " tests");
-                BitSet bs = new BitSet();
-                Random r = new Random(3333);
+                final BitSet bs = new BitSet();
+                final Random r = new Random(3333);
                 int checkTime = 2;
                 RoaringBitmap rb1 = new RoaringBitmap(), rb2 = null; // alternate
                                                                      // between
                                                                      // them
 
                 for (int i = 0; i < numCases; ++i) {
-                        int start = r.nextInt(65536 * 20);
+                        final int start = r.nextInt(65536 * 20);
                         int end = r.nextInt(65536 * 20);
                         if (r.nextDouble() < 0.1)
                                 end = start + r.nextInt(100);
@@ -806,10 +817,10 @@ public class TestRoaringBitmap {
                                                      // otherwise
                         // insert some more ANDs to keep things sparser
                         if (r.nextDouble() < 0.2 && (i & 1) == 0) {
-                                RoaringBitmap mask = new RoaringBitmap();
-                                BitSet mask1 = new BitSet();
-                                int startM = r.nextInt(65536 * 20);
-                                int endM = startM + 100000;
+                                final RoaringBitmap mask = new RoaringBitmap();
+                                final BitSet mask1 = new BitSet();
+                                final int startM = r.nextInt(65536 * 20);
+                                final int endM = startM + 100000;
                                 mask.flip(startM, endM);
                                 mask1.flip(startM, endM);
                                 mask.flip(0, 65536 * 20 + 100000);
@@ -821,8 +832,9 @@ public class TestRoaringBitmap {
                         if (i > checkTime) {
                                 System.out.println("check after " + i
                                         + ", card = " + rb2.getCardinality());
-                                RoaringBitmap rb = (i & 1) == 0 ? rb2 : rb1;
-                                boolean status = equals(bs, rb);
+                                final RoaringBitmap rb = (i & 1) == 0 ? rb2
+                                        : rb1;
+                                final boolean status = equals(bs, rb);
                                 Assert.assertTrue(status);
                                 checkTime *= 1.5;
                         }
@@ -831,33 +843,33 @@ public class TestRoaringBitmap {
 
         @Test
         public void ortest() {
-                RoaringBitmap rr = new RoaringBitmap();
+                final RoaringBitmap rr = new RoaringBitmap();
                 for (int k = 0; k < 4000; ++k) {
                         rr.add(k);
                 }
                 rr.add(100000);
                 rr.add(110000);
-                RoaringBitmap rr2 = new RoaringBitmap();
+                final RoaringBitmap rr2 = new RoaringBitmap();
                 for (int k = 0; k < 4000; ++k) {
                         rr2.add(k);
                 }
 
-                RoaringBitmap rror = RoaringBitmap.or(rr, rr2);
+                final RoaringBitmap rror = RoaringBitmap.or(rr, rr2);
 
-                int[] array = rror.toArray();
-                int[] arrayrr = rr.toArray();
+                final int[] array = rror.toArray();
+                final int[] arrayrr = rr.toArray();
 
                 Assert.assertTrue(Arrays.equals(array, arrayrr));
 
                 rr.or(rr2);
-                int[] arrayirr = rr.toArray();
+                final int[] arrayirr = rr.toArray();
                 Assert.assertTrue(Arrays.equals(array, arrayirr));
 
         }
 
         @Test
         public void ORtest() {
-                RoaringBitmap rr = new RoaringBitmap();
+                final RoaringBitmap rr = new RoaringBitmap();
                 for (int k = 4000; k < 4256; ++k)
                         rr.add(k);
                 for (int k = 65536; k < 65536 + 4000; ++k)
@@ -873,7 +885,7 @@ public class TestRoaringBitmap {
                 for (int k = 9 * 65535; k < 9 * 65535 + 30000; ++k)
                         rr.add(k);
 
-                RoaringBitmap rr2 = new RoaringBitmap();
+                final RoaringBitmap rr2 = new RoaringBitmap();
                 for (int k = 4000; k < 4256; ++k) {
                         rr2.add(k);
                 }
@@ -892,23 +904,23 @@ public class TestRoaringBitmap {
                 for (int k = 10 * 65535; k < 10 * 65535 + 5000; ++k) {
                         rr2.add(k);
                 }
-                RoaringBitmap correct = RoaringBitmap.or(rr, rr2);
+                final RoaringBitmap correct = RoaringBitmap.or(rr, rr2);
                 rr.or(rr2);
                 Assert.assertTrue(correct.equals(rr));
         }
 
         @Test
         public void ortest2() {
-                int[] arrayrr = new int[4000 + 4000 + 2];
+                final int[] arrayrr = new int[4000 + 4000 + 2];
                 int pos = 0;
-                RoaringBitmap rr = new RoaringBitmap();
+                final RoaringBitmap rr = new RoaringBitmap();
                 for (int k = 0; k < 4000; ++k) {
                         rr.add(k);
                         arrayrr[pos++] = k;
                 }
                 rr.add(100000);
                 rr.add(110000);
-                RoaringBitmap rr2 = new RoaringBitmap();
+                final RoaringBitmap rr2 = new RoaringBitmap();
                 for (int k = 4000; k < 8000; ++k) {
                         rr2.add(k);
                         arrayrr[pos++] = k;
@@ -917,20 +929,20 @@ public class TestRoaringBitmap {
                 arrayrr[pos++] = 100000;
                 arrayrr[pos++] = 110000;
 
-                RoaringBitmap rror = RoaringBitmap.or(rr, rr2);
+                final RoaringBitmap rror = RoaringBitmap.or(rr, rr2);
 
-                int[] arrayor = rror.toArray();
+                final int[] arrayor = rror.toArray();
 
                 Assert.assertTrue(Arrays.equals(arrayor, arrayrr));
         }
 
         @Test
         public void ortest3() {
-                HashSet<Integer> V1 = new HashSet<Integer>();
-                HashSet<Integer> V2 = new HashSet<Integer>();
+                final HashSet<Integer> V1 = new HashSet<Integer>();
+                final HashSet<Integer> V2 = new HashSet<Integer>();
 
-                RoaringBitmap rr = new RoaringBitmap();
-                RoaringBitmap rr2 = new RoaringBitmap();
+                final RoaringBitmap rr = new RoaringBitmap();
+                final RoaringBitmap rr2 = new RoaringBitmap();
                 // For the first 65536: rr2 has a bitmap container, and rr has
                 // an array container.
                 // We will check the union between a BitmapCintainer and an
@@ -986,7 +998,7 @@ public class TestRoaringBitmap {
                         V1.add(new Integer(k));
                 }
 
-                RoaringBitmap rror = RoaringBitmap.or(rr, rr2);
+                final RoaringBitmap rror = RoaringBitmap.or(rr, rr2);
                 boolean valide = true;
 
                 // Si tous les elements de rror sont dans V1 et que tous les
@@ -994,12 +1006,12 @@ public class TestRoaringBitmap {
                 // V1 sont dans rror(V2)
                 // alors V1 == rror
 
-                Object[] tab = V1.toArray();
-                Vector<Integer> vector = new Vector<Integer>();
+                final Object[] tab = V1.toArray();
+                final Vector<Integer> vector = new Vector<Integer>();
                 for (int i = 0; i < tab.length; i++)
                         vector.add((Integer) tab[i]);
 
-                for (int i : rror.toArray()) {
+                for (final int i : rror.toArray()) {
                         if (!vector.contains(new Integer(i))) {
                                 valide = false;
                         }
@@ -1017,18 +1029,18 @@ public class TestRoaringBitmap {
 
         @Test
         public void ortest4() {
-                RoaringBitmap rb = new RoaringBitmap();
-                RoaringBitmap rb2 = new RoaringBitmap();
+                final RoaringBitmap rb = new RoaringBitmap();
+                final RoaringBitmap rb2 = new RoaringBitmap();
 
                 for (int i = 0; i < 200000; i += 4)
                         rb2.add(i);
                 for (int i = 200000; i < 400000; i += 14)
                         rb2.add(i);
-                int rb2card = rb2.getCardinality();
+                final int rb2card = rb2.getCardinality();
 
                 // check or against an empty bitmap
-                RoaringBitmap orresult = RoaringBitmap.or(rb, rb2);
-                RoaringBitmap off = RoaringBitmap.or(rb2, rb);
+                final RoaringBitmap orresult = RoaringBitmap.or(rb, rb2);
+                final RoaringBitmap off = RoaringBitmap.or(rb2, rb);
                 Assert.assertTrue(orresult.equals(off));
 
                 Assert.assertEquals(rb2card, orresult.getCardinality());
@@ -1038,7 +1050,7 @@ public class TestRoaringBitmap {
                 for (int i = 200000; i < 400000; i += 3)
                         rb2.add(i);
                 // check or against an empty bitmap
-                RoaringBitmap orresult2 = RoaringBitmap.or(rb, rb2);
+                final RoaringBitmap orresult2 = RoaringBitmap.or(rb, rb2);
                 Assert.assertEquals(rb2card, orresult.getCardinality());
 
                 Assert.assertEquals(rb2.getCardinality() + rb.getCardinality(),
@@ -1059,7 +1071,7 @@ public class TestRoaringBitmap {
 
         @Test
         public void removeSpeedyArrayTest() {
-                RoaringBitmap rb = new RoaringBitmap();
+                final RoaringBitmap rb = new RoaringBitmap();
                 for (int i = 0; i < 10000; i++)
                         rb.add(i);
 
@@ -1073,8 +1085,8 @@ public class TestRoaringBitmap {
         public void rTest(final int N) {
                 System.out.println("rtest N=" + N);
                 for (int gap = 1; gap <= 65536; gap *= 2) {
-                        BitSet bs1 = new BitSet();
-                        RoaringBitmap rb1 = new RoaringBitmap();
+                        final BitSet bs1 = new BitSet();
+                        final RoaringBitmap rb1 = new RoaringBitmap();
                         for (int x = 0; x <= N; ++x) {
                                 bs1.set(x);
                                 rb1.add(x);
@@ -1084,8 +1096,8 @@ public class TestRoaringBitmap {
                         if (!equals(bs1, rb1))
                                 throw new RuntimeException("basic  bug");
                         for (int offset = 1; offset <= gap; offset *= 2) {
-                                BitSet bs2 = new BitSet();
-                                RoaringBitmap rb2 = new RoaringBitmap();
+                                final BitSet bs2 = new BitSet();
+                                final RoaringBitmap rb2 = new RoaringBitmap();
                                 for (int x = 0; x <= N; ++x) {
                                         bs2.set(x + offset);
                                         rb2.add(x + offset);
@@ -1104,7 +1116,7 @@ public class TestRoaringBitmap {
                                         RoaringBitmap.and(rb1, rb2)))
                                         throw new RuntimeException("bug and");
                                 {
-                                        RoaringBitmap t = rb1.clone();
+                                        final RoaringBitmap t = rb1.clone();
                                         t.and(rb2);
                                         if (!equals(clonebs1, t))
                                                 throw new RuntimeException(
@@ -1138,7 +1150,7 @@ public class TestRoaringBitmap {
                                         RoaringBitmap.or(rb1, rb2)))
                                         throw new RuntimeException("bug or");
                                 {
-                                        RoaringBitmap t = rb1.clone();
+                                        final RoaringBitmap t = rb1.clone();
                                         t.or(rb2);
                                         if (!equals(clonebs1, t))
                                                 throw new RuntimeException(
@@ -1162,7 +1174,7 @@ public class TestRoaringBitmap {
                                         throw new RuntimeException("bug xor");
                                 }
                                 {
-                                        RoaringBitmap t = rb1.clone();
+                                        final RoaringBitmap t = rb1.clone();
                                         t.xor(rb2);
                                         if (!equals(clonebs1, t))
                                                 throw new RuntimeException(
@@ -1186,14 +1198,14 @@ public class TestRoaringBitmap {
                                         throw new RuntimeException("bug andnot");
                                 }
                                 {
-                                        RoaringBitmap t = rb2.clone();
+                                        final RoaringBitmap t = rb2.clone();
                                         t.andNot(rb1);
                                         if (!equals(clonebs1, t)) {
                                                 throw new RuntimeException(
                                                         "bug inplace andnot");
                                         }
-                                        RoaringBitmap g = RoaringBitmap.andNot(
-                                                rb2, rb1);
+                                        final RoaringBitmap g = RoaringBitmap
+                                                .andNot(rb2, rb1);
                                         if (!equals(clonebs1, g)) {
                                                 throw new RuntimeException(
                                                         "bug andnot");
@@ -1209,14 +1221,14 @@ public class TestRoaringBitmap {
                                         throw new RuntimeException("bug andnot");
                                 }
                                 {
-                                        RoaringBitmap t = rb1.clone();
+                                        final RoaringBitmap t = rb1.clone();
                                         t.andNot(rb2);
                                         if (!equals(clonebs1, t)) {
                                                 throw new RuntimeException(
                                                         "bug andnot");
                                         }
-                                        RoaringBitmap g = RoaringBitmap.andNot(
-                                                rb1, rb2);
+                                        final RoaringBitmap g = RoaringBitmap
+                                                .andNot(rb1, rb2);
                                         if (!equals(clonebs1, g)) {
                                                 throw new RuntimeException(
                                                         "bug andnot");
@@ -1235,7 +1247,7 @@ public class TestRoaringBitmap {
                 final int N = 512;
                 final int gap = 70;
 
-                RoaringBitmap rb = new RoaringBitmap();
+                final RoaringBitmap rb = new RoaringBitmap();
                 for (int k = 0; k < N; k++) {
                         rb.add(k * gap);
                         Assert.assertEquals(rb.getCardinality(), k + 1);
@@ -1251,17 +1263,17 @@ public class TestRoaringBitmap {
         @Test
         public void testSerialization() throws IOException,
                 ClassNotFoundException {
-                RoaringBitmap rr = new RoaringBitmap();
+                final RoaringBitmap rr = new RoaringBitmap();
                 for (int k = 65000; k < 2 * 65000; ++k)
                         rr.add(k);
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                final ByteArrayOutputStream bos = new ByteArrayOutputStream();
                 // Note: you could use a file output steam instead of
                 // ByteArrayOutputStream
-                ObjectOutputStream oo = new ObjectOutputStream(bos);
+                final ObjectOutputStream oo = new ObjectOutputStream(bos);
                 rr.writeExternal(oo);
                 oo.close();
-                RoaringBitmap rrback = new RoaringBitmap();
-                ByteArrayInputStream bis = new ByteArrayInputStream(
+                final RoaringBitmap rrback = new RoaringBitmap();
+                final ByteArrayInputStream bis = new ByteArrayInputStream(
                         bos.toByteArray());
                 rrback.readExternal(new ObjectInputStream(bis));
                 Assert.assertEquals(rr.getCardinality(),
@@ -1271,7 +1283,7 @@ public class TestRoaringBitmap {
 
         @Test
         public void XORtest() {
-                RoaringBitmap rr = new RoaringBitmap();
+                final RoaringBitmap rr = new RoaringBitmap();
                 for (int k = 4000; k < 4256; ++k)
                         rr.add(k);
                 for (int k = 65536; k < 65536 + 4000; ++k)
@@ -1287,7 +1299,7 @@ public class TestRoaringBitmap {
                 for (int k = 9 * 65535; k < 9 * 65535 + 30000; ++k)
                         rr.add(k);
 
-                RoaringBitmap rr2 = new RoaringBitmap();
+                final RoaringBitmap rr2 = new RoaringBitmap();
                 for (int k = 4000; k < 4256; ++k) {
                         rr2.add(k);
                 }
@@ -1306,18 +1318,18 @@ public class TestRoaringBitmap {
                 for (int k = 10 * 65535; k < 10 * 65535 + 5000; ++k) {
                         rr2.add(k);
                 }
-                RoaringBitmap correct = RoaringBitmap.xor(rr, rr2);
+                final RoaringBitmap correct = RoaringBitmap.xor(rr, rr2);
                 rr.xor(rr2);
                 Assert.assertTrue(correct.equals(rr));
         }
 
         @Test
         public void xortest1() {
-                HashSet<Integer> V1 = new HashSet<Integer>();
-                HashSet<Integer> V2 = new HashSet<Integer>();
+                final HashSet<Integer> V1 = new HashSet<Integer>();
+                final HashSet<Integer> V2 = new HashSet<Integer>();
 
-                RoaringBitmap rr = new RoaringBitmap();
-                RoaringBitmap rr2 = new RoaringBitmap();
+                final RoaringBitmap rr = new RoaringBitmap();
+                final RoaringBitmap rr2 = new RoaringBitmap();
                 // For the first 65536: rr2 has a bitmap container, and rr has
                 // an array container.
                 // We will check the union between a BitmapCintainer and an
@@ -1374,19 +1386,19 @@ public class TestRoaringBitmap {
                         V1.add(new Integer(k));
                 }
 
-                RoaringBitmap rrxor = RoaringBitmap.xor(rr, rr2);
+                final RoaringBitmap rrxor = RoaringBitmap.xor(rr, rr2);
                 boolean valide = true;
 
                 // Si tous les elements de rror sont dans V1 et que tous les
                 // elements de
                 // V1 sont dans rror(V2)
                 // alors V1 == rror
-                Object[] tab = V1.toArray();
-                Vector<Integer> vector = new Vector<Integer>();
+                final Object[] tab = V1.toArray();
+                final Vector<Integer> vector = new Vector<Integer>();
                 for (int i = 0; i < tab.length; i++)
                         vector.add((Integer) tab[i]);
 
-                for (int i : rrxor.toArray()) {
+                for (final int i : rrxor.toArray()) {
                         if (!vector.contains(new Integer(i))) {
                                 valide = false;
                         }
@@ -1402,18 +1414,18 @@ public class TestRoaringBitmap {
 
         @Test
         public void xortest4() {
-                RoaringBitmap rb = new RoaringBitmap();
-                RoaringBitmap rb2 = new RoaringBitmap();
+                final RoaringBitmap rb = new RoaringBitmap();
+                final RoaringBitmap rb2 = new RoaringBitmap();
 
                 for (int i = 0; i < 200000; i += 4)
                         rb2.add(i);
                 for (int i = 200000; i < 400000; i += 14)
                         rb2.add(i);
-                int rb2card = rb2.getCardinality();
+                final int rb2card = rb2.getCardinality();
 
                 // check or against an empty bitmap
-                RoaringBitmap xorresult = RoaringBitmap.xor(rb, rb2);
-                RoaringBitmap off = RoaringBitmap.or(rb2, rb);
+                final RoaringBitmap xorresult = RoaringBitmap.xor(rb, rb2);
+                final RoaringBitmap off = RoaringBitmap.or(rb2, rb);
                 Assert.assertTrue(xorresult.equals(off));
 
                 Assert.assertEquals(rb2card, xorresult.getCardinality());
@@ -1423,7 +1435,7 @@ public class TestRoaringBitmap {
                 for (int i = 200000; i < 400000; i += 3)
                         rb2.add(i);
                 // check or against an empty bitmap
-                RoaringBitmap xorresult2 = RoaringBitmap.xor(rb, rb2);
+                final RoaringBitmap xorresult2 = RoaringBitmap.xor(rb, rb2);
                 Assert.assertEquals(rb2card, xorresult.getCardinality());
 
                 Assert.assertEquals(rb2.getCardinality() + rb.getCardinality(),
@@ -1462,7 +1474,7 @@ public class TestRoaringBitmap {
         }
 
         public static boolean equals(BitSet bs, RoaringBitmap rr) {
-                int[] a = new int[bs.cardinality()];
+                final int[] a = new int[bs.cardinality()];
                 int pos = 0;
                 for (int x = bs.nextSetBit(0); x >= 0; x = bs.nextSetBit(x + 1))
                         a[pos++] = x;
