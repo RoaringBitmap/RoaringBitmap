@@ -1,4 +1,4 @@
-RoaringBitmap
+RoaringBitmap [![Build Status](https://travis-ci.org/lemire/RoaringBitmap.png)](https://travis-ci.org/lemire/RoaringBitmap)
 =============
 
 Bitsets, also called bitmaps, are commonly used as fast data structure.
