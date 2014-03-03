@@ -12,7 +12,7 @@ import java.util.Arrays;
 
 /**
  * Specialized array to stored the containers used by a RoaringBitmap.
- *
+ * 
  */
 public final class RoaringArray implements Cloneable, Externalizable {
         protected final class Element implements Cloneable {
@@ -24,20 +24,20 @@ public final class RoaringArray implements Cloneable, Externalizable {
                 public short key;
 
                 public Container value = null;
-                
+
                 @Override
                 public Element clone() {
                         Element c;
                         try {
                                 c = (Element) super.clone();
-                                c.key = this.key;  // OFK: wouldn't Object's bitwise copy do this?
+                                c.key = this.key; // OFK: wouldn't Object's
+                                                  // bitwise copy do this?
                                 c.value = this.value.clone();
                                 return c;
                         } catch (CloneNotSupportedException e) {
                                 return null;
                         }
                 }
-                
 
         }
 
@@ -86,42 +86,41 @@ public final class RoaringArray implements Cloneable, Externalizable {
          * 
          * @param sa
          * @param stoppingKey
-         *                any equal or larger key in other array will terminate copying
+         *                any equal or larger key in other array will terminate
+         *                copying
          */
         protected void appendCopiesUntil(RoaringArray sa, short stoppingKey) {
-		int stopKey = Util.toIntUnsigned(stoppingKey);
+                int stopKey = Util.toIntUnsigned(stoppingKey);
                 for (int i = 0; i < sa.size; ++i) {
-			if (Util.toIntUnsigned(sa.array[i].key) >= stopKey) break; 
-			extendArray(1);
+                        if (Util.toIntUnsigned(sa.array[i].key) >= stopKey)
+                                break;
+                        extendArray(1);
                         this.array[this.size++] = new Element(sa.array[i].key,
                                 sa.array[i].value.clone());
                 }
         }
 
-
         /**
-         * Append copies of the values AFTER a specified key (may or may not be present) to end.
+         * Append copies of the values AFTER a specified key (may or may not be
+         * present) to end.
          * 
          * @param sa
          * @param beforeStart
          *                given key is the largest key that we won't copy
          */
         protected void appendCopiesAfter(RoaringArray sa, short beforeStart) {
-		int startLocation = sa.getIndex(beforeStart);
-		if (startLocation >= 0) 
-			startLocation++;
-		else 
-			startLocation =  -startLocation-1;
-		extendArray(sa.size - startLocation);
+                int startLocation = sa.getIndex(beforeStart);
+                if (startLocation >= 0)
+                        startLocation++;
+                else
+                        startLocation = -startLocation - 1;
+                extendArray(sa.size - startLocation);
 
                 for (int i = startLocation; i < sa.size; ++i) {
                         this.array[this.size++] = new Element(sa.array[i].key,
                                 sa.array[i].value.clone());
                 }
         }
-
-
-
 
         protected void clear() {
                 this.array = null;
@@ -133,7 +132,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
                 RoaringArray sa;
                 sa = (RoaringArray) super.clone();
                 sa.array = Arrays.copyOf(this.array, this.size);
-                for(int k = 0; k < this.size; ++k)
+                for (int k = 0; k < this.size; ++k)
                         sa.array[k] = sa.array[k].clone();
                 sa.size = this.size;
                 return sa;
@@ -212,9 +211,9 @@ public final class RoaringArray implements Cloneable, Externalizable {
                 array[i] = new Element(key, value);
                 size++;
         }
-        
+
         protected void resize(int newlength) {
-                for(int k = newlength; k < this.size; ++k) {
+                for (int k = newlength; k < this.size; ++k) {
                         this.array[k] = null;
                 }
                 this.size = newlength;
@@ -276,21 +275,22 @@ public final class RoaringArray implements Cloneable, Externalizable {
                 byte[] buffer = new byte[2];
                 // little endian
                 in.readFully(buffer);
-                this.size = buffer[0] | (buffer[1]<< 8);
-                if((this.array == null) || (this.array.length < this.size)) this.array = new Element[this.size];
-                for(int k = 0; k < this.size; ++k) {
+                this.size = buffer[0] | (buffer[1] << 8);
+                if ((this.array == null) || (this.array.length < this.size))
+                        this.array = new Element[this.size];
+                for (int k = 0; k < this.size; ++k) {
                         in.readFully(buffer);
-                        short key  = (short) (buffer[0] | (buffer[1]<< 8));
+                        short key = (short) (buffer[0] | (buffer[1] << 8));
                         boolean isbitmap = in.readBoolean();
-                        Container val ;
-                        if(isbitmap) {
+                        Container val;
+                        if (isbitmap) {
                                 val = new BitmapContainer();
                                 val.readExternal(in);
                         } else {
                                 val = new ArrayContainer(0);
                                 val.readExternal(in);
                         }
-                        this.array[k] = new Element(key,val);
+                        this.array[k] = new Element(key, val);
                 }
         }
 
@@ -298,15 +298,15 @@ public final class RoaringArray implements Cloneable, Externalizable {
         public void writeExternal(ObjectOutput out) throws IOException {
                 out.write((this.size >>> 0) & 0xFF);
                 out.write((this.size >>> 8) & 0xFF);
-                for(int k = 0; k < size; ++k) {
+                for (int k = 0; k < size; ++k) {
                         out.write((this.array[k].key >>> 0) & 0xFF);
                         out.write((this.array[k].key >>> 8) & 0xFF);
                         out.writeBoolean(this.array[k].value instanceof BitmapContainer);
                         array[k].value.writeExternal(out);
                 }
-                
+
         }
-        
+
         private static final long serialVersionUID = 3L;
 
 }

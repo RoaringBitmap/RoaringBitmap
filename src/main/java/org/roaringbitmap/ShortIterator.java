@@ -6,7 +6,7 @@ package org.roaringbitmap;
 
 /**
  * @author lemire
- *
+ * 
  */
 public interface ShortIterator {
         /**
@@ -18,6 +18,7 @@ public interface ShortIterator {
          * @return next short value
          */
         public short next();
+
         /**
          * remove current value
          */

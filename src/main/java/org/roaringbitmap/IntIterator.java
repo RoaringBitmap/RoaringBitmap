@@ -6,7 +6,7 @@ package org.roaringbitmap;
 
 /**
  * A simple iterator over integer values
- *
+ * 
  */
 public interface IntIterator {
         /**
