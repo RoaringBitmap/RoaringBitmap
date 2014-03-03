@@ -26,7 +26,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
                         Element c;
                         try {
                                 c = (Element) super.clone();
-                                c.key = this.key;
+                                c.key = this.key;  // OFK: wouldn't Object's bitwise copy do this?
                                 c.value = this.value.clone();
                                 return c;
                         } catch (CloneNotSupportedException e) {
@@ -76,6 +76,48 @@ public final class RoaringArray implements Cloneable, Externalizable {
                 }
 
         }
+
+        /**
+         * Append copies of the values from another array, from the start
+         * 
+         * @param sa
+         * @param stoppingKey
+         *                any equal or larger key in other array will terminate copying
+         */
+        protected void appendCopiesUntil(RoaringArray sa, short stoppingKey) {
+		int stopKey = Util.toIntUnsigned(stoppingKey);
+                for (int i = 0; i < sa.size; ++i) {
+			if (Util.toIntUnsigned(sa.array[i].key) >= stopKey) break; 
+			extendArray(1);
+                        this.array[this.size++] = new Element(sa.array[i].key,
+                                sa.array[i].value.clone());
+                }
+        }
+
+
+        /**
+         * Append copies of the values AFTER a specified key (may or may not be present) to end.
+         * 
+         * @param sa
+         * @param beforeStart
+         *                given key is the largest key that we won't copy
+         */
+        protected void appendCopiesAfter(RoaringArray sa, short beforeStart) {
+		int startLocation = sa.getIndex(beforeStart);
+		if (startLocation >= 0) 
+			startLocation++;
+		else 
+			startLocation =  -startLocation-1;
+		extendArray(sa.size - startLocation);
+
+                for (int i = startLocation; i < sa.size; ++i) {
+                        this.array[this.size++] = new Element(sa.array[i].key,
+                                sa.array[i].value.clone());
+                }
+        }
+
+
+
 
         protected void clear() {
                 this.array = null;

@@ -41,6 +41,101 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                                 newac.add(Util.lowbits(x)));
                 }
         }
+
+
+
+        /**
+         * Modifies the current bitmap by complementing the bits in the given range, 
+         * from rangeStart (inclusive) rangeEnd (exclusive).
+         * @param rangeStart  inclusive beginning of range
+         * @param rangeEnd    exclusive ending of range
+         */
+        public void flip(final int rangeStart, final int rangeEnd) {
+		if (rangeStart >= rangeEnd) return;  // empty range
+		
+		final short hbStart = Util.highbits(rangeStart);
+		final short lbStart = Util.lowbits(rangeStart);
+		final short hbLast  = Util.highbits(rangeEnd-1);
+		final short lbLast  = Util.lowbits(rangeEnd-1);
+
+		int max = Util.toIntUnsigned(Util.maxLowBit());
+		for (short hb = hbStart; hb <= hbLast; ++hb) {
+			// first container may contain partial range
+			final int containerStart = (hb == hbStart) ? Util.toIntUnsigned(lbStart) : 0;  
+			// last container may contain partial range
+			final int containerLast  = (hb == hbLast) ?  Util.toIntUnsigned(lbLast) : max;  
+			final int i = highlowcontainer.getIndex(hb);
+			
+			if (i >= 0) {
+				Container c = highlowcontainer.getContainerAtIndex(i).inot(
+					  containerStart, 
+					  containerLast);
+				if (c.getCardinality() > 0)
+					highlowcontainer.setContainerAtIndex(i,c);
+				else
+					highlowcontainer.removeAtIndex(i);
+			} else {
+		    highlowcontainer.insertNewKeyValueAt(-i - 1, hb, 
+				   Container.rangeOfOnes(containerStart, containerLast));
+			}
+		}
+	}
+
+
+        /**
+         * Complements the bits in the given range, 
+         * from rangeStart (inclusive) rangeEnd (exclusive).
+         * The given bitmap is unchanged.
+         * @param bm bitmap being negated
+         * @param rangeStart  inclusive beginning of range
+         * @param rangeEnd    exclusive ending of range
+         */
+        public static RoaringBitmap flip(RoaringBitmap bm,  final int rangeStart, final int rangeEnd) {
+		RoaringBitmap answer = null;
+		if (rangeStart >= rangeEnd) {
+		       answer = bm.clone();
+		       //System.out.println("cloned!");
+		       return answer;
+		}
+		
+		answer = new RoaringBitmap();
+		final short hbStart = Util.highbits(rangeStart);
+		final short lbStart = Util.lowbits(rangeStart);
+		final short hbLast  = Util.highbits(rangeEnd-1);
+		final short lbLast  = Util.lowbits(rangeEnd-1);
+
+		// copy the containers before the active area
+		answer.highlowcontainer.appendCopiesUntil(bm.highlowcontainer, hbStart);
+		
+		int max = Util.toIntUnsigned(Util.maxLowBit());
+		for (short hb = hbStart; hb <= hbLast; ++hb) {
+			final int containerStart = (hb == hbStart) ? Util.toIntUnsigned(lbStart) : 0;  
+			final int containerLast  = (hb == hbLast) ?  Util.toIntUnsigned(lbLast) : max;  
+
+			final int i = bm.highlowcontainer.getIndex(hb);
+			final int j = answer.highlowcontainer.getIndex(hb);
+			assert j<0;
+			
+			if (i >= 0) {
+				Container c = bm.highlowcontainer.getContainerAtIndex(i).not(
+					  containerStart, 
+					  containerLast);
+				if (c.getCardinality() > 0)
+					answer.highlowcontainer.insertNewKeyValueAt(-j - 1, hb, c);
+				    
+
+			} else { // *think* the range of ones must never be empty.
+				answer.highlowcontainer.insertNewKeyValueAt(-j - 1, hb, 
+				     Container.rangeOfOnes(containerStart, containerLast));
+			}
+		}
+		// copy the containers after the active area.
+		answer.highlowcontainer.appendCopiesAfter(bm.highlowcontainer,hbLast);
+		
+		return answer;
+	}
+
+
         /**
          * In-place bitwise AND (intersection) operation. The current
          * bitmap is modified.

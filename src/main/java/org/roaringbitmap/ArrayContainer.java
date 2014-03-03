@@ -13,7 +13,6 @@ import java.util.Iterator;
  */
 public final class ArrayContainer extends Container implements Cloneable,
         Serializable {
-
         /**
          * Create an array container with default capacity
          */
@@ -34,6 +33,20 @@ public final class ArrayContainer extends Container implements Cloneable,
                 this.content = Arrays.copyOf(newcontent, newcard);
 
         }
+
+	/**
+	 * Create an array container with a run of ones from firstOfRun to lastOfRun, inclusive.
+         * Caller is responsible for making sure the range is small enough that ArrayContainer
+	 * is appropriate.
+         */
+	public ArrayContainer( final int firstOfRun,  final int lastOfRun) {
+		final int valuesInRange = lastOfRun - firstOfRun + 1;
+		this.content = new short[ valuesInRange];
+		for (int i=0; i < valuesInRange; ++i)
+			content[i] = (short) (firstOfRun+i);
+		cardinality = valuesInRange;
+	}
+
 
         /**
          * running time is in O(n) time if insert is not in order.
@@ -232,6 +245,84 @@ public final class ArrayContainer extends Container implements Cloneable,
                 return this;
         }
 
+	// for use in inot range known to be nonempty
+	private void negateRange(final short [] buffer, final int startIndex,
+				 final int lastIndex, final int startRange,
+				 final int lastRange) {
+		// compute the negation into buffer
+
+		int outPos=0;
+		int inPos=startIndex;  // value here always >= valInRange, until it is exhausted
+		// n.b., we can start initially exhausted.
+
+ 		int valInRange = startRange;
+		   for (; valInRange <= lastRange && inPos <= lastIndex; ++valInRange) {
+			if ((short) valInRange != content[inPos])
+				buffer[outPos++] = (short) valInRange;
+			else {
+				++inPos;
+			}
+		   }
+
+		// if there are extra items (greater than the biggest pre-existing one in range), buffer them
+		for (; valInRange <= lastRange; ++valInRange) {
+			buffer[outPos++]= (short) valInRange;
+		}
+
+
+		if (outPos != buffer.length) {
+			throw new RuntimeException("negateRange: outPos "+outPos+" whereas buffer.length="+buffer.length);
+		}
+		assert outPos == buffer.length;
+		// copy back from buffer...caller must ensure there is room
+		int i=startIndex;
+		for (short item: buffer)
+			content[i++] = item;
+	}
+
+
+
+
+        @Override
+	public Container inot(final int firstOfRange, final int lastOfRange) {
+		// determine the span of array indices to be affected
+                int startIndex = Util.unsigned_binarySearch(content, 
+				   0, cardinality, (short) firstOfRange);
+		if (startIndex < 0) 
+			startIndex = -startIndex - 1;
+		int lastIndex = Util.unsigned_binarySearch(content, 
+				   0, cardinality, (short) lastOfRange);
+		if (lastIndex < 0) 
+			lastIndex = -lastIndex - 1 -1;
+		final int currentValuesInRange = lastIndex - startIndex + 1;
+		final int spanToBeFlipped = lastOfRange - firstOfRange + 1;
+		final int newValuesInRange = spanToBeFlipped - currentValuesInRange;
+		final short [] buffer = new short[newValuesInRange];
+		final int cardinalityChange = newValuesInRange - currentValuesInRange;
+		final int newCardinality = cardinality + cardinalityChange;
+
+		if (cardinalityChange > 0) { // expansion, right shifting needed
+			if (newCardinality > content.length) {
+				// so big we need a bitmap?
+				if (newCardinality >= DEFAULTMAXSIZE)
+					return toBitmapContainer().inot(firstOfRange, lastOfRange);
+				else //no,  we just need a bigger array
+					content = Arrays.copyOf(content, newCardinality);
+			}
+			// slide right the contentsafter the range
+			for (int pos = cardinality-1; pos > lastIndex; --pos)
+				content[pos + cardinalityChange] = content[pos];
+			negateRange(buffer, startIndex, lastIndex, firstOfRange, lastOfRange);
+		} else { // no expansion needed
+			negateRange(buffer, startIndex, lastIndex, firstOfRange, lastOfRange);
+			if (cardinalityChange < 0)  // contraction, left sliding.  Leave array oversize
+				for (int i = startIndex+newValuesInRange; i < newCardinality; ++i)
+					content[i] = content[ i - cardinalityChange];
+		}
+		cardinality = newCardinality;
+		return this;
+	}
+
         @Override
         public Container ior(final ArrayContainer value2) {
                 final ArrayContainer value1 = this;
@@ -299,6 +390,61 @@ public final class ArrayContainer extends Container implements Cloneable,
         public Container ixor(BitmapContainer x) {
                 return x.xor(this);
         }
+
+
+	// shares lots of code with inot; candidate for refactoring
+        @Override
+	public Container not(final int firstOfRange, final int lastOfRange) {
+		if (firstOfRange > lastOfRange) {
+			return clone(); // empty range
+		}
+
+		// determine the span of array indices to be affected
+                int startIndex = Util.unsigned_binarySearch(content,0, cardinality, (short) firstOfRange);
+		if (startIndex < 0) 
+			startIndex = -startIndex - 1;
+		int lastIndex = Util.unsigned_binarySearch(content, 0, cardinality, (short) lastOfRange);
+		if (lastIndex < 0) 
+			lastIndex = -lastIndex-2; 
+		final int currentValuesInRange = lastIndex - startIndex + 1;
+		final int spanToBeFlipped = lastOfRange - firstOfRange + 1;
+		final int newValuesInRange = spanToBeFlipped - currentValuesInRange;
+		final int cardinalityChange = newValuesInRange - currentValuesInRange;
+		final int newCardinality = cardinality + cardinalityChange;
+
+		if (newCardinality >= DEFAULTMAXSIZE)		
+			return toBitmapContainer().not(firstOfRange, lastOfRange);
+
+                ArrayContainer answer = new ArrayContainer();
+                if (answer.content.length < newCardinality)
+                        answer.content = new short[newCardinality];
+
+		for (int i=0; i < startIndex;++i)  // copy stuff before the active area
+			answer.content[i] = content[i];
+
+		int outPos=startIndex;
+		int inPos = startIndex; // item at inPos always >= valInRange
+
+ 		int valInRange = firstOfRange;
+		for (; valInRange <= lastOfRange && inPos <= lastIndex; ++valInRange) {
+			if ((short) valInRange != content[inPos])
+				answer.content[outPos++] = (short) valInRange;
+			else {
+				++inPos;
+			}
+		}
+		
+		for (; valInRange <= lastOfRange; ++valInRange) {
+			answer.content[outPos++]= (short) valInRange;
+		}
+
+		// content after the active range
+		for (int i=lastIndex+1; i < cardinality; ++i)
+			answer.content[outPos++] = content[i];
+		answer.cardinality = newCardinality;
+		return answer;
+	}
+
 
         @Override
         public Container or(final ArrayContainer value2) {

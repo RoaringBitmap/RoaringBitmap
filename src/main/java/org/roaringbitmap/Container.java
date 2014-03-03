@@ -186,6 +186,16 @@ public abstract class Container implements Iterable<Short>, Cloneable,  External
         }
 
         /**
+         * Computes the in-place bitwise NOT of this container (complement).
+         * Only those bits within the range are affected.
+         * The current container is generally modified.  May generate a new container.
+         * @param rangeStart beginning of range (inclusive); 0 is beginning of this container.
+         * @param rangeEnd   ending of range (exclusive)
+         * @return (partially) completmented container
+         */
+        public abstract Container inot(int rangeStart, int rangeEnd );
+
+        /**
          * Computes the in-place bitwise OR of this container with another (union).
          * The current container is generally modified, whereas the provided
          * container (x) is unaffected.  May generate a new container.
@@ -247,6 +257,18 @@ public abstract class Container implements Iterable<Short>, Cloneable,  External
                 return ixor((BitmapContainer) x);
 
         }
+
+
+        /**
+         * Computes the bitwise NOT of this container (complement).
+         * Only those bits within the range are affected.
+         * The current container is left unaffected.  
+         * @param rangeStart beginning of range (inclusive); 0 is beginning of this container.
+         * @param rangeEnd   ending of range (exclusive)
+         * @return (partially) completmented container
+         */
+        public abstract Container not(int rangeStart, int rangeEnd );
+
 
         /**
          * Computes the bitwise OR of this container with another (union).
@@ -315,4 +337,13 @@ public abstract class Container implements Iterable<Short>, Cloneable,  External
                 return xor((BitmapContainer) x);
 
         }
+
+	public static Container rangeOfOnes(int start, int last) {
+		if (last-start+1 > ArrayContainer.DEFAULTMAXSIZE) 
+                       return  new BitmapContainer(start, last);
+		else
+			return new ArrayContainer(start, last);
+	}
+
+
 }

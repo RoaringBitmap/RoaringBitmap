@@ -13,7 +13,6 @@ import java.util.Iterator;
  */
 public final class BitmapContainer extends Container implements Cloneable,
         Serializable {
-
         /**
          * Create a bitmap container with all bits set to false
          */
@@ -26,6 +25,30 @@ public final class BitmapContainer extends Container implements Cloneable,
                 this.cardinality = newcardinality;
                 this.bitmap = Arrays.copyOf(newbitmap, newbitmap.length);
         }
+
+	/**
+	 * Create a bitmap container with a run of ones from firstOfRun to lastOfRun, inclusive
+	 * caller must ensure that the range isn't so small that an ArrayContainer should have
+	 * been created instead
+         */	
+	public BitmapContainer( final int firstOfRun,  final int lastOfRun) {
+		this.cardinality = lastOfRun - firstOfRun+1;
+                this.bitmap = new long[maxcapacity / 64]; 
+		if (this.cardinality == maxcapacity)  // perhaps a common case
+			Arrays.fill(bitmap, -1L);
+		else {
+			final int firstWord = firstOfRun / 64;
+			final int lastWord = lastOfRun / 64;
+			final int zeroPrefixLength = firstOfRun & 63;
+			final int zeroSuffixLength = 63 - (lastOfRun & 63);
+
+			Arrays.fill(bitmap,firstWord, lastWord+1, -1L);
+			bitmap[firstWord] ^= ( (1L << zeroPrefixLength)-1);
+			final long blockOfOnes = (1L << zeroSuffixLength)-1;
+			final long maskOnLeft = blockOfOnes << (64-zeroSuffixLength);
+			bitmap[lastWord] ^= maskOnLeft;
+		}
+	}
 
         @Override
         public Container add(final short i) {
@@ -242,6 +265,88 @@ public final class BitmapContainer extends Container implements Cloneable,
                 return ac;
         }
 
+        // complicated so that it should be reasonably efficient even when the ranges are small 
+
+	// answer could be a new BitmapContainer, or (for inplace) it can be "this"
+	private Container not(BitmapContainer answer, final int firstOfRange, final int lastOfRange) {
+		assert bitmap.length == maxcapacity/64;  // checking assumption that partial bitmaps are not allowed
+	        // an easy case for full range, should be common
+		if (lastOfRange - firstOfRange + 1 == maxcapacity) {
+			final int newCardinality = maxcapacity - cardinality;
+			for (int k = 0; k < this.bitmap.length; ++k)
+				answer.bitmap[k] = ~this.bitmap[k];
+			answer.cardinality = newCardinality;
+			if (newCardinality <= ArrayContainer.DEFAULTMAXSIZE)
+				return answer.toArrayContainer();
+			else 
+				return answer;
+		}				
+
+		// could be optimized to first determine the answer cardinality,
+		// rather than update/create bitmap and then possibly convert
+
+		int cardinalityChange= 0;
+		final int rangeFirstWord= firstOfRange / 64;
+		final int rangeFirstBitPos = firstOfRange & 63;
+		final int rangeLastWord= lastOfRange / 64;
+		final long rangeLastBitPos  = lastOfRange & 63;
+
+		// if not in place, we need to duplicate  stuff before rangeFirstWord and after rangeLastWord
+		if (answer != this) {
+			for (int i=0; i < rangeFirstWord; ++i)
+				answer.bitmap[i] = bitmap[i];
+			for (int i=rangeLastWord+1; i < bitmap.length; ++i)
+				answer.bitmap[i] = bitmap[i];
+		}
+
+		// unfortunately, the simple expression gives the wrong mask for rangeLastBitPos==63		
+		// no branchless way comes to mind
+		final long maskOnLeft = (rangeLastBitPos==63) ? -1L : (1L << (rangeLastBitPos+1))-1;
+
+		long mask = -1L; // now zero out stuff in the prefix
+		mask ^= ((1L << rangeFirstBitPos) - 1);  
+
+		if (rangeFirstWord == rangeLastWord) {
+			// range starts and ends in same word (may have unchanged bits on both left and right)
+			mask &= maskOnLeft;  
+			cardinalityChange = -Long.bitCount(bitmap[rangeFirstWord]);
+			answer.bitmap[rangeFirstWord] = bitmap[rangeFirstWord] ^ mask;
+			cardinalityChange += Long.bitCount(answer.bitmap[rangeFirstWord]);
+		        answer.cardinality = cardinality + cardinalityChange;
+
+			if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
+				return answer.toArrayContainer();
+			else 
+				return answer;
+		}
+
+		// range spans words
+		cardinalityChange += -Long.bitCount(bitmap[rangeFirstWord]);
+		answer.bitmap[rangeFirstWord] = bitmap[rangeFirstWord] ^ mask;
+		cardinalityChange += Long.bitCount(answer.bitmap[rangeFirstWord]);
+
+		cardinalityChange += -Long.bitCount(bitmap[rangeLastWord]);
+		answer.bitmap[rangeLastWord] = bitmap[rangeLastWord] ^ maskOnLeft;
+		cardinalityChange += Long.bitCount(answer.bitmap[rangeLastWord]);
+
+		// negate the words, if any, strictly  between first and last
+		for (int i = rangeFirstWord+1; i <  rangeLastWord; ++i) {
+			cardinalityChange += (64 - 2 * Long.bitCount(bitmap[i]));
+			answer.bitmap[i]= ~bitmap[i];
+		}
+		answer.cardinality = cardinality + cardinalityChange;
+
+		if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)  
+			return answer.toArrayContainer();
+		else 
+			return answer;
+        }
+
+        @Override
+        public Container inot(final int firstOfRange, final int lastOfRange) {
+		return not(this, firstOfRange, lastOfRange);
+	}
+
         @Override
         public BitmapContainer ior(final ArrayContainer value2) {
                 for (int k = 0; k < value2.cardinality; ++k) {
@@ -366,6 +471,12 @@ public final class BitmapContainer extends Container implements Cloneable,
                 }
                 return -1;
         }
+
+
+	@Override
+	public Container not(final int firstOfRange, final int lastOfRange) {
+		return not(new BitmapContainer(), firstOfRange, lastOfRange);
+	}
         
         @Override
         public BitmapContainer or(final ArrayContainer value2) {

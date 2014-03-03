@@ -118,6 +118,10 @@ public final class Util {
                 return (short) (x & 0xFFFF);
         }
 
+        protected static short maxLowBit( ) {
+	        return (short) 0xFFFF;
+	}
+
         protected final static int toIntUnsigned(short x) {
                 return x & 0xFFFF;
         }

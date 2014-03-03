@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Vector;
+import java.util.Random;
 
 import junit.framework.Assert;
 
@@ -23,6 +24,7 @@ import org.roaringbitmap.Util;
 @SuppressWarnings({ "static-method", "deprecation","javadoc" })
 public class TestRoaringBitmap {
 
+	
         @Test
         public void ANDNOTtest() {
                 RoaringBitmap rr = new RoaringBitmap();
@@ -1080,8 +1082,368 @@ public class TestRoaringBitmap {
                 rrback.readExternal(new ObjectInputStream(bis));
                 Assert.assertEquals(rr.getCardinality() , rrback.getCardinality());
                 Assert.assertTrue(rr.equals(rrback));
-                        
         }
+	
+
+       @Test
+        public void flipTest1() {
+                RoaringBitmap rb = new RoaringBitmap();
+
+		rb.flip(100000,200000); // in-place on empty bitmap
+                int rbcard = rb.getCardinality();
+                Assert.assertEquals(100000, rbcard);
+
+		BitSet bs = new BitSet();
+		for (int i=100000; i < 200000; ++i)
+			bs.set(i);
+                Assert.assertTrue(equals(bs,rb));
+        }
+
+       @Test
+        public void flipTest1A() {
+                RoaringBitmap rb = new RoaringBitmap();
+		
+		RoaringBitmap rb1 = RoaringBitmap.flip(rb,100000,200000); 
+                int rbcard = rb1.getCardinality();
+                Assert.assertEquals(100000, rbcard);
+		Assert.assertEquals(0, rb.getCardinality());
+
+		BitSet bs = new BitSet();
+		Assert.assertTrue(equals(bs,rb)); // still empty?
+		for (int i=100000; i < 200000; ++i)
+			bs.set(i);
+                Assert.assertTrue(equals(bs,rb1));
+        }
+
+       @Test
+        public void flipTest2() {
+                RoaringBitmap rb = new RoaringBitmap();
+
+		rb.flip(100000,100000); 
+                int rbcard = rb.getCardinality();
+                Assert.assertEquals(0, rbcard);
+
+		BitSet bs = new BitSet();
+                Assert.assertTrue(equals(bs,rb));
+        }
+
+
+       @Test
+        public void flipTest2A() {
+                RoaringBitmap rb = new RoaringBitmap();
+		
+		RoaringBitmap rb1 = RoaringBitmap.flip(rb,100000,100000); 
+		rb.add(1); // will not affect rb1 (no shared container)
+                int rbcard = rb1.getCardinality();
+                Assert.assertEquals(0, rbcard);
+		Assert.assertEquals(1, rb.getCardinality());
+
+		BitSet bs = new BitSet();
+		Assert.assertTrue(equals(bs,rb1)); 
+		bs.set(1);
+		Assert.assertTrue(equals(bs,rb)); 
+        }
+       
+
+
+       @Test
+        public void flipTest3() {
+                RoaringBitmap rb = new RoaringBitmap();
+
+		rb.flip(100000,200000); // got 100k-199999 
+		rb.flip(100000,199991); // give back 100k-199990
+                int rbcard = rb.getCardinality();
+
+                Assert.assertEquals(9, rbcard);
+
+		BitSet bs = new BitSet();
+		for (int i=199991; i < 200000; ++i)
+			bs.set(i);
+
+                Assert.assertTrue(equals(bs,rb));
+        }
+
+
+
+       @Test
+        public void flipTest3A() {
+	       System.out.println("FlipTest3A");
+                RoaringBitmap rb = new RoaringBitmap();
+		RoaringBitmap rb1 = RoaringBitmap.flip(rb, 100000,200000);
+		RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 100000,199991);
+                int rbcard = rb2.getCardinality();
+
+                Assert.assertEquals(9, rbcard);
+
+		BitSet bs = new BitSet();
+		for (int i=199991; i < 200000; ++i)
+			bs.set(i);
+
+                Assert.assertTrue(equals(bs,rb2));
+        }
+
+	// tests for how range falls on container boundaries
+
+	
+	
+   @Test
+	   public void flipTest4() {   // fits evenly on both ends
+	       System.out.println("FlipTest4");
+                RoaringBitmap rb = new RoaringBitmap();
+	        rb.flip(100000,200000); // got 100k-199999 
+		rb.flip(65536,4*65536); 
+                int rbcard = rb.getCardinality();
+
+		// 65536 to 99999 are 1s
+		// 200000 to 262143 are 1s: total card
+
+                Assert.assertEquals(96608, rbcard);
+
+		BitSet bs = new BitSet();
+		for (int i=65536; i < 100000; ++i)
+			bs.set(i);
+		for (int i=200000; i < 262144; ++i)
+			bs.set(i);
+
+                Assert.assertTrue(equals(bs,rb));
+        }
+
+
+   @Test
+	   public void flipTest4A() {
+	       System.out.println("FlipTest4A");
+                RoaringBitmap rb = new RoaringBitmap();
+		RoaringBitmap rb1 = RoaringBitmap.flip(rb, 100000,200000); 
+		RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 65536,4*65536); 
+                int rbcard = rb2.getCardinality();
+
+                Assert.assertEquals(96608, rbcard);
+
+		BitSet bs = new BitSet();
+		for (int i=65536; i < 100000; ++i)
+			bs.set(i);
+		for (int i=200000; i < 262144; ++i)
+			bs.set(i);
+
+                Assert.assertTrue(equals(bs,rb2));
+        }
+
+
+
+   @Test
+	   public void flipTest5() {   // fits evenly on small end, multiple containers
+	       System.out.println("FlipTest5");
+                RoaringBitmap rb = new RoaringBitmap();
+		rb.flip(100000,132000); 
+		rb.flip(65536,120000); 
+                int rbcard = rb.getCardinality();
+
+		// 65536 to 99999 are 1s
+                // 120000 to 131999
+		
+                Assert.assertEquals(46464, rbcard);
+
+		BitSet bs = new BitSet();
+		for (int i=65536; i < 100000; ++i)
+			bs.set(i);
+		for (int i=120000; i < 132000; ++i)
+			bs.set(i);
+                Assert.assertTrue(equals(bs,rb));
+        }
+
+	
+
+   @Test
+	   public void flipTest5A() {   
+	       System.out.println("FlipTest5A");
+                RoaringBitmap rb = new RoaringBitmap();
+		RoaringBitmap rb1 = RoaringBitmap.flip(rb, 100000,132000); 
+		RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 65536,120000); 
+                int rbcard = rb2.getCardinality();
+
+                Assert.assertEquals(46464, rbcard);
+
+		BitSet bs = new BitSet();
+		for (int i=65536; i < 100000; ++i)
+			bs.set(i);
+		for (int i=120000; i < 132000; ++i)
+			bs.set(i);
+                Assert.assertTrue(equals(bs,rb2));
+        }
+
+	
+
+   @Test
+	   public void flipTest6() {   // fits evenly on big end, multiple containers
+	       System.out.println("FlipTest6");
+                RoaringBitmap rb = new RoaringBitmap();
+		rb.flip(100000,132000); 
+		rb.flip(99000,2*65536); 
+                int rbcard = rb.getCardinality();
+
+		// 99000 to 99999 are 1000 1s
+                // 131072 to 131999 are 928 1s
+
+                Assert.assertEquals(1928, rbcard);
+
+		BitSet bs = new BitSet();
+		for (int i=99000; i < 100000; ++i)
+			bs.set(i);
+		for (int i=2*65536; i < 132000; ++i)
+			bs.set(i);
+                Assert.assertTrue(equals(bs,rb));
+        }
+
+
+   @Test
+	   public void flipTest6A() {  
+	       System.out.println("FlipTest6A");
+                RoaringBitmap rb = new RoaringBitmap();
+		RoaringBitmap rb1 = RoaringBitmap.flip(rb, 100000,132000); 
+		RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 99000,2*65536); 
+                int rbcard = rb2.getCardinality();
+
+                Assert.assertEquals(1928, rbcard);
+
+		BitSet bs = new BitSet();
+		for (int i=99000; i < 100000; ++i)
+			bs.set(i);
+		for (int i=2*65536; i < 132000; ++i)
+			bs.set(i);
+                Assert.assertTrue(equals(bs,rb2));
+        }
+
+
+   @Test
+	   public void flipTest7() {   // within 1 word, first container
+	       System.out.println("FlipTest7");
+                RoaringBitmap rb = new RoaringBitmap();
+	        rb.flip(650,132000); 
+		rb.flip(648, 651); 
+                int rbcard = rb.getCardinality();
+
+		// 648, 649, 651-131999
+
+                Assert.assertEquals(132000-651+2, rbcard);
+
+		BitSet bs = new BitSet();
+		bs.set(648); bs.set(649);
+		for (int i=651; i < 132000; ++i)
+			bs.set(i);
+                Assert.assertTrue(equals(bs,rb));
+        }
+
+   @Test
+	   public void flipTest7A() {   // within 1 word, first container
+	       System.out.println("FlipTest7A");
+                RoaringBitmap rb = new RoaringBitmap();
+		RoaringBitmap rb1 = RoaringBitmap.flip(rb,  650,132000); 
+		RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 648, 651); 
+                int rbcard = rb2.getCardinality();
+
+		// 648, 649, 651-131999
+
+                Assert.assertEquals(132000-651+2, rbcard);
+
+		BitSet bs = new BitSet();
+		bs.set(648); bs.set(649);
+		for (int i=651; i < 132000; ++i)
+			bs.set(i);
+                Assert.assertTrue(equals(bs,rb2));
+        }
+
+
+	
+   @Test
+	   public void flipTestBig() { 
+	   final int numCases = 1000000;
+	   System.out.println("flipTestBig for "+numCases+" tests");
+	   RoaringBitmap rb = new RoaringBitmap();
+	   BitSet bs = new BitSet();
+	   Random r = new Random(3333);
+	   int checkTime = 2;
+
+	   for (int i=0; i < numCases; ++i) {
+		   int start = r.nextInt(65536*20);
+		   int end = r.nextInt(65536*20);
+		   if (r.nextDouble() < 0.1) end = start+r.nextInt(100);
+		   rb.flip(start,end);
+		   if (start < end) 
+			   bs.flip(start,end);  // throws exception otherwise
+		   // insert some more ANDs to keep things sparser
+		   if (r.nextDouble() < 0.2) {
+			   RoaringBitmap mask = new RoaringBitmap();
+			   BitSet mask1 = new BitSet();
+			   int startM = r.nextInt(65536*20);
+			   int endM = startM+100000;
+			   mask.flip(startM,endM); mask1.flip(startM,endM);
+			   mask.flip(0,65536*20+100000); mask1.flip(0,65536*20+100000);
+			   rb.and(mask);
+			   bs.and(mask1);
+		   }
+		   // see if we can detect incorrectly shared containers
+		   if (r.nextDouble() < 0.1) {
+			   RoaringBitmap irrelevant = RoaringBitmap.flip(rb,10,100000);
+			   irrelevant.flip(5,200000);
+			   irrelevant.flip(190000,260000);
+		   }
+		   if (i > checkTime) {
+			   System.out.println("check after "+i+", card = "+rb.getCardinality());
+			   Assert.assertTrue(equals(bs,rb));
+			   checkTime *= 1.5;
+		   }
+	   }
+   }
+	
+
+   @Test
+	   public void flipTestBigA() { 
+	   final int numCases = 1000000;
+	   System.out.println("flipTestBigA for "+numCases+" tests");
+	   BitSet bs = new BitSet();
+	   Random r = new Random(3333);
+	   int checkTime = 2;
+	   RoaringBitmap rb1= new RoaringBitmap(), rb2=null;  // alternate between them
+
+	   for (int i=0; i < numCases; ++i) {
+		   int start = r.nextInt(65536*20);
+		   int end = r.nextInt(65536*20);
+		   if (r.nextDouble() < 0.1) end = start+r.nextInt(100);
+		   
+		   if ((i & 1) == 0) { 
+			   rb2 = RoaringBitmap.flip(rb1, start,end);
+			   // tweak the other, catch bad sharing
+			   rb1.flip(r.nextInt(65536*20),r.nextInt(65536*20));
+		   }
+		   else {
+			   rb1 = RoaringBitmap.flip(rb2, start,end);
+			   rb2.flip(r.nextInt(65536*20),r.nextInt(65536*20));
+		   }
+		   
+		   if (start < end) 
+			   bs.flip(start,end);  // throws exception otherwise
+		   // insert some more ANDs to keep things sparser
+		   if (r.nextDouble() < 0.2 && (i&1)==0) {
+			   RoaringBitmap mask = new RoaringBitmap();
+			   BitSet mask1 = new BitSet();
+			   int startM = r.nextInt(65536*20);
+			   int endM = startM+100000;
+			   mask.flip(startM,endM); mask1.flip(startM,endM);
+			   mask.flip(0,65536*20+100000); mask1.flip(0,65536*20+100000);
+			   rb2.and(mask);
+			   bs.and(mask1);
+		   }
+
+		   if (i > checkTime) {
+			   System.out.println("check after "+i+", card = "+rb2.getCardinality());
+			   RoaringBitmap rb = (i&1)==0 ? rb2 : rb1;
+			   boolean status = equals(bs,rb);
+			   Assert.assertTrue(status);
+			   checkTime *= 1.5;
+		   }
+	   }
+   }
+	
 
         public static boolean equals(BitSet bs, RoaringBitmap rr) {
                 int[] a = new int[bs.cardinality()];
@@ -1090,4 +1452,7 @@ public class TestRoaringBitmap {
                         a[pos++] = x;
                 return Arrays.equals(rr.toArray(), a);
         }
+
+
+
 }
