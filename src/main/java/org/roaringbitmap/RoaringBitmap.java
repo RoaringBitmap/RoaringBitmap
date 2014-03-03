@@ -7,10 +7,9 @@ import java.io.ObjectOutput;
 import java.io.Serializable;
 import java.util.Iterator;
 
-
 /**
  * RoaringBitmap, a compressed alternative to the BitSet.
- *
+ * 
  */
 public final class RoaringBitmap implements Cloneable, Serializable,
         Iterable<Integer>, Externalizable {
@@ -22,10 +21,11 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                 highlowcontainer = new RoaringArray();
         }
 
-
         /**
          * set the value to "true", whether it already appears on not.
-         * @param x integer value
+         * 
+         * @param x
+         *                integer value
          */
         public void add(final int x) {
                 final short hb = Util.highbits(x);
@@ -42,105 +42,12 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                 }
         }
 
-
-
         /**
-         * Modifies the current bitmap by complementing the bits in the given range, 
-         * from rangeStart (inclusive) rangeEnd (exclusive).
-         * @param rangeStart  inclusive beginning of range
-         * @param rangeEnd    exclusive ending of range
-         */
-        public void flip(final int rangeStart, final int rangeEnd) {
-		if (rangeStart >= rangeEnd) return;  // empty range
-		
-		final short hbStart = Util.highbits(rangeStart);
-		final short lbStart = Util.lowbits(rangeStart);
-		final short hbLast  = Util.highbits(rangeEnd-1);
-		final short lbLast  = Util.lowbits(rangeEnd-1);
-
-		int max = Util.toIntUnsigned(Util.maxLowBit());
-		for (short hb = hbStart; hb <= hbLast; ++hb) {
-			// first container may contain partial range
-			final int containerStart = (hb == hbStart) ? Util.toIntUnsigned(lbStart) : 0;  
-			// last container may contain partial range
-			final int containerLast  = (hb == hbLast) ?  Util.toIntUnsigned(lbLast) : max;  
-			final int i = highlowcontainer.getIndex(hb);
-			
-			if (i >= 0) {
-				Container c = highlowcontainer.getContainerAtIndex(i).inot(
-					  containerStart, 
-					  containerLast);
-				if (c.getCardinality() > 0)
-					highlowcontainer.setContainerAtIndex(i,c);
-				else
-					highlowcontainer.removeAtIndex(i);
-			} else {
-		    highlowcontainer.insertNewKeyValueAt(-i - 1, hb, 
-				   Container.rangeOfOnes(containerStart, containerLast));
-			}
-		}
-	}
-
-
-        /**
-         * Complements the bits in the given range, 
-         * from rangeStart (inclusive) rangeEnd (exclusive).
-         * The given bitmap is unchanged.
-         * @param bm bitmap being negated
-         * @param rangeStart  inclusive beginning of range
-         * @param rangeEnd    exclusive ending of range
-         */
-        public static RoaringBitmap flip(RoaringBitmap bm,  final int rangeStart, final int rangeEnd) {
-		RoaringBitmap answer = null;
-		if (rangeStart >= rangeEnd) {
-		       answer = bm.clone();
-		       //System.out.println("cloned!");
-		       return answer;
-		}
-		
-		answer = new RoaringBitmap();
-		final short hbStart = Util.highbits(rangeStart);
-		final short lbStart = Util.lowbits(rangeStart);
-		final short hbLast  = Util.highbits(rangeEnd-1);
-		final short lbLast  = Util.lowbits(rangeEnd-1);
-
-		// copy the containers before the active area
-		answer.highlowcontainer.appendCopiesUntil(bm.highlowcontainer, hbStart);
-		
-		int max = Util.toIntUnsigned(Util.maxLowBit());
-		for (short hb = hbStart; hb <= hbLast; ++hb) {
-			final int containerStart = (hb == hbStart) ? Util.toIntUnsigned(lbStart) : 0;  
-			final int containerLast  = (hb == hbLast) ?  Util.toIntUnsigned(lbLast) : max;  
-
-			final int i = bm.highlowcontainer.getIndex(hb);
-			final int j = answer.highlowcontainer.getIndex(hb);
-			assert j<0;
-			
-			if (i >= 0) {
-				Container c = bm.highlowcontainer.getContainerAtIndex(i).not(
-					  containerStart, 
-					  containerLast);
-				if (c.getCardinality() > 0)
-					answer.highlowcontainer.insertNewKeyValueAt(-j - 1, hb, c);
-				    
-
-			} else { // *think* the range of ones must never be empty.
-				answer.highlowcontainer.insertNewKeyValueAt(-j - 1, hb, 
-				     Container.rangeOfOnes(containerStart, containerLast));
-			}
-		}
-		// copy the containers after the active area.
-		answer.highlowcontainer.appendCopiesAfter(bm.highlowcontainer,hbLast);
-		
-		return answer;
-	}
-
-
-        /**
-         * In-place bitwise AND (intersection) operation. The current
-         * bitmap is modified.
+         * In-place bitwise AND (intersection) operation. The current bitmap is
+         * modified.
          * 
-         * @param x2 other bitmap
+         * @param x2
+         *                other bitmap
          */
         public void and(final RoaringBitmap x2) {
                 int pos1 = 0, pos2 = 0;
@@ -195,11 +102,13 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                 }
                 highlowcontainer.resize(pos1);
         }
+
         /**
-         * In-place bitwise ANDNOT (difference) operation. The current
-         * bitmap is modified.
+         * In-place bitwise ANDNOT (difference) operation. The current bitmap is
+         * modified.
          * 
-         * @param x2 other bitmap
+         * @param x2
+         *                other bitmap
          */
         public void andNot(final RoaringBitmap x2) {
                 int pos1 = 0, pos2 = 0;
@@ -225,8 +134,9 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                                 } else {
                                         final Container C = highlowcontainer
                                                 .getContainerAtIndex(pos1)
-                                                .iandNot(x2.highlowcontainer
-                                                        .getContainerAtIndex(pos2));
+                                                .iandNot(
+                                                        x2.highlowcontainer
+                                                                .getContainerAtIndex(pos2));
                                         if (C.getCardinality() > 0) {
                                                 this.highlowcontainer
                                                         .setContainerAtIndex(
@@ -274,7 +184,9 @@ public final class RoaringBitmap implements Cloneable, Serializable,
         /**
          * Checks whether the value in included, which is equivalent to checking
          * if the corresponding bit is set (get in BitSet class).
-         * @param x integer value
+         * 
+         * @param x
+         *                integer value
          * @return whether the integer value is included.
          */
         public boolean contains(final int x) {
@@ -284,7 +196,6 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                         return false;
                 return C.contains(Util.lowbits(x));
         }
-
 
         @Override
         public boolean equals(Object o) {
@@ -296,10 +207,55 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                 return false;
         }
 
+        /**
+         * Modifies the current bitmap by complementing the bits in the given
+         * range, from rangeStart (inclusive) rangeEnd (exclusive).
+         * 
+         * @param rangeStart
+         *                inclusive beginning of range
+         * @param rangeEnd
+         *                exclusive ending of range
+         */
+        public void flip(final int rangeStart, final int rangeEnd) {
+                if (rangeStart >= rangeEnd)
+                        return; // empty range
+
+                final short hbStart = Util.highbits(rangeStart);
+                final short lbStart = Util.lowbits(rangeStart);
+                final short hbLast = Util.highbits(rangeEnd - 1);
+                final short lbLast = Util.lowbits(rangeEnd - 1);
+
+                int max = Util.toIntUnsigned(Util.maxLowBit());
+                for (short hb = hbStart; hb <= hbLast; ++hb) {
+                        // first container may contain partial range
+                        final int containerStart = (hb == hbStart) ? Util
+                                .toIntUnsigned(lbStart) : 0;
+                        // last container may contain partial range
+                        final int containerLast = (hb == hbLast) ? Util
+                                .toIntUnsigned(lbLast) : max;
+                        final int i = highlowcontainer.getIndex(hb);
+
+                        if (i >= 0) {
+                                Container c = highlowcontainer
+                                        .getContainerAtIndex(i).inot(
+                                                containerStart, containerLast);
+                                if (c.getCardinality() > 0)
+                                        highlowcontainer.setContainerAtIndex(i,
+                                                c);
+                                else
+                                        highlowcontainer.removeAtIndex(i);
+                        } else {
+                                highlowcontainer.insertNewKeyValueAt(-i - 1,
+                                        hb, Container.rangeOfOnes(
+                                                containerStart, containerLast));
+                        }
+                }
+        }
 
         /**
-         * Returns the number of distinct integers added to the bitmap
-         * (e.g., number of bits set).
+         * Returns the number of distinct integers added to the bitmap (e.g.,
+         * number of bits set).
+         * 
          * @return the cardinality
          */
         public int getCardinality() {
@@ -312,8 +268,9 @@ public final class RoaringBitmap implements Cloneable, Serializable,
         }
 
         /**
-         * Estimate of the memory usage of this data structure. This
-         * is not meant to be an exact value.
+         * Estimate of the memory usage of this data structure. This is not
+         * meant to be an exact value.
+         * 
          * @return estimated memory usage.
          */
         public int getSizeInBytes() {
@@ -328,11 +285,11 @@ public final class RoaringBitmap implements Cloneable, Serializable,
 
         @Override
         public int hashCode() {
-                return highlowcontainer.hashCode(); 
+                return highlowcontainer.hashCode();
         }
-        
+
         /**
-         * iterate over the positions of the true values. 
+         * iterate over the positions of the true values.
          * 
          * @return the iterator
          */
@@ -389,10 +346,11 @@ public final class RoaringBitmap implements Cloneable, Serializable,
         }
 
         /**
-         * In-place bitwise OR (union) operation. The current
-         * bitmap is modified.
+         * In-place bitwise OR (union) operation. The current bitmap is
+         * modified.
          * 
-         * @param x2 other bitmap
+         * @param x2
+         *                other bitmap
          */
         public void or(final RoaringBitmap x2) {
                 int pos1 = 0, pos2 = 0;
@@ -457,12 +415,15 @@ public final class RoaringBitmap implements Cloneable, Serializable,
         public void readExternal(ObjectInput in) throws IOException,
                 ClassNotFoundException {
                 this.highlowcontainer.readExternal(in);
-                
+
         }
 
         /**
-         * If present remove the specified integers (effectively, sets its bit value to false)
-         * @param x integer value representing the index in a bitmap
+         * If present remove the specified integers (effectively, sets its bit
+         * value to false)
+         * 
+         * @param x
+         *                integer value representing the index in a bitmap
          */
         public void remove(final int x) {
                 final short hb = Util.highbits(x);
@@ -515,24 +476,25 @@ public final class RoaringBitmap implements Cloneable, Serializable,
         }
 
         /**
-         * Recover allocated but unused memory. 
+         * Recover allocated but unused memory.
          */
         public void trim() {
                 for (int i = 0; i < this.highlowcontainer.size(); i++) {
                         this.highlowcontainer.getContainerAtIndex(i).trim();
                 }
         }
+
         @Override
         public void writeExternal(ObjectOutput out) throws IOException {
                 this.highlowcontainer.writeExternal(out);
         }
 
-
         /**
          * In-place bitwise XOR (symmetric difference) operation. The current
          * bitmap is modified.
          * 
-         * @param x2 other bitmap
+         * @param x2
+         *                other bitmap
          */
         public void xor(final RoaringBitmap x2) {
                 int pos1 = 0, pos2 = 0;
@@ -553,11 +515,11 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                                                 .getKeyAtIndex(pos1);
                                 } else if (s1 > s2) {
                                         highlowcontainer
-                                        .insertNewKeyValueAt(
-                                                pos1,
-                                                s2,
-                                                x2.highlowcontainer
-                                                        .getContainerAtIndex(pos2));
+                                                .insertNewKeyValueAt(
+                                                        pos1,
+                                                        s2,
+                                                        x2.highlowcontainer
+                                                                .getContainerAtIndex(pos2));
                                         pos1++;
                                         length1++;
                                         pos2++;
@@ -598,6 +560,7 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                                 length2);
                 }
         }
+
         private IntIterator getIntIterator() {
                 return new IntIterator() {
                         @Override
@@ -650,12 +613,14 @@ public final class RoaringBitmap implements Cloneable, Serializable,
         }
 
         /**
-         * Bitwise AND (intersection) operation. The provided bitmaps
-         * are *not* modified. This operation is thread-safe as long as
-         * the provided bitmaps remain unchanged.
+         * Bitwise AND (intersection) operation. The provided bitmaps are *not*
+         * modified. This operation is thread-safe as long as the provided
+         * bitmaps remain unchanged.
          * 
-         * @param x1 first bitmap
-         * @param x2 other bitmap
+         * @param x1
+         *                first bitmap
+         * @param x2
+         *                other bitmap
          * @return result of the operation
          */
         public static RoaringBitmap and(final RoaringBitmap x1,
@@ -706,13 +671,16 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                 }
                 return answer;
         }
+
         /**
-         * Bitwise ANDNOT (difference) operation. The provided bitmaps
-         * are *not* modified. This operation is thread-safe as long as
-         * the provided bitmaps remain unchanged.
+         * Bitwise ANDNOT (difference) operation. The provided bitmaps are *not*
+         * modified. This operation is thread-safe as long as the provided
+         * bitmaps remain unchanged.
          * 
-         * @param x1 first bitmap
-         * @param x2 other bitmap
+         * @param x1
+         *                first bitmap
+         * @param x2
+         *                other bitmap
          * @return result of the operation
          */
         public static RoaringBitmap andNot(final RoaringBitmap x1,
@@ -766,11 +734,14 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                 }
                 return answer;
         }
+
         /**
-         * Generate a bitmap with the specified values set to true.
-         * The provided integers values don't have to be in sorted order,
-         * but it may be preferable to sort them from a perfomance point of view.
-         * @param dat set values
+         * Generate a bitmap with the specified values set to true. The provided
+         * integers values don't have to be in sorted order, but it may be
+         * preferable to sort them from a perfomance point of view.
+         * 
+         * @param dat
+         *                set values
          * @return a new bitmap
          */
         public static RoaringBitmap bitmapOf(final int... dat) {
@@ -781,12 +752,79 @@ public final class RoaringBitmap implements Cloneable, Serializable,
         }
 
         /**
-         * Bitwise OR (union) operation. The provided bitmaps
-         * are *not* modified. This operation is thread-safe as long as
-         * the provided bitmaps remain unchanged.
+         * Complements the bits in the given range, from rangeStart (inclusive)
+         * rangeEnd (exclusive). The given bitmap is unchanged.
          * 
-         * @param x1 first bitmap
-         * @param x2 other bitmap
+         * @param bm
+         *                bitmap being negated
+         * @param rangeStart
+         *                inclusive beginning of range
+         * @param rangeEnd
+         *                exclusive ending of range
+         * @return a new Bitmap
+         */
+        public static RoaringBitmap flip(RoaringBitmap bm,
+                final int rangeStart, final int rangeEnd) {
+                RoaringBitmap answer = null;
+                if (rangeStart >= rangeEnd) {
+                        answer = bm.clone();
+                        // System.out.println("cloned!");
+                        return answer;
+                }
+
+                answer = new RoaringBitmap();
+                final short hbStart = Util.highbits(rangeStart);
+                final short lbStart = Util.lowbits(rangeStart);
+                final short hbLast = Util.highbits(rangeEnd - 1);
+                final short lbLast = Util.lowbits(rangeEnd - 1);
+
+                // copy the containers before the active area
+                answer.highlowcontainer.appendCopiesUntil(bm.highlowcontainer,
+                        hbStart);
+
+                int max = Util.toIntUnsigned(Util.maxLowBit());
+                for (short hb = hbStart; hb <= hbLast; ++hb) {
+                        final int containerStart = (hb == hbStart) ? Util
+                                .toIntUnsigned(lbStart) : 0;
+                        final int containerLast = (hb == hbLast) ? Util
+                                .toIntUnsigned(lbLast) : max;
+
+                        final int i = bm.highlowcontainer.getIndex(hb);
+                        final int j = answer.highlowcontainer.getIndex(hb);
+                        assert j < 0;
+
+                        if (i >= 0) {
+                                Container c = bm.highlowcontainer
+                                        .getContainerAtIndex(i).not(
+                                                containerStart, containerLast);
+                                if (c.getCardinality() > 0)
+                                        answer.highlowcontainer
+                                                .insertNewKeyValueAt(-j - 1,
+                                                        hb, c);
+
+                        } else { // *think* the range of ones must never be
+                                 // empty.
+                                answer.highlowcontainer.insertNewKeyValueAt(
+                                        -j - 1, hb, Container.rangeOfOnes(
+                                                containerStart, containerLast));
+                        }
+                }
+                // copy the containers after the active area.
+                answer.highlowcontainer.appendCopiesAfter(bm.highlowcontainer,
+                        hbLast);
+
+                return answer;
+        }
+
+        /**
+         * Bitwise OR (union) operation. The provided bitmaps are *not*
+         * modified. This operation is thread-safe as long as the provided
+         * bitmaps remain unchanged.
+         * 
+         * @param x1
+         *                first bitmap
+         * @param x2
+         *                other bitmap
          * @return result of the operation
          */
         public static RoaringBitmap or(final RoaringBitmap x1,
@@ -851,11 +889,13 @@ public final class RoaringBitmap implements Cloneable, Serializable,
 
         /**
          * Bitwise XOR (symmetric difference) operation. The provided bitmaps
-         * are *not* modified. This operation is thread-safe as long as
-         * the provided bitmaps remain unchanged.
+         * are *not* modified. This operation is thread-safe as long as the
+         * provided bitmaps remain unchanged.
          * 
-         * @param x1 first bitmap
-         * @param x2 other bitmap
+         * @param x1
+         *                first bitmap
+         * @param x2
+         *                other bitmap
          * @return result of the operation
          */
         public static RoaringBitmap xor(final RoaringBitmap x1,
@@ -920,9 +960,7 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                 return answer;
         }
 
-
         protected RoaringArray highlowcontainer = null;
-
 
         private static final long serialVersionUID = 3L;
 

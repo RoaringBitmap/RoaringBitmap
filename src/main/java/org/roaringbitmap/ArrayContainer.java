@@ -28,16 +28,12 @@ public final class ArrayContainer extends Container implements Cloneable,
                 content = new short[capacity];
         }
 
-        private ArrayContainer(int newcard, short[] newcontent) {
-                this.cardinality = newcard;
-                this.content = Arrays.copyOf(newcontent, newcard);
-
-        }
-
-	/**
+        /**
 	 * Create an array container with a run of ones from firstOfRun to lastOfRun, inclusive.
          * Caller is responsible for making sure the range is small enough that ArrayContainer
 	 * is appropriate.
+	 * @param firstOfRun first index
+	 * @param lastOfRun last index (range is inclusive)
          */
 	public ArrayContainer( final int firstOfRun,  final int lastOfRun) {
 		final int valuesInRange = lastOfRun - firstOfRun + 1;
@@ -46,6 +42,12 @@ public final class ArrayContainer extends Container implements Cloneable,
 			content[i] = (short) (firstOfRun+i);
 		cardinality = valuesInRange;
 	}
+
+	private ArrayContainer(int newcard, short[] newcontent) {
+                this.cardinality = newcard;
+                this.content = Arrays.copyOf(newcontent, newcard);
+
+        }
 
 
         /**
@@ -243,45 +245,7 @@ public final class ArrayContainer extends Container implements Cloneable,
                 return this;
         }
 
-	// for use in inot range known to be nonempty
-	private void negateRange(final short [] buffer, final int startIndex,
-				 final int lastIndex, final int startRange,
-				 final int lastRange) {
-		// compute the negation into buffer
-
-		int outPos=0;
-		int inPos=startIndex;  // value here always >= valInRange, until it is exhausted
-		// n.b., we can start initially exhausted.
-
- 		int valInRange = startRange;
-		   for (; valInRange <= lastRange && inPos <= lastIndex; ++valInRange) {
-			if ((short) valInRange != content[inPos])
-				buffer[outPos++] = (short) valInRange;
-			else {
-				++inPos;
-			}
-		   }
-
-		// if there are extra items (greater than the biggest pre-existing one in range), buffer them
-		for (; valInRange <= lastRange; ++valInRange) {
-			buffer[outPos++]= (short) valInRange;
-		}
-
-
-		if (outPos != buffer.length) {
-			throw new RuntimeException("negateRange: outPos "+outPos+" whereas buffer.length="+buffer.length);
-		}
-		assert outPos == buffer.length;
-		// copy back from buffer...caller must ensure there is room
-		int i=startIndex;
-		for (short item: buffer)
-			content[i++] = item;
-	}
-
-
-
-
-        @Override
+	@Override
 	public Container inot(final int firstOfRange, final int lastOfRange) {
 		// determine the span of array indices to be affected
                 int startIndex = Util.unsigned_binarySearch(content, 
@@ -304,8 +268,7 @@ public final class ArrayContainer extends Container implements Cloneable,
 				// so big we need a bitmap?
 				if (newCardinality >= DEFAULTMAXSIZE)
 					return toBitmapContainer().inot(firstOfRange, lastOfRange);
-				else //no,  we just need a bigger array
-					content = Arrays.copyOf(content, newCardinality);
+                                content = Arrays.copyOf(content, newCardinality);
 			}
 			// slide right the contentsafter the range
 			for (int pos = cardinality-1; pos > lastIndex; --pos)
@@ -320,6 +283,9 @@ public final class ArrayContainer extends Container implements Cloneable,
 		cardinality = newCardinality;
 		return this;
 	}
+
+
+
 
         @Override
         public Container ior(final ArrayContainer value2) {
@@ -365,8 +331,7 @@ public final class ArrayContainer extends Container implements Cloneable,
                 return x.xor(this);
         }
 
-
-	// shares lots of code with inot; candidate for refactoring
+        // shares lots of code with inot; candidate for refactoring
         @Override
 	public Container not(final int firstOfRange, final int lastOfRange) {
 		if (firstOfRange > lastOfRange) {
@@ -420,7 +385,7 @@ public final class ArrayContainer extends Container implements Cloneable,
 	}
 
 
-        @Override
+	@Override
         public Container or(final ArrayContainer value2) {
                 final ArrayContainer value1 = this;
                 int totalCardinality = value1.getCardinality()
@@ -450,6 +415,7 @@ public final class ArrayContainer extends Container implements Cloneable,
                         value2.getCardinality(), answer.content);
                 return answer;
         }
+
 
         @Override
         public Container or(BitmapContainer x) {
@@ -527,7 +493,6 @@ public final class ArrayContainer extends Container implements Cloneable,
                 }
         }
 
-        
         @Override
         public Container xor(final ArrayContainer value2) {
                 final ArrayContainer value1 = this;
@@ -560,11 +525,12 @@ public final class ArrayContainer extends Container implements Cloneable,
                 return answer;
         }
 
+        
         @Override
         public Container xor(BitmapContainer x) {
                 return x.xor(this);
         }
-        
+
         private void increaseCapacity() {
                 int newcapacity = this.content.length < 64 ? this.content.length * 2
                         : this.content.length < 1024 ? this.content.length * 3 / 2
@@ -573,6 +539,41 @@ public final class ArrayContainer extends Container implements Cloneable,
                         newcapacity = ArrayContainer.DEFAULTMAXSIZE;
                 this.content = Arrays.copyOf(this.content, newcapacity);
         }
+        
+        // for use in inot range known to be nonempty
+	private void negateRange(final short [] buffer, final int startIndex,
+				 final int lastIndex, final int startRange,
+				 final int lastRange) {
+		// compute the negation into buffer
+
+		int outPos=0;
+		int inPos=startIndex;  // value here always >= valInRange, until it is exhausted
+		// n.b., we can start initially exhausted.
+
+ 		int valInRange = startRange;
+		   for (; valInRange <= lastRange && inPos <= lastIndex; ++valInRange) {
+			if ((short) valInRange != content[inPos])
+				buffer[outPos++] = (short) valInRange;
+			else {
+				++inPos;
+			}
+		   }
+
+		// if there are extra items (greater than the biggest pre-existing one in range), buffer them
+		for (; valInRange <= lastRange; ++valInRange) {
+			buffer[outPos++]= (short) valInRange;
+		}
+
+
+		if (outPos != buffer.length) {
+			throw new RuntimeException("negateRange: outPos "+outPos+" whereas buffer.length="+buffer.length);
+		}
+		assert outPos == buffer.length;
+		// copy back from buffer...caller must ensure there is room
+		int i=startIndex;
+		for (short item: buffer)
+			content[i++] = item;
+	}
         
         protected void loadData(final BitmapContainer bitmapContainer) {
                 this.cardinality = bitmapContainer.cardinality;
