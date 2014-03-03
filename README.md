@@ -1,7 +1,7 @@
 RoaringBitmap [![Build Status](https://travis-ci.org/lemire/RoaringBitmap.png)](https://travis-ci.org/lemire/RoaringBitmap)
 =============
 
-Bitsets, also called bitmaps, are commonly used as fast data structure.
+Bitsets, also called bitmaps, are commonly used as fast data structures.
 Unfortunately, they can use too much memory. To compensate, we often use
 compressed bitmaps.
 
