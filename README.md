@@ -7,7 +7,7 @@ compressed bitmaps.
 
 Roaring bitmaps are compressed bitmaps which tend to outperform conventional
 compressed bitmaps such as WAH, EWAH or Concise. In some instances, they can
-be hundreds of times faster and they often offers significantly better compression. 
+be hundreds of times faster and they often offer significantly better compression. 
 
 
 
