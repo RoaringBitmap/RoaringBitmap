@@ -16,6 +16,11 @@ be hundreds of times faster and it often offers significantly better compression
 This code is licensed under Apache License, Version 2.0 (ASL2.0). 
 
 
+API docs
+---------
+
+http://lemire.me/docs/RoaringBitmap/
+
 Documentation
 --------------
 
