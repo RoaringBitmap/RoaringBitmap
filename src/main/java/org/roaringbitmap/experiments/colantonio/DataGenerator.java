@@ -98,10 +98,12 @@ public class DataGenerator {
         }
         
         /**
-         * Generate a random array (sorted integer set)
+         * Generate a random array (sorted integer set). 
+         * 
+         * This is what Colantonio and Di Pietro called Zipfian.
          * 
          * @param d should vary from 0 to 1.000
-         * @return an array with a zipfian distribution
+         * @return an array with a "Zipfian" distribution
          */
         public int[] getZipfian(double d) {
                 ////////////////// (from arXiv version)
