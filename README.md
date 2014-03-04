@@ -55,13 +55,13 @@ Maven repository
 ----------------
 If your project depends on roaring, you  can  specify the dependency in the Maven "pom.xml" file:
 
-  <dependencies>
-  <dependency>
-    <groupId>org.roaringbitmap</groupId>
-    <artifactId>RoaringBitmap</artifactId>
-    <version>0.0.1</version>
-  </dependency>
-  </dependencies>
+        <dependencies>
+          <dependency>
+            <groupId>org.roaringbitmap</groupId>
+            <artifactId>RoaringBitmap</artifactId>
+            <version>0.0.1</version>
+          </dependency>
+        </dependencies>
 
 where you should replace the version number by the version you require.
 
