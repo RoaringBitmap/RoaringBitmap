@@ -74,3 +74,9 @@ Usage
 * mvn compile will compile
 * mvn test will run the unit tests
 * mvn package will package in a jar (found in target)
+
+
+Funding 
+----------
+
+This work was supported by NSERC grant number 26143.
