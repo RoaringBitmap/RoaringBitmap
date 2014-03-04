@@ -42,6 +42,28 @@ Code sample
         
         RoaringBitmap rror = RoaringBitmap.or(rr, rr2);
 
+Download
+---------
+
+You can download releases from the Maven repository:
+http://central.maven.org/maven2/org/roaringbitmap/RoaringBitmap/
+
+or from github:
+https://github.com/lemire/RoaringBitmap/releases
+
+Maven repository
+----------------
+If your project depends on roaring, you  can  specify the dependency in the Maven "pom.xml" file:
+
+  <dependencies>
+  <dependency>
+    <groupId>org.roaringbitmap</groupId>
+    <artifactId>RoaringBitmap</artifactId>
+    <version>0.0.1</version>
+  </dependency>
+  </dependencies>
+
+where you should replace the version number by the version you require.
 
 Usage
 ------
