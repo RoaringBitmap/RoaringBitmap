@@ -148,11 +148,16 @@ public class TestContainer {
                         content[i - 10 + 5] = (short) i;
                 Container c = makeContainer(content);
                 c = c.inot(5, 31000);
-                assertTrue(c instanceof ArrayContainer);
-
+                if(c.getCardinality() <= ArrayContainer.DEFAULTMAXSIZE)
+                        assertTrue(c instanceof ArrayContainer);
+                else 
+                        assertTrue(c instanceof BitmapContainer);
                 assertEquals(1773, c.getCardinality());
                 c = c.inot(5, 31000); // back, as a bitmap
-                assertTrue(c instanceof BitmapContainer);
+                if(c.getCardinality() <= ArrayContainer.DEFAULTMAXSIZE)
+                        assertTrue(c instanceof ArrayContainer);
+                else 
+                        assertTrue(c instanceof BitmapContainer);
                 assertTrue(checkContent(c, content));
         }
 
@@ -335,11 +340,16 @@ public class TestContainer {
                         content[i - 10 + 5] = (short) i;
                 final Container c = makeContainer(content);
                 final Container c1 = c.not(5, 31000);
-                assertTrue(c1 instanceof ArrayContainer);
-
+                if(c1.getCardinality() <= ArrayContainer.DEFAULTMAXSIZE)
+                        assertTrue(c1 instanceof ArrayContainer);
+                else 
+                        assertTrue(c1 instanceof BitmapContainer);
                 assertEquals(1773, c1.getCardinality());
                 final Container c2 = c1.not(5, 31000); // back, as a bitmap
-                assertTrue(c2 instanceof BitmapContainer);
+                if(c2.getCardinality() <= ArrayContainer.DEFAULTMAXSIZE)
+                        assertTrue(c2 instanceof ArrayContainer);
+                else 
+                        assertTrue(c2 instanceof BitmapContainer);
                 assertTrue(checkContent(c2, content));
         }
 
