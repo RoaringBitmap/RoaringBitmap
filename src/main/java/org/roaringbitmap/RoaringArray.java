@@ -280,7 +280,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
                         this.array = new Element[this.size];
                 for (int k = 0; k < this.size; ++k) {
                         in.readFully(buffer);
-                        short key = (short) (buffer[0] | (buffer[1] << 8));
+                        short key = (short) (buffer[0] & 0xFF | ((buffer[1] & 0xFF) << 8));
                         boolean isbitmap = in.readBoolean();
                         Container val;
                         if (isbitmap) {
