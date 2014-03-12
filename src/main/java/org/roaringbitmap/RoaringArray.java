@@ -54,9 +54,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
          * Append copy of the one value from another array
          * 
          * @param sa
-         * @param startingindex
-         *                starting index in the other array
-         * @param end
+         * @param index index in the other array
          */
         protected void appendCopy(RoaringArray sa, int index) {
                 extendArray(1);
