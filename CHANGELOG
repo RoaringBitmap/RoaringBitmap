@@ -1,4 +1,5 @@
-
+version 0.0.2 (March 12th, 2014)
+  - Serialization fix (Jon Alvarado)
 
 version 0.0.1 (March 3rd, 2014)
   - First public release
