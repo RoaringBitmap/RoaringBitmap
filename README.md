@@ -11,7 +11,7 @@ be hundreds of times faster and they often offer significantly better compressio
 
 
 
-(c) 2013-2014 Daniel Lemire, Owen Kaser, Samy Chambi
+(c) 2013-2014 Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado
 
 This code is licensed under Apache License, Version 2.0 (ASL2.0). 
 
