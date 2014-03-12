@@ -1282,6 +1282,27 @@ public class TestRoaringBitmap {
         }
 
         @Test
+        public void testSerialization2() throws IOException,
+                        ClassNotFoundException {
+                final RoaringBitmap rr = new RoaringBitmap();
+                for (int k = 200; k < 400; ++k)
+                        rr.add(k);
+                final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                // Note: you could use a file output steam instead of
+                // ByteArrayOutputStream
+                final ObjectOutputStream oo = new ObjectOutputStream(bos);
+                rr.writeExternal(oo);
+                oo.close();
+                final RoaringBitmap rrback = new RoaringBitmap();
+                final ByteArrayInputStream bis = new ByteArrayInputStream(
+                                bos.toByteArray());
+                rrback.readExternal(new ObjectInputStream(bis));
+                Assert.assertEquals(rr.getCardinality(),
+                                rrback.getCardinality());
+                Assert.assertTrue(rr.equals(rrback));
+        }
+
+        @Test
         public void XORtest() {
                 final RoaringBitmap rr = new RoaringBitmap();
                 for (int k = 4000; k < 4256; ++k)

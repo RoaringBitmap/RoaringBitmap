@@ -447,7 +447,7 @@ public final class ArrayContainer extends Container implements Cloneable,
                 byte[] buffer = new byte[2];
                 // little endian
                 in.readFully(buffer);
-                this.cardinality = buffer[0] | (buffer[1] << 8);
+                this.cardinality = (buffer[0] & 0xFF) | ((buffer[1] & 0xFF) << 8);
                 if (this.content.length < this.cardinality)
                         this.content = new short[this.cardinality];
                 for (int k = 0; k < this.cardinality; ++k) {
