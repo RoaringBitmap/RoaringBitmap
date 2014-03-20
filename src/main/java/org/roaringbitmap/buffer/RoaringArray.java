@@ -2,16 +2,20 @@
  * Copyright 2013-2014 by Daniel Lemire, Owen Kaser and Samy Chambi
  * Licensed under the Apache License, Version 2.0.
  */
-package org.roaringbitmap;
+package org.roaringbitmap.buffer;
 
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.nio.LongBuffer;
+import java.nio.ShortBuffer;
 import java.util.Arrays;
 
 /**
  * Specialized array to stored the containers used by a RoaringBitmap.
+ * This class is similar to org.roaringbitmap.RoaringArray but meant to be used
+ * with memory mapping. They may use different serialized forms.
  * 
  */
 public final class RoaringArray implements Cloneable, Externalizable {
@@ -276,19 +280,42 @@ public final class RoaringArray implements Cloneable, Externalizable {
                 this.size = buffer[0] | (buffer[1] << 8);
                 if ((this.array == null) || (this.array.length < this.size))
                         this.array = new Element[this.size];
+                short keys[] = new short[this.size];
+                int cardinalities[] = new int[this.size];
+                boolean isbitmap[] = new boolean[this.size];
                 for (int k = 0; k < this.size; ++k) {
                         in.readFully(buffer);
-                        short key = (short) (buffer[0] & 0xFF | ((buffer[1] & 0xFF) << 8));
-                        boolean isbitmap = in.readBoolean();
+                        keys[k] = (short) (buffer[0] & 0xFF | ((buffer[1] & 0xFF) << 8));
+                        in.readFully(buffer);
+                        cardinalities[k] = buffer[0] & 0xFF | ((buffer[1] & 0xFF) << 8);
+                        isbitmap[k] = cardinalities[k] > ArrayContainer.DEFAULTMAXSIZE;
+                }
+                for (int k = 0; k < this.size; ++k) {
                         Container val;
-                        if (isbitmap) {
-                                val = new BitmapContainer();
-                                val.readExternal(in);
+                        if (isbitmap[k]) {
+                                LongBuffer bitmaparray  = LongBuffer.allocate(BitmapContainer.maxcapacity/64);
+                                byte[] buf = new byte[8];
+                                // little endian
+                                for (int l = 0; l < bitmaparray.limit(); ++l) {
+                                        in.readFully(buf);
+                                        bitmaparray.put(l, (((long) buf[7] << 56)
+                                                + ((long) (buf[6] & 255) << 48)
+                                                + ((long) (buf[5] & 255) << 40)
+                                                + ((long) (buf[4] & 255) << 32)
+                                                + ((long) (buf[3] & 255) << 24)
+                                                + ((buf[2] & 255) << 16)
+                                                + ((buf[1] & 255) << 8) + ((buf[0] & 255) << 0)));
+                                }
+                                val = new BitmapContainer(bitmaparray,cardinalities[k]);
                         } else {
-                                val = new ArrayContainer(0);
-                                val.readExternal(in);
+                                ShortBuffer shortarray = ShortBuffer.allocate(cardinalities[k]);
+                                for(int l = 0; l < shortarray.limit(); ++l) {
+                                        in.readFully(buffer);
+                                        shortarray.put(l, (short) (buffer[0] & 0xFF | ((buffer[1] & 0xFF) << 8)));
+                                }
+                                val = new ArrayContainer(shortarray,cardinalities[k]);
                         }
-                        this.array[k] = new Element(key, val);
+                        this.array[k] = new Element(keys[k], val);
                 }
         }
 
@@ -299,10 +326,12 @@ public final class RoaringArray implements Cloneable, Externalizable {
                 for (int k = 0; k < size; ++k) {
                         out.write((this.array[k].key >>> 0) & 0xFF);
                         out.write((this.array[k].key >>> 8) & 0xFF);
-                        out.writeBoolean(this.array[k].value instanceof BitmapContainer);
-                        array[k].value.writeExternal(out);
+                        out.write((this.array[k].value.getCardinality() >>> 0) & 0xFF);
+                        out.write((this.array[k].value.getCardinality() >>> 8) & 0xFF);
                 }
-
+                for (int k = 0; k < size; ++k) {
+                        array[k].value.writeArray(out);
+                }
         }
 
         private static final long serialVersionUID = 4L;
