@@ -4,6 +4,7 @@
  */
 package org.roaringbitmap.buffer;
 
+import java.io.DataOutput;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
@@ -16,7 +17,7 @@ import org.roaringbitmap.ShortIterator;
 
 /**
  * Simple bitset-like container. Unlike org.roaringbitmap.BitmapContainer, this
- * class uses a LongBuffer to store data. 
+ * class uses a LongBuffer to store data.
  * 
  */
 public final class BitmapContainer extends Container implements Cloneable,
@@ -43,28 +44,37 @@ public final class BitmapContainer extends Container implements Cloneable,
                 this.cardinality = lastOfRun - firstOfRun + 1;
                 this.bitmap = LongBuffer.allocate(maxcapacity / 64);
                 if (this.cardinality == maxcapacity) // perhaps a common case
-                        for(int k = 0; k < bitmap.limit(); ++k) bitmap.put(k, -1L);
+                        for (int k = 0; k < bitmap.limit(); ++k)
+                                bitmap.put(k, -1L);
                 else {
                         final int firstWord = firstOfRun / 64;
                         final int lastWord = lastOfRun / 64;
                         final int zeroPrefixLength = firstOfRun & 63;
                         final int zeroSuffixLength = 63 - (lastOfRun & 63);
-                        for(int k = firstWord; k < lastWord + 1; ++k) bitmap.put(k, -1L);
-                        bitmap.put(firstWord, bitmap.get(firstWord) ^ ((1L << zeroPrefixLength) - 1));
+                        for (int k = firstWord; k < lastWord + 1; ++k)
+                                bitmap.put(k, -1L);
+                        bitmap.put(firstWord, bitmap.get(firstWord)
+                                ^ ((1L << zeroPrefixLength) - 1));
                         final long blockOfOnes = (1L << zeroSuffixLength) - 1;
                         final long maskOnLeft = blockOfOnes << (64 - zeroSuffixLength);
                         bitmap.put(lastWord, bitmap.get(lastWord) ^ maskOnLeft);
                 }
         }
-        
+
         /**
-         * Construct a new BitmapContainer backed by the provided 
-         * LongBuffer. 
-         *  
-         * @param array LongBuffer where the data is stored
-         * @param cardinality cardinality (number of values stored)
+         * Construct a new BitmapContainer backed by the provided LongBuffer.
+         * 
+         * @param array
+         *                LongBuffer where the data is stored
+         * @param cardinality
+         *                cardinality (number of values stored)
          */
         public BitmapContainer(final LongBuffer array, final int cardinality) {
+                if (array.limit() != maxcapacity / 64)
+                        throw new RuntimeException(
+                                "Mismatch between buffer and storage requirements: "
+                                        + array.limit() + " vs. " + maxcapacity
+                                        / 64);
                 this.cardinality = cardinality;
                 this.bitmap = array;
         }
@@ -91,7 +101,8 @@ public final class BitmapContainer extends Container implements Cloneable,
                         value2.content.limit());
                 for (int k = 0; k < value2.getCardinality(); ++k)
                         if (this.contains(value2.content.get(k)))
-                                answer.content.put(answer.cardinality++,  value2.content.get(k));
+                                answer.content.put(answer.cardinality++,
+                                        value2.content.get(k));
                 return answer;
         }
 
@@ -111,7 +122,7 @@ public final class BitmapContainer extends Container implements Cloneable,
                         answer.cardinality = newcardinality;
                         return answer;
                 }
-                ArrayContainer ac = new ArrayContainer(newcardinality);
+                final ArrayContainer ac = new ArrayContainer(newcardinality);
                 Util.fillArrayAND(ac.content, this.bitmap, value2.bitmap);
                 ac.cardinality = newcardinality;
                 return ac;
@@ -124,7 +135,8 @@ public final class BitmapContainer extends Container implements Cloneable,
                         final int i = Util.toIntUnsigned(value2.content.get(k)) >>> 6;
                         answer.bitmap.put(i, answer.bitmap.get(i)
                                 & (~(1l << value2.content.get(k))));
-                        answer.cardinality -= (answer.bitmap.get(i) ^ this.bitmap.get(i)) >>> value2.content.get(k);
+                        answer.cardinality -= (answer.bitmap.get(i) ^ this.bitmap
+                                .get(i)) >>> value2.content.get(k);
                 }
                 if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
                         return answer.toArrayContainer();
@@ -147,7 +159,7 @@ public final class BitmapContainer extends Container implements Cloneable,
                         answer.cardinality = newcardinality;
                         return answer;
                 }
-                ArrayContainer ac = new ArrayContainer(newcardinality);
+                final ArrayContainer ac = new ArrayContainer(newcardinality);
                 Util.fillArrayANDNOT(ac.content, this.bitmap, value2.bitmap);
                 ac.cardinality = newcardinality;
                 return ac;
@@ -157,7 +169,8 @@ public final class BitmapContainer extends Container implements Cloneable,
         public void clear() {
                 if (cardinality != 0) {
                         cardinality = 0;
-                        for(int k = 0; k < bitmap.limit(); ++k) bitmap.put(k, 0);
+                        for (int k = 0; k < bitmap.limit(); ++k)
+                                bitmap.put(k, 0);
                 }
         }
 
@@ -175,11 +188,11 @@ public final class BitmapContainer extends Container implements Cloneable,
         @Override
         public boolean equals(Object o) {
                 if (o instanceof BitmapContainer) {
-                        BitmapContainer srb = (BitmapContainer) o;
+                        final BitmapContainer srb = (BitmapContainer) o;
                         if (srb.cardinality != this.cardinality)
                                 return false;
-                        for(int k = 0; k < this.bitmap.limit(); ++k)
-                                if(this.bitmap.get(k) != srb.bitmap.get(k))
+                        for (int k = 0; k < this.bitmap.limit(); ++k)
+                                if (this.bitmap.get(k) != srb.bitmap.get(k))
                                         return false;
                         return true;
                 }
@@ -192,7 +205,7 @@ public final class BitmapContainer extends Container implements Cloneable,
                 for (int k = 0; k < bitmap.limit(); ++k) {
                         long bitset = bitmap.get(k);
                         while (bitset != 0) {
-                                long t = bitset & -bitset;
+                                final long t = bitset & -bitset;
                                 x[pos++] = (k * 64 + Long.bitCount(t - 1))
                                         | mask;
                                 bitset ^= t;
@@ -260,12 +273,13 @@ public final class BitmapContainer extends Container implements Cloneable,
                 }
                 if (newcardinality > ArrayContainer.DEFAULTMAXSIZE) {
                         for (int k = 0; k < this.bitmap.limit(); ++k) {
-                                this.bitmap.put(k,this.bitmap.get(k) & B2.bitmap.get(k));
+                                this.bitmap.put(k, this.bitmap.get(k)
+                                        & B2.bitmap.get(k));
                         }
                         this.cardinality = newcardinality;
                         return this;
                 }
-                ArrayContainer ac = new ArrayContainer(newcardinality);
+                final ArrayContainer ac = new ArrayContainer(newcardinality);
                 Util.fillArrayAND(ac.content, this.bitmap, B2.bitmap);
                 ac.cardinality = newcardinality;
                 return ac;
@@ -296,7 +310,7 @@ public final class BitmapContainer extends Container implements Cloneable,
                         this.cardinality = newcardinality;
                         return this;
                 }
-                ArrayContainer ac = new ArrayContainer(newcardinality);
+                final ArrayContainer ac = new ArrayContainer(newcardinality);
                 Util.fillArrayANDNOT(ac.content, this.bitmap, B2.bitmap);
                 ac.cardinality = newcardinality;
                 return ac;
@@ -313,8 +327,10 @@ public final class BitmapContainer extends Container implements Cloneable,
         public BitmapContainer ior(final ArrayContainer value2) {
                 for (int k = 0; k < value2.cardinality; ++k) {
                         final int i = Util.toIntUnsigned(value2.content.get(k)) >>> 6;
-                        this.cardinality += ((~this.bitmap.get(i)) & (1l << value2.content.get(k))) >>> value2.content.get(k);
-                        this.bitmap.put(i, this.bitmap.get(i) | (1l << value2.content.get(k)));
+                        this.cardinality += ((~this.bitmap.get(i)) & (1l << value2.content
+                                .get(k))) >>> value2.content.get(k);
+                        this.bitmap.put(i, this.bitmap.get(i)
+                                | (1l << value2.content.get(k)));
                 }
                 return this;
         }
@@ -323,7 +339,8 @@ public final class BitmapContainer extends Container implements Cloneable,
         public Container ior(final BitmapContainer B2) {
                 this.cardinality = 0;
                 for (int k = 0; k < this.bitmap.limit(); k++) {
-                        this.bitmap.put(k, this.bitmap.get(k) | B2.bitmap.get(k));
+                        this.bitmap.put(k,
+                                this.bitmap.get(k) | B2.bitmap.get(k));
                         this.cardinality += Long.bitCount(this.bitmap.get(k));
                 }
                 return this;
@@ -359,9 +376,12 @@ public final class BitmapContainer extends Container implements Cloneable,
         @Override
         public Container ixor(final ArrayContainer value2) {
                 for (int k = 0; k < value2.getCardinality(); ++k) {
-                        final int index = Util.toIntUnsigned(value2.content.get(k)) >>> 6;
-                        this.cardinality += 1 - 2 * ((this.bitmap.get(index) & (1l << value2.content.get(k))) >>> value2.content.get(k));
-                        this.bitmap.put(index, this.bitmap.get(index) ^ (1l << value2.content.get(k)));
+                        final int index = Util.toIntUnsigned(value2.content
+                                .get(k)) >>> 6;
+                        this.cardinality += 1 - 2 * ((this.bitmap.get(index) & (1l << value2.content
+                                .get(k))) >>> value2.content.get(k));
+                        this.bitmap.put(index, this.bitmap.get(index)
+                                ^ (1l << value2.content.get(k)));
                 }
                 if (this.cardinality <= ArrayContainer.DEFAULTMAXSIZE) {
                         return this.toArrayContainer();
@@ -378,12 +398,13 @@ public final class BitmapContainer extends Container implements Cloneable,
                 }
                 if (newcardinality > ArrayContainer.DEFAULTMAXSIZE) {
                         for (int k = 0; k < this.bitmap.limit(); ++k) {
-                                this.bitmap.put(k, this.bitmap.get(k) ^ B2.bitmap.get(k));
+                                this.bitmap.put(k, this.bitmap.get(k)
+                                        ^ B2.bitmap.get(k));
                         }
                         this.cardinality = newcardinality;
                         return this;
                 }
-                ArrayContainer ac = new ArrayContainer(newcardinality);
+                final ArrayContainer ac = new ArrayContainer(newcardinality);
                 Util.fillArrayXOR(ac.content, this.bitmap, B2.bitmap);
                 ac.cardinality = newcardinality;
                 return ac;
@@ -409,8 +430,10 @@ public final class BitmapContainer extends Container implements Cloneable,
                 ++x;
                 for (; x < bitmap.limit(); ++x) {
                         if (bitmap.get(x) != 0) {
-                                return x * 64
-                                        + Long.numberOfTrailingZeros(bitmap.get(x));
+                                return x
+                                        * 64
+                                        + Long.numberOfTrailingZeros(bitmap
+                                                .get(x));
                         }
                 }
                 return -1;
@@ -451,7 +474,8 @@ public final class BitmapContainer extends Container implements Cloneable,
                 final BitmapContainer answer = clone();
                 for (int k = 0; k < value2.cardinality; ++k) {
                         final int i = Util.toIntUnsigned(value2.content.get(k)) >>> 6;
-                        answer.cardinality += ((~answer.bitmap.get(i)) & (1l << value2.content.get(k))) >>> value2.content.get(k);
+                        answer.cardinality += ((~answer.bitmap.get(i)) & (1l << value2.content
+                                .get(k))) >>> value2.content.get(k);
                         answer.bitmap.put(i, answer.bitmap.get(i)
                                 | (1l << value2.content.get(k)));
                 }
@@ -461,14 +485,16 @@ public final class BitmapContainer extends Container implements Cloneable,
         @Override
         public Container or(final BitmapContainer value2) {
                 if (USEINPLACE) {
-                        BitmapContainer value1 = this.clone();
+                        final BitmapContainer value1 = this.clone();
                         return value1.ior(value2);
                 }
                 final BitmapContainer answer = new BitmapContainer();
                 answer.cardinality = 0;
                 for (int k = 0; k < answer.bitmap.limit(); ++k) {
-                        answer.bitmap.put(k, this.bitmap.get(k) | value2.bitmap.get(k));
-                        answer.cardinality += Long.bitCount(answer.bitmap.get(k));
+                        answer.bitmap.put(k,
+                                this.bitmap.get(k) | value2.bitmap.get(k));
+                        answer.cardinality += Long.bitCount(answer.bitmap
+                                .get(k));
                 }
                 return answer;
         }
@@ -476,18 +502,20 @@ public final class BitmapContainer extends Container implements Cloneable,
         @Override
         public void readExternal(ObjectInput in) throws IOException,
                 ClassNotFoundException {
-                byte[] buffer = new byte[8];
+                final byte[] buffer = new byte[8];
                 // little endian
                 this.cardinality = 0;
                 for (int k = 0; k < bitmap.limit(); ++k) {
                         in.readFully(buffer);
-                        bitmap.put(k, (((long) buffer[7] << 56)
-                                + ((long) (buffer[6] & 255) << 48)
-                                + ((long) (buffer[5] & 255) << 40)
-                                + ((long) (buffer[4] & 255) << 32)
-                                + ((long) (buffer[3] & 255) << 24)
-                                + ((buffer[2] & 255) << 16)
-                                + ((buffer[1] & 255) << 8) + ((buffer[0] & 255) << 0)));
+                        bitmap.put(
+                                k,
+                                (((long) buffer[7] << 56)
+                                        + ((long) (buffer[6] & 255) << 48)
+                                        + ((long) (buffer[5] & 255) << 40)
+                                        + ((long) (buffer[4] & 255) << 32)
+                                        + ((long) (buffer[3] & 255) << 24)
+                                        + ((buffer[2] & 255) << 16)
+                                        + ((buffer[1] & 255) << 8) + ((buffer[0] & 255) << 0)));
                         this.cardinality += Long.bitCount(bitmap.get(k));
                 }
         }
@@ -501,12 +529,13 @@ public final class BitmapContainer extends Container implements Cloneable,
                                                                    // path
                         if ((bitmap.get(x / 64) & (1l << x)) != 0) {
                                 --cardinality;
-                                bitmap.put(x / 64,bitmap.get(x / 64) & ~(1l << x));
+                                bitmap.put(x / 64, bitmap.get(x / 64)
+                                        & ~(1l << x));
                                 return this.toArrayContainer();
                         }
                 }
                 cardinality -= (bitmap.get(x / 64) & (1l << x)) >>> x;
-                bitmap.put(x / 64,bitmap.get(x / 64) & ~(1l << x));
+                bitmap.put(x / 64, bitmap.get(x / 64) & ~(1l << x));
                 return this;
         }
 
@@ -516,14 +545,14 @@ public final class BitmapContainer extends Container implements Cloneable,
          * @return the array container
          */
         public ArrayContainer toArrayContainer() {
-                ArrayContainer ac = new ArrayContainer(cardinality);
+                final ArrayContainer ac = new ArrayContainer(cardinality);
                 ac.loadData(this);
                 return ac;
         }
 
         @Override
         public String toString() {
-                StringBuffer sb = new StringBuffer();
+                final StringBuffer sb = new StringBuffer();
                 sb.append("{");
                 int i = this.nextSetBit(0);
                 while (i >= 0) {
@@ -542,28 +571,18 @@ public final class BitmapContainer extends Container implements Cloneable,
 
         @Override
         public void writeExternal(ObjectOutput out) throws IOException {
-                byte[] buffer = new byte[8];
-                // little endian
-                for(int k = 0; k < bitmap.limit(); ++k) {
-                        long w = bitmap.get(k);
-                        buffer[0] = (byte) (w >>> 0);
-                        buffer[1] = (byte) (w >>> 8);
-                        buffer[2] = (byte) (w >>> 16);
-                        buffer[3] = (byte) (w >>> 24);
-                        buffer[4] = (byte) (w >>> 32);
-                        buffer[5] = (byte) (w >>> 40);
-                        buffer[6] = (byte) (w >>> 48);
-                        buffer[7] = (byte) (w >>> 56);
-                        out.write(buffer, 0, 8);
-                }
+                writeArray(out);
         }
 
         @Override
         public Container xor(final ArrayContainer value2) {
                 final BitmapContainer answer = clone();
                 for (int k = 0; k < value2.getCardinality(); ++k) {
-                        final int index = Util.toIntUnsigned(value2.content.get(k)) >>> 6;
-                        answer.cardinality += 1 - 2 * ((answer.bitmap.get(index) & (1l << value2.content.get(k))) >>> value2.content.get(k));
+                        final int index = Util.toIntUnsigned(value2.content
+                                .get(k)) >>> 6;
+                        answer.cardinality += 1 - 2 * ((answer.bitmap
+                                .get(index) & (1l << value2.content.get(k))) >>> value2.content
+                                .get(k));
                         answer.bitmap.put(index, answer.bitmap.get(index)
                                 ^ (1l << value2.content.get(k)));
                 }
@@ -588,7 +607,7 @@ public final class BitmapContainer extends Container implements Cloneable,
                         answer.cardinality = newcardinality;
                         return answer;
                 }
-                ArrayContainer ac = new ArrayContainer(newcardinality);
+                final ArrayContainer ac = new ArrayContainer(newcardinality);
                 Util.fillArrayXOR(ac.content, this.bitmap, value2.bitmap);
                 ac.cardinality = newcardinality;
                 return ac;
@@ -598,10 +617,11 @@ public final class BitmapContainer extends Container implements Cloneable,
         // "this"
         private Container not(BitmapContainer answer, final int firstOfRange,
                 final int lastOfRange) {
-                assert bitmap.limit() == maxcapacity / 64; // checking assumption
-                                                          // that partial
-                                                          // bitmaps are not
-                                                          // allowed
+                assert bitmap.limit() == maxcapacity / 64; // checking
+                                                           // assumption
+                                                           // that partial
+                                                           // bitmaps are not
+                                                           // allowed
                 // an easy case for full range, should be common
                 if (lastOfRange - firstOfRange + 1 == maxcapacity) {
                         final int newCardinality = maxcapacity - cardinality;
@@ -644,12 +664,12 @@ public final class BitmapContainer extends Container implements Cloneable,
                         // range starts and ends in same word (may have
                         // unchanged bits on both left and right)
                         mask &= maskOnLeft;
-                        cardinalityChange = -Long
-                                .bitCount(bitmap.get(rangeFirstWord));
-                        answer.bitmap.put(rangeFirstWord, bitmap.get(rangeFirstWord)
-                                ^ mask);
-                        cardinalityChange += Long
-                                .bitCount(answer.bitmap.get(rangeFirstWord));
+                        cardinalityChange = -Long.bitCount(bitmap
+                                .get(rangeFirstWord));
+                        answer.bitmap.put(rangeFirstWord,
+                                bitmap.get(rangeFirstWord) ^ mask);
+                        cardinalityChange += Long.bitCount(answer.bitmap
+                                .get(rangeFirstWord));
                         answer.cardinality = cardinality + cardinalityChange;
 
                         if (answer.cardinality <= ArrayContainer.DEFAULTMAXSIZE)
@@ -659,19 +679,21 @@ public final class BitmapContainer extends Container implements Cloneable,
 
                 // range spans words
                 cardinalityChange += -Long.bitCount(bitmap.get(rangeFirstWord));
-                answer.bitmap.put(rangeFirstWord, bitmap.get(rangeFirstWord) ^ mask);
-                cardinalityChange += Long
-                        .bitCount(answer.bitmap.get(rangeFirstWord));
+                answer.bitmap.put(rangeFirstWord, bitmap.get(rangeFirstWord)
+                        ^ mask);
+                cardinalityChange += Long.bitCount(answer.bitmap
+                        .get(rangeFirstWord));
 
                 cardinalityChange += -Long.bitCount(bitmap.get(rangeLastWord));
                 answer.bitmap.put(rangeLastWord, bitmap.get(rangeLastWord)
                         ^ maskOnLeft);
-                cardinalityChange += Long
-                        .bitCount(answer.bitmap.get(rangeLastWord));
+                cardinalityChange += Long.bitCount(answer.bitmap
+                        .get(rangeLastWord));
 
                 // negate the words, if any, strictly between first and last
                 for (int i = rangeFirstWord + 1; i < rangeLastWord; ++i) {
-                        cardinalityChange += (64 - 2 * Long.bitCount(bitmap.get(i)));
+                        cardinalityChange += (64 - 2 * Long.bitCount(bitmap
+                                .get(i)));
                         answer.bitmap.put(i, ~bitmap.get(i));
                 }
                 answer.cardinality = cardinality + cardinalityChange;
@@ -692,7 +714,7 @@ public final class BitmapContainer extends Container implements Cloneable,
                 for (int k = 0; k < bitmap.limit(); ++k) {
                         long bitset = bitmap.get(k);
                         while (bitset != 0) {
-                                long t = bitset & -bitset;
+                                final long t = bitset & -bitset;
                                 array[pos++] = (short) (k * 64 + Long
                                         .bitCount(t - 1));
                                 bitset ^= t;
@@ -711,8 +733,9 @@ public final class BitmapContainer extends Container implements Cloneable,
                 for (int k = 0; k < bitmap.limit(); ++k) {
                         long bitset = bitmap.get(k);
                         while (bitset != 0) {
-                                long t = bitset & -bitset;
-                                content.put(pos++, (short) (k * 64 + Long.bitCount(t - 1)));
+                                final long t = bitset & -bitset;
+                                content.put(pos++,
+                                        (short) (k * 64 + Long.bitCount(t - 1)));
                                 bitset ^= t;
                         }
                 }
@@ -722,13 +745,29 @@ public final class BitmapContainer extends Container implements Cloneable,
                 this.cardinality = arrayContainer.cardinality;
                 for (int k = 0; k < arrayContainer.cardinality; ++k) {
                         final short x = arrayContainer.content.get(k);
-                        bitmap.put(Util.toIntUnsigned(x) / 64, bitmap.get(Util.toIntUnsigned(x) / 64) | (1l << x));
+                        bitmap.put(Util.toIntUnsigned(x) / 64,
+                                bitmap.get(Util.toIntUnsigned(x) / 64)
+                                        | (1l << x));
                 }
         }
 
         @Override
-        protected void writeArray(ObjectOutput out) throws IOException {
-                writeExternal(out);
+        protected void writeArray(DataOutput out) throws IOException {
+
+                final byte[] buffer = new byte[8];
+                // little endian
+                for (int k = 0; k < maxcapacity / 64; ++k) {
+                        final long w = bitmap.get(k);
+                        buffer[0] = (byte) (w >>> 0);
+                        buffer[1] = (byte) (w >>> 8);
+                        buffer[2] = (byte) (w >>> 16);
+                        buffer[3] = (byte) (w >>> 24);
+                        buffer[4] = (byte) (w >>> 32);
+                        buffer[5] = (byte) (w >>> 40);
+                        buffer[6] = (byte) (w >>> 48);
+                        buffer[7] = (byte) (w >>> 56);
+                        out.write(buffer, 0, 8);
+                }
         }
 
         LongBuffer bitmap;

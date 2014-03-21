@@ -4,21 +4,20 @@
  */
 package org.roaringbitmap.buffer;
 
+import java.io.DataOutput;
 import java.io.Externalizable;
 import java.io.IOException;
-import java.io.ObjectOutput;
 
 import org.roaringbitmap.ShortIterator;
 
 /**
- * Base container class. This class is similar to
- * org.roaringbitmap.Container but meant to be used
- * with memory mapping.
+ * Base container class. This class is similar to org.roaringbitmap.Container
+ * but meant to be used with memory mapping.
  * 
  */
 public abstract class Container implements Iterable<Short>, Cloneable,
         Externalizable {
-        
+
         /**
          * Add a short to the container. May generate a new container.
          * 
@@ -431,10 +430,11 @@ public abstract class Container implements Iterable<Short>, Cloneable,
         /**
          * Write just the underlying array.
          * 
-         * @param out output stream
-         * @throws IOException 
+         * @param out
+         *                output stream
+         * @throws IOException
          */
-        protected abstract void writeArray(ObjectOutput out) throws IOException;
+        protected abstract void writeArray(DataOutput out) throws IOException;
 
         /**
          * Create a container initialized with a range of consecutive values

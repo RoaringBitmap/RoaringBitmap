@@ -270,12 +270,14 @@ public final class RoaringArray implements Cloneable, Externalizable {
         public void readExternal(ObjectInput in) throws IOException,
                 ClassNotFoundException {
                 this.clear();
-                byte[] buffer = new byte[2];
                 // little endian
-                in.readFully(buffer);
-                this.size = buffer[0] | (buffer[1] << 8);
+                byte[] buffer4 = new byte[4];
+                in.readFully(buffer4);
+                this.size = buffer4[0] | ((buffer4[1] & 0xFF) << 8) | ((buffer4[2] & 0xFF) << 16) | ((buffer4[3] & 0xFF) << 24);
                 if ((this.array == null) || (this.array.length < this.size))
                         this.array = new Element[this.size];
+                byte[] buffer = new byte[2];
+
                 for (int k = 0; k < this.size; ++k) {
                         in.readFully(buffer);
                         short key = (short) (buffer[0] & 0xFF | ((buffer[1] & 0xFF) << 8));
@@ -296,6 +298,8 @@ public final class RoaringArray implements Cloneable, Externalizable {
         public void writeExternal(ObjectOutput out) throws IOException {
                 out.write((this.size >>> 0) & 0xFF);
                 out.write((this.size >>> 8) & 0xFF);
+                out.write((this.size >>> 16) & 0xFF);
+                out.write((this.size >>> 24) & 0xFF);
                 for (int k = 0; k < size; ++k) {
                         out.write((this.array[k].key >>> 0) & 0xFF);
                         out.write((this.array[k].key >>> 8) & 0xFF);
@@ -305,6 +309,6 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
         }
 
-        private static final long serialVersionUID = 4L;
+        private static final long serialVersionUID = 5L;
 
 }

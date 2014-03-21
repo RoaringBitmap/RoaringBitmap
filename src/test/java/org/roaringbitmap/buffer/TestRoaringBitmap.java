@@ -6,9 +6,11 @@ package org.roaringbitmap.buffer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashSet;
@@ -299,8 +301,8 @@ public class TestRoaringBitmap {
         @Test
         public void basictest() {
                 final RoaringBitmap rr = new RoaringBitmap();
-                int N = 4000;
-                final int[] a = new int[N+2];
+                final int N = 4000;
+                final int[] a = new int[N + 2];
                 int pos = 0;
                 for (int k = 0; k < N; ++k) {
                         rr.add(k);
@@ -1087,7 +1089,7 @@ public class TestRoaringBitmap {
                 for (int gap = 1; gap <= 65536; gap *= 2) {
                         final BitSet bs1 = new BitSet();
                         final RoaringBitmap rb1 = new RoaringBitmap();
-                        for (int x = 0; x <= N; ++x) {
+                        for (int x = 0; x <= N; x += gap) {
                                 bs1.set(x);
                                 rb1.add(x);
                         }
@@ -1098,7 +1100,7 @@ public class TestRoaringBitmap {
                         for (int offset = 1; offset <= gap; offset *= 2) {
                                 final BitSet bs2 = new BitSet();
                                 final RoaringBitmap rb2 = new RoaringBitmap();
-                                for (int x = 0; x <= N; ++x) {
+                                for (int x = 0; x <= N; x += gap) {
                                         bs2.set(x + offset);
                                         rb2.add(x + offset);
                                 }
@@ -1179,14 +1181,20 @@ public class TestRoaringBitmap {
                                         if (!equals(clonebs1, t))
                                                 throw new RuntimeException(
                                                         "bug xor");
-                                        
+
                                         if (!t.equals(RoaringBitmap.xor(rb1,
                                                 rb2))) {
                                                 System.out.println(t);
-                                                System.out.println(RoaringBitmap.xor(rb1,
-                                                        rb2));
-                                                System.out.println(Arrays.equals(t.toArray(), RoaringBitmap.xor(rb1,
-                                                        rb2).toArray()));
+                                                System.out
+                                                        .println(RoaringBitmap
+                                                                .xor(rb1, rb2));
+                                                System.out
+                                                        .println(Arrays.equals(
+                                                                t.toArray(),
+                                                                RoaringBitmap
+                                                                        .xor(rb1,
+                                                                                rb2)
+                                                                        .toArray()));
                                                 throw new RuntimeException(
                                                         "bug xor");
                                         }
@@ -1268,6 +1276,19 @@ public class TestRoaringBitmap {
         }
 
         @Test
+        public void simpleTest() throws IOException {
+                final org.roaringbitmap.buffer.RoaringBitmap rr = RoaringBitmap.bitmapOf(1, 2, 3, 1000);
+                final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                final DataOutputStream dos = new DataOutputStream(bos);
+                rr.serialize(dos);
+                dos.close();
+                final ByteBuffer bb = ByteBuffer.wrap(bos.toByteArray());
+                final ImmutableRoaringBitmap rrback = new ImmutableRoaringBitmap(
+                        bb);
+                Assert.assertTrue(rr.equals(rrback));
+        }
+
+        @Test
         public void testSerialization() throws IOException,
                 ClassNotFoundException {
                 final RoaringBitmap rr = new RoaringBitmap();
@@ -1290,7 +1311,7 @@ public class TestRoaringBitmap {
 
         @Test
         public void testSerialization2() throws IOException,
-                        ClassNotFoundException {
+                ClassNotFoundException {
                 final RoaringBitmap rr = new RoaringBitmap();
                 for (int k = 200; k < 400; ++k)
                         rr.add(k);
@@ -1302,10 +1323,10 @@ public class TestRoaringBitmap {
                 oo.close();
                 final RoaringBitmap rrback = new RoaringBitmap();
                 final ByteArrayInputStream bis = new ByteArrayInputStream(
-                                bos.toByteArray());
+                        bos.toByteArray());
                 rrback.readExternal(new ObjectInputStream(bis));
                 Assert.assertEquals(rr.getCardinality(),
-                                rrback.getCardinality());
+                        rrback.getCardinality());
                 Assert.assertTrue(rr.equals(rrback));
         }
 

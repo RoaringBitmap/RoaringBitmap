@@ -1,3 +1,8 @@
+version 0.1.0 (March 21th, 2014)
+  - Another fix for serialization
+  - Introduction of the org.bitmap.buffer package for memory-mapped bitmaps
+
+
 version 0.0.2 (March 12th, 2014)
   - Serialization fix (Jon Alvarado)
 

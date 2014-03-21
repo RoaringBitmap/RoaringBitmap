@@ -22,20 +22,23 @@ public class FastAggregation {
          *                input bitmaps
          * @return aggregated bitmap
          */
-        public static RoaringBitmap and(RoaringBitmap... bitmaps) {
-                if (bitmaps.length == 0)
-                        return new RoaringBitmap();
-                RoaringBitmap[] array = Arrays.copyOf(bitmaps, bitmaps.length);
-                Arrays.sort(array, new Comparator<RoaringBitmap>() {
+        public static RoaringBitmap and(ImmutableRoaringBitmap... bitmaps) {
+                if (bitmaps.length < 2)
+                        throw new IllegalArgumentException(
+                                "Expecting at least 2 bitmaps");
+                final ImmutableRoaringBitmap[] array = Arrays.copyOf(bitmaps,
+                        bitmaps.length);
+                Arrays.sort(array, new Comparator<ImmutableRoaringBitmap>() {
                         @Override
-                        public int compare(RoaringBitmap a, RoaringBitmap b) {
+                        public int compare(ImmutableRoaringBitmap a,
+                                ImmutableRoaringBitmap b) {
                                 return a.getSizeInBytes() - b.getSizeInBytes();
                         }
                 });
-                RoaringBitmap answer = array[0];
+                ImmutableRoaringBitmap answer = array[0];
                 for (int k = 1; k < array.length; ++k)
-                        answer = RoaringBitmap.and(answer, array[k]);
-                return answer;
+                        answer = ImmutableRoaringBitmap.and(answer, array[k]);
+                return (RoaringBitmap) answer;
         }
 
         /**
@@ -45,25 +48,29 @@ public class FastAggregation {
          *                input bitmaps
          * @return aggregated bitmap
          */
-        public static RoaringBitmap or(RoaringBitmap... bitmaps) {
-                PriorityQueue<RoaringBitmap> pq = new PriorityQueue<RoaringBitmap>(
-                        bitmaps.length, new Comparator<RoaringBitmap>() {
+        public static RoaringBitmap or(ImmutableRoaringBitmap... bitmaps) {
+                if (bitmaps.length < 2)
+                        throw new IllegalArgumentException(
+                                "Expecting at least 2 bitmaps");
+                final PriorityQueue<ImmutableRoaringBitmap> pq = new PriorityQueue<ImmutableRoaringBitmap>(
+                        bitmaps.length,
+                        new Comparator<ImmutableRoaringBitmap>() {
                                 @Override
-                                public int compare(RoaringBitmap a,
-                                        RoaringBitmap b) {
+                                public int compare(ImmutableRoaringBitmap a,
+                                        ImmutableRoaringBitmap b) {
                                         return a.getSizeInBytes()
                                                 - b.getSizeInBytes();
                                 }
                         });
-                for (RoaringBitmap x : bitmaps) {
+                for (final ImmutableRoaringBitmap x : bitmaps) {
                         pq.add(x);
                 }
                 while (pq.size() > 1) {
-                        RoaringBitmap x1 = pq.poll();
-                        RoaringBitmap x2 = pq.poll();
-                        pq.add(RoaringBitmap.or(x1, x2));
+                        final ImmutableRoaringBitmap x1 = pq.poll();
+                        final ImmutableRoaringBitmap x2 = pq.poll();
+                        pq.add(ImmutableRoaringBitmap.or(x1, x2));
                 }
-                return pq.poll();
+                return (RoaringBitmap) pq.poll();
         }
 
         /**
@@ -73,25 +80,29 @@ public class FastAggregation {
          *                input bitmaps
          * @return aggregated bitmap
          */
-        public static RoaringBitmap xor(RoaringBitmap... bitmaps) {
-                PriorityQueue<RoaringBitmap> pq = new PriorityQueue<RoaringBitmap>(
-                        bitmaps.length, new Comparator<RoaringBitmap>() {
+        public static RoaringBitmap xor(ImmutableRoaringBitmap... bitmaps) {
+                if (bitmaps.length < 2)
+                        throw new IllegalArgumentException(
+                                "Expecting at least 2 bitmaps");
+                final PriorityQueue<ImmutableRoaringBitmap> pq = new PriorityQueue<ImmutableRoaringBitmap>(
+                        bitmaps.length,
+                        new Comparator<ImmutableRoaringBitmap>() {
                                 @Override
-                                public int compare(RoaringBitmap a,
-                                        RoaringBitmap b) {
+                                public int compare(ImmutableRoaringBitmap a,
+                                        ImmutableRoaringBitmap b) {
                                         return a.getSizeInBytes()
                                                 - b.getSizeInBytes();
                                 }
                         });
-                for (RoaringBitmap x : bitmaps) {
+                for (final ImmutableRoaringBitmap x : bitmaps) {
                         pq.add(x);
                 }
                 while (pq.size() > 1) {
-                        RoaringBitmap x1 = pq.poll();
-                        RoaringBitmap x2 = pq.poll();
-                        pq.add(RoaringBitmap.xor(x1, x2));
+                        final ImmutableRoaringBitmap x1 = pq.poll();
+                        final ImmutableRoaringBitmap x2 = pq.poll();
+                        pq.add(ImmutableRoaringBitmap.xor(x1, x2));
                 }
-                return pq.poll();
+                return (RoaringBitmap) pq.poll();
         }
 
 }

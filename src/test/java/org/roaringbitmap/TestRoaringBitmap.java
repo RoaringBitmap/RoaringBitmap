@@ -1087,7 +1087,7 @@ public class TestRoaringBitmap {
                 for (int gap = 1; gap <= 65536; gap *= 2) {
                         final BitSet bs1 = new BitSet();
                         final RoaringBitmap rb1 = new RoaringBitmap();
-                        for (int x = 0; x <= N; ++x) {
+                        for (int x = 0; x <= N; x+=gap) {
                                 bs1.set(x);
                                 rb1.add(x);
                         }
@@ -1098,7 +1098,7 @@ public class TestRoaringBitmap {
                         for (int offset = 1; offset <= gap; offset *= 2) {
                                 final BitSet bs2 = new BitSet();
                                 final RoaringBitmap rb2 = new RoaringBitmap();
-                                for (int x = 0; x <= N; ++x) {
+                                for (int x = 0; x <= N; x+=gap) {
                                         bs2.set(x + offset);
                                         rb2.add(x + offset);
                                 }

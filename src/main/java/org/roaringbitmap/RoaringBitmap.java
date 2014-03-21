@@ -26,7 +26,7 @@ public final class RoaringBitmap implements Cloneable, Serializable,
         }
 
         /**
-         * set the value to "true", whether it already appears on not.
+         * set the value to "true", whether it already appears or not.
          * 
          * @param x
          *                integer value
@@ -621,6 +621,9 @@ public final class RoaringBitmap implements Cloneable, Serializable,
          * modified. This operation is thread-safe as long as the provided
          * bitmaps remain unchanged.
          * 
+         * If you have more than 2 bitmaps, consider using the 
+         * FastAggregation class.
+         * 
          * @param x1
          *                first bitmap
          * @param x2
@@ -825,6 +828,9 @@ public final class RoaringBitmap implements Cloneable, Serializable,
          * modified. This operation is thread-safe as long as the provided
          * bitmaps remain unchanged.
          * 
+         * If you have more than 2 bitmaps, consider using the 
+         * FastAggregation class.
+         * 
          * @param x1
          *                first bitmap
          * @param x2
@@ -896,6 +902,9 @@ public final class RoaringBitmap implements Cloneable, Serializable,
          * are *not* modified. This operation is thread-safe as long as the
          * provided bitmaps remain unchanged.
          * 
+         * If you have more than 2 bitmaps, consider using the 
+         * FastAggregation class.
+         * 
          * @param x1
          *                first bitmap
          * @param x2
@@ -966,6 +975,6 @@ public final class RoaringBitmap implements Cloneable, Serializable,
 
         protected RoaringArray highlowcontainer = null;
 
-        private static final long serialVersionUID = 3L;
+        private static final long serialVersionUID = 5L;
 
 }

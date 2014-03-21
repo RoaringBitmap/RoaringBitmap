@@ -21,8 +21,8 @@ API docs
 
 http://lemire.me/docs/RoaringBitmap/
 
-Documentation
---------------
+Scientific Documentation
+--------------------------
 
 Samy Chambi, Daniel Lemire, Owen Kaser, Robert Godin,
 Better bitmap performance with Roaring bitmaps,
@@ -42,6 +42,39 @@ Code sample
         
         RoaringBitmap rror = RoaringBitmap.or(rr, rr2);
 
+Working with memory-mapped bitmaps
+---------------------------------------
+
+If you want to have your bitmaps lie in memory-mapped files, you can
+use the org.roaringbitmap.buffer package instead. 
+        
+The following code sample illustrates how to create an ImmutableRoaringBitmap
+from a ByteBuffer. In such instances, the constructor only loads the meta-data
+in RAM while the actual data is accessed from the ByteBuffer on demand.
+
+        import org.roaringbitmap.buffer.*;
+        
+        //...
+        
+        RoaringBitmap rr = RoaringBitmap.bitmapOf(1, 2, 3, 1000);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(bos);
+        rr.serialize(dos);
+        dos.close();
+        ByteBuffer bb = ByteBuffer.wrap(bos.toByteArray());
+        ImmutableRoaringBitmap rrback = new ImmutableRoaringBitmap(bb);
+        
+Operations on an ImmutableRoaringBitmap such as and, or, xor, flip, will
+generate a RoaringBitmap which lies in RAM. As the name suggest, the 
+ImmutableRoaringBitmap itself cannot be modified.
+
+This designed was inspired by druid.io.
+
+One can find a complete working example in the test file TestMemoryMapping.java.
+
+Note that you should not mix the classes from the org.roaringbitmap package with the classes
+from the org.roaringbitmap.buffer package. They are incompatible.
+
 Download
 ---------
 
@@ -59,7 +92,7 @@ If your project depends on roaring, you  can  specify the dependency in the Mave
           <dependency>
             <groupId>org.roaringbitmap</groupId>
             <artifactId>RoaringBitmap</artifactId>
-            <version>0.0.2</version>
+            <version>0.1.0</version>
           </dependency>
         </dependencies>
 

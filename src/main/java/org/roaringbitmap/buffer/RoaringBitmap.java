@@ -14,13 +14,13 @@ import java.util.Iterator;
 import org.roaringbitmap.IntIterator;
 
 /**
- * RoaringBitmap, a compressed alternative to the BitSet. It is
- * similar to org.roaringbitmap.RoaringBitmap, but it differs
- * in that it can be memory-mapped using a ByteBuffer.
+ * RoaringBitmap, a compressed alternative to the BitSet. It is similar to
+ * org.roaringbitmap.RoaringBitmap, but it differs in that it can be
+ * memory-mapped using a ByteBuffer.
  * 
  */
-public final class RoaringBitmap implements Cloneable, Serializable,
-        Iterable<Integer>, Externalizable {
+public final class RoaringBitmap extends ImmutableRoaringBitmap implements
+        Cloneable, Serializable, Iterable<Integer>, Externalizable {
 
         /**
          * Create an empty bitmap
@@ -30,7 +30,7 @@ public final class RoaringBitmap implements Cloneable, Serializable,
         }
 
         /**
-         * set the value to "true", whether it already appears on not.
+         * set the value to "true", whether it already appears or not.
          * 
          * @param x
          *                integer value
@@ -189,31 +189,6 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                 }
         }
 
-        /**
-         * Checks whether the value in included, which is equivalent to checking
-         * if the corresponding bit is set (get in BitSet class).
-         * 
-         * @param x
-         *                integer value
-         * @return whether the integer value is included.
-         */
-        public boolean contains(final int x) {
-                final short hb = Util.highbits(x);
-                final Container C = highlowcontainer.getContainer(hb);
-                if (C == null)
-                        return false;
-                return C.contains(Util.lowbits(x));
-        }
-
-        @Override
-        public boolean equals(Object o) {
-                if (o instanceof RoaringBitmap) {
-                        final RoaringBitmap srb = (RoaringBitmap) o;
-                        return srb.highlowcontainer
-                                .equals(this.highlowcontainer);
-                }
-                return false;
-        }
 
         /**
          * Modifies the current bitmap by complementing the bits in the given
@@ -233,7 +208,7 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                 final short hbLast = Util.highbits(rangeEnd - 1);
                 final short lbLast = Util.lowbits(rangeEnd - 1);
 
-                int max = Util.toIntUnsigned(Util.maxLowBit());
+                final int max = Util.toIntUnsigned(Util.maxLowBit());
                 for (short hb = hbStart; hb <= hbLast; ++hb) {
                         // first container may contain partial range
                         final int containerStart = (hb == hbStart) ? Util
@@ -244,7 +219,7 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                         final int i = highlowcontainer.getIndex(hb);
 
                         if (i >= 0) {
-                                Container c = highlowcontainer
+                                final Container c = highlowcontainer
                                         .getContainerAtIndex(i).inot(
                                                 containerStart, containerLast);
                                 if (c.getCardinality() > 0)
@@ -258,37 +233,6 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                                                 containerStart, containerLast));
                         }
                 }
-        }
-
-        /**
-         * Returns the number of distinct integers added to the bitmap (e.g.,
-         * number of bits set).
-         * 
-         * @return the cardinality
-         */
-        public int getCardinality() {
-                int size = 0;
-                for (int i = 0; i < this.highlowcontainer.size(); i++) {
-                        size += this.highlowcontainer.getContainerAtIndex(i)
-                                .getCardinality();
-                }
-                return size;
-        }
-
-        /**
-         * Estimate of the memory usage of this data structure. This is not
-         * meant to be an exact value.
-         * 
-         * @return estimated memory usage.
-         */
-        public int getSizeInBytes() {
-                int size = 8;
-                for (int i = 0; i < this.highlowcontainer.size(); i++) {
-                        final Container c = this.highlowcontainer
-                                .getContainerAtIndex(i);
-                        size += 2 + c.getSizeInBytes();
-                }
-                return size;
         }
 
         @Override
@@ -442,25 +386,6 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                         .getContainerAtIndex(i).remove(Util.lowbits(x)));
                 if (highlowcontainer.getContainerAtIndex(i).getCardinality() == 0)
                         highlowcontainer.removeAtIndex(i);
-        }
-
-        /**
-         * Return the set values as an array.
-         * 
-         * @return array representing the set values.
-         */
-        public int[] toArray() {
-                final int[] array = new int[this.getCardinality()];
-                int pos = 0, pos2 = 0;
-                while (pos < this.highlowcontainer.size()) {
-                        final int hs = Util.toIntUnsigned(this.highlowcontainer
-                                .getKeyAtIndex(pos)) << 16;
-                        Container C = this.highlowcontainer
-                                .getContainerAtIndex(pos++);
-                        C.fillLeastSignificant16bits(array, pos2, hs);
-                        pos2 += C.getCardinality();
-                }
-                return array;
         }
 
         /**
@@ -776,7 +701,6 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                 RoaringBitmap answer = null;
                 if (rangeStart >= rangeEnd) {
                         answer = bm.clone();
-                        // System.out.println("cloned!");
                         return answer;
                 }
 
@@ -790,7 +714,7 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                 answer.highlowcontainer.appendCopiesUntil(bm.highlowcontainer,
                         hbStart);
 
-                int max = Util.toIntUnsigned(Util.maxLowBit());
+                final int max = Util.toIntUnsigned(Util.maxLowBit());
                 for (short hb = hbStart; hb <= hbLast; ++hb) {
                         final int containerStart = (hb == hbStart) ? Util
                                 .toIntUnsigned(lbStart) : 0;
@@ -802,7 +726,7 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                         assert j < 0;
 
                         if (i >= 0) {
-                                Container c = bm.highlowcontainer
+                                final Container c = bm.highlowcontainer
                                         .getContainerAtIndex(i).not(
                                                 containerStart, containerLast);
                                 if (c.getCardinality() > 0)
@@ -967,8 +891,6 @@ public final class RoaringBitmap implements Cloneable, Serializable,
 
                 return answer;
         }
-
-        protected RoaringArray highlowcontainer = null;
 
         private static final long serialVersionUID = 3L;
 
