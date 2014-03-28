@@ -1,3 +1,10 @@
+version 0.1.1 (March 28th, 2014)
+  - made serialized format slightly more concise:
+    added the serialize/deserialize methods throughout 
+    to bypass Java serialization overhead
+  - added the serializedSizeInBytes() method for user who 
+    wish to query the memory usage
+
 version 0.1.0 (March 21th, 2014)
   - Another fix for serialization
   - Introduction of the org.bitmap.buffer package for memory-mapped bitmaps

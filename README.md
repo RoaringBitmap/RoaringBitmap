@@ -92,7 +92,7 @@ If your project depends on roaring, you  can  specify the dependency in the Mave
           <dependency>
             <groupId>org.roaringbitmap</groupId>
             <artifactId>RoaringBitmap</artifactId>
-            <version>0.1.0</version>
+            <version>0.1.1</version>
           </dependency>
         </dependencies>
 

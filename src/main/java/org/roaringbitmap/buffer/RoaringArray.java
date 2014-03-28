@@ -251,6 +251,20 @@ public final class RoaringArray implements Cloneable, Externalizable {
                         array[k].value.writeArray(out);
                 }
         }
+        
+        /**
+         * Report the number of bytes required for serialization.
+         * 
+         * @return the size in bytes
+         */
+        public int serializedSizeInBytes() {
+        	int count =  4 + 4 + 4 * size;
+            for (int k = 0; k < size; ++k) {
+                count += array[k].value.getArraySizeInBytes();
+            }
+            return count;
+        }
+
 
         @Override
         public void writeExternal(ObjectOutput out) throws IOException {
@@ -446,6 +460,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
         private static final long serialVersionUID = 4L;
 
         protected static final short serialCookie = 12345;
-        final static int initialCapacity = 4;
+        
+        protected final static int initialCapacity = 4;
 
 }

@@ -22,6 +22,16 @@ import org.roaringbitmap.ShortIterator;
  */
 public final class ArrayContainer extends Container implements Cloneable,
         Serializable {
+        protected int cardinality = 0;
+
+        protected ShortBuffer content;
+
+        private static final int DEFAULTINITSIZE = 4;
+
+        private static final long serialVersionUID = 1L;
+
+        protected static final int DEFAULTMAXSIZE = 4096;
+
         /**
          * Create an array container with default capacity
          */
@@ -56,6 +66,13 @@ public final class ArrayContainer extends Container implements Cloneable,
                 cardinality = valuesInRange;
         }
 
+        private ArrayContainer(int newcard, ShortBuffer newcontent) {
+                this.cardinality = newcard;
+                this.content = ShortBuffer.allocate(newcontent.limit());
+                newcontent.rewind();
+                this.content.put(newcontent);
+        }
+
         /**
          * Construct a new ArrayContainer backed by the provided ShortBuffer.
          * Note that if you modify the ArrayContainer a new ShortBuffer may be
@@ -72,13 +89,6 @@ public final class ArrayContainer extends Container implements Cloneable,
                                 "Mismatch between buffer and cardinality");
                 this.cardinality = cardinality;
                 this.content = array;
-        }
-
-        private ArrayContainer(int newcard, ShortBuffer newcontent) {
-                this.cardinality = newcard;
-                this.content = ShortBuffer.allocate(newcontent.limit());
-                newcontent.rewind();
-                this.content.put(newcontent);
         }
 
         /**
@@ -203,6 +213,11 @@ public final class ArrayContainer extends Container implements Cloneable,
         }
 
         @Override
+		protected int getArraySizeInBytes() {
+			return cardinality * 2;
+		}
+
+        @Override
         public int getCardinality() {
                 return cardinality;
         }
@@ -210,6 +225,8 @@ public final class ArrayContainer extends Container implements Cloneable,
         @Override
         public ShortIterator getShortIterator() {
                 return new ShortIterator() {
+                        int pos = 0;
+
                         @Override
                         public boolean hasNext() {
                                 return pos < ArrayContainer.this.cardinality;
@@ -225,8 +242,6 @@ public final class ArrayContainer extends Container implements Cloneable,
                                 ArrayContainer.this.remove((short) (pos - 1));
                                 pos--;
                         }
-
-                        int pos = 0;
                 };
         }
 
@@ -280,6 +295,20 @@ public final class ArrayContainer extends Container implements Cloneable,
                                 this.content.put(pos++, this.content.get(k));
                 this.cardinality = pos;
                 return this;
+        }
+
+        private void increaseCapacity() {
+                int newcapacity = this.content.limit() < 64 ? this.content
+                        .limit() * 2
+                        : this.content.limit() < 1024 ? this.content.limit() * 3 / 2
+                                : this.content.limit() * 5 / 4;
+                if (newcapacity > ArrayContainer.DEFAULTMAXSIZE)
+                        newcapacity = ArrayContainer.DEFAULTMAXSIZE;
+                final ShortBuffer newcontent = ShortBuffer
+                        .allocate(newcapacity);
+                this.content.rewind();
+                newcontent.put(this.content);
+                this.content = newcontent;
         }
 
         @Override
@@ -350,6 +379,8 @@ public final class ArrayContainer extends Container implements Cloneable,
         public Iterator<Short> iterator() {
 
                 return new Iterator<Short>() {
+                        short pos = 0;
+
                         @Override
                         public boolean hasNext() {
                                 return pos < ArrayContainer.this.cardinality;
@@ -366,8 +397,6 @@ public final class ArrayContainer extends Container implements Cloneable,
                                 ArrayContainer.this.remove((short) (pos - 1));
                                 pos--;
                         }
-
-                        short pos = 0;
                 };
         }
 
@@ -379,6 +408,51 @@ public final class ArrayContainer extends Container implements Cloneable,
         @Override
         public Container ixor(BitmapContainer x) {
                 return x.xor(this);
+        }
+
+        protected void loadData(final BitmapContainer bitmapContainer) {
+                this.cardinality = bitmapContainer.cardinality;
+                bitmapContainer.fillArray(content);
+        }
+
+        // for use in inot range known to be nonempty
+        private void negateRange(final ShortBuffer buffer,
+                final int startIndex, final int lastIndex,
+                final int startRange, final int lastRange) {
+                // compute the negation into buffer
+
+                int outPos = 0;
+                int inPos = startIndex; // value here always >= valInRange,
+                                        // until it is exhausted
+                // n.b., we can start initially exhausted.
+
+                int valInRange = startRange;
+                for (; valInRange <= lastRange && inPos <= lastIndex; ++valInRange) {
+                        if ((short) valInRange != content.get(inPos))
+                                buffer.put(outPos++, (short) valInRange);
+                        else {
+                                ++inPos;
+                        }
+                }
+
+                // if there are extra items (greater than the biggest
+                // pre-existing one in range), buffer them
+                for (; valInRange <= lastRange; ++valInRange) {
+                        buffer.put(outPos++, (short) valInRange);
+                }
+
+                if (outPos != buffer.limit()) {
+                        throw new RuntimeException("negateRange: outPos "
+                                + outPos + " whereas buffer.length="
+                                + buffer.limit());
+                }
+                assert outPos == buffer.limit();
+                // copy back from buffer...caller must ensure there is room
+                int i = startIndex;
+                for (int k = 0; k < buffer.limit(); ++k) {
+                        final short item = buffer.get(k);
+                        content.put(i++, item);
+                }
         }
 
         // shares lots of code with inot; candidate for refactoring
@@ -551,6 +625,15 @@ public final class ArrayContainer extends Container implements Cloneable,
         }
 
         @Override
+        protected void writeArray(DataOutput out) throws IOException {
+                // little endian
+                for (int k = 0; k < this.cardinality; ++k) {
+                        out.write((this.content.get(k) >>> 0) & 0xFF);
+                        out.write((this.content.get(k) >>> 8) & 0xFF);
+                }
+        }
+
+        @Override
         public void writeExternal(ObjectOutput out) throws IOException {
                 out.write((this.cardinality >>> 0) & 0xFF);
                 out.write((this.cardinality >>> 8) & 0xFF);
@@ -599,87 +682,9 @@ public final class ArrayContainer extends Container implements Cloneable,
                 return answer;
         }
 
-        @Override
+		@Override
         public Container xor(BitmapContainer x) {
                 return x.xor(this);
         }
-
-        private void increaseCapacity() {
-                int newcapacity = this.content.limit() < 64 ? this.content
-                        .limit() * 2
-                        : this.content.limit() < 1024 ? this.content.limit() * 3 / 2
-                                : this.content.limit() * 5 / 4;
-                if (newcapacity > ArrayContainer.DEFAULTMAXSIZE)
-                        newcapacity = ArrayContainer.DEFAULTMAXSIZE;
-                final ShortBuffer newcontent = ShortBuffer
-                        .allocate(newcapacity);
-                this.content.rewind();
-                newcontent.put(this.content);
-                this.content = newcontent;
-        }
-
-        // for use in inot range known to be nonempty
-        private void negateRange(final ShortBuffer buffer,
-                final int startIndex, final int lastIndex,
-                final int startRange, final int lastRange) {
-                // compute the negation into buffer
-
-                int outPos = 0;
-                int inPos = startIndex; // value here always >= valInRange,
-                                        // until it is exhausted
-                // n.b., we can start initially exhausted.
-
-                int valInRange = startRange;
-                for (; valInRange <= lastRange && inPos <= lastIndex; ++valInRange) {
-                        if ((short) valInRange != content.get(inPos))
-                                buffer.put(outPos++, (short) valInRange);
-                        else {
-                                ++inPos;
-                        }
-                }
-
-                // if there are extra items (greater than the biggest
-                // pre-existing one in range), buffer them
-                for (; valInRange <= lastRange; ++valInRange) {
-                        buffer.put(outPos++, (short) valInRange);
-                }
-
-                if (outPos != buffer.limit()) {
-                        throw new RuntimeException("negateRange: outPos "
-                                + outPos + " whereas buffer.length="
-                                + buffer.limit());
-                }
-                assert outPos == buffer.limit();
-                // copy back from buffer...caller must ensure there is room
-                int i = startIndex;
-                for (int k = 0; k < buffer.limit(); ++k) {
-                        final short item = buffer.get(k);
-                        content.put(i++, item);
-                }
-        }
-
-        protected void loadData(final BitmapContainer bitmapContainer) {
-                this.cardinality = bitmapContainer.cardinality;
-                bitmapContainer.fillArray(content);
-        }
-
-        @Override
-        protected void writeArray(DataOutput out) throws IOException {
-                // little endian
-                for (int k = 0; k < this.cardinality; ++k) {
-                        out.write((this.content.get(k) >>> 0) & 0xFF);
-                        out.write((this.content.get(k) >>> 8) & 0xFF);
-                }
-        }
-
-        protected int cardinality = 0;
-
-        protected ShortBuffer content;
-
-        private static final int DEFAULTINITSIZE = 4;
-
-        private static final long serialVersionUID = 1L;
-
-        protected static final int DEFAULTMAXSIZE = 4096;
 
 }

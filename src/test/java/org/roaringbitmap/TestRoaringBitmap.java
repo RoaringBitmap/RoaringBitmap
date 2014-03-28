@@ -6,6 +6,8 @@ package org.roaringbitmap;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -783,7 +785,6 @@ public class TestRoaringBitmap {
                 }
         }
 
-        @SuppressWarnings("null")
         @Test
         public void flipTestBigA() {
                 final int numCases = 1000000;
@@ -1281,6 +1282,8 @@ public class TestRoaringBitmap {
                 Assert.assertTrue(rr.equals(rrback));
         }
 
+
+        
         @Test
         public void testSerialization2() throws IOException,
                         ClassNotFoundException {
@@ -1301,7 +1304,32 @@ public class TestRoaringBitmap {
                                 rrback.getCardinality());
                 Assert.assertTrue(rr.equals(rrback));
         }
+        @Test
+        public void testSerialization3() throws IOException,
+                ClassNotFoundException {
+                final RoaringBitmap rr = new RoaringBitmap();
+                for (int k = 65000; k < 2 * 65000; ++k)
+                        rr.add(k);
+                rr.add(1444000);
+                final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                // Note: you could use a file output steam instead of
+                // ByteArrayOutputStream
+                int howmuch = rr.serializedSizeInBytes();
+                final DataOutputStream oo = new DataOutputStream(bos);
+                rr.serialize(oo);
+                oo.close();
+                Assert.assertEquals(howmuch, bos.toByteArray().length);
+                final RoaringBitmap rrback = new RoaringBitmap();
+                final ByteArrayInputStream bis = new ByteArrayInputStream(
+                        bos.toByteArray());
+                rrback.deserialize(new DataInputStream(bis));
+                Assert.assertEquals(rr.getCardinality(),
+                        rrback.getCardinality());
+                Assert.assertTrue(rr.equals(rrback));
+        }
 
+
+        
         @Test
         public void XORtest() {
                 final RoaringBitmap rr = new RoaringBitmap();

@@ -1,6 +1,5 @@
 package org.roaringbitmap.buffer;
 
-import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.io.ObjectOutput;
@@ -20,260 +19,6 @@ import org.roaringbitmap.IntIterator;
  * 
  */
 public class ImmutableRoaringBitmap implements Iterable<Integer> {
-
-        /**
-         * Constructs a new ImmutableRoaringBitmap. Only meta-data is loaded to
-         * RAM. The rest is mapped to the ByteBuffer.
-         * 
-         * @param b
-         *                data source
-         */
-        public ImmutableRoaringBitmap(final ByteBuffer b) {
-                highlowcontainer = new RoaringArray(b);
-        }
-
-        protected ImmutableRoaringBitmap() {
-
-        }
-
-        /**
-         * Checks whether the value in included, which is equivalent to checking
-         * if the corresponding bit is set (get in BitSet class).
-         * 
-         * @param x
-         *                integer value
-         * @return whether the integer value is included.
-         */
-        public boolean contains(final int x) {
-                final short hb = Util.highbits(x);
-                final Container C = highlowcontainer.getContainer(hb);
-                if (C == null)
-                        return false;
-                return C.contains(Util.lowbits(x));
-        }
-
-        /**
-         * Deserialize.
-         * 
-         * @param in
-         *                the DataInput stream
-         * @throws IOException
-         *                 Signals that an I/O exception has occurred.
-         */
-        public void deserialize(DataInput in) throws IOException {
-                this.highlowcontainer.deserialize(in);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-                if (o instanceof ImmutableRoaringBitmap) {
-                        final ImmutableRoaringBitmap srb = (ImmutableRoaringBitmap) o;
-                        return srb.highlowcontainer
-                                .equals(this.highlowcontainer);
-                }
-                return false;
-        }
-
-        /**
-         * Returns the number of distinct integers added to the bitmap (e.g.,
-         * number of bits set).
-         * 
-         * @return the cardinality
-         */
-        public int getCardinality() {
-                int size = 0;
-                for (int i = 0; i < this.highlowcontainer.size(); i++) {
-                        size += this.highlowcontainer.getContainerAtIndex(i)
-                                .getCardinality();
-                }
-                return size;
-        }
-
-        /**
-         * Estimate of the memory usage of this data structure. This is not
-         * meant to be an exact value.
-         * 
-         * @return estimated memory usage.
-         */
-        public int getSizeInBytes() {
-                int size = 2;
-                for (int i = 0; i < this.highlowcontainer.size(); i++) {
-                        final Container c = this.highlowcontainer
-                                .getContainerAtIndex(i);
-                        size += 4 + c.getSizeInBytes();
-                }
-                return size;
-        }
-
-        @Override
-        public int hashCode() {
-                return highlowcontainer.hashCode();
-        }
-
-        /**
-         * iterate over the positions of the true values.
-         * 
-         * @return the iterator
-         */
-        @Override
-        public Iterator<Integer> iterator() {
-                return new Iterator<Integer>() {
-                        @Override
-                        public boolean hasNext() {
-                                return pos < ImmutableRoaringBitmap.this.highlowcontainer
-                                        .size();
-                        }
-
-                        public Iterator<Integer> init() {
-                                if (pos < ImmutableRoaringBitmap.this.highlowcontainer
-                                        .size()) {
-                                        iter = ImmutableRoaringBitmap.this.highlowcontainer
-                                                .getContainerAtIndex(pos)
-                                                .iterator();
-                                        hs = Util
-                                                .toIntUnsigned(ImmutableRoaringBitmap.this.highlowcontainer
-                                                        .getKeyAtIndex(pos)) << 16;
-                                }
-                                return this;
-                        }
-
-                        @Override
-                        public Integer next() {
-                                x = Util.toIntUnsigned(iter.next()) | hs;
-                                if (!iter.hasNext()) {
-                                        ++pos;
-                                        init();
-                                }
-                                return x;
-                        }
-
-                        @Override
-                        public void remove() {
-                                throw new RuntimeException("Cannot modify.");
-                        }
-
-                        int hs = 0;
-
-                        Iterator<Short> iter;
-
-                        short pos = 0;
-
-                        int x;
-
-                }.init();
-        }
-
-        /**
-         * Serialize.
-         * 
-         * The current bitmap is not modified.
-         * 
-         * @param out
-         *                the DataOutput stream
-         * @throws IOException
-         *                 Signals that an I/O exception has occurred.
-         */
-        public void serialize(DataOutput out) throws IOException {
-                this.highlowcontainer.serialize(out);
-
-        }
-
-        /**
-         * Return the set values as an array.
-         * 
-         * @return array representing the set values.
-         */
-        public int[] toArray() {
-                final int[] array = new int[this.getCardinality()];
-                int pos = 0, pos2 = 0;
-                while (pos < this.highlowcontainer.size()) {
-                        final int hs = Util.toIntUnsigned(this.highlowcontainer
-                                .getKeyAtIndex(pos)) << 16;
-                        final Container C = this.highlowcontainer
-                                .getContainerAtIndex(pos++);
-                        C.fillLeastSignificant16bits(array, pos2, hs);
-                        pos2 += C.getCardinality();
-                }
-                return array;
-        }
-
-        /**
-         * A string describing the bitmap.
-         * 
-         * @return the string
-         */
-        @Override
-        public String toString() {
-                final StringBuffer answer = new StringBuffer();
-                final IntIterator i = this.getIntIterator();
-                answer.append("{");
-                if (i.hasNext())
-                        answer.append(i.next());
-                while (i.hasNext()) {
-                        answer.append(",");
-                        answer.append(i.next());
-                }
-                answer.append("}");
-                return answer.toString();
-        }
-
-        /**
-         * Serialize the object.
-         * 
-         * @param out
-         *                output stream
-         * @throws IOException
-         */
-        public void writeExternal(final ObjectOutput out) throws IOException {
-                this.highlowcontainer.writeExternal(out);
-        }
-
-        private IntIterator getIntIterator() {
-                return new IntIterator() {
-                        @Override
-                        public boolean hasNext() {
-                                return pos < ImmutableRoaringBitmap.this.highlowcontainer
-                                        .size();
-                        }
-
-                        public IntIterator init() {
-                                if (pos < ImmutableRoaringBitmap.this.highlowcontainer
-                                        .size()) {
-                                        iter = ImmutableRoaringBitmap.this.highlowcontainer
-                                                .getContainerAtIndex(pos)
-                                                .iterator();
-                                        hs = Util
-                                                .toIntUnsigned(ImmutableRoaringBitmap.this.highlowcontainer
-                                                        .getKeyAtIndex(pos)) << 16;
-                                }
-                                return this;
-                        }
-
-                        @Override
-                        public int next() {
-                                x = Util.toIntUnsigned(iter.next()) | hs;
-                                if (!iter.hasNext()) {
-                                        ++pos;
-                                        init();
-                                }
-                                return x;
-                        }
-
-                        @Override
-                        public void remove() {
-                                throw new RuntimeException("Cannot modify");
-                        }
-
-                        int hs = 0;
-
-                        Iterator<Short> iter;
-
-                        short pos = 0;
-
-                        int x;
-
-                }.init();
-        }
 
         /**
          * Bitwise AND (intersection) operation. The provided bitmaps are *not*
@@ -465,6 +210,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer> {
                 return answer;
         }
 
+
         /**
          * Bitwise OR (union) operation. The provided bitmaps are *not*
          * modified. This operation is thread-safe as long as the provided
@@ -616,5 +362,265 @@ public class ImmutableRoaringBitmap implements Iterable<Integer> {
         }
 
         protected RoaringArray highlowcontainer = null;
+
+        protected ImmutableRoaringBitmap() {
+
+        }
+
+        /**
+         * Constructs a new ImmutableRoaringBitmap. Only meta-data is loaded to
+         * RAM. The rest is mapped to the ByteBuffer.
+         * 
+         * @param b
+         *                data source
+         */
+        public ImmutableRoaringBitmap(final ByteBuffer b) {
+                highlowcontainer = new RoaringArray(b);
+        }
+
+        /**
+         * Checks whether the value in included, which is equivalent to checking
+         * if the corresponding bit is set (get in BitSet class).
+         * 
+         * @param x
+         *                integer value
+         * @return whether the integer value is included.
+         */
+        public boolean contains(final int x) {
+                final short hb = Util.highbits(x);
+                final Container C = highlowcontainer.getContainer(hb);
+                if (C == null)
+                        return false;
+                return C.contains(Util.lowbits(x));
+        }
+
+        @Override
+        public boolean equals(Object o) {
+                if (o instanceof ImmutableRoaringBitmap) {
+                        final ImmutableRoaringBitmap srb = (ImmutableRoaringBitmap) o;
+                        return srb.highlowcontainer
+                                .equals(this.highlowcontainer);
+                }
+                return false;
+        }
+
+        /**
+         * Returns the number of distinct integers added to the bitmap (e.g.,
+         * number of bits set).
+         * 
+         * @return the cardinality
+         */
+        public int getCardinality() {
+                int size = 0;
+                for (int i = 0; i < this.highlowcontainer.size(); i++) {
+                        size += this.highlowcontainer.getContainerAtIndex(i)
+                                .getCardinality();
+                }
+                return size;
+        }
+        
+        private IntIterator getIntIterator() {
+                return new IntIterator() {
+                        int hs = 0;
+
+                        Iterator<Short> iter;
+
+                        short pos = 0;
+
+                        int x;
+
+                        @Override
+                        public boolean hasNext() {
+                                return pos < ImmutableRoaringBitmap.this.highlowcontainer
+                                        .size();
+                        }
+
+                        public IntIterator init() {
+                                if (pos < ImmutableRoaringBitmap.this.highlowcontainer
+                                        .size()) {
+                                        iter = ImmutableRoaringBitmap.this.highlowcontainer
+                                                .getContainerAtIndex(pos)
+                                                .iterator();
+                                        hs = Util
+                                                .toIntUnsigned(ImmutableRoaringBitmap.this.highlowcontainer
+                                                        .getKeyAtIndex(pos)) << 16;
+                                }
+                                return this;
+                        }
+
+                        @Override
+                        public int next() {
+                                x = Util.toIntUnsigned(iter.next()) | hs;
+                                if (!iter.hasNext()) {
+                                        ++pos;
+                                        init();
+                                }
+                                return x;
+                        }
+
+                        @Override
+                        public void remove() {
+                                throw new RuntimeException("Cannot modify");
+                        }
+
+                }.init();
+        }
+        
+        /**
+         * Estimate of the memory usage of this data structure. This
+         * can be expected to be within 1% of the true memory usage.
+         * If exact measures are needed, we recommend using dedicated
+         * libraries such as SizeOf.
+         * 
+         * When the bitmap is constructed from a ByteBuffer from a 
+         * memory-mapped file, this estimate is invalid: we can expect
+         * the actual memory usage to be significantly (e.g., 10x) less.
+         * 
+         * @return estimated memory usage.
+         */
+        public int getSizeInBytes() {
+                int size = 2;
+                for (int i = 0; i < this.highlowcontainer.size(); i++) {
+                        final Container c = this.highlowcontainer
+                                .getContainerAtIndex(i);
+                        size += 4 + c.getSizeInBytes();
+                }
+                return size;
+        }
+
+        @Override
+        public int hashCode() {
+                return highlowcontainer.hashCode();
+        }
+
+        /**
+         * iterate over the positions of the true values.
+         * 
+         * @return the iterator
+         */
+        @Override
+        public Iterator<Integer> iterator() {
+                return new Iterator<Integer>() {
+                        int hs = 0;
+
+                        Iterator<Short> iter;
+
+                        short pos = 0;
+
+                        int x;
+
+                        @Override
+                        public boolean hasNext() {
+                                return pos < ImmutableRoaringBitmap.this.highlowcontainer
+                                        .size();
+                        }
+
+                        public Iterator<Integer> init() {
+                                if (pos < ImmutableRoaringBitmap.this.highlowcontainer
+                                        .size()) {
+                                        iter = ImmutableRoaringBitmap.this.highlowcontainer
+                                                .getContainerAtIndex(pos)
+                                                .iterator();
+                                        hs = Util
+                                                .toIntUnsigned(ImmutableRoaringBitmap.this.highlowcontainer
+                                                        .getKeyAtIndex(pos)) << 16;
+                                }
+                                return this;
+                        }
+
+                        @Override
+                        public Integer next() {
+                                x = Util.toIntUnsigned(iter.next()) | hs;
+                                if (!iter.hasNext()) {
+                                        ++pos;
+                                        init();
+                                }
+                                return x;
+                        }
+
+                        @Override
+                        public void remove() {
+                                throw new RuntimeException("Cannot modify.");
+                        }
+
+                }.init();
+        }
+
+        /**
+         * Serialize the bitmap. You can later reconstruct
+         * the bitmap with RoaringBitmap.deserialize.
+         * 
+         * 
+         * @param out
+         *                the DataOutput stream
+         * @throws IOException
+         *                 Signals that an I/O exception has occurred.
+         */
+        public void serialize(DataOutput out) throws IOException {
+                this.highlowcontainer.serialize(out);
+
+        }
+
+        /**
+         * Report the number of bytes required for serialization.
+         * This count will match the bytes written when calling 
+         * the serialize method. The writeExternal method will
+         * use slightly more space due to its serialization overhead.
+         * 
+         * @return the size in bytes
+         */
+        public int serializedSizeInBytes() {
+        	return highlowcontainer.serializedSizeInBytes();
+        }
+
+        /**
+         * Return the set values as an array.
+         * 
+         * @return array representing the set values.
+         */
+        public int[] toArray() {
+                final int[] array = new int[this.getCardinality()];
+                int pos = 0, pos2 = 0;
+                while (pos < this.highlowcontainer.size()) {
+                        final int hs = Util.toIntUnsigned(this.highlowcontainer
+                                .getKeyAtIndex(pos)) << 16;
+                        final Container C = this.highlowcontainer
+                                .getContainerAtIndex(pos++);
+                        C.fillLeastSignificant16bits(array, pos2, hs);
+                        pos2 += C.getCardinality();
+                }
+                return array;
+        }
+
+        /**
+         * A string describing the bitmap.
+         * 
+         * @return the string
+         */
+        @Override
+        public String toString() {
+                final StringBuffer answer = new StringBuffer();
+                final IntIterator i = this.getIntIterator();
+                answer.append("{");
+                if (i.hasNext())
+                        answer.append(i.next());
+                while (i.hasNext()) {
+                        answer.append(",");
+                        answer.append(i.next());
+                }
+                answer.append("}");
+                return answer.toString();
+        }
+
+        /**
+         * Serialize the object.
+         * 
+         * @param out
+         *                output stream
+         * @throws IOException
+         */
+        public void writeExternal(final ObjectOutput out) throws IOException {
+                this.highlowcontainer.writeExternal(out);
+        }
 
 }

@@ -145,6 +145,7 @@ public class TestMemoryMapping {
                 final long aft = System.currentTimeMillis();
                 System.out.println("Mapped " + (offsets.size() - 1)
                         + " bitmaps in " + (aft - bef) + "ms");
+                memoryMappedFile.close();
         }
 
         static ArrayList<ImmutableRoaringBitmap> mappedbitmaps = new ArrayList<ImmutableRoaringBitmap>();

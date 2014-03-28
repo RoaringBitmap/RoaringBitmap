@@ -138,6 +138,12 @@ public abstract class Container implements Iterable<Short>, Cloneable,
         public abstract void fillLeastSignificant16bits(int[] x, int i, int mask);
 
         /**
+         * Size of the underlying array
+         * @return size in bytes
+         */
+        protected abstract int getArraySizeInBytes();
+
+        /**
          * Computes the distinct number of short values in the container. Can be
          * expected to run in constant time.
          * 
@@ -450,5 +456,6 @@ public abstract class Container implements Iterable<Short>, Cloneable,
                         return new BitmapContainer(start, last);
                 return new ArrayContainer(start, last);
         }
+        
 
 }

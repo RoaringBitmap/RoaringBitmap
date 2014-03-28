@@ -4,7 +4,10 @@
  */
 package org.roaringbitmap;
 
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.Externalizable;
+import java.io.IOException;
 
 /**
  * Base container class.
@@ -436,5 +439,32 @@ public abstract class Container implements Iterable<Short>, Cloneable,
                         return new BitmapContainer(start, last);
                 return new ArrayContainer(start, last);
         }
+
+        /**
+         * Serialize the container.
+         * 
+         * @param out
+         *                the DataOutput stream
+         * @throws IOException
+         *                 Signals that an I/O exception has occurred.
+         */
+        public abstract void serialize(DataOutput out) throws IOException;
+        	
+        /**
+         * Deserialize (recover) the container.
+         * 
+         * @param in
+         *                the DataInput stream
+         * @throws IOException
+         *                 Signals that an I/O exception has occurred.
+         */
+        public abstract void deserialize(DataInput in) throws IOException;
+        
+        /**
+         * Report the number of bytes required to serialize this container.
+         * 
+         * @return the size in bytes
+         */
+        public abstract int serializedSizeInBytes();
 
 }

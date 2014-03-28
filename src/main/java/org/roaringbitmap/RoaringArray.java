@@ -4,6 +4,8 @@
  */
 package org.roaringbitmap;
 
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -269,46 +271,86 @@ public final class RoaringArray implements Cloneable, Externalizable {
         @Override
         public void readExternal(ObjectInput in) throws IOException,
                 ClassNotFoundException {
-                this.clear();
-                // little endian
-                byte[] buffer4 = new byte[4];
-                in.readFully(buffer4);
-                this.size = buffer4[0] | ((buffer4[1] & 0xFF) << 8) | ((buffer4[2] & 0xFF) << 16) | ((buffer4[3] & 0xFF) << 24);
-                if ((this.array == null) || (this.array.length < this.size))
-                        this.array = new Element[this.size];
-                byte[] buffer = new byte[2];
-
-                for (int k = 0; k < this.size; ++k) {
-                        in.readFully(buffer);
-                        short key = (short) (buffer[0] & 0xFF | ((buffer[1] & 0xFF) << 8));
-                        boolean isbitmap = in.readBoolean();
-                        Container val;
-                        if (isbitmap) {
-                                val = new BitmapContainer();
-                                val.readExternal(in);
-                        } else {
-                                val = new ArrayContainer(0);
-                                val.readExternal(in);
-                        }
-                        this.array[k] = new Element(key, val);
-                }
+        	deserialize(in);
         }
 
         @Override
         public void writeExternal(ObjectOutput out) throws IOException {
-                out.write((this.size >>> 0) & 0xFF);
-                out.write((this.size >>> 8) & 0xFF);
-                out.write((this.size >>> 16) & 0xFF);
-                out.write((this.size >>> 24) & 0xFF);
-                for (int k = 0; k < size; ++k) {
-                        out.write((this.array[k].key >>> 0) & 0xFF);
-                        out.write((this.array[k].key >>> 8) & 0xFF);
-                        out.writeBoolean(this.array[k].value instanceof BitmapContainer);
-                        array[k].value.writeExternal(out);
-                }
-
+        	serialize(out);
         }
 
-        private static final long serialVersionUID = 5L;
+        /**
+         * Serialize.
+         * 
+         * The current bitmap is not modified.
+         * 
+         * @param out
+         *                the DataOutput stream
+         * @throws IOException
+         *                 Signals that an I/O exception has occurred.
+         */
+        public void serialize(DataOutput out) throws IOException {
+        	out.write((this.size >>> 0) & 0xFF);
+            out.write((this.size >>> 8) & 0xFF);
+            out.write((this.size >>> 16) & 0xFF);
+            out.write((this.size >>> 24) & 0xFF);
+            for (int k = 0; k < size; ++k) {
+                    out.write((this.array[k].key >>> 0) & 0xFF);
+                    out.write((this.array[k].key >>> 8) & 0xFF);
+                    out.writeBoolean(this.array[k].value instanceof BitmapContainer);
+                    array[k].value.serialize(out);
+            }
+        }
+        	
+        /**
+         * Deserialize.
+         * 
+         * @param in
+         *                the DataInput stream
+         * @throws IOException
+         *                 Signals that an I/O exception has occurred.
+         */
+        public void deserialize(DataInput in) throws IOException {
+            this.clear();
+            // little endian
+            byte[] buffer4 = new byte[4];
+            in.readFully(buffer4);
+            this.size = buffer4[0] | ((buffer4[1] & 0xFF) << 8) | ((buffer4[2] & 0xFF) << 16) | ((buffer4[3] & 0xFF) << 24);
+            if ((this.array == null) || (this.array.length < this.size))
+                    this.array = new Element[this.size];
+            byte[] buffer = new byte[2];
+
+            for (int k = 0; k < this.size; ++k) {
+                    in.readFully(buffer);
+                    short key = (short) (buffer[0] & 0xFF | ((buffer[1] & 0xFF) << 8));
+                    boolean isbitmap = in.readBoolean();
+                    Container val;
+                    if (isbitmap) {
+                            val = new BitmapContainer();
+                            val.deserialize(in);
+                    } else {
+                            val = new ArrayContainer(0);
+                            val.deserialize(in);
+                    }
+                    this.array[k] = new Element(key, val);
+            }
+        }
+        
+
+        /**
+         * Report the number of bytes required for serialization.
+         * 
+         * @return the size in bytes
+         */
+        public int serializedSizeInBytes() {
+        	int count = 4;
+            for (int k = 0; k < this.size; ++k) {
+            	count += 2 + 1;
+            	count += this.array[k].value.serializedSizeInBytes();
+            }
+            return count;
+        	
+        }
+        private static final long serialVersionUID = 6L;
 
 }
