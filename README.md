@@ -28,6 +28,8 @@ Samy Chambi, Daniel Lemire, Owen Kaser, Robert Godin,
 Better bitmap performance with Roaring bitmaps,
 http://arxiv.org/abs/1402.6407
 
+This paper used data from http://lemire.me/data/realroaring2014.html
+
 
 Code sample
 -------------
