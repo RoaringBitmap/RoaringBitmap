@@ -200,7 +200,7 @@ public final class BitmapContainer extends Container implements Cloneable,
          * Fill the array with set bits
          * 
          * @param array
-         *                container (should be large enoug)
+         *                container (should be sufficiently large)
          */
         protected void fillArray(final int[] array) {
                 int pos = 0;
@@ -218,7 +218,7 @@ public final class BitmapContainer extends Container implements Cloneable,
          * Fill the array with set bits
          * 
          * @param array
-         *                container (should be large enoug)
+         *                container (should be sufficiently large)
          */
         protected void fillArray(final short[] array) {
                 int pos = 0;

@@ -740,7 +740,7 @@ public class TestRoaringBitmap {
 
         @Test
         public void flipTestBig() {
-                final int numCases = 1000000;
+                final int numCases = 1000;
                 System.out.println("flipTestBig for " + numCases + " tests");
                 final RoaringBitmap rb = new RoaringBitmap();
                 final BitSet bs = new BitSet();
@@ -787,7 +787,7 @@ public class TestRoaringBitmap {
 
         @Test
         public void flipTestBigA() {
-                final int numCases = 1000000;
+                final int numCases = 1000;
                 System.out.println("flipTestBigA for " + numCases + " tests");
                 final BitSet bs = new BitSet();
                 final Random r = new Random(3333);

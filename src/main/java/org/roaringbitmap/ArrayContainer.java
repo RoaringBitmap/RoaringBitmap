@@ -448,9 +448,7 @@ public final class ArrayContainer extends Container implements Cloneable,
                         return toBitmapContainer().not(firstOfRange,
                                 lastOfRange);
 
-                ArrayContainer answer = new ArrayContainer();
-                if (answer.content.length < newCardinality)
-                        answer.content = new short[newCardinality];
+                ArrayContainer answer = new ArrayContainer(newCardinality);
 
                 for (int i = 0; i < startIndex; ++i)
                         // copy stuff before the active area
