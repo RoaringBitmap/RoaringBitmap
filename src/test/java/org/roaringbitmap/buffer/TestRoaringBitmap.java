@@ -1139,8 +1139,8 @@ public class TestRoaringBitmap {
                                                                 .getClass()
                                                                 .getCanonicalName());
 
-                                                throw new RuntimeException(
-                                                        "bug inplace and");
+                                             throw new RuntimeException(
+                                                       "bug inplace and");
                                         }
                                 }
 
@@ -1195,7 +1195,7 @@ public class TestRoaringBitmap {
                                                                         .xor(rb1,
                                                                                 rb2)
                                                                         .toArray()));
-                                                throw new RuntimeException(
+                                               throw new RuntimeException(
                                                         "bug xor");
                                         }
                                 }
@@ -1395,6 +1395,11 @@ public class TestRoaringBitmap {
                 }
                 final RoaringBitmap correct = RoaringBitmap.xor(rr, rr2);
                 rr.xor(rr2);
+System.out.println();
+                System.out.println(rr.getCardinality());
+                System.out.println();
+                System.out.println(correct.getCardinality());
+                System.out.println();
                 Assert.assertTrue(correct.equals(rr));
         }
 

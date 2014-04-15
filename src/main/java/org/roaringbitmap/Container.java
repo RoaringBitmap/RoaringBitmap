@@ -17,6 +17,21 @@ public abstract class Container implements Iterable<Short>, Cloneable,
         Externalizable {
 
         /**
+         * Create a container initialized with a range of consecutive values
+         * 
+         * @param start
+         *                first index
+         * @param last
+         *                last index (range in inclusive)
+         * @return a new container initialized with the specified values
+         */
+        public static Container rangeOfOnes(final int start, final int last) {
+                if (last - start + 1 > ArrayContainer.DEFAULTMAXSIZE)
+                        return new BitmapContainer(start, last);
+                return new ArrayContainer(start, last);
+        }
+
+        /**
          * Add a short to the container. May generate a new container.
          * 
          * 
@@ -120,6 +135,16 @@ public abstract class Container implements Iterable<Short>, Cloneable,
         public abstract boolean contains(short x);
 
         /**
+         * Deserialize (recover) the container.
+         * 
+         * @param in
+         *                the DataInput stream
+         * @throws IOException
+         *                 Signals that an I/O exception has occurred.
+         */
+        public abstract void deserialize(DataInput in) throws IOException;
+
+        /**
          * Fill the least significant 16 bits of the integer array, starting at
          * index index, with the short values from this container. The caller is
          * responsible to allocate enough room. The most significant 16 bits of
@@ -134,6 +159,12 @@ public abstract class Container implements Iterable<Short>, Cloneable,
          *                indicates most significant bits
          */
         public abstract void fillLeastSignificant16bits(int[] x, int i, int mask);
+
+        /**
+         * Size of the underlying array
+         * @return size in bytes
+         */
+        protected abstract int getArraySizeInBytes();
 
         /**
          * Computes the distinct number of short values in the container. Can be
@@ -386,10 +417,36 @@ public abstract class Container implements Iterable<Short>, Cloneable,
         public abstract Container remove(short x);
 
         /**
+         * Serialize the container.
+         * 
+         * @param out
+         *                the DataOutput stream
+         * @throws IOException
+         *                 Signals that an I/O exception has occurred.
+         */
+        public abstract void serialize(DataOutput out) throws IOException;
+
+        /**
+         * Report the number of bytes required to serialize this container.
+         * 
+         * @return the size in bytes
+         */
+        public abstract int serializedSizeInBytes();
+
+        /**
          * If possible, recover wasted memory.
          */
         public abstract void trim();
-
+        	
+        /**
+         * Write just the underlying array.
+         * 
+         * @param out
+         *                output stream
+         * @throws IOException
+         */
+        protected abstract void writeArray(DataOutput out) throws IOException;
+        
         /**
          * Computes the bitwise OR of this container with another (union). This
          * container as well as the provided container are left unaffected.
@@ -399,6 +456,7 @@ public abstract class Container implements Iterable<Short>, Cloneable,
          * @return aggregated container
          */
         public abstract Container xor(ArrayContainer x);
+        
 
         /**
          * Computes the bitwise OR of this container with another (union). This
@@ -409,6 +467,7 @@ public abstract class Container implements Iterable<Short>, Cloneable,
          * @return aggregated container
          */
         public abstract Container xor(BitmapContainer x);
+        
 
         /**
          * Computes the bitwise OR of this container with another (union). This
@@ -425,46 +484,6 @@ public abstract class Container implements Iterable<Short>, Cloneable,
 
         }
 
-        /**
-         * Create a container initialized with a range of consecutive values
-         * 
-         * @param start
-         *                first index
-         * @param last
-         *                last index (range in inclusive)
-         * @return a new container initialized with the specified values
-         */
-        public static Container rangeOfOnes(final int start, final int last) {
-                if (last - start + 1 > ArrayContainer.DEFAULTMAXSIZE)
-                        return new BitmapContainer(start, last);
-                return new ArrayContainer(start, last);
-        }
 
-        /**
-         * Serialize the container.
-         * 
-         * @param out
-         *                the DataOutput stream
-         * @throws IOException
-         *                 Signals that an I/O exception has occurred.
-         */
-        public abstract void serialize(DataOutput out) throws IOException;
-        	
-        /**
-         * Deserialize (recover) the container.
-         * 
-         * @param in
-         *                the DataInput stream
-         * @throws IOException
-         *                 Signals that an I/O exception has occurred.
-         */
-        public abstract void deserialize(DataInput in) throws IOException;
-        
-        /**
-         * Report the number of bytes required to serialize this container.
-         * 
-         * @return the size in bytes
-         */
-        public abstract int serializedSizeInBytes();
 
 }

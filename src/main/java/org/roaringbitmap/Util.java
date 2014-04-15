@@ -75,8 +75,16 @@ public final class Util {
 
         }
 
-        protected static void fillArrayAND(short[] container, long[] bitmap1,
-                long[] bitmap2) {
+        /**
+         * Compute the bitwise AND between two long arrays and write
+         * the set bits in the container.
+         * 
+         * @param container where we write
+         * @param bitmap1 first bitmap
+         * @param bitmap2 second bitmap
+         */
+        public static void fillArrayAND(final short[] container, final long[] bitmap1,
+                final long[] bitmap2) {
                 int pos = 0;
                 if (bitmap1.length != bitmap2.length)
                         throw new IllegalArgumentException("not supported");
@@ -91,8 +99,16 @@ public final class Util {
                 }
         }
 
-        protected static void fillArrayANDNOT(short[] container,
-                long[] bitmap1, long[] bitmap2) {
+        /**
+         * Compute the bitwise ANDNOT between two long arrays and write
+         * the set bits in the container.
+         * 
+         * @param container where we write
+         * @param bitmap1 first bitmap
+         * @param bitmap2 second bitmap
+         */
+        public static void fillArrayANDNOT(final short[] container,
+                final long[] bitmap1, final long[] bitmap2) {
                 int pos = 0;
                 if (bitmap1.length != bitmap2.length)
                         throw new IllegalArgumentException("not supported");
@@ -107,8 +123,16 @@ public final class Util {
                 }
         }
 
-        protected static void fillArrayXOR(short[] container, long[] bitmap1,
-                long[] bitmap2) {
+        /**
+         * Compute the bitwise XOR between two long arrays and write
+         * the set bits in the container.
+         * 
+         * @param container where we write
+         * @param bitmap1 first bitmap
+         * @param bitmap2 second bitmap
+         */
+        public static void fillArrayXOR(final short[] container, final long[] bitmap1,
+                final long[] bitmap2) {
                 int pos = 0;
                 if (bitmap1.length != bitmap2.length)
                         throw new IllegalArgumentException("not supported");
@@ -159,7 +183,18 @@ public final class Util {
                 return -(low + 1);
         }
 
-        static protected int unsigned_difference(final short[] set1,
+        /**
+         * Compute the difference between two sorted lists and write the result to the provided
+         * output array
+         * 
+         * @param set1 first array
+         * @param length1 length of first array
+         * @param set2 second array
+         * @param length2 length of second array
+         * @param buffer output array
+         * @return cardinality of the difference
+         */
+        public static int unsigned_difference(final short[] set1,
                 final int length1, final short[] set2, final int length2,
                 final short[] buffer) {
                 int pos = 0;
@@ -203,7 +238,18 @@ public final class Util {
                 return pos;
         }
 
-        static protected int unsigned_exclusiveunion2by2(final short[] set1,
+        /**
+         * Compute the exclusive union of two sorted lists and write the result to the provided
+         * output array
+         * 
+         * @param set1 first array
+         * @param length1 length of first array
+         * @param set2 second array
+         * @param length2 length of second array
+         * @param buffer output array
+         * @return cardinality of the exclusive union
+         */
+        public static int unsigned_exclusiveunion2by2(final short[] set1,
                 final int length1, final short[] set2, final int length2,
                 final short[] buffer) {
                 int pos = 0;
@@ -253,7 +299,18 @@ public final class Util {
                 return pos;
         }
 
-        protected static int unsigned_intersect2by2(final short[] set1,
+        /**
+         * Intersect two sorted lists and write the result to the provided
+         * output array
+         * 
+         * @param set1 first array
+         * @param length1 length of first array
+         * @param set2 second array
+         * @param length2 length of second array
+         * @param buffer output array
+         * @return cardinality of the intersection
+         */
+        public static int unsigned_intersect2by2(final short[] set1,
                 final int length1, final short[] set2, final int length2,
                 final short[] buffer) {
                 if (set1.length * 64 < set2.length) {
@@ -342,7 +399,18 @@ public final class Util {
 
         }
 
-        static protected int unsigned_union2by2(final short[] set1,
+        /**
+         * Unite two sorted lists and write the result to the provided
+         * output array
+         * 
+         * @param set1 first array
+         * @param length1 length of first array
+         * @param set2 second array
+         * @param length2 length of second array
+         * @param buffer output array
+         * @return cardinality of the union
+         */
+        public static int unsigned_union2by2(final short[] set1,
                 final int length1, final short[] set2, final int length2,
                 final short[] buffer) {
                 int pos = 0;

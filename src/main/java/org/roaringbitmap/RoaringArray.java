@@ -290,18 +290,40 @@ public final class RoaringArray implements Cloneable, Externalizable {
          *                 Signals that an I/O exception has occurred.
          */
         public void serialize(DataOutput out) throws IOException {
-        	out.write((this.size >>> 0) & 0xFF);
-            out.write((this.size >>> 8) & 0xFF);
-            out.write((this.size >>> 16) & 0xFF);
-            out.write((this.size >>> 24) & 0xFF);
-            for (int k = 0; k < size; ++k) {
-                    out.write((this.array[k].key >>> 0) & 0xFF);
-                    out.write((this.array[k].key >>> 8) & 0xFF);
-                    out.writeBoolean(this.array[k].value instanceof BitmapContainer);
-                    array[k].value.serialize(out);
-            }
+                out.write((serialCookie >>> 0) & 0xFF);
+                out.write((serialCookie >>> 8) & 0xFF);
+                out.write((serialCookie >>> 16) & 0xFF);
+                out.write((serialCookie >>> 24) & 0xFF);
+
+                out.write((this.size >>> 0) & 0xFF);
+                out.write((this.size >>> 8) & 0xFF);
+                out.write((this.size >>> 16) & 0xFF);
+                out.write((this.size >>> 24) & 0xFF);
+
+                for (int k = 0; k < size; ++k) {
+                        out.write((this.array[k].key >>> 0) & 0xFF);
+                        out.write((this.array[k].key >>> 8) & 0xFF);
+                        out.write(((this.array[k].value.getCardinality() - 1) >>> 0) & 0xFF);
+                        out.write(((this.array[k].value.getCardinality() - 1) >>> 8) & 0xFF);
+                }
+                for (int k = 0; k < size; ++k) {
+                        array[k].value.writeArray(out);
+                }
         }
-        	
+        
+        /**
+         * Report the number of bytes required for serialization.
+         * 
+         * @return the size in bytes
+         */
+        public int serializedSizeInBytes() {
+                int count =  4 + 4 + 4 * size;
+            for (int k = 0; k < size; ++k) {
+                count += array[k].value.getArraySizeInBytes();
+            }
+            return count;
+        }
+
         /**
          * Deserialize.
          * 
@@ -311,46 +333,67 @@ public final class RoaringArray implements Cloneable, Externalizable {
          *                 Signals that an I/O exception has occurred.
          */
         public void deserialize(DataInput in) throws IOException {
-            this.clear();
-            // little endian
-            byte[] buffer4 = new byte[4];
-            in.readFully(buffer4);
-            this.size = buffer4[0] | ((buffer4[1] & 0xFF) << 8) | ((buffer4[2] & 0xFF) << 16) | ((buffer4[3] & 0xFF) << 24);
-            if ((this.array == null) || (this.array.length < this.size))
-                    this.array = new Element[this.size];
-            byte[] buffer = new byte[2];
+                this.clear();
+                final byte[] buffer4 = new byte[4];
+                final byte[] buffer = new byte[2];
+                // little endian
+                in.readFully(buffer4);
+                final int cookie = buffer4[0] | ((buffer4[1] & 0xFF) << 8)
+                        | ((buffer4[2] & 0xFF) << 16)
+                        | ((buffer4[3] & 0xFF) << 24);
+                if (cookie != serialCookie)
+                        throw new IOException(
+                                "I failed to find the right cookie.");
 
-            for (int k = 0; k < this.size; ++k) {
-                    in.readFully(buffer);
-                    short key = (short) (buffer[0] & 0xFF | ((buffer[1] & 0xFF) << 8));
-                    boolean isbitmap = in.readBoolean();
-                    Container val;
-                    if (isbitmap) {
-                            val = new BitmapContainer();
-                            val.deserialize(in);
-                    } else {
-                            val = new ArrayContainer(0);
-                            val.deserialize(in);
-                    }
-                    this.array[k] = new Element(key, val);
-            }
+                in.readFully(buffer4);
+                this.size = buffer4[0] | ((buffer4[1] & 0xFF) << 8)
+                        | ((buffer4[2] & 0xFF) << 16)
+                        | ((buffer4[3] & 0xFF) << 24);
+                if ((this.array == null) || (this.array.length < this.size))
+                        this.array = new Element[this.size];
+                final short keys[] = new short[this.size];
+                final int cardinalities[] = new int[this.size];
+                final boolean isbitmap[] = new boolean[this.size];
+                for (int k = 0; k < this.size; ++k) {
+                        in.readFully(buffer);
+                        keys[k] = (short) (buffer[0] & 0xFF | ((buffer[1] & 0xFF) << 8));
+                        in.readFully(buffer);
+                        cardinalities[k] = 1 + (buffer[0] & 0xFF | ((buffer[1] & 0xFF) << 8));
+                        isbitmap[k] = cardinalities[k] > ArrayContainer.DEFAULTMAXSIZE;
+                }
+                for (int k = 0; k < this.size; ++k) {
+                        Container val;
+                        if (isbitmap[k]) {
+                                final long[] bitmaparray = new long[BitmapContainer.maxcapacity / 64];
+                                final byte[] buf = new byte[8];
+                                // little endian
+                                for (int l = 0; l < bitmaparray.length; ++l) {
+                                        in.readFully(buf);
+                                        bitmaparray[l]= (((long) buf[7] << 56)
+                                                                + ((long) (buf[6] & 255) << 48)
+                                                                + ((long) (buf[5] & 255) << 40)
+                                                                + ((long) (buf[4] & 255) << 32)
+                                                                + ((long) (buf[3] & 255) << 24)
+                                                                + ((buf[2] & 255) << 16)
+                                                                + ((buf[1] & 255) << 8) + ((buf[0] & 255) << 0));
+                                }
+                                val = new BitmapContainer(bitmaparray,
+                                        cardinalities[k]);
+                        } else {
+                                final short[] shortarray = new short[cardinalities[k]];
+                                for (int l = 0; l < shortarray.length; ++l) {
+                                        in.readFully(buffer);
+                                        shortarray[l] =
+                                                        (short) (buffer[0] & 0xFF | ((buffer[1] & 0xFF) << 8));
+                                }
+                                val = new ArrayContainer(shortarray);
+                        }
+                        this.array[k] = new Element(keys[k], val);
+                }
         }
-        
 
-        /**
-         * Report the number of bytes required for serialization.
-         * 
-         * @return the size in bytes
-         */
-        public int serializedSizeInBytes() {
-        	int count = 4;
-            for (int k = 0; k < this.size; ++k) {
-            	count += 2 + 1;
-            	count += this.array[k].value.serializedSizeInBytes();
-            }
-            return count;
-        	
-        }
-        private static final long serialVersionUID = 6L;
+        protected static final short serialCookie = 12345;
+
+        private static final long serialVersionUID = 7L;
 
 }

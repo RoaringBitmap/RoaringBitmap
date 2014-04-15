@@ -19,7 +19,7 @@ import java.util.Arrays;
 /**
  * Specialized array to stored the containers used by a RoaringBitmap. This
  * class is similar to org.roaringbitmap.RoaringArray but meant to be used with
- * memory mapping. They may use different serialized forms.
+ * memory mapping. 
  * 
  * Objects of this class reside in RAM.
  * 

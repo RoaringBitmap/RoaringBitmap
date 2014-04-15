@@ -22,15 +22,15 @@ import org.roaringbitmap.ShortIterator;
  */
 public final class ArrayContainer extends Container implements Cloneable,
                 Serializable {
-        protected int cardinality = 0;
-
-        protected ShortBuffer content;
-
         private static final int DEFAULTINITSIZE = 4;
+
+        protected static final int DEFAULTMAXSIZE = 4096;
 
         private static final long serialVersionUID = 1L;
 
-        protected static final int DEFAULTMAXSIZE = 4096;
+        protected int cardinality = 0;
+
+        protected ShortBuffer content;
 
         /**
          * Create an array container with default capacity
@@ -157,15 +157,25 @@ public final class ArrayContainer extends Container implements Cloneable,
         @Override
         public ArrayContainer and(final ArrayContainer value2) {
 
-                final ArrayContainer value1 = this;
+                ArrayContainer value1 = this;
                 final int desiredcapacity = Math.min(value1.getCardinality(),
                                 value2.getCardinality());
-                final ArrayContainer answer = new ArrayContainer(
-                                desiredcapacity);
-                answer.cardinality = Util.unsigned_intersect2by2(
-                                value1.content, value1.getCardinality(),
-                                value2.content, value2.getCardinality(),
-                                answer.content);
+                ArrayContainer answer = new ArrayContainer(desiredcapacity);
+                if (this.content.hasArray() && value2.content.hasArray())
+                        answer.cardinality = org.roaringbitmap.Util
+                                        .unsigned_intersect2by2(
+                                                        value1.content.array(),
+                                                        value1.getCardinality(),
+                                                        value2.content.array(),
+                                                        value2.getCardinality(),
+                                                        answer.content.array());
+                else
+                        answer.cardinality = Util.unsigned_intersect2by2(
+                                        value1.content,
+                                        value1.getCardinality(),
+                                        value2.content,
+                                        value2.getCardinality(),
+                                        answer.content.array());
                 return answer;
         }
 
@@ -180,21 +190,41 @@ public final class ArrayContainer extends Container implements Cloneable,
                 final int desiredcapacity = value1.getCardinality();
                 final ArrayContainer answer = new ArrayContainer(
                                 desiredcapacity);
-                answer.cardinality = Util.unsigned_difference(value1.content,
-                                value1.getCardinality(), value2.content,
-                                value2.getCardinality(), answer.content);
+                if (value1.content.hasArray() && value2.content.hasArray())
+                        answer.cardinality = org.roaringbitmap.Util
+                                        .unsigned_difference(
+                                                        value1.content.array(),
+                                                        value1.getCardinality(),
+                                                        value2.content.array(),
+                                                        value2.getCardinality(),
+                                                        answer.content.array());
+                else
+                        answer.cardinality = Util.unsigned_difference(
+                                        value1.content,
+                                        value1.getCardinality(),
+                                        value2.content,
+                                        value2.getCardinality(),
+                                        answer.content.array());
                 return answer;
         }
 
         @Override
         public ArrayContainer andNot(BitmapContainer value2) {
+
                 final ArrayContainer answer = new ArrayContainer(
                                 content.limit());
                 int pos = 0;
                 short[] sarray = answer.content.array();
-                for (int k = 0; k < cardinality; ++k)
-                        if (!value2.contains(this.content.get(k)))
-                                sarray[pos++] = this.content.get(k);
+                if (this.content.hasArray()) {
+                        short[] c = content.array();
+                        for (int k = 0; k < cardinality; ++k)
+                                if (!value2.contains(c[k]))
+                                        sarray[pos++] = c[k];
+
+                } else
+                        for (int k = 0; k < cardinality; ++k)
+                                if (!value2.contains(this.content.get(k)))
+                                        sarray[pos++] = this.content.get(k);
                 answer.cardinality = pos;
                 return answer;
         }
@@ -220,10 +250,21 @@ public final class ArrayContainer extends Container implements Cloneable,
                         final ArrayContainer srb = (ArrayContainer) o;
                         if (srb.cardinality != this.cardinality)
                                 return false;
-                        for (int i = 0; i < this.cardinality; ++i) {
-                                if (this.content.get(i) != srb.content.get(i))
-                                        return false;
-                        }
+                        if (this.content.hasArray() && srb.content.hasArray()) {
+                                short[] t = this.content.array();
+                                short[] sr = srb.content.array();
+
+                                for (int i = 0; i < this.cardinality; ++i) {
+                                        if (t[i] != sr[i])
+                                                return false;
+                                }
+
+                        } else
+                                for (int i = 0; i < this.cardinality; ++i) {
+                                        if (this.content.get(i) != srb.content
+                                                        .get(i))
+                                                return false;
+                                }
                         return true;
                 }
                 return false;
@@ -231,9 +272,15 @@ public final class ArrayContainer extends Container implements Cloneable,
 
         @Override
         public void fillLeastSignificant16bits(int[] x, int i, int mask) {
-                for (int k = 0; k < this.cardinality; ++k)
-                        x[k + i] = Util.toIntUnsigned(this.content.get(k))
-                                        | mask;
+                if (this.content.hasArray()) {
+                        short[] c = this.content.array();
+                        for (int k = 0; k < this.cardinality; ++k)
+                                x[k + i] = Util.toIntUnsigned(c[k]) | mask;
+
+                } else
+                        for (int k = 0; k < this.cardinality; ++k)
+                                x[k + i] = Util.toIntUnsigned(this.content
+                                                .get(k)) | mask;
 
         }
 
@@ -283,14 +330,13 @@ public final class ArrayContainer extends Container implements Cloneable,
                         hash += 31 * content.get(k);
                 return hash;
         }
-
         @Override
         public ArrayContainer iand(final ArrayContainer value2) {
                 final ArrayContainer value1 = this;
                 value1.cardinality = Util.unsigned_intersect2by2(
                                 value1.content, value1.getCardinality(),
                                 value2.content, value2.getCardinality(),
-                                value1.content);
+                                value1.content.array());
                 return this;
         }
 
@@ -306,18 +352,31 @@ public final class ArrayContainer extends Container implements Cloneable,
 
         @Override
         public ArrayContainer iandNot(final ArrayContainer value2) {
-                this.cardinality = Util.unsigned_difference(this.content,
-                                this.getCardinality(), value2.content,
-                                value2.getCardinality(), this.content);
+                if (value2.content.hasArray())
+                        this.cardinality = org.roaringbitmap.Util
+                                        .unsigned_difference(
+                                                        this.content.array(),
+                                                        this.getCardinality(),
+                                                        value2.content.array(),
+                                                        value2.getCardinality(),
+                                                        this.content.array());
+                else
+                        this.cardinality = Util.unsigned_difference(
+                                        this.content, this.getCardinality(),
+                                        value2.content,
+                                        value2.getCardinality(),
+                                        this.content.array());
+
                 return this;
         }
 
         @Override
         public ArrayContainer iandNot(BitmapContainer value2) {
+                short[] c = this.content.array();
                 int pos = 0;
                 for (int k = 0; k < cardinality; ++k)
-                        if (!value2.contains(this.content.get(k)))
-                                this.content.put(pos++, this.content.get(k));
+                        if (!value2.contains(c[k]))
+                                c[pos++] = c[k];
                 this.cardinality = pos;
                 return this;
         }
@@ -438,7 +497,7 @@ public final class ArrayContainer extends Container implements Cloneable,
 
         protected void loadData(final BitmapContainer bitmapContainer) {
                 this.cardinality = bitmapContainer.cardinality;
-                bitmapContainer.fillArray(content);
+                bitmapContainer.fillArray(content.array());
         }
 
         // for use in inot range known to be nonempty
@@ -547,16 +606,36 @@ public final class ArrayContainer extends Container implements Cloneable,
                 if (totalCardinality > DEFAULTMAXSIZE) {// it could be a bitmap!
                         final BitmapContainer bc = new BitmapContainer();
                         long[] bitarray = bc.bitmap.array();
-                        for (int k = 0; k < value2.cardinality; ++k) {
-                                final int i = Util.toIntUnsigned(value2.content
-                                                .get(k)) >>> 6;
-                                bitarray[i] |= (1l << value2.content.get(k));
-                        }
-                        for (int k = 0; k < this.cardinality; ++k) {
-                                final int i = Util.toIntUnsigned(this.content
-                                                .get(k)) >>> 6;
-                                bitarray[i] |= (1l << this.content.get(k));
-                        }
+                        if (value2.content.hasArray()) {
+                                short[] sarray = value2.content.array();
+                                for (int k = 0; k < value2.cardinality; ++k) {
+                                        final int i = Util
+                                                        .toIntUnsigned(sarray[k]) >>> 6;
+                                        bitarray[i] |= (1l << sarray[k]);
+                                }
+                        } else
+                                for (int k = 0; k < value2.cardinality; ++k) {
+                                        final int i = Util
+                                                        .toIntUnsigned(value2.content
+                                                                        .get(k)) >>> 6;
+                                        bitarray[i] |= (1l << value2.content
+                                                        .get(k));
+                                }
+                        if (this.content.hasArray()) {
+                                short[] sarray = this.content.array();
+                                for (int k = 0; k < this.cardinality; ++k) {
+                                        final int i = Util
+                                                        .toIntUnsigned(sarray[k]) >>> 6;
+                                        bitarray[i] |= (1l << sarray[k]);
+                                }
+                        } else
+                                for (int k = 0; k < this.cardinality; ++k) {
+                                        final int i = Util
+                                                        .toIntUnsigned(this.content
+                                                                        .get(k)) >>> 6;
+                                        bitarray[i] |= (1l << this.content
+                                                        .get(k));
+                                }
                         bc.cardinality = 0;
                         for (int index = 0; index < bc.bitmap.limit(); ++index) {
                                 bc.cardinality += Long
@@ -570,9 +649,22 @@ public final class ArrayContainer extends Container implements Cloneable,
                                                               // totalCardinality);
                 final ArrayContainer answer = new ArrayContainer(
                                 desiredcapacity);
-                answer.cardinality = Util.unsigned_union2by2(value1.content,
-                                value1.getCardinality(), value2.content,
-                                value2.getCardinality(), answer.content);
+                if (value1.content.hasArray() && value2.content.hasArray())
+                        answer.cardinality = org.roaringbitmap.Util
+                                        .unsigned_union2by2(
+                                                        value1.content.array(),
+                                                        value1.getCardinality(),
+                                                        value2.content.array(),
+                                                        value2.getCardinality(),
+                                                        answer.content.array());
+
+                else
+                        answer.cardinality = Util.unsigned_union2by2(
+                                        value1.content,
+                                        value1.getCardinality(),
+                                        value2.content,
+                                        value2.getCardinality(),
+                                        answer.content.array());
                 return answer;
         }
 
@@ -675,16 +767,37 @@ public final class ArrayContainer extends Container implements Cloneable,
                 if (totalCardinality > DEFAULTMAXSIZE) {// it could be a bitmap!
                         final BitmapContainer bc = new BitmapContainer();
                         long[] bitarray = bc.bitmap.array();
-                        for (int k = 0; k < value2.cardinality; ++k) {
-                                final int i = Util.toIntUnsigned(value2.content
-                                                .get(k)) >>> 6;
-                                bitarray[i] ^= (1l << value2.content.get(k));
-                        }
-                        for (int k = 0; k < this.cardinality; ++k) {
-                                final int i = Util.toIntUnsigned(this.content
-                                                .get(k)) >>> 6;
-                                bitarray[i] ^= (1l << this.content.get(k));
-                        }
+                        if (value2.content.hasArray()) {
+                                short[] sarray = value2.content.array();
+                                for (int k = 0; k < value2.cardinality; ++k) {
+                                        final int i = Util
+                                                        .toIntUnsigned(sarray[k]) >>> 6;
+                                        bitarray[i] ^= (1l << sarray[k]);
+                                }
+                        } else
+                                for (int k = 0; k < value2.cardinality; ++k) {
+                                        final int i = Util
+                                                        .toIntUnsigned(value2.content
+                                                                        .get(k)) >>> 6;
+                                        bitarray[i] ^= (1l << value2.content
+                                                        .get(k));
+                                }
+                        if (this.content.hasArray()) {
+                                short[] sarray = this.content.array();
+                                for (int k = 0; k < this.cardinality; ++k) {
+                                        final int i = Util
+                                                        .toIntUnsigned(sarray[k]) >>> 6;
+                                        bitarray[i] ^= (1l << sarray[k]);
+                                }
+                        } else
+                                for (int k = 0; k < this.cardinality; ++k) {
+                                        final int i = Util
+                                                        .toIntUnsigned(this.content
+                                                                        .get(k)) >>> 6;
+                                        bitarray[i] ^= (1l << this.content
+                                                        .get(k));
+                                }
+
                         bc.cardinality = 0;
                         for (int index = 0; index < bc.bitmap.limit(); ++index) {
                                 bc.cardinality += Long
@@ -697,10 +810,21 @@ public final class ArrayContainer extends Container implements Cloneable,
                 final int desiredcapacity = totalCardinality;
                 final ArrayContainer answer = new ArrayContainer(
                                 desiredcapacity);
-                answer.cardinality = Util.unsigned_exclusiveunion2by2(
-                                value1.content, value1.getCardinality(),
-                                value2.content, value2.getCardinality(),
-                                answer.content);
+                if (value1.content.hasArray() && value2.content.hasArray())
+                        answer.cardinality = org.roaringbitmap.Util
+                                        .unsigned_exclusiveunion2by2(
+                                                        value1.content.array(),
+                                                        value1.getCardinality(),
+                                                        value2.content.array(),
+                                                        value2.getCardinality(),
+                                                        answer.content.array());
+                else
+                        answer.cardinality = Util.unsigned_exclusiveunion2by2(
+                                        value1.content,
+                                        value1.getCardinality(),
+                                        value2.content,
+                                        value2.getCardinality(),
+                                        answer.content.array());
                 return answer;
         }
 

@@ -82,7 +82,7 @@ public final class Util {
 
         }
 
-        protected static void fillArrayAND(ShortBuffer container,
+        protected static void fillArrayAND(short[] container,
                 LongBuffer bitmap1, LongBuffer bitmap2) {
                 int pos = 0;
                 if (bitmap1.limit() != bitmap2.limit())
@@ -91,15 +91,14 @@ public final class Util {
                         long bitset = bitmap1.get(k) & bitmap2.get(k);
                         while (bitset != 0) {
                                 final long t = bitset & -bitset;
-                                container
-                                        .put(pos++, (short) (k * 64 + Long
-                                                .bitCount(t - 1)));
+                                container[pos++] =  (short) (k * 64 + Long
+                                                .bitCount(t - 1));
                                 bitset ^= t;
                         }
                 }
         }
 
-        protected static void fillArrayANDNOT(ShortBuffer container,
+        protected static void fillArrayANDNOT(short[] container,
                 LongBuffer bitmap1, LongBuffer bitmap2) {
                 int pos = 0;
                 if (bitmap1.limit() != bitmap2.limit())
@@ -108,15 +107,14 @@ public final class Util {
                         long bitset = bitmap1.get(k) & (~bitmap2.get(k));
                         while (bitset != 0) {
                                 final long t = bitset & -bitset;
-                                container
-                                        .put(pos++, (short) (k * 64 + Long
-                                                .bitCount(t - 1)));
+                                container[pos++] =  (short) (k * 64 + Long
+                                                .bitCount(t - 1));
                                 bitset ^= t;
                         }
                 }
         }
 
-        protected static void fillArrayXOR(ShortBuffer container,
+        protected static void fillArrayXOR(short[]  container,
                 LongBuffer bitmap1, LongBuffer bitmap2) {
                 int pos = 0;
                 if (bitmap1.limit() != bitmap2.limit())
@@ -125,9 +123,8 @@ public final class Util {
                         long bitset = bitmap1.get(k) ^ bitmap2.get(k);
                         while (bitset != 0) {
                                 final long t = bitset & -bitset;
-                                container
-                                        .put(pos++, (short) (k * 64 + Long
-                                                .bitCount(t - 1)));
+                                container[pos++] = (short) (k * 64 + Long
+                                                .bitCount(t - 1));
                                 bitset ^= t;
                         }
                 }
@@ -172,12 +169,12 @@ public final class Util {
 
         static protected int unsigned_difference(final ShortBuffer set1,
                 final int length1, final ShortBuffer set2, final int length2,
-                final ShortBuffer buffer) {
+                final short[] buffer) {
                 int pos = 0;
                 int k1 = 0, k2 = 0;
                 if (0 == length2) {
                         for (int k = 0; k < length1; ++k)
-                                buffer.put(k, set1.get(k));
+                                buffer[k] = set1.get(k);
                         return length1;
                 }
                 if (0 == length1) {
@@ -186,7 +183,7 @@ public final class Util {
                 while (true) {
                         if (toIntUnsigned(set1.get(k1)) < toIntUnsigned(set2
                                 .get(k2))) {
-                                buffer.put(pos++, set1.get(k1));
+                                buffer[pos++] = set1.get(k1);
                                 ++k1;
                                 if (k1 >= length1) {
                                         break;
@@ -201,14 +198,14 @@ public final class Util {
                                 }
                                 if (k2 >= length2) {
                                         for (; k1 < length1; ++k1)
-                                                buffer.put(pos++, set1.get(k1));
+                                                buffer[pos++] = set1.get(k1);
                                         break;
                                 }
                         } else {// if (val1>val2)
                                 ++k2;
                                 if (k2 >= length2) {
                                         for (; k1 < length1; ++k1)
-                                                buffer.put(pos++, set1.get(k1));
+                                                buffer[pos++] = set1.get(k1);
                                         break;
                                 }
                         }
@@ -219,27 +216,27 @@ public final class Util {
         static protected int unsigned_exclusiveunion2by2(
                 final ShortBuffer set1, final int length1,
                 final ShortBuffer set2, final int length2,
-                final ShortBuffer buffer) {
+                final short[] buffer) {
                 int pos = 0;
                 int k1 = 0, k2 = 0;
                 if (0 == length2) {
                         for (int k = 0; k < length1; ++k)
-                                buffer.put(k, set1.get(k));
+                                buffer[k] = set1.get(k);
                         return length1;
                 }
                 if (0 == length1) {
                         for (int k = 0; k < length2; ++k)
-                                buffer.put(k, set2.get(k));
+                                buffer[k] = set2.get(k);
                         return length2;
                 }
                 while (true) {
                         if (toIntUnsigned(set1.get(k1)) < toIntUnsigned(set2
                                 .get(k2))) {
-                                buffer.put(pos++, set1.get(k1));
+                                buffer[pos++] = set1.get(k1);
                                 ++k1;
                                 if (k1 >= length1) {
                                         for (; k2 < length2; ++k2)
-                                                buffer.put(pos++, set2.get(k2));
+                                                buffer[pos++] = set2.get(k2);
                                         break;
                                 }
                         } else if (toIntUnsigned(set1.get(k1)) == toIntUnsigned(set2
@@ -248,20 +245,20 @@ public final class Util {
                                 ++k2;
                                 if (k1 >= length1) {
                                         for (; k2 < length2; ++k2)
-                                                buffer.put(pos++, set2.get(k2));
+                                                buffer[pos++] = set2.get(k2);
                                         break;
                                 }
                                 if (k2 >= length2) {
                                         for (; k1 < length1; ++k1)
-                                                buffer.put(pos++, set1.get(k1));
+                                                buffer[pos++] = set1.get(k1);
                                         break;
                                 }
                         } else {// if (val1>val2)
-                                buffer.put(pos++, set2.get(k2));
+                                buffer[pos++] = set2.get(k2);
                                 ++k2;
                                 if (k2 >= length2) {
                                         for (; k1 < length1; ++k1)
-                                                buffer.put(pos++, set1.get(k1));
+                                                buffer[pos++] = set1.get(k1);
                                         break;
                                 }
                         }
@@ -271,7 +268,7 @@ public final class Util {
 
         protected static int unsigned_intersect2by2(final ShortBuffer set1,
                 final int length1, final ShortBuffer set2, final int length2,
-                final ShortBuffer buffer) {
+                final short[] buffer) {
                 if (set1.limit() * 64 < set2.limit()) {
                         return unsigned_onesidedgallopingintersect2by2(set1,
                                 length1, set2, length2, buffer);
@@ -287,7 +284,7 @@ public final class Util {
         protected static int unsigned_localintersect2by2(
                 final ShortBuffer set1, final int length1,
                 final ShortBuffer set2, final int length2,
-                final ShortBuffer buffer) {
+                final short[] buffer) {
                 if ((0 == length1) || (0 == length2))
                         return 0;
                 int k1 = 0;
@@ -314,7 +311,7 @@ public final class Util {
                                         .get(k2)));
                         } else {
                                 // (set2.get(k2) == set1.get(k1))
-                                buffer.put(pos++, set1.get(k1));
+                                buffer[pos++] = set1.get(k1);
                                 ++k1;
                                 if (k1 == length1)
                                         break;
@@ -329,7 +326,7 @@ public final class Util {
         protected static int unsigned_onesidedgallopingintersect2by2(
                 final ShortBuffer smallset, final int smalllength,
                 final ShortBuffer largeset, final int largelength,
-                final ShortBuffer buffer) {
+                final short[] buffer) {
                 if (0 == smalllength)
                         return 0;
                 int k1 = 0;
@@ -350,7 +347,7 @@ public final class Util {
                                         break mainwhile;
                         } else {
                                 // (set2.get(k2) == set1.get(k1))
-                                buffer.put(pos++, smallset.get(k2));
+                                buffer[pos++] = smallset.get(k2);
                                 ++k2;
                                 if (k2 == smalllength)
                                         break;
@@ -367,50 +364,50 @@ public final class Util {
 
         static protected int unsigned_union2by2(final ShortBuffer set1,
                 final int length1, final ShortBuffer set2, final int length2,
-                final ShortBuffer buffer) {
+                final short[] buffer) {
                 int pos = 0;
                 int k1 = 0, k2 = 0;
                 if (0 == length2) {
                         for (int k = 0; k < length1; ++k)
-                                buffer.put(k, set1.get(k));
+                                buffer[k] = set1.get(k);
                         return length1;
                 }
                 if (0 == length1) {
                         for (int k = 0; k < length2; ++k)
-                                buffer.put(k, set2.get(k));
+                                buffer[k] = set2.get(k);
                         return length2;
                 }
                 while (true) {
                         if (toIntUnsigned(set1.get(k1)) < toIntUnsigned(set2
                                 .get(k2))) {
-                                buffer.put(pos++, set1.get(k1));
+                                buffer[pos++] = set1.get(k1);
                                 ++k1;
                                 if (k1 >= length1) {
                                         for (; k2 < length2; ++k2)
-                                                buffer.put(pos++, set2.get(k2));
+                                                buffer[pos++] = set2.get(k2);
                                         break;
                                 }
                         } else if (toIntUnsigned(set1.get(k1)) == toIntUnsigned(set2
                                 .get(k2))) {
-                                buffer.put(pos++, set1.get(k1));
+                                buffer[pos++] = set1.get(k1);
                                 ++k1;
                                 ++k2;
                                 if (k1 >= length1) {
                                         for (; k2 < length2; ++k2)
-                                                buffer.put(pos++, set2.get(k2));
+                                                buffer[pos++] = set2.get(k2);
                                         break;
                                 }
                                 if (k2 >= length2) {
                                         for (; k1 < length1; ++k1)
-                                                buffer.put(pos++, set1.get(k1));
+                                                buffer[pos++] = set1.get(k1);
                                         break;
                                 }
                         } else {// if (set1.get(k1)>set2.get(k2))
-                                buffer.put(pos++, set2.get(k2));
+                                buffer[pos++] = set2.get(k2);
                                 ++k2;
                                 if (k2 >= length2) {
                                         for (; k1 < length1; ++k1)
-                                                buffer.put(pos++, set1.get(k1));
+                                                buffer[pos++] = set1.get(k1);
                                         break;
                                 }
                         }

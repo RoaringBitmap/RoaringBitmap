@@ -1,8 +1,15 @@
+version 0.1.2 (April 15th, 2014)
+  - serialization format should not be the same for both org.roaringbitmap.RoaringBitmap
+  and org.roaringbitmap.buffer.RoaringBitmap
+  - Performance of org.roaringbitmap.buffer.RoaringBitmap should not be on par with
+  org.roaringbitmap.RoaringBitmap when the buffer is backed by an array
+
+
 version 0.1.1 (March 28th, 2014)
   - made serialized format slightly more concise:
     added the serialize/deserialize methods throughout 
     to bypass Java serialization overhead
-  - added the serializedSizeInBytes() method for user who 
+  - added the serializedSizeInBytes() method for users who 
     wish to query the memory usage
 
 version 0.1.0 (March 21th, 2014)

@@ -70,12 +70,12 @@ Operations on an ImmutableRoaringBitmap such as and, or, xor, flip, will
 generate a RoaringBitmap which lies in RAM. As the name suggest, the 
 ImmutableRoaringBitmap itself cannot be modified.
 
-This designed was inspired by druid.io.
+This design was inspired by druid.io.
 
 One can find a complete working example in the test file TestMemoryMapping.java.
 
 Note that you should not mix the classes from the org.roaringbitmap package with the classes
-from the org.roaringbitmap.buffer package. They are incompatible.
+from the org.roaringbitmap.buffer package. They are incompatible. They serialize to the same output however.
 
 Download
 ---------
@@ -94,7 +94,7 @@ If your project depends on roaring, you  can  specify the dependency in the Mave
           <dependency>
             <groupId>org.roaringbitmap</groupId>
             <artifactId>RoaringBitmap</artifactId>
-            <version>0.1.1</version>
+            <version>0.1.2</version>
           </dependency>
         </dependencies>
 

@@ -66,9 +66,11 @@ public final class ArrayContainer extends Container implements Cloneable,
         private ArrayContainer(int newcard, short[] newcontent) {
                 this.cardinality = newcard;
                 this.content = Arrays.copyOf(newcontent, newcard);
-
         }
-
+        protected ArrayContainer(short[] newcontent) {
+                this.cardinality = newcontent.length;
+                this.content = newcontent;
+        }
         /**
          * running time is in O(n) time if insert is not in order.
          * 
@@ -196,6 +198,11 @@ public final class ArrayContainer extends Container implements Cloneable,
                 for (int k = 0; k < this.cardinality; ++k)
                         x[k + i] = Util.toIntUnsigned(this.content[k]) | mask;
 
+        }
+
+        @Override
+        protected int getArraySizeInBytes() {
+                return cardinality * 2;
         }
 
         @Override
@@ -577,54 +584,62 @@ public final class ArrayContainer extends Container implements Cloneable,
                 sb.append("}");
                 return sb.toString();
         }
+        
 
+        
         @Override
         public void trim() {
                 this.content = Arrays.copyOf(this.content, this.cardinality);
         }
-        
-
-        
+        	
+        @Override
+        protected void writeArray(DataOutput out) throws IOException {
+                // little endian
+                for (int k = 0; k < this.cardinality; ++k) {
+                        out.write((this.content[k] >>> 0) & 0xFF);
+                        out.write((this.content[k] >>> 8) & 0xFF);
+                }
+        }
         @Override
         public void writeExternal(ObjectOutput out) throws IOException {
                 serialize(out);
         }
-        	
-        @Override
-        public Container xor(final ArrayContainer value2) {
-                final ArrayContainer value1 = this;
-                final int totalCardinality = value1.getCardinality()
-                        + value2.getCardinality();
-                if (totalCardinality > DEFAULTMAXSIZE) {// it could be a bitmap!
-                        BitmapContainer bc = new BitmapContainer();
-                        for (int k = 0; k < value2.cardinality; ++k) {
-                                final int i = Util
-                                        .toIntUnsigned(value2.content[k]) >>> 6;
-                                bc.bitmap[i] ^= (1l << value2.content[k]);
-                        }
-                        for (int k = 0; k < this.cardinality; ++k) {
-                                final int i = Util
-                                        .toIntUnsigned(this.content[k]) >>> 6;
-                                bc.bitmap[i] ^= (1l << this.content[k]);
-                        }
-                        bc.cardinality = 0;
-                        for (long k : bc.bitmap) {
-                                bc.cardinality += Long.bitCount(k);
-                        }
-                        if (bc.cardinality <= DEFAULTMAXSIZE)
-                                return bc.toArrayContainer();
-                        return bc;
-                }
-                final int desiredcapacity = totalCardinality;
-                ArrayContainer answer = new ArrayContainer(desiredcapacity);
-                answer.cardinality = Util
-                        .unsigned_exclusiveunion2by2(value1.content,
-                                value1.getCardinality(), value2.content,
-                                value2.getCardinality(), answer.content);
-                return answer;
-        }
 
 		@Override
+                public Container xor(final ArrayContainer value2) {
+                        final ArrayContainer value1 = this;
+                        final int totalCardinality = value1.getCardinality()
+                                + value2.getCardinality();
+                        if (totalCardinality > DEFAULTMAXSIZE) {// it could be a bitmap!
+                                BitmapContainer bc = new BitmapContainer();
+                                for (int k = 0; k < value2.cardinality; ++k) {
+                                        final int i = Util
+                                                .toIntUnsigned(value2.content[k]) >>> 6;
+                                        bc.bitmap[i] ^= (1l << value2.content[k]);
+                                }
+                                for (int k = 0; k < this.cardinality; ++k) {
+                                        final int i = Util
+                                                .toIntUnsigned(this.content[k]) >>> 6;
+                                        bc.bitmap[i] ^= (1l << this.content[k]);
+                                }
+                                bc.cardinality = 0;
+                                for (long k : bc.bitmap) {
+                                        bc.cardinality += Long.bitCount(k);
+                                }
+                                if (bc.cardinality <= DEFAULTMAXSIZE)
+                                        return bc.toArrayContainer();
+                                return bc;
+                        }
+                        final int desiredcapacity = totalCardinality;
+                        ArrayContainer answer = new ArrayContainer(desiredcapacity);
+                        answer.cardinality = Util
+                                .unsigned_exclusiveunion2by2(value1.content,
+                                        value1.getCardinality(), value2.content,
+                                        value2.getCardinality(), answer.content);
+                        return answer;
+                }
+
+	        @Override
         public Container xor(BitmapContainer x) {
                 return x.xor(this);
         }

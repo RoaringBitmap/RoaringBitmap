@@ -19,6 +19,21 @@ public abstract class Container implements Iterable<Short>, Cloneable,
         Externalizable {
 
         /**
+         * Create a container initialized with a range of consecutive values
+         * 
+         * @param start
+         *                first index
+         * @param last
+         *                last index (range in inclusive)
+         * @return a new container initialized with the specified values
+         */
+        public static Container rangeOfOnes(final int start, final int last) {
+                if (last - start + 1 > ArrayContainer.DEFAULTMAXSIZE)
+                        return new BitmapContainer(start, last);
+                return new ArrayContainer(start, last);
+        }
+
+        /**
          * Add a short to the container. May generate a new container.
          * 
          * 
@@ -399,6 +414,15 @@ public abstract class Container implements Iterable<Short>, Cloneable,
         public abstract void trim();
 
         /**
+         * Write just the underlying array.
+         * 
+         * @param out
+         *                output stream
+         * @throws IOException
+         */
+        protected abstract void writeArray(DataOutput out) throws IOException;
+
+        /**
          * Computes the bitwise OR of this container with another (union). This
          * container as well as the provided container are left unaffected.
          * 
@@ -431,30 +455,6 @@ public abstract class Container implements Iterable<Short>, Cloneable,
                         return xor((ArrayContainer) x);
                 return xor((BitmapContainer) x);
 
-        }
-
-        /**
-         * Write just the underlying array.
-         * 
-         * @param out
-         *                output stream
-         * @throws IOException
-         */
-        protected abstract void writeArray(DataOutput out) throws IOException;
-
-        /**
-         * Create a container initialized with a range of consecutive values
-         * 
-         * @param start
-         *                first index
-         * @param last
-         *                last index (range in inclusive)
-         * @return a new container initialized with the specified values
-         */
-        public static Container rangeOfOnes(final int start, final int last) {
-                if (last - start + 1 > ArrayContainer.DEFAULTMAXSIZE)
-                        return new BitmapContainer(start, last);
-                return new ArrayContainer(start, last);
         }
         
 

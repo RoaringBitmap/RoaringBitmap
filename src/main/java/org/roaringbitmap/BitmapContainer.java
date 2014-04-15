@@ -71,6 +71,10 @@ public final class BitmapContainer extends Container implements Cloneable,
                 this.bitmap = Arrays.copyOf(newbitmap, newbitmap.length);
         }
 
+        protected BitmapContainer(long[] newbitmap, int newcardinality) {
+                this.cardinality = newcardinality;
+                this.bitmap = newbitmap;
+        }
         @Override
         public Container add(final short i) {
                 final int x = Util.toIntUnsigned(i);
@@ -89,7 +93,6 @@ public final class BitmapContainer extends Container implements Cloneable,
                                 answer.content[answer.cardinality++] = value2.content[k];
                 return answer;
         }
-
         @Override
         public Container and(final BitmapContainer value2) {
                 int newcardinality = 0;
@@ -245,6 +248,11 @@ public final class BitmapContainer extends Container implements Cloneable,
                                 bitset ^= t;
                         }
                 }
+        }
+
+        @Override
+        protected int getArraySizeInBytes() {
+                return maxcapacity / 8;
         }
 
         @Override
@@ -686,6 +694,25 @@ public final class BitmapContainer extends Container implements Cloneable,
 
         @Override
         public void trim() {
+        }
+
+        @Override
+        protected void writeArray(DataOutput out) throws IOException {
+
+                final byte[] buffer = new byte[8];
+                // little endian
+                for (int k = 0; k < maxcapacity / 64; ++k) {
+                        final long w = bitmap[k];
+                        buffer[0] = (byte) (w >>> 0);
+                        buffer[1] = (byte) (w >>> 8);
+                        buffer[2] = (byte) (w >>> 16);
+                        buffer[3] = (byte) (w >>> 24);
+                        buffer[4] = (byte) (w >>> 32);
+                        buffer[5] = (byte) (w >>> 40);
+                        buffer[6] = (byte) (w >>> 48);
+                        buffer[7] = (byte) (w >>> 56);
+                        out.write(buffer, 0, 8);
+                }
         }
 
         
