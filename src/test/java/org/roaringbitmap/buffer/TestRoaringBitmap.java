@@ -1395,11 +1395,6 @@ public class TestRoaringBitmap {
                 }
                 final RoaringBitmap correct = RoaringBitmap.xor(rr, rr2);
                 rr.xor(rr2);
-System.out.println();
-                System.out.println(rr.getCardinality());
-                System.out.println();
-                System.out.println(correct.getCardinality());
-                System.out.println();
                 Assert.assertTrue(correct.equals(rr));
         }
 
