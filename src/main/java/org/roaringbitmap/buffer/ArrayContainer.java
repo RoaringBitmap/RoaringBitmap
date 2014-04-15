@@ -59,6 +59,7 @@ public final class ArrayContainer extends Container implements Cloneable,
          *                last index (range is inclusive)
          */
         public ArrayContainer(final int firstOfRun, final int lastOfRun) {
+                //TODO: this can be optimized for performance
                 final int valuesInRange = lastOfRun - firstOfRun + 1;
                 content = ShortBuffer.allocate(valuesInRange);
                 short[] sarray = content.array();
@@ -398,6 +399,7 @@ public final class ArrayContainer extends Container implements Cloneable,
 
         @Override
         public Container inot(final int firstOfRange, final int lastOfRange) {
+                //TODO: this can be optimized for performance
                 // determine the span of array indices to be affected
                 int startIndex = Util.unsigned_binarySearch(content, 0,
                                 cardinality, (short) firstOfRange);
@@ -543,6 +545,7 @@ public final class ArrayContainer extends Container implements Cloneable,
         // shares lots of code with inot; candidate for refactoring
         @Override
         public Container not(final int firstOfRange, final int lastOfRange) {
+                //TODO: this can be optimized for performance
                 if (firstOfRange > lastOfRange) {
                         return clone(); // empty range
                 }

@@ -50,6 +50,7 @@ public final class BitmapContainer extends Container implements Cloneable,
          *                last index (range is inclusive)
          */
         public BitmapContainer(final int firstOfRun, final int lastOfRun) {
+                //TODO: this can be optimized for performance
                 this.cardinality = lastOfRun - firstOfRun + 1;
                 this.bitmap = LongBuffer.allocate(maxcapacity / 64);
                 if (this.cardinality == maxcapacity) // perhaps a common case
@@ -712,6 +713,7 @@ public final class BitmapContainer extends Container implements Cloneable,
         // "this"
         private Container not(BitmapContainer answer, final int firstOfRange,
                         final int lastOfRange) {
+                //TODO: this can be optimized for performance
                 assert bitmap.limit() == maxcapacity / 64; // checking
                                                            // assumption
                                                            // that partial
