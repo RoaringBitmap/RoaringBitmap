@@ -15,6 +15,9 @@ import java.nio.ShortBuffer;
  */
 public final class Util {
 
+        /** Private constructor to prevent instantiation of utility class */
+        private Util() {}
+
         /**
          * Find the smallest integer larger than pos such that array[pos]>= min.
          * If none can be found, return length. Based on code by O. Kaser.
@@ -142,7 +145,7 @@ public final class Util {
                 return (short) 0xFFFF;
         }
 
-        protected final static int toIntUnsigned(short x) {
+        protected static int toIntUnsigned(short x) {
                 return x & 0xFFFF;
         }
 
@@ -167,7 +170,7 @@ public final class Util {
                 return -(low + 1);
         }
 
-        static protected int unsigned_difference(final ShortBuffer set1,
+        protected static int unsigned_difference(final ShortBuffer set1,
                 final int length1, final ShortBuffer set2, final int length2,
                 final short[] buffer) {
                 int pos = 0;
@@ -213,7 +216,7 @@ public final class Util {
                 return pos;
         }
 
-        static protected int unsigned_exclusiveunion2by2(
+        protected static int unsigned_exclusiveunion2by2(
                 final ShortBuffer set1, final int length1,
                 final ShortBuffer set2, final int length2,
                 final short[] buffer) {
@@ -362,7 +365,7 @@ public final class Util {
 
         }
 
-        static protected int unsigned_union2by2(final ShortBuffer set1,
+        protected static int unsigned_union2by2(final ShortBuffer set1,
                 final int length1, final ShortBuffer set2, final int length2,
                 final short[] buffer) {
                 int pos = 0;

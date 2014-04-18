@@ -25,7 +25,7 @@ import java.util.Arrays;
  * 
  */
 public final class RoaringArray implements Cloneable, Externalizable {
-        protected final class Element implements Cloneable {
+        protected static final class Element implements Cloneable {
                 public Element(short key, Container value) {
                         this.key = key;
                         this.value = value;
@@ -197,11 +197,9 @@ public final class RoaringArray implements Cloneable, Externalizable {
                         if (srb.size != this.size)
                                 return false;
                         for (int i = 0; i < srb.size; ++i) {
-
                                 if (this.array[i].key != srb.array[i].key)
                                         return false;
-                                if (!this.array[i].value
-                                        .equals(srb.array[i].value))
+                                if (!this.array[i].value.equals(srb.array[i].value))
                                         return false;
                         }
                         return true;
@@ -211,7 +209,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
         @Override
         public int hashCode() {
-                return array.hashCode();
+                return Arrays.hashCode(array);
         }
 
         @Override
@@ -372,7 +370,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
                 this.size = 0;
         }
 
-        protected boolean ContainsKey(short x) {
+        protected boolean containsKey(short x) {
                 return (binarySearch(0, size, x) >= 0);
         }
 
@@ -461,6 +459,6 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
         protected static final short serialCookie = 12345;
         
-        protected final static int initialCapacity = 4;
+        protected static final int initialCapacity = 4;
 
 }

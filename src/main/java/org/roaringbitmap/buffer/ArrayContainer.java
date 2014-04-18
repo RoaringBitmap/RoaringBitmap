@@ -20,8 +20,7 @@ import org.roaringbitmap.ShortIterator;
  * data.
  * 
  */
-public final class ArrayContainer extends Container implements Cloneable,
-                Serializable {
+public final class ArrayContainer extends Container implements Cloneable, Serializable {
         private static final int DEFAULTINITSIZE = 4;
 
         protected static final int DEFAULTMAXSIZE = 4096;
@@ -193,12 +192,12 @@ public final class ArrayContainer extends Container implements Cloneable,
                                 desiredcapacity);
                 if (value1.content.hasArray() && value2.content.hasArray())
                         answer.cardinality = org.roaringbitmap.Util
-                                        .unsigned_difference(
-                                                        value1.content.array(),
-                                                        value1.getCardinality(),
-                                                        value2.content.array(),
-                                                        value2.getCardinality(),
-                                                        answer.content.array());
+                                        .unsignedDifference(
+                                                value1.content.array(),
+                                                value1.getCardinality(),
+                                                value2.content.array(),
+                                                value2.getCardinality(),
+                                                answer.content.array());
                 else
                         answer.cardinality = Util.unsigned_difference(
                                         value1.content,
@@ -355,12 +354,12 @@ public final class ArrayContainer extends Container implements Cloneable,
         public ArrayContainer iandNot(final ArrayContainer value2) {
                 if (value2.content.hasArray())
                         this.cardinality = org.roaringbitmap.Util
-                                        .unsigned_difference(
-                                                        this.content.array(),
-                                                        this.getCardinality(),
-                                                        value2.content.array(),
-                                                        value2.getCardinality(),
-                                                        this.content.array());
+                                        .unsignedDifference(
+                                                this.content.array(),
+                                                this.getCardinality(),
+                                                value2.content.array(),
+                                                value2.getCardinality(),
+                                                this.content.array());
                 else
                         this.cardinality = Util.unsigned_difference(
                                         this.content, this.getCardinality(),
@@ -474,9 +473,7 @@ public final class ArrayContainer extends Container implements Cloneable,
 
                         @Override
                         public Short next() {
-                                return new Short(
-                                                ArrayContainer.this.content
-                                                                .get(pos++));
+                                return ArrayContainer.this.content.get(pos++);
                         }
 
                         @Override

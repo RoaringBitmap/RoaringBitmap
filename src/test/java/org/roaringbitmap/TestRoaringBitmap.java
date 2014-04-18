@@ -312,7 +312,6 @@ public class TestRoaringBitmap {
                 rr.add(110000);
                 a[pos++] = 110000;
                 final int[] array = rr.toArray();
-                pos = 0;
                 for (int i = 0; i < array.length; i++)
                         if (array[i] != a[i])
                                 System.out.println("rr : " + array[i] + " a : "
@@ -950,15 +949,15 @@ public class TestRoaringBitmap {
                 // arrayContainer
                 for (int k = 0; k < 4000; ++k) {
                         rr2.add(k);
-                        V1.add(new Integer(k));
+                        V1.add(k);
                 }
                 for (int k = 3500; k < 4500; ++k) {
                         rr.add(k);
-                        V1.add(new Integer(k));
+                        V1.add(k);
                 }
                 for (int k = 4000; k < 65000; ++k) {
                         rr2.add(k);
-                        V1.add(new Integer(k));
+                        V1.add(k);
                 }
 
                 // In the second node of each roaring bitmap, we have two bitmap
@@ -966,12 +965,12 @@ public class TestRoaringBitmap {
                 // So, we will check the union between two BitmapContainers
                 for (int k = 65536; k < 65536 + 10000; ++k) {
                         rr.add(k);
-                        V1.add(new Integer(k));
+                        V1.add(k);
                 }
 
                 for (int k = 65536; k < 65536 + 14000; ++k) {
                         rr2.add(k);
-                        V1.add(new Integer(k));
+                        V1.add(k);
                 }
 
                 // In the 3rd node of each Roaring Bitmap, we have an
@@ -979,24 +978,24 @@ public class TestRoaringBitmap {
                 // ArrayContainers.
                 for (int k = 4 * 65535; k < 4 * 65535 + 1000; ++k) {
                         rr.add(k);
-                        V1.add(new Integer(k));
+                        V1.add(k);
                 }
 
                 for (int k = 4 * 65535; k < 4 * 65535 + 800; ++k) {
                         rr2.add(k);
-                        V1.add(new Integer(k));
+                        V1.add(k);
                 }
 
                 // For the rest, we will check if the union will take them in
                 // the result
                 for (int k = 6 * 65535; k < 6 * 65535 + 1000; ++k) {
                         rr.add(k);
-                        V1.add(new Integer(k));
+                        V1.add(k);
                 }
 
                 for (int k = 7 * 65535; k < 7 * 65535 + 2000; ++k) {
                         rr2.add(k);
-                        V1.add(new Integer(k));
+                        V1.add(k);
                 }
 
                 final RoaringBitmap rror = RoaringBitmap.or(rr, rr2);
@@ -1009,14 +1008,14 @@ public class TestRoaringBitmap {
 
                 final Object[] tab = V1.toArray();
                 final Vector<Integer> vector = new Vector<Integer>();
-                for (int i = 0; i < tab.length; i++)
-                        vector.add((Integer) tab[i]);
+                for (Object aTab : tab)
+                    vector.add((Integer) aTab);
 
                 for (final int i : rror.toArray()) {
                         if (!vector.contains(new Integer(i))) {
                                 valide = false;
                         }
-                        V2.add(new Integer(i));
+                        V2.add(i);
                 }
                 for (int i = 0; i < V1.size(); i++)
                         if (!V2.contains(vector.elementAt(i))) {
@@ -1386,7 +1385,7 @@ public class TestRoaringBitmap {
                 for (int k = 0; k < 4000; ++k) {
                         rr2.add(k);
                         if (k < 3500)
-                                V1.add(new Integer(k));
+                                V1.add(k);
                 }
                 for (int k = 3500; k < 4500; ++k) {
                         rr.add(k);
@@ -1394,7 +1393,7 @@ public class TestRoaringBitmap {
                 for (int k = 4000; k < 65000; ++k) {
                         rr2.add(k);
                         if (k >= 4500)
-                                V1.add(new Integer(k));
+                                V1.add(k);
                 }
 
                 // In the second node of each roaring bitmap, we have two bitmap
@@ -1407,7 +1406,7 @@ public class TestRoaringBitmap {
                 for (int k = 65536; k < 65536 + 50000; ++k) {
                         rr2.add(k);
                         if (k >= 65536 + 30000)
-                                V1.add(new Integer(k));
+                                V1.add(k);
                 }
 
                 // In the 3rd node of each Roaring Bitmap, we have an
@@ -1416,7 +1415,7 @@ public class TestRoaringBitmap {
                 for (int k = 4 * 65535; k < 4 * 65535 + 1000; ++k) {
                         rr.add(k);
                         if (k >= 4 * 65535 + 800)
-                                V1.add(new Integer(k));
+                                V1.add(k);
                 }
 
                 for (int k = 4 * 65535; k < 4 * 65535 + 800; ++k) {
@@ -1427,12 +1426,12 @@ public class TestRoaringBitmap {
                 // the result
                 for (int k = 6 * 65535; k < 6 * 65535 + 1000; ++k) {
                         rr.add(k);
-                        V1.add(new Integer(k));
+                        V1.add(k);
                 }
 
                 for (int k = 7 * 65535; k < 7 * 65535 + 2000; ++k) {
                         rr2.add(k);
-                        V1.add(new Integer(k));
+                        V1.add(k);
                 }
 
                 final RoaringBitmap rrxor = RoaringBitmap.xor(rr, rr2);
@@ -1444,14 +1443,14 @@ public class TestRoaringBitmap {
                 // alors V1 == rror
                 final Object[] tab = V1.toArray();
                 final Vector<Integer> vector = new Vector<Integer>();
-                for (int i = 0; i < tab.length; i++)
-                        vector.add((Integer) tab[i]);
+                for (Object aTab : tab)
+                    vector.add((Integer) aTab);
 
                 for (final int i : rrxor.toArray()) {
                         if (!vector.contains(new Integer(i))) {
                                 valide = false;
                         }
-                        V2.add(new Integer(i));
+                        V2.add(i);
                 }
                 for (int i = 0; i < V1.size(); i++)
                         if (!V2.contains(vector.elementAt(i))) {
@@ -1517,9 +1516,7 @@ public class TestRoaringBitmap {
                 }
 
                 // checking the cardinality of the BitmapContainer
-                if (counter != bc.getCardinality())
-                        return false;
-                return true;
+            return counter == bc.getCardinality();
         }
 
         public static boolean equals(BitSet bs, RoaringBitmap rr) {

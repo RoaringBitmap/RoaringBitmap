@@ -10,6 +10,9 @@ package org.roaringbitmap;
  */
 public final class Util {
 
+        /** Private constructor to prevent instantiation of utility class */
+        private Util() {}
+
         /**
          * Find the smallest integer larger than pos such that array[pos]>= min.
          * If none can be found, return length. Based on code by O. Kaser.
@@ -61,9 +64,8 @@ public final class Util {
 
                 // else begin binary search
                 // invariant: array[lower]<min && array[upper]>min
-                int mid = 0;
                 while (lower + 1 != upper) {
-                        mid = (lower + upper) / 2;
+                        int mid = (lower + upper) / 2;
                         if (array[mid] == min) {
                                 return mid;
                         } else if (toIntUnsigned(array[mid]) < toIntUnsigned(min))
@@ -159,12 +161,12 @@ public final class Util {
                 return (short) 0xFFFF;
         }
 
-        protected final static int toIntUnsigned(short x) {
+        protected static int toIntUnsigned(short x) {
                 return x & 0xFFFF;
         }
 
-        protected static int unsigned_binarySearch(short[] array, int begin,
-                int end, short k) {
+        protected static int unsignedBinarySearch(short[] array, int begin,
+                                                  int end, short k) {
                 int low = begin;
                 int high = end - 1;
                 int ikey = toIntUnsigned(k);
@@ -194,14 +196,13 @@ public final class Util {
          * @param buffer output array
          * @return cardinality of the difference
          */
-        public static int unsigned_difference(final short[] set1,
-                final int length1, final short[] set2, final int length2,
-                final short[] buffer) {
+        public static int unsignedDifference(final short[] set1,
+                                             final int length1, final short[] set2, final int length2,
+                                             final short[] buffer) {
                 int pos = 0;
                 int k1 = 0, k2 = 0;
                 if (0 == length2) {
-                        for (int k = 0; k < length1; ++k)
-                                buffer[k] = set1[k];
+                        System.arraycopy(set1, 0, buffer, 0, length1);
                         return length1;
                 }
                 if (0 == length1) {
@@ -255,13 +256,11 @@ public final class Util {
                 int pos = 0;
                 int k1 = 0, k2 = 0;
                 if (0 == length2) {
-                        for (int k = 0; k < length1; ++k)
-                                buffer[k] = set1[k];
+                        System.arraycopy(set1, 0, buffer, 0, length1);
                         return length1;
                 }
                 if (0 == length1) {
-                        for (int k = 0; k < length2; ++k)
-                                buffer[k] = set2[k];
+                        System.arraycopy(set2, 0, buffer, 0, length2);
                         return length2;
                 }
                 while (true) {
@@ -416,13 +415,11 @@ public final class Util {
                 int pos = 0;
                 int k1 = 0, k2 = 0;
                 if (0 == length2) {
-                        for (int k = 0; k < length1; ++k)
-                                buffer[k] = set1[k];
+                        System.arraycopy(set1, 0, buffer, 0, length1);
                         return length1;
                 }
                 if (0 == length1) {
-                        for (int k = 0; k < length2; ++k)
-                                buffer[k] = set2[k];
+                        System.arraycopy(set2, 0, buffer, 0, length2);
                         return length2;
                 }
                 while (true) {

@@ -54,14 +54,12 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                                         pos1++;
                                         if (pos1 == length1)
                                                 break main;
-                                        s1 = x1.highlowcontainer
-                                                .getKeyAtIndex(pos1);
+                                        s1 = x1.highlowcontainer.getKeyAtIndex(pos1);
                                 } else if (s1 > s2) {
                                         pos2++;
                                         if (pos2 == length2)
                                                 break main;
-                                        s2 = x2.highlowcontainer
-                                                .getKeyAtIndex(pos2);
+                                        s2 = x2.highlowcontainer.getKeyAtIndex(pos2);
                                 } else {
                                         final Container C = x1.highlowcontainer
                                                 .getContainerAtIndex(pos1)
@@ -72,8 +70,7 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                                                         s1, C);
                                         pos1++;
                                         pos2++;
-                                        if ((pos1 == length1)
-                                                || (pos2 == length2))
+                                        if ((pos1 == length1) || (pos2 == length2))
                                                 break main;
                                         s1 = x1.highlowcontainer
                                                 .getKeyAtIndex(pos1);
@@ -542,9 +539,7 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                         x.highlowcontainer = highlowcontainer.clone();
                         return x;
                 } catch (final CloneNotSupportedException e) {
-                        e.printStackTrace();
-                        throw new RuntimeException(
-                                "shouldn't happen with clone");
+                        throw new RuntimeException("shouldn't happen with clone",e);
                 }
         }
 
@@ -906,10 +901,10 @@ public final class RoaringBitmap implements Cloneable, Serializable,
                 while (pos < this.highlowcontainer.size()) {
                         final int hs = Util.toIntUnsigned(this.highlowcontainer
                                 .getKeyAtIndex(pos)) << 16;
-                        Container C = this.highlowcontainer
+                        Container c = this.highlowcontainer
                                 .getContainerAtIndex(pos++);
-                        C.fillLeastSignificant16bits(array, pos2, hs);
-                        pos2 += C.getCardinality();
+                        c.fillLeastSignificant16bits(array, pos2, hs);
+                        pos2 += c.getCardinality();
                 }
                 return array;
         }
@@ -921,7 +916,7 @@ public final class RoaringBitmap implements Cloneable, Serializable,
          */
         @Override
         public String toString() {
-                final StringBuffer answer = new StringBuffer();
+                final StringBuilder answer = new StringBuilder();
                 final IntIterator i = this.getIntIterator();
                 answer.append("{");
                 if (i.hasNext())
