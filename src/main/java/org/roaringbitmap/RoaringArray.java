@@ -29,7 +29,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
         /**
          * Append copy of the one value from another array
          * 
-         * @param sa
+         * @param sa  other array
          * @param index index in the other array
          */
         protected void appendCopy(RoaringArray sa, int index) {
@@ -41,7 +41,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
         /**
          * Append copies of the values from another array
          * 
-         * @param sa
+         * @param sa  other array
          * @param startingindex
          *                starting index in the other array
          * @param end
@@ -78,7 +78,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
          * Append copies of the values AFTER a specified key (may or may not be
          * present) to end.
          * 
-         * @param sa
+         * @param sa other array
          * @param beforeStart
          *                given key is the largest key that we won't copy
          */
