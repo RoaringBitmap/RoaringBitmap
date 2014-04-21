@@ -11,7 +11,7 @@ be hundreds of times faster and they often offer significantly better compressio
 
 
 
-(c) 2013-2014 Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado
+(c) 2013-2014 Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves
 
 This code is licensed under Apache License, Version 2.0 (ASL2.0). 
 
@@ -94,7 +94,7 @@ If your project depends on roaring, you  can  specify the dependency in the Mave
           <dependency>
             <groupId>org.roaringbitmap</groupId>
             <artifactId>RoaringBitmap</artifactId>
-            <version>0.1.2</version>
+            <version>0.1.3</version>
           </dependency>
         </dependencies>
 
