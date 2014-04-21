@@ -17,32 +17,6 @@ import java.util.Arrays;
  * 
  */
 public final class RoaringArray implements Cloneable, Externalizable {
-        protected final class Element implements Cloneable {
-                public Element(short key, Container value) {
-                        this.key = key;
-                        this.value = value;
-                }
-
-                public short key;
-
-                public Container value = null;
-
-                @Override
-                public Element clone() {
-                        Element c;
-                        try {
-                                c = (Element) super.clone();
-                                c.key = this.key; // OFK: wouldn't Object's
-                                                  // bitwise copy do this?
-                                c.value = this.value.clone();
-                                return c;
-                        } catch (CloneNotSupportedException e) {
-                                return null;
-                        }
-                }
-
-        }
-
         protected RoaringArray() {
                 this.array = new Element[initialCapacity];
         }
@@ -84,19 +58,19 @@ public final class RoaringArray implements Cloneable, Externalizable {
         /**
          * Append copies of the values from another array, from the start
          * 
-         * @param sa
+         * @param sourceArray The array to copy from
          * @param stoppingKey
          *                any equal or larger key in other array will terminate
          *                copying
          */
-        protected void appendCopiesUntil(RoaringArray sa, short stoppingKey) {
+        protected void appendCopiesUntil(RoaringArray sourceArray, short stoppingKey) {
                 int stopKey = Util.toIntUnsigned(stoppingKey);
-                for (int i = 0; i < sa.size; ++i) {
-                        if (Util.toIntUnsigned(sa.array[i].key) >= stopKey)
+                for (int i = 0; i < sourceArray.size; ++i) {
+                        if (Util.toIntUnsigned(sourceArray.array[i].key) >= stopKey)
                                 break;
                         extendArray(1);
-                        this.array[this.size++] = new Element(sa.array[i].key,
-                                sa.array[i].value.clone());
+                        this.array[this.size++] = new Element(sourceArray.array[i].key,
+                                sourceArray.array[i].value.clone());
                 }
         }
 
@@ -138,7 +112,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
                 return sa;
         }
 
-        protected boolean ContainsKey(short x) {
+        protected boolean containsKey(short x) {
                 return (binarySearch(0, size, x) >= 0);
         }
 
@@ -266,7 +240,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
         protected int size = 0;
 
-        final static int initialCapacity = 4;
+        static final int initialCapacity = 4;
 
         @Override
         public void readExternal(ObjectInput in) throws IOException,
@@ -290,18 +264,18 @@ public final class RoaringArray implements Cloneable, Externalizable {
          *                 Signals that an I/O exception has occurred.
          */
         public void serialize(DataOutput out) throws IOException {
-                out.write((serialCookie >>> 0) & 0xFF);
+                out.write(serialCookie & 0xFF);
                 out.write((serialCookie >>> 8) & 0xFF);
                 out.write((serialCookie >>> 16) & 0xFF);
                 out.write((serialCookie >>> 24) & 0xFF);
 
-                out.write((this.size >>> 0) & 0xFF);
+                out.write(this.size & 0xFF);
                 out.write((this.size >>> 8) & 0xFF);
                 out.write((this.size >>> 16) & 0xFF);
                 out.write((this.size >>> 24) & 0xFF);
 
                 for (int k = 0; k < size; ++k) {
-                        out.write((this.array[k].key >>> 0) & 0xFF);
+                        out.write(this.array[k].key & 0xFF);
                         out.write((this.array[k].key >>> 8) & 0xFF);
                         out.write(((this.array[k].value.getCardinality() - 1) >>> 0) & 0xFF);
                         out.write(((this.array[k].value.getCardinality() - 1) >>> 8) & 0xFF);
@@ -375,7 +349,8 @@ public final class RoaringArray implements Cloneable, Externalizable {
                                                                 + ((long) (buf[4] & 255) << 32)
                                                                 + ((long) (buf[3] & 255) << 24)
                                                                 + ((buf[2] & 255) << 16)
-                                                                + ((buf[1] & 255) << 8) + ((buf[0] & 255) << 0));
+                                                                + ((buf[1] & 255) << 8)
+                                                                + (buf[0] & 255));
                                 }
                                 val = new BitmapContainer(bitmaparray,
                                         cardinalities[k]);
@@ -396,4 +371,28 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
         private static final long serialVersionUID = 7L;
 
+        protected static final class Element implements Cloneable {
+                public Element(short key, Container value) {
+                        this.key = key;
+                        this.value = value;
+                }
+
+                public short key;
+
+                public Container value = null;
+
+                @Override
+                public Element clone() {
+                        Element c;
+                        try {
+                            c = (Element) super.clone();
+                            c.key = this.key; // OFK: wouldn't Object's
+                            // bitwise copy do this?
+                            c.value = this.value.clone();
+                            return c;
+                        } catch (CloneNotSupportedException e) {
+                            return null;
+                        }
+                }
+        }
 }

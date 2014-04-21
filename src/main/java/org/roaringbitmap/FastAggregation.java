@@ -14,7 +14,11 @@ import java.util.PriorityQueue;
  * @author Daniel Lemire
  * 
  */
-public class FastAggregation {
+public final class FastAggregation {
+
+        /** Private constructor to prevent instantiation of utility class */
+        private FastAggregation() {}
+
         /**
          * Sort the bitmap prior to using the and aggregate.
          * 

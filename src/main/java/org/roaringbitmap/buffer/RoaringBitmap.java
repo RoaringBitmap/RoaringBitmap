@@ -537,9 +537,7 @@ public final class RoaringBitmap extends ImmutableRoaringBitmap implements
                         x.highlowcontainer = highlowcontainer.clone();
                         return x;
                 } catch (final CloneNotSupportedException e) {
-                        e.printStackTrace();
-                        throw new RuntimeException(
-                                "shouldn't happen with clone");
+                        throw new RuntimeException("shouldn't happen with clone",e);
                 }
         }
 

@@ -1,3 +1,5 @@
 .setting/
+RoaringBitmap.iml
+.idea/
 bin/
 target/

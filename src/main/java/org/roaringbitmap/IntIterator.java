@@ -12,15 +12,15 @@ public interface IntIterator {
         /**
          * @return whether there is another value
          */
-        public boolean hasNext();
+        boolean hasNext();
 
         /**
          * @return next integer value
          */
-        public int next();
+        int next();
 
         /**
          * remove current value
          */
-        public void remove();
+        void remove();
 }

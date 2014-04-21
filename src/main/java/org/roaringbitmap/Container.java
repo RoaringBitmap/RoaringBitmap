@@ -13,8 +13,7 @@ import java.io.IOException;
  * Base container class.
  * 
  */
-public abstract class Container implements Iterable<Short>, Cloneable,
-        Externalizable {
+public abstract class Container implements Iterable<Short>, Cloneable, Externalizable {
 
         /**
          * Create a container initialized with a range of consecutive values
@@ -226,8 +225,8 @@ public abstract class Container implements Iterable<Short>, Cloneable,
         public Container iand(Container x) {
                 if (x instanceof ArrayContainer)
                         return iand((ArrayContainer) x);
-                return iand((BitmapContainer) x);
-
+                else
+                        return iand((BitmapContainer) x);
         }
 
         /**
@@ -356,7 +355,6 @@ public abstract class Container implements Iterable<Short>, Cloneable,
                 if (x instanceof ArrayContainer)
                         return ixor((ArrayContainer) x);
                 return ixor((BitmapContainer) x);
-
         }
 
         /**
@@ -456,7 +454,6 @@ public abstract class Container implements Iterable<Short>, Cloneable,
          * @return aggregated container
          */
         public abstract Container xor(ArrayContainer x);
-        
 
         /**
          * Computes the bitwise OR of this container with another (union). This
@@ -467,7 +464,6 @@ public abstract class Container implements Iterable<Short>, Cloneable,
          * @return aggregated container
          */
         public abstract Container xor(BitmapContainer x);
-        
 
         /**
          * Computes the bitwise OR of this container with another (union). This
@@ -481,9 +477,5 @@ public abstract class Container implements Iterable<Short>, Cloneable,
                 if (x instanceof ArrayContainer)
                         return xor((ArrayContainer) x);
                 return xor((BitmapContainer) x);
-
         }
-
-
-
 }
