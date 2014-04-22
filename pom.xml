@@ -153,8 +153,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
                                         <version>3.1</version>
 				<configuration>
-					<source>${java.target.version}</source>
-					<target>${java.target.version}</target>
+					<source>${maven.compiler.target}</source>
+					<target>${maven.compiler.target}</target>
 				</configuration>
 			</plugin>
 			<plugin>

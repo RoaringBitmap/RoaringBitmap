@@ -6,21 +6,20 @@ package org.roaringbitmap;
 
 /**
  * A simple iterator over integer values
- * 
  */
 public interface IntIterator {
-        /**
-         * @return whether there is another value
-         */
-        boolean hasNext();
+    /**
+     * @return whether there is another value
+     */
+    boolean hasNext();
 
-        /**
-         * @return next integer value
-         */
-        int next();
+    /**
+     * @return next integer value
+     */
+    int next();
 
-        /**
-         * remove current value
-         */
-        void remove();
+    /**
+     * remove current value
+     */
+    void remove();
 }
