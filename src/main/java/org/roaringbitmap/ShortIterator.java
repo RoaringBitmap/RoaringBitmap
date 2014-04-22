@@ -6,21 +6,20 @@ package org.roaringbitmap;
 
 /**
  * @author lemire
- * 
  */
 public interface ShortIterator {
-        /**
-         * @return whether there is another value
-         */
-        boolean hasNext();
+    /**
+     * @return whether there is another value
+     */
+    boolean hasNext();
 
-        /**
-         * @return next short value
-         */
-        short next();
+    /**
+     * @return next short value
+     */
+    short next();
 
-        /**
-         * remove current value
-         */
-        void remove();
+    /**
+     * remove current value
+     */
+    void remove();
 }
