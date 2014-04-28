@@ -696,7 +696,7 @@ public final class RoaringBitmap extends ImmutableRoaringBitmap implements
 
     /**
      * Serialize this bitmap.
-     * <p/>
+     * 
      * The current bitmap is not modified.
      *
      * @param out the DataOutput stream
