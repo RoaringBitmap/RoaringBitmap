@@ -16,7 +16,7 @@ import java.util.Iterator;
  * This class is a base class for org.roaringbitmap.buffer.RoaringArray. As the
  * name suggests, it is immutable. It can also be constructed from a ByteBuffer
  * (useful for memory mapping).
- * <p/>
+ * 
  * Objects of this class may reside almost entirely in memory-map files.
  */
 public class ImmutableRoaringBitmap implements Iterable<Integer> {
@@ -25,7 +25,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer> {
      * Bitwise AND (intersection) operation. The provided bitmaps are *not*
      * modified. This operation is thread-safe as long as the provided
      * bitmaps remain unchanged.
-     * <p/>
+     * 
      * If you have more than 2 bitmaps, consider using the
      * FastAggregation class.
      *
@@ -186,7 +186,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer> {
      * Bitwise OR (union) operation. The provided bitmaps are *not*
      * modified. This operation is thread-safe as long as the provided
      * bitmaps remain unchanged.
-     * <p/>
+     * 
      * If you have more than 2 bitmaps, consider using the
      * FastAggregation class.
      *
@@ -246,7 +246,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer> {
      * Bitwise XOR (symmetric difference) operation. The provided bitmaps
      * are *not* modified. This operation is thread-safe as long as the
      * provided bitmaps remain unchanged.
-     * <p/>
+     * 
      * If you have more than 2 bitmaps, consider using the
      * FastAggregation class.
      *
@@ -402,7 +402,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer> {
      * can be expected to be within 1% of the true memory usage.
      * If exact measures are needed, we recommend using dedicated
      * libraries such as SizeOf.
-     * <p/>
+     * 
      * When the bitmap is constructed from a ByteBuffer from a
      * memory-mapped file, this estimate is invalid: we can expect
      * the actual memory usage to be significantly (e.g., 10x) less.

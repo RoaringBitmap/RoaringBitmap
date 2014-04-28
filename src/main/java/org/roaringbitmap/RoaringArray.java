@@ -247,7 +247,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
     /**
      * Serialize.
-     * <p/>
+     * 
      * The current bitmap is not modified.
      *
      * @param out the DataOutput stream

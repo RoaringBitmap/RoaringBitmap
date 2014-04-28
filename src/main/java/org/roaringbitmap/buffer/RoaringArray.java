@@ -15,7 +15,7 @@ import java.util.Arrays;
  * Specialized array to stored the containers used by a RoaringBitmap. This
  * class is similar to org.roaringbitmap.RoaringArray but meant to be used with
  * memory mapping.
- * <p/>
+ * 
  * Objects of this class reside in RAM.
  */
 public final class RoaringArray implements Cloneable, Externalizable {
@@ -201,7 +201,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
     /**
      * Serialize.
-     * <p/>
+     * 
      * The current bitmap is not modified.
      *
      * @param out the DataOutput stream

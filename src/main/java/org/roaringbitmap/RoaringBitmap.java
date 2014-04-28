@@ -19,7 +19,7 @@ public final class RoaringBitmap implements Cloneable, Serializable, Iterable<In
      * Bitwise AND (intersection) operation. The provided bitmaps are *not*
      * modified. This operation is thread-safe as long as the provided
      * bitmaps remain unchanged.
-     * <p/>
+     * 
      * If you have more than 2 bitmaps, consider using the
      * FastAggregation class.
      *
@@ -193,7 +193,7 @@ public final class RoaringBitmap implements Cloneable, Serializable, Iterable<In
      * Bitwise OR (union) operation. The provided bitmaps are *not*
      * modified. This operation is thread-safe as long as the provided
      * bitmaps remain unchanged.
-     * <p/>
+     * 
      * If you have more than 2 bitmaps, consider using the
      * FastAggregation class.
      *
@@ -253,7 +253,7 @@ public final class RoaringBitmap implements Cloneable, Serializable, Iterable<In
      * Bitwise XOR (symmetric difference) operation. The provided bitmaps
      * are *not* modified. This operation is thread-safe as long as the
      * provided bitmaps remain unchanged.
-     * <p/>
+     * 
      * If you have more than 2 bitmaps, consider using the
      * FastAggregation class.
      *
@@ -470,7 +470,7 @@ public final class RoaringBitmap implements Cloneable, Serializable, Iterable<In
 
     /**
      * Deserialize (retrieve) this bitmap.
-     * <p/>
+     * 
      * The current bitmap is overwritten.
      *
      * @param in the DataInput stream
@@ -733,7 +733,7 @@ public final class RoaringBitmap implements Cloneable, Serializable, Iterable<In
 
     /**
      * Serialize this bitmap.
-     * <p/>
+     * 
      * The current bitmap is not modified.
      *
      * @param out the DataOutput stream
