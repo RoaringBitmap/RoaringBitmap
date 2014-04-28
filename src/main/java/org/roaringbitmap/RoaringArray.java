@@ -299,7 +299,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
         final byte[] buffer = new byte[2];
         // little endian
         in.readFully(buffer4);
-        final int cookie = buffer4[0] | ((buffer4[1] & 0xFF) << 8)
+        final int cookie = (buffer4[0] & 0xFF) | ((buffer4[1] & 0xFF) << 8)
                 | ((buffer4[2] & 0xFF) << 16)
                 | ((buffer4[3] & 0xFF) << 24);
         if (cookie != serialCookie)
@@ -307,7 +307,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
                     "I failed to find the right cookie.");
 
         in.readFully(buffer4);
-        this.size = buffer4[0] | ((buffer4[1] & 0xFF) << 8)
+        this.size = (buffer4[0] & 0xFF) | ((buffer4[1] & 0xFF) << 8)
                 | ((buffer4[2] & 0xFF) << 16)
                 | ((buffer4[3] & 0xFF) << 24);
         if ((this.array == null) || (this.array.length < this.size))
