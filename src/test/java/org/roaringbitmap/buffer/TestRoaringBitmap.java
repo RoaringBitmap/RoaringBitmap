@@ -1,10 +1,12 @@
 /*
- * Copyright 2013-2014 by Daniel Lemire, Owen Kaser and Samy Chambi
+ * (c) Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, Björn Sperber
  * Licensed under the Apache License, Version 2.0.
  */
+
 package org.roaringbitmap.buffer;
 
-import junit.framework.Assert;
+
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.*;
@@ -14,7 +16,7 @@ import java.util.*;
 /**
  * Generic testing of the roaring bitmaps
  */
-@SuppressWarnings({"static-method", "deprecation", "javadoc"})
+@SuppressWarnings({"static-method", "javadoc"})
 public class TestRoaringBitmap {
 
     @Test
@@ -1317,6 +1319,26 @@ public class TestRoaringBitmap {
         Assert.assertEquals(rr.getCardinality(),
                 rrback.getCardinality());
         Assert.assertTrue(rr.equals(rrback));
+    }
+
+    @Test
+    public void testSerialization4() throws IOException, ClassNotFoundException {
+      final RoaringBitmap rr = new RoaringBitmap();
+      for (int k = 1; k <= 10000000; k+=10)
+        rr.add(k);
+      final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+      // Note: you could use a file output steam instead of
+      // ByteArrayOutputStream
+      int howmuch = rr.serializedSizeInBytes();
+      final DataOutputStream oo = new DataOutputStream(bos);
+      rr.serialize(oo);
+      oo.close();
+      Assert.assertEquals(howmuch, bos.toByteArray().length);
+      final RoaringBitmap rrback = new RoaringBitmap();
+      final ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
+      rrback.deserialize(new DataInputStream(bis));
+      Assert.assertEquals(rr.getCardinality(), rrback.getCardinality());
+      Assert.assertTrue(rr.equals(rrback));
     }
 
 

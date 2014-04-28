@@ -1,7 +1,8 @@
 /*
- * Copyright 2013-2014 by Daniel Lemire, Owen Kaser and Samy Chambi
+ * (c) Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, Björn Sperber
  * Licensed under the Apache License, Version 2.0.
  */
+
 package org.roaringbitmap;
 
 import java.util.Arrays;

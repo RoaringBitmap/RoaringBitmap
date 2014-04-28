@@ -1,6 +1,13 @@
+/*
+ * (c) Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, Björn Sperber
+ * Licensed under the Apache License, Version 2.0.
+ */
+
 package org.roaringbitmap.buffer;
 
-import junit.framework.Assert;
+
+
+import org.junit.Assert;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -11,7 +18,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 
-@SuppressWarnings({"javadoc", "deprecation", "static-method"})
+@SuppressWarnings({"javadoc", "static-method"})
 public class TestMemoryMapping {
 
 
