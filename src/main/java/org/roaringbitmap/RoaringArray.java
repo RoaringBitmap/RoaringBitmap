@@ -12,8 +12,12 @@ import java.util.Arrays;
  * Specialized array to stored the containers used by a RoaringBitmap.
  */
 public final class RoaringArray implements Cloneable, Externalizable {
+    protected static final short SERIAL_COOKIE = 12345;
+
+    private static final long serialVersionUID = 7L;
+
     protected RoaringArray() {
-        this.array = new Element[initialCapacity];
+        this.array = new Element[INITIAL_CAPACITY];
     }
 
     protected void append(short key, Container value) {
@@ -62,8 +66,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
             if (Util.toIntUnsigned(sourceArray.array[i].key) >= stopKey)
                 break;
             extendArray(1);
-            this.array[this.size++] = new Element(sourceArray.array[i].key,
-                    sourceArray.array[i].value.clone());
+            this.array[this.size++] = new Element(sourceArray.array[i].key, sourceArray.array[i].value.clone());
         }
     }
 
@@ -83,8 +86,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
         extendArray(sa.size - startLocation);
 
         for (int i = startLocation; i < sa.size; ++i) {
-            this.array[this.size++] = new Element(sa.array[i].key,
-                    sa.array[i].value.clone());
+            this.array[this.size++] = new Element(sa.array[i].key, sa.array[i].value.clone());
         }
     }
 
@@ -104,10 +106,6 @@ public final class RoaringArray implements Cloneable, Externalizable {
         return sa;
     }
 
-    protected boolean containsKey(short x) {
-        return (binarySearch(0, size, x) >= 0);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (o instanceof RoaringArray) {
@@ -115,10 +113,9 @@ public final class RoaringArray implements Cloneable, Externalizable {
             if (srb.size != this.size)
                 return false;
             for (int i = 0; i < srb.size; ++i) {
-                if (this.array[i].key != srb.array[i].key)
-                    return false;
-                if (!this.array[i].value
-                        .equals(srb.array[i].value))
+                Element self = this.array[i];
+                Element other = srb.array[i];
+                if (self.key != other.key || !self.value.equals(other.value))
                     return false;
             }
             return true;
@@ -215,8 +212,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
         while (low <= high) {
             int middleIndex = (low + high) >>> 1;
-            int middleValue = Util
-                    .toIntUnsigned(array[middleIndex].key);
+            int middleValue = Util.toIntUnsigned(array[middleIndex].key);
 
             if (middleValue < ikey)
                 low = middleIndex + 1;
@@ -232,7 +228,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
     protected int size = 0;
 
-    static final int initialCapacity = 4;
+    private static final int INITIAL_CAPACITY = 4;
 
     @Override
     public void readExternal(ObjectInput in) throws IOException,
@@ -254,10 +250,10 @@ public final class RoaringArray implements Cloneable, Externalizable {
      * @throws IOException Signals that an I/O exception has occurred.
      */
     public void serialize(DataOutput out) throws IOException {
-        out.write(serialCookie & 0xFF);
-        out.write((serialCookie >>> 8) & 0xFF);
-        out.write((serialCookie >>> 16) & 0xFF);
-        out.write((serialCookie >>> 24) & 0xFF);
+        out.write(SERIAL_COOKIE & 0xFF);
+        out.write((SERIAL_COOKIE >>> 8) & 0xFF);
+        out.write((SERIAL_COOKIE >>> 16) & 0xFF);
+        out.write((SERIAL_COOKIE >>> 24) & 0xFF);
 
         out.write(this.size & 0xFF);
         out.write((this.size >>> 8) & 0xFF);
@@ -301,16 +297,13 @@ public final class RoaringArray implements Cloneable, Externalizable {
         // little endian
         in.readFully(buffer4);
         final int cookie = (buffer4[0] & 0xFF) | ((buffer4[1] & 0xFF) << 8)
-                | ((buffer4[2] & 0xFF) << 16)
-                | ((buffer4[3] & 0xFF) << 24);
-        if (cookie != serialCookie)
-            throw new IOException(
-                    "I failed to find the right cookie.");
+                | ((buffer4[2] & 0xFF) << 16) | ((buffer4[3] & 0xFF) << 24);
+        if (cookie != SERIAL_COOKIE)
+            throw new IOException("I failed to find the right cookie.");
 
         in.readFully(buffer4);
         this.size = (buffer4[0] & 0xFF) | ((buffer4[1] & 0xFF) << 8)
-                | ((buffer4[2] & 0xFF) << 16)
-                | ((buffer4[3] & 0xFF) << 24);
+                | ((buffer4[2] & 0xFF) << 16) | ((buffer4[3] & 0xFF) << 24);
         if ((this.array == null) || (this.array.length < this.size))
             this.array = new Element[this.size];
         final short keys[] = new short[this.size];
@@ -340,14 +333,12 @@ public final class RoaringArray implements Cloneable, Externalizable {
                             + ((buf[1] & 255) << 8)
                             + (buf[0] & 255));
                 }
-                val = new BitmapContainer(bitmapArray,
-                        cardinalities[k]);
+                val = new BitmapContainer(bitmapArray, cardinalities[k]);
             } else {
                 final short[] shortArray = new short[cardinalities[k]];
                 for (int l = 0; l < shortArray.length; ++l) {
                     in.readFully(buffer);
-                    shortArray[l] =
-                            (short) (buffer[0] & 0xFF | ((buffer[1] & 0xFF) << 8));
+                    shortArray[l] = (short) (buffer[0] & 0xFF | ((buffer[1] & 0xFF) << 8));
                 }
                 val = new ArrayContainer(shortArray);
             }
@@ -355,32 +346,22 @@ public final class RoaringArray implements Cloneable, Externalizable {
         }
     }
 
-    protected static final short serialCookie = 12345;
-
-    private static final long serialVersionUID = 7L;
-
     protected static final class Element implements Cloneable {
+        public final short key;
+
+        public Container value = null;
+
         public Element(short key, Container value) {
             this.key = key;
             this.value = value;
         }
 
-        public short key;
-
-        public Container value = null;
-
         @Override
-        public Element clone() {
-            Element c;
-            try {
-                c = (Element) super.clone();
-                c.key = this.key; // OFK: wouldn't Object's
-                // bitwise copy do this?
-                c.value = this.value.clone();
-                return c;
-            } catch (CloneNotSupportedException e) {
-                return null;
-            }
+        public Element clone() throws CloneNotSupportedException {
+            Element c = (Element) super.clone();
+            //c.key copied by super.clone
+            c.value = this.value.clone();
+            return c;
         }
     }
 }

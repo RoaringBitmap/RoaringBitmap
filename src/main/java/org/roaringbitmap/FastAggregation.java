@@ -15,13 +15,13 @@ import java.util.PriorityQueue;
  *
  * @author Daniel Lemire
  */
+@SuppressWarnings("unused")
 public final class FastAggregation {
 
     /**
      * Private constructor to prevent instantiation of utility class
      */
-    private FastAggregation() {
-    }
+    private FastAggregation() {}
 
     /**
      * Sort the bitmap prior to using the and aggregate.
@@ -52,16 +52,16 @@ public final class FastAggregation {
      * @return aggregated bitmap
      */
     public static RoaringBitmap or(RoaringBitmap... bitmaps) {
-        PriorityQueue<RoaringBitmap> pq = new PriorityQueue<RoaringBitmap>(
-                bitmaps.length, new Comparator<RoaringBitmap>() {
+        if (bitmaps.length == 0)
+            return new RoaringBitmap();
+
+        PriorityQueue<RoaringBitmap> pq = new PriorityQueue<RoaringBitmap>(bitmaps.length, new Comparator<RoaringBitmap>() {
             @Override
             public int compare(RoaringBitmap a,
                                RoaringBitmap b) {
-                return a.getSizeInBytes()
-                        - b.getSizeInBytes();
+                return a.getSizeInBytes() - b.getSizeInBytes();
             }
-        }
-        );
+        });
         Collections.addAll(pq, bitmaps);
         while (pq.size() > 1) {
             RoaringBitmap x1 = pq.poll();
@@ -78,16 +78,16 @@ public final class FastAggregation {
      * @return aggregated bitmap
      */
     public static RoaringBitmap xor(RoaringBitmap... bitmaps) {
-        PriorityQueue<RoaringBitmap> pq = new PriorityQueue<RoaringBitmap>(
-                bitmaps.length, new Comparator<RoaringBitmap>() {
+        if (bitmaps.length == 0)
+            return new RoaringBitmap();
+
+        PriorityQueue<RoaringBitmap> pq = new PriorityQueue<RoaringBitmap>(bitmaps.length, new Comparator<RoaringBitmap>() {
             @Override
             public int compare(RoaringBitmap a,
                                RoaringBitmap b) {
-                return a.getSizeInBytes()
-                        - b.getSizeInBytes();
+                return a.getSizeInBytes() - b.getSizeInBytes();
             }
-        }
-        );
+        });
         Collections.addAll(pq, bitmaps);
         while (pq.size() > 1) {
             RoaringBitmap x1 = pq.poll();
@@ -96,5 +96,4 @@ public final class FastAggregation {
         }
         return pq.poll();
     }
-
 }

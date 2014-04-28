@@ -227,9 +227,8 @@ public final class RoaringBitmap implements Cloneable, Serializable, Iterable<In
                     }
                     s2 = x2.highLowContainer.getKeyAtIndex(pos2);
                 } else {
-                    answer.highLowContainer.append(s1,
-                            x1.highLowContainer.getContainerAtIndex(pos1)
-                                    .or(x2.highLowContainer.getContainerAtIndex(pos2))
+                    answer.highLowContainer.append(s1,x1.highLowContainer.getContainerAtIndex(pos1).or(
+                                x2.highLowContainer.getContainerAtIndex(pos2))
                     );
                     pos1++;
                     pos2++;
@@ -261,8 +260,7 @@ public final class RoaringBitmap implements Cloneable, Serializable, Iterable<In
      * @param x2 other bitmap
      * @return result of the operation
      */
-    public static RoaringBitmap xor(final RoaringBitmap x1,
-                                    final RoaringBitmap x2) {
+    public static RoaringBitmap xor(final RoaringBitmap x1, final RoaringBitmap x2) {
         final RoaringBitmap answer = new RoaringBitmap();
         int pos1 = 0, pos2 = 0;
         final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();

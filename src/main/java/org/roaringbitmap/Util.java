@@ -246,9 +246,9 @@ public final class Util {
      * @param buffer  output array
      * @return cardinality of the exclusive union
      */
-    public static int unsigned_exclusiveunion2by2(final short[] set1,
-                                                  final int length1, final short[] set2, final int length2,
-                                                  final short[] buffer) {
+    public static int unsignedExclusiveUnion2by2(final short[] set1,
+                                                 final int length1, final short[] set2, final int length2,
+                                                 final short[] buffer) {
         int pos = 0;
         int k1 = 0, k2 = 0;
         if (0 == length2) {
@@ -305,24 +305,21 @@ public final class Util {
      * @param buffer  output array
      * @return cardinality of the intersection
      */
-    public static int unsigned_intersect2by2(final short[] set1,
-                                             final int length1, final short[] set2, final int length2,
-                                             final short[] buffer) {
+    public static int unsignedIntersect2by2(final short[] set1,
+                                            final int length1, final short[] set2, final int length2,
+                                            final short[] buffer) {
         if (set1.length * 64 < set2.length) {
-            return unsigned_onesidedgallopingintersect2by2(set1,
-                    length1, set2, length2, buffer);
+            return unsignedOneSidedGallopingIntersect2by2(set1, length1, set2, length2, buffer);
         } else if (set2.length * 64 < set1.length) {
-            return unsigned_onesidedgallopingintersect2by2(set2,
-                    length2, set1, length1, buffer);
+            return unsignedOneSidedGallopingIntersect2by2(set2, length2, set1, length1, buffer);
         } else {
-            return unsigned_localintersect2by2(set1, length1, set2,
-                    length2, buffer);
+            return unsignedLocalIntersect2by2(set1, length1, set2, length2, buffer);
         }
     }
 
-    protected static int unsigned_localintersect2by2(final short[] set1,
-                                                     final int length1, final short[] set2, final int length2,
-                                                     final short[] buffer) {
+    protected static int unsignedLocalIntersect2by2(final short[] set1,
+                                                    final int length1, final short[] set2, final int length2,
+                                                    final short[] buffer) {
         if ((0 == length1) || (0 == length2))
             return 0;
         int k1 = 0;
@@ -358,7 +355,7 @@ public final class Util {
         return pos;
     }
 
-    protected static int unsigned_onesidedgallopingintersect2by2(
+    protected static int unsignedOneSidedGallopingIntersect2by2(
             final short[] smallSet, final int smallLength,
             final short[] largeSet, final int largeLength,
             final short[] buffer) {
@@ -404,9 +401,9 @@ public final class Util {
      * @param buffer  output array
      * @return cardinality of the union
      */
-    public static int unsigned_union2by2(final short[] set1,
-                                         final int length1, final short[] set2, final int length2,
-                                         final short[] buffer) {
+    public static int unsignedUnion2by2(final short[] set1,
+                                        final int length1, final short[] set2, final int length2,
+                                        final short[] buffer) {
         int pos = 0;
         int k1 = 0, k2 = 0;
         if (0 == length2) {
