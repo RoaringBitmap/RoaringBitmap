@@ -102,7 +102,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         ArrayContainer value1 = this;
         final int desiredCapacity = Math.min(value1.getCardinality(), value2.getCardinality());
         ArrayContainer answer = new ArrayContainer(desiredCapacity);
-        answer.cardinality = Util.unsigned_intersect2by2(value1.content,
+        answer.cardinality = Util.unsignedIntersect2by2(value1.content,
                 value1.getCardinality(), value2.content,
                 value2.getCardinality(), answer.content);
         return answer;
@@ -236,7 +236,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     @Override
     public ArrayContainer iand(final ArrayContainer value2) {
         ArrayContainer value1 = this;
-        value1.cardinality = Util.unsigned_intersect2by2(value1.content,
+        value1.cardinality = Util.unsignedIntersect2by2(value1.content,
                 value1.getCardinality(), value2.content,
                 value2.getCardinality(), value1.content);
         return this;
@@ -483,7 +483,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         final int desiredCapacity = totalCardinality; // Math.min(BitmapContainer.MAX_CAPACITY,
         // totalCardinality);
         ArrayContainer answer = new ArrayContainer(desiredCapacity);
-        answer.cardinality = Util.unsigned_union2by2(value1.content,
+        answer.cardinality = Util.unsignedUnion2by2(value1.content,
                 value1.getCardinality(), value2.content,
                 value2.getCardinality(), answer.content);
         return answer;
@@ -596,7 +596,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         }
         final int desiredCapacity = totalCardinality;
         ArrayContainer answer = new ArrayContainer(desiredCapacity);
-        answer.cardinality = Util.unsigned_exclusiveunion2by2(value1.content,
+        answer.cardinality = Util.unsignedExclusiveUnion2by2(value1.content,
                 value1.getCardinality(), value2.content,
                 value2.getCardinality(), answer.content);
         return answer;

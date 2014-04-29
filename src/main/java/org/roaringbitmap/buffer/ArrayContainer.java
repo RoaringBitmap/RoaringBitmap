@@ -103,8 +103,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         if (content.hasArray()) {
             short[] sarray = content.array();
 
-            int loc = Util.unsigned_binarySearch(content, 0,
-                    cardinality, x);
+            int loc = Util.unsignedBinarySearch(content, 0, cardinality, x);
             if (loc < 0) {
                 if (cardinality >= sarray.length) {
                     increaseCapacity();
@@ -120,7 +119,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
             }
         } else {
 
-            final int loc = Util.unsigned_binarySearch(content, 0, cardinality, x);
+            final int loc = Util.unsignedBinarySearch(content, 0, cardinality, x);
             if (loc < 0) {
                 if (cardinality >= this.content.limit())
                     increaseCapacity();
@@ -142,19 +141,18 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     public ArrayContainer and(final ArrayContainer value2) {
 
         ArrayContainer value1 = this;
-        final int desiredCapacity = Math.min(value1.getCardinality(),
-                value2.getCardinality());
+        final int desiredCapacity = Math.min(value1.getCardinality(), value2.getCardinality());
         ArrayContainer answer = new ArrayContainer(desiredCapacity);
         if (this.content.hasArray() && value2.content.hasArray())
             answer.cardinality = org.roaringbitmap.Util
-                    .unsigned_intersect2by2(
+                    .unsignedIntersect2by2(
                             value1.content.array(),
                             value1.getCardinality(),
                             value2.content.array(),
                             value2.getCardinality(),
                             answer.content.array());
         else
-            answer.cardinality = Util.unsigned_intersect2by2(
+            answer.cardinality = Util.unsignedIntersect2by2(
                     value1.content,
                     value1.getCardinality(),
                     value2.content,
@@ -183,7 +181,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
                             value2.getCardinality(),
                             answer.content.array());
         else
-            answer.cardinality = Util.unsigned_difference(
+            answer.cardinality = Util.unsignedDifference(
                     value1.content,
                     value1.getCardinality(),
                     value2.content,
@@ -223,7 +221,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
 
     @Override
     public boolean contains(final short x) {
-        return Util.unsigned_binarySearch(content, 0, cardinality, x) >= 0;
+        return Util.unsignedBinarySearch(content, 0, cardinality, x) >= 0;
     }
 
     @Override
@@ -312,7 +310,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     @Override
     public ArrayContainer iand(final ArrayContainer value2) {
         final ArrayContainer value1 = this;
-        value1.cardinality = Util.unsigned_intersect2by2(
+        value1.cardinality = Util.unsignedIntersect2by2(
                 value1.content, value1.getCardinality(),
                 value2.content, value2.getCardinality(),
                 value1.content.array());
@@ -339,7 +337,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
                     value2.getCardinality(),
                     this.content.array());
         else
-            this.cardinality = Util.unsigned_difference(
+            this.cardinality = Util.unsignedDifference(
                     this.content, this.getCardinality(),
                     value2.content,
                     value2.getCardinality(),
@@ -377,10 +375,10 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     public Container inot(final int firstOfRange, final int lastOfRange) {
         //TODO: this can be optimized for performance
         // determine the span of array indices to be affected
-        int startIndex = Util.unsigned_binarySearch(content, 0, cardinality, (short) firstOfRange);
+        int startIndex = Util.unsignedBinarySearch(content, 0, cardinality, (short) firstOfRange);
         if (startIndex < 0)
             startIndex = -startIndex - 1;
-        int lastIndex = Util.unsigned_binarySearch(content, 0, cardinality, (short) lastOfRange);
+        int lastIndex = Util.unsignedBinarySearch(content, 0, cardinality, (short) lastOfRange);
         if (lastIndex < 0)
             lastIndex = -lastIndex - 1 - 1;
         final int currentValuesInRange = lastIndex - startIndex + 1;
@@ -513,10 +511,10 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         }
 
         // determine the span of array indices to be affected
-        int startIndex = Util.unsigned_binarySearch(content, 0, cardinality, (short) firstOfRange);
+        int startIndex = Util.unsignedBinarySearch(content, 0, cardinality, (short) firstOfRange);
         if (startIndex < 0)
             startIndex = -startIndex - 1;
-        int lastIndex = Util.unsigned_binarySearch(content, 0, cardinality, (short) lastOfRange);
+        int lastIndex = Util.unsignedBinarySearch(content, 0, cardinality, (short) lastOfRange);
         if (lastIndex < 0)
             lastIndex = -lastIndex - 2;
         final int currentValuesInRange = lastIndex - startIndex + 1;
@@ -595,12 +593,9 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
                 return bc.toArrayContainer();
             return bc;
         }
-        final int desiredCapacity = totalCardinality; // Math.min(BitmapContainer.MAX_CAPACITY,
-        // totalCardinality);
-        final ArrayContainer answer = new ArrayContainer(
-                desiredCapacity);
+        final ArrayContainer answer = new ArrayContainer(totalCardinality);
         if (value1.content.hasArray() && value2.content.hasArray())
-            answer.cardinality = org.roaringbitmap.Util.unsigned_union2by2(
+            answer.cardinality = org.roaringbitmap.Util.unsignedUnion2by2(
                     value1.content.array(),
                     value1.getCardinality(),
                     value2.content.array(),
@@ -608,7 +603,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
                     answer.content.array());
 
         else
-            answer.cardinality = Util.unsigned_union2by2(
+            answer.cardinality = Util.unsignedUnion2by2(
                     value1.content,
                     value1.getCardinality(),
                     value2.content,
@@ -639,7 +634,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
 
     @Override
     public Container remove(final short x) {
-        final int loc = Util.unsigned_binarySearch(content, 0, cardinality, x);
+        final int loc = Util.unsignedBinarySearch(content, 0, cardinality, x);
         if (loc >= 0) {
             // insertion
             System.arraycopy(content.array(), loc + 1, content.array(), loc, cardinality - loc - 1);
@@ -740,19 +735,17 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
                 return bc.toArrayContainer();
             return bc;
         }
-        final int desiredCapacity = totalCardinality;
-        final ArrayContainer answer = new ArrayContainer(
-                desiredCapacity);
+        final ArrayContainer answer = new ArrayContainer(totalCardinality);
         if (value1.content.hasArray() && value2.content.hasArray())
             answer.cardinality = org.roaringbitmap.Util
-                    .unsigned_exclusiveunion2by2(
+                    .unsignedExclusiveUnion2by2(
                             value1.content.array(),
                             value1.getCardinality(),
                             value2.content.array(),
                             value2.getCardinality(),
                             answer.content.array());
         else
-            answer.cardinality = Util.unsigned_exclusiveunion2by2(
+            answer.cardinality = Util.unsignedExclusiveUnion2by2(
                     value1.content,
                     value1.getCardinality(),
                     value2.content,

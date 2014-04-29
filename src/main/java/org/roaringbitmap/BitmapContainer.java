@@ -255,7 +255,6 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
     public ShortIterator getShortIterator() {
         return new ShortIterator() {
             int i = BitmapContainer.this.nextSetBit(0);
-
             int j;
 
             @Override
@@ -274,7 +273,6 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
             public void remove() {
                 BitmapContainer.this.remove((short) j);
             }
-
         };
 
     }
@@ -327,8 +325,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
     public Container iandNot(final BitmapContainer b2) {
         int newCardinality = 0;
         for (int k = 0; k < this.bitmap.length; ++k) {
-            newCardinality += Long.bitCount(this.bitmap[k]
-                    & (~b2.bitmap[k]));
+            newCardinality += Long.bitCount(this.bitmap[k] & (~b2.bitmap[k]));
         }
         if (newCardinality > ArrayContainer.DEFAULT_MAX_SIZE) {
             for (int k = 0; k < this.bitmap.length; ++k) {
@@ -373,27 +370,22 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
     @Override
     public Iterator<Short> iterator() {
         return new Iterator<Short>() {
-            int i = BitmapContainer.this.nextSetBit(0);
-
-            int j;
+            final ShortIterator si = BitmapContainer.this.getShortIterator();
 
             @Override
             public boolean hasNext() {
-                return i >= 0;
+                return si.hasNext();
             }
 
             @Override
             public Short next() {
-                j = i;
-                i = BitmapContainer.this.nextSetBit(i + 1);
-                return (short) j;
+                return si.next();
             }
 
             @Override
             public void remove() {
-                BitmapContainer.this.remove((short) j);
+                si.remove();
             }
-
         };
     }
 
@@ -575,8 +567,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
         for (int k = 0; k < value2.cardinality; ++k) {
             final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
             answer.cardinality += ((~answer.bitmap[i]) & (1l << value2.content[k])) >>> value2.content[k];
-            answer.bitmap[i] = answer.bitmap[i]
-                    | (1l << value2.content[k]);
+            answer.bitmap[i] = answer.bitmap[i] | (1l << value2.content[k]);
         }
         return answer;
     }

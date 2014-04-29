@@ -31,8 +31,7 @@ public final class Util {
      * @return x greater than pos such that array[pos] is at least as large
      * as min, pos is is equal to length if it is not possible.
      */
-    private static int advanceUntil(ShortBuffer array, int pos, int length,
-                                    short min) {
+    private static int advanceUntil(ShortBuffer array, int pos, int length, short min) {
         int lower = pos + 1;
 
         // special handling for a possibly common sequential case
@@ -82,8 +81,7 @@ public final class Util {
 
     }
 
-    protected static void fillArrayAND(short[] container,
-                                       LongBuffer bitmap1, LongBuffer bitmap2) {
+    protected static void fillArrayAND(short[] container, LongBuffer bitmap1, LongBuffer bitmap2) {
         int pos = 0;
         if (bitmap1.limit() != bitmap2.limit())
             throw new IllegalArgumentException("not supported");
@@ -143,8 +141,7 @@ public final class Util {
         return x & 0xFFFF;
     }
 
-    protected static int unsigned_binarySearch(ShortBuffer array,
-                                               int begin, int end, short k) {
+    protected static int unsignedBinarySearch(ShortBuffer array, int begin, int end, short k) {
         int low = begin;
         int high = end - 1;
         final int ikey = toIntUnsigned(k);
@@ -163,9 +160,9 @@ public final class Util {
         return -(low + 1);
     }
 
-    protected static int unsigned_difference(final ShortBuffer set1,
-                                             final int length1, final ShortBuffer set2, final int length2,
-                                             final short[] buffer) {
+    protected static int unsignedDifference(final ShortBuffer set1,
+                                            final int length1, final ShortBuffer set2, final int length2,
+                                            final short[] buffer) {
         int pos = 0;
         int k1 = 0, k2 = 0;
         if (0 == length2) {
@@ -206,7 +203,7 @@ public final class Util {
         return pos;
     }
 
-    protected static int unsigned_exclusiveunion2by2(
+    protected static int unsignedExclusiveUnion2by2(
             final ShortBuffer set1, final int length1,
             final ShortBuffer set2, final int length2,
             final short[] buffer) {
@@ -257,19 +254,19 @@ public final class Util {
         return pos;
     }
 
-    protected static int unsigned_intersect2by2(final ShortBuffer set1,
-                                                final int length1, final ShortBuffer set2, final int length2,
-                                                final short[] buffer) {
+    protected static int unsignedIntersect2by2(final ShortBuffer set1,
+                                               final int length1, final ShortBuffer set2, final int length2,
+                                               final short[] buffer) {
         if (set1.limit() * 64 < set2.limit()) {
-            return unsigned_onesidedgallopingintersect2by2(set1, length1, set2, length2, buffer);
+            return unsignedOneSidedGallopingIntersect2by2(set1, length1, set2, length2, buffer);
         } else if (set2.limit() * 64 < set1.limit()) {
-            return unsigned_onesidedgallopingintersect2by2(set2, length2, set1, length1, buffer);
+            return unsignedOneSidedGallopingIntersect2by2(set2, length2, set1, length1, buffer);
         } else {
-            return unsigned_localintersect2by2(set1, length1, set2, length2, buffer);
+            return unsignedLocalIntersect2by2(set1, length1, set2, length2, buffer);
         }
     }
 
-    protected static int unsigned_localintersect2by2(
+    protected static int unsignedLocalIntersect2by2(
             final ShortBuffer set1, final int length1,
             final ShortBuffer set2, final int length2,
             final short[] buffer) {
@@ -309,7 +306,7 @@ public final class Util {
         return pos;
     }
 
-    protected static int unsigned_onesidedgallopingintersect2by2(
+    protected static int unsignedOneSidedGallopingIntersect2by2(
             final ShortBuffer smallSet, final int smallLength,
             final ShortBuffer largeSet, final int largeLength,
             final short[] buffer) {
@@ -344,9 +341,9 @@ public final class Util {
 
     }
 
-    protected static int unsigned_union2by2(final ShortBuffer set1,
-                                            final int length1, final ShortBuffer set2, final int length2,
-                                            final short[] buffer) {
+    protected static int unsignedUnion2by2(final ShortBuffer set1,
+                                           final int length1, final ShortBuffer set2, final int length2,
+                                           final short[] buffer) {
         int pos = 0;
         int k1 = 0, k2 = 0;
         if (0 == length2) {

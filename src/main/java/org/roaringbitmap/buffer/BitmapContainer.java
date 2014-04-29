@@ -73,17 +73,15 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
      * Construct a new BitmapContainer backed by the provided LongBuffer.
      *
      * @param array       LongBuffer where the data is stored
-     * @param cardinality cardinality (number of values stored)
+     * @param initCardinality cardinality (number of values stored)
      */
-    public BitmapContainer(final LongBuffer array, final int cardinality) {
+    public BitmapContainer(final LongBuffer array, final int initCardinality) {
         if (array.limit() != MAX_CAPACITY / 64)
             throw new RuntimeException(
                     "Mismatch between buffer and storage requirements: "
-                            + array.limit()
-                            + " vs. " + MAX_CAPACITY
-                            / 64
+                            + array.limit() + " vs. " + MAX_CAPACITY / 64
             );
-        this.cardinality = cardinality;
+        this.cardinality = initCardinality;
         this.bitmap = array;
     }
 
