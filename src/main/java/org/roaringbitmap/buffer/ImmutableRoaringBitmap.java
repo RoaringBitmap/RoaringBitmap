@@ -13,8 +13,10 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 /**
- * This class is a base class for org.roaringbitmap.buffer.RoaringArray. As the
- * name suggests, it is immutable. It can also be constructed from a ByteBuffer
+ * ImmutableRoaringBitmap provides a compressed immutable (cannot be modified)
+ * bitmap. It is meant to be used with org.roaringbitmap.buffer.RoaringBitmap.
+ * 
+ *  It can also be constructed from a ByteBuffer
  * (useful for memory mapping).
  * 
  * Objects of this class may reside almost entirely in memory-map files.
