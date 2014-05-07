@@ -15,7 +15,7 @@ import java.util.Iterator;
  * org.roaringbitmap.ArrayContainer, this class uses a ShortBuffer to store
  * data.
  */
-public final class ArrayContainer extends Container implements Cloneable, Serializable {
+public final class MappeableArrayContainer extends MappeableContainer implements Cloneable, Serializable {
     private static final int DEFAULT_INIT_SIZE = 4;
 
     protected static final int DEFAULT_MAX_SIZE = 4096;
@@ -29,7 +29,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     /**
      * Create an array container with default capacity
      */
-    public ArrayContainer() {
+    public MappeableArrayContainer() {
         this(DEFAULT_INIT_SIZE);
     }
 
@@ -38,7 +38,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
      *
      * @param capacity The capacity of the container
      */
-    public ArrayContainer(final int capacity) {
+    public MappeableArrayContainer(final int capacity) {
         content = ShortBuffer.allocate(capacity);
     }
 
@@ -50,7 +50,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
      * @param firstOfRun first index
      * @param lastOfRun  last index (range is inclusive)
      */
-    public ArrayContainer(final int firstOfRun, final int lastOfRun) {
+    public MappeableArrayContainer(final int firstOfRun, final int lastOfRun) {
         //TODO: this can be optimized for performance
         final int valuesInRange = lastOfRun - firstOfRun + 1;
         content = ShortBuffer.allocate(valuesInRange);
@@ -60,7 +60,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         cardinality = valuesInRange;
     }
 
-    private ArrayContainer(int newCard, ShortBuffer newContent) {
+    private MappeableArrayContainer(int newCard, ShortBuffer newContent) {
         this.cardinality = newCard;
         this.content = ShortBuffer.allocate(newContent.limit());
         newContent.rewind();
@@ -75,7 +75,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
      * @param array       ShortBuffer where the data is stored
      * @param cardinality cardinality (number of values stored)
      */
-    public ArrayContainer(final ShortBuffer array, final int cardinality) {
+    public MappeableArrayContainer(final ShortBuffer array, final int cardinality) {
         if (array.limit() != cardinality)
             throw new RuntimeException("Mismatch between buffer and cardinality");
         this.cardinality = cardinality;
@@ -86,15 +86,15 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
      * running time is in O(n) time if insert is not in order.
      */
     @Override
-    public Container add(final short x) {
+    public MappeableContainer add(final short x) {
         // Transform the ArrayContainer to a BitmapContainer
         // when cardinality = DEFAULT_MAX_SIZE
         if (cardinality >= DEFAULT_MAX_SIZE) {
-            final BitmapContainer a = this.toBitmapContainer();
+            final MappeableBitmapContainer a = this.toBitmapContainer();
             a.add(x);
             return a;
         }
-        if ((cardinality == 0) || (Util.toIntUnsigned(x) > Util.toIntUnsigned(content.get(cardinality - 1)))) {
+        if ((cardinality == 0) || (BufferUtil.toIntUnsigned(x) > BufferUtil.toIntUnsigned(content.get(cardinality - 1)))) {
             if (cardinality >= this.content.limit())
                 increaseCapacity();
             content.put(cardinality++, x);
@@ -103,7 +103,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         if (content.hasArray()) {
             short[] sarray = content.array();
 
-            int loc = Util.unsignedBinarySearch(content, 0, cardinality, x);
+            int loc = BufferUtil.unsignedBinarySearch(content, 0, cardinality, x);
             if (loc < 0) {
                 if (cardinality >= sarray.length) {
                     increaseCapacity();
@@ -119,7 +119,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
             }
         } else {
 
-            final int loc = Util.unsignedBinarySearch(content, 0, cardinality, x);
+            final int loc = BufferUtil.unsignedBinarySearch(content, 0, cardinality, x);
             if (loc < 0) {
                 if (cardinality >= this.content.limit())
                     increaseCapacity();
@@ -138,11 +138,11 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     }
 
     @Override
-    public ArrayContainer and(final ArrayContainer value2) {
+    public MappeableArrayContainer and(final MappeableArrayContainer value2) {
 
-        ArrayContainer value1 = this;
+        MappeableArrayContainer value1 = this;
         final int desiredCapacity = Math.min(value1.getCardinality(), value2.getCardinality());
-        ArrayContainer answer = new ArrayContainer(desiredCapacity);
+        MappeableArrayContainer answer = new MappeableArrayContainer(desiredCapacity);
         if (this.content.hasArray() && value2.content.hasArray())
             answer.cardinality = org.roaringbitmap.Util
                     .unsignedIntersect2by2(
@@ -152,7 +152,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
                             value2.getCardinality(),
                             answer.content.array());
         else
-            answer.cardinality = Util.unsignedIntersect2by2(
+            answer.cardinality = BufferUtil.unsignedIntersect2by2(
                     value1.content,
                     value1.getCardinality(),
                     value2.content,
@@ -162,15 +162,15 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     }
 
     @Override
-    public Container and(BitmapContainer x) {
+    public MappeableContainer and(MappeableBitmapContainer x) {
         return x.and(this);
     }
 
     @Override
-    public ArrayContainer andNot(final ArrayContainer value2) {
-        final ArrayContainer value1 = this;
+    public MappeableArrayContainer andNot(final MappeableArrayContainer value2) {
+        final MappeableArrayContainer value1 = this;
         final int desiredCapacity = value1.getCardinality();
-        final ArrayContainer answer = new ArrayContainer(
+        final MappeableArrayContainer answer = new MappeableArrayContainer(
                 desiredCapacity);
         if (value1.content.hasArray() && value2.content.hasArray())
             answer.cardinality = org.roaringbitmap.Util
@@ -181,7 +181,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
                             value2.getCardinality(),
                             answer.content.array());
         else
-            answer.cardinality = Util.unsignedDifference(
+            answer.cardinality = BufferUtil.unsignedDifference(
                     value1.content,
                     value1.getCardinality(),
                     value2.content,
@@ -191,9 +191,9 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     }
 
     @Override
-    public ArrayContainer andNot(BitmapContainer value2) {
+    public MappeableArrayContainer andNot(MappeableBitmapContainer value2) {
 
-        final ArrayContainer answer = new ArrayContainer(content.limit());
+        final MappeableArrayContainer answer = new MappeableArrayContainer(content.limit());
         int pos = 0;
         short[] sarray = answer.content.array();
         if (this.content.hasArray()) {
@@ -215,19 +215,19 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     }
 
     @Override
-    public ArrayContainer clone() {
-        return new ArrayContainer(this.cardinality, this.content);
+    public MappeableArrayContainer clone() {
+        return new MappeableArrayContainer(this.cardinality, this.content);
     }
 
     @Override
     public boolean contains(final short x) {
-        return Util.unsignedBinarySearch(content, 0, cardinality, x) >= 0;
+        return BufferUtil.unsignedBinarySearch(content, 0, cardinality, x) >= 0;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (o instanceof ArrayContainer) {
-            final ArrayContainer srb = (ArrayContainer) o;
+        if (o instanceof MappeableArrayContainer) {
+            final MappeableArrayContainer srb = (MappeableArrayContainer) o;
             if (srb.cardinality != this.cardinality)
                 return false;
             if (this.content.hasArray() && srb.content.hasArray()) {
@@ -254,11 +254,11 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         if (this.content.hasArray()) {
             short[] c = this.content.array();
             for (int k = 0; k < this.cardinality; ++k)
-                x[k + i] = Util.toIntUnsigned(c[k]) | mask;
+                x[k + i] = BufferUtil.toIntUnsigned(c[k]) | mask;
 
         } else
             for (int k = 0; k < this.cardinality; ++k)
-                x[k + i] = Util.toIntUnsigned(this.content.get(k)) | mask;
+                x[k + i] = BufferUtil.toIntUnsigned(this.content.get(k)) | mask;
     }
 
     @Override
@@ -278,17 +278,17 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
 
             @Override
             public boolean hasNext() {
-                return pos < ArrayContainer.this.cardinality;
+                return pos < MappeableArrayContainer.this.cardinality;
             }
 
             @Override
             public short next() {
-                return ArrayContainer.this.content.get(pos++);
+                return MappeableArrayContainer.this.content.get(pos++);
             }
 
             @Override
             public void remove() {
-                ArrayContainer.this.remove((short) (pos - 1));
+                MappeableArrayContainer.this.remove((short) (pos - 1));
                 pos--;
             }
         };
@@ -308,9 +308,9 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     }
 
     @Override
-    public ArrayContainer iand(final ArrayContainer value2) {
-        final ArrayContainer value1 = this;
-        value1.cardinality = Util.unsignedIntersect2by2(
+    public MappeableArrayContainer iand(final MappeableArrayContainer value2) {
+        final MappeableArrayContainer value1 = this;
+        value1.cardinality = BufferUtil.unsignedIntersect2by2(
                 value1.content, value1.getCardinality(),
                 value2.content, value2.getCardinality(),
                 value1.content.array());
@@ -318,7 +318,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     }
 
     @Override
-    public Container iand(BitmapContainer value2) {
+    public MappeableContainer iand(MappeableBitmapContainer value2) {
         int pos = 0;
         for (int k = 0; k < cardinality; ++k)
             if (value2.contains(this.content.get(k)))
@@ -328,7 +328,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     }
 
     @Override
-    public ArrayContainer iandNot(final ArrayContainer value2) {
+    public MappeableArrayContainer iandNot(final MappeableArrayContainer value2) {
         if (value2.content.hasArray())
             this.cardinality = org.roaringbitmap.Util.unsignedDifference(
                     this.content.array(),
@@ -337,7 +337,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
                     value2.getCardinality(),
                     this.content.array());
         else
-            this.cardinality = Util.unsignedDifference(
+            this.cardinality = BufferUtil.unsignedDifference(
                     this.content, this.getCardinality(),
                     value2.content,
                     value2.getCardinality(),
@@ -347,7 +347,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     }
 
     @Override
-    public ArrayContainer iandNot(BitmapContainer value2) {
+    public MappeableArrayContainer iandNot(MappeableBitmapContainer value2) {
         short[] c = this.content.array();
         int pos = 0;
         for (int k = 0; k < cardinality; ++k)
@@ -363,8 +363,8 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
                 : this.content.limit() < 1024 ? this.content
                 .limit() * 3 / 2 : this.content
                 .limit() * 5 / 4;
-        if (newCapacity > ArrayContainer.DEFAULT_MAX_SIZE)
-            newCapacity = ArrayContainer.DEFAULT_MAX_SIZE;
+        if (newCapacity > MappeableArrayContainer.DEFAULT_MAX_SIZE)
+            newCapacity = MappeableArrayContainer.DEFAULT_MAX_SIZE;
         final ShortBuffer newContent = ShortBuffer.allocate(newCapacity);
         this.content.rewind();
         newContent.put(this.content);
@@ -372,13 +372,13 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     }
 
     @Override
-    public Container inot(final int firstOfRange, final int lastOfRange) {
+    public MappeableContainer inot(final int firstOfRange, final int lastOfRange) {
         //TODO: this can be optimized for performance
         // determine the span of array indices to be affected
-        int startIndex = Util.unsignedBinarySearch(content, 0, cardinality, (short) firstOfRange);
+        int startIndex = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (short) firstOfRange);
         if (startIndex < 0)
             startIndex = -startIndex - 1;
-        int lastIndex = Util.unsignedBinarySearch(content, 0, cardinality, (short) lastOfRange);
+        int lastIndex = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (short) lastOfRange);
         if (lastIndex < 0)
             lastIndex = -lastIndex - 1 - 1;
         final int currentValuesInRange = lastIndex - startIndex + 1;
@@ -414,12 +414,12 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     }
 
     @Override
-    public Container ior(final ArrayContainer value2) {
+    public MappeableContainer ior(final MappeableArrayContainer value2) {
         return this.or(value2);
     }
 
     @Override
-    public Container ior(BitmapContainer x) {
+    public MappeableContainer ior(MappeableBitmapContainer x) {
         return x.or(this);
     }
 
@@ -431,33 +431,33 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
 
             @Override
             public boolean hasNext() {
-                return pos < ArrayContainer.this.cardinality;
+                return pos < MappeableArrayContainer.this.cardinality;
             }
 
             @Override
             public Short next() {
-                return ArrayContainer.this.content.get(pos++);
+                return MappeableArrayContainer.this.content.get(pos++);
             }
 
             @Override
             public void remove() {
-                ArrayContainer.this.remove((short) (pos - 1));
+                MappeableArrayContainer.this.remove((short) (pos - 1));
                 pos--;
             }
         };
     }
 
     @Override
-    public Container ixor(final ArrayContainer value2) {
+    public MappeableContainer ixor(final MappeableArrayContainer value2) {
         return this.xor(value2);
     }
 
     @Override
-    public Container ixor(BitmapContainer x) {
+    public MappeableContainer ixor(MappeableBitmapContainer x) {
         return x.xor(this);
     }
 
-    protected void loadData(final BitmapContainer bitmapContainer) {
+    protected void loadData(final MappeableBitmapContainer bitmapContainer) {
         this.cardinality = bitmapContainer.cardinality;
         bitmapContainer.fillArray(content.array());
     }
@@ -504,17 +504,17 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
 
     // shares lots of code with inot; candidate for refactoring
     @Override
-    public Container not(final int firstOfRange, final int lastOfRange) {
+    public MappeableContainer not(final int firstOfRange, final int lastOfRange) {
         //TODO: this can be optimized for performance
         if (firstOfRange > lastOfRange) {
             return clone(); // empty range
         }
 
         // determine the span of array indices to be affected
-        int startIndex = Util.unsignedBinarySearch(content, 0, cardinality, (short) firstOfRange);
+        int startIndex = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (short) firstOfRange);
         if (startIndex < 0)
             startIndex = -startIndex - 1;
-        int lastIndex = Util.unsignedBinarySearch(content, 0, cardinality, (short) lastOfRange);
+        int lastIndex = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (short) lastOfRange);
         if (lastIndex < 0)
             lastIndex = -lastIndex - 2;
         final int currentValuesInRange = lastIndex - startIndex + 1;
@@ -526,7 +526,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         if (newCardinality >= DEFAULT_MAX_SIZE)
             return toBitmapContainer().not(firstOfRange, lastOfRange);
 
-        final ArrayContainer answer = new ArrayContainer(newCardinality);
+        final MappeableArrayContainer answer = new MappeableArrayContainer(newCardinality);
         short[] sarray = answer.content.array();
 
         for (int i = 0; i < startIndex; ++i)
@@ -557,32 +557,32 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     }
 
     @Override
-    public Container or(final ArrayContainer value2) {
-        final ArrayContainer value1 = this;
+    public MappeableContainer or(final MappeableArrayContainer value2) {
+        final MappeableArrayContainer value1 = this;
         final int totalCardinality = value1.getCardinality() + value2.getCardinality();
         if (totalCardinality > DEFAULT_MAX_SIZE) {// it could be a bitmap!
-            final BitmapContainer bc = new BitmapContainer();
+            final MappeableBitmapContainer bc = new MappeableBitmapContainer();
             long[] bitArray = bc.bitmap.array();
             if (value2.content.hasArray()) {
                 short[] sarray = value2.content.array();
                 for (int k = 0; k < value2.cardinality; ++k) {
-                    final int i = Util.toIntUnsigned(sarray[k]) >>> 6;
+                    final int i = BufferUtil.toIntUnsigned(sarray[k]) >>> 6;
                     bitArray[i] |= (1l << sarray[k]);
                 }
             } else
                 for (int k = 0; k < value2.cardinality; ++k) {
-                    final int i = Util.toIntUnsigned(value2.content.get(k)) >>> 6;
+                    final int i = BufferUtil.toIntUnsigned(value2.content.get(k)) >>> 6;
                     bitArray[i] |= (1l << value2.content.get(k));
                 }
             if (this.content.hasArray()) {
                 short[] sarray = this.content.array();
                 for (int k = 0; k < this.cardinality; ++k) {
-                    final int i = Util.toIntUnsigned(sarray[k]) >>> 6;
+                    final int i = BufferUtil.toIntUnsigned(sarray[k]) >>> 6;
                     bitArray[i] |= (1l << sarray[k]);
                 }
             } else
                 for (int k = 0; k < this.cardinality; ++k) {
-                    final int i = Util.toIntUnsigned(this.content.get(k)) >>> 6;
+                    final int i = BufferUtil.toIntUnsigned(this.content.get(k)) >>> 6;
                     bitArray[i] |= (1l << this.content.get(k));
                 }
             bc.cardinality = 0;
@@ -593,7 +593,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
                 return bc.toArrayContainer();
             return bc;
         }
-        final ArrayContainer answer = new ArrayContainer(totalCardinality);
+        final MappeableArrayContainer answer = new MappeableArrayContainer(totalCardinality);
         if (value1.content.hasArray() && value2.content.hasArray())
             answer.cardinality = org.roaringbitmap.Util.unsignedUnion2by2(
                     value1.content.array(),
@@ -603,7 +603,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
                     answer.content.array());
 
         else
-            answer.cardinality = Util.unsignedUnion2by2(
+            answer.cardinality = BufferUtil.unsignedUnion2by2(
                     value1.content,
                     value1.getCardinality(),
                     value2.content,
@@ -613,7 +613,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     }
 
     @Override
-    public Container or(BitmapContainer x) {
+    public MappeableContainer or(MappeableBitmapContainer x) {
         return x.or(this);
     }
 
@@ -633,8 +633,8 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     }
 
     @Override
-    public Container remove(final short x) {
-        final int loc = Util.unsignedBinarySearch(content, 0, cardinality, x);
+    public MappeableContainer remove(final short x) {
+        final int loc = BufferUtil.unsignedBinarySearch(content, 0, cardinality, x);
         if (loc >= 0) {
             // insertion
             System.arraycopy(content.array(), loc + 1, content.array(), loc, cardinality - loc - 1);
@@ -648,8 +648,8 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
      *
      * @return the bitmap container
      */
-    public BitmapContainer toBitmapContainer() {
-        final BitmapContainer bc = new BitmapContainer();
+    public MappeableBitmapContainer toBitmapContainer() {
+        final MappeableBitmapContainer bc = new MappeableBitmapContainer();
         bc.loadData(this);
         return bc;
     }
@@ -698,32 +698,32 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     }
 
     @Override
-    public Container xor(final ArrayContainer value2) {
-        final ArrayContainer value1 = this;
+    public MappeableContainer xor(final MappeableArrayContainer value2) {
+        final MappeableArrayContainer value1 = this;
         final int totalCardinality = value1.getCardinality() + value2.getCardinality();
         if (totalCardinality > DEFAULT_MAX_SIZE) {// it could be a bitmap!
-            final BitmapContainer bc = new BitmapContainer();
+            final MappeableBitmapContainer bc = new MappeableBitmapContainer();
             long[] bitArray = bc.bitmap.array();
             if (value2.content.hasArray()) {
                 short[] sarray = value2.content.array();
                 for (int k = 0; k < value2.cardinality; ++k) {
-                    final int i = Util.toIntUnsigned(sarray[k]) >>> 6;
+                    final int i = BufferUtil.toIntUnsigned(sarray[k]) >>> 6;
                     bitArray[i] ^= (1l << sarray[k]);
                 }
             } else
                 for (int k = 0; k < value2.cardinality; ++k) {
-                    final int i = Util.toIntUnsigned(value2.content.get(k)) >>> 6;
+                    final int i = BufferUtil.toIntUnsigned(value2.content.get(k)) >>> 6;
                     bitArray[i] ^= (1l << value2.content.get(k));
                 }
             if (this.content.hasArray()) {
                 short[] sarray = this.content.array();
                 for (int k = 0; k < this.cardinality; ++k) {
-                    final int i = Util.toIntUnsigned(sarray[k]) >>> 6;
+                    final int i = BufferUtil.toIntUnsigned(sarray[k]) >>> 6;
                     bitArray[i] ^= (1l << sarray[k]);
                 }
             } else
                 for (int k = 0; k < this.cardinality; ++k) {
-                    final int i = Util.toIntUnsigned(this.content.get(k)) >>> 6;
+                    final int i = BufferUtil.toIntUnsigned(this.content.get(k)) >>> 6;
                     bitArray[i] ^= (1l << this.content.get(k));
                 }
 
@@ -735,7 +735,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
                 return bc.toArrayContainer();
             return bc;
         }
-        final ArrayContainer answer = new ArrayContainer(totalCardinality);
+        final MappeableArrayContainer answer = new MappeableArrayContainer(totalCardinality);
         if (value1.content.hasArray() && value2.content.hasArray())
             answer.cardinality = org.roaringbitmap.Util
                     .unsignedExclusiveUnion2by2(
@@ -745,7 +745,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
                             value2.getCardinality(),
                             answer.content.array());
         else
-            answer.cardinality = Util.unsignedExclusiveUnion2by2(
+            answer.cardinality = BufferUtil.unsignedExclusiveUnion2by2(
                     value1.content,
                     value1.getCardinality(),
                     value2.content,
@@ -755,7 +755,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     }
 
     @Override
-    public Container xor(BitmapContainer x) {
+    public MappeableContainer xor(MappeableBitmapContainer x) {
         return x.xor(this);
     }
 

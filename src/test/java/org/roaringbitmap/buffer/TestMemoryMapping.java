@@ -33,9 +33,9 @@ public class TestMemoryMapping {
     public void complements() {
         System.out.println("testing complements");
         for (int k = 0; k < mappedbitmaps.size() - 1; k += 4) {
-            final RoaringBitmap rb = ImmutableRoaringBitmap.andNot(
+            final MappeableRoaringBitmap rb = ImmutableRoaringBitmap.andNot(
                     mappedbitmaps.get(k), mappedbitmaps.get(k + 1));
-            final RoaringBitmap rbram = ImmutableRoaringBitmap
+            final MappeableRoaringBitmap rbram = ImmutableRoaringBitmap
                     .andNot(rambitmaps.get(k), rambitmaps.get(k + 1));
             Assert.assertTrue(rb.equals(rbram));
         }
@@ -45,11 +45,11 @@ public class TestMemoryMapping {
     public void intersections() {
         System.out.println("testing intersections");
         for (int k = 0; k < mappedbitmaps.size() - 4; k += 4) {
-            final RoaringBitmap rb = FastAggregation.and(
+            final MappeableRoaringBitmap rb = BufferFastAggregation.and(
                     mappedbitmaps.get(k), mappedbitmaps.get(k + 1),
                     mappedbitmaps.get(k + 3),
                     mappedbitmaps.get(k + 4));
-            final RoaringBitmap rbram = FastAggregation.and(
+            final MappeableRoaringBitmap rbram = BufferFastAggregation.and(
                     rambitmaps.get(k), rambitmaps.get(k + 1),
                     rambitmaps.get(k + 3), rambitmaps.get(k + 4));
             Assert.assertTrue(rb.equals(rbram));
@@ -60,11 +60,11 @@ public class TestMemoryMapping {
     public void unions() {
         System.out.println("testing Unions");
         for (int k = 0; k < mappedbitmaps.size() - 4; k += 4) {
-            final RoaringBitmap rb = FastAggregation.or(
+            final MappeableRoaringBitmap rb = BufferFastAggregation.or(
                     mappedbitmaps.get(k), mappedbitmaps.get(k + 1),
                     mappedbitmaps.get(k + 3),
                     mappedbitmaps.get(k + 4));
-            final RoaringBitmap rbram = FastAggregation.or(
+            final MappeableRoaringBitmap rbram = BufferFastAggregation.or(
                     rambitmaps.get(k), rambitmaps.get(k + 1),
                     rambitmaps.get(k + 3), rambitmaps.get(k + 4));
             Assert.assertTrue(rb.equals(rbram));
@@ -75,11 +75,11 @@ public class TestMemoryMapping {
     public void XORs() {
         System.out.println("testing XORs");
         for (int k = 0; k < mappedbitmaps.size() - 4; k += 4) {
-            final RoaringBitmap rb = FastAggregation.xor(
+            final MappeableRoaringBitmap rb = BufferFastAggregation.xor(
                     mappedbitmaps.get(k), mappedbitmaps.get(k + 1),
                     mappedbitmaps.get(k + 3),
                     mappedbitmaps.get(k + 4));
-            final RoaringBitmap rbram = FastAggregation.xor(
+            final MappeableRoaringBitmap rbram = BufferFastAggregation.xor(
                     rambitmaps.get(k), rambitmaps.get(k + 1),
                     rambitmaps.get(k + 3), rambitmaps.get(k + 4));
             Assert.assertTrue(rb.equals(rbram));
@@ -105,7 +105,7 @@ public class TestMemoryMapping {
         final DataOutputStream dos = new DataOutputStream(fos);
         for (int N = 65536 * 16; N <= 65536 * 128; N *= 2) {
             for (int gap = 1; gap <= 65536; gap *= 4) {
-                final RoaringBitmap rb1 = new RoaringBitmap();
+                final MappeableRoaringBitmap rb1 = new MappeableRoaringBitmap();
                 for (int x = 0; x < N; x += gap) {
                     rb1.add(x);
                 }
@@ -114,7 +114,7 @@ public class TestMemoryMapping {
                 rb1.serialize(dos);
                 dos.flush();
                 for (int offset = 1; offset <= gap; offset *= 8) {
-                    final RoaringBitmap rb2 = new RoaringBitmap();
+                    final MappeableRoaringBitmap rb2 = new MappeableRoaringBitmap();
                     for (int x = 0; x < N; x += gap) {
                         rb2.add(x + offset);
                     }
@@ -147,7 +147,7 @@ public class TestMemoryMapping {
 
     static MappedByteBuffer out;
 
-    static ArrayList<RoaringBitmap> rambitmaps = new ArrayList<RoaringBitmap>();
+    static ArrayList<MappeableRoaringBitmap> rambitmaps = new ArrayList<MappeableRoaringBitmap>();
 
     static File tmpfile;
 }

@@ -14,7 +14,7 @@ import java.io.IOException;
  * Base container class. This class is similar to org.roaringbitmap.Container
  * but meant to be used with memory mapping.
  */
-public abstract class Container implements Iterable<Short>, Cloneable,
+public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
         Externalizable {
 
     /**
@@ -24,10 +24,10 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param last  last index (range in inclusive)
      * @return a new container initialized with the specified values
      */
-    public static Container rangeOfOnes(final int start, final int last) {
-        if (last - start + 1 > ArrayContainer.DEFAULT_MAX_SIZE)
-            return new BitmapContainer(start, last);
-        return new ArrayContainer(start, last);
+    public static MappeableContainer rangeOfOnes(final int start, final int last) {
+        if (last - start + 1 > MappeableArrayContainer.DEFAULT_MAX_SIZE)
+            return new MappeableBitmapContainer(start, last);
+        return new MappeableArrayContainer(start, last);
     }
 
     /**
@@ -36,7 +36,7 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x short to be added
      * @return the new container
      */
-    public abstract Container add(short x);
+    public abstract MappeableContainer add(short x);
 
     /**
      * Computes the bitwise AND of this container with another
@@ -46,7 +46,7 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other container
      * @return aggregated container
      */
-    public abstract Container and(ArrayContainer x);
+    public abstract MappeableContainer and(MappeableArrayContainer x);
 
     /**
      * Computes the bitwise AND of this container with another
@@ -56,7 +56,7 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other container
      * @return aggregated container
      */
-    public abstract Container and(BitmapContainer x);
+    public abstract MappeableContainer and(MappeableBitmapContainer x);
 
     /**
      * Computes the bitwise AND of this container with another
@@ -66,10 +66,10 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other container
      * @return aggregated container
      */
-    public Container and(Container x) {
-        if (x instanceof ArrayContainer)
-            return and((ArrayContainer) x);
-        return and((BitmapContainer) x);
+    public MappeableContainer and(MappeableContainer x) {
+        if (x instanceof MappeableArrayContainer)
+            return and((MappeableArrayContainer) x);
+        return and((MappeableBitmapContainer) x);
 
     }
 
@@ -81,7 +81,7 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other container
      * @return aggregated container
      */
-    public abstract Container andNot(ArrayContainer x);
+    public abstract MappeableContainer andNot(MappeableArrayContainer x);
 
     /**
      * Computes the bitwise ANDNOT of this container with another
@@ -91,7 +91,7 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other container
      * @return aggregated container
      */
-    public abstract Container andNot(BitmapContainer x);
+    public abstract MappeableContainer andNot(MappeableBitmapContainer x);
 
     /**
      * Computes the bitwise ANDNOT of this container with another
@@ -101,10 +101,10 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other container
      * @return aggregated container
      */
-    public Container andNot(Container x) {
-        if (x instanceof ArrayContainer)
-            return andNot((ArrayContainer) x);
-        return andNot((BitmapContainer) x);
+    public MappeableContainer andNot(MappeableContainer x) {
+        if (x instanceof MappeableArrayContainer)
+            return andNot((MappeableArrayContainer) x);
+        return andNot((MappeableBitmapContainer) x);
     }
 
     /**
@@ -113,7 +113,7 @@ public abstract class Container implements Iterable<Short>, Cloneable,
     public abstract void clear();
 
     @Override
-    public abstract Container clone();
+    public abstract MappeableContainer clone();
 
     /**
      * Checks whether the contain contains the provided value
@@ -175,7 +175,7 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other container
      * @return aggregated container
      */
-    public abstract Container iand(ArrayContainer x);
+    public abstract MappeableContainer iand(MappeableArrayContainer x);
 
     /**
      * Computes the in-place bitwise AND of this container with another
@@ -186,7 +186,7 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other container
      * @return aggregated container
      */
-    public abstract Container iand(BitmapContainer x);
+    public abstract MappeableContainer iand(MappeableBitmapContainer x);
 
     /**
      * Computes the in-place bitwise AND of this container with another
@@ -197,10 +197,10 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other container
      * @return aggregated container
      */
-    public Container iand(Container x) {
-        if (x instanceof ArrayContainer)
-            return iand((ArrayContainer) x);
-        return iand((BitmapContainer) x);
+    public MappeableContainer iand(MappeableContainer x) {
+        if (x instanceof MappeableArrayContainer)
+            return iand((MappeableArrayContainer) x);
+        return iand((MappeableBitmapContainer) x);
 
     }
 
@@ -213,7 +213,7 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other container
      * @return aggregated container
      */
-    public abstract Container iandNot(ArrayContainer x);
+    public abstract MappeableContainer iandNot(MappeableArrayContainer x);
 
     /**
      * Computes the in-place bitwise ANDNOT of this container with another
@@ -224,7 +224,7 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other container
      * @return aggregated container
      */
-    public abstract Container iandNot(BitmapContainer x);
+    public abstract MappeableContainer iandNot(MappeableBitmapContainer x);
 
     /**
      * Computes the in-place bitwise ANDNOT of this container with another
@@ -235,10 +235,10 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other container
      * @return aggregated container
      */
-    public Container iandNot(Container x) {
-        if (x instanceof ArrayContainer)
-            return iandNot((ArrayContainer) x);
-        return iandNot((BitmapContainer) x);
+    public MappeableContainer iandNot(MappeableContainer x) {
+        if (x instanceof MappeableArrayContainer)
+            return iandNot((MappeableArrayContainer) x);
+        return iandNot((MappeableBitmapContainer) x);
     }
 
     /**
@@ -251,7 +251,7 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param rangeEnd   ending of range (exclusive)
      * @return (partially) completmented container
      */
-    public abstract Container inot(int rangeStart, int rangeEnd);
+    public abstract MappeableContainer inot(int rangeStart, int rangeEnd);
 
     /**
      * Computes the in-place bitwise OR of this container with another
@@ -261,7 +261,7 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other container
      * @return aggregated container
      */
-    public abstract Container ior(ArrayContainer x);
+    public abstract MappeableContainer ior(MappeableArrayContainer x);
 
     /**
      * Computes the in-place bitwise OR of this container with another
@@ -271,7 +271,7 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other container
      * @return aggregated container
      */
-    public abstract Container ior(BitmapContainer x);
+    public abstract MappeableContainer ior(MappeableBitmapContainer x);
 
     /**
      * Computes the in-place bitwise OR of this container with another
@@ -281,10 +281,10 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other container
      * @return aggregated container
      */
-    public Container ior(Container x) {
-        if (x instanceof ArrayContainer)
-            return ior((ArrayContainer) x);
-        return ior((BitmapContainer) x);
+    public MappeableContainer ior(MappeableContainer x) {
+        if (x instanceof MappeableArrayContainer)
+            return ior((MappeableArrayContainer) x);
+        return ior((MappeableBitmapContainer) x);
     }
 
     /**
@@ -295,7 +295,7 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other container
      * @return aggregated container
      */
-    public abstract Container ixor(ArrayContainer x);
+    public abstract MappeableContainer ixor(MappeableArrayContainer x);
 
     /**
      * Computes the in-place bitwise OR of this container with another
@@ -305,7 +305,7 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other container
      * @return aggregated container
      */
-    public abstract Container ixor(BitmapContainer x);
+    public abstract MappeableContainer ixor(MappeableBitmapContainer x);
 
     /**
      * Computes the in-place bitwise OR of this container with another
@@ -315,11 +315,11 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other container
      * @return aggregated container
      */
-    public Container ixor(Container x) {
-        if (x instanceof ArrayContainer)
-            return ixor((ArrayContainer) x);
+    public MappeableContainer ixor(MappeableContainer x) {
+        if (x instanceof MappeableArrayContainer)
+            return ixor((MappeableArrayContainer) x);
         else
-            return ixor((BitmapContainer) x);
+            return ixor((MappeableBitmapContainer) x);
 
     }
 
@@ -333,7 +333,7 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param rangeEnd   ending of range (exclusive)
      * @return (partially) completmented container
      */
-    public abstract Container not(int rangeStart, int rangeEnd);
+    public abstract MappeableContainer not(int rangeStart, int rangeEnd);
 
     /**
      * Computes the bitwise OR of this container with another (union). This
@@ -342,7 +342,7 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other container
      * @return aggregated container
      */
-    public abstract Container or(ArrayContainer x);
+    public abstract MappeableContainer or(MappeableArrayContainer x);
 
     /**
      * Computes the bitwise OR of this container with another (union). This
@@ -351,7 +351,7 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other container
      * @return aggregated container
      */
-    public abstract Container or(BitmapContainer x);
+    public abstract MappeableContainer or(MappeableBitmapContainer x);
 
     /**
      * Computes the bitwise OR of this container with another (union). This
@@ -360,10 +360,10 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other container
      * @return aggregated container
      */
-    public Container or(Container x) {
-        if (x instanceof ArrayContainer)
-            return or((ArrayContainer) x);
-        return or((BitmapContainer) x);
+    public MappeableContainer or(MappeableContainer x) {
+        if (x instanceof MappeableArrayContainer)
+            return or((MappeableArrayContainer) x);
+        return or((MappeableBitmapContainer) x);
     }
 
     /**
@@ -372,7 +372,7 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x to be removed
      * @return New container
      */
-    public abstract Container remove(short x);
+    public abstract MappeableContainer remove(short x);
 
     /**
      * If possible, recover wasted memory.
@@ -394,7 +394,7 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other container
      * @return aggregated container
      */
-    public abstract Container xor(ArrayContainer x);
+    public abstract MappeableContainer xor(MappeableArrayContainer x);
 
     /**
      * Computes the bitwise OR of this container with another (union). This
@@ -403,7 +403,7 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other container
      * @return aggregated container
      */
-    public abstract Container xor(BitmapContainer x);
+    public abstract MappeableContainer xor(MappeableBitmapContainer x);
 
     /**
      * Computes the bitwise OR of this container with another (union). This
@@ -412,10 +412,10 @@ public abstract class Container implements Iterable<Short>, Cloneable,
      * @param x other parameter
      * @return aggregated container
      */
-    public Container xor(Container x) {
-        if (x instanceof ArrayContainer)
-            return xor((ArrayContainer) x);
-        return xor((BitmapContainer) x);
+    public MappeableContainer xor(MappeableContainer x) {
+        if (x instanceof MappeableArrayContainer)
+            return xor((MappeableArrayContainer) x);
+        return xor((MappeableBitmapContainer) x);
 
     }
 

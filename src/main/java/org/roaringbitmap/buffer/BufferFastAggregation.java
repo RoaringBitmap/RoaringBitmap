@@ -14,12 +14,12 @@ import java.util.PriorityQueue;
  *
  * @author Daniel Lemire
  */
-public final class FastAggregation {
+public final class BufferFastAggregation {
 
     /**
      * Private constructor to prevent instantiation of utility class
      */
-    private FastAggregation() {
+    private BufferFastAggregation() {
     }
 
     /**
@@ -28,7 +28,7 @@ public final class FastAggregation {
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
      */
-    public static RoaringBitmap and(ImmutableRoaringBitmap... bitmaps) {
+    public static MappeableRoaringBitmap and(ImmutableRoaringBitmap... bitmaps) {
         if (bitmaps.length < 2)
             throw new IllegalArgumentException("Expecting at least 2 bitmaps");
         final ImmutableRoaringBitmap[] array = Arrays.copyOf(bitmaps, bitmaps.length);
@@ -42,7 +42,7 @@ public final class FastAggregation {
         ImmutableRoaringBitmap answer = array[0];
         for (int k = 1; k < array.length; ++k)
             answer = ImmutableRoaringBitmap.and(answer, array[k]);
-        return (RoaringBitmap) answer;
+        return (MappeableRoaringBitmap) answer;
     }
 
     /**
@@ -51,7 +51,7 @@ public final class FastAggregation {
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
      */
-    public static RoaringBitmap or(ImmutableRoaringBitmap... bitmaps) {
+    public static MappeableRoaringBitmap or(ImmutableRoaringBitmap... bitmaps) {
         if (bitmaps.length < 2)
             throw new IllegalArgumentException(
                     "Expecting at least 2 bitmaps");
@@ -71,7 +71,7 @@ public final class FastAggregation {
             final ImmutableRoaringBitmap x2 = pq.poll();
             pq.add(ImmutableRoaringBitmap.or(x1, x2));
         }
-        return (RoaringBitmap) pq.poll();
+        return (MappeableRoaringBitmap) pq.poll();
     }
 
     /**
@@ -80,7 +80,7 @@ public final class FastAggregation {
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
      */
-    public static RoaringBitmap xor(ImmutableRoaringBitmap... bitmaps) {
+    public static MappeableRoaringBitmap xor(ImmutableRoaringBitmap... bitmaps) {
         if (bitmaps.length < 2)
             throw new IllegalArgumentException(
                     "Expecting at least 2 bitmaps");
@@ -100,7 +100,7 @@ public final class FastAggregation {
             final ImmutableRoaringBitmap x2 = pq.poll();
             pq.add(ImmutableRoaringBitmap.xor(x1, x2));
         }
-        return (RoaringBitmap) pq.poll();
+        return (MappeableRoaringBitmap) pq.poll();
     }
 
 }

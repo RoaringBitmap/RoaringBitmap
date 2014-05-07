@@ -18,7 +18,7 @@ import java.util.Arrays;
  * 
  * Objects of this class reside in RAM.
  */
-public final class RoaringArray implements Cloneable, Externalizable {
+public final class MappeableRoaringArray implements Cloneable, Externalizable {
 
     private static final long serialVersionUID = 4L;
 
@@ -31,7 +31,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
     protected int size = 0;
 
 
-    protected RoaringArray() {
+    protected MappeableRoaringArray() {
         this.array = new Element[INITIAL_CAPACITY];
     }
 
@@ -42,7 +42,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
      *
      * @param bb The source ByteBuffer
      */
-    protected RoaringArray(ByteBuffer bb) {
+    protected MappeableRoaringArray(ByteBuffer bb) {
         bb.order(ByteOrder.LITTLE_ENDIAN);
         if (bb.getInt() != SERIAL_COOKIE)
             throw new RuntimeException("I failed to find the right cookie.");
@@ -55,32 +55,32 @@ public final class RoaringArray implements Cloneable, Externalizable {
         final boolean isBitmap[] = new boolean[this.size];
         for (int k = 0; k < this.size; ++k) {
             keys[k] = bb.getShort();
-            cardinalities[k] = Util.toIntUnsigned(bb.getShort()) + 1;
-            isBitmap[k] = cardinalities[k] > ArrayContainer.DEFAULT_MAX_SIZE;
+            cardinalities[k] = BufferUtil.toIntUnsigned(bb.getShort()) + 1;
+            isBitmap[k] = cardinalities[k] > MappeableArrayContainer.DEFAULT_MAX_SIZE;
         }
         for (int k = 0; k < this.size; ++k) {
             if (cardinalities[k] == 0)
                 throw new RuntimeException("no");
-            Container val;
+            MappeableContainer val;
             if (isBitmap[k]) {
                 final LongBuffer bitmapArray = bb.asLongBuffer().slice();
-                bitmapArray.limit(BitmapContainer.MAX_CAPACITY / 64);
-                bb.position(bb.position() + BitmapContainer.MAX_CAPACITY / 8);
-                val = new BitmapContainer(bitmapArray, cardinalities[k]);
+                bitmapArray.limit(MappeableBitmapContainer.MAX_CAPACITY / 64);
+                bb.position(bb.position() + MappeableBitmapContainer.MAX_CAPACITY / 8);
+                val = new MappeableBitmapContainer(bitmapArray, cardinalities[k]);
             } else {
                 final ShortBuffer shortArray = bb.asShortBuffer().slice();
                 shortArray.limit(cardinalities[k]);
                 bb.position(bb.position() + cardinalities[k] * 2);
-                val = new ArrayContainer(shortArray, cardinalities[k]);
+                val = new MappeableArrayContainer(shortArray, cardinalities[k]);
             }
             this.array[k] = new Element(keys[k], val);
         }
     }
 
     @Override
-    public RoaringArray clone() throws CloneNotSupportedException {
-        RoaringArray sa;
-        sa = (RoaringArray) super.clone();
+    public MappeableRoaringArray clone() throws CloneNotSupportedException {
+        MappeableRoaringArray sa;
+        sa = (MappeableRoaringArray) super.clone();
         sa.array = Arrays.copyOf(this.array, this.size);
         for (int k = 0; k < this.size; ++k)
             sa.array[k] = sa.array[k].clone();
@@ -120,12 +120,12 @@ public final class RoaringArray implements Cloneable, Externalizable {
             keys[k] = (short) (buffer[0] & 0xFF | ((buffer[1] & 0xFF) << 8));
             in.readFully(buffer);
             cardinalities[k] = 1 + (buffer[0] & 0xFF | ((buffer[1] & 0xFF) << 8));
-            isBitmap[k] = cardinalities[k] > ArrayContainer.DEFAULT_MAX_SIZE;
+            isBitmap[k] = cardinalities[k] > MappeableArrayContainer.DEFAULT_MAX_SIZE;
         }
         for (int k = 0; k < this.size; ++k) {
-            Container val;
+            MappeableContainer val;
             if (isBitmap[k]) {
-                final LongBuffer bitmapArray = LongBuffer.allocate(BitmapContainer.MAX_CAPACITY / 64);
+                final LongBuffer bitmapArray = LongBuffer.allocate(MappeableBitmapContainer.MAX_CAPACITY / 64);
                 final byte[] buf = new byte[8];
                 // little endian
                 for (int l = 0; l < bitmapArray.limit(); ++l) {
@@ -141,14 +141,14 @@ public final class RoaringArray implements Cloneable, Externalizable {
                                             + (buf[0] & 255))
                             );
                 }
-                val = new BitmapContainer(bitmapArray, cardinalities[k]);
+                val = new MappeableBitmapContainer(bitmapArray, cardinalities[k]);
             } else {
                 final ShortBuffer shortArray = ShortBuffer.allocate(cardinalities[k]);
                 for (int l = 0; l < shortArray.limit(); ++l) {
                     in.readFully(buffer);
                     shortArray.put(l, (short) (buffer[0] & 0xFF | ((buffer[1] & 0xFF) << 8)));
                 }
-                val = new ArrayContainer(shortArray, cardinalities[k]);
+                val = new MappeableArrayContainer(shortArray, cardinalities[k]);
             }
             this.array[k] = new Element(keys[k], val);
         }
@@ -156,8 +156,8 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
     @Override
     public boolean equals(Object o) {
-        if (o instanceof RoaringArray) {
-            final RoaringArray srb = (RoaringArray) o;
+        if (o instanceof MappeableRoaringArray) {
+            final MappeableRoaringArray srb = (MappeableRoaringArray) o;
             if (srb.size != this.size)
                 return false;
             for (int i = 0; i < srb.size; ++i) {
@@ -233,11 +233,11 @@ public final class RoaringArray implements Cloneable, Externalizable {
     private int binarySearch(int begin, int end, short key) {
         int low = begin;
         int high = end - 1;
-        final int ikey = Util.toIntUnsigned(key);
+        final int ikey = BufferUtil.toIntUnsigned(key);
 
         while (low <= high) {
             final int middleIndex = (low + high) >>> 1;
-            final int middleValue = Util.toIntUnsigned(array[middleIndex].key);
+            final int middleValue = BufferUtil.toIntUnsigned(array[middleIndex].key);
 
             if (middleValue < ikey)
                 low = middleIndex + 1;
@@ -249,7 +249,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
         return -(low + 1);
     }
 
-    protected void append(short key, Container value) {
+    protected void append(short key, MappeableContainer value) {
         extendArray(1);
         this.array[this.size++] = new Element(key, value);
     }
@@ -261,7 +261,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
      * @param sa          the other array
      * @param beforeStart given key is the largest key that we won't copy
      */
-    protected void appendCopiesAfter(RoaringArray sa, short beforeStart) {
+    protected void appendCopiesAfter(MappeableRoaringArray sa, short beforeStart) {
         int startLocation = sa.getIndex(beforeStart);
         if (startLocation >= 0)
             startLocation++;
@@ -281,10 +281,10 @@ public final class RoaringArray implements Cloneable, Externalizable {
      * @param stoppingKey any equal or larger key in other array will terminate
      *                    copying
      */
-    protected void appendCopiesUntil(RoaringArray sa, short stoppingKey) {
-        final int stopKey = Util.toIntUnsigned(stoppingKey);
+    protected void appendCopiesUntil(MappeableRoaringArray sa, short stoppingKey) {
+        final int stopKey = BufferUtil.toIntUnsigned(stoppingKey);
         for (int i = 0; i < sa.size; ++i) {
-            if (Util.toIntUnsigned(sa.array[i].key) >= stopKey)
+            if (BufferUtil.toIntUnsigned(sa.array[i].key) >= stopKey)
                 break;
             extendArray(1);
             this.array[this.size++] = new Element(sa.array[i].key, sa.array[i].value.clone());
@@ -297,7 +297,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
      * @param sa    other array
      * @param index index in the other array
      */
-    protected void appendCopy(RoaringArray sa, int index) {
+    protected void appendCopy(MappeableRoaringArray sa, int index) {
         extendArray(1);
         this.array[this.size++] = new Element(sa.array[index].key,
                 sa.array[index].value.clone());
@@ -310,7 +310,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
      * @param startingIndex starting index in the other array
      * @param end           last index array in the other array
      */
-    protected void appendCopy(RoaringArray sa, int startingIndex, int end) {
+    protected void appendCopy(MappeableRoaringArray sa, int startingIndex, int end) {
         extendArray(end - startingIndex);
         for (int i = startingIndex; i < end; ++i) {
             this.array[this.size++] = new Element(sa.array[i].key, sa.array[i].value.clone());
@@ -338,14 +338,14 @@ public final class RoaringArray implements Cloneable, Externalizable {
     }
 
     // involves a binary search
-    protected Container getContainer(short x) {
+    protected MappeableContainer getContainer(short x) {
         final int i = this.binarySearch(0, size, x);
         if (i < 0)
             return null;
         return this.array[i].value;
     }
 
-    protected Container getContainerAtIndex(int i) {
+    protected MappeableContainer getContainerAtIndex(int i) {
         return this.array[i].value;
     }
 
@@ -363,7 +363,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
     }
 
     // insert a new key, it is assumed that it does not exist
-    protected void insertNewKeyValueAt(int i, short key, Container value) {
+    protected void insertNewKeyValueAt(int i, short key, MappeableContainer value) {
         extendArray(1);
         System.arraycopy(array, i, array, i + 1, size - i);
         array[i] = new Element(key, value);
@@ -392,7 +392,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
         this.size = newLength;
     }
 
-    protected void setContainerAtIndex(int i, Container c) {
+    protected void setContainerAtIndex(int i, MappeableContainer c) {
         this.array[i].value = c;
     }
 
@@ -404,9 +404,9 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
         public final short key;
 
-        public Container value;
+        public MappeableContainer value;
 
-        public Element(short key, Container value) {
+        public Element(short key, MappeableContainer value) {
             this.key = key;
             this.value = value;
         }

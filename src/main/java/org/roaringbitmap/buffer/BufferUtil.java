@@ -13,12 +13,12 @@ import java.nio.ShortBuffer;
  * This class is similar to org.roaringbitmap.Util but meant to be used with
  * memory mapping.
  */
-public final class Util {
+public final class BufferUtil {
 
     /**
      * Private constructor to prevent instantiation of utility class
      */
-    private Util() {
+    private BufferUtil() {
     }
 
     /**
