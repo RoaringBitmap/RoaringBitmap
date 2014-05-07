@@ -58,7 +58,7 @@ in RAM while the actual data is accessed from the ByteBuffer on demand.
         
         //...
         
-        RoaringBitmap rr = RoaringBitmap.bitmapOf(1, 2, 3, 1000);
+        MappeableRoaringBitmap rr = MappeableRoaringBitmap.bitmapOf(1, 2, 3, 1000);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(bos);
         rr.serialize(dos);
@@ -94,7 +94,7 @@ If your project depends on roaring, you  can  specify the dependency in the Mave
           <dependency>
             <groupId>org.roaringbitmap</groupId>
             <artifactId>RoaringBitmap</artifactId>
-            <version>0.1.5</version>
+            <version>0.2.0</version>
           </dependency>
         </dependencies>
 

@@ -18,6 +18,18 @@ import java.util.*;
  */
 @SuppressWarnings({"static-method", "javadoc"})
 public class TestRoaringBitmap {
+	
+
+	@Test
+	public void testHash() {
+		MappeableRoaringBitmap rbm1 = new MappeableRoaringBitmap();
+		rbm1.add(17);
+		MappeableRoaringBitmap rbm2 = new MappeableRoaringBitmap();
+		rbm2.add(17);
+		Assert.assertTrue(rbm1.hashCode() == rbm2.hashCode());
+		rbm2 = rbm1.clone();
+		Assert.assertTrue(rbm1.hashCode() == rbm2.hashCode());
+	}
 
     @Test
     public void ANDNOTtest() {

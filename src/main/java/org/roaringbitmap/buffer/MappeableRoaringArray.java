@@ -173,8 +173,12 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable {
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(array);
+    	int hashvalue = 0;
+    	for(int k = 0; k < this.size; ++k)
+    		hashvalue = 31 * hashvalue + array[k].hashCode();
+    	return hashvalue;
     }
+
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
@@ -410,6 +414,21 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable {
             this.key = key;
             this.value = value;
         }
+        
+        @Override
+        public int hashCode() {
+        	return key * 0xF0F0F0 + value.hashCode();
+        }
+        
+        @Override
+        public boolean equals(Object o) {
+        	if(o instanceof Element) {
+        		Element e = (Element) o;
+        		return (e.key == key) && e.value.equals(value);
+        	}
+        	return false;
+        }
+        
 
         @Override
         public Element clone() throws CloneNotSupportedException {

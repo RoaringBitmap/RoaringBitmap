@@ -164,7 +164,10 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(array);
+    	int hashvalue = 0;
+    	for(int k = 0; k < this.size; ++k)
+    		hashvalue = 31 * hashvalue + array[k].hashCode();
+    	return hashvalue;
     }
 
     // insert a new key, it is assumed that it does not exist
@@ -356,6 +359,20 @@ public final class RoaringArray implements Cloneable, Externalizable {
             this.value = value;
         }
 
+        @Override
+        public int hashCode() {
+        	return key * 0xF0F0F0 + value.hashCode();
+        }
+        
+        @Override
+        public boolean equals(Object o) {
+        	if(o instanceof Element) {
+        		Element e = (Element) o;
+        		return (e.key == key) && e.value.equals(value);
+        	}
+        	return false;
+        }
+        
         @Override
         public Element clone() throws CloneNotSupportedException {
             Element c = (Element) super.clone();
