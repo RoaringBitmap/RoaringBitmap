@@ -5,6 +5,7 @@
 package org.roaringbitmap.buffer;
 
 import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.RoaringBitmap;
 
 import java.io.*;
 import java.util.Iterator;
@@ -609,6 +610,15 @@ public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap impleme
             }
 
         }.init();
+    }
+
+    /**
+     * Checks whether the bitmap is empty.
+     * 
+     * @return true if this bitmap contains no set bit
+     */
+    public boolean isEmpty() {
+    	return highLowContainer.size() == 0;
     }
 
     /**

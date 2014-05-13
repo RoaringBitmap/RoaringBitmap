@@ -658,6 +658,16 @@ public final class RoaringBitmap implements Cloneable, Serializable, Iterable<In
     }
 
     /**
+     * Checks whether the bitmap is empty.
+     * 
+     * @return true if this bitmap contains no set bit
+     */
+    public boolean isEmpty() {
+    	return highLowContainer.size() == 0;
+    }
+
+
+    /**
      * In-place bitwise OR (union) operation. The current bitmap is
      * modified.
      *
