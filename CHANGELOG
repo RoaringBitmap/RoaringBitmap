@@ -1,5 +1,6 @@
 upcoming
   - adding "isEmpty" methods
+  - improved AND aggregate between many bitmaps
 
 version 0.2.0 (May 7th, 2014)
   - renamed classes in the buffer package to avoid clashes

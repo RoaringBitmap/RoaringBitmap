@@ -29,8 +29,10 @@ public final class BufferFastAggregation {
      * @return aggregated bitmap
      */
     public static MappeableRoaringBitmap and(ImmutableRoaringBitmap... bitmaps) {
-        if (bitmaps.length < 2)
-            throw new IllegalArgumentException("Expecting at least 2 bitmaps");
+        if (bitmaps.length == 0)
+          return new MappeableRoaringBitmap();
+        else if(bitmaps.length == 1)
+    	  return bitmaps[0].clone();
         final ImmutableRoaringBitmap[] array = Arrays.copyOf(bitmaps, bitmaps.length);
         Arrays.sort(array, new Comparator<ImmutableRoaringBitmap>() {
             @Override
@@ -39,10 +41,10 @@ public final class BufferFastAggregation {
                 return a.getSizeInBytes() - b.getSizeInBytes();
             }
         });
-        ImmutableRoaringBitmap answer = array[0];
-        for (int k = 1; k < array.length; ++k)
-            answer = ImmutableRoaringBitmap.and(answer, array[k]);
-        return (MappeableRoaringBitmap) answer;
+        MappeableRoaringBitmap answer = ImmutableRoaringBitmap.and(array[0], array[1]);
+        for (int k = 2; k < array.length; ++k)
+            answer.and(array[k]);
+        return answer;
     }
 
     /**

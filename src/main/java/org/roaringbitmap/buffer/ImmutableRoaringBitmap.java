@@ -21,7 +21,7 @@ import java.util.Iterator;
  * 
  * Objects of this class may reside almost entirely in memory-map files.
  */
-public class ImmutableRoaringBitmap implements Iterable<Integer> {
+public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
 
     /**
      * Bitwise AND (intersection) operation. The provided bitmaps are *not*
@@ -131,6 +131,16 @@ public class ImmutableRoaringBitmap implements Iterable<Integer> {
                     pos1, length1);
         }
         return answer;
+    }
+    @Override
+    public MappeableRoaringBitmap clone() {
+        try {
+            final MappeableRoaringBitmap x = (MappeableRoaringBitmap) super.clone();
+            x.highLowContainer = highLowContainer.clone();
+            return x;
+        } catch (final CloneNotSupportedException e) {
+            throw new RuntimeException("shouldn't happen with clone", e);
+        }
     }
 
     /**

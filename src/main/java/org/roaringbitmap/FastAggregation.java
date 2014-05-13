@@ -32,6 +32,8 @@ public final class FastAggregation {
     public static RoaringBitmap and(RoaringBitmap... bitmaps) {
         if (bitmaps.length == 0)
             return new RoaringBitmap();
+        else if(bitmaps.length == 1)
+        	return bitmaps[0].clone();
         RoaringBitmap[] array = Arrays.copyOf(bitmaps, bitmaps.length);
         Arrays.sort(array, new Comparator<RoaringBitmap>() {
             @Override
@@ -39,9 +41,9 @@ public final class FastAggregation {
                 return a.getSizeInBytes() - b.getSizeInBytes();
             }
         });
-        RoaringBitmap answer = array[0];
-        for (int k = 1; k < array.length; ++k)
-            answer = RoaringBitmap.and(answer, array[k]);
+        RoaringBitmap answer = RoaringBitmap.and(array[0], array[1]);
+        for (int k = 2; k < array.length; ++k)
+            answer.and(array[k]);
         return answer;
     }
 

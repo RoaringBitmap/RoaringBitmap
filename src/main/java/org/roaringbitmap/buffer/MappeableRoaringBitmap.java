@@ -338,12 +338,12 @@ public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap impleme
      * In-place bitwise AND (intersection) operation. The current bitmap is
      * modified.
      *
-     * @param x2 other bitmap
+     * @param array other bitmap
      */
-    public void and(final MappeableRoaringBitmap x2) {
+    public void and(final ImmutableRoaringBitmap array) {
         int pos1 = 0, pos2 = 0;
         int length1 = highLowContainer.size();
-        final int length2 = x2.highLowContainer.size();
+        final int length2 = array.highLowContainer.size();
                 /*
                  * TODO: This could be optimized quite a bit when one bitmap is
                  * much smaller than the other one.
@@ -351,7 +351,7 @@ public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap impleme
         main:
         if (pos1 < length1 && pos2 < length2) {
             short s1 = highLowContainer.getKeyAtIndex(pos1);
-            short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+            short s2 = array.highLowContainer.getKeyAtIndex(pos2);
             do {
                 if (s1 < s2) {
                     highLowContainer.removeAtIndex(pos1);
@@ -363,10 +363,10 @@ public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap impleme
                     pos2++;
                     if (pos2 == length2)
                         break main;
-                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+                    s2 = array.highLowContainer.getKeyAtIndex(pos2);
                 } else {
                     final MappeableContainer c = highLowContainer.getContainerAtIndex(pos1).iand(
-                            x2.highLowContainer.getContainerAtIndex(pos2));
+                            array.highLowContainer.getContainerAtIndex(pos2));
                     if (c.getCardinality() > 0) {
                         this.highLowContainer.setContainerAtIndex(pos1, c);
                         pos1++;
@@ -378,7 +378,7 @@ public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap impleme
                     if ((pos1 == length1) || (pos2 == length2))
                         break main;
                     s1 = highLowContainer.getKeyAtIndex(pos1);
-                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+                    s2 = array.highLowContainer.getKeyAtIndex(pos2);
                 }
             } while (true);
         }
@@ -391,7 +391,7 @@ public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap impleme
      *
      * @param x2 other bitmap
      */
-    public void andNot(final MappeableRoaringBitmap x2) {
+    public void andNot(final ImmutableRoaringBitmap x2) {
         int pos1 = 0, pos2 = 0;
         int length1 = highLowContainer.size();
         final int length2 = x2.highLowContainer.size();
@@ -440,16 +440,6 @@ public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap impleme
         highLowContainer = new MappeableRoaringArray(); // lose references
     }
 
-    @Override
-    public MappeableRoaringBitmap clone() {
-        try {
-            final MappeableRoaringBitmap x = (MappeableRoaringBitmap) super.clone();
-            x.highLowContainer = highLowContainer.clone();
-            return x;
-        } catch (final CloneNotSupportedException e) {
-            throw new RuntimeException("shouldn't happen with clone", e);
-        }
-    }
 
     /**
      * Deserialize the bitmap (retrieve from the input stream).
@@ -627,7 +617,7 @@ public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap impleme
      *
      * @param x2 other bitmap
      */
-    public void or(final MappeableRoaringBitmap x2) {
+    public void or(final ImmutableRoaringBitmap x2) {
         int pos1 = 0, pos2 = 0;
         int length1 = highLowContainer.size();
         final int length2 = x2.highLowContainer.size();
@@ -760,7 +750,7 @@ public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap impleme
      *
      * @param x2 other bitmap
      */
-    public void xor(final MappeableRoaringBitmap x2) {
+    public void xor(final ImmutableRoaringBitmap x2) {
         int pos1 = 0, pos2 = 0;
         int length1 = highLowContainer.size();
         final int length2 = x2.highLowContainer.size();
