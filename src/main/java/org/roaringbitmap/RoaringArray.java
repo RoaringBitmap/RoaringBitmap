@@ -7,6 +7,8 @@ package org.roaringbitmap;
 
 import java.io.*;
 import java.util.Arrays;
+import java.util.Iterator;
+
 
 /**
  * Specialized array to stored the containers used by a RoaringBitmap.
@@ -348,8 +350,9 @@ public final class RoaringArray implements Cloneable, Externalizable {
             this.array[k] = new Element(keys[k], val);
         }
     }
+    
 
-    protected static final class Element implements Cloneable {
+    protected static final class Element implements Cloneable, Comparable<Element> {
         public final short key;
 
         public Container value = null;
@@ -380,5 +383,61 @@ public final class RoaringArray implements Cloneable, Externalizable {
             c.value = this.value.clone();
             return c;
         }
+        @Override
+		public int compareTo(Element o) {
+			return Util.toIntUnsigned(this.key) - Util.toIntUnsigned(o.key);
+		}
     }
+    
+    protected ContainerPointer getContainerPointer() {
+		return new ContainerPointer() {
+			int k = 0;
+			@Override
+			public Container getContainer() {
+				if (k >= RoaringArray.this.size)
+					return null;
+				return RoaringArray.this.array[k].value;
+			}
+
+			@Override
+			public void advance() {
+				++k;
+				
+			}
+
+			@Override
+			public short key() {
+				return RoaringArray.this.array[k].key;
+
+			}
+
+			@Override
+			public int compareTo(ContainerPointer o) {
+				if (key() != o.key())
+					return Util.toIntUnsigned(key()) - Util.toIntUnsigned(o.key());
+				return o.getContainer().getCardinality()
+						- getContainer().getCardinality();
+			}
+		};
+    	
+    }
+
+
+	protected Iterator<Element> iterator() {
+		
+		return new Iterator<Element>() {
+			int k = -1;
+
+			@Override
+			public boolean hasNext() {
+				return k + 1 < RoaringArray.this.size;
+			}
+
+			@Override
+			public Element next() {
+				return RoaringArray.this.array[++k];
+			}
+			
+		};
+	}
 }

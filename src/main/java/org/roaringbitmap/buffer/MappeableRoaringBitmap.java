@@ -5,7 +5,6 @@
 package org.roaringbitmap.buffer;
 
 import org.roaringbitmap.IntIterator;
-import org.roaringbitmap.RoaringBitmap;
 
 import java.io.*;
 import java.util.Iterator;

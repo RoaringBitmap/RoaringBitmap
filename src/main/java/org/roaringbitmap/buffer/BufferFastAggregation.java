@@ -77,6 +77,55 @@ public final class BufferFastAggregation {
     }
 
     /**
+     * Minimizes memory usage while computing the or aggregate.
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static MappeableRoaringBitmap horizontal_or(ImmutableRoaringBitmap... bitmaps) {
+    	MappeableRoaringBitmap answer = new MappeableRoaringBitmap();
+    	if (bitmaps.length == 0)
+            return answer;
+        PriorityQueue<MappeableContainerPointer> pq = new PriorityQueue<MappeableContainerPointer>(bitmaps.length);
+        for(int k = 0; k < bitmaps.length; ++k) {
+        	MappeableContainerPointer x = bitmaps[k].highLowContainer.getContainerPointer();
+        	if(x.getContainer() != null)
+        	  pq.add(x);
+        }
+        
+        while (!pq.isEmpty()) {        	
+        	MappeableContainerPointer x1 = pq.poll();
+        	if(pq.isEmpty() || (pq.peek().key() != x1.key())) {
+        		answer.highLowContainer.append(x1.key(), x1.getContainer().clone());
+        		x1.advance();
+        		if(x1.getContainer() != null)
+        			pq.add(x1);
+        		continue;
+        	}
+        	MappeableContainerPointer x2 = pq.poll();       	
+        	MappeableContainer newc = x1.getContainer().or(x2.getContainer());
+        	while(pq.peek().key() == x1.key()) {
+
+        		MappeableContainerPointer x = pq.poll();       	
+            	newc = newc.ior(x.getContainer());
+        		x.advance();
+        		if(x.getContainer() != null)
+        			pq.add(x);
+        		else if (pq.isEmpty()) break;
+        	}
+        	answer.highLowContainer.append(x1.key(), newc);
+        	x1.advance();
+    		if(x1.getContainer() != null)
+    			pq.add(x1);
+    		x2.advance();
+    		if(x2.getContainer() != null)
+    			pq.add(x2);
+        }
+        return answer;
+    }
+
+
+    /**
      * Uses a priority queue to compute the xor aggregate.
      *
      * @param bitmaps input bitmaps
@@ -104,5 +153,54 @@ public final class BufferFastAggregation {
         }
         return (MappeableRoaringBitmap) pq.poll();
     }
+
+    /**
+     * Minimizes memory usage while computing the xor aggregate.
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static MappeableRoaringBitmap horizontal_xor(ImmutableRoaringBitmap... bitmaps) {
+    	MappeableRoaringBitmap answer = new MappeableRoaringBitmap();
+    	if (bitmaps.length == 0)
+            return answer;
+        PriorityQueue<MappeableContainerPointer> pq = new PriorityQueue<MappeableContainerPointer>(bitmaps.length);
+        for(int k = 0; k < bitmaps.length; ++k) {
+        	MappeableContainerPointer x = bitmaps[k].highLowContainer.getContainerPointer();
+        	if(x.getContainer() != null)
+        	  pq.add(x);
+        }
+        
+        while (!pq.isEmpty()) {        	
+        	MappeableContainerPointer x1 = pq.poll();
+        	if(pq.isEmpty() || (pq.peek().key() != x1.key())) {
+        		answer.highLowContainer.append(x1.key(), x1.getContainer().clone());
+        		x1.advance();
+        		if(x1.getContainer() != null)
+        			pq.add(x1);
+        		continue;
+        	}
+        	MappeableContainerPointer x2 = pq.poll();       	
+        	MappeableContainer newc = x1.getContainer().xor(x2.getContainer());
+        	while(pq.peek().key() == x1.key()) {
+
+        		MappeableContainerPointer x = pq.poll();       	
+            	newc = newc.ixor(x.getContainer());
+        		x.advance();
+        		if(x.getContainer() != null)
+        			pq.add(x);
+        		else if (pq.isEmpty()) break;
+        	}
+        	answer.highLowContainer.append(x1.key(), newc);
+        	x1.advance();
+    		if(x1.getContainer() != null)
+    			pq.add(x1);
+    		x2.advance();
+    		if(x2.getContainer() != null)
+    			pq.add(x2);
+        }
+        return answer;
+    }
+
 
 }

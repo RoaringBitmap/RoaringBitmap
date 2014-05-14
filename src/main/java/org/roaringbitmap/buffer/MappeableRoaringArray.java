@@ -10,6 +10,7 @@ import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 import java.util.Arrays;
+import java.util.Iterator;
 
 /**
  * Specialized array to stored the containers used by a RoaringBitmap. This
@@ -404,7 +405,7 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable {
         return this.size;
     }
 
-    protected static final class Element implements Cloneable {
+    protected static final class Element implements Cloneable, Comparable<Element> {
 
         public final short key;
 
@@ -437,5 +438,60 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable {
             c.value = this.value.clone();
             return c;
         }
+
+		@Override
+		public int compareTo(Element o) {
+			return BufferUtil.toIntUnsigned(this.key) - BufferUtil.toIntUnsigned(o.key);
+		}
     }
+	protected Iterator<Element> iterator() {
+		
+		return new Iterator<Element>() {
+			int k = -1;
+
+			@Override
+			public boolean hasNext() {
+				return k + 1 < MappeableRoaringArray.this.size;
+			}
+
+			@Override
+			public Element next() {
+				return MappeableRoaringArray.this.array[++k];
+			}
+			
+		};
+	}
+    protected MappeableContainerPointer getContainerPointer() {
+		return new MappeableContainerPointer() {
+			int k = 0;
+			@Override
+			public MappeableContainer getContainer() {
+				if (k >= MappeableRoaringArray.this.size)
+					return null;
+				return MappeableRoaringArray.this.array[k].value;
+			}
+
+			@Override
+			public void advance() {
+				++k;
+				
+			}
+
+			@Override
+			public short key() {
+				return MappeableRoaringArray.this.array[k].key;
+
+			}
+
+			@Override
+			public int compareTo(MappeableContainerPointer o) {
+				if (key() != o.key())
+					return BufferUtil.toIntUnsigned(key()) - BufferUtil.toIntUnsigned(o.key());
+				return o.getContainer().getCardinality()
+						- getContainer().getCardinality();
+			}
+		};
+    	
+    }
+
 }

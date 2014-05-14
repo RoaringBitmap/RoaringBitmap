@@ -1512,4 +1512,91 @@ public class TestRoaringBitmap {
             a[pos++] = x;
         return Arrays.equals(rr.toArray(), a);
     }
+    
+    
+    
+    
+
+    /**
+     * Test massive and.
+     */
+    @Test
+    public void testMassiveAnd() {
+		System.out.println("testing massive logical and");
+		RoaringBitmap[] ewah = new RoaringBitmap[1024];
+		for (int k = 0; k < ewah.length; ++k)
+			ewah[k] = new RoaringBitmap();
+		int howmany = 1000000;
+		for (int k = 0; k < howmany; ++k) {
+			ewah[Math.abs(k + 2 * k * k) % ewah.length].add(k);
+		}
+        for (int k = 3; k < ewah.length; k+=3)
+            ewah[k].flip(13, howmany/2);
+		for (int N = 2; N < ewah.length; ++N) {
+			RoaringBitmap answer = ewah[0];
+			for (int k = 1; k < N; ++k)
+				answer = RoaringBitmap.and(answer, ewah[k]);
+
+			RoaringBitmap answer2 = FastAggregation.and(Arrays.copyOf(ewah, N));
+			Assert.assertTrue(answer.equals(answer2));
+		}
+	}
+
+    /**
+     * Test massive or.
+     */
+    @Test
+    public void testMassiveOr() {
+        System.out
+                .println("testing massive logical or (can take a couple of minutes)");
+        final int N = 128;
+        for (int howmany = 512; howmany <= 1000000; howmany *= 2) {
+            RoaringBitmap[] ewah = new RoaringBitmap[N];
+            for (int k = 0; k < ewah.length; ++k)
+                ewah[k] = new RoaringBitmap();
+            for (int k = 0; k < howmany; ++k) {
+                ewah[Math.abs(k + 2 * k * k) % ewah.length].add(k);
+            }
+            for (int k = 3; k < ewah.length; k+=3)
+                ewah[k].flip(13, howmany/2);
+            RoaringBitmap answer = ewah[0];
+            for (int k = 1; k < ewah.length; ++k) {
+                answer = RoaringBitmap.or(answer,ewah[k]);
+            }
+            RoaringBitmap answer2 = FastAggregation.or(ewah);
+            RoaringBitmap answer3 = FastAggregation.horizontal_or(ewah);
+            Assert.assertTrue(answer.equals(answer2));
+            Assert.assertTrue(answer.equals(answer3));
+        }
+    }
+
+    /**
+     * Test massive or.
+     */
+    @Test
+    public void testMassiveXOr() {
+        System.out
+                .println("testing massive logical xor (can take a couple of minutes)");
+        final int N = 128;
+        for (int howmany = 512; howmany <= 1000000; howmany *= 2) {
+            RoaringBitmap[] ewah = new RoaringBitmap[N];
+            for (int k = 0; k < ewah.length; ++k)
+                ewah[k] = new RoaringBitmap();
+            for (int k = 0; k < howmany; ++k) {
+                ewah[Math.abs(k + 2 * k * k) % ewah.length].add(k);
+            }
+            for (int k = 3; k < ewah.length; k+=3)
+                ewah[k].flip(13, howmany/2);
+            
+            RoaringBitmap answer = ewah[0];
+            for (int k = 1; k < ewah.length; ++k) {
+                answer = RoaringBitmap.xor(answer,ewah[k]);
+            }
+            RoaringBitmap answer2 = FastAggregation.xor(ewah);
+            RoaringBitmap answer3 = FastAggregation.horizontal_xor(ewah);
+            Assert.assertTrue(answer.equals(answer2));
+            Assert.assertTrue(answer.equals(answer3));
+        }
+    }
+    
 }
