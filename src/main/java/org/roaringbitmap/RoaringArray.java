@@ -11,7 +11,8 @@ import java.util.Iterator;
 
 
 /**
- * Specialized array to stored the containers used by a RoaringBitmap.
+ * Specialized array to store the containers used by a RoaringBitmap.
+ * This is not meant to be used by end users.
  */
 public final class RoaringArray implements Cloneable, Externalizable {
     protected static final short SERIAL_COOKIE = 12345;

@@ -13,9 +13,9 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 /**
- * Specialized array to stored the containers used by a RoaringBitmap. This
+ * Specialized array to store the containers used by a RoaringBitmap. This
  * class is similar to org.roaringbitmap.RoaringArray but meant to be used with
- * memory mapping.
+ * memory mapping.  This is not meant to be used by end users.
  * 
  * Objects of this class reside in RAM.
  */
