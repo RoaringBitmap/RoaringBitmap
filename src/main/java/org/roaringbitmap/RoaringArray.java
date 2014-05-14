@@ -439,6 +439,11 @@ public final class RoaringArray implements Cloneable, Externalizable {
 				return RoaringArray.this.array[++k];
 			}
 			
+			@Override
+			public void remove() {
+				throw new RuntimeException("Unsupported operation.");
+			}
+			
 		};
 	}
 }

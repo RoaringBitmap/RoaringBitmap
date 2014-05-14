@@ -459,6 +459,12 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable {
 				return MappeableRoaringArray.this.array[++k];
 			}
 			
+			@Override
+			public void remove() {
+				throw new RuntimeException("Unsupported operation.");
+			}
+
+			
 		};
 	}
     protected MappeableContainerPointer getContainerPointer() {
