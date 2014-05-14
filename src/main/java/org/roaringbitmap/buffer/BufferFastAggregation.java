@@ -104,7 +104,7 @@ public final class BufferFastAggregation {
         	}
         	MappeableContainerPointer x2 = pq.poll();       	
         	MappeableContainer newc = x1.getContainer().or(x2.getContainer());
-        	while(pq.peek().key() == x1.key()) {
+        	while(!pq.isEmpty() && (pq.peek().key() == x1.key())) {
 
         		MappeableContainerPointer x = pq.poll();       	
             	newc = newc.ior(x.getContainer());
@@ -182,7 +182,7 @@ public final class BufferFastAggregation {
         	}
         	MappeableContainerPointer x2 = pq.poll();       	
         	MappeableContainer newc = x1.getContainer().xor(x2.getContainer());
-        	while(pq.peek().key() == x1.key()) {
+        	while(!pq.isEmpty() && (pq.peek().key() == x1.key())) {
 
         		MappeableContainerPointer x = pq.poll();       	
             	newc = newc.ixor(x.getContainer());

@@ -100,7 +100,7 @@ public final class FastAggregation {
         	}
         	ContainerPointer x2 = pq.poll();       	
         	Container newc = x1.getContainer().or(x2.getContainer());
-        	while(pq.peek().key() == x1.key()) {
+        	while(!pq.isEmpty() && (pq.peek().key() == x1.key())) {
 
         		ContainerPointer x = pq.poll();       	
             	newc = newc.ior(x.getContainer());
@@ -174,7 +174,7 @@ public final class FastAggregation {
         	}
         	ContainerPointer x2 = pq.poll();       	
         	Container newc = x1.getContainer().xor(x2.getContainer());
-        	while(pq.peek().key() == x1.key()) {
+        	while(!pq.isEmpty() && (pq.peek().key() == x1.key())) {
         		ContainerPointer x = pq.poll();       	
         		newc = newc.ixor(x.getContainer());
         		x.advance();
