@@ -1,4 +1,4 @@
-upcoming
+version 0.2.1 (May 13th, 2014)
   - adding "isEmpty" methods
   - improved AND aggregate between many bitmaps
   - implemented horizontal (memory conscious) XOR and OR aggregates between many bitmaps
