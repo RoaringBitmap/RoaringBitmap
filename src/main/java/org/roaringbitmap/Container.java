@@ -402,7 +402,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      * Write just the underlying array.
      *
      * @param out output stream
-     * @throws IOException
+     * @throws IOException in case of failure
      */
     protected abstract void writeArray(DataOutput out) throws IOException;
 

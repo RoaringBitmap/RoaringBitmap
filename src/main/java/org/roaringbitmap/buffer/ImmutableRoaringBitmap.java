@@ -547,7 +547,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
      * Serialize the object.
      *
      * @param out output stream
-     * @throws IOException
+     * @throws IOException  in case of failure
      */
     public void writeExternal(final ObjectOutput out) throws IOException {
         this.highLowContainer.writeExternal(out);
