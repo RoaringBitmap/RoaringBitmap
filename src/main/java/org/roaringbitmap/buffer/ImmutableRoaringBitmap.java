@@ -4,7 +4,9 @@
  */
 package org.roaringbitmap.buffer;
 
+import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.RoaringBitmap;
 
 import java.io.DataOutput;
 import java.io.IOException;
@@ -34,6 +36,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
      * @param x1 first bitmap
      * @param x2 other bitmap
      * @return result of the operation
+     * @see BufferFastAggregation#and(ImmutableRoaringBitmap...)
      */
     public static MappeableRoaringBitmap and(final ImmutableRoaringBitmap x1,
                                     final ImmutableRoaringBitmap x2) {
@@ -205,6 +208,8 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
      * @param x1 first bitmap
      * @param x2 other bitmap
      * @return result of the operation
+     * @see BufferFastAggregation#or(RoaringBitmap...)
+     * @see BufferFastAggregation#horizontal_or(RoaringBitmap...)
      */
     public static MappeableRoaringBitmap or(final ImmutableRoaringBitmap x1,
                                    final ImmutableRoaringBitmap x2) {
@@ -265,6 +270,8 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
      * @param x1 first bitmap
      * @param x2 other bitmap
      * @return result of the operation
+     * @see BufferFastAggregation#xor(RoaringBitmap...)
+     * @see BufferFastAggregation#horizontal_xor(RoaringBitmap...)
      */
     public static MappeableRoaringBitmap xor(final ImmutableRoaringBitmap x1,
                                     final ImmutableRoaringBitmap x2) {

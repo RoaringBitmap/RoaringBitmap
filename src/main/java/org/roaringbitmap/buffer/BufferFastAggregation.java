@@ -9,6 +9,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
+import org.roaringbitmap.RoaringBitmap;
+
 /**
  * Fast algorithms to aggregate many bitmaps.
  *
@@ -52,6 +54,7 @@ public final class BufferFastAggregation {
      *
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
+     * @see #horizontal_or(ImmutableRoaringBitmap...)
      */
     public static MappeableRoaringBitmap or(ImmutableRoaringBitmap... bitmaps) {
         if (bitmaps.length < 2)
@@ -81,6 +84,7 @@ public final class BufferFastAggregation {
      *
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
+     * @see #or(ImmutableRoaringBitmap...)
      */
     public static MappeableRoaringBitmap horizontal_or(ImmutableRoaringBitmap... bitmaps) {
     	MappeableRoaringBitmap answer = new MappeableRoaringBitmap();
@@ -130,6 +134,7 @@ public final class BufferFastAggregation {
      *
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
+     * @see #horizontal_xor(ImmutableRoaringBitmap...)
      */
     public static MappeableRoaringBitmap xor(ImmutableRoaringBitmap... bitmaps) {
         if (bitmaps.length < 2)
@@ -159,6 +164,7 @@ public final class BufferFastAggregation {
      *
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
+     * @see #xor(ImmutableRoaringBitmap...)
      */
     public static MappeableRoaringBitmap horizontal_xor(ImmutableRoaringBitmap... bitmaps) {
     	MappeableRoaringBitmap answer = new MappeableRoaringBitmap();

@@ -26,6 +26,7 @@ public final class RoaringBitmap implements Cloneable, Serializable, Iterable<In
      * @param x1 first bitmap
      * @param x2 other bitmap
      * @return result of the operation
+     * @see FastAggregation#and(RoaringBitmap...)
      */
     public static RoaringBitmap and(final RoaringBitmap x1,
                                     final RoaringBitmap x2) {
@@ -200,6 +201,8 @@ public final class RoaringBitmap implements Cloneable, Serializable, Iterable<In
      * @param x1 first bitmap
      * @param x2 other bitmap
      * @return result of the operation
+     * @see FastAggregation#or(RoaringBitmap...)
+     * @see FastAggregation#horizontal_or(RoaringBitmap...)
      */
     public static RoaringBitmap or(final RoaringBitmap x1,
                                    final RoaringBitmap x2) {
@@ -259,6 +262,8 @@ public final class RoaringBitmap implements Cloneable, Serializable, Iterable<In
      * @param x1 first bitmap
      * @param x2 other bitmap
      * @return result of the operation
+     * @see FastAggregation#xor(RoaringBitmap...)
+     * @see FastAggregation#horizontal_xor(RoaringBitmap...)
      */
     public static RoaringBitmap xor(final RoaringBitmap x1, final RoaringBitmap x2) {
         final RoaringBitmap answer = new RoaringBitmap();
