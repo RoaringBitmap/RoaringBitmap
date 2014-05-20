@@ -4,7 +4,6 @@
  */
 package org.roaringbitmap.buffer;
 
-import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.RoaringBitmap;
 

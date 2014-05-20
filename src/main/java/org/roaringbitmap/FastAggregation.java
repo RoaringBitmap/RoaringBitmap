@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
-import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 
 /**
  * Fast algorithms to aggregate many bitmaps.
