@@ -65,7 +65,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
                 } else {
                     final MappeableContainer c = i1.getContainer().and(i2.getContainer());
                     if (c.getCardinality() > 0)
-                        answer.highLowContainer.append(s1, c);
+                        answer.getMappeableRoaringArray().append(s1, c);
                     i1.advance();
                     i2.advance();
                     if(! i1.hasContainer() || ! i2.hasContainer())
@@ -101,7 +101,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
 
             do {
                 if (s1 < s2) {
-                    answer.highLowContainer.appendCopy(i1.key(), i1.getContainer());
+                    answer.getMappeableRoaringArray().appendCopy(i1.key(), i1.getContainer());
                     i1.advance();
                     if(! i1.hasContainer())
                         break main;
@@ -115,7 +115,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
                 } else {
                     final MappeableContainer c = i1.getContainer().andNot(i2.getContainer());
                     if (c.getCardinality() > 0)
-                        answer.highLowContainer.append(s1, c);
+                        answer.getMappeableRoaringArray().append(s1, c);
                     i1.advance();
                     i2.advance();
                     if(! i1.hasContainer() || ! i2.hasContainer())
@@ -127,7 +127,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
         }
         if (!i2.hasContainer()) {
         	while(i1.hasContainer()) {
-            answer.highLowContainer.appendCopy(i1.key(), i1.getContainer());
+            answer.getMappeableRoaringArray().appendCopy(i1.key(), i1.getContainer());
             i1.advance();
         	}
         }
@@ -138,7 +138,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
     	MappeableRoaringBitmap c = new MappeableRoaringBitmap();
     	MappeableContainerPointer mcp = highLowContainer.getContainerPointer();
     	while(mcp.hasContainer()) {
-    		c.highLowContainer.appendCopy(mcp.key(), mcp.getContainer());
+    		c.getMappeableRoaringArray().appendCopy(mcp.key(), mcp.getContainer());
     		
     	}
     	return c;
@@ -146,7 +146,6 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
     
     @Override
     public ImmutableRoaringBitmap clone() {
-    	// TODO: create toMappeableRoaringBitmap method
     	try {
             final ImmutableRoaringBitmap x = (MappeableRoaringBitmap) super.clone();
             x.highLowContainer = highLowContainer.clone();
@@ -178,7 +177,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
         final short lbLast = BufferUtil.lowbits(rangeEnd - 1);
 
         // copy the containers before the active area
-        answer.highLowContainer.appendCopiesUntil(bm.highLowContainer, hbStart);
+        answer.getMappeableRoaringArray().appendCopiesUntil(bm.highLowContainer, hbStart);
 
         final int max = BufferUtil.toIntUnsigned(BufferUtil.maxLowBit());
         for (short hb = hbStart; hb <= hbLast; ++hb) {
@@ -186,22 +185,22 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
             final int containerLast = (hb == hbLast) ? BufferUtil.toIntUnsigned(lbLast) : max;
 
             final int i = bm.highLowContainer.getIndex(hb);
-            final int j = answer.highLowContainer.getIndex(hb);
+            final int j = answer.getMappeableRoaringArray().getIndex(hb);
             assert j < 0;
 
             if (i >= 0) {
                 final MappeableContainer c = bm.highLowContainer.getContainerAtIndex(i).not(containerStart, containerLast);
                 if (c.getCardinality() > 0)
-                    answer.highLowContainer.insertNewKeyValueAt(-j - 1, hb, c);
+                    answer.getMappeableRoaringArray().insertNewKeyValueAt(-j - 1, hb, c);
 
             } else { // *think* the range of ones must never be
                 // empty.
-                answer.highLowContainer.insertNewKeyValueAt(-j - 1, hb,
+                answer.getMappeableRoaringArray().insertNewKeyValueAt(-j - 1, hb,
                         MappeableContainer.rangeOfOnes(containerStart, containerLast));
             }
         }
         // copy the containers after the active area.
-        answer.highLowContainer.appendCopiesAfter(bm.highLowContainer, hbLast);
+        answer.getMappeableRoaringArray().appendCopiesAfter(bm.highLowContainer, hbLast);
 
         return answer;
     }
@@ -235,21 +234,21 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
 
             while (true) {
                 if (s1 < s2) {
-                    answer.highLowContainer.appendCopy(i1.key(),i1.getContainer());
+                    answer.getMappeableRoaringArray().appendCopy(i1.key(),i1.getContainer());
                     i1.advance();
                     if(! i1.hasContainer())
                         break main;
                     s1 = i1.key();
 
                 } else if (s1 > s2) {
-                    answer.highLowContainer.appendCopy(i2.key(),i2.getContainer());
+                    answer.getMappeableRoaringArray().appendCopy(i2.key(),i2.getContainer());
                     i2.advance();
                     if(! i2.hasContainer())
                         break main;
                     s2 = i2.key();
 
                 } else {
-                    answer.highLowContainer.append(s1,i1.getContainer().or(
+                    answer.getMappeableRoaringArray().append(s1,i1.getContainer().or(
                                             i2.getContainer())
                             );
                     i1.advance();
@@ -263,12 +262,12 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
         }
         if (!i1.hasContainer()) {
         	while(i2.hasContainer()) {
-                answer.highLowContainer.appendCopy(i2.key(), i2.getContainer());
+                answer.getMappeableRoaringArray().appendCopy(i2.key(), i2.getContainer());
                 i2.advance();
             	}
         } else if (!i2.hasContainer()) {
         	while(i1.hasContainer()) {
-                answer.highLowContainer.appendCopy(i1.key(), i1.getContainer());
+                answer.getMappeableRoaringArray().appendCopy(i1.key(), i1.getContainer());
                 i1.advance();
             	}
         }
@@ -304,7 +303,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
 
             while (true) {
                 if (s1 < s2) {
-                    answer.highLowContainer.appendCopy(i1.key(),i1.getContainer());
+                    answer.getMappeableRoaringArray().appendCopy(i1.key(),i1.getContainer());
                     i1.advance();
                     if(! i1.hasContainer())
                         break main;
@@ -320,7 +319,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
                     final MappeableContainer c = i1.getContainer().xor(
                             i2.getContainer());
                     if (c.getCardinality() > 0)
-                        answer.highLowContainer.append(s1, c);
+                        answer.getMappeableRoaringArray().append(s1, c);
                     i1.advance();
                     i2.advance();
                     if(! i1.hasContainer() || ! i2.hasContainer())
@@ -332,12 +331,12 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
         }
         if (!i1.hasContainer()) {
         	while(i2.hasContainer()) {
-                answer.highLowContainer.appendCopy(i2.key(), i2.getContainer());
+                answer.getMappeableRoaringArray().appendCopy(i2.key(), i2.getContainer());
                 i2.advance();
             	}
         } else if (!i2.hasContainer()) {
         	while(i1.hasContainer()) {
-                answer.highLowContainer.appendCopy(i1.key(), i1.getContainer());
+                answer.getMappeableRoaringArray().appendCopy(i1.key(), i1.getContainer());
                 i1.advance();
             	}
         }
@@ -517,30 +516,6 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
     }
 
     /**
-     * Serialize the bitmap. You can later reconstruct
-     * the bitmap with RoaringBitmap.deserialize.
-     *
-     * @param out the DataOutput stream
-     * @throws IOException Signals that an I/O exception has occurred.
-     */
-    public void serialize(DataOutput out) throws IOException {
-        this.highLowContainer.serialize(out);
-
-    }
-
-    /**
-     * Report the number of bytes required for serialization.
-     * This count will match the bytes written when calling
-     * the serialize method. The writeExternal method will
-     * use slightly more space due to its serialization overhead.
-     *
-     * @return the size in bytes
-     */
-    public int serializedSizeInBytes() {
-        return highLowContainer.serializedSizeInBytes();
-    }
-
-    /**
      * Return the set values as an array.
      *
      * @return array representing the set values.
@@ -557,6 +532,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
         return array;
     }
 
+    
     /**
      * A string describing the bitmap.
      *
@@ -577,13 +553,4 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
         return answer.toString();
     }
 
-    /**
-     * Serialize the object.
-     *
-     * @param out output stream
-     * @throws IOException  in case of failure
-     */
-    public void writeExternal(final ObjectOutput out) throws IOException {
-        this.highLowContainer.writeExternal(out);
-    }
 }

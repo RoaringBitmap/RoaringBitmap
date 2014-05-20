@@ -6,4 +6,7 @@ public interface PointableArray extends Cloneable {
 	MappeableContainer getContainerAtIndex(int i); 
 	
 	PointableArray clone();
+	int getIndex(short x);
+	int size();
+	short getKeyAtIndex(int i);
 }

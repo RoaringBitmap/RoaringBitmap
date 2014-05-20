@@ -56,9 +56,10 @@ public final class BufferFastAggregation {
      * @see #horizontal_or(ImmutableRoaringBitmap...)
      */
     public static MappeableRoaringBitmap or(ImmutableRoaringBitmap... bitmaps) {
-        if (bitmaps.length < 2)
-            throw new IllegalArgumentException(
-                    "Expecting at least 2 bitmaps");
+        if (bitmaps.length == 0)
+            return new MappeableRoaringBitmap();
+          else if(bitmaps.length == 1)
+      	  return bitmaps[0].toMappeableRoaringBitmap();
         final PriorityQueue<ImmutableRoaringBitmap> pq = new PriorityQueue<ImmutableRoaringBitmap>(
                 bitmaps.length,
                 new Comparator<ImmutableRoaringBitmap>() {
@@ -99,7 +100,7 @@ public final class BufferFastAggregation {
         while (!pq.isEmpty()) {        	
         	MappeableContainerPointer x1 = pq.poll();
         	if(pq.isEmpty() || (pq.peek().key() != x1.key())) {
-        		answer.highLowContainer.append(x1.key(), x1.getContainer().clone());
+        		answer.getMappeableRoaringArray().append(x1.key(), x1.getContainer().clone());
         		x1.advance();
         		if(x1.getContainer() != null)
         			pq.add(x1);
@@ -116,7 +117,7 @@ public final class BufferFastAggregation {
         			pq.add(x);
         		else if (pq.isEmpty()) break;
         	}
-        	answer.highLowContainer.append(x1.key(), newc);
+        	answer.getMappeableRoaringArray().append(x1.key(), newc);
         	x1.advance();
     		if(x1.getContainer() != null)
     			pq.add(x1);
@@ -179,7 +180,7 @@ public final class BufferFastAggregation {
         while (!pq.isEmpty()) {        	
         	MappeableContainerPointer x1 = pq.poll();
         	if(pq.isEmpty() || (pq.peek().key() != x1.key())) {
-        		answer.highLowContainer.append(x1.key(), x1.getContainer().clone());
+        		answer.getMappeableRoaringArray().append(x1.key(), x1.getContainer().clone());
         		x1.advance();
         		if(x1.getContainer() != null)
         			pq.add(x1);
@@ -196,7 +197,7 @@ public final class BufferFastAggregation {
         			pq.add(x);
         		else if (pq.isEmpty()) break;
         	}
-        	answer.highLowContainer.append(x1.key(), newc);
+        	answer.getMappeableRoaringArray().append(x1.key(), newc);
         	x1.advance();
     		if(x1.getContainer() != null)
     			pq.add(x1);

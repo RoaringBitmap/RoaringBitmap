@@ -19,7 +19,7 @@ import java.util.Iterator;
  * 
  * Objects of this class reside in RAM.
  */
-public final class MappeableRoaringArray implements Cloneable, Externalizable {
+public final class MappeableRoaringArray implements Cloneable, Externalizable, PointableArray {
 
     private static final long serialVersionUID = 4L;
 
@@ -79,14 +79,20 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable {
     }
 
     @Override
-    public MappeableRoaringArray clone() throws CloneNotSupportedException {
+    public MappeableRoaringArray clone()  {
         MappeableRoaringArray sa;
-        sa = (MappeableRoaringArray) super.clone();
+        try {
+			sa = (MappeableRoaringArray) super.clone();
+		
         sa.array = Arrays.copyOf(this.array, this.size);
         for (int k = 0; k < this.size; ++k)
             sa.array[k] = sa.array[k].clone();
         sa.size = this.size;
         return sa;
+
+        } catch (CloneNotSupportedException e) {
+			return null;
+		}
     }
 
     /**
@@ -281,36 +287,39 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable {
      * Append copies of the values AFTER a specified key (may or may not be
      * present) to end.
      *
-     * @param sa          the other array
+     * @param highLowContainer          the other array
      * @param beforeStart given key is the largest key that we won't copy
      */
-    protected void appendCopiesAfter(MappeableRoaringArray sa, short beforeStart) {
-        int startLocation = sa.getIndex(beforeStart);
+    protected void appendCopiesAfter(PointableArray highLowContainer, short beforeStart) {
+        
+    	int startLocation = highLowContainer.getIndex(beforeStart);
         if (startLocation >= 0)
             startLocation++;
         else
             startLocation = -startLocation - 1;
-        extendArray(sa.size - startLocation);
+        extendArray(highLowContainer.size() - startLocation);
 
-        for (int i = startLocation; i < sa.size; ++i) {
-            this.array[this.size++] = new Element(sa.array[i].key, sa.array[i].value.clone());
+        for (int i = startLocation; i < highLowContainer.size(); ++i) {
+            this.array[this.size++] = new Element(highLowContainer.getKeyAtIndex(i), highLowContainer.getContainerAtIndex(i).clone());
         }
     }
 
     /**
      * Append copies of the values from another array, from the start
      *
-     * @param sa          the other array
+     * @param highLowContainer          the other array
      * @param stoppingKey any equal or larger key in other array will terminate
      *                    copying
      */
-    protected void appendCopiesUntil(MappeableRoaringArray sa, short stoppingKey) {
+    protected void appendCopiesUntil(PointableArray highLowContainer, short stoppingKey) {
         final int stopKey = BufferUtil.toIntUnsigned(stoppingKey);
-        for (int i = 0; i < sa.size; ++i) {
-            if (BufferUtil.toIntUnsigned(sa.array[i].key) >= stopKey)
+        MappeableContainerPointer cp = highLowContainer.getContainerPointer();
+        while(cp.hasContainer()) {
+            if (BufferUtil.toIntUnsigned(cp.key()) >= stopKey)
                 break;
             extendArray(1);
-            this.array[this.size++] = new Element(sa.array[i].key, sa.array[i].value.clone());
+            this.array[this.size++] = new Element(cp.key(), cp.getContainer().clone());
+            cp.advance();
         }
     }
 
@@ -329,14 +338,14 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable {
     /**
      * Append copies of the values from another array
      *
-     * @param sa            other array
+     * @param highLowContainer            other array
      * @param startingIndex starting index in the other array
      * @param end           last index array in the other array
      */
-    protected void appendCopy(MappeableRoaringArray sa, int startingIndex, int end) {
+    protected void appendCopy(PointableArray highLowContainer, int startingIndex, int end) {
         extendArray(end - startingIndex);
         for (int i = startingIndex; i < end; ++i) {
-            this.array[this.size++] = new Element(sa.array[i].key, sa.array[i].value.clone());
+            this.array[this.size++] = new Element(highLowContainer.getKeyAtIndex(i), highLowContainer.getContainerAtIndex(i).clone());
         }
 
     }
@@ -361,19 +370,19 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable {
     }
 
     // involves a binary search
-    protected MappeableContainer getContainer(short x) {
+    public MappeableContainer getContainer(short x) {
         final int i = this.binarySearch(0, size, x);
         if (i < 0)
             return null;
         return this.array[i].value;
     }
 
-    protected MappeableContainer getContainerAtIndex(int i) {
+    public MappeableContainer getContainerAtIndex(int i) {
         return this.array[i].value;
     }
 
     // involves a binary search
-    protected int getIndex(short x) {
+    public int getIndex(short x) {
         // before the binary search, we optimize for frequent cases
         if ((size == 0) || (array[size - 1].key == x))
             return size - 1;
@@ -381,7 +390,7 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable {
         return this.binarySearch(0, size, x);
     }
 
-    protected short getKeyAtIndex(int i) {
+    public short getKeyAtIndex(int i) {
         return this.array[i].key;
     }
 
@@ -419,7 +428,7 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable {
         this.array[i].value = c;
     }
 
-    protected int size() {
+    public int size() {
         return this.size;
     }
 
@@ -485,7 +494,7 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable {
 			
 		};
 	}
-    protected MappeableContainerPointer getContainerPointer() {
+    public MappeableContainerPointer getContainerPointer() {
 		return new MappeableContainerPointer() {
 			int k = 0;
 			@Override
@@ -527,5 +536,4 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable {
 		};
     	
     }
-
 }

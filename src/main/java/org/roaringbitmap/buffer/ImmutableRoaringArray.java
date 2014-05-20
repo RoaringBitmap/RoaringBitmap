@@ -152,15 +152,15 @@ public final class ImmutableRoaringArray implements PointableArray {
 	}
 
 	// involves a binary search
-	protected int getIndex(short x) {
+	public int getIndex(short x) {
 		return  unsignedBinarySearch(keys, 0, keys.length, x);
 	}
 
-	protected short getKeyAtIndex(int i) {
+	public short getKeyAtIndex(int i) {
 		return this.keys[i];
 	}
 
-	protected int size() {
+	public int size() {
 		return this.keys.length;
 	}
 

@@ -1055,7 +1055,7 @@ public class TestRoaringBitmap {
             rb.add(i);
 
         for (int i = 10000; i > 0; i++) {
-            rb.highLowContainer.remove(BufferUtil.highbits(i));
+        	rb.getMappeableRoaringArray().remove(BufferUtil.highbits(i));
             Assert.assertEquals(rb.contains(i), false);
         }
 
