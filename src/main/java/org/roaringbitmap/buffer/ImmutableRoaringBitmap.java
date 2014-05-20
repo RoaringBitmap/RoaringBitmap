@@ -40,42 +40,38 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
     public static MappeableRoaringBitmap and(final ImmutableRoaringBitmap x1,
                                     final ImmutableRoaringBitmap x2) {
         final MappeableRoaringBitmap answer = new MappeableRoaringBitmap();
-        int pos1 = 0, pos2 = 0;
-        final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer
-                .size();
+        MappeableContainerPointer i1 = x1.highLowContainer.getContainerPointer();
+        MappeableContainerPointer i2 = x2.highLowContainer.getContainerPointer();
                 /*
                  * TODO: This could be optimized quite a bit when one bitmap is
                  * much smaller than the other one.
                  */
         main:
-        if (pos1 < length1 && pos2 < length2) {
-            short s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-            short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+        if(i1.hasContainer() && i2.hasContainer()) {
+        	// TODO: no need to copy the keys
+            short s1 = i1.key();
+            short s2 = i2.key();
             do {
                 if (s1 < s2) {
-                    pos1++;
-                    if (pos1 == length1)
+                    i1.advance();
+                    if(! i1.hasContainer())
                         break main;
-                    s1 = x1.highLowContainer
-                            .getKeyAtIndex(pos1);
+                    s1 = i1.key();
                 } else if (s1 > s2) {
-                    pos2++;
-                    if (pos2 == length2)
+                    i2.advance();
+                    if(! i2.hasContainer())
                         break main;
-                    s2 = x2.highLowContainer
-                            .getKeyAtIndex(pos2);
+                    s2 = i2.key();
                 } else {
-                    final MappeableContainer c = x1.highLowContainer.getContainerAtIndex(pos1).and(
-                            x2.highLowContainer.getContainerAtIndex(pos2));
+                    final MappeableContainer c = i1.getContainer().and(i2.getContainer());
                     if (c.getCardinality() > 0)
                         answer.highLowContainer.append(s1, c);
-                    pos1++;
-                    pos2++;
-                    if ((pos1 == length1)
-                            || (pos2 == length2))
+                    i1.advance();
+                    i2.advance();
+                    if(! i1.hasContainer() || ! i2.hasContainer())
                         break main;
-                    s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+                    s1 = i1.key();
+                    s2 = i2.key();
                 }
             } while (true);
         }
@@ -94,50 +90,65 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
     public static MappeableRoaringBitmap andNot(final ImmutableRoaringBitmap x1,
                                        final ImmutableRoaringBitmap x2) {
         final MappeableRoaringBitmap answer = new MappeableRoaringBitmap();
-        int pos1 = 0, pos2 = 0;
-        final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer
-                .size();
+        MappeableContainerPointer i1 = x1.highLowContainer.getContainerPointer();
+        MappeableContainerPointer i2 = x2.highLowContainer.getContainerPointer();
+
         main:
-        if (pos1 < length1 && pos2 < length2) {
-            short s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-            short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+            if(i1.hasContainer() && i2.hasContainer()) {
+            	// TODO: no need to copy the keys
+                short s1 = i1.key();
+                short s2 = i2.key();
+
             do {
                 if (s1 < s2) {
-                    answer.highLowContainer.appendCopy(x1.highLowContainer, pos1);
-                    pos1++;
-                    if (pos1 == length1)
+                    answer.highLowContainer.appendCopy(i1.key(), i1.getContainer());
+                    i1.advance();
+                    if(! i1.hasContainer())
                         break main;
-                    s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+                    s1 = i1.key();
+
                 } else if (s1 > s2) {
-                    pos2++;
-                    if (pos2 == length2) {
+                    i2.advance();
+                    if(! i2.hasContainer())
                         break main;
-                    }
-                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+                    s2 = i2.key();
                 } else {
-                    final MappeableContainer c = x1.highLowContainer.getContainerAtIndex(pos1).andNot(
-                            x2.highLowContainer.getContainerAtIndex(pos2));
+                    final MappeableContainer c = i1.getContainer().andNot(i2.getContainer());
                     if (c.getCardinality() > 0)
                         answer.highLowContainer.append(s1, c);
-                    pos1++;
-                    pos2++;
-                    if ((pos1 == length1) || (pos2 == length2))
+                    i1.advance();
+                    i2.advance();
+                    if(! i1.hasContainer() || ! i2.hasContainer())
                         break main;
-                    s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+                    s1 = i1.key();
+                    s2 = i2.key();
                 }
             } while (true);
         }
-        if (pos2 == length2) {
-            answer.highLowContainer.appendCopy(x1.highLowContainer,
-                    pos1, length1);
+        if (!i2.hasContainer()) {
+        	while(i1.hasContainer()) {
+            answer.highLowContainer.appendCopy(i1.key(), i1.getContainer());
+            i1.advance();
+        	}
         }
         return answer;
     }
+    
+    public MappeableRoaringBitmap toMappeableRoaringBitmap() {
+    	MappeableRoaringBitmap c = new MappeableRoaringBitmap();
+    	MappeableContainerPointer mcp = highLowContainer.getContainerPointer();
+    	while(mcp.hasContainer()) {
+    		c.highLowContainer.appendCopy(mcp.key(), mcp.getContainer());
+    		
+    	}
+    	return c;
+    }
+    
     @Override
-    public MappeableRoaringBitmap clone() {
-        try {
-            final MappeableRoaringBitmap x = (MappeableRoaringBitmap) super.clone();
+    public ImmutableRoaringBitmap clone() {
+    	// TODO: create toMappeableRoaringBitmap method
+    	try {
+            final ImmutableRoaringBitmap x = (MappeableRoaringBitmap) super.clone();
             x.highLowContainer = highLowContainer.clone();
             return x;
         } catch (final CloneNotSupportedException e) {
@@ -213,47 +224,53 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
     public static MappeableRoaringBitmap or(final ImmutableRoaringBitmap x1,
                                    final ImmutableRoaringBitmap x2) {
         final MappeableRoaringBitmap answer = new MappeableRoaringBitmap();
-        int pos1 = 0, pos2 = 0;
-        final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
+        MappeableContainerPointer i1 = x1.highLowContainer.getContainerPointer();
+        MappeableContainerPointer i2 = x2.highLowContainer.getContainerPointer();
+
         main:
-        if (pos1 < length1 && pos2 < length2) {
-            short s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-            short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+            if(i1.hasContainer() && i2.hasContainer()) {
+            	// TODO: no need to copy the keys
+                short s1 = i1.key();
+                short s2 = i2.key();
 
             while (true) {
                 if (s1 < s2) {
-                    answer.highLowContainer.appendCopy(x1.highLowContainer, pos1);
-                    pos1++;
-                    if (pos1 == length1) {
+                    answer.highLowContainer.appendCopy(i1.key(),i1.getContainer());
+                    i1.advance();
+                    if(! i1.hasContainer())
                         break main;
-                    }
-                    s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+                    s1 = i1.key();
+
                 } else if (s1 > s2) {
-                    answer.highLowContainer.appendCopy(x2.highLowContainer, pos2);
-                    pos2++;
-                    if (pos2 == length2) {
+                    answer.highLowContainer.appendCopy(i2.key(),i2.getContainer());
+                    i2.advance();
+                    if(! i2.hasContainer())
                         break main;
-                    }
-                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+                    s2 = i2.key();
+
                 } else {
-                    answer.highLowContainer.append(s1,
-                                    x1.highLowContainer.getContainerAtIndex(pos1).or(
-                                            x2.highLowContainer.getContainerAtIndex(pos2))
+                    answer.highLowContainer.append(s1,i1.getContainer().or(
+                                            i2.getContainer())
                             );
-                    pos1++;
-                    pos2++;
-                    if ((pos1 == length1) || (pos2 == length2)) {
+                    i1.advance();
+                    i2.advance();
+                    if(! i1.hasContainer() || ! i2.hasContainer())
                         break main;
-                    }
-                    s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+                    s1 = i1.key();
+                    s2 = i2.key();
                 }
             }
         }
-        if (pos1 == length1) {
-            answer.highLowContainer.appendCopy(x2.highLowContainer, pos2, length2);
-        } else if (pos2 == length2) {
-            answer.highLowContainer.appendCopy(x1.highLowContainer, pos1, length1);
+        if (!i1.hasContainer()) {
+        	while(i2.hasContainer()) {
+                answer.highLowContainer.appendCopy(i2.key(), i2.getContainer());
+                i2.advance();
+            	}
+        } else if (!i2.hasContainer()) {
+        	while(i1.hasContainer()) {
+                answer.highLowContainer.appendCopy(i1.key(), i1.getContainer());
+                i1.advance();
+            	}
         }
         return answer;
     }
@@ -275,54 +292,60 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
     public static MappeableRoaringBitmap xor(final ImmutableRoaringBitmap x1,
                                     final ImmutableRoaringBitmap x2) {
         final MappeableRoaringBitmap answer = new MappeableRoaringBitmap();
-        int pos1 = 0, pos2 = 0;
-        final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
+        MappeableContainerPointer i1 = x1.highLowContainer.getContainerPointer();
+        MappeableContainerPointer i2 = x2.highLowContainer.getContainerPointer();
+
 
         main:
-        if (pos1 < length1 && pos2 < length2) {
-            short s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-            short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+            if(i1.hasContainer() && i2.hasContainer()) {
+            	// TODO: no need to copy the keys
+                short s1 = i1.key();
+                short s2 = i2.key();
 
             while (true) {
                 if (s1 < s2) {
-                    answer.highLowContainer.appendCopy(x1.highLowContainer, pos1);
-                    pos1++;
-                    if (pos1 == length1) {
+                    answer.highLowContainer.appendCopy(i1.key(),i1.getContainer());
+                    i1.advance();
+                    if(! i1.hasContainer())
                         break main;
-                    }
-                    s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+                    s1 = i1.key();
+
                 } else if (s1 > s2) {
-                    answer.highLowContainer.appendCopy(x2.highLowContainer, pos2);
-                    pos2++;
-                    if (pos2 == length2) {
+                    i2.advance();
+                    if(! i2.hasContainer())
                         break main;
-                    }
-                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+                    s2 = i2.key();
+
                 } else {
-                    final MappeableContainer c = x1.highLowContainer.getContainerAtIndex(pos1).xor(
-                            x2.highLowContainer.getContainerAtIndex(pos2));
+                    final MappeableContainer c = i1.getContainer().xor(
+                            i2.getContainer());
                     if (c.getCardinality() > 0)
                         answer.highLowContainer.append(s1, c);
-                    pos1++;
-                    pos2++;
-                    if ((pos1 == length1) || (pos2 == length2)) {
+                    i1.advance();
+                    i2.advance();
+                    if(! i1.hasContainer() || ! i2.hasContainer())
                         break main;
-                    }
-                    s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+                    s1 = i1.key();
+                    s2 = i2.key();
                 }
             }
         }
-        if (pos1 == length1) {
-            answer.highLowContainer.appendCopy(x2.highLowContainer, pos2, length2);
-        } else if (pos2 == length2) {
-            answer.highLowContainer.appendCopy(x1.highLowContainer, pos1, length1);
+        if (!i1.hasContainer()) {
+        	while(i2.hasContainer()) {
+                answer.highLowContainer.appendCopy(i2.key(), i2.getContainer());
+                i2.advance();
+            	}
+        } else if (!i2.hasContainer()) {
+        	while(i1.hasContainer()) {
+                answer.highLowContainer.appendCopy(i1.key(), i1.getContainer());
+                i1.advance();
+            	}
         }
 
         return answer;
     }
 
-    protected MappeableRoaringArray highLowContainer = null;
+    protected PointableArray highLowContainer = null;
 
     protected ImmutableRoaringBitmap() {
 
@@ -335,7 +358,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
      * @param b data source
      */
     public ImmutableRoaringBitmap(final ByteBuffer b) {
-        highLowContainer = new MappeableRoaringArray(b);
+    	highLowContainer = new ImmutableRoaringArray(b);
     }
 
     /**
@@ -367,41 +390,45 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
      * @return the cardinality
      */
     public int getCardinality() {
+    	MappeableContainerPointer cp = this.highLowContainer.getContainerPointer();
         int size = 0;
-        for (int i = 0; i < this.highLowContainer.size(); i++) {
-            size += this.highLowContainer.getContainerAtIndex(i).getCardinality();
-        }
+    	while(cp.hasContainer()) {
+    		size += cp.getCardinality();
+    		cp.advance();
+    	}
         return size;
     }
 
     private IntIterator getIntIterator() {
         return new IntIterator() {
             int hs = 0;
+            
+            boolean ok;
 
             Iterator<Short> iter;
 
-            short pos = 0;
+    		MappeableContainerPointer cp = ImmutableRoaringBitmap.this.highLowContainer.getContainerPointer();
 
-            int x;
 
             @Override
             public boolean hasNext() {
-                return pos < ImmutableRoaringBitmap.this.highLowContainer.size();
+                return ok;
             }
 
             public IntIterator init() {
-                if (pos < ImmutableRoaringBitmap.this.highLowContainer.size()) {
-                    iter = ImmutableRoaringBitmap.this.highLowContainer.getContainerAtIndex(pos).iterator();
-                    hs = BufferUtil.toIntUnsigned(ImmutableRoaringBitmap.this.highLowContainer.getKeyAtIndex(pos)) << 16;
-                }
+            	ok = cp.hasContainer();
+            	if(ok) {
+            		iter = cp.getContainer().iterator();
+            		hs = BufferUtil.toIntUnsigned(cp.key()) << 16;
+            	}
                 return this;
             }
 
             @Override
             public int next() {
-                x = BufferUtil.toIntUnsigned(iter.next()) | hs;
+                int x = BufferUtil.toIntUnsigned(iter.next()) | hs;
                 if (!iter.hasNext()) {
-                    ++pos;
+                    cp.advance();
                     init();
                 }
                 return x;
@@ -429,10 +456,11 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
      */
     public int getSizeInBytes() {
         int size = 2;
-        for (int i = 0; i < this.highLowContainer.size(); i++) {
-            final MappeableContainer c = this.highLowContainer.getContainerAtIndex(i);
-            size += 4 + c.getSizeInBytes();
-        }
+        
+		MappeableContainerPointer cp = this.highLowContainer.getContainerPointer();
+		while(cp.hasContainer()) {
+			size += 4 +cp.getContainer().getSizeInBytes();
+		}
         return size;
     }
 

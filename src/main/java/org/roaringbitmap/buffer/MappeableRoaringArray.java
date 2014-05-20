@@ -169,6 +169,19 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable {
             }
             return true;
         }
+        if (o instanceof ImmutableRoaringArray) {
+			final ImmutableRoaringArray srb = (ImmutableRoaringArray) o;
+			MappeableContainerPointer cp1 = srb.getContainerPointer();
+			MappeableContainerPointer cp2 = srb.getContainerPointer();
+			while(cp1.hasContainer()) {
+				if(! cp2.hasContainer()) return false;
+				if(cp1.key()!= cp2.key()) return false;
+				if(cp1.getCardinality() != cp2.getCardinality()) return false;
+				if(!cp1.getContainer().equals(cp2.getContainer())) return false;
+			}
+			if(cp2.hasContainer()) return false;
+			return true;		
+		}
         return false;
     }
 
@@ -257,6 +270,11 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable {
     protected void append(short key, MappeableContainer value) {
         extendArray(1);
         this.array[this.size++] = new Element(key, value);
+    }
+
+    protected void appendCopy(short key, MappeableContainer value) {
+        extendArray(1);
+        this.array[this.size++] = new Element(key, value.clone());
     }
 
     /**
@@ -493,8 +511,18 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable {
 			public int compareTo(MappeableContainerPointer o) {
 				if (key() != o.key())
 					return BufferUtil.toIntUnsigned(key()) - BufferUtil.toIntUnsigned(o.key());
-				return o.getContainer().getCardinality()
-						- getContainer().getCardinality();
+				return o.getCardinality()
+						- getCardinality();
+			}
+
+			@Override
+			public int getCardinality() {
+				return getContainer().getCardinality();
+			}
+
+			@Override
+			public boolean hasContainer() {
+				return k < MappeableRoaringArray.this.size;
 			}
 		};
     	

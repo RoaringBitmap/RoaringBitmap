@@ -15,6 +15,12 @@ interface MappeableContainerPointer extends Comparable<MappeableContainerPointer
 	MappeableContainer getContainer();
 	
 	/**
+	 * Returns the cardinality of the current container. Can be 
+	 * faster than loading the container first.
+	 * @return cardinality of the current container 
+	 */
+	int getCardinality();
+	/**
 	 * Move to the next container
 	 */
 	void advance();
@@ -26,4 +32,10 @@ interface MappeableContainerPointer extends Comparable<MappeableContainerPointer
 	 * @return the key
 	 */
 	short key();
+
+	/**
+	 * 
+	 * @return whether there is a container at the current position
+	 */
+	boolean hasContainer();
 }

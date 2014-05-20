@@ -33,7 +33,7 @@ public final class BufferFastAggregation {
         if (bitmaps.length == 0)
           return new MappeableRoaringBitmap();
         else if(bitmaps.length == 1)
-    	  return bitmaps[0].clone();
+    	  return bitmaps[0].toMappeableRoaringBitmap();
         final ImmutableRoaringBitmap[] array = Arrays.copyOf(bitmaps, bitmaps.length);
         Arrays.sort(array, new Comparator<ImmutableRoaringBitmap>() {
             @Override

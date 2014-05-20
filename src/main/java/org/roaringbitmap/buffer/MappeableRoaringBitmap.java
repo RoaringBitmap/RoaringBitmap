@@ -19,7 +19,7 @@ import java.util.Iterator;
  */
 public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap implements
         Cloneable, Serializable, Iterable<Integer>, Externalizable {
-
+    protected MappeableRoaringArray highLowContainer;
     private static final long serialVersionUID = 3L;
 
     /**
@@ -137,6 +137,16 @@ public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap impleme
         for (final int i : dat)
             ans.add(i);
         return ans;
+    }
+    @Override
+    public MappeableRoaringBitmap clone() {
+        try {
+            final MappeableRoaringBitmap x = (MappeableRoaringBitmap) super.clone();
+            x.highLowContainer = highLowContainer.clone();
+            return x;
+        } catch (final CloneNotSupportedException e) {
+            throw new RuntimeException("shouldn't happen with clone", e);
+        }
     }
 
     /**
