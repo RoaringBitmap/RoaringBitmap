@@ -15,7 +15,8 @@ import java.util.Iterator;
  * org.roaringbitmap.ArrayContainer, this class uses a ShortBuffer to store
  * data.
  */
-public final class MappeableArrayContainer extends MappeableContainer implements Cloneable, Serializable {
+public final class MappeableArrayContainer extends MappeableContainer implements
+        Cloneable, Serializable {
     private static final int DEFAULT_INIT_SIZE = 4;
 
     protected static final int DEFAULT_MAX_SIZE = 4096;
@@ -35,8 +36,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     /**
      * Create an array container with specified capacity
-     *
-     * @param capacity The capacity of the container
+     * 
+     * @param capacity
+     *            The capacity of the container
      */
     public MappeableArrayContainer(final int capacity) {
         content = ShortBuffer.allocate(capacity);
@@ -44,14 +46,16 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     /**
      * Create an array container with a run of ones from firstOfRun to
-     * lastOfRun, inclusive. Caller is responsible for making sure the range
-     * is small enough that ArrayContainer is appropriate.
-     *
-     * @param firstOfRun first index
-     * @param lastOfRun  last index (range is inclusive)
+     * lastOfRun, inclusive. Caller is responsible for making sure the range is
+     * small enough that ArrayContainer is appropriate.
+     * 
+     * @param firstOfRun
+     *            first index
+     * @param lastOfRun
+     *            last index (range is inclusive)
      */
     public MappeableArrayContainer(final int firstOfRun, final int lastOfRun) {
-        //TODO: this can be optimized for performance
+        // TODO: this can be optimized for performance
         final int valuesInRange = lastOfRun - firstOfRun + 1;
         content = ShortBuffer.allocate(valuesInRange);
         short[] sarray = content.array();
@@ -68,16 +72,19 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
     /**
-     * Construct a new ArrayContainer backed by the provided ShortBuffer.
-     * Note that if you modify the ArrayContainer a new ShortBuffer may be
-     * produced.
-     *
-     * @param array       ShortBuffer where the data is stored
-     * @param cardinality cardinality (number of values stored)
+     * Construct a new ArrayContainer backed by the provided ShortBuffer. Note
+     * that if you modify the ArrayContainer a new ShortBuffer may be produced.
+     * 
+     * @param array
+     *            ShortBuffer where the data is stored
+     * @param cardinality
+     *            cardinality (number of values stored)
      */
-    public MappeableArrayContainer(final ShortBuffer array, final int cardinality) {
+    public MappeableArrayContainer(final ShortBuffer array,
+            final int cardinality) {
         if (array.limit() != cardinality)
-            throw new RuntimeException("Mismatch between buffer and cardinality");
+            throw new RuntimeException(
+                    "Mismatch between buffer and cardinality");
         this.cardinality = cardinality;
         this.content = array;
     }
@@ -94,7 +101,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
             a.add(x);
             return a;
         }
-        if ((cardinality == 0) || (BufferUtil.toIntUnsigned(x) > BufferUtil.toIntUnsigned(content.get(cardinality - 1)))) {
+        if ((cardinality == 0)
+                || (BufferUtil.toIntUnsigned(x) > BufferUtil
+                        .toIntUnsigned(content.get(cardinality - 1)))) {
             if (cardinality >= this.content.limit())
                 increaseCapacity();
             content.put(cardinality++, x);
@@ -103,7 +112,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         if (content.hasArray()) {
             short[] sarray = content.array();
 
-            int loc = BufferUtil.unsignedBinarySearch(content, 0, cardinality, x);
+            int loc = BufferUtil.unsignedBinarySearch(content, 0, cardinality,
+                    x);
             if (loc < 0) {
                 if (cardinality >= sarray.length) {
                     increaseCapacity();
@@ -113,13 +123,15 @@ public final class MappeableArrayContainer extends MappeableContainer implements
                 // position to
                 // the right
                 // and put x in it's appropriate place
-                System.arraycopy(sarray, -loc - 1, sarray, -loc, cardinality + loc + 1);
+                System.arraycopy(sarray, -loc - 1, sarray, -loc, cardinality
+                        + loc + 1);
                 sarray[-loc - 1] = x;
                 ++cardinality;
             }
         } else {
 
-            final int loc = BufferUtil.unsignedBinarySearch(content, 0, cardinality, x);
+            final int loc = BufferUtil.unsignedBinarySearch(content, 0,
+                    cardinality, x);
             if (loc < 0) {
                 if (cardinality >= this.content.limit())
                     increaseCapacity();
@@ -141,23 +153,19 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     public MappeableArrayContainer and(final MappeableArrayContainer value2) {
 
         MappeableArrayContainer value1 = this;
-        final int desiredCapacity = Math.min(value1.getCardinality(), value2.getCardinality());
-        MappeableArrayContainer answer = new MappeableArrayContainer(desiredCapacity);
+        final int desiredCapacity = Math.min(value1.getCardinality(),
+                value2.getCardinality());
+        MappeableArrayContainer answer = new MappeableArrayContainer(
+                desiredCapacity);
         if (this.content.hasArray() && value2.content.hasArray())
-            answer.cardinality = org.roaringbitmap.Util
-                    .unsignedIntersect2by2(
-                            value1.content.array(),
-                            value1.getCardinality(),
-                            value2.content.array(),
-                            value2.getCardinality(),
-                            answer.content.array());
+            answer.cardinality = org.roaringbitmap.Util.unsignedIntersect2by2(
+                    value1.content.array(), value1.getCardinality(),
+                    value2.content.array(), value2.getCardinality(),
+                    answer.content.array());
         else
             answer.cardinality = BufferUtil.unsignedIntersect2by2(
-                    value1.content,
-                    value1.getCardinality(),
-                    value2.content,
-                    value2.getCardinality(),
-                    answer.content.array());
+                    value1.content, value1.getCardinality(), value2.content,
+                    value2.getCardinality(), answer.content.array());
         return answer;
     }
 
@@ -173,27 +181,22 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         final MappeableArrayContainer answer = new MappeableArrayContainer(
                 desiredCapacity);
         if (value1.content.hasArray() && value2.content.hasArray())
-            answer.cardinality = org.roaringbitmap.Util
-                    .unsignedDifference(
-                            value1.content.array(),
-                            value1.getCardinality(),
-                            value2.content.array(),
-                            value2.getCardinality(),
-                            answer.content.array());
-        else
-            answer.cardinality = BufferUtil.unsignedDifference(
-                    value1.content,
-                    value1.getCardinality(),
-                    value2.content,
-                    value2.getCardinality(),
+            answer.cardinality = org.roaringbitmap.Util.unsignedDifference(
+                    value1.content.array(), value1.getCardinality(),
+                    value2.content.array(), value2.getCardinality(),
                     answer.content.array());
+        else
+            answer.cardinality = BufferUtil.unsignedDifference(value1.content,
+                    value1.getCardinality(), value2.content,
+                    value2.getCardinality(), answer.content.array());
         return answer;
     }
 
     @Override
     public MappeableArrayContainer andNot(MappeableBitmapContainer value2) {
 
-        final MappeableArrayContainer answer = new MappeableArrayContainer(content.limit());
+        final MappeableArrayContainer answer = new MappeableArrayContainer(
+                content.limit());
         int pos = 0;
         short[] sarray = answer.content.array();
         if (this.content.hasArray()) {
@@ -310,10 +313,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     @Override
     public MappeableArrayContainer iand(final MappeableArrayContainer value2) {
         final MappeableArrayContainer value1 = this;
-        value1.cardinality = BufferUtil.unsignedIntersect2by2(
-                value1.content, value1.getCardinality(),
-                value2.content, value2.getCardinality(),
-                value1.content.array());
+        value1.cardinality = BufferUtil.unsignedIntersect2by2(value1.content,
+                value1.getCardinality(), value2.content,
+                value2.getCardinality(), value1.content.array());
         return this;
     }
 
@@ -331,17 +333,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     public MappeableArrayContainer iandNot(final MappeableArrayContainer value2) {
         if (value2.content.hasArray())
             this.cardinality = org.roaringbitmap.Util.unsignedDifference(
-                    this.content.array(),
-                    this.getCardinality(),
-                    value2.content.array(),
-                    value2.getCardinality(),
+                    this.content.array(), this.getCardinality(),
+                    value2.content.array(), value2.getCardinality(),
                     this.content.array());
         else
-            this.cardinality = BufferUtil.unsignedDifference(
-                    this.content, this.getCardinality(),
-                    value2.content,
-                    value2.getCardinality(),
-                    this.content.array());
+            this.cardinality = BufferUtil.unsignedDifference(this.content,
+                    this.getCardinality(), value2.content,
+                    value2.getCardinality(), this.content.array());
 
         return this;
     }
@@ -358,11 +356,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
     private void increaseCapacity() {
-        int newCapacity = this.content.limit() < 64 ? this.content
-                .limit() * 2
-                : this.content.limit() < 1024 ? this.content
-                .limit() * 3 / 2 : this.content
-                .limit() * 5 / 4;
+        int newCapacity = this.content.limit() < 64 ? this.content.limit() * 2
+                : this.content.limit() < 1024 ? this.content.limit() * 3 / 2
+                        : this.content.limit() * 5 / 4;
         if (newCapacity > MappeableArrayContainer.DEFAULT_MAX_SIZE)
             newCapacity = MappeableArrayContainer.DEFAULT_MAX_SIZE;
         final ShortBuffer newContent = ShortBuffer.allocate(newCapacity);
@@ -373,12 +369,14 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     @Override
     public MappeableContainer inot(final int firstOfRange, final int lastOfRange) {
-        //TODO: this can be optimized for performance
+        // TODO: this can be optimized for performance
         // determine the span of array indices to be affected
-        int startIndex = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (short) firstOfRange);
+        int startIndex = BufferUtil.unsignedBinarySearch(content, 0,
+                cardinality, (short) firstOfRange);
         if (startIndex < 0)
             startIndex = -startIndex - 1;
-        int lastIndex = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (short) lastOfRange);
+        int lastIndex = BufferUtil.unsignedBinarySearch(content, 0,
+                cardinality, (short) lastOfRange);
         if (lastIndex < 0)
             lastIndex = -lastIndex - 1 - 1;
         final int currentValuesInRange = lastIndex - startIndex + 1;
@@ -401,9 +399,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
             // slide right the contents after the range
             for (int pos = cardinality - 1; pos > lastIndex; --pos)
                 content.put(pos + cardinalityChange, content.get(pos));
-            negateRange(buffer, startIndex, lastIndex, firstOfRange, lastOfRange);
+            negateRange(buffer, startIndex, lastIndex, firstOfRange,
+                    lastOfRange);
         } else { // no expansion needed
-            negateRange(buffer, startIndex, lastIndex, firstOfRange, lastOfRange);
+            negateRange(buffer, startIndex, lastIndex, firstOfRange,
+                    lastOfRange);
             if (cardinalityChange < 0) // contraction, left sliding.
                 // Leave array oversize
                 for (int i = startIndex + newValuesInRange; i < newCardinality; ++i)
@@ -463,9 +463,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
     // for use in inot range known to be nonempty
-    private void negateRange(final ShortBuffer buffer,
-                             final int startIndex, final int lastIndex,
-                             final int startRange, final int lastRange) {
+    private void negateRange(final ShortBuffer buffer, final int startIndex,
+            final int lastIndex, final int startRange, final int lastRange) {
         // compute the negation into buffer
 
         int outPos = 0;
@@ -489,9 +488,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         }
 
         if (outPos != buffer.limit()) {
-            throw new RuntimeException("negateRange: outPos "
-                    + outPos + " whereas buffer.length="
-                    + buffer.limit());
+            throw new RuntimeException("negateRange: outPos " + outPos
+                    + " whereas buffer.length=" + buffer.limit());
         }
         assert outPos == buffer.limit();
         // copy back from buffer...caller must ensure there is room
@@ -505,16 +503,18 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     // shares lots of code with inot; candidate for refactoring
     @Override
     public MappeableContainer not(final int firstOfRange, final int lastOfRange) {
-        //TODO: this can be optimized for performance
+        // TODO: this can be optimized for performance
         if (firstOfRange > lastOfRange) {
             return clone(); // empty range
         }
 
         // determine the span of array indices to be affected
-        int startIndex = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (short) firstOfRange);
+        int startIndex = BufferUtil.unsignedBinarySearch(content, 0,
+                cardinality, (short) firstOfRange);
         if (startIndex < 0)
             startIndex = -startIndex - 1;
-        int lastIndex = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (short) lastOfRange);
+        int lastIndex = BufferUtil.unsignedBinarySearch(content, 0,
+                cardinality, (short) lastOfRange);
         if (lastIndex < 0)
             lastIndex = -lastIndex - 2;
         final int currentValuesInRange = lastIndex - startIndex + 1;
@@ -526,7 +526,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         if (newCardinality >= DEFAULT_MAX_SIZE)
             return toBitmapContainer().not(firstOfRange, lastOfRange);
 
-        final MappeableArrayContainer answer = new MappeableArrayContainer(newCardinality);
+        final MappeableArrayContainer answer = new MappeableArrayContainer(
+                newCardinality);
         short[] sarray = answer.content.array();
 
         for (int i = 0; i < startIndex; ++i)
@@ -559,7 +560,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     @Override
     public MappeableContainer or(final MappeableArrayContainer value2) {
         final MappeableArrayContainer value1 = this;
-        final int totalCardinality = value1.getCardinality() + value2.getCardinality();
+        final int totalCardinality = value1.getCardinality()
+                + value2.getCardinality();
         if (totalCardinality > DEFAULT_MAX_SIZE) {// it could be a bitmap!
             final MappeableBitmapContainer bc = new MappeableBitmapContainer();
             long[] bitArray = bc.bitmap.array();
@@ -571,7 +573,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
                 }
             } else
                 for (int k = 0; k < value2.cardinality; ++k) {
-                    final int i = BufferUtil.toIntUnsigned(value2.content.get(k)) >>> 6;
+                    final int i = BufferUtil.toIntUnsigned(value2.content
+                            .get(k)) >>> 6;
                     bitArray[i] |= (1l << value2.content.get(k));
                 }
             if (this.content.hasArray()) {
@@ -593,22 +596,18 @@ public final class MappeableArrayContainer extends MappeableContainer implements
                 return bc.toArrayContainer();
             return bc;
         }
-        final MappeableArrayContainer answer = new MappeableArrayContainer(totalCardinality);
+        final MappeableArrayContainer answer = new MappeableArrayContainer(
+                totalCardinality);
         if (value1.content.hasArray() && value2.content.hasArray())
             answer.cardinality = org.roaringbitmap.Util.unsignedUnion2by2(
-                    value1.content.array(),
-                    value1.getCardinality(),
-                    value2.content.array(),
-                    value2.getCardinality(),
+                    value1.content.array(), value1.getCardinality(),
+                    value2.content.array(), value2.getCardinality(),
                     answer.content.array());
 
         else
-            answer.cardinality = BufferUtil.unsignedUnion2by2(
-                    value1.content,
-                    value1.getCardinality(),
-                    value2.content,
-                    value2.getCardinality(),
-                    answer.content.array());
+            answer.cardinality = BufferUtil.unsignedUnion2by2(value1.content,
+                    value1.getCardinality(), value2.content,
+                    value2.getCardinality(), answer.content.array());
         return answer;
     }
 
@@ -628,16 +627,19 @@ public final class MappeableArrayContainer extends MappeableContainer implements
             this.content = ShortBuffer.allocate(this.cardinality);
         for (int k = 0; k < this.cardinality; ++k) {
             in.readFully(buffer);
-            this.content.put(k,(short) (((buffer[1] & 0xFF) << 8) | (buffer[0] & 0xFF)));
+            this.content.put(k,
+                    (short) (((buffer[1] & 0xFF) << 8) | (buffer[0] & 0xFF)));
         }
     }
 
     @Override
     public MappeableContainer remove(final short x) {
-        final int loc = BufferUtil.unsignedBinarySearch(content, 0, cardinality, x);
+        final int loc = BufferUtil.unsignedBinarySearch(content, 0,
+                cardinality, x);
         if (loc >= 0) {
             // insertion
-            System.arraycopy(content.array(), loc + 1, content.array(), loc, cardinality - loc - 1);
+            System.arraycopy(content.array(), loc + 1, content.array(), loc,
+                    cardinality - loc - 1);
             --cardinality;
         }
         return this;
@@ -645,7 +647,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     /**
      * Copies the data in a bitmap container.
-     *
+     * 
      * @return the bitmap container
      */
     public MappeableBitmapContainer toBitmapContainer() {
@@ -681,7 +683,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     protected void writeArray(DataOutput out) throws IOException {
         // little endian
         for (int k = 0; k < this.cardinality; ++k) {
-        	out.write(this.content.get(k) & 0xFF);
+            out.write(this.content.get(k) & 0xFF);
             out.write((this.content.get(k) >>> 8) & 0xFF);
         }
     }
@@ -700,7 +702,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     @Override
     public MappeableContainer xor(final MappeableArrayContainer value2) {
         final MappeableArrayContainer value1 = this;
-        final int totalCardinality = value1.getCardinality() + value2.getCardinality();
+        final int totalCardinality = value1.getCardinality()
+                + value2.getCardinality();
         if (totalCardinality > DEFAULT_MAX_SIZE) {// it could be a bitmap!
             final MappeableBitmapContainer bc = new MappeableBitmapContainer();
             long[] bitArray = bc.bitmap.array();
@@ -712,7 +715,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
                 }
             } else
                 for (int k = 0; k < value2.cardinality; ++k) {
-                    final int i = BufferUtil.toIntUnsigned(value2.content.get(k)) >>> 6;
+                    final int i = BufferUtil.toIntUnsigned(value2.content
+                            .get(k)) >>> 6;
                     bitArray[i] ^= (1l << value2.content.get(k));
                 }
             if (this.content.hasArray()) {
@@ -735,22 +739,17 @@ public final class MappeableArrayContainer extends MappeableContainer implements
                 return bc.toArrayContainer();
             return bc;
         }
-        final MappeableArrayContainer answer = new MappeableArrayContainer(totalCardinality);
+        final MappeableArrayContainer answer = new MappeableArrayContainer(
+                totalCardinality);
         if (value1.content.hasArray() && value2.content.hasArray())
             answer.cardinality = org.roaringbitmap.Util
-                    .unsignedExclusiveUnion2by2(
-                            value1.content.array(),
-                            value1.getCardinality(),
-                            value2.content.array(),
-                            value2.getCardinality(),
-                            answer.content.array());
+                    .unsignedExclusiveUnion2by2(value1.content.array(),
+                            value1.getCardinality(), value2.content.array(),
+                            value2.getCardinality(), answer.content.array());
         else
             answer.cardinality = BufferUtil.unsignedExclusiveUnion2by2(
-                    value1.content,
-                    value1.getCardinality(),
-                    value2.content,
-                    value2.getCardinality(),
-                    answer.content.array());
+                    value1.content, value1.getCardinality(), value2.content,
+                    value2.getCardinality(), answer.content.array());
         return answer;
     }
 

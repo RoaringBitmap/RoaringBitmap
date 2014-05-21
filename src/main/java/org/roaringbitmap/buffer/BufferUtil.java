@@ -16,49 +16,30 @@ import java.nio.ShortBuffer;
 public final class BufferUtil {
 
     /**
-     * Private constructor to prevent instantiation of utility class
-     */
-    private BufferUtil() {
-    }
-    
-    /**
-     * From the cardinality of a container, compute the corresponding
-     * size in bytes of the container.
+     * Find the smallest integer larger than pos such that array[pos]>= min. If
+     * none can be found, return length. Based on code by O. Kaser.
      * 
-     * @param card the cardinality
-     * @return the size in bytes
-     */
-    public static int getSizeInBytesFromCardinality(int card) {
-		boolean isBitmap = card > MappeableArrayContainer.DEFAULT_MAX_SIZE;
-		if (isBitmap)
-return  MappeableBitmapContainer.MAX_CAPACITY / 8;
-		else
-	return  card * 2;
-
-    }
-
-    /**
-     * Find the smallest integer larger than pos such that array[pos]>= min.
-     * If none can be found, return length. Based on code by O. Kaser.
-     *
      * @param array
      * @param pos
      * @param min
-     * @return x greater than pos such that array[pos] is at least as large
-     * as min, pos is is equal to length if it is not possible.
+     * @return x greater than pos such that array[pos] is at least as large as
+     *         min, pos is is equal to length if it is not possible.
      */
-    private static int advanceUntil(ShortBuffer array, int pos, int length, short min) {
+    private static int advanceUntil(ShortBuffer array, int pos, int length,
+            short min) {
         int lower = pos + 1;
 
         // special handling for a possibly common sequential case
-        if (lower >= length || toIntUnsigned(array.get(lower)) >= toIntUnsigned(min)) {
+        if (lower >= length
+                || toIntUnsigned(array.get(lower)) >= toIntUnsigned(min)) {
             return lower;
         }
 
         int spansize = 1; // could set larger
         // bootstrap an upper limit
 
-        while (lower + spansize < length && toIntUnsigned(array.get(lower + spansize)) < toIntUnsigned(min))
+        while (lower + spansize < length
+                && toIntUnsigned(array.get(lower + spansize)) < toIntUnsigned(min))
             spansize *= 2; // hoping for compiler will reduce to
         // shift
         int upper = (lower + spansize < length) ? lower + spansize : length - 1;
@@ -97,7 +78,8 @@ return  MappeableBitmapContainer.MAX_CAPACITY / 8;
 
     }
 
-    protected static void fillArrayAND(short[] container, LongBuffer bitmap1, LongBuffer bitmap2) {
+    protected static void fillArrayAND(short[] container, LongBuffer bitmap1,
+            LongBuffer bitmap2) {
         int pos = 0;
         if (bitmap1.limit() != bitmap2.limit())
             throw new IllegalArgumentException("not supported");
@@ -112,7 +94,7 @@ return  MappeableBitmapContainer.MAX_CAPACITY / 8;
     }
 
     protected static void fillArrayANDNOT(short[] container,
-                                          LongBuffer bitmap1, LongBuffer bitmap2) {
+            LongBuffer bitmap1, LongBuffer bitmap2) {
         int pos = 0;
         if (bitmap1.limit() != bitmap2.limit())
             throw new IllegalArgumentException("not supported");
@@ -126,8 +108,8 @@ return  MappeableBitmapContainer.MAX_CAPACITY / 8;
         }
     }
 
-    protected static void fillArrayXOR(short[] container,
-                                       LongBuffer bitmap1, LongBuffer bitmap2) {
+    protected static void fillArrayXOR(short[] container, LongBuffer bitmap1,
+            LongBuffer bitmap2) {
         int pos = 0;
         if (bitmap1.limit() != bitmap2.limit())
             throw new IllegalArgumentException("not supported");
@@ -139,6 +121,23 @@ return  MappeableBitmapContainer.MAX_CAPACITY / 8;
                 bitset ^= t;
             }
         }
+    }
+
+    /**
+     * From the cardinality of a container, compute the corresponding size in
+     * bytes of the container.
+     * 
+     * @param card
+     *            the cardinality
+     * @return the size in bytes
+     */
+    public static int getSizeInBytesFromCardinality(int card) {
+        boolean isBitmap = card > MappeableArrayContainer.DEFAULT_MAX_SIZE;
+        if (isBitmap)
+            return MappeableBitmapContainer.MAX_CAPACITY / 8;
+        else
+            return card * 2;
+
     }
 
     protected static short highbits(int x) {
@@ -157,7 +156,8 @@ return  MappeableBitmapContainer.MAX_CAPACITY / 8;
         return x & 0xFFFF;
     }
 
-    protected static int unsignedBinarySearch(ShortBuffer array, int begin, int end, short k) {
+    protected static int unsignedBinarySearch(ShortBuffer array, int begin,
+            int end, short k) {
         int low = begin;
         int high = end - 1;
         final int ikey = toIntUnsigned(k);
@@ -177,8 +177,8 @@ return  MappeableBitmapContainer.MAX_CAPACITY / 8;
     }
 
     protected static int unsignedDifference(final ShortBuffer set1,
-                                            final int length1, final ShortBuffer set2, final int length2,
-                                            final short[] buffer) {
+            final int length1, final ShortBuffer set2, final int length2,
+            final short[] buffer) {
         int pos = 0;
         int k1 = 0, k2 = 0;
         if (0 == length2) {
@@ -196,7 +196,8 @@ return  MappeableBitmapContainer.MAX_CAPACITY / 8;
                 if (k1 >= length1) {
                     break;
                 }
-            } else if (toIntUnsigned(set1.get(k1)) == toIntUnsigned(set2.get(k2))) {
+            } else if (toIntUnsigned(set1.get(k1)) == toIntUnsigned(set2
+                    .get(k2))) {
                 ++k1;
                 ++k2;
                 if (k1 >= length1) {
@@ -219,9 +220,8 @@ return  MappeableBitmapContainer.MAX_CAPACITY / 8;
         return pos;
     }
 
-    protected static int unsignedExclusiveUnion2by2(
-            final ShortBuffer set1, final int length1,
-            final ShortBuffer set2, final int length2,
+    protected static int unsignedExclusiveUnion2by2(final ShortBuffer set1,
+            final int length1, final ShortBuffer set2, final int length2,
             final short[] buffer) {
         int pos = 0;
         int k1 = 0, k2 = 0;
@@ -244,7 +244,8 @@ return  MappeableBitmapContainer.MAX_CAPACITY / 8;
                         buffer[pos++] = set2.get(k2);
                     break;
                 }
-            } else if (toIntUnsigned(set1.get(k1)) == toIntUnsigned(set2.get(k2))) {
+            } else if (toIntUnsigned(set1.get(k1)) == toIntUnsigned(set2
+                    .get(k2))) {
                 ++k1;
                 ++k2;
                 if (k1 >= length1) {
@@ -271,20 +272,22 @@ return  MappeableBitmapContainer.MAX_CAPACITY / 8;
     }
 
     protected static int unsignedIntersect2by2(final ShortBuffer set1,
-                                               final int length1, final ShortBuffer set2, final int length2,
-                                               final short[] buffer) {
+            final int length1, final ShortBuffer set2, final int length2,
+            final short[] buffer) {
         if (set1.limit() * 64 < set2.limit()) {
-            return unsignedOneSidedGallopingIntersect2by2(set1, length1, set2, length2, buffer);
+            return unsignedOneSidedGallopingIntersect2by2(set1, length1, set2,
+                    length2, buffer);
         } else if (set2.limit() * 64 < set1.limit()) {
-            return unsignedOneSidedGallopingIntersect2by2(set2, length2, set1, length1, buffer);
+            return unsignedOneSidedGallopingIntersect2by2(set2, length2, set1,
+                    length1, buffer);
         } else {
-            return unsignedLocalIntersect2by2(set1, length1, set2, length2, buffer);
+            return unsignedLocalIntersect2by2(set1, length1, set2, length2,
+                    buffer);
         }
     }
 
-    protected static int unsignedLocalIntersect2by2(
-            final ShortBuffer set1, final int length1,
-            final ShortBuffer set2, final int length2,
+    protected static int unsignedLocalIntersect2by2(final ShortBuffer set1,
+            final int length1, final ShortBuffer set2, final int length2,
             final short[] buffer) {
         if ((0 == length1) || (0 == length2))
             return 0;
@@ -292,22 +295,22 @@ return  MappeableBitmapContainer.MAX_CAPACITY / 8;
         int k2 = 0;
         int pos = 0;
 
-        mainwhile:
-        while (true) {
+        mainwhile: while (true) {
             if (toIntUnsigned(set2.get(k2)) < toIntUnsigned(set1.get(k1))) {
                 do {
                     ++k2;
                     if (k2 == length2)
                         break mainwhile;
-                } while (toIntUnsigned(set2.get(k2)) < toIntUnsigned(set1.get(k1)));
+                } while (toIntUnsigned(set2.get(k2)) < toIntUnsigned(set1
+                        .get(k1)));
             }
-            if (toIntUnsigned(set1.get(k1)) < toIntUnsigned(set2
-                    .get(k2))) {
+            if (toIntUnsigned(set1.get(k1)) < toIntUnsigned(set2.get(k2))) {
                 do {
                     ++k1;
                     if (k1 == length1)
                         break mainwhile;
-                } while (toIntUnsigned(set1.get(k1)) < toIntUnsigned(set2.get(k2)));
+                } while (toIntUnsigned(set1.get(k1)) < toIntUnsigned(set2
+                        .get(k2)));
             } else {
                 // (set2.get(k2) == set1.get(k1))
                 buffer[pos++] = set1.get(k1);
@@ -332,12 +335,14 @@ return  MappeableBitmapContainer.MAX_CAPACITY / 8;
         int k2 = 0;
         int pos = 0;
         while (true) {
-            if (toIntUnsigned(largeSet.get(k1)) < toIntUnsigned(smallSet.get(k2))) {
+            if (toIntUnsigned(largeSet.get(k1)) < toIntUnsigned(smallSet
+                    .get(k2))) {
                 k1 = advanceUntil(largeSet, k1, largeLength, smallSet.get(k2));
                 if (k1 == largeLength)
                     break;
             }
-            if (toIntUnsigned(smallSet.get(k2)) < toIntUnsigned(largeSet.get(k1))) {
+            if (toIntUnsigned(smallSet.get(k2)) < toIntUnsigned(largeSet
+                    .get(k1))) {
                 ++k2;
                 if (k2 == smallLength)
                     break;
@@ -358,8 +363,8 @@ return  MappeableBitmapContainer.MAX_CAPACITY / 8;
     }
 
     protected static int unsignedUnion2by2(final ShortBuffer set1,
-                                           final int length1, final ShortBuffer set2, final int length2,
-                                           final short[] buffer) {
+            final int length1, final ShortBuffer set2, final int length2,
+            final short[] buffer) {
         int pos = 0;
         int k1 = 0, k2 = 0;
         if (0 == length2) {
@@ -381,7 +386,8 @@ return  MappeableBitmapContainer.MAX_CAPACITY / 8;
                         buffer[pos++] = set2.get(k2);
                     break;
                 }
-            } else if (toIntUnsigned(set1.get(k1)) == toIntUnsigned(set2.get(k2))) {
+            } else if (toIntUnsigned(set1.get(k1)) == toIntUnsigned(set2
+                    .get(k2))) {
                 buffer[pos++] = set1.get(k1);
                 ++k1;
                 ++k2;
@@ -406,5 +412,11 @@ return  MappeableBitmapContainer.MAX_CAPACITY / 8;
             }
         }
         return pos;
+    }
+
+    /**
+     * Private constructor to prevent instantiation of utility class
+     */
+    private BufferUtil() {
     }
 }
