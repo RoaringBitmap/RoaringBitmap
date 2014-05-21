@@ -415,26 +415,4 @@ public final class RoaringArray implements Cloneable, Externalizable {
     }
 
 
-	protected Iterator<Element> iterator() {
-		
-		return new Iterator<Element>() {
-			int k = -1;
-
-			@Override
-			public boolean hasNext() {
-				return k + 1 < RoaringArray.this.size;
-			}
-
-			@Override
-			public Element next() {
-				return RoaringArray.this.array[++k];
-			}
-			
-			@Override
-			public void remove() {
-				throw new RuntimeException("Unsupported operation.");
-			}
-			
-		};
-	}
 }
