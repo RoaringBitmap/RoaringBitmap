@@ -7,9 +7,15 @@ import java.nio.ShortBuffer;
 import java.util.Arrays;
 
 
-public final class ImmutableRoaringArray implements PointableArray {
+/**
+ * This is the underlying data structure for an
+ * ImmutableRoaringBitmap. This class is not meant for
+ * end-users.
+ *
+ */
+public final class ImmutableRoaringArray implements PointableRoaringArray {
 
-	protected static final short SERIAL_COOKIE = MappeableRoaringArray.SERIAL_COOKIE;
+	protected static final short SERIAL_COOKIE = MutableRoaringArray.SERIAL_COOKIE;
 
 	protected static final int INITIAL_CAPACITY = 4;
 
@@ -51,6 +57,9 @@ public final class ImmutableRoaringArray implements PointableArray {
 	}
 	
 	
+	/**
+	 * @return the size that the data structure occupies on disk
+	 */
 	public int serializedSizeInBytes() {
 		return 4 + 4 + keys.length * 4 + this.containeroffsets[this.containeroffsets.length-1];
 	}
@@ -71,8 +80,8 @@ public final class ImmutableRoaringArray implements PointableArray {
 			return true;
 		}
 
-		if (o instanceof MappeableRoaringArray) {
-			final MappeableRoaringArray srb = (MappeableRoaringArray) o;
+		if (o instanceof MutableRoaringArray) {
+			final MutableRoaringArray srb = (MutableRoaringArray) o;
 			MappeableContainerPointer cp1 = srb.getContainerPointer();
 			MappeableContainerPointer cp2 = srb.getContainerPointer();
 			while(cp1.hasContainer()) {

@@ -17,7 +17,7 @@ import java.util.Iterator;
  * org.roaringbitmap.RoaringBitmap, but it differs in that it can 
  * interact with ImmutableRoaringBitmap objects.
  */
-public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap implements
+public final class MutableRoaringBitmap extends ImmutableRoaringBitmap implements
         Cloneable, Serializable, Iterable<Integer>, Externalizable {
     private static final long serialVersionUID = 3L;
 
@@ -30,8 +30,9 @@ public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap impleme
      * @param x2 other bitmap
      * @return result of the operation
      */
-    public static MappeableRoaringBitmap and(final MappeableRoaringBitmap x1, final MappeableRoaringBitmap x2) {
-        final MappeableRoaringBitmap answer = new MappeableRoaringBitmap();
+    public static MutableRoaringBitmap and(final MutableRoaringBitmap x1, final MutableRoaringBitmap x2) {
+        final MutableRoaringBitmap answer = new MutableRoaringBitmap();
+        
         int pos1 = 0, pos2 = 0;
         final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer
                 .size();
@@ -80,9 +81,9 @@ public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap impleme
      * @param x2 other bitmap
      * @return result of the operation
      */
-    public static MappeableRoaringBitmap andNot(final MappeableRoaringBitmap x1,
-                                       final MappeableRoaringBitmap x2) {
-        final MappeableRoaringBitmap answer = new MappeableRoaringBitmap();
+    public static MutableRoaringBitmap andNot(final MutableRoaringBitmap x1,
+                                       final MutableRoaringBitmap x2) {
+        final MutableRoaringBitmap answer = new MutableRoaringBitmap();
         int pos1 = 0, pos2 = 0;
         final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer
                 .size();
@@ -131,15 +132,15 @@ public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap impleme
      * @param dat set values
      * @return a new bitmap
      */
-    public static MappeableRoaringBitmap bitmapOf(final int... dat) {
-        final MappeableRoaringBitmap ans = new MappeableRoaringBitmap();
+    public static MutableRoaringBitmap bitmapOf(final int... dat) {
+        final MutableRoaringBitmap ans = new MutableRoaringBitmap();
         for (final int i : dat)
             ans.add(i);
         return ans;
     }
     @Override
-    public MappeableRoaringBitmap clone() {
-            final MappeableRoaringBitmap x = (MappeableRoaringBitmap) super.clone();
+    public MutableRoaringBitmap clone() {
+            final MutableRoaringBitmap x = (MutableRoaringBitmap) super.clone();
             x.highLowContainer = highLowContainer.clone();
             return x;
     
@@ -154,12 +155,12 @@ public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap impleme
      * @param rangeEnd   exclusive ending of range
      * @return a new Bitmap
      */
-    public static MappeableRoaringBitmap flip(MappeableRoaringBitmap bm,final int rangeStart, final int rangeEnd) {
+    public static MutableRoaringBitmap flip(MutableRoaringBitmap bm,final int rangeStart, final int rangeEnd) {
         if (rangeStart >= rangeEnd) {
             return bm.clone();
         }
 
-        MappeableRoaringBitmap answer = new MappeableRoaringBitmap();
+        MutableRoaringBitmap answer = new MutableRoaringBitmap();
         final short hbStart = BufferUtil.highbits(rangeStart);
         final short lbStart = BufferUtil.lowbits(rangeStart);
         final short hbLast = BufferUtil.highbits(rangeEnd - 1);
@@ -204,9 +205,9 @@ public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap impleme
      * @param x2 other bitmap
      * @return result of the operation
      */
-    public static MappeableRoaringBitmap or(final MappeableRoaringBitmap x1,
-                                   final MappeableRoaringBitmap x2) {
-        final MappeableRoaringBitmap answer = new MappeableRoaringBitmap();
+    public static MutableRoaringBitmap or(final MutableRoaringBitmap x1,
+                                   final MutableRoaringBitmap x2) {
+        final MutableRoaringBitmap answer = new MutableRoaringBitmap();
         int pos1 = 0, pos2 = 0;
         final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer
                 .size();
@@ -263,9 +264,9 @@ public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap impleme
      * @param x2 other bitmap
      * @return result of the operation
      */
-    public static MappeableRoaringBitmap xor(final MappeableRoaringBitmap x1,
-                                    final MappeableRoaringBitmap x2) {
-        final MappeableRoaringBitmap answer = new MappeableRoaringBitmap();
+    public static MutableRoaringBitmap xor(final MutableRoaringBitmap x1,
+                                    final MutableRoaringBitmap x2) {
+        final MutableRoaringBitmap answer = new MutableRoaringBitmap();
         int pos1 = 0, pos2 = 0;
         final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer
                 .size();
@@ -318,8 +319,8 @@ public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap impleme
     /**
      * Create an empty bitmap
      */
-    public MappeableRoaringBitmap() {
-        highLowContainer = new MappeableRoaringArray();
+    public MutableRoaringBitmap() {
+        highLowContainer = new MutableRoaringArray();
     }
 
     /**
@@ -456,7 +457,7 @@ public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap impleme
      * created bitmap.
      */
     public void clear() {
-        highLowContainer = new MappeableRoaringArray(); // lose references
+        highLowContainer = new MutableRoaringArray(); // lose references
     }
 
 
@@ -524,16 +525,16 @@ public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap impleme
 
             @Override
             public boolean hasNext() {
-                return pos < MappeableRoaringBitmap.this.highLowContainer.size();
+                return pos < MutableRoaringBitmap.this.highLowContainer.size();
             }
 
             public IntIterator init() {
-                if (pos < MappeableRoaringBitmap.this.highLowContainer.size()) {
-                    iter = MappeableRoaringBitmap.this.highLowContainer
+                if (pos < MutableRoaringBitmap.this.highLowContainer.size()) {
+                    iter = MutableRoaringBitmap.this.highLowContainer
                             .getContainerAtIndex(pos)
                             .iterator();
                     hs = BufferUtil
-                            .toIntUnsigned(MappeableRoaringBitmap.this.highLowContainer
+                            .toIntUnsigned(MutableRoaringBitmap.this.highLowContainer
                                     .getKeyAtIndex(pos)) << 16;
                 }
                 return this;
@@ -554,7 +555,7 @@ public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap impleme
                 if ((x & hs) == hs) {// still in same container
                     iter.remove();
                 } else {
-                    MappeableRoaringBitmap.this.remove(x);
+                    MutableRoaringBitmap.this.remove(x);
                 }
             }
 
@@ -584,16 +585,16 @@ public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap impleme
 
             @Override
             public boolean hasNext() {
-                return pos < MappeableRoaringBitmap.this.highLowContainer.size();
+                return pos < MutableRoaringBitmap.this.highLowContainer.size();
             }
 
             public Iterator<Integer> init() {
-                if (pos < MappeableRoaringBitmap.this.highLowContainer.size()) {
-                    iter = MappeableRoaringBitmap.this.highLowContainer
+                if (pos < MutableRoaringBitmap.this.highLowContainer.size()) {
+                    iter = MutableRoaringBitmap.this.highLowContainer
                             .getContainerAtIndex(pos)
                             .iterator();
                     hs = BufferUtil
-                            .toIntUnsigned(MappeableRoaringBitmap.this.highLowContainer
+                            .toIntUnsigned(MutableRoaringBitmap.this.highLowContainer
                                     .getKeyAtIndex(pos)) << 16;
                 }
                 return this;
@@ -614,7 +615,7 @@ public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap impleme
                 if ((x & hs) == hs) {// still in same container
                     iter.remove();
                 } else {
-                    MappeableRoaringBitmap.this.remove(x);
+                    MutableRoaringBitmap.this.remove(x);
                 }
             }
 
@@ -821,8 +822,8 @@ public final class MappeableRoaringBitmap extends ImmutableRoaringBitmap impleme
         }
     }
 
-    protected MappeableRoaringArray getMappeableRoaringArray() {
-    	return (MappeableRoaringArray) highLowContainer;
+    protected MutableRoaringArray getMappeableRoaringArray() {
+    	return (MutableRoaringArray) highLowContainer;
     }
 
 }

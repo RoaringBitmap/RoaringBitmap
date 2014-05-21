@@ -58,7 +58,7 @@ in RAM while the actual data is accessed from the ByteBuffer on demand.
         
         //...
         
-        MappeableRoaringBitmap rr = MappeableRoaringBitmap.bitmapOf(1, 2, 3, 1000);
+        MutableRoaringBitmap rr = MutableRoaringBitmap.bitmapOf(1, 2, 3, 1000);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(bos);
         rr.serialize(dos);

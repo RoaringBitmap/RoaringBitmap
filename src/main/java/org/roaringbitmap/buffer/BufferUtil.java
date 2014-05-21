@@ -21,6 +21,13 @@ public final class BufferUtil {
     private BufferUtil() {
     }
     
+    /**
+     * From the cardinality of a container, compute the corresponding
+     * size in bytes of the container.
+     * 
+     * @param card the cardinality
+     * @return the size in bytes
+     */
     public static int getSizeInBytesFromCardinality(int card) {
 		boolean isBitmap = card > MappeableArrayContainer.DEFAULT_MAX_SIZE;
 		if (isBitmap)

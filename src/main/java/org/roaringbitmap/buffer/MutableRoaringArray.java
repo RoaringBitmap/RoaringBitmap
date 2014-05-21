@@ -10,7 +10,6 @@ import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 import java.util.Arrays;
-import java.util.Iterator;
 
 /**
  * Specialized array to store the containers used by a RoaringBitmap. This
@@ -19,7 +18,7 @@ import java.util.Iterator;
  * 
  * Objects of this class reside in RAM.
  */
-public final class MappeableRoaringArray implements Cloneable, Externalizable, PointableArray {
+public final class MutableRoaringArray implements Cloneable, Externalizable, PointableRoaringArray {
 
     private static final long serialVersionUID = 4L;
 
@@ -32,7 +31,7 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable, P
     protected int size = 0;
 
 
-    protected MappeableRoaringArray() {
+    protected MutableRoaringArray() {
         this.array = new Element[INITIAL_CAPACITY];
     }
 
@@ -43,7 +42,7 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable, P
      *
      * @param bb The source ByteBuffer
      */
-    protected MappeableRoaringArray(ByteBuffer bb) {
+    protected MutableRoaringArray(ByteBuffer bb) {
         bb.order(ByteOrder.LITTLE_ENDIAN);
         if (bb.getInt() != SERIAL_COOKIE)
             throw new RuntimeException("I failed to find the right cookie.");
@@ -79,10 +78,10 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable, P
     }
 
     @Override
-    public MappeableRoaringArray clone()  {
-        MappeableRoaringArray sa;
+    public MutableRoaringArray clone()  {
+        MutableRoaringArray sa;
         try {
-			sa = (MappeableRoaringArray) super.clone();
+			sa = (MutableRoaringArray) super.clone();
 		
         sa.array = Arrays.copyOf(this.array, this.size);
         for (int k = 0; k < this.size; ++k)
@@ -163,8 +162,8 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable, P
 
     @Override
     public boolean equals(Object o) {
-        if (o instanceof MappeableRoaringArray) {
-            final MappeableRoaringArray srb = (MappeableRoaringArray) o;
+        if (o instanceof MutableRoaringArray) {
+            final MutableRoaringArray srb = (MutableRoaringArray) o;
             if (srb.size != this.size)
                 return false;
             for (int i = 0; i < srb.size; ++i) {
@@ -289,7 +288,7 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable, P
      * @param highLowContainer          the other array
      * @param beforeStart given key is the largest key that we won't copy
      */
-    protected void appendCopiesAfter(PointableArray highLowContainer, short beforeStart) {
+    protected void appendCopiesAfter(PointableRoaringArray highLowContainer, short beforeStart) {
         
     	int startLocation = highLowContainer.getIndex(beforeStart);
         if (startLocation >= 0)
@@ -310,7 +309,7 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable, P
      * @param stoppingKey any equal or larger key in other array will terminate
      *                    copying
      */
-    protected void appendCopiesUntil(PointableArray highLowContainer, short stoppingKey) {
+    protected void appendCopiesUntil(PointableRoaringArray highLowContainer, short stoppingKey) {
         final int stopKey = BufferUtil.toIntUnsigned(stoppingKey);
         MappeableContainerPointer cp = highLowContainer.getContainerPointer();
         while(cp.hasContainer()) {
@@ -330,7 +329,7 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable, P
      * @param startingIndex starting index in the other array
      * @param end           last index array in the other array
      */
-    protected void appendCopy(PointableArray highLowContainer, int startingIndex, int end) {
+    protected void appendCopy(PointableRoaringArray highLowContainer, int startingIndex, int end) {
         extendArray(end - startingIndex);
         for (int i = startingIndex; i < end; ++i) {
             this.array[this.size++] = new Element(highLowContainer.getKeyAtIndex(i), highLowContainer.getContainerAtIndex(i).clone());
@@ -456,9 +455,9 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable, P
 			int k = 0;
 			@Override
 			public MappeableContainer getContainer() {
-				if (k >= MappeableRoaringArray.this.size)
+				if (k >= MutableRoaringArray.this.size)
 					return null;
-				return MappeableRoaringArray.this.array[k].value;
+				return MutableRoaringArray.this.array[k].value;
 			}
 
 			@Override
@@ -469,7 +468,7 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable, P
 
 			@Override
 			public short key() {
-				return MappeableRoaringArray.this.array[k].key;
+				return MutableRoaringArray.this.array[k].key;
 
 			}
 
@@ -488,7 +487,7 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable, P
 
 			@Override
 			public boolean hasContainer() {
-				return k < MappeableRoaringArray.this.size;
+				return k < MutableRoaringArray.this.size;
 			}
 		};
     	

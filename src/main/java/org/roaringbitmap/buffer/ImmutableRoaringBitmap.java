@@ -7,9 +7,6 @@ package org.roaringbitmap.buffer;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.RoaringBitmap;
 
-import java.io.DataOutput;
-import java.io.IOException;
-import java.io.ObjectOutput;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
@@ -37,9 +34,9 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
      * @return result of the operation
      * @see BufferFastAggregation#and(ImmutableRoaringBitmap...)
      */
-    public static MappeableRoaringBitmap and(final ImmutableRoaringBitmap x1,
+    public static MutableRoaringBitmap and(final ImmutableRoaringBitmap x1,
                                     final ImmutableRoaringBitmap x2) {
-        final MappeableRoaringBitmap answer = new MappeableRoaringBitmap();
+        final MutableRoaringBitmap answer = new MutableRoaringBitmap();
         MappeableContainerPointer i1 = x1.highLowContainer.getContainerPointer();
         MappeableContainerPointer i2 = x2.highLowContainer.getContainerPointer();
                 /*
@@ -80,9 +77,9 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
      * @param x2 other bitmap
      * @return result of the operation
      */
-    public static MappeableRoaringBitmap andNot(final ImmutableRoaringBitmap x1,
+    public static MutableRoaringBitmap andNot(final ImmutableRoaringBitmap x1,
                                        final ImmutableRoaringBitmap x2) {
-        final MappeableRoaringBitmap answer = new MappeableRoaringBitmap();
+        final MutableRoaringBitmap answer = new MutableRoaringBitmap();
         MappeableContainerPointer i1 = x1.highLowContainer.getContainerPointer();
         MappeableContainerPointer i2 = x2.highLowContainer.getContainerPointer();
 
@@ -120,8 +117,13 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
         return answer;
     }
     
-    public MappeableRoaringBitmap toMappeableRoaringBitmap() {
-    	MappeableRoaringBitmap c = new MappeableRoaringBitmap();
+    /**
+     * Copies the content of this bitmap to a bitmap that can be modified.
+     * 
+     * @return a mutable bitmap.
+     */
+    public MutableRoaringBitmap toMutableRoaringBitmap() {
+    	MutableRoaringBitmap c = new MutableRoaringBitmap();
     	MappeableContainerPointer mcp = highLowContainer.getContainerPointer();
     	while(mcp.hasContainer()) {
     		c.getMappeableRoaringArray().appendCopy(mcp.key(), mcp.getContainer());
@@ -133,7 +135,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
     @Override
     public ImmutableRoaringBitmap clone() {
     	try {
-            final ImmutableRoaringBitmap x = (MappeableRoaringBitmap) super.clone();
+            final ImmutableRoaringBitmap x = (MutableRoaringBitmap) super.clone();
             x.highLowContainer = highLowContainer.clone();
             return x;
         } catch (final CloneNotSupportedException e) {
@@ -150,13 +152,13 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
      * @param rangeEnd   exclusive ending of range
      * @return a new Bitmap
      */
-    public static MappeableRoaringBitmap flip(ImmutableRoaringBitmap bm,
+    public static MutableRoaringBitmap flip(ImmutableRoaringBitmap bm,
                                      final int rangeStart, final int rangeEnd) {
         if (rangeStart >= rangeEnd) {
             throw new RuntimeException("Invalid range " + rangeStart + " -- " + rangeEnd);
         }
 
-        MappeableRoaringBitmap answer = new MappeableRoaringBitmap();
+        MutableRoaringBitmap answer = new MutableRoaringBitmap();
         final short hbStart = BufferUtil.highbits(rangeStart);
         final short lbStart = BufferUtil.lowbits(rangeStart);
         final short hbLast = BufferUtil.highbits(rangeEnd - 1);
@@ -206,9 +208,9 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
      * @see BufferFastAggregation#or(RoaringBitmap...)
      * @see BufferFastAggregation#horizontal_or(RoaringBitmap...)
      */
-    public static MappeableRoaringBitmap or(final ImmutableRoaringBitmap x1,
+    public static MutableRoaringBitmap or(final ImmutableRoaringBitmap x1,
                                    final ImmutableRoaringBitmap x2) {
-        final MappeableRoaringBitmap answer = new MappeableRoaringBitmap();
+        final MutableRoaringBitmap answer = new MutableRoaringBitmap();
         MappeableContainerPointer i1 = x1.highLowContainer.getContainerPointer();
         MappeableContainerPointer i2 = x2.highLowContainer.getContainerPointer();
 
@@ -267,9 +269,9 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
      * @see BufferFastAggregation#xor(RoaringBitmap...)
      * @see BufferFastAggregation#horizontal_xor(RoaringBitmap...)
      */
-    public static MappeableRoaringBitmap xor(final ImmutableRoaringBitmap x1,
+    public static MutableRoaringBitmap xor(final ImmutableRoaringBitmap x1,
                                     final ImmutableRoaringBitmap x2) {
-        final MappeableRoaringBitmap answer = new MappeableRoaringBitmap();
+        final MutableRoaringBitmap answer = new MutableRoaringBitmap();
         MappeableContainerPointer i1 = x1.highLowContainer.getContainerPointer();
         MappeableContainerPointer i2 = x2.highLowContainer.getContainerPointer();
 
@@ -316,7 +318,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
         return answer;
     }
 
-    protected PointableArray highLowContainer = null;
+    protected PointableRoaringArray highLowContainer = null;
 
     protected ImmutableRoaringBitmap() {
 

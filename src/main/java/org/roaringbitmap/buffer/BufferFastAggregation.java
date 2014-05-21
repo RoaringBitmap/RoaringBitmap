@@ -29,11 +29,11 @@ public final class BufferFastAggregation {
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
      */
-    public static MappeableRoaringBitmap and(ImmutableRoaringBitmap... bitmaps) {
+    public static MutableRoaringBitmap and(ImmutableRoaringBitmap... bitmaps) {
         if (bitmaps.length == 0)
-          return new MappeableRoaringBitmap();
+          return new MutableRoaringBitmap();
         else if(bitmaps.length == 1)
-    	  return bitmaps[0].toMappeableRoaringBitmap();
+    	  return bitmaps[0].toMutableRoaringBitmap();
         final ImmutableRoaringBitmap[] array = Arrays.copyOf(bitmaps, bitmaps.length);
         Arrays.sort(array, new Comparator<ImmutableRoaringBitmap>() {
             @Override
@@ -42,7 +42,7 @@ public final class BufferFastAggregation {
                 return a.getSizeInBytes() - b.getSizeInBytes();
             }
         });
-        MappeableRoaringBitmap answer = ImmutableRoaringBitmap.and(array[0], array[1]);
+        MutableRoaringBitmap answer = ImmutableRoaringBitmap.and(array[0], array[1]);
         for (int k = 2; k < array.length; ++k)
             answer.and(array[k]);
         return answer;
@@ -55,11 +55,11 @@ public final class BufferFastAggregation {
      * @return aggregated bitmap
      * @see #horizontal_or(ImmutableRoaringBitmap...)
      */
-    public static MappeableRoaringBitmap or(ImmutableRoaringBitmap... bitmaps) {
+    public static MutableRoaringBitmap or(ImmutableRoaringBitmap... bitmaps) {
         if (bitmaps.length == 0)
-            return new MappeableRoaringBitmap();
+            return new MutableRoaringBitmap();
           else if(bitmaps.length == 1)
-      	  return bitmaps[0].toMappeableRoaringBitmap();
+      	  return bitmaps[0].toMutableRoaringBitmap();
         final PriorityQueue<ImmutableRoaringBitmap> pq = new PriorityQueue<ImmutableRoaringBitmap>(
                 bitmaps.length,
                 new Comparator<ImmutableRoaringBitmap>() {
@@ -76,7 +76,7 @@ public final class BufferFastAggregation {
             final ImmutableRoaringBitmap x2 = pq.poll();
             pq.add(ImmutableRoaringBitmap.or(x1, x2));
         }
-        return (MappeableRoaringBitmap) pq.poll();
+        return (MutableRoaringBitmap) pq.poll();
     }
 
     /**
@@ -86,8 +86,8 @@ public final class BufferFastAggregation {
      * @return aggregated bitmap
      * @see #or(ImmutableRoaringBitmap...)
      */
-    public static MappeableRoaringBitmap horizontal_or(ImmutableRoaringBitmap... bitmaps) {
-    	MappeableRoaringBitmap answer = new MappeableRoaringBitmap();
+    public static MutableRoaringBitmap horizontal_or(ImmutableRoaringBitmap... bitmaps) {
+    	MutableRoaringBitmap answer = new MutableRoaringBitmap();
     	if (bitmaps.length == 0)
             return answer;
         PriorityQueue<MappeableContainerPointer> pq = new PriorityQueue<MappeableContainerPointer>(bitmaps.length);
@@ -136,7 +136,7 @@ public final class BufferFastAggregation {
      * @return aggregated bitmap
      * @see #horizontal_xor(ImmutableRoaringBitmap...)
      */
-    public static MappeableRoaringBitmap xor(ImmutableRoaringBitmap... bitmaps) {
+    public static MutableRoaringBitmap xor(ImmutableRoaringBitmap... bitmaps) {
         if (bitmaps.length < 2)
             throw new IllegalArgumentException(
                     "Expecting at least 2 bitmaps");
@@ -156,7 +156,7 @@ public final class BufferFastAggregation {
             final ImmutableRoaringBitmap x2 = pq.poll();
             pq.add(ImmutableRoaringBitmap.xor(x1, x2));
         }
-        return (MappeableRoaringBitmap) pq.poll();
+        return (MutableRoaringBitmap) pq.poll();
     }
 
     /**
@@ -166,8 +166,8 @@ public final class BufferFastAggregation {
      * @return aggregated bitmap
      * @see #xor(ImmutableRoaringBitmap...)
      */
-    public static MappeableRoaringBitmap horizontal_xor(ImmutableRoaringBitmap... bitmaps) {
-    	MappeableRoaringBitmap answer = new MappeableRoaringBitmap();
+    public static MutableRoaringBitmap horizontal_xor(ImmutableRoaringBitmap... bitmaps) {
+    	MutableRoaringBitmap answer = new MutableRoaringBitmap();
     	if (bitmaps.length == 0)
             return answer;
         PriorityQueue<MappeableContainerPointer> pq = new PriorityQueue<MappeableContainerPointer>(bitmaps.length);
