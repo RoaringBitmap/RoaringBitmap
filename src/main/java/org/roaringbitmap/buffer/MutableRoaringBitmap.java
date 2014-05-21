@@ -603,14 +603,6 @@ public final class MutableRoaringBitmap extends ImmutableRoaringBitmap
         return highLowContainer.hashCode();
     }
 
-    /**
-     * Checks whether the bitmap is empty.
-     * 
-     * @return true if this bitmap contains no set bit
-     */
-    public boolean isEmpty() {
-        return highLowContainer.size() == 0;
-    }
 
     /**
      * iterate over the positions of the true values.

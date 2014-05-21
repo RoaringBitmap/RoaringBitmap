@@ -1,3 +1,6 @@
+upcoming
+  - Given ImmutableRoaringBitmap an isEmpty method.
+
 version 0.3.2 (May 21st, 2014)
   - Enabled and fixed iterators. 
 

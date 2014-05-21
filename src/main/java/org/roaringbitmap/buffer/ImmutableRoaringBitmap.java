@@ -408,6 +408,16 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
         }
         return size;
     }
+    
+
+    /**
+     * Checks whether the bitmap is empty.
+     * 
+     * @return true if this bitmap contains no set bit
+     */
+    public boolean isEmpty() {
+        return highLowContainer.size() == 0;
+    }
 
     /**
      * @return a custom iterator over set bits
