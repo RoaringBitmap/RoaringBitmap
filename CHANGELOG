@@ -1,3 +1,7 @@
+version 0.3.0 (May 20th, 2014)
+  - Significant redesign of the classes in the org.roaringbitmap.buffer to reduce heap memory usage
+  - Some classes were renamed: MappeableRoaringBitmap is now MutableRoaringBitmap
+
 version 0.2.2  (May 14th, 2014)
   - fixed typo in documentation
 
