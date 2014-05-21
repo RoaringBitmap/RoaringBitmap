@@ -211,11 +211,6 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
                 return ArrayContainer.this.content[pos++];
             }
 
-            @Override
-            public void remove() {
-                ArrayContainer.this.remove((short) (pos - 1));
-                pos--;
-            }
         };
     }
 

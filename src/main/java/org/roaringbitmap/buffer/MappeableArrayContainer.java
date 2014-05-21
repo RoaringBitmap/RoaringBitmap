@@ -289,11 +289,6 @@ public final class MappeableArrayContainer extends MappeableContainer implements
                 return MappeableArrayContainer.this.content.get(pos++);
             }
 
-            @Override
-            public void remove() {
-                MappeableArrayContainer.this.remove((short) (pos - 1));
-                pos--;
-            }
         };
     }
 

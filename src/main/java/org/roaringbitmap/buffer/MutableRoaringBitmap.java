@@ -551,7 +551,7 @@ public final class MutableRoaringBitmap extends ImmutableRoaringBitmap
         }
     }
 
-    private IntIterator getIntIterator() {
+    public IntIterator getIntIterator() {
         return new IntIterator() {
             int hs = 0;
 
@@ -587,19 +587,14 @@ public final class MutableRoaringBitmap extends ImmutableRoaringBitmap
                 return x;
             }
 
-            @Override
-            public void remove() {
-                if ((x & hs) == hs) {// still in same container
-                    iter.remove();
-                } else {
-                    MutableRoaringBitmap.this.remove(x);
-                }
-            }
 
         }.init();
     }
 
-    protected MutableRoaringArray getMappeableRoaringArray() {
+    /**
+     * @return a mutable copy of this bitmap
+     */
+    public MutableRoaringArray getMappeableRoaringArray() {
         return (MutableRoaringArray) highLowContainer;
     }
 

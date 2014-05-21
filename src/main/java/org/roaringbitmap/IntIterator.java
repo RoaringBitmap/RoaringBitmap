@@ -19,8 +19,4 @@ public interface IntIterator {
      */
     int next();
 
-    /**
-     * remove current value
-     */
-    void remove();
 }

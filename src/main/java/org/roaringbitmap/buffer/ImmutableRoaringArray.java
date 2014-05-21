@@ -13,8 +13,6 @@ import java.util.Arrays;
  */
 public final class ImmutableRoaringArray implements PointableRoaringArray {
 
-    protected static final int INITIAL_CAPACITY = 4;
-
     protected static final short SERIAL_COOKIE = MutableRoaringArray.SERIAL_COOKIE;
 
     protected static int unsignedBinarySearch(short[] array, int begin,
@@ -37,11 +35,14 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         }
         return -(low + 1);
     }
+    
     ByteBuffer buffer;
-    protected short[] cardinalities;
-    protected int[] containeroffsets;
+    
+    short[] cardinalities;
+    
+    int[] containeroffsets;
 
-    protected short[] keys;
+    short[] keys;
 
     /**
      * Create an array based on a previously serialized ByteBuffer.

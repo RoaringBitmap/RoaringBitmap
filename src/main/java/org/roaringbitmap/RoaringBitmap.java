@@ -315,7 +315,7 @@ public final class RoaringBitmap implements Cloneable, Serializable, Iterable<In
         return answer;
     }
 
-    protected RoaringArray highLowContainer = null;
+    RoaringArray highLowContainer = null;
 
     /**
      * Create an empty bitmap
@@ -546,7 +546,10 @@ public final class RoaringBitmap implements Cloneable, Serializable, Iterable<In
         return size;
     }
 
-    private IntIterator getIntIterator() {
+    /**
+     * @return a custom iterator over set bits
+     */
+    public IntIterator getIntIterator() {
         return new IntIterator() {
             int hs = 0;
 
@@ -577,15 +580,6 @@ public final class RoaringBitmap implements Cloneable, Serializable, Iterable<In
                     init();
                 }
                 return x;
-            }
-
-            @Override
-            public void remove() {
-                if ((x & hs) == hs) {// still in same container
-                    iter.remove();
-                } else {
-                    RoaringBitmap.this.remove(x);
-                }
             }
 
         }.init();

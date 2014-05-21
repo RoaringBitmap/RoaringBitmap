@@ -18,9 +18,4 @@ public interface ShortIterator {
      * @return next short value
      */
     short next();
-
-    /**
-     * remove current value
-     */
-    void remove();
 }

@@ -8,6 +8,7 @@ package org.roaringbitmap.buffer;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.roaringbitmap.IntIterator;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -1383,6 +1384,24 @@ public class TestRoaringBitmap {
         rr.xor(rr2);
         Assert.assertTrue(correct.equals(rr));
     }
+    
+    @Test
+    public void testIterator() {
+        MutableRoaringBitmap rb = new MutableRoaringBitmap();
+        for(int k = 0; k<4000;++k) rb.add(k);
+        for(int k = 0; k<1000;++k) rb.add(k*100);
+        MutableRoaringBitmap copy1 = new MutableRoaringBitmap();
+        for(int x : rb) {
+            copy1.add(x);
+        }
+        Assert.assertTrue(copy1.equals(rb));
+        MutableRoaringBitmap copy2 = new MutableRoaringBitmap();
+        IntIterator i = rb.getIntIterator();
+        while(i.hasNext()) {
+            copy2.add(i.next());
+        }
+        Assert.assertTrue(copy2.equals(rb));
+    }
 
     @Test
     public void xortest1() {
@@ -1450,10 +1469,6 @@ public class TestRoaringBitmap {
         final MutableRoaringBitmap rrxor = MutableRoaringBitmap.xor(rr, rr2);
         boolean valide = true;
 
-        // Si tous les elements de rror sont dans V1 et que tous les
-        // elements de
-        // V1 sont dans rror(V2)
-        // alors V1 == rror
         final Object[] tab = V1.toArray();
         final Vector<Integer> vector = new Vector<Integer>();
         for (Object aTab : tab)

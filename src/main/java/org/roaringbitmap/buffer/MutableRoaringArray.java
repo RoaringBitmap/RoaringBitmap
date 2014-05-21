@@ -24,9 +24,9 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
     protected static final class Element implements Cloneable,
             Comparable<Element> {
 
-        public final short key;
+        final short key;
 
-        public MappeableContainer value;
+        MappeableContainer value;
 
         public Element(short key, MappeableContainer value) {
             this.key = key;
@@ -68,9 +68,9 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
 
     private static final long serialVersionUID = 4L;
 
-    protected Element[] array = null;
+    Element[] array = null;
 
-    protected int size = 0;
+    int size = 0;
 
     protected MutableRoaringArray() {
         this.array = new Element[INITIAL_CAPACITY];

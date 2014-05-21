@@ -11,6 +11,7 @@ import org.junit.Assert;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.roaringbitmap.IntIterator;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -28,6 +29,40 @@ public class TestMemoryMapping {
             Assert.assertTrue(mappedbitmaps.get(k).equals(rambitmaps.get(k)));
         }
     }
+    @Test
+    public void testIterator() {
+        for (int k = 0; k < mappedbitmaps.size(); ++k) {
+            MutableRoaringBitmap copy0 = mappedbitmaps.get(k).toMutableRoaringBitmap();
+            Assert.assertTrue(copy0.equals(mappedbitmaps.get(k)));
+            MutableRoaringBitmap copy1 = new MutableRoaringBitmap();
+            for(int x : mappedbitmaps.get(k)) {
+                copy1.add(x);
+            }    
+            Assert.assertTrue(copy1.equals(mappedbitmaps.get(k)));
+            MutableRoaringBitmap copy2 = new MutableRoaringBitmap();
+            IntIterator i = mappedbitmaps.get(k).getIntIterator();
+            while(i.hasNext()) {
+                copy2.add(i.next());
+            }
+            Assert.assertTrue(copy2.equals(mappedbitmaps.get(k)));
+        }
+
+        MutableRoaringBitmap rb = new MutableRoaringBitmap();
+        for(int k = 0; k<4000;++k) rb.add(k);
+        for(int k = 0; k<1000;++k) rb.add(k*100);
+        MutableRoaringBitmap copy1 = new MutableRoaringBitmap();
+        for(int x : rb) {
+            copy1.add(x);
+        }
+        Assert.assertTrue(copy1.equals(rb));
+        MutableRoaringBitmap copy2 = new MutableRoaringBitmap();
+        IntIterator i = rb.getIntIterator();
+        while(i.hasNext()) {
+            copy2.add(i.next());
+        }
+        Assert.assertTrue(copy2.equals(rb));
+    }
+
 
     @Test
     public void complements() {

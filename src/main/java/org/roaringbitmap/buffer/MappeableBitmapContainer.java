@@ -356,10 +356,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
                 return (short) j;
             }
 
-            @Override
-            public void remove() {
-                MappeableBitmapContainer.this.remove((short) j);
-            }
+            
         };
     }
 
@@ -526,7 +523,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
             @Override
             public void remove() {
-                MappeableBitmapContainer.this.remove((short) j);
+                throw new RuntimeException("unsupported operation: remove");
             }
 
         };

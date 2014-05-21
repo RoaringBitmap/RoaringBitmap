@@ -1068,6 +1068,23 @@ public class TestRoaringBitmap {
         rTest(65536);
         rTest(65536 * 16);
     }
+    @Test
+    public void testIterator() {
+        RoaringBitmap rb = new RoaringBitmap();
+        for(int k = 0; k<4000;++k) rb.add(k);
+        for(int k = 0; k<1000;++k) rb.add(k*100);
+        RoaringBitmap copy1 = new RoaringBitmap();
+        for(int x : rb) {
+            copy1.add(x);
+        }
+        Assert.assertTrue(copy1.equals(rb));
+        RoaringBitmap copy2 = new RoaringBitmap();
+        IntIterator i = rb.getIntIterator();
+        while(i.hasNext()) {
+            copy2.add(i.next());
+        }
+        Assert.assertTrue(copy2.equals(rb));
+    }
 
     public void rTest(final int N) {
         System.out.println("rtest N=" + N);

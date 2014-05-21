@@ -220,11 +220,11 @@ public final class RoaringArray implements Cloneable, Externalizable {
         return -(low + 1);
     }
 
-    protected Element[] array = null;
+    Element[] array = null;
 
-    protected int size = 0;
+    int size = 0;
 
-    private static final int INITIAL_CAPACITY = 4;
+    static final int INITIAL_CAPACITY = 4;
 
     @Override
     public void readExternal(ObjectInput in) throws IOException,
@@ -344,9 +344,9 @@ public final class RoaringArray implements Cloneable, Externalizable {
     
 
     protected static final class Element implements Cloneable, Comparable<Element> {
-        public final short key;
+        final short key;
 
-        public Container value = null;
+        Container value = null;
 
         public Element(short key, Container value) {
             this.key = key;

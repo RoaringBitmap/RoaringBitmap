@@ -324,7 +324,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
         return answer;
     }
 
-    protected PointableRoaringArray highLowContainer = null;
+    PointableRoaringArray highLowContainer = null;
 
     protected ImmutableRoaringBitmap() {
 
@@ -409,7 +409,10 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
         return size;
     }
 
-    private IntIterator getIntIterator() {
+    /**
+     * @return a custom iterator over set bits
+     */
+    public IntIterator getIntIterator() {
         return new IntIterator() {
             MappeableContainerPointer cp = ImmutableRoaringBitmap.this.highLowContainer
                     .getContainerPointer();
@@ -444,10 +447,6 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
                 return x;
             }
 
-            @Override
-            public void remove() {
-                throw new RuntimeException("Cannot modify");
-            }
 
         }.init();
     }
@@ -575,6 +574,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
         while (mcp.hasContainer()) {
             c.getMappeableRoaringArray().appendCopy(mcp.key(),
                     mcp.getContainer());
+            mcp.advance();
 
         }
         return c;
