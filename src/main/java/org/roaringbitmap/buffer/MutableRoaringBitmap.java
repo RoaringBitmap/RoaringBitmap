@@ -10,9 +10,7 @@ import java.io.*;
 import java.util.Iterator;
 
 /**
- * RoaringBitmap, a compressed alternative to the BitSet.
- * 
- * 
+ * MutableRoaringBitmap, a compressed alternative to the BitSet.
  * It is similar to org.roaringbitmap.RoaringBitmap, but it differs in that it
  * can interact with ImmutableRoaringBitmap objects.
  */
