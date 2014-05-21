@@ -48,30 +48,23 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
                  */
         main:
         if(i1.hasContainer() && i2.hasContainer()) {
-        	// TODO: no need to copy the keys
-            short s1 = i1.key();
-            short s2 = i2.key();
-            do {
-                if (s1 < s2) {
+                        do {
+                if (i1.key() < i2.key()) {
                     i1.advance();
                     if(! i1.hasContainer())
                         break main;
-                    s1 = i1.key();
-                } else if (s1 > s2) {
+                } else if (i1.key() > i2.key()) {
                     i2.advance();
                     if(! i2.hasContainer())
                         break main;
-                    s2 = i2.key();
                 } else {
                     final MappeableContainer c = i1.getContainer().and(i2.getContainer());
                     if (c.getCardinality() > 0)
-                        answer.getMappeableRoaringArray().append(s1, c);
+                        answer.getMappeableRoaringArray().append(i1.key(), c);
                     i1.advance();
                     i2.advance();
                     if(! i1.hasContainer() || ! i2.hasContainer())
                         break main;
-                    s1 = i1.key();
-                    s2 = i2.key();
                 }
             } while (true);
         }
@@ -95,33 +88,26 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
 
         main:
             if(i1.hasContainer() && i2.hasContainer()) {
-            	// TODO: no need to copy the keys
-                short s1 = i1.key();
-                short s2 = i2.key();
 
             do {
-                if (s1 < s2) {
+                if (i1.key() < i2.key()) {
                     answer.getMappeableRoaringArray().appendCopy(i1.key(), i1.getContainer());
                     i1.advance();
                     if(! i1.hasContainer())
                         break main;
-                    s1 = i1.key();
 
-                } else if (s1 > s2) {
+                } else if (i1.key() > i2.key()) {
                     i2.advance();
                     if(! i2.hasContainer())
                         break main;
-                    s2 = i2.key();
                 } else {
                     final MappeableContainer c = i1.getContainer().andNot(i2.getContainer());
                     if (c.getCardinality() > 0)
-                        answer.getMappeableRoaringArray().append(s1, c);
+                        answer.getMappeableRoaringArray().append(i1.key(), c);
                     i1.advance();
                     i2.advance();
                     if(! i1.hasContainer() || ! i2.hasContainer())
                         break main;
-                    s1 = i1.key();
-                    s2 = i2.key();
                 }
             } while (true);
         }
@@ -228,35 +214,28 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
 
         main:
             if(i1.hasContainer() && i2.hasContainer()) {
-            	// TODO: no need to copy the keys
-                short s1 = i1.key();
-                short s2 = i2.key();
 
             while (true) {
-                if (s1 < s2) {
+                if (i1.key() < i2.key()) {
                     answer.getMappeableRoaringArray().appendCopy(i1.key(),i1.getContainer());
                     i1.advance();
                     if(! i1.hasContainer())
                         break main;
-                    s1 = i1.key();
 
-                } else if (s1 > s2) {
+                } else if (i1.key() > i2.key()) {
                     answer.getMappeableRoaringArray().appendCopy(i2.key(),i2.getContainer());
                     i2.advance();
                     if(! i2.hasContainer())
                         break main;
-                    s2 = i2.key();
 
                 } else {
-                    answer.getMappeableRoaringArray().append(s1,i1.getContainer().or(
+                    answer.getMappeableRoaringArray().append(i1.key(),i1.getContainer().or(
                                             i2.getContainer())
                             );
                     i1.advance();
                     i2.advance();
                     if(! i1.hasContainer() || ! i2.hasContainer())
                         break main;
-                    s1 = i1.key();
-                    s2 = i2.key();
                 }
             }
         }
@@ -297,35 +276,28 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
 
         main:
             if(i1.hasContainer() && i2.hasContainer()) {
-            	// TODO: no need to copy the keys
-                short s1 = i1.key();
-                short s2 = i2.key();
 
             while (true) {
-                if (s1 < s2) {
+                if (i1.key() < i2.key()) {
                     answer.getMappeableRoaringArray().appendCopy(i1.key(),i1.getContainer());
                     i1.advance();
                     if(! i1.hasContainer())
                         break main;
-                    s1 = i1.key();
 
-                } else if (s1 > s2) {
+                } else if (i1.key() > i2.key()) {
                     i2.advance();
                     if(! i2.hasContainer())
                         break main;
-                    s2 = i2.key();
 
                 } else {
                     final MappeableContainer c = i1.getContainer().xor(
                             i2.getContainer());
                     if (c.getCardinality() > 0)
-                        answer.getMappeableRoaringArray().append(s1, c);
+                        answer.getMappeableRoaringArray().append(i1.key(), c);
                     i1.advance();
                     i2.advance();
                     if(! i1.hasContainer() || ! i2.hasContainer())
                         break main;
-                    s1 = i1.key();
-                    s2 = i2.key();
                 }
             }
         }
