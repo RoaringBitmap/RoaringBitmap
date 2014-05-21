@@ -188,15 +188,6 @@ public final class RoaringArray implements Cloneable, Externalizable {
         this.size = newLength;
     }
 
-    protected boolean remove(short key) {
-        int i = binarySearch(0, size, key);
-        if (i >= 0) { // if a new key
-            removeAtIndex(i);
-            return true;
-        }
-        return false;
-    }
-
     protected void removeAtIndex(int i) {
         System.arraycopy(array, i + 1, array, i, size - i - 1);
         array[size - 1] = null;

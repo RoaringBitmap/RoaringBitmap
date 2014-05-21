@@ -322,17 +322,6 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable, P
         }
     }
 
-    /**
-     * Append copy of the one value from another array
-     *
-     * @param sa    other array
-     * @param index index in the other array
-     */
-    protected void appendCopy(MappeableRoaringArray sa, int index) {
-        extendArray(1);
-        this.array[this.size++] = new Element(sa.array[index].key,
-                sa.array[index].value.clone());
-    }
 
     /**
      * Append copies of the values from another array
@@ -401,15 +390,6 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable, P
         size++;
     }
 
-    protected boolean remove(short key) {
-        final int i = binarySearch(0, size, key);
-        if (i >= 0) { // if a new key
-            removeAtIndex(i);
-            return true;
-        }
-        return false;
-    }
-
     protected void removeAtIndex(int i) {
         System.arraycopy(array, i + 1, array, i, size - i - 1);
         array[size - 1] = null;
@@ -470,29 +450,7 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable, P
 			return BufferUtil.toIntUnsigned(this.key) - BufferUtil.toIntUnsigned(o.key);
 		}
     }
-	protected Iterator<Element> iterator() {
-		
-		return new Iterator<Element>() {
-			int k = -1;
 
-			@Override
-			public boolean hasNext() {
-				return k + 1 < MappeableRoaringArray.this.size;
-			}
-
-			@Override
-			public Element next() {
-				return MappeableRoaringArray.this.array[++k];
-			}
-			
-			@Override
-			public void remove() {
-				throw new RuntimeException("Unsupported operation.");
-			}
-
-			
-		};
-	}
     public MappeableContainerPointer getContainerPointer() {
 		return new MappeableContainerPointer() {
 			int k = 0;

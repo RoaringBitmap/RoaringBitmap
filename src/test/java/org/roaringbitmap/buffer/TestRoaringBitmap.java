@@ -1048,18 +1048,6 @@ public class TestRoaringBitmap {
         rTest(65536 * 16);
     }
 
-    @Test
-    public void removeSpeedyArrayTest() {
-        final MappeableRoaringBitmap rb = new MappeableRoaringBitmap();
-        for (int i = 0; i < 10000; i++)
-            rb.add(i);
-
-        for (int i = 10000; i > 0; i++) {
-        	rb.getMappeableRoaringArray().remove(BufferUtil.highbits(i));
-            Assert.assertEquals(rb.contains(i), false);
-        }
-
-    }
 
     public void rTest(final int N) {
         System.out.println("rtest N=" + N);
