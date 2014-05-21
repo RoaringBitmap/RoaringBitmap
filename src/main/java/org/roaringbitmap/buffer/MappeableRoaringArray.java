@@ -218,14 +218,13 @@ public final class MappeableRoaringArray implements Cloneable, Externalizable, P
         out.write((SERIAL_COOKIE >>> 8) & 0xFF);
         out.write((SERIAL_COOKIE >>> 16) & 0xFF);
         out.write((SERIAL_COOKIE >>> 24) & 0xFF);
-
         out.write(this.size & 0xFF);
         out.write((this.size >>> 8) & 0xFF);
         out.write((this.size >>> 16) & 0xFF);
         out.write((this.size >>> 24) & 0xFF);
 
         for (int k = 0; k < size; ++k) {
-            out.write(this.array[k].key & 0xFF);
+        	out.write(this.array[k].key & 0xFF);
             out.write((this.array[k].key >>> 8) & 0xFF);
             out.write((this.array[k].value.getCardinality() - 1) & 0xFF);
             out.write(((this.array[k].value.getCardinality() - 1) >>> 8) & 0xFF);

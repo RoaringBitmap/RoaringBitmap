@@ -20,6 +20,15 @@ public final class BufferUtil {
      */
     private BufferUtil() {
     }
+    
+    public static int getSizeInBytesFromCardinality(int card) {
+		boolean isBitmap = card > MappeableArrayContainer.DEFAULT_MAX_SIZE;
+		if (isBitmap)
+return  MappeableBitmapContainer.MAX_CAPACITY / 8;
+		else
+	return  card * 2;
+
+    }
 
     /**
      * Find the smallest integer larger than pos such that array[pos]>= min.

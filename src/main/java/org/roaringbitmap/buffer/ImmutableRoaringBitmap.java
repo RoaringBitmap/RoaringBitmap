@@ -376,9 +376,19 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
     @Override
     public boolean equals(Object o) {
         if (o instanceof ImmutableRoaringBitmap) {
-            final ImmutableRoaringBitmap srb = (ImmutableRoaringBitmap) o;
-            return srb.highLowContainer.equals(this.highLowContainer);
-        }
+        	if(this.highLowContainer.size() != ((ImmutableRoaringBitmap) o).highLowContainer.size())
+        		return false;
+        	MappeableContainerPointer mp1 = this.highLowContainer.getContainerPointer();
+        	MappeableContainerPointer mp2 = ((ImmutableRoaringBitmap) o).highLowContainer.getContainerPointer();
+        	while(mp1.hasContainer()) {
+        		if(mp1.key() != mp2.key()) return false;
+        		if(mp1.getCardinality() != mp2.getCardinality()) return false;
+        		if(!mp1.getContainer().equals(mp2.getContainer())) return false;
+        		mp1.advance();
+        		mp2.advance();
+        	}
+        	return true;
+        } 
         return false;
     }
 
@@ -454,11 +464,12 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
      * @return estimated memory usage.
      */
     public int getSizeInBytes() {
-        int size = 2;
+        int size = 4;
         
 		MappeableContainerPointer cp = this.highLowContainer.getContainerPointer();
 		while(cp.hasContainer()) {
-			size += 4 +cp.getContainer().getSizeInBytes();
+			size += 4 + BufferUtil.getSizeInBytesFromCardinality(cp.getCardinality());
+			cp.advance();
 		}
         return size;
     }
@@ -531,6 +542,19 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
         }
         return array;
     }
+    
+    /**
+     * Report the number of bytes required for serialization.
+     * This count will match the bytes written when calling
+     * the serialize method. The writeExternal method will
+     * use slightly more space due to its serialization overhead.
+     *
+     * @return the size in bytes
+     */
+    public int serializedSizeInBytes() {
+    	return ((ImmutableRoaringArray)this.highLowContainer).serializedSizeInBytes();
+    }
+
 
     
     /**

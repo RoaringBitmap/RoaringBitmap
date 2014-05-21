@@ -28,26 +28,31 @@ public final class ImmutableRoaringArray implements PointableArray {
 	 * @param bb
 	 *            The source ByteBuffer
 	 */
-	protected ImmutableRoaringArray(ByteBuffer bb) {
-		buffer = bb.duplicate();
+	protected ImmutableRoaringArray(ByteBuffer bbf) {
+		buffer = bbf.duplicate();
 		buffer.order(ByteOrder.LITTLE_ENDIAN);
 		if (buffer.getInt() != SERIAL_COOKIE)
 			throw new RuntimeException("I failed to find the right cookie.");
-		int size = bb.getInt();
-		buffer.mark();
+		int size = buffer.getInt();
+
 		this.keys = new short[size];
+		this.cardinalities = new short[size];
 		this.containeroffsets = new int[size + 1];
 		for (int k = 0; k < size; ++k) {
-			keys[k] = bb.getShort();
-			cardinalities[k] = bb.getShort();
-			boolean isBitmap = getCardinality(k) > MappeableArrayContainer.DEFAULT_MAX_SIZE;
-			if (isBitmap)
-				this.containeroffsets[k + 1] = this.containeroffsets[k]
-						+ MappeableBitmapContainer.MAX_CAPACITY / 64 * 8;
-			else
-				this.containeroffsets[k + 1] = this.containeroffsets[k]
-						+ getCardinality(k) * 2;
+			keys[k] = buffer.getShort();
+			cardinalities[k] = buffer.getShort();
+			
+			this.containeroffsets[k + 1] = this.containeroffsets[k]
+						+ BufferUtil.getSizeInBytesFromCardinality(getCardinality(k));
+			
 		}
+		buffer = buffer.slice();
+		buffer.order(ByteOrder.LITTLE_ENDIAN);
+	}
+	
+	
+	public int serializedSizeInBytes() {
+		return 4 + 4 + keys.length * 4 + this.containeroffsets[this.containeroffsets.length-1];
 	}
 
 	@Override
@@ -75,6 +80,8 @@ public final class ImmutableRoaringArray implements PointableArray {
 				if(cp1.key()!= cp2.key()) return false;
 				if(cp1.getCardinality() != cp2.getCardinality()) return false;
 				if(!cp1.getContainer().equals(cp2.getContainer())) return false;
+				cp1.advance();
+				cp2.advance();
 			}
 			if(cp2.hasContainer()) return false;
 			return true;		
@@ -137,15 +144,15 @@ public final class ImmutableRoaringArray implements PointableArray {
 	public MappeableContainer getContainerAtIndex(int i) {
 
 		boolean isBitmap = getCardinality(i) > MappeableArrayContainer.DEFAULT_MAX_SIZE;
-		ByteBuffer bb = buffer.duplicate();
-		bb.position(this.containeroffsets[i]);
+		buffer.position(this.containeroffsets[i]);
 		if (isBitmap) {
-			final LongBuffer bitmapArray = bb.asLongBuffer().slice();
+			final LongBuffer bitmapArray = buffer.asLongBuffer().slice();
 			bitmapArray.limit(MappeableBitmapContainer.MAX_CAPACITY / 64);
 			return new MappeableBitmapContainer(bitmapArray, getCardinality(i));
 		} else {
-			final ShortBuffer shortArray = bb.asShortBuffer().slice();
-			shortArray.limit(getCardinality(i) * 2);
+			final ShortBuffer shortArray = buffer.asShortBuffer().slice();
+
+			shortArray.limit(getCardinality(i));
 			return new MappeableArrayContainer(shortArray, getCardinality(i));
 		}
 

@@ -681,7 +681,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     protected void writeArray(DataOutput out) throws IOException {
         // little endian
         for (int k = 0; k < this.cardinality; ++k) {
-            out.write(this.content.get(k) & 0xFF);
+        	out.write(this.content.get(k) & 0xFF);
             out.write((this.content.get(k) >>> 8) & 0xFF);
         }
     }

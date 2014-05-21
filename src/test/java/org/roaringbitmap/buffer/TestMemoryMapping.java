@@ -44,12 +44,18 @@ public class TestMemoryMapping {
     @Test
     public void intersections() {
         System.out.println("testing intersections");
+        for (int k = 0; k + 1 < mappedbitmaps.size() ; k += 2) {
+            final MappeableRoaringBitmap rb = ImmutableRoaringBitmap.and(mappedbitmaps.get(k), mappedbitmaps.get(k+1));
+            final MappeableRoaringBitmap rbram = ImmutableRoaringBitmap.and(rambitmaps.get(k), rambitmaps.get(k+1));
+            Assert.assertTrue(rb.equals(rbram));
+        }
+
         for (int k = 0; k < mappedbitmaps.size() - 4; k += 4) {
-            final MappeableRoaringBitmap rb = BufferFastAggregation.and(
+        	final MappeableRoaringBitmap rb = BufferFastAggregation.and(
                     mappedbitmaps.get(k), mappedbitmaps.get(k + 1),
                     mappedbitmaps.get(k + 3),
                     mappedbitmaps.get(k + 4));
-            final MappeableRoaringBitmap rbram = BufferFastAggregation.and(
+        	final MappeableRoaringBitmap rbram = BufferFastAggregation.and(
                     rambitmaps.get(k), rambitmaps.get(k + 1),
                     rambitmaps.get(k + 3), rambitmaps.get(k + 4));
             Assert.assertTrue(rb.equals(rbram));
