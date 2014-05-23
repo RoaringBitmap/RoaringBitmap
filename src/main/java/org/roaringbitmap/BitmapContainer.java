@@ -717,4 +717,47 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
         ac.cardinality = newCardinality;
         return ac;
     }
+
+    protected Container ilazyor(ArrayContainer value2) {
+        this.cardinality = -1;// invalid
+        for (int k = 0; k < value2.cardinality; ++k) {
+            final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
+            this.bitmap[i] |= (1l << value2.content[k]);
+        }
+        return this;
+    }
+
+    protected Container ilazyor(BitmapContainer x) {
+        this.cardinality = -1;// invalid
+        for (int k = 0; k < this.bitmap.length; k++) {
+            this.bitmap[k] |= x.bitmap[k];
+        }
+        return this;
+    }
+    
+    protected Container lazyor(ArrayContainer value2) {
+        BitmapContainer answer = new BitmapContainer();
+        answer.cardinality = -1;// invalid
+        for (int k = 0; k < value2.cardinality; ++k) {
+            final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
+            answer.bitmap[i] = this.bitmap[i] | (1l << value2.content[k]);
+        }
+        return answer;
+    }
+
+    protected Container lazyor(BitmapContainer x) {
+        BitmapContainer answer = new BitmapContainer();
+        answer.cardinality = -1;// invalid
+        for (int k = 0; k < this.bitmap.length; k++) {
+            answer.bitmap[k] = this.bitmap[k] | x.bitmap[k];
+        }
+        return answer;
+    }    
+    
+    protected void computeCardinality() {
+        this.cardinality = 0;
+        for (int k = 0; k < this.bitmap.length; k++) {
+            this.cardinality += Long.bitCount(this.bitmap[k]);
+        }
+    }
 }

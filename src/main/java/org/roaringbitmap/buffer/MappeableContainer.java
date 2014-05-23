@@ -337,6 +337,30 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
 
     }
 
+    protected MappeableContainer lazyOR(MappeableContainer x) {
+        if (this instanceof MappeableArrayContainer) {
+            if (x instanceof MappeableArrayContainer)
+                return or((MappeableArrayContainer) x);
+            return or((MappeableBitmapContainer) x);
+        } else {
+            if (x instanceof MappeableArrayContainer)
+                return ((MappeableBitmapContainer)this).lazyor((MappeableArrayContainer) x);
+            return ((MappeableBitmapContainer)this).lazyor((MappeableBitmapContainer) x);
+        }
+    }
+    
+    protected MappeableContainer lazyIOR(MappeableContainer x) {
+        if (this instanceof MappeableArrayContainer) {
+            if (x instanceof MappeableArrayContainer)
+                return ior((MappeableArrayContainer) x);
+            return ior((MappeableBitmapContainer) x);
+        } else {
+            if (x instanceof MappeableArrayContainer)
+                return ((MappeableBitmapContainer)this).ilazyor((MappeableArrayContainer) x);
+            return ((MappeableBitmapContainer)this).ilazyor((MappeableBitmapContainer) x);
+        }
+    }
+    
     /**
      * Computes the bitwise NOT of this container (complement). Only those bits
      * within the range are affected. The current container is left unaffected.

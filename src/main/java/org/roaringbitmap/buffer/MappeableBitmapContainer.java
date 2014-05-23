@@ -6,6 +6,7 @@ package org.roaringbitmap.buffer;
 
 import org.roaringbitmap.ShortIterator;
 
+
 import java.io.*;
 import java.nio.LongBuffer;
 import java.util.Iterator;
@@ -971,4 +972,60 @@ public final class MappeableBitmapContainer extends MappeableContainer
         ac.cardinality = newCardinality;
         return ac;
     }
+ 
+    protected MappeableContainer ilazyor(MappeableArrayContainer value2) {
+        this.cardinality = -1;// invalid
+        long[] b = this.bitmap.array();
+        for (int k = 0; k < value2.cardinality; ++k) {
+            final int i = BufferUtil.toIntUnsigned(value2.content.get(k)) >>> 6;
+            b[i] |= (1l << value2.content.get(k));
+        }
+        return this;
+    }
+
+    protected MappeableContainer ilazyor(MappeableBitmapContainer x) {
+        this.cardinality = -1;// invalid
+        long[] b = this.bitmap.array();
+        if (x.bitmap.hasArray()) {
+            long[] b2 = x.bitmap.array();
+            for (int k = 0; k < b.length; k++) {
+                b[k] |= b2[k];
+            }
+        } else {
+            for (int k = 0; k < b.length; k++) {
+                b[k] |= x.bitmap.get(k);
+            }
+        }
+        return this;
+    }
+    
+    protected MappeableContainer lazyor(MappeableArrayContainer value2) {
+        MappeableBitmapContainer answer = new MappeableBitmapContainer();
+        answer.cardinality = -1;// invalid
+        long[] b = answer.bitmap.array();
+        for (int k = 0; k < value2.cardinality; ++k) {
+            final int i = BufferUtil.toIntUnsigned(value2.content.get(k)) >>> 6;
+            b[i] = this.bitmap.get(i)| (1l << value2.content.get(k));
+        }
+        return answer;
+    }
+
+    protected MappeableContainer lazyor(MappeableBitmapContainer x) {
+        MappeableBitmapContainer answer = new MappeableBitmapContainer();
+        answer.cardinality = -1;// invalid
+        long[] b = answer.bitmap.array();
+        for (int k = 0; k < b.length; k++) {
+            b[k] = this.bitmap.get(k) | x.bitmap.get(k);
+        }
+        return answer;
+    }    
+    
+    protected void computeCardinality() {
+        this.cardinality = 0;
+        long[] b = this.bitmap.array();
+        for (int k = 0; k < b.length; k++) {
+            this.cardinality += Long.bitCount(b[k]);
+        }
+    }
+
 }

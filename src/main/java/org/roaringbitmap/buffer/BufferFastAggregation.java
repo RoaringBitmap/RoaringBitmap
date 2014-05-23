@@ -77,17 +77,19 @@ public final class BufferFastAggregation {
                 continue;
             }
             MappeableContainerPointer x2 = pq.poll();
-            MappeableContainer newc = x1.getContainer().or(x2.getContainer());
+            MappeableContainer newc = x1.getContainer().lazyOR(x2.getContainer());
             while (!pq.isEmpty() && (pq.peek().key() == x1.key())) {
 
                 MappeableContainerPointer x = pq.poll();
-                newc = newc.ior(x.getContainer());
+                newc = newc.lazyIOR(x.getContainer());
                 x.advance();
                 if (x.getContainer() != null)
                     pq.add(x);
                 else if (pq.isEmpty())
                     break;
             }
+            if(newc.getCardinality()<0)
+                ((MappeableBitmapContainer)newc).computeCardinality();
             answer.getMappeableRoaringArray().append(x1.key(), newc);
             x1.advance();
             if (x1.getContainer() != null)

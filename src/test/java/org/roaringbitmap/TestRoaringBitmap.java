@@ -1571,6 +1571,7 @@ public class TestRoaringBitmap {
             RoaringBitmap answer3 = FastAggregation.horizontal_or(ewah);
             Assert.assertTrue(answer.equals(answer2));
             Assert.assertTrue(answer.equals(answer3));
+            
         }
     }
 

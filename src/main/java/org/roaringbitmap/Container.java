@@ -327,6 +327,30 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
         return ixor((BitmapContainer) x);
     }
 
+    protected Container lazyOR(Container x) {
+        if (this instanceof ArrayContainer) {
+            if (x instanceof ArrayContainer)
+                return or((ArrayContainer) x);
+            return or((BitmapContainer) x);
+        } else {
+            if (x instanceof ArrayContainer)
+                return ((BitmapContainer)this).lazyor((ArrayContainer) x);
+            return ((BitmapContainer)this).lazyor((BitmapContainer) x);
+        }
+    }
+    
+    protected Container lazyIOR(Container x) {
+        if (this instanceof ArrayContainer) {
+            if (x instanceof ArrayContainer)
+                return ior((ArrayContainer) x);
+            return ior((BitmapContainer) x);
+        } else {
+            if (x instanceof ArrayContainer)
+                return ((BitmapContainer)this).ilazyor((ArrayContainer) x);
+            return ((BitmapContainer)this).ilazyor((BitmapContainer) x);
+        }
+    }
+    
     /**
      * Computes the bitwise NOT of this container (complement). Only those
      * bits within the range are affected. The current container is left
