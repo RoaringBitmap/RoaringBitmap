@@ -736,11 +736,11 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
     }
     
     protected Container lazyor(ArrayContainer value2) {
-        BitmapContainer answer = new BitmapContainer();
+        BitmapContainer answer = this.clone();
         answer.cardinality = -1;// invalid
         for (int k = 0; k < value2.cardinality; ++k) {
             final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
-            answer.bitmap[i] = this.bitmap[i] | (1l << value2.content[k]);
+            answer.bitmap[i] |= (1l << value2.content[k]);
         }
         return answer;
     }

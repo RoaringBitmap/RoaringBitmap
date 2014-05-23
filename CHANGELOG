@@ -1,3 +1,5 @@
+version 0.3.4 (May 23rd, 2014)
+  - Fixed bug in horizontal_or
 version 0.3.3 (May 23rd, 2014)
   - Given ImmutableRoaringBitmap an isEmpty method.
   - optimized horizontal_or

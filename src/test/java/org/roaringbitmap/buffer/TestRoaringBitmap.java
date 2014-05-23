@@ -8,7 +8,9 @@ package org.roaringbitmap.buffer;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.RoaringBitmap;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -1638,6 +1640,13 @@ public class TestRoaringBitmap {
             Assert.assertTrue(answer.equals(answer3));
         }
     }
- 
+
+    @Test
+    public void testRandomLists() {
+        RoaringBitmap rb1 = RoaringBitmap.bitmapOf(org.roaringbitmap.TestRoaringBitmap.randomlists[0]);
+        RoaringBitmap rb2 = RoaringBitmap.bitmapOf(org.roaringbitmap.TestRoaringBitmap.randomlists[1]);
+        RoaringBitmap rbor = RoaringBitmap.or(rb1,rb2);
+        Assert.assertTrue(rbor.equals(FastAggregation.horizontal_or(rb1,rb2)));
+    }
 
 }

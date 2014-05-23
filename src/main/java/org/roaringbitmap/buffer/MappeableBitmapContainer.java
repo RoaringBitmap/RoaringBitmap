@@ -1000,12 +1000,12 @@ public final class MappeableBitmapContainer extends MappeableContainer
     }
     
     protected MappeableContainer lazyor(MappeableArrayContainer value2) {
-        MappeableBitmapContainer answer = new MappeableBitmapContainer();
+        MappeableBitmapContainer answer = clone();
         answer.cardinality = -1;// invalid
         long[] b = answer.bitmap.array();
         for (int k = 0; k < value2.cardinality; ++k) {
             final int i = BufferUtil.toIntUnsigned(value2.content.get(k)) >>> 6;
-            b[i] = this.bitmap.get(i)| (1l << value2.content.get(k));
+            b[i] |=  1l << value2.content.get(k);
         }
         return answer;
     }
