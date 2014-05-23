@@ -1,5 +1,6 @@
-upcoming
+version 0.3.3 (May 23rd, 2014)
   - Given ImmutableRoaringBitmap an isEmpty method.
+  - optimized horizontal_or
 
 version 0.3.2 (May 21st, 2014)
   - Enabled and fixed iterators. 
