@@ -6,8 +6,9 @@ Unfortunately, they can use too much memory. To compensate, we often use
 compressed bitmaps.
 
 Roaring bitmaps are compressed bitmaps which tend to outperform conventional
-compressed bitmaps such as WAH, EWAH or Concise. In some instances, they can
-be hundreds of times faster and they often offer significantly better compression.  They can even be faster than uncompressed bitmaps.
+compressed bitmaps such as WAH, EWAH or Concise. In some instances, roaring bitmaps can
+be hundreds of times faster and they often offer significantly better compression.
+They can even be faster than uncompressed bitmaps.
 
 
 
