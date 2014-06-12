@@ -289,6 +289,21 @@ public final class MappeableArrayContainer extends MappeableContainer implements
                 return MappeableArrayContainer.this.content.get(pos++);
             }
 
+            @Override
+            public ShortIterator clone() {
+                try {
+                    return (ShortIterator) super.clone();
+                } catch (CloneNotSupportedException e) {
+                    return null;// will not happen
+                }
+            }
+
+            @Override
+            public void remove() {
+                MappeableArrayContainer.this.remove((short) (pos - 1));
+                pos--;                
+            }
+
         };
     }
 

@@ -210,6 +210,21 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
             public short next() {
                 return ArrayContainer.this.content[pos++];
             }
+            
+            @Override
+            public ShortIterator clone() {
+                try {
+                    return (ShortIterator) super.clone();
+                } catch (CloneNotSupportedException e) {
+                    return null;// will not happen
+                }
+            }
+
+            @Override
+            public void remove() {
+                ArrayContainer.this.remove((short) (pos - 1));
+                pos--;
+            }
 
         };
     }

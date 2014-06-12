@@ -1399,9 +1399,15 @@ public class TestRoaringBitmap {
         Assert.assertTrue(copy1.equals(rb));
         MutableRoaringBitmap copy2 = new MutableRoaringBitmap();
         IntIterator i = rb.getIntIterator();
+        Iterator<Integer> is = rb.iterator();
         while(i.hasNext()) {
-            copy2.add(i.next());
+            if(!is.hasNext()) throw new RuntimeException("bug");
+            int x = i.next();
+            copy2.add(x);
+            int xs = is.next();
+            if(x != xs) throw new RuntimeException("values differ "+x+" "+xs);
         }
+        if(is.hasNext()) throw new RuntimeException("bug: more data available");
         Assert.assertTrue(copy2.equals(rb));
     }
 

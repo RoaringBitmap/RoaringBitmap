@@ -268,7 +268,21 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
                 i = BitmapContainer.this.nextSetBit(i + 1);
                 return (short) j;
             }
+            
+            @Override
+            public ShortIterator clone() {
+                try {
+                    return (ShortIterator) super.clone();
+                } catch (CloneNotSupportedException e) {
+                    return null;// will not happen
+                }
+            }
 
+            @Override
+            public void remove() {
+                //TODO: implement
+                throw new RuntimeException("unsupported operation: remove");
+            }
         };
 
     }
@@ -380,6 +394,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
 
             @Override
             public void remove() {
+                //TODO: implement
                 throw new RuntimeException("unsupported operation: remove");
             }
         };

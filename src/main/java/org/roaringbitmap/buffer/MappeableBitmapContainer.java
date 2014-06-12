@@ -7,6 +7,7 @@ package org.roaringbitmap.buffer;
 import org.roaringbitmap.ShortIterator;
 
 
+
 import java.io.*;
 import java.nio.LongBuffer;
 import java.util.Iterator;
@@ -356,6 +357,21 @@ public final class MappeableBitmapContainer extends MappeableContainer
                 i = MappeableBitmapContainer.this.nextSetBit(i + 1);
                 return (short) j;
             }
+            
+            @Override
+            public ShortIterator clone() {
+                try {
+                    return (ShortIterator) super.clone();
+                } catch (CloneNotSupportedException e) {
+                    return null;// will not happen
+                }
+            }
+
+            @Override
+            public void remove() {
+                //TODO: implement
+                throw new RuntimeException("unsupported operation: remove");                
+            }
 
             
         };
@@ -524,6 +540,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
             @Override
             public void remove() {
+                //TODO: implement
                 throw new RuntimeException("unsupported operation: remove");
             }
 

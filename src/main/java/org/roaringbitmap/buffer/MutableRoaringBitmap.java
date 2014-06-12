@@ -5,6 +5,7 @@
 package org.roaringbitmap.buffer;
 
 import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.ShortIterator;
 
 import java.io.*;
 import java.util.Iterator;
@@ -209,6 +210,7 @@ public final class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
         return answer;
     }
+    
 
     /**
      * Bitwise OR (union) operation. The provided bitmaps are *not* modified.
@@ -551,45 +553,7 @@ public final class MutableRoaringBitmap extends ImmutableRoaringBitmap
         }
     }
 
-    public IntIterator getIntIterator() {
-        return new IntIterator() {
-            int hs = 0;
 
-            Iterator<Short> iter;
-
-            short pos = 0;
-
-            int x;
-
-            @Override
-            public boolean hasNext() {
-                return pos < MutableRoaringBitmap.this.highLowContainer.size();
-            }
-
-            public IntIterator init() {
-                if (pos < MutableRoaringBitmap.this.highLowContainer.size()) {
-                    iter = MutableRoaringBitmap.this.highLowContainer
-                            .getContainerAtIndex(pos).iterator();
-                    hs = BufferUtil
-                            .toIntUnsigned(MutableRoaringBitmap.this.highLowContainer
-                                    .getKeyAtIndex(pos)) << 16;
-                }
-                return this;
-            }
-
-            @Override
-            public int next() {
-                x = BufferUtil.toIntUnsigned(iter.next()) | hs;
-                if (!iter.hasNext()) {
-                    ++pos;
-                    init();
-                }
-                return x;
-            }
-
-
-        }.init();
-    }
 
     /**
      * @return a mutable copy of this bitmap
@@ -614,7 +578,7 @@ public final class MutableRoaringBitmap extends ImmutableRoaringBitmap
         return new Iterator<Integer>() {
             int hs = 0;
 
-            Iterator<Short> iter;
+            ShortIterator iter;
 
             short pos = 0;
 
@@ -628,7 +592,7 @@ public final class MutableRoaringBitmap extends ImmutableRoaringBitmap
             public Iterator<Integer> init() {
                 if (pos < MutableRoaringBitmap.this.highLowContainer.size()) {
                     iter = MutableRoaringBitmap.this.highLowContainer
-                            .getContainerAtIndex(pos).iterator();
+                            .getContainerAtIndex(pos).getShortIterator();
                     hs = BufferUtil
                             .toIntUnsigned(MutableRoaringBitmap.this.highLowContainer
                                     .getKeyAtIndex(pos)) << 16;

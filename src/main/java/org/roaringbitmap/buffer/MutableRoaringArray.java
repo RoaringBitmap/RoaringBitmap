@@ -11,6 +11,8 @@ import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 import java.util.Arrays;
 
+import org.roaringbitmap.ShortIterator;
+
 /**
  * Specialized array to store the containers used by a RoaringBitmap. This class
  * is similar to org.roaringbitmap.RoaringArray but meant to be used with memory
@@ -411,6 +413,16 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
             public short key() {
                 return MutableRoaringArray.this.array[k].key;
 
+            }
+
+
+            @Override
+            public MappeableContainerPointer clone() {
+                try {
+                    return (MappeableContainerPointer) super.clone();
+                } catch (CloneNotSupportedException e) {
+                    return null;// will not happen
+                }
             }
         };
 

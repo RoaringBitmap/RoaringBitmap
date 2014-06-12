@@ -6,7 +6,7 @@ package org.roaringbitmap.buffer;
  * 
  */
 interface MappeableContainerPointer extends
-        Comparable<MappeableContainerPointer> {
+        Comparable<MappeableContainerPointer>, Cloneable {
     /**
      * Move to the next container
      */
@@ -41,4 +41,11 @@ interface MappeableContainerPointer extends
      * @return the key
      */
     short key();
+ 
+    /**
+     * Create a copy
+     * @return return a clone of this pointer
+     */
+    MappeableContainerPointer clone();
+    
 }

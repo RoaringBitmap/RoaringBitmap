@@ -5,6 +5,7 @@
 package org.roaringbitmap.buffer;
 
 import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.ShortIterator;
 
 import java.nio.ByteBuffer;
 import java.util.Iterator;
@@ -423,42 +424,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
      * @return a custom iterator over set bits
      */
     public IntIterator getIntIterator() {
-        return new IntIterator() {
-            MappeableContainerPointer cp = ImmutableRoaringBitmap.this.highLowContainer
-                    .getContainerPointer();
-
-            int hs = 0;
-
-            Iterator<Short> iter;
-
-            boolean ok;
-
-            @Override
-            public boolean hasNext() {
-                return ok;
-            }
-
-            public IntIterator init() {
-                ok = cp.hasContainer();
-                if (ok) {
-                    iter = cp.getContainer().iterator();
-                    hs = BufferUtil.toIntUnsigned(cp.key()) << 16;
-                }
-                return this;
-            }
-
-            @Override
-            public int next() {
-                int x = BufferUtil.toIntUnsigned(iter.next()) | hs;
-                if (!iter.hasNext()) {
-                    cp.advance();
-                    init();
-                }
-                return x;
-            }
-
-
-        }.init();
+        return new ImmutableRoaringIntIterator();
     }
 
     /**
@@ -500,7 +466,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
         return new Iterator<Integer>() {
             int hs = 0;
 
-            Iterator<Short> iter;
+            ShortIterator iter;
 
             short pos = 0;
 
@@ -515,7 +481,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
             public Iterator<Integer> init() {
                 if (pos < ImmutableRoaringBitmap.this.highLowContainer.size()) {
                     iter = ImmutableRoaringBitmap.this.highLowContainer
-                            .getContainerAtIndex(pos).iterator();
+                            .getContainerAtIndex(pos).getShortIterator();
                     hs = BufferUtil
                             .toIntUnsigned(ImmutableRoaringBitmap.this.highLowContainer
                                     .getKeyAtIndex(pos)) << 16;
@@ -609,5 +575,59 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
         answer.append("}");
         return answer.toString();
     }
+    
+    private final class ImmutableRoaringIntIterator implements IntIterator {
+        MappeableContainerPointer cp = ImmutableRoaringBitmap.this.highLowContainer
+                .getContainerPointer();
+
+        int hs = 0;
+
+        ShortIterator iter;
+
+        boolean ok;
+
+        public ImmutableRoaringIntIterator() {
+            init();
+        }
+        @Override
+        public boolean hasNext() {
+            return ok;
+        }
+
+        public IntIterator init() {
+            ok = cp.hasContainer();
+            if (ok) {
+                iter = cp.getContainer().getShortIterator();
+                hs = BufferUtil.toIntUnsigned(cp.key()) << 16;
+            }
+            return this;
+        }
+        
+        @Override
+        public IntIterator clone() {
+            try {
+                ImmutableRoaringIntIterator x = (ImmutableRoaringIntIterator) super.clone();
+                x.iter =  this.iter.clone();
+                x.cp = this.cp.clone();
+                return x;
+            } catch (CloneNotSupportedException e) {
+                return null;// will not happen
+            }
+        }
+
+
+        @Override
+        public int next() {
+            int x = BufferUtil.toIntUnsigned(iter.next()) | hs;
+            if (!iter.hasNext()) {
+                cp.advance();
+                init();
+            }
+            return x;
+        }
+
+
+    }
+
 
 }

@@ -192,7 +192,16 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
                 return ImmutableRoaringArray.this.keys[k];
 
             }
+            
 
+            @Override
+            public MappeableContainerPointer clone() {
+                try {
+                    return (MappeableContainerPointer) super.clone();
+                } catch (CloneNotSupportedException e) {
+                    return null;// will not happen
+                }
+            }
         };
 
     }
