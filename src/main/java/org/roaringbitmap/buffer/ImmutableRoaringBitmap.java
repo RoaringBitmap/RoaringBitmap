@@ -7,12 +7,32 @@ package org.roaringbitmap.buffer;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.ShortIterator;
 
+import java.io.DataOutput;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 /**
  * ImmutableRoaringBitmap provides a compressed immutable (cannot be modified)
  * bitmap. It is meant to be used with org.roaringbitmap.buffer.MutableRoaringBitmap.
+ * 
+ * <pre>
+ * {@code
+ *       import org.roaringbitmap.buffer.*;
+ *       
+ *       //...
+ *       
+ *       MutableRoaringBitmap rr1 = MutableRoaringBitmap.bitmapOf(1, 2, 3, 1000);
+ *       MutableRoaringBitmap rr2 = MutableRoaringBitmap.bitmapOf( 2, 3, 1010);
+ *       ByteArrayOutputStream bos = new ByteArrayOutputStream();
+ *       DataOutputStream dos = new DataOutputStream(bos);
+ *       rr.serialize(dos);
+ *       dos.close();
+ *       ByteBuffer bb = ByteBuffer.wrap(bos.toByteArray());
+ *       ImmutableRoaringBitmap rrback1 = new ImmutableRoaringBitmap(bb);
+ *       ImmutableRoaringBitmap rrback2 = new ImmutableRoaringBitmap(bb);
+ * }
+ * </pre>
  * 
  * It can also be constructed from a ByteBuffer (useful for memory mapping).
  * 
@@ -335,6 +355,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
      * Constructs a new ImmutableRoaringBitmap. Only meta-data is loaded to RAM.
      * The rest is mapped to the ByteBuffer.
      * 
+     * 
      * @param b
      *            data source
      */
@@ -506,18 +527,30 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
 
         }.init();
     }
+    
+
+    /**
+     * Serialize this bitmap.
+     * 
+     * The current bitmap is not modified.
+     * 
+     * @param out
+     *            the DataOutput stream
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
+     */
+    public void serialize(DataOutput out) throws IOException {
+        this.highLowContainer.serialize(out);
+    }
 
     /**
      * Report the number of bytes required for serialization. This count will
-     * match the bytes written when calling the serialize method. The
-     * writeExternal method will use slightly more space due to its
-     * serialization overhead.
+     * match the bytes written when calling the serialize method. 
      * 
      * @return the size in bytes
      */
     public int serializedSizeInBytes() {
-        return ((ImmutableRoaringArray) this.highLowContainer)
-                .serializedSizeInBytes();
+        return this.highLowContainer.serializedSizeInBytes();
     }
 
     /**
@@ -551,7 +584,6 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
             c.getMappeableRoaringArray().appendCopy(mcp.key(),
                     mcp.getContainer());
             mcp.advance();
-
         }
         return c;
     }

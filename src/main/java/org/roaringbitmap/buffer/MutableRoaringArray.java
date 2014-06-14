@@ -11,7 +11,6 @@ import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 import java.util.Arrays;
 
-import org.roaringbitmap.ShortIterator;
 
 /**
  * Specialized array to store the containers used by a RoaringBitmap. This class

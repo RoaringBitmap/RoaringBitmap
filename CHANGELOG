@@ -1,3 +1,7 @@
+version 0.3.6 (June 13th, 2014)
+ - We can now serialize  ImmutableRoaringBitmap.
+ - Memory usage of ImmutableRoaringBitmap was reduced.
+
 version 0.3.5 (June 12th, 2014)
   - Added clone method to iterators
 

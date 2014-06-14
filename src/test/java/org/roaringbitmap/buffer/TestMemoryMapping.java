@@ -126,6 +126,24 @@ public class TestMemoryMapping {
             Assert.assertTrue(rb.equals(rbram));
         }
     }
+    
+    @Test
+    public void reserialize() throws IOException {
+        System.out.println("testing reserialization");
+        for (int k = 0; k < mappedbitmaps.size() ; ++k) {
+            ImmutableRoaringBitmap rr = mappedbitmaps.get(k);
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            DataOutputStream dos = new DataOutputStream(bos);
+            rr.serialize(dos);
+            dos.close();
+            ByteBuffer bb = ByteBuffer.wrap(bos.toByteArray());
+            ImmutableRoaringBitmap rrback = new ImmutableRoaringBitmap(bb);
+            Assert.assertTrue(rr.equals(rrback));
+            Assert.assertTrue(rr.equals(rrback.toMutableRoaringBitmap()));
+            Assert.assertTrue(rr.toMutableRoaringBitmap().equals(rrback));
+            Assert.assertTrue(rr.toMutableRoaringBitmap().equals(rambitmaps.get(k)));
+        }
+    }
 
     @AfterClass
     public static void clearFiles() {
@@ -160,7 +178,12 @@ public class TestMemoryMapping {
                         rb2.add(x + offset);
                     }
                     offsets.add(fos.getChannel().position());
+                    long pbef = fos.getChannel().position();
                     rb2.serialize(dos);
+                    long paft = fos.getChannel().position();
+                    if(paft - pbef != rb2.serializedSizeInBytes()) {
+                        throw new RuntimeException("wrong serializedSizeInBytes");
+                    }
                     dos.flush();
                     rambitmaps.add(rb2);
                 }
@@ -174,10 +197,17 @@ public class TestMemoryMapping {
         out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, totalcount);
         final long bef = System.currentTimeMillis();
         for (int k = 0; k < offsets.size() - 1; ++k) {
-            out.position((int) offsets.get(k).longValue());
-            final ByteBuffer bb = out.slice();
-            bb.limit((int) (offsets.get(k + 1) - offsets.get(k)));
-            mappedbitmaps.add(new ImmutableRoaringBitmap(bb));
+            ImmutableRoaringBitmap newbitmap = new ImmutableRoaringBitmap(out);
+            if(newbitmap.serializedSizeInBytes()!= rambitmaps.get(k).serializedSizeInBytes()) {
+                throw new RuntimeException("faulty reported serialization size "+newbitmap.serializedSizeInBytes()+" "+rambitmaps.get(k).serializedSizeInBytes());
+            }
+            if(!newbitmap.equals(rambitmaps.get(k))) {
+                throw new RuntimeException("faulty serialization");
+            }
+            mappedbitmaps.add(newbitmap);
+            out.position(out.position() + newbitmap.serializedSizeInBytes());
+            if(out.position() != offsets.get(k+1).longValue())
+                throw new RuntimeException("faulty serialization");
         }
         final long aft = System.currentTimeMillis();
         System.out.println("Mapped " + (offsets.size() - 1) + " bitmaps in " + (aft - bef) + "ms");

@@ -10,6 +10,22 @@ import java.util.Iterator;
 
 /**
  * RoaringBitmap, a compressed alternative to the BitSet.
+ * 
+ * <pre>
+ * {@code
+ *      import org.roaringbitmap.*;
+ *       
+ *      //...
+ *      
+ *      RoaringBitmap rr = RoaringBitmap.bitmapOf(1,2,3,1000);
+ *      RoaringBitmap rr2 = new RoaringBitmap();
+ *      for(int k = 4000; k<4255;++k) rr2.add(k);
+ *      RoaringBitmap rror = RoaringBitmap.or(rr, rr2);
+ * }
+ * </pre>
+ *
+ *
+ * 
  */
 public final class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>, Externalizable {
 

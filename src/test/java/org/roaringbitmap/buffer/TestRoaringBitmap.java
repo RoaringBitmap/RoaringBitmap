@@ -23,6 +23,30 @@ import java.util.*;
 public class TestRoaringBitmap {
 	
 
+    @Test
+    public void testContains() throws IOException {
+        System.out.println("test contains");
+        MutableRoaringBitmap rbm1 = new MutableRoaringBitmap();
+        for(int k = 0; k<1000;++k) {
+            rbm1.add(17*k);
+        }
+        for(int k = 0; k<17*1000;++k) {
+            Assert.assertTrue(rbm1.contains(k) == (k/17*17==k));
+        }
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(bos);
+        rbm1.serialize(dos);
+        dos.close();
+        ByteBuffer bb = ByteBuffer.allocateDirect(bos.size());
+        bb.put(bos.toByteArray());
+        bb.flip();
+        ImmutableRoaringBitmap rrback1 = new ImmutableRoaringBitmap(bb);
+        for(int k = 0; k<17*1000;++k) {
+            
+            Assert.assertTrue(rrback1.contains(k) == (k/17*17==k));
+        }
+    }
+
 	@Test
 	public void testHash() {
 		MutableRoaringBitmap rbm1 = new MutableRoaringBitmap();
@@ -762,7 +786,6 @@ public class TestRoaringBitmap {
                 irrelevant.flip(190000, 260000);
             }
             if (i > checkTime) {
-                System.out.println("check after " + i + ", card = " + rb.getCardinality());
                 Assert.assertTrue(equals(bs, rb));
                 checkTime *= 1.5;
             }
@@ -772,7 +795,6 @@ public class TestRoaringBitmap {
     @Test
     public void flipTestBigA() {
         final int numCases = 1000;
-        System.out.println("flipTestBigA for " + numCases + " tests");
         final BitSet bs = new BitSet();
         final Random r = new Random(3333);
         int checkTime = 2;

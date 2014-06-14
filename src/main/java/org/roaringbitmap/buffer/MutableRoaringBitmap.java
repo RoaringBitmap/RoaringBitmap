@@ -14,6 +14,20 @@ import java.util.Iterator;
  * MutableRoaringBitmap, a compressed alternative to the BitSet.
  * It is similar to org.roaringbitmap.RoaringBitmap, but it differs in that it
  * can interact with ImmutableRoaringBitmap objects.
+ * 
+ * <pre>
+ * {@code
+ *      import org.roaringbitmap.buffer.*;
+ *       
+ *      //...
+ *      
+ *      MutableRoaringBitmap rr = MutableRoaringBitmap.bitmapOf(1,2,3,1000);
+ *      MutableRoaringBitmap rr2 = new MutableRoaringBitmap();
+ *      for(int k = 4000; k<4255;++k) rr2.add(k);
+ *      
+ *      RoaringBitmap rror = RoaringBitmap.or(rr, rr2);
+ * }
+ * </pre>
  */
 public final class MutableRoaringBitmap extends ImmutableRoaringBitmap
         implements Cloneable, Serializable, Iterable<Integer>, Externalizable {
@@ -702,31 +716,6 @@ public final class MutableRoaringBitmap extends ImmutableRoaringBitmap
             getMappeableRoaringArray().removeAtIndex(i);
     }
 
-    /**
-     * Serialize this bitmap.
-     * 
-     * The current bitmap is not modified.
-     * 
-     * @param out
-     *            the DataOutput stream
-     * @throws IOException
-     *             Signals that an I/O exception has occurred.
-     */
-    public void serialize(DataOutput out) throws IOException {
-        getMappeableRoaringArray().serialize(out);
-    }
-
-    /**
-     * Report the number of bytes required for serialization. This count will
-     * match the bytes written when calling the serialize method. The
-     * writeExternal method will use slightly more space due to its
-     * serialization overhead.
-     * 
-     * @return the size in bytes
-     */
-    public int serializedSizeInBytes() {
-        return this.getMappeableRoaringArray().serializedSizeInBytes();
-    }
 
     /**
      * A string describing the bitmap.

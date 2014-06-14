@@ -1,10 +1,11 @@
 package org.roaringbitmap.buffer;
 
+import java.io.DataOutput;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
-import java.util.Arrays;
 
 /**
  * This is the underlying data structure for an ImmutableRoaringBitmap. This
@@ -15,17 +16,13 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
     protected static final short SERIAL_COOKIE = MutableRoaringArray.SERIAL_COOKIE;
 
-    protected static int unsignedBinarySearch(short[] array, int begin,
-            int end, short k) {
-        int low = begin;
-        int high = end - 1;
+    protected int unsignedBinarySearch(short k) {
+        int low = 0;
+        int high = containeroffsets.length - 1;
         int ikey = BufferUtil.toIntUnsigned(k);
-
         while (low <= high) {
             final int middleIndex = (low + high) >>> 1;
-            final int middleValue = BufferUtil
-                    .toIntUnsigned(array[middleIndex]);
-
+            final int middleValue = getKey(middleIndex);
             if (middleValue < ikey)
                 low = middleIndex + 1;
             else if (middleValue > ikey)
@@ -38,11 +35,11 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     
     ByteBuffer buffer;
     
-    short[] cardinalities;
     
     int[] containeroffsets;
 
-    short[] keys;
+    
+    private final static int startofkeyscardinalities = 8;
 
     /**
      * Create an array based on a previously serialized ByteBuffer.
@@ -50,26 +47,21 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
      * @param bbf The source ByteBuffer
      */
     protected ImmutableRoaringArray(ByteBuffer bbf) {
-        buffer = bbf.duplicate();
+        buffer = bbf.slice();
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         if (buffer.getInt() != SERIAL_COOKIE)
             throw new RuntimeException("I failed to find the right cookie.");
-        int size = buffer.getInt();
-
-        this.keys = new short[size];
-        this.cardinalities = new short[size];
-        this.containeroffsets = new int[size + 1];
-        for (int k = 0; k < size; ++k) {
-            keys[k] = buffer.getShort();
-            cardinalities[k] = buffer.getShort();
-
+        this.containeroffsets = new int[buffer.getInt()];
+        containeroffsets[0] = buffer.position() + containeroffsets.length * 4;
+        for (int k = 0; k < containeroffsets.length - 1; ++k) {
             this.containeroffsets[k + 1] = this.containeroffsets[k]
                     + BufferUtil
                             .getSizeInBytesFromCardinality(getCardinality(k));
-
         }
-        buffer = buffer.slice();
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        int last = this.containeroffsets[containeroffsets.length - 1]
+                + BufferUtil
+                .getSizeInBytesFromCardinality(getCardinality(containeroffsets.length - 1));
+        buffer.limit(last);
     }
 
     public ImmutableRoaringArray clone() {
@@ -86,17 +78,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     public boolean equals(Object o) {
         if (o instanceof ImmutableRoaringArray) {
             final ImmutableRoaringArray srb = (ImmutableRoaringArray) o;
-            if (!Arrays.equals(keys, srb.keys))
-                return false;
-            if (!Arrays.equals(cardinalities, srb.cardinalities))
-                return false;
-
-            for (int i = 0; i < srb.keys.length; ++i) {
-                if (!this.getContainerAtIndex(i).equals(
-                        srb.getContainerAtIndex(i)))
-                    return false;
-            }
-            return true;
+            return srb.buffer.equals(this.buffer);
         }
 
         if (o instanceof MutableRoaringArray) {
@@ -123,13 +105,12 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
 
     private int getCardinality(int k) {
-        return BufferUtil.toIntUnsigned(cardinalities[k]) + 1;
+        return BufferUtil.toIntUnsigned(buffer.getShort(startofkeyscardinalities + 4 * k + 2)) + 1;
     }
 
     // involves a binary search
     public MappeableContainer getContainer(short x) {
-
-        final int i = unsignedBinarySearch(keys, 0, keys.length, x);
+        final int i = unsignedBinarySearch(x);
         if (i < 0)
             return null;
         return getContainerAtIndex(i);
@@ -177,19 +158,19 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
             @Override
             public MappeableContainer getContainer() {
-                if (k >= ImmutableRoaringArray.this.keys.length)
+                if (k >= ImmutableRoaringArray.this.containeroffsets.length)
                     return null;
                 return ImmutableRoaringArray.this.getContainerAtIndex(k);
             }
 
             @Override
             public boolean hasContainer() {
-                return k < ImmutableRoaringArray.this.keys.length;
+                return k < ImmutableRoaringArray.this.containeroffsets.length;
             }
 
             @Override
             public short key() {
-                return ImmutableRoaringArray.this.keys[k];
+                return ImmutableRoaringArray.this.getKeyAtIndex(k);
 
             }
             
@@ -206,13 +187,17 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
     }
 
+    private int getKey(int k) {
+        return BufferUtil.toIntUnsigned(buffer.getShort(startofkeyscardinalities + 4 * k));
+    }
+
     // involves a binary search
     public int getIndex(short x) {
-        return unsignedBinarySearch(keys, 0, keys.length, x);
+        return unsignedBinarySearch(x);
     }
 
     public short getKeyAtIndex(int i) {
-        return this.keys[i];
+        return buffer.getShort(4*i + startofkeyscardinalities);
     }
 
     @Override
@@ -225,17 +210,40 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         }
         return hashvalue;
     }
-
+    /**
+     * Serialize.
+     * 
+     * The current bitmap is not modified.
+     * 
+     * @param out
+     *            the DataOutput stream
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
+     */
+    public void serialize(DataOutput out) throws IOException {
+        if(buffer.hasArray()) {
+            out.write(buffer.array());
+        } else {
+            ByteBuffer tmp = buffer.duplicate();
+            tmp.position(0);
+            byte[] bytes = new byte[256];
+            while(tmp.remaining() > bytes.length) {
+                tmp.get(bytes);
+                out.write(bytes);
+            }
+            int left = tmp.remaining();
+            tmp.get(bytes,0,left);
+            out.write(bytes, 0, left);
+        }
+    }
     /**
      * @return the size that the data structure occupies on disk
      */
     public int serializedSizeInBytes() {
-        return 4 + 4 + keys.length * 4
-                + this.containeroffsets[this.containeroffsets.length - 1];
+        return buffer.limit();
     }
 
     public int size() {
-        return this.keys.length;
+        return this.containeroffsets.length;
     }
-
 }

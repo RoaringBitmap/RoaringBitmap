@@ -39,7 +39,7 @@ Code sample
         
         //...
         
-        RoaringBitmap rr = new RoaringBitmap.bitmapOf(1,2,3,1000);
+        RoaringBitmap rr = RoaringBitmap.bitmapOf(1,2,3,1000);
         RoaringBitmap rr2 = new RoaringBitmap();
         for(int k = 4000; k<4255;++k) rr2.add(k);
         
@@ -59,14 +59,16 @@ in RAM while the actual data is accessed from the ByteBuffer on demand.
         
         //...
         
-        MutableRoaringBitmap rr = MutableRoaringBitmap.bitmapOf(1, 2, 3, 1000);
+        MutableRoaringBitmap rr1 = MutableRoaringBitmap.bitmapOf(1, 2, 3, 1000);
+        MutableRoaringBitmap rr2 = MutableRoaringBitmap.bitmapOf( 2, 3, 1010);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(bos);
         rr.serialize(dos);
         dos.close();
         ByteBuffer bb = ByteBuffer.wrap(bos.toByteArray());
-        ImmutableRoaringBitmap rrback = new ImmutableRoaringBitmap(bb);
-        
+        ImmutableRoaringBitmap rrback1 = new ImmutableRoaringBitmap(bb);
+        ImmutableRoaringBitmap rrback2 = new ImmutableRoaringBitmap(bb);
+         
 Operations on an ImmutableRoaringBitmap such as and, or, xor, flip, will
 generate a RoaringBitmap which lies in RAM. As the name suggest, the 
 ImmutableRoaringBitmap itself cannot be modified.
@@ -95,7 +97,7 @@ If your project depends on roaring, you  can  specify the dependency in the Mave
           <dependency>
             <groupId>org.roaringbitmap</groupId>
             <artifactId>RoaringBitmap</artifactId>
-            <version>0.3.5</version>
+            <version>0.3.6</version>
           </dependency>
         </dependencies>
 
