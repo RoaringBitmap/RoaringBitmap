@@ -1,3 +1,6 @@
+upcoming
+ - Roaring classes are no longer final
+
 version 0.3.6 (June 13th, 2014)
  - We can now serialize  ImmutableRoaringBitmap.
  - Memory usage of ImmutableRoaringBitmap was reduced.

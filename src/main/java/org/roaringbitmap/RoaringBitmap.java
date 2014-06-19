@@ -27,7 +27,7 @@ import java.util.Iterator;
  *
  * 
  */
-public final class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>, Externalizable {
+public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>, Externalizable {
 
     private static final long serialVersionUID = 6L;
 

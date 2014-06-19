@@ -29,7 +29,7 @@ import java.util.Iterator;
  * }
  * </pre>
  */
-public final class MutableRoaringBitmap extends ImmutableRoaringBitmap
+public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         implements Cloneable, Serializable, Iterable<Integer>, Externalizable {
     private static final long serialVersionUID = 3L;
 
