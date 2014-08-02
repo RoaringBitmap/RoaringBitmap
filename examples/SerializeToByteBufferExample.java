@@ -14,20 +14,17 @@ public class SerializeToByteBufferExample {
     public static void main(String[] args) throws IOException{
         MutableRoaringBitmap mrb = MutableRoaringBitmap.bitmapOf(1,2,3,1000); 
         System.out.println("starting with  bitmap "+ mrb);
-        ByteBuffer outbb = ByteBuffer.allocate(mrb.getSizeInBytes()*2);
-        System.out.println(mrb.serializedSizeInBytes());
+        ByteBuffer outbb = ByteBuffer.allocate(mrb.serializedSizeInBytes());
         mrb.serialize(new DataOutputStream(new OutputStream(){
             ByteBuffer mBB;
             OutputStream init(ByteBuffer mbb) {mBB=mbb; return this;}
             public void close() {}
             public void flush() {}
             public void write(int b) {
-                System.out.println("putting a byte "+mBB.position());
                 mBB.put((byte) b);}
             public void write(byte[] b) {}            
             public void write(byte[] b, int off, int l) {}
         }.init(outbb)));
-        System.out.println("wrote "+outbb.position()+" bytes to ByteBuffer");
         //
         outbb.flip();
         ImmutableRoaringBitmap irb = new ImmutableRoaringBitmap(outbb);
