@@ -1551,8 +1551,28 @@ public class TestRoaringBitmap {
 
 			RoaringBitmap answer2 = FastAggregation.and(Arrays.copyOf(ewah, N));
 			Assert.assertTrue(answer.equals(answer2));
+            RoaringBitmap answer2b = FastAggregation.and(toIterator(Arrays.copyOf(ewah, N)));
+            Assert.assertTrue(answer.equals(answer2b));
+
 		}
 	}
+
+    
+    private static <T> Iterator<T> toIterator(final T[] x) {
+        return new Iterator<T>() {
+            int pos = 0;
+
+            @Override
+            public boolean hasNext() {
+                return pos < x.length;
+            }
+
+            @Override
+            public T next() {
+                return x[pos++];
+            }};
+    }
+    
 
     /**
      * Test massive or.
@@ -1577,8 +1597,10 @@ public class TestRoaringBitmap {
             }
             RoaringBitmap answer2 = FastAggregation.or(ewah);
             RoaringBitmap answer3 = FastAggregation.horizontal_or(ewah);
+            RoaringBitmap answer3b = FastAggregation.horizontal_or(toIterator(ewah));
             Assert.assertTrue(answer.equals(answer2));
             Assert.assertTrue(answer.equals(answer3));
+            Assert.assertTrue(answer.equals(answer3b));
             
         }
     }

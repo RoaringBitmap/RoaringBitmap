@@ -5,10 +5,14 @@
 
 package org.roaringbitmap;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.PriorityQueue;
+
+import org.roaringbitmap.buffer.ImmutableRoaringArray;
 
 
 /**
@@ -44,6 +48,84 @@ public final class FastAggregation {
         RoaringBitmap answer = RoaringBitmap.and(array[0], array[1]);
         for (int k = 2; k < array.length; ++k)
             answer.and(array[k]);
+        return answer;
+    }
+    /**
+     * Sort the bitmap prior to using the and aggregate.
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static RoaringBitmap and(Iterator<RoaringBitmap> bitmaps) {
+        if (!bitmaps.hasNext())
+            return new RoaringBitmap();
+        ArrayList<RoaringBitmap> array = new ArrayList<RoaringBitmap>();
+        while(bitmaps.hasNext())
+            array.add(bitmaps.next());
+        Collections.sort(array, new Comparator<RoaringBitmap>() {
+            @Override
+            public int compare(RoaringBitmap a, RoaringBitmap b) {
+                return a.getSizeInBytes() - b.getSizeInBytes();
+            }
+        });
+        RoaringBitmap answer = RoaringBitmap.and(array.get(0), array.get(1));
+        for (int k = 2; k < array.size(); ++k)
+            answer.and(array.get(k));
+        return answer;
+    }
+    
+    /**
+     * Minimizes memory usage while computing the or aggregate.
+     * 
+     * @param bitmaps
+     *            input bitmaps
+     * @return aggregated bitmap
+     */
+    public static RoaringBitmap horizontal_or(Iterator<RoaringBitmap> bitmaps) {
+        RoaringBitmap answer = new RoaringBitmap();
+        if (!bitmaps.hasNext())
+            return answer;
+        PriorityQueue<ContainerPointer> pq = new PriorityQueue<ContainerPointer>();
+        while(bitmaps.hasNext()) {
+            RoaringBitmap b = bitmaps.next();
+            ContainerPointer x = b.highLowContainer
+                    .getContainerPointer();
+            if (x.getContainer() != null)
+                pq.add(x);
+        }
+
+        while (!pq.isEmpty()) {
+            ContainerPointer x1 = pq.poll();
+            if (pq.isEmpty() || (pq.peek().key() != x1.key())) {
+                answer.highLowContainer.append(x1.key(),
+                        x1.getContainer().clone());
+                x1.advance();
+                if (x1.getContainer() != null)
+                    pq.add(x1);
+                continue;
+            }
+            ContainerPointer x2 = pq.poll();
+            Container newc = x1.getContainer().lazyOR(x2.getContainer());
+            while (!pq.isEmpty() && (pq.peek().key() == x1.key())) {
+
+                ContainerPointer x = pq.poll();
+                newc = newc.lazyIOR(x.getContainer());
+                x.advance();
+                if (x.getContainer() != null)
+                    pq.add(x);
+                else if (pq.isEmpty())
+                    break;
+            }
+            if(newc.getCardinality()<0)
+                ((BitmapContainer)newc).computeCardinality();
+            answer.highLowContainer.append(x1.key(), newc);
+            x1.advance();
+            if (x1.getContainer() != null)
+                pq.add(x1);
+            x2.advance();
+            if (x2.getContainer() != null)
+                pq.add(x2);
+        }
         return answer;
     }
 

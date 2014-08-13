@@ -1609,8 +1609,29 @@ public class TestRoaringBitmap {
 
 			MutableRoaringBitmap answer2 = BufferFastAggregation.and(Arrays.copyOf(ewah, N));
 			Assert.assertTrue(answer.equals(answer2));
+			Iterator<ImmutableRoaringBitmap> z = (Iterator)toIterator(Arrays.copyOf(ewah, N));
+            MutableRoaringBitmap answer2b = BufferFastAggregation.and(z);
+            Assert.assertTrue(answer.equals(answer2b));
+
 		}
 	}
+    
+    
+    private static <T> Iterator<T> toIterator(final T[] x) {
+        return new Iterator<T>() {
+            int pos = 0;
+
+            @Override
+            public boolean hasNext() {
+                return pos < x.length;
+            }
+
+            @Override
+            public T next() {
+                return x[pos++];
+            }};
+    }
+    
 
     /**
      * Test massive or.
@@ -1635,8 +1656,11 @@ public class TestRoaringBitmap {
             }
             MutableRoaringBitmap answer2 = BufferFastAggregation.or(ewah);
             MutableRoaringBitmap answer3 = BufferFastAggregation.horizontal_or(ewah);
+            MutableRoaringBitmap answer3b = BufferFastAggregation.horizontal_or((Iterator)toIterator(ewah));
+
             Assert.assertTrue(answer.equals(answer2));
             Assert.assertTrue(answer.equals(answer3));
+            Assert.assertTrue(answer.equals(answer3b));
         }
     }
 

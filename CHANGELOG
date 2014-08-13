@@ -1,5 +1,6 @@
-upcoming
+versio 0.3.7 (August 12th, 2014)
  - Roaring classes are no longer final
+ - Added a few convenience methods for fast aggregation using Iterator inputs
 
 version 0.3.6 (June 13th, 2014)
  - We can now serialize  ImmutableRoaringBitmap.

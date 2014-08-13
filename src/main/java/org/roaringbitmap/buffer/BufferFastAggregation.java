@@ -4,9 +4,11 @@
  */
 package org.roaringbitmap.buffer;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.PriorityQueue;
 
 /**
@@ -43,7 +45,84 @@ public final class BufferFastAggregation {
             answer.and(array[k]);
         return answer;
     }
+    /**
+     * Sort the bitmap prior to using the and aggregate.
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static MutableRoaringBitmap and(Iterator<ImmutableRoaringBitmap> bitmaps) {
+        if (!bitmaps.hasNext())
+            return new MutableRoaringBitmap();
+        ArrayList<ImmutableRoaringBitmap> array = new ArrayList<ImmutableRoaringBitmap>();
+        while(bitmaps.hasNext())
+            array.add(bitmaps.next());
+        Collections.sort(array, new Comparator<ImmutableRoaringBitmap>() {
+            @Override
+            public int compare(ImmutableRoaringBitmap a,
+                    ImmutableRoaringBitmap b) {
+                return a.getSizeInBytes() - b.getSizeInBytes();
+            }
+        });
+        MutableRoaringBitmap answer = ImmutableRoaringBitmap.and(array.get(0), array.get(1));
+        for (int k = 2; k < array.size(); ++k)
+            answer.and(array.get(k));
+        return answer;
+    }
+    
+    /**
+     * Minimizes memory usage while computing the or aggregate.
+     * 
+     * @param bitmaps
+     *            input bitmaps
+     * @return aggregated bitmap
+     */
+    public static MutableRoaringBitmap horizontal_or(Iterator<ImmutableRoaringBitmap> bitmaps) {
+        MutableRoaringBitmap answer = new MutableRoaringBitmap();
+        if (!bitmaps.hasNext())
+            return answer;
+        PriorityQueue<MappeableContainerPointer> pq = new PriorityQueue<MappeableContainerPointer>();
+        while(bitmaps.hasNext()) {
+            ImmutableRoaringBitmap b = bitmaps.next();
+            MappeableContainerPointer x = b.highLowContainer
+                    .getContainerPointer();
+            if (x.getContainer() != null)
+                pq.add(x);
+        }
+        while (!pq.isEmpty()) {
+            MappeableContainerPointer x1 = pq.poll();
+            if (pq.isEmpty() || (pq.peek().key() != x1.key())) {
+                answer.getMappeableRoaringArray().append(x1.key(),
+                        x1.getContainer().clone());
+                x1.advance();
+                if (x1.getContainer() != null)
+                    pq.add(x1);
+                continue;
+            }
+            MappeableContainerPointer x2 = pq.poll();
+            MappeableContainer newc = x1.getContainer().lazyOR(x2.getContainer());
+            while (!pq.isEmpty() && (pq.peek().key() == x1.key())) {
 
+                MappeableContainerPointer x = pq.poll();
+                newc = newc.lazyIOR(x.getContainer());
+                x.advance();
+                if (x.getContainer() != null)
+                    pq.add(x);
+                else if (pq.isEmpty())
+                    break;
+            }
+            if(newc.getCardinality()<0)
+                ((MappeableBitmapContainer)newc).computeCardinality();
+            answer.getMappeableRoaringArray().append(x1.key(), newc);
+            x1.advance();
+            if (x1.getContainer() != null)
+                pq.add(x1);
+            x2.advance();
+            if (x2.getContainer() != null)
+                pq.add(x2);
+        }
+        return answer;
+    }
     /**
      * Minimizes memory usage while computing the or aggregate.
      * 
