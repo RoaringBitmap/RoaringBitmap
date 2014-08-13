@@ -1562,15 +1562,18 @@ public class TestRoaringBitmap {
         return new Iterator<T>() {
             int pos = 0;
 
-            @Override
             public boolean hasNext() {
                 return pos < x.length;
             }
+            
+            @Override
+            public void remove() {}
 
             @Override
             public T next() {
                 return x[pos++];
             }};
+            
     }
     
 

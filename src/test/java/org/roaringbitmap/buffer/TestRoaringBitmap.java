@@ -1625,6 +1625,10 @@ public class TestRoaringBitmap {
             public boolean hasNext() {
                 return pos < x.length;
             }
+            
+            @Override
+            public void remove() {}
+
 
             @Override
             public T next() {
