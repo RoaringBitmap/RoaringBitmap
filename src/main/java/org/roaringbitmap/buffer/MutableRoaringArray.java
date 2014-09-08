@@ -509,7 +509,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
             out.write((startOffset >>> 8) & 0xFF);
             out.write((startOffset >>> 16) & 0xFF);
             out.write((startOffset >>> 24) & 0xFF);
-        	startOffset=startOffset+BufferUtil.getSizeInBytesFromCardinality(this.array[k].value.getCardinality());
+        	startOffset=startOffset+array[k].value.getArraySizeInBytes();
         }
         for (int k = 0; k < size; ++k) {
             array[k].value.writeArray(out);
