@@ -18,7 +18,6 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
     protected int unsignedBinarySearch(short k) {
         int low = 0;
-        //int high = containeroffsets.length - 1;
         int high = this.size - 1;
         int ikey = BufferUtil.toIntUnsigned(k);
         while (low <= high) {
@@ -37,9 +36,6 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     ByteBuffer buffer;
     int size;
     
-    //int[] containeroffsets;
-
-    
     private final static int startofkeyscardinalities = 8;
 
     /**
@@ -52,18 +48,8 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         if (buffer.getInt() != SERIAL_COOKIE)
             throw new RuntimeException("I failed to find the right cookie.");
-        /*this.containeroffsets = new int[buffer.getInt()];
-        containeroffsets[0] = buffer.position() + containeroffsets.length * 4;
-        for (int k = 0; k < containeroffsets.length - 1; ++k) {
-            this.containeroffsets[k + 1] = this.containeroffsets[k]
-                    + BufferUtil
-                            .getSizeInBytesFromCardinality(getCardinality(k));
-        }
-        int last = this.containeroffsets[containeroffsets.length - 1]
-                + BufferUtil
-                .getSizeInBytesFromCardinality(getCardinality(containeroffsets.length - 1));*/
         this.size = buffer.getInt();
-        int lastContainerOffset = 4 + 4 + (1 << (2 << this.size))-4;
+        int lastContainerOffset = buffer.getInt(4 + 4 + 4*this.size + 4*this.size - 4);
         buffer.limit(lastContainerOffset + BufferUtil
                 .getSizeInBytesFromCardinality(getCardinality(this.size - 1)));
     }
@@ -138,7 +124,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
     
     public int getOffsetContainer(int k){
-    	return buffer.getInt(4 + 4 + (2 << this.size) + (2 << k));
+    	return buffer.getInt(4 + 4 + 4*this.size + 4*k);
     }
 
     public MappeableContainerPointer getContainerPointer() {
