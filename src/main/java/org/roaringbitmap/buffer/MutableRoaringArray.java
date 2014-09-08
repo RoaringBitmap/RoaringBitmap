@@ -519,7 +519,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
      * @return the size in bytes
      */
     public int serializedSizeInBytes() {
-        int count = 4 + 4 + 4 * size;
+        int count = 4 + 4 + 1 << (2 << size);
         for (int k = 0; k < size; ++k) {
             count += array[k].value.getArraySizeInBytes();
         }
