@@ -505,7 +505,10 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
         //writing the containers offsets
         int startOffset = 4 + 4 + (1 << (2 << this.size));
         for(int k=0; k<this.size; k++){
-        	out.write(startOffset);
+        	out.write(startOffset & 0xFF);
+            out.write((startOffset >>> 8) & 0xFF);
+            out.write((startOffset >>> 16) & 0xFF);
+            out.write((startOffset >>> 24) & 0xFF);
         	startOffset=startOffset+BufferUtil.getSizeInBytesFromCardinality(this.array[k].value.getCardinality());
         }
         for (int k = 0; k < size; ++k) {
@@ -519,8 +522,8 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
      * @return the size in bytes
      */
     public int serializedSizeInBytes() {
-        int count = 4 + 4 + 1 << (2 << size);
-        for (int k = 0; k < size; ++k) {
+        int count = 4 + 4 + (1 << (2 << this.size));
+        for (int k = 0; k < this.size; ++k) {
             count += array[k].value.getArraySizeInBytes();
         }
         return count;
