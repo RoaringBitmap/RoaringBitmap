@@ -8,6 +8,8 @@ package org.roaringbitmap;
 import java.io.*;
 import java.util.Arrays;
 
+import org.roaringbitmap.buffer.BufferUtil;
+
 
 /**
  * Specialized array to store the containers used by a RoaringBitmap.
@@ -246,11 +248,12 @@ public final class RoaringArray implements Cloneable, Externalizable {
      * @throws IOException Signals that an I/O exception has occurred.
      */
     public void serialize(DataOutput out) throws IOException {
+    	
         out.write(SERIAL_COOKIE & 0xFF);
         out.write((SERIAL_COOKIE >>> 8) & 0xFF);
         out.write((SERIAL_COOKIE >>> 16) & 0xFF);
         out.write((SERIAL_COOKIE >>> 24) & 0xFF);
-
+        
         out.write(this.size & 0xFF);
         out.write((this.size >>> 8) & 0xFF);
         out.write((this.size >>> 16) & 0xFF);
@@ -262,6 +265,13 @@ public final class RoaringArray implements Cloneable, Externalizable {
             out.write((this.array[k].value.getCardinality() - 1) & 0xFF);
             out.write(((this.array[k].value.getCardinality() - 1) >>> 8) & 0xFF);
         }
+        //writing the containers offsets
+        int startOffset = 4 + 4 + (1 << (2 << this.size));
+        for(int k=0; k<this.size; k++){
+        	out.write(startOffset);
+        	startOffset=startOffset+BufferUtil.getSizeInBytesFromCardinality(this.array[k].value.getCardinality());
+        }
+        
         for (int k = 0; k < size; ++k) {
             array[k].value.writeArray(out);
         }
