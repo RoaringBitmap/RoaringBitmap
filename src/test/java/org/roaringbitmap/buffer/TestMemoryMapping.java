@@ -182,7 +182,7 @@ public class TestMemoryMapping {
                     rb2.serialize(dos);
                     long paft = fos.getChannel().position();
                     if(paft - pbef != rb2.serializedSizeInBytes()) {
-                        throw new RuntimeException("wrong serializedSizeInBytes");
+                        throw new RuntimeException("wrong serializedSizeInBytes:: paft-pbef = "+(paft - pbef)+", serializedSize = "+rb2.serializedSizeInBytes());
                     }
                     dos.flush();
                     rambitmaps.add(rb2);

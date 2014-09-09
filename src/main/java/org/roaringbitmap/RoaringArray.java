@@ -266,7 +266,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
             out.write(((this.array[k].value.getCardinality() - 1) >>> 8) & 0xFF);
         }
         //writing the containers offsets
-        int startOffset = 4 + 4 + (1 << (2 << this.size));
+        int startOffset = 4 + 4 + 4*this.size + 4*this.size;
         for(int k=0; k<this.size; k++){
         	out.write(startOffset & 0xFF);
             out.write((startOffset >>> 8) & 0xFF);

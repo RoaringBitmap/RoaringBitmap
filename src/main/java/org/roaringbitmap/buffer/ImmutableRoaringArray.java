@@ -56,8 +56,8 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
 
     public long bufferMemoryUsage(){
-        long buffer = RamUsageEstimator.sizeOf(this.buffer);
-        return buffer;
+        long size = RamUsageEstimator.sizeOf(this.buffer);
+        return size;
     }
 
     public ImmutableRoaringArray clone() {
