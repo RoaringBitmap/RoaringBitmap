@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
+import com.carrotsearch.sizeof.RamUsageEstimator;
 
 /**
  * This is the underlying data structure for an ImmutableRoaringBitmap. This
@@ -44,14 +45,19 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
      * @param bbf The source ByteBuffer
      */
     protected ImmutableRoaringArray(ByteBuffer bbf) {
-        buffer = bbf.slice();
+        buffer = bbf;
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         if (buffer.getInt() != SERIAL_COOKIE)
             throw new RuntimeException("I failed to find the right cookie.");
         this.size = buffer.getInt();
-        int lastContainerOffset = buffer.getInt(4 + 4 + 4*this.size + 4*this.size - 4);
-        buffer.limit(lastContainerOffset + BufferUtil
-                .getSizeInBytesFromCardinality(getCardinality(this.size - 1)));
+        //int lastContainerOffset = buffer.getInt(4 + 4 + 4*this.size + 4*this.size - 4);
+        //buffer.limit(lastContainerOffset + BufferUtil
+          //      .getSizeInBytesFromCardinality(getCardinality(this.size - 1)));
+    }
+
+    public long bufferMemoryUsage(){
+        long buffer = RamUsageEstimator.sizeOf(this.buffer);
+        return buffer;
     }
 
     public ImmutableRoaringArray clone() {

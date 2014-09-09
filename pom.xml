@@ -65,11 +65,16 @@
 		</dependencyManagement>
 		<dependencies>
 
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
+		    <dependency>
+			    <groupId>junit</groupId>
+			    <artifactId>junit</artifactId>
+			    <scope>test</scope>
+		    </dependency>
+            <dependency>
+                <groupId>com.carrotsearch</groupId>
+                <artifactId>java-sizeof</artifactId>
+                <version>0.0.4</version>
+            </dependency>
 		</dependencies>
    <parent>
     <groupId>org.sonatype.oss</groupId>
