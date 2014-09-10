@@ -91,10 +91,6 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
         return answer;
     }
 
-	 public long arrayBufferMemoryUsage(){
-    	return ((ImmutableRoaringArray) highLowContainer).bufferMemoryUsage();
-    }
-
     /**
      * Bitwise ANDNOT (difference) operation. The provided bitmaps are *not*
      * modified. This operation is thread-safe as long as the provided bitmaps

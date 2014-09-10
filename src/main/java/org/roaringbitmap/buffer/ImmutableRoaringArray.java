@@ -55,11 +55,6 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
           //      .getSizeInBytesFromCardinality(getCardinality(this.size - 1)));
     }
 
-    public long bufferMemoryUsage(){
-        long size = RamUsageEstimator.sizeOf(this.buffer);
-        return size;
-    }
-
     public ImmutableRoaringArray clone() {
         ImmutableRoaringArray sa;
         try {
