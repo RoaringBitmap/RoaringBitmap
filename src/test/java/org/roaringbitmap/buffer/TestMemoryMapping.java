@@ -197,7 +197,9 @@ public class TestMemoryMapping {
         out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, totalcount);
         final long bef = System.currentTimeMillis();
         for (int k = 0; k < offsets.size() - 1; ++k) {
-            ImmutableRoaringBitmap newbitmap = new ImmutableRoaringBitmap(out);
+        	final ByteBuffer bb = out.slice();
+        	bb.limit((int) (offsets.get(k+1)-offsets.get(k)));
+            ImmutableRoaringBitmap newbitmap = new ImmutableRoaringBitmap(bb);
             if(newbitmap.serializedSizeInBytes()!= rambitmaps.get(k).serializedSizeInBytes()) {
                 throw new RuntimeException("faulty reported serialization size "+newbitmap.serializedSizeInBytes()+" "+rambitmaps.get(k).serializedSizeInBytes());
             }
