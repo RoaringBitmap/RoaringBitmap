@@ -277,6 +277,9 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
             cardinalities[k] = 1 + (buffer[0] & 0xFF | ((buffer[1] & 0xFF) << 8));
             isBitmap[k] = cardinalities[k] > MappeableArrayContainer.DEFAULT_MAX_SIZE;
         }
+        //skipping the offsets
+        in.skipBytes(this.size*4);
+        //Reading the containers
         for (int k = 0; k < this.size; ++k) {
             MappeableContainer val;
             if (isBitmap[k]) {
