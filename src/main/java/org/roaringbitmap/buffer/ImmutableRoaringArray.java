@@ -6,7 +6,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
-import com.carrotsearch.sizeof.RamUsageEstimator;
 
 /**
  * This is the underlying data structure for an ImmutableRoaringBitmap. This
@@ -109,17 +108,18 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
     public MappeableContainer getContainerAtIndex(int i) {
 
-        boolean isBitmap = getCardinality(i) > MappeableArrayContainer.DEFAULT_MAX_SIZE;
+    	int cardinality = getCardinality(i);
+        boolean isBitmap = cardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE;
         buffer.position(getOffsetContainer(i));
         if (isBitmap) {
             final LongBuffer bitmapArray = buffer.asLongBuffer().slice();
             bitmapArray.limit(MappeableBitmapContainer.MAX_CAPACITY / 64);
-            return new MappeableBitmapContainer(bitmapArray, getCardinality(i));
+            return new MappeableBitmapContainer(bitmapArray, cardinality);
         } else {
             final ShortBuffer shortArray = buffer.asShortBuffer().slice();
 
-            shortArray.limit(getCardinality(i));
-            return new MappeableArrayContainer(shortArray, getCardinality(i));
+            shortArray.limit(cardinality);
+            return new MappeableArrayContainer(shortArray, cardinality);
         }
 
     }
@@ -135,7 +135,6 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
             @Override
             public void advance() {
                 ++k;
-
             }
 
             @Override
@@ -179,7 +178,6 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
                 }
             }
         };
-
     }
 
     private int getKey(int k) {

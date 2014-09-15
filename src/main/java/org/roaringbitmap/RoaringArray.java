@@ -285,7 +285,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
      * @return the size in bytes
      */
     public int serializedSizeInBytes() {
-        int count = 4 + 4 + 4 * size;
+        int count = 4 + 4 + 4 * size + 4*size;
         for (int k = 0; k < size; ++k) {
             count += array[k].value.getArraySizeInBytes();
         }
@@ -324,6 +324,9 @@ public final class RoaringArray implements Cloneable, Externalizable {
             cardinalities[k] = 1 + (buffer[0] & 0xFF | ((buffer[1] & 0xFF) << 8));
             isBitmap[k] = cardinalities[k] > ArrayContainer.DEFAULT_MAX_SIZE;
         }
+        //skipping the offsets
+        in.skipBytes(this.size*4);
+        //Reading the containers
         for (int k = 0; k < this.size; ++k) {
             Container val;
             if (isBitmap[k]) {
