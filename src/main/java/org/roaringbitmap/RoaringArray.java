@@ -16,7 +16,7 @@ import org.roaringbitmap.buffer.BufferUtil;
  * This is not meant to be used by end users.
  */
 public final class RoaringArray implements Cloneable, Externalizable {
-    protected static final short SERIAL_COOKIE = 12345;
+    protected static final short SERIAL_COOKIE = 12346;
 
     private static final long serialVersionUID = 7L;
 

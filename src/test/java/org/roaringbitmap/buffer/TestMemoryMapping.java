@@ -12,12 +12,14 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.RoaringBitmap;
 
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 @SuppressWarnings({"javadoc", "static-method"})
 public class TestMemoryMapping {
@@ -145,6 +147,24 @@ public class TestMemoryMapping {
         }
     }
 
+    @Test
+    public void oneFormat() throws IOException {
+        System.out.println("testing format compatibility");
+        for (int k = 0; k < mappedbitmaps.size() ; ++k) {
+            ImmutableRoaringBitmap rr = mappedbitmaps.get(k);
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            DataOutputStream dos = new DataOutputStream(bos);
+            rr.serialize(dos);
+            dos.close();
+            ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
+            RoaringBitmap newr = new RoaringBitmap();
+            newr.deserialize(new DataInputStream(bis));
+            int[] content = newr.toArray();
+            int[] oldcontent = rr.toArray();
+            Assert.assertTrue(Arrays.equals(content, oldcontent));
+        }
+    }
+
     @AfterClass
     public static void clearFiles() {
         System.out.println("Cleaning memory-mapped file.");
@@ -194,26 +214,29 @@ public class TestMemoryMapping {
         offsets.add(totalcount);
         dos.close();
         final RandomAccessFile memoryMappedFile = new RandomAccessFile(tmpfile, "r");
-        out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, totalcount);
-        final long bef = System.currentTimeMillis();
-        for (int k = 0; k < offsets.size() - 1; ++k) {
-        	final ByteBuffer bb = out.slice();
-        	bb.limit((int) (offsets.get(k+1)-offsets.get(k)));
-            ImmutableRoaringBitmap newbitmap = new ImmutableRoaringBitmap(bb);
-            if(newbitmap.serializedSizeInBytes()!= rambitmaps.get(k).serializedSizeInBytes()) {
-                throw new RuntimeException("faulty reported serialization size "+newbitmap.serializedSizeInBytes()+" "+rambitmaps.get(k).serializedSizeInBytes());
+        try {
+            out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, totalcount);
+            final long bef = System.currentTimeMillis();
+            for (int k = 0; k < offsets.size() - 1; ++k) {
+                final ByteBuffer bb = out.slice();
+                bb.limit((int) (offsets.get(k+1)-offsets.get(k)));
+                ImmutableRoaringBitmap newbitmap = new ImmutableRoaringBitmap(bb);
+                if(newbitmap.serializedSizeInBytes()!= rambitmaps.get(k).serializedSizeInBytes()) {
+                    throw new RuntimeException("faulty reported serialization size "+newbitmap.serializedSizeInBytes()+" "+rambitmaps.get(k).serializedSizeInBytes());
+                }
+                if(!newbitmap.equals(rambitmaps.get(k))) {
+                    throw new RuntimeException("faulty serialization");
+                }
+                mappedbitmaps.add(newbitmap);
+                out.position(out.position() + newbitmap.serializedSizeInBytes());
+                if(out.position() != offsets.get(k+1).longValue())
+                    throw new RuntimeException("faulty serialization");
             }
-            if(!newbitmap.equals(rambitmaps.get(k))) {
-                throw new RuntimeException("faulty serialization");
-            }
-            mappedbitmaps.add(newbitmap);
-            out.position(out.position() + newbitmap.serializedSizeInBytes());
-            if(out.position() != offsets.get(k+1).longValue())
-                throw new RuntimeException("faulty serialization");
+            final long aft = System.currentTimeMillis();
+            System.out.println("Mapped " + (offsets.size() - 1) + " bitmaps in " + (aft - bef) + "ms");
+        } finally {
+            memoryMappedFile.close();
         }
-        final long aft = System.currentTimeMillis();
-        System.out.println("Mapped " + (offsets.size() - 1) + " bitmaps in " + (aft - bef) + "ms");
-        memoryMappedFile.close();
     }
 
     static ArrayList<ImmutableRoaringBitmap> mappedbitmaps = new ArrayList<ImmutableRoaringBitmap>();

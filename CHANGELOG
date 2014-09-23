@@ -1,4 +1,7 @@
-versio 0.3.7 (August 12th, 2014)
+version 0.4.0 (September 23rd, 2014)
+ - Format change to reduce Java RAM memory usage
+
+version 0.3.7 (August 12th, 2014)
  - Roaring classes are no longer final
  - Added a few convenience methods for fast aggregation using Iterator inputs
 

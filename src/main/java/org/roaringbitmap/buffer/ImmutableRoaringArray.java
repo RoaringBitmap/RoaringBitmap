@@ -49,10 +49,6 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         if (buffer.getInt() != SERIAL_COOKIE)
             throw new RuntimeException("I failed to find the right cookie.");
         this.size = buffer.getInt();
-        //Fixing the buffer's limit
-        //int lastContainerOffset = buffer.getInt(4 + 4 + 4*this.size + 4*this.size - 4);
-        //buffer.limit(lastContainerOffset + BufferUtil
-          //      .getSizeInBytesFromCardinality(getCardinality(this.size - 1)));
     }
 
     public ImmutableRoaringArray clone() {
@@ -125,7 +121,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
     }
     
-    public int getOffsetContainer(int k){
+    private int getOffsetContainer(int k){
     	return buffer.getInt(4 + 4 + 4*this.size + 4*k);
     }
 

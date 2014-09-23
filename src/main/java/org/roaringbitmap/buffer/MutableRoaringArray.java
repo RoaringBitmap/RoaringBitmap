@@ -65,7 +65,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
 
     protected static final int INITIAL_CAPACITY = 4;
 
-    protected static final short SERIAL_COOKIE = 12345;
+    protected static final short SERIAL_COOKIE = 12346;
 
     private static final long serialVersionUID = 4L;
 
