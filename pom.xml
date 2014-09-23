@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.roaringbitmap</groupId>
   <artifactId>RoaringBitmap</artifactId>
-  <version>0.3.8-SNAPSHOT</version>
+  <version>0.4.1-SNAPSHOT</version>
   <name>RoaringBitmap</name>
     <url>https://github.com/lemire/RoaringBitmap</url>
    <description>Roaring bitmaps are compressed bitmaps (also called bitsets) which tend to outperform 
@@ -65,11 +65,16 @@
 		</dependencyManagement>
 		<dependencies>
 
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
+		    <dependency>
+			    <groupId>junit</groupId>
+			    <artifactId>junit</artifactId>
+			    <scope>test</scope>
+		    </dependency>
+            <dependency>
+                <groupId>com.carrotsearch</groupId>
+                <artifactId>java-sizeof</artifactId>
+                <version>0.0.4</version>
+            </dependency>
 		</dependencies>
    <parent>
     <groupId>org.sonatype.oss</groupId>
@@ -98,7 +103,10 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-gpg-plugin</artifactId>
         <version>1.4</version>
-        <executions>
+        <configuration>
+        	<skip>true</skip>
+    	</configuration>                 
+        <!-- <executions>
           <execution>
             <id>sign-artifacts</id>
             <phase>verify</phase>
@@ -106,7 +114,7 @@
               <goal>sign</goal>
             </goals>
           </execution>
-        </executions>
+        </executions>  -->
       </plugin>
       
     		<plugin>

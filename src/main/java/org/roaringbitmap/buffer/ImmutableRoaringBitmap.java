@@ -38,9 +38,9 @@ import java.util.Iterator;
  * 
  * Objects of this class may reside almost entirely in memory-map files.
  */
-public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
+public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {    
 
-    /**
+     /**
      * Bitwise AND (intersection) operation. The provided bitmaps are *not*
      * modified. This operation is thread-safe as long as the provided bitmaps
      * remain unchanged.

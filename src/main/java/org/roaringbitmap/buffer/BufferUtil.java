@@ -1,5 +1,5 @@
 /*
- * (c) Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, Björn Sperber
+ * (c) Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, BjÃ¶rn Sperber
  * Licensed under the Apache License, Version 2.0.
  */
 package org.roaringbitmap.buffer;

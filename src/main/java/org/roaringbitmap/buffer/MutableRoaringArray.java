@@ -277,6 +277,9 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
             cardinalities[k] = 1 + (buffer[0] & 0xFF | ((buffer[1] & 0xFF) << 8));
             isBitmap[k] = cardinalities[k] > MappeableArrayContainer.DEFAULT_MAX_SIZE;
         }
+        //skipping the offsets
+        in.skipBytes(this.size*4);
+        //Reading the containers
         for (int k = 0; k < this.size; ++k) {
             MappeableContainer val;
             if (isBitmap[k]) {
@@ -502,6 +505,15 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
             out.write((this.array[k].value.getCardinality() - 1) & 0xFF);
             out.write(((this.array[k].value.getCardinality() - 1) >>> 8) & 0xFF);
         }
+        //writing the containers offset
+        int startOffset = 4 + 4 + this.size*4 + this.size*4;
+        for(int k=0; k<this.size; k++){
+        	out.write(startOffset & 0xFF);
+            out.write((startOffset >>> 8) & 0xFF);
+            out.write((startOffset >>> 16) & 0xFF);
+            out.write((startOffset >>> 24) & 0xFF);
+        	startOffset=startOffset+array[k].value.getArraySizeInBytes();
+        }
         for (int k = 0; k < size; ++k) {
             array[k].value.writeArray(out);
         }
@@ -513,8 +525,8 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
      * @return the size in bytes
      */
     public int serializedSizeInBytes() {
-        int count = 4 + 4 + 4 * size;
-        for (int k = 0; k < size; ++k) {
+        int count = 4 + 4 + 4*this.size + 4*this.size;
+        for (int k = 0; k < this.size; ++k) {
             count += array[k].value.getArraySizeInBytes();
         }
         return count;

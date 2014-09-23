@@ -18,7 +18,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
     protected int unsignedBinarySearch(short k) {
         int low = 0;
-        int high = containeroffsets.length - 1;
+        int high = this.size - 1;
         int ikey = BufferUtil.toIntUnsigned(k);
         while (low <= high) {
             final int middleIndex = (low + high) >>> 1;
@@ -34,10 +34,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
     
     ByteBuffer buffer;
-    
-    
-    int[] containeroffsets;
-
+    int size;
     
     private final static int startofkeyscardinalities = 8;
 
@@ -47,21 +44,15 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
      * @param bbf The source ByteBuffer
      */
     protected ImmutableRoaringArray(ByteBuffer bbf) {
-        buffer = bbf.slice();
+        buffer = bbf;
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         if (buffer.getInt() != SERIAL_COOKIE)
             throw new RuntimeException("I failed to find the right cookie.");
-        this.containeroffsets = new int[buffer.getInt()];
-        containeroffsets[0] = buffer.position() + containeroffsets.length * 4;
-        for (int k = 0; k < containeroffsets.length - 1; ++k) {
-            this.containeroffsets[k + 1] = this.containeroffsets[k]
-                    + BufferUtil
-                            .getSizeInBytesFromCardinality(getCardinality(k));
-        }
-        int last = this.containeroffsets[containeroffsets.length - 1]
-                + BufferUtil
-                .getSizeInBytesFromCardinality(getCardinality(containeroffsets.length - 1));
-        buffer.limit(last);
+        this.size = buffer.getInt();
+        //Fixing the buffer's limit
+        //int lastContainerOffset = buffer.getInt(4 + 4 + 4*this.size + 4*this.size - 4);
+        //buffer.limit(lastContainerOffset + BufferUtil
+          //      .getSizeInBytesFromCardinality(getCardinality(this.size - 1)));
     }
 
     public ImmutableRoaringArray clone() {
@@ -118,19 +109,24 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
     public MappeableContainer getContainerAtIndex(int i) {
 
-        boolean isBitmap = getCardinality(i) > MappeableArrayContainer.DEFAULT_MAX_SIZE;
-        buffer.position(this.containeroffsets[i]);
+    	int cardinality = getCardinality(i);
+        boolean isBitmap = cardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE;
+        buffer.position(getOffsetContainer(i));
         if (isBitmap) {
             final LongBuffer bitmapArray = buffer.asLongBuffer().slice();
             bitmapArray.limit(MappeableBitmapContainer.MAX_CAPACITY / 64);
-            return new MappeableBitmapContainer(bitmapArray, getCardinality(i));
+            return new MappeableBitmapContainer(bitmapArray, cardinality);
         } else {
             final ShortBuffer shortArray = buffer.asShortBuffer().slice();
 
-            shortArray.limit(getCardinality(i));
-            return new MappeableArrayContainer(shortArray, getCardinality(i));
+            shortArray.limit(cardinality);
+            return new MappeableArrayContainer(shortArray, cardinality);
         }
 
+    }
+    
+    public int getOffsetContainer(int k){
+    	return buffer.getInt(4 + 4 + 4*this.size + 4*k);
     }
 
     public MappeableContainerPointer getContainerPointer() {
@@ -140,7 +136,6 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
             @Override
             public void advance() {
                 ++k;
-
             }
 
             @Override
@@ -158,14 +153,14 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
             @Override
             public MappeableContainer getContainer() {
-                if (k >= ImmutableRoaringArray.this.containeroffsets.length)
+                if (k >= ImmutableRoaringArray.this.size)
                     return null;
                 return ImmutableRoaringArray.this.getContainerAtIndex(k);
             }
 
             @Override
             public boolean hasContainer() {
-                return k < ImmutableRoaringArray.this.containeroffsets.length;
+                return k < ImmutableRoaringArray.this.size;
             }
 
             @Override
@@ -184,7 +179,6 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
                 }
             }
         };
-
     }
 
     private int getKey(int k) {
@@ -244,6 +238,6 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
 
     public int size() {
-        return this.containeroffsets.length;
+        return this.size;
     }
 }
