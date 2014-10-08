@@ -563,7 +563,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     }
 
     /**
-     * @return a custom iterator over set bits
+     * @return a custom iterator over set bits, the bits are traversed
+     * in sorted order
      */
     public IntIterator getIntIterator() {
         return new RoaringIntIterator();
@@ -747,7 +748,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     }
 
     /**
-     * Return the set values as an array.
+     * Return the set values as an array. The integer
+     * values are in sorted order.
      *
      * @return array representing the set values.
      */
