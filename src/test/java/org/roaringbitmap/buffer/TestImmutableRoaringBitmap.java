@@ -49,7 +49,7 @@ public class TestImmutableRoaringBitmap {
 			dos.close();
 			
 			return outbb;
-		}
+	}
 
 	@Test
 	public void testHash() {
@@ -171,6 +171,15 @@ public class TestImmutableRoaringBitmap {
         Assert.assertTrue(mr2.getMappeableRoaringArray().getContainerAtIndex(3).getCardinality()==1000);
         Assert.assertTrue(mr2.getMappeableRoaringArray().getContainerAtIndex(4).getCardinality()==2000);
         Assert.assertTrue(mr2.getMappeableRoaringArray().getContainerAtIndex(5).getCardinality()==5000);
+        
+        MutableRoaringBitmap mr3 = new MutableRoaringBitmap();
+        buffer = serializeRoaring(mr3);
+        buffer.rewind();
+        System.out.println("buffer capacity = "+buffer.capacity());
+        ImmutableRoaringBitmap ir3 = new ImmutableRoaringBitmap(buffer);
+        mr3 = ir3.toMutableRoaringBitmap();
+        
+        Assert.assertTrue(mr3.getCardinality()==0);
     }
 
     @Test

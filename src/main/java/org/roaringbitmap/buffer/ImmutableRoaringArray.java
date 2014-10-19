@@ -7,6 +7,8 @@ import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 
+import org.roaringbitmap.IntIterator;
+
 /**
  * This is the underlying data structure for an ImmutableRoaringBitmap. This
  * class is not meant for end-users.
@@ -15,6 +17,9 @@ import java.nio.ShortBuffer;
 public final class ImmutableRoaringArray implements PointableRoaringArray {
 
     protected static final short SERIAL_COOKIE = MutableRoaringArray.SERIAL_COOKIE;
+    private final static int startofkeyscardinalities = 8;
+    ByteBuffer buffer;
+    int size;
 
     protected int unsignedBinarySearch(short k) {
         int low = 0;
@@ -33,10 +38,6 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         return -(low + 1);
     }
     
-    ByteBuffer buffer;
-    int size;
-    
-    private final static int startofkeyscardinalities = 8;
 
     /**
      * Create an array based on a previously serialized ByteBuffer.
@@ -44,7 +45,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
      * @param bbf The source ByteBuffer
      */
     protected ImmutableRoaringArray(ByteBuffer bbf) {
-        buffer = bbf;
+        buffer = bbf.slice();
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         if (buffer.getInt() != SERIAL_COOKIE)
             throw new RuntimeException("I failed to find the right cookie.");
@@ -114,7 +115,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         buffer.position(getOffsetContainer(i));
         if (isBitmap) {
             final LongBuffer bitmapArray = buffer.asLongBuffer().slice();
-            bitmapArray.limit(MappeableBitmapContainer.MAX_CAPACITY / 64);
+            bitmapArray.limit(MappeableBitmapContainer.MAX_CAPACITY / 64);            
             return new MappeableBitmapContainer(bitmapArray, cardinality);
         } else {
             final ShortBuffer shortArray = buffer.asShortBuffer().slice();
@@ -122,7 +123,6 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
             shortArray.limit(cardinality);
             return new MappeableArrayContainer(shortArray, cardinality);
         }
-
     }
     
     public int getOffsetContainer(int k){
