@@ -1,3 +1,6 @@
+version 0.4.1 (October 20th, 2014)
+ - Semantics of the ImmutableRoaringBitmap modified: the input ByteBuffeer is sliced and thus unchanged
+
 version 0.4.0 (September 23rd, 2014)
  - Format change to reduce Java RAM memory usage
 

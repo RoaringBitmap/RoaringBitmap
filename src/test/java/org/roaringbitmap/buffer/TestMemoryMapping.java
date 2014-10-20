@@ -219,7 +219,8 @@ public class TestMemoryMapping {
             final long bef = System.currentTimeMillis();
             for (int k = 0; k < offsets.size() - 1; ++k) {
                 final ByteBuffer bb = out.slice();
-                bb.limit((int) (offsets.get(k+1)-offsets.get(k)));
+                // Next commented line is not required nor recommended
+                // bb.limit((int) (offsets.get(k+1)-offsets.get(k)));
                 ImmutableRoaringBitmap newbitmap = new ImmutableRoaringBitmap(bb);
                 if(newbitmap.serializedSizeInBytes()!= rambitmaps.get(k).serializedSizeInBytes()) {
                     throw new RuntimeException("faulty reported serialization size "+newbitmap.serializedSizeInBytes()+" "+rambitmaps.get(k).serializedSizeInBytes());

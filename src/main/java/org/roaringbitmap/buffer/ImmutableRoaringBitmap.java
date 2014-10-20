@@ -355,6 +355,16 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
      * Constructs a new ImmutableRoaringBitmap. Only meta-data is loaded to RAM.
      * The rest is mapped to the ByteBuffer.
      * 
+     * It is not necessary that limit() on the input ByteBuffer indicates
+     * the end of the serialized data.
+     * 
+     * After creating this ImmutableRoaringBitmap, you can advance to the rest of
+     * the data (if there is more) by setting b.position(b.position() + bitmap.serializedSizeInBytes());
+     * 
+     * Note that the input ByteBuffer is effectively copied (with the slice operation)
+     * so you should expect the provided ByteBuffer to remain unchanged.
+     * 
+     * 
      * 
      * @param b
      *            data source
