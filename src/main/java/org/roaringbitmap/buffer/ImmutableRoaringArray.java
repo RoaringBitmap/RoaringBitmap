@@ -55,13 +55,9 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     
     private int computeSerializedSizeInBytes() {
         int CardinalityOfLastContainer = getCardinality(this.size - 1);
-        boolean isBitmap = CardinalityOfLastContainer > MappeableArrayContainer.DEFAULT_MAX_SIZE;
         int PositionOfLastContainer = getOffsetContainer(this.size - 1);
-        if (isBitmap) {
-            return MappeableBitmapContainer.MAX_CAPACITY / 8 + PositionOfLastContainer;
-        } else {
-            return CardinalityOfLastContainer * 2 + PositionOfLastContainer;
-        }
+        int SizeOfLastContainer = BufferUtil.getSizeInBytesFromCardinality(CardinalityOfLastContainer);
+        return SizeOfLastContainer + PositionOfLastContainer;
     }
 
     @Override
