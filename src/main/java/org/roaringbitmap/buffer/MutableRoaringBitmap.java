@@ -8,6 +8,7 @@ import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.ShortIterator;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 /**
@@ -32,6 +33,37 @@ import java.util.Iterator;
 public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         implements Cloneable, Serializable, Iterable<Integer>, Externalizable {
     private static final long serialVersionUID = 3L;
+    
+    /**
+     * Serializes the current MutableRoaringBitmap then
+     * creates a new ImmutableRoaringBitmap from the serialized content
+     * @return a new ImmutableRoaringBitmap
+     **/
+    public ImmutableRoaringBitmap toImmutableRoaringBitmap() {
+    	ByteBuffer buffer = null;
+		try {
+			buffer = serializeRoaring(this);
+			buffer.rewind();
+		} catch (IOException e) {e.printStackTrace();}        
+        ImmutableRoaringBitmap ir = new ImmutableRoaringBitmap(buffer);
+        return ir;
+    }
+    
+    @SuppressWarnings("resource")
+	private static ByteBuffer serializeRoaring(MutableRoaringBitmap mrb) throws IOException {
+			ByteBuffer outbb = ByteBuffer.allocate(mrb.serializedSizeInBytes());
+			DataOutputStream dos = new DataOutputStream(new OutputStream(){
+	        ByteBuffer mBB;
+	        OutputStream init(ByteBuffer mbb) {mBB=mbb; return this;}
+	            public void write(int b) {mBB.put((byte) b);}
+	            public void write(byte[] b) {}            
+	            public void write(byte[] b, int off, int l) {}
+	        }.init(outbb));
+			mrb.serialize(dos);
+			dos.close();
+			
+			return outbb;
+		}
 
     /**
      * Bitwise AND (intersection) operation. The provided bitmaps are *not*
