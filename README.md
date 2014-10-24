@@ -10,6 +10,7 @@ compressed bitmaps such as WAH, EWAH or Concise. In some instances, roaring bitm
 be hundreds of times faster and they often offer significantly better compression.
 They can even be faster than uncompressed bitmaps.
 
+This library is used by Apache Spark (https://spark.apache.org/).
 
 
 (c) 2013-2014 Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, Björn Sperber
