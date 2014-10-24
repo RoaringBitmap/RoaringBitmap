@@ -13,12 +13,58 @@ import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.util.Random;
 
 /**
  * Generic testing of the roaring bitmaps
  */
 @SuppressWarnings({"static-method", "javadoc"})
 public class TestImmutableRoaringBitmap {
+    
+    @Test
+    public void testProperSerialization() throws IOException {
+        final int SIZE = 500;
+        final Random rand = new Random(0);
+        for (int i = 0; i < SIZE; ++i) {
+            MutableRoaringBitmap r = new MutableRoaringBitmap();
+            for (int k = 0; k < 500000; ++k) {
+                if (rand.nextDouble() < .5) {
+                    r.add(k);
+                }
+            }
+            ByteBuffer b = ByteBuffer.allocate(r.serializedSizeInBytes());
+            r.serialize(new DataOutputStream(new OutputStream() {
+                ByteBuffer mBB;
+
+                OutputStream init(final ByteBuffer mbb) {
+                    mBB = mbb;
+                    return this;
+                }
+
+                public void close() {
+                }
+
+                public void flush() {
+                }
+
+                public void write(final int b) {
+                    mBB.put((byte) b);
+                }
+
+                public void write(final byte[] b) {
+                    mBB.put(b);
+                }
+
+                public void write(final byte[] b, final int off, final int l) {
+                    mBB.put(b, off, l);
+                }
+            }.init(b)));
+            b.flip();
+            ImmutableRoaringBitmap irb = new ImmutableRoaringBitmap(b);
+            Assert.assertTrue(irb.equals(r));
+            Assert.assertTrue(irb.getCardinality() == r.getCardinality());
+        }
+    }
 	
     @Test
     public void testContains() throws IOException {

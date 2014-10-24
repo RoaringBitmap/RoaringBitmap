@@ -22,8 +22,8 @@ public class SerializeToByteBufferExample {
             public void flush() {}
             public void write(int b) {
                 mBB.put((byte) b);}
-            public void write(byte[] b) {}            
-            public void write(byte[] b, int off, int l) {}
+            public void write(byte[] b) {mBB.put(b);}            
+            public void write(byte[] b, int off, int l) {mBB.put(b,off,l);}
         }.init(outbb)));
         //
         outbb.flip();
