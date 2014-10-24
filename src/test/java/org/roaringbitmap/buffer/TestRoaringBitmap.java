@@ -21,7 +21,26 @@ import java.util.*;
  */
 @SuppressWarnings({"static-method", "javadoc"})
 public class TestRoaringBitmap {
-	
+	@Test
+    public void testHorizontalOrCardinality() {
+        int[] vals = {65535,131071,196607,262143,327679,393215,458751,524287};        
+        final MutableRoaringBitmap[] b = new MutableRoaringBitmap[2];
+        b[0] = MutableRoaringBitmap.bitmapOf(vals);
+        b[1] = MutableRoaringBitmap.bitmapOf(vals);
+        MutableRoaringBitmap a = BufferFastAggregation.horizontal_or(new Iterator<ImmutableRoaringBitmap>(){
+            int k = 0;
+
+                @Override
+                public boolean hasNext() {
+                    return k<b.length;
+                }
+
+                @Override
+                public ImmutableRoaringBitmap next() {
+                    return b[k++];
+                }});
+        Assert.assertEquals(8, a.getCardinality());
+    }
 
     @Test
     public void testContains() throws IOException {
@@ -1609,11 +1628,13 @@ public class TestRoaringBitmap {
 
 			MutableRoaringBitmap answer2 = BufferFastAggregation.and(Arrays.copyOf(ewah, N));
 			Assert.assertTrue(answer.equals(answer2));
+            Assert.assertTrue(answer.getCardinality() == answer2.getCardinality());
 			@SuppressWarnings({ "unchecked", "rawtypes" })
             Iterator<ImmutableRoaringBitmap> z = (Iterator)toIterator(Arrays.copyOf(ewah, N));
             MutableRoaringBitmap answer2b = BufferFastAggregation.and(z);
             Assert.assertTrue(answer.equals(answer2b));
-
+            Assert.assertTrue(answer.getCardinality() == answer2b.getCardinality());
+            
 		}
 	}
     
@@ -1667,6 +1688,9 @@ public class TestRoaringBitmap {
             Assert.assertTrue(answer.equals(answer2));
             Assert.assertTrue(answer.equals(answer3));
             Assert.assertTrue(answer.equals(answer3b));
+            Assert.assertTrue(answer.getCardinality() == answer3.getCardinality());
+            Assert.assertTrue(answer.equals(answer3b));
+            Assert.assertTrue(answer.getCardinality() == answer3b.getCardinality());
         }
     }
 

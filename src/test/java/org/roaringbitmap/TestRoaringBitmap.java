@@ -15,6 +15,29 @@ import java.util.*;
  */
 @SuppressWarnings({"static-method", "javadoc"})
 public class TestRoaringBitmap {
+    
+    @Test
+    public void testHorizontalOrCardinality() {
+        int[] vals = {65535,131071,196607,262143,327679,393215,458751,524287};        
+        final RoaringBitmap[] b = new RoaringBitmap[2];
+        b[0] = RoaringBitmap.bitmapOf(vals);
+        b[1] = RoaringBitmap.bitmapOf(vals);
+        RoaringBitmap a = FastAggregation.horizontal_or(new Iterator<RoaringBitmap>(){
+            int k = 0;
+
+                @Override
+                public boolean hasNext() {
+                    return k<b.length;
+                }
+
+                @Override
+                public RoaringBitmap next() {
+                    return b[k++];
+                }});
+        Assert.assertEquals(8, a.getCardinality());
+    }
+
+    
     @Test
     public void testContains() throws IOException {
         System.out.println("test contains");

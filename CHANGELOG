@@ -1,3 +1,6 @@
+version 0.4.2 (October 24th, 2014)
+ - Removing unnecessary and buggy toImmutableRoaringBitmap method. Users of previous versions of the library should not use this method.
+
 version 0.4.1 (October 20th, 2014)
  - Semantics of the ImmutableRoaringBitmap modified: the input ByteBuffeer is sliced and thus unchanged
 
