@@ -34,7 +34,9 @@ public class TestRoaringBitmap {
                 public boolean hasNext() {
                     return k<b.length;
                 }
-
+                  
+                @Override
+                public void remove() {} 
                 @Override
                 public ImmutableRoaringBitmap next() {
                     return b[k++];

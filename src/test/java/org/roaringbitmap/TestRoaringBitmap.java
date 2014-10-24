@@ -31,6 +31,9 @@ public class TestRoaringBitmap {
                 }
 
                 @Override
+                public void remove() {}
+
+                @Override
                 public RoaringBitmap next() {
                     return b[k++];
                 }});
