@@ -19,6 +19,25 @@ import static org.junit.Assert.assertTrue;
 @SuppressWarnings({"static-method", "javadoc"})
 public class TestContainer {
 
+    @Test
+    public void transitionTest() {
+        Container c = new ArrayContainer();
+        for (int i = 0; i < 4096; ++i)
+            c = c.add((short) i);
+        assertEquals(c.getCardinality(), 4096);
+        assertTrue(c instanceof ArrayContainer);
+        for (int i = 0; i < 4096; ++i)
+            c = c.add((short) i);
+        assertEquals(c.getCardinality(), 4096);
+        assertTrue(c instanceof ArrayContainer);
+        c = c.add((short) 4096);
+        assertEquals(c.getCardinality(), 4097);
+        assertTrue(c instanceof BitmapContainer);
+        c = c.remove((short) 4096);
+        assertEquals(c.getCardinality(), 4096);
+        assertTrue(c instanceof ArrayContainer);
+    }
+
     
     @Test
     public void inotTest1() {

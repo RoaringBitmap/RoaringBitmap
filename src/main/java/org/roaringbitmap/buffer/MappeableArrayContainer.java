@@ -94,27 +94,19 @@ public final class MappeableArrayContainer extends MappeableContainer implements
      */
     @Override
     public MappeableContainer add(final short x) {
-        // Transform the ArrayContainer to a BitmapContainer
-        // when cardinality = DEFAULT_MAX_SIZE
-        if (cardinality >= DEFAULT_MAX_SIZE) {
-            final MappeableBitmapContainer a = this.toBitmapContainer();
-            a.add(x);
-            return a;
-        }
-        if ((cardinality == 0)
-                || (BufferUtil.toIntUnsigned(x) > BufferUtil
-                        .toIntUnsigned(content.get(cardinality - 1)))) {
-            if (cardinality >= this.content.limit())
-                increaseCapacity();
-            content.put(cardinality++, x);
-            return this;
-        }
         if (content.hasArray()) {
             short[] sarray = content.array();
 
             int loc = BufferUtil.unsignedBinarySearch(content, 0, cardinality,
                     x);
             if (loc < 0) {
+                // Transform the ArrayContainer to a BitmapContainer
+                // when cardinality exceeds DEFAULT_MAX_SIZE
+                if (cardinality >= DEFAULT_MAX_SIZE) {
+                    final MappeableBitmapContainer a = this.toBitmapContainer();
+                    a.add(x);
+                    return a;
+                }
                 if (cardinality >= sarray.length) {
                     increaseCapacity();
                     sarray = content.array();
@@ -133,6 +125,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
             final int loc = BufferUtil.unsignedBinarySearch(content, 0,
                     cardinality, x);
             if (loc < 0) {
+                // Transform the ArrayContainer to a BitmapContainer
+                // when cardinality exceeds DEFAULT_MAX_SIZE
+                if (cardinality >= DEFAULT_MAX_SIZE) {
+                    final MappeableBitmapContainer a = this.toBitmapContainer();
+                    a.add(x);
+                    return a;
+                }
                 if (cardinality >= this.content.limit())
                     increaseCapacity();
                 // insertion : shift the elements > x by one

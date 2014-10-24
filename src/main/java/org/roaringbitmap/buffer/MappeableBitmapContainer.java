@@ -849,7 +849,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
     @Override
     public MappeableContainer remove(final short i) {
         final int x = BufferUtil.toIntUnsigned(i);
-        if (cardinality == MappeableArrayContainer.DEFAULT_MAX_SIZE) {// this is
+        if (cardinality == MappeableArrayContainer.DEFAULT_MAX_SIZE + 1) {// this is
             // the
             // uncommon
             // path

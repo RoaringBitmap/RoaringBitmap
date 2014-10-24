@@ -1,3 +1,6 @@
+version 0.4.3 (October 25th, 2014)
+ - Fixed rarely occuring bugs having to do with serialization.
+
 version 0.4.2 (October 24th, 2014)
  - Removing unnecessary and buggy toImmutableRoaringBitmap method. Users of previous versions of the library should not use this method.
 

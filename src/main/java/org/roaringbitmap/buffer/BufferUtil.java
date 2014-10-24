@@ -161,7 +161,6 @@ public final class BufferUtil {
         int low = begin;
         int high = end - 1;
         final int ikey = toIntUnsigned(k);
-
         while (low <= high) {
             final int middleIndex = (low + high) >>> 1;
             final int middleValue = toIntUnsigned(array.get(middleIndex));

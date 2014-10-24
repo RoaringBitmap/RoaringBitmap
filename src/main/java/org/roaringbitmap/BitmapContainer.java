@@ -607,7 +607,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
     @Override
     public Container remove(final short i) {
         final int x = Util.toIntUnsigned(i);
-        if (cardinality == ArrayContainer.DEFAULT_MAX_SIZE) {// this is
+        if (cardinality == ArrayContainer.DEFAULT_MAX_SIZE + 1) {// this is
             // the
             // uncommon
             // path

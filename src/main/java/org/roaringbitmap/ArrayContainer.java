@@ -8,6 +8,8 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import org.roaringbitmap.buffer.MappeableArrayContainer;
+
 /**
  * Simple container made of an array of 16-bit integers
  */
@@ -69,21 +71,15 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
      */
     @Override
     public Container add(final short x) {
-        // Transform the ArrayContainer to a BitmapContainer
-        // when cardinality = DEFAULT_MAX_SIZE
-        if (cardinality >= DEFAULT_MAX_SIZE) {
-            BitmapContainer a = this.toBitmapContainer();
-            a.add(x);
-            return a;
-        }
-        if ((cardinality == 0) || (Util.toIntUnsigned(x) > Util.toIntUnsigned(content[cardinality - 1]))) {
-            if (cardinality >= this.content.length)
-                increaseCapacity();
-            content[cardinality++] = x;
-            return this;
-        }
         int loc = Util.unsignedBinarySearch(content, 0, cardinality, x);
         if (loc < 0) {
+            // Transform the ArrayContainer to a BitmapContainer
+            // when cardinality = DEFAULT_MAX_SIZE
+            if (cardinality >= DEFAULT_MAX_SIZE) {
+                BitmapContainer a = this.toBitmapContainer();
+                a.add(x);
+                return a;
+            }
             if (cardinality >= this.content.length)
                 increaseCapacity();
             // insertion : shift the elements > x by one position to

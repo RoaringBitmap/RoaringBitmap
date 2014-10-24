@@ -11,6 +11,7 @@ import org.roaringbitmap.ShortIterator;
 
 import java.util.Arrays;
 
+import junit.framework.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -21,6 +22,26 @@ import static org.junit.Assert.assertTrue;
 @SuppressWarnings({"static-method", "javadoc"})
 public class TestContainer {
 
+    @Test
+    public void transitionTest() {
+        MappeableContainer c = new MappeableArrayContainer();
+        for (int i = 0; i < 4096; ++i)
+            c = c.add((short) i);
+        assertEquals(c.getCardinality(), 4096);
+        assertTrue(c instanceof MappeableArrayContainer);
+        for (int i = 0; i < 4096; ++i)
+            c = c.add((short) i);
+        assertEquals(c.getCardinality(), 4096);
+        assertTrue(c instanceof MappeableArrayContainer);
+        c = c.add((short) 4096);
+        assertEquals(c.getCardinality(), 4097);
+        assertTrue(c instanceof MappeableBitmapContainer);
+        c = c.remove((short) 4096);
+        assertEquals(c.getCardinality(), 4096);
+        assertTrue(c instanceof MappeableArrayContainer);
+    }
+
+    
     @Test
     public void inotTest1() {
         // Array container, range is complete
