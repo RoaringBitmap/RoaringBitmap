@@ -1,3 +1,6 @@
+Upcoming
+ - Implemented Rank function
+
 version 0.4.3 (October 25th, 2014)
  - Fixed rarely occuring bugs having to do with serialization.
 

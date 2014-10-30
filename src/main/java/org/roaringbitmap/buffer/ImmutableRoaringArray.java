@@ -7,7 +7,6 @@ import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 
-import org.roaringbitmap.IntIterator;
 
 /**
  * This is the underlying data structure for an ImmutableRoaringBitmap. This

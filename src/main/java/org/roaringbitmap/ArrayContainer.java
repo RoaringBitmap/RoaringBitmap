@@ -8,7 +8,6 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import org.roaringbitmap.buffer.MappeableArrayContainer;
 
 /**
  * Simple container made of an array of 16-bit integers

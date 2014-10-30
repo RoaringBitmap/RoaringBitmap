@@ -466,5 +466,14 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
         return xor((MappeableBitmapContainer) x);
 
     }
+    
+    /**
+     * Rank returns the number of integers that are smaller or equal to x (Rank(infinity) would be GetCardinality()).
+     * @param lowbits upper limit
+     *
+     * @return the rank
+     */
+    public abstract int rank(short lowbits);
+
 
 }

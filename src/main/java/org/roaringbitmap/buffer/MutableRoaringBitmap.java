@@ -8,7 +8,6 @@ import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.ShortIterator;
 
 import java.io.*;
-import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 /**

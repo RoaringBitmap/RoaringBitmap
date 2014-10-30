@@ -8,9 +8,7 @@ package org.roaringbitmap.buffer;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.IntIterator;
-import org.roaringbitmap.RoaringBitmap;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -21,6 +19,22 @@ import java.util.*;
  */
 @SuppressWarnings({"static-method", "javadoc"})
 public class TestRoaringBitmap {
+
+    @Test
+    public void testRank() {
+        MutableRoaringBitmap rb = new MutableRoaringBitmap();
+        for(int k = 0; k < 100000; k += 7)
+            rb.add(k);
+        for(int k = 100000; k < 200000; k += 1000)
+            rb.add(k);
+        for(int k = 0; k < 100000; ++k) {
+            Assert.assertEquals(1 + k/7, rb.rank(k));
+        }
+        for(int k = 100000; k < 200000; ++k) {
+            Assert.assertEquals(1 + 100000/7 + 1 + (k - 100000)/1000 , rb.rank(k));
+        }
+    }
+    
 	@Test
     public void testHorizontalOrCardinality() {
         int[] vals = {65535,131071,196607,262143,327679,393215,458751,524287};        
@@ -1727,10 +1741,10 @@ public class TestRoaringBitmap {
 
     @Test
     public void testRandomLists() {
-        RoaringBitmap rb1 = RoaringBitmap.bitmapOf(org.roaringbitmap.TestRoaringBitmap.randomlists[0]);
-        RoaringBitmap rb2 = RoaringBitmap.bitmapOf(org.roaringbitmap.TestRoaringBitmap.randomlists[1]);
-        RoaringBitmap rbor = RoaringBitmap.or(rb1,rb2);
-        Assert.assertTrue(rbor.equals(FastAggregation.horizontal_or(rb1,rb2)));
+        MutableRoaringBitmap rb1 = MutableRoaringBitmap.bitmapOf(org.roaringbitmap.TestRoaringBitmap.randomlists[0]);
+        MutableRoaringBitmap rb2 = MutableRoaringBitmap.bitmapOf(org.roaringbitmap.TestRoaringBitmap.randomlists[1]);
+        MutableRoaringBitmap rbor = MutableRoaringBitmap.or(rb1,rb2);
+        Assert.assertTrue(rbor.equals(BufferFastAggregation.horizontal_or(rb1,rb2)));
     }
 
 }
