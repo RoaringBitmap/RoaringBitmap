@@ -460,4 +460,12 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
             return xor((ArrayContainer) x);
         return xor((BitmapContainer) x);
     }
+
+    /**
+     * Rank returns the number of integers that are smaller or equal to x (Rank(infinity) would be GetCardinality()).
+     * @param lowbits upper limit
+     *
+     * @return the rank
+     */
+    public abstract int rank(short lowbits);
 }

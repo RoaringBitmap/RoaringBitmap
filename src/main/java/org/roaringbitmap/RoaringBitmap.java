@@ -268,6 +268,27 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     }
 
     /**
+     * Rank returns the number of integers that are smaller or equal to x (Rank(infinity) would be GetCardinality()).
+     * @param x upper limit
+     *
+     * @return the rank
+     */
+    public int rank(int x) {
+        int size = 0;
+        int xhigh = Util.highbits(x);
+        
+        for (int i = 0; i < this.highLowContainer.size(); i++) {
+            short key =  this.highLowContainer.getKeyAtIndex(i);
+            if( key < xhigh )      
+              size += this.highLowContainer.getContainerAtIndex(i).getCardinality();
+            else 
+                return size + this.highLowContainer.getContainerAtIndex(i).rank(Util.lowbits(x));
+        }
+        return size;
+    }
+
+    
+    /**
      * Bitwise XOR (symmetric difference) operation. The provided bitmaps
      * are *not* modified. This operation is thread-safe as long as the
      * provided bitmaps remain unchanged.

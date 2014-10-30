@@ -17,6 +17,21 @@ import java.util.*;
 public class TestRoaringBitmap {
     
     @Test
+    public void testRank() {
+        RoaringBitmap rb = new RoaringBitmap();
+        for(int k = 0; k < 100000; k += 7)
+            rb.add(k);
+        for(int k = 100000; k < 200000; k += 1000)
+            rb.add(k);
+        for(int k = 0; k < 100000; ++k) {
+            Assert.assertEquals(1 + k/7, rb.rank(k));
+        }
+        for(int k = 100000; k < 200000; ++k) {
+            Assert.assertEquals(1 + 100000/7 + 1 + (k - 100000)/1000 , rb.rank(k));
+        }
+    }
+    
+    @Test
     public void testHorizontalOrCardinality() {
         int[] vals = {65535,131071,196607,262143,327679,393215,458751,524287};        
         final RoaringBitmap[] b = new RoaringBitmap[2];
