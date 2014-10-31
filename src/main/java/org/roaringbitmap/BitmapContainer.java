@@ -801,4 +801,37 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
         }
         throw new IllegalArgumentException("Insufficient cardinality.");
     }
+
+    @Override
+    public Container limit(int maxcardinality) {
+        if(maxcardinality >= this.cardinality) {
+            return clone();
+        } 
+        if(maxcardinality <= MAX_CAPACITY) {
+            ArrayContainer ac = new ArrayContainer(maxcardinality);
+            int pos = 0;
+            for (int k = 0; (ac.cardinality <maxcardinality) && (k < bitmap.length); ++k) {
+                long bitset = bitmap[k];
+                while ((ac.cardinality <maxcardinality) && ( bitset != 0)) {
+                    long t = bitset & -bitset;
+                    ac.content[pos++] = (short) (k * 64 + Long
+                            .bitCount(t - 1));
+                    ac.cardinality++;
+                    bitset ^= t;
+                }
+            }
+            return ac;
+        } 
+        BitmapContainer bc = new BitmapContainer(maxcardinality, this.bitmap);
+        int s = Util.toIntUnsigned(select(maxcardinality));
+        int usedwords = (s+63)/64;
+        int todelete = this.bitmap.length - usedwords;
+        for(int k = 0; k<todelete; ++k)
+            bc.bitmap[bc.bitmap.length-1-k] = 0;
+        int lastword = s % 64; 
+        if(lastword != 0) {
+            bc.bitmap[s/64] = (bc.bitmap[s/64] << (64-lastword)) >> (64-lastword);
+        }
+        return bc;
+    }
 }

@@ -1095,4 +1095,38 @@ public final class MappeableBitmapContainer extends MappeableContainer
         throw new IllegalArgumentException("Insufficient cardinality.");
     }
 
+    @Override
+    public MappeableContainer limit(int maxcardinality) {
+        if(maxcardinality >= this.cardinality) {
+            return clone();
+        } 
+        if(maxcardinality <= MAX_CAPACITY) {
+            MappeableArrayContainer ac = new MappeableArrayContainer(maxcardinality);
+            int pos = 0;
+            short[] cont = ac.content.array();
+            for (int k = 0; (ac.cardinality <maxcardinality) && (k < bitmap.limit()); ++k) {
+                long bitset = bitmap.get(k);
+                while ((ac.cardinality <maxcardinality) && ( bitset != 0)) {
+                    long t = bitset & -bitset;
+                    cont[pos++] = (short) (k * 64 + Long
+                            .bitCount(t - 1));
+                    ac.cardinality++;
+                    bitset ^= t;
+                }
+            }
+            return ac;
+        } 
+        MappeableBitmapContainer bc = new MappeableBitmapContainer(maxcardinality,this.bitmap);
+        int s = BufferUtil.toIntUnsigned(select(maxcardinality));
+        int usedwords = (s+63)/64;
+        int todelete = this.bitmap.limit() - usedwords;
+        for(int k = 0; k<todelete; ++k)
+            bc.bitmap.put(bc.bitmap.limit()-1-k, 0);
+        int lastword = s % 64; 
+        if(lastword != 0) {
+            bc.bitmap.put(s/64,  (bc.bitmap.get(s/64) << (64-lastword)) >> (64-lastword));
+        }
+        return bc;
+    }
+
 }

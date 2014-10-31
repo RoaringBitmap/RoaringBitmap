@@ -57,6 +57,23 @@ public class TestRoaringBitmap {
         }
     }
     
+
+    @Test
+    public void testLimit() {        
+        for (int gap = 1; gap <= 1024; gap *= 2) {
+            RoaringBitmap rb = new RoaringBitmap();
+            for (int k = 0; k < 100000; k += gap)
+                rb.add(k);
+            int thiscard = rb.getCardinality();
+            for (int k = 0; k < thiscard; k+=100) {
+                RoaringBitmap limited = rb.limit(k);
+                Assert.assertEquals(limited.getCardinality(),k);
+            }
+            Assert.assertEquals(rb.limit(thiscard).getCardinality(),thiscard);
+            Assert.assertEquals(rb.limit(thiscard+1).getCardinality(),thiscard);            
+        }
+    }    
+    
     @Test
     public void testHorizontalOrCardinality() {
         int[] vals = {65535,131071,196607,262143,327679,393215,458751,524287};        

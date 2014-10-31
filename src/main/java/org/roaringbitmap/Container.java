@@ -477,4 +477,13 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      * @return the value
      */
     public abstract short select(int j);
+    
+    /**
+     * Create a new Container containing at most maxcardinality integers.
+     * 
+     * @param maxcardinality maximal cardinality
+     * @return a new bitmap with cardinality no more than maxcardinality
+     */
+    public abstract Container limit(int maxcardinality);
+        
 }

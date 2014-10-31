@@ -9,6 +9,10 @@ import java.io.*;
 import java.util.Iterator;
 
 /**
+ * @author lemire
+ *
+ */
+/**
  * RoaringBitmap, a compressed alternative to the BitSet.
  * 
  * <pre>
@@ -789,6 +793,30 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      */
     public int serializedSizeInBytes() {
         return this.highLowContainer.serializedSizeInBytes();
+    }
+    
+    /**
+     * Create a new Roaring bitmap containing at most maxcardinality integers.
+     * 
+     * @param maxcardinality maximal cardinality
+     * @return a new bitmap with cardinality no more than maxcardinality
+     */
+    public RoaringBitmap limit(int maxcardinality) {
+        RoaringBitmap answer = new RoaringBitmap();
+        int currentcardinality = 0;        
+        for (int i = 0; (currentcardinality < maxcardinality) && ( i < this.highLowContainer.size()); i++) {
+            Container c = this.highLowContainer.getContainerAtIndex(i);
+            if(c.getCardinality() + currentcardinality <= maxcardinality) {
+               answer.highLowContainer.appendCopy(this.highLowContainer, i);
+               currentcardinality += c.getCardinality();
+            }  else {
+                int leftover = maxcardinality - currentcardinality;
+                Container limited = c.limit(leftover);
+                answer.highLowContainer.append(this.highLowContainer.getKeyAtIndex(i),limited );
+                break;
+            }
+        }
+        return answer;
     }
 
     /**

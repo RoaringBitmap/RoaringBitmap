@@ -37,8 +37,7 @@ public class TestRoaringBitmap {
 
 
     @Test
-    public void testSelect() {
-        
+    public void testSelect() {        
         for (int gap = 1; gap <= 1024; gap *= 2) {
             MutableRoaringBitmap rb = new MutableRoaringBitmap();
             for (int k = 0; k < 100000; k += gap)
@@ -49,6 +48,21 @@ public class TestRoaringBitmap {
         }
     }
 
+    @Test
+    public void testLimit() {        
+        for (int gap = 1; gap <= 1024; gap *= 2) {
+            MutableRoaringBitmap rb = new MutableRoaringBitmap();
+            for (int k = 0; k < 100000; k += gap)
+                rb.add(k);
+            int thiscard = rb.getCardinality();
+            for (int k = 0; k < thiscard; k+=100) {
+                MutableRoaringBitmap limited = rb.limit(k);
+                Assert.assertEquals(limited.getCardinality(),k);
+            }
+            Assert.assertEquals(rb.limit(thiscard).getCardinality(),thiscard);
+            Assert.assertEquals(rb.limit(thiscard+1).getCardinality(),thiscard);            
+        }
+    }    
 
     
 	@Test

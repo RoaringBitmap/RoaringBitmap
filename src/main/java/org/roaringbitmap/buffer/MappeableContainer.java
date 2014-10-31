@@ -484,4 +484,14 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      * @return the value
      */
     public abstract short select(int j);
+
+
+    /**
+     * Create a new MappeableContainer containing at most maxcardinality integers.
+     * 
+     * @param maxcardinality maximal cardinality
+     * @return a new bitmap with cardinality no more than maxcardinality
+     */
+    public abstract MappeableContainer limit(int maxcardinality);
+        
 }

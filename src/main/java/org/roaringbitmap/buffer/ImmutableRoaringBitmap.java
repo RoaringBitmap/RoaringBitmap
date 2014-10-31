@@ -708,5 +708,31 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
         }
         throw new IllegalArgumentException("select "+j+" when the cardinality is "+this.getCardinality());
     }
+    
+
+
+    /**
+     * Create a new Roaring bitmap containing at most maxcardinality integers.
+     * 
+     * @param maxcardinality maximal cardinality
+     * @return a new bitmap with cardinality no more than maxcardinality
+     */
+    public MutableRoaringBitmap limit(int maxcardinality) {
+        MutableRoaringBitmap answer = new MutableRoaringBitmap();
+        int currentcardinality = 0;        
+        for (int i = 0; (currentcardinality < maxcardinality) && ( i < this.highLowContainer.size()); i++) {
+            MappeableContainer c = this.highLowContainer.getContainerAtIndex(i);
+            if(c.getCardinality() + currentcardinality <= maxcardinality) {
+               ((MutableRoaringArray)answer.highLowContainer).append(this.highLowContainer.getKeyAtIndex(i),c.clone());
+               currentcardinality += c.getCardinality();
+            }  else {
+                int leftover = maxcardinality - currentcardinality;
+                MappeableContainer limited = c.limit(leftover);
+                ((MutableRoaringArray)answer.highLowContainer).append(this.highLowContainer.getKeyAtIndex(i),limited );
+                break;
+            }
+        }
+        return answer;
+    }
 
 }

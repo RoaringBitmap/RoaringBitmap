@@ -626,4 +626,12 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     public short select(int j) {
         return this.content[j];
     }
+
+    @Override
+    public Container limit(int maxcardinality) {
+        if (maxcardinality < this.getCardinality())
+            return new ArrayContainer(maxcardinality, this.content);
+        else
+            return clone();
+    }
 }

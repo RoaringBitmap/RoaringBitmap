@@ -783,4 +783,12 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         return this.content.get(j);
     }
 
+    @Override
+    public MappeableContainer limit(int maxcardinality) {
+        if (maxcardinality < this.getCardinality())
+            return new MappeableArrayContainer(maxcardinality, this.content);
+        else
+            return clone();
+    }
+
 }
