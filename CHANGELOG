@@ -1,3 +1,6 @@
+version 0.4.5
+ - Fixed rare cast of iterator overflow (sethp-jive)
+
 version 0.4.4
  - Implemented Rank and Select functions
  - Implemented limit

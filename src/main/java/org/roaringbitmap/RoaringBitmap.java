@@ -646,20 +646,20 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     @Override
     public Iterator<Integer> iterator() {
         return new Iterator<Integer>() {
-            int hs = 0;
+            private int hs = 0;
 
-            ShortIterator iter;
+            private ShortIterator iter;
 
-            short pos = 0;
+            private int pos = 0;
 
-            int x;
+            private int x;
 
             @Override
             public boolean hasNext() {
                 return pos < RoaringBitmap.this.highLowContainer.size();
             }
 
-            public Iterator<Integer> init() {
+            private Iterator<Integer> init() {
                 if (pos < RoaringBitmap.this.highLowContainer.size()) {
                     iter = RoaringBitmap.this.highLowContainer.getContainerAtIndex(pos).getShortIterator();
                     hs = Util.toIntUnsigned(RoaringBitmap.this.highLowContainer.getKeyAtIndex(pos)) << 16;
@@ -930,13 +930,13 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
 
     private final class RoaringIntIterator implements IntIterator {
-        int hs = 0;
+        private int hs = 0;
 
-        ShortIterator iter;
+        private ShortIterator iter;
 
-        short pos = 0;
+        private int pos = 0;
 
-        int x;
+        private int x;
         
         public RoaringIntIterator() {
             init();
@@ -947,7 +947,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             return pos < RoaringBitmap.this.highLowContainer.size();
         }
 
-        public IntIterator init() {
+        private IntIterator init() {
             if (pos < RoaringBitmap.this.highLowContainer.size()) {
                 iter = RoaringBitmap.this.highLowContainer.getContainerAtIndex(pos).getShortIterator();
                 hs = Util.toIntUnsigned(RoaringBitmap.this.highLowContainer.getKeyAtIndex(pos)) << 16;

@@ -591,20 +591,20 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     @Override
     public Iterator<Integer> iterator() {
         return new Iterator<Integer>() {
-            int hs = 0;
+            private int hs = 0;
 
-            ShortIterator iter;
+            private ShortIterator iter;
 
-            short pos = 0;
+            private int pos = 0;
 
-            int x;
+            private int x;
 
             @Override
             public boolean hasNext() {
                 return pos < MutableRoaringBitmap.this.highLowContainer.size();
             }
 
-            public Iterator<Integer> init() {
+            private Iterator<Integer> init() {
                 if (pos < MutableRoaringBitmap.this.highLowContainer.size()) {
                     iter = MutableRoaringBitmap.this.highLowContainer
                             .getContainerAtIndex(pos).getShortIterator();

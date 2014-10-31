@@ -615,14 +615,14 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
     }
     
     private final class ImmutableRoaringIntIterator implements IntIterator {
-        MappeableContainerPointer cp = ImmutableRoaringBitmap.this.highLowContainer
+        private MappeableContainerPointer cp = ImmutableRoaringBitmap.this.highLowContainer
                 .getContainerPointer();
 
-        int hs = 0;
+        private int hs = 0;
 
-        ShortIterator iter;
+        private ShortIterator iter;
 
-        boolean ok;
+        private boolean ok;
 
         public ImmutableRoaringIntIterator() {
             init();
@@ -632,7 +632,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
             return ok;
         }
 
-        public IntIterator init() {
+        private IntIterator init() {
             ok = cp.hasContainer();
             if (ok) {
                 iter = cp.getContainer().getShortIterator();
