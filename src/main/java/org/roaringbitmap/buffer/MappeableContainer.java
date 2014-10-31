@@ -476,4 +476,12 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
     public abstract int rank(short lowbits);
 
 
+    /**
+     * Return the jth value 
+     * 
+     * @param j index of the value 
+     *
+     * @return the value
+     */
+    public abstract short select(int j);
 }

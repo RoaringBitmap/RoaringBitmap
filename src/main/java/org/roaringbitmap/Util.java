@@ -448,4 +448,59 @@ public final class Util {
         }
         return pos;
     }
+    
+    
+    
+    
+    /**
+     * Given a word w, return the position of the jth true bit.
+     * 
+     * @param w word
+     * @param j index
+     * @return position of jth true bit in w
+     */
+    public static int select(long w, int j) {
+        int part1 = (int)( w & 0xFFFFFFFF);
+        int wfirsthalf = Integer.bitCount(part1);
+        if(wfirsthalf > j ) {
+            return select(part1,j); 
+        } else {
+            return select((int)(w>>>32),j - wfirsthalf) + 32;
+        }
+    }
+
+    /**
+     * Given a word w, return the position of the jth true bit.
+     * 
+     * @param w word
+     * @param j index
+     * @return position of jth true bit in w
+     */
+    public static int select(int w, int j) {
+        int part1 =  w & 0xFFFF;
+        int wfirsthalf = Integer.bitCount(part1);
+        if(wfirsthalf > j ) {
+            return select((short)part1,j); 
+        } else {
+            return select((short)(w>>>16),j-wfirsthalf) + 16;
+        }
+    }
+    
+
+    /**
+     * Given a word w, return the position of the jth true bit.
+     * 
+     * @param w word
+     * @param j index
+     * @return position of jth true bit in w
+     */
+    public static int select(short w, int j) {
+        int sumtotal = 0;
+        for(int counter = 0;  counter < 16 ; ++counter) {
+            sumtotal += (w >> counter) & 1;
+            if(sumtotal > j) return counter;
+        }
+        throw new IllegalArgumentException("cannot local "+j+"th bit in "+w+" weight is "+Integer.bitCount(w));
+    }
+    
 }

@@ -433,12 +433,9 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
      * @return the cardinality
      */
     public int getCardinality() {
-        MappeableContainerPointer cp = this.highLowContainer
-                .getContainerPointer();
         int size = 0;
-        while (cp.hasContainer()) {
-            size += cp.getCardinality();
-            cp.advance();
+        for(int i = 0 ; i < this.highLowContainer.size(); ++i ) {
+            size += this.highLowContainer.getCardinality(i);
         }
         return size;
     }
@@ -474,13 +471,8 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
      */
     public int getSizeInBytes() {
         int size = 4;
-
-        MappeableContainerPointer cp = this.highLowContainer
-                .getContainerPointer();
-        while (cp.hasContainer()) {
-            size += 4 + BufferUtil.getSizeInBytesFromCardinality(cp
-                    .getCardinality());
-            cp.advance();
+        for(int i = 0 ; i < this.highLowContainer.size(); ++i ) {
+            size += 4 + BufferUtil.getSizeInBytesFromCardinality(this.highLowContainer.getCardinality(i));
         }
         return size;
     }
@@ -688,12 +680,33 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
         for (int i = 0; i < this.highLowContainer.size(); i++) {
             short key =  this.highLowContainer.getKeyAtIndex(i);
             if( key < xhigh )      
-              size += this.highLowContainer.getContainerAtIndex(i).getCardinality();
+              size += this.highLowContainer.getCardinality(i);
             else 
                 return size + this.highLowContainer.getContainerAtIndex(i).rank(BufferUtil.lowbits(x));
         }
         return size;
     }
 
+    /**
+     * Return the jth value stored in this bitmap.
+     * 
+     * @param j index of the value 
+     *
+     * @return the value
+     */
+    public int select(int j) {
+        int leftover = j;
+        for (int i = 0; i < this.highLowContainer.size(); i++) {
+            int thiscard = this.highLowContainer.getCardinality(i);
+            if(thiscard > leftover) {
+                int keycontrib = this.highLowContainer.getKeyAtIndex(i)<<16;
+                MappeableContainer c = this.highLowContainer.getContainerAtIndex(i);
+                int lowcontrib = BufferUtil.toIntUnsigned(c.select(leftover));
+                return  lowcontrib + keycontrib;
+            }
+            leftover -= thiscard;
+        }
+        throw new IllegalArgumentException("select "+j+" when the cardinality is "+this.getCardinality());
+    }
 
 }

@@ -788,4 +788,17 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
         }
         return answer;
     }
+
+    @Override
+    public short select(int j) {
+        int leftover = j;
+        for(int k = 0; k < bitmap.length; ++k) {
+            int w = Long.bitCount(bitmap[k]);
+            if(w > leftover) {
+                return (short)(k * 64 + Util.select(bitmap[k], leftover));
+            }
+            leftover -= w;    
+        }
+        throw new IllegalArgumentException("Insufficient cardinality.");
+    }
 }

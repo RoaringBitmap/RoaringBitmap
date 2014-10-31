@@ -621,4 +621,9 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
             return -answer - 1;
         }
     }
+
+    @Override
+    public short select(int j) {
+        return this.content[j];
+    }
 }

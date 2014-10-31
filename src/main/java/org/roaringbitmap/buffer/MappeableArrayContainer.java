@@ -776,5 +776,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
             return -answer - 1;
         }
     }
+    
+
+    @Override
+    public short select(int j) {
+        return this.content.get(j);
+    }
 
 }

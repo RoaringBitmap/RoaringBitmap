@@ -286,6 +286,29 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         }
         return size;
     }
+    
+
+    /**
+     * Return the jth value stored in this bitmap.
+     * 
+     * @param j index of the value 
+     *
+     * @return the value
+     */
+    public int select(int j) {
+        int leftover = j;
+        for (int i = 0; i < this.highLowContainer.size(); i++) {
+            Container c = this.highLowContainer.getContainerAtIndex(i);
+            int thiscard = c.getCardinality();
+            if(thiscard > leftover) {
+                int keycontrib = this.highLowContainer.getKeyAtIndex(i)<<16;
+                int lowcontrib = Util.toIntUnsigned(c.select(leftover));
+                return  lowcontrib + keycontrib;
+            }
+            leftover -= thiscard;
+        }
+        throw new IllegalArgumentException("select "+j+" when the cardinality is "+this.getCardinality());
+    }
 
     
     /**

@@ -71,4 +71,13 @@ public interface PointableRoaringArray extends Cloneable {
     * @return the size that the data structure occupies on disk
     */
    public int serializedSizeInBytes();
+
+   /**
+    * Returns the cardinality of the container at the given index.
+    * This method is expected to be fast.
+    * 
+    * @param i index
+    * @return the cardinality
+    */
+    public int getCardinality(int i);
 }

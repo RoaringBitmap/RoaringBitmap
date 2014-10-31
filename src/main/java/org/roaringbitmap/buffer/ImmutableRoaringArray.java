@@ -100,7 +100,8 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         return false;
     }
 
-    private int getCardinality(int k) {
+    @Override
+    public int getCardinality(int k) {
         return BufferUtil.toIntUnsigned(buffer.getShort(startofkeyscardinalities + 4 * k + 2)) + 1;
     }
 

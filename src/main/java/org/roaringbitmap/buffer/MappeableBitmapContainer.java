@@ -5,6 +5,7 @@
 package org.roaringbitmap.buffer;
 
 import org.roaringbitmap.ShortIterator;
+import org.roaringbitmap.Util;
 
 import java.io.*;
 import java.nio.LongBuffer;
@@ -1066,5 +1067,32 @@ public final class MappeableBitmapContainer extends MappeableContainer
         }
         return answer;
     }
- 
+
+    @Override
+    public short select(int j) {
+        int leftover = j;
+        if (this.bitmap.hasArray()) {
+            long[] b = this.bitmap.array();
+
+            for (int k = 0; k < b.length; ++k) {
+                int w = Long.bitCount(b[k]);
+                if (w > leftover) {
+                    return (short) (k * 64 + Util.select(b[k], leftover));
+                }
+                leftover -= w;
+            }
+        } else {
+
+            for (int k = 0; k < bitmap.limit(); ++k) {
+                int w = Long.bitCount(bitmap.get(k));
+                if (w > leftover) {
+                    return (short) (k * 64 + Util.select(bitmap.get(k),
+                            leftover));
+                }
+                leftover -= w;
+            }
+        }
+        throw new IllegalArgumentException("Insufficient cardinality.");
+    }
+
 }

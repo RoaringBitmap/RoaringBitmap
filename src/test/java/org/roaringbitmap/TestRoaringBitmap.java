@@ -31,6 +31,32 @@ public class TestRoaringBitmap {
         }
     }
     
+
+    @Test
+    public void testSelect() {
+        long w = ~0l;
+        for (int k = 0; k < 64; ++k) {
+            Assert.assertEquals(k, Util.select(w, k));
+        }
+        for (int k = 0; k < 64; ++k) {
+            Assert.assertEquals(k, Util.select(1l << k, 0));
+        }
+        for (int k = 1; k < 64; ++k) {
+            Assert.assertEquals(k, Util.select((1l << k) + 1, 1));
+        }
+        Assert.assertEquals(0, Util.select(1, 0));
+        Assert.assertEquals(0, Util.select(5, 0));
+        Assert.assertEquals(2, Util.select(5, 1));
+        for (int gap = 1; gap <= 1024; gap *= 2) {
+            RoaringBitmap rb = new RoaringBitmap();
+            for (int k = 0; k < 100000; k += gap)
+                rb.add(k);
+            for (int k = 0; k < 100000 / gap; ++k) {
+                Assert.assertEquals(k * gap, rb.select(k));
+            }
+        }
+    }
+    
     @Test
     public void testHorizontalOrCardinality() {
         int[] vals = {65535,131071,196607,262143,327679,393215,458751,524287};        

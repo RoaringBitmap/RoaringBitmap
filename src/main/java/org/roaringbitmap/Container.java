@@ -468,4 +468,13 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      * @return the rank
      */
     public abstract int rank(short lowbits);
+    
+    /**
+     * Return the jth value 
+     * 
+     * @param j index of the value 
+     *
+     * @return the value
+     */
+    public abstract short select(int j);
 }

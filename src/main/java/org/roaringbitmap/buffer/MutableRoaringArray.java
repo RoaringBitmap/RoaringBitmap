@@ -544,4 +544,9 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
     public void writeExternal(ObjectOutput out) throws IOException {
         serialize(out);
     }
+
+    @Override
+    public int getCardinality(int i) {
+        return getContainerAtIndex(i).getCardinality();
+    }
 }

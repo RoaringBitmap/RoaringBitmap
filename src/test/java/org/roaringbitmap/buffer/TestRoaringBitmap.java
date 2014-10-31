@@ -34,6 +34,22 @@ public class TestRoaringBitmap {
             Assert.assertEquals(1 + 100000/7 + 1 + (k - 100000)/1000 , rb.rank(k));
         }
     }
+
+
+    @Test
+    public void testSelect() {
+        
+        for (int gap = 1; gap <= 1024; gap *= 2) {
+            MutableRoaringBitmap rb = new MutableRoaringBitmap();
+            for (int k = 0; k < 100000; k += gap)
+                rb.add(k);
+            for (int k = 0; k < 100000 / gap; ++k) {
+                Assert.assertEquals(k * gap, rb.select(k));
+            }
+        }
+    }
+
+
     
 	@Test
     public void testHorizontalOrCardinality() {
