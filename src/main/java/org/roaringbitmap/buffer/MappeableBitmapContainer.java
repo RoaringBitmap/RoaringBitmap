@@ -377,6 +377,44 @@ public final class MappeableBitmapContainer extends MappeableContainer
     }
 
     @Override
+    public ShortIterator getReverseShortIterator() {
+        return new ShortIterator() {
+            int i = MappeableBitmapContainer.this.prevSetBit(64 * MappeableBitmapContainer.this.bitmap.limit() - 1);
+
+            int j;
+
+            @Override
+            public boolean hasNext() {
+                return i >= 0;
+            }
+
+            @Override
+            public short next() {
+                j = i;
+                i = MappeableBitmapContainer.this.prevSetBit(i - 1);
+                return (short) j;
+            }
+
+            @Override
+            public ShortIterator clone() {
+                try {
+                    return (ShortIterator) super.clone();
+                } catch (CloneNotSupportedException e) {
+                    return null;// will not happen
+                }
+            }
+
+            @Override
+            public void remove() {
+                //TODO: implement
+                throw new RuntimeException("unsupported operation: remove");
+            }
+
+
+        };
+    }
+
+    @Override
     public int getSizeInBytes() {
         return this.bitmap.limit() * 8;
     }
@@ -645,17 +683,40 @@ public final class MappeableBitmapContainer extends MappeableContainer
      */
     public int nextSetBit(final int i) {
         int x = i / 64;
-        if (x >= bitmap.limit())
+        if (x < 0 | x >= bitmap.limit())
             return -1;
         long w = bitmap.get(x);
         w >>>= i;
         if (w != 0) {
             return i + Long.numberOfTrailingZeros(w);
         }
-        ++x;
-        for (; x < bitmap.limit(); ++x) {
+        for (++x; x < bitmap.limit(); ++x) {
             if (bitmap.get(x) != 0) {
                 return x * 64 + Long.numberOfTrailingZeros(bitmap.get(x));
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Find the index of the previous set bit less than or equal to i, returns -1
+     * if none found.
+     *
+     * @param i starting index
+     * @return index of the previous set bit
+     */
+    public int prevSetBit(final int i) {
+        int x = i / 64;
+        if (x < 0 | x >= bitmap.limit())
+            return -1;
+        long w = bitmap.get(x);
+        w <<= 64 - i - 1;
+        if (w != 0) {
+            return i - Long.numberOfLeadingZeros(w);
+        }
+        for (--x; x >= 0; --x) {
+            if (bitmap.get(x) != 0) {
+                return x * 64 + 63 - Long.numberOfLeadingZeros(bitmap.get(x));
             }
         }
         return -1;
