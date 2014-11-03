@@ -13,7 +13,7 @@ They can even be faster than uncompressed bitmaps.
 This library is used by Apache Spark (https://spark.apache.org/).
 
 
-(c) 2013-2014 Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, Björn Sperber
+(c) 2013-2014 Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, Björn Sperber, Seth Pellegrino
 
 This code is licensed under Apache License, Version 2.0 (ASL2.0). 
 
