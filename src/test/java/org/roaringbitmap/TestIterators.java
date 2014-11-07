@@ -33,6 +33,14 @@ public class TestIterators {
     }
 
     @Test
+    public void testBitmapIteration() {
+        final BitmapContainer bits = new BitmapContainer(new long[]{0x1l, 1l << 63}, 2);
+
+        Assert.assertEquals(asList(bits.getShortIterator()), ImmutableList.of(0, 127));
+        Assert.assertEquals(asList(bits.getReverseShortIterator()), ImmutableList.of(127, 0));
+    }
+
+    @Test
     public void testIteration() {
         final Random source = new Random(0xcb000a2b9b5bdfb6l);
         final int[] data = takeSortedAndDistinct(source, 450000);
@@ -75,4 +83,23 @@ public class TestIterators {
         return Ints.asList(Arrays.copyOf(values, size));
     }
 
+    private static List<Integer> asList(final ShortIterator shorts) {
+        return asList(new IntIterator() {
+            @Override
+            public boolean hasNext() {
+                return shorts.hasNext();
+            }
+
+            @Override
+            public int next() {
+                return shorts.next();
+            }
+
+            @SuppressWarnings("CloneDoesntCallSuperClone")
+            @Override
+            public IntIterator clone() {
+                throw new UnsupportedOperationException();
+            }
+        });
+    }
 }

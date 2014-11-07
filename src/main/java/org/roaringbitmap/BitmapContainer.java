@@ -256,6 +256,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
         return new ShortIterator() {
             int i = BitmapContainer.this.nextSetBit(0);
             int j;
+            int max = BitmapContainer.this.bitmap.length * 64 - 1;
 
             @Override
             public boolean hasNext() {
@@ -265,7 +266,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
             @Override
             public short next() {
                 j = i;
-                i = BitmapContainer.this.nextSetBit(i + 1);
+                i = i < max ? BitmapContainer.this.nextSetBit(i + 1) : -1;
                 return (short) j;
             }
             
@@ -300,7 +301,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
             @Override
             public short next() {
                 final int j = i;
-                i = BitmapContainer.this.prevSetBit(i - 1);
+                i = i > 0 ? BitmapContainer.this.prevSetBit(i - 1) : -1;
                 return (short) j;
             }
 
@@ -482,9 +483,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
      * @return index of the next set bit
      */
     public int nextSetBit(final int i) {
-        int x = i / 64;
-        if (x < 0 | x >= bitmap.length)
-            return -1;
+        int x = i >> 6; // i / 64 with sign extension
         long w = bitmap[x];
         w >>>= i;
         if (w != 0) {
@@ -506,9 +505,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
      * @return index of the previous set bit
      */
     public int prevSetBit(final int i) {
-        int x = i / 64;
-        if (x < 0 | x >= bitmap.length)
-            return -1;
+        int x = i >> 6; // i / 64 with sign extension
         long w = bitmap[x];
         w <<= 64 - i - 1;
         if (w != 0) {
@@ -715,12 +712,11 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
+        final ShortIterator i = this.getShortIterator();
         sb.append("{");
-        int i = this.nextSetBit(0);
-        while (i >= 0) {
-            sb.append(i);
-            i = this.nextSetBit(i + 1);
-            if (i >= 0)
+        while (i.hasNext()) {
+            sb.append(i.next());
+            if (i.hasNext())
                 sb.append(",");
         }
         sb.append("}");

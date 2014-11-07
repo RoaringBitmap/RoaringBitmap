@@ -4,6 +4,7 @@ package org.roaringbitmap.buffer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
+import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
 import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.ShortIterator;
 
 public class TestIterators {
 
@@ -32,6 +34,14 @@ public class TestIterators {
         Assert.assertEquals(ImmutableList.of(1, 2, 3), iteratorCopy);
         Assert.assertEquals(ImmutableList.of(1, 2, 3), intIteratorCopy);
         Assert.assertEquals(ImmutableList.of(3, 2, 1), reverseIntIteratorCopy);
+    }
+
+    @Test
+    public void testBitmapIteration() {
+        final MappeableBitmapContainer bits = new MappeableBitmapContainer(2, LongBuffer.allocate(2).put(0x1l).put(1l << 63));
+
+        Assert.assertEquals(asList(bits.getShortIterator()), ImmutableList.of(0, 127));
+        Assert.assertEquals(asList(bits.getReverseShortIterator()), ImmutableList.of(127, 0));
     }
 
     @Test
@@ -75,5 +85,25 @@ public class TestIterators {
             values[size++] = ints.next();
         }
         return Ints.asList(Arrays.copyOf(values, size));
+    }
+
+    private static List<Integer> asList(final ShortIterator shorts) {
+        return asList(new IntIterator() {
+            @Override
+            public boolean hasNext() {
+                return shorts.hasNext();
+            }
+
+            @Override
+            public int next() {
+                return shorts.next();
+            }
+
+            @SuppressWarnings("CloneDoesntCallSuperClone")
+            @Override
+            public IntIterator clone() {
+                throw new UnsupportedOperationException();
+            }
+        });
     }
 }
