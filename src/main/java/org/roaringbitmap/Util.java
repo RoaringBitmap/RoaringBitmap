@@ -165,7 +165,7 @@ public final class Util {
                                               final int end, final short k) {
         int ikey = toIntUnsigned(k);
         // next line accelerates the possibly common case where the value would be inserted at the end
-        if((end>0) && (toIntUnsigned(array[end-1]) < ikey)) return -end;
+        if((end>0) && (toIntUnsigned(array[end-1]) < ikey)) return - end - 1;
         int low = begin;
         int high = end - 1;
         while (low <= high) {

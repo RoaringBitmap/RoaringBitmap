@@ -160,7 +160,7 @@ public final class BufferUtil {
             final int end, final short k) {
         final int ikey = toIntUnsigned(k);
         // next line accelerates the possibly common case where the value would be inserted at the end
-        if((end>0) && (toIntUnsigned(array.get(end-1)) < ikey)) return -end;
+        if((end>0) && (toIntUnsigned(array.get(end-1)) < ikey)) return - end - 1;
         int low = begin;
         int high = end - 1;
         while (low <= high) {
