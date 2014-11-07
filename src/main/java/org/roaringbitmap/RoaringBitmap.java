@@ -612,10 +612,18 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
     /**
      * @return a custom iterator over set bits, the bits are traversed
-     * in sorted order
+     * in ascending sorted order
      */
     public IntIterator getIntIterator() {
         return new RoaringIntIterator();
+    }
+
+    /**
+     * @return a custom iterator over set bits, the bits are traversed
+     * in descending sorted order
+     */
+    public IntIterator getReverseIntIterator() {
+        return new RoaringReverseIntIterator();
     }
 
     /**
@@ -938,8 +946,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
         private int x;
         
-        public RoaringIntIterator() {
-            init();
+        private RoaringIntIterator() {
+            nextContainer();
         }
 
         @Override
@@ -947,12 +955,11 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             return pos < RoaringBitmap.this.highLowContainer.size();
         }
 
-        private IntIterator init() {
+        private void nextContainer() {
             if (pos < RoaringBitmap.this.highLowContainer.size()) {
                 iter = RoaringBitmap.this.highLowContainer.getContainerAtIndex(pos).getShortIterator();
                 hs = Util.toIntUnsigned(RoaringBitmap.this.highLowContainer.getKeyAtIndex(pos)) << 16;
             }
-            return this;
         }
 
         @Override
@@ -960,7 +967,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             x = Util.toIntUnsigned(iter.next()) | hs;
             if (!iter.hasNext()) {
                 ++pos;
-                init();
+                nextContainer();
             }
             return x;
         }
@@ -978,6 +985,51 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
     }
 
+    private final class RoaringReverseIntIterator implements IntIterator {
+
+        int hs = 0;
+        ShortIterator iter;
+        // don't need an int because we go to 0, not Short.MAX_VALUE, and signed shorts underflow well below zero
+        short pos = (short) (RoaringBitmap.this.highLowContainer.size() - 1);
+
+        private RoaringReverseIntIterator() {
+            nextContainer();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return pos >= 0;
+        }
+
+        private void nextContainer() {
+            if (pos >= 0) {
+                iter = RoaringBitmap.this.highLowContainer.getContainerAtIndex(pos).getReverseShortIterator();
+                hs = Util.toIntUnsigned(RoaringBitmap.this.highLowContainer.getKeyAtIndex(pos)) << 16;
+            }
+        }
+
+        @Override
+        public int next() {
+            final int x = Util.toIntUnsigned(iter.next()) | hs;
+            if (!iter.hasNext()) {
+                --pos;
+                nextContainer();
+            }
+            return x;
+        }
+
+        @Override
+        public IntIterator clone() {
+            try {
+                RoaringReverseIntIterator clone = (RoaringReverseIntIterator) super.clone();
+                clone.iter =  this.iter.clone();
+                return clone;
+            } catch (CloneNotSupportedException e) {
+                return null;// will not happen
+            }
+        }
+
+    }
 }
 
 

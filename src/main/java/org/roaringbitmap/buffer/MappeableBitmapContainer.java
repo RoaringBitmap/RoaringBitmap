@@ -4,6 +4,7 @@
  */
 package org.roaringbitmap.buffer;
 
+import org.roaringbitmap.BitmapContainer;
 import org.roaringbitmap.ShortIterator;
 import org.roaringbitmap.Util;
 
@@ -67,7 +68,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
         }
     }
 
-    private MappeableBitmapContainer(int newCardinality, LongBuffer newBitmap) {
+    MappeableBitmapContainer(int newCardinality, LongBuffer newBitmap) {
         this.cardinality = newCardinality;
         this.bitmap = LongBuffer.allocate(newBitmap.limit());
         newBitmap.rewind();
@@ -342,7 +343,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
     public ShortIterator getShortIterator() {
         return new ShortIterator() {
             int i = MappeableBitmapContainer.this.nextSetBit(0);
-
+            int max = MappeableBitmapContainer.this.bitmap.limit() * 64 - 1;
             int j;
 
             @Override
@@ -353,7 +354,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
             @Override
             public short next() {
                 j = i;
-                i = MappeableBitmapContainer.this.nextSetBit(i + 1);
+                i = i < max ? MappeableBitmapContainer.this.nextSetBit(i + 1) : -1;
                 return (short) j;
             }
             
@@ -373,6 +374,44 @@ public final class MappeableBitmapContainer extends MappeableContainer
             }
 
             
+        };
+    }
+
+    @Override
+    public ShortIterator getReverseShortIterator() {
+        return new ShortIterator() {
+            int i = MappeableBitmapContainer.this.prevSetBit(64 * MappeableBitmapContainer.this.bitmap.limit() - 1);
+
+            int j;
+
+            @Override
+            public boolean hasNext() {
+                return i >= 0;
+            }
+
+            @Override
+            public short next() {
+                j = i;
+                i = i > 0 ? MappeableBitmapContainer.this.prevSetBit(i - 1) : -1;
+                return (short) j;
+            }
+
+            @Override
+            public ShortIterator clone() {
+                try {
+                    return (ShortIterator) super.clone();
+                } catch (CloneNotSupportedException e) {
+                    return null;// will not happen
+                }
+            }
+
+            @Override
+            public void remove() {
+                //TODO: implement
+                throw new RuntimeException("unsupported operation: remove");
+            }
+
+
         };
     }
 
@@ -521,20 +560,16 @@ public final class MappeableBitmapContainer extends MappeableContainer
     @Override
     public Iterator<Short> iterator() {
         return new Iterator<Short>() {
-            int i = MappeableBitmapContainer.this.nextSetBit(0);
-
-            int j;
+            final ShortIterator si = MappeableBitmapContainer.this.getShortIterator();
 
             @Override
             public boolean hasNext() {
-                return i >= 0;
+                return si.hasNext();
             }
 
             @Override
             public Short next() {
-                j = i;
-                i = MappeableBitmapContainer.this.nextSetBit(i + 1);
-                return (short) j;
+                return si.next();
             }
 
             @Override
@@ -542,7 +577,6 @@ public final class MappeableBitmapContainer extends MappeableContainer
                 //TODO: implement
                 throw new RuntimeException("unsupported operation: remove");
             }
-
         };
     }
 
@@ -644,18 +678,37 @@ public final class MappeableBitmapContainer extends MappeableContainer
      * @return index of the next set bit
      */
     public int nextSetBit(final int i) {
-        int x = i / 64;
-        if (x >= bitmap.limit())
-            return -1;
+        int x = i >> 6; // signed i / 64
         long w = bitmap.get(x);
         w >>>= i;
         if (w != 0) {
             return i + Long.numberOfTrailingZeros(w);
         }
-        ++x;
-        for (; x < bitmap.limit(); ++x) {
+        for (++x; x < bitmap.limit(); ++x) {
             if (bitmap.get(x) != 0) {
                 return x * 64 + Long.numberOfTrailingZeros(bitmap.get(x));
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Find the index of the previous set bit less than or equal to i, returns -1
+     * if none found.
+     *
+     * @param i starting index
+     * @return index of the previous set bit
+     */
+    public int prevSetBit(final int i) {
+        int x = i >> 6; // signed i / 64
+        long w = bitmap.get(x);
+        w <<= 64 - i - 1;
+        if (w != 0) {
+            return i - Long.numberOfLeadingZeros(w);
+        }
+        for (--x; x >= 0; --x) {
+            if (bitmap.get(x) != 0) {
+                return x * 64 + 63 - Long.numberOfLeadingZeros(bitmap.get(x));
             }
         }
         return -1;
@@ -878,12 +931,11 @@ public final class MappeableBitmapContainer extends MappeableContainer
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
+        final ShortIterator i = this.getShortIterator();
         sb.append("{");
-        int i = this.nextSetBit(0);
-        while (i >= 0) {
+        while (i.hasNext()) {
             sb.append(i);
-            i = this.nextSetBit(i + 1);
-            if (i >= 0)
+            if (i.hasNext())
                 sb.append(",");
         }
         sb.append("}");

@@ -158,11 +158,19 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     public abstract int getCardinality();
 
     /**
-     * Iterator to visit the short values in the container
+     * Iterator to visit the short values in the container in ascending order.
      *
      * @return iterator
      */
     public abstract ShortIterator getShortIterator();
+
+
+    /**
+     * Iterator to visit the short values in the container in descending order.
+     *
+     * @return iterator
+     */
+    public abstract ShortIterator getReverseShortIterator();
 
     /**
      * Computes an estimate of the memory usage of this container. The

@@ -377,13 +377,21 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
     }
 
     public MappeableContainerPointer getContainerPointer() {
+        return getContainerPointer(0);
+    }
+
+    public MappeableContainerPointer getContainerPointer(final int startIndex) {
         return new MappeableContainerPointer() {
-            int k = 0;
+            int k = startIndex;
 
             @Override
             public void advance() {
                 ++k;
+            }
 
+            @Override
+            public void previous() {
+                --k;
             }
 
             @Override
@@ -408,7 +416,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
 
             @Override
             public boolean hasContainer() {
-                return k < MutableRoaringArray.this.size;
+                return 0 <= k & k < MutableRoaringArray.this.size;
             }
 
             @Override

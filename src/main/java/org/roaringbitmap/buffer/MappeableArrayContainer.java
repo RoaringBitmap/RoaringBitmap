@@ -307,6 +307,39 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
     @Override
+    public ShortIterator getReverseShortIterator() {
+        return new ShortIterator() {
+            int pos = MappeableArrayContainer.this.cardinality - 1;
+
+            @Override
+            public boolean hasNext() {
+                return pos >= 0;
+            }
+
+            @Override
+            public short next() {
+                return MappeableArrayContainer.this.content.get(pos--);
+            }
+
+            @Override
+            public ShortIterator clone() {
+                try {
+                    return (ShortIterator) super.clone();
+                } catch (CloneNotSupportedException e) {
+                    return null;// will not happen
+                }
+            }
+
+            @Override
+            public void remove() {
+                MappeableArrayContainer.this.remove((short) (pos + 1));
+                pos++;
+            }
+
+        };
+    }
+
+    @Override
     public int getSizeInBytes() {
         return this.cardinality * 2;
     }

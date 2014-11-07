@@ -452,10 +452,18 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
 
     /**
      * @return a custom iterator over set bits, the bits are traversed
-     * in sorted order
+     * in ascending sorted order
      */
     public IntIterator getIntIterator() {
         return new ImmutableRoaringIntIterator();
+    }
+
+    /**
+     * @return a custom iterator over set bits, the bits are traversed
+     * in descending sorted order
+     */
+    public IntIterator getReverseIntIterator() {
+        return new ImmutableRoaringReverseIntIterator();
     }
 
     /**
@@ -625,20 +633,19 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
         private boolean ok;
 
         public ImmutableRoaringIntIterator() {
-            init();
+            nextContainer();
         }
         @Override
         public boolean hasNext() {
             return ok;
         }
 
-        private IntIterator init() {
+        private void nextContainer() {
             ok = cp.hasContainer();
             if (ok) {
                 iter = cp.getContainer().getShortIterator();
                 hs = BufferUtil.toIntUnsigned(cp.key()) << 16;
             }
-            return this;
         }
         
         @Override
@@ -659,7 +666,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
             int x = BufferUtil.toIntUnsigned(iter.next()) | hs;
             if (!iter.hasNext()) {
                 cp.advance();
-                init();
+                nextContainer();
             }
             return x;
         }
@@ -667,7 +674,60 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
 
     }
 
-    
+    private final class ImmutableRoaringReverseIntIterator implements IntIterator {
+        private MappeableContainerPointer cp = ImmutableRoaringBitmap.this.highLowContainer
+            .getContainerPointer(ImmutableRoaringBitmap.this.highLowContainer.size() - 1);
+
+        private int hs = 0;
+
+        private ShortIterator iter;
+
+        private boolean ok;
+
+        public ImmutableRoaringReverseIntIterator() {
+            nextContainer();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return ok;
+        }
+
+        private void nextContainer() {
+            ok = cp.hasContainer();
+            if (ok) {
+                iter = cp.getContainer().getReverseShortIterator();
+                hs = BufferUtil.toIntUnsigned(cp.key()) << 16;
+            }
+        }
+
+        @Override
+        public IntIterator clone() {
+            try {
+                ImmutableRoaringIntIterator x = (ImmutableRoaringIntIterator) super.clone();
+                x.iter = this.iter.clone();
+                x.cp = this.cp.clone();
+                return x;
+            } catch (CloneNotSupportedException e) {
+                return null;// will not happen
+            }
+        }
+
+
+        @Override
+        public int next() {
+            int x = BufferUtil.toIntUnsigned(iter.next()) | hs;
+            if (!iter.hasNext()) {
+                cp.previous();
+                nextContainer();
+            }
+            return x;
+        }
+
+
+    }
+
+
     /**
      * Rank returns the number of integers that are smaller or equal to x (Rank(infinity) would be GetCardinality()).
      * @param x upper limit

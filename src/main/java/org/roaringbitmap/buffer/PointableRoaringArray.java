@@ -37,6 +37,11 @@ public interface PointableRoaringArray extends Cloneable {
     MappeableContainerPointer getContainerPointer();
 
     /**
+     * @return a ContainerPointer to iterator over the array initially positioned at startIndex
+     */
+    MappeableContainerPointer getContainerPointer(int startIndex);
+
+    /**
      * @param x
      *            16-bit key
      * @return corresponding index

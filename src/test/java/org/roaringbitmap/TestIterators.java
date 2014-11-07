@@ -7,31 +7,64 @@
 package org.roaringbitmap;
 
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.primitives.Ints;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class TestIterators {
     @Test
+    public void testEmptyIteration() {
+        Assert.assertFalse(RoaringBitmap.bitmapOf().iterator().hasNext());
+        Assert.assertFalse(RoaringBitmap.bitmapOf().getIntIterator().hasNext());
+        Assert.assertFalse(RoaringBitmap.bitmapOf().getReverseIntIterator().hasNext());
+    }
+
+    @Test
+    public void testSmallIteration() {
+        RoaringBitmap bitmap = RoaringBitmap.bitmapOf(1, 2, 3);
+
+        final List<Integer> iteratorCopy = ImmutableList.copyOf(bitmap.iterator());
+        final List<Integer> intIteratorCopy = asList(bitmap.getIntIterator());
+        final List<Integer> reverseIntIteratorCopy = asList(bitmap.getReverseIntIterator());
+
+        Assert.assertEquals(ImmutableList.of(1, 2, 3), iteratorCopy);
+        Assert.assertEquals(ImmutableList.of(1, 2, 3), intIteratorCopy);
+        Assert.assertEquals(ImmutableList.of(3, 2, 1), reverseIntIteratorCopy);
+    }
+
+    @Test
+    public void testBitmapIteration() {
+        final BitmapContainer bits = new BitmapContainer(new long[]{0x1l, 1l << 63}, 2);
+
+        Assert.assertEquals(asList(bits.getShortIterator()), ImmutableList.of(0, 127));
+        Assert.assertEquals(asList(bits.getReverseShortIterator()), ImmutableList.of(127, 0));
+    }
+
+    @Test
     public void testIteration() {
         final Random source = new Random(0xcb000a2b9b5bdfb6l);
         final int[] data = takeSortedAndDistinct(source, 450000);
         RoaringBitmap bitmap = RoaringBitmap.bitmapOf(data);
-        IntIterator i = bitmap.getIntIterator();
-        int counter = 0;
-        while(i.hasNext()) {
-            i.next();
-            ++counter;
-        }
-        Assert.assertEquals(bitmap.getCardinality(), counter);
-        Assert.assertArrayEquals(data, copyOf(bitmap.iterator()));
-        Assert.assertArrayEquals(data, copyOf(bitmap.getIntIterator()));
+
+        final List<Integer> iteratorCopy = ImmutableList.copyOf(bitmap.iterator());
+        final List<Integer> intIteratorCopy = asList(bitmap.getIntIterator());
+        final List<Integer> reverseIntIteratorCopy = asList(bitmap.getReverseIntIterator());
+
+        Assert.assertEquals(bitmap.getCardinality(), iteratorCopy.size());
+        Assert.assertEquals(bitmap.getCardinality(), intIteratorCopy.size());
+        Assert.assertEquals(bitmap.getCardinality(), reverseIntIteratorCopy.size());
+        Assert.assertEquals(Ints.asList(data), iteratorCopy);
+        Assert.assertEquals(Ints.asList(data), intIteratorCopy);
+        Assert.assertEquals(Lists.reverse(Ints.asList(data)), reverseIntIteratorCopy);
     }
 
-    private int[] takeSortedAndDistinct(Random source, int count) {
+    private static int[] takeSortedAndDistinct(Random source, int count) {
         LinkedHashSet<Integer> ints = new LinkedHashSet<Integer>(count);
         for (int size = 0; size < count; size++) {
             int next;
@@ -39,47 +72,40 @@ public class TestIterators {
                 next = Math.abs(source.nextInt());
             } while (!ints.add(next));
         }
-        int[] unboxed = copyOf(ints.iterator());
+        int[] unboxed = Ints.toArray(ints);
         Arrays.sort(unboxed);
         return unboxed;
     }
 
-    private static int[] copyOf(Iterator<Integer> ints) {
-        class IntIteratorAdapter implements IntIterator {
-            private final Iterator<Integer> ints;
-
-            IntIteratorAdapter(Iterator<Integer> ints) {
-                this.ints = ints;
-            }
-
-            @Override
-            public boolean hasNext() {
-                return ints.hasNext();
-            }
-
-            @Override
-            public int next() {
-                return ints.next();
-            }
-
-            @Override
-            public IntIterator clone() {
-                throw new UnsupportedOperationException();
-            }
-        }
-        return copyOf(new IntIteratorAdapter(ints));
-    }
-
-    private static int[] copyOf(IntIterator ints) {
+    private static List<Integer> asList(IntIterator ints) {
         int[] values = new int[10];
         int size = 0;
         while (ints.hasNext()) {
             if (!(size < values.length)) {
-                values = java.util.Arrays.copyOf(values, values.length * 2);
+                values = Arrays.copyOf(values, values.length * 2);
             }
             values[size++] = ints.next();
         }
-        return Arrays.copyOf(values, size);
+        return Ints.asList(Arrays.copyOf(values, size));
     }
 
+    private static List<Integer> asList(final ShortIterator shorts) {
+        return asList(new IntIterator() {
+            @Override
+            public boolean hasNext() {
+                return shorts.hasNext();
+            }
+
+            @Override
+            public int next() {
+                return shorts.next();
+            }
+
+            @SuppressWarnings("CloneDoesntCallSuperClone")
+            @Override
+            public IntIterator clone() {
+                throw new UnsupportedOperationException();
+            }
+        });
+    }
 }

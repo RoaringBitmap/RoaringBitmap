@@ -13,6 +13,11 @@ interface MappeableContainerPointer extends
     void advance();
 
     /**
+     * Move to the previous container
+     */
+    void previous();
+
+    /**
      * Returns the cardinality of the current container. Can be faster than
      * loading the container first.
      * 
