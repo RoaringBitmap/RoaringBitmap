@@ -161,11 +161,13 @@ public final class Util {
         return x & 0xFFFF;
     }
 
-    protected static int unsignedBinarySearch(short[] array, int begin,
-                                              int end, short k) {
+    protected static int unsignedBinarySearch(final short[] array, final int begin,
+                                              final int end, final short k) {
+        int ikey = toIntUnsigned(k);
+        // next line accelerates the possibly common case where the value would be inserted at the end
+        if((end>0) && (toIntUnsigned(array[end-1]) < ikey)) return -end;
         int low = begin;
         int high = end - 1;
-        int ikey = toIntUnsigned(k);
         while (low <= high) {
             final int middleIndex = (low + high) >>> 1;
             final int middleValue = toIntUnsigned(array[middleIndex]);

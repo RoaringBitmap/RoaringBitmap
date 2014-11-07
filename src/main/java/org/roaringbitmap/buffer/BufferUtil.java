@@ -156,11 +156,13 @@ public final class BufferUtil {
         return x & 0xFFFF;
     }
 
-    protected static int unsignedBinarySearch(ShortBuffer array, int begin,
-            int end, short k) {
+    protected static int unsignedBinarySearch(final ShortBuffer array, final int begin,
+            final int end, final short k) {
+        final int ikey = toIntUnsigned(k);
+        // next line accelerates the possibly common case where the value would be inserted at the end
+        if((end>0) && (toIntUnsigned(array.get(end-1)) < ikey)) return -end;
         int low = begin;
         int high = end - 1;
-        final int ikey = toIntUnsigned(k);
         while (low <= high) {
             final int middleIndex = (low + high) >>> 1;
             final int middleValue = toIntUnsigned(array.get(middleIndex));

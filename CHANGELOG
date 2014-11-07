@@ -1,3 +1,6 @@
+version 0.4.6 
+ - Optimized binary search for some common insertion cases
+
 version 0.4.5
  - Fixed rare cast of iterator overflow (sethp-jive)
 
