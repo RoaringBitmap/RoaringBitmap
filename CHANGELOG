@@ -1,3 +1,6 @@
+version 0.4.7
+ - Fixed silly bug in ImmutableRoaringBitmap.xor
+
 version 0.4.6 
  - Optimized binary search for some common insertion cases
  - Reverse iterators

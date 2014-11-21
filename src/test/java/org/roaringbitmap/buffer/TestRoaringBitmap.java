@@ -19,6 +19,15 @@ import java.util.*;
  */
 @SuppressWarnings({"static-method", "javadoc"})
 public class TestRoaringBitmap {
+    
+    @Test
+    public void testXORSimple() {
+            MutableRoaringBitmap a = MutableRoaringBitmap.bitmapOf(73647, 83469);
+            MutableRoaringBitmap b = MutableRoaringBitmap.bitmapOf(1, 2, 3, 5, 6, 8, 9, 10, 11, 13, 14, 16, 17, 18, 19, 20, 21, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 39, 40, 41, 50, 51, 69, 79, 80, 81, 88, 89, 172);
+            MutableRoaringBitmap rxor = ImmutableRoaringBitmap.xor(a, b);
+            MutableRoaringBitmap ror = MutableRoaringBitmap.or(a, b);
+            Assert.assertTrue(rxor.equals(ror));
+    }
 
     @Test
     public void testRank() {

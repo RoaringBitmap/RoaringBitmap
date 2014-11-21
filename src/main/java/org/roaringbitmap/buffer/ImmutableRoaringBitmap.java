@@ -304,7 +304,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
                 .getContainerPointer();
 
         main: if (i1.hasContainer() && i2.hasContainer()) {
-
+            System.out.println(i1.key()+" "+i2.key());
             while (true) {
                 if (i1.key() < i2.key()) {
                     answer.getMappeableRoaringArray().appendCopy(i1.key(),
@@ -314,6 +314,8 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {
                         break main;
 
                 } else if (i1.key() > i2.key()) {
+                    answer.getMappeableRoaringArray().appendCopy(i2.key(),
+                            i2.getContainer());
                     i2.advance();
                     if (!i2.hasContainer())
                         break main;
