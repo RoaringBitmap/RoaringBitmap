@@ -425,7 +425,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
         long hash = 0;
         for (int k = 0; k < this.bitmap.limit(); ++k)
             hash += 31 * hash + this.bitmap.get(k);
-        return (int) (hash >> 32);
+        return (int) hash;
     }
 
     @Override
