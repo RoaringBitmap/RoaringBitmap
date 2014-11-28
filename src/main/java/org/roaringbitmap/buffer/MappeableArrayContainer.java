@@ -348,7 +348,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     public int hashCode() {
         int hash = 0;
         for (int k = 0; k < cardinality; ++k)
-            hash += 31 * content.get(k);
+            hash += 31 * hash + content.get(k);
         return hash;
     }
 

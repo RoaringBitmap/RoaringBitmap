@@ -266,7 +266,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     public int hashCode() {
         int hash = 0;
         for (int k = 0; k < cardinality; ++k)
-            hash += 31 * content[k];
+            hash += 31 * hash + content[k];
         return hash;
     }
 

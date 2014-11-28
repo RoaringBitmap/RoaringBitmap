@@ -1,3 +1,6 @@
+upcoming
+ - Fixed poor hash functions
+
 version 0.4.7
  - Fixed silly bug in ImmutableRoaringBitmap.xor
 
