@@ -4,6 +4,7 @@
  */
 package org.roaringbitmap.buffer;
 
+import org.roaringbitmap.BitmapDataProvider;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.ShortIterator;
 
@@ -30,9 +31,9 @@ import java.util.Iterator;
  * </pre>
  */
 public class MutableRoaringBitmap extends ImmutableRoaringBitmap
-        implements Cloneable, Serializable, Iterable<Integer>, Externalizable {
+        implements Cloneable, Serializable, Iterable<Integer>, Externalizable, BitmapDataProvider {
     private static final long serialVersionUID = 3L;
-   
+
 
     /**
      * Bitwise AND (intersection) operation. The provided bitmaps are *not*

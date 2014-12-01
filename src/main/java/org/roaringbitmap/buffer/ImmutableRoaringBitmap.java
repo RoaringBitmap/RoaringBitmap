@@ -4,6 +4,7 @@
  */
 package org.roaringbitmap.buffer;
 
+import org.roaringbitmap.ImmutableBitmapDataProvider;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.ShortIterator;
 
@@ -40,7 +41,7 @@ import java.util.Iterator;
  * 
  * Objects of this class may reside almost entirely in memory-map files.
  */
-public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable {    
+public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, ImmutableBitmapDataProvider {
 
      /**
      * Bitwise AND (intersection) operation. The provided bitmaps are *not*
