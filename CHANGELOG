@@ -1,5 +1,6 @@
-upcoming
+version 0.4.8
  - Fixed poor hash functions
+ - Abstraction of common functions across packages
 
 version 0.4.7
  - Fixed silly bug in ImmutableRoaringBitmap.xor
