@@ -74,6 +74,15 @@ public interface ImmutableBitmapDataProvider {
      * @return array representing the set values.
      */
     public int[] toArray();
+    
+    /**
+     * Return the jth value stored in this bitmap.
+     *
+     * @param j index of the value
+     *
+     * @return the value
+     */
+    public int select(int j);
 
     /**
      * Rank returns the number of integers that are smaller or equal to x (Rank(infinity) would be GetCardinality()).
