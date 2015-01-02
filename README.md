@@ -36,6 +36,7 @@ This paper used data from http://lemire.me/data/realroaring2014.html
 
 Code sample
 -------------
+
         
         import org.roaringbitmap.*;
         
@@ -46,6 +47,8 @@ Code sample
         for(int k = 4000; k<4255;++k) rr2.add(k);
         
         RoaringBitmap rror = RoaringBitmap.or(rr, rr2);
+
+Please see the examples folder for more examples.
 
 Working with memory-mapped bitmaps
 ---------------------------------------
@@ -117,6 +120,12 @@ Usage
 * mvn test will run the unit tests
 * mvn package will package in a jar (found in target)
 
+Benchmark
+-----------
+
+To run a simple benchmark, use the following command:
+
+         $ mvn -Dtest=TestBenchmarkBasic test
 
 Funding 
 ----------
