@@ -4,6 +4,8 @@
  */
 package org.roaringbitmap.buffer;
 
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 
@@ -138,6 +140,10 @@ public final class BufferUtil {
         else
             return card * 2;
 
+    }
+    
+    protected static boolean isBackedBySimpleArray(Buffer b) {
+        return b.hasArray() && (b.arrayOffset() == 0);
     }
 
     protected static short highbits(int x) {

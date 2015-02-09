@@ -1,5 +1,6 @@
 upcoming
  - Moved select method in the right interface
+ - Fixed possible bug due to arrayOffset
 
 version 0.4.8
  - Fixed poor hash functions

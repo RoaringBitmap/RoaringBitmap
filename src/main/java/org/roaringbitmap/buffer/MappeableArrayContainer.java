@@ -94,7 +94,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
      */
     @Override
     public MappeableContainer add(final short x) {
-        if (content.hasArray()) {
+        if (BufferUtil.isBackedBySimpleArray(this.content)) {
             short[] sarray = content.array();
 
             int loc = BufferUtil.unsignedBinarySearch(content, 0, cardinality,
@@ -156,7 +156,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
                 value2.getCardinality());
         MappeableArrayContainer answer = new MappeableArrayContainer(
                 desiredCapacity);
-        if (this.content.hasArray() && value2.content.hasArray())
+        if (BufferUtil.isBackedBySimpleArray(this.content) && BufferUtil.isBackedBySimpleArray(value2.content))
             answer.cardinality = org.roaringbitmap.Util.unsignedIntersect2by2(
                     value1.content.array(), value1.getCardinality(),
                     value2.content.array(), value2.getCardinality(),
@@ -179,7 +179,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         final int desiredCapacity = value1.getCardinality();
         final MappeableArrayContainer answer = new MappeableArrayContainer(
                 desiredCapacity);
-        if (value1.content.hasArray() && value2.content.hasArray())
+        if (BufferUtil.isBackedBySimpleArray(value1.content) && BufferUtil.isBackedBySimpleArray(value2.content))
             answer.cardinality = org.roaringbitmap.Util.unsignedDifference(
                     value1.content.array(), value1.getCardinality(),
                     value2.content.array(), value2.getCardinality(),
@@ -198,7 +198,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
                 content.limit());
         int pos = 0;
         short[] sarray = answer.content.array();
-        if (this.content.hasArray()) {
+        if (BufferUtil.isBackedBySimpleArray(this.content)) {
             short[] c = content.array();
             for (int k = 0; k < cardinality; ++k)
                 if (!value2.contains(c[k]))
@@ -232,7 +232,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
             final MappeableArrayContainer srb = (MappeableArrayContainer) o;
             if (srb.cardinality != this.cardinality)
                 return false;
-            if (this.content.hasArray() && srb.content.hasArray()) {
+            if (BufferUtil.isBackedBySimpleArray(this.content) && BufferUtil.isBackedBySimpleArray(srb.content)) {
                 short[] t = this.content.array();
                 short[] sr = srb.content.array();
 
@@ -253,7 +253,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     @Override
     public void fillLeastSignificant16bits(int[] x, int i, int mask) {
-        if (this.content.hasArray()) {
+        if (BufferUtil.isBackedBySimpleArray(this.content)) {
             short[] c = this.content.array();
             for (int k = 0; k < this.cardinality; ++k)
                 x[k + i] = BufferUtil.toIntUnsigned(c[k]) | mask;
@@ -373,7 +373,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     @Override
     public MappeableArrayContainer iandNot(final MappeableArrayContainer value2) {
-        if (value2.content.hasArray())
+        if (BufferUtil.isBackedBySimpleArray(value2.content))
             this.cardinality = org.roaringbitmap.Util.unsignedDifference(
                     this.content.array(), this.getCardinality(),
                     value2.content.array(), value2.getCardinality(),
@@ -607,7 +607,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         if (totalCardinality > DEFAULT_MAX_SIZE) {// it could be a bitmap!
             final MappeableBitmapContainer bc = new MappeableBitmapContainer();
             long[] bitArray = bc.bitmap.array();
-            if (value2.content.hasArray()) {
+            if (BufferUtil.isBackedBySimpleArray(value2.content)) {
                 short[] sarray = value2.content.array();
                 for (int k = 0; k < value2.cardinality; ++k) {
                     final int i = BufferUtil.toIntUnsigned(sarray[k]) >>> 6;
@@ -619,7 +619,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
                             .get(k)) >>> 6;
                     bitArray[i] |= (1l << value2.content.get(k));
                 }
-            if (this.content.hasArray()) {
+            if (BufferUtil.isBackedBySimpleArray(this.content)) {
                 short[] sarray = this.content.array();
                 for (int k = 0; k < this.cardinality; ++k) {
                     final int i = BufferUtil.toIntUnsigned(sarray[k]) >>> 6;
@@ -640,7 +640,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         }
         final MappeableArrayContainer answer = new MappeableArrayContainer(
                 totalCardinality);
-        if (value1.content.hasArray() && value2.content.hasArray())
+        if (BufferUtil.isBackedBySimpleArray(value1.content) && BufferUtil.isBackedBySimpleArray(value2.content))
             answer.cardinality = org.roaringbitmap.Util.unsignedUnion2by2(
                     value1.content.array(), value1.getCardinality(),
                     value2.content.array(), value2.getCardinality(),
@@ -749,7 +749,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         if (totalCardinality > DEFAULT_MAX_SIZE) {// it could be a bitmap!
             final MappeableBitmapContainer bc = new MappeableBitmapContainer();
             long[] bitArray = bc.bitmap.array();
-            if (value2.content.hasArray()) {
+            if (BufferUtil.isBackedBySimpleArray(value2.content)) {
                 short[] sarray = value2.content.array();
                 for (int k = 0; k < value2.cardinality; ++k) {
                     final int i = BufferUtil.toIntUnsigned(sarray[k]) >>> 6;
@@ -761,7 +761,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
                             .get(k)) >>> 6;
                     bitArray[i] ^= (1l << value2.content.get(k));
                 }
-            if (this.content.hasArray()) {
+            if (BufferUtil.isBackedBySimpleArray(this.content)) {
                 short[] sarray = this.content.array();
                 for (int k = 0; k < this.cardinality; ++k) {
                     final int i = BufferUtil.toIntUnsigned(sarray[k]) >>> 6;
@@ -783,7 +783,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         }
         final MappeableArrayContainer answer = new MappeableArrayContainer(
                 totalCardinality);
-        if (value1.content.hasArray() && value2.content.hasArray())
+        if (BufferUtil.isBackedBySimpleArray(value1.content) && BufferUtil.isBackedBySimpleArray(value2.content))
             answer.cardinality = org.roaringbitmap.Util
                     .unsignedExclusiveUnion2by2(value1.content.array(),
                             value1.getCardinality(), value2.content.array(),

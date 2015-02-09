@@ -4,7 +4,6 @@
  */
 package org.roaringbitmap.buffer;
 
-import org.roaringbitmap.BitmapContainer;
 import org.roaringbitmap.ShortIterator;
 import org.roaringbitmap.Util;
 
@@ -108,7 +107,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
         final MappeableArrayContainer answer = new MappeableArrayContainer(
                 value2.content.limit());
         short[] sarray = answer.content.array();
-        if (value2.content.hasArray()) {
+        if (BufferUtil.isBackedBySimpleArray(value2.content)) {
             short[] c = value2.content.array();
             for (int k = 0; k < value2.getCardinality(); ++k)
                 if (this.contains(c[k]))
@@ -124,7 +123,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
     @Override
     public MappeableContainer and(final MappeableBitmapContainer value2) {
         int newCardinality = 0;
-        if (this.bitmap.hasArray() && value2.bitmap.hasArray()) {
+        if (BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(value2.bitmap)) {
             long[] tb = this.bitmap.array();
             long[] v2b = value2.bitmap.array();
             for (int k = 0; k < this.bitmap.limit(); ++k) {
@@ -138,7 +137,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
         if (newCardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             final MappeableBitmapContainer answer = new MappeableBitmapContainer();
             long[] bitArray = answer.bitmap.array();
-            if (this.bitmap.hasArray() && value2.bitmap.hasArray()) {
+            if (BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(value2.bitmap)) {
                 long[] tb = this.bitmap.array();
                 long[] v2b = value2.bitmap.array();
                 for (int k = 0; k < answer.bitmap.limit(); ++k) {
@@ -153,7 +152,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
         }
         final MappeableArrayContainer ac = new MappeableArrayContainer(
                 newCardinality);
-        if (this.bitmap.hasArray() && value2.bitmap.hasArray())
+        if (BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(value2.bitmap))
             org.roaringbitmap.Util.fillArrayAND(ac.content.array(),
                     this.bitmap.array(), value2.bitmap.array());
         else
@@ -167,7 +166,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
     public MappeableContainer andNot(final MappeableArrayContainer value2) {
         final MappeableBitmapContainer answer = clone();
         long[] bitArray = answer.bitmap.array();
-        if (value2.content.hasArray() && this.bitmap.hasArray()) {
+        if (BufferUtil.isBackedBySimpleArray(value2.content) && BufferUtil.isBackedBySimpleArray(this.bitmap)) {
             short[] v2 = value2.content.array();
             long[] ba = this.bitmap.array();
             for (int k = 0; k < value2.cardinality; ++k) {
@@ -191,7 +190,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
     public MappeableContainer andNot(final MappeableBitmapContainer value2) {
 
         int newCardinality = 0;
-        if (this.bitmap.hasArray() && value2.bitmap.hasArray()) {
+        if (BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(value2.bitmap)) {
             long[] b = this.bitmap.array();
             long[] v2 = value2.bitmap.array();
             for (int k = 0; k < this.bitmap.limit(); ++k) {
@@ -206,7 +205,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
         if (newCardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             final MappeableBitmapContainer answer = new MappeableBitmapContainer();
             long[] bitArray = answer.bitmap.array();
-            if (this.bitmap.hasArray() && value2.bitmap.hasArray()) {
+            if (BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(value2.bitmap)) {
                 long[] b = this.bitmap.array();
                 long[] v2 = value2.bitmap.array();
 
@@ -222,7 +221,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
         }
         final MappeableArrayContainer ac = new MappeableArrayContainer(
                 newCardinality);
-        if (this.bitmap.hasArray() && value2.bitmap.hasArray())
+        if (BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(value2.bitmap))
             org.roaringbitmap.Util.fillArrayANDNOT(ac.content.array(),
                     this.bitmap.array(), value2.bitmap.array());
         else
@@ -258,7 +257,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
             final MappeableBitmapContainer srb = (MappeableBitmapContainer) o;
             if (srb.cardinality != this.cardinality)
                 return false;
-            if (this.bitmap.hasArray() && srb.bitmap.hasArray()) {
+            if (BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(srb.bitmap)) {
                 long[] b = this.bitmap.array();
                 long[] s = srb.bitmap.array();
                 for (int k = 0; k < this.bitmap.limit(); ++k)
@@ -282,7 +281,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
      */
     protected void fillArray(final short[] array) {
         int pos = 0;
-        if (bitmap.hasArray()) {
+        if (BufferUtil.isBackedBySimpleArray(bitmap)) {
             long[] b = bitmap.array();
             for (int k = 0; k < bitmap.limit(); ++k) {
                 long bitset = b[k];
@@ -307,7 +306,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
     @Override
     public void fillLeastSignificant16bits(int[] x, int i, int mask) {
         int pos = i;
-        if (bitmap.hasArray()) {
+        if (BufferUtil.isBackedBySimpleArray(bitmap)) {
             long[] b = bitmap.array();
             for (int k = 0; k < bitmap.limit(); ++k) {
                 long bitset = b[k];
@@ -469,7 +468,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
         int newCardinality = 0;
 
         long[] b = this.bitmap.array();
-        if (b2.bitmap.hasArray()) {
+        if (BufferUtil.isBackedBySimpleArray(b2.bitmap)) {
             long[] b2Arr = b2.bitmap.array();
             for (int k = 0; k < this.bitmap.limit(); ++k) {
                 newCardinality += Long.bitCount(b[k] & (~b2Arr[k]));
@@ -518,7 +517,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
     @Override
     public MappeableBitmapContainer ior(final MappeableArrayContainer value2) {
         long[] b = this.bitmap.array();
-        if (value2.content.hasArray()) {
+        if (BufferUtil.isBackedBySimpleArray(value2.content)) {
 
             short[] v2 = value2.content.array();
             for (int k = 0; k < value2.cardinality; ++k) {
@@ -542,7 +541,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
     public MappeableContainer ior(final MappeableBitmapContainer b2) {
         long[] b = this.bitmap.array();
         this.cardinality = 0;
-        if (b2.bitmap.hasArray()) {
+        if (BufferUtil.isBackedBySimpleArray(b2.bitmap)) {
             long[] b2Arr = b2.bitmap.array();
             for (int k = 0; k < this.bitmap.limit(); k++) {
                 b[k] |= b2Arr[k];
@@ -583,7 +582,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
     @Override
     public MappeableContainer ixor(final MappeableArrayContainer value2) {
         long[] b = bitmap.array();
-        if (value2.content.hasArray()) {
+        if (BufferUtil.isBackedBySimpleArray(value2.content)) {
             short[] v2 = value2.content.array();
             for (int k = 0; k < value2.getCardinality(); ++k) {
                 final int index = BufferUtil.toIntUnsigned(v2[k]) >>> 6;
@@ -608,7 +607,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
     @Override
     public MappeableContainer ixor(MappeableBitmapContainer b2) {
         long[] b = bitmap.array();
-        if (b2.bitmap.hasArray()) {
+        if (BufferUtil.isBackedBySimpleArray(b2.bitmap)) {
             long[] b2Arr = b2.bitmap.array();
 
             int newCardinality = 0;
@@ -652,7 +651,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
     protected void loadData(final MappeableArrayContainer arrayContainer) {
         this.cardinality = arrayContainer.cardinality;
         long[] bitArray = bitmap.array();
-        if (bitmap.hasArray() && arrayContainer.content.hasArray()) {
+        if (BufferUtil.isBackedBySimpleArray(bitmap) && BufferUtil.isBackedBySimpleArray(arrayContainer.content)) {
             long[] b = bitmap.array();
             short[] ac = arrayContainer.content.array();
             for (int k = 0; k < arrayContainer.cardinality; ++k) {
@@ -835,7 +834,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
         final MappeableBitmapContainer answer = clone();
         long[] bitArray = answer.bitmap.array();
-        if (answer.bitmap.hasArray() && value2.content.hasArray()) {
+        if (BufferUtil.isBackedBySimpleArray(answer.bitmap) && BufferUtil.isBackedBySimpleArray(value2.content)) {
             long[] ab = answer.bitmap.array();
             short[] v2 = value2.content.array();
             for (int k = 0; k < value2.cardinality; ++k) {
@@ -863,7 +862,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
         final MappeableBitmapContainer answer = new MappeableBitmapContainer();
         long[] bitArray = answer.bitmap.array();
         answer.cardinality = 0;
-        if (this.bitmap.hasArray() && value2.bitmap.hasArray()) {
+        if (BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(value2.bitmap)) {
             long[] b = this.bitmap.array();
             long[] v2 = value2.bitmap.array();
             for (int k = 0; k < answer.bitmap.limit(); ++k) {
@@ -974,7 +973,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
     public MappeableContainer xor(final MappeableArrayContainer value2) {
         final MappeableBitmapContainer answer = clone();
         long[] bitArray = answer.bitmap.array();
-        if (value2.content.hasArray()) {
+        if (BufferUtil.isBackedBySimpleArray(value2.content)) {
             short[] v2 = value2.content.array();
             for (int k = 0; k < value2.getCardinality(); ++k) {
                 final int index = BufferUtil.toIntUnsigned(v2[k]) >>> 6;
@@ -998,7 +997,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
     public MappeableContainer xor(MappeableBitmapContainer value2) {
 
         int newCardinality = 0;
-        if (this.bitmap.hasArray() && value2.bitmap.hasArray()) {
+        if (BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(value2.bitmap)) {
             long[] b = this.bitmap.array();
             long[] v2 = value2.bitmap.array();
             for (int k = 0; k < this.bitmap.limit(); ++k) {
@@ -1015,7 +1014,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
         if (newCardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             final MappeableBitmapContainer answer = new MappeableBitmapContainer();
             long[] bitArray = answer.bitmap.array();
-            if (this.bitmap.hasArray() && value2.bitmap.hasArray()) {
+            if (BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(value2.bitmap)) {
                 long[] b = this.bitmap.array();
                 long[] v2 = value2.bitmap.array();
                 for (int k = 0; k < answer.bitmap.limit(); ++k) {
@@ -1030,7 +1029,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
         }
         final MappeableArrayContainer ac = new MappeableArrayContainer(
                 newCardinality);
-        if (this.bitmap.hasArray() && value2.bitmap.hasArray())
+        if (BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(value2.bitmap))
             org.roaringbitmap.Util.fillArrayXOR(ac.content.array(),
                     this.bitmap.array(), value2.bitmap.array());
         else
@@ -1054,7 +1053,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
     protected MappeableContainer ilazyor(MappeableBitmapContainer x) {
         this.cardinality = -1;// invalid
         long[] b = this.bitmap.array();
-        if (x.bitmap.hasArray()) {
+        if (BufferUtil.isBackedBySimpleArray(x.bitmap)) {
             long[] b2 = x.bitmap.array();
             for (int k = 0; k < b.length; k++) {
                 b[k] |= b2[k];
@@ -1102,7 +1101,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
         int x = BufferUtil.toIntUnsigned(lowbits);
         int leftover = (x + 1) & 63;
         int answer = 0;
-        if (this.bitmap.hasArray()) {
+        if (BufferUtil.isBackedBySimpleArray(this.bitmap)) {
             long[] b = this.bitmap.array();
             for (int k = 0; k < (x + 1) / 64; ++k)
                 answer += Long.bitCount(b[k]);
@@ -1123,7 +1122,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
     @Override
     public short select(int j) {
         int leftover = j;
-        if (this.bitmap.hasArray()) {
+        if (BufferUtil.isBackedBySimpleArray(this.bitmap)) {
             long[] b = this.bitmap.array();
 
             for (int k = 0; k < b.length; ++k) {
