@@ -22,6 +22,20 @@ import java.util.Random;
 public class TestImmutableRoaringBitmap {
     
     @Test
+    public void testSerializeImmutable() throws IOException {
+        MutableRoaringBitmap mr = new MutableRoaringBitmap();
+        mr.add(5);
+        ByteBuffer buffer = serializeRoaring(mr);
+        
+        buffer.rewind();
+        buffer = serializeRoaring(new ImmutableRoaringBitmap(buffer));
+
+        buffer.rewind();
+        ImmutableRoaringBitmap ir = new ImmutableRoaringBitmap(buffer);
+        Assert.assertTrue(ir.contains(5));
+    }
+
+    @Test
     public void testProperSerialization() throws IOException {
         final int SIZE = 500;
         final Random rand = new Random(0);
@@ -82,18 +96,19 @@ public class TestImmutableRoaringBitmap {
     }
     
     @SuppressWarnings("resource")
-	static ByteBuffer serializeRoaring(MutableRoaringBitmap mrb) throws IOException {
-			ByteBuffer outbb = ByteBuffer.allocate(mrb.serializedSizeInBytes());
+	static ByteBuffer serializeRoaring(ImmutableRoaringBitmap mrb) throws IOException {
+            byte[] backingArray = new byte[mrb.serializedSizeInBytes()+1024];
+			ByteBuffer outbb = ByteBuffer.wrap(backingArray, 1024, mrb.serializedSizeInBytes()).slice();
 			DataOutputStream dos = new DataOutputStream(new OutputStream(){
 	        ByteBuffer mBB;
 	        OutputStream init(ByteBuffer mbb) {mBB=mbb; return this;}
 	            public void write(int b) {mBB.put((byte) b);}
-	            public void write(byte[] b) {}            
-	            public void write(byte[] b, int off, int l) {}
+	            public void write(byte[] b) {}
+	            public void write(byte[] b, int off, int l) { mBB.put(b,off,l); }
 	        }.init(outbb));
 			mrb.serialize(dos);
 			dos.close();
-			
+
 			return outbb;
 	}
 

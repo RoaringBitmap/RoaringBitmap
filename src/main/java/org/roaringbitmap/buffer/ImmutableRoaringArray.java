@@ -230,7 +230,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
      */
     public void serialize(DataOutput out) throws IOException {
         if(buffer.hasArray()) {
-            out.write(buffer.array());
+            out.write(buffer.array(), buffer.arrayOffset(), buffer.limit());
         } else {
             ByteBuffer tmp = buffer.duplicate();
             tmp.position(0);
