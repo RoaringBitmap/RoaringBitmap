@@ -386,6 +386,23 @@ public class TestRoaringBitmap {
             Assert.assertEquals(ac.getCardinality(), 100);
         }
     }
+    
+
+    @Test
+    public void trimArrayContainerCardinalityTest() {
+        final ArrayContainer ac = new ArrayContainer();
+        ac.trim();
+        for (short k = 0; k < 100; ++k) {
+            ac.add(k);
+            ac.trim();
+            Assert.assertEquals(ac.getCardinality(), k + 1);
+        }
+        for (short k = 0; k < 100; ++k) {
+            ac.add(k);
+            ac.trim();
+            Assert.assertEquals(ac.getCardinality(), 100);
+        }
+    }
 
     @Test
     public void arraytest() {

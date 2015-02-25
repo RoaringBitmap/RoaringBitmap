@@ -398,7 +398,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
     private void increaseCapacity() {
-        int newCapacity = this.content.limit() < 64 ? this.content.limit() * 2
+        int newCapacity = (this.content.limit() == 0) ? DEFAULT_INIT_SIZE : this.content.limit() < 64 ? this.content.limit() * 2
                 : this.content.limit() < 1024 ? this.content.limit() * 3 / 2
                         : this.content.limit() * 5 / 4;
         if (newCapacity > MappeableArrayContainer.DEFAULT_MAX_SIZE)

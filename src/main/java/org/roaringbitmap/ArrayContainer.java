@@ -308,7 +308,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     }
 
     private void increaseCapacity() {
-        int newCapacity = this.content.length < 64 ? this.content.length * 2
+        int newCapacity = (this.content.length == 0) ? DEFAULT_INIT_SIZE : this.content.length < 64 ? this.content.length * 2
                 : this.content.length < 1024 ? this.content.length * 3 / 2
                 : this.content.length * 5 / 4;
         if (newCapacity > ArrayContainer.DEFAULT_MAX_SIZE)

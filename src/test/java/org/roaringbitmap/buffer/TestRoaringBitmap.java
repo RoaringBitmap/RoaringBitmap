@@ -388,6 +388,23 @@ public class TestRoaringBitmap {
     }
 
     @Test
+    public void trimArrayContainerCardinalityTest() {
+        final MappeableArrayContainer ac = new MappeableArrayContainer();
+        ac.trim();
+        for (short k = 0; k < 100; ++k) {
+            ac.add(k);
+            ac.trim();
+            Assert.assertEquals(ac.getCardinality(), k + 1);
+        }
+        for (short k = 0; k < 100; ++k) {
+            ac.add(k);
+            ac.trim();
+            Assert.assertEquals(ac.getCardinality(), 100);
+        }
+    }
+
+    
+    @Test
     public void arraytest() {
         final MappeableArrayContainer rr = new MappeableArrayContainer();
         rr.add((short) 110);
