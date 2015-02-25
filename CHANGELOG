@@ -1,6 +1,7 @@
 upcoming
  - Moved select method in the right interface
  - Fixed possible bug due to arrayOffset
+ - Fixed potential issue with trim() on array container
 
 version 0.4.8
  - Fixed poor hash functions
