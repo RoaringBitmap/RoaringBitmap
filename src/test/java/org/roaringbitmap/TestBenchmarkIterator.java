@@ -25,7 +25,7 @@ public class TestBenchmarkIterator {
     public TestRule benchmarkRun = new BenchmarkRule(CONSOLE_CONSUMER,
             H2_CONSUMER);
 
-    @BenchmarkOptions(benchmarkRounds = 100, warmupRounds = 3)
+    @BenchmarkOptions(warmupRounds = 3,benchmarkRounds = 50000)
     @Test
     public void testStandard() {
         IntIterator intIterator = bitmap.getIntIterator();
@@ -34,7 +34,7 @@ public class TestBenchmarkIterator {
         }
     }
 
-    @BenchmarkOptions(benchmarkRounds = 100, warmupRounds = 3)
+    @BenchmarkOptions(warmupRounds = 3,benchmarkRounds = 50000)
     @Test
     public void testFlyweight() {
         intIterator.wrap(bitmap);
@@ -47,7 +47,7 @@ public class TestBenchmarkIterator {
     @BeforeClass
     public static void prepare() throws IOException {
         final Random source = new Random(0xcb000a2b9b5bdfb6l);
-        final int[] data = takeSortedAndDistinct(source, 1000000);
+        final int[] data = takeSortedAndDistinct(source, 1000);
         bitmap = RoaringBitmap.bitmapOf(data);
         intIterator = new IntIteratorFlyweight();
         
