@@ -9,83 +9,8 @@ package org.roaringbitmap;
  * to fix this it will take to make a lot of changes to the other Iterators in this project as well.
  *
  *
- *
- *
- *
- *
- * Here is the attached benchmark
- * public class RoaringIteratorBenchmark {
-
-
-
- public int  testStandard(RoaringState state) {
-
- IntIterator intIterator = state.bitmap.getIntIterator();
- int result =0;
- while(intIterator.hasNext()) {
- result = intIterator.next();
-
- }
- return result;
-
- }
-
-
- @Benchmark
- public int  testFlyweight(RoaringState state) {
-
- IntIteratorFlyweight intIterator = state.intIterator;
-
- intIterator.wrap(state.bitmap);
-
- int result =0;
- while(intIterator.hasNext()) {
- result = intIterator.next();
-
- }
- return result;
-
- }
-
-
-
- @State(Scope.Benchmark)
- public static class RoaringState {
-
- final Random source = new Random(0xcb000a2b9b5bdfb6l);
- final int[] data = takeSortedAndDistinct(source, 10000);
-
- final RoaringBitmap bitmap = RoaringBitmap.bitmapOf(data);
-
- final IntIteratorFlyweight intIterator = new IntIteratorFlyweight();
-
-
-
- private static int[] takeSortedAndDistinct(Random source, int count) {
- LinkedHashSet<Integer> ints = new LinkedHashSet<Integer>(count);
- for (int size = 0; size < count; size++) {
- int next;
- do {
- next = Math.abs(source.nextInt());
- } while (!ints.add(next));
- }
- int[] unboxed = Ints.toArray(ints);
- Arrays.sort(unboxed);
- return unboxed;
- }
- }
-
-
-
-
- }
-
-  *
- *  Benchmark                                                      Mode    Samples    Score   Score error  Units
- b.c.b.t.b.roaringBitmap.RoaringIteratorBenchmark.testFlyweight    thrpt      200  17347.182      102.962  ops/s
- b.c.b.t.b.roaringBitmap.RoaringIteratorBenchmark.testStandard     thrpt      200  10302.179       53.562  ops/s
- *
  */
+
 
 public class IntIteratorFlyweight implements IntIterator {
 
@@ -156,22 +81,6 @@ public class IntIteratorFlyweight implements IntIterator {
       }
    }
 
-   public static void main(String[] args) {
-      RoaringBitmap b = new RoaringBitmap();
-
-      for (int i = 0; i < 100000; i++) {
-         b.add(i);
-      }
-
-      IntIteratorFlyweight iterator = new IntIteratorFlyweight();
-
-      iterator.wrap(b);
-
-      for (int i : b) {
-         System.out.println(b);
-      }
-
-   }
 
    public static class ArrayContainerShortIteratorFlyweight implements ShortIterator {
       int pos;
@@ -252,5 +161,79 @@ public class IntIteratorFlyweight implements IntIterator {
          throw new RuntimeException("unsupported operation: remove");
       }
    }
+
+   /**
+    *
+    * JMH Bencmark
+
+    public int  testStandard(RoaringState state) {
+
+    IntIterator intIterator = state.bitmap.getIntIterator();
+    int result =0;
+    while(intIterator.hasNext()) {
+    result = intIterator.next();
+
+    }
+    return result;
+
+    }
+
+
+    @Benchmark
+    public int  testFlyweight(RoaringState state) {
+
+    IntIteratorFlyweight intIterator = state.intIterator;
+
+    intIterator.wrap(state.bitmap);
+
+    int result =0;
+    while(intIterator.hasNext()) {
+    result = intIterator.next();
+
+    }
+    return result;
+
+    }
+
+
+
+    @State(Scope.Benchmark)
+    public static class RoaringState {
+
+    final Random source = new Random(0xcb000a2b9b5bdfb6l);
+    final int[] data = takeSortedAndDistinct(source, 10000);
+
+    final RoaringBitmap bitmap = RoaringBitmap.bitmapOf(data);
+
+    final IntIteratorFlyweight intIterator = new IntIteratorFlyweight();
+
+
+
+    private static int[] takeSortedAndDistinct(Random source, int count) {
+    LinkedHashSet<Integer> ints = new LinkedHashSet<Integer>(count);
+    for (int size = 0; size < count; size++) {
+    int next;
+    do {
+    next = Math.abs(source.nextInt());
+    } while (!ints.add(next));
+    }
+    int[] unboxed = Ints.toArray(ints);
+    Arrays.sort(unboxed);
+    return unboxed;
+    }
+    }
+
+
+
+
+    }
+
+     *
+     *  Benchmark                                                      Mode    Samples    Score   Score error  Units
+    b.c.b.t.b.roaringBitmap.RoaringIteratorBenchmark.testFlyweight    thrpt      200  17347.182      102.962  ops/s
+    b.c.b.t.b.roaringBitmap.RoaringIteratorBenchmark.testStandard     thrpt      200  10302.179       53.562  ops/s
+    *
+    */
+
 }
 
