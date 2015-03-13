@@ -18,6 +18,7 @@ import com.carrotsearch.junitbenchmarks.BenchmarkRule;
 
 public class TestBenchmarkIterator {
     static RoaringBitmap bitmap;
+    static IntIteratorFlyweight intIterator;
     static int result = 0;
 
     @Rule
@@ -36,7 +37,6 @@ public class TestBenchmarkIterator {
     @BenchmarkOptions(benchmarkRounds = 100, warmupRounds = 3)
     @Test
     public void testFlyweight() {
-        IntIteratorFlyweight intIterator = new IntIteratorFlyweight();
         intIterator.wrap(bitmap);
         while (intIterator.hasNext()) {
             result = intIterator.next();

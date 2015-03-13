@@ -14,7 +14,8 @@ This library is used by Apache Spark (https://spark.apache.org/) and
 Druid.io (http://druid.io/). Apache Lucene (http://lucene.apache.org/) uses  Roaring bitmaps, though they have their own independent implementation: https://svn.apache.org/viewvc/lucene/dev/branches/branch_5x/lucene/core/src/java/org/apache/lucene/util/RoaringDocIdSet.java?view=markup&pathrev=1629606
 
 
-(c) 2013-2014 Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, Björn Sperber, Seth Pellegrino
+(c) 2013-2015 Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, Björn Sperber, Seth Pellegrino, Borislav Ivanov
+
 
 This code is licensed under Apache License, Version 2.0 (ASL2.0). 
 

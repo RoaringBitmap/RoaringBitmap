@@ -1,15 +1,17 @@
+/*
+ * (c) Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, Björn Sperber, Borislav Ivanov
+ * Licensed under the Apache License, Version 2.0.
+ */
+
 package org.roaringbitmap;
 
 /**
- * This Iterator will let you go green and make your garbage collector suffer less.
+ * Fast iterator minimizing the stress on the garbage collector.
  *
  * You can create one reusable instance of this class and then {@link #wrap(RoaringBitmap)}
- *
- * I am aware of the code duplication and the VeryLongNamingOfTheIterators but in order
- * to fix this it will take to make a lot of changes to the other Iterators in this project as well.
- *
- */
-
+ * 
+ * @author  Borislav Ivanov
+ **/
 public class ReverseIntIteratorFlyweight implements IntIterator {
 
    private int hs;
