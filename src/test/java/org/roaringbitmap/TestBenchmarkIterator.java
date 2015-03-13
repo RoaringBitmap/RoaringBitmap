@@ -49,6 +49,8 @@ public class TestBenchmarkIterator {
         final Random source = new Random(0xcb000a2b9b5bdfb6l);
         final int[] data = takeSortedAndDistinct(source, 1000000);
         bitmap = RoaringBitmap.bitmapOf(data);
+        intIterator = new IntIteratorFlyweight();
+        
     }
 
     private static int[] takeSortedAndDistinct(Random source, int count) {
