@@ -27,7 +27,6 @@ public class TestBenchmarkIterator {
             H2_CONSUMER);
 
     @BenchmarkOptions(callgc = false,warmupRounds = 10,benchmarkRounds = 10)
- 
     @Test
     public void testStandard() {
         for(RoaringBitmap b : bitmap) {
@@ -38,6 +37,7 @@ public class TestBenchmarkIterator {
         }
     }
     
+    @BenchmarkOptions(callgc = false,warmupRounds = 10,benchmarkRounds = 10)
     @Test
     public void testFlyweight() {
         for(RoaringBitmap b : bitmap) {
@@ -47,7 +47,8 @@ public class TestBenchmarkIterator {
         }
         }
     }
-    @AfterClass
+    
+   @AfterClass
     public static void result() throws IOException {
         System.out.println("Ignore: "+result);
     }
@@ -68,7 +69,7 @@ public class TestBenchmarkIterator {
         for (int size = 0; size < count; size++) {
             int next;
             do {
-                next = Math.abs(source.nextInt());
+                next = Math.abs(source.nextInt()) & 0xFFFFFF;
             } while (!ints.add(next));
         }
         int[] unboxed = new int[ints.size()];
