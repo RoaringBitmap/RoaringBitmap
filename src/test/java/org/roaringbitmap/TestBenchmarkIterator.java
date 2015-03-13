@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Random;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -17,7 +18,7 @@ import com.carrotsearch.junitbenchmarks.BenchmarkOptions;
 import com.carrotsearch.junitbenchmarks.BenchmarkRule;
 
 public class TestBenchmarkIterator {
-    static RoaringBitmap bitmap;
+    static RoaringBitmap[] bitmap;
     static IntIteratorFlyweight intIterator;
     static int result = 0;
 
@@ -25,33 +26,42 @@ public class TestBenchmarkIterator {
     public TestRule benchmarkRun = new BenchmarkRule(CONSOLE_CONSUMER,
             H2_CONSUMER);
 
-    @BenchmarkOptions(warmupRounds = 3,benchmarkRounds = 50000)
+    @BenchmarkOptions(callgc = false,warmupRounds = 10,benchmarkRounds = 10)
+ 
     @Test
     public void testStandard() {
-        IntIterator intIterator = bitmap.getIntIterator();
-        while (intIterator.hasNext()) {
-            result = intIterator.next();
+        for(RoaringBitmap b : bitmap) {
+        IntIterator i = b.getIntIterator();
+        while (i.hasNext()) {
+            result += i.next();
+        }
         }
     }
-
-    @BenchmarkOptions(warmupRounds = 3,benchmarkRounds = 50000)
+    
     @Test
     public void testFlyweight() {
-        intIterator.wrap(bitmap);
+        for(RoaringBitmap b : bitmap) {
+        intIterator.wrap(b);
         while (intIterator.hasNext()) {
-            result = intIterator.next();
-
+            result += intIterator.next();
         }
+        }
+    }
+    @AfterClass
+    public static void result() throws IOException {
+        System.out.println("Ignore: "+result);
     }
 
     @BeforeClass
     public static void prepare() throws IOException {
         final Random source = new Random(0xcb000a2b9b5bdfb6l);
-        final int[] data = takeSortedAndDistinct(source, 1000);
-        bitmap = RoaringBitmap.bitmapOf(data);
+        bitmap = new RoaringBitmap[1000];
+        for(int k = 0; k < bitmap.length; ++k) {
+          final int[] data = takeSortedAndDistinct(source, 10000);
+          bitmap[k] = RoaringBitmap.bitmapOf(data);
+        }
         intIterator = new IntIteratorFlyweight();
-        
-    }
+     }
 
     private static int[] takeSortedAndDistinct(Random source, int count) {
         HashSet<Integer> ints = new HashSet<Integer>(count);
