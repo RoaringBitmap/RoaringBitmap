@@ -134,7 +134,6 @@ public class RunContainer extends Container implements Cloneable, Serializable {
     public void readExternal(ObjectInput in) throws IOException,
             ClassNotFoundException {
         deserialize(in);
-        
     }
 
     @Override
@@ -225,8 +224,17 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public void deserialize(DataInput in) throws IOException {
-        // TODO Auto-generated method stub
-        
+
+            byte[] buffer = new byte[2];
+            // little endian
+            in.readFully(buffer);
+            this.cardinality = (buffer[0] & 0xFF) | ((buffer[1] & 0xFF) << 8);
+            if (this.content.length < this.cardinality)
+                this.content = new short[this.cardinality];
+            for (int k = 0; k < this.cardinality; ++k) {
+                in.readFully(buffer);
+                this.content[k] = (short) (((buffer[1] & 0xFF) << 8) | (buffer[0] & 0xFF));
+            }
     }
 
     @Override

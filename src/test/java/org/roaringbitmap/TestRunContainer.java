@@ -147,7 +147,7 @@ public class TestRunContainer {
     public void longbacksimpleIterator() {
         RunContainer x = new RunContainer();
         for(int k = 0; k < (1<<16);++k) {
-              x = (RunContainer)x.add((short)(k));
+              x = (RunContainer)x.add((short)k);
         }
         ShortIterator i = x.getReverseShortIterator();
         for(int k = (1<<16)-1; k >=0 ;--k) {
@@ -161,7 +161,7 @@ public class TestRunContainer {
     public void longcsimpleIterator() {
         RunContainer x = new RunContainer();
         for(int k = 0; k < (1<<16);++k) {
-              x = (RunContainer)x.add((short)(k));
+              x = (RunContainer)x.add((short)k);
         }
         Iterator i = x.iterator();
         for(int k = 0; k < (1<<16);++k) {
