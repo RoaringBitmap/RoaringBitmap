@@ -17,6 +17,17 @@ import java.util.*;
 public class TestRoaringBitmap {
     
     @Test
+    public void testSetUtilIntersection() {
+        short  data1[] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18};
+        short  data2[] = {0, 3, 6, 9, 12, 15, 18};
+        short  result[] = new short[data1.length+data2.length];
+        short  expectedresult[] = {0, 6, 12, 18};
+        int nl = Util.unsignedLocalIntersect2by2(data1, data1.length, data2, data2.length, result);
+        result = Arrays.copyOf(result, nl);
+        Assert.assertTrue(Arrays.equals(expectedresult, result));
+    }
+    
+    @Test
     public void testXORSimple() {
             RoaringBitmap a = RoaringBitmap.bitmapOf(73647, 83469);
             RoaringBitmap b = RoaringBitmap.bitmapOf(1, 2, 3, 5, 6, 8, 9, 10, 11, 13, 14, 16, 17, 18, 19, 20, 21, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 39, 40, 41, 50, 51, 69, 79, 80, 81, 88, 89, 172);
