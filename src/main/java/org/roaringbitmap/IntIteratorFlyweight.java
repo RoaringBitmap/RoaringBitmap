@@ -18,8 +18,8 @@ public class IntIteratorFlyweight implements IntIterator {
 
    private ShortIterator iter;
 
-   private ArrayContainerShortIteratorFlyweight arrIter = new ArrayContainerShortIteratorFlyweight();
-   private BitmapContainerShortIteratorFlyweight bitmapIter = new BitmapContainerShortIteratorFlyweight();
+   private ArrayContainerShortIterator arrIter = new ArrayContainerShortIterator();
+   private BitmapContainerShortIterator bitmapIter = new BitmapContainerShortIterator();
 
    private int pos;
 
@@ -80,88 +80,6 @@ public class IntIteratorFlyweight implements IntIterator {
          return null;// will not happen
       }
    }
-
-
-   public static class ArrayContainerShortIteratorFlyweight implements ShortIterator {
-      int pos;
-
-      private ArrayContainer arrayContainer;
-
-      public void wrap(ArrayContainer c) {
-         arrayContainer = c;
-         pos = 0;
-      }
-
-      @Override
-      public boolean hasNext() {
-         return pos < arrayContainer.cardinality;
-      }
-
-      @Override
-      public short next() {
-         return arrayContainer.content[pos++];
-      }
-
-      @Override
-      public ShortIterator clone() {
-         try {
-            return (ShortIterator) super.clone();
-         } catch (CloneNotSupportedException e) {
-            return null;// will not happen
-         }
-      }
-
-      @Override
-      public void remove() {
-         arrayContainer.remove((short) (pos - 1));
-         pos--;
-      }
-
-   }
-
-   public static class BitmapContainerShortIteratorFlyweight implements ShortIterator {
-
-      int i;
-      int j;
-      int max;
-
-      BitmapContainer bitmapContainer = null;
-
-      public void wrap(BitmapContainer c) {
-         bitmapContainer = c;
-         i = bitmapContainer.nextSetBit(0);
-         max = bitmapContainer.bitmap.length * 64 - 1;
-
-      }
-
-      @Override
-      public boolean hasNext() {
-         return i >= 0;
-      }
-
-      @Override
-      public short next() {
-         j = i;
-         i = i < max ? bitmapContainer.nextSetBit(i + 1) : -1;
-         return (short) j;
-      }
-
-      @Override
-      public ShortIterator clone() {
-         try {
-            return (ShortIterator) super.clone();
-         } catch (CloneNotSupportedException e) {
-            return null;// will not happen
-         }
-      }
-
-      @Override
-      public void remove() {
-         //TODO: implement
-         throw new RuntimeException("unsupported operation: remove");
-      }
-   }
-
 
 }
 

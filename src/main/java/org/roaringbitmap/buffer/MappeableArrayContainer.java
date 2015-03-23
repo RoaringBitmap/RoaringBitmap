@@ -776,6 +776,10 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 class MappeableArrayContainerShortIterator implements ShortIterator {
     int pos;
     MappeableArrayContainer parent;
+
+    public MappeableArrayContainerShortIterator() {
+    }
+
     
     public MappeableArrayContainerShortIterator(MappeableArrayContainer p) {
         wrap(p);
@@ -818,6 +822,10 @@ class ReverseMappeableArrayContainerShortIterator implements ShortIterator {
     int pos;
     MappeableArrayContainer parent;
 
+    public ReverseMappeableArrayContainerShortIterator() {
+    }
+
+    
     public ReverseMappeableArrayContainerShortIterator(MappeableArrayContainer p) {
         wrap(p);
     }
@@ -826,6 +834,7 @@ class ReverseMappeableArrayContainerShortIterator implements ShortIterator {
         parent = p;
         pos = parent.cardinality - 1;
     }
+    
     @Override
     public boolean hasNext() {
         return pos >= 0;

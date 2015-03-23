@@ -618,6 +618,9 @@ class ArrayContainerShortIterator implements ShortIterator {
     int pos;
     ArrayContainer parent;
     
+    public ArrayContainerShortIterator() {
+    }
+    
     public ArrayContainerShortIterator(ArrayContainer p) {
         wrap(p);
     }
@@ -657,7 +660,10 @@ class ArrayContainerShortIterator implements ShortIterator {
 class ReverseArrayContainerShortIterator implements ShortIterator {
     int pos;
     ArrayContainer parent;
-
+    
+    public ReverseArrayContainerShortIterator() {
+    }
+    
     public ReverseArrayContainerShortIterator(ArrayContainer p) {
         wrap(p);
     }

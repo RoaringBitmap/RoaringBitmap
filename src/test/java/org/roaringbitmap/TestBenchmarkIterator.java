@@ -29,25 +29,37 @@ public class TestBenchmarkIterator {
     @BenchmarkOptions(callgc = false,warmupRounds = 10,benchmarkRounds = 10)
     @Test
     public void testStandard() {
-        for(RoaringBitmap b : bitmap) {
-        IntIterator i = b.getIntIterator();
-        while (i.hasNext()) {
-            result += i.next();
+        for (RoaringBitmap b : bitmap) {
+            IntIterator i = b.getIntIterator();
+            while (i.hasNext()) {
+                result += i.next();
+            }
         }
+    }
+    
+    @BenchmarkOptions(callgc = false,warmupRounds = 10,benchmarkRounds = 10)
+    @Test
+    public void testReinstantiatedFlyweight() {
+        for (RoaringBitmap b : bitmap) {
+            IntIteratorFlyweight i = new IntIteratorFlyweight();
+            i.wrap(b);
+            while (i.hasNext()) {
+                result += i.next();
+            }
         }
     }
     
     @BenchmarkOptions(callgc = false,warmupRounds = 10,benchmarkRounds = 10)
     @Test
     public void testFlyweight() {
-        for(RoaringBitmap b : bitmap) {
-        intIterator.wrap(b);
-        while (intIterator.hasNext()) {
-            result += intIterator.next();
-        }
+        for (RoaringBitmap b : bitmap) {
+            intIterator.wrap(b);
+            while (intIterator.hasNext()) {
+                result += intIterator.next();
+            }
         }
     }
-    
+
    @AfterClass
     public static void result() throws IOException {
         System.out.println("Ignore: "+result);

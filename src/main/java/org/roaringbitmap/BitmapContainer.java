@@ -833,6 +833,8 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
 class BitmapContainerShortIterator implements ShortIterator {
     int i;
     BitmapContainer parent;
+    public BitmapContainerShortIterator() {}
+
     public BitmapContainerShortIterator(BitmapContainer p) {
         wrap(p);
     }
@@ -874,6 +876,9 @@ class BitmapContainerShortIterator implements ShortIterator {
 class ReverseBitmapContainerShortIterator implements ShortIterator {
     int i;
     BitmapContainer parent;
+    public ReverseBitmapContainerShortIterator() {
+    }
+
     public ReverseBitmapContainerShortIterator(BitmapContainer p) {
         wrap(p);
     }
