@@ -276,68 +276,12 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     @Override
     public ShortIterator getShortIterator() {
-        return new ShortIterator() {
-            int pos = 0;
-
-            @Override
-            public boolean hasNext() {
-                return pos < MappeableArrayContainer.this.cardinality;
-            }
-
-            @Override
-            public short next() {
-                return MappeableArrayContainer.this.content.get(pos++);
-            }
-
-            @Override
-            public ShortIterator clone() {
-                try {
-                    return (ShortIterator) super.clone();
-                } catch (CloneNotSupportedException e) {
-                    return null;// will not happen
-                }
-            }
-
-            @Override
-            public void remove() {
-                MappeableArrayContainer.this.remove((short) (pos - 1));
-                pos--;                
-            }
-
-        };
+        return new MappeableArrayContainerShortIterator(this);
     }
 
     @Override
     public ShortIterator getReverseShortIterator() {
-        return new ShortIterator() {
-            int pos = MappeableArrayContainer.this.cardinality - 1;
-
-            @Override
-            public boolean hasNext() {
-                return pos >= 0;
-            }
-
-            @Override
-            public short next() {
-                return MappeableArrayContainer.this.content.get(pos--);
-            }
-
-            @Override
-            public ShortIterator clone() {
-                try {
-                    return (ShortIterator) super.clone();
-                } catch (CloneNotSupportedException e) {
-                    return null;// will not happen
-                }
-            }
-
-            @Override
-            public void remove() {
-                MappeableArrayContainer.this.remove((short) (pos + 1));
-                pos++;
-            }
-
-        };
+        return new ReverseMappeableArrayContainerShortIterator(this);
     }
 
     @Override
@@ -826,3 +770,86 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
 }
+
+
+
+class MappeableArrayContainerShortIterator implements ShortIterator {
+    int pos;
+    MappeableArrayContainer parent;
+    
+    public MappeableArrayContainerShortIterator(MappeableArrayContainer p) {
+        wrap(p);
+    }
+    
+    public void wrap(MappeableArrayContainer p) {
+        parent = p;
+        pos = 0;
+    }
+
+    @Override
+    public boolean hasNext() {
+        return pos < parent.cardinality;
+    }
+
+    @Override
+    public short next() {
+        return parent.content.get(pos++);
+    }
+
+    @Override
+    public ShortIterator clone() {
+        try {
+            return (ShortIterator) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return null;// will not happen
+        }
+    }
+
+    @Override
+    public void remove() {
+        parent.remove((short) (pos - 1));
+        pos--;                
+    }
+
+}
+
+
+class ReverseMappeableArrayContainerShortIterator implements ShortIterator {
+    int pos;
+    MappeableArrayContainer parent;
+
+    public ReverseMappeableArrayContainerShortIterator(MappeableArrayContainer p) {
+        wrap(p);
+    }
+    
+    public void wrap(MappeableArrayContainer p) {
+        parent = p;
+        pos = parent.cardinality - 1;
+    }
+    @Override
+    public boolean hasNext() {
+        return pos >= 0;
+    }
+
+    @Override
+    public short next() {
+        return parent.content.get(pos--);
+    }
+
+    @Override
+    public ShortIterator clone() {
+        try {
+            return (ShortIterator) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return null;// will not happen
+        }
+    }
+
+    @Override
+    public void remove() {
+        parent.remove((short) (pos + 1));
+        pos++;
+    }
+
+}
+

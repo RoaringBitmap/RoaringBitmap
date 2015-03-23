@@ -194,73 +194,17 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
 
     @Override
     public ShortIterator getShortIterator() {
-        return new ShortIterator() {
-            int pos = 0;
-
-            @Override
-            public boolean hasNext() {
-                return pos < ArrayContainer.this.cardinality;
-            }
-
-            @Override
-            public short next() {
-                return ArrayContainer.this.content[pos++];
-            }
-            
-            @Override
-            public ShortIterator clone() {
-                try {
-                    return (ShortIterator) super.clone();
-                } catch (CloneNotSupportedException e) {
-                    return null;// will not happen
-                }
-            }
-
-            @Override
-            public void remove() {
-                ArrayContainer.this.remove((short) (pos - 1));
-                pos--;
-            }
-
-        };
+        return new ArrayContainerShortIterator(this);
     }
 
     @Override
     public ShortIterator getReverseShortIterator() {
-        return new ShortIterator() {
-            int pos = ArrayContainer.this.cardinality - 1;
-
-            @Override
-            public boolean hasNext() {
-                return pos >= 0;
-            }
-
-            @Override
-            public short next() {
-                return ArrayContainer.this.content[pos--];
-            }
-
-            @Override
-            public ShortIterator clone() {
-                try {
-                    return (ShortIterator) super.clone();
-                } catch (CloneNotSupportedException e) {
-                    return null;// will not happen
-                }
-            }
-
-            @Override
-            public void remove() {
-                ArrayContainer.this.remove((short) (pos + 1));
-                pos++;
-            }
-        };
+        return new ReverseArrayContainerShortIterator(this);
     }
 
     @Override
     public int getSizeInBytes() {
         return this.cardinality * 2 + 4;
-
     }
 
     @Override
@@ -666,5 +610,85 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
             return new ArrayContainer(maxcardinality, this.content);
         else
             return clone();
+    }
+}
+
+
+class ArrayContainerShortIterator implements ShortIterator {
+    int pos;
+    ArrayContainer parent;
+    
+    public ArrayContainerShortIterator(ArrayContainer p) {
+        wrap(p);
+    }
+    
+    public void wrap(ArrayContainer p) {
+        parent = p;
+        pos = 0;
+    }
+
+    @Override
+    public boolean hasNext() {
+        return pos < parent.cardinality;
+    }
+
+    @Override
+    public short next() {
+        return parent.content[pos++];
+    }
+    
+    @Override
+    public ShortIterator clone() {
+        try {
+            return (ShortIterator) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return null;// will not happen
+        }
+    }
+
+    @Override
+    public void remove() {
+        parent.remove((short) (pos - 1));
+        pos--;
+    }
+
+};
+
+class ReverseArrayContainerShortIterator implements ShortIterator {
+    int pos;
+    ArrayContainer parent;
+
+    public ReverseArrayContainerShortIterator(ArrayContainer p) {
+        wrap(p);
+    }
+    
+    public void wrap(ArrayContainer p) {
+        parent = p;
+        pos = parent.cardinality - 1;
+    }
+
+    @Override
+    public boolean hasNext() {
+        return pos >= 0;
+    }
+
+    @Override
+    public short next() {
+        return parent.content[pos--];
+    }
+
+    @Override
+    public ShortIterator clone() {
+        try {
+            return (ShortIterator) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return null;// will not happen
+        }
+    }
+
+    @Override
+    public void remove() {
+        parent.remove((short) (pos + 1));
+        pos++;
     }
 }

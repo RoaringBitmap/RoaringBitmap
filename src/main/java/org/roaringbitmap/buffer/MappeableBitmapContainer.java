@@ -5,6 +5,7 @@
 
 package org.roaringbitmap.buffer;
 
+import org.roaringbitmap.BitmapContainer;
 import org.roaringbitmap.ShortIterator;
 import org.roaringbitmap.Util;
 
@@ -341,78 +342,12 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     @Override
     public ShortIterator getShortIterator() {
-        return new ShortIterator() {
-            int i = MappeableBitmapContainer.this.nextSetBit(0);
-            int max = MappeableBitmapContainer.this.bitmap.limit() * 64 - 1;
-            int j;
-
-            @Override
-            public boolean hasNext() {
-                return i >= 0;
-            }
-
-            @Override
-            public short next() {
-                j = i;
-                i = i < max ? MappeableBitmapContainer.this.nextSetBit(i + 1) : -1;
-                return (short) j;
-            }
-            
-            @Override
-            public ShortIterator clone() {
-                try {
-                    return (ShortIterator) super.clone();
-                } catch (CloneNotSupportedException e) {
-                    return null;// will not happen
-                }
-            }
-
-            @Override
-            public void remove() {
-                //TODO: implement
-                throw new RuntimeException("unsupported operation: remove");                
-            }
-
-            
-        };
+        return new MappeableBitmapContainerShortIterator(this);
     }
 
     @Override
     public ShortIterator getReverseShortIterator() {
-        return new ShortIterator() {
-            int i = MappeableBitmapContainer.this.prevSetBit(64 * MappeableBitmapContainer.this.bitmap.limit() - 1);
-
-            int j;
-
-            @Override
-            public boolean hasNext() {
-                return i >= 0;
-            }
-
-            @Override
-            public short next() {
-                j = i;
-                i = i > 0 ? MappeableBitmapContainer.this.prevSetBit(i - 1) : -1;
-                return (short) j;
-            }
-
-            @Override
-            public ShortIterator clone() {
-                try {
-                    return (ShortIterator) super.clone();
-                } catch (CloneNotSupportedException e) {
-                    return null;// will not happen
-                }
-            }
-
-            @Override
-            public void remove() {
-                //TODO: implement
-                throw new RuntimeException("unsupported operation: remove");
-            }
-
-
-        };
+        return new ReverseMappeableBitmapContainerShortIterator(this);
     }
 
     @Override
@@ -1181,4 +1116,85 @@ public final class MappeableBitmapContainer extends MappeableContainer
         return bc;
     }
 
+}
+
+class MappeableBitmapContainerShortIterator implements ShortIterator {
+    int i;
+    MappeableBitmapContainer parent;
+    public MappeableBitmapContainerShortIterator(MappeableBitmapContainer p) {
+        wrap(p);
+    }
+
+    public void wrap(MappeableBitmapContainer p) {
+        parent = p;
+        i = parent.nextSetBit(0);
+    }
+
+    @Override
+    public boolean hasNext() {
+        return i >= 0;
+    }
+
+    @Override
+    public short next() {
+        final int j = i;
+        i = i + 1 < parent.bitmap.limit() * 64 ? parent.nextSetBit(i + 1) : -1;
+        return (short) j;
+    }
+
+    @Override
+    public ShortIterator clone() {
+        try {
+            return (ShortIterator) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return null;// will not happen
+        }
+    }
+
+    @Override
+    public void remove() {
+        //TODO: implement
+        throw new RuntimeException("unsupported operation: remove");
+    }
+}
+
+
+class ReverseMappeableBitmapContainerShortIterator implements ShortIterator {
+    int i;
+    MappeableBitmapContainer parent;
+    public ReverseMappeableBitmapContainerShortIterator(MappeableBitmapContainer p) {
+        wrap(p);
+    }
+
+    public void wrap(MappeableBitmapContainer p) {
+        parent = p;
+        i = parent.prevSetBit(parent.bitmap.limit() * 64 - 1);
+    }
+
+    @Override
+    public boolean hasNext() {
+        return i >= 0;
+    }
+
+    @Override
+    public short next() {
+        final int j = i;
+        i = i > 0 ? parent.prevSetBit(i - 1) : -1;
+        return (short) j;
+    }
+
+    @Override
+    public ShortIterator clone() {
+        try {
+            return (ShortIterator) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public void remove() {
+        //TODO: implement
+        throw new RuntimeException("unsupported operation: remove");
+    }
 }
