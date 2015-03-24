@@ -1,12 +1,14 @@
+/*
+ * (c) the authors
+ * Licensed under the Apache License, Version 2.0.
+ */
+
 package org.roaringbitmap;
 
 import static org.roaringbitmap.buffer.BenchmarkConsumers.CONSOLE_CONSUMER;
 import static org.roaringbitmap.buffer.BenchmarkConsumers.H2_CONSUMER;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Random;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;

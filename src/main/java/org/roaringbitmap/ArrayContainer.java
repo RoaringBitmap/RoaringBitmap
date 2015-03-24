@@ -614,18 +614,18 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
 }
 
 
-class ArrayContainerShortIterator implements ShortIterator {
+final class ArrayContainerShortIterator implements ShortIterator {
     int pos;
     ArrayContainer parent;
     
-    public ArrayContainerShortIterator() {
+    ArrayContainerShortIterator() {
     }
     
-    public ArrayContainerShortIterator(ArrayContainer p) {
+    ArrayContainerShortIterator(ArrayContainer p) {
         wrap(p);
     }
     
-    public void wrap(ArrayContainer p) {
+    void wrap(ArrayContainer p) {
         parent = p;
         pos = 0;
     }
@@ -657,18 +657,18 @@ class ArrayContainerShortIterator implements ShortIterator {
 
 };
 
-class ReverseArrayContainerShortIterator implements ShortIterator {
+final class ReverseArrayContainerShortIterator implements ShortIterator {
     int pos;
     ArrayContainer parent;
     
-    public ReverseArrayContainerShortIterator() {
+    ReverseArrayContainerShortIterator() {
     }
     
-    public ReverseArrayContainerShortIterator(ArrayContainer p) {
+    ReverseArrayContainerShortIterator(ArrayContainer p) {
         wrap(p);
     }
     
-    public void wrap(ArrayContainer p) {
+    void wrap(ArrayContainer p) {
         parent = p;
         pos = parent.cardinality - 1;
     }

@@ -1118,14 +1118,19 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
 }
 
-class MappeableBitmapContainerShortIterator implements ShortIterator {
+final class MappeableBitmapContainerShortIterator implements ShortIterator {
     int i;
+    
     MappeableBitmapContainer parent;
-    public MappeableBitmapContainerShortIterator(MappeableBitmapContainer p) {
+
+    MappeableBitmapContainerShortIterator() {
+    }
+
+    MappeableBitmapContainerShortIterator(MappeableBitmapContainer p) {
         wrap(p);
     }
 
-    public void wrap(MappeableBitmapContainer p) {
+    void wrap(MappeableBitmapContainer p) {
         parent = p;
         i = parent.nextSetBit(0);
     }
@@ -1159,10 +1164,16 @@ class MappeableBitmapContainerShortIterator implements ShortIterator {
 }
 
 
-class ReverseMappeableBitmapContainerShortIterator implements ShortIterator {
+final class ReverseMappeableBitmapContainerShortIterator implements ShortIterator {
+    
     int i;
+
     MappeableBitmapContainer parent;
-    public ReverseMappeableBitmapContainerShortIterator(MappeableBitmapContainer p) {
+    
+    ReverseMappeableBitmapContainerShortIterator() {
+    }
+    
+    ReverseMappeableBitmapContainerShortIterator(MappeableBitmapContainer p) {
         wrap(p);
     }
 

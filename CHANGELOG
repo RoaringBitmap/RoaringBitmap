@@ -2,6 +2,7 @@ upcoming
  - Moved select method in the right interface
  - Fixed possible bug due to arrayOffset
  - Fixed potential issue with trim() on array container
+ - Added Flyweight iterators to minimize stress on garbage collector when iterating over many long bitmaps (Borislav Ivanov)
 
 version 0.4.8
  - Fixed poor hash functions

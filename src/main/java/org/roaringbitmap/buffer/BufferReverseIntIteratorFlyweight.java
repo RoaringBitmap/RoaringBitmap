@@ -3,36 +3,39 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-package org.roaringbitmap;
+package org.roaringbitmap.buffer;
+
+import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.ShortIterator;
 
 /**
  * Fast iterator minimizing the stress on the garbage collector.
- * You can create one reusable instance of this class and then {@link #wrap(RoaringBitmap)}
+ * You can create one reusable instance of this class and then {@link #wrap(ImmutableRoaringBitmap)}
  * 
  * This iterator enumerates the stored values in reverse (starting from the end).
  * 
  * @author  Borislav Ivanov
  **/
-public class ReverseIntIteratorFlyweight implements IntIterator {
+public class BufferReverseIntIteratorFlyweight implements IntIterator {
 
    private int hs;
 
    private ShortIterator iter;
 
-   private ReverseArrayContainerShortIterator arrIter = new ReverseArrayContainerShortIterator();
+   private ReverseMappeableArrayContainerShortIterator arrIter = new ReverseMappeableArrayContainerShortIterator();
    
-   private ReverseBitmapContainerShortIterator bitmapIter = new ReverseBitmapContainerShortIterator();
+   private ReverseMappeableBitmapContainerShortIterator bitmapIter = new ReverseMappeableBitmapContainerShortIterator();
 
    private short pos;
 
-   private RoaringBitmap roaringBitmap = null;
+   private ImmutableRoaringBitmap roaringBitmap = null;
 
 
    /**
     * Creates an instance that is not ready for iteration. You must first call
-    * {@link #wrap(RoaringBitmap)}.
+    * {@link #wrap(ImmutableRoaringBitmap)}.
     */
-   public ReverseIntIteratorFlyweight() {
+   public BufferReverseIntIteratorFlyweight() {
 
    }
 
@@ -42,7 +45,7 @@ public class ReverseIntIteratorFlyweight implements IntIterator {
     * @param r
     *            bitmap to be iterated over
     */
-   public ReverseIntIteratorFlyweight(RoaringBitmap r) {
+   public BufferReverseIntIteratorFlyweight(ImmutableRoaringBitmap r) {
 
    }  
  
@@ -50,7 +53,7 @@ public class ReverseIntIteratorFlyweight implements IntIterator {
     * Prepares a bitmap for iteration
     * @param r
     */
-   public void wrap(RoaringBitmap r) {
+   public void wrap(ImmutableRoaringBitmap r) {
       this.roaringBitmap = r;
       this.hs = 0;
       this.pos = (short) (this.roaringBitmap.highLowContainer.size() - 1);
@@ -70,23 +73,23 @@ public class ReverseIntIteratorFlyweight implements IntIterator {
 
       if (pos >= 0) {
 
-         Container container = this.roaringBitmap.highLowContainer.getContainerAtIndex(pos);
+          MappeableContainer container = this.roaringBitmap.highLowContainer.getContainerAtIndex(pos);
 
-         if (container instanceof BitmapContainer) {
-            bitmapIter.wrap((BitmapContainer) container);
+         if (container instanceof MappeableBitmapContainer) {
+            bitmapIter.wrap((MappeableBitmapContainer) container);
             iter = bitmapIter;
          } else {
-            arrIter.wrap((ArrayContainer) container);
+            arrIter.wrap((MappeableArrayContainer) container);
             iter = arrIter;
          }
 
-         hs = Util.toIntUnsigned(this.roaringBitmap.highLowContainer.getKeyAtIndex(pos)) << 16;
+         hs = BufferUtil.toIntUnsigned(this.roaringBitmap.highLowContainer.getKeyAtIndex(pos)) << 16;
       }
    }
 
    @Override
    public int next() {
-      final int x = Util.toIntUnsigned(iter.next()) | hs;
+      final int x = BufferUtil.toIntUnsigned(iter.next()) | hs;
       if (!iter.hasNext()) {
          --pos;
          nextContainer();
@@ -97,7 +100,7 @@ public class ReverseIntIteratorFlyweight implements IntIterator {
    @Override
    public IntIterator clone() {
       try {
-         ReverseIntIteratorFlyweight x = (ReverseIntIteratorFlyweight) super.clone();
+         BufferReverseIntIteratorFlyweight x = (BufferReverseIntIteratorFlyweight) super.clone();
          x.iter = this.iter.clone();
          return x;
       } catch (CloneNotSupportedException e) {

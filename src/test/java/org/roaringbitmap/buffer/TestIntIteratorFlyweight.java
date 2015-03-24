@@ -4,13 +4,16 @@
  */
 
 
-package org.roaringbitmap;
+package org.roaringbitmap.buffer;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
+
 import org.junit.Assert;
 import org.junit.Test;
+import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.ShortIterator;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -20,10 +23,10 @@ import java.util.Random;
 public class TestIntIteratorFlyweight {
     @Test
     public void testEmptyIteration() {
-        IntIteratorFlyweight iter = new IntIteratorFlyweight();
-        ReverseIntIteratorFlyweight reverseIter = new ReverseIntIteratorFlyweight();
+        BufferIntIteratorFlyweight iter = new BufferIntIteratorFlyweight();
+        BufferReverseIntIteratorFlyweight reverseIter = new BufferReverseIntIteratorFlyweight();
 
-        RoaringBitmap bitmap = RoaringBitmap.bitmapOf();
+        MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf();
         iter.wrap(bitmap);
         reverseIter.wrap(bitmap);
         Assert.assertFalse(iter.hasNext());
@@ -33,12 +36,12 @@ public class TestIntIteratorFlyweight {
 
     @Test
     public void testSmallIteration() {
-        RoaringBitmap bitmap = RoaringBitmap.bitmapOf(1, 2, 3);
+        MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(1, 2, 3);
 
-        IntIteratorFlyweight iter = new IntIteratorFlyweight();
+        BufferIntIteratorFlyweight iter = new BufferIntIteratorFlyweight();
         iter.wrap(bitmap);
 
-        ReverseIntIteratorFlyweight reverseIter = new ReverseIntIteratorFlyweight();
+        BufferReverseIntIteratorFlyweight reverseIter = new BufferReverseIntIteratorFlyweight();
         reverseIter.wrap(bitmap);
 
         final List<Integer> intIteratorCopy = asList(iter);
@@ -53,12 +56,12 @@ public class TestIntIteratorFlyweight {
     public void testIteration() {
         final Random source = new Random(0xcb000a2b9b5bdfb6l);
         final int[] data = takeSortedAndDistinct(source, 450000);
-        RoaringBitmap bitmap = RoaringBitmap.bitmapOf(data);
+        MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(data);
 
-        IntIteratorFlyweight iter = new IntIteratorFlyweight();
+        BufferIntIteratorFlyweight iter = new BufferIntIteratorFlyweight();
         iter.wrap(bitmap);
 
-        ReverseIntIteratorFlyweight reverseIter = new ReverseIntIteratorFlyweight();
+        BufferReverseIntIteratorFlyweight reverseIter = new BufferReverseIntIteratorFlyweight();
         reverseIter.wrap(bitmap);
 
         final List<Integer> intIteratorCopy = asList(iter);

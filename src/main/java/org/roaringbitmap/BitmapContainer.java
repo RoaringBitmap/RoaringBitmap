@@ -830,12 +830,15 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
     }
 }
 
-class BitmapContainerShortIterator implements ShortIterator {
+final class BitmapContainerShortIterator implements ShortIterator {
+    
     int i;
+    
     BitmapContainer parent;
-    public BitmapContainerShortIterator() {}
+    
+    BitmapContainerShortIterator() {}
 
-    public BitmapContainerShortIterator(BitmapContainer p) {
+    BitmapContainerShortIterator(BitmapContainer p) {
         wrap(p);
     }
 
@@ -873,17 +876,20 @@ class BitmapContainerShortIterator implements ShortIterator {
 }
 
 
-class ReverseBitmapContainerShortIterator implements ShortIterator {
+final class ReverseBitmapContainerShortIterator implements ShortIterator {
+    
     int i;
+    
     BitmapContainer parent;
-    public ReverseBitmapContainerShortIterator() {
+    
+    ReverseBitmapContainerShortIterator() {
     }
 
-    public ReverseBitmapContainerShortIterator(BitmapContainer p) {
+    ReverseBitmapContainerShortIterator(BitmapContainer p) {
         wrap(p);
     }
 
-    public void wrap(BitmapContainer p) {
+    void wrap(BitmapContainer p) {
         parent = p;
         i = parent.prevSetBit(parent.bitmap.length * 64 - 1);
     }

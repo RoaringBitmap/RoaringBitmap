@@ -1,5 +1,5 @@
 /*
- * (c) Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, Björn Sperber
+ * (c) the authors
  * Licensed under the Apache License, Version 2.0.
  */
 
@@ -11,7 +11,6 @@ import org.roaringbitmap.ShortIterator;
 
 import java.util.Arrays;
 
-import junit.framework.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 

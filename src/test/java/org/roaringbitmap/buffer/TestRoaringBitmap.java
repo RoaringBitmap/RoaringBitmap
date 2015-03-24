@@ -1,5 +1,5 @@
 /*
- * (c) Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, Björn Sperber
+ * (c) the authors
  * Licensed under the Apache License, Version 2.0.
  */
 
@@ -9,7 +9,6 @@ package org.roaringbitmap.buffer;
 import org.junit.Assert;
 import org.junit.Test;
 import org.roaringbitmap.IntIterator;
-import org.roaringbitmap.Util;
 
 import java.io.*;
 import java.nio.ByteBuffer;
