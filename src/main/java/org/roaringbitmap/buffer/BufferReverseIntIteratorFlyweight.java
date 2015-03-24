@@ -51,7 +51,7 @@ public class BufferReverseIntIteratorFlyweight implements IntIterator {
  
    /**
     * Prepares a bitmap for iteration
-    * @param r
+    * @param r bitmap to be iterated over
     */
    public void wrap(ImmutableRoaringBitmap r) {
       this.roaringBitmap = r;
