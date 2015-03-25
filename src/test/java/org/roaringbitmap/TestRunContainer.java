@@ -49,6 +49,7 @@ public class TestRunContainer {
         for(int k = 0; k < (1<<16);++k) {
             RunContainer copy = (RunContainer) x.clone();
             copy = (RunContainer) copy.remove((short) k);
+            assertEquals(copy.getCardinality() + 1,x.getCardinality());
             copy = (RunContainer) copy.add((short) k);
             assertEquals(copy.getCardinality(),x.getCardinality());
             assertTrue(copy.equals(x));
