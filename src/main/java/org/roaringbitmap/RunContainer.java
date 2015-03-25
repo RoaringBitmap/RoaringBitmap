@@ -243,14 +243,18 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public void fillLeastSignificant16bits(int[] x, int i, int mask) {
-        // TODO Auto-generated method stub
-        
+        int pos = 0;
+        for (int k = 0; k < this.nbrruns; ++k) {
+            for(int le = 0; le <= this.getLength(k); ++le) {
+              x[k + pos] = (Util.toIntUnsigned(this.getValue(k)) + le) | mask;
+              pos++;
+            }
+        }
     }
 
     @Override
     protected int getArraySizeInBytes() {
-        // TODO Auto-generated method stub
-        return 0;
+        return 2 + 4 * this.nbrruns;
     }
 
     @Override
@@ -423,20 +427,46 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public int rank(short lowbits) {
-        // TODO Auto-generated method stub
-        return 0;
+        int answer = 0;
+        for (int k = 0; k < this.nbrruns; ++k) {
+            if(getValue(k) + getLength(k) + 1 < lowbits ) {
+                answer += getLength(k) + 1;
+            } else if (lowbits < getValue(k)) {
+                return answer;
+            } else if (getValue(k) + getLength(k) + 1 >= lowbits) {
+                return answer +  lowbits  - getValue(k) + 1; 
+            }
+        }
+        return answer;
     }
 
     @Override
     public short select(int j) {
-        // TODO Auto-generated method stub
-        return 0;
+        int card = 0;
+        for (int k = 0; k < this.nbrruns; ++k) {
+            if(card + getLength(k) > j ) {
+                return (short)(getValue(j) + (j - card));
+            }
+            card += getLength(k) + 1;
+        }
+        throw new IllegalArgumentException("Cannot select "+j+" since cardinality is "+getCardinality());        
     }
 
     @Override
     public Container limit(int maxcardinality) {
-        // TODO Auto-generated method stub
-        return null;
+        int card = 0;
+        for (int k = 0; k < this.nbrruns; ++k) {
+            if(card  >= maxcardinality) {
+                // need to remove...
+                this.nbrruns--;
+                break;
+            } else if(card + getLength(k) + 1 > maxcardinality) {
+                setLength(k,(short) (maxcardinality - 1 - card));
+                break;
+            }
+            card += getLength(k) + 1;
+        }
+        return this;
     }
     
 
