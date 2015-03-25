@@ -1,15 +1,14 @@
+/*
+ * (c) the authors
+ * Licensed under the Apache License, Version 2.0.
+ */
 package org.roaringbitmap;
 
 import static org.roaringbitmap.buffer.BenchmarkConsumers.CONSOLE_CONSUMER;
 import static org.roaringbitmap.buffer.BenchmarkConsumers.H2_CONSUMER;
 
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
+
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.Arrays;
 
 import org.junit.BeforeClass;

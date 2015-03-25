@@ -3,51 +3,54 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-package org.roaringbitmap.buffer;
 
+package org.roaringbitmap.buffer;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
-import java.nio.LongBuffer;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Random;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.ShortIterator;
 
-public class TestIterators {
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Random;
 
+public class TestIntIteratorFlyweight {
     @Test
     public void testEmptyIteration() {
-        Assert.assertFalse(MutableRoaringBitmap.bitmapOf().iterator().hasNext());
-        Assert.assertFalse(MutableRoaringBitmap.bitmapOf().getIntIterator().hasNext());
-        Assert.assertFalse(MutableRoaringBitmap.bitmapOf().getReverseIntIterator().hasNext());
+        BufferIntIteratorFlyweight iter = new BufferIntIteratorFlyweight();
+        BufferReverseIntIteratorFlyweight reverseIter = new BufferReverseIntIteratorFlyweight();
+
+        MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf();
+        iter.wrap(bitmap);
+        reverseIter.wrap(bitmap);
+        Assert.assertFalse(iter.hasNext());
+
+        Assert.assertFalse(reverseIter.hasNext());
     }
 
     @Test
     public void testSmallIteration() {
         MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(1, 2, 3);
 
-        final List<Integer> iteratorCopy = ImmutableList.copyOf(bitmap.iterator());
-        final List<Integer> intIteratorCopy = asList(bitmap.getIntIterator());
-        final List<Integer> reverseIntIteratorCopy = asList(bitmap.getReverseIntIterator());
+        BufferIntIteratorFlyweight iter = new BufferIntIteratorFlyweight();
+        iter.wrap(bitmap);
 
-        Assert.assertEquals(ImmutableList.of(1, 2, 3), iteratorCopy);
+        BufferReverseIntIteratorFlyweight reverseIter = new BufferReverseIntIteratorFlyweight();
+        reverseIter.wrap(bitmap);
+
+        final List<Integer> intIteratorCopy = asList(iter);
+        final List<Integer> reverseIntIteratorCopy = asList(reverseIter);
         Assert.assertEquals(ImmutableList.of(1, 2, 3), intIteratorCopy);
         Assert.assertEquals(ImmutableList.of(3, 2, 1), reverseIntIteratorCopy);
     }
 
-    @Test
-    public void testBitmapIteration() {
-        final MappeableBitmapContainer bits = new MappeableBitmapContainer(2, LongBuffer.allocate(2).put(0x1l).put(1l << 63));
 
-        Assert.assertEquals(asList(bits.getShortIterator()), ImmutableList.of(0, 127));
-        Assert.assertEquals(asList(bits.getReverseShortIterator()), ImmutableList.of(127, 0));
-    }
 
     @Test
     public void testIteration() {
@@ -55,14 +58,18 @@ public class TestIterators {
         final int[] data = takeSortedAndDistinct(source, 450000);
         MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(data);
 
-        final List<Integer> iteratorCopy = ImmutableList.copyOf(bitmap.iterator());
-        final List<Integer> intIteratorCopy = asList(bitmap.getIntIterator());
-        final List<Integer> reverseIntIteratorCopy = asList(bitmap.getReverseIntIterator());
+        BufferIntIteratorFlyweight iter = new BufferIntIteratorFlyweight();
+        iter.wrap(bitmap);
 
-        Assert.assertEquals(bitmap.getCardinality(), iteratorCopy.size());
+        BufferReverseIntIteratorFlyweight reverseIter = new BufferReverseIntIteratorFlyweight();
+        reverseIter.wrap(bitmap);
+
+        final List<Integer> intIteratorCopy = asList(iter);
+        final List<Integer> reverseIntIteratorCopy = asList(reverseIter);
+
         Assert.assertEquals(bitmap.getCardinality(), intIteratorCopy.size());
         Assert.assertEquals(bitmap.getCardinality(), reverseIntIteratorCopy.size());
-        Assert.assertEquals(Ints.asList(data), iteratorCopy);
+
         Assert.assertEquals(Ints.asList(data), intIteratorCopy);
         Assert.assertEquals(Lists.reverse(Ints.asList(data)), reverseIntIteratorCopy);
     }

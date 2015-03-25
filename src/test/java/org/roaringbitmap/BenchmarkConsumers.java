@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0.
  */
 
-package org.roaringbitmap.buffer;
+package org.roaringbitmap;
 
 import com.carrotsearch.junitbenchmarks.IResultsConsumer;
 import com.carrotsearch.junitbenchmarks.WriterConsumer;

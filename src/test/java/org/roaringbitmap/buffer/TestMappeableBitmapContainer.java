@@ -1,8 +1,12 @@
+/*
+ * (c) the authors
+ * Licensed under the Apache License, Version 2.0.
+ */
+
 package org.roaringbitmap.buffer;
 
 import java.nio.LongBuffer;
 import org.junit.Test;
-import org.roaringbitmap.BitmapContainer;
 
 public class TestMappeableBitmapContainer {
 

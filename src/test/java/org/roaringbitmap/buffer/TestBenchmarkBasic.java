@@ -1,3 +1,8 @@
+/*
+ * (c) the authors
+ * Licensed under the Apache License, Version 2.0.
+ */
+
 package org.roaringbitmap.buffer;
 
 import static org.roaringbitmap.buffer.BenchmarkConsumers.CONSOLE_CONSUMER;

@@ -1,8 +1,11 @@
+/*
+ * (c) the authors
+ * Licensed under the Apache License, Version 2.0.
+ */
+
 package org.roaringbitmap;
 
-import java.nio.LongBuffer;
 import org.junit.Test;
-import org.roaringbitmap.buffer.MappeableBitmapContainer;
 
 public class TestBitmapContainer {
     @Test(expected = ArrayIndexOutOfBoundsException.class)

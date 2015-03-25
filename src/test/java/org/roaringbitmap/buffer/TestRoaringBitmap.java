@@ -1,5 +1,5 @@
 /*
- * (c) Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, Björn Sperber
+ * (c) the authors
  * Licensed under the Apache License, Version 2.0.
  */
 
@@ -12,6 +12,7 @@ import org.roaringbitmap.IntIterator;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.ShortBuffer;
 import java.util.*;
 
 /**
@@ -19,6 +20,20 @@ import java.util.*;
  */
 @SuppressWarnings({"static-method", "javadoc"})
 public class TestRoaringBitmap {
+    
+    @Test
+    public void testSetUtilIntersection() {
+        short  data1[] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18};
+        ShortBuffer b1 = ShortBuffer.wrap(data1);
+        short  data2[] = {0, 3, 6, 9, 12, 15, 18};
+        ShortBuffer b2 = ShortBuffer.wrap(data2);
+        short  result[] = new short[data1.length+data2.length];
+        short  expectedresult[] = {0, 6, 12, 18};
+        int nl = BufferUtil.unsignedLocalIntersect2by2(b1, b1.limit(), b2, b2.limit(), result);
+        result = Arrays.copyOf(result, nl);
+        Assert.assertTrue(Arrays.equals(expectedresult, result));
+    }
+
     
     @Test
     public void testXORSimple() {

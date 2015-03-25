@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.roaringbitmap</groupId>
   <artifactId>RoaringBitmap</artifactId>
-  <version>0.4.9-SNAPSHOT</version>
+  <version>0.4.10-SNAPSHOT</version>
   <name>RoaringBitmap</name>
     <url>https://github.com/lemire/RoaringBitmap</url>
    <description>Roaring bitmaps are compressed bitmaps (also called bitsets) which tend to outperform 
@@ -70,7 +70,13 @@
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
-        <dependency>
+<!--        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>1.6.2</version>
+        <scope>test</scope>
+   </dependency>-->
+         <dependency>
             <groupId>com.carrotsearch</groupId>
             <artifactId>junit-benchmarks</artifactId>
             <version>0.7.2</version>
@@ -99,7 +105,7 @@
 <sourceDirectory>${basedir}/src/main/java</sourceDirectory>
 	
 	<plugins>
-	    
+   
 	   <plugin>
 			<groupId>org.apache.felix</groupId>
 			<artifactId>maven-bundle-plugin</artifactId>

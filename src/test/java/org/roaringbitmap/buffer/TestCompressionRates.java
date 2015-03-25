@@ -1,7 +1,11 @@
+/*
+ * (c) the authors
+ * Licensed under the Apache License, Version 2.0.
+ */
+
 package org.roaringbitmap.buffer;
 
 import static org.junit.Assert.assertTrue;
-import junit.framework.Assert;
 
 import org.junit.Test;
 

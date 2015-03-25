@@ -1,3 +1,8 @@
+/*
+ * (c) the authors
+ * Licensed under the Apache License, Version 2.0.
+ */
+
 package org.roaringbitmap.buffer;
 
 import java.io.DataOutput;
@@ -37,6 +42,7 @@ public interface PointableRoaringArray extends Cloneable {
     MappeableContainerPointer getContainerPointer();
 
     /**
+     * @param startIndex starting index
      * @return a ContainerPointer to iterator over the array initially positioned at startIndex
      */
     MappeableContainerPointer getContainerPointer(int startIndex);

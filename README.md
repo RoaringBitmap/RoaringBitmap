@@ -11,10 +11,12 @@ be hundreds of times faster and they often offer significantly better compressio
 They can even be faster than uncompressed bitmaps.
 
 This library is used by Apache Spark (https://spark.apache.org/) and 
-Druid.io (http://druid.io/). Apache Lucene (http://lucene.apache.org/) uses  Roaring bitmaps, though they have their own independent implementation: https://svn.apache.org/viewvc/lucene/dev/branches/branch_5x/lucene/core/src/java/org/apache/lucene/util/RoaringDocIdSet.java?view=markup&pathrev=1629606
+Druid.io (http://druid.io/). Apache Lucene (http://lucene.apache.org/) uses  Roaring bitmaps, though they have their own [independent implementation](https://svn.apache.org/viewvc/lucene/dev/branches/branch_5x/lucene/core/src/java/org/apache/lucene/util/RoaringDocIdSet.java?view=markup&pathrev=1629606).
 
 
-(c) 2013-2014 Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, Björn Sperber, Seth Pellegrino
+
+(c) 2013-2015 Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, Björn Sperber, Seth Pellegrino, Borislav Ivanov
+
 
 This code is licensed under Apache License, Version 2.0 (ASL2.0). 
 
@@ -29,6 +31,7 @@ Scientific Documentation
 
 Samy Chambi, Daniel Lemire, Owen Kaser, Robert Godin,
 Better bitmap performance with Roaring bitmaps,
+Software: Practice and Experience (to appear)
 http://arxiv.org/abs/1402.6407
 
 This paper used data from http://lemire.me/data/realroaring2014.html
@@ -104,7 +107,7 @@ If your project depends on roaring, you  can  specify the dependency in the Mave
           <dependency>
             <groupId>org.roaringbitmap</groupId>
             <artifactId>RoaringBitmap</artifactId>
-            <version>0.4.8</version>
+            <version>0.4.9</version>
           </dependency>
         </dependencies>
 
