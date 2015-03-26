@@ -22,15 +22,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
     private short[] valueslength;// we interleave values and lengths, e.g., 1, 10 indicates the run 1, 2, ..., 11
     // Lengths are expressed in number of extra repetitions, so 0 means 1 value in the sequence. 
     int nbrruns = 0;
-    public String debugString() {// todo: remove
-        String ans = "";
 
-        for(int k = 0; k < nbrruns; ++k) {
-            ans = ans + "run from "+Util.toIntUnsigned(getValue(k))+" to "+(Util.toIntUnsigned(getValue(k))+Util.toIntUnsigned(getLength(k)));
-        }
-        return ans;
-
-    }
     short getValue(int index) {
         return valueslength[2*index];
     }
@@ -182,13 +174,31 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public Container and(ArrayContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        ArrayContainer answer = new ArrayContainer(x.getCardinality());
+        // we use a very simple brute-force algorithm TODO: see if you can get cleverer
+        if(x.getCardinality() == 0) return answer;
+        ShortIterator si = x.getShortIterator();
+        int n = Util.toIntUnsigned(si.next());
+        for (int k = 0; (k < nbrruns) && si.hasNext(); ++k) {
+            int begin = getValue(k);
+            int length = (int) getLength(k);
+            while(n < begin) {
+                if(! si.hasNext()) return answer;
+                n = si.next();
+            }
+            while(n <= begin + length) {
+                answer.content[answer.cardinality++] = (short) n;
+                if(! si.hasNext()) return answer;
+                n = si.next();                
+            }
+        }
+        return answer;
     }
+    
 
     @Override
     public Container and(BitmapContainer x) {
-        // TODO Auto-generated method stub
+            // TODO program
         return null;
     }
 
