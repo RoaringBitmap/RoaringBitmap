@@ -505,4 +505,40 @@ public final class Util {
         throw new IllegalArgumentException("cannot local "+j+"th bit in "+w+" weight is "+Integer.bitCount(w));
     }
     
+    
+    
+    // flip bits start, start+1,..., end-1
+    protected void flipBitmapRange(long[] bitmap, int start, int end) {
+            if (start == end) return;
+            int firstword = start / 64;
+            int endword   = (end - 1 ) / 64;
+            bitmap[firstword] ^= ~0L << start;
+            for (int i = firstword+1; i < endword; i++)
+                bitmap[i] = ~bitmap[i];
+            bitmap[endword] ^= ~0L >>> -end;
+    }
+
+    // clear bits start, start+1,..., end-1
+    protected void resetBitmapRange(long[] bitmap, int start, int end) {
+        if (start == end) return;
+        int firstword = start / 64;
+        int endword   = (end - 1 ) / 64;
+        bitmap[firstword] &= ~(~0L << start);
+        for (int i = firstword+1; i < endword; i++)
+            bitmap[i] = 0;
+        bitmap[endword] &= ~(~0L >>> -end);
+        
+    }
+
+    // set to true bits start, start+1,..., end-1
+    protected void setBitmapRange(long[] bitmap, int start, int end) {
+        if (start == end) return;
+        int firstword = start / 64;
+        int endword   = (end - 1 ) / 64;
+        bitmap[firstword] |= ~0L << start;
+        for (int i = firstword+1; i < endword; i++)
+            bitmap[i] = ~0;
+        bitmap[endword] |= ~0L >>> -end;
+    }
+    
 }
