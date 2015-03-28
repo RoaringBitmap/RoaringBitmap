@@ -155,11 +155,16 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
     // involves a binary search
     protected int getIndex(short x) {
+        return getIndex(x, 0);
+    }
+
+    // involves a binary search
+    protected int getIndex(short x, int begin) {
         // before the binary search, we optimize for frequent cases
         if ((size == 0) || (array[size - 1].key == x))
             return size - 1;
         // no luck we have to go through the list
-        return this.binarySearch(0, size, x);
+        return this.binarySearch(begin, size, x);
     }
 
     protected short getKeyAtIndex(int i) {
@@ -190,9 +195,16 @@ public final class RoaringArray implements Cloneable, Externalizable {
     }
 
     protected void removeAtIndex(int i) {
-        System.arraycopy(array, i + 1, array, i, size - i - 1);
-        array[size - 1] = null;
-        size--;
+        removeRange(i, i + 1);
+    }
+
+    protected void removeRange(int begin, int end) {
+        final int range = end - begin;
+        System.arraycopy(array, end, array, begin, size - end);
+        for(int i = 1; i <= range; ++i) {
+            array[size - i] = null;
+        }
+        size -= range;
     }
 
     protected void setContainerAtIndex(int i, Container c) {
