@@ -155,7 +155,11 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
     // involves a binary search
     protected int getIndex(short x) {
-        return getIndex(x, 0);
+        // before the binary search, we optimize for frequent cases
+        if ((size == 0) || (array[size - 1].key == x))
+            return size - 1;
+        // no luck we have to go through the list
+        return this.binarySearch(0, size, x);
     }
 
     // involves a binary search
@@ -164,7 +168,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
         if ((size == 0) || (array[size - 1].key == x))
             return size - 1;
         // no luck we have to go through the list
-        return this.binarySearch(begin, size, x);
+        return this.binarySearch(begin, begin + 1, 1, x);
     }
 
     protected short getKeyAtIndex(int i) {
@@ -232,6 +236,28 @@ public final class RoaringArray implements Cloneable, Externalizable {
                 return middleIndex;
         }
         return -(low + 1);
+    }
+
+    private int binarySearch(int begin, int end, int range, short key) {
+        int low = begin;
+        int high = end;
+        int nextRange = range;
+        int ikey = Util.toIntUnsigned(key);
+
+        while (high < size) {
+            int highKey = Util.toIntUnsigned(array[high].key);
+
+            if (highKey < ikey) {
+                low = high;
+                nextRange <<= 1;
+                high += nextRange;
+            } else if (highKey > ikey) {
+                return binarySearch(low, high, key);
+            } else {
+                return high;
+            }
+        }
+        return binarySearch(low, size, key);
     }
 
     Element[] array = null;
@@ -437,8 +463,6 @@ public final class RoaringArray implements Cloneable, Externalizable {
 						- getContainer().getCardinality();
 			}
 		};
-    	
     }
-
 
 }
