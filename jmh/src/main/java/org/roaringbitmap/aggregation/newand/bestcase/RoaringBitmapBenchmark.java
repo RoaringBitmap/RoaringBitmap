@@ -1,6 +1,7 @@
-package org.roaringbitmap;
+package org.roaringbitmap.aggregation.newand.bestcase;
 
 import org.openjdk.jmh.annotations.*;
+import org.roaringbitmap.RoaringBitmap;
 
 import java.util.concurrent.TimeUnit;
 
@@ -39,8 +40,22 @@ public class RoaringBitmapBenchmark {
     @Benchmark
     @BenchmarkMode(Mode.AverageTime)
     @OutputTimeUnit(TimeUnit.NANOSECONDS)
-    public void inplaceAnd() {
+    public void inplace_and() {
         bitmap1.and(bitmap2);
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.AverageTime)
+    @OutputTimeUnit(TimeUnit.MICROSECONDS)
+    public void newand() {
+        RoaringBitmap.newand(bitmap1, bitmap2);
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.AverageTime)
+    @OutputTimeUnit(TimeUnit.NANOSECONDS)
+    public void inplace_newand() {
+        bitmap1.newand(bitmap2);
     }
 
 }
