@@ -9,10 +9,6 @@ import java.io.*;
 import java.util.Iterator;
 
 /**
- * @author lemire
- *
- */
-/**
  * RoaringBitmap, a compressed alternative to the BitSet.
  *
  * <pre>
