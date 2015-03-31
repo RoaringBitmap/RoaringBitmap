@@ -1,3 +1,6 @@
+upcoming
+ - faster intersections (and) in some cases thanks to @gssiyankai
+
 version 0.4.9
  - Moved select method in the right interface
  - Fixed possible bug due to arrayOffset
