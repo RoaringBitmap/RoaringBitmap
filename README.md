@@ -129,6 +129,10 @@ Benchmark
 To run a simple benchmark, use the following command:
 
          $ mvn -Dtest=TestBenchmarkBasic test
+         
+To run jmh benchmarks, use the following command:
+
+         $ ./jmh/run.sh
 
 Funding 
 ----------

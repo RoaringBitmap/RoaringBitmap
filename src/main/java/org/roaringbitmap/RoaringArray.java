@@ -5,10 +5,10 @@
 
 package org.roaringbitmap;
 
+import org.roaringbitmap.buffer.BufferUtil;
+
 import java.io.*;
 import java.util.Arrays;
-
-import org.roaringbitmap.buffer.BufferUtil;
 
 
 /**
@@ -162,6 +162,57 @@ public final class RoaringArray implements Cloneable, Externalizable {
         return this.binarySearch(0, size, x);
     }
 
+    /**
+     * Find the smallest integer index larger than pos such that array[index].key>= x.
+     * If none can be found, return length. Based on code by O. Kaser.
+     *
+     * @param x
+     * @param pos
+     * @return the smallest index greater than pos such that array[index].key is at least as large
+     * as min, or size if it is not possible.
+     */
+    protected int advanceUntil(short x, int pos) {
+        int lower = pos + 1;
+
+        // special handling for a possibly common sequential case
+        if (lower >= size || Util.toIntUnsigned(array[lower].key) >= Util.toIntUnsigned(x)) {
+            return lower;
+        }
+
+        int spansize = 1; // could set larger
+        // bootstrap an upper limit
+
+        while (lower + spansize < size && Util.toIntUnsigned(array[lower + spansize].key) < Util.toIntUnsigned(x))
+            spansize *= 2; // hoping for compiler will reduce to shift
+        int upper = (lower + spansize < size) ? lower + spansize : size - 1;
+
+        // maybe we are lucky (could be common case when the seek ahead
+        // expected to be small and sequential will otherwise make us look bad)
+        if (array[upper].key == x) {
+            return upper;
+        }
+
+        if (Util.toIntUnsigned(array[upper].key) < Util.toIntUnsigned(x)) {// means array has no item key >= x
+            return size;
+        }
+
+        // we know that the next-smallest span was too small
+        lower += (spansize / 2);
+
+        // else begin binary search
+        // invariant: array[lower]<x && array[upper]>x
+        while (lower + 1 != upper) {
+            int mid = (lower + upper) / 2;
+            if (array[mid].key == x)
+                return mid;
+            else if (Util.toIntUnsigned(array[mid].key) < Util.toIntUnsigned(x))
+                lower = mid;
+            else
+                upper = mid;
+        }
+        return upper;
+    }
+
     protected short getKeyAtIndex(int i) {
         return this.array[i].key;
     }
@@ -190,9 +241,16 @@ public final class RoaringArray implements Cloneable, Externalizable {
     }
 
     protected void removeAtIndex(int i) {
-        System.arraycopy(array, i + 1, array, i, size - i - 1);
-        array[size - 1] = null;
-        size--;
+        removeRange(i, i + 1);
+    }
+
+    protected void removeRange(int begin, int end) {
+        final int range = end - begin;
+        System.arraycopy(array, end, array, begin, size - end);
+        for(int i = 1; i <= range; ++i) {
+            array[size - i] = null;
+        }
+        size -= range;
     }
 
     protected void setContainerAtIndex(int i, Container c) {
@@ -425,8 +483,6 @@ public final class RoaringArray implements Cloneable, Externalizable {
 						- getContainer().getCardinality();
 			}
 		};
-    	
     }
-
 
 }
