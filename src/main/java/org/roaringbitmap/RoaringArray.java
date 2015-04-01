@@ -163,7 +163,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
     }
 
     /**
-     * Find the smallest integer index larger than pos such that array[index].key>= x.
+     * Find the smallest integer index larger than pos such that array[index].key&gt;= x.
      * If none can be found, return length. Based on code by O. Kaser.
      *
      * @param x

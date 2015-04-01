@@ -17,7 +17,7 @@ public final class Util {
     }
 
     /**
-     * Find the smallest integer larger than pos such that array[pos]>= min.
+     * Find the smallest integer larger than pos such that array[pos]&gt;= min.
      * If none can be found, return length. Based on code by O. Kaser.
      *
      * @param array

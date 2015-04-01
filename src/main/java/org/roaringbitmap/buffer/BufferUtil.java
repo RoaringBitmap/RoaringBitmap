@@ -19,7 +19,7 @@ import java.nio.ShortBuffer;
 public final class BufferUtil {
 
     /**
-     * Find the smallest integer larger than pos such that array[pos]>= min. If
+     * Find the smallest integer larger than pos such that array[pos]&gt;= min. If
      * none can be found, return length. Based on code by O. Kaser.
      * 
      * @param array
