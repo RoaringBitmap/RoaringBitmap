@@ -33,7 +33,7 @@ public class RoaringBitmapBenchmark {
     @BenchmarkMode(Mode.AverageTime)
     @OutputTimeUnit(TimeUnit.NANOSECONDS)
     public RoaringBitmap inplace_and() {
-        bitmap1.clone().and(bitmap2);
+        return bitmap1.clone().and(bitmap2);
     }
 
     @Benchmark
