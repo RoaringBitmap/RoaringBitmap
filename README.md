@@ -133,6 +133,9 @@ To run a simple benchmark, use the following command:
 To run jmh benchmarks, use the following command:
 
          $ ./jmh/run.sh
+You can also run specific benchmarks...
+
+         $ ./jmh/run.sh org.roaringbitmap.aggregation.newand.identical.*
 
 Funding 
 ----------
