@@ -456,7 +456,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      * @param x2 other bitmap
      */
     public void newand(final RoaringBitmap x2) {
-        int pos1 = 0, pos2 = 0, dirty1 = 0;
+        int pos1 = 0, pos2 = 0, intersectionsize = 0;//, dirty1 = 0;
         int length1 = highLowContainer.size();
         final int length2 = x2.highLowContainer.size();
 
@@ -468,13 +468,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
                 final Container c2 = x2.highLowContainer.getContainerAtIndex(pos2);
                 final Container c = c1.and(c2);
                 if (c.getCardinality() > 0) {
-                    if(dirty1 < pos1) {
-                        highLowContainer.removeRange(dirty1, pos1);
-                        length1 -= pos1 - dirty1;
-                        pos1 = dirty1;
-                    }
-                    highLowContainer.setContainerAtIndex(pos1, c);
-                    ++dirty1;
+                    highLowContainer.setContainerAtIndex(intersectionsize++, c);
                 }
                 ++pos1;
                 ++pos2;
@@ -491,7 +485,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
                 }
             }
         }
-        highLowContainer.resize(dirty1);
+        highLowContainer.resize(intersectionsize);
     }
 
     /**
