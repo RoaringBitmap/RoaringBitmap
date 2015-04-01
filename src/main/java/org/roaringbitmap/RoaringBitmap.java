@@ -62,21 +62,15 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
                 }
                 ++pos1;
                 ++pos2;
-            } else {
-                final boolean is_2_prey = s1 < s2;
-                final short prey = is_2_prey ? s2 : s1;
-                final int predatorPos = is_2_prey ? pos1 : pos2;
-                final RoaringArray predatorArray = is_2_prey ? x1.highLowContainer : x2.highLowContainer;
-                final int nextPredatorPos = predatorArray.advanceUntil(prey, predatorPos);
-                if(is_2_prey) {
-                    pos1 = nextPredatorPos;
-                } else {
-                    pos2 = nextPredatorPos;
-                }
+            } else if (s1 < s2) {
+                pos1 = x1.highLowContainer.advanceUntil(s2,pos1);
+            } else { // s1 > s2
+                pos2 = x2.highLowContainer.advanceUntil(s1,pos2);
             }
         }
         return answer;
     }
+
 
     /**
      * Bitwise AND (intersection) operation. The provided bitmaps are *not*
@@ -466,23 +460,16 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             if (s1 == s2) {
                 final Container c1 = highLowContainer.getContainerAtIndex(pos1);
                 final Container c2 = x2.highLowContainer.getContainerAtIndex(pos2);
-                final Container c = c1.and(c2);
+                final Container c = c1.iand(c2);
                 if (c.getCardinality() > 0) {
                     highLowContainer.setContainerAtIndex(intersectionsize++, c);
                 }
                 ++pos1;
                 ++pos2;
-            } else {
-                final boolean is_2_prey = s1 < s2;
-                final short prey = is_2_prey ? s2 : s1;
-                final int predatorPos = is_2_prey ? pos1 : pos2;
-                final RoaringArray predatorArray = is_2_prey ? highLowContainer : x2.highLowContainer;
-                final int nextPredatorPos = predatorArray.advanceUntil(prey, predatorPos);
-                if(is_2_prey) {
-                    pos1 = nextPredatorPos;
-                } else {
-                    pos2 = nextPredatorPos;
-                }
+            } else if (s1 < s2) {
+                pos1 = highLowContainer.advanceUntil(s2,pos1);
+            } else { // s1 > s2
+                pos2 = x2.highLowContainer.advanceUntil(s1,pos2);
             }
         }
         highLowContainer.resize(intersectionsize);
