@@ -25,29 +25,29 @@ public class RoaringBitmapBenchmark {
     @Benchmark
     @BenchmarkMode(Mode.AverageTime)
     @OutputTimeUnit(TimeUnit.MICROSECONDS)
-    public void and() {
-        RoaringBitmap.and(bitmap1, bitmap2);
+    public RoaringBitmap and() {
+        return RoaringBitmap.and(bitmap1, bitmap2);
     }
 
     @Benchmark
     @BenchmarkMode(Mode.AverageTime)
     @OutputTimeUnit(TimeUnit.NANOSECONDS)
-    public void inplace_and() {
-        bitmap1.and(bitmap2);
+    public RoaringBitmap inplace_and() {
+        bitmap1.clone().and(bitmap2);
     }
 
     @Benchmark
     @BenchmarkMode(Mode.AverageTime)
     @OutputTimeUnit(TimeUnit.MICROSECONDS)
-    public void newand() {
-        RoaringBitmap.newand(bitmap1, bitmap2);
+    public RoaringBitmap newand() {
+        return RoaringBitmap.newand(bitmap1, bitmap2);
     }
 
     @Benchmark
     @BenchmarkMode(Mode.AverageTime)
     @OutputTimeUnit(TimeUnit.NANOSECONDS)
-    public void inplace_newand() {
-        bitmap1.newand(bitmap2);
+    public RoaringBitmap inplace_newand() {
+        bitmap1.clone().newand(bitmap2);
     }
 
 }
