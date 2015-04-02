@@ -10,6 +10,8 @@ import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 
+import org.roaringbitmap.Util;
+
 /**
  * Various useful methods for roaring bitmaps.
  * 
@@ -17,6 +19,80 @@ import java.nio.ShortBuffer;
  * memory mapping.
  */
 public final class BufferUtil {
+    
+    /**
+     * flip bits at start, start+1,..., end-1
+     * 
+     * @param bitmap array of words to be modified
+     * @param start first index to be modified (inclusive)
+     * @param end last index to be modified (exclusive)
+     */
+    public static void flipBitmapRange(LongBuffer bitmap, int start, int end) {
+        if (bitmap.hasArray()) {
+            Util.flipBitmapRange(bitmap.array(), start, end);
+            return;
+        }
+        if (start == end)
+            return;
+        int firstword = start / 64;
+        int endword = (end - 1) / 64;
+        bitmap.put(firstword, bitmap.get(firstword) ^ ~(~0L << start));
+        for (int i = firstword; i < endword; i++)
+            bitmap.put(i, ~bitmap.get(i));
+        bitmap.put(endword, bitmap.get(endword) ^ (~0L >>> -end));
+    }
+
+    /**
+     * clear bits at start, start+1,..., end-1
+     * 
+     * @param bitmap array of words to be modified
+     * @param start first index to be modified (inclusive)
+     * @param end last index to be modified (exclusive)
+     */
+    public static void resetBitmapRange(LongBuffer bitmap, int start, int end) {
+        if(bitmap.hasArray()) {
+            Util.resetBitmapRange(bitmap.array(), start, end);
+            return;
+        }
+        if (start == end) return;
+        int firstword = start / 64;
+        int endword   = (end - 1 ) / 64;
+        if(firstword == endword) {
+            bitmap.put(firstword,bitmap.get(firstword) & ~((~0L << start) & (~0L >>> -end)));
+          return;       
+        }
+        bitmap.put(firstword, bitmap.get(firstword) & (~(~0L << start)));
+        for (int i = firstword+1; i < endword; i++)
+            bitmap.put(i, 0L);
+        bitmap.put(endword, bitmap.get(endword) & (~(~0L >>> -end)));
+    }
+
+
+    /**
+     * set bits at start, start+1,..., end-1
+     * 
+     * @param bitmap array of words to be modified
+     * @param start first index to be modified (inclusive)
+     * @param end last index to be modified (exclusive)
+     */
+    public static void setBitmapRange(LongBuffer bitmap, int start, int end) {
+        if(bitmap.hasArray()) {
+            Util.setBitmapRange(bitmap.array(), start, end);
+            return;
+        }
+        if (start == end) return;
+        int firstword = start / 64;
+        int endword   = (end - 1 ) / 64;
+        if(firstword == endword) {
+            bitmap.put(firstword,bitmap.get(firstword) | ((~0L << start) & (~0L >>> -end)));
+
+          return;       
+        }
+        bitmap.put(firstword, bitmap.get(firstword) | (~0L << start));
+        for (int i = firstword+1; i < endword; i++)
+            bitmap.put(i, ~0L);
+        bitmap.put(endword, bitmap.get(endword) | (~0L >>> -end));
+    }
 
     /**
      * Find the smallest integer larger than pos such that array[pos]&gt;= min. If

@@ -1116,6 +1116,22 @@ public final class MappeableBitmapContainer extends MappeableContainer
         return bc;
     }
 
+    @Override
+    public MappeableContainer add(short begin, short end) {
+        BufferUtil.setBitmapRange(bitmap,begin,end);
+        computeCardinality(); //TODO:  a full recomputation could be avoided for better performance
+        return this;
+    }
+
+    @Override
+    public MappeableContainer remove(short begin, short end) {
+        BufferUtil.resetBitmapRange(bitmap,begin,end);
+       computeCardinality(); //TODO:  a full recomputation could be avoided for better performance
+       if(getCardinality() < MappeableArrayContainer.DEFAULT_MAX_SIZE)
+           return toArrayContainer();
+       return this;
+    }
+
 }
 
 final class MappeableBitmapContainerShortIterator implements ShortIterator {

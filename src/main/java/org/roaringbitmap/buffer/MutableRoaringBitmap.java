@@ -6,8 +6,10 @@
 package org.roaringbitmap.buffer;
 
 import org.roaringbitmap.BitmapDataProvider;
+import org.roaringbitmap.Container;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.ShortIterator;
+import org.roaringbitmap.Util;
 
 import java.io.*;
 import java.util.Iterator;
@@ -390,6 +392,87 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
             getMappeableRoaringArray().insertNewKeyValueAt(-i - 1, hb,
                     newac.add(BufferUtil.lowbits(x)));
         }
+    }
+    
+    /**
+     * Add to the current bitmap all integers in [rangeStart,rangeEnd).
+     *
+     * @param rangeStart inclusive beginning of range
+     * @param rangeEnd   exclusive ending of range
+     */
+    public void add(final int rangeStart, final int rangeEnd) {
+        if (rangeStart >= rangeEnd)
+            return; // empty range
+
+        final short hbStart = BufferUtil.highbits(rangeStart);
+        final short lbStart = BufferUtil.lowbits(rangeStart);
+        final short hbLast = BufferUtil.highbits(rangeEnd - 1);
+        final short lbLast = BufferUtil.lowbits(rangeEnd - 1);
+
+        final int max = BufferUtil.toIntUnsigned(BufferUtil.maxLowBit());
+        for (short hb = hbStart; hb <= hbLast; ++hb) {
+            // first container may contain partial range
+            final int containerStart = (hb == hbStart) ? BufferUtil.toIntUnsigned(lbStart) : 0;
+            // last container may contain partial range
+            final int containerLast = (hb == hbLast) ? BufferUtil.toIntUnsigned(lbLast) : max;
+            final int i = highLowContainer.getIndex(hb);
+
+            if (i >= 0) {
+                final MappeableContainer c = highLowContainer.getContainerAtIndex(i).add(
+                               (short) containerStart, (short) containerLast);
+                ((MutableRoaringArray) highLowContainer).setContainerAtIndex(i, c);
+            } else {
+                ((MutableRoaringArray) highLowContainer).insertNewKeyValueAt(-i - 1,hb, MappeableContainer.rangeOfOnes(
+                        containerStart, containerLast)
+                );
+            }
+        }
+    }
+
+    /**
+     * Remove the current bitmap all integers in [rangeStart,rangeEnd).
+     *
+     * @param rangeStart inclusive beginning of range
+     * @param rangeEnd   exclusive ending of range
+     */
+    public void remove(final int rangeStart, final int rangeEnd) {
+        if (rangeStart >= rangeEnd)
+            return; // empty range
+        final short hbStart = BufferUtil.highbits(rangeStart);
+        final short lbStart = BufferUtil.lowbits(rangeStart);
+        final short hbLast = BufferUtil.highbits(rangeEnd - 1);
+        final short lbLast = BufferUtil.lowbits(rangeEnd - 1);
+        if(hbStart == hbLast) {
+            final int i = highLowContainer.getIndex(hbStart);
+            final MappeableContainer c = highLowContainer.getContainerAtIndex(i).remove(
+                    lbStart, hbLast);
+            if(c.getCardinality()>0)
+                ((MutableRoaringArray) highLowContainer).setContainerAtIndex(i, c);
+            else 
+                ((MutableRoaringArray) highLowContainer).removeAtIndex(i);
+            return;
+        }
+        int ifirst = highLowContainer.getIndex(hbStart);
+        int ilast = highLowContainer.getIndex(lbLast);
+        if(lbStart != 0) {
+            int i = ifirst;
+            final MappeableContainer c = highLowContainer.getContainerAtIndex(i).remove(
+                    lbStart, BufferUtil.maxLowBit());
+           if(c.getCardinality()>0) {
+              ((MutableRoaringArray) highLowContainer).setContainerAtIndex(i, c);
+              ifirst++;
+           }
+        }
+        if(lbLast != BufferUtil.maxLowBit()) {
+            final int i = ilast;
+            final MappeableContainer c = highLowContainer.getContainerAtIndex(i).remove(
+                    (short) 0,lbLast);
+           if(c.getCardinality()>0) {
+              ((MutableRoaringArray) highLowContainer).setContainerAtIndex(i, c);
+              ilast--;
+           }
+        }
+        ((MutableRoaringArray) highLowContainer).removeRange(ifirst, ilast);
     }
 
     /**

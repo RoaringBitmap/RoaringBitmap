@@ -493,5 +493,23 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      * @return a new bitmap with cardinality no more than maxcardinality
      */
     public abstract Container limit(int maxcardinality);
-        
+
+    
+     /**
+      * Add all shorts in [begin,end) using an unsigned interpretation. May generate a new container.
+      *
+      * @param begin start of range (inclusive)
+      * @param end end of range (exclusive)
+      * @return the new container
+      */
+     public abstract Container add(short begin, short end);
+    
+     /**
+      * Remove shorts in [begin,end) using an unsigned interpretation. May generate a new container.
+      *
+      * @param begin start of range (inclusive)
+      * @param end end of range (exclusive)
+      * @return the new container
+      */
+     public abstract Container remove(short begin, short end);
 }

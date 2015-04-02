@@ -480,7 +480,15 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
         array[size - 1] = null;
         size--;
     }
-
+    
+    protected void removeRange(int begin, int end) {
+        final int range = end - begin;
+        System.arraycopy(array, end, array, begin, size - end);
+        for(int i = 1; i <= range; ++i) {
+            array[size - i] = null;
+        }
+        size -= range;
+    }
     protected void resize(int newLength) {
         for (int k = newLength; k < this.size; ++k) {
             this.array[k] = null;

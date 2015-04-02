@@ -507,8 +507,14 @@ public final class Util {
     
     
 
-    // flip bits start, start+1,..., end-1
-    protected static void flipBitmapRange(long[] bitmap, int start, int end) {
+    /**
+     * flip bits at start, start+1,..., end-1
+     * 
+     * @param bitmap array of words to be modified
+     * @param start first index to be modified (inclusive)
+     * @param end last index to be modified (exclusive)
+     */
+    public static void flipBitmapRange(long[] bitmap, int start, int end) {
             if (start == end) return;
             int firstword = start / 64;
             int endword   = (end - 1 ) / 64;
@@ -518,8 +524,14 @@ public final class Util {
             bitmap[endword] ^= ~0L >>> -end;
     }
 
-    // clear bits start, start+1,..., end-1
-    protected static void resetBitmapRange(long[] bitmap, int start, int end) {
+    /**
+     * clear bits at start, start+1,..., end-1
+     * 
+     * @param bitmap array of words to be modified
+     * @param start first index to be modified (inclusive)
+     * @param end last index to be modified (exclusive)
+     */
+    public static void resetBitmapRange(long[] bitmap, int start, int end) {
         if (start == end) return;
         int firstword = start / 64;
         int endword   = (end - 1 ) / 64;
@@ -534,8 +546,15 @@ public final class Util {
         
     }
 
-    // set to true bits start, start+1,..., end-1
-    protected static void setBitmapRange(long[] bitmap, int start, int end) {
+
+    /**
+     * set bits at start, start+1,..., end-1
+     * 
+     * @param bitmap array of words to be modified
+     * @param start first index to be modified (inclusive)
+     * @param end last index to be modified (exclusive)
+     */
+    public static void setBitmapRange(long[] bitmap, int start, int end) {
         if (start == end) return;
         int firstword = start / 64;
         int endword   = (end - 1 ) / 64;
@@ -545,10 +564,8 @@ public final class Util {
         }
         bitmap[firstword] |= ~0L << start;
         for (int i = firstword+1; i < endword; i++)
-            bitmap[i] = ~0;
+            bitmap[i] = ~0L;
         bitmap[endword] |= ~0L >>> -end;
     }
-        
-
     
 }

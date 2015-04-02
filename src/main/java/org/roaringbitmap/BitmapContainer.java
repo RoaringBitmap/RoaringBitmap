@@ -828,6 +828,23 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
         }
         return bc;
     }
+
+    @Override
+    public Container add(short begin, short end) {
+        Util.setBitmapRange(bitmap,begin,end);
+        computeCardinality(); //TODO:  a full recomputation could be avoided for better performance
+        return this;
+    }
+
+    @Override
+    public Container remove(short begin, short end) {
+       Util.resetBitmapRange(bitmap,begin,end);
+       computeCardinality(); //TODO:  a full recomputation could be avoided for better performance
+       if(getCardinality() < ArrayContainer.DEFAULT_MAX_SIZE)
+           return toArrayContainer();
+       return this;
+    }
+
 }
 
 final class BitmapContainerShortIterator implements ShortIterator {

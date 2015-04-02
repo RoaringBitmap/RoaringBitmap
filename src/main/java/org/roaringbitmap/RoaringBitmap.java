@@ -442,7 +442,86 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             highLowContainer.insertNewKeyValueAt(-i - 1, hb, newac.add(Util.lowbits(x)));
         }
     }
+    /**
+     * Add to the current bitmap all integers in [rangeStart,rangeEnd).
+     *
+     * @param rangeStart inclusive beginning of range
+     * @param rangeEnd   exclusive ending of range
+     */
+    public void add(final int rangeStart, final int rangeEnd) {
+        if (rangeStart >= rangeEnd)
+            return; // empty range
 
+        final short hbStart = Util.highbits(rangeStart);
+        final short lbStart = Util.lowbits(rangeStart);
+        final short hbLast = Util.highbits(rangeEnd - 1);
+        final short lbLast = Util.lowbits(rangeEnd - 1);
+
+        final int max = Util.toIntUnsigned(Util.maxLowBit());
+        for (short hb = hbStart; hb <= hbLast; ++hb) {
+            // first container may contain partial range
+            final int containerStart = (hb == hbStart) ? Util.toIntUnsigned(lbStart) : 0;
+            // last container may contain partial range
+            final int containerLast = (hb == hbLast) ? Util.toIntUnsigned(lbLast) : max;
+            final int i = highLowContainer.getIndex(hb);
+
+            if (i >= 0) {
+                final Container c = highLowContainer.getContainerAtIndex(i).add(
+                               (short) containerStart, (short) containerLast);
+                highLowContainer.setContainerAtIndex(i, c);
+            } else {
+                highLowContainer.insertNewKeyValueAt(-i - 1,hb, Container.rangeOfOnes(
+                        containerStart, containerLast)
+                );
+            }
+        }
+    }
+    /**
+     * Remove the current bitmap all integers in [rangeStart,rangeEnd).
+     *
+     * @param rangeStart inclusive beginning of range
+     * @param rangeEnd   exclusive ending of range
+     */
+    public void remove(final int rangeStart, final int rangeEnd) {
+        if (rangeStart >= rangeEnd)
+            return; // empty range
+        final short hbStart = Util.highbits(rangeStart);
+        final short lbStart = Util.lowbits(rangeStart);
+        final short hbLast = Util.highbits(rangeEnd - 1);
+        final short lbLast = Util.lowbits(rangeEnd - 1);
+        if(hbStart == hbLast) {
+            final int i = highLowContainer.getIndex(hbStart);
+            final Container c = highLowContainer.getContainerAtIndex(i).remove(
+                    lbStart, hbLast);
+            if(c.getCardinality()>0)
+                highLowContainer.setContainerAtIndex(i, c);
+            else 
+                highLowContainer.removeAtIndex(i);
+            return;
+        }
+        int ifirst = highLowContainer.getIndex(hbStart);
+        int ilast = highLowContainer.getIndex(lbLast);
+        if(lbStart != 0) {
+            int i = ifirst;
+            final Container c = highLowContainer.getContainerAtIndex(i).remove(
+                    lbStart, Util.maxLowBit());
+           if(c.getCardinality()>0) {
+              highLowContainer.setContainerAtIndex(i, c);
+              ifirst++;
+           }
+        }
+        if(lbLast != Util.maxLowBit()) {
+            final int i = ilast;
+            final Container c = highLowContainer.getContainerAtIndex(i).remove(
+                    (short) 0,lbLast);
+           if(c.getCardinality()>0) {
+              highLowContainer.setContainerAtIndex(i, c);
+              ilast--;
+           }
+        }
+        highLowContainer.removeRange(ifirst, ilast);
+    }
+    
     /**
      * In-place bitwise AND (intersection) operation. The current bitmap is
      * modified.
