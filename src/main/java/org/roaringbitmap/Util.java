@@ -506,23 +506,27 @@ public final class Util {
     }
     
     
-    
+
     // flip bits start, start+1,..., end-1
-    protected void flipBitmapRange(long[] bitmap, int start, int end) {
+    protected static void flipBitmapRange(long[] bitmap, int start, int end) {
             if (start == end) return;
             int firstword = start / 64;
             int endword   = (end - 1 ) / 64;
-            bitmap[firstword] ^= ~0L << start;
-            for (int i = firstword+1; i < endword; i++)
+            bitmap[firstword] ^= ~(~0L << start);;
+            for (int i = firstword; i < endword; i++)
                 bitmap[i] = ~bitmap[i];
             bitmap[endword] ^= ~0L >>> -end;
     }
 
     // clear bits start, start+1,..., end-1
-    protected void resetBitmapRange(long[] bitmap, int start, int end) {
+    protected static void resetBitmapRange(long[] bitmap, int start, int end) {
         if (start == end) return;
         int firstword = start / 64;
         int endword   = (end - 1 ) / 64;
+        if(firstword == endword) {
+          bitmap[firstword] &= ~((~0L << start) & (~0L >>> -end));
+          return;       
+        }
         bitmap[firstword] &= ~(~0L << start);
         for (int i = firstword+1; i < endword; i++)
             bitmap[i] = 0;
@@ -531,14 +535,20 @@ public final class Util {
     }
 
     // set to true bits start, start+1,..., end-1
-    protected void setBitmapRange(long[] bitmap, int start, int end) {
+    protected static void setBitmapRange(long[] bitmap, int start, int end) {
         if (start == end) return;
         int firstword = start / 64;
         int endword   = (end - 1 ) / 64;
+        if(firstword == endword) {
+          bitmap[firstword] |= (~0L << start) & (~0L >>> -end);
+          return;       
+        }
         bitmap[firstword] |= ~0L << start;
         for (int i = firstword+1; i < endword; i++)
             bitmap[i] = ~0;
         bitmap[endword] |= ~0L >>> -end;
     }
+        
+
     
 }

@@ -1087,7 +1087,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
         if(maxcardinality >= this.cardinality) {
             return clone();
         } 
-        if(maxcardinality <= MAX_CAPACITY) {
+        if(maxcardinality < MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             MappeableArrayContainer ac = new MappeableArrayContainer(maxcardinality);
             int pos = 0;
             short[] cont = ac.content.array();
