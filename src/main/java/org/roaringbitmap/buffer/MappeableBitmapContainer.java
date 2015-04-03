@@ -1087,7 +1087,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
         if(maxcardinality >= this.cardinality) {
             return clone();
         } 
-        if(maxcardinality < MappeableArrayContainer.DEFAULT_MAX_SIZE) {
+        if(maxcardinality <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             MappeableArrayContainer ac = new MappeableArrayContainer(maxcardinality);
             int pos = 0;
             short[] cont = ac.content.array();
@@ -1131,6 +1131,12 @@ public final class MappeableBitmapContainer extends MappeableContainer
            return toArrayContainer();
        return this;
     }
+
+		@Override
+		public MappeableContainer flip(short x) {
+			// TODO Auto-generated method stub
+			return null;
+		}
 
 }
 

@@ -143,6 +143,17 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      */
     public abstract void fillLeastSignificant16bits(int[] x, int i, int mask);
 
+
+    /**
+     * Add a short to the container if it is not present, otherwise remove it. 
+     * May generate a new container.
+     *
+     * @param x short to be added
+     * @return the new container
+     */
+    public abstract MappeableContainer flip(short x);
+    
+    
     /**
      * Size of the underlying array
      * 

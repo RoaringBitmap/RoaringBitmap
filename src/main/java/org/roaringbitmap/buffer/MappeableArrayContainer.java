@@ -769,6 +769,24 @@ public final class MappeableArrayContainer extends MappeableContainer implements
             return clone();
     }
 
+		@Override
+		public MappeableContainer flip(short x) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public MappeableContainer add(short begin, short end) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public MappeableContainer remove(short begin, short end) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
 }
 
 

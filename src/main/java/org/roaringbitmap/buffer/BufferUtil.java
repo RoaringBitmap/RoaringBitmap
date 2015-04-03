@@ -28,7 +28,7 @@ public final class BufferUtil {
      * @param end last index to be modified (exclusive)
      */
     public static void flipBitmapRange(LongBuffer bitmap, int start, int end) {
-        if (bitmap.hasArray()) {
+        if (isBackedBySimpleArray(bitmap)) {
             Util.flipBitmapRange(bitmap.array(), start, end);
             return;
         }
@@ -50,7 +50,7 @@ public final class BufferUtil {
      * @param end last index to be modified (exclusive)
      */
     public static void resetBitmapRange(LongBuffer bitmap, int start, int end) {
-        if(bitmap.hasArray()) {
+        if(isBackedBySimpleArray(bitmap)) {
             Util.resetBitmapRange(bitmap.array(), start, end);
             return;
         }
@@ -76,7 +76,7 @@ public final class BufferUtil {
      * @param end last index to be modified (exclusive)
      */
     public static void setBitmapRange(LongBuffer bitmap, int start, int end) {
-        if(bitmap.hasArray()) {
+        if(isBackedBySimpleArray(bitmap)) {
             Util.setBitmapRange(bitmap.array(), start, end);
             return;
         }

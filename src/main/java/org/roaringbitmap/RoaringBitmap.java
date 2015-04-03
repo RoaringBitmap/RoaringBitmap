@@ -442,6 +442,25 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             highLowContainer.insertNewKeyValueAt(-i - 1, hb, newac.add(Util.lowbits(x)));
         }
     }
+
+    /**
+     * Add the value if it is not already present, otherwise remove it.
+     * 
+     * @param x integer value
+     */
+    public void flip(final int x) {
+        final short hb = Util.highbits(x);
+        final int i = highLowContainer.getIndex(hb);
+        if (i >= 0) {
+            highLowContainer.setContainerAtIndex(i,
+                    highLowContainer.getContainerAtIndex(i).flip(Util.lowbits(x))
+            );
+        } else {
+            final ArrayContainer newac = new ArrayContainer();
+            highLowContainer.insertNewKeyValueAt(-i - 1, hb, newac.add(Util.lowbits(x)));
+        }
+    }
+    
     /**
      * Add to the current bitmap all integers in [rangeStart,rangeEnd).
      *
@@ -476,6 +495,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             }
         }
     }
+
     /**
      * Remove the current bitmap all integers in [rangeStart,rangeEnd).
      *
@@ -485,14 +505,17 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     public void remove(final int rangeStart, final int rangeEnd) {
         if (rangeStart >= rangeEnd)
             return; // empty range
+        System.out.println("rangeStart="+rangeStart+", rangeEnd="+rangeEnd);
+
         final short hbStart = Util.highbits(rangeStart);
         final short lbStart = Util.lowbits(rangeStart);
         final short hbLast = Util.highbits(rangeEnd - 1);
         final short lbLast = Util.lowbits(rangeEnd - 1);
         if(hbStart == hbLast) {
             final int i = highLowContainer.getIndex(hbStart);
+            System.out.println("lbStart="+lbStart+", lbLast="+lbLast);
             final Container c = highLowContainer.getContainerAtIndex(i).remove(
-                    lbStart, hbLast);
+                    lbStart, lbLast);
             if(c.getCardinality()>0)
                 highLowContainer.setContainerAtIndex(i, c);
             else 

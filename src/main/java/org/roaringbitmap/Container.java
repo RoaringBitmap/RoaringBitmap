@@ -142,6 +142,17 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      */
     public abstract void fillLeastSignificant16bits(int[] x, int i, int mask);
 
+    
+
+    /**
+     * Add a short to the container if it is not present, otherwise remove it. 
+     * May generate a new container.
+     *
+     * @param x short to be added
+     * @return the new container
+     */
+    public abstract Container flip(short x);
+    
     /**
      * Size of the underlying array
      *

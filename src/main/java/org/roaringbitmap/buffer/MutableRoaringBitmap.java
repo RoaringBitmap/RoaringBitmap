@@ -394,6 +394,25 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         }
     }
     
+
+    /**
+     * Add the value if it is not already present, otherwise remove it.
+     * 
+     * @param x integer value
+     */
+    public void flip(final int x) {
+        final short hb = BufferUtil.highbits(x);
+        final int i = highLowContainer.getIndex(hb);
+        if (i >= 0) {
+            ((MutableRoaringArray) highLowContainer).setContainerAtIndex(i,
+                    highLowContainer.getContainerAtIndex(i).flip(BufferUtil.lowbits(x))
+            );
+        } else {
+            final MappeableArrayContainer newac = new MappeableArrayContainer();
+            ((MutableRoaringArray) highLowContainer).insertNewKeyValueAt(-i - 1, hb, newac.add(BufferUtil.lowbits(x)));
+        }
+    }
+    
     /**
      * Add to the current bitmap all integers in [rangeStart,rangeEnd).
      *

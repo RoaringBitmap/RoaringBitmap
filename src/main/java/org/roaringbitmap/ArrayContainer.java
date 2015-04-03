@@ -261,6 +261,17 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         this.content = Arrays.copyOf(this.content, newCapacity);
     }
 
+    private void increaseCapacity(int min) {
+        int newCapacity = (this.content.length == 0) ? DEFAULT_INIT_SIZE : this.content.length < 64 ? this.content.length * 2
+                : this.content.length < 1024 ? this.content.length * 3 / 2
+                : this.content.length * 5 / 4;
+        if(newCapacity < min) newCapacity = min;
+        if (newCapacity > ArrayContainer.DEFAULT_MAX_SIZE)
+            newCapacity = ArrayContainer.DEFAULT_MAX_SIZE;
+        this.content = Arrays.copyOf(this.content, newCapacity);
+    }
+
+    
     @Override
     public Container inot(final int firstOfRange, final int lastOfRange) {
         // determine the span of array indices to be affected
@@ -611,6 +622,66 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         else
             return clone();
     }
+
+		@Override
+		public Container add(short begin, short end) {
+			int indexstart = Util.unsignedBinarySearch(content, 0, cardinality, begin);
+			if(indexstart<0) indexstart = - indexstart - 1;
+			int indexend = Util.unsignedBinarySearch(content, 0, cardinality, end);
+			if(indexend<0) indexstart = - indexend - 1;
+			int rangelength = Util.toIntUnsigned(end) - Util.toIntUnsigned(begin);
+			int newcardinality = indexstart + (cardinality - indexend) + rangelength;
+			if (newcardinality >= DEFAULT_MAX_SIZE) {
+              BitmapContainer a = this.toBitmapContainer();
+              return a.add(begin,end);
+      }
+      if (newcardinality >= this.content.length)
+              increaseCapacity(newcardinality);
+      System.arraycopy(content, indexstart, content, indexstart + rangelength,cardinality - indexstart);
+      for(int k = indexstart; k < indexstart + rangelength;++k) {
+      	content[k] = (short)(begin + k);
+      }
+      cardinality = newcardinality;
+      return this;
+		}
+
+		@Override
+		public Container remove(short begin, short end) {
+			int indexstart = Util.unsignedBinarySearch(content, 0, cardinality, begin);
+			if(indexstart<0) indexstart = - indexstart - 1;
+			int indexend = Util.unsignedBinarySearch(content, 0, cardinality, end);
+			if(indexend<0) indexstart = - indexend - 1;
+			int rangelength = Util.toIntUnsigned(end) - Util.toIntUnsigned(begin);
+      System.arraycopy(content, indexstart, content, indexstart + rangelength,cardinality - indexstart);
+      cardinality = indexstart + rangelength;
+      return this;
+		}
+
+		@Override
+		public Container flip(short x) {
+      int loc = Util.unsignedBinarySearch(content, 0, cardinality, x);
+      if (loc < 0) {
+          // Transform the ArrayContainer to a BitmapContainer
+          // when cardinality = DEFAULT_MAX_SIZE
+          if (cardinality >= DEFAULT_MAX_SIZE) {
+              BitmapContainer a = this.toBitmapContainer();
+              a.add(x);
+              return a;
+          }
+          if (cardinality >= this.content.length)
+              increaseCapacity();
+          // insertion : shift the elements > x by one position to
+          // the right
+          // and put x in it's appropriate place
+          System.arraycopy(content, -loc - 1, content, -loc,cardinality + loc + 1);
+          content[-loc - 1] = x;
+          ++cardinality;
+      } else {
+        System.arraycopy(content, loc + 1, content, loc, cardinality - loc - 1);
+        --cardinality;
+      }
+      return this;
+		}
 }
 
 

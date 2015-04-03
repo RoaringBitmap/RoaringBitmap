@@ -801,7 +801,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
         if(maxcardinality >= this.cardinality) {
             return clone();
         } 
-        if(maxcardinality < ArrayContainer.DEFAULT_MAX_SIZE) {
+        if(maxcardinality <= ArrayContainer.DEFAULT_MAX_SIZE) {
             ArrayContainer ac = new ArrayContainer(maxcardinality);
             int pos = 0;
             for (int k = 0; (ac.cardinality <maxcardinality) && (k < bitmap.length); ++k) {
@@ -844,6 +844,24 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
            return toArrayContainer();
        return this;
     }
+
+		@Override
+		public Container flip(short i) {
+      final int x = Util.toIntUnsigned(i);
+      if (cardinality == ArrayContainer.DEFAULT_MAX_SIZE + 1) {// this is
+          // the
+          // uncommon
+          // path
+          if ((bitmap[x / 64] & (1l << x)) != 0) {
+              --cardinality;
+              bitmap[x / 64] &= ~(1l << x);
+              return this.toArrayContainer();
+          } 
+      }
+      cardinality += 1 - 2 * ( (bitmap[x / 64] ^ (1l << x)) >>> x );
+      bitmap[x / 64] ^= (1l << x);
+      return this;
+		}
 
 }
 
