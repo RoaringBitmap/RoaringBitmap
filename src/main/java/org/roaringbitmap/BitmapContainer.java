@@ -801,7 +801,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
         if(maxcardinality >= this.cardinality) {
             return clone();
         } 
-        if(maxcardinality < ArrayContainer.DEFAULT_MAX_SIZE) {
+        if(maxcardinality <= ArrayContainer.DEFAULT_MAX_SIZE) {
             ArrayContainer ac = new ArrayContainer(maxcardinality);
             int pos = 0;
             for (int k = 0; (ac.cardinality <maxcardinality) && (k < bitmap.length); ++k) {
