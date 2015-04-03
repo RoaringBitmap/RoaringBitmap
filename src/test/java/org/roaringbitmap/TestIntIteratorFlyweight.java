@@ -96,23 +96,4 @@ public class TestIntIteratorFlyweight {
         return Ints.asList(Arrays.copyOf(values, size));
     }
 
-    private static List<Integer> asList(final ShortIterator shorts) {
-        return asList(new IntIterator() {
-            @Override
-            public boolean hasNext() {
-                return shorts.hasNext();
-            }
-
-            @Override
-            public int next() {
-                return shorts.next();
-            }
-
-            @SuppressWarnings("CloneDoesntCallSuperClone")
-            @Override
-            public IntIterator clone() {
-                throw new UnsupportedOperationException();
-            }
-        });
-    }
 }

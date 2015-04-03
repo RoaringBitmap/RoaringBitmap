@@ -161,7 +161,20 @@ public final class Util {
         return x & 0xFFFF;
     }
 
-    protected static int unsignedBinarySearch(final short[] array, final int begin,
+    /**
+     * Look value value k in array in the range [begin,end). If the value
+     * is found, return its index. If not, return -(i+1) where i is the
+     * index where the value would be inserted. 
+     * The array is assumed to contain sorted values where shorts are
+     * interpreted as unsigned integers.
+     * 
+     * @param array array where we search
+     * @param begin first index (inclusive)
+     * @param end last index (exclusive)
+     * @param k value we search for
+     * @return
+     */
+    public static int unsignedBinarySearch(final short[] array, final int begin,
                                               final int end, final short k) {
         int ikey = toIntUnsigned(k);
         // next line accelerates the possibly common case where the value would be inserted at the end

@@ -659,7 +659,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
 
 		@Override
 		public Container flip(short x) {
-      int loc = Util.unsignedBinarySearch(content, 0, cardinality, x);
+			int loc = Util.unsignedBinarySearch(content, 0, cardinality, x);
       if (loc < 0) {
           // Transform the ArrayContainer to a BitmapContainer
           // when cardinality = DEFAULT_MAX_SIZE

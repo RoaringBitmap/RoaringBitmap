@@ -6,10 +6,8 @@
 package org.roaringbitmap.buffer;
 
 import org.roaringbitmap.BitmapDataProvider;
-import org.roaringbitmap.Container;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.ShortIterator;
-import org.roaringbitmap.Util;
 
 import java.io.*;
 import java.util.Iterator;

@@ -1,10 +1,14 @@
 package org.roaringbitmap;
 
+
+
+import static org.junit.Assert.*;
+
 import org.junit.Test;
 
-import junit.framework.Assert;
 
 public class TestRange {
+	
 
 	
 	@Test
@@ -18,8 +22,8 @@ public class TestRange {
 				}
 				RoaringBitmap bs2 = new RoaringBitmap();
 				bs2.flip(start, end);
-				Assert.assertEquals(bs2.getCardinality(), end-start);
-				Assert.assertEquals(bs1, bs2);
+				assertEquals(bs2.getCardinality(), end-start);
+				assertEquals(bs1, bs2);
 			}
 		}
 	}
@@ -35,7 +39,7 @@ public class TestRange {
 				}
 				RoaringBitmap bs2 = new RoaringBitmap();
 				bs2.add(start, end);
-				Assert.assertEquals(bs1, bs2);
+				assertEquals(bs1, bs2);
 			}
 		}
 	}
@@ -58,7 +62,7 @@ public class TestRange {
 
 				bs2.remove(start, end);
 				System.out.println("bs2="+bs2);
-				Assert.assertEquals(bs1, bs2);
+				assertEquals(bs1, bs2);
 			}
 		}
 	}

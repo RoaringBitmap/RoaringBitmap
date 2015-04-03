@@ -1,8 +1,9 @@
 package org.roaringbitmap.buffer;
 
+import static org.junit.Assert.*;
+
 import org.junit.Test;
 
-import junit.framework.Assert;
 
 public class TestRange {
 
@@ -18,8 +19,8 @@ public class TestRange {
 				}
 				MutableRoaringBitmap bs2 = new MutableRoaringBitmap();
 				bs2.flip(start, end);
-				Assert.assertEquals(bs2.getCardinality(), end-start);
-				Assert.assertEquals(bs1, bs2);
+				assertEquals(bs2.getCardinality(), end-start);
+				assertEquals(bs1, bs2);
 			}
 		}
 	}
@@ -35,7 +36,7 @@ public class TestRange {
 				}
 				MutableRoaringBitmap bs2 = new MutableRoaringBitmap();
 				bs2.add(start, end);
-				Assert.assertEquals(bs1, bs2);
+				assertEquals(bs1, bs2);
 			}
 		}
 	}
@@ -58,7 +59,7 @@ public class TestRange {
 
 				bs2.remove(start, end);
 				System.out.println("bs2="+bs2);
-				Assert.assertEquals(bs1, bs2);
+				assertEquals(bs1, bs2);
 			}
 		}
 	}

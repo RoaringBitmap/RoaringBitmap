@@ -9,7 +9,6 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import org.roaringbitmap.buffer.MappeableBitmapContainer;
 
 /**
  * Simple bitset-like container.
@@ -853,12 +852,12 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
           // uncommon
           // path
           if ((bitmap[x / 64] & (1l << x)) != 0) {
-              --cardinality;
+          	  --cardinality;
               bitmap[x / 64] &= ~(1l << x);
               return this.toArrayContainer();
           } 
       }
-      cardinality += 1 - 2 * ( (bitmap[x / 64] ^ (1l << x)) >>> x );
+      cardinality +=  2 * ( (bitmap[x / 64] ^ (1l << x)) >>> x ) - 1;
       bitmap[x / 64] ^= (1l << x);
       return this;
 		}

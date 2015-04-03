@@ -5,7 +5,6 @@
 
 package org.roaringbitmap.buffer;
 
-import org.roaringbitmap.BitmapContainer;
 import org.roaringbitmap.ShortIterator;
 import org.roaringbitmap.Util;
 
@@ -1133,9 +1132,21 @@ public final class MappeableBitmapContainer extends MappeableContainer
     }
 
 		@Override
-		public MappeableContainer flip(short x) {
-			// TODO Auto-generated method stub
-			return null;
+		public MappeableContainer flip(short i) {
+      final int x = BufferUtil.toIntUnsigned(i);
+      if (cardinality == MappeableArrayContainer.DEFAULT_MAX_SIZE + 1) {// this is
+          // the
+          // uncommon
+          // path
+          if ((bitmap.get(x / 64) & (1l << x)) != 0) {
+          	  --cardinality;
+          	  bitmap.put(x / 64,bitmap.get(x / 64) & ~(1l << x));
+              return this.toArrayContainer();
+          } 
+      }
+      cardinality +=  2 * ( (bitmap.get(x / 64) ^ (1l << x)) >>> x ) - 1;
+      bitmap.put(x / 64,bitmap.get(x / 64) ^ (1l << x));
+      return this;
 		}
 
 }

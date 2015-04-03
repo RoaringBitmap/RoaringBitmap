@@ -6,6 +6,8 @@
 package org.roaringbitmap.buffer;
 
 
+import static org.junit.Assert.*;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.roaringbitmap.IntIterator;
@@ -21,6 +23,19 @@ import java.util.*;
 @SuppressWarnings({"static-method", "javadoc"})
 public class TestRoaringBitmap {
     
+
+	@Test
+	public void testFlip() {
+		MutableRoaringBitmap rb = new MutableRoaringBitmap();
+		for (int i = 0; i < 1 << 20; ++i) {
+			rb.flip(i);
+			assertEquals(rb.getCardinality(), i + 1);
+		}
+		for (int i = (1 << 20) - 1; i >= 0; --i) {
+			rb.flip(i);
+			assertEquals(rb.getCardinality(), i);
+		}
+	}
     @Test
     public void testSetUtilIntersection() {
         short  data1[] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18};

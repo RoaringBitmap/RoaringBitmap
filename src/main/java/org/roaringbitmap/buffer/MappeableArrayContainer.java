@@ -6,6 +6,7 @@
 package org.roaringbitmap.buffer;
 
 import org.roaringbitmap.ShortIterator;
+import org.roaringbitmap.Util;
 
 import java.io.*;
 import java.nio.ShortBuffer;
@@ -98,7 +99,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         if (BufferUtil.isBackedBySimpleArray(this.content)) {
             short[] sarray = content.array();
 
-            int loc = BufferUtil.unsignedBinarySearch(content, 0, cardinality,
+            int loc = Util.unsignedBinarySearch(sarray, 0, cardinality,
                     x);
             if (loc < 0) {
                 // Transform the ArrayContainer to a BitmapContainer
@@ -620,17 +621,31 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
     @Override
-    public MappeableContainer remove(final short x) {
-        final int loc = BufferUtil.unsignedBinarySearch(content, 0,
-                cardinality, x);
-        if (loc >= 0) {
-            // insertion
-            System.arraycopy(content.array(), loc + 1, content.array(), loc,
-                    cardinality - loc - 1);
-            --cardinality;
-        }
-        return this;
-    }
+	public MappeableContainer remove(final short x) {
+		if (BufferUtil.isBackedBySimpleArray(this.content)) {
+			final int loc = Util.unsignedBinarySearch(content.array(), 0,
+					cardinality, x);
+			if (loc >= 0) {
+				// insertion
+				System.arraycopy(content.array(), loc + 1, content.array(), loc,
+						cardinality - loc - 1);
+				--cardinality;
+			}
+			return this;
+		} else {
+			final int loc = BufferUtil.unsignedBinarySearch(content, 0, cardinality,
+					x);
+			if (loc >= 0) {
+				// insertion
+				for (int k = loc + 1; k < cardinality; --k) {
+					content.put(k - 1, content.get(k));
+				}
+				--cardinality;
+			}
+			return this;
+
+		}
+	}
 
     /**
      * Copies the data in a bitmap container.
@@ -771,8 +786,61 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
 		@Override
 		public MappeableContainer flip(short x) {
-			// TODO Auto-generated method stub
-			return null;
+      if (BufferUtil.isBackedBySimpleArray(this.content)) {
+        short[] sarray = content.array();
+				int loc = Util.unsignedBinarySearch(sarray, 0, cardinality, x);
+	      if (loc < 0) {
+	          // Transform the ArrayContainer to a BitmapContainer
+	          // when cardinality = DEFAULT_MAX_SIZE
+	          if (cardinality >= DEFAULT_MAX_SIZE) {
+	              MappeableBitmapContainer a = this.toBitmapContainer();
+	              a.add(x);
+	              return a;
+	          }
+	          if (cardinality >= sarray.length) {
+	              increaseCapacity();
+	              sarray = content.array();
+	          }
+	          // insertion : shift the elements > x by one position to
+	          // the right
+	          // and put x in it's appropriate place
+	          System.arraycopy(sarray, -loc - 1, sarray, -loc,cardinality + loc + 1);
+	          sarray[-loc - 1] = x;
+	          ++cardinality;
+	      } else {
+	        System.arraycopy(sarray, loc + 1, sarray, loc, cardinality - loc - 1);
+	        --cardinality;
+	      }
+	      return this;
+
+			} else {
+				int loc = BufferUtil.unsignedBinarySearch(content, 0, cardinality, x);
+	      if (loc < 0) {
+	          // Transform the ArrayContainer to a BitmapContainer
+	          // when cardinality = DEFAULT_MAX_SIZE
+	          if (cardinality >= DEFAULT_MAX_SIZE) {
+	              MappeableBitmapContainer a = this.toBitmapContainer();
+	              a.add(x);
+	              return a;
+	          }
+	          if (cardinality >= content.limit()) {
+	              increaseCapacity();
+	          }
+	          // insertion : shift the elements > x by one position to
+	          // the right
+	          // and put x in it's appropriate place
+	          for (int k = cardinality; k > -loc - 1; --k)
+	            content.put(k, content.get(k - 1));
+	          content.put(-loc - 1, x);
+	          ++cardinality;
+	      } else {
+					for (int k = loc + 1; k < cardinality; --k) {
+						content.put(k - 1, content.get(k));
+					}
+					--cardinality;
+	      }
+	      return this;
+			}
 		}
 
 		@Override
