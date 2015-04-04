@@ -230,7 +230,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             assert j < 0;
 
             if (i >= 0) {
-                Container c = bm.highLowContainer.getContainerAtIndex(i).not(containerStart, containerLast);
+                Container c = bm.highLowContainer.getContainerAtIndex(i).not(containerStart, containerLast+1);
                 if (c.getCardinality() > 0)
                     answer.highLowContainer.insertNewKeyValueAt(-j - 1, (short) hb, c);
 
@@ -745,6 +745,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         final int lbLast = Util.toIntUnsigned(Util.lowbits(rangeEnd - 1));
 
         final int max = Util.toIntUnsigned(Util.maxLowBit());
+        // TODO:this can be accelerated considerably
         for (int hb = hbStart; hb <= hbLast; ++hb) {
             // first container may contain partial range
             final int containerStart = (hb == hbStart) ? lbStart : 0;
@@ -753,8 +754,13 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             final int i = highLowContainer.getIndex((short) hb);
 
             if (i >= 0) {
-                final Container c = highLowContainer.getContainerAtIndex(i).inot(
-                                containerStart, containerLast);
+            	System.out.println("inot = "+containerStart+" "+( containerLast+1));
+              final Container longway = highLowContainer.getContainerAtIndex(i).xor(Container.rangeOfOnes(
+                  containerStart, containerLast+1));
+
+            	final Container c = highLowContainer.getContainerAtIndex(i).inot(
+                                containerStart, containerLast+1);
+            	if(!c.equals(longway)) throw new RuntimeException("shit");
                 if (c.getCardinality() > 0)
                     highLowContainer.setContainerAtIndex(i, c);
                 else

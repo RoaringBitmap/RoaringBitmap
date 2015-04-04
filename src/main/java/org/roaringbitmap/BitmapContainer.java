@@ -325,8 +325,6 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
         return ac;
     }
 
-    // complicated so that it should be reasonably efficient even when the
-    // ranges are small
     @Override
     public Container inot(final int firstOfRange, final int lastOfRange) {
         return not(this, firstOfRange, lastOfRange);
@@ -491,7 +489,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
         // bitmaps are not
         // allowed
         // an easy case for full range, should be common
-        if (lastOfRange - firstOfRange + 1 == MAX_CAPACITY) {
+        if (lastOfRange - firstOfRange == MAX_CAPACITY) {
             final int newCardinality = MAX_CAPACITY - cardinality;
             for (int k = 0; k < this.bitmap.length; ++k)
                 answer.bitmap[k] = ~this.bitmap[k];
@@ -507,8 +505,8 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
         int cardinalityChange = 0;
         final int rangeFirstWord = firstOfRange / 64;
         final int rangeFirstBitPos = firstOfRange & 63;
-        final int rangeLastWord = lastOfRange / 64;
-        final long rangeLastBitPos = lastOfRange & 63;
+        final int rangeLastWord = (lastOfRange - 1) / 64;
+        final long rangeLastBitPos = (lastOfRange - 1) & 63;
 
         // if not in place, we need to duplicate stuff before
         // rangeFirstWord and after rangeLastWord

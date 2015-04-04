@@ -378,7 +378,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      * @param rangeStart beginning of range (inclusive); 0 is beginning of this
      *                   container.
      * @param rangeEnd   ending of range (exclusive)
-     * @return (partially) completmented container
+     * @return (partially) complemented container
      */
     public abstract Container not(int rangeStart, int rangeEnd);
 

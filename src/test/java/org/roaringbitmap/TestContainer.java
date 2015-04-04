@@ -44,7 +44,7 @@ public class TestContainer {
         // Array container, range is complete
         final short[] content = {1, 3, 5, 7, 9};
         Container c = makeContainer(content);
-        c = c.inot(0, 65535);
+        c = c.inot(0, 65536);
         final short[] s = new short[65536 - content.length];
         int pos = 0;
         for (int i = 0; i < 65536; ++i)
@@ -62,7 +62,7 @@ public class TestContainer {
         content[1] = 2;
         content[2] = 4;
         final Container c = makeContainer(content);
-        final Container c1 = c.inot(65190, 65200);
+        final Container c1 = c.inot(65190, 65201);
         assertTrue(c1 instanceof ArrayContainer);
         assertEquals(14, c1.getCardinality());
         assertTrue(checkContent(c1, new short[]{0, 2, 4,
@@ -90,10 +90,10 @@ public class TestContainer {
         for (int i = 0; i < 65536; i += 2)
             c = c.add((short) i);
 
-        c = c.inot(0, 65535);
+        c = c.inot(0, 65536);
         assertTrue(c.contains((short) 3) && !c.contains((short) 4));
         assertEquals(32768, c.getCardinality());
-        c = c.inot(0, 65535);
+        c = c.inot(0, 65536);
         for (int i = 0; i < 65536; i += 2)
             assertTrue(c.contains((short) i)
                     && !c.contains((short) (i + 1)));
@@ -104,10 +104,10 @@ public class TestContainer {
         // Array container, range is partial, result stays array
         final short[] content = {1, 3, 5, 7, 9};
         Container c = makeContainer(content);
-        c = c.inot(4, 999);
+        c = c.inot(4, 1000);
         assertTrue(c instanceof ArrayContainer);
         assertEquals(999 - 4 + 1 - 3 + 2, c.getCardinality());
-        c = c.inot(4, 999); // back
+        c = c.inot(4, 1000); // back
         assertTrue(checkContent(c, content));
     }
 
@@ -124,10 +124,10 @@ public class TestContainer {
         for (int i = 10; i <= 32767; ++i)
             content[i - 10 + 5] = (short) i;
         Container c = makeContainer(content);
-        c = c.inot(4, 999);
+        c = c.inot(4, 1000);
         assertTrue(c instanceof BitmapContainer);
         assertEquals(31773, c.getCardinality());
-        c = c.inot(4, 999); // back, as a bitmap
+        c = c.inot(4, 1000); // back, as a bitmap
         assertTrue(c instanceof BitmapContainer);
         assertTrue(checkContent(c, content));
 
@@ -147,10 +147,10 @@ public class TestContainer {
         for (int i = 10; i <= 32767; ++i)
             content[i - 10 + 5] = (short) i;
         Container c = makeContainer(content);
-        c = c.inot(4, 8);
+        c = c.inot(4, 9);
         assertTrue(c instanceof BitmapContainer);
         assertEquals(32762, c.getCardinality());
-        c = c.inot(4, 8); // back, as a bitmap
+        c = c.inot(4, 9); // back, as a bitmap
         assertTrue(c instanceof BitmapContainer);
         assertTrue(checkContent(c, content));
     }
@@ -168,13 +168,13 @@ public class TestContainer {
         for (int i = 10; i <= 32767; ++i)
             content[i - 10 + 5] = (short) i;
         Container c = makeContainer(content);
-        c = c.inot(5, 31000);
+        c = c.inot(5, 31001);
         if (c.getCardinality() <= ArrayContainer.DEFAULT_MAX_SIZE)
             assertTrue(c instanceof ArrayContainer);
         else
             assertTrue(c instanceof BitmapContainer);
         assertEquals(1773, c.getCardinality());
-        c = c.inot(5, 31000); // back, as a bitmap
+        c = c.inot(5, 31001); // back, as a bitmap
         if (c.getCardinality() <= ArrayContainer.DEFAULT_MAX_SIZE)
             assertTrue(c instanceof ArrayContainer);
         else
@@ -195,11 +195,11 @@ public class TestContainer {
         content[20] = 23;
 
         Container c = makeContainer(content);
-        c = c.inot(5, 21);
+        c = c.inot(5, 22);
         assertTrue(c instanceof ArrayContainer);
 
         assertEquals(10, c.getCardinality());
-        c = c.inot(5, 21); // back, as a bitmap
+        c = c.inot(5, 22); // back, as a bitmap
         assertTrue(c instanceof ArrayContainer);
         assertTrue(checkContent(c, content));
     }
@@ -210,7 +210,7 @@ public class TestContainer {
         // Array container, range is complete
         final short[] content = {1, 3, 5, 7, 9};
         final Container c = makeContainer(content);
-        final Container c1 = c.not(0, 65535);
+        final Container c1 = c.not(0, 65536);
         final short[] s = new short[65536 - content.length];
         int pos = 0;
         for (int i = 0; i < 65536; ++i)
@@ -282,10 +282,10 @@ public class TestContainer {
         for (int i = 0; i < 65536; i += 2)
             c = c.add((short) i);
 
-        final Container c1 = c.not(0, 65535);
+        final Container c1 = c.not(0, 65536);
         assertTrue(c1.contains((short) 3) && !c1.contains((short) 4));
         assertEquals(32768, c1.getCardinality());
-        final Container c2 = c1.not(0, 65535);
+        final Container c2 = c1.not(0, 65536);
         for (int i = 0; i < 65536; i += 2)
             assertTrue(c2.contains((short) i)
                     && !c2.contains((short) (i + 1)));
@@ -317,10 +317,10 @@ public class TestContainer {
         for (int i = 10; i <= 32767; ++i)
             content[i - 10 + 5] = (short) i;
         final Container c = makeContainer(content);
-        final Container c1 = c.not(4, 999);
+        final Container c1 = c.not(4, 1000);
         assertTrue(c1 instanceof BitmapContainer);
         assertEquals(31773, c1.getCardinality());
-        final Container c2 = c1.not(4, 999); // back, as a bitmap
+        final Container c2 = c1.not(4, 1000); // back, as a bitmap
         assertTrue(c2 instanceof BitmapContainer);
         assertTrue(checkContent(c2, content));
     }
@@ -339,10 +339,10 @@ public class TestContainer {
         for (int i = 10; i <= 32767; ++i)
             content[i - 10 + 5] = (short) i;
         final Container c = makeContainer(content);
-        final Container c1 = c.not(4, 8);
+        final Container c1 = c.not(4, 9);
         assertTrue(c1 instanceof BitmapContainer);
         assertEquals(32762, c1.getCardinality());
-        final Container c2 = c1.not(4, 8); // back, as a bitmap
+        final Container c2 = c1.not(4, 9); // back, as a bitmap
         assertTrue(c2 instanceof BitmapContainer);
         assertTrue(checkContent(c2, content));
     }
@@ -360,13 +360,13 @@ public class TestContainer {
         for (int i = 10; i <= 32767; ++i)
             content[i - 10 + 5] = (short) i;
         final Container c = makeContainer(content);
-        final Container c1 = c.not(5, 31000);
+        final Container c1 = c.not(5, 31001);
         if (c1.getCardinality() <= ArrayContainer.DEFAULT_MAX_SIZE)
             assertTrue(c1 instanceof ArrayContainer);
         else
             assertTrue(c1 instanceof BitmapContainer);
         assertEquals(1773, c1.getCardinality());
-        final Container c2 = c1.not(5, 31000); // back, as a bitmap
+        final Container c2 = c1.not(5, 31001); // back, as a bitmap
         if (c2.getCardinality() <= ArrayContainer.DEFAULT_MAX_SIZE)
             assertTrue(c2 instanceof ArrayContainer);
         else
@@ -387,10 +387,10 @@ public class TestContainer {
         for (int i = 10; i <= 32767; ++i)
             content[i - 10 + 5] = (short) i;
         final Container c = makeContainer(content);
-        final Container c1 = c.not(4, 65535);
+        final Container c1 = c.not(4, 65536);
         assertTrue(c1 instanceof BitmapContainer);
         assertEquals(32773, c1.getCardinality());
-        final Container c2 = c1.not(4, 65535); // back, as a bitmap
+        final Container c2 = c1.not(4, 65536); // back, as a bitmap
         assertTrue(c2 instanceof BitmapContainer);
         assertTrue(checkContent(c2, content));
     }
@@ -409,10 +409,10 @@ public class TestContainer {
         for (int i = 10; i <= 32767; ++i)
             content[i - 10 + 5] = (short) i;
         final Container c = makeContainer(content);
-        final Container c1 = c.not(0, 65200);
+        final Container c1 = c.not(0, 65201);
         assertTrue(c1 instanceof BitmapContainer);
         assertEquals(32438, c1.getCardinality());
-        final Container c2 = c1.not(0, 65200); // back, as a bitmap
+        final Container c2 = c1.not(0, 65201); // back, as a bitmap
         assertTrue(c2 instanceof BitmapContainer);
         assertTrue(checkContent(c2, content));
     }

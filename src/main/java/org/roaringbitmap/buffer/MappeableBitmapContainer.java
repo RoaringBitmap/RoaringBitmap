@@ -442,11 +442,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
         return ac;
     }
 
-    // complicated so that it should be reasonably efficient even when the
-    // ranges are small
+
     @Override
     public MappeableContainer inot(final int firstOfRange, final int lastOfRange) {
-        return not(this, firstOfRange, lastOfRange);
+        return not(this, firstOfRange, lastOfRange); 
     }
 
     @Override

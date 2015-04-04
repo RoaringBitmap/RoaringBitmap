@@ -278,11 +278,11 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         int startIndex = Util.unsignedBinarySearch(content, 0, cardinality, (short) firstOfRange);
         if (startIndex < 0)
             startIndex = -startIndex - 1;
-        int lastIndex = Util.unsignedBinarySearch(content, 0, cardinality, (short) lastOfRange);
+        int lastIndex = Util.unsignedBinarySearch(content, 0, cardinality, (short) (lastOfRange-1));
         if (lastIndex < 0)
             lastIndex = -lastIndex - 1 - 1;
         final int currentValuesInRange = lastIndex - startIndex + 1;
-        final int spanToBeFlipped = lastOfRange - firstOfRange + 1;
+        final int spanToBeFlipped = lastOfRange - firstOfRange ;
         final int newValuesInRange = spanToBeFlipped - currentValuesInRange;
         final short[] buffer = new short[newValuesInRange];
         final int cardinalityChange = newValuesInRange - currentValuesInRange;
@@ -373,7 +373,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         // n.b., we can start initially exhausted.
 
         int valInRange = startRange;
-        for (; valInRange <= lastRange && inPos <= lastIndex; ++valInRange) {
+        for (; valInRange < lastRange && inPos <= lastIndex; ++valInRange) {
             if ((short) valInRange != content[inPos]) {
                 buffer[outPos++] = (short) valInRange;
             } else {
@@ -383,7 +383,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
 
         // if there are extra items (greater than the biggest
         // pre-existing one in range), buffer them
-        for (; valInRange <= lastRange; ++valInRange) {
+        for (; valInRange < lastRange; ++valInRange) {
             buffer[outPos++] = (short) valInRange;
         }
 
