@@ -46,10 +46,10 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
      * is small enough that ArrayContainer is appropriate.
      *
      * @param firstOfRun first index
-     * @param lastOfRun  last index (range is inclusive)
+     * @param lastOfRun  last index (range is exclusive)
      */
     public ArrayContainer(final int firstOfRun, final int lastOfRun) {
-        final int valuesInRange = lastOfRun - firstOfRun + 1;
+        final int valuesInRange = lastOfRun - firstOfRun ;
         this.content = new short[valuesInRange];
         for (int i = 0; i < valuesInRange; ++i)
             content[i] = (short) (firstOfRun + i);

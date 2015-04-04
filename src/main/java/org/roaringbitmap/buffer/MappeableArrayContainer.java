@@ -54,11 +54,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
      * @param firstOfRun
      *            first index
      * @param lastOfRun
-     *            last index (range is inclusive)
+     *            last index (range is exclusive)
      */
     public MappeableArrayContainer(final int firstOfRun, final int lastOfRun) {
         // TODO: this can be optimized for performance
-        final int valuesInRange = lastOfRun - firstOfRun + 1;
+        final int valuesInRange = lastOfRun - firstOfRun;
         content = ShortBuffer.allocate(valuesInRange);
         short[] sarray = content.array();
         for (int i = 0; i < valuesInRange; ++i)

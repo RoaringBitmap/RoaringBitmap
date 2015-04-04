@@ -44,20 +44,20 @@ public final class MappeableBitmapContainer extends MappeableContainer
      * @param firstOfRun
      *            first index
      * @param lastOfRun
-     *            last index (range is inclusive)
+     *            last index (range is exclusive)
      */
     public MappeableBitmapContainer(final int firstOfRun, final int lastOfRun) {
         // TODO: this can be optimized for performance
-        this.cardinality = lastOfRun - firstOfRun + 1;
+        this.cardinality = lastOfRun - firstOfRun ;
         this.bitmap = LongBuffer.allocate(MAX_CAPACITY / 64);
         if (this.cardinality == MAX_CAPACITY) {// perhaps a common case
             for (int k = 0; k < bitmap.limit(); ++k)
                 bitmap.put(k, -1L);
         } else {
             final int firstWord = firstOfRun / 64;
-            final int lastWord = lastOfRun / 64;
+            final int lastWord = (lastOfRun - 1) / 64;
             final int zeroPrefixLength = firstOfRun & 63;
-            final int zeroSuffixLength = 63 - (lastOfRun & 63);
+            final int zeroSuffixLength = 63 - ((lastOfRun - 1) & 63);
             for (int k = firstWord; k < lastWord + 1; ++k)
                 bitmap.put(k, -1L);
             bitmap.put(firstWord, bitmap.get(firstWord)

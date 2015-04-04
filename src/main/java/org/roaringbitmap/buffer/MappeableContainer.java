@@ -24,11 +24,11 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      * @param start
      *            first index
      * @param last
-     *            last index (range in inclusive)
+     *            last index (range in exclusive)
      * @return a new container initialized with the specified values
      */
     public static MappeableContainer rangeOfOnes(final int start, final int last) {
-        if (last - start + 1 > MappeableArrayContainer.DEFAULT_MAX_SIZE)
+        if (last - start  > MappeableArrayContainer.DEFAULT_MAX_SIZE)
             return new MappeableBitmapContainer(start, last);
         return new MappeableArrayContainer(start, last);
     }

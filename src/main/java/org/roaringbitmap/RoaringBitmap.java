@@ -237,7 +237,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             } else { // *think* the range of ones must never be
                 // empty.
                 answer.highLowContainer.insertNewKeyValueAt(-j - 1, (short) hb, Container.rangeOfOnes(
-                                containerStart, containerLast)
+                                containerStart, containerLast+1)
                 );
             }
         }
@@ -490,7 +490,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
                 highLowContainer.setContainerAtIndex(i, c);
             } else {
                 highLowContainer.insertNewKeyValueAt(-i - 1,(short) hb, Container.rangeOfOnes(
-                        containerStart, containerLast)
+                        containerStart, containerLast+1)
                 );
             }
         }
@@ -761,7 +761,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
                     highLowContainer.removeAtIndex(i);
             } else {
                 highLowContainer.insertNewKeyValueAt(-i - 1,(short) hb, Container.rangeOfOnes(
-                        containerStart, containerLast)
+                        containerStart, containerLast+1)
                 );
             }
         }

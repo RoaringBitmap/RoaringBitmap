@@ -38,18 +38,18 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
      * that an ArrayContainer should have been created instead
      *
      * @param firstOfRun first index
-     * @param lastOfRun  last index (range is inclusive)
+     * @param lastOfRun  last index (range is exclusive)
      */
     public BitmapContainer(final int firstOfRun, final int lastOfRun) {
-        this.cardinality = lastOfRun - firstOfRun + 1;
+        this.cardinality = lastOfRun - firstOfRun;
         this.bitmap = new long[MAX_CAPACITY / 64];
         if (this.cardinality == MAX_CAPACITY) // perhaps a common case
             Arrays.fill(bitmap, -1L);
         else {
             final int firstWord = firstOfRun / 64;
-            final int lastWord = lastOfRun / 64;
+            final int lastWord = (lastOfRun - 1) / 64;
             final int zeroPrefixLength = firstOfRun & 63;
-            final int zeroSuffixLength = 63 - (lastOfRun & 63);
+            final int zeroSuffixLength = 63 - ((lastOfRun - 1 ) & 63);
 
             Arrays.fill(bitmap, firstWord, lastWord + 1, -1L);
             bitmap[firstWord] ^= ((1L << zeroPrefixLength) - 1);

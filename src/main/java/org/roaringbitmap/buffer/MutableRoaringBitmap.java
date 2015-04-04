@@ -217,7 +217,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
                         -j - 1,
                         (short) hb,
                         MappeableContainer.rangeOfOnes(containerStart,
-                                containerLast));
+                                containerLast+1));
             }
         }
         // copy the containers after the active area.
@@ -601,7 +601,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
                         -i - 1,
                         (short) hb,
                         MappeableContainer.rangeOfOnes(containerStart,
-                                containerLast));
+                                containerLast+1));
             }
         }
     }

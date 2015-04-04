@@ -19,11 +19,11 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      * Create a container initialized with a range of consecutive values
      *
      * @param start first index
-     * @param last  last index (range in inclusive)
+     * @param last  last index (range is exclusive)
      * @return a new container initialized with the specified values
      */
     public static Container rangeOfOnes(final int start, final int last) {
-        if (last - start + 1 > ArrayContainer.DEFAULT_MAX_SIZE)
+        if (last - start  > ArrayContainer.DEFAULT_MAX_SIZE)
             return new BitmapContainer(start, last);
         return new ArrayContainer(start, last);
     }
