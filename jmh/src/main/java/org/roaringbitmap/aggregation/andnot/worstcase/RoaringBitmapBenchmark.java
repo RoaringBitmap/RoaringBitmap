@@ -25,24 +25,8 @@ public class RoaringBitmapBenchmark {
     @Benchmark
     @BenchmarkMode(Mode.AverageTime)
     @OutputTimeUnit(TimeUnit.MICROSECONDS)
-    public RoaringBitmap oldAndNot() {
-        return RoaringBitmap.oldAndNot(bitmap1, bitmap2);
-    }
-
-    @Benchmark
-    @BenchmarkMode(Mode.AverageTime)
-    @OutputTimeUnit(TimeUnit.MICROSECONDS)
     public RoaringBitmap andNot() {
         return RoaringBitmap.andNot(bitmap1, bitmap2);
-    }
-
-    @Benchmark
-    @BenchmarkMode(Mode.AverageTime)
-    @OutputTimeUnit(TimeUnit.MICROSECONDS)
-    public RoaringBitmap inplace_oldAndNot() {
-        RoaringBitmap b1 = bitmap1.clone();
-        b1.oldAndNot(bitmap2);
-        return b1;
     }
 
     @Benchmark

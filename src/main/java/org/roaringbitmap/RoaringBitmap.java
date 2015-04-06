@@ -80,60 +80,6 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      * @param x2 other bitmap
      * @return result of the operation
      */
-    public static RoaringBitmap oldAndNot(final RoaringBitmap x1,
-                                          final RoaringBitmap x2) {
-        final RoaringBitmap answer = new RoaringBitmap();
-        int pos1 = 0, pos2 = 0;
-        final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer
-                .size();
-        main:
-        if (pos1 < length1 && pos2 < length2) {
-            short s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-            short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-            do {
-                if (s1 < s2) {
-                    answer.highLowContainer.appendCopy(
-                            x1.highLowContainer, pos1);
-                    pos1++;
-                    if (pos1 == length1)
-                        break main;
-                    s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-                } else if (s1 > s2) {
-                    pos2++;
-                    if (pos2 == length2) {
-                        break main;
-                    }
-                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-                } else {
-                    final Container c = x1.highLowContainer
-                            .getContainerAtIndex(pos1)
-                            .andNot(x2.highLowContainer.getContainerAtIndex(pos2));
-                    if (c.getCardinality() > 0)
-                        answer.highLowContainer.append(s1, c);
-                    pos1++;
-                    pos2++;
-                    if ((pos1 == length1) || (pos2 == length2))
-                        break main;
-                    s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-                }
-            } while (true);
-        }
-        if (pos2 == length2) {
-            answer.highLowContainer.appendCopy(x1.highLowContainer, pos1, length1);
-        }
-        return answer;
-    }
-
-    /**
-     * Bitwise ANDNOT (difference) operation. The provided bitmaps are *not*
-     * modified. This operation is thread-safe as long as the provided
-     * bitmaps remain unchanged.
-     *
-     * @param x1 first bitmap
-     * @param x2 other bitmap
-     * @return result of the operation
-     */
     public static RoaringBitmap andNot(final RoaringBitmap x1,
                                        final RoaringBitmap x2) {
         final RoaringBitmap answer = new RoaringBitmap();
@@ -455,52 +401,6 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             }
         }
         highLowContainer.resize(intersectionSize);
-    }
-
-    /**
-     * In-place bitwise ANDNOT (difference) operation. The current bitmap is
-     * modified.
-     *
-     * @param x2 other bitmap
-     */
-    public void oldAndNot(final RoaringBitmap x2) {
-        int pos1 = 0, pos2 = 0;
-        int length1 = highLowContainer.size();
-        final int length2 = x2.highLowContainer.size();
-        main:
-        if (pos1 < length1 && pos2 < length2) {
-            short s1 = highLowContainer.getKeyAtIndex(pos1);
-            short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-            do {
-                if (s1 < s2) {
-                    pos1++;
-                    if (pos1 == length1)
-                        break main;
-                    s1 = highLowContainer.getKeyAtIndex(pos1);
-                } else if (s1 > s2) {
-                    pos2++;
-                    if (pos2 == length2) {
-                        break main;
-                    }
-                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-                } else {
-                    final Container c = highLowContainer.getContainerAtIndex(pos1).iandNot(
-                            x2.highLowContainer.getContainerAtIndex(pos2));
-                    if (c.getCardinality() > 0) {
-                        this.highLowContainer.setContainerAtIndex(pos1, c);
-                        pos1++;
-                    } else {
-                        highLowContainer.removeAtIndex(pos1);
-                        --length1;
-                    }
-                    pos2++;
-                    if ((pos1 == length1) || (pos2 == length2))
-                        break main;
-                    s1 = highLowContainer.getKeyAtIndex(pos1);
-                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-                }
-            } while (true);
-        }
     }
 
     /**
