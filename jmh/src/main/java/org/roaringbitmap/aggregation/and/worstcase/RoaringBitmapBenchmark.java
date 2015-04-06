@@ -1,4 +1,4 @@
-package org.roaringbitmap.aggregation.newand.bestcase;
+package org.roaringbitmap.aggregation.and.worstcase;
 
 import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.RoaringBitmap;
@@ -16,18 +16,10 @@ public class RoaringBitmapBenchmark {
         bitmap1 = new RoaringBitmap();
         bitmap2 = new RoaringBitmap();
         int k = 1 << 16;
-        int i = 0;
-        for(; i < 10000; ++i) {
-            bitmap1.add(i * k);
+        for(int i = 0; i < 10000; ++i) {
+            bitmap1.add(2 * i * k);
+            bitmap2.add(2 * i * k + 1);
         }
-        for(; i < 10050; ++i) {
-            bitmap2.add(i * k);
-            bitmap1.add(i * k + 13);
-        }
-        for(; i < 20000; ++i) {
-            bitmap2.add(i * k);
-        }
-        bitmap1.add(i * k);
     }
 
     @Benchmark
@@ -41,32 +33,16 @@ public class RoaringBitmapBenchmark {
     @BenchmarkMode(Mode.AverageTime)
     @OutputTimeUnit(TimeUnit.MICROSECONDS)
     public RoaringBitmap inplace_and() {
-      RoaringBitmap b1 = bitmap1.clone();
-      b1.and(bitmap2);
-      return b1;
+        RoaringBitmap b1 = bitmap1.clone();
+        b1.and(bitmap2);
+        return b1;
     }
-
-    @Benchmark
-    @BenchmarkMode(Mode.AverageTime)
-    @OutputTimeUnit(TimeUnit.MICROSECONDS)
-    public RoaringBitmap newand() {
-        return RoaringBitmap.newand(bitmap1, bitmap2);
-    }
-
-    @Benchmark
-    @BenchmarkMode(Mode.AverageTime)
-    @OutputTimeUnit(TimeUnit.MICROSECONDS)
-    public RoaringBitmap inplace_newand() {
-      RoaringBitmap b1 = bitmap1.clone();
-      b1.newand(bitmap2);
-      return b1;    
-    }
-
-
 
     @Benchmark
     @BenchmarkMode(Mode.AverageTime)
     @OutputTimeUnit(TimeUnit.MICROSECONDS)
     public RoaringBitmap justclone() {
       return bitmap1.clone();
-    }}
+    }
+
+}

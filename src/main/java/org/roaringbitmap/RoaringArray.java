@@ -241,19 +241,17 @@ public final class RoaringArray implements Cloneable, Externalizable {
     }
 
     protected void removeAtIndex(int i) {
-        removeRange(i, i + 1);
-    }
-
-    protected void removeRange(int begin, int end) {
-        final int range = end - begin;
-        System.arraycopy(array, end, array, begin, size - end);
-        for(int i = 1; i <= range; ++i) {
-            array[size - i] = null;
-        }
-        size -= range;
+        System.arraycopy(array, i + 1, array, i, size - i - 1);
+        array[size - 1] = null;
+        size--;
     }
 
     protected void setContainerAtIndex(int i, Container c) {
+        this.array[i].value = c;
+    }
+
+    protected void replaceKeyAndContainerAtIndex(int i, short key, Container c) {
+        this.array[i].key = key;
         this.array[i].value = c;
     }
 
@@ -417,7 +415,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
     
 
     protected static final class Element implements Cloneable, Comparable<Element> {
-        final short key;
+        short key;
 
         Container value = null;
 

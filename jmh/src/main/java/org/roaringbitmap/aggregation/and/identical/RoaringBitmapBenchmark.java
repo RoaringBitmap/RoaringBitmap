@@ -1,4 +1,4 @@
-package org.roaringbitmap.aggregation.newand.identical;
+package org.roaringbitmap.aggregation.and.identical;
 
 import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.RoaringBitmap;
@@ -41,25 +41,8 @@ public class RoaringBitmapBenchmark {
     @Benchmark
     @BenchmarkMode(Mode.AverageTime)
     @OutputTimeUnit(TimeUnit.MICROSECONDS)
-    public RoaringBitmap newand() {
-        return RoaringBitmap.newand(bitmap1, bitmap2);
-    }
-
-    @Benchmark
-    @BenchmarkMode(Mode.AverageTime)
-    @OutputTimeUnit(TimeUnit.MICROSECONDS)
-    public RoaringBitmap inplace_newand() {
-      RoaringBitmap b1 = bitmap1.clone();
-      b1.newand(bitmap2);
-      return b1;    
-    }
-
-    @Benchmark
-    @BenchmarkMode(Mode.AverageTime)
-    @OutputTimeUnit(TimeUnit.MICROSECONDS)
     public RoaringBitmap justclone() {
       return bitmap1.clone();
     }
-
 
 }
