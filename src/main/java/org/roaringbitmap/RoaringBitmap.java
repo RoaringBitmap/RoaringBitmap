@@ -70,6 +70,114 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         }
         return answer;
     }
+    
+    /**
+	 * Complements the bits in the given range, from rangeStart (inclusive)
+	 * rangeEnd (exclusive). The given bitmap is unchanged.
+	 * 
+	 * @param bm
+	 *            bitmap being negated
+	 * @param rangeStart
+	 *            inclusive beginning of range
+	 * @param rangeEnd
+	 *            exclusive ending of range
+	 * @return a new Bitmap
+	 */
+	public static RoaringBitmap set(RoaringBitmap bm, final int rangeStart,
+			final int rangeEnd) {
+		if (rangeStart >= rangeEnd)
+			return bm.clone();
+
+		RoaringBitmap answer = new RoaringBitmap();
+		short hbStart = Util.highbits(rangeStart);
+		final short lbStart = Util.lowbits(rangeStart);
+		short hbLast = Util.highbits(rangeEnd - 1);
+		final short lbLast = Util.lowbits(rangeEnd - 1);
+
+		// copy the containers before the active area
+		answer.highLowContainer.appendCopiesUntil(bm.highLowContainer, hbStart);
+
+		final int max = Util.toIntUnsigned(Util.maxLowBit());
+		final int containerStart = Util.toIntUnsigned(lbStart);
+		final int containerLast = Util.toIntUnsigned(lbLast);
+		// should be faster as we omit the previous conditional branchements
+		// from inside the loop
+		if (hbStart == hbLast) {
+			setContainers(containerStart, containerLast, hbStart, hbLast,
+					bm.highLowContainer, answer.highLowContainer);
+		} else {
+			setContainers(containerStart, max, hbStart, hbStart,
+					bm.highLowContainer, answer.highLowContainer);
+			setContainers(0, max, ++hbStart, --hbLast, bm.highLowContainer,
+					answer.highLowContainer);
+			hbLast++;
+			setContainers(0, containerLast, hbLast, hbLast,
+					bm.highLowContainer, answer.highLowContainer);
+		}
+		// copy the containers after the active area.
+		answer.highLowContainer.appendCopiesAfter(bm.highLowContainer, hbLast);
+
+		return answer;
+	}
+
+	public void set(final int rangeStart, final int rangeEnd) {
+		if (rangeStart >= rangeEnd)
+			return; // empty range
+
+		short hbStart = Util.highbits(rangeStart);
+		final short lbStart = Util.lowbits(rangeStart);
+		short hbLast = Util.highbits(rangeEnd - 1);
+		final short lbLast = Util.lowbits(rangeEnd - 1);
+
+		final int max = Util.toIntUnsigned(Util.maxLowBit());
+		final int containerStart = Util.toIntUnsigned(lbStart);
+		final int containerLast = Util.toIntUnsigned(lbLast);
+		// should be faster as we omit the previous conditional branchements
+		// from inside the loop
+		if (hbStart == hbLast)
+			isetContainers(containerStart, containerLast, hbStart, hbLast);
+		else {
+			isetContainers(containerStart, max, hbStart, hbStart);			
+			isetContainers(0, max, ++hbStart, --hbLast);
+			hbLast++;
+			isetContainers(0, containerLast, hbLast, hbLast);
+		}
+	}
+
+	private void isetContainers(int containerStart, int containerLast,
+			short hbStart, short hbLast) {
+		for (short hb = hbStart; hb <= hbLast; ++hb) {
+			final int i = highLowContainer.getIndex(hb);
+
+			if (i >= 0) {
+				final Container c = highLowContainer.getContainerAtIndex(i)
+						.iset(containerStart, containerLast);
+				highLowContainer.setContainerAtIndex(i, c);
+			} else {
+				highLowContainer.insertNewKeyValueAt(-i - 1, hb,
+						Container.rangeOfOnes(containerStart, containerLast));
+			}
+		}
+	}
+
+	private static void setContainers(int containerStart, int containerLast,
+			short hbStart, short hbLast, RoaringArray bm, RoaringArray answer) {
+		for (short hb = hbStart; hb <= hbLast; hb++) {
+			final int i = bm.getIndex(hb);
+			final int j = answer.getIndex(hb);
+			assert j < 0;
+
+			if (i >= 0) {
+				final Container c = bm.getContainerAtIndex(i).set(
+						containerStart, containerLast);				
+				if (c.getCardinality() > 0)
+					answer.insertNewKeyValueAt(-j - 1, hb, c);
+			} else {
+				answer.insertNewKeyValueAt(-j - 1, hb,
+						Container.rangeOfOnes(containerStart, containerLast));
+			}
+		}
+	}
 
     /**
      * Bitwise ANDNOT (difference) operation. The provided bitmaps are *not*

@@ -77,6 +77,341 @@ public class TestRoaringBitmap {
         }
     }
     
+    @Test
+    public void setTest1() {
+        final RoaringBitmap rb = new RoaringBitmap();
+
+        rb.set(100000, 200000); // in-place on empty bitmap
+        final int rbcard = rb.getCardinality();
+        Assert.assertEquals(100000, rbcard);
+
+        final BitSet bs = new BitSet();
+        for (int i = 100000; i < 200000; ++i)
+            bs.set(i);
+        Assert.assertTrue(equals(bs, rb));
+    }
+    
+    @Test
+    public void setTest1A() {
+        final RoaringBitmap rb = new RoaringBitmap();
+
+        final RoaringBitmap rb1 = RoaringBitmap
+                .set(rb, 100000, 200000);
+        final int rbcard = rb1.getCardinality();
+        Assert.assertEquals(100000, rbcard);
+        Assert.assertEquals(0, rb.getCardinality());
+
+        final BitSet bs = new BitSet();
+        Assert.assertTrue(equals(bs, rb)); // still empty?
+        for (int i = 100000; i < 200000; ++i)
+            bs.set(i);
+        Assert.assertTrue(equals(bs, rb1));
+    }
+    
+    @Test
+    public void setTest2() {
+        final RoaringBitmap rb = new RoaringBitmap();
+
+        rb.set(100000, 100000);
+        final int rbcard = rb.getCardinality();
+        Assert.assertEquals(0, rbcard);
+
+        final BitSet bs = new BitSet();
+        Assert.assertTrue(equals(bs, rb));
+    }
+
+    @Test
+    public void setTest2A() {
+        final RoaringBitmap rb = new RoaringBitmap();
+        final RoaringBitmap rb1 = RoaringBitmap
+                .set(rb, 100000, 100000);
+        rb.add(1); // will not affect rb1 (no shared container)
+        final int rbcard = rb1.getCardinality();
+        Assert.assertEquals(0, rbcard);
+        Assert.assertEquals(1, rb.getCardinality());
+
+        final BitSet bs = new BitSet();
+        Assert.assertTrue(equals(bs, rb1));
+        bs.set(1);
+        Assert.assertTrue(equals(bs, rb));
+    }
+    
+    @Test
+    public void setTest3() {
+        final RoaringBitmap rb = new RoaringBitmap();
+
+        rb.set(0, 65536);
+        final int rbcard = rb.getCardinality();
+
+        Assert.assertEquals(65536, rbcard);
+
+        final BitSet bs = new BitSet();
+        for (int i = 0; i < 65536; ++i)
+            bs.set(i);
+
+        Assert.assertTrue(equals(bs, rb));
+    }
+    
+    @Test
+    public void setTest3A() {
+        final RoaringBitmap rb = new RoaringBitmap();
+        final RoaringBitmap rb1 = RoaringBitmap
+                .set(rb, 100000, 200000);
+        final RoaringBitmap rb2 = RoaringBitmap.set(rb1, 500000,
+                600000);
+        final int rbcard = rb2.getCardinality();
+
+        Assert.assertEquals(200000, rbcard);
+
+        final BitSet bs = new BitSet();
+        for (int i = 100000; i < 200000; ++i)
+            bs.set(i);
+        for (int i = 500000; i < 600000; ++i)
+            bs.set(i);
+        Assert.assertTrue(equals(bs, rb2));
+    }
+    
+    @Test
+    public void setTest4() { 
+        final RoaringBitmap rb = new RoaringBitmap();
+        rb.set(100000, 200000);
+        rb.set(65536, 4 * 65536);
+        final int rbcard = rb.getCardinality();        
+        	
+        Assert.assertEquals(196608, rbcard);
+
+        final BitSet bs = new BitSet();
+        for (int i = 65536; i < 4 * 65536; ++i)
+            bs.set(i);
+
+        Assert.assertTrue(equals(bs, rb));
+    }
+    
+    @Test
+    public void setTest4A() {
+        final RoaringBitmap rb = new RoaringBitmap();
+        final RoaringBitmap rb1 = RoaringBitmap
+                .set(rb, 100000, 200000);
+        final RoaringBitmap rb2 = RoaringBitmap.set(rb1, 65536, 4 * 65536);
+        final int rbcard = rb2.getCardinality();
+        
+        Assert.assertEquals(196608, rbcard);
+
+        final BitSet bs = new BitSet();
+        for (int i = 65536; i < 4*65536; ++i)
+            bs.set(i);
+
+        Assert.assertTrue(equals(bs, rb2));
+    }
+    
+    @Test
+    public void setTest5() { 
+        final RoaringBitmap rb = new RoaringBitmap();
+        rb.set(500, 65536*3+500);
+        rb.set(65536, 65536*3);
+        	
+        final int rbcard = rb.getCardinality();
+        
+        Assert.assertEquals(196608, rbcard);
+
+        final BitSet bs = new BitSet();
+        for (int i = 500; i < 65536*3+500; ++i)
+            bs.set(i);
+        Assert.assertTrue(equals(bs, rb));
+    }
+    
+    @Test
+    public void setTest5A() {
+        final RoaringBitmap rb = new RoaringBitmap();
+        final RoaringBitmap rb1 = RoaringBitmap
+                .set(rb, 100000, 500000);  
+        final RoaringBitmap rb2 = RoaringBitmap
+                .set(rb1, 65536, 120000);
+                final int rbcard = rb2.getCardinality();
+
+        Assert.assertEquals(434464, rbcard);
+
+        BitSet bs = new BitSet();
+        for (int i = 65536; i < 500000; ++i)
+            bs.set(i);
+        Assert.assertTrue(equals(bs, rb2));
+    }
+    
+    @Test
+    public void setTestArrayContainer() {
+        final RoaringBitmap rb = new RoaringBitmap();
+        rb.set(500, 3000);  
+        rb.set(65536, 66000);
+        final int rbcard = rb.getCardinality();
+
+        Assert.assertEquals(2964, rbcard);
+
+        BitSet bs = new BitSet();
+        for (int i = 500; i < 3000; ++i)
+            bs.set(i);
+        for (int i = 65536; i < 66000; ++i)
+            bs.set(i);
+        Assert.assertTrue(equals(bs, rb));
+    }
+    
+    @Test
+    public void setTestArrayContainerA() {
+        final RoaringBitmap rb = new RoaringBitmap();
+        final RoaringBitmap rb1 = RoaringBitmap
+                .set(rb, 500, 3000);  
+        final RoaringBitmap rb2 = RoaringBitmap
+                .set(rb1, 65536, 66000);
+                final int rbcard = rb2.getCardinality();
+
+        Assert.assertEquals(2964, rbcard);
+
+        BitSet bs = new BitSet();
+        for (int i = 500; i < 3000; ++i)
+            bs.set(i);
+        for (int i = 65536; i < 66000; ++i)
+            bs.set(i);
+        Assert.assertTrue(equals(bs, rb2));
+    }
+    
+    @Test
+    public void setTestSinglePonitsA() {
+        final RoaringBitmap rb = new RoaringBitmap();
+        final RoaringBitmap rb1 = RoaringBitmap
+                .set(rb, 500, 501);  
+        final RoaringBitmap rb2 = RoaringBitmap
+                .set(rb1, 65536, 65537);
+                final int rbcard = rb2.getCardinality();
+
+        Assert.assertEquals(2, rbcard);
+
+        BitSet bs = new BitSet();
+        bs.set(500);
+        bs.set(65536);
+        Assert.assertTrue(equals(bs, rb2));
+    }
+    
+    @Test
+    public void setTestSinglePonits() {
+        final RoaringBitmap rb = new RoaringBitmap();
+        rb.set(500, 501);  
+        rb.set(65536, 65537);
+        final int rbcard = rb.getCardinality();
+
+        Assert.assertEquals(2, rbcard);
+
+        BitSet bs = new BitSet();
+        bs.set(500);
+        bs.set(65536);
+        Assert.assertTrue(equals(bs, rb));
+    }
+    
+    @Test
+    public void setTest6() { // fits evenly on big end, multiple containers
+        final RoaringBitmap rb = new RoaringBitmap();
+        rb.set(100000, 132000);
+        rb.set(3*65536, 4 * 65536);
+        final int rbcard = rb.getCardinality();
+
+        Assert.assertEquals(97536, rbcard);
+
+        final BitSet bs = new BitSet();
+        for (int i = 100000; i < 132000; ++i)
+            bs.set(i);
+        for (int i = 3*65536; i < 4 * 65536; ++i)
+            bs.set(i);
+        Assert.assertTrue(equals(bs, rb));
+    }
+    
+    @Test
+    public void setTest6A() {
+        final RoaringBitmap rb = new RoaringBitmap();
+        final RoaringBitmap rb1 = RoaringBitmap
+                .set(rb, 100000, 132000);
+        final RoaringBitmap rb2 = RoaringBitmap.set(rb1, 3*65536,
+                4 * 65536);
+        final int rbcard = rb2.getCardinality();
+
+        Assert.assertEquals(97536, rbcard);
+
+        final BitSet bs = new BitSet();
+        for (int i = 100000; i < 132000; ++i)
+            bs.set(i);
+        for (int i = 3 * 65536; i < 4 * 65536; ++i)
+            bs.set(i);
+        Assert.assertTrue(equals(bs, rb2));
+    }
+    
+    @Test
+    public void setTest7() { 
+        final RoaringBitmap rb = new RoaringBitmap();
+        rb.set(10, 50);
+        rb.set(1, 9);
+        rb.set(130, 185);
+        rb.set(6407, 6460);
+        rb.set(325, 380);
+        rb.set((65536*3)+3, (65536*3)+60);
+        rb.set(65536*3+195, 65536*3+245);
+        final int rbcard = rb.getCardinality();        	
+
+        Assert.assertEquals(318, rbcard);
+
+        final BitSet bs = new BitSet();
+        for (int i = 10; i < 50; ++i)
+            bs.set(i);
+        for (int i = 1; i < 9; ++i)
+            bs.set(i);
+        for (int i = 130; i < 185; ++i)
+            bs.set(i);
+        for (int i = 325; i < 380; ++i)
+            bs.set(i);
+        for (int i = 6407; i < 6460; ++i)
+            bs.set(i);
+        for (int i = 65536*3+3; i < 65536*3+60; ++i)
+            bs.set(i);
+        for (int i = 65536*3+195; i < 65536*3+245; ++i)
+            bs.set(i);
+        Assert.assertTrue(equals(bs, rb));
+    }
+    
+    @Test
+    public void setTest8() {
+        final RoaringBitmap rb = new RoaringBitmap();
+        for(int i=0; i<5; i++)
+        	for(int j=0; j<1024; j++)
+        		rb.set(i*(1<<16)+j*64+2, i*(1<<16)+j*64+63);
+         
+        final int rbcard = rb.getCardinality();        	
+
+        Assert.assertEquals(312320, rbcard);
+
+        final BitSet bs = new BitSet();
+        for(int i=0; i<5; i++)
+        	for(int j=0; j<1024; j++)
+        		bs.set(i*(1<<16)+j*64+2, i*(1<<16)+j*64+63);
+        
+        Assert.assertTrue(equals(bs, rb));
+    }
+    
+    @Test
+    public void setTest7A() { 
+        final RoaringBitmap rb = new RoaringBitmap();
+        final RoaringBitmap rb1 = RoaringBitmap.set(rb,10, 50);
+        final RoaringBitmap rb2 = RoaringBitmap.set(rb1,130, 185);
+        RoaringBitmap rb3 = RoaringBitmap.set(rb2,6407, 6460);
+        rb3 = RoaringBitmap.set(rb3,(65536*3)+3, (65536*3)+60);
+        rb3 = RoaringBitmap.set(rb3,65536*3+195, 65536*3+245);
+        final int rbcard = rb3.getCardinality();        	
+
+        Assert.assertEquals(255, rbcard);
+
+        final BitSet bs = new BitSet();
+        bs.set(10, 50);
+        bs.set(130, 185);
+        bs.set(6407, 6460);
+        bs.set(65536*3+3, 65536*3+60);
+        bs.set(65536*3+195, 65536*3+245);
+        Assert.assertTrue(equals(bs, rb3));
+    }
 
     @Test
     public void testLimit() {        
