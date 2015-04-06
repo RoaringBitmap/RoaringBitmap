@@ -80,8 +80,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      * @param x2 other bitmap
      * @return result of the operation
      */
-    public static RoaringBitmap andNot(final RoaringBitmap x1,
-                                       final RoaringBitmap x2) {
+    public static RoaringBitmap oldAndNot(final RoaringBitmap x1,
+                                          final RoaringBitmap x2) {
         final RoaringBitmap answer = new RoaringBitmap();
         int pos1 = 0, pos2 = 0;
         final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer
@@ -118,6 +118,46 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
                     s2 = x2.highLowContainer.getKeyAtIndex(pos2);
                 }
             } while (true);
+        }
+        if (pos2 == length2) {
+            answer.highLowContainer.appendCopy(x1.highLowContainer, pos1, length1);
+        }
+        return answer;
+    }
+
+    /**
+     * Bitwise ANDNOT (difference) operation. The provided bitmaps are *not*
+     * modified. This operation is thread-safe as long as the provided
+     * bitmaps remain unchanged.
+     *
+     * @param x1 first bitmap
+     * @param x2 other bitmap
+     * @return result of the operation
+     */
+    public static RoaringBitmap andNot(final RoaringBitmap x1,
+                                       final RoaringBitmap x2) {
+        final RoaringBitmap answer = new RoaringBitmap();
+        int pos1 = 0, pos2 = 0;
+        final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
+        while (pos1 < length1 && pos2 < length2) {
+            final short s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+            final short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+            if (s1 == s2) {
+                final Container c1 = x1.highLowContainer.getContainerAtIndex(pos1);
+                final Container c2 = x2.highLowContainer.getContainerAtIndex(pos2);
+                final Container c = c1.andNot(c2);
+                if (c.getCardinality() > 0) {
+                    answer.highLowContainer.append(s1, c);
+                }
+                ++pos1;
+                ++pos2;
+            } else if (s1 < s2) {
+                final int nextPos1 = x1.highLowContainer.advanceUntil(s2,pos1);
+                answer.highLowContainer.appendCopy(x1.highLowContainer, pos1, nextPos1);
+                pos1 = nextPos1;
+            } else { // s1 > s2
+                pos2 = x2.highLowContainer.advanceUntil(s1,pos2);
+            }
         }
         if (pos2 == length2) {
             answer.highLowContainer.appendCopy(x1.highLowContainer, pos1, length1);
@@ -394,8 +434,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      */
     public void and(final RoaringBitmap x2) {
         int pos1 = 0, pos2 = 0, intersectionSize = 0;
-        int length1 = highLowContainer.size();
-        final int length2 = x2.highLowContainer.size();
+        final int length1 = highLowContainer.size(), length2 = x2.highLowContainer.size();
 
         while (pos1 < length1 && pos2 < length2) {
             final short s1 = highLowContainer.getKeyAtIndex(pos1);
@@ -424,7 +463,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      *
      * @param x2 other bitmap
      */
-    public void andNot(final RoaringBitmap x2) {
+    public void oldAndNot(final RoaringBitmap x2) {
         int pos1 = 0, pos2 = 0;
         int length1 = highLowContainer.size();
         final int length2 = x2.highLowContainer.size();
@@ -462,6 +501,48 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
                 }
             } while (true);
         }
+    }
+
+    /**
+     * In-place bitwise ANDNOT (difference) operation. The current bitmap is
+     * modified.
+     *
+     * @param x2 other bitmap
+     */
+    public void andNot(final RoaringBitmap x2) {
+        int pos1 = 0, pos2 = 0, intersectionSize = 0;
+        final int length1 = highLowContainer.size(), length2 = x2.highLowContainer.size();
+
+        while (pos1 < length1 && pos2 < length2) {
+            final short s1 = highLowContainer.getKeyAtIndex(pos1);
+            final short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+            if (s1 == s2) {
+                final Container c1 = highLowContainer.getContainerAtIndex(pos1);
+                final Container c2 = x2.highLowContainer.getContainerAtIndex(pos2);
+                final Container c = c1.iandNot(c2);
+                if (c.getCardinality() > 0) {
+                    highLowContainer.replaceKeyAndContainerAtIndex(intersectionSize++, s1, c);
+                }
+                ++pos1;
+                ++pos2;
+            } else if (s1 < s2) {
+                if(pos1 != intersectionSize) {
+                    final Container c1 = highLowContainer.getContainerAtIndex(pos1);
+                    highLowContainer.replaceKeyAndContainerAtIndex(intersectionSize, s1, c1);
+                }
+                ++intersectionSize;
+                ++pos1;
+            } else { // s1 > s2
+                pos2 = x2.highLowContainer.advanceUntil(s1, pos2);
+            }
+        }
+        while (pos1 < length1) {
+            final short s1 = highLowContainer.getKeyAtIndex(pos1);
+            final Container c1 = highLowContainer.getContainerAtIndex(pos1);
+            highLowContainer.replaceKeyAndContainerAtIndex(intersectionSize++, s1, c1);
+            ++pos1;
+        }
+        highLowContainer.resize(intersectionSize);
     }
 
     /**

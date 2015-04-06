@@ -185,6 +185,27 @@ public class TestRoaringBitmap {
     }
 
     @Test
+    public void andNot() {
+        final RoaringBitmap rb = new RoaringBitmap();
+        final RoaringBitmap rb2 = new RoaringBitmap();
+
+        rb.add(1);
+        rb.add(1 << 16);
+        rb2.add(1 << 16);
+        rb.add(2 << 16);
+        rb.add(3 << 16);
+        rb2.add(3 << 16);
+        rb.andNot(rb2);
+
+        final IntIterator i = rb.getIntIterator();
+        Assert.assertTrue(i.hasNext());
+        Assert.assertEquals(1, i.next());
+        Assert.assertTrue(i.hasNext());
+        Assert.assertEquals(2 << 16, i.next());
+        Assert.assertFalse(i.hasNext());
+    }
+
+    @Test
     public void andnottest4() {
         final RoaringBitmap rb = new RoaringBitmap();
         final RoaringBitmap rb2 = new RoaringBitmap();
