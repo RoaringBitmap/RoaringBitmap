@@ -85,6 +85,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         final RoaringBitmap answer = new RoaringBitmap();
         int pos1 = 0, pos2 = 0;
         final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
+
         while (pos1 < length1 && pos2 < length2) {
             final short s1 = x1.highLowContainer.getKeyAtIndex(pos1);
             final short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
