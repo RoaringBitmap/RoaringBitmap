@@ -24,7 +24,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      * @param start
      *            first index
      * @param last
-     *            last index (range in exclusive)
+     *            last index (range is exclusive)
      * @return a new container initialized with the specified values
      */
     public static MappeableContainer rangeOfOnes(final int start, final int last) {

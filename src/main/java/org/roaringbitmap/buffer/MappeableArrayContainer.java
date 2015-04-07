@@ -364,11 +364,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         if (startIndex < 0)
             startIndex = -startIndex - 1;
         int lastIndex = BufferUtil.unsignedBinarySearch(content, 0,
-                cardinality, (short) lastOfRange);
+                cardinality, (short) (lastOfRange - 1));
         if (lastIndex < 0)
             lastIndex = -lastIndex - 1 - 1;
         final int currentValuesInRange = lastIndex - startIndex + 1;
-        final int spanToBeFlipped = lastOfRange - firstOfRange + 1;
+        final int spanToBeFlipped = lastOfRange - firstOfRange ;
         final int newValuesInRange = spanToBeFlipped - currentValuesInRange;
         final ShortBuffer buffer = ShortBuffer.allocate(newValuesInRange);
         final int cardinalityChange = newValuesInRange - currentValuesInRange;
@@ -461,7 +461,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         // n.b., we can start initially exhausted.
 
         int valInRange = startRange;
-        for (; valInRange <= lastRange && inPos <= lastIndex; ++valInRange) {
+        for (; valInRange < lastRange && inPos <= lastIndex; ++valInRange) {
             if ((short) valInRange != content.get(inPos))
                 buffer.put(outPos++, (short) valInRange);
             else {
@@ -471,7 +471,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
         // if there are extra items (greater than the biggest
         // pre-existing one in range), buffer them
-        for (; valInRange <= lastRange; ++valInRange) {
+        for (; valInRange < lastRange; ++valInRange) {
             buffer.put(outPos++, (short) valInRange);
         }
 

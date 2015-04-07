@@ -912,7 +912,7 @@ public class TestRoaringBitmap {
             }
         }
     }
-
+    
     @Test
     public void flipTestBigA() {
         final int numCases = 1000;
@@ -932,11 +932,14 @@ public class TestRoaringBitmap {
             if ((i & 1) == 0) {
                 rb2 = MutableRoaringBitmap.flip(rb1, start, end);
                 // tweak the other, catch bad sharing
-                rb1.flip(r.nextInt(65536 * 20),
-                        r.nextInt(65536 * 20));
+                int r1 = r.nextInt(65536 * 20);
+                int r2 = r.nextInt(65536 * 20);
+                rb1.flip(r1, r2);
             } else {
                 rb1 = MutableRoaringBitmap.flip(rb2, start, end);
-                rb2.flip(r.nextInt(65536 * 20), r.nextInt(65536 * 20));
+                int r1 = r.nextInt(65536 * 20);
+                int r2 = r.nextInt(65536 * 20);
+                rb2.flip(r1, r2);
             }
 
             if (start < end)
@@ -955,9 +958,7 @@ public class TestRoaringBitmap {
                 rb2.and(mask);
                 bs.and(mask1);
             }
-
             if (i > checkTime) {
-                System.out.println("check after " + i + ", card = " + rb2.getCardinality());
                 final MutableRoaringBitmap rb = (i & 1) == 0 ? rb2 : rb1;
                 final boolean status = equals(bs, rb);
                 Assert.assertTrue(status);

@@ -206,7 +206,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
             if (i >= 0) {
                 final MappeableContainer c = bm.highLowContainer
                         .getContainerAtIndex(i).not(containerStart,
-                                containerLast);
+                                containerLast+1);
                 if (c.getCardinality() > 0)
                     answer.getMappeableRoaringArray().insertNewKeyValueAt(
                             -j - 1, (short) hb, c);
@@ -401,9 +401,12 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         final short hb = BufferUtil.highbits(x);
         final int i = highLowContainer.getIndex(hb);
         if (i >= 0) {
-            ((MutableRoaringArray) highLowContainer).setContainerAtIndex(i,
-                    highLowContainer.getContainerAtIndex(i).flip(BufferUtil.lowbits(x))
-            );
+        	MappeableContainer c =  highLowContainer.getContainerAtIndex(i);
+        	c = c.flip(BufferUtil.lowbits(x));
+        	if(c.getCardinality()>0)
+            ((MutableRoaringArray) highLowContainer).setContainerAtIndex(i,c);
+        	else 
+        		((MutableRoaringArray) highLowContainer).removeAtIndex(i);
         } else {
             final MappeableArrayContainer newac = new MappeableArrayContainer();
             ((MutableRoaringArray) highLowContainer).insertNewKeyValueAt(-i - 1, hb, newac.add(BufferUtil.lowbits(x)));
@@ -591,7 +594,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
             if (i >= 0) {
                 final MappeableContainer c = highLowContainer
                         .getContainerAtIndex(i).inot(containerStart,
-                                containerLast);
+                                containerLast + 1);
                 if (c.getCardinality() > 0)
                     getMappeableRoaringArray().setContainerAtIndex(i, c);
                 else

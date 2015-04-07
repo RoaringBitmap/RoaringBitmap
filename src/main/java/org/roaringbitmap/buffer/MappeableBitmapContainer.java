@@ -688,7 +688,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
         // bitmaps are not
         // allowed
         // an easy case for full range, should be common
-        if (lastOfRange - firstOfRange + 1 == MAX_CAPACITY) {
+        if (lastOfRange - firstOfRange  == MAX_CAPACITY) {
             final int newCardinality = MAX_CAPACITY - cardinality;
             for (int k = 0; k < this.bitmap.limit(); ++k)
                 answer.bitmap.put(k, ~this.bitmap.get(k));
@@ -704,8 +704,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
         int cardinalityChange = 0;
         final int rangeFirstWord = firstOfRange / 64;
         final int rangeFirstBitPos = firstOfRange & 63;
-        final int rangeLastWord = lastOfRange / 64;
-        final long rangeLastBitPos = lastOfRange & 63;
+        final int rangeLastWord = (lastOfRange - 1) / 64;
+        final long rangeLastBitPos = (lastOfRange - 1) & 63;
 
         // if not in place, we need to duplicate stuff before
         // rangeFirstWord and after rangeLastWord
@@ -1143,11 +1143,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
               return this.toArrayContainer();
           } 
       }
-      cardinality +=  2 * ( (bitmap.get(x / 64) ^ (1l << x)) >>> x ) - 1;
+      cardinality += 1 -  2 * ( (bitmap.get(x / 64) & (1l << x)) >>> x );
       bitmap.put(x / 64,bitmap.get(x / 64) ^ (1l << x));
       return this;
 		}
-
 }
 
 final class MappeableBitmapContainerShortIterator implements ShortIterator {
