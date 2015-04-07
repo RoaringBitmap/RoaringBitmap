@@ -401,7 +401,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     // shares lots of code with inot; candidate for refactoring
     @Override
     public Container not(final int firstOfRange, final int lastOfRange) {
-        if (firstOfRange > lastOfRange) {
+        if (firstOfRange >= lastOfRange) {
             return clone(); // empty range
         }
 
@@ -411,11 +411,11 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         if (startIndex < 0)
             startIndex = -startIndex - 1;
         int lastIndex = Util.unsignedBinarySearch(content, 0,
-                cardinality, (short) lastOfRange);
+                cardinality, (short) (lastOfRange - 1));
         if (lastIndex < 0)
             lastIndex = -lastIndex - 2;
         final int currentValuesInRange = lastIndex - startIndex + 1;
-        final int spanToBeFlipped = lastOfRange - firstOfRange + 1;
+        final int spanToBeFlipped = lastOfRange - firstOfRange;
         final int newValuesInRange = spanToBeFlipped - currentValuesInRange;
         final int cardinalityChange = newValuesInRange - currentValuesInRange;
         final int newCardinality = cardinality + cardinalityChange;
@@ -432,7 +432,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         int inPos = startIndex; // item at inPos always >= valInRange
 
         int valInRange = firstOfRange;
-        for (; valInRange <= lastOfRange && inPos <= lastIndex; ++valInRange) {
+        for (; valInRange < lastOfRange && inPos <= lastIndex; ++valInRange) {
             if ((short) valInRange != content[inPos]) {
                 answer.content[outPos++] = (short) valInRange;
             } else {
@@ -440,7 +440,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
             }
         }
 
-        for (; valInRange <= lastOfRange; ++valInRange) {
+        for (; valInRange < lastOfRange; ++valInRange) {
             answer.content[outPos++] = (short) valInRange;
         }
 

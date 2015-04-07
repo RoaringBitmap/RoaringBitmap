@@ -492,7 +492,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     @Override
     public MappeableContainer not(final int firstOfRange, final int lastOfRange) {
         // TODO: this can be optimized for performance
-        if (firstOfRange > lastOfRange) {
+        if (firstOfRange >= lastOfRange) {
             return clone(); // empty range
         }
 
@@ -502,11 +502,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         if (startIndex < 0)
             startIndex = -startIndex - 1;
         int lastIndex = BufferUtil.unsignedBinarySearch(content, 0,
-                cardinality, (short) lastOfRange);
+                cardinality, (short) (lastOfRange-1));
         if (lastIndex < 0)
             lastIndex = -lastIndex - 2;
         final int currentValuesInRange = lastIndex - startIndex + 1;
-        final int spanToBeFlipped = lastOfRange - firstOfRange + 1;
+        final int spanToBeFlipped = lastOfRange - firstOfRange ;
         final int newValuesInRange = spanToBeFlipped - currentValuesInRange;
         final int cardinalityChange = newValuesInRange - currentValuesInRange;
         final int newCardinality = cardinality + cardinalityChange;
@@ -526,7 +526,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         int inPos = startIndex; // item at inPos always >= valInRange
 
         int valInRange = firstOfRange;
-        for (; valInRange <= lastOfRange && inPos <= lastIndex; ++valInRange) {
+        for (; valInRange < lastOfRange && inPos <= lastIndex; ++valInRange) {
             if ((short) valInRange != content.get(inPos))
                 sarray[outPos++] = (short) valInRange;
             else {
@@ -534,7 +534,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
             }
         }
 
-        for (; valInRange <= lastOfRange; ++valInRange) {
+        for (; valInRange < lastOfRange; ++valInRange) {
             answer.content.put(outPos++, (short) valInRange);
         }
 

@@ -5,6 +5,7 @@
 package org.roaringbitmap;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -929,12 +930,6 @@ public class TestRoaringBitmap {
         }
     }
     
-    private RoaringBitmap slowflip(RoaringBitmap input, int start, int end) {
-    	RoaringBitmap c = input.clone();
-    	for(int k = start; k<end; ++k)
-    		c.flip(k);
-    	return c;
-    }
 
     @Test
     public void flipTestBigA() {
@@ -953,29 +948,27 @@ public class TestRoaringBitmap {
 
             if ((i & 1) == 0) {
                 rb2 = RoaringBitmap.flip(rb1, start, end);
-                RoaringBitmap tmpsh = slowflip(rb1, start, end);
-                assert(tmpsh.equals(rb2));
                 // tweak the other, catch bad sharing
-                rb1.flip(r.nextInt(65536 * 20),
-                        r.nextInt(65536 * 20));
+                int r1 = r.nextInt(65536 * 20);
+                int r2 = r.nextInt(65536 * 20);
+                rb1.flip(r1,r2);
             } else {
                 rb1 = RoaringBitmap.flip(rb2, start, end);
-                RoaringBitmap tmpsh = slowflip(rb2, start, end);
-                assert(tmpsh.equals(rb1));
-                rb2.flip(r.nextInt(65536 * 20),
-                        r.nextInt(65536 * 20));
+                int r1 = r.nextInt(65536 * 20);
+                int r2 = r.nextInt(65536 * 20);
+                rb2.flip(r1,r2);
             }
 
-            if (start < end)
+            if (start < end) {
                 bs.flip(start, end); // throws exception
             // otherwise
+            }
             // insert some more ANDs to keep things sparser
             if (r.nextDouble() < 0.2 && (i & 1) == 0) {
                 final RoaringBitmap mask = new RoaringBitmap();
                 final BitSet mask1 = new BitSet();
                 final int startM = r.nextInt(65536 * 20);
                 final int endM = startM + 100000;
-                
                 mask.flip(startM, endM);
                 mask1.flip(startM, endM);
                 mask.flip(0, 65536 * 20 + 100000);
@@ -983,7 +976,6 @@ public class TestRoaringBitmap {
                 rb2.and(mask);
                 bs.and(mask1);
             }
-
             if (i > checkTime) {
                 System.out.println("check after " + i
                         + ", card = " + rb2.getCardinality());

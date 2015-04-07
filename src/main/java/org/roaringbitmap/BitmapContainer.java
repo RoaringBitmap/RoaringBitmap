@@ -849,14 +849,16 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
           // the
           // uncommon
           // path
-          if ((bitmap[x / 64] & (1l << x)) != 0) {
+      	  if ((bitmap[x / 64] & (1l << x)) != 0) {
           	  --cardinality;
               bitmap[x / 64] &= ~(1l << x);
               return this.toArrayContainer();
           } 
       }
-      cardinality +=  2 * ( (bitmap[x / 64] ^ (1l << x)) >>> x ) - 1;
-      bitmap[x / 64] ^= (1l << x);
+
+      cardinality +=  1 - 2 * ( (bitmap[x / 64] & (1l << x)) >>> x ) ;
+      
+      bitmap[x / 64] ^= (1l << x);      
       return this;
 		}
 

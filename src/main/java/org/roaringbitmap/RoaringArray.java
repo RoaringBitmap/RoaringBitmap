@@ -114,13 +114,15 @@ public final class RoaringArray implements Cloneable, Externalizable {
     public boolean equals(Object o) {
         if (o instanceof RoaringArray) {
             RoaringArray srb = (RoaringArray) o;
-            if (srb.size != this.size)
-                return false;
+            if (srb.size != this.size) {
+            	return false;
+            }
             for (int i = 0; i < srb.size; ++i) {
                 Element self = this.array[i];
                 Element other = srb.array[i];
-                if (self.key != other.key || !self.value.equals(other.value))
-                    return false;
+                if (self.key != other.key || !self.value.equals(other.value)) {
+                	   return false;
+                }
             }
             return true;
         }

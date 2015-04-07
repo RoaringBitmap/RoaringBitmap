@@ -230,7 +230,7 @@ public class TestContainer {
         for (int i = 244; i <= 283; ++i)
             content[i - 244] = (short) i;
         final Container c = makeContainer(content);
-        final Container c1 = c.not(51413, 51470);
+        final Container c1 = c.not(51413, 51471);
         assertTrue(c1 instanceof ArrayContainer);
         assertEquals(40 + 58, c1.getCardinality());
         final short[] rightAns = new short[98];
@@ -252,7 +252,7 @@ public class TestContainer {
         for (int i = 244; i <= 283; ++i)
             content[i - 244] = (short) i;
         final Container c = makeContainer(content);
-        final Container c1 = c.not(1, 58);
+        final Container c1 = c.not(1, 59);
         assertTrue(c1 instanceof ArrayContainer);
         assertEquals(40 + 58, c1.getCardinality());
         final short[] rightAns = new short[98];
@@ -297,10 +297,10 @@ public class TestContainer {
         // Array container, range is partial, result stays array
         final short[] content = {1, 3, 5, 7, 9};
         final Container c = makeContainer(content);
-        final Container c1 = c.not(4, 999);
+        final Container c1 = c.not(4, 1000);
         assertTrue(c1 instanceof ArrayContainer);
         assertEquals(999 - 4 + 1 - 3 + 2, c1.getCardinality());
-        final Container c2 = c1.not(4, 999); // back
+        final Container c2 = c1.not(4, 1000); // back
         assertTrue(checkContent(c2, content));
     }
 

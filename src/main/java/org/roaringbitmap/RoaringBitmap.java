@@ -196,6 +196,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             ans.add(i);
         return ans;
     }
+    
 
     /**
      * Complements the bits in the given range, from rangeStart (inclusive)
@@ -230,7 +231,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             assert j < 0;
 
             if (i >= 0) {
-                Container c = bm.highLowContainer.getContainerAtIndex(i).not(containerStart, containerLast+1);
+                Container c = bm.highLowContainer.getContainerAtIndex(i).not(containerStart, containerLast+1);                
                 if (c.getCardinality() > 0)
                     answer.highLowContainer.insertNewKeyValueAt(-j - 1, (short) hb, c);
 
@@ -243,7 +244,6 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         }
         // copy the containers after the active area.
         answer.highLowContainer.appendCopiesAfter(bm.highLowContainer, (short) hbLast);
-
         return answer;
     }
 
@@ -452,9 +452,11 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         final short hb = Util.highbits(x);
         final int i = highLowContainer.getIndex(hb);
         if (i >= 0) {
-            highLowContainer.setContainerAtIndex(i,
-                    highLowContainer.getContainerAtIndex(i).flip(Util.lowbits(x))
-            );
+        	  Container c = highLowContainer.getContainerAtIndex(i).flip(Util.lowbits(x));
+        	  if(c.getCardinality() > 0)
+              highLowContainer.setContainerAtIndex(i,c);
+        	  else
+        	  	highLowContainer.removeAtIndex(i);
         } else {
             final ArrayContainer newac = new ArrayContainer();
             highLowContainer.insertNewKeyValueAt(-i - 1, hb, newac.add(Util.lowbits(x)));
@@ -754,13 +756,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             final int i = highLowContainer.getIndex((short) hb);
 
             if (i >= 0) {
-            	System.out.println("inot = "+containerStart+" "+( containerLast+1));
-              final Container longway = highLowContainer.getContainerAtIndex(i).xor(Container.rangeOfOnes(
-                  containerStart, containerLast+1));
-
             	final Container c = highLowContainer.getContainerAtIndex(i).inot(
                                 containerStart, containerLast+1);
-            	if(!c.equals(longway)) throw new RuntimeException("shit");
                 if (c.getCardinality() > 0)
                     highLowContainer.setContainerAtIndex(i, c);
                 else
