@@ -69,6 +69,81 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
         this.cardinality = newCardinality;
         this.bitmap = newBitmap;
     }
+    
+    @Override
+	public Container set(final int firstOfRange,
+                          final int lastOfRange) {
+    	return set(new BitmapContainer(), firstOfRange, lastOfRange);
+    }
+    
+    @Override
+    public Container iset(final int firstOfRange, final int lastOfRange) {
+    	return set(this, firstOfRange, lastOfRange);
+    }
+    
+    //in-place method for setting bits 
+    public Container set(BitmapContainer answer, final int firstOfRange,
+                          final int lastOfRange) {
+        assert bitmap.length == MAX_CAPACITY / 64; // checking assumption
+        // that partial
+        // bitmaps are not
+        // allowed
+        // an easy case for full range, should be common
+        if (lastOfRange - firstOfRange + 1 == MAX_CAPACITY) {
+            for (int k = 0; k < bitmap.length; ++k)
+                answer.bitmap[k] = -1L;
+            answer.cardinality = MAX_CAPACITY;            
+            return answer;
+        }
+
+        int cardinalityChange=0;
+        final int rangeFirstWord = firstOfRange / 64;
+        final int rangeFirstBitPos = firstOfRange & 63;
+        final int rangeLastWord = lastOfRange / 64;
+        final long rangeLastBitPos = lastOfRange & 63;        
+        long mask =-1L;
+        mask=(mask>>rangeFirstBitPos)<<rangeFirstBitPos;
+        
+     // if not in place, we need to duplicate stuff before
+        // rangeFirstWord and after rangeLastWord
+        if (answer != this) {
+            System.arraycopy(bitmap, 0, answer.bitmap, 0, rangeFirstWord);
+            System.arraycopy(bitmap, rangeLastWord + 1, answer.bitmap,
+                    rangeLastWord + 1, bitmap.length - (rangeLastWord + 1));
+        }
+        if (rangeFirstWord == rangeLastWord) {
+        	// range starts and ends in same word (may have
+            // unchanged bits on both left and right)            	
+            long leftShift = 63-rangeLastBitPos;
+            mask=(mask<<(leftShift))>>>leftShift;
+            cardinalityChange -= Long.bitCount(bitmap[rangeFirstWord]);
+            answer.bitmap[rangeFirstWord] = bitmap[rangeFirstWord] | mask;
+            cardinalityChange += Long.bitCount(answer.bitmap[rangeFirstWord]);
+            answer.cardinality=cardinality+cardinalityChange;
+            
+           return answer;
+        }
+        
+        // range spans words
+        cardinalityChange -= Long.bitCount(bitmap[rangeFirstWord]);
+        answer.bitmap[rangeFirstWord] = bitmap[rangeFirstWord] | mask;
+        cardinalityChange += Long.bitCount(answer.bitmap[rangeFirstWord]);
+        
+        cardinalityChange -= Long.bitCount(bitmap[rangeLastWord]);
+        long leftShift = 63-rangeLastBitPos;
+        mask=(mask<<(leftShift))>>leftShift;
+        answer.bitmap[rangeLastWord] = bitmap[rangeLastWord] | mask;
+        cardinalityChange += Long.bitCount(answer.bitmap[rangeLastWord]);
+
+        // set the words, if any, strictly between first and last
+        for (int i = rangeFirstWord + 1; i < rangeLastWord; ++i) {
+            cardinalityChange += 64-Long.bitCount(bitmap[i]);
+            answer.bitmap[i] = -1L;
+        }
+        answer.cardinality = cardinality + cardinalityChange;
+        
+        return answer;
+    }
 
     @Override
     public Container add(final short i) {
