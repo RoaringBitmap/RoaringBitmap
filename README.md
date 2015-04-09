@@ -132,7 +132,7 @@ To run JMH benchmarks, use the following command:
 
 You can also run specific benchmarks...
 
-         $ ./jmh/run.sh org.roaringbitmap.aggregation.newand.identical.*
+         $ ./jmh/run.sh org.roaringbitmap.aggregation.and.identical.*
 
 Funding 
 ----------

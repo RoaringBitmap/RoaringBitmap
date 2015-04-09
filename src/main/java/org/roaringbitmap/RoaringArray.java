@@ -165,8 +165,8 @@ public final class RoaringArray implements Cloneable, Externalizable {
     }
 
     /**
-     * Find the smallest integer index larger than pos such that array[index].key&gt;= x.
-     * If none can be found, return length. Based on code by O. Kaser.
+     * Find the smallest integer index larger than pos such that array[index].key&gt;=x.
+     * If none can be found, return size. Based on code by O. Kaser.
      *
      * @param x minimal value
      * @param pos index to exceed
@@ -259,6 +259,11 @@ public final class RoaringArray implements Cloneable, Externalizable {
     }
 
     protected void setContainerAtIndex(int i, Container c) {
+        this.array[i].value = c;
+    }
+
+    protected void replaceKeyAndContainerAtIndex(int i, short key, Container c) {
+        this.array[i].key = key;
         this.array[i].value = c;
     }
 
@@ -422,7 +427,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
     
 
     protected static final class Element implements Cloneable, Comparable<Element> {
-        final short key;
+        short key;
 
         Container value = null;
 

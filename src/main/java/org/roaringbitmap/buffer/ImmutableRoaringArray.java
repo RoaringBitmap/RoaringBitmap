@@ -210,7 +210,49 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
 
     public short getKeyAtIndex(int i) {
-        return buffer.getShort(4*i + startofkeyscardinalities);
+        return buffer.getShort(4 * i + startofkeyscardinalities);
+    }
+
+    public int advanceUntil(short x, int pos) {
+        int lower = pos + 1;
+
+        // special handling for a possibly common sequential case
+        if (lower >= size || getKey(lower) >= BufferUtil.toIntUnsigned(x)) {
+            return lower;
+        }
+
+        int spansize = 1; // could set larger
+        // bootstrap an upper limit
+
+        while (lower + spansize < size && getKey(lower + spansize) < BufferUtil.toIntUnsigned(x))
+            spansize *= 2; // hoping for compiler will reduce to shift
+        int upper = (lower + spansize < size) ? lower + spansize : size - 1;
+
+        // maybe we are lucky (could be common case when the seek ahead
+        // expected to be small and sequential will otherwise make us look bad)
+        if (getKey(upper) == x) {
+            return upper;
+        }
+
+        if (getKey(upper) < BufferUtil.toIntUnsigned(x)) {// means array has no item key >= x
+            return size;
+        }
+
+        // we know that the next-smallest span was too small
+        lower += (spansize / 2);
+
+        // else begin binary search
+        // invariant: array[lower]<x && array[upper]>x
+        while (lower + 1 != upper) {
+            int mid = (lower + upper) / 2;
+            if (getKey(mid) == BufferUtil.toIntUnsigned(x))
+                return mid;
+            else if (getKey(mid) < BufferUtil.toIntUnsigned(x))
+                lower = mid;
+            else
+                upper = mid;
+        }
+        return upper;
     }
 
     @Override

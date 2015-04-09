@@ -62,6 +62,17 @@ public interface PointableRoaringArray extends Cloneable {
     short getKeyAtIndex(int i);
 
     /**
+     * Find the smallest integer index larger than pos such that getKeyAtIndex(index)&gt;=x.
+     * If none can be found, return size.
+     *
+     * @param x minimal value
+     * @param pos index to exceed
+     * @return the smallest index greater than pos such that getKeyAtIndex(index) is at least as large
+     * as min, or size if it is not possible.
+     */
+    int advanceUntil(short x, int pos);
+
+    /**
      * @return number of keys
      */
     int size();
