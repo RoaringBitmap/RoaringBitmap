@@ -517,13 +517,9 @@ public class TestRange {
     
     @Test
     public void doubleadd() {
-        System.out.println(Util.toIntUnsigned((short)-1752));
-        System.out.println(Util.toIntUnsigned((short)-1));
-        System.out.println((short)61565);
         RoaringBitmap rb = new RoaringBitmap();
         rb.add(65533, 65536);
         rb.add(65530, 65536);
-        System.out.println(rb);
         BitSet bs = new BitSet();
         bs.set(65530, 65536);
         assertTrue(TestRoaringBitmap.equals(bs, rb));
