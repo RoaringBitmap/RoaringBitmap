@@ -523,7 +523,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      * @param end end of range (exclusive)
      * @return the new container
      */
-    public abstract MappeableContainer iadd(short begin, short end);
+    public abstract MappeableContainer iadd(int begin, int end);
    
     /**
      * Remove shorts in [begin,end) using an unsigned interpretation. May generate a new container.
@@ -532,7 +532,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      * @param end end of range (exclusive)
      * @return the new container
      */
-    public abstract MappeableContainer iremove(short begin, short end);
+    public abstract MappeableContainer iremove(int begin, int end);
     
 
 

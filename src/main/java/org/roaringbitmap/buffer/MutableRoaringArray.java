@@ -5,8 +5,6 @@
 
 package org.roaringbitmap.buffer;
 
-import org.roaringbitmap.Container;
-import org.roaringbitmap.Util;
 
 import java.io.*;
 import java.nio.ByteBuffer;

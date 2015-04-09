@@ -1115,50 +1115,57 @@ public final class MappeableBitmapContainer extends MappeableContainer
     }
 
     @Override
-    public MappeableContainer iadd(short begin, short end) {
-        BufferUtil.setBitmapRange(bitmap,begin,end);
-        computeCardinality(); //TODO:  a full recomputation could be avoided for better performance
+    public MappeableContainer flip(short i) {
+        final int x = BufferUtil.toIntUnsigned(i);
+        if (cardinality == MappeableArrayContainer.DEFAULT_MAX_SIZE + 1) {// this
+                                                                          // is
+            // the
+            // uncommon
+            // path
+            if ((bitmap.get(x / 64) & (1l << x)) != 0) {
+                --cardinality;
+                bitmap.put(x / 64, bitmap.get(x / 64) & ~(1l << x));
+                return this.toArrayContainer();
+            }
+        }
+        cardinality += 1 - 2 * ((bitmap.get(x / 64) & (1l << x)) >>> x);
+        bitmap.put(x / 64, bitmap.get(x / 64) ^ (1l << x));
         return this;
     }
 
     @Override
-    public MappeableContainer iremove(short begin, short end) {
-        BufferUtil.resetBitmapRange(bitmap,begin,end);
-       computeCardinality(); //TODO:  a full recomputation could be avoided for better performance
-       if(getCardinality() < MappeableArrayContainer.DEFAULT_MAX_SIZE)
-           return toArrayContainer();
-       return this;
+    public MappeableContainer iadd(int begin, int end) {
+        BufferUtil.setBitmapRange(bitmap, begin, end);
+        computeCardinality();
+        return this;
     }
 
-		@Override
-		public MappeableContainer flip(short i) {
-      final int x = BufferUtil.toIntUnsigned(i);
-      if (cardinality == MappeableArrayContainer.DEFAULT_MAX_SIZE + 1) {// this is
-          // the
-          // uncommon
-          // path
-          if ((bitmap.get(x / 64) & (1l << x)) != 0) {
-          	  --cardinality;
-          	  bitmap.put(x / 64,bitmap.get(x / 64) & ~(1l << x));
-              return this.toArrayContainer();
-          } 
-      }
-      cardinality += 1 -  2 * ( (bitmap.get(x / 64) & (1l << x)) >>> x );
-      bitmap.put(x / 64,bitmap.get(x / 64) ^ (1l << x));
-      return this;
-		}
+    @Override
+    public MappeableContainer iremove(int begin, int end) {
+        BufferUtil.resetBitmapRange(bitmap, begin, end);
+        computeCardinality();
+        if (getCardinality() < MappeableArrayContainer.DEFAULT_MAX_SIZE)
+            return toArrayContainer();
+        return this;
+    }
 
-		@Override
-		public MappeableContainer add(int begin, int end) {
-			// TODO Auto-generated method stub
-			return null;
-		}
+    @Override
+    public MappeableContainer add(int begin, int end) {
+        MappeableBitmapContainer answer = clone();
+        BufferUtil.setBitmapRange(answer.bitmap, begin, end);
+        answer.computeCardinality();
+        return answer;
+    }
 
-		@Override
-		public MappeableContainer remove(int begin, int end) {
-			// TODO Auto-generated method stub
-			return null;
-		}
+    @Override
+    public MappeableContainer remove(int begin, int end) {
+        MappeableBitmapContainer answer = clone();
+        BufferUtil.resetBitmapRange(answer.bitmap, begin, end);
+        answer.computeCardinality();
+        if (answer.getCardinality() < MappeableArrayContainer.DEFAULT_MAX_SIZE)
+            return answer.toArrayContainer();
+        return answer;
+    }
 }
 
 final class MappeableBitmapContainerShortIterator implements ShortIterator {

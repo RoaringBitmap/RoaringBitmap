@@ -741,7 +741,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
 		else
 			indexend++;
 		int rangelength = indexend - indexstart;
-		ArrayContainer answer = new ArrayContainer(content);
+		ArrayContainer answer = clone();
 		System.arraycopy(content, indexstart + rangelength, answer.content,
 				indexstart, cardinality - indexstart - rangelength);
 		answer.cardinality = cardinality - rangelength;

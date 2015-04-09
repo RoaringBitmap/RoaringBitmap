@@ -233,7 +233,23 @@ public final class BufferUtil {
     protected static short maxLowBit() {
         return (short) 0xFFFF;
     }
-    
+
+    protected static void arraycopy(ShortBuffer src, int srcPos, ShortBuffer dest, int destPos, int length) {
+      if(BufferUtil.isBackedBySimpleArray(src) && BufferUtil.isBackedBySimpleArray(dest)) {
+          System.arraycopy(src.array(), srcPos,  dest.array(), destPos, length);
+      } else {
+          if(srcPos < destPos) {
+              for(int k = length - 1; k >= 0 ; --k) {
+                  dest.put(destPos + k , src.get(k + srcPos));  
+              }
+          } else {
+              for(int k = 0; k < length ; ++k) {
+                  dest.put(destPos + k , src.get(k + srcPos));  
+              }              
+          }
+      }
+    }
+
     protected static int maxLowBitAsInteger() {
         return  0xFFFF;
     }
@@ -500,6 +516,7 @@ public final class BufferUtil {
         }
         return pos;
     }
+    
 
     /**
      * Private constructor to prevent instantiation of utility class
