@@ -844,13 +844,25 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 		}
 
 		@Override
-		public MappeableContainer add(short begin, short end) {
+		public MappeableContainer iadd(short begin, short end) {
 			// TODO Auto-generated method stub
 			return null;
 		}
 
 		@Override
-		public MappeableContainer remove(short begin, short end) {
+		public MappeableContainer iremove(short begin, short end) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public MappeableContainer add(int begin, int end) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public MappeableContainer remove(int begin, int end) {
 			// TODO Auto-generated method stub
 			return null;
 		}

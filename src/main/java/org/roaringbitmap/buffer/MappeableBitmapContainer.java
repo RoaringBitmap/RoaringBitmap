@@ -1115,14 +1115,14 @@ public final class MappeableBitmapContainer extends MappeableContainer
     }
 
     @Override
-    public MappeableContainer add(short begin, short end) {
+    public MappeableContainer iadd(short begin, short end) {
         BufferUtil.setBitmapRange(bitmap,begin,end);
         computeCardinality(); //TODO:  a full recomputation could be avoided for better performance
         return this;
     }
 
     @Override
-    public MappeableContainer remove(short begin, short end) {
+    public MappeableContainer iremove(short begin, short end) {
         BufferUtil.resetBitmapRange(bitmap,begin,end);
        computeCardinality(); //TODO:  a full recomputation could be avoided for better performance
        if(getCardinality() < MappeableArrayContainer.DEFAULT_MAX_SIZE)
@@ -1146,6 +1146,18 @@ public final class MappeableBitmapContainer extends MappeableContainer
       cardinality += 1 -  2 * ( (bitmap.get(x / 64) & (1l << x)) >>> x );
       bitmap.put(x / 64,bitmap.get(x / 64) ^ (1l << x));
       return this;
+		}
+
+		@Override
+		public MappeableContainer add(int begin, int end) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public MappeableContainer remove(int begin, int end) {
+			// TODO Auto-generated method stub
+			return null;
 		}
 }
 

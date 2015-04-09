@@ -243,10 +243,13 @@ public final class RoaringArray implements Cloneable, Externalizable {
     }
 
     protected void removeAtIndex(int i) {
-        removeRange(i, i + 1);
+        System.arraycopy(array, i + 1, array, i, size - i - 1);
+        array[size - 1] = null;
+        size--;
     }
 
-    protected void removeRange(int begin, int end) {
+    protected void removeIndexRange(int begin, int end) {
+        if(end <= begin) return;
         final int range = end - begin;
         System.arraycopy(array, end, array, begin, size - end);
         for(int i = 1; i <= range; ++i) {

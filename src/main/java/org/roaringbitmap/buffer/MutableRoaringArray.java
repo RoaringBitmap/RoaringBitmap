@@ -481,7 +481,8 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
         size--;
     }
     
-    protected void removeRange(int begin, int end) {
+    protected void removeIndexRange(int begin, int end) {
+        if(end <= begin) return; 
         final int range = end - begin;
         System.arraycopy(array, end, array, begin, size - end);
         for(int i = 1; i <= range; ++i) {

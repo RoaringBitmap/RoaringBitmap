@@ -827,38 +827,56 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
     }
 
     @Override
-    public Container add(short begin, short end) {
+    public Container iadd(int begin, int end) {
         Util.setBitmapRange(bitmap,begin,end);
-        computeCardinality(); //TODO:  a full recomputation could be avoided for better performance
+        computeCardinality();
         return this;
     }
 
     @Override
-    public Container remove(short begin, short end) {
+    public Container iremove(int begin, int end) {
        Util.resetBitmapRange(bitmap,begin,end);
-       computeCardinality(); //TODO:  a full recomputation could be avoided for better performance
+       computeCardinality(); 
        if(getCardinality() < ArrayContainer.DEFAULT_MAX_SIZE)
            return toArrayContainer();
        return this;
     }
 
-		@Override
-		public Container flip(short i) {
-      final int x = Util.toIntUnsigned(i);
-      if (cardinality == ArrayContainer.DEFAULT_MAX_SIZE + 1) {// this is
-          // the
-          // uncommon
-          // path
-      	  if ((bitmap[x / 64] & (1l << x)) != 0) {
-          	  --cardinality;
-              bitmap[x / 64] &= ~(1l << x);
-              return this.toArrayContainer();
-          } 
-      }
-      cardinality +=  1 - 2 * ( (bitmap[x / 64] & (1l << x)) >>> x ) ;
-      bitmap[x / 64] ^= (1l << x);      
-      return this;
-		}
+    @Override
+    public Container flip(short i) {
+        final int x = Util.toIntUnsigned(i);
+        if (cardinality == ArrayContainer.DEFAULT_MAX_SIZE + 1) {// this is
+            // the
+            // uncommon
+            // path
+            if ((bitmap[x / 64] & (1l << x)) != 0) {
+                --cardinality;
+                bitmap[x / 64] &= ~(1l << x);
+                return this.toArrayContainer();
+            }
+        }
+        cardinality += 1 - 2 * ((bitmap[x / 64] & (1l << x)) >>> x);
+        bitmap[x / 64] ^= (1l << x);
+        return this;
+    }
+
+    @Override
+    public Container add(int begin, int end) {
+        BitmapContainer answer = clone();
+        Util.setBitmapRange(answer.bitmap, begin, end);
+        answer.computeCardinality(); 
+        return answer;
+    }
+
+    @Override
+    public Container remove(int begin, int end) {
+        BitmapContainer answer = clone();
+        Util.resetBitmapRange(answer.bitmap, begin, end);
+        answer.computeCardinality(); 
+        if (answer.getCardinality() < ArrayContainer.DEFAULT_MAX_SIZE)
+            return answer.toArrayContainer();
+        return answer;
+    }
 
 }
 

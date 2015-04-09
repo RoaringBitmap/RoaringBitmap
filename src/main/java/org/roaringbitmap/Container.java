@@ -274,7 +274,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      * @param rangeStart beginning of range (inclusive); 0 is beginning of this
      *                   container.
      * @param rangeEnd   ending of range (exclusive)
-     * @return (partially) completmented container
+     * @return (partially) complemented container
      */
     public abstract Container inot(int rangeStart, int rangeEnd);
 
@@ -513,7 +513,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
       * @param end end of range (exclusive)
       * @return the new container
       */
-     public abstract Container add(short begin, short end);
+     public abstract Container iadd(int begin, int end);
     
      /**
       * Remove shorts in [begin,end) using an unsigned interpretation. May generate a new container.
@@ -522,5 +522,26 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
       * @param end end of range (exclusive)
       * @return the new container
       */
-     public abstract Container remove(short begin, short end);
+     public abstract Container iremove(int begin, int end);
+
+
+     /**
+      * Return a new container with all shorts in [begin,end) 
+      * added using an unsigned interpretation. 
+      *
+      * @param begin start of range (inclusive)
+      * @param end end of range (exclusive)
+      * @return the new container
+      */
+     public abstract Container add(int begin, int end);
+    
+     /**
+      * Return a new container with all shorts in [begin,end) 
+      * remove using an unsigned interpretation. 
+      *
+      * @param begin start of range (inclusive)
+      * @param end end of range (exclusive)
+      * @return the new container
+      */
+     public abstract Container remove(int begin, int end);
 }

@@ -157,6 +157,11 @@ public final class Util {
         return (short) 0xFFFF;
     }
 
+
+    protected static int maxLowBitAsInteger() {
+        return  0xFFFF;
+    }
+    
     protected static int toIntUnsigned(short x) {
         return x & 0xFFFF;
     }
