@@ -72,7 +72,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     }
     
     /**
-	 * Complements the bits in the given range, from rangeStart (inclusive)
+	 * Sets the bits in the given range, from rangeStart (inclusive)
 	 * rangeEnd (exclusive). The given bitmap is unchanged.
 	 * 
 	 * @param bm
@@ -118,8 +118,20 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 		answer.highLowContainer.appendCopiesAfter(bm.highLowContainer, hbLast);
 
 		return answer;
-	}
+	}	
 
+	/**
+	 * In-place setting the bits in the given range, from rangeStart (inclusive)
+	 * rangeEnd (exclusive). The given bitmap is will be changed.
+	 * 
+	 * @param bm
+	 *            bitmap being negated
+	 * @param rangeStart
+	 *            inclusive beginning of range
+	 * @param rangeEnd
+	 *            exclusive ending of range
+	 * @return a new Bitmap
+	 */
 	public void set(final int rangeStart, final int rangeEnd) {
 		if (rangeStart >= rangeEnd)
 			return; // empty range
@@ -169,9 +181,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
 			if (i >= 0) {
 				final Container c = bm.getContainerAtIndex(i).set(
-						containerStart, containerLast);				
-				if (c.getCardinality() > 0)
-					answer.insertNewKeyValueAt(-j - 1, hb, c);
+						containerStart, containerLast);		
+				//it is supposed that the cardinality has grown
+				answer.insertNewKeyValueAt(-j - 1, hb, c);
 			} else {
 				answer.insertNewKeyValueAt(-j - 1, hb,
 						Container.rangeOfOnes(containerStart, containerLast));
@@ -179,6 +191,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 		}
 	}
 
+	
     /**
      * Bitwise ANDNOT (difference) operation. The provided bitmaps are *not*
      * modified. This operation is thread-safe as long as the provided
