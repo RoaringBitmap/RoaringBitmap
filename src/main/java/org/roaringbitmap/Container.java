@@ -313,8 +313,8 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     }
 
     /**
-     * Computes the in-place bitwise OR of this container with another
-     * (union). The current container is generally modified, whereas the
+     * Computes the in-place bitwise XOR of this container with another
+     * (symmetric difference). The current container is generally modified, whereas the
      * provided container (x) is unaffected. May generate a new container.
      *
      * @param x other container
@@ -323,8 +323,8 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     public abstract Container ixor(ArrayContainer x);
 
     /**
-     * Computes the in-place bitwise OR of this container with another
-     * (union). The current container is generally modified, whereas the
+     * Computes the in-place bitwise XOR of this container with another
+     * (symmetric difference). The current container is generally modified, whereas the
      * provided container (x) is unaffected. May generate a new container.
      *
      * @param x other container
@@ -333,8 +333,8 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     public abstract Container ixor(BitmapContainer x);
 
     /**
-     * Computes the in-place bitwise OR of this container with another
-     * (union). The current container is generally modified, whereas the
+     * Computes the in-place bitwise XOR of this container with another
+     * (symmetric difference). The current container is generally modified, whereas the
      * provided container (x) is unaffected. May generate a new container.
      *
      * @param x other container
@@ -450,7 +450,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     protected abstract void writeArray(DataOutput out) throws IOException;
 
     /**
-     * Computes the bitwise OR of this container with another (union). This
+     * Computes the bitwise XOR of this container with another (symmetric difference). This
      * container as well as the provided container are left unaffected.
      *
      * @param x other container
@@ -459,7 +459,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     public abstract Container xor(ArrayContainer x);
 
     /**
-     * Computes the bitwise OR of this container with another (union). This
+     * Computes the bitwise XOR of this container with another (symmetric difference). This
      * container as well as the provided container are left unaffected.
      *
      * @param x other container
@@ -468,7 +468,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     public abstract Container xor(BitmapContainer x);
 
     /**
-     * Computes the bitwise OR of this container with another (union). This
+     * Computes the bitwise XOR of this container with another (symmetric difference). This
      * container as well as the provided container are left unaffected.
      *
      * @param x other parameter

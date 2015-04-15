@@ -319,7 +319,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
     }
 
     /**
-     * Computes the in-place bitwise OR of this container with another (union).
+     * Computes the in-place bitwise XOR of this container with another (symmetric difference).
      * The current container is generally modified, whereas the provided
      * container (x) is unaffected. May generate a new container.
      * 
@@ -330,7 +330,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
     public abstract MappeableContainer ixor(MappeableArrayContainer x);
 
     /**
-     * Computes the in-place bitwise OR of this container with another (union).
+     * Computes the in-place bitwise XOR of this container with another (symmetric difference).
      * The current container is generally modified, whereas the provided
      * container (x) is unaffected. May generate a new container.
      * 
@@ -341,7 +341,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
     public abstract MappeableContainer ixor(MappeableBitmapContainer x);
 
     /**
-     * Computes the in-place bitwise OR of this container with another (union).
+     * Computes the in-place bitwise XOR of this container with another (symmetric difference).
      * The current container is generally modified, whereas the provided
      * container (x) is unaffected. May generate a new container.
      * 
@@ -453,7 +453,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
     protected abstract void writeArray(DataOutput out) throws IOException;
 
     /**
-     * Computes the bitwise OR of this container with another (union). This
+     * Computes the bitwise XOR of this container with another (symmetric difference). This
      * container as well as the provided container are left unaffected.
      * 
      * @param x
@@ -463,7 +463,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
     public abstract MappeableContainer xor(MappeableArrayContainer x);
 
     /**
-     * Computes the bitwise OR of this container with another (union). This
+     * Computes the bitwise XOR of this container with another (symmetric difference). This
      * container as well as the provided container are left unaffected.
      * 
      * @param x
@@ -473,7 +473,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
     public abstract MappeableContainer xor(MappeableBitmapContainer x);
 
     /**
-     * Computes the bitwise OR of this container with another (union). This
+     * Computes the bitwise XOR of this container with another (symmetric difference). This
      * container as well as the provided container are left unaffected.
      * 
      * @param x
