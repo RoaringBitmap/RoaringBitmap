@@ -611,6 +611,54 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         else
             return clone();
     }
+
+    @Override
+    public Container and(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Container andNot(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Container iand(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Container iandNot(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Container ior(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Container ixor(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Container or(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Container xor(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }
 
 

@@ -828,6 +828,64 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
         }
         return bc;
     }
+
+    protected Container lazyor(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    protected Container ilazyor(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Container and(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Container andNot(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Container iand(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Container iandNot(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Container ior(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Container ixor(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Container or(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Container xor(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }
 
 final class BitmapContainerShortIterator implements ShortIterator {

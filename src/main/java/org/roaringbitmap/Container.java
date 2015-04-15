@@ -64,10 +64,23 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      * @param x other container
      * @return aggregated container
      */
+    public abstract Container and(RunContainer x);
+
+    
+    /**
+     * Computes the bitwise AND of this container with another
+     * (intersection). This container as well as the provided container are
+     * left unaffected.
+     *
+     * @param x other container
+     * @return aggregated container
+     */
     public Container and(Container x) {
         if (x instanceof ArrayContainer)
             return and((ArrayContainer) x);
-        return and((BitmapContainer) x);
+        else if (x instanceof BitmapContainer)
+            return and((BitmapContainer) x);
+        return and((RunContainer) x);
 
     }
 
@@ -99,10 +112,23 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      * @param x other container
      * @return aggregated container
      */
+    public abstract Container andNot(RunContainer x);
+
+    
+    /**
+     * Computes the bitwise ANDNOT of this container with another
+     * (difference). This container as well as the provided container are
+     * left unaffected.
+     *
+     * @param x other container
+     * @return aggregated container
+     */
     public Container andNot(Container x) {
         if (x instanceof ArrayContainer)
             return andNot((ArrayContainer) x);
-        return andNot((BitmapContainer) x);
+        else if (x instanceof BitmapContainer)
+            return andNot((BitmapContainer) x);
+        return andNot((RunContainer) x);
     }
 
     /**
@@ -202,6 +228,19 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      */
     public abstract Container iand(BitmapContainer x);
 
+
+    /**
+     * Computes the in-place bitwise AND of this container with another
+     * (intersection). The current container is generally modified, whereas
+     * the provided container (x) is unaffected. May generate a new
+     * container.
+     *
+     * @param x other container
+     * @return aggregated container
+     */
+    public abstract Container iand(RunContainer x);
+
+    
     /**
      * Computes the in-place bitwise AND of this container with another
      * (intersection). The current container is generally modified, whereas
@@ -214,8 +253,9 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     public Container iand(Container x) {
         if (x instanceof ArrayContainer)
             return iand((ArrayContainer) x);
-        else
+        else if (x instanceof BitmapContainer)
             return iand((BitmapContainer) x);
+        return iand((RunContainer) x);
     }
 
     /**
@@ -249,10 +289,24 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      * @param x other container
      * @return aggregated container
      */
+    public abstract Container iandNot(RunContainer x);
+
+    
+    /**
+     * Computes the in-place bitwise ANDNOT of this container with another
+     * (difference). The current container is generally modified, whereas
+     * the provided container (x) is unaffected. May generate a new
+     * container.
+     *
+     * @param x other container
+     * @return aggregated container
+     */
     public Container iandNot(Container x) {
         if (x instanceof ArrayContainer)
             return iandNot((ArrayContainer) x);
-        return iandNot((BitmapContainer) x);
+        else if (x instanceof BitmapContainer) 
+            return iandNot((BitmapContainer) x);
+        return iandNot((RunContainer) x);
     }
 
     /**
@@ -287,6 +341,17 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      */
     public abstract Container ior(BitmapContainer x);
 
+
+    /**
+     * Computes the in-place bitwise OR of this container with another
+     * (union). The current container is generally modified, whereas the
+     * provided container (x) is unaffected. May generate a new container.
+     *
+     * @param x other container
+     * @return aggregated container
+     */
+    public abstract Container ior(RunContainer x);
+
     /**
      * Computes the in-place bitwise OR of this container with another
      * (union). The current container is generally modified, whereas the
@@ -298,11 +363,12 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     public Container ior(Container x) {
         if (x instanceof ArrayContainer)
             return ior((ArrayContainer) x);
-        return ior((BitmapContainer) x);
+        else if (x instanceof BitmapContainer) return ior((BitmapContainer) x);
+        return ior((RunContainer) x);
     }
 
     /**
-     * Computes the in-place bitwise OR of this container with another
+     * Computes the in-place bitwise XOR of this container with another
      * (union). The current container is generally modified, whereas the
      * provided container (x) is unaffected. May generate a new container.
      *
@@ -312,7 +378,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     public abstract Container ixor(ArrayContainer x);
 
     /**
-     * Computes the in-place bitwise OR of this container with another
+     * Computes the in-place bitwise XOR of this container with another
      * (union). The current container is generally modified, whereas the
      * provided container (x) is unaffected. May generate a new container.
      *
@@ -320,6 +386,16 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      * @return aggregated container
      */
     public abstract Container ixor(BitmapContainer x);
+
+    /**
+     * Computes the in-place bitwise XOR of this container with another
+     * (union). The current container is generally modified, whereas the
+     * provided container (x) is unaffected. May generate a new container.
+     *
+     * @param x other container
+     * @return aggregated container
+     */
+    public abstract Container ixor(RunContainer x);
 
     /**
      * Computes the in-place bitwise OR of this container with another
@@ -332,30 +408,35 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     public Container ixor(Container x) {
         if (x instanceof ArrayContainer)
             return ixor((ArrayContainer) x);
-        return ixor((BitmapContainer) x);
+        else if (x instanceof BitmapContainer) return ixor((BitmapContainer) x);
+        return ixor((RunContainer) x);
     }
 
     protected Container lazyOR(Container x) {
-        if (this instanceof ArrayContainer) {
+        if ((this instanceof ArrayContainer) || (this instanceof RunContainer)) {
             if (x instanceof ArrayContainer)
                 return or((ArrayContainer) x);
-            return or((BitmapContainer) x);
-        } else {
+            else if (x instanceof BitmapContainer) return or((BitmapContainer) x);
+            return or((RunContainer) x);
+        } else  {
             if (x instanceof ArrayContainer)
                 return ((BitmapContainer)this).lazyor((ArrayContainer) x);
-            return ((BitmapContainer)this).lazyor((BitmapContainer) x);
-        }
+            else if (x instanceof BitmapContainer) return ((BitmapContainer)this).lazyor((BitmapContainer) x);
+            return ((BitmapContainer)this).lazyor((RunContainer) x);
+        } 
     }
     
     protected Container lazyIOR(Container x) {
-        if (this instanceof ArrayContainer) {
+        if ((this instanceof ArrayContainer) || (this instanceof RunContainer)) {
             if (x instanceof ArrayContainer)
                 return ior((ArrayContainer) x);
-            return ior((BitmapContainer) x);
+            else if (x instanceof BitmapContainer) return ior((BitmapContainer) x);
+            return ior((RunContainer) x);
         } else {
             if (x instanceof ArrayContainer)
                 return ((BitmapContainer)this).ilazyor((ArrayContainer) x);
-            return ((BitmapContainer)this).ilazyor((BitmapContainer) x);
+            else if (x instanceof BitmapContainer) return ((BitmapContainer)this).ilazyor((BitmapContainer) x);
+            return ((BitmapContainer)this).ilazyor((RunContainer) x);
         }
     }
     
@@ -396,10 +477,21 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      * @param x other container
      * @return aggregated container
      */
+    public abstract Container or(RunContainer x);
+
+    
+    /**
+     * Computes the bitwise OR of this container with another (union). This
+     * container as well as the provided container are left unaffected.
+     *
+     * @param x other container
+     * @return aggregated container
+     */
     public Container or(Container x) {
         if (x instanceof ArrayContainer)
             return or((ArrayContainer) x);
-        return or((BitmapContainer) x);
+        else if (x instanceof BitmapContainer) return or((BitmapContainer) x);
+        return or((RunContainer) x);
     }
 
     /**
@@ -439,7 +531,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     protected abstract void writeArray(DataOutput out) throws IOException;
 
     /**
-     * Computes the bitwise OR of this container with another (union). This
+     * Computes the bitwise XOR of this container with another (union). This
      * container as well as the provided container are left unaffected.
      *
      * @param x other container
@@ -448,13 +540,23 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     public abstract Container xor(ArrayContainer x);
 
     /**
-     * Computes the bitwise OR of this container with another (union). This
+     * Computes the bitwise XOR of this container with another (union). This
      * container as well as the provided container are left unaffected.
      *
      * @param x other container
      * @return aggregated container
      */
     public abstract Container xor(BitmapContainer x);
+
+
+    /**
+     * Computes the bitwise XOR of this container with another (union). This
+     * container as well as the provided container are left unaffected.
+     *
+     * @param x other container
+     * @return aggregated container
+     */
+    public abstract Container xor(RunContainer x);
 
     /**
      * Computes the bitwise OR of this container with another (union). This
@@ -466,7 +568,8 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     public Container xor(Container x) {
         if (x instanceof ArrayContainer)
             return xor((ArrayContainer) x);
-        return xor((BitmapContainer) x);
+        else if (x instanceof BitmapContainer) return xor((BitmapContainer) x);
+        return xor((RunContainer) x);
     }
 
     /**

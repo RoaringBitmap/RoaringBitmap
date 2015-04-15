@@ -19,51 +19,13 @@ import java.util.Iterator;
  */
 public class RunContainer extends Container implements Cloneable, Serializable {
     private static final int DEFAULT_INIT_SIZE = 4;
-    private short[] valueslength;// we interleave values and lengths, e.g., 1, 10 indicates the run 1, 2, ..., 11
-    // Lengths are expressed in number of extra repetitions, so 0 means 1 value in the sequence. 
-    int nbrruns = 0;
+    private short[] valueslength;// we interleave values and lengths, so 
+    // that if you have the values 11,12,13,14,15, you store that as 11,4 where 4 means that beyond 11 itself, there are
+    // 4 contiguous values that follows.
+    // Other example: e.g., 1, 10, 20,0, 31,2 would be a concise representation of  1, 2, ..., 11, 20, 31, 32, 33
 
-    short getValue(int index) {
-        return valueslength[2*index];
-    }
+    int nbrruns = 0;// how many runs, this number should fit in 16 bits.
 
-    short getLength(int index) {
-        return valueslength[2*index + 1];
-    }
-    
-    private void incrementLength(int index) {
-        valueslength[2*index + 1]++;
-    }
-    
-    private void incrementValue(int index) {
-        valueslength[2*index]++;
-    }
-
-    private void setLength(int index, short v) {
-        valueslength[2*index + 1] = v;
-    }
-    
-    private void setValue(int index, short v) {
-        valueslength[2*index] = v;
-    }
-    private void decrementLength(int index) {
-        valueslength[2*index + 1]--;
-    }
-
-    private void decrementValue(int index) {
-        valueslength[2*index]--;
-    }    
-    
-    private void makeRoomAtIndex(int index) {
-        if(2 * nbrruns == valueslength.length) increaseCapacity();
-        System.arraycopy(valueslength, 2 * index  , valueslength, 2 * index + 2 , 2 * nbrruns - 2 * index );
-        nbrruns++;
-    }
-
-    private void recoverRoomAtIndex(int index) {
-        System.arraycopy(valueslength, 2 * index + 2 , valueslength, 2* index  , 2 *  nbrruns - 2 * index - 2 );
-        nbrruns--;
-    }
     
     private RunContainer(int nbrruns, short[] valueslength) {
         this.nbrruns = nbrruns;
@@ -516,6 +478,103 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         return -(low + 1);
     }
 
+    short getValue(int index) {
+        return valueslength[2*index];
+    }
+
+    short getLength(int index) {
+        return valueslength[2*index + 1];
+    }
+    
+    private void incrementLength(int index) {
+        valueslength[2*index + 1]++;
+    }
+    
+    private void incrementValue(int index) {
+        valueslength[2*index]++;
+    }
+
+    private void setLength(int index, short v) {
+        valueslength[2*index + 1] = v;
+    }
+    
+    private void setValue(int index, short v) {
+        valueslength[2*index] = v;
+    }
+    private void decrementLength(int index) {
+        valueslength[2*index + 1]--;
+    }
+
+    private void decrementValue(int index) {
+        valueslength[2*index]--;
+    }    
+    
+    private void makeRoomAtIndex(int index) {
+        if(2 * nbrruns == valueslength.length) increaseCapacity();
+        System.arraycopy(valueslength, 2 * index  , valueslength, 2 * index + 2 , 2 * nbrruns - 2 * index );
+        nbrruns++;
+    }
+
+    private void recoverRoomAtIndex(int index) {
+        System.arraycopy(valueslength, 2 * index + 2 , valueslength, 2* index  , 2 *  nbrruns - 2 * index - 2 );
+        nbrruns--;
+    }
+
+
+    @Override
+    public Container and(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    @Override
+    public Container andNot(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    @Override
+    public Container iand(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    @Override
+    public Container iandNot(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    @Override
+    public Container ior(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    @Override
+    public Container ixor(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    @Override
+    public Container or(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    @Override
+    public Container xor(RunContainer x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 }
 
