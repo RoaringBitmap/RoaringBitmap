@@ -43,14 +43,6 @@ public class SelectBenchmark {
         return answer;
     }
 
-    @Benchmark
-    @BenchmarkMode(Mode.AverageTime)
-    public int onefunction2() {
-        int answer = 0;
-        for(int k = 0; k < bitmap.length; ++ k)
-            answer += selectBitPosition2(bitmap[k], key[k]);
-        return answer;
-    }
 
     
     @Benchmark
