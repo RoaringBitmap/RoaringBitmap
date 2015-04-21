@@ -166,19 +166,10 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
 
     @Override
     public void deserialize(DataInput in) throws IOException {
-        byte[] buffer = new byte[8];
         // little endian
         this.cardinality = 0;
         for (int k = 0; k < bitmap.length; ++k) {
-            in.readFully(buffer);
-            bitmap[k] = (((long) buffer[7] << 56)
-                    + ((long) (buffer[6] & 255) << 48)
-                    + ((long) (buffer[5] & 255) << 40)
-                    + ((long) (buffer[4] & 255) << 32)
-                    + ((long) (buffer[3] & 255) << 24)
-                    + ((buffer[2] & 255) << 16)
-                    + ((buffer[1] & 255) << 8)
-                    + (buffer[0] & 255));
+            bitmap[k] = Long.reverseBytes(in.readLong()); 
             this.cardinality += Long.bitCount(bitmap[k]);
         }
     }
