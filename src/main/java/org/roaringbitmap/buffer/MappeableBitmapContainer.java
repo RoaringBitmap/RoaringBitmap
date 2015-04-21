@@ -814,20 +814,12 @@ public final class MappeableBitmapContainer extends MappeableContainer
     @Override
     public void readExternal(ObjectInput in) throws IOException,
             ClassNotFoundException {
-        final byte[] buffer = new byte[8];
         // little endian
         this.cardinality = 0;
         for (int k = 0; k < bitmap.limit(); ++k) {
-            in.readFully(buffer);
-            bitmap.put(k,
-                    (((long) buffer[7] << 56)
-                            + ((long) (buffer[6] & 255) << 48)
-                            + ((long) (buffer[5] & 255) << 40)
-                            + ((long) (buffer[4] & 255) << 32)
-                            + ((long) (buffer[3] & 255) << 24)
-                            + ((buffer[2] & 255) << 16)
-                            + ((buffer[1] & 255) << 8) + (buffer[0] & 255)));
-            this.cardinality += Long.bitCount(bitmap.get(k));
+            long w = Long.reverseBytes(in.readLong());
+            bitmap.put(k,w);
+            this.cardinality += Long.bitCount(w);
         }
     }
 
@@ -881,20 +873,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     @Override
     protected void writeArray(DataOutput out) throws IOException {
-
-        final byte[] buffer = new byte[8];
         // little endian
-        for (int k = 0; k < MAX_CAPACITY / 64; ++k) {
+        for (int k = 0; k < bitmap.limit(); ++k) {
             final long w = bitmap.get(k);
-            buffer[0] = (byte) w;
-            buffer[1] = (byte) (w >>> 8);
-            buffer[2] = (byte) (w >>> 16);
-            buffer[3] = (byte) (w >>> 24);
-            buffer[4] = (byte) (w >>> 32);
-            buffer[5] = (byte) (w >>> 40);
-            buffer[6] = (byte) (w >>> 48);
-            buffer[7] = (byte) (w >>> 56);
-            out.write(buffer, 0, 8);
+            out.writeLong(Long.reverseBytes(w));
         }
     }
 

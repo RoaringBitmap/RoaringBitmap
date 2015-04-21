@@ -7,10 +7,14 @@ package org.roaringbitmap.buffer;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.WritableByteChannel;
 
 
 /**
@@ -52,7 +56,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         buffer = bbf.slice();
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         if (buffer.getInt() != SERIAL_COOKIE)
-            throw new RuntimeException("I failed to find the right cookie.");
+            throw new RuntimeException("I failed to find the right cookie. "+ buffer.getInt());
         this.size = buffer.getInt();
         buffer.limit(computeSerializedSizeInBytes());
     }
@@ -281,14 +285,8 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         } else {
             ByteBuffer tmp = buffer.duplicate();
             tmp.position(0);
-            byte[] bytes = new byte[256];
-            while(tmp.remaining() > bytes.length) {
-                tmp.get(bytes);
-                out.write(bytes);
-            }
-            int left = tmp.remaining();
-            tmp.get(bytes,0,left);
-            out.write(bytes, 0, left);
+            WritableByteChannel channel = Channels.newChannel((OutputStream ) out);
+            channel.write(tmp);
         }
     }
     /**

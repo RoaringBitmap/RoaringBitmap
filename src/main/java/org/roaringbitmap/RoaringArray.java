@@ -320,30 +320,16 @@ public final class RoaringArray implements Cloneable, Externalizable {
      * @throws IOException Signals that an I/O exception has occurred.
      */
     public void serialize(DataOutput out) throws IOException {
-    	
-        out.write(SERIAL_COOKIE & 0xFF);
-        out.write((SERIAL_COOKIE >>> 8) & 0xFF);
-        out.write((SERIAL_COOKIE >>> 16) & 0xFF);
-        out.write((SERIAL_COOKIE >>> 24) & 0xFF);
-        
-        out.write(this.size & 0xFF);
-        out.write((this.size >>> 8) & 0xFF);
-        out.write((this.size >>> 16) & 0xFF);
-        out.write((this.size >>> 24) & 0xFF);
-
+    	out.writeInt(Integer.reverseBytes(SERIAL_COOKIE));
+        out.writeInt(Integer.reverseBytes(size));
         for (int k = 0; k < size; ++k) {
-            out.write(this.array[k].key & 0xFF);
-            out.write((this.array[k].key >>> 8) & 0xFF);
-            out.write((this.array[k].value.getCardinality() - 1) & 0xFF);
-            out.write(((this.array[k].value.getCardinality() - 1) >>> 8) & 0xFF);
+            out.writeShort(Short.reverseBytes(this.array[k].key));
+            out.writeShort(Short.reverseBytes((short) ((this.array[k].value.getCardinality() - 1))));
         }
         //writing the containers offsets
         int startOffset = 4 + 4 + 4*this.size + 4*this.size;
         for(int k=0; k<this.size; k++){
-        	out.write(startOffset & 0xFF);
-            out.write((startOffset >>> 8) & 0xFF);
-            out.write((startOffset >>> 16) & 0xFF);
-            out.write((startOffset >>> 24) & 0xFF);
+            out.writeInt(Integer.reverseBytes(startOffset));
         	startOffset=startOffset+BufferUtil.getSizeInBytesFromCardinality(this.array[k].value.getCardinality());
         }        
         for (int k = 0; k < size; ++k) {
@@ -372,28 +358,20 @@ public final class RoaringArray implements Cloneable, Externalizable {
      */
     public void deserialize(DataInput in) throws IOException {
         this.clear();
-        final byte[] buffer4 = new byte[4];
-        final byte[] buffer = new byte[2];
         // little endian
-        in.readFully(buffer4);
-        final int cookie = (buffer4[0] & 0xFF) | ((buffer4[1] & 0xFF) << 8)
-                | ((buffer4[2] & 0xFF) << 16) | ((buffer4[3] & 0xFF) << 24);
+        final int cookie = Integer.reverseBytes(in.readInt());
         if (cookie != SERIAL_COOKIE)
             throw new IOException("I failed to find the right cookie.");
-
-        in.readFully(buffer4);
-        this.size = (buffer4[0] & 0xFF) | ((buffer4[1] & 0xFF) << 8)
-                | ((buffer4[2] & 0xFF) << 16) | ((buffer4[3] & 0xFF) << 24);
+        this.size = Integer.reverseBytes(in.readInt());
         if ((this.array == null) || (this.array.length < this.size))
             this.array = new Element[this.size];
         final short keys[] = new short[this.size];
         final int cardinalities[] = new int[this.size];
         final boolean isBitmap[] = new boolean[this.size];
         for (int k = 0; k < this.size; ++k) {
-            in.readFully(buffer);
-            keys[k] = (short) (buffer[0] & 0xFF | ((buffer[1] & 0xFF) << 8));
-            in.readFully(buffer);
-            cardinalities[k] = 1 + (buffer[0] & 0xFF | ((buffer[1] & 0xFF) << 8));
+            keys[k] = Short.reverseBytes(in.readShort());
+            cardinalities[k] = 1 + (0xFFFF & Short.reverseBytes(in.readShort()));
+
             isBitmap[k] = cardinalities[k] > ArrayContainer.DEFAULT_MAX_SIZE;
         }
         //skipping the offsets
@@ -403,25 +381,15 @@ public final class RoaringArray implements Cloneable, Externalizable {
             Container val;
             if (isBitmap[k]) {
                 final long[] bitmapArray = new long[BitmapContainer.MAX_CAPACITY / 64];
-                final byte[] buf = new byte[8];
                 // little endian
                 for (int l = 0; l < bitmapArray.length; ++l) {
-                    in.readFully(buf);
-                    bitmapArray[l] = (((long) buf[7] << 56)
-                            + ((long) (buf[6] & 255) << 48)
-                            + ((long) (buf[5] & 255) << 40)
-                            + ((long) (buf[4] & 255) << 32)
-                            + ((long) (buf[3] & 255) << 24)
-                            + ((buf[2] & 255) << 16)
-                            + ((buf[1] & 255) << 8)
-                            + (buf[0] & 255));
+                    bitmapArray[l] = Long.reverseBytes(in.readLong());
                 }
                 val = new BitmapContainer(bitmapArray, cardinalities[k]);
             } else {
                 final short[] shortArray = new short[cardinalities[k]];
                 for (int l = 0; l < shortArray.length; ++l) {
-                    in.readFully(buffer);
-                    shortArray[l] = (short) (buffer[0] & 0xFF | ((buffer[1] & 0xFF) << 8));
+                    shortArray[l] = Short.reverseBytes(in.readShort());
                 }
                 val = new ArrayContainer(shortArray);
             }

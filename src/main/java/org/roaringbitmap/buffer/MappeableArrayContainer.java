@@ -622,16 +622,12 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     @Override
     public void readExternal(ObjectInput in) throws IOException,
             ClassNotFoundException {
-        final byte[] buffer = new byte[2];
         // little endian
-        in.readFully(buffer);
-        this.cardinality = (buffer[0] & 0xFF) | ((buffer[1] & 0xFF) << 8);
+        this.cardinality = 0xFFFF & Short.reverseBytes(in.readShort());
         if (this.content.limit() < this.cardinality)
             this.content = ShortBuffer.allocate(this.cardinality);
         for (int k = 0; k < this.cardinality; ++k) {
-            in.readFully(buffer);
-            this.content.put(k,
-                    (short) (((buffer[1] & 0xFF) << 8) | (buffer[0] & 0xFF)));
+            this.content.put(k,Short.reverseBytes(in.readShort()));
         }
     }
 

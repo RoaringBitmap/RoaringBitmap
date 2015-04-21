@@ -148,15 +148,11 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
 
     @Override
     public void deserialize(DataInput in) throws IOException {
-        byte[] buffer = new byte[2];
-        // little endian
-        in.readFully(buffer);
-        this.cardinality = (buffer[0] & 0xFF) | ((buffer[1] & 0xFF) << 8);
+        this.cardinality = 0xFFFF & Short.reverseBytes(in.readShort());
         if (this.content.length < this.cardinality)
             this.content = new short[this.cardinality];
         for (int k = 0; k < this.cardinality; ++k) {
-            in.readFully(buffer);
-            this.content[k] = (short) (((buffer[1] & 0xFF) << 8) | (buffer[0] & 0xFF));
+            this.content[k] = Short.reverseBytes(in.readShort());;
         }
     }
 
@@ -506,12 +502,10 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
 
     @Override
     public void serialize(DataOutput out) throws IOException {
-        out.write((this.cardinality) & 0xFF);
-        out.write((this.cardinality >>> 8) & 0xFF);
+        out.writeShort(Short.reverseBytes((short) this.cardinality));
         // little endian
         for (int k = 0; k < this.cardinality; ++k) {
-            out.write((this.content[k]) & 0xFF);
-            out.write((this.content[k] >>> 8) & 0xFF);
+            out.writeShort(Short.reverseBytes((short) this.content[k]));
         }
     }
 
