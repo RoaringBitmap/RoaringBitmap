@@ -533,11 +533,16 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
         }
         size -= range;
     }
+
     protected void resize(int newLength) {
-        for (int k = newLength; k < this.size; ++k) {
-            this.array[k] = null;
-        }
+        Arrays.fill(this.array, newLength, this.size, null);
         this.size = newLength;
+    }
+
+    protected void copyRange(int begin, int end, int newBegin) {
+        //assuming begin <= end and newBegin < begin
+        final int range = end - begin;
+        System.arraycopy(this.array, begin, this.array, newBegin, range);
     }
 
     /**

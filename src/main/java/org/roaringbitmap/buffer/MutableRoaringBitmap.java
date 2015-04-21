@@ -629,12 +629,9 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
                 pos2 = x2.highLowContainer.advanceUntil(s1, pos2);
             }
         }
-        //TODO: next part should be handled as a copy
-        while (pos1 < length1) {
-            final short s1 = highLowContainer.getKeyAtIndex(pos1);
-            final MappeableContainer c1 = highLowContainer.getContainerAtIndex(pos1);
-            getMappeableRoaringArray().replaceKeyAndContainerAtIndex(intersectionSize++, s1, c1);
-            ++pos1;
+        if (pos1 < length1) {
+            getMappeableRoaringArray().copyRange(pos1, length1, intersectionSize);
+            intersectionSize += length1 - pos1;
         }
         getMappeableRoaringArray().resize(intersectionSize);
     }

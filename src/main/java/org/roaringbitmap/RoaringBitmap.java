@@ -637,12 +637,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
                 pos2 = x2.highLowContainer.advanceUntil(s1, pos2);
             }
         }
-        //TODO: next part should be handled as a copy
-        while (pos1 < length1) {
-            final short s1 = highLowContainer.getKeyAtIndex(pos1);
-            final Container c1 = highLowContainer.getContainerAtIndex(pos1);
-            highLowContainer.replaceKeyAndContainerAtIndex(intersectionSize++, s1, c1);
-            ++pos1;
+        if (pos1 < length1) {
+            highLowContainer.copyRange(pos1, length1, intersectionSize);
+            intersectionSize += length1 - pos1;
         }
         highLowContainer.resize(intersectionSize);
     }
