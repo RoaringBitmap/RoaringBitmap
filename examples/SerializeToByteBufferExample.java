@@ -33,9 +33,11 @@ public class SerializeToByteBufferExample {
     }
 }
 
+/**
+* The following classes could be used instead:
+*/
 
-
-class ByteBufferBackedInputStream extends InputStream{
+class ByteBufferBackedInputStream extends InputStream {
   
   ByteBuffer buf;
   ByteBufferBackedInputStream( ByteBuffer buf){
