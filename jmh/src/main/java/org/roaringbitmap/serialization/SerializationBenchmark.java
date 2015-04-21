@@ -75,6 +75,10 @@ public class SerializationBenchmark {
          final int[] data = takeSortedAndDistinct(new Random(0xcb000a2b9b5bdfb6l), 100000);
          bitmap_a = RoaringBitmap.bitmapOf(data);
          bitmap_ar = MutableRoaringBitmap.bitmapOf(data);
+         for(int k = 100000; k < 200000; ++k) {
+             bitmap_a.add(2 * k);
+             bitmap_ar.add(2 * k);
+         }
          outbb = ByteBuffer.allocate(bitmap_a.serializedSizeInBytes());
          presoutbb = ByteBuffer.allocate(bitmap_a.serializedSizeInBytes());
          ByteBufferBackedOutputStream out = new ByteBufferBackedOutputStream(presoutbb);
