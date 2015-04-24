@@ -7,10 +7,14 @@ package org.roaringbitmap.buffer;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.WritableByteChannel;
 
 
 /**
@@ -52,7 +56,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         buffer = bbf.slice();
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         if (buffer.getInt() != SERIAL_COOKIE)
-            throw new RuntimeException("I failed to find the right cookie.");
+            throw new RuntimeException("I failed to find the right cookie. "+ buffer.getInt());
         this.size = buffer.getInt();
         buffer.limit(computeSerializedSizeInBytes());
     }
@@ -210,7 +214,49 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
 
     public short getKeyAtIndex(int i) {
-        return buffer.getShort(4*i + startofkeyscardinalities);
+        return buffer.getShort(4 * i + startofkeyscardinalities);
+    }
+
+    public int advanceUntil(short x, int pos) {
+        int lower = pos + 1;
+
+        // special handling for a possibly common sequential case
+        if (lower >= size || getKey(lower) >= BufferUtil.toIntUnsigned(x)) {
+            return lower;
+        }
+
+        int spansize = 1; // could set larger
+        // bootstrap an upper limit
+
+        while (lower + spansize < size && getKey(lower + spansize) < BufferUtil.toIntUnsigned(x))
+            spansize *= 2; // hoping for compiler will reduce to shift
+        int upper = (lower + spansize < size) ? lower + spansize : size - 1;
+
+        // maybe we are lucky (could be common case when the seek ahead
+        // expected to be small and sequential will otherwise make us look bad)
+        if (getKey(upper) == x) {
+            return upper;
+        }
+
+        if (getKey(upper) < BufferUtil.toIntUnsigned(x)) {// means array has no item key >= x
+            return size;
+        }
+
+        // we know that the next-smallest span was too small
+        lower += (spansize / 2);
+
+        // else begin binary search
+        // invariant: array[lower]<x && array[upper]>x
+        while (lower + 1 != upper) {
+            int mid = (lower + upper) / 2;
+            if (getKey(mid) == BufferUtil.toIntUnsigned(x))
+                return mid;
+            else if (getKey(mid) < BufferUtil.toIntUnsigned(x))
+                lower = mid;
+            else
+                upper = mid;
+        }
+        return upper;
     }
 
     @Override
@@ -239,14 +285,8 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         } else {
             ByteBuffer tmp = buffer.duplicate();
             tmp.position(0);
-            byte[] bytes = new byte[256];
-            while(tmp.remaining() > bytes.length) {
-                tmp.get(bytes);
-                out.write(bytes);
-            }
-            int left = tmp.remaining();
-            tmp.get(bytes,0,left);
-            out.write(bytes, 0, left);
+            WritableByteChannel channel = Channels.newChannel((OutputStream ) out);
+            channel.write(tmp);
         }
     }
     /**

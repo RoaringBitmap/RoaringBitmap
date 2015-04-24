@@ -1,5 +1,16 @@
 .setting/
-RoaringBitmap.iml
-.idea/
 bin/
 target/
+
+
+# OS X
+.DS_Store
+
+# intellij
+.idea
+*.iml
+
+# eclipse
+.project
+.classpath
+.settings

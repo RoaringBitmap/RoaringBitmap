@@ -15,7 +15,7 @@ Druid.io (http://druid.io/). Apache Lucene (http://lucene.apache.org/) uses  Roa
 
 
 
-(c) 2013-2015 Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, Björn Sperber, Seth Pellegrino, Borislav Ivanov
+(c) 2013-2015 Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, Björn Sperber, Seth Pellegrino, Borislav Ivanov, Gregory Ssi-Yan-Kai
 
 
 This code is licensed under Apache License, Version 2.0 (ASL2.0). 
@@ -125,10 +125,14 @@ Usage
 
 Benchmark
 -----------
+        
+To run JMH benchmarks, use the following command:
 
-To run a simple benchmark, use the following command:
+         $ ./jmh/run.sh
 
-         $ mvn -Dtest=TestBenchmarkBasic test
+You can also run specific benchmarks...
+
+         $ ./jmh/run.sh org.roaringbitmap.aggregation.and.identical.*
 
 Funding 
 ----------

@@ -13,7 +13,6 @@ import com.google.common.primitives.Ints;
 import org.junit.Assert;
 import org.junit.Test;
 import org.roaringbitmap.IntIterator;
-import org.roaringbitmap.ShortIterator;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -99,23 +98,5 @@ public class TestIntIteratorFlyweight {
         return Ints.asList(Arrays.copyOf(values, size));
     }
 
-    private static List<Integer> asList(final ShortIterator shorts) {
-        return asList(new IntIterator() {
-            @Override
-            public boolean hasNext() {
-                return shorts.hasNext();
-            }
 
-            @Override
-            public int next() {
-                return shorts.next();
-            }
-
-            @SuppressWarnings("CloneDoesntCallSuperClone")
-            @Override
-            public IntIterator clone() {
-                throw new UnsupportedOperationException();
-            }
-        });
-    }
 }

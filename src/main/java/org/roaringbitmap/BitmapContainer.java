@@ -9,7 +9,6 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import org.roaringbitmap.buffer.MappeableBitmapContainer;
 
 /**
  * Simple bitset-like container.
@@ -39,18 +38,18 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
      * that an ArrayContainer should have been created instead
      *
      * @param firstOfRun first index
-     * @param lastOfRun  last index (range is inclusive)
+     * @param lastOfRun  last index (range is exclusive)
      */
     public BitmapContainer(final int firstOfRun, final int lastOfRun) {
-        this.cardinality = lastOfRun - firstOfRun + 1;
+        this.cardinality = lastOfRun - firstOfRun;
         this.bitmap = new long[MAX_CAPACITY / 64];
         if (this.cardinality == MAX_CAPACITY) // perhaps a common case
             Arrays.fill(bitmap, -1L);
         else {
             final int firstWord = firstOfRun / 64;
-            final int lastWord = lastOfRun / 64;
+            final int lastWord = (lastOfRun - 1) / 64;
             final int zeroPrefixLength = firstOfRun & 63;
-            final int zeroSuffixLength = 63 - (lastOfRun & 63);
+            final int zeroSuffixLength = 63 - ((lastOfRun - 1 ) & 63);
 
             Arrays.fill(bitmap, firstWord, lastWord + 1, -1L);
             bitmap[firstWord] ^= ((1L << zeroPrefixLength) - 1);
@@ -167,19 +166,10 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
 
     @Override
     public void deserialize(DataInput in) throws IOException {
-        byte[] buffer = new byte[8];
         // little endian
         this.cardinality = 0;
         for (int k = 0; k < bitmap.length; ++k) {
-            in.readFully(buffer);
-            bitmap[k] = (((long) buffer[7] << 56)
-                    + ((long) (buffer[6] & 255) << 48)
-                    + ((long) (buffer[5] & 255) << 40)
-                    + ((long) (buffer[4] & 255) << 32)
-                    + ((long) (buffer[3] & 255) << 24)
-                    + ((buffer[2] & 255) << 16)
-                    + ((buffer[1] & 255) << 8)
-                    + (buffer[0] & 255));
+            bitmap[k] = Long.reverseBytes(in.readLong()); 
             this.cardinality += Long.bitCount(bitmap[k]);
         }
     }
@@ -326,8 +316,6 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
         return ac;
     }
 
-    // complicated so that it should be reasonably efficient even when the
-    // ranges are small
     @Override
     public Container inot(final int firstOfRange, final int lastOfRange) {
         return not(this, firstOfRange, lastOfRange);
@@ -492,7 +480,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
         // bitmaps are not
         // allowed
         // an easy case for full range, should be common
-        if (lastOfRange - firstOfRange + 1 == MAX_CAPACITY) {
+        if (lastOfRange - firstOfRange == MAX_CAPACITY) {
             final int newCardinality = MAX_CAPACITY - cardinality;
             for (int k = 0; k < this.bitmap.length; ++k)
                 answer.bitmap[k] = ~this.bitmap[k];
@@ -508,8 +496,8 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
         int cardinalityChange = 0;
         final int rangeFirstWord = firstOfRange / 64;
         final int rangeFirstBitPos = firstOfRange & 63;
-        final int rangeLastWord = lastOfRange / 64;
-        final long rangeLastBitPos = lastOfRange & 63;
+        final int rangeLastWord = (lastOfRange - 1) / 64;
+        final long rangeLastBitPos = (lastOfRange - 1) & 63;
 
         // if not in place, we need to duplicate stuff before
         // rangeFirstWord and after rangeLastWord
@@ -619,18 +607,9 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
 
     @Override
     public void serialize(DataOutput out) throws IOException {
-        byte[] buffer = new byte[8];
         // little endian
         for (long w : bitmap) {
-            buffer[0] = (byte) w;
-            buffer[1] = (byte) (w >>> 8);
-            buffer[2] = (byte) (w >>> 16);
-            buffer[3] = (byte) (w >>> 24);
-            buffer[4] = (byte) (w >>> 32);
-            buffer[5] = (byte) (w >>> 40);
-            buffer[6] = (byte) (w >>> 48);
-            buffer[7] = (byte) (w >>> 56);
-            out.write(buffer, 0, 8);
+            out.writeLong(Long.reverseBytes(w));
         }
     }
 
@@ -670,21 +649,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
 
     @Override
     protected void writeArray(DataOutput out) throws IOException {
-
-        final byte[] buffer = new byte[8];
-        // little endian
-        for (int k = 0; k < MAX_CAPACITY / 64; ++k) {
-            final long w = bitmap[k];
-            buffer[0] = (byte) w;
-            buffer[1] = (byte) (w >>> 8);
-            buffer[2] = (byte) (w >>> 16);
-            buffer[3] = (byte) (w >>> 24);
-            buffer[4] = (byte) (w >>> 32);
-            buffer[5] = (byte) (w >>> 40);
-            buffer[6] = (byte) (w >>> 48);
-            buffer[7] = (byte) (w >>> 56);
-            out.write(buffer, 0, 8);
-        }
+        serialize(out);
     }
 
 
@@ -801,7 +766,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
         if(maxcardinality >= this.cardinality) {
             return clone();
         } 
-        if(maxcardinality <= MAX_CAPACITY) {
+        if(maxcardinality <= ArrayContainer.DEFAULT_MAX_SIZE) {
             ArrayContainer ac = new ArrayContainer(maxcardinality);
             int pos = 0;
             for (int k = 0; (ac.cardinality <maxcardinality) && (k < bitmap.length); ++k) {
@@ -829,63 +794,58 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
         return bc;
     }
 
-    protected Container lazyor(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    protected Container ilazyor(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+    @Override
+    public Container iadd(int begin, int end) {
+        Util.setBitmapRange(bitmap,begin,end);
+        computeCardinality();
+        return this;
     }
 
     @Override
-    public Container and(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+    public Container iremove(int begin, int end) {
+       Util.resetBitmapRange(bitmap,begin,end);
+       computeCardinality(); 
+       if(getCardinality() < ArrayContainer.DEFAULT_MAX_SIZE)
+           return toArrayContainer();
+       return this;
     }
 
     @Override
-    public Container andNot(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+    public Container flip(short i) {
+        final int x = Util.toIntUnsigned(i);
+        if (cardinality == ArrayContainer.DEFAULT_MAX_SIZE + 1) {// this is
+            // the
+            // uncommon
+            // path
+            if ((bitmap[x / 64] & (1l << x)) != 0) {
+                --cardinality;
+                bitmap[x / 64] &= ~(1l << x);
+                return this.toArrayContainer();
+            }
+        }
+        cardinality += 1 - 2 * ((bitmap[x / 64] & (1l << x)) >>> x);
+        bitmap[x / 64] ^= (1l << x);
+        return this;
     }
 
     @Override
-    public Container iand(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+    public Container add(int begin, int end) {
+        BitmapContainer answer = clone();
+        Util.setBitmapRange(answer.bitmap, begin, end);
+        answer.computeCardinality(); 
+        return answer;
     }
 
     @Override
-    public Container iandNot(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+    public Container remove(int begin, int end) {
+        BitmapContainer answer = clone();
+        Util.resetBitmapRange(answer.bitmap, begin, end);
+        answer.computeCardinality(); 
+        if (answer.getCardinality() < ArrayContainer.DEFAULT_MAX_SIZE)
+            return answer.toArrayContainer();
+        return answer;
     }
 
-    @Override
-    public Container ior(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Container ixor(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Container or(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Container xor(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
-    }
 }
 
 final class BitmapContainerShortIterator implements ShortIterator {

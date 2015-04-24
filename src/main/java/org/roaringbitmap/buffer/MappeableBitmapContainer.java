@@ -5,7 +5,6 @@
 
 package org.roaringbitmap.buffer;
 
-import org.roaringbitmap.BitmapContainer;
 import org.roaringbitmap.ShortIterator;
 import org.roaringbitmap.Util;
 
@@ -45,20 +44,20 @@ public final class MappeableBitmapContainer extends MappeableContainer
      * @param firstOfRun
      *            first index
      * @param lastOfRun
-     *            last index (range is inclusive)
+     *            last index (range is exclusive)
      */
     public MappeableBitmapContainer(final int firstOfRun, final int lastOfRun) {
         // TODO: this can be optimized for performance
-        this.cardinality = lastOfRun - firstOfRun + 1;
+        this.cardinality = lastOfRun - firstOfRun ;
         this.bitmap = LongBuffer.allocate(MAX_CAPACITY / 64);
         if (this.cardinality == MAX_CAPACITY) {// perhaps a common case
             for (int k = 0; k < bitmap.limit(); ++k)
                 bitmap.put(k, -1L);
         } else {
             final int firstWord = firstOfRun / 64;
-            final int lastWord = lastOfRun / 64;
+            final int lastWord = (lastOfRun - 1) / 64;
             final int zeroPrefixLength = firstOfRun & 63;
-            final int zeroSuffixLength = 63 - (lastOfRun & 63);
+            final int zeroSuffixLength = 63 - ((lastOfRun - 1) & 63);
             for (int k = firstWord; k < lastWord + 1; ++k)
                 bitmap.put(k, -1L);
             bitmap.put(firstWord, bitmap.get(firstWord)
@@ -443,11 +442,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
         return ac;
     }
 
-    // complicated so that it should be reasonably efficient even when the
-    // ranges are small
+
     @Override
     public MappeableContainer inot(final int firstOfRange, final int lastOfRange) {
-        return not(this, firstOfRange, lastOfRange);
+        return not(this, firstOfRange, lastOfRange); 
     }
 
     @Override
@@ -690,7 +688,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
         // bitmaps are not
         // allowed
         // an easy case for full range, should be common
-        if (lastOfRange - firstOfRange + 1 == MAX_CAPACITY) {
+        if (lastOfRange - firstOfRange  == MAX_CAPACITY) {
             final int newCardinality = MAX_CAPACITY - cardinality;
             for (int k = 0; k < this.bitmap.limit(); ++k)
                 answer.bitmap.put(k, ~this.bitmap.get(k));
@@ -706,8 +704,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
         int cardinalityChange = 0;
         final int rangeFirstWord = firstOfRange / 64;
         final int rangeFirstBitPos = firstOfRange & 63;
-        final int rangeLastWord = lastOfRange / 64;
-        final long rangeLastBitPos = lastOfRange & 63;
+        final int rangeLastWord = (lastOfRange - 1) / 64;
+        final long rangeLastBitPos = (lastOfRange - 1) & 63;
 
         // if not in place, we need to duplicate stuff before
         // rangeFirstWord and after rangeLastWord
@@ -816,20 +814,12 @@ public final class MappeableBitmapContainer extends MappeableContainer
     @Override
     public void readExternal(ObjectInput in) throws IOException,
             ClassNotFoundException {
-        final byte[] buffer = new byte[8];
         // little endian
         this.cardinality = 0;
         for (int k = 0; k < bitmap.limit(); ++k) {
-            in.readFully(buffer);
-            bitmap.put(k,
-                    (((long) buffer[7] << 56)
-                            + ((long) (buffer[6] & 255) << 48)
-                            + ((long) (buffer[5] & 255) << 40)
-                            + ((long) (buffer[4] & 255) << 32)
-                            + ((long) (buffer[3] & 255) << 24)
-                            + ((buffer[2] & 255) << 16)
-                            + ((buffer[1] & 255) << 8) + (buffer[0] & 255)));
-            this.cardinality += Long.bitCount(bitmap.get(k));
+            long w = Long.reverseBytes(in.readLong());
+            bitmap.put(k,w);
+            this.cardinality += Long.bitCount(w);
         }
     }
 
@@ -883,20 +873,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     @Override
     protected void writeArray(DataOutput out) throws IOException {
-
-        final byte[] buffer = new byte[8];
         // little endian
-        for (int k = 0; k < MAX_CAPACITY / 64; ++k) {
+        for (int k = 0; k < bitmap.limit(); ++k) {
             final long w = bitmap.get(k);
-            buffer[0] = (byte) w;
-            buffer[1] = (byte) (w >>> 8);
-            buffer[2] = (byte) (w >>> 16);
-            buffer[3] = (byte) (w >>> 24);
-            buffer[4] = (byte) (w >>> 32);
-            buffer[5] = (byte) (w >>> 40);
-            buffer[6] = (byte) (w >>> 48);
-            buffer[7] = (byte) (w >>> 56);
-            out.write(buffer, 0, 8);
+            out.writeLong(Long.reverseBytes(w));
         }
     }
 
@@ -1087,7 +1067,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
         if(maxcardinality >= this.cardinality) {
             return clone();
         } 
-        if(maxcardinality <= MAX_CAPACITY) {
+        if(maxcardinality <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             MappeableArrayContainer ac = new MappeableArrayContainer(maxcardinality);
             int pos = 0;
             short[] cont = ac.content.array();
@@ -1116,6 +1096,58 @@ public final class MappeableBitmapContainer extends MappeableContainer
         return bc;
     }
 
+    @Override
+    public MappeableContainer flip(short i) {
+        final int x = BufferUtil.toIntUnsigned(i);
+        if (cardinality == MappeableArrayContainer.DEFAULT_MAX_SIZE + 1) {// this
+                                                                          // is
+            // the
+            // uncommon
+            // path
+            if ((bitmap.get(x / 64) & (1l << x)) != 0) {
+                --cardinality;
+                bitmap.put(x / 64, bitmap.get(x / 64) & ~(1l << x));
+                return this.toArrayContainer();
+            }
+        }
+        cardinality += 1 - 2 * ((bitmap.get(x / 64) & (1l << x)) >>> x);
+        bitmap.put(x / 64, bitmap.get(x / 64) ^ (1l << x));
+        return this;
+    }
+
+    @Override
+    public MappeableContainer iadd(int begin, int end) {
+        BufferUtil.setBitmapRange(bitmap, begin, end);
+        computeCardinality();
+        return this;
+    }
+
+    @Override
+    public MappeableContainer iremove(int begin, int end) {
+        BufferUtil.resetBitmapRange(bitmap, begin, end);
+        computeCardinality();
+        if (getCardinality() < MappeableArrayContainer.DEFAULT_MAX_SIZE)
+            return toArrayContainer();
+        return this;
+    }
+
+    @Override
+    public MappeableContainer add(int begin, int end) {
+        MappeableBitmapContainer answer = clone();
+        BufferUtil.setBitmapRange(answer.bitmap, begin, end);
+        answer.computeCardinality();
+        return answer;
+    }
+
+    @Override
+    public MappeableContainer remove(int begin, int end) {
+        MappeableBitmapContainer answer = clone();
+        BufferUtil.resetBitmapRange(answer.bitmap, begin, end);
+        answer.computeCardinality();
+        if (answer.getCardinality() < MappeableArrayContainer.DEFAULT_MAX_SIZE)
+            return answer.toArrayContainer();
+        return answer;
+    }
 }
 
 final class MappeableBitmapContainerShortIterator implements ShortIterator {

@@ -4,6 +4,8 @@
  */
 package org.roaringbitmap;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -15,7 +17,20 @@ import java.util.*;
  */
 @SuppressWarnings({"static-method", "javadoc"})
 public class TestRoaringBitmap {
-    
+
+	@Test
+	public void testFlip() {
+		RoaringBitmap rb = new RoaringBitmap();
+		for (int i = 0; i < 1 << 20; ++i) {
+			rb.flip(i);
+			assertEquals(rb.getCardinality(), i + 1);
+		}
+		for (int i = (1 << 20) - 1; i >= 0; --i) {
+			rb.flip(i);
+			assertEquals(rb.getCardinality(), i);
+		}
+	}
+
     @Test
     public void testSetUtilIntersection() {
         short  data1[] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18};
@@ -182,6 +197,27 @@ public class TestRoaringBitmap {
         final RoaringBitmap correct = RoaringBitmap.andNot(rr, rr2);
         rr.andNot(rr2);
         Assert.assertTrue(correct.equals(rr));
+    }
+
+    @Test
+    public void andNot() {
+        final RoaringBitmap rb = new RoaringBitmap();
+        final RoaringBitmap rb2 = new RoaringBitmap();
+
+        rb.add(1);
+        rb.add(1 << 16);
+        rb2.add(1 << 16);
+        rb.add(2 << 16);
+        rb.add(3 << 16);
+        rb2.add(3 << 16);
+        rb.andNot(rb2);
+
+        final IntIterator i = rb.getIntIterator();
+        Assert.assertTrue(i.hasNext());
+        Assert.assertEquals(1, i.next());
+        Assert.assertTrue(i.hasNext());
+        Assert.assertEquals(2 << 16, i.next());
+        Assert.assertFalse(i.hasNext());
     }
 
     @Test
@@ -913,6 +949,7 @@ public class TestRoaringBitmap {
             }
         }
     }
+    
 
     @Test
     public void flipTestBigA() {
@@ -923,7 +960,6 @@ public class TestRoaringBitmap {
         RoaringBitmap rb1 = new RoaringBitmap(), rb2 = null; // alternate
         // between
         // them
-
         for (int i = 0; i < numCases; ++i) {
             final int start = r.nextInt(65536 * 20);
             int end = r.nextInt(65536 * 20);
@@ -933,17 +969,20 @@ public class TestRoaringBitmap {
             if ((i & 1) == 0) {
                 rb2 = RoaringBitmap.flip(rb1, start, end);
                 // tweak the other, catch bad sharing
-                rb1.flip(r.nextInt(65536 * 20),
-                        r.nextInt(65536 * 20));
+                int r1 = r.nextInt(65536 * 20);
+                int r2 = r.nextInt(65536 * 20);
+                rb1.flip(r1,r2);
             } else {
                 rb1 = RoaringBitmap.flip(rb2, start, end);
-                rb2.flip(r.nextInt(65536 * 20),
-                        r.nextInt(65536 * 20));
+                int r1 = r.nextInt(65536 * 20);
+                int r2 = r.nextInt(65536 * 20);
+                rb2.flip(r1,r2);
             }
 
-            if (start < end)
+            if (start < end) {
                 bs.flip(start, end); // throws exception
             // otherwise
+            }
             // insert some more ANDs to keep things sparser
             if (r.nextDouble() < 0.2 && (i & 1) == 0) {
                 final RoaringBitmap mask = new RoaringBitmap();
@@ -957,7 +996,6 @@ public class TestRoaringBitmap {
                 rb2.and(mask);
                 bs.and(mask1);
             }
-
             if (i > checkTime) {
                 System.out.println("check after " + i
                         + ", card = " + rb2.getCardinality());
