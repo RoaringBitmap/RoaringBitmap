@@ -96,6 +96,12 @@ public class RunContainer extends Container implements Cloneable, Serializable {
     }
 
     @Override
+    public Container flip(short x) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
     public Container add(short k) {
         int index = unsignedInterleavedBinarySearch(valueslength, 0, nbrruns, k);
         if(index >= 0) return this;// already there
@@ -440,7 +446,31 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         }
         return this;
     }
-    
+
+    @Override
+    public Container iadd(int begin, int end) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Container iremove(int begin, int end) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Container add(int begin, int end) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Container remove(int begin, int end) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 
     @Override
     public boolean equals(Object o) {
