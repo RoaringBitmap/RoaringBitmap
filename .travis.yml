@@ -7,4 +7,8 @@ jdk:
 
 install: true
 
+branches:
+  only:
+    - master
+
 script: mvn test
