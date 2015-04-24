@@ -1,4 +1,4 @@
-package org.roaringbitmap.iteration;
+package org.roaringbitmap.serialization;
 
 import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.RoaringBitmap;
