@@ -10,6 +10,20 @@ import static org.junit.Assert.*;
 public class TestRunContainer {
 
     @Test
+    public void rank() {
+        RunContainer container  = new RunContainer();
+        container.add((short) 0);
+        container.add((short) 2);
+        container.add((short) 55);
+        container.add((short) 64);
+        container.add((short) (1 << 8));
+        assertEquals(1, container.rank((short) 0));
+        assertEquals(2, container.rank((short) 10));
+        assertEquals(4, container.rank((short) 128));
+        assertEquals(5, container.rank((short) (1<<15)));
+    }
+
+    @Test
     public void select() {
         RunContainer container  = new RunContainer();
         container.add((short) 0);

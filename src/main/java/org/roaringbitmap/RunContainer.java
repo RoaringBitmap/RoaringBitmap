@@ -124,7 +124,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
                 return this;
             }
         }
-        if( index == -1) {
+        if(index == -1) {
             // we may need to extend the first run
             if(0 < nbrruns) {
                 if(getValue(0)  == k + 1) {
@@ -135,7 +135,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
             }
         }
         makeRoomAtIndex(index + 1);
-        setValue(index+1,(short)k);
+        setValue(index + 1, (short) k);
         setLength(index+1,(short)0);
         return this;
     }
@@ -398,15 +398,17 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public int rank(short lowbits) {
+        int x = Util.toIntUnsigned(lowbits);
         int answer = 0;
         for (int k = 0; k < this.nbrruns; ++k) {
-            if(getValue(k) + getLength(k) + 1 < lowbits ) {
-                answer += getLength(k) + 1;
-            } else if (lowbits < getValue(k)) {
+            int value = Util.toIntUnsigned(getValue(k));
+            int length = Util.toIntUnsigned(getLength(k));
+            if (x < value) {
                 return answer;
-            } else if (getValue(k) + getLength(k) + 1 >= lowbits) {
-                return answer +  lowbits  - getValue(k) + 1; 
+            } else if (value + length + 1 >= x) {
+                return answer + x - value + 1;
             }
+            answer += length + 1;
         }
         return answer;
     }
