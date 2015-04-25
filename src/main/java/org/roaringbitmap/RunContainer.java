@@ -112,7 +112,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
             if(offset <= le) return this;
             if(offset == le + 1) {
                 // we may need to fuse
-                if(index + 1 < nbrruns ) {
+                if(index + 1 < nbrruns) {
                     if(Util.toIntUnsigned(getValue(index + 1))  == Util.toIntUnsigned(k) + 1) {
                         // indeed fusion is needed
                         recoverRoomAtIndex(index + 1);
@@ -126,7 +126,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         }
         if( index == -1) {
             // we may need to extend the first run
-            if(0 < nbrruns ) {
+            if(0 < nbrruns) {
                 if(getValue(0)  == k + 1) {
                     incrementLength(0);
                     decrementValue(0);
@@ -345,15 +345,14 @@ public class RunContainer extends Container implements Cloneable, Serializable {
             int le =     Util.toIntUnsigned(getLength(index)); 
             if(offset < le) {
                 // need to break in two
-                int currentlength  = Util.toIntUnsigned(getLength(index));
                 this.setLength(index, (short) (offset - 1));
                 // need to insert
                 int newvalue = Util.toIntUnsigned(x) + 1;
-                int newlength = currentlength  - offset - 1;
+                int newlength = le - offset - 1;
                 makeRoomAtIndex(index+1);
                 this.setValue(index+1, (short) newvalue);
                 this.setLength(index+1, (short) newlength);
-            } else if(offset == le ) {
+            } else if(offset == le) {
                 decrementLength(index);
             }
         }
@@ -414,12 +413,13 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public short select(int j) {
-        int card = 0;
+        int offset = 0;
         for (int k = 0; k < this.nbrruns; ++k) {
-            if(card + getLength(k) > j ) {
-                return (short)(getValue(j) + (j - card));
+            int nextOffset = offset + getLength(k) + 1;
+            if(nextOffset > j) {
+                return (short)(getValue(k) + (j - offset));
             }
-            card += getLength(k) + 1;
+            offset = nextOffset;
         }
         throw new IllegalArgumentException("Cannot select "+j+" since cardinality is "+getCardinality());        
     }

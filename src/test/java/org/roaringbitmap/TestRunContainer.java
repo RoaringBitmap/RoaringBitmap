@@ -10,6 +10,21 @@ import static org.junit.Assert.*;
 public class TestRunContainer {
 
     @Test
+    public void select() {
+        RunContainer container  = new RunContainer();
+        container.add((short) 0);
+        container.add((short) 2);
+        container.add((short) 55);
+        container.add((short) 64);
+        container.add((short) (1 << 8));
+        assertEquals(0, container.select(0));
+        assertEquals(2, container.select(1));
+        assertEquals(55, container.select(2));
+        assertEquals(64, container.select(3));
+        assertEquals(1<<8, container.select(4));
+    }
+
+    @Test
     public void safeSerialization() throws IOException {
         RunContainer container  = new RunContainer();
         container.add((short) 0);
@@ -236,7 +251,7 @@ public class TestRunContainer {
                 copy = (RunContainer) copy.add((short) k);
                 assertEquals(copy.getCardinality(),x.getCardinality() + 1);
             }
-        }        
+        }
     }
     
 }
