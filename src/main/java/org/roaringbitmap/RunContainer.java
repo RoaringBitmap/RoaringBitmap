@@ -428,19 +428,21 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public Container limit(int maxcardinality) {
-        int card = 0;
-        for (int k = 0; k < this.nbrruns; ++k) {
-            if(card  >= maxcardinality) {
-                // need to remove...
-                this.nbrruns--;
-                break;
-            } else if(card + getLength(k) + 1 > maxcardinality) {
-                setLength(k,(short) (maxcardinality - 1 - card));
+        if(maxcardinality >= getCardinality()) {
+            return clone();
+        }
+
+        int r;
+        int cardinality = 0;
+        for (r = 1; r <= this.nbrruns; ++r) {
+            cardinality += Util.toIntUnsigned(getLength(r)) + 1;
+            if (maxcardinality <= cardinality) {
                 break;
             }
-            card += getLength(k) + 1;
         }
-        return this;
+        RunContainer rc = new RunContainer(r, Arrays.copyOf(valueslength, 2*r));
+        rc.setLength(r-1, (short) (rc.getLength(r-1) - cardinality + maxcardinality));
+        return rc;
     }
 
     @Override

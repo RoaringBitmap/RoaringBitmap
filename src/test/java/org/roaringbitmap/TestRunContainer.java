@@ -10,6 +10,25 @@ import static org.junit.Assert.*;
 public class TestRunContainer {
 
     @Test
+    public void limit() {
+        RunContainer container  = new RunContainer();
+        container.add((short) 0);
+        container.add((short) 2);
+        container.add((short) 55);
+        container.add((short) 64);
+        container.add((short) (1 << 8));
+        Container limit = container.limit(1 << 15);
+        assertNotSame(container, limit);
+        assertEquals(container, limit);
+        limit = container.limit(3);
+        assertNotSame(container, limit);
+        assertEquals(3, limit.getCardinality());
+        assertTrue(limit.contains((short) 0));
+        assertTrue(limit.contains((short) 2));
+        assertTrue(limit.contains((short) 55));
+    }
+
+    @Test
     public void rank() {
         RunContainer container  = new RunContainer();
         container.add((short) 0);
