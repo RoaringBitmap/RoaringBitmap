@@ -1,12 +1,33 @@
 package org.roaringbitmap;
 
-import static org.junit.Assert.*;
-
-import java.util.Iterator;
-
 import org.junit.Test;
 
+import java.io.*;
+import java.util.Iterator;
+
+import static org.junit.Assert.*;
+
 public class TestRunContainer {
+
+    @Test
+    public void safeSerialization() throws IOException {
+        RunContainer container  = new RunContainer();
+        container.add((short) 0);
+        container.add((short) 2);
+        container.add((short) 55);
+        container.add((short) 64);
+        container.add((short) (1<<8));
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        container.serialize(new DataOutputStream(bos));
+
+        RunContainer newContainer= new RunContainer();
+        byte[] bout = bos.toByteArray();
+        newContainer.deserialize(new DataInputStream(new ByteArrayInputStream(bout)));
+        assertEquals(container, newContainer);
+        assertEquals(container.serializedSizeInBytes(), newContainer.serializedSizeInBytes());
+    }
+
     @Test
     public void basic() {
         RunContainer x = new RunContainer();
@@ -116,6 +137,7 @@ public class TestRunContainer {
             assertTrue(x.equals(copy));
         }        
     }
+
     @Test
     public void simpleIterator() {
         RunContainer x = new RunContainer();

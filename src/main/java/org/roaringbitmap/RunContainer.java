@@ -207,16 +207,12 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public void deserialize(DataInput in) throws IOException {
-            byte[] buffer = new byte[2];
-            // little endian
-            in.readFully(buffer);
-            nbrruns = (buffer[0] & 0xFF) | ((buffer[1] & 0xFF) << 8);
-            if(valueslength.length < 2 * nbrruns)
-                valueslength = new short[2 * nbrruns];
-            for (int k = 0; k < nbrruns; ++k) {
-                in.readFully(buffer);
-                this.valueslength[k] = (short) (((buffer[1] & 0xFF) << 8) | (buffer[0] & 0xFF));
-            }
+        nbrruns = in.readInt();
+        if(valueslength.length < 2 * nbrruns)
+            valueslength = new short[2 * nbrruns];
+        for (int k = 0; k < 2 * nbrruns; ++k) {
+            this.valueslength[k] = in.readShort();
+        }
     }
 
     @Override
@@ -383,11 +379,9 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     protected void writeArray(DataOutput out) throws IOException {
-        out.write((this.nbrruns) & 0xFF);
-        out.write((this.nbrruns >>> 8) & 0xFF);
+        out.writeInt(this.nbrruns);
         for (int k = 0; k < 2 * this.nbrruns; ++k) {
-            out.write((this.valueslength[k]) & 0xFF);
-            out.write((this.valueslength[k] >>> 8) & 0xFF);
+            out.writeShort(this.valueslength[k]);
         }
     }
 
@@ -550,13 +544,11 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         nbrruns--;
     }
 
-
     @Override
     public Container and(RunContainer x) {
         // TODO Auto-generated method stub
         return null;
     }
-
 
     @Override
     public Container andNot(RunContainer x) {
@@ -564,13 +556,11 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         return null;
     }
 
-
     @Override
     public Container iand(RunContainer x) {
         // TODO Auto-generated method stub
         return null;
     }
-
 
     @Override
     public Container iandNot(RunContainer x) {
@@ -578,13 +568,11 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         return null;
     }
 
-
     @Override
     public Container ior(RunContainer x) {
         // TODO Auto-generated method stub
         return null;
     }
-
 
     @Override
     public Container ixor(RunContainer x) {
@@ -592,13 +580,11 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         return null;
     }
 
-
     @Override
     public Container or(RunContainer x) {
         // TODO Auto-generated method stub
         return null;
     }
-
 
     @Override
     public Container xor(RunContainer x) {
@@ -630,7 +616,6 @@ final class RunContainerShortIterator implements ShortIterator {
         return (pos < parent.nbrruns) && (le <= Util.toIntUnsigned(parent.getLength(pos)));
     }
     
-    
     @Override
     public ShortIterator clone() {
         try {
@@ -639,7 +624,6 @@ final class RunContainerShortIterator implements ShortIterator {
             return null;// will not happen
         }
     }
-
 
     @Override
     public short next() {
@@ -674,13 +658,10 @@ final class ReverseRunContainerShortIterator implements ShortIterator {
         le = 0;
     }
 
-
-
     @Override
     public boolean hasNext() {
         return (pos >= 0) && (le <= Util.toIntUnsigned(parent.getLength(pos)));
     }
-    
     
     @Override
     public ShortIterator clone() {
@@ -690,7 +671,6 @@ final class ReverseRunContainerShortIterator implements ShortIterator {
             return null;// will not happen
         }
     }
-
 
     @Override
     public short next() {
