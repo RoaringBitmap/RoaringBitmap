@@ -106,7 +106,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         int index = unsignedInterleavedBinarySearch(valueslength, 0, nbrruns, k);
         if(index >= 0) return this;// already there
         index = - index - 2;// points to preceding value, possibly -1
-        if((index >= 0) && (index < nbrruns)) {// possible match
+        if(index >= 0) {// possible match
             int offset = Util.toIntUnsigned(k) - Util.toIntUnsigned(getValue(index));
             int le =     Util.toIntUnsigned(getLength(index)); 
             if(offset <= le) return this;
