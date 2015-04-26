@@ -10,6 +10,20 @@ import static org.junit.Assert.*;
 public class TestRunContainer {
 
     @Test
+    public void addOutOfOrder() {
+        RunContainer container  = new RunContainer();
+        container.add((short) 0);
+        container.add((short) 2);
+        container.add((short) 55);
+        container.add((short) 1);
+        assertEquals(4, container.getCardinality());
+        assertTrue(container.contains((short) 0));
+        assertTrue(container.contains((short) 1));
+        assertTrue(container.contains((short) 2));
+        assertTrue(container.contains((short) 55));
+    }
+
+    @Test
     public void addRange() {
         RunContainer container = new RunContainer();
         Container newContainer = container.add(10, 100);
@@ -27,8 +41,8 @@ public class TestRunContainer {
         container.add((short) 2);
         container.add((short) 55);
         container.add((short) 64);
-        container.add((short) (1 << 8));
-        Container limit = container.limit(1 << 15);
+        container.add((short) 256);
+        Container limit = container.limit(1024);
         assertNotSame(container, limit);
         assertEquals(container, limit);
         limit = container.limit(3);
@@ -46,11 +60,11 @@ public class TestRunContainer {
         container.add((short) 2);
         container.add((short) 55);
         container.add((short) 64);
-        container.add((short) (1 << 8));
+        container.add((short) 256);
         assertEquals(1, container.rank((short) 0));
         assertEquals(2, container.rank((short) 10));
         assertEquals(4, container.rank((short) 128));
-        assertEquals(5, container.rank((short) (1<<15)));
+        assertEquals(5, container.rank((short) 1024));
     }
 
     @Test
@@ -60,12 +74,12 @@ public class TestRunContainer {
         container.add((short) 2);
         container.add((short) 55);
         container.add((short) 64);
-        container.add((short) (1 << 8));
+        container.add((short) 256);
         assertEquals(0, container.select(0));
         assertEquals(2, container.select(1));
         assertEquals(55, container.select(2));
         assertEquals(64, container.select(3));
-        assertEquals(1<<8, container.select(4));
+        assertEquals(256, container.select(4));
     }
 
     @Test
@@ -75,7 +89,7 @@ public class TestRunContainer {
         container.add((short) 2);
         container.add((short) 55);
         container.add((short) 64);
-        container.add((short) (1<<8));
+        container.add((short) 256);
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         container.serialize(new DataOutputStream(bos));

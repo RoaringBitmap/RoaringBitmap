@@ -115,8 +115,8 @@ public class RunContainer extends Container implements Cloneable, Serializable {
                 if(index + 1 < nbrruns) {
                     if(Util.toIntUnsigned(getValue(index + 1))  == Util.toIntUnsigned(k) + 1) {
                         // indeed fusion is needed
-                        recoverRoomAtIndex(index + 1);
                         setLength(index, (short) (getValue(index + 1) + getLength(index + 1) - getValue(index)));
+                        recoverRoomAtIndex(index + 1);
                         return this;
                     }
                 }
@@ -135,8 +135,8 @@ public class RunContainer extends Container implements Cloneable, Serializable {
             }
         }
         makeRoomAtIndex(index + 1);
-        setValue(index + 1, (short) k);
-        setLength(index+1,(short)0);
+        setValue(index + 1, k);
+        setLength(index + 1,(short)0);
         return this;
     }
 
