@@ -459,8 +459,11 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public Container add(int begin, int end) {
-        // TODO Auto-generated method stub
-        return null;
+        Container answer = this.clone();
+        for(int i = begin; i < end; ++i) {
+            answer.add((short) i);
+        }
+        return answer;
     }
 
     @Override

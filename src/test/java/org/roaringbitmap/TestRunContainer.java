@@ -10,6 +10,17 @@ import static org.junit.Assert.*;
 public class TestRunContainer {
 
     @Test
+    public void addRange() {
+        RunContainer container = new RunContainer();
+        Container newContainer = container.add(10, 100);
+        assertNotSame(container, newContainer);
+        assertEquals(90, newContainer.getCardinality());
+        for(short i = 10; i < 100; ++i) {
+            assertTrue(newContainer.contains(i));
+        }
+    }
+
+    @Test
     public void limit() {
         RunContainer container  = new RunContainer();
         container.add((short) 0);
