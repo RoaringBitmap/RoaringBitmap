@@ -207,11 +207,11 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public void deserialize(DataInput in) throws IOException {
-        nbrruns = in.readInt();
+        nbrruns = Short.reverseBytes(in.readShort());
         if(valueslength.length < 2 * nbrruns)
             valueslength = new short[2 * nbrruns];
         for (int k = 0; k < 2 * nbrruns; ++k) {
-            this.valueslength[k] = in.readShort();
+            this.valueslength[k] = Short.reverseBytes(in.readShort());
         }
     }
 
@@ -378,9 +378,9 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     protected void writeArray(DataOutput out) throws IOException {
-        out.writeInt(this.nbrruns);
+        out.writeShort(Short.reverseBytes((short)this.nbrruns));
         for (int k = 0; k < 2 * this.nbrruns; ++k) {
-            out.writeShort(this.valueslength[k]);
+            out.writeShort(Short.reverseBytes(this.valueslength[k]));
         }
     }
 
