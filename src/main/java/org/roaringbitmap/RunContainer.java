@@ -4,12 +4,7 @@
  */
 package org.roaringbitmap;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.io.Serializable;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -41,7 +36,6 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         System.arraycopy(valueslength, 0, nv, 0, 2 * nbrruns);
         valueslength = nv;
     }
-
     
     /**
      * Create a container with default capacity
@@ -138,6 +132,54 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         setValue(index + 1, k);
         setLength(index + 1,(short)0);
         return this;
+    }
+
+    @Override
+    public Container add(int begin, int end) {
+        int bIndex = unsignedInterleavedBinarySearch(this.valueslength, 0, this.nbrruns, (short) begin);
+        int eIndex = unsignedInterleavedBinarySearch(this.valueslength, 0, this.nbrruns, (short) (end-1));
+        if(bIndex < 0) {
+            bIndex = -bIndex - 2;
+        }
+        if(eIndex < 0) {
+            eIndex = -eIndex - 2;
+        }
+
+        int value = begin;
+        int length = end - begin - 1;
+
+        if(bIndex >= 0) {
+            int bValue = Util.toIntUnsigned(getValue(bIndex));
+            int bOffset = begin - bValue;
+            int bLength = Util.toIntUnsigned(getLength(bIndex));
+            if (bOffset <= bLength) {
+                bIndex--;
+                value = bValue;
+                length += bOffset;
+            }
+        }
+
+        if(eIndex >= 0) {
+            if (eIndex < this.nbrruns) {
+                int eValue = Util.toIntUnsigned(getValue(eIndex));
+                int eOffset = (end - 1) - eValue;
+                int eLength = Util.toIntUnsigned(getLength(eIndex));
+                if (eOffset < eLength) {
+                    length += eLength - eOffset;
+                }
+            }
+        }
+
+        int nbrruns = this.nbrruns - (eIndex - (bIndex + 1));
+        short[] valueslength = new short[2 * nbrruns];
+        copyValuesLength(this.valueslength, 0, valueslength, 0, bIndex + 1);
+        if(eIndex + 1 < this.nbrruns) {
+            copyValuesLength(this.valueslength, eIndex + 1, valueslength, bIndex + 2, this.nbrruns - 1 - eIndex);
+        }
+        setValue(valueslength, bIndex + 1, (short) value);
+        setLength(valueslength, bIndex + 1, (short) length);
+
+        return new RunContainer(nbrruns, valueslength);
     }
 
     @Override
@@ -458,16 +500,6 @@ public class RunContainer extends Container implements Cloneable, Serializable {
     }
 
     @Override
-    public Container add(int begin, int end) {
-        //TODO Optimize this
-        Container answer = this.clone();
-        for(int i = begin; i < end; ++i) {
-            answer.add((short) i);
-        }
-        return answer;
-    }
-
-    @Override
     public Container remove(int begin, int end) {
         // TODO Auto-generated method stub
         return null;
@@ -527,29 +559,42 @@ public class RunContainer extends Container implements Cloneable, Serializable {
     }
 
     private void setLength(int index, short v) {
+        setLength(valueslength, index, v);
+    }
+
+    private void setLength(short[] valueslength, int index, short v) {
         valueslength[2*index + 1] = v;
     }
-    
+
     private void setValue(int index, short v) {
+        setValue(valueslength, index, v);
+    }
+
+    private void setValue(short[] valueslength, int index, short v) {
         valueslength[2*index] = v;
     }
+
     private void decrementLength(int index) {
         valueslength[2*index + 1]--;
     }
 
     private void decrementValue(int index) {
         valueslength[2*index]--;
-    }    
+    }
     
     private void makeRoomAtIndex(int index) {
-        if(2 * nbrruns == valueslength.length) increaseCapacity();
-        System.arraycopy(valueslength, 2 * index  , valueslength, 2 * index + 2 , 2 * nbrruns - 2 * index );
+        if (2 * nbrruns == valueslength.length) increaseCapacity();
+        copyValuesLength(valueslength, index, valueslength, index + 1, nbrruns - index);
         nbrruns++;
     }
 
     private void recoverRoomAtIndex(int index) {
-        System.arraycopy(valueslength, 2 * index + 2 , valueslength, 2* index  , 2 *  nbrruns - 2 * index - 2 );
+        copyValuesLength(valueslength, index + 1, valueslength, index, nbrruns - index - 1);
         nbrruns--;
+    }
+
+    private void copyValuesLength(short[] src, int srcIndex, short[] dst, int dstIndex, int length) {
+        System.arraycopy(src, 2*srcIndex, dst, 2*dstIndex, 2*length);
     }
 
     @Override
