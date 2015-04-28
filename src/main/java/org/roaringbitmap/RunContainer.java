@@ -167,6 +167,14 @@ public class RunContainer extends Container implements Cloneable, Serializable {
                 if (eOffset < eLength) {
                     length += eLength - eOffset;
                 }
+                if(eOffset == eLength+1) {
+                    int neIndex = eIndex + 1;
+                    if(neIndex < this.nbrruns) {
+                        eIndex++;
+                        int neLength = Util.toIntUnsigned(getLength(neIndex));
+                        length += neLength + 1;
+                    }
+                }
             }
         }
 
