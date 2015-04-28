@@ -10,4 +10,8 @@ branches:
 
 install: true
 
+branches:
+  only:
+    - master
+
 script: mvn test
