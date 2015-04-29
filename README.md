@@ -4,6 +4,7 @@ RoaringBitmap
 [![Build Status](https://travis-ci.org/lemire/RoaringBitmap.png)](https://travis-ci.org/lemire/RoaringBitmap)
 [![][maven img]][maven] 
 [![][license img]][license]
+[![docs-badge][]][docs]
 
 Bitsets, also called bitmaps, are commonly used as fast data structures.
 Unfortunately, they can use too much memory. To compensate, we often use
@@ -150,3 +151,6 @@ This work was supported by NSERC grant number 26143.
 
 [license]:LICENSE-2.0.txt
 [license img]:https://img.shields.io/badge/License-Apache%202-blue.svg
+
+[docs-badge]:https://img.shields.io/badge/API-docs-blue.svg?style=flat-square
+[docs]:http://lemire.me/docs/RoaringBitmap/
