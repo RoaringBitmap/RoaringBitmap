@@ -181,6 +181,8 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
             if (srb.cardinality != this.cardinality)
                 return false;
             return Arrays.equals(this.bitmap, srb.bitmap);
+        } else if (o instanceof RunContainer) {
+            return o.equals(this);
         }
         return false;
     }
@@ -848,13 +850,22 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
 
 
     protected Container lazyor(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        BitmapContainer bc = clone();
+        for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
+            int start = Util.toIntUnsigned(x.getValue(rlepos));
+            int end = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
+            Util.setBitmapRange(bc.bitmap, start, end);
+        }
+        return bc;
     }
 
     protected Container ilazyor(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
+            int start = Util.toIntUnsigned(x.getValue(rlepos));
+            int end = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
+            Util.setBitmapRange(this.bitmap, start, end);
+        }
+        return this;
     }
 
     @Override
@@ -864,32 +875,68 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
 
     @Override
     public Container andNot(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        BitmapContainer answer = this.clone();
+        for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
+            int start = Util.toIntUnsigned(x.getValue(rlepos));
+            int end = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
+            Util.resetBitmapRange(answer.bitmap, start, end);
+        }
+        answer.computeCardinality();
+        if(getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
+            return this;
+        else return toArrayContainer();
     }
 
     @Override
     public Container iand(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        int start = 0;
+        for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
+            int end = Util.toIntUnsigned(x.getValue(rlepos));
+            Util.resetBitmapRange(this.bitmap, start, end);
+            start = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
+        }
+        Util.resetBitmapRange(this.bitmap, start, Util.maxLowBitAsInteger() + 1);
+        computeCardinality();
+        if(getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
+            return this;
+        else return toArrayContainer();
     }
 
     @Override
     public Container iandNot(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
+            int start = Util.toIntUnsigned(x.getValue(rlepos));
+            int end = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
+            Util.resetBitmapRange(this.bitmap, start, end);
+        }
+        computeCardinality();
+        if(getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
+            return this;
+        else return toArrayContainer();
     }
 
     @Override
     public Container ior(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
+            int start = Util.toIntUnsigned(x.getValue(rlepos));
+            int end = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
+            Util.setBitmapRange(this.bitmap, start, end);
+        }
+        computeCardinality();
+        return this;
     }
 
     @Override
     public Container ixor(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
+            int start = Util.toIntUnsigned(x.getValue(rlepos));
+            int end = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
+            Util.flipBitmapRange(this.bitmap, start, end);
+        }
+        computeCardinality();
+        if(this.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
+            return this;
+        else return toArrayContainer();
     }
 
     @Override

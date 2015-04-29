@@ -91,8 +91,9 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public Container flip(short x) {
-        // TODO Auto-generated method stub
-        return null;
+        if(this.contains(x))
+            return this.remove(x);
+        else return this.add(x);
     }
 
     @Override
@@ -136,61 +137,8 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public Container add(int begin, int end) {
-        int bIndex = unsignedInterleavedBinarySearch(this.valueslength, 0, this.nbrruns, (short) begin);
-        int eIndex = unsignedInterleavedBinarySearch(this.valueslength, 0, this.nbrruns, (short) (end-1));
-        if(bIndex < 0) {
-            bIndex = -bIndex - 2;
-        }
-        if(eIndex < 0) {
-            eIndex = -eIndex - 2;
-        }
-
-        int value = begin;
-        int length = end - begin - 1;
-
-        if(bIndex >= 0) {
-            int bValue = Util.toIntUnsigned(getValue(bIndex));
-            int bOffset = begin - bValue;
-            int bLength = Util.toIntUnsigned(getLength(bIndex));
-            if (bOffset <= bLength + 1) {
-                bIndex--;
-                value = bValue;
-                length += bOffset;
-            }
-        }
-
-        if(eIndex >= 0) {
-            if (eIndex < this.nbrruns) {
-                int eValue = Util.toIntUnsigned(getValue(eIndex));
-                int eOffset = (end - 1) - eValue;
-                int eLength = Util.toIntUnsigned(getLength(eIndex));
-                if (eOffset < eLength) {
-                    length += eLength - eOffset;
-                }
-                if(eOffset == eLength+1) {
-                    int neIndex = eIndex + 1;
-                    if(neIndex < this.nbrruns) {
-                        int neValue = Util.toIntUnsigned(getValue(neIndex));
-                        if(neValue == end) {
-                            eIndex++;
-                            int neLength = Util.toIntUnsigned(getLength(neIndex));
-                            length += neLength + 1;
-                        }
-                    }
-                }
-            }
-        }
-
-        int nbrruns = this.nbrruns - (eIndex - (bIndex + 1));
-        short[] valueslength = new short[2 * nbrruns];
-        copyValuesLength(this.valueslength, 0, valueslength, 0, bIndex + 1);
-        if(eIndex + 1 < this.nbrruns) {
-            copyValuesLength(this.valueslength, eIndex + 1, valueslength, bIndex + 2, this.nbrruns - 1 - eIndex);
-        }
-        setValue(valueslength, bIndex + 1, (short) value);
-        setLength(valueslength, bIndex + 1, (short) length);
-
-        return new RunContainer(nbrruns, valueslength);
+        RunContainer rc = (RunContainer) clone();
+        return rc.iadd(begin, end);
     }
 
     @Override
@@ -213,8 +161,18 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public Container and(BitmapContainer x) {
-            // TODO program
-        return null;
+        BitmapContainer answer = x.clone();
+        int start = 0;
+        for(int rlepos = 0; rlepos < this.nbrruns; ++rlepos ) {
+            int end = Util.toIntUnsigned(this.getValue(rlepos));
+            Util.resetBitmapRange(x.bitmap, start, end);
+            start = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+        }
+        Util.resetBitmapRange(x.bitmap, start, Util.maxLowBitAsInteger() + 1);
+        answer.computeCardinality();
+        if(answer.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
+            return answer;
+        else return answer.toArrayContainer();
     }
 
     @Override
@@ -225,8 +183,16 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public Container andNot(BitmapContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        BitmapContainer answer = x.clone();
+        for(int rlepos = 0; rlepos < this.nbrruns; ++rlepos ) {
+            int start = Util.toIntUnsigned(this.getValue(rlepos));
+            int end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+            Util.resetBitmapRange(x.bitmap, start, end);
+        }
+        answer.computeCardinality();
+        if(answer.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
+            return answer;
+        else return answer.toArrayContainer();
     }
 
     @Override
@@ -361,8 +327,14 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public Container or(BitmapContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        BitmapContainer answer = x.clone();
+        for(int rlepos = 0; rlepos < this.nbrruns; ++rlepos ) {
+            int start = Util.toIntUnsigned(this.getValue(rlepos));
+            int end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+            Util.setBitmapRange(x.bitmap, start, end);
+        }
+        answer.computeCardinality();
+        return answer;
     }
 
     @Override
@@ -431,8 +403,16 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public Container xor(BitmapContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        BitmapContainer answer = x.clone();
+        for(int rlepos = 0; rlepos < this.nbrruns; ++rlepos ) {
+            int start = Util.toIntUnsigned(this.getValue(rlepos));
+            int end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+            Util.flipBitmapRange(x.bitmap, start, end);
+        }
+        answer.computeCardinality();
+        if(answer.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
+            return answer;
+        else return answer.toArrayContainer();
     }
 
     @Override
@@ -486,8 +466,61 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public Container iadd(int begin, int end) {
-        // TODO Auto-generated method stub
-        return null;
+        int bIndex = unsignedInterleavedBinarySearch(this.valueslength, 0, this.nbrruns, (short) begin);
+        int eIndex = unsignedInterleavedBinarySearch(this.valueslength, 0, this.nbrruns, (short) (end-1));
+        if(bIndex < 0) {
+            bIndex = -bIndex - 2;
+        }
+        if(eIndex < 0) {
+            eIndex = -eIndex - 2;
+        }
+
+        int value = begin;
+        int length = end - begin - 1;
+
+        if(bIndex >= 0) {
+            int bValue = Util.toIntUnsigned(getValue(bIndex));
+            int bOffset = begin - bValue;
+            int bLength = Util.toIntUnsigned(getLength(bIndex));
+            if (bOffset <= bLength + 1) {
+                bIndex--;
+                value = bValue;
+                length += bOffset;
+            }
+        }
+
+        if(eIndex >= 0) {
+            if (eIndex < this.nbrruns) {
+                int eValue = Util.toIntUnsigned(getValue(eIndex));
+                int eOffset = (end - 1) - eValue;
+                int eLength = Util.toIntUnsigned(getLength(eIndex));
+                if (eOffset < eLength) {
+                    length += eLength - eOffset;
+                }
+                if(eOffset == eLength+1) {
+                    int neIndex = eIndex + 1;
+                    if(neIndex < this.nbrruns) {
+                        int neValue = Util.toIntUnsigned(getValue(neIndex));
+                        if(neValue == end) {
+                            eIndex++;
+                            int neLength = Util.toIntUnsigned(getLength(neIndex));
+                            length += neLength + 1;
+                        }
+                    }
+                }
+            }
+        }
+
+        int nbrruns = this.nbrruns - (eIndex - (bIndex + 1));
+        short[] valueslength = new short[2 * nbrruns];
+        copyValuesLength(this.valueslength, 0, valueslength, 0, bIndex + 1);
+        if(eIndex + 1 < this.nbrruns) {
+            copyValuesLength(this.valueslength, eIndex + 1, valueslength, bIndex + 2, this.nbrruns - 1 - eIndex);
+        }
+        setValue(valueslength, bIndex + 1, (short) value);
+        setLength(valueslength, bIndex + 1, (short) length);
+
+        return new RunContainer(nbrruns, valueslength);
     }
 
     @Override
@@ -513,6 +546,17 @@ public class RunContainer extends Container implements Cloneable, Serializable {
                 if (this.getValue(i) != srb.getValue(i))
                     return false;
                 if (this.getLength(i) != srb.getLength(i))
+                    return false;
+            }
+            return true;
+        } else if(o instanceof Container) {
+            if(((Container) o).getCardinality() != this.getCardinality())
+                return false; // should be a frequent branch if they differ
+            // next bit could be optimized if needed:
+            ShortIterator me = this.getShortIterator();
+            ShortIterator you = ((Container) o).getShortIterator();
+            while(me.hasNext()) {
+                if(me.next() != you.next())
                     return false;
             }
             return true;

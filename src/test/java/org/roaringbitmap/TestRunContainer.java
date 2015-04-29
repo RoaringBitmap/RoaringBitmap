@@ -11,12 +11,24 @@ import static org.junit.Assert.*;
 public class TestRunContainer {
     
     @Test
-    public void intersectionTest() {
+    public void intersectionTest1() {
         Container ac = new ArrayContainer();
         Container ar = new RunContainer();
         for(int k = 0; k<100; ++k) {
             ac = ac.add((short) (k*10));
             ar = ar.add((short) (k*10));
+        }
+        assertEquals(ac, ac.and(ar));
+        assertEquals(ac, ar.and(ac));        
+    }
+    
+    @Test
+    public void intersectionTest2() {
+        Container ac = new ArrayContainer();
+        Container ar = new RunContainer();
+        for(int k = 0; k<10000; ++k) {
+            ac = ac.add((short) k);
+            ar = ar.add((short) k);
         }
         assertEquals(ac, ac.and(ar));
         assertEquals(ac, ar.and(ac));        
@@ -73,6 +85,33 @@ public class TestRunContainer {
         }
     }
 
+
+    @Test
+    public void iaddRange() {
+        for(int i = 0; i < 100; ++i) {
+            for(int j = 0; j < 100; ++j) {
+                for(int k = 0; k < 50; ++k) {
+                    BitSet bs = new BitSet();
+                    RunContainer container = new RunContainer();
+                    for(int p = 0; p < i; ++p) {
+                        container.add((short) p);
+                        bs.set(p);
+                    }
+                    for(int p = 0; p < j; ++p) {
+                        container.add((short) (99-p));
+                        bs.set(99 - p);
+                    }
+                    Container newContainer = container.iadd(49 - k, 50 + k);
+                    bs.set(49 - k, 50 + k);
+                    assertNotSame(container, newContainer);
+                    assertEquals(bs.cardinality(), newContainer.getCardinality());
+                    for (int p = bs.nextSetBit(0); p >= 0; p = bs.nextSetBit(p+1)) {
+                        assertTrue(newContainer.contains((short) p));
+                    }
+                }
+            }
+        }
+    }
     @Test
     public void addRangeAndFuseWithPreviousValueLength() {
         RunContainer container = new RunContainer();
@@ -87,7 +126,20 @@ public class TestRunContainer {
         }
         assertEquals(8, newContainer.getSizeInBytes());
     }
-
+    @Test
+    public void iaddRangeAndFuseWithPreviousValueLength() {
+        RunContainer container = new RunContainer();
+        for(short i = 10; i < 20; ++i) {
+            container.add(i);
+        }
+        Container newContainer = container.iadd(20, 30);
+        assertNotSame(container, newContainer);
+        assertEquals(20, newContainer.getCardinality());
+        for(short i = 10; i < 30; ++i) {
+            assertTrue(newContainer.contains(i));
+        }
+        assertEquals(8, newContainer.getSizeInBytes());
+    }
     @Test
     public void addRangeAndFuseWithNextValueLength() {
         RunContainer container = new RunContainer();
@@ -123,6 +175,22 @@ public class TestRunContainer {
         }
     }
 
+    @Test
+    public void iaddRangeOnNonEmptyContainerAndFuse() {
+        RunContainer container = new RunContainer();
+        for(short i = 1; i < 20; ++i) {
+            container.add(i);
+        }
+        for(short i = 90; i < 120; ++i) {
+            container.add(i);
+        }
+        Container newContainer = container.iadd(10, 100);
+        assertNotSame(container, newContainer);
+        assertEquals(119, newContainer.getCardinality());
+        for(short i = 1; i < 120; ++i) {
+            assertTrue(newContainer.contains(i));
+        }
+    }
     @Test
     public void addRangeOnNonEmptyContainer() {
         RunContainer container = new RunContainer();
@@ -166,11 +234,25 @@ public class TestRunContainer {
     }
 
     @Test
+    public void iaddRangeWithinSetBounds() {
+        RunContainer container = new RunContainer();
+        container.add((short) 10);
+        container.add((short) 99);
+        Container newContainer = container.iadd(10, 100);
+        assertNotSame(container, newContainer);
+        assertEquals(90, newContainer.getCardinality());
+        for(short i = 10; i < 100; ++i) {
+            assertTrue(newContainer.contains(i));
+        }
+    }
+
+    @Test
     public void addRangeWithinSetBounds() {
         RunContainer container = new RunContainer();
         container.add((short) 10);
         container.add((short) 99);
         Container newContainer = container.add(10, 100);
+        System.out.println(newContainer.getCardinality());
         assertNotSame(container, newContainer);
         assertEquals(90, newContainer.getCardinality());
         for(short i = 10; i < 100; ++i) {

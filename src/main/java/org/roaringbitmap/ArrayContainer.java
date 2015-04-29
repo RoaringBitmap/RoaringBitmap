@@ -166,6 +166,8 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
                     return false;
             }
             return true;
+        } else if (o instanceof RunContainer) {
+            return o.equals(this);
         }
         return false;
     }
