@@ -9,7 +9,43 @@ import java.util.Iterator;
 import static org.junit.Assert.*;
 
 public class TestRunContainer {
+    
+    @Test
+    public void intersectionTest() {
+        Container ac = new ArrayContainer();
+        Container ar = new RunContainer();
+        for(int k = 0; k<100; ++k) {
+            ac = ac.add((short) (k*10));
+            ar = ar.add((short) (k*10));
+        }
+        assertEquals(ac, ac.and(ar));
+        assertEquals(ac, ar.and(ac));        
+    }
 
+    
+    @Test
+    public void equalTest1() {
+        Container ac = new ArrayContainer();
+        Container ar = new RunContainer();
+        for(int k = 0; k<100; ++k) {
+            ac = ac.add((short) (k*10));
+            ar = ar.add((short) (k*10));
+        }
+        assertEquals(ac, ar);
+    }
+
+    @Test
+    public void equalTest2() {
+        Container ac = new ArrayContainer();
+        Container ar = new RunContainer();
+        for(int k = 0; k<10000; ++k) {
+            ac = ac.add((short) k);
+            ar = ar.add((short) k);
+        }
+        assertEquals(ac, ar);
+    }
+
+    
     @Test
     public void addRange() {
         for(int i = 0; i < 100; ++i) {

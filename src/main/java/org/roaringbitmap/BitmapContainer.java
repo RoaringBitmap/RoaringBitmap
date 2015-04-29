@@ -859,8 +859,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
 
     @Override
     public Container and(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        return x.and(this);
     }
 
     @Override
@@ -895,14 +894,12 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
 
     @Override
     public Container or(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        return x.or(this);
     }
 
     @Override
     public Container xor(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        return x.xor(this);
     }
 }
 

@@ -94,7 +94,6 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
 
     @Override
     public ArrayContainer and(final ArrayContainer value2) {
-
         ArrayContainer value1 = this;
         final int desiredCapacity = Math.min(value1.getCardinality(), value2.getCardinality());
         ArrayContainer answer = new ArrayContainer(desiredCapacity);
@@ -744,8 +743,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
 
     @Override
     public Container and(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        return x.and(this);
     }
 
     @Override
@@ -780,14 +778,12 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
 
     @Override
     public Container or(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        return x.or(this);
     }
 
     @Override
     public Container xor(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        return x.xor(this);
     }
 }
 

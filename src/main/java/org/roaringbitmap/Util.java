@@ -20,13 +20,14 @@ public final class Util {
      * Find the smallest integer larger than pos such that array[pos]&gt;= min.
      * If none can be found, return length. Based on code by O. Kaser.
      *
-     * @param array
-     * @param pos
-     * @param min
+     * @param array array to search within
+     * @param pos starting position of the search
+     * @param length length of the array to search 
+     * @param min minimum value
      * @return x greater than pos such that array[pos] is at least as large
      * as min, pos is is equal to length if it is not possible.
      */
-    private static int advanceUntil(short[] array, int pos, int length, short min) {
+    protected static int advanceUntil(short[] array, int pos, int length, short min) {
         int lower = pos + 1;
 
         // special handling for a possibly common sequential case

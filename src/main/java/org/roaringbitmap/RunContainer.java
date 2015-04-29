@@ -192,25 +192,19 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public Container and(ArrayContainer x) {
-        ArrayContainer answer = new ArrayContainer(x.getCardinality());
-        // we use a very simple brute-force algorithm TODO: see if you can get cleverer
-        if(x.getCardinality() == 0) return answer;
-        ShortIterator si = x.getShortIterator();
-        int n = Util.toIntUnsigned(si.next());
-        for (int k = 0; (k < nbrruns) && si.hasNext(); ++k) {
-            int begin = getValue(k);
-            int length = (int) getLength(k);
-            while(n < begin) {
-                if(! si.hasNext()) return answer;
-                n = si.next();
-            }
-            while(n <= begin + length) {
-                answer.content[answer.cardinality++] = (short) n;
-                if(! si.hasNext()) return answer;
-                n = si.next();                
+        ArrayContainer ac = new ArrayContainer(x.cardinality);
+        int rlepos = 0;
+        int arraypos = 0;
+        while((arraypos < x.cardinality) && (rlepos < this.nbrruns)) {
+            if(Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) < Util.toIntUnsigned(x.content[arraypos])) {
+                ++rlepos;
+            } else if(Util.toIntUnsigned(this.getValue(rlepos)) > Util.toIntUnsigned(x.content[arraypos]))  {
+                arraypos = Util.advanceUntil(x.content,arraypos,x.cardinality,this.getValue(rlepos));
+            } else {
+                ac.content[ac.cardinality ++ ] = x.content[arraypos++];
             }
         }
-        return answer;
+        return ac;
     }
     
 
@@ -269,7 +263,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
     public void fillLeastSignificant16bits(int[] x, int i, int mask) {
         int pos = 0;
         for (int k = 0; k < this.nbrruns; ++k) {
-            for(int le = 0; le <= this.getLength(k); ++le) {
+            for(int le = 0; le <= Util.toIntUnsigned(this.getLength(k)); ++le) {
               x[k + pos] = (Util.toIntUnsigned(this.getValue(k)) + le) | mask;
               pos++;
             }
@@ -306,26 +300,22 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public Container iand(ArrayContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        return and(x);
     }
 
     @Override
     public Container iand(BitmapContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        return and(x);
     }
 
     @Override
     public Container iandNot(ArrayContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        return andNot(x);
     }
 
     @Override
     public Container iandNot(BitmapContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        return andNot(x);
     }
 
     @Override
@@ -336,26 +326,22 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public Container ior(ArrayContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        return or(x);
     }
 
     @Override
     public Container ior(BitmapContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        return or(x);
     }
 
     @Override
     public Container ixor(ArrayContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        return xor(x);
     }
 
     @Override
     public Container ixor(BitmapContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        return xor(x);
     }
 
     @Override
@@ -467,7 +453,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
     public short select(int j) {
         int offset = 0;
         for (int k = 0; k < this.nbrruns; ++k) {
-            int nextOffset = offset + getLength(k) + 1;
+            int nextOffset = offset + Util.toIntUnsigned(getLength(k)) + 1;
             if(nextOffset > j) {
                 return (short)(getValue(k) + (j - offset));
             }
@@ -491,7 +477,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
             }
         }
         RunContainer rc = new RunContainer(r, Arrays.copyOf(valueslength, 2*r));
-        rc.setLength(r-1, (short) (rc.getLength(r-1) - cardinality + maxcardinality));
+        rc.setLength(r-1, (short) (Util.toIntUnsigned(rc.getLength(r-1)) - cardinality + maxcardinality));
         return rc;
     }
 
