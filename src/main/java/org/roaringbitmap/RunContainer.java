@@ -152,7 +152,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
             int bValue = Util.toIntUnsigned(getValue(bIndex));
             int bOffset = begin - bValue;
             int bLength = Util.toIntUnsigned(getLength(bIndex));
-            if (bOffset <= bLength) {
+            if (bOffset <= bLength + 1) {
                 bIndex--;
                 value = bValue;
                 length += bOffset;
@@ -170,9 +170,12 @@ public class RunContainer extends Container implements Cloneable, Serializable {
                 if(eOffset == eLength+1) {
                     int neIndex = eIndex + 1;
                     if(neIndex < this.nbrruns) {
-                        eIndex++;
-                        int neLength = Util.toIntUnsigned(getLength(neIndex));
-                        length += neLength + 1;
+                        int neValue = Util.toIntUnsigned(getValue(neIndex));
+                        if(neValue == end) {
+                            eIndex++;
+                            int neLength = Util.toIntUnsigned(getLength(neIndex));
+                            length += neLength + 1;
+                        }
                     }
                 }
             }

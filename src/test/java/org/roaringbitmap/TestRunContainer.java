@@ -74,6 +74,21 @@ public class TestRunContainer {
     }
 
     @Test
+    public void addRangeAndFuseWithPreviousValueLength() {
+        RunContainer container = new RunContainer();
+        for(short i = 10; i < 20; ++i) {
+            container.add(i);
+        }
+        Container newContainer = container.add(20, 30);
+        assertNotSame(container, newContainer);
+        assertEquals(20, newContainer.getCardinality());
+        for(short i = 10; i < 30; ++i) {
+            assertTrue(newContainer.contains(i));
+        }
+        assertEquals(8, newContainer.getSizeInBytes());
+    }
+
+    @Test
     public void addRangeAndFuseWithNextValueLength() {
         RunContainer container = new RunContainer();
         for(short i = 10; i < 20; ++i) {
