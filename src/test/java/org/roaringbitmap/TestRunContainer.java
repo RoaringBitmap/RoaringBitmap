@@ -9,7 +9,7 @@ import java.util.Iterator;
 import static org.junit.Assert.*;
 
 public class TestRunContainer {
-    
+
     @Test
     public void intersectionTest1() {
         Container ac = new ArrayContainer();
@@ -77,9 +77,17 @@ public class TestRunContainer {
                     bs.set(49 - k, 50 + k);
                     assertNotSame(container, newContainer);
                     assertEquals(bs.cardinality(), newContainer.getCardinality());
+
+                    int nb_runs = 1;
+                    int lastIndex = bs.nextSetBit(0);
                     for (int p = bs.nextSetBit(0); p >= 0; p = bs.nextSetBit(p+1)) {
+                        if(p - lastIndex > 1) {
+                            nb_runs++;
+                        }
+                        lastIndex = p;
                         assertTrue(newContainer.contains((short) p));
                     }
+                    assertEquals(nb_runs*4+4, newContainer.getSizeInBytes());
                 }
             }
         }
@@ -105,9 +113,17 @@ public class TestRunContainer {
                     bs.set(49 - k, 50 + k);
                     assertNotSame(container, newContainer);
                     assertEquals(bs.cardinality(), newContainer.getCardinality());
+
+                    int nb_runs = 1;
+                    int lastIndex = bs.nextSetBit(0);
                     for (int p = bs.nextSetBit(0); p >= 0; p = bs.nextSetBit(p+1)) {
+                        if(p - lastIndex > 1) {
+                            nb_runs++;
+                        }
+                        lastIndex = p;
                         assertTrue(newContainer.contains((short) p));
                     }
+                    assertEquals(nb_runs*4+4, newContainer.getSizeInBytes());
                 }
             }
         }
@@ -258,6 +274,15 @@ public class TestRunContainer {
         for(short i = 10; i < 100; ++i) {
             assertTrue(newContainer.contains(i));
         }
+    }
+
+    @Test
+    public void addAndCompress() {
+        RunContainer container  = new RunContainer();
+        container.add((short) 0);
+        container.add((short) 99);
+        container.add((short) 98);
+        assertEquals(12, container.getSizeInBytes());
     }
 
     @Test
