@@ -348,7 +348,7 @@ public class TestRunContainer {
     }
 
     @Test
-    public void safeSerialization() throws IOException {
+    public void safeSerialization() throws Exception {
         RunContainer container  = new RunContainer();
         container.add((short) 0);
         container.add((short) 2);
@@ -357,11 +357,12 @@ public class TestRunContainer {
         container.add((short) 256);
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        container.serialize(new DataOutputStream(bos));
+        ObjectOutputStream out = new ObjectOutputStream(bos);
+        out.writeObject(container);
 
-        RunContainer newContainer= new RunContainer();
-        byte[] bout = bos.toByteArray();
-        newContainer.deserialize(new DataInputStream(new ByteArrayInputStream(bout)));
+        ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
+        ObjectInputStream in = new ObjectInputStream(bis);
+        RunContainer newContainer = (RunContainer) in.readObject();
         assertEquals(container, newContainer);
         assertEquals(container.serializedSizeInBytes(), newContainer.serializedSizeInBytes());
     }
