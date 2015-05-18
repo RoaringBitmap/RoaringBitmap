@@ -11,6 +11,22 @@ import static org.junit.Assert.*;
 public class TestRunContainer {
 
     @Test
+    public void union() {
+        Container bc = new BitmapContainer();
+        Container rc = new RunContainer();
+        for(int k = 0; k<100; ++k) {
+            bc = bc.add((short) (k*10));
+            rc = rc.add((short) (k*10+3));
+        }
+        Container union = rc.or(bc);
+        assertEquals(200, union.getCardinality());
+        for(int k=0; k<100; ++k) {
+            assertTrue(union.contains((short) (k*10)));
+            assertTrue(union.contains((short) (k*10+3)));
+        }
+    }
+
+    @Test
     public void flip() {
         RunContainer rc = new RunContainer();
         rc.flip((short) 1);
@@ -22,25 +38,25 @@ public class TestRunContainer {
     @Test
     public void intersectionTest1() {
         Container ac = new ArrayContainer();
-        Container ar = new RunContainer();
+        Container rc = new RunContainer();
         for(int k = 0; k<100; ++k) {
             ac = ac.add((short) (k*10));
-            ar = ar.add((short) (k*10));
+            rc = rc.add((short) (k*10));
         }
-        assertEquals(ac, ac.and(ar));
-        assertEquals(ac, ar.and(ac));        
+        assertEquals(ac, ac.and(rc));
+        assertEquals(ac, rc.and(ac));
     }
     
     @Test
     public void intersectionTest2() {
         Container ac = new ArrayContainer();
-        Container ar = new RunContainer();
+        Container rc = new RunContainer();
         for(int k = 0; k<10000; ++k) {
             ac = ac.add((short) k);
-            ar = ar.add((short) k);
+            rc = rc.add((short) k);
         }
-        assertEquals(ac, ac.and(ar));
-        assertEquals(ac, ar.and(ac));        
+        assertEquals(ac, ac.and(rc));
+        assertEquals(ac, rc.and(ac));
     }
 
     

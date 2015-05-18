@@ -340,7 +340,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         for(int rlepos = 0; rlepos < this.nbrruns; ++rlepos ) {
             int start = Util.toIntUnsigned(this.getValue(rlepos));
             int end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
-            Util.setBitmapRange(x.bitmap, start, end);
+            Util.setBitmapRange(answer.bitmap, start, end);
         }
         answer.computeCardinality();
         return answer;
