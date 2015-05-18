@@ -11,6 +11,15 @@ import static org.junit.Assert.*;
 public class TestRunContainer {
 
     @Test
+    public void flip() {
+        RunContainer rc = new RunContainer();
+        rc.flip((short) 1);
+        assertTrue(rc.contains((short) 1));
+        rc.flip((short) 1);
+        assertFalse(rc.contains((short) 1));
+    }
+
+    @Test
     public void intersectionTest1() {
         Container ac = new ArrayContainer();
         Container ar = new RunContainer();
