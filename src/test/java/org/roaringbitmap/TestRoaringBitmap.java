@@ -28,6 +28,23 @@ public class TestRoaringBitmap {
     }
     
     @Test
+    public void testCheckedAdd() {
+    	RoaringBitmap rb = new RoaringBitmap();
+    	//checking if the true value is well returned
+    	//when adding new ints
+    	for(int i=0; i<2*(1<<16); i+=2)
+    		Assert.assertTrue(rb.checkedAdd(i));
+    	for(int i=1; i<2*(1<<16); i+=2)
+    		Assert.assertTrue(rb.checkedAdd(i));
+    	//Checking if the false value is well returned
+    	//when adding already existing ints
+    	for(int i=0; i<2*(1<<16); i+=2)
+    		Assert.assertFalse(rb.checkedAdd(i));
+    	for(int i=1; i<2*(1<<16)+1; i+=2)
+    		Assert.assertFalse(rb.checkedAdd(i));
+    }
+    
+    @Test
     public void testXORSimple() {
             RoaringBitmap a = RoaringBitmap.bitmapOf(73647, 83469);
             RoaringBitmap b = RoaringBitmap.bitmapOf(1, 2, 3, 5, 6, 8, 9, 10, 11, 13, 14, 16, 17, 18, 19, 20, 21, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 39, 40, 41, 50, 51, 69, 79, 80, 81, 88, 89, 172);
@@ -744,13 +761,13 @@ public class TestRoaringBitmap {
     @Test
     public void ArrayContainerCardinalityTest() {
         final ArrayContainer ac = new ArrayContainer();
-        for (short k = 0; k < 100; ++k) {
+        for (short k = 0; k < 4096; ++k) {
             ac.add(k);
-            Assert.assertEquals(ac.getCardinality(), k + 1);
+            Assert.assertEquals(k+1, ac.getCardinality());
         }
         for (short k = 0; k < 100; ++k) {
             ac.add(k);
-            Assert.assertEquals(ac.getCardinality(), 100);
+            Assert.assertEquals(ac.getCardinality(), 4096);
         }
     }
     
@@ -811,13 +828,13 @@ public class TestRoaringBitmap {
     @Test
     public void BitmapContainerCardinalityTest() {
         final BitmapContainer ac = new BitmapContainer();
-        for (short k = 0; k < 100; ++k) {
+        for (short k = 0; k < 9000; ++k) {
             ac.add(k);
-            Assert.assertEquals(ac.getCardinality(), k + 1);
+            Assert.assertEquals(k + 1, ac.getCardinality());
         }
-        for (short k = 0; k < 100; ++k) {
+        for (short k = 0; k < 9000; ++k) {
             ac.add(k);
-            Assert.assertEquals(ac.getCardinality(), 100);
+            Assert.assertEquals(9000, ac.getCardinality());
         }
     }
 
