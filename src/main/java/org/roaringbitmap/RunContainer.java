@@ -118,6 +118,15 @@ public class RunContainer extends Container implements Cloneable, Serializable {
                 incrementLength(index);
                 return this;
             }
+            if(index + 1 < nbrruns) {
+                // we may need to fuse
+                if(Util.toIntUnsigned(getValue(index + 1))  == Util.toIntUnsigned(k) + 1) {
+                    // indeed fusion is needed
+                    setValue(index+1, k);
+                    setLength(index+1, (short) (getLength(index + 1) + 1));
+                    return this;
+                }
+            }
         }
         if(index == -1) {
             // we may need to extend the first run
@@ -131,7 +140,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         }
         makeRoomAtIndex(index + 1);
         setValue(index + 1, k);
-        setLength(index + 1,(short)0);
+        setLength(index + 1, (short) 0);
         return this;
     }
 
@@ -351,7 +360,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         for(int rlepos = 0; rlepos < this.nbrruns; ++rlepos ) {
             int start = Util.toIntUnsigned(this.getValue(rlepos));
             int end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
-            Util.setBitmapRange(x.bitmap, start, end);
+            Util.setBitmapRange(answer.bitmap, start, end);
         }
         answer.computeCardinality();
         return answer;
@@ -409,7 +418,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     protected void writeArray(DataOutput out) throws IOException {
-        out.writeShort(Short.reverseBytes((short)this.nbrruns));
+        out.writeShort(Short.reverseBytes((short) this.nbrruns));
         for (int k = 0; k < 2 * this.nbrruns; ++k) {
             out.writeShort(Short.reverseBytes(this.valueslength[k]));
         }
@@ -480,7 +489,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
             }
         }
         RunContainer rc = new RunContainer(r, Arrays.copyOf(valueslength, 2*r));
-        rc.setLength(r-1, (short) (Util.toIntUnsigned(rc.getLength(r-1)) - cardinality + maxcardinality));
+        rc.setLength(r - 1, (short) (Util.toIntUnsigned(rc.getLength(r - 1)) - cardinality + maxcardinality));
         return rc;
     }
 
@@ -509,24 +518,30 @@ public class RunContainer extends Container implements Cloneable, Serializable {
             }
         }
 
-        if(eIndex >= 0) {
-            if (eIndex < this.nbrruns) {
-                int eValue = Util.toIntUnsigned(getValue(eIndex));
-                int eOffset = (end - 1) - eValue;
-                int eLength = Util.toIntUnsigned(getLength(eIndex));
-                if (eOffset < eLength) {
-                    length += eLength - eOffset;
+        if(eIndex == -1) {
+            int neIndex = eIndex + 1;
+            if(neIndex < this.nbrruns) {
+                int neValue = Util.toIntUnsigned(getValue(neIndex));
+                if(neValue == end) {
+                    eIndex++;
+                    int neLength = Util.toIntUnsigned(getLength(neIndex));
+                    length += neLength + 1;
                 }
-                if(eOffset == eLength+1) {
-                    int neIndex = eIndex + 1;
-                    if(neIndex < this.nbrruns) {
-                        int neValue = Util.toIntUnsigned(getValue(neIndex));
-                        if(neValue == end) {
-                            eIndex++;
-                            int neLength = Util.toIntUnsigned(getLength(neIndex));
-                            length += neLength + 1;
-                        }
-                    }
+            }
+        } else {
+            int eValue = Util.toIntUnsigned(getValue(eIndex));
+            int eOffset = (end - 1) - eValue;
+            int eLength = Util.toIntUnsigned(getLength(eIndex));
+            if (eOffset < eLength) {
+                length += eLength - eOffset;
+            }
+            int neIndex = eIndex + 1;
+            if(neIndex < this.nbrruns) {
+                int neValue = Util.toIntUnsigned(getValue(neIndex));
+                if(neValue == end) {
+                    eIndex++;
+                    int neLength = Util.toIntUnsigned(getLength(neIndex));
+                    length += neLength + 1;
                 }
             }
         }

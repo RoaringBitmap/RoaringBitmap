@@ -9,29 +9,54 @@ import java.util.Iterator;
 import static org.junit.Assert.*;
 
 public class TestRunContainer {
-    
+
+    @Test
+    public void union() {
+        Container bc = new BitmapContainer();
+        Container rc = new RunContainer();
+        for(int k = 0; k<100; ++k) {
+            bc = bc.add((short) (k*10));
+            rc = rc.add((short) (k*10+3));
+        }
+        Container union = rc.or(bc);
+        assertEquals(200, union.getCardinality());
+        for(int k=0; k<100; ++k) {
+            assertTrue(union.contains((short) (k*10)));
+            assertTrue(union.contains((short) (k*10+3)));
+        }
+    }
+
+    @Test
+    public void flip() {
+        RunContainer rc = new RunContainer();
+        rc.flip((short) 1);
+        assertTrue(rc.contains((short) 1));
+        rc.flip((short) 1);
+        assertFalse(rc.contains((short) 1));
+    }
+
     @Test
     public void intersectionTest1() {
         Container ac = new ArrayContainer();
-        Container ar = new RunContainer();
+        Container rc = new RunContainer();
         for(int k = 0; k<100; ++k) {
             ac = ac.add((short) (k*10));
-            ar = ar.add((short) (k*10));
+            rc = rc.add((short) (k*10));
         }
-        assertEquals(ac, ac.and(ar));
-        assertEquals(ac, ar.and(ac));        
+        assertEquals(ac, ac.and(rc));
+        assertEquals(ac, rc.and(ac));
     }
     
     @Test
     public void intersectionTest2() {
         Container ac = new ArrayContainer();
-        Container ar = new RunContainer();
+        Container rc = new RunContainer();
         for(int k = 0; k<10000; ++k) {
             ac = ac.add((short) k);
-            ar = ar.add((short) k);
+            rc = rc.add((short) k);
         }
-        assertEquals(ac, ac.and(ar));
-        assertEquals(ac, ar.and(ac));        
+        assertEquals(ac, ac.and(rc));
+        assertEquals(ac, rc.and(ac));
     }
 
     
@@ -77,9 +102,17 @@ public class TestRunContainer {
                     bs.set(49 - k, 50 + k);
                     assertNotSame(container, newContainer);
                     assertEquals(bs.cardinality(), newContainer.getCardinality());
+
+                    int nb_runs = 1;
+                    int lastIndex = bs.nextSetBit(0);
                     for (int p = bs.nextSetBit(0); p >= 0; p = bs.nextSetBit(p+1)) {
+                        if(p - lastIndex > 1) {
+                            nb_runs++;
+                        }
+                        lastIndex = p;
                         assertTrue(newContainer.contains((short) p));
                     }
+                    assertEquals(nb_runs*4+4, newContainer.getSizeInBytes());
                 }
             }
         }
@@ -105,9 +138,17 @@ public class TestRunContainer {
                     bs.set(49 - k, 50 + k);
                     assertNotSame(container, newContainer);
                     assertEquals(bs.cardinality(), newContainer.getCardinality());
+
+                    int nb_runs = 1;
+                    int lastIndex = bs.nextSetBit(0);
                     for (int p = bs.nextSetBit(0); p >= 0; p = bs.nextSetBit(p+1)) {
+                        if(p - lastIndex > 1) {
+                            nb_runs++;
+                        }
+                        lastIndex = p;
                         assertTrue(newContainer.contains((short) p));
                     }
+                    assertEquals(nb_runs*4+4, newContainer.getSizeInBytes());
                 }
             }
         }
@@ -261,6 +302,15 @@ public class TestRunContainer {
     }
 
     @Test
+    public void addAndCompress() {
+        RunContainer container  = new RunContainer();
+        container.add((short) 0);
+        container.add((short) 99);
+        container.add((short) 98);
+        assertEquals(12, container.getSizeInBytes());
+    }
+
+    @Test
     public void addOutOfOrder() {
         RunContainer container  = new RunContainer();
         container.add((short) 0);
@@ -323,7 +373,7 @@ public class TestRunContainer {
     }
 
     @Test
-    public void safeSerialization() throws IOException {
+    public void safeSerialization() throws Exception {
         RunContainer container  = new RunContainer();
         container.add((short) 0);
         container.add((short) 2);
@@ -332,11 +382,12 @@ public class TestRunContainer {
         container.add((short) 256);
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        container.serialize(new DataOutputStream(bos));
+        ObjectOutputStream out = new ObjectOutputStream(bos);
+        out.writeObject(container);
 
-        RunContainer newContainer= new RunContainer();
-        byte[] bout = bos.toByteArray();
-        newContainer.deserialize(new DataInputStream(new ByteArrayInputStream(bout)));
+        ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
+        ObjectInputStream in = new ObjectInputStream(bis);
+        RunContainer newContainer = (RunContainer) in.readObject();
         assertEquals(container, newContainer);
         assertEquals(container.serializedSizeInBytes(), newContainer.serializedSizeInBytes());
     }
