@@ -246,6 +246,26 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public int getCardinality() {
+        /**
+         * TODO: Daniel has a concern with this part of the
+         * code. Lots of code may assume that we can query
+         * the cardinality in constant-time. That is the case
+         * with other containers. So it might be worth
+         * the effort to have a pre-computed cardinality somewhere.
+         * The only downsides are: (1) slight increase in memory
+         * usage (probably negligible) (2) slower updates
+         * (this container type is probably not the subject of
+         * frequent updates).
+         * 
+         * On the other hand, storing a precomputed cardinality
+         * separately is maybe wasteful and introduces extra
+         * code. 
+         * 
+         * Current verdict: keep things as they are, but be
+         * aware that  getCardinality might become a bottleneck.
+         * 
+         * 
+         */
         int sum = 0;
         for(int k = 0; k < nbrruns; ++k)
             sum = sum + Util.toIntUnsigned(getLength(k)) + 1;
