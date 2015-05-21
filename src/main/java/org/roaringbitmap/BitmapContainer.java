@@ -34,7 +34,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
 
     /**
      * Create a bitmap container with a run of ones from firstOfRun to
-     * lastOfRun, inclusive caller must ensure that the range isn't so small
+     * lastOfRun.  Caller must ensure that the range isn't so small
      * that an ArrayContainer should have been created instead
      *
      * @param firstOfRun first index

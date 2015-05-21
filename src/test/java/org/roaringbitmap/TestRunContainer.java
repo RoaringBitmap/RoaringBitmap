@@ -24,6 +24,8 @@ public class TestRunContainer {
             assertTrue(union.contains((short) (k*10)));
             assertTrue(union.contains((short) (k*10+3)));
         }
+        assertEquals(100, bc.getCardinality());
+        assertEquals(100, rc.getCardinality());
     }
 
     @Test
@@ -58,6 +60,72 @@ public class TestRunContainer {
         assertEquals(ac, ac.and(rc));
         assertEquals(ac, rc.and(ac));
     }
+
+    @Test
+    public void intersectionTest3() {
+        Container bc = new BitmapContainer();
+        Container rc = new RunContainer();
+        for(int k = 0; k<100; ++k) {
+            bc = bc.add((short) (k*10));
+            bc = bc.add((short) (k*10+3));
+
+            rc = rc.add((short) (k*10+5));
+            rc = rc.add((short) (k*10+3));
+        }
+        Container intersection = rc.and(bc);
+        assertEquals(100, intersection.getCardinality());
+        for(int k=0; k<100; ++k) {
+            assertTrue(intersection.contains((short) (k*10+3)));
+        }
+        assertEquals(200, bc.getCardinality());
+        assertEquals(200, rc.getCardinality());
+    }
+
+
+
+    @Test
+    public void andNotTest1() {
+        Container bc = new BitmapContainer();
+        Container rc = new RunContainer();
+        for(int k = 0; k<100; ++k) {
+            bc = bc.add((short) (k*10));
+            bc = bc.add((short) (k*10+3));
+
+            rc = rc.add((short) (k*10+5));
+            rc = rc.add((short) (k*10+3));
+        }
+        Container intersectionNOT = rc.andNot(bc);
+        assertEquals(100, intersectionNOT.getCardinality());
+        for(int k=0; k<100; ++k) {
+            assertTrue(" missing k="+k, intersectionNOT.contains((short) (k*10+5)));
+        }
+        assertEquals(200, bc.getCardinality());
+        assertEquals(200, rc.getCardinality());
+    }
+
+
+
+    @Test
+    public void andNotTest2() {
+        Container ac = new ArrayContainer();
+        Container rc = new RunContainer();
+        for(int k = 0; k<100; ++k) {
+            ac = ac.add((short) (k*10));
+            ac = ac.add((short) (k*10+3));
+
+            rc = rc.add((short) (k*10+5));
+            rc = rc.add((short) (k*10+3));
+        }
+        Container intersectionNOT = rc.andNot(ac);
+        assertEquals(100, intersectionNOT.getCardinality());
+        for(int k=0; k<100; ++k) {
+            assertTrue(" missing k="+k, intersectionNOT.contains((short) (k*10+5)));
+        }
+        assertEquals(200, ac.getCardinality());
+        assertEquals(200, rc.getCardinality());
+    }
+
+
 
     
     @Test
