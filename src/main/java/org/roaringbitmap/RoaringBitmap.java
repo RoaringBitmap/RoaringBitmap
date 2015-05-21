@@ -490,9 +490,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         	int oldCard = c.getCardinality();        	
         	//we need to keep the newContainer if a switch between containers type
         	//occur, in order to get the new cardinality
-        	Container newCont = c.add(Util.lowbits(x));
-            highLowContainer.setContainerAtIndex(i, newCont);
-            if(newCont.getCardinality()>oldCard)
+        	c = c.add(Util.lowbits(x));
+            highLowContainer.setContainerAtIndex(i, c);
+            if(c.getCardinality()>oldCard)
             	return true;
         } else {
             final ArrayContainer newac = new ArrayContainer();
@@ -883,14 +883,14 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             return false;
         Container c = highLowContainer.getContainerAtIndex(i);
         int oldCard = c.getCardinality();
-        Container newContainer = c.remove(Util.lowbits(x));
-        int newCard = newContainer.getCardinality();
+        c = c.remove(Util.lowbits(x));
+        int newCard = c.getCardinality();
         if(newCard==0){
         	highLowContainer.removeAtIndex(i);
         	return true;//can't be 0 before a remove
         }
         if(oldCard>newCard){
-        	highLowContainer.setContainerAtIndex(i, newContainer);
+        	highLowContainer.setContainerAtIndex(i, c);
         	return true;
         }
         return false;
