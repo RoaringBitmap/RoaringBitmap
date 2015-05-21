@@ -185,24 +185,30 @@ public class RunContainer extends Container implements Cloneable, Serializable {
     }
 
 
-    /*  This is backwards: it is "x-this" instead of "this-x"
+    //  This had been backwards: it is "x-this" instead of "this-x"
     
     @Override
     public Container andNot(BitmapContainer x) {
         BitmapContainer answer = x.clone();
-        for(int rlepos = 0; rlepos < this.nbrruns; ++rlepos ) {
+        int lastPos = 0;
+        for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
             int start = Util.toIntUnsigned(this.getValue(rlepos));
             int end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
-            Util.resetBitmapRange(answer.bitmap, start, end); // had been x.bitmap
+            // Gregory's fixes
+            Util.resetBitmapRange(answer.bitmap, lastPos, start);  // had been x
+            Util.flipBitmapRange(answer.bitmap, start, end);
+            lastPos = end;
         }
+        Util.resetBitmapRange(answer.bitmap, lastPos, answer.bitmap.length*64);
         answer.computeCardinality();
-        if(answer.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
+        if (answer.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
             return answer;
-        else return answer.toArrayContainer();
+        else
+            return answer.toArrayContainer();
     }
-    */
-
-
+   
+    /*
+    // the version Owen developed at the same time....
 @Override
 public Container andNot(BitmapContainer x) {
     // let's guess at the result cardinality as similar to the current (it's an upper bound) 
@@ -233,7 +239,7 @@ public Container andNot(BitmapContainer x) {
       
       return ((BitmapContainer) c).toArrayContainer(); //guessed wrong
 }
-
+    */
 
 
     // will be similar to Bitmap parameter version
@@ -699,7 +705,7 @@ public Container andNot(BitmapContainer x) {
     }
     
     private void makeRoomAtIndex(int index) {
-        if (2 * nbrruns == valueslength.length) increaseCapacity();
+        if (2 * (nbrruns+1) > valueslength.length) increaseCapacity();
         copyValuesLength(valueslength, index, valueslength, index + 1, nbrruns - index);
         nbrruns++;
     }

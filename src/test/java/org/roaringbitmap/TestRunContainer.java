@@ -7,8 +7,40 @@ import java.util.BitSet;
 import java.util.Iterator;
 
 import static org.junit.Assert.*;
+import static org.roaringbitmap.ArrayContainer.DEFAULT_MAX_SIZE;
 
 public class TestRunContainer {
+
+   @Test
+   public void andNot1() {
+      Container bc = new BitmapContainer();
+      Container rc = new RunContainer();
+      rc.add((short) 1);
+      Container result = rc.andNot(bc);
+      assertEquals(1, result.getCardinality());
+      assertTrue(result.contains((short) 1));
+   }
+
+   @Test
+   public void andNot2() {
+      Container bc = new BitmapContainer();
+      Container rc = new RunContainer();
+      bc.add((short) 1);
+      Container result = rc.andNot(bc);
+      assertEquals(0, result.getCardinality());
+   }
+
+    @Test
+    public void andNot() {
+        Container bc = new BitmapContainer();
+        Container rc = new RunContainer();
+        for(int k = 0; k<2* DEFAULT_MAX_SIZE; ++k) {
+            bc = bc.add((short) (k*10));
+            rc = rc.add((short) (k*10+3));
+        }
+        Container result = rc.andNot(bc);
+        assertEquals(rc, result);
+    }
 
     @Test
     public void union() {
@@ -104,7 +136,7 @@ public class TestRunContainer {
     }
 
 
-
+    /*
     @Test
     public void andNotTest2() {
         Container ac = new ArrayContainer();
@@ -124,6 +156,7 @@ public class TestRunContainer {
         assertEquals(200, ac.getCardinality());
         assertEquals(200, rc.getCardinality());
     }
+    */
 
 
 
