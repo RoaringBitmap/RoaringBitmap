@@ -19,11 +19,11 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      * Create a container initialized with a range of consecutive values
      *
      * @param start first index
-     * @param last  last index (range in inclusive)
+     * @param last  last index (range is exclusive)
      * @return a new container initialized with the specified values
      */
     public static Container rangeOfOnes(final int start, final int last) {
-        if (last - start + 1 > ArrayContainer.DEFAULT_MAX_SIZE)
+        if (last - start  > ArrayContainer.DEFAULT_MAX_SIZE)
             return new BitmapContainer(start, last);
         return new ArrayContainer(start, last);
     }
@@ -147,6 +147,17 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      */
     public abstract void fillLeastSignificant16bits(int[] x, int i, int mask);
 
+    
+
+    /**
+     * Add a short to the container if it is not present, otherwise remove it. 
+     * May generate a new container.
+     *
+     * @param x short to be added
+     * @return the new container
+     */
+    public abstract Container flip(short x);
+    
     /**
      * Size of the underlying array
      *
@@ -268,7 +279,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      * @param rangeStart beginning of range (inclusive); 0 is beginning of this
      *                   container.
      * @param rangeEnd   ending of range (exclusive)
-     * @return (partially) completmented container
+     * @return (partially) complemented container
      */
     public abstract Container inot(int rangeStart, int rangeEnd);
 
@@ -307,8 +318,8 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     }
 
     /**
-     * Computes the in-place bitwise OR of this container with another
-     * (union). The current container is generally modified, whereas the
+     * Computes the in-place bitwise XOR of this container with another
+     * (symmetric difference). The current container is generally modified, whereas the
      * provided container (x) is unaffected. May generate a new container.
      *
      * @param x other container
@@ -317,8 +328,8 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     public abstract Container ixor(ArrayContainer x);
 
     /**
-     * Computes the in-place bitwise OR of this container with another
-     * (union). The current container is generally modified, whereas the
+     * Computes the in-place bitwise XOR of this container with another
+     * (symmetric difference). The current container is generally modified, whereas the
      * provided container (x) is unaffected. May generate a new container.
      *
      * @param x other container
@@ -327,8 +338,8 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     public abstract Container ixor(BitmapContainer x);
 
     /**
-     * Computes the in-place bitwise OR of this container with another
-     * (union). The current container is generally modified, whereas the
+     * Computes the in-place bitwise XOR of this container with another
+     * (symmetric difference). The current container is generally modified, whereas the
      * provided container (x) is unaffected. May generate a new container.
      *
      * @param x other container
@@ -372,7 +383,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      * @param rangeStart beginning of range (inclusive); 0 is beginning of this
      *                   container.
      * @param rangeEnd   ending of range (exclusive)
-     * @return (partially) completmented container
+     * @return (partially) complemented container
      */
     public abstract Container not(int rangeStart, int rangeEnd);
 
@@ -444,7 +455,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     protected abstract void writeArray(DataOutput out) throws IOException;
 
     /**
-     * Computes the bitwise OR of this container with another (union). This
+     * Computes the bitwise XOR of this container with another (symmetric difference). This
      * container as well as the provided container are left unaffected.
      *
      * @param x other container
@@ -453,7 +464,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     public abstract Container xor(ArrayContainer x);
 
     /**
-     * Computes the bitwise OR of this container with another (union). This
+     * Computes the bitwise XOR of this container with another (symmetric difference). This
      * container as well as the provided container are left unaffected.
      *
      * @param x other container
@@ -462,7 +473,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     public abstract Container xor(BitmapContainer x);
 
     /**
-     * Computes the bitwise OR of this container with another (union). This
+     * Computes the bitwise XOR of this container with another (symmetric difference). This
      * container as well as the provided container are left unaffected.
      *
      * @param x other parameter
@@ -498,5 +509,44 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      * @return a new bitmap with cardinality no more than maxcardinality
      */
     public abstract Container limit(int maxcardinality);
-        
+
+    
+     /**
+      * Add all shorts in [begin,end) using an unsigned interpretation. May generate a new container.
+      *
+      * @param begin start of range (inclusive)
+      * @param end end of range (exclusive)
+      * @return the new container
+      */
+     public abstract Container iadd(int begin, int end);
+    
+     /**
+      * Remove shorts in [begin,end) using an unsigned interpretation. May generate a new container.
+      *
+      * @param begin start of range (inclusive)
+      * @param end end of range (exclusive)
+      * @return the new container
+      */
+     public abstract Container iremove(int begin, int end);
+
+
+     /**
+      * Return a new container with all shorts in [begin,end) 
+      * added using an unsigned interpretation. 
+      *
+      * @param begin start of range (inclusive)
+      * @param end end of range (exclusive)
+      * @return the new container
+      */
+     public abstract Container add(int begin, int end);
+    
+     /**
+      * Return a new container with all shorts in [begin,end) 
+      * remove using an unsigned interpretation. 
+      *
+      * @param begin start of range (inclusive)
+      * @param end end of range (exclusive)
+      * @return the new container
+      */
+     public abstract Container remove(int begin, int end);
 }

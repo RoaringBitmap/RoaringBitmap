@@ -32,7 +32,7 @@ public class TestExamples {
         ByteBuffer bb = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, totalcount);
         ImmutableRoaringBitmap mapped = new ImmutableRoaringBitmap(bb);
         System.out.println("Mapped the bitmap "+mapped);
-        if(!mapped.equals(Bitmap)) throw new RuntimeException("This will not happen");
         memoryMappedFile.close();
+        if(!mapped.equals(Bitmap)) throw new RuntimeException("This will not happen");
     }
 }

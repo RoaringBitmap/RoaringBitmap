@@ -157,11 +157,29 @@ public final class Util {
         return (short) 0xFFFF;
     }
 
+
+    protected static int maxLowBitAsInteger() {
+        return  0xFFFF;
+    }
+    
     protected static int toIntUnsigned(short x) {
         return x & 0xFFFF;
     }
 
-    protected static int unsignedBinarySearch(final short[] array, final int begin,
+    /**
+     * Look value value k in array in the range [begin,end). If the value
+     * is found, return its index. If not, return -(i+1) where i is the
+     * index where the value would be inserted. 
+     * The array is assumed to contain sorted values where shorts are
+     * interpreted as unsigned integers.
+     * 
+     * @param array array where we search
+     * @param begin first index (inclusive)
+     * @param end last index (exclusive)
+     * @param k value we search for
+     * @return
+     */
+    public static int unsignedBinarySearch(final short[] array, final int begin,
                                               final int end, final short k) {
         int ikey = toIntUnsigned(k);
         // next line accelerates the possibly common case where the value would be inserted at the end
@@ -462,53 +480,59 @@ public final class Util {
      * @return position of jth true bit in w
      */
     public static int select(long w, int j) {
-        int part1 = (int)( w & 0xFFFFFFFF);
-        int wfirsthalf = Integer.bitCount(part1);
-        if(wfirsthalf > j ) {
-            return select(part1,j); 
-        } else {
-            return select((int)(w>>>32),j - wfirsthalf) + 32;
+        int seen = 0;
+        // Divide 64bit
+        int part = (int) (w & 0xFFFFFFFF);
+        int n = Integer.bitCount(part);
+        if (n <= j) {
+            part = (int) (w >>> 32);
+            seen += 32;
+            j -= n;
         }
-    }
+        int ww = part;
 
-    /**
-     * Given a word w, return the position of the jth true bit.
-     * 
-     * @param w word
-     * @param j index
-     * @return position of jth true bit in w
-     */
-    public static int select(int w, int j) {
-        int part1 =  w & 0xFFFF;
-        int wfirsthalf = Integer.bitCount(part1);
-        if(wfirsthalf > j ) {
-            return select((short)part1,j); 
-        } else {
-            return select((short)(w>>>16),j-wfirsthalf) + 16;
+        // Divide 32bit
+        part = ww & 0xFFFF;
+
+        n = Integer.bitCount(part);
+        if (n <= j) {
+
+            part = ww >>> 16;
+            seen += 16;
+            j -= n;
         }
+        ww = part;
+
+        // Divide 16bit
+        part = ww & 0xFF;
+        n = Integer.bitCount(part);
+        if (n <= j) {
+            part = ww >>> 8;
+            seen += 8;
+            j -= n;
+        }
+        ww = part;
+
+        // Lookup in final byte
+        int counter;
+        for (counter = 0; counter < 8; counter++) {
+            j -= (ww >>> counter) & 1;
+            if (j < 0) {
+                break;
+            }
+        }
+        return seen + counter;
     }
     
 
     /**
-     * Given a word w, return the position of the jth true bit.
+     * flip bits at start, start+1,..., end-1
      * 
-     * @param w word
-     * @param j index
-     * @return position of jth true bit in w
+     * @param bitmap array of words to be modified
+     * @param start first index to be modified (inclusive)
+     * @param end last index to be modified (exclusive)
      */
-    public static int select(short w, int j) {
-        int sumtotal = 0;
-        for(int counter = 0;  counter < 16 ; ++counter) {
-            sumtotal += (w >> counter) & 1;
-            if(sumtotal > j) return counter;
-        }
-        throw new IllegalArgumentException("cannot local "+j+"th bit in "+w+" weight is "+Integer.bitCount(w));
-    }
-    
-    
-
-    // flip bits start, start+1,..., end-1
-    protected static void flipBitmapRange(long[] bitmap, int start, int end) {
+    public static void flipBitmapRange(long[] bitmap, int start, int end) {
             if (start == end) return;
             int firstword = start / 64;
             int endword   = (end - 1 ) / 64;
@@ -518,8 +542,14 @@ public final class Util {
             bitmap[endword] ^= ~0L >>> -end;
     }
 
-    // clear bits start, start+1,..., end-1
-    protected static void resetBitmapRange(long[] bitmap, int start, int end) {
+    /**
+     * clear bits at start, start+1,..., end-1
+     * 
+     * @param bitmap array of words to be modified
+     * @param start first index to be modified (inclusive)
+     * @param end last index to be modified (exclusive)
+     */
+    public static void resetBitmapRange(long[] bitmap, int start, int end) {
         if (start == end) return;
         int firstword = start / 64;
         int endword   = (end - 1 ) / 64;
@@ -534,8 +564,15 @@ public final class Util {
         
     }
 
-    // set to true bits start, start+1,..., end-1
-    protected static void setBitmapRange(long[] bitmap, int start, int end) {
+
+    /**
+     * set bits at start, start+1,..., end-1
+     * 
+     * @param bitmap array of words to be modified
+     * @param start first index to be modified (inclusive)
+     * @param end last index to be modified (exclusive)
+     */
+    public static void setBitmapRange(long[] bitmap, int start, int end) {
         if (start == end) return;
         int firstword = start / 64;
         int endword   = (end - 1 ) / 64;
@@ -545,10 +582,8 @@ public final class Util {
         }
         bitmap[firstword] |= ~0L << start;
         for (int i = firstword+1; i < endword; i++)
-            bitmap[i] = ~0;
+            bitmap[i] = ~0L;
         bitmap[endword] |= ~0L >>> -end;
     }
-        
-
     
 }

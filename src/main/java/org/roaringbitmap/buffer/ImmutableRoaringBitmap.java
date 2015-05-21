@@ -184,7 +184,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
                         -j - 1,
                         hb,
                         MappeableContainer.rangeOfOnes(containerStart,
-                                containerLast));
+                                containerLast+1));
             }
         }
         // copy the containers after the active area.

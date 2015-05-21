@@ -24,11 +24,11 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      * @param start
      *            first index
      * @param last
-     *            last index (range in inclusive)
+     *            last index (range is exclusive)
      * @return a new container initialized with the specified values
      */
     public static MappeableContainer rangeOfOnes(final int start, final int last) {
-        if (last - start + 1 > MappeableArrayContainer.DEFAULT_MAX_SIZE)
+        if (last - start  > MappeableArrayContainer.DEFAULT_MAX_SIZE)
             return new MappeableBitmapContainer(start, last);
         return new MappeableArrayContainer(start, last);
     }
@@ -143,6 +143,17 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      */
     public abstract void fillLeastSignificant16bits(int[] x, int i, int mask);
 
+
+    /**
+     * Add a short to the container if it is not present, otherwise remove it. 
+     * May generate a new container.
+     *
+     * @param x short to be added
+     * @return the new container
+     */
+    public abstract MappeableContainer flip(short x);
+    
+    
     /**
      * Size of the underlying array
      * 
@@ -308,7 +319,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
     }
 
     /**
-     * Computes the in-place bitwise OR of this container with another (union).
+     * Computes the in-place bitwise XOR of this container with another (symmetric difference).
      * The current container is generally modified, whereas the provided
      * container (x) is unaffected. May generate a new container.
      * 
@@ -319,7 +330,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
     public abstract MappeableContainer ixor(MappeableArrayContainer x);
 
     /**
-     * Computes the in-place bitwise OR of this container with another (union).
+     * Computes the in-place bitwise XOR of this container with another (symmetric difference).
      * The current container is generally modified, whereas the provided
      * container (x) is unaffected. May generate a new container.
      * 
@@ -330,7 +341,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
     public abstract MappeableContainer ixor(MappeableBitmapContainer x);
 
     /**
-     * Computes the in-place bitwise OR of this container with another (union).
+     * Computes the in-place bitwise XOR of this container with another (symmetric difference).
      * The current container is generally modified, whereas the provided
      * container (x) is unaffected. May generate a new container.
      * 
@@ -442,7 +453,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
     protected abstract void writeArray(DataOutput out) throws IOException;
 
     /**
-     * Computes the bitwise OR of this container with another (union). This
+     * Computes the bitwise XOR of this container with another (symmetric difference). This
      * container as well as the provided container are left unaffected.
      * 
      * @param x
@@ -452,7 +463,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
     public abstract MappeableContainer xor(MappeableArrayContainer x);
 
     /**
-     * Computes the bitwise OR of this container with another (union). This
+     * Computes the bitwise XOR of this container with another (symmetric difference). This
      * container as well as the provided container are left unaffected.
      * 
      * @param x
@@ -462,7 +473,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
     public abstract MappeableContainer xor(MappeableBitmapContainer x);
 
     /**
-     * Computes the bitwise OR of this container with another (union). This
+     * Computes the bitwise XOR of this container with another (symmetric difference). This
      * container as well as the provided container are left unaffected.
      * 
      * @param x
@@ -502,5 +513,46 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      * @return a new bitmap with cardinality no more than maxcardinality
      */
     public abstract MappeableContainer limit(int maxcardinality);
-        
+
+    
+
+    /**
+     * Add all shorts in [begin,end) using an unsigned interpretation. May generate a new container.
+     *
+     * @param begin start of range (inclusive)
+     * @param end end of range (exclusive)
+     * @return the new container
+     */
+    public abstract MappeableContainer iadd(int begin, int end);
+   
+    /**
+     * Remove shorts in [begin,end) using an unsigned interpretation. May generate a new container.
+     *
+     * @param begin start of range (inclusive)
+     * @param end end of range (exclusive)
+     * @return the new container
+     */
+    public abstract MappeableContainer iremove(int begin, int end);
+    
+
+
+    /**
+     * Return a new container with all shorts in [begin,end) 
+     * added using an unsigned interpretation. 
+     *
+     * @param begin start of range (inclusive)
+     * @param end end of range (exclusive)
+     * @return the new container
+     */
+    public abstract MappeableContainer add(int begin, int end);
+   
+    /**
+     * Return a new container with all shorts in [begin,end) 
+     * remove using an unsigned interpretation. 
+     *
+     * @param begin start of range (inclusive)
+     * @param end end of range (exclusive)
+     * @return the new container
+     */
+    public abstract MappeableContainer remove(int begin, int end);
 }

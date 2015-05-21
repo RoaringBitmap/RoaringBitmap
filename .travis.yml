@@ -1,10 +1,14 @@
 language: java
 
 jdk:
+  - oraclejdk8
   - oraclejdk7
   - openjdk7
-  - openjdk6
 
 install: true
+
+branches:
+  only:
+    - master
 
 script: mvn test
