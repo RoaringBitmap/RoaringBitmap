@@ -193,15 +193,20 @@ public class RunContainer extends Container implements Cloneable, Serializable {
     @Override
     public Container andNot(BitmapContainer x) {
         BitmapContainer answer = x.clone();
-        for(int rlepos = 0; rlepos < this.nbrruns; ++rlepos ) {
+        int lastPos = 0;
+        for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
             int start = Util.toIntUnsigned(this.getValue(rlepos));
             int end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
-            Util.resetBitmapRange(x.bitmap, start, end);
+            Util.resetBitmapRange(answer.bitmap, lastPos, start);
+            Util.flipBitmapRange(answer.bitmap, start, end);
+            lastPos = end;
         }
+        Util.resetBitmapRange(answer.bitmap, lastPos, answer.bitmap.length*64);
         answer.computeCardinality();
-        if(answer.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
+        if (answer.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
             return answer;
-        else return answer.toArrayContainer();
+        else
+            return answer.toArrayContainer();
     }
 
     @Override
@@ -659,7 +664,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
     }
     
     private void makeRoomAtIndex(int index) {
-        if (2 * nbrruns == valueslength.length) increaseCapacity();
+        if (2 * (nbrruns+1) > valueslength.length) increaseCapacity();
         copyValuesLength(valueslength, index, valueslength, index + 1, nbrruns - index);
         nbrruns++;
     }
