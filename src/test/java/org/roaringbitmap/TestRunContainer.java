@@ -12,6 +12,56 @@ import static org.roaringbitmap.ArrayContainer.DEFAULT_MAX_SIZE;
 public class TestRunContainer {
 
     @Test
+    public void xor1() {
+        Container bc = new BitmapContainer();
+        Container rc = new RunContainer();
+        rc.add((short) 1);
+        Container result = rc.xor(bc);
+        assertEquals(1, result.getCardinality());
+        assertTrue(result.contains((short) 1));
+    }
+
+    @Test
+    public void xor2() {
+        Container bc = new BitmapContainer();
+        Container rc = new RunContainer();
+        bc.add((short) 1);
+        Container result = rc.xor(bc);
+        assertEquals(1, result.getCardinality());
+        assertTrue(result.contains((short) 1));
+    }
+
+    @Test
+    public void xor3() {
+        Container bc = new BitmapContainer();
+        Container rc = new RunContainer();
+        rc.add((short) 1);
+        bc.add((short) 1);
+        Container result = rc.xor(bc);
+        assertEquals(0, result.getCardinality());
+    }
+
+    @Test
+    public void xor() {
+        Container bc = new BitmapContainer();
+        Container rc = new RunContainer();
+        for(int k = 0; k<2*DEFAULT_MAX_SIZE; ++k) {
+            bc = bc.add((short) (k*10));
+            bc = bc.add((short) (k*10+1));
+            rc = rc.add((short) (k*10));
+            rc = rc.add((short) (k*10+3));
+        }
+        Container result = rc.xor(bc);
+        assertEquals(4*DEFAULT_MAX_SIZE, result.getCardinality());
+        for(int k=0; k<2*DEFAULT_MAX_SIZE; ++k) {
+            assertTrue(result.contains((short) (k*10+1)));
+            assertTrue(result.contains((short) (k*10+3)));
+        }
+        assertEquals(4*DEFAULT_MAX_SIZE, bc.getCardinality());
+        assertEquals(4*DEFAULT_MAX_SIZE, rc.getCardinality());
+    }
+
+    @Test
     public void clear() {
         Container rc = new RunContainer();
         rc.add((short) 1);
@@ -43,7 +93,7 @@ public class TestRunContainer {
     public void andNot() {
         Container bc = new BitmapContainer();
         Container rc = new RunContainer();
-        for(int k = 0; k<2* DEFAULT_MAX_SIZE; ++k) {
+        for(int k = 0; k<2*DEFAULT_MAX_SIZE; ++k) {
             bc = bc.add((short) (k*10));
             rc = rc.add((short) (k*10+3));
         }

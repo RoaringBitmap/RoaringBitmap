@@ -479,15 +479,16 @@ public Container andNot(BitmapContainer x) {
     @Override
     public Container xor(BitmapContainer x) {
         BitmapContainer answer = x.clone();
-        for(int rlepos = 0; rlepos < this.nbrruns; ++rlepos ) {
+        for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
             int start = Util.toIntUnsigned(this.getValue(rlepos));
             int end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
-            Util.flipBitmapRange(x.bitmap, start, end);
+            Util.flipBitmapRange(answer.bitmap, start, end);
         }
         answer.computeCardinality();
-        if(answer.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
+        if (answer.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
             return answer;
-        else return answer.toArrayContainer();
+        else
+            return answer.toArrayContainer();
     }
 
     @Override
