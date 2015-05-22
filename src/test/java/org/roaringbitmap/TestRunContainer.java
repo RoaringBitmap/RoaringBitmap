@@ -11,6 +11,15 @@ import static org.roaringbitmap.ArrayContainer.DEFAULT_MAX_SIZE;
 
 public class TestRunContainer {
 
+    @Test
+    public void clear() {
+        Container rc = new RunContainer();
+        rc.add((short) 1);
+        assertEquals(1, rc.getCardinality());
+        rc.clear();
+        assertEquals(0, rc.getCardinality());
+    }
+
    @Test
    public void andNot1() {
       Container bc = new BitmapContainer();
