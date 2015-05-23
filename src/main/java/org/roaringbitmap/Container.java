@@ -156,7 +156,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
 
     /**
      * Fill the least significant 16 bits of the integer array, starting at
-     * index index, with the short values from this container. The caller is
+     * index i, with the short values from this container. The caller is
      * responsible to allocate enough room. The most significant 16 bits of
      * each integer are given by the most significant bits of the provided
      * mask.

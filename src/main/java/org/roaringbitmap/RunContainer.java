@@ -285,11 +285,10 @@ public Container andNot(BitmapContainer x) {
 
     @Override
     public void fillLeastSignificant16bits(int[] x, int i, int mask) {
-        int pos = 0;
+        int pos = i;
         for (int k = 0; k < this.nbrruns; ++k) {
             for(int le = 0; le <= Util.toIntUnsigned(this.getLength(k)); ++le) {
-              x[k + pos] = (Util.toIntUnsigned(this.getValue(k)) + le) | mask;
-              pos++;
+              x[pos++] = (Util.toIntUnsigned(this.getValue(k)) + le) | mask;
             }
         }
     }
