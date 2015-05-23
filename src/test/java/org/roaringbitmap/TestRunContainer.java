@@ -154,6 +154,17 @@ public class TestRunContainer {
 
     @Test
     public void intersectionTest3() {
+        Container ac = new ArrayContainer();
+        Container rc = new RunContainer();
+        for(int k = 0; k<100; ++k) {
+            ac = ac.add((short) k);
+            rc = rc.add((short) (k+100));
+        }
+        assertEquals(0, rc.and(ac).getCardinality());
+    }
+
+    @Test
+    public void intersectionTest4() {
         Container bc = new BitmapContainer();
         Container rc = new RunContainer();
         for(int k = 0; k<100; ++k) {
