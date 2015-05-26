@@ -425,7 +425,7 @@ public Container andNot(BitmapContainer x) {
             return this;// already there
         }
         index = - index - 2;// points to preceding value, possibly -1
-        if((index >= 0) && (index < nbrruns)) {// possible match
+        if(index >= 0) {// possible match
             int offset = Util.toIntUnsigned(x) - Util.toIntUnsigned(getValue(index));
             int le =     Util.toIntUnsigned(getLength(index)); 
             if(offset < le) {
