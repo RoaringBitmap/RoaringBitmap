@@ -36,7 +36,8 @@ public class TestImmutableRoaringBitmap {
         Assert.assertTrue(ir.contains(5));
     }
 
-    @Test
+    @SuppressWarnings("resource")
+	@Test
     public void testProperSerialization() throws IOException {
         final int SIZE = 500;
         final Random rand = new Random(0);

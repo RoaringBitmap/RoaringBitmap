@@ -733,10 +733,10 @@ public class TestRunContainer {
         for(int k = 0; k < (1<<16);++k) {
               x = (RunContainer)x.add((short)k);
         }
-        Iterator i = x.iterator();
+        Iterator<Short> i = x.iterator();
         for(int k = 0; k < (1<<16);++k) {
                 assertTrue(i.hasNext());
-                assertEquals(i.next(), (short)k);
+                assertEquals(i.next().shortValue(), (short)k);
         }
         assertFalse(i.hasNext());
     }
