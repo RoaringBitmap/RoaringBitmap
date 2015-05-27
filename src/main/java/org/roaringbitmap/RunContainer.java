@@ -26,6 +26,37 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         this.nbrruns = nbrruns;
         this.valueslength = Arrays.copyOf(valueslength, valueslength.length);
     }
+    
+    /**
+     * Convert the container to either a Bitmap or an Array Container, depending
+     * on the cardinality.
+     * @return new container
+     */
+    protected Container toBitmapOrArrayContainer() {
+    	// TODO: write unit tests for me
+    	int card = this.getCardinality();
+    	if(card <= ArrayContainer.DEFAULT_MAX_SIZE) {
+        	ArrayContainer answer = new ArrayContainer(card);
+        	answer.cardinality=0;
+            for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
+                int runStart = Util.toIntUnsigned(this.getValue(rlepos));
+                int runEnd = runStart + Util.toIntUnsigned(this.getLength(rlepos));
+        
+                for (int runValue = runStart; runValue <= runEnd; ++runValue) {
+                        answer.content[answer.cardinality++] = (short) runValue;
+                }
+            }
+            return answer;
+    	}
+    	BitmapContainer answer = new BitmapContainer();
+        for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
+            int start = Util.toIntUnsigned(this.getValue(rlepos));
+            int end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+            Util.setBitmapRange(answer.bitmap, start, end); 
+        }
+        answer.cardinality = card;
+        return answer;
+    }
 
 
     private void increaseCapacity() {
@@ -168,8 +199,8 @@ public class RunContainer extends Container implements Cloneable, Serializable {
     }
     
 
-    @Override
-    public Container and(BitmapContainer x) {
+    // TODO: kept temporarily for perf. testing
+    public Container andold(BitmapContainer x) {
         BitmapContainer answer = x.clone();
         int start = 0;
         for(int rlepos = 0; rlepos < this.nbrruns; ++rlepos ) {
@@ -184,18 +215,49 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         else return answer.toArrayContainer();
     }
 
-
-    //  This had been backwards: it is "x-this" instead of "this-x"
-    
     @Override
-    public Container andNot(BitmapContainer x) {
+    public Container and(BitmapContainer x) {
+    	int card = this.getCardinality();
+        if (card <=  ArrayContainer.DEFAULT_MAX_SIZE) {
+            // result can only be an array (assuming that we never make a RunContainer)
+        	ArrayContainer answer = new ArrayContainer(card);
+        	answer.cardinality=0;
+            for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
+                int runStart = Util.toIntUnsigned(this.getValue(rlepos));
+                int runEnd = runStart + Util.toIntUnsigned(this.getLength(rlepos));
+                for (int runValue = runStart; runValue <= runEnd; ++runValue) {
+                    if ( x.contains((short) runValue)) {// it looks like contains() should be cheap enough if accessed sequentially
+                        answer.content[answer.cardinality++] = (short) runValue;
+                    }
+                }
+            }
+            return answer;
+        }
+        // we expect the answer to be a bitmap (if we are lucky)
+
+    	BitmapContainer answer = x.clone();
+        int start = 0;
+        for(int rlepos = 0; rlepos < this.nbrruns; ++rlepos ) {
+            int end = Util.toIntUnsigned(this.getValue(rlepos));
+            Util.resetBitmapRange(answer.bitmap, start, end);  // had been x.bitmap
+            start = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+        }
+        Util.resetBitmapRange(answer.bitmap, start, Util.maxLowBitAsInteger() + 1);   // had been x.bitmap
+        answer.computeCardinality();
+        if(answer.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
+            return answer;
+        else return answer.toArrayContainer();
+    }
+
+
+    // TODO: kept temporarily for perf. testing
+    public Container andNotold(BitmapContainer x) {
         BitmapContainer answer = x.clone();
         int lastPos = 0;
         for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
             int start = Util.toIntUnsigned(this.getValue(rlepos));
             int end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
-            // Gregory's fixes
-            Util.resetBitmapRange(answer.bitmap, lastPos, start);  // had been x
+            Util.resetBitmapRange(answer.bitmap, lastPos, start); 
             Util.flipBitmapRange(answer.bitmap, start, end);
             lastPos = end;
         }
@@ -206,46 +268,49 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         else
             return answer.toArrayContainer();
     }
-   
-    /*
-    // the version Owen developed at the same time....
-@Override
-public Container andNot(BitmapContainer x) {
-    // let's guess at the result cardinality as similar to the current (it's an upper bound) 
-    int card = this.getCardinality();
-    Container c = null;
-    if (card <=  ArrayContainer.DEFAULT_MAX_SIZE)
-        // result can only be an array (assuming that we never make a RunContainer)
-        c = new ArrayContainer(card);
-    else
-        c = new BitmapContainer(); // might need to convert to array
     
-    // could optimize this if we expect x often starts or ends with many zero bits, but adding some overhead
-    //   if the situation is rare.  Consider later.
-    // not sure what the overhead of a short iterator might be.  Assuming (perhaps incorrectly) nonneglible, so avoid
-      int resultCard=0;
-      for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
-          int runStart = Util.toIntUnsigned(this.getValue(rlepos));
-          int runEnd = runStart + Util.toIntUnsigned(this.getLength(rlepos));
-          for (int runValue = runStart; runValue <= runEnd; ++runValue)
-              if ( ! x.contains((short) runValue)) {// it looks like contains() should be cheap enough if accessed sequentially
-                  c = c.add((short) runValue);
-                  ++resultCard;
-              }
-      }
-      
-      if (c instanceof ArrayContainer) return c; // guaranteed right
-      if (resultCard > ArrayContainer.DEFAULT_MAX_SIZE) return c;  // guessed right
-      
-      return ((BitmapContainer) c).toArrayContainer(); //guessed wrong
-}
-    */
+    @Override
+    public Container andNot(BitmapContainer x) {
+    	int card = this.getCardinality();
+        if (card <=  ArrayContainer.DEFAULT_MAX_SIZE) {
+            // result can only be an array (assuming that we never make a RunContainer)
+        	ArrayContainer answer = new ArrayContainer(card);
+        	answer.cardinality=0;
+            for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
+                int runStart = Util.toIntUnsigned(this.getValue(rlepos));
+                int runEnd = runStart + Util.toIntUnsigned(this.getLength(rlepos));
+                for (int runValue = runStart; runValue <= runEnd; ++runValue) {
+                    if ( ! x.contains((short) runValue)) {// it looks like contains() should be cheap enough if accessed sequentially
+                        answer.content[answer.cardinality++] = (short) runValue;
+                    }
+                }
+            }
+            return answer;
+        }
+        // we expect the answer to be a bitmap (if we are lucky)
+    	BitmapContainer answer = x.clone();
+        int lastPos = 0;
+        for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
+            int start = Util.toIntUnsigned(this.getValue(rlepos));
+            int end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+            Util.resetBitmapRange(answer.bitmap, lastPos, start); 
+            Util.flipBitmapRange(answer.bitmap, start, end);
+            lastPos = end;
+        }
+        Util.resetBitmapRange(answer.bitmap, lastPos, answer.bitmap.length*64);
+        answer.computeCardinality();
+        if (answer.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
+            return answer;
+        else
+            return answer.toArrayContainer();
+    }
 
 
-    // will be similar to Bitmap parameter version
     @Override
     public Container andNot(ArrayContainer x) {
-        return null;
+    	// TODO: this is lazy, but is this wise?
+    	// TODO: write unit tests for me
+    	return toBitmapOrArrayContainer().iandNot(x);
     }
 
 

@@ -889,6 +889,22 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
 
     @Override
     public Container iand(RunContainer x) {
+    	int card = x.getCardinality();
+    	if(x.getCardinality() <= ArrayContainer.DEFAULT_MAX_SIZE) {
+    		// no point in doing it in-place
+        	ArrayContainer answer = new ArrayContainer(card);
+        	answer.cardinality=0;
+            for (int rlepos=0; rlepos < x.nbrruns; ++rlepos) {
+                int runStart = Util.toIntUnsigned(x.getValue(rlepos));
+                int runEnd = runStart + Util.toIntUnsigned(x.getLength(rlepos));
+                for (int runValue = runStart; runValue <= runEnd; ++runValue) {
+                    if ( this.contains((short) runValue)) {// it looks like contains() should be cheap enough if accessed sequentially
+                        answer.content[answer.cardinality++] = (short) runValue;
+                    }
+                }
+            }
+            return answer;
+    	}
         int start = 0;
         for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
             int end = Util.toIntUnsigned(x.getValue(rlepos));
