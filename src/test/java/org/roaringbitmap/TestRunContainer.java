@@ -301,6 +301,256 @@ public class TestRunContainer {
         }
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void iaddRange0() {
+        Container rc = new RunContainer();
+        rc.iadd(10, 9);
+    }
+
+    @Test
+    public void iaddRange1() {
+        Container rc = new RunContainer();
+        for(short k=0; k<10; ++k) {
+            rc.add(k);
+        }
+        for(short k=20; k<30; ++k) {
+            rc.add(k);
+        }
+        for(short k=40; k<50; ++k) {
+            rc.add(k);
+        }
+        rc.iadd(5, 21);
+        assertEquals(40, rc.getCardinality());
+        for(short k=0; k<30; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        for(short k=40; k<50; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        assertEquals(12, rc.getSizeInBytes());
+    }
+
+    @Test
+    public void iaddRange2() {
+        Container rc = new RunContainer();
+        for(short k=0; k<10; ++k) {
+            rc.add(k);
+        }
+        for(short k=20; k<30; ++k) {
+            rc.add(k);
+        }
+        for(short k=40; k<50; ++k) {
+            rc.add(k);
+        }
+        rc.iadd(0, 26);
+        assertEquals(40, rc.getCardinality());
+        for(short k=0; k<30; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        for(short k=40; k<50; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        assertEquals(12, rc.getSizeInBytes());
+    }
+
+    @Test
+    public void iaddRange3() {
+        Container rc = new RunContainer();
+        for(short k=0; k<10; ++k) {
+            rc.add(k);
+        }
+        for(short k=20; k<30; ++k) {
+            rc.add(k);
+        }
+        for(short k=40; k<50; ++k) {
+            rc.add(k);
+        }
+        rc.iadd(0, 20);
+        assertEquals(40, rc.getCardinality());
+        for(short k=0; k<30; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        for(short k=40; k<50; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        assertEquals(12, rc.getSizeInBytes());
+    }
+
+    @Test
+    public void iaddRange4() {
+        Container rc = new RunContainer();
+        for(short k=0; k<10; ++k) {
+            rc.add(k);
+        }
+        for(short k=20; k<30; ++k) {
+            rc.add(k);
+        }
+        for(short k=40; k<50; ++k) {
+            rc.add(k);
+        }
+        rc.iadd(10, 21);
+        assertEquals(40, rc.getCardinality());
+        for(short k=0; k<30; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        for(short k=40; k<50; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        assertEquals(12, rc.getSizeInBytes());
+    }
+
+    @Test
+    public void iaddRange5() {
+        Container rc = new RunContainer();
+        for(short k=0; k<10; ++k) {
+            rc.add(k);
+        }
+        for(short k=20; k<30; ++k) {
+            rc.add(k);
+        }
+        for(short k=40; k<50; ++k) {
+            rc.add(k);
+        }
+        rc.iadd(15, 21);
+        assertEquals(35, rc.getCardinality());
+        for(short k=0; k<10; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        for(short k=15; k<30; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        for(short k=40; k<50; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        assertEquals(16, rc.getSizeInBytes());
+    }
+
+    @Test
+    public void iaddRange6() {
+        Container rc = new RunContainer();
+        for(short k=5; k<10; ++k) {
+            rc.add(k);
+        }
+        for(short k=20; k<30; ++k) {
+            rc.add(k);
+        }
+        for(short k=40; k<50; ++k) {
+            rc.add(k);
+        }
+        rc.iadd(0, 21);
+        assertEquals(40, rc.getCardinality());
+        for(short k=0; k<30; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        for(short k=40; k<50; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        assertEquals(12, rc.getSizeInBytes());
+    }
+
+    @Test
+    public void iaddRange7() {
+        Container rc = new RunContainer();
+        for(short k=0; k<10; ++k) {
+            rc.add(k);
+        }
+        for(short k=20; k<30; ++k) {
+            rc.add(k);
+        }
+        for(short k=40; k<50; ++k) {
+            rc.add(k);
+        }
+        rc.iadd(15, 25);
+        assertEquals(35, rc.getCardinality());
+        for(short k=0; k<10; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        for(short k=15; k<30; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        for(short k=40; k<50; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        assertEquals(16, rc.getSizeInBytes());
+    }
+
+    @Test
+    public void iaddRange8() {
+        Container rc = new RunContainer();
+        for(short k=0; k<10; ++k) {
+            rc.add(k);
+        }
+        for(short k=20; k<30; ++k) {
+            rc.add(k);
+        }
+        for(short k=40; k<50; ++k) {
+            rc.add(k);
+        }
+        rc.iadd(15, 40);
+        assertEquals(45, rc.getCardinality());
+        for(short k=0; k<10; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        for(short k=15; k<50; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        assertEquals(12, rc.getSizeInBytes());
+    }
+
+    @Test
+    public void iaddRange10() {
+        Container rc = new RunContainer();
+        for(short k=0; k<10; ++k) {
+            rc.add(k);
+        }
+        for(short k=20; k<30; ++k) {
+            rc.add(k);
+        }
+        rc.iadd(15, 35);
+        assertEquals(30, rc.getCardinality());
+        for(short k=0; k<10; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        for(short k=15; k<35; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        assertEquals(12, rc.getSizeInBytes());
+    }
+
+    @Test
+    public void iaddRange11() {
+        Container rc = new RunContainer();
+        for(short k=5; k<10; ++k) {
+            rc.add(k);
+        }
+        for(short k=20; k<30; ++k) {
+            rc.add(k);
+        }
+        rc.iadd(0, 20);
+        assertEquals(30, rc.getCardinality());
+        for(short k=0; k<30; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        assertEquals(8, rc.getSizeInBytes());
+    }
+
+    @Test
+    public void iaddRange12() {
+        Container rc = new RunContainer();
+        for(short k=5; k<10; ++k) {
+            rc.add(k);
+        }
+        for(short k=20; k<30; ++k) {
+            rc.add(k);
+        }
+        rc.iadd(0, 35);
+        assertEquals(35, rc.getCardinality());
+        for(short k=0; k<35; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        assertEquals(8, rc.getSizeInBytes());
+    }
+
 
     @Test
     public void iaddRange() {
@@ -317,10 +567,9 @@ public class TestRunContainer {
                         container.add((short) (99-p));
                         bs.set(99 - p);
                     }
-                    Container newContainer = container.iadd(49 - k, 50 + k);
+                    container.iadd(49 - k, 50 + k);
                     bs.set(49 - k, 50 + k);
-                    assertNotSame(container, newContainer);
-                    assertEquals(bs.cardinality(), newContainer.getCardinality());
+                    assertEquals(bs.cardinality(), container.getCardinality());
 
                     int nb_runs = 1;
                     int lastIndex = bs.nextSetBit(0);
@@ -329,13 +578,14 @@ public class TestRunContainer {
                             nb_runs++;
                         }
                         lastIndex = p;
-                        assertTrue(newContainer.contains((short) p));
+                        assertTrue(container.contains((short) p));
                     }
-                    assertEquals(nb_runs*4+4, newContainer.getSizeInBytes());
+                    assertEquals(nb_runs*4+4, container.getSizeInBytes());
                 }
             }
         }
     }
+
     @Test
     public void addRangeAndFuseWithPreviousValueLength() {
         RunContainer container = new RunContainer();
@@ -356,13 +606,12 @@ public class TestRunContainer {
         for(short i = 10; i < 20; ++i) {
             container.add(i);
         }
-        Container newContainer = container.iadd(20, 30);
-        assertNotSame(container, newContainer);
-        assertEquals(20, newContainer.getCardinality());
+        container.iadd(20, 30);
+        assertEquals(20, container.getCardinality());
         for(short i = 10; i < 30; ++i) {
-            assertTrue(newContainer.contains(i));
+            assertTrue(container.contains(i));
         }
-        assertEquals(8, newContainer.getSizeInBytes());
+        assertEquals(8, container.getSizeInBytes());
     }
     @Test
     public void addRangeAndFuseWithNextValueLength() {
@@ -408,11 +657,10 @@ public class TestRunContainer {
         for(short i = 90; i < 120; ++i) {
             container.add(i);
         }
-        Container newContainer = container.iadd(10, 100);
-        assertNotSame(container, newContainer);
-        assertEquals(119, newContainer.getCardinality());
+        container.iadd(10, 100);
+        assertEquals(119, container.getCardinality());
         for(short i = 1; i < 120; ++i) {
-            assertTrue(newContainer.contains(i));
+            assertTrue(container.contains(i));
         }
     }
     @Test
@@ -462,11 +710,10 @@ public class TestRunContainer {
         RunContainer container = new RunContainer();
         container.add((short) 10);
         container.add((short) 99);
-        Container newContainer = container.iadd(10, 100);
-        assertNotSame(container, newContainer);
-        assertEquals(90, newContainer.getCardinality());
+        container.iadd(10, 100);
+        assertEquals(90, container.getCardinality());
         for(short i = 10; i < 100; ++i) {
-            assertTrue(newContainer.contains(i));
+            assertTrue(container.contains(i));
         }
     }
 
@@ -476,7 +723,6 @@ public class TestRunContainer {
         container.add((short) 10);
         container.add((short) 99);
         Container newContainer = container.add(10, 100);
-        System.out.println(newContainer.getCardinality());
         assertNotSame(container, newContainer);
         assertEquals(90, newContainer.getCardinality());
         for(short i = 10; i < 100; ++i) {

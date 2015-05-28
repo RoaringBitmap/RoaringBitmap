@@ -606,67 +606,94 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public Container iadd(int begin, int end) {
+        if(begin >= end) {
+            throw new IllegalArgumentException("Invalid range [" + begin + "," + end + "]");
+        }
+
+        if(begin == end-1) {
+            add((short) begin);
+            return this;
+        }
+
         int bIndex = unsignedInterleavedBinarySearch(this.valueslength, 0, this.nbrruns, (short) begin);
         int eIndex = unsignedInterleavedBinarySearch(this.valueslength, 0, this.nbrruns, (short) (end-1));
-        if(bIndex < 0) {
-            bIndex = -bIndex - 2;
-        }
-        if(eIndex < 0) {
+
+        if(bIndex>=0 && eIndex>=0) {
+            mergeValuesLength(bIndex, eIndex);
+            return this;
+
+        } else if(bIndex>=0 && eIndex<0) {
             eIndex = -eIndex - 2;
-        }
 
-        int value = begin;
-        int length = end - begin - 1;
-
-        if(bIndex >= 0) {
-            int bValue = Util.toIntUnsigned(getValue(bIndex));
-            int bOffset = begin - bValue;
-            int bLength = Util.toIntUnsigned(getLength(bIndex));
-            if (bOffset <= bLength + 1) {
-                bIndex--;
-                value = bValue;
-                length += bOffset;
+            if(canPrependValueLength(end-1, eIndex+1)) {
+                mergeValuesLength(bIndex, eIndex+1);
+                return this;
             }
-        }
 
-        if(eIndex == -1) {
-            int neIndex = eIndex + 1;
-            if(neIndex < this.nbrruns) {
-                int neValue = Util.toIntUnsigned(getValue(neIndex));
-                if(neValue == end) {
-                    eIndex++;
-                    int neLength = Util.toIntUnsigned(getLength(neIndex));
-                    length += neLength + 1;
+            appendValueLength(end-1, eIndex);
+            mergeValuesLength(bIndex, eIndex);
+            return this;
+
+        } else if(bIndex<0 && eIndex>=0) {
+            bIndex = -bIndex - 2;
+
+            if(bIndex>=0) {
+                if(valueLengthContains(begin, bIndex)) {
+                    mergeValuesLength(bIndex, eIndex);
+                    return this;
                 }
             }
+            prependValueLength(begin, bIndex+1);
+            mergeValuesLength(bIndex+1, eIndex);
+            return this;
+
         } else {
-            int eValue = Util.toIntUnsigned(getValue(eIndex));
-            int eOffset = (end - 1) - eValue;
-            int eLength = Util.toIntUnsigned(getLength(eIndex));
-            if (eOffset < eLength) {
-                length += eLength - eOffset;
-            }
-            int neIndex = eIndex + 1;
-            if(neIndex < this.nbrruns) {
-                int neValue = Util.toIntUnsigned(getValue(neIndex));
-                if(neValue == end) {
-                    eIndex++;
-                    int neLength = Util.toIntUnsigned(getLength(neIndex));
-                    length += neLength + 1;
+            bIndex = -bIndex - 2;
+            eIndex = -eIndex - 2;
+
+            if(eIndex>=0) {
+                if(bIndex>=0) {
+                    if(!valueLengthContains(begin, bIndex)) {
+                        if(bIndex==eIndex) {
+                            if(canPrependValueLength(end-1, eIndex+1)) {
+                                prependValueLength(begin, eIndex+1);
+                                return this;
+                            }
+                            makeRoomAtIndex(eIndex+1);
+                            setValue(eIndex+1, (short) begin);
+                            setLength(eIndex+1, (short) (end - 1 - begin));
+                            return this;
+
+                        } else {
+                            bIndex++;
+                            prependValueLength(begin, bIndex);
+                        }
+                    }
+                } else {
+                    bIndex = 0;
+                    prependValueLength(begin, bIndex);
                 }
+
+                if(canPrependValueLength(end-1, eIndex+1)) {
+                    mergeValuesLength(bIndex, eIndex + 1);
+                    return this;
+                }
+
+                appendValueLength(end-1, eIndex);
+                mergeValuesLength(bIndex, eIndex);
+                return this;
+
+            } else {
+                if(canPrependValueLength(end-1, 0)) {
+                    prependValueLength(begin, 0);
+                } else {
+                    makeRoomAtIndex(0);
+                    setValue(0, (short) begin);
+                    setLength(0, (short) (end - 1 - begin));
+                }
+                return this;
             }
         }
-
-        int nbrruns = this.nbrruns - (eIndex - (bIndex + 1));
-        short[] valueslength = new short[2 * nbrruns];
-        copyValuesLength(this.valueslength, 0, valueslength, 0, bIndex + 1);
-        if(eIndex + 1 < this.nbrruns) {
-            copyValuesLength(this.valueslength, eIndex + 1, valueslength, bIndex + 2, this.nbrruns - 1 - eIndex);
-        }
-        setValue(valueslength, bIndex + 1, (short) value);
-        setLength(valueslength, bIndex + 1, (short) length);
-
-        return new RunContainer(nbrruns, valueslength);
     }
 
     @Override
@@ -778,6 +805,66 @@ public class RunContainer extends Container implements Cloneable, Serializable {
     private void recoverRoomAtIndex(int index) {
         copyValuesLength(valueslength, index + 1, valueslength, index, nbrruns - index - 1);
         nbrruns--;
+    }
+
+    // To recover rooms between begin(exclusive) and end(inclusive)
+    private void recoverRoomsInRange(int begin, int end) {
+        if (end + 1 < this.nbrruns) {
+            copyValuesLength(this.valueslength, end + 1, this.valueslength, begin + 1, this.nbrruns - 1 - end);
+        }
+        this.nbrruns -= end - begin;
+    }
+
+    // To merge values length from begin(inclusive) to end(inclusive)
+    private void mergeValuesLength(int begin, int end) {
+        if(begin < end) {
+            int bValue = Util.toIntUnsigned(getValue(begin));
+            int eValue = Util.toIntUnsigned(getValue(end));
+            int eLength = Util.toIntUnsigned(getLength(end));
+            int newLength = eValue - bValue + eLength;
+            setLength(begin, (short) newLength);
+            recoverRoomsInRange(begin, end);
+        }
+    }
+
+    // To check if a value length can be prepended with a given value
+    private boolean canPrependValueLength(int value, int index) {
+        if(index < this.nbrruns) {
+            int nextValue = Util.toIntUnsigned(getValue(index));
+            if(nextValue == value+1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Prepend a value length with all values starting from a given value
+    private void prependValueLength(int value, int index) {
+        int initialValue = Util.toIntUnsigned(getValue(index));
+        int length = Util.toIntUnsigned(getLength(index));
+        setValue(index, (short) value);
+        setLength(index, (short) (initialValue - value + length));
+    }
+
+    // Append a value length with all values until a given value
+    private void appendValueLength(int value, int index) {
+        int previousValue = Util.toIntUnsigned(getValue(index));
+        int length = Util.toIntUnsigned(getLength(index));
+        int offset = value - previousValue;
+        if(offset>length) {
+            setLength(index, (short) offset);
+        }
+    }
+
+    // To check if a value length contains a given value
+    private boolean valueLengthContains(int value, int index) {
+        int initialValue = Util.toIntUnsigned(getValue(index));
+        int length = Util.toIntUnsigned(getLength(index));
+
+        if(value <= initialValue + length + 1) {
+            return true;
+        }
+        return false;
     }
 
     private void copyValuesLength(short[] src, int srcIndex, short[] dst, int dstIndex, int length) {
