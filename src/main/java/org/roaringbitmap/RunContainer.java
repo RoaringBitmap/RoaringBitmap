@@ -33,7 +33,6 @@ public class RunContainer extends Container implements Cloneable, Serializable {
      * @return new container
      */
     protected Container toBitmapOrArrayContainer() {
-    	// TODO: write unit tests for me
     	int card = this.getCardinality();
     	if(card <= ArrayContainer.DEFAULT_MAX_SIZE) {
         	ArrayContainer answer = new ArrayContainer(card);

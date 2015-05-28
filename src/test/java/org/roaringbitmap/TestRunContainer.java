@@ -12,6 +12,25 @@ import static org.roaringbitmap.ArrayContainer.DEFAULT_MAX_SIZE;
 public class TestRunContainer {
 
     @Test
+    public void toBitmapOrArrayContainer() {
+        RunContainer rc = new RunContainer();
+        rc.iadd(0, DEFAULT_MAX_SIZE / 2);
+        Container ac = rc.toBitmapOrArrayContainer();
+        assertTrue(ac instanceof ArrayContainer);
+        assertEquals(DEFAULT_MAX_SIZE/2, ac.getCardinality());
+        for(short k=0; k<DEFAULT_MAX_SIZE/2; ++k) {
+            assertTrue(ac.contains(k));
+        }
+        rc.iadd(DEFAULT_MAX_SIZE/2, 2*DEFAULT_MAX_SIZE);
+        Container bc = rc.toBitmapOrArrayContainer();
+        assertTrue(bc instanceof BitmapContainer);
+        assertEquals(2*DEFAULT_MAX_SIZE, bc.getCardinality());
+        for(short k=0; k<2*DEFAULT_MAX_SIZE; ++k) {
+            assertTrue(bc.contains(k));
+        }
+    }
+
+    @Test
     public void fillLeastSignificantBits() {
         Container rc = new RunContainer();
         rc.add((short) 1);
