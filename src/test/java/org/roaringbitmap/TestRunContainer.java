@@ -12,6 +12,255 @@ import static org.roaringbitmap.ArrayContainer.DEFAULT_MAX_SIZE;
 public class TestRunContainer {
 
     @Test
+    public void remove() {
+        Container rc = new RunContainer();
+        rc.add((short) 1);
+        Container newContainer = rc.remove(1, 2);
+        assertEquals(0, newContainer.getCardinality());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void iremove0() {
+        Container rc = new RunContainer();
+        rc.remove(10, 9);
+    }
+
+    @Test
+    public void iremove1() {
+        Container rc = new RunContainer();
+        rc.add((short) 1);
+        rc.iremove(1, 2);
+        assertEquals(0, rc.getCardinality());
+    }
+
+    @Test
+    public void iremove2() {
+        Container rc = new RunContainer();
+        rc.iadd(0, 10);
+        rc.iadd(20, 30);
+        rc.iremove(0, 21);
+        assertEquals(9, rc.getCardinality());
+        for(short k=21; k<30; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        assertEquals(8, rc.getSizeInBytes());
+    }
+
+    @Test
+    public void iremove3() {
+        Container rc = new RunContainer();
+        rc.iadd(0, 10);
+        rc.iadd(20, 30);
+        rc.iadd(40, 50);
+        rc.iremove(0, 21);
+        assertEquals(19, rc.getCardinality());
+        for(short k=21; k<30; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        for(short k=40; k<50; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        assertEquals(12, rc.getSizeInBytes());
+    }
+
+    @Test
+    public void iremove4() {
+        Container rc = new RunContainer();
+        rc.iadd(0, 10);
+        rc.iremove(0, 5);
+        assertEquals(5, rc.getCardinality());
+        for(short k=5; k<10; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        assertEquals(8, rc.getSizeInBytes());
+    }
+
+    @Test
+    public void iremove5() {
+        Container rc = new RunContainer();
+        rc.iadd(0, 10);
+        rc.iadd(20, 30);
+        rc.iremove(0, 31);
+        assertEquals(0, rc.getCardinality());
+    }
+
+    @Test
+    public void iremove6() {
+        Container rc = new RunContainer();
+        rc.iadd(0, 10);
+        rc.iadd(20, 30);
+        rc.iremove(0, 25);
+        assertEquals(5, rc.getCardinality());
+        for(short k=25; k<30; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        assertEquals(8, rc.getSizeInBytes());
+    }
+
+    @Test
+    public void iremove7() {
+        Container rc = new RunContainer();
+        rc.iadd(0, 10);
+        rc.iremove(0, 15);
+        assertEquals(0, rc.getCardinality());
+    }
+
+    @Test
+    public void iremove8() {
+        Container rc = new RunContainer();
+        rc.iadd(0, 10);
+        rc.iadd(20, 30);
+        rc.iremove(5, 21);
+        assertEquals(14, rc.getCardinality());
+        for(short k=0; k<5; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        for(short k=21; k<30; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        assertEquals(12, rc.getSizeInBytes());
+    }
+
+    @Test
+    public void iremove9() {
+        Container rc = new RunContainer();
+        rc.iadd(0, 10);
+        rc.iadd(20, 30);
+        rc.iremove(15, 21);
+        assertEquals(19, rc.getCardinality());
+        for(short k=0; k<10; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        for(short k=21; k<30; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        assertEquals(12, rc.getSizeInBytes());
+    }
+
+    @Test
+    public void iremove10() {
+        Container rc = new RunContainer();
+        rc.iadd(5, 10);
+        rc.iadd(20, 30);
+        rc.iremove(0, 25);
+        assertEquals(5, rc.getCardinality());
+        for(short k=25; k<30; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        assertEquals(8, rc.getSizeInBytes());
+    }
+
+    @Test
+    public void iremove11() {
+        Container rc = new RunContainer();
+        rc.iadd(5, 10);
+        rc.iadd(20, 30);
+        rc.iremove(0, 35);
+        assertEquals(0, rc.getCardinality());
+    }
+
+    @Test
+    public void iremove12() {
+        Container rc = new RunContainer();
+        rc.add((short) 0);
+        rc.add((short) 10);
+        rc.iremove(0, 11);
+        assertEquals(0, rc.getCardinality());
+    }
+
+    @Test
+    public void iremove13() {
+        Container rc = new RunContainer();
+        rc.iadd(0, 10);
+        rc.iadd(20, 30);
+        rc.iremove(5, 25);
+        assertEquals(10, rc.getCardinality());
+        for(short k=0; k<5; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        for(short k=25; k<30; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        assertEquals(12, rc.getSizeInBytes());
+    }
+
+    @Test
+    public void iremove14() {
+        Container rc = new RunContainer();
+        rc.iadd(0, 10);
+        rc.iadd(20, 30);
+        rc.iremove(5, 31);
+        assertEquals(5, rc.getCardinality());
+        for(short k=0; k<5; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        assertEquals(8, rc.getSizeInBytes());
+    }
+
+    @Test
+    public void iremove15() {
+        Container rc = new RunContainer();
+        rc.iadd(0, 5);
+        rc.iadd(20, 30);
+        rc.iremove(5, 25);
+        assertEquals(10, rc.getCardinality());
+        for(short k=0; k<5; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        for(short k=25; k<30; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        assertEquals(12, rc.getSizeInBytes());
+    }
+
+    @Test
+    public void iremove16() {
+        Container rc = new RunContainer();
+        rc.iadd(0, 5);
+        rc.iadd(20, 30);
+        rc.iremove(5, 31);
+        assertEquals(5, rc.getCardinality());
+        for(short k=0; k<5; ++k) {
+            assertTrue(rc.contains(k));
+        }
+        assertEquals(8, rc.getSizeInBytes());
+    }
+
+    @Test
+    public void iremoveRange() {
+        for(int i = 0; i < 100; ++i) {
+            for(int j = 0; j < 100; ++j) {
+                for(int k = 0; k < 50; ++k) {
+                    BitSet bs = new BitSet();
+                    RunContainer container = new RunContainer();
+                    for(int p = 0; p < i; ++p) {
+                        container.add((short) p);
+                        bs.set(p);
+                    }
+                    for(int p = 0; p < j; ++p) {
+                        container.add((short) (99-p));
+                        bs.set(99 - p);
+                    }
+                    container.iremove(49 - k, 50 + k);
+                    bs.clear(49 - k, 50 + k);
+                    assertEquals(bs.cardinality(), container.getCardinality());
+
+                    int nb_runs = bs.isEmpty() ? 0 : 1;
+                    int lastIndex = bs.nextSetBit(0);
+                    for (int p = bs.nextSetBit(0); p >= 0; p = bs.nextSetBit(p+1)) {
+                        if(p - lastIndex > 1) {
+                            nb_runs++;
+                        }
+                        lastIndex = p;
+                        assertTrue(container.contains((short) p));
+                    }
+                    assertEquals(nb_runs*4+4, container.getSizeInBytes());
+                }
+            }
+        }
+    }
+
+    @Test
     public void toBitmapOrArrayContainer() {
         RunContainer rc = new RunContainer();
         rc.iadd(0, DEFAULT_MAX_SIZE / 2);
@@ -569,7 +818,6 @@ public class TestRunContainer {
         }
         assertEquals(8, rc.getSizeInBytes());
     }
-
 
     @Test
     public void iaddRange() {

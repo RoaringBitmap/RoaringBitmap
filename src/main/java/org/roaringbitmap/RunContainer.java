@@ -637,7 +637,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
             bIndex = -bIndex - 2;
 
             if(bIndex>=0) {
-                if(valueLengthContains(begin, bIndex)) {
+                if(valueLengthContains(begin-1, bIndex)) {
                     mergeValuesLength(bIndex, eIndex);
                     return this;
                 }
@@ -652,7 +652,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
             if(eIndex>=0) {
                 if(bIndex>=0) {
-                    if(!valueLengthContains(begin, bIndex)) {
+                    if(!valueLengthContains(begin-1, bIndex)) {
                         if(bIndex==eIndex) {
                             if(canPrependValueLength(end-1, eIndex+1)) {
                                 prependValueLength(begin, eIndex+1);
@@ -697,16 +697,90 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public Container iremove(int begin, int end) {
-        // TODO Auto-generated method stub
-        return null;
+        if(begin >= end) {
+            throw new IllegalArgumentException("Invalid range [" + begin + "," + end + "]");
+        }
+
+        if(begin == end-1) {
+            remove((short) begin);
+            return this;
+        }
+
+        int bIndex = unsignedInterleavedBinarySearch(this.valueslength, 0, this.nbrruns, (short) begin);
+        int eIndex = unsignedInterleavedBinarySearch(this.valueslength, 0, this.nbrruns, (short) (end-1));
+
+        if(bIndex>=0) {
+            if(eIndex<0) {
+                eIndex = -eIndex - 2;
+            }
+
+            if(valueLengthContains(end, eIndex)) {
+                initValueLength(end, eIndex);
+                recoverRoomsInRange(bIndex-1, eIndex-1);
+            } else {
+                recoverRoomsInRange(bIndex-1, eIndex);
+            }
+
+        } else if(bIndex<0 && eIndex>=0) {
+            bIndex = -bIndex - 2;
+
+            if(bIndex >= 0) {
+                if (valueLengthContains(begin, bIndex)) {
+                    closeValueLength(begin - 1, bIndex);
+                }
+            }
+            incrementValue(eIndex);
+            decrementLength(eIndex);
+            recoverRoomsInRange(bIndex, eIndex-1);
+
+        } else {
+            bIndex = -bIndex - 2;
+            eIndex = -eIndex - 2;
+
+            if(eIndex>=0) {
+                if(bIndex>=0) {
+                    if(bIndex==eIndex) {
+                        if (valueLengthContains(begin, bIndex)) {
+                            if (valueLengthContains(end, eIndex)) {
+                                makeRoomAtIndex(bIndex);
+                                closeValueLength(begin-1, bIndex);
+                                initValueLength(end, bIndex+1);
+                                return this;
+                            }
+                            closeValueLength(begin-1, bIndex);
+                        }
+                    } else {
+                        if (valueLengthContains(begin, bIndex)) {
+                            closeValueLength(begin - 1, bIndex);
+                        }
+                        if (valueLengthContains(end, eIndex)) {
+                            initValueLength(end, eIndex);
+                            eIndex--;
+                        }
+                        recoverRoomsInRange(bIndex, eIndex);
+                    }
+
+                } else {
+                    if(valueLengthContains(end-1, eIndex)) {
+                        initValueLength(end, eIndex);
+                        recoverRoomsInRange(bIndex, eIndex - 1);
+                    } else {
+                        recoverRoomsInRange(bIndex, eIndex);
+                    }
+                }
+
+            }
+
+        }
+
+        return this;
     }
 
     @Override
     public Container remove(int begin, int end) {
-        // TODO Auto-generated method stub
-        return null;
+        RunContainer rc = (RunContainer) clone();
+        return rc.iremove(begin, end);
     }
-
 
     @Override
     public boolean equals(Object o) {
@@ -771,6 +845,14 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         valueslength[2*index]++;
     }
 
+    private void decrementLength(int index) {
+        valueslength[2*index + 1]--;
+    }
+
+    private void decrementValue(int index) {
+        valueslength[2*index]--;
+    }
+
     private void setLength(int index, short v) {
         setLength(valueslength, index, v);
     }
@@ -787,14 +869,6 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         valueslength[2*index] = v;
     }
 
-    private void decrementLength(int index) {
-        valueslength[2*index + 1]--;
-    }
-
-    private void decrementValue(int index) {
-        valueslength[2*index]--;
-    }
-    
     private void makeRoomAtIndex(int index) {
         if (2 * (nbrruns+1) > valueslength.length) increaseCapacity();
         copyValuesLength(valueslength, index, valueslength, index + 1, nbrruns - index);
@@ -860,10 +934,24 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         int initialValue = Util.toIntUnsigned(getValue(index));
         int length = Util.toIntUnsigned(getLength(index));
 
-        if(value <= initialValue + length + 1) {
+        if(value <= initialValue + length) {
             return true;
         }
         return false;
+    }
+
+    // To set the first value of a value length
+    private void initValueLength(int value, int index) {
+        int initialValue = Util.toIntUnsigned(getValue(index));
+        int length = Util.toIntUnsigned(getLength(index));
+        setValue(index, (short) (value));
+        setLength(index, (short) (length - (value - initialValue)));
+    }
+
+    // To set the last value of a value length
+    private void closeValueLength(int value, int index) {
+        int initialValue = Util.toIntUnsigned(getValue(index));
+        setLength(index, (short) (value - initialValue));
     }
 
     private void copyValuesLength(short[] src, int srcIndex, short[] dst, int dstIndex, int length) {
