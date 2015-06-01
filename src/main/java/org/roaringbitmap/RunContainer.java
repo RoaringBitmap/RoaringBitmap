@@ -308,7 +308,6 @@ public class RunContainer extends Container implements Cloneable, Serializable {
     @Override
     public Container andNot(ArrayContainer x) {
     	// TODO: this is lazy, but is this wise?
-    	// TODO: write unit tests for me
     	return toBitmapOrArrayContainer().iandNot(x);
     }
 
