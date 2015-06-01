@@ -467,6 +467,7 @@ public class TestRunContainer {
 
     @Test
     public void andNotTest1() {
+        // this test uses a bitmap container that will be too sparse- okay?
         Container bc = new BitmapContainer();
         Container rc = new RunContainer();
         for(int k = 0; k<100; ++k) {
@@ -486,9 +487,10 @@ public class TestRunContainer {
     }
 
 
-    /*
+    
     @Test
     public void andNotTest2() {
+        System.out.println("andNotTest2");
         Container ac = new ArrayContainer();
         Container rc = new RunContainer();
         for(int k = 0; k<100; ++k) {
@@ -506,9 +508,6 @@ public class TestRunContainer {
         assertEquals(200, ac.getCardinality());
         assertEquals(200, rc.getCardinality());
     }
-    */
-
-
 
     
     @Test
