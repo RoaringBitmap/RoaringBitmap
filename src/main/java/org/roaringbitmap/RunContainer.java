@@ -426,8 +426,9 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public Container inot(int rangeStart, int rangeEnd) {
-        // TODO Auto-generated method stub
-        return null;
+        if (rangeEnd <= rangeStart) return this;  
+        else
+          return not( rangeStart, rangeEnd);  // TODO: inplace option?
     }
 
     @Override
@@ -450,10 +451,116 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         return xor(x);
     }
 
+
+    // handles any required fusion, assumes space available
+    private int addRun(int outputRlePos, int runStart, int runLength) {
+        // check whether fusion is required
+        if (outputRlePos > 0) { // there is a previous run
+            int prevRunStart = Util.toIntUnsigned(this.getValue(outputRlePos-1));
+            int prevRunEnd = prevRunStart + Util.toIntUnsigned(this.getLength(outputRlePos-1));
+            if (prevRunEnd+1 == runStart) { // we must fuse
+                int newRunEnd = prevRunEnd+(1+runLength);
+                int newRunLen = newRunEnd-prevRunStart;
+                setLength(outputRlePos-1, (short) newRunLen);
+                return outputRlePos; // do not advance, nbrruns unchanged
+            }
+        }
+        // cases without fusion
+        setValue(outputRlePos, (short) runStart);
+        setLength(outputRlePos, (short) runLength);
+        nbrruns=outputRlePos;
+
+        return  ++outputRlePos;
+    }
+
+
     @Override
     public Container not(int rangeStart, int rangeEnd) {
-        // TODO Auto-generated method stub
-        return null;
+
+        // This code will be a pain to test...
+
+        if (rangeEnd <= rangeStart) return this.clone();
+ 
+        // A container that is best stored as a run container
+        // is frequently going to have its "inot" also best stored
+        // as a run container. This would violate an implicit
+        // "results are array or bitmaps only" rule, if we had one.
+        
+        // The number of runs in the result can be bounded
+        // not clear, but guessing the bound is a max increase of 1
+        RunContainer ans = new RunContainer(nbrruns+1);
+
+        // annoying special case: there is no run.  Then the range becomes the run
+        if (nbrruns==0) {
+            ans.addRun(0, rangeStart, rangeEnd-1);
+            return ans;
+        }
+        
+        int outputRlepos = 0;
+        int rlepos;
+        // copy all runs before the range.
+        for (rlepos=0; rlepos < nbrruns; ++rlepos) {
+            int runStart = Util.toIntUnsigned(this.getValue(rlepos));
+            int runEnd = runStart + Util.toIntUnsigned(this.getLength(rlepos));
+
+            if (runEnd >=  rangeStart) break;
+            outputRlepos = ans.addRun(outputRlepos, runStart, runEnd);
+        }
+
+        if (rlepos < nbrruns) {
+            // there may be a run that starts before the range but
+            //  intersects with the range; copy the part before the intersection.
+            
+            int runStart = Util.toIntUnsigned(this.getValue(rlepos));
+            if (runStart < rangeStart) {
+                outputRlepos = ans.addRun(outputRlepos, runStart, rangeStart-1);
+                ++rlepos; 
+            }
+        }
+        
+
+        // any further runs start after the range has begun
+        for (; rlepos < nbrruns; ++rlepos) {
+            int runStart = Util.toIntUnsigned(this.getValue(rlepos));
+            int runEnd = runStart + Util.toIntUnsigned(this.getLength(rlepos));
+
+            if (runStart >= rangeEnd) break; // handle these next
+            
+            int endOfPriorRun;
+            if (rlepos == 0)
+                endOfPriorRun=-1;
+            else
+                endOfPriorRun = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos));
+
+            // but only gap locations after the start of the range count.
+            int startOfInterRunGap = Math.max(endOfPriorRun+1, rangeStart);
+
+            int lastOfInterRunGap = Math.min(runStart-1, rangeEnd-1);            
+            // and only gap locations before (strictly) the rangeEnd count
+
+            outputRlepos = ans.addRun(outputRlepos, startOfInterRunGap, lastOfInterRunGap);
+        }
+
+        // any more runs are totally after the range, copy them
+        for (; rlepos < nbrruns; ++rlepos) {
+            int runStart = Util.toIntUnsigned(this.getValue(rlepos));
+            int runEnd = runStart + Util.toIntUnsigned(this.getLength(rlepos));
+
+            outputRlepos = ans.addRun(outputRlepos, runStart, runEnd);
+        }
+
+        // if the last run ends before the range, special processing needed.
+        int lastRunEnd =   Util.toIntUnsigned(this.getValue(nbrruns-1)) + 
+            Util.toIntUnsigned(this.getLength(nbrruns-1));
+
+        if (lastRunEnd < rangeEnd-1) {
+            int startOfFlippedRun = Math.max(rangeStart, lastRunEnd+1);
+            outputRlepos = ans.addRun(outputRlepos, startOfFlippedRun, rangeEnd-1);
+        }
+        return ans;
+        // could do a size check here and convert to
+        // array or bitmap (implying it was probably silly
+        // for the original container to be a Runcontainer..)
     }
 
     @Override
@@ -835,8 +942,8 @@ public class RunContainer extends Container implements Cloneable, Serializable {
     short getLength(int index) {
         return valueslength[2*index + 1];
     }
-    
-    private void incrementLength(int index) {
+
+      private void incrementLength(int index) {
         valueslength[2*index + 1]++;
     }
     

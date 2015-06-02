@@ -292,7 +292,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
                     return toBitmapContainer().inot(firstOfRange, lastOfRange);
                 content = Arrays.copyOf(content, newCardinality);
             }
-            // slide right the contentsafter the range
+            // slide right the contents after the range
             System.arraycopy(content, lastIndex + 1, content,
                     lastIndex + 1 + cardinalityChange, cardinality - 1 - lastIndex);
             negateRange(buffer, startIndex, lastIndex,
