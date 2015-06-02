@@ -453,7 +453,8 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
 
     // handles any required fusion, assumes space available
-    private int addRun(int outputRlePos, int runStart, int runLength) {
+    private int addRun(int outputRlePos, int runStart, int lastRunElement) {
+        int runLength = lastRunElement - runStart;
         // check whether fusion is required
         if (outputRlePos > 0) { // there is a previous run
             int prevRunStart = Util.toIntUnsigned(this.getValue(outputRlePos-1));
@@ -468,7 +469,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         // cases without fusion
         setValue(outputRlePos, (short) runStart);
         setLength(outputRlePos, (short) runLength);
-        nbrruns=outputRlePos;
+        nbrruns=outputRlePos+1;
 
         return  ++outputRlePos;
     }
@@ -490,7 +491,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         // not clear, but guessing the bound is a max increase of 1
         RunContainer ans = new RunContainer(nbrruns+1);
 
-        // annoying special case: there is no run.  Then the range becomes the run
+        // annoying special case: there is no run.  Then the range becomes the run.
         if (nbrruns==0) {
             ans.addRun(0, rangeStart, rangeEnd-1);
             return ans;
@@ -540,6 +541,11 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
             outputRlepos = ans.addRun(outputRlepos, startOfInterRunGap, lastOfInterRunGap);
         }
+
+        // handle case where range occurs before first run
+        if (rlepos == 0) 
+            outputRlepos = ans.addRun(outputRlepos, rangeStart, rangeEnd-1);
+
 
         // any more runs are totally after the range, copy them
         for (; rlepos < nbrruns; ++rlepos) {

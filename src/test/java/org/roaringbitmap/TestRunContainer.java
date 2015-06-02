@@ -1298,4 +1298,88 @@ public class TestRunContainer {
         }
     }
     
+
+    @Test
+    public void not1() {
+        RunContainer container  = new RunContainer();
+        container.add((short) 0);
+        container.add((short) 2);
+        container.add((short) 55);
+        container.add((short) 64);
+        container.add((short) 256);
+
+        Container result = container.not(64,64);  // empty range
+        assertNotSame(container, result);
+        assertEquals(container, result);
+    }
+
+
+    /*  restore....it finds a real bug...
+    @Test
+    public void not2() {
+        RunContainer container  = new RunContainer();
+        container.add((short) 0);
+        container.add((short) 2);
+        container.add((short) 55);
+        container.add((short) 64);
+        container.add((short) 256);
+
+        RunContainer result = (RunContainer) container.not(64,66); 
+        assertEquals(5, result.getCardinality());
+        for (short i : new short[] {0,2,55,65,256})
+            assertTrue(result.contains(i));
+    }
+    */
+
+    @Test
+    public void not3() {
+        RunContainer container = new RunContainer();
+        // applied to a run-less container
+        RunContainer result = (RunContainer) container.not(64,68); 
+        assertEquals(4, result.getCardinality());
+        for (short i : new short[] {64,65,66,67})
+            assertTrue(result.contains(i));
+    }
+    
+    @Test
+    public void not4() {
+        RunContainer container  = new RunContainer();
+        container.add((short) 0);
+        container.add((short) 2);
+        container.add((short) 55);
+        container.add((short) 64);
+        container.add((short) 256);
+
+        // all runs are before the range
+        RunContainer result = (RunContainer) container.not(300,303); 
+        assertEquals(8, result.getCardinality());
+        for (short i : new short[] {0,2,55,64,256,300,301,302})
+            assertTrue(result.contains(i));
+    }
+
+
+    @Test
+    public void not5() {
+        RunContainer container  = new RunContainer();
+        container.add((short) 500);
+        container.add((short) 502);
+        container.add((short) 555);
+        container.add((short) 564);
+        container.add((short) 756);
+
+        // all runs are after the range
+        RunContainer result = (RunContainer) container.not(300,303); 
+        assertEquals(8, result.getCardinality());
+        for (short i : new short[] {500,502,555,564,756,300,301,302})
+            assertTrue(result.contains(i));
+    }
+
+
+
+
+
+
+
+
+
 }
