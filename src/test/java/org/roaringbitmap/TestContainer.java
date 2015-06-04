@@ -456,6 +456,123 @@ public class TestContainer {
         assertTrue(c instanceof BitmapContainer);
     }
 
+    @Test
+    public void or1() {
+        System.out.println("or1");
+        ArrayContainer ac = new ArrayContainer();
+        ac.add( (short) 1);
+        ac.add( (short) 3);
+        ac.add( (short) 5);
+        ac.add( (short) 50000);
+        ac.add( (short) 50001);
+
+        ArrayContainer ac1 = new ArrayContainer();  // empty iterator
+        Container result = ac.or( ac1.getShortIterator());
+        assertTrue(checkContent(result, new short [] {1,3,5, (short) 50000, (short) 50001}));
+    }
+
+   @Test
+    public void or2() {
+        System.out.println("or2");
+        ArrayContainer ac = new ArrayContainer();
+        // empty array
+
+        ArrayContainer ac1 = new ArrayContainer();
+        ac1.add( (short) 1);
+        ac1.add( (short) 4);
+        ac1.add( (short) 5);
+        ac1.add( (short) 50000);
+        ac1.add( (short) 50002);
+        ac1.add( (short) 50003);
+        ac1.add( (short) 50004);
+
+        Container result = ac.or( ac1.getShortIterator());
+        assertTrue(checkContent(result, new short [] {1, 4,5, (short) 50000, (short) 50002,  (short) 50003, (short) 50004}));
+    }
+ 
+
+
+
+    @Test
+    public void or3() {
+        System.out.println("or3");
+        ArrayContainer ac = new ArrayContainer();
+        ac.add( (short) 1);
+        ac.add( (short) 3);
+        ac.add( (short) 5);
+        ac.add( (short) 50000);
+        ac.add( (short) 50001);
+
+        // array ends first
+
+        ArrayContainer ac1 = new ArrayContainer();
+        ac1.add( (short) 1);
+        ac1.add( (short) 4);
+        ac1.add( (short) 5);
+        ac1.add( (short) 50000);
+        ac1.add( (short) 50002);
+        ac1.add( (short) 50003);
+        ac1.add( (short) 50004);
+
+        Container result = ac.or( ac1.getShortIterator());
+        assertTrue(checkContent(result, new short [] {1,3,4,5,(short) 50000,(short) 50001, (short) 50002, (short) 50003, (short) 50004}));
+    }
+  
+
+  
+  @Test
+    public void or4() {
+        System.out.println("or4");
+        ArrayContainer ac = new ArrayContainer();
+        ac.add( (short) 1);
+        ac.add( (short) 3);
+        ac.add( (short) 5);
+        ac.add( (short) 50000);
+        ac.add( (short) 50001);
+        ac.add( (short) 50011);
+
+        // iterator ends first
+
+        ArrayContainer ac1 = new ArrayContainer();
+        ac1.add( (short) 1);
+        ac1.add( (short) 4);
+        ac1.add( (short) 5);
+        ac1.add( (short) 50000);
+        ac1.add( (short) 50002);
+        ac1.add( (short) 50003);
+        ac1.add( (short) 50004);
+
+        Container result = ac.or( ac1.getShortIterator());
+        assertTrue(checkContent(result, new short [] {1,3,4,5,(short) 50000,(short) 50001, (short) 50002, (short) 50003, (short) 50004, (short) 50011}));
+    }
+                
+
+
+  @Test
+    public void or5() {
+        System.out.println("or5");
+        ArrayContainer ac = new ArrayContainer();
+        ac.add( (short) 1);
+        ac.add( (short) 3);
+        ac.add( (short) 5);
+        ac.add( (short) 50000);
+        ac.add( (short) 50001);
+
+        // end together
+
+        ArrayContainer ac1 = new ArrayContainer();
+        ac1.add( (short) 1);
+        ac1.add( (short) 4);
+        ac1.add( (short) 5);
+        ac1.add( (short) 50000);
+        ac1.add( (short) 50001);
+
+        Container result = ac.or( ac1.getShortIterator());
+        assertTrue(checkContent(result, new short [] {1,3,4,5,(short) 50000,(short) 50001}));
+    }                
+        
+       
+
     public static boolean checkContent(Container c, short[] s) {
         ShortIterator si = c.getShortIterator();
         int ctr = 0;

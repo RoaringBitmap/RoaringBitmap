@@ -6,7 +6,7 @@
 package org.roaringbitmap;
 
 /**
- * Iterator over short values
+ * Iterator over short values.  
  */
 public interface ShortIterator  extends Cloneable {
     /**

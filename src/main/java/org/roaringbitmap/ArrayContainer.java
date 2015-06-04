@@ -321,6 +321,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         return x.or(this);
     }
 
+
     @Override
     public Iterator<Short> iterator() {
         return new Iterator<Short>() {
@@ -358,6 +359,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         this.cardinality = bitmapContainer.cardinality;
         bitmapContainer.fillArray(content);
     }
+
 
     // for use in inot range known to be nonempty
     private void negateRange(final short[] buffer, final int startIndex,
@@ -482,6 +484,64 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     @Override
     public Container or(BitmapContainer x) {
         return x.or(this);
+    }
+
+   
+    private int advance(ShortIterator it) {
+        int ans;
+        if (it.hasNext()) 
+           return  Util.toIntUnsigned(it.next());
+        else
+            return -1;
+    }
+
+    // in order 
+    private void emit(short val) {
+        if (cardinality == content.length)
+            increaseCapacity();
+        content[cardinality++] = val;
+    }
+
+        
+    /** it must return items in (unsigned) sorted order.  Possible candidate for
+        Container interface?  **/
+    public Container or(ShortIterator it) {
+        ArrayContainer ac = new ArrayContainer();
+        int myItPos = 0;
+        ac.cardinality=0;
+        // do a merge.  int -1 denotes end of input.
+        int myHead = (myItPos == cardinality) ? -1 : Util.toIntUnsigned(content[myItPos++]);
+        int hisHead =  advance(it);
+
+        while (myHead != -1 && hisHead != -1) {
+            if (myHead < hisHead) {
+                ac.emit( (short) myHead);
+                myHead = (myItPos == cardinality) ? -1 : Util.toIntUnsigned(content[myItPos++]);
+            }
+            else if (myHead > hisHead) {
+                ac.emit(  (short) hisHead);
+                hisHead = advance(it);
+            }
+            else {
+                ac.emit( (short) hisHead);
+                hisHead = advance(it);
+                myHead = (myItPos == cardinality) ? -1 : Util.toIntUnsigned(content[myItPos++]);
+            }
+        }
+
+        while (myHead != -1) {
+            ac.emit( (short) myHead);
+            myHead = (myItPos == cardinality) ? -1 : Util.toIntUnsigned(content[myItPos++]);
+        }
+
+        while (hisHead != -1) {
+            ac.emit( (short) hisHead);
+            hisHead = advance(it);
+        }
+
+        if (ac.cardinality > DEFAULT_MAX_SIZE)
+            return ac.toBitmapContainer();
+        else return ac;
     }
 
     @Override
