@@ -597,8 +597,36 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public Container or(ArrayContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        return x.or(getShortIterator());   // performance may not be great, depending on iterator overheads...
+        /*
+        int myCard = getCardinality();
+        int xCard = x.getCardinality();
+        // result cardinality is bounded by sum of cardinality of inputs
+        int cardBound = myCard + xCard; 
+        // and estimated by assuming independence
+        double myDensity = ( (double) myCard) / (1 << 16);
+        double xDensity = ( (double) xCard) / (1 << 16);
+        double probabiltyBothZero = (1-myDensity)*(1-xDensity);
+        int cardEstimate = (1<<16) * (1-probabilityBothZero);
+
+        if (cardEstimate <=  ArrayContainer.DEFAULT_MAX_SIZE) {
+            // guess it should come up as an array, but x.or will convert if assumption wrong
+            return x.or(getShortIterator());
+        }
+        else {
+            // guess for bitmap
+            BitmapContainer answer = new BitmapContainer();
+
+            //....
+            answer.computeCardinality();
+            if (answer.getCardinality() <= ArrayContainer.DEFAULT_MAX_SIZE) {
+                System.out.println("guessed for bitmap, but should be array");
+                return answer.toArrayContainer();
+            }
+            else
+                return answer;
+        }
+        */
     }
 
     @Override
@@ -673,8 +701,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public Container xor(ArrayContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        return x.xor(getShortIterator());   // performance may not be great, depending on iterator overheads...
     }
 
     @Override

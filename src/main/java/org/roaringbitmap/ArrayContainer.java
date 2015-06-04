@@ -505,7 +505,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         
     /** it must return items in (unsigned) sorted order.  Possible candidate for
         Container interface?  **/
-    public Container or(ShortIterator it) {
+    private Container or(ShortIterator it, boolean exclusive) {
         ArrayContainer ac = new ArrayContainer();
         int myItPos = 0;
         ac.cardinality=0;
@@ -523,7 +523,8 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
                 hisHead = advance(it);
             }
             else {
-                ac.emit( (short) hisHead);
+                if (! exclusive) 
+                    ac.emit( (short) hisHead);
                 hisHead = advance(it);
                 myHead = (myItPos == cardinality) ? -1 : Util.toIntUnsigned(content[myItPos++]);
             }
@@ -542,6 +543,14 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         if (ac.cardinality > DEFAULT_MAX_SIZE)
             return ac.toBitmapContainer();
         else return ac;
+    }
+
+    public Container or(ShortIterator it) {
+        return or(it, false);
+    }
+
+    public Container xor(ShortIterator it) {
+        return or(it,true);
     }
 
     @Override
