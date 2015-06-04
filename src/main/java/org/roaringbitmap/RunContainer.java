@@ -1123,52 +1123,229 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         System.arraycopy(src, 2*srcIndex, dst, 2*dstIndex, 2*length);
     }
 
+    // used for estimates of whether to prefer Array or Bitmap container results
+    // when combining two RunContainers
+
+    private double getDensity() {
+        int myCard = getCardinality();
+        return ((double) myCard) / (1 << 16);
+    }
+
+
+    private final double ARRAY_MAX_DENSITY  = ( (double) ArrayContainer.DEFAULT_MAX_SIZE)  / (1<<16);
+
+
+
+
+    // If we care to depend on Java 8, and if the runtime cost
+    // is reasonable, lambdas could encode how to handle
+    // "first sequence only has item", "second sequence only has item"
+    // or "both sequences have item".  Could also use function objects
+    // with earlier Java.  It is worth microbenchmarking, maybe, but I
+    // guessed that using operation codes might be more efficient -owen
+
+    private static final int OP_AND=0, OP_ANDNOT=1, OP_OR=2, OP_XOR=3;
+
+
+    // borrowed this tuned-looking code from ArrayContainer.
+    // except: DEFAULT_INIT_SIZE is private...borrowed current setting
+    private short [] increaseCapacity(short [] content) {
+        int newCapacity = (content.length == 0) ? 4 : content.length < 64 ? content.length * 2
+                : content.length < 1024 ? content.length * 3 / 2
+                : content.length * 5 / 4;
+        // allow it to exceed DEFAULT_MAX_SIZE
+        return Arrays.copyOf(content, newCapacity);
+    }
+
+    // generic merge algorithm, Array output
+    private Container operationArrayGuess(RunContainer x, int opcode) {
+        short [] ansArray = new short[10]; 
+        int card = 0;
+        int thisHead, xHead; // -1 means end of run
+        
+        // hoping that iterator overhead can be largely optimized away, dunno...
+
+        ShortIterator it = getShortIterator();  // rely on unsigned ordering
+        ShortIterator xIt = getShortIterator();
+        
+        thisHead = (it.hasNext() ?  Util.toIntUnsigned(it.next()) : -1);
+        xHead =  (xIt.hasNext() ?  Util.toIntUnsigned(xIt.next()) : -1);
+
+        while (thisHead != -1 && xHead != -1) {
+
+            if (thisHead > xHead) {
+                // item present in x only: we want for OR and XOR only
+                if (opcode == OP_OR|| opcode == OP_XOR) {
+                    // emit item to array
+                    if (card == ansArray.length) ansArray = increaseCapacity(ansArray);
+                    ansArray[card++] = (short) xHead;
+                }
+                xHead =  (xIt.hasNext() ?  Util.toIntUnsigned(xIt.next()) : -1);
+            }
+            else if (thisHead < xHead) {
+                // item present in this only.  We want for OR, XOR plus ANDNOT  (all except AND)
+                if (opcode != OP_AND) {
+                    // emit to array
+                    if (card == ansArray.length) ansArray = increaseCapacity(ansArray);
+                    ansArray[card++] = (short) thisHead;
+                }
+                thisHead = (it.hasNext() ?  Util.toIntUnsigned(it.next()) : -1);
+            }
+            else { // item is present in both x and this;   AND and OR should get it, but not XOR or ANDNOT
+                if (opcode == OP_AND || opcode == OP_OR) {
+                    // emit to array
+                    if (card == ansArray.length) ansArray = increaseCapacity(ansArray);
+                    ansArray[card++] = (short) thisHead;
+                }
+                thisHead = (it.hasNext() ?  Util.toIntUnsigned(it.next()) : -1);
+                xHead =  (xIt.hasNext() ?  Util.toIntUnsigned(xIt.next()) : -1);
+            }
+        }
+
+        // AND does not care if there are extra items in either 
+        if (opcode != OP_AND) {
+            
+            // OR, ANDNOT, XOR all want extra items in this sequence
+            while (thisHead != -1) {
+                // emit to array
+                if (card == ansArray.length) ansArray = increaseCapacity(ansArray);
+                ansArray[card++] = (short) thisHead;
+                thisHead = (it.hasNext() ?  Util.toIntUnsigned(it.next()) : -1);
+            }
+
+            // OR and XOR want extra items in x sequence
+            if (opcode == OP_OR || opcode == OP_XOR)
+                while (xHead != -1) {
+                    // emit to array
+                    if (card == ansArray.length) ansArray = increaseCapacity(ansArray);
+                    ansArray[card++] = (short) xHead;
+                    xHead =  (xIt.hasNext() ?  Util.toIntUnsigned(xIt.next()) : -1);
+                } 
+        }
+
+        // double copy could be avoided if the private card-is-parameter constructor for ArrayContainer were protected rather than private.
+        short [] content = Arrays.copyOf(ansArray, card);
+        ArrayContainer ac = new ArrayContainer(content);
+        if (card > ArrayContainer.DEFAULT_MAX_SIZE)
+            return ac.toBitmapContainer();
+        else
+            return ac;
+    }
+
+
+    // generic merge algorithm, copy-paste for bitmap output
+    private Container operationBitmapGuess(RunContainer x, int opcode) {
+        BitmapContainer answer = new BitmapContainer();
+        int thisHead, xHead; // -1 means end of run
+        
+        ShortIterator it = getShortIterator();  
+        ShortIterator xIt = getShortIterator();
+        
+        thisHead = (it.hasNext() ?  Util.toIntUnsigned(it.next()) : -1);
+        xHead =  (xIt.hasNext() ?  Util.toIntUnsigned(xIt.next()) : -1);
+
+        while (thisHead != -1 && xHead != -1) {
+
+            if (thisHead > xHead) {
+                // item present in x only: we want for OR and XOR only
+                if (opcode == OP_OR|| opcode == OP_XOR) 
+                    answer.add((short) xHead);
+                xHead =  (xIt.hasNext() ?  Util.toIntUnsigned(xIt.next()) : -1);
+            }
+            else if (thisHead < xHead) {
+                // item present in this only.  We want for OR, XOR plus ANDNOT  (all except AND)
+                if (opcode != OP_AND) 
+                    answer.add((short) thisHead);
+                thisHead = (it.hasNext() ?  Util.toIntUnsigned(it.next()) : -1);
+            }
+            else { // item is present in both x and this;   AND and OR should get it, but not XOR or ANDNOT
+                if (opcode == OP_AND || opcode == OP_OR) 
+                    answer.add((short) thisHead);
+                thisHead = (it.hasNext() ?  Util.toIntUnsigned(it.next()) : -1);
+                xHead =  (xIt.hasNext() ?  Util.toIntUnsigned(xIt.next()) : -1);
+            }
+        }
+
+        // AND does not care if there are extra items in either 
+        if (opcode != OP_AND) {
+            
+            // OR, ANDNOT, XOR all want extra items in this sequence
+            while (thisHead != -1) {
+                answer.add((short) thisHead);
+                thisHead = (it.hasNext() ?  Util.toIntUnsigned(it.next()) : -1);
+            }
+
+            // OR and XOR want extra items in x sequence
+            if (opcode == OP_OR || opcode == OP_XOR)
+                while (xHead != -1) {
+                    answer.add((short) xHead);
+                    xHead =  (xIt.hasNext() ?  Util.toIntUnsigned(xIt.next()) : -1);
+                } 
+        }
+        
+        if (answer.getCardinality() <= ArrayContainer.DEFAULT_MAX_SIZE)
+            return answer.toArrayContainer();
+        else
+            return answer;
+    }
+
+
+
     @Override
     public Container and(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        double myDensity = getDensity();
+        double xDensity = x.getDensity();
+        double resultDensityEstimate = myDensity*xDensity;
+        return (resultDensityEstimate < ARRAY_MAX_DENSITY ? operationArrayGuess(x, OP_AND) : operationBitmapGuess(x, OP_AND));
     }
+
 
     @Override
     public Container andNot(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        double myDensity = getDensity();
+        double xDensity = x.getDensity();
+        double resultDensityEstimate = myDensity*(1-xDensity);
+        return (resultDensityEstimate < ARRAY_MAX_DENSITY ? operationArrayGuess(x, OP_ANDNOT) : operationBitmapGuess(x, OP_ANDNOT));
     }
+
+    // assume that the (maybe) inplace operations
+    // will never actually *be* in place if they are 
+    // to return ArrayContainer or BitmapContainer
 
     @Override
     public Container iand(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        return and(x);
     }
 
     @Override
     public Container iandNot(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        return andNot(x);
     }
 
     @Override
     public Container ior(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        return or(x);
     }
 
     @Override
     public Container ixor(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        return xor(x);
     }
 
     @Override
     public Container or(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        double myDensity = getDensity();
+        double xDensity = x.getDensity();
+        double resultDensityEstimate = 1- (1-myDensity)*(1-xDensity);
+        return (resultDensityEstimate < ARRAY_MAX_DENSITY ? operationArrayGuess(x, OP_OR) : operationBitmapGuess(x, OP_OR));
     }
 
     @Override
     public Container xor(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        double myDensity = getDensity();
+        double xDensity = x.getDensity();
+        double resultDensityEstimate = 1- (1-myDensity)*(1-xDensity)  - myDensity*xDensity;  // I guess
+        return (resultDensityEstimate < ARRAY_MAX_DENSITY ? operationArrayGuess(x, OP_XOR) : operationBitmapGuess(x, OP_XOR));
     }
 
 }
