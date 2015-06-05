@@ -1795,26 +1795,102 @@ public class TestRunContainer {
     	}    	    	    	
     }
 
-    /*
-    @Test
-    public void RunContainerVSRunContainerSimpleOR() {
-        RunContainer r1 = new RunContainer();
-        RunContainer r2 = new RunContainer();
 
-        r1.iadd(1,2); r1.iadd(4,5); r1.iadd(20,21);
-        r2.iadd(1,2); r2.iadd(10,11); r2.iadd(16,17);
+  @Test
+  public void RunContainerArg_ArrayOR() {
+        boolean atLeastOneArray = false;
+    	ArrayList<RunContainer> set = new ArrayList<RunContainer>();
+    	ArrayList<Container> setb = new ArrayList<Container>();
+    	getSetOfRunContainers( set, setb);
+    	for(int k = 0; k < set.size(); ++k ) {
+    		for(int l = 0; l < set.size(); ++l) {
+    			assertTrue(set.get(k).equals(setb.get(k)));
+    			assertTrue(set.get(l).equals(setb.get(l)));
+                        Container thisContainer = setb.get(k);
+                        // BitmapContainers are tested separately, but why not test some more?
+                        if (thisContainer instanceof BitmapContainer) ; //continue;
+                        else atLeastOneArray = true;
+                        
+    			Container c1 = thisContainer.or(set.get(l));
+    			Container c2 = setb.get(k).or(setb.get(l));
+                        assertTrue(c1.equals(c2));
+    		}
+    	}   
+        assertTrue(atLeastOneArray);
+  }
 
-        Container result = r1.or(r2);
-        for (short i : new short[] {1,4,10,16,20}) 
-            //assertTrue(result.contains(i));
-            if (result.contains(i)) System.out.println("I see "+i);
-        assertEquals(5, result.getCardinality());
 
-    }
-    */
+  @Test
+  public void RunContainerArg_ArrayAND() {
+        boolean atLeastOneArray = false;
+    	ArrayList<RunContainer> set = new ArrayList<RunContainer>();
+    	ArrayList<Container> setb = new ArrayList<Container>();
+    	getSetOfRunContainers( set, setb);
+    	for(int k = 0; k < set.size(); ++k ) {
+    		for(int l = 0; l < set.size(); ++l) {
+    			assertTrue(set.get(k).equals(setb.get(k)));
+    			assertTrue(set.get(l).equals(setb.get(l)));
+                        Container thisContainer = setb.get(k);
+                        if (thisContainer instanceof BitmapContainer) ; //continue;
+                        else atLeastOneArray = true;
+                        
+    			Container c1 = thisContainer.and(set.get(l));
+    			Container c2 = setb.get(k).and(setb.get(l));
+                        assertTrue(c1.equals(c2));
+    		}
+    	}   
+        assertTrue(atLeastOneArray);
+  }
 
 
 
+  @Test
+  public void RunContainerArg_ArrayXOR() {
+        boolean atLeastOneArray = false;
+    	ArrayList<RunContainer> set = new ArrayList<RunContainer>();
+    	ArrayList<Container> setb = new ArrayList<Container>();
+    	getSetOfRunContainers( set, setb);
+    	for(int k = 0; k < set.size(); ++k ) {
+    		for(int l = 0; l < set.size(); ++l) {
+    			assertTrue(set.get(k).equals(setb.get(k)));
+    			assertTrue(set.get(l).equals(setb.get(l)));
+                        Container thisContainer = setb.get(k);
+                        if (thisContainer instanceof BitmapContainer) ; //continue;
+                        else atLeastOneArray = true;
+                        
+    			Container c1 = thisContainer.xor(set.get(l));
+    			Container c2 = setb.get(k).xor(setb.get(l));
+                        assertTrue(c1.equals(c2));
+    		}
+    	}   
+        assertTrue(atLeastOneArray);
+  }
+
+
+  @Test
+  public void RunContainerArg_ArrayANDNOT() {
+        boolean atLeastOneArray = false;
+    	ArrayList<RunContainer> set = new ArrayList<RunContainer>();
+    	ArrayList<Container> setb = new ArrayList<Container>();
+    	getSetOfRunContainers( set, setb);
+    	for(int k = 0; k < set.size(); ++k ) {
+    		for(int l = 0; l < set.size(); ++l) {
+    			assertTrue(set.get(k).equals(setb.get(k)));
+    			assertTrue(set.get(l).equals(setb.get(l)));
+                        Container thisContainer = setb.get(k);
+                        if (thisContainer instanceof BitmapContainer) {
+                            //continue;
+                        } 
+                        else atLeastOneArray = true;
+                        
+    			Container c1 = thisContainer.andNot(set.get(l));
+    			Container c2 = setb.get(k).andNot(setb.get(l));
+
+                        assertTrue(c1.equals(c2));
+    		}
+    	}   
+        assertTrue(atLeastOneArray);
+  }
 
 
 }

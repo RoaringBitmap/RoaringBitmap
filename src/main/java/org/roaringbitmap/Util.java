@@ -168,7 +168,7 @@ public final class Util {
     }
 
     /**
-     * Look value value k in array in the range [begin,end). If the value
+     * Look for value k in array in the range [begin,end). If the value
      * is found, return its index. If not, return -(i+1) where i is the
      * index where the value would be inserted. 
      * The array is assumed to contain sorted values where shorts are
@@ -269,7 +269,7 @@ public final class Util {
     public static int unsignedExclusiveUnion2by2(final short[] set1,
                                                  final int length1, final short[] set2, final int length2,
                                                  final short[] buffer) {
-        int pos = 0;
+        int pos  = 0;
         int k1 = 0, k2 = 0;
         if (0 == length2) {
             System.arraycopy(set1, 0, buffer, 0, length1);
@@ -554,6 +554,7 @@ public final class Util {
         if (start == end) return;
         int firstword = start / 64;
         int endword   = (end - 1 ) / 64;
+
         if(firstword == endword) {
           bitmap[firstword] &= ~((~0L << start) & (~0L >>> -end));
           return;       

@@ -249,11 +249,16 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         return this;
     }
 
-    private void increaseCapacity() {
+
+    private void increaseCapacity() { 
+        increaseCapacity(false);
+    }
+
+    private void increaseCapacity(boolean allowIllegalSize) {
         int newCapacity = (this.content.length == 0) ? DEFAULT_INIT_SIZE : this.content.length < 64 ? this.content.length * 2
                 : this.content.length < 1024 ? this.content.length * 3 / 2
                 : this.content.length * 5 / 4;
-        if (newCapacity > ArrayContainer.DEFAULT_MAX_SIZE)
+        if (newCapacity > ArrayContainer.DEFAULT_MAX_SIZE  && ! allowIllegalSize)
             newCapacity = ArrayContainer.DEFAULT_MAX_SIZE;
         this.content = Arrays.copyOf(this.content, newCapacity);
     }
@@ -498,7 +503,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     // in order 
     private void emit(short val) {
         if (cardinality == content.length)
-            increaseCapacity();
+            increaseCapacity(true);
         content[cardinality++] = val;
     }
 
@@ -813,38 +818,73 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
 	}
 
     @Override
+    // see andNot for an approach that might be better.
     public Container and(RunContainer x) {
         return x.and(this);
     }
 
     @Override
     public Container andNot(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        int writeLocation=0;
+        int runStart, runEnd;  // the current or upcoming run.
+        int whichRun;
+        short [] buffer = new short[ cardinality];
+        if (x.nbrruns == 0) return clone();
+        else {
+            runStart = Util.toIntUnsigned(x.getValue(0));
+            runEnd = runStart + Util.toIntUnsigned(x.getLength(0));
+            whichRun=0;
+        }
+
+        short val;
+        for (int i = 0; i < cardinality; ++i) {
+            val = content[i];
+            int valInt = Util.toIntUnsigned(val);
+            if ( valInt < runStart)  {
+                buffer[writeLocation++] = val;
+            }
+            else if (valInt <= runEnd)
+                ; // don't want item
+            else {
+                // greater than this run, need to do an advanceUntil on runs
+                // done sequentially for now (no galloping attempts).
+                do {
+                    if (whichRun+1 < x.nbrruns) {
+                        whichRun++;
+                        runStart = Util.toIntUnsigned(x.getValue(whichRun));
+                        runEnd = runStart + Util.toIntUnsigned(x.getLength(whichRun));
+                    }
+                    else runStart = runEnd = (1 << 16) + 1;  // infinity....
+                } while ( valInt > runEnd);
+                --i;  // need to re-process this val
+            }
+        }
+        return new ArrayContainer(writeLocation,buffer);
     }
 
     @Override
     public Container iand(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        // possible performance issue, not taking advantage of possible inplace 
+        return x.and(this);
     }
 
     @Override
     public Container iandNot(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        // possible performance issue, not taking advantage of possible inplace 
+        // could adapt algo above
+        return andNot(x);
     }
 
     @Override
     public Container ior(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        // possible performance issue, not taking advantage of possible inplace 
+        return x.or(this);
     }
 
     @Override
     public Container ixor(RunContainer x) {
-        // TODO Auto-generated method stub
-        return null;
+        // possible performance issue, not taking advantage of possible inplace 
+        return x.xor(this);
     }
 
     @Override
