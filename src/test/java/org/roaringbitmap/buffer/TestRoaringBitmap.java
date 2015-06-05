@@ -22,7 +22,42 @@ import java.util.*;
  */
 @SuppressWarnings({"static-method", "javadoc"})
 public class TestRoaringBitmap {
-    
+	
+
+	@Test
+	public void testCheckedRemove() {
+		MutableRoaringBitmap rb = new MutableRoaringBitmap();
+		// checking if the true value is well returned
+		// when adding new ints
+		for (int i = 0; i < 2 * (1 << 16); i++)
+			rb.add(i);
+		for (int i = 0; i < 2 * (1 << 16); i += 2)
+			Assert.assertTrue(rb.checkedRemove(i));
+		for (int i = 0; i < 2 * (1 << 16); i += 2)
+			Assert.assertFalse(rb.checkedRemove(i));
+		for (int i = 1; i < 2 * (1 << 16); i += 2)
+			Assert.assertTrue(rb.checkedRemove(i));
+		for (int i = 1; i < 2 * (1 << 16) + 1; i += 2)
+			Assert.assertFalse(rb.checkedRemove(i));
+	}
+
+	
+	@Test
+	public void testCheckedAdd() {
+		MutableRoaringBitmap rb = new MutableRoaringBitmap();
+		// checking if the true value is well returned
+		// when adding new ints
+		for (int i = 0; i < 2 * (1 << 16); i += 2)
+			Assert.assertTrue(rb.checkedAdd(i));
+		for (int i = 1; i < 2 * (1 << 16); i += 2)
+			Assert.assertTrue(rb.checkedAdd(i));
+		// Checking if the false value is well returned
+		// when adding already existing ints
+		for (int i = 0; i < 2 * (1 << 16); i += 2)
+			Assert.assertFalse(rb.checkedAdd(i));
+		for (int i = 1; i < 2 * (1 << 16) + 1; i += 2)
+			Assert.assertFalse(rb.checkedAdd(i));
+	}
 
 	@Test
 	public void testFlip() {
