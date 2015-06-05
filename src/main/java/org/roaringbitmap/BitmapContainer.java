@@ -805,7 +805,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
     public Container iremove(int begin, int end) {
        Util.resetBitmapRange(bitmap,begin,end);
        computeCardinality(); 
-       if(getCardinality() < ArrayContainer.DEFAULT_MAX_SIZE)
+       if(getCardinality() <= ArrayContainer.DEFAULT_MAX_SIZE)
            return toArrayContainer();
        return this;
     }
@@ -841,7 +841,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
         BitmapContainer answer = clone();
         Util.resetBitmapRange(answer.bitmap, begin, end);
         answer.computeCardinality(); 
-        if (answer.getCardinality() < ArrayContainer.DEFAULT_MAX_SIZE)
+        if (answer.getCardinality() <= ArrayContainer.DEFAULT_MAX_SIZE)
             return answer.toArrayContainer();
         return answer;
     }

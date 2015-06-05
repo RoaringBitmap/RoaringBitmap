@@ -16,7 +16,7 @@ import java.util.Iterator;
 public final class ArrayContainer extends Container implements Cloneable, Serializable {
     private static final int DEFAULT_INIT_SIZE = 4;
 
-    static final int DEFAULT_MAX_SIZE = 4096;
+    static final int DEFAULT_MAX_SIZE = 4096;// containers with DEFAULT_MAX_SZE or less integers should be ArrayContainers
 
     private static final long serialVersionUID = 1L;
 
@@ -287,7 +287,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         if (cardinalityChange > 0) { // expansion, right shifting needed
             if (newCardinality > content.length) {
                 // so big we need a bitmap?
-                if (newCardinality >= DEFAULT_MAX_SIZE)
+                if (newCardinality > DEFAULT_MAX_SIZE)
                     return toBitmapContainer().inot(firstOfRange, lastOfRange);
                 content = Arrays.copyOf(content, newCardinality);
             }
@@ -416,7 +416,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         final int cardinalityChange = newValuesInRange - currentValuesInRange;
         final int newCardinality = cardinality + cardinalityChange;
 
-        if (newCardinality >= DEFAULT_MAX_SIZE)
+        if (newCardinality > DEFAULT_MAX_SIZE)
             return toBitmapContainer().not(firstOfRange, lastOfRange);
 
         ArrayContainer answer = new ArrayContainer(newCardinality);
@@ -630,7 +630,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
 		else indexend++;
 		int rangelength = end - begin;
 		int newcardinality = indexstart + (cardinality - indexend) + rangelength;
-		if (newcardinality >= DEFAULT_MAX_SIZE) {
+		if (newcardinality > DEFAULT_MAX_SIZE) {
 			BitmapContainer a = this.toBitmapContainer();
 			return a.iadd(begin, end);
 		}
@@ -708,7 +708,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         int rangelength = end - begin;
         int newcardinality = indexstart + (cardinality - indexend)
                 + rangelength;
-        if (newcardinality >= DEFAULT_MAX_SIZE) {
+        if (newcardinality > DEFAULT_MAX_SIZE) {
             BitmapContainer a = this.toBitmapContainer();
             return a.iadd(begin, end);
         }

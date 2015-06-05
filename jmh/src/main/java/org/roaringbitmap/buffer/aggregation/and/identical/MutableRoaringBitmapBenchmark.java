@@ -1,7 +1,6 @@
 package org.roaringbitmap.buffer.aggregation.and.identical;
 
 import org.openjdk.jmh.annotations.*;
-import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 import java.util.concurrent.TimeUnit;
