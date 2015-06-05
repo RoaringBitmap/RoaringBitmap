@@ -1166,7 +1166,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         // hoping that iterator overhead can be largely optimized away, dunno...
 
         ShortIterator it = getShortIterator();  // rely on unsigned ordering
-        ShortIterator xIt = getShortIterator();
+        ShortIterator xIt = x.getShortIterator();
         
         thisHead = (it.hasNext() ?  Util.toIntUnsigned(it.next()) : -1);
         xHead =  (xIt.hasNext() ?  Util.toIntUnsigned(xIt.next()) : -1);
@@ -1239,7 +1239,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         int thisHead, xHead; // -1 means end of run
         
         ShortIterator it = getShortIterator();  
-        ShortIterator xIt = getShortIterator();
+        ShortIterator xIt = x.getShortIterator();
         
         thisHead = (it.hasNext() ?  Util.toIntUnsigned(it.next()) : -1);
         xHead =  (xIt.hasNext() ?  Util.toIntUnsigned(xIt.next()) : -1);

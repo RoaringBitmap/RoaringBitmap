@@ -1705,6 +1705,27 @@ public class TestRunContainer {
         assertTrue(r5.equals(b5));
     	set.add(r5);
     	setb.add(b5);
+
+    	RunContainer r6 = new RunContainer();
+    	Container b6 = new ArrayContainer();
+    	for(int k = 0; k+1 < 65536; k += 7) {
+            r6 = (RunContainer) r6.iadd(k,k+1);
+    	    b6 = b6.iadd(k,k+1);
+    	}
+        assertTrue(r6.equals(b6));
+    	set.add(r6);
+    	setb.add(b6);
+
+
+    	RunContainer r7 = new RunContainer();
+    	Container b7 = new ArrayContainer();
+    	for(int k = 0; k+1 < 65536; k += 11) {
+            r7 = (RunContainer) r7.iadd(k,k+1);
+    	    b7 = b7.iadd(k,k+1);
+    	}
+        assertTrue(r7.equals(b7));
+    	set.add(r7);
+    	setb.add(b7);
     	
     }
 
@@ -1769,9 +1790,31 @@ public class TestRunContainer {
     			assertTrue(set.get(l).equals(setb.get(l)));
     			Container c1 = set.get(k).or(set.get(l));
     			Container c2 = setb.get(k).or(setb.get(l));
-                assertTrue(c1.equals(c2));
+                        assertTrue(c1.equals(c2));
     		}
     	}    	    	    	
     }
+
+    /*
+    @Test
+    public void RunContainerVSRunContainerSimpleOR() {
+        RunContainer r1 = new RunContainer();
+        RunContainer r2 = new RunContainer();
+
+        r1.iadd(1,2); r1.iadd(4,5); r1.iadd(20,21);
+        r2.iadd(1,2); r2.iadd(10,11); r2.iadd(16,17);
+
+        Container result = r1.or(r2);
+        for (short i : new short[] {1,4,10,16,20}) 
+            //assertTrue(result.contains(i));
+            if (result.contains(i)) System.out.println("I see "+i);
+        assertEquals(5, result.getCardinality());
+
+    }
+    */
+
+
+
+
 
 }
