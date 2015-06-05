@@ -32,6 +32,12 @@ public class TestRunContainer {
         rc.iremove(0, 1<<20);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void iremoveInvalidRange2() {
+        Container rc = new RunContainer();
+        rc.remove(0, 1<<20);
+    }
+
     @Test
     public void iremove1() {
         Container rc = new RunContainer();
@@ -653,7 +659,11 @@ public class TestRunContainer {
     }
 
     @Test(expected = IllegalArgumentException.class)
+<<<<<<< HEAD
     public void iaddRangeInvalid2() {
+=======
+    public void iaddInvalidRange2() {
+>>>>>>> 1cd8ee05bb1a6ecd800af2be454b688a25557651
         Container rc = new RunContainer();
         rc.iadd(0, 1<<20);
     }
@@ -1408,7 +1418,7 @@ public class TestRunContainer {
         container.add((short) 64);
         container.add((short) 256);
 
-        RunContainer result = (RunContainer) container.not(64,66); 
+        RunContainer result = (RunContainer) container.not(64,66);
         assertEquals(5, result.getCardinality());
         for (short i : new short[] {0,2,55,65,256})
             assertTrue(result.contains(i));
@@ -1419,7 +1429,7 @@ public class TestRunContainer {
     public void not3() {
         RunContainer container = new RunContainer();
         // applied to a run-less container
-        RunContainer result = (RunContainer) container.not(64,68); 
+        RunContainer result = (RunContainer) container.not(64,68);
         assertEquals(4, result.getCardinality());
         for (short i : new short[] {64,65,66,67})
             assertTrue(result.contains(i));
@@ -1435,7 +1445,7 @@ public class TestRunContainer {
         container.add((short) 256);
 
         // all runs are before the range
-        RunContainer result = (RunContainer) container.not(300,303); 
+        RunContainer result = (RunContainer) container.not(300,303);
         assertEquals(8, result.getCardinality());
         for (short i : new short[] {0,2,55,64,256,300,301,302})
             assertTrue(result.contains(i));
