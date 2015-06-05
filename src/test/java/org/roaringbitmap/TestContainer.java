@@ -687,9 +687,9 @@ public class TestContainer {
 
         Container result = ac.xor( ac1.getShortIterator());
         assertTrue(checkContent(result, new short [] {3,4}));
-    }                
-        
-       
+    }      
+
+
 
     public static boolean checkContent(Container c, short[] s) {
         ShortIterator si = c.getShortIterator();

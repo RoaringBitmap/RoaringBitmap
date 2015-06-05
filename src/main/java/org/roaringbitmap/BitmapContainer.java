@@ -882,9 +882,9 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
             Util.resetBitmapRange(answer.bitmap, start, end);
         }
         answer.computeCardinality();
-        if(getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
-            return this;
-        else return toArrayContainer();
+        if(answer.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
+            return answer;
+        else return answer.toArrayContainer();
     }
 
     @Override

@@ -1157,7 +1157,9 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         return Arrays.copyOf(content, newCapacity);
     }
 
-    // generic merge algorithm, Array output
+    // generic merge algorithm, Array output.  Should be possible to
+    // improve on it for AND and ANDNOT, at least.
+
     private Container operationArrayGuess(RunContainer x, int opcode) {
         short [] ansArray = new short[10]; 
         int card = 0;
