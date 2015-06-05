@@ -21,7 +21,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         Cloneable, Serializable {
     private static final int DEFAULT_INIT_SIZE = 4;
 
-    protected static final int DEFAULT_MAX_SIZE = 4096;
+    protected static final int DEFAULT_MAX_SIZE = 4096; // containers with DEFAULT_MAX_SZE or less integers should be ArrayContainers
 
     private static final long serialVersionUID = 1L;
 
@@ -392,7 +392,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         if (cardinalityChange > 0) { // expansion, right shifting needed
             if (newCardinality > content.limit()) {
                 // so big we need a bitmap?
-                if (newCardinality >= DEFAULT_MAX_SIZE)
+                if (newCardinality > DEFAULT_MAX_SIZE)
                     return toBitmapContainer().inot(firstOfRange, lastOfRange);
                 final ShortBuffer co = ShortBuffer.allocate(newCardinality);
                 content.rewind();
@@ -526,7 +526,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         final int cardinalityChange = newValuesInRange - currentValuesInRange;
         final int newCardinality = cardinality + cardinalityChange;
 
-        if (newCardinality >= DEFAULT_MAX_SIZE)
+        if (newCardinality > DEFAULT_MAX_SIZE)
             return toBitmapContainer().not(firstOfRange, lastOfRange);
 
         final MappeableArrayContainer answer = new MappeableArrayContainer(
@@ -870,7 +870,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 	        int rangelength = end - begin;
 	        int newcardinality = indexstart + (cardinality - indexend)
 	                + rangelength;
-	        if (newcardinality >= DEFAULT_MAX_SIZE) {
+	        if (newcardinality > DEFAULT_MAX_SIZE) {
 	            MappeableBitmapContainer a = this.toBitmapContainer();
 	            return a.iadd(begin, end);
 	        }
@@ -918,7 +918,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 	        else indexend++;
 	        int rangelength = end - begin;
 	        int newcardinality = indexstart + (cardinality - indexend) + rangelength;
-	        if (newcardinality >= DEFAULT_MAX_SIZE) {
+	        if (newcardinality > DEFAULT_MAX_SIZE) {
 	            MappeableBitmapContainer a = this.toBitmapContainer();
 	            return a.iadd(begin, end);
 	        }
