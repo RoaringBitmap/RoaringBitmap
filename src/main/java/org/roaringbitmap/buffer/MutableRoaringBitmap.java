@@ -337,9 +337,33 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     public MutableRoaringBitmap() {
         highLowContainer = new MutableRoaringArray();
     }
+    /**
+     * Add the value to the container (set the value to "true"), whether it already appears or not.
+     *
+     * @param x integer value
+     * @return true if the added int wasn't already contained in the bitmap. False otherwise.
+     */
+    public boolean checkedAdd(final int x) {
+        final short hb = BufferUtil.highbits(x);
+        final int i = highLowContainer.getIndex(hb);
+        if (i >= 0) {
+        	MappeableContainer C = highLowContainer.getContainerAtIndex(i);
+        	int oldcard = C.getCardinality();
+        	C = C.add(BufferUtil.lowbits(x));
+            getMappeableRoaringArray().setContainerAtIndex(
+                    i,
+                    C);
+            return C.getCardinality() > oldcard;
+        } else {
+            final MappeableArrayContainer newac = new MappeableArrayContainer();
+            getMappeableRoaringArray().insertNewKeyValueAt(-i - 1, hb,
+                    newac.add(BufferUtil.lowbits(x)));
+            return true;
+        }
+    }
 
     /**
-     * set the value to "true", whether it already appears or not.
+     * Add the value to the container (set the value to "true"), whether it already appears or not.
      * 
      * @param x
      *            integer value
@@ -463,7 +487,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     }
     
     /**
-     * Remove the current bitmap all integers in [rangeStart,rangeEnd).
+     * Remove from the current bitmap all integers in [rangeStart,rangeEnd).
      *
      * @param rangeStart inclusive beginning of range
      * @param rangeEnd   exclusive ending of range
@@ -836,6 +860,34 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         getMappeableRoaringArray().readExternal(in);
 
     }
+    
+
+	/**
+	 * If present remove the specified integer (effectively, sets its bit value
+	 * to false)
+	 *
+	 * @param x
+	 *            integer value representing the index in a bitmap
+	 * @return true if the unset bit was already in the bitmap
+	 */
+	public boolean checkedRemove(final int x) {
+		final short hb = BufferUtil.highbits(x);
+		final int i = highLowContainer.getIndex(hb);
+		if (i < 0)
+			return false;
+		MappeableContainer C = highLowContainer.getContainerAtIndex(i);
+		int oldcard = C.getCardinality();
+		C.remove(BufferUtil.lowbits(x));
+		int newcard = C.getCardinality();
+		if (newcard == oldcard)
+			return false;
+		if (newcard > 0) {
+			((MutableRoaringArray) highLowContainer).setContainerAtIndex(i, C);
+		} else {
+			((MutableRoaringArray) highLowContainer).removeAtIndex(i);
+		}
+		return true;
+	}
 
     /**
      * If present remove the specified integers (effectively, sets its bit value
