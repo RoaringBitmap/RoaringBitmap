@@ -3,6 +3,7 @@ package org.roaringbitmap;
 import org.junit.Test;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Iterator;
 
@@ -1655,6 +1656,122 @@ public class TestRunContainer {
             not14once(50000,100);
         }
     }
+    
+    
+    private static void getSetOfRunContainers(ArrayList<RunContainer> set, ArrayList<Container> setb) {
+    	RunContainer r1 = new RunContainer();
+    	r1 = (RunContainer) r1.iadd(0, (1<<16));
+    	Container b1 = new ArrayContainer();
+    	b1 = b1.iadd(0, 1<<16);
+        assertTrue(r1.equals(b1));
 
-   
+    	set.add(r1);
+    	setb.add(b1);
+    	
+    	RunContainer r2 = new RunContainer();
+    	r2 = (RunContainer) r2.iadd(0, 4096);
+    	Container b2 = new ArrayContainer();
+    	b2 = b2.iadd(0, 4096);
+    	set.add(r2);
+    	setb.add(b2);
+        assertTrue(r2.equals(b2));
+    	
+    	RunContainer r3 = new RunContainer();
+    	Container b3 = new ArrayContainer();
+    	for(int k = 0; k < 655536; k += 2) {
+    		r3 = (RunContainer) r3.add((short) k);
+    		b3 = b3.add((short) k);
+    	}
+        assertTrue(r3.equals(b3));
+    	set.add(r3);
+    	setb.add(b3);
+    	
+    	RunContainer r4 = new RunContainer();
+    	Container b4 = new ArrayContainer();
+    	for(int k = 0; k < 655536; k += 256) {
+    		r4 = (RunContainer) r4.add((short) k);
+    		b4 = b4.add((short) k);
+    	}
+        assertTrue(r4.equals(b4));
+    	set.add(r4);
+    	setb.add(b4);
+    	
+    	RunContainer r5 = new RunContainer();
+    	Container b5 = new ArrayContainer();
+    	for(int k = 0; k + 4096 < 65536; k += 4096) {
+    		r5 = (RunContainer) r5.iadd(k,k+256);
+    		b5 = b5.iadd(k,k+256);
+    	}
+        assertTrue(r5.equals(b5));
+    	set.add(r5);
+    	setb.add(b5);
+    	
+    }
+
+    
+    @Test
+    public void RunContainerVSRunContainerAND() {
+    	ArrayList<RunContainer> set = new ArrayList<RunContainer>();
+    	ArrayList<Container> setb = new ArrayList<Container>();
+    	getSetOfRunContainers( set, setb);
+    	for(int k = 0; k < set.size(); ++k ) {
+    		for(int l = 0; l < set.size(); ++l) {
+    			assertTrue(set.get(k).equals(setb.get(k)));
+    			assertTrue(set.get(l).equals(setb.get(l)));
+    			Container c1 = set.get(k).and(set.get(l));
+    			Container c2 = setb.get(k).and(setb.get(l));
+                assertTrue(c1.equals(c2));
+    		}
+    	}
+    }
+
+    @Test
+    public void RunContainerVSRunContainerANDNOT() {
+    	ArrayList<RunContainer> set = new ArrayList<RunContainer>();
+    	ArrayList<Container> setb = new ArrayList<Container>();
+    	getSetOfRunContainers( set, setb);
+    	for(int k = 0; k < set.size(); ++k ) {
+    		for(int l = 0; l < set.size(); ++l) {
+    			assertTrue(set.get(k).equals(setb.get(k)));
+    			assertTrue(set.get(l).equals(setb.get(l)));
+    			Container c1 = set.get(k).andNot(set.get(l));
+    			Container c2 = setb.get(k).andNot(setb.get(l));
+                assertTrue(c1.equals(c2));
+    		}
+    	}    	
+    }
+
+    @Test
+    public void RunContainerVSRunContainerXOR() {
+    	ArrayList<RunContainer> set = new ArrayList<RunContainer>();
+    	ArrayList<Container> setb = new ArrayList<Container>();
+    	getSetOfRunContainers( set, setb);
+    	for(int k = 0; k < set.size(); ++k ) {
+    		for(int l = 0; l < set.size(); ++l) {
+    			assertTrue(set.get(k).equals(setb.get(k)));
+    			assertTrue(set.get(l).equals(setb.get(l)));
+    			Container c1 = set.get(k).xor(set.get(l));
+    			Container c2 = setb.get(k).xor(setb.get(l));
+                assertTrue(c1.equals(c2));
+    		}
+    	}    	    	
+    }
+
+
+    @Test
+    public void RunContainerVSRunContainerOR() {
+    	ArrayList<RunContainer> set = new ArrayList<RunContainer>();
+    	ArrayList<Container> setb = new ArrayList<Container>();
+    	getSetOfRunContainers( set, setb);
+    	for(int k = 0; k < set.size(); ++k ) {
+    		for(int l = 0; l < set.size(); ++l) {
+    			assertTrue(set.get(k).equals(setb.get(k)));
+    			assertTrue(set.get(l).equals(setb.get(l)));
+    			Container c1 = set.get(k).or(set.get(l));
+    			Container c2 = setb.get(k).or(setb.get(l));
+                assertTrue(c1.equals(c2));
+    		}
+    	}    	    	    	
+    }
+
 }

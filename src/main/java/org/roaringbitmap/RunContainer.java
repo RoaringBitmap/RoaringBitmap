@@ -770,7 +770,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public Container iadd(int begin, int end) {
-        if(begin >= end) {
+        if((begin >= end) || (end > (1<<16))) {
             throw new IllegalArgumentException("Invalid range [" + begin + "," + end + "]");
         }
 
