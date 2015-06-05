@@ -70,7 +70,128 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         }
         return answer;
     }
+    
+    /**
+	 * Sets the bits in the given range, from rangeStart (inclusive)
+	 * rangeEnd (exclusive). The given bitmap is unchanged.
+	 * 
+	 * @param bm
+	 *            bitmap being negated
+	 * @param rangeStart
+	 *            inclusive beginning of range
+	 * @param rangeEnd
+	 *            exclusive ending of range
+	 * @return a new Bitmap
+	 */
+	public static RoaringBitmap set(RoaringBitmap bm, final int rangeStart,
+			final int rangeEnd) {
+		if (rangeStart >= rangeEnd)
+			return bm.clone();
 
+		RoaringBitmap answer = new RoaringBitmap();
+		short hbStart = Util.highbits(rangeStart);
+		final short lbStart = Util.lowbits(rangeStart);
+		short hbLast = Util.highbits(rangeEnd - 1);
+		final short lbLast = Util.lowbits(rangeEnd - 1);
+
+		// copy the containers before the active area
+		answer.highLowContainer.appendCopiesUntil(bm.highLowContainer, hbStart);
+
+		final int max = Util.toIntUnsigned(Util.maxLowBit());
+		final int containerStart = Util.toIntUnsigned(lbStart);
+		final int containerLast = Util.toIntUnsigned(lbLast);
+		// should be faster as we omit the previous conditional branchements
+		// from inside the loop
+		if (hbStart == hbLast) {
+			setContainers(containerStart, containerLast, hbStart, hbLast,
+					bm.highLowContainer, answer.highLowContainer);
+		} else {
+			setContainers(containerStart, max, hbStart, hbStart,
+					bm.highLowContainer, answer.highLowContainer);
+			setContainers(0, max, ++hbStart, --hbLast, bm.highLowContainer,
+					answer.highLowContainer);
+			hbLast++;
+			setContainers(0, containerLast, hbLast, hbLast,
+					bm.highLowContainer, answer.highLowContainer);
+		}
+		// copy the containers after the active area.
+		answer.highLowContainer.appendCopiesAfter(bm.highLowContainer, hbLast);
+
+		return answer;
+	}
+
+	/**
+	 * In-place setting the bits in the given range, from rangeStart (inclusive)
+	 * rangeEnd (exclusive). The given bitmap is will be changed.
+	 * 
+	 * @param bm
+	 *            bitmap being negated
+	 * @param rangeStart
+	 *            inclusive beginning of range
+	 * @param rangeEnd
+	 *            exclusive ending of range
+	 * @return a new Bitmap
+	 */
+	public void set(final int rangeStart, final int rangeEnd) {
+		if (rangeStart >= rangeEnd)
+			return; // empty range
+
+		short hbStart = Util.highbits(rangeStart);
+		final short lbStart = Util.lowbits(rangeStart);
+		short hbLast = Util.highbits(rangeEnd - 1);
+		final short lbLast = Util.lowbits(rangeEnd - 1);
+
+		final int max = Util.toIntUnsigned(Util.maxLowBit());
+		final int containerStart = Util.toIntUnsigned(lbStart);
+		final int containerLast = Util.toIntUnsigned(lbLast);
+		// should be faster as we omit the previous conditional branchements
+		// from inside the loop
+		if (hbStart == hbLast)
+			isetContainers(containerStart, containerLast, hbStart, hbLast);
+		else {
+			isetContainers(containerStart, max, hbStart, hbStart);			
+			isetContainers(0, max, ++hbStart, --hbLast);
+			hbLast++;
+			isetContainers(0, containerLast, hbLast, hbLast);
+		}
+	}
+
+	private void isetContainers(int containerStart, int containerLast,
+			short hbStart, short hbLast) {
+		for (short hb = hbStart; hb <= hbLast; ++hb) {
+			final int i = highLowContainer.getIndex(hb);
+
+			if (i >= 0) {
+				final Container c = highLowContainer.getContainerAtIndex(i)
+						.iset(containerStart, containerLast);
+				highLowContainer.setContainerAtIndex(i, c);
+			} else {
+				highLowContainer.insertNewKeyValueAt(-i - 1, hb,
+						Container.rangeOfOnes(containerStart, containerLast));
+			}
+		}
+	}
+
+	private static void setContainers(int containerStart, int containerLast,
+			short hbStart, short hbLast, RoaringArray bm, RoaringArray answer) {
+		for (short hb = hbStart; hb <= hbLast; hb++) {
+			final int i = bm.getIndex(hb);
+			final int j = answer.getIndex(hb);
+			assert j < 0;
+
+			if (i >= 0) {
+				final Container c = bm.getContainerAtIndex(i).set(
+						containerStart, containerLast);		
+				//it is supposed that the cardinality has grown
+				answer.insertNewKeyValueAt(-j - 1, hb, c);
+			} else {
+				answer.insertNewKeyValueAt(-j - 1, hb,
+						Container.rangeOfOnes(containerStart, containerLast));
+			}
+		}
+	}
+
+	
     /**
      * Bitwise ANDNOT (difference) operation. The provided bitmaps are *not*
      * modified. This operation is thread-safe as long as the provided
@@ -352,6 +473,32 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      */
     public RoaringBitmap() {
         highLowContainer = new RoaringArray();
+    }
+    
+    /**
+     * set the value to "true", whether it already appears or not.
+     *
+     * @param x integer value
+     * @return true if the added int wasn't already contained in the bitmap. False otherwise.
+     */
+    public boolean checkedAdd(final int x) {
+        final short hb = Util.highbits(x);
+        final int i = highLowContainer.getIndex(hb);
+        if (i >= 0) {
+        	Container c = highLowContainer.getContainerAtIndex(i);
+        	int oldCard = c.getCardinality();        	
+        	//we need to keep the newContainer if a switch between containers type
+        	//occur, in order to get the new cardinality
+        	c = c.add(Util.lowbits(x));
+            highLowContainer.setContainerAtIndex(i, c);
+            if(c.getCardinality()>oldCard)
+            	return true;
+        } else {
+            final ArrayContainer newac = new ArrayContainer();
+            highLowContainer.insertNewKeyValueAt(-i - 1, hb, newac.add(Util.lowbits(x)));
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -918,6 +1065,33 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         highLowContainer.setContainerAtIndex(i, highLowContainer.getContainerAtIndex(i).remove(Util.lowbits(x)));
         if (highLowContainer.getContainerAtIndex(i).getCardinality() == 0)
             highLowContainer.removeAtIndex(i);
+    }
+    
+    /**
+     * If present remove the specified integers (effectively, sets its bit
+     * value to false)
+     *
+     * @param x integer value representing the index in a bitmap
+     * @return true if the unset bit was already in the bitmap
+     */
+    public boolean checkedRemove(final int x) {
+        final short hb = Util.highbits(x);
+        final int i = highLowContainer.getIndex(hb);
+        if (i < 0)
+            return false;
+        Container c = highLowContainer.getContainerAtIndex(i);
+        int oldCard = c.getCardinality();
+        c = c.remove(Util.lowbits(x));
+        int newCard = c.getCardinality();
+        if(newCard==0){
+        	highLowContainer.removeAtIndex(i);
+        	return true;//can't be 0 before a remove
+        }
+        if(oldCard>newCard){
+        	highLowContainer.setContainerAtIndex(i, c);
+        	return true;
+        }
+        return false;
     }
 
     /**

@@ -39,6 +39,68 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     public ArrayContainer(final int capacity) {
         content = new short[capacity];
     }
+    
+    @Override
+    public Container set(final int firstOfRange, final int lastOfRange) {
+    	if (firstOfRange > lastOfRange)
+            return clone(); 
+    	
+        // determine the span of array indices to be affected
+        int startIndex = Util.unsignedBinarySearch(content, 0,
+        						cardinality, (short) firstOfRange);
+        if (startIndex < 0)
+            startIndex = -startIndex - 1;
+        int lastIndex = Util.unsignedBinarySearch(content, 0,
+                    cardinality, (short) lastOfRange);
+        if (lastIndex < 0)
+            lastIndex = -lastIndex - 1;        
+    	
+        int newcardinality = startIndex+(lastOfRange-firstOfRange+1)+(cardinality-lastIndex);
+        if(newcardinality>=DEFAULT_MAX_SIZE)
+        	return toBitmapContainer().set(firstOfRange, lastOfRange);
+    	ArrayContainer answer = new ArrayContainer(newcardinality);
+    	//copy elements before startIdx
+    	System.arraycopy(content, 0, answer.content, 0, startIndex);
+    	//add the specified set of elements    	
+    	short valInRange=(short)firstOfRange;
+    	int i=startIndex;
+    	while(valInRange<=lastOfRange)
+    		answer.content[i++]=valInRange++;
+    	//copy elements after lastIndex
+    	System.arraycopy(content, lastIndex, answer.content, i, cardinality-lastIndex);
+    	answer.cardinality = newcardinality;
+    	
+    	return answer;
+    }
+    
+    @Override
+    public Container iset(final int firstOfRange, final int lastOfRange) {
+    	if (firstOfRange > lastOfRange)
+            return this;
+    	
+        // determine the span of array indices to be affected
+        int startIndex = Util.unsignedBinarySearch(content, 0,
+        						cardinality, (short) firstOfRange);
+        if (startIndex < 0)
+            startIndex = -startIndex - 1;
+        int lastIndex = Util.unsignedBinarySearch(content, 0,
+                    cardinality, (short) lastOfRange);
+        if (lastIndex < 0)
+            lastIndex = -lastIndex - 1;       
+    	
+        int newcardinality = startIndex+(lastOfRange-firstOfRange+1)+(cardinality-lastIndex);        
+        if(newcardinality>=DEFAULT_MAX_SIZE)
+        	return toBitmapContainer().iset(firstOfRange, lastOfRange);
+        content = Arrays.copyOf(content, newcardinality);
+        System.arraycopy(content, lastIndex, content, newcardinality-(cardinality-lastIndex), cardinality-lastIndex);
+        //add the specified set of elements
+        short valInRange=(short)firstOfRange;
+    	for(int i=startIndex; valInRange<=lastOfRange; i++)
+    		content[i]=valInRange++;
+    	cardinality = newcardinality;
+    	
+    	return this;
+    }
 
     /**
      * Create an array container with a run of ones from firstOfRun to

@@ -27,6 +27,11 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
             return new BitmapContainer(start, last);
         return new ArrayContainer(start, last);
     }
+    
+    public abstract Container set(int rangeStart, int rangeEnd);
+    
+    public abstract Container iset(int rangeStart, int rangeEnd);
+    
 
     /**
      * Add a short to the container. May generate a new container.
