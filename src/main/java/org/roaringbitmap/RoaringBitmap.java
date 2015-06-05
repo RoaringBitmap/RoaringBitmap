@@ -353,9 +353,35 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     public RoaringBitmap() {
         highLowContainer = new RoaringArray();
     }
+    
+    /**
+     * Add the value to the container (set the value to "true"), whether it already appears or not.
+     *
+     * @param x integer value
+     * @return true if the added int wasn't already contained in the bitmap. False otherwise.
+     */
+    public boolean checkedAdd(final int x) {
+        final short hb = Util.highbits(x);
+        final int i = highLowContainer.getIndex(hb);
+        if (i >= 0) {
+        	Container c = highLowContainer.getContainerAtIndex(i);
+        	int oldCard = c.getCardinality();        	
+        	//we need to keep the newContainer if a switch between containers type
+        	//occur, in order to get the new cardinality
+        	Container newCont = c.add(Util.lowbits(x));
+            highLowContainer.setContainerAtIndex(i, newCont);
+            if(newCont.getCardinality()>oldCard)
+            	return true;
+        } else {
+            final ArrayContainer newac = new ArrayContainer();
+            highLowContainer.insertNewKeyValueAt(-i - 1, hb, newac.add(Util.lowbits(x)));
+            return true;
+        }
+        return false;
+    }
 
     /**
-     * set the value to "true", whether it already appears or not.
+     * Add the value to the container (set the value to "true"), whether it already appears or not.
      *
      * @param x integer value
      */
@@ -474,7 +500,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     }
     
     /**
-     * Remove the current bitmap all integers in [rangeStart,rangeEnd).
+     * Remove from  the current bitmap all integers in [rangeStart,rangeEnd).
      *
      * @param rangeStart inclusive beginning of range
      * @param rangeEnd   exclusive ending of range
@@ -904,8 +930,35 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         this.highLowContainer.readExternal(in);
     }
 
+	/**
+	 * If present remove the specified integer (effectively, sets its bit value
+	 * to false)
+	 *
+	 * @param x
+	 *            integer value representing the index in a bitmap
+	 * @return true if the unset bit was already in the bitmap
+	 */
+	public boolean checkedRemove(final int x) {
+		final short hb = Util.highbits(x);
+		final int i = highLowContainer.getIndex(hb);
+		if (i < 0)
+			return false;
+		Container C = highLowContainer.getContainerAtIndex(i);
+		int oldcard = C.getCardinality();
+		C.remove(Util.lowbits(x));
+		int newcard = C.getCardinality();
+		if (newcard == oldcard)
+			return false;
+		if (newcard > 0) {
+			highLowContainer.setContainerAtIndex(i, C);
+		} else {
+			highLowContainer.removeAtIndex(i);
+		}
+		return true;
+	}
+    
     /**
-     * If present remove the specified integers (effectively, sets its bit
+     * If present remove the specified integer (effectively, sets its bit
      * value to false)
      *
      * @param x integer value representing the index in a bitmap
