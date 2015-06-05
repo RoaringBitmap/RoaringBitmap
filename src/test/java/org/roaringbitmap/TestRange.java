@@ -12,9 +12,7 @@ import org.junit.Test;
 
 
 public class TestRange {
-	
-
-	
+    
 	@Test
 	public void testFlipRanges()  {
 		int N = 256;
