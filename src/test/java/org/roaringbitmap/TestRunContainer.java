@@ -21,9 +21,15 @@ public class TestRunContainer {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void iremove0() {
+    public void iremoveInvalidRange1() {
         Container rc = new RunContainer();
-        rc.remove(10, 9);
+        rc.iremove(10, 9);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void iremoveInvalidRange2() {
+        Container rc = new RunContainer();
+        rc.iremove(0, 1<<20);
     }
 
     @Test
@@ -641,9 +647,15 @@ public class TestRunContainer {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void iaddRange0() {
+    public void iaddInvalidRange1() {
         Container rc = new RunContainer();
         rc.iadd(10, 9);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void iaddRangeInvalid2() {
+        Container rc = new RunContainer();
+        rc.iadd(0, 1<<20);
     }
 
     @Test
