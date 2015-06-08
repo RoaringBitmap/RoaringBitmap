@@ -863,7 +863,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
     @Override
     public Container iremove(int begin, int end) {
         if((begin >= end) || (end > (1<<16))) {
-            throw new IllegalArgumentException("Invalid range [" + begin + "," + end + "]");
+            throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
         }
 
         if(begin == end-1) {

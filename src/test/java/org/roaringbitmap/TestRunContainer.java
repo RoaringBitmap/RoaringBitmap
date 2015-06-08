@@ -32,6 +32,12 @@ public class TestRunContainer {
         rc.iremove(0, 1<<20);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void iremoveInvalidRange2() {
+        Container rc = new RunContainer();
+        rc.remove(0, 1<<20);
+    }
+
     @Test
     public void iremove1() {
         Container rc = new RunContainer();
@@ -653,7 +659,11 @@ public class TestRunContainer {
     }
 
     @Test(expected = IllegalArgumentException.class)
+<<<<<<< HEAD
     public void iaddRangeInvalid2() {
+=======
+    public void iaddInvalidRange2() {
+>>>>>>> 6effb47180e24c93a9a042bd3922cf0ef6aaa664
         Container rc = new RunContainer();
         rc.iadd(0, 1<<20);
     }
