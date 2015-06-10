@@ -66,15 +66,15 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
         final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
 
         while (pos1 < length1 && pos2 < length2) {
-            short s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-            short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+            int s1 = BufferUtil.toIntUnsigned(x1.highLowContainer.getKeyAtIndex(pos1));
+            int s2 = BufferUtil.toIntUnsigned(x2.highLowContainer.getKeyAtIndex(pos2));
 
             if (s1 == s2) {
                 final MappeableContainer c1 = x1.highLowContainer.getContainerAtIndex(pos1);
                 final MappeableContainer c2 = x2.highLowContainer.getContainerAtIndex(pos2);
                 final MappeableContainer c = c1.and(c2);
                 if (c.getCardinality() > 0) {
-                    answer.getMappeableRoaringArray().append(s1, c);
+                    answer.getMappeableRoaringArray().append((short)s1, c);
                 }
                 ++pos1;
                 ++pos2;
@@ -105,14 +105,14 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
         final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
 
         while (pos1 < length1 && pos2 < length2) {
-            final short s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-            final short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+            final int s1 = BufferUtil.toIntUnsigned(x1.highLowContainer.getKeyAtIndex(pos1));
+            final int s2 = BufferUtil.toIntUnsigned(x2.highLowContainer.getKeyAtIndex(pos2));
             if (s1 == s2) {
                 final MappeableContainer c1 = x1.highLowContainer.getContainerAtIndex(pos1);
                 final MappeableContainer c2 = x2.highLowContainer.getContainerAtIndex(pos2);
                 final MappeableContainer c = c1.andNot(c2);
                 if (c.getCardinality() > 0) {
-                    answer.getMappeableRoaringArray().append(s1, c);
+                    answer.getMappeableRoaringArray().append((short)s1, c);
                 }
                 ++pos1;
                 ++pos2;
@@ -217,23 +217,25 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
                 .getContainerPointer();
         MappeableContainerPointer i2 = x2.highLowContainer
                 .getContainerPointer();
-
+        int s1 = BufferUtil.toIntUnsigned(i1.key()), 
+        	s2= BufferUtil.toIntUnsigned(i2.key());
         main: if (i1.hasContainer() && i2.hasContainer()) {
 
             while (true) {
-                if (i1.key() < i2.key()) {
+                if (s1 < s2) {
                     answer.getMappeableRoaringArray().appendCopy(i1.key(),
                             i1.getContainer());
                     i1.advance();
                     if (!i1.hasContainer())
                         break main;
-
-                } else if (i1.key() > i2.key()) {
+                    s1=BufferUtil.toIntUnsigned(i1.key());
+                } else if (s1 > s2) {
                     answer.getMappeableRoaringArray().appendCopy(i2.key(),
                             i2.getContainer());
                     i2.advance();
                     if (!i2.hasContainer())
                         break main;
+                    s2= BufferUtil.toIntUnsigned(i2.key());
 
                 } else {
                     answer.getMappeableRoaringArray().append(i1.key(),
@@ -242,6 +244,8 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
                     i2.advance();
                     if (!i1.hasContainer() || !i2.hasContainer())
                         break main;
+                    s1= BufferUtil.toIntUnsigned(i1.key());
+                    s2= BufferUtil.toIntUnsigned(i2.key());
                 }
             }
         }
@@ -284,22 +288,24 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
                 .getContainerPointer();
         MappeableContainerPointer i2 = x2.highLowContainer
                 .getContainerPointer();
+        int s1= BufferUtil.toIntUnsigned(i1.key()),
+        	s2= BufferUtil.toIntUnsigned(i2.key());
         main: if (i1.hasContainer() && i2.hasContainer()) {
             while (true) {
-                if (i1.key() < i2.key()) {
+                if (s1 < s2) {
                     answer.getMappeableRoaringArray().appendCopy(i1.key(),
                             i1.getContainer());
                     i1.advance();
                     if (!i1.hasContainer())
                         break main;
-
-                } else if (i1.key() > i2.key()) {
+                    s1= BufferUtil.toIntUnsigned(i1.key());
+                } else if (s1 > s2) {
                     answer.getMappeableRoaringArray().appendCopy(i2.key(),
                             i2.getContainer());
                     i2.advance();
                     if (!i2.hasContainer())
                         break main;
-
+                    s2= BufferUtil.toIntUnsigned(i2.key());
                 } else {
                     final MappeableContainer c = i1.getContainer().xor(
                             i2.getContainer());
@@ -309,6 +315,8 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
                     i2.advance();
                     if (!i1.hasContainer() || !i2.hasContainer())
                         break main;
+                    s1= BufferUtil.toIntUnsigned(i1.key());
+                    s2= BufferUtil.toIntUnsigned(i2.key());
                 }
             }
         }
