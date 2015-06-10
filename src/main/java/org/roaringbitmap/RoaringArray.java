@@ -24,6 +24,10 @@ public final class RoaringArray implements Cloneable, Externalizable {
         this.array = new Element[INITIAL_CAPACITY];
     }
 
+    protected void append(int key, Container value) {
+        append((short) key, value);
+    }
+
     protected void append(short key, Container value) {
         extendArray(1);
         this.array[this.size++] = new Element(key, value);
@@ -213,8 +217,8 @@ public final class RoaringArray implements Cloneable, Externalizable {
         return upper;
     }
 
-    protected short getKeyAtIndex(int i) {
-        return this.array[i].key;
+    protected int getKeyAtIndex(int i) {
+        return Util.toIntUnsigned(this.array[i].key);
     }
 
     @Override

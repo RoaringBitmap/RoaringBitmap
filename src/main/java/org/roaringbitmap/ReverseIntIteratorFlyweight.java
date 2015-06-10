@@ -80,7 +80,7 @@ public class ReverseIntIteratorFlyweight implements IntIterator {
             iter = arrIter;
          }
 
-         hs = Util.toIntUnsigned(this.roaringBitmap.highLowContainer.getKeyAtIndex(pos)) << 16;
+         hs = this.roaringBitmap.highLowContainer.getKeyAtIndex(pos) << 16;
       }
    }
 
