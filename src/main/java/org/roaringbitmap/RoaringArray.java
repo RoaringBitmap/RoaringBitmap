@@ -335,21 +335,21 @@ public final class RoaringArray implements Cloneable, Externalizable {
     public void serialize(DataOutput out) throws IOException {
         int startOffset=0;
         if (hasRunContainer()) {
-            System.out.println("!! writing with runcontainer(s)");
+            //System.out.println("!! writing with runcontainer(s)");
             out.writeInt(Integer.reverseBytes(SERIAL_COOKIE));
             out.writeInt(Integer.reverseBytes(size));
-            System.out.println("writing size as "+ size);
+            //System.out.println("writing size as "+ size);
             int [] bitmapOfRunContainers = new int[ (size+31)/32];
             for (int i=0; i < size; ++i)
                 if (this.array[i].value instanceof RunContainer)
                     bitmapOfRunContainers[ i/32] |= (1 << (i%32));
             for (int i=0; i < bitmapOfRunContainers.length; ++i)
                 out.writeInt(Integer.reverseBytes(bitmapOfRunContainers[i]));
-            System.out.println("writing "+bitmapOfRunContainers.length+" entries for bitofruncontainers");
+            //System.out.println("writing "+bitmapOfRunContainers.length+" entries for bitofruncontainers");
             startOffset = 4 + 4 + 4*this.size + 4*this.size + 4*bitmapOfRunContainers.length;
         }
         else {  // backwards compatibilility
-            System.out.println("!! writing compatability code, no runcontainer");
+            //System.out.println("!! writing compatability code, no runcontainer");
             out.writeInt(Integer.reverseBytes(SERIAL_COOKIE_NO_RUNCONTAINER));
             out.writeInt(Integer.reverseBytes(size));
             startOffset = 4 + 4 + 4*this.size + 4*this.size;
@@ -416,7 +416,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
         int [] bitmapOfRunContainers = null;
         if (cookie == SERIAL_COOKIE) {
-            System.out.println("deserialize detects runcontainers");
+            //System.out.println("deserialize detects runcontainers");
             bitmapOfRunContainers = new int[ (size+31)/32];
             for (int i=0; i < bitmapOfRunContainers.length; ++i)
                 bitmapOfRunContainers[i] = Integer.reverseBytes(in.readInt());
@@ -432,7 +432,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
             isBitmap[k] = cardinalities[k] > ArrayContainer.DEFAULT_MAX_SIZE;
             if (bitmapOfRunContainers != null &&
                 ( bitmapOfRunContainers[k/32] & (1<<(k%32))) != 0) {
-                System.out.println("deserialize detected container "+k+" is a runcontainer");
+                //System.out.println("deserialize detected container "+k+" is a runcontainer");
                 isBitmap[k] = false;
             }
         }
@@ -458,7 +458,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
                     for (int j = 0; j < 2 * nbrruns; ++j) 
                         lengthsAndValues[j] = Short.reverseBytes(in.readShort());
                     val = new RunContainer(lengthsAndValues);
-                    System.out.println("deserialize reads in runcont with "+ nbrruns+ " for "+k);
+                    //System.out.println("deserialize reads in runcont with "+ nbrruns+ " for "+k);
                 }
                 else
                 {

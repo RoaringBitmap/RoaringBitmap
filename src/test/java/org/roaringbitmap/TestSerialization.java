@@ -117,7 +117,7 @@ public class TestSerialization {
         return ints;
      }
 
-    /*
+    
   @Test
   public void testRunSerializationDeserialization() throws java.io.IOException {
       System.out.println("testRunSerializationDeserialization");
@@ -144,18 +144,17 @@ public class TestSerialization {
       for (int i=10; i < 20000; ++i){
           bitmap_a.add(i);
           bitmap_ar.add(i);
-  }
+      }
 
-        System.out.println("not skipping RunContainerization");
+      //System.out.println("not skipping RunContainerization");
         bitmap_a.runOptimize();  // mix of all 3 container kinds
-        RoaringBitmap bitmap_b = bitmap_a.clone(); 
 
         ByteBuffer outbuf = ByteBuffer.allocate(bitmap_a.serializedSizeInBytes());
         ByteBufferBackedOutputStream out = new ByteBufferBackedOutputStream(outbuf);
         try {
-            System.out.println("test serializes...");
+            // System.out.println("test serializes...");
            bitmap_a.serialize(new DataOutputStream(out));
-            System.out.println("test finishes serializing...");
+           // System.out.println("test finishes serializing...");
         } catch(Exception e) {
             e.printStackTrace();
         }
@@ -164,17 +163,15 @@ public class TestSerialization {
         RoaringBitmap bitmap_c = new RoaringBitmap();
 
         ByteBufferBackedInputStream in = new ByteBufferBackedInputStream(outbuf);
-        System.out.println("test requests deserialization");
+        //System.out.println("test requests deserialization");
         bitmap_c.deserialize(new DataInputStream(in));
-        System.out.println("deserial finished");
+        //System.out.println("deserial finished");
         // verify that the deserialized the thing serialized earlier
+        assertEquals(bitmap_a, bitmap_c);
 
-        
-        //assertEquals(bitmap_b, bitmap_c);
-
-        System.out.println("end of test");
+        //System.out.println("end of test");
   }
-    */
+   
 }
 
 

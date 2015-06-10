@@ -29,7 +29,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
     
     // needed for deserialization
     public RunContainer(short [] valueslength) {
-        this(valueslength.length, valueslength);
+        this(valueslength.length/2, valueslength);
     }
 
     // lower-level specialized implementations might be faster
