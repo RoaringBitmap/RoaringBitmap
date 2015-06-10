@@ -66,8 +66,8 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
         final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
 
         while (pos1 < length1 && pos2 < length2) {
-            int s1 = BufferUtil.toIntUnsigned(x1.highLowContainer.getKeyAtIndex(pos1));
-            int s2 = BufferUtil.toIntUnsigned(x2.highLowContainer.getKeyAtIndex(pos2));
+            final int s1 = BufferUtil.toIntUnsigned(x1.highLowContainer.getKeyAtIndex(pos1));
+            final int s2 = BufferUtil.toIntUnsigned(x2.highLowContainer.getKeyAtIndex(pos2));
 
             if (s1 == s2) {
                 final MappeableContainer c1 = x1.highLowContainer.getContainerAtIndex(pos1);

@@ -192,6 +192,21 @@ public class TestRoaringBitmap {
 		rbm2 = rbm1.clone();
 		Assert.assertTrue(rbm1.hashCode() == rbm2.hashCode());
 	}
+
+    @Test
+    public void sparseAndNot() {
+        final RoaringBitmap rr1 = new RoaringBitmap();
+        rr1.add(1);
+        rr1.add(1 << 31);
+        final RoaringBitmap rr2 = new RoaringBitmap();
+        rr2.add(1 << 31);
+        RoaringBitmap andNot = RoaringBitmap.andNot(rr1, rr2);
+        Assert.assertEquals(1, andNot.getCardinality());
+        Assert.assertTrue(andNot.contains(1));
+        rr1.andNot(rr2);
+        Assert.assertEquals(1, rr1.getCardinality());
+        Assert.assertTrue(andNot.contains(1));
+    }
 	
     @Test
     public void ANDNOTtest() {
@@ -299,6 +314,21 @@ public class TestRoaringBitmap {
         Assert.assertEquals(array.length, 1);
         Assert.assertEquals(array[0], 13);
 
+    }
+
+    @Test
+    public void sparseAnd() {
+        final RoaringBitmap rr1 = new RoaringBitmap();
+        rr1.add(1);
+        rr1.add(1 << 31);
+        final RoaringBitmap rr2 = new RoaringBitmap();
+        rr2.add(1 << 31);
+        RoaringBitmap and = RoaringBitmap.and(rr1, rr2);
+        Assert.assertEquals(1, and.getCardinality());
+        Assert.assertTrue(and.contains(1 << 31));
+        rr1.and(rr2);
+        Assert.assertEquals(1, rr1.getCardinality());
+        Assert.assertTrue(and.contains(1 << 31));
     }
 
     @Test
@@ -1045,6 +1075,23 @@ public class TestRoaringBitmap {
     }
 
     @Test
+    public void sparseOr() {
+        final RoaringBitmap rr1 = new RoaringBitmap();
+        rr1.add(1);
+        rr1.add(1 << 31);
+        final RoaringBitmap rr2 = new RoaringBitmap();
+        rr2.add(1 << 31);
+        RoaringBitmap or = RoaringBitmap.or(rr1, rr2);
+        Assert.assertEquals(2, or.getCardinality());
+        Assert.assertTrue(or.contains(1));
+        Assert.assertTrue(or.contains(1 << 31));
+        rr1.or(rr2);
+        Assert.assertEquals(2, rr1.getCardinality());
+        Assert.assertTrue(or.contains(1));
+        Assert.assertTrue(or.contains(1 << 31));
+    }
+
+    @Test
     public void ortest() {
         final RoaringBitmap rr = new RoaringBitmap();
         for (int k = 0; k < 4000; ++k) {
@@ -1522,6 +1569,20 @@ public class TestRoaringBitmap {
       Assert.assertTrue(rr.equals(rrback));
     }
 
+    @Test
+    public void sparseXor() {
+        final RoaringBitmap rr1 = new RoaringBitmap();
+        rr1.add(1);
+        rr1.add(1 << 31);
+        final RoaringBitmap rr2 = new RoaringBitmap();
+        rr2.add(1 << 31);
+        RoaringBitmap xor = RoaringBitmap.xor(rr1, rr2);
+        Assert.assertEquals(1, xor.getCardinality());
+        Assert.assertTrue(xor.contains(1));
+        rr1.xor(rr2);
+        Assert.assertEquals(1, rr1.getCardinality());
+        Assert.assertTrue(xor.contains(1));
+    }
 
     @Test
     public void XORtest() {
