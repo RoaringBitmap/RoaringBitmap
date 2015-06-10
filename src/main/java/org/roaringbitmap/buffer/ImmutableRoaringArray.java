@@ -216,18 +216,18 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         return buffer.getShort(4 * i + startofkeyscardinalities);
     }
 
-    public int advanceUntil(short x, int pos) {
+    public int advanceUntil(int x, int pos) {
         int lower = pos + 1;
 
         // special handling for a possibly common sequential case
-        if (lower >= size || getKey(lower) >= BufferUtil.toIntUnsigned(x)) {
+        if (lower >= size || getKey(lower) >= x) {
             return lower;
         }
 
         int spansize = 1; // could set larger
         // bootstrap an upper limit
 
-        while (lower + spansize < size && getKey(lower + spansize) < BufferUtil.toIntUnsigned(x))
+        while (lower + spansize < size && getKey(lower + spansize) < x)
             spansize *= 2; // hoping for compiler will reduce to shift
         int upper = (lower + spansize < size) ? lower + spansize : size - 1;
 
@@ -237,7 +237,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
             return upper;
         }
 
-        if (getKey(upper) < BufferUtil.toIntUnsigned(x)) {// means array has no item key >= x
+        if (getKey(upper) < x) {// means array has no item key >= x
             return size;
         }
 
@@ -248,9 +248,9 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         // invariant: array[lower]<x && array[upper]>x
         while (lower + 1 != upper) {
             int mid = (lower + upper) / 2;
-            if (getKey(mid) == BufferUtil.toIntUnsigned(x))
+            if (getKey(mid) == x)
                 return mid;
-            else if (getKey(mid) < BufferUtil.toIntUnsigned(x))
+            else if (getKey(mid) < x)
                 lower = mid;
             else
                 upper = mid;
