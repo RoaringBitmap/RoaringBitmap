@@ -617,8 +617,14 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
 
     @Override
     public int serializedSizeInBytes() {
+        return serializedSizeInBytes(0);
+    }
+    
+    // the parameter is for overloading and symmetry with ArrayContainer
+    public static int serializedSizeInBytes(int unusedCardinality) {
         return MAX_CAPACITY / 8;
     }
+
 
     /**
      * Copies the data to an array container

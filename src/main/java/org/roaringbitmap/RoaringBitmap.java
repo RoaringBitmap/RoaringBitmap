@@ -1069,6 +1069,14 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     }
 
 
+    /**
+     *  Use a run-length encoding where it is more space efficient
+     */
+    public void runOptimize() {
+        for (int i = 0; i < this.highLowContainer.size(); i++)
+            this.highLowContainer.setContainerAtIndex(i, this.highLowContainer.getContainerAtIndex(i).runOptimize());
+    }
+
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         this.highLowContainer.writeExternal(out);

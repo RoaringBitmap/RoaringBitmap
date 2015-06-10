@@ -13,6 +13,7 @@ import java.util.Random;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
+import static org.junit.Assert.*;
 
 public class TestSerialization {
     static RoaringBitmap bitmap_a;
@@ -29,6 +30,7 @@ public class TestSerialization {
 
     @Test
     public void testDeserialize() throws IOException {
+        //        System.out.println("testDeserialize");
         presoutbb.rewind();
         ByteBufferBackedInputStream in = new ByteBufferBackedInputStream(presoutbb);
         bitmap_b.deserialize(new DataInputStream(in));
@@ -64,9 +66,20 @@ public class TestSerialization {
         bitmap_a = RoaringBitmap.bitmapOf(data);
         bitmap_ar = MutableRoaringBitmap.bitmapOf(data);
         for(int k = 100000; k < 200000; ++k) {
-            bitmap_a.add(2 * k);
-            bitmap_ar.add(2 * k);
+            bitmap_a.add(3 * k);   // bitmap density and too many little runs
+            bitmap_ar.add(3 * k);
         }
+
+        /*  add back once RunContainer support exists in all Roaring flavours (Immutable, Mutable, etc)
+
+        for (int k=700000; k < 800000; ++k) {  // runcontainer would be best
+            bitmap_a.add(k);
+            bitmap_ar.add(k);
+        }
+
+        bitmap_a.runOptimize();  // mix of all 3 container kinds
+        */
+       
         outbb = ByteBuffer.allocate(bitmap_a.serializedSizeInBytes());
         presoutbb = ByteBuffer.allocate(bitmap_a.serializedSizeInBytes());
         ByteBufferBackedOutputStream out = new ByteBufferBackedOutputStream(presoutbb);
@@ -104,7 +117,67 @@ public class TestSerialization {
         return ints;
      }
 
+    /*
+  @Test
+  public void testRunSerializationDeserialization() throws java.io.IOException {
+      System.out.println("testRunSerializationDeserialization");
+      final int[] data = takeSortedAndDistinct(new Random(07734), 100000);
+      RoaringBitmap bitmap_a = RoaringBitmap.bitmapOf(data);
+      RoaringBitmap bitmap_ar = RoaringBitmap.bitmapOf(data);
+
+                                                
+      
+        // for(int k = 100000; k < 200000; ++k) {
+        //     bitmap_a.add(3 * k);   // bitmap density and too many little runs
+        //     bitmap_ar.add(3 * k);
+        // }
+
+        // for (int k=700000; k < 800000; ++k) {  // runcontainer would be best
+        //     bitmap_a.add(k);
+        //     bitmap_ar.add(k);
+        // }
+      
+
+      bitmap_a = new RoaringBitmap(); // temp
+      bitmap_ar = new RoaringBitmap(); // temp
+
+      for (int i=10; i < 20000; ++i){
+          bitmap_a.add(i);
+          bitmap_ar.add(i);
+  }
+
+        System.out.println("not skipping RunContainerization");
+        bitmap_a.runOptimize();  // mix of all 3 container kinds
+        RoaringBitmap bitmap_b = bitmap_a.clone(); 
+
+        ByteBuffer outbuf = ByteBuffer.allocate(bitmap_a.serializedSizeInBytes());
+        ByteBufferBackedOutputStream out = new ByteBufferBackedOutputStream(outbuf);
+        try {
+            System.out.println("test serializes...");
+           bitmap_a.serialize(new DataOutputStream(out));
+            System.out.println("test finishes serializing...");
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        outbuf.flip();
+
+        RoaringBitmap bitmap_c = new RoaringBitmap();
+
+        ByteBufferBackedInputStream in = new ByteBufferBackedInputStream(outbuf);
+        System.out.println("test requests deserialization");
+        bitmap_c.deserialize(new DataInputStream(in));
+        System.out.println("deserial finished");
+        // verify that the deserialized the thing serialized earlier
+
+        
+        //assertEquals(bitmap_b, bitmap_c);
+
+        System.out.println("end of test");
+  }
+    */
 }
+
+
 
 
 

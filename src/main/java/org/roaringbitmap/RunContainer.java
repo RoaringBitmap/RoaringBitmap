@@ -27,6 +27,36 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         this.valueslength = Arrays.copyOf(valueslength, valueslength.length);
     }
     
+    // needed for deserialization
+    public RunContainer(short [] valueslength) {
+        this(valueslength.length, valueslength);
+    }
+
+    // lower-level specialized implementations might be faster
+    public RunContainer( ShortIterator sIt, int nbrRuns) {
+        this.nbrruns = nbrRuns;
+        valueslength = new short[ 2*nbrRuns];
+        if (nbrRuns == 0) return;
+
+        int prevVal = -2; 
+        int runLen=0;
+        int runCount=0;
+        while (sIt.hasNext()) {
+            int curVal = Util.toIntUnsigned(sIt.next());
+            if (curVal == prevVal+1)
+                ++runLen;
+            else {
+                if (runCount > 0)
+                    setLength(runCount-1, (short) runLen); 
+                setValue(runCount, (short) curVal);
+                runLen=0;
+                ++runCount;
+            }
+            prevVal = curVal;
+        }
+        setLength(runCount-1, (short) runLen);
+    }
+    
     /**
      * Convert the container to either a Bitmap or an Array Container, depending
      * on the cardinality.
@@ -57,6 +87,23 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         return answer;
     }
 
+    /** 
+     *  Convert to Array or Bitmap container if the serialized form would be shorter
+     */
+
+     @Override
+     public Container runOptimize() {
+         int currentSize = serializedSizeInBytes();
+         int card = getCardinality(); 
+         if (card <= ArrayContainer.DEFAULT_MAX_SIZE) {
+             if (currentSize > ArrayContainer.serializedSizeInBytes(card))
+                 return toBitmapOrArrayContainer();
+         }
+         else if (currentSize > BitmapContainer.serializedSizeInBytes(card)) {
+             return toBitmapOrArrayContainer();
+         }
+         return this;
+     }
 
     private void increaseCapacity() {
         int newCapacity = (valueslength.length == 0) ? DEFAULT_INIT_SIZE : valueslength.length < 64 ? valueslength.length * 2
@@ -358,7 +405,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     protected int getArraySizeInBytes() {
-        return 2 + 4 * this.nbrruns;
+        return 2+4*this.nbrruns;  // "array" includes its size
     }
 
     @Override
@@ -682,7 +729,11 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public int serializedSizeInBytes() {
-        return 2 + 2 * nbrruns;
+        return serializedSizeInBytes(nbrruns);
+    }
+
+    public static int serializedSizeInBytes( int numberOfRuns) {
+        return 2 + 2 * 2 * numberOfRuns;  // each run requires 2 2-byte entries.
     }
 
     @Override

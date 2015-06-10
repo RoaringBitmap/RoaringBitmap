@@ -11,6 +11,7 @@ import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertSame;
 
 /**
  * Various tests on Container and its subclasses, ArrayContainer and
@@ -688,6 +689,86 @@ public class TestContainer {
         Container result = ac.xor( ac1.getShortIterator());
         assertTrue(checkContent(result, new short [] {3,4}));
     }      
+
+
+
+    @Test
+    public void testRunOptimize1() {
+        ArrayContainer ac = new ArrayContainer();
+        for (short s : new short [] {1, 3,4,5,6,7,8,9, (short) 50000, (short) 50001})
+            ac.add(s);
+        Container c = ac.runOptimize();
+        assertTrue(c instanceof RunContainer);
+        assertEquals(ac,c);
+    }
+
+
+    public void testRunOptimize1A() {
+        ArrayContainer ac = new ArrayContainer();
+        for (short s : new short [] {1, 3,4 ,6 ,8,9, (short) 50000, (short) 50003})
+            ac.add(s);
+        Container c = ac.runOptimize();
+        assertTrue(c instanceof ArrayContainer);
+        assertSame(ac,c);
+    }
+
+
+  @Test
+    public void testRunOptimize2() {
+        BitmapContainer bc = new BitmapContainer();
+        for (int i=0; i < 40000; ++i)
+            bc.add((short) i);
+        Container c = bc.runOptimize();
+        assertTrue(c instanceof RunContainer);
+        assertEquals(bc,c);
+    }
+
+  @Test
+    public void testRunOptimize2A() {
+        BitmapContainer bc = new BitmapContainer();
+        for (int i=0; i < 40000; i += 2)
+            bc.add((short) i);
+        Container c = bc.runOptimize();
+        assertTrue(c instanceof BitmapContainer);
+        assertSame(c,bc);
+    }
+
+
+
+
+  @Test
+    public void testRunOptimize3() {
+        RunContainer rc = new RunContainer();
+        for (short s : new short [] {1, 3,4,5,6,7,8,9, (short) 50000, (short) 50001})
+            rc.add(s);
+        Container c = rc.runOptimize();
+        assertTrue(c instanceof RunContainer);
+        assertSame(c,rc);
+    }
+
+
+
+  @Test
+    public void testRunOptimize3A() {
+        RunContainer rc = new RunContainer();
+        for (short s : new short [] {1, 3,5,7,9,11,17, 21, (short) 50000, (short) 50002})
+            rc.add(s);
+        Container c = rc.runOptimize();
+        assertTrue(c instanceof ArrayContainer);
+        assertEquals(c,rc);
+    }
+
+
+  @Test
+    public void testRunOptimize3B() {
+        RunContainer rc = new RunContainer();
+        for (short i=100; i < 30000; i += 2)
+            rc.add(i);
+        Container c = rc.runOptimize();
+        assertTrue(c instanceof BitmapContainer);
+        assertEquals(c,rc);
+    }
+
 
 
 

@@ -586,8 +586,14 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
 
     @Override
     public int serializedSizeInBytes() {
+        return serializedSizeInBytes(cardinality);
+    }
+
+
+    public static int serializedSizeInBytes( int cardinality) {
         return cardinality * 2 + 2;
     }
+
 
     /**
      * Copies the data in a bitmap container.
@@ -896,6 +902,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
     public Container xor(RunContainer x) {
         return x.xor(this);
     }
+
 }
 
 
