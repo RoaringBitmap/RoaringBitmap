@@ -11,6 +11,7 @@ import static org.junit.Assert.*;
 import org.junit.Assert;
 import org.junit.Test;
 import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.RoaringBitmap;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -22,6 +23,29 @@ import java.util.*;
  */
 @SuppressWarnings({"static-method", "javadoc"})
 public class TestRoaringBitmap {
+	@Test
+	public void testHighBits() {
+		for (int offset = 1 << 14; offset < 1 << 18; offset *= 2) {
+			MutableRoaringBitmap rb = new MutableRoaringBitmap();
+			RoaringBitmap srb = new RoaringBitmap();
+			for (long k = Integer.MIN_VALUE; k < Integer.MAX_VALUE; k += offset) {
+				rb.add((int) k);
+				srb.add((int)k);
+			}
+			int cardinality = 0;
+			for (long k = Integer.MIN_VALUE; k < Integer.MAX_VALUE; k += offset) {
+				Assert.assertTrue(rb.contains((int) k));
+				++cardinality;
+			}
+			int[] array = rb.toArray();
+			int[] sarray = srb.toArray();
+			Assert.assertTrue(Arrays.equals(sarray, array));
+			Assert.assertTrue(array.length == cardinality);
+			for(int k = 0; k < array.length - 1; ++k) {
+				Assert.assertTrue(array[k] <= array[k + 1]);
+			}
+		}
+	}
 	
 
 	@Test

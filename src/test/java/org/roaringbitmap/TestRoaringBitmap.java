@@ -18,6 +18,33 @@ import java.util.*;
 @SuppressWarnings({"static-method", "javadoc"})
 public class TestRoaringBitmap {
 	
+	@Test
+	public void sillytestHighBits() {
+		RoaringBitmap rb = RoaringBitmap.bitmapOf(-1,0);
+		int[] array = rb.toArray();
+		Assert.assertTrue(array[0] == -1);
+		Assert.assertTrue(array[1] == 0);
+	}
+	
+	@Test
+	public void testHighBits() {
+		for (int offset = 1 << 14; offset < 1 << 18; offset *= 2) {
+			RoaringBitmap rb = new RoaringBitmap();
+			for (long k = Integer.MIN_VALUE; k < Integer.MAX_VALUE; k += offset) {
+				rb.add((int) k);
+			}
+			int cardinality = 0;
+			for (long k = Integer.MIN_VALUE; k < Integer.MAX_VALUE; k += offset) {
+				Assert.assertTrue(rb.contains((int) k));
+				++cardinality;
+			}
+			int[] array = rb.toArray();
+			Assert.assertTrue(array.length == cardinality);
+			for(int k = 0; k < array.length - 1; ++k) {
+				Assert.assertTrue(array[k] <= array[k + 1]);
+			}
+		}
+	}
 	
 
 	@Test
