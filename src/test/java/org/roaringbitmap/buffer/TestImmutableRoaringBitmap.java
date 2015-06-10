@@ -21,7 +21,64 @@ import java.util.Random;
  */
 @SuppressWarnings({"static-method", "javadoc"})
 public class TestImmutableRoaringBitmap {
-    
+	@Test
+	public void testHighBits() throws IOException {
+		for (int offset = 1 << 14; offset < 1 << 18; offset *= 2) {
+			MutableRoaringBitmap rb = new MutableRoaringBitmap();
+			for (long k = Integer.MIN_VALUE; k < Integer.MAX_VALUE; k += offset) {
+				rb.add((int) k);
+			}
+			for (long k = Integer.MIN_VALUE; k < Integer.MAX_VALUE; k += offset) {
+				Assert.assertTrue(rb.contains((int) k));
+			}
+			int[] array = rb.toArray();
+			int pos = 0;
+			for (long k = Integer.MIN_VALUE; k < Integer.MAX_VALUE; k += offset) {
+				Assert.assertTrue(array[pos++] == (int)k);
+			}
+			assert(pos == array.length);
+			ByteBuffer b = ByteBuffer.allocate(rb.serializedSizeInBytes());
+            rb.serialize(new DataOutputStream(new OutputStream() {
+                ByteBuffer mBB;
+
+                OutputStream init(final ByteBuffer mbb) {
+                    mBB = mbb;
+                    return this;
+                }
+
+                public void close() {
+                }
+
+                public void flush() {
+                }
+
+                public void write(final int b) {
+                    mBB.put((byte) b);
+                }
+
+                public void write(final byte[] b) {
+                    mBB.put(b);
+                }
+
+                public void write(final byte[] b, final int off, final int l) {
+                    mBB.put(b, off, l);
+                }
+            }.init(b)));
+            b.flip();
+            ImmutableRoaringBitmap irb = new ImmutableRoaringBitmap(b);
+            Assert.assertTrue(irb.equals(rb));
+			for (long k = Integer.MIN_VALUE; k < Integer.MAX_VALUE; k += offset) {
+				Assert.assertTrue(irb.contains((int) k));
+			}
+			array = irb.toArray();
+			pos = 0;
+			for (long k = Integer.MIN_VALUE; k < Integer.MAX_VALUE; k += offset) {
+				Assert.assertTrue(array[pos++] == (int)k);
+			}
+			assert(pos == array.length);
+		}
+	}
+
     @Test
     public void testSerializeImmutable() throws IOException {
         MutableRoaringBitmap mr = new MutableRoaringBitmap();

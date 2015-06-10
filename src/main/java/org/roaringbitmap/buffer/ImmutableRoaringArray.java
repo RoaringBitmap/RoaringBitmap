@@ -28,10 +28,10 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     ByteBuffer buffer;
     int size;
 
-    protected int unsignedBinarySearch(short k) {
+    protected int binarySearch(short k) {
         int low = 0;
         int high = this.size - 1;
-        int ikey = BufferUtil.toIntUnsigned(k);
+        int ikey = k;
         while (low <= high) {
             final int middleIndex = (low + high) >>> 1;
             final int middleValue = getKey(middleIndex);
@@ -115,7 +115,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
     // involves a binary search
     public MappeableContainer getContainer(short x) {
-        final int i = unsignedBinarySearch(x);
+        final int i = binarySearch(x);
         if (i < 0)
             return null;
         return getContainerAtIndex(i);
@@ -163,8 +163,8 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
             @Override
             public int compareTo(MappeableContainerPointer o) {
                 if (key() != o.key())
-                    return BufferUtil.toIntUnsigned(key())
-                            - BufferUtil.toIntUnsigned(o.key());
+                    return key()
+                            - o.key();
                 return o.getCardinality() - getCardinality();
             }
 
@@ -203,13 +203,13 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         };
     }
 
-    private int getKey(int k) {
-        return BufferUtil.toIntUnsigned(buffer.getShort(startofkeyscardinalities + 4 * k));
+    private short getKey(int k) {
+        return buffer.getShort(startofkeyscardinalities + 4 * k);
     }
 
     // involves a binary search
     public int getIndex(short x) {
-        return unsignedBinarySearch(x);
+        return binarySearch(x);
     }
 
     public short getKeyAtIndex(int i) {
@@ -220,14 +220,14 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         int lower = pos + 1;
 
         // special handling for a possibly common sequential case
-        if (lower >= size || getKey(lower) >= BufferUtil.toIntUnsigned(x)) {
+        if (lower >= size || getKey(lower) >= x) {
             return lower;
         }
 
         int spansize = 1; // could set larger
         // bootstrap an upper limit
 
-        while (lower + spansize < size && getKey(lower + spansize) < BufferUtil.toIntUnsigned(x))
+        while (lower + spansize < size && getKey(lower + spansize) < x)
             spansize *= 2; // hoping for compiler will reduce to shift
         int upper = (lower + spansize < size) ? lower + spansize : size - 1;
 
@@ -237,7 +237,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
             return upper;
         }
 
-        if (getKey(upper) < BufferUtil.toIntUnsigned(x)) {// means array has no item key >= x
+        if (getKey(upper) < x) {// means array has no item key >= x
             return size;
         }
 
@@ -248,9 +248,9 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         // invariant: array[lower]<x && array[upper]>x
         while (lower + 1 != upper) {
             int mid = (lower + upper) / 2;
-            if (getKey(mid) == BufferUtil.toIntUnsigned(x))
+            if (getKey(mid) == x)
                 return mid;
-            else if (getKey(mid) < BufferUtil.toIntUnsigned(x))
+            else if (getKey(mid) < x)
                 lower = mid;
             else
                 upper = mid;
