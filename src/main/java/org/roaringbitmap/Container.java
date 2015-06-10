@@ -528,6 +528,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      */
     public abstract int serializedSizeInBytes();
 
+
     /**
      * If possible, recover wasted memory.
      */
@@ -647,4 +648,27 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
       * @return the new container
       */
      public abstract Container remove(int begin, int end);
+
+
+     /**
+      * Convert to RunContainers, when the result is smaller.  Overridden by RunContainer
+      *   to possibily switch from RunContainer to a smaller alternative.
+      */
+
+     public Container runOptimize() {
+         int numRuns = 0;
+         ShortIterator sIt = getShortIterator();
+         int previous = -2;
+         while (sIt.hasNext()) {
+             int val = Util.toIntUnsigned(sIt.next());
+             if (val != previous+1) 
+                 ++numRuns;
+             previous = val;
+         }
+         int sizeAsRunContainer = RunContainer.serializedSizeInBytes(numRuns);
+         if (serializedSizeInBytes() > sizeAsRunContainer)
+             return new RunContainer( getShortIterator(),  numRuns);
+         else 
+             return this;
+     }
 }
