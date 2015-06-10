@@ -41,9 +41,6 @@ public class TestRoaringBitmap {
 			int[] sarray = srb.toArray();
 			Assert.assertTrue(Arrays.equals(sarray, array));
 			Assert.assertTrue(array.length == cardinality);
-			for(int k = 0; k < array.length - 1; ++k) {
-				Assert.assertTrue(array[k] <= array[k + 1]);
-			}
 		}
 	}
 	

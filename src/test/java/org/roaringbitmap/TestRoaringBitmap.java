@@ -22,8 +22,8 @@ public class TestRoaringBitmap {
 	public void sillytestHighBits() {
 		RoaringBitmap rb = RoaringBitmap.bitmapOf(-1,0);
 		int[] array = rb.toArray();
-		Assert.assertTrue(array[0] == -1);
-		Assert.assertTrue(array[1] == 0);
+		Assert.assertTrue(array[0] == 0);
+		Assert.assertTrue(array[1] == -1);
 	}
 	
 	@Test
@@ -41,7 +41,7 @@ public class TestRoaringBitmap {
 			int[] array = rb.toArray();
 			Assert.assertTrue(array.length == cardinality);
 			for(int k = 0; k < array.length - 1; ++k) {
-				Assert.assertTrue(array[k] <= array[k + 1]);
+				Assert.assertTrue((0xFFFFFFFFL & array[k]) <= (0xFFFFFFFFL & array[k + 1]));
 			}
 		}
 	}
