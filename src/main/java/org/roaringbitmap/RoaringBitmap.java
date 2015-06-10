@@ -23,8 +23,12 @@ import java.util.Iterator;
  *      RoaringBitmap rror = RoaringBitmap.or(rr, rr2);
  * }
  * </pre>
+ * 
+ * Integers are added in unsigned sorted order. That is, they are
+ * treated as unsigned integers (see Java 8's Integer.toUnsignedLong function).
  *
- *
+ * Bitmaps are limited to a maximum of Integer.MAX_VALUE entries. Trying to 
+ * create larger bitmaps could result in undefined behaviors.
  *
  */
 public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>, Externalizable, ImmutableBitmapDataProvider {
@@ -766,7 +770,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     /**
      * Returns the number of distinct integers added to the bitmap (e.g.,
      * number of bits set).
-     *
+     * 
      * @return the cardinality
      */
     public int getCardinality() {
