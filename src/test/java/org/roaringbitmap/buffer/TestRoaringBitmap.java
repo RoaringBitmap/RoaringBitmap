@@ -202,6 +202,7 @@ public class TestRoaringBitmap {
         final MutableRoaringBitmap rr1 = new MutableRoaringBitmap();
         rr1.add(1);
         rr1.add(1 << 31);
+        System.out.println("rr1.contains(1)= "+rr1.contains(1));
         final MutableRoaringBitmap rr2 = new MutableRoaringBitmap();
         rr2.add(1 << 31);
         MutableRoaringBitmap andNot = MutableRoaringBitmap.andNot(rr1, rr2);
@@ -210,6 +211,11 @@ public class TestRoaringBitmap {
         rr1.andNot(rr2);
         Assert.assertEquals(1, rr1.getCardinality());
         Assert.assertTrue(andNot.contains(1));
+    }
+    
+    @Test
+    public void andNotBigIntsTest(){
+    	
     }
 
     @Test

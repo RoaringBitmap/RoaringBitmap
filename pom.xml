@@ -76,7 +76,12 @@
             <version>18.0</version>
             <scope>test</scope>
         </dependency>
-		</dependencies>
+        <dependency>
+        	<groupId>org.apache.commons</groupId>
+  			<artifactId>commons-lang3</artifactId>
+  			<version>3.4</version>
+  		</dependency>
+	</dependencies>
    <parent>
     <groupId>org.sonatype.oss</groupId>
     <artifactId>oss-parent</artifactId>
