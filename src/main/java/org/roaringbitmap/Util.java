@@ -585,5 +585,22 @@ public final class Util {
             bitmap[i] = ~0L;
         bitmap[endword] |= ~0L >>> -end;
     }
+
+    /**
+     * Compares the two specified {@code short} values, treating them as unsigned values between
+     * {@code 0} and {@code 2^16 - 1} inclusive.
+     *
+     * @param a the first unsigned {@code short} to compare
+     * @param b the second unsigned {@code short} to compare
+     * @return a negative value if {@code a} is less than {@code b}; a positive value if {@code a} is
+     *         greater than {@code b}; or zero if they are equal
+     */
+    public static int compareUnsigned(short a, short b) {
+        return Short.compare(flip(a), flip(b));
+    }
+
+    private static short flip(short value) {
+        return (short) (value ^ Short.MIN_VALUE);
+    }
     
 }

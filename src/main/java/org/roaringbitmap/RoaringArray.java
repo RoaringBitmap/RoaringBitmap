@@ -24,10 +24,6 @@ public final class RoaringArray implements Cloneable, Externalizable {
         this.array = new Element[INITIAL_CAPACITY];
     }
 
-    protected void append(int key, Container value) {
-        append((short) key, value);
-    }
-
     protected void append(short key, Container value) {
         extendArray(1);
         this.array[this.size++] = new Element(key, value);
@@ -175,18 +171,18 @@ public final class RoaringArray implements Cloneable, Externalizable {
      * @return the smallest index greater than pos such that array[index].key is at least as large
      * as min, or size if it is not possible.
      */
-    protected int advanceUntil(int x, int pos) {
+    protected int advanceUntil(short x, int pos) {
         int lower = pos + 1;
 
         // special handling for a possibly common sequential case
-        if (lower >= size || Util.toIntUnsigned(array[lower].key) >= x) {
+        if (lower >= size || Util.toIntUnsigned(array[lower].key) >= Util.toIntUnsigned(x)) {
             return lower;
         }
 
         int spansize = 1; // could set larger
         // bootstrap an upper limit
 
-        while (lower + spansize < size && Util.toIntUnsigned(array[lower + spansize].key) < x)
+        while (lower + spansize < size && Util.toIntUnsigned(array[lower + spansize].key) < Util.toIntUnsigned(x))
             spansize *= 2; // hoping for compiler will reduce to shift
         int upper = (lower + spansize < size) ? lower + spansize : size - 1;
 
@@ -196,7 +192,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
             return upper;
         }
 
-        if (Util.toIntUnsigned(array[upper].key) < x) {// means array has no item key >= x
+        if (Util.toIntUnsigned(array[upper].key) < Util.toIntUnsigned(x)) {// means array has no item key >= x
             return size;
         }
 
@@ -209,7 +205,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
             int mid = (lower + upper) / 2;
             if (array[mid].key == x)
                 return mid;
-            else if (Util.toIntUnsigned(array[mid].key) < x)
+            else if (Util.toIntUnsigned(array[mid].key) < Util.toIntUnsigned(x))
                 lower = mid;
             else
                 upper = mid;
@@ -217,8 +213,8 @@ public final class RoaringArray implements Cloneable, Externalizable {
         return upper;
     }
 
-    protected int getKeyAtIndex(int i) {
-        return Util.toIntUnsigned(this.array[i].key);
+    protected short getKeyAtIndex(int i) {
+        return this.array[i].key;
     }
 
     @Override

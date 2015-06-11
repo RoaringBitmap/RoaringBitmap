@@ -433,18 +433,18 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
         return this.array[i].key;
     }
 
-    public int advanceUntil(int x, int pos) {
+    public int advanceUntil(short x, int pos) {
         int lower = pos + 1;
 
         // special handling for a possibly common sequential case
-        if (lower >= size || BufferUtil.toIntUnsigned(array[lower].key) >= x) {
+        if (lower >= size || BufferUtil.toIntUnsigned(array[lower].key) >= BufferUtil.toIntUnsigned(x)) {
             return lower;
         }
 
         int spansize = 1; // could set larger
         // bootstrap an upper limit
 
-        while (lower + spansize < size && BufferUtil.toIntUnsigned(array[lower + spansize].key) < x)
+        while (lower + spansize < size && BufferUtil.toIntUnsigned(array[lower + spansize].key) < BufferUtil.toIntUnsigned(x))
             spansize *= 2; // hoping for compiler will reduce to shift
         int upper = (lower + spansize < size) ? lower + spansize : size - 1;
 
@@ -454,7 +454,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
             return upper;
         }
 
-        if (BufferUtil.toIntUnsigned(array[upper].key) < x) {// means array has no item key >= x
+        if (BufferUtil.toIntUnsigned(array[upper].key) < BufferUtil.toIntUnsigned(x)) {// means array has no item key >= x
             return size;
         }
 
@@ -467,7 +467,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
             int mid = (lower + upper) / 2;
             if (array[mid].key == x)
                 return mid;
-            else if (BufferUtil.toIntUnsigned(array[mid].key) < x)
+            else if (BufferUtil.toIntUnsigned(array[mid].key) < BufferUtil.toIntUnsigned(x))
                 lower = mid;
             else
                 upper = mid;
