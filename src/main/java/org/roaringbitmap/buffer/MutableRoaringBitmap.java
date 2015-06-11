@@ -8,6 +8,7 @@ package org.roaringbitmap.buffer;
 import org.roaringbitmap.BitmapDataProvider;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.ShortIterator;
+import org.roaringbitmap.Util;
 
 import java.io.*;
 import java.util.Iterator;
@@ -54,8 +55,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
 
         while (pos1 < length1 && pos2 < length2) {
-            short s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-            short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+            final short s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+            final short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
 
             if (s1 == s2) {
                 final MappeableContainer c1 = x1.highLowContainer.getContainerAtIndex(pos1);
@@ -66,7 +67,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
                 }
                 ++pos1;
                 ++pos2;
-            } else if (s1 < s2) {
+            } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
                 pos1 = x1.highLowContainer.advanceUntil(s2,pos1);
             } else { // s1 > s2
                 pos2 = x2.highLowContainer.advanceUntil(s1,pos2);
@@ -104,7 +105,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
                 }
                 ++pos1;
                 ++pos2;
-            } else if (s1 < s2) {
+            } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
                 final int nextPos1 = x1.highLowContainer.advanceUntil(s2,pos1);
                 answer.getMappeableRoaringArray().appendCopy(x1.highLowContainer, pos1, nextPos1);
                 pos1 = nextPos1;
@@ -218,27 +219,9 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
             short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
 
             while (true) {
-                if (s1 < s2) {
-                    answer.getMappeableRoaringArray().appendCopy(
-                            x1.highLowContainer.getKeyAtIndex(pos1),
-                            x1.highLowContainer.getContainerAtIndex(pos1));
-                    pos1++;
-                    if (pos1 == length1) {
-                        break main;
-                    }
-                    s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-                } else if (s1 > s2) {
-                    answer.getMappeableRoaringArray().appendCopy(
-                            x2.highLowContainer.getKeyAtIndex(pos2),
-                            x2.highLowContainer.getContainerAtIndex(pos2));
-                    pos2++;
-                    if (pos2 == length2) {
-                        break main;
-                    }
-                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-                } else {
+                if (s1 == s2) {
                     answer.getMappeableRoaringArray().append(
-                            s1,
+                            (short)s1,
                             x1.highLowContainer.getContainerAtIndex(pos1).or(
                                     x2.highLowContainer
                                             .getContainerAtIndex(pos2)));
@@ -248,6 +231,24 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
                         break main;
                     }
                     s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+                } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
+                    answer.getMappeableRoaringArray().appendCopy(
+                            x1.highLowContainer.getKeyAtIndex(pos1),
+                            x1.highLowContainer.getContainerAtIndex(pos1));
+                    pos1++;
+                    if (pos1 == length1) {
+                        break main;
+                    }
+                    s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+                } else { // s1 > s2
+                    answer.getMappeableRoaringArray().appendCopy(
+                            x2.highLowContainer.getKeyAtIndex(pos2),
+                            x2.highLowContainer.getContainerAtIndex(pos2));
+                    pos2++;
+                    if (pos2 == length2) {
+                        break main;
+                    }
                     s2 = x2.highLowContainer.getKeyAtIndex(pos2);
                 }
             }
@@ -285,7 +286,21 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
             short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
 
             while (true) {
-                if (s1 < s2) {
+                if (s1 == s2) {
+                    final MappeableContainer c = x1.highLowContainer
+                            .getContainerAtIndex(pos1).xor(
+                                    x2.highLowContainer
+                                            .getContainerAtIndex(pos2));
+                    if (c.getCardinality() > 0)
+                        answer.getMappeableRoaringArray().append((short) s1, c);
+                    pos1++;
+                    pos2++;
+                    if ((pos1 == length1) || (pos2 == length2)) {
+                        break main;
+                    }
+                    s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+                } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
                     answer.getMappeableRoaringArray().appendCopy(
                             x1.highLowContainer.getKeyAtIndex(pos1),
                             x1.highLowContainer.getContainerAtIndex(pos1));
@@ -302,20 +317,6 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
                     if (pos2 == length2) {
                         break main;
                     }
-                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-                } else {
-                    final MappeableContainer c = x1.highLowContainer
-                            .getContainerAtIndex(pos1).xor(
-                                    x2.highLowContainer
-                                            .getContainerAtIndex(pos2));
-                    if (c.getCardinality() > 0)
-                        answer.getMappeableRoaringArray().append(s1, c);
-                    pos1++;
-                    pos2++;
-                    if ((pos1 == length1) || (pos2 == length2)) {
-                        break main;
-                    }
-                    s1 = x1.highLowContainer.getKeyAtIndex(pos1);
                     s2 = x2.highLowContainer.getKeyAtIndex(pos2);
                 }
             }
@@ -610,7 +611,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
                 }
                 ++pos1;
                 ++pos2;
-            } else if (s1 < s2) {
+            } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
                 pos1 = highLowContainer.advanceUntil(s2,pos1);
             } else { // s1 > s2
                 pos2 = array.highLowContainer.advanceUntil(s1,pos2);
@@ -638,14 +639,14 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
                 final MappeableContainer c2 = x2.highLowContainer.getContainerAtIndex(pos2);
                 final MappeableContainer c = c1.iandNot(c2);
                 if (c.getCardinality() > 0) {
-                    getMappeableRoaringArray().replaceKeyAndContainerAtIndex(intersectionSize++, s1, c);
+                    getMappeableRoaringArray().replaceKeyAndContainerAtIndex(intersectionSize++, (short)s1, c);
                 }
                 ++pos1;
                 ++pos2;
-            } else if (s1 < s2) {
+            } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
                 if(pos1 != intersectionSize) {
                     final MappeableContainer c1 = highLowContainer.getContainerAtIndex(pos1);
-                    getMappeableRoaringArray().replaceKeyAndContainerAtIndex(intersectionSize, s1, c1);
+                    getMappeableRoaringArray().replaceKeyAndContainerAtIndex(intersectionSize, (short)s1, c1);
                 }
                 ++intersectionSize;
                 ++pos1;
@@ -816,23 +817,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
             short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
 
             while (true) {
-                if (s1 < s2) {
-                    pos1++;
-                    if (pos1 == length1) {
-                        break main;
-                    }
-                    s1 = highLowContainer.getKeyAtIndex(pos1);
-                } else if (s1 > s2) {
-                    getMappeableRoaringArray().insertNewKeyValueAt(pos1, s2,
-                            x2.highLowContainer.getContainerAtIndex(pos2));
-                    pos1++;
-                    length1++;
-                    pos2++;
-                    if (pos2 == length2) {
-                        break main;
-                    }
-                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-                } else {
+                if (s1 == s2) {
                     getMappeableRoaringArray().setContainerAtIndex(
                             pos1,
                             highLowContainer.getContainerAtIndex(pos1).ior(
@@ -844,6 +829,22 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
                         break main;
                     }
                     s1 = highLowContainer.getKeyAtIndex(pos1);
+                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+                } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
+                    pos1++;
+                    if (pos1 == length1) {
+                        break main;
+                    }
+                    s1 = highLowContainer.getKeyAtIndex(pos1);
+                } else { // s1 > s2
+                    getMappeableRoaringArray().insertNewKeyValueAt(pos1, (short)s2,
+                            x2.highLowContainer.getContainerAtIndex(pos2));
+                    pos1++;
+                    length1++;
+                    pos2++;
+                    if (pos2 == length2) {
+                        break main;
+                    }
                     s2 = x2.highLowContainer.getKeyAtIndex(pos2);
                 }
             }
@@ -961,23 +962,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
             short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
 
             while (true) {
-                if (s1 < s2) {
-                    pos1++;
-                    if (pos1 == length1) {
-                        break main;
-                    }
-                    s1 = highLowContainer.getKeyAtIndex(pos1);
-                } else if (s1 > s2) {
-                    getMappeableRoaringArray().insertNewKeyValueAt(pos1, s2,
-                            x2.highLowContainer.getContainerAtIndex(pos2));
-                    pos1++;
-                    length1++;
-                    pos2++;
-                    if (pos2 == length2) {
-                        break main;
-                    }
-                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-                } else {
+                if (s1 == s2) {
                     final MappeableContainer c = highLowContainer
                             .getContainerAtIndex(pos1).ixor(
                                     x2.highLowContainer
@@ -995,6 +980,22 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
                         break main;
                     }
                     s1 = highLowContainer.getKeyAtIndex(pos1);
+                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+                } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
+                    pos1++;
+                    if (pos1 == length1) {
+                        break main;
+                    }
+                    s1 = highLowContainer.getKeyAtIndex(pos1);
+                } else { // s1 > s2
+                    getMappeableRoaringArray().insertNewKeyValueAt(pos1, (short)s2,
+                            x2.highLowContainer.getContainerAtIndex(pos2));
+                    pos1++;
+                    length1++;
+                    pos2++;
+                    if (pos2 == length2) {
+                        break main;
+                    }
                     s2 = x2.highLowContainer.getKeyAtIndex(pos2);
                 }
             }

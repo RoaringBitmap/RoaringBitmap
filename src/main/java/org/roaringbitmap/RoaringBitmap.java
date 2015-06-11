@@ -66,7 +66,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
                 }
                 ++pos1;
                 ++pos2;
-            } else if (s1 < s2) {
+            } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
                 pos1 = x1.highLowContainer.advanceUntil(s2,pos1);
             } else { // s1 > s2
                 pos2 = x2.highLowContainer.advanceUntil(s1,pos2);
@@ -102,7 +102,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
                 }
                 ++pos1;
                 ++pos2;
-            } else if (s1 < s2) {
+            } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
                 final int nextPos1 = x1.highLowContainer.advanceUntil(s2,pos1);
                 answer.highLowContainer.appendCopy(x1.highLowContainer, pos1, nextPos1);
                 pos1 = nextPos1;
@@ -205,23 +205,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
 
             while (true) {
-                if (s1 < s2) {
-                    answer.highLowContainer.appendCopy(x1.highLowContainer, pos1);
-                    pos1++;
-                    if (pos1 == length1) {
-                        break main;
-                    }
-                    s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-                } else if (s1 > s2) {
-                    answer.highLowContainer.appendCopy(x2.highLowContainer, pos2);
-                    pos2++;
-                    if (pos2 == length2) {
-                        break main;
-                    }
-                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-                } else {
-                    answer.highLowContainer.append(s1,x1.highLowContainer.getContainerAtIndex(pos1).or(
-                                x2.highLowContainer.getContainerAtIndex(pos2))
+                if (s1 == s2) {
+                    answer.highLowContainer.append(s1, x1.highLowContainer.getContainerAtIndex(pos1).or(
+                                    x2.highLowContainer.getContainerAtIndex(pos2))
                     );
                     pos1++;
                     pos2++;
@@ -229,6 +215,20 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
                         break main;
                     }
                     s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+                } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
+                	answer.highLowContainer.appendCopy(x1.highLowContainer, pos1);
+                    pos1++;
+                    if (pos1 == length1) {
+                        break main;
+                    }
+                    s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+                } else { // s1 > s2
+                    answer.highLowContainer.appendCopy(x2.highLowContainer, pos2);
+                    pos2++;
+                    if (pos2 == length2) {
+                        break main;
+                    }
                     s2 = x2.highLowContainer.getKeyAtIndex(pos2);
                 }
             }
@@ -249,11 +249,11 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      */
     public int rank(int x) {
         int size = 0;
-        int xhigh = Util.highbits(x);
+        short xhigh = Util.highbits(x);
 
         for (int i = 0; i < this.highLowContainer.size(); i++) {
-            short key =  this.highLowContainer.getKeyAtIndex(i);
-            if( key < xhigh )
+            short key = this.highLowContainer.getKeyAtIndex(i);
+            if(Util.compareUnsigned(key, xhigh) < 0)
               size += this.highLowContainer.getContainerAtIndex(i).getCardinality();
             else
                 return size + this.highLowContainer.getContainerAtIndex(i).rank(Util.lowbits(x));
@@ -310,21 +310,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
 
             while (true) {
-                if (s1 < s2) {
-                    answer.highLowContainer.appendCopy(x1.highLowContainer, pos1);
-                    pos1++;
-                    if (pos1 == length1) {
-                        break main;
-                    }
-                    s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-                } else if (s1 > s2) {
-                    answer.highLowContainer.appendCopy(x2.highLowContainer, pos2);
-                    pos2++;
-                    if (pos2 == length2) {
-                        break main;
-                    }
-                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-                } else {
+                if (s1 == s2) {
                     final Container c = x1.highLowContainer.getContainerAtIndex(pos1).xor(
                             x2.highLowContainer.getContainerAtIndex(pos2));
                     if (c.getCardinality() > 0)
@@ -336,6 +322,20 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
                         break main;
                     }
                     s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+                } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
+                    answer.highLowContainer.appendCopy(x1.highLowContainer, pos1);
+                    pos1++;
+                    if (pos1 == length1) {
+                        break main;
+                    }
+                    s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+                } else { // s1 > s2
+                    answer.highLowContainer.appendCopy(x2.highLowContainer, pos2);
+                    pos2++;
+                    if (pos2 == length2) {
+                        break main;
+                    }
                     s2 = x2.highLowContainer.getKeyAtIndex(pos2);
                 }
             }
@@ -625,7 +625,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
                 }
                 ++pos1;
                 ++pos2;
-            } else if (s1 < s2) {
+            } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
                 pos1 = highLowContainer.advanceUntil(s2,pos1);
             } else { // s1 > s2
                 pos2 = x2.highLowContainer.advanceUntil(s1,pos2);
@@ -656,7 +656,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
                 }
                 ++pos1;
                 ++pos2;
-            } else if (s1 < s2) {
+            } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
                 if(pos1 != intersectionSize) {
                     final Container c1 = highLowContainer.getContainerAtIndex(pos1);
                     highLowContainer.replaceKeyAndContainerAtIndex(intersectionSize, s1, c1);
@@ -841,7 +841,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             private Iterator<Integer> init() {
                 if (pos < RoaringBitmap.this.highLowContainer.size()) {
                     iter = RoaringBitmap.this.highLowContainer.getContainerAtIndex(pos).getShortIterator();
-                    hs = Util.toIntUnsigned(RoaringBitmap.this.highLowContainer.getKeyAtIndex(pos)) << 16;
+                    hs = RoaringBitmap.this.highLowContainer.getKeyAtIndex(pos) << 16;
                 }
                 return this;
             }
@@ -894,23 +894,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
 
             while (true) {
-                if (s1 < s2) {
-                    pos1++;
-                    if (pos1 == length1) {
-                        break main;
-                    }
-                    s1 = highLowContainer.getKeyAtIndex(pos1);
-                } else if (s1 > s2) {
-                    highLowContainer.insertNewKeyValueAt(pos1, s2, x2.highLowContainer.getContainerAtIndex(pos2)
-                    );
-                    pos1++;
-                    length1++;
-                    pos2++;
-                    if (pos2 == length2) {
-                        break main;
-                    }
-                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-                } else {
+                if (s1 == s2) {
                     this.highLowContainer.setContainerAtIndex(pos1, highLowContainer.getContainerAtIndex(
                                     pos1).ior(x2.highLowContainer.getContainerAtIndex(pos2))
                     );
@@ -920,6 +904,22 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
                         break main;
                     }
                     s1 = highLowContainer.getKeyAtIndex(pos1);
+                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+                } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
+                    pos1++;
+                    if (pos1 == length1) {
+                        break main;
+                    }
+                    s1 = highLowContainer.getKeyAtIndex(pos1);
+                } else { // s1 > s2
+                    highLowContainer.insertNewKeyValueAt(pos1, s2, x2.highLowContainer.getContainerAtIndex(pos2)
+                    );
+                    pos1++;
+                    length1++;
+                    pos2++;
+                    if (pos2 == length2) {
+                        break main;
+                    }
                     s2 = x2.highLowContainer.getKeyAtIndex(pos2);
                 }
             }
@@ -1018,7 +1018,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             }  else {
                 int leftover = maxcardinality - currentcardinality;
                 Container limited = c.limit(leftover);
-                answer.highLowContainer.append(this.highLowContainer.getKeyAtIndex(i),limited );
+                answer.highLowContainer.append(this.highLowContainer.getKeyAtIndex(i), limited);
                 break;
             }
         }
@@ -1035,7 +1035,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         final int[] array = new int[this.getCardinality()];
         int pos = 0, pos2 = 0;
         while (pos < this.highLowContainer.size()) {
-            final int hs = Util.toIntUnsigned(this.highLowContainer.getKeyAtIndex(pos)) << 16;
+            final int hs = this.highLowContainer.getKeyAtIndex(pos) << 16;
             Container c = this.highLowContainer.getContainerAtIndex(pos++);
             c.fillLeastSignificant16bits(array, pos2, hs);
             pos2 += c.getCardinality();
@@ -1095,22 +1095,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
 
             while (true) {
-                if (s1 < s2) {
-                    pos1++;
-                    if (pos1 == length1) {
-                        break main;
-                    }
-                    s1 = highLowContainer.getKeyAtIndex(pos1);
-                } else if (s1 > s2) {
-                    highLowContainer.insertNewKeyValueAt(pos1, s2, x2.highLowContainer.getContainerAtIndex(pos2));
-                    pos1++;
-                    length1++;
-                    pos2++;
-                    if (pos2 == length2) {
-                        break main;
-                    }
-                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-                } else {
+                if (s1 == s2) {
                     final Container c = highLowContainer.getContainerAtIndex(pos1).ixor(
                             x2.highLowContainer.getContainerAtIndex(pos2));
                     if (c.getCardinality() > 0) {
@@ -1125,6 +1110,21 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
                         break main;
                     }
                     s1 = highLowContainer.getKeyAtIndex(pos1);
+                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+                } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
+                    pos1++;
+                    if (pos1 == length1) {
+                        break main;
+                    }
+                    s1 = highLowContainer.getKeyAtIndex(pos1);
+                } else { // s1 > s2
+                    highLowContainer.insertNewKeyValueAt(pos1, s2, x2.highLowContainer.getContainerAtIndex(pos2));
+                    pos1++;
+                    length1++;
+                    pos2++;
+                    if (pos2 == length2) {
+                        break main;
+                    }
                     s2 = x2.highLowContainer.getKeyAtIndex(pos2);
                 }
             }
@@ -1156,7 +1156,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         private void nextContainer() {
             if (pos < RoaringBitmap.this.highLowContainer.size()) {
                 iter = RoaringBitmap.this.highLowContainer.getContainerAtIndex(pos).getShortIterator();
-                hs = Util.toIntUnsigned(RoaringBitmap.this.highLowContainer.getKeyAtIndex(pos)) << 16;
+                hs = RoaringBitmap.this.highLowContainer.getKeyAtIndex(pos) << 16;
             }
         }
 
@@ -1202,7 +1202,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         private void nextContainer() {
             if (pos >= 0) {
                 iter = RoaringBitmap.this.highLowContainer.getContainerAtIndex(pos).getReverseShortIterator();
-                hs = Util.toIntUnsigned(RoaringBitmap.this.highLowContainer.getKeyAtIndex(pos)) << 16;
+                hs = RoaringBitmap.this.highLowContainer.getKeyAtIndex(pos) << 16;
             }
         }
 

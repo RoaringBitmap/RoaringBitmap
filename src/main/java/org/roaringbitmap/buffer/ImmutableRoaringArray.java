@@ -233,7 +233,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
         // maybe we are lucky (could be common case when the seek ahead
         // expected to be small and sequential will otherwise make us look bad)
-        if (getKey(upper) == x) {
+        if (getKey(upper) == BufferUtil.toIntUnsigned(x)) {
             return upper;
         }
 

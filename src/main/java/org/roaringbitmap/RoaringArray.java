@@ -50,11 +50,9 @@ public final class RoaringArray implements Cloneable, Externalizable {
      */
     protected void appendCopy(RoaringArray sa, int startingIndex, int end) {
         extendArray(end - startingIndex);
-        for (int i = startingIndex; i < end; ++i) {
-            this.array[this.size++] = new Element(sa.array[i].key,
-                    sa.array[i].value.clone());
-        }
-
+        for (int i = startingIndex; i < end; ++i)
+        	this.array[this.size++] = new Element(sa.array[i].key,
+                    sa.array[i].value.clone());            
     }
 
     /**
@@ -145,7 +143,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
     // involves a binary search
     protected Container getContainer(short x) {
-        int i = this.binarySearch(0, size, x);
+    	int i = this.binarySearch(0, size, x);
         if (i < 0)
             return null;
         return this.array[i].value;
@@ -279,11 +277,9 @@ public final class RoaringArray implements Cloneable, Externalizable {
         int low = begin;
         int high = end - 1;
         int ikey = Util.toIntUnsigned(key);
-
         while (low <= high) {
-            int middleIndex = (low + high) >>> 1;
-            int middleValue = Util.toIntUnsigned(array[middleIndex].key);
-
+            int middleIndex = (low + high) >>> 1;        	
+            int middleValue = Util.toIntUnsigned(array[middleIndex].key);            
             if (middleValue < ikey)
                 low = middleIndex + 1;
             else if (middleValue > ikey)
@@ -400,7 +396,6 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
     protected static final class Element implements Cloneable, Comparable<Element> {
         short key;
-
         Container value = null;
 
         public Element(short key, Container value) {
@@ -466,5 +461,4 @@ public final class RoaringArray implements Cloneable, Externalizable {
 			}
 		};
     }
-
 }
