@@ -1408,6 +1408,8 @@ final class RunContainerShortIterator implements ShortIterator {
 
     RunContainer parent;
 
+    RunContainerShortIterator() {}
+
     RunContainerShortIterator(RunContainer p) {
         wrap(p);
     }
@@ -1454,6 +1456,9 @@ final class ReverseRunContainerShortIterator implements ShortIterator {
     int pos;
     int le;
     RunContainer parent;
+
+
+    ReverseRunContainerShortIterator(){}
 
     ReverseRunContainerShortIterator(RunContainer p) {
         wrap(p);

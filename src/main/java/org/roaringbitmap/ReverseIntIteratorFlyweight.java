@@ -23,6 +23,8 @@ public class ReverseIntIteratorFlyweight implements IntIterator {
    
    private ReverseBitmapContainerShortIterator bitmapIter = new ReverseBitmapContainerShortIterator();
 
+    private ReverseRunContainerShortIterator runIter = new ReverseRunContainerShortIterator();
+
    private short pos;
 
    private RoaringBitmap roaringBitmap = null;
@@ -71,16 +73,17 @@ public class ReverseIntIteratorFlyweight implements IntIterator {
       if (pos >= 0) {
 
          Container container = this.roaringBitmap.highLowContainer.getContainerAtIndex(pos);
-
-         if (container instanceof BitmapContainer) {
-            bitmapIter.wrap((BitmapContainer) container);
-            iter = bitmapIter;
-         } else {
-            arrIter.wrap((ArrayContainer) container);
-            iter = arrIter;
-         }
-
-         hs = Util.toIntUnsigned(this.roaringBitmap.highLowContainer.getKeyAtIndex(pos)) << 16;
+            if (container instanceof BitmapContainer) {
+                bitmapIter.wrap((BitmapContainer) container);
+                iter = bitmapIter;
+            } else if (container instanceof ArrayContainer) {
+                arrIter.wrap((ArrayContainer) container);
+                iter = arrIter;
+            } else {
+                runIter.wrap((RunContainer) container);
+                iter = runIter;
+            }
+            hs = Util.toIntUnsigned(this.roaringBitmap.highLowContainer.getKeyAtIndex(pos)) << 16;
       }
    }
 

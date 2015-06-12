@@ -50,10 +50,11 @@ public class TestIntIteratorFlyweight {
 
 
     @Test
-    public void testIteration() {
-        final Random source = new Random(0xcb000a2b9b5bdfb6l);
-        final int[] data = takeSortedAndDistinct(source, 450000);
+    public void testIterationSmall() {
+
+        final int[] data = new int [] {1,2,3,4,5,6,100,101,102,103,104,105,50000,50001,50002, 1000000,1000005,1000007};  // runcontainer then arraycontainer
         RoaringBitmap bitmap = RoaringBitmap.bitmapOf(data);
+        bitmap.runOptimize();
 
         IntIteratorFlyweight iter = new IntIteratorFlyweight();
         iter.wrap(bitmap);
@@ -63,6 +64,40 @@ public class TestIntIteratorFlyweight {
 
         final List<Integer> intIteratorCopy = asList(iter);
         final List<Integer> reverseIntIteratorCopy = asList(reverseIter);
+
+
+        Assert.assertEquals(bitmap.getCardinality(), intIteratorCopy.size());
+        Assert.assertEquals(bitmap.getCardinality(), reverseIntIteratorCopy.size());
+
+        Assert.assertEquals(Ints.asList(data), intIteratorCopy);
+        Assert.assertEquals(Lists.reverse(Ints.asList(data)), reverseIntIteratorCopy);
+    }
+
+
+
+
+
+    @Test
+    public void testIteration() {
+        final Random source = new Random(0xcb000a2b9b5bdfb6l);
+        final int[] data = takeSortedAndDistinct(source, 450000);
+
+        // make at least one long run
+        for (int i=0; i < 25000; ++i)
+            data[70000+i] = data[70000]+i;
+
+        RoaringBitmap bitmap = RoaringBitmap.bitmapOf(data);
+        bitmap.runOptimize();
+
+        IntIteratorFlyweight iter = new IntIteratorFlyweight();
+        iter.wrap(bitmap);
+
+        ReverseIntIteratorFlyweight reverseIter = new ReverseIntIteratorFlyweight();
+        reverseIter.wrap(bitmap);
+
+        final List<Integer> intIteratorCopy = asList(iter);
+        final List<Integer> reverseIntIteratorCopy = asList(reverseIter);
+
 
         Assert.assertEquals(bitmap.getCardinality(), intIteratorCopy.size());
         Assert.assertEquals(bitmap.getCardinality(), reverseIntIteratorCopy.size());
