@@ -17,7 +17,24 @@ import java.util.*;
  */
 @SuppressWarnings({"static-method", "javadoc"})
 public class TestRoaringBitmap {
-	
+	@Test
+	public void testHighBits() {
+		for (int offset = 1 << 14; offset < 1 << 18; offset *= 2) {
+			RoaringBitmap rb = new RoaringBitmap();
+			for (long k = Integer.MIN_VALUE; k < Integer.MAX_VALUE; k += offset) {
+				rb.add((int) k);
+			}
+			for (long k = Integer.MIN_VALUE; k < Integer.MAX_VALUE; k += offset) {
+				Assert.assertTrue(rb.contains((int) k));
+			}
+			int[] array = rb.toArray();
+			int pos = 0;
+			for (long k = Integer.MIN_VALUE; k < Integer.MAX_VALUE; k += offset, pos++) {
+				Assert.assertTrue(array[pos] == (int)k);
+			}
+			assert(pos == array.length);
+		}
+	}
 	
 
 	@Test
