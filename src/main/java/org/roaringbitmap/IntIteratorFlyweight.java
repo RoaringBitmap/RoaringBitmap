@@ -22,6 +22,8 @@ public class IntIteratorFlyweight implements IntIterator {
     
     private BitmapContainerShortIterator bitmapIter = new BitmapContainerShortIterator();
 
+    private RunContainerShortIterator runIter = new RunContainerShortIterator();
+
     private int pos;
 
     private RoaringBitmap roaringBitmap = null;
@@ -71,11 +73,13 @@ public class IntIteratorFlyweight implements IntIterator {
             if (container instanceof BitmapContainer) {
                 bitmapIter.wrap((BitmapContainer) container);
                 iter = bitmapIter;
-            } else {
+            } else if (container instanceof ArrayContainer) {
                 arrIter.wrap((ArrayContainer) container);
                 iter = arrIter;
+            } else {
+                runIter.wrap((RunContainer) container);
+                iter = runIter;
             }
-
             hs = Util.toIntUnsigned(this.roaringBitmap.highLowContainer
                     .getKeyAtIndex(pos)) << 16;
         }
