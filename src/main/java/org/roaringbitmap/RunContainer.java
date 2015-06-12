@@ -509,7 +509,6 @@ public class RunContainer extends Container implements Cloneable, Serializable {
             if (prevRunEnd+1 == runStart) { // we must fuse
                 int newRunEnd = prevRunEnd+(1+runLength);
                 int newRunLen = newRunEnd-prevRunStart;
-                //System.out.println("fuse! newRunLen is "+newRunLen);
                 setLength(outputRlePos-1, (short) newRunLen);
                 return outputRlePos; // do not advance, nbrruns unchanged
             }
@@ -517,7 +516,6 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         // cases without fusion
         setValue(outputRlePos, (short) runStart);
         setLength(outputRlePos, (short) runLength);
-        //System.out.println("just set value and elngth as " + runStart + " " + runLength + " for run "+outputRlePos);
         nbrruns=outputRlePos+1;
 
         return  ++outputRlePos;
