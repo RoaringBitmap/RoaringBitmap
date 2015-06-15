@@ -20,16 +20,33 @@ public class UnsignedVSFlip {
     }
     
     @Benchmark
-    //@BenchmarkMode(Mode.AverageTime)
+    @BenchmarkMode(Mode.AverageTime)
+    public int tointUnsignedTimeAvg() {
+        return key & 0xFFFF;
+    }
+    
+    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public int flipTime() {
         return key ^ Short.MIN_VALUE;
     }
 
+
     @Benchmark
-    //@BenchmarkMode(Mode.AverageTime)
+    @BenchmarkMode(Mode.AverageTime)
+    public int flipTimeAvg() {
+        return key ^ Short.MIN_VALUE;
+    }
+
+    @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public short flipTimeShort() {
+        return (short) (key ^ Short.MIN_VALUE);
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.AverageTime)
+    public short flipTimeShortAvg() {
         return (short) (key ^ Short.MIN_VALUE);
     }
     
