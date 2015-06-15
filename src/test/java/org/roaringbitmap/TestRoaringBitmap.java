@@ -18,6 +18,15 @@ import java.util.*;
  */
 @SuppressWarnings({"static-method", "javadoc"})
 public class TestRoaringBitmap {
+	@Test
+	public void bitmapOfTest() {
+		int[] cuiRelsArray = new int[1024];
+		for(int k = 0; k < cuiRelsArray.length; ++k)
+			cuiRelsArray[k] = k;
+		RoaringBitmap rr1 = RoaringBitmap.bitmapOf(cuiRelsArray);
+		int[] back = rr1.toArray();
+		Assert.assertArrayEquals(cuiRelsArray, back);
+	}
 	
 	@Test
 	public void sillytestHighBits() {
