@@ -209,6 +209,7 @@ public final class BufferUtil {
      *            the cardinality
      * @return the size in bytes
      */
+    // OFK can no longer use
     public static int getSizeInBytesFromCardinality(int card) {
         boolean isBitmap = card > MappeableArrayContainer.DEFAULT_MAX_SIZE;
         if (isBitmap)

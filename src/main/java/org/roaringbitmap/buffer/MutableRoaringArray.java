@@ -65,6 +65,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
         }
     }
 
+    // OFK need update
     protected static final int INITIAL_CAPACITY = 4;
 
     protected static final short SERIAL_COOKIE = 12346;
@@ -98,6 +99,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
         final short keys[] = new short[this.size];
         final int cardinalities[] = new int[this.size];
         final boolean isBitmap[] = new boolean[this.size];
+        // ofk optional run bitmap
         for (int k = 0; k < this.size; ++k) {
             keys[k] = bb.getShort();
             cardinalities[k] = BufferUtil.toIntUnsigned(bb.getShort()) + 1;
@@ -107,6 +109,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
             if (cardinalities[k] == 0)
                 throw new RuntimeException("no");
             MappeableContainer val;
+            // ofk RunContainer
             if (isBitmap[k]) {
                 final LongBuffer bitmapArray = bb.asLongBuffer().slice();
                 bitmapArray.limit(MappeableBitmapContainer.MAX_CAPACITY / 64);
@@ -233,6 +236,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
         try {
             sa = (MutableRoaringArray) super.clone();
 
+            // OFK: do we need runcontainer bitmap?
             sa.array = Arrays.copyOf(this.array, this.size);
             for (int k = 0; k < this.size; ++k)
                 sa.array[k] = sa.array[k].clone();
@@ -252,6 +256,9 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
      * @throws IOException
      *             Signals that an I/O exception has occurred.
      */
+
+
+    //OFK: mod
     public void deserialize(DataInput in) throws IOException {
         this.clear();
         // little endian
@@ -297,6 +304,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
     }
 
     @Override
+    // OFK remove
     public boolean equals(Object o) {
         if (o instanceof MutableRoaringArray) {
             final MutableRoaringArray srb = (MutableRoaringArray) o;
@@ -313,6 +321,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
         if (o instanceof ImmutableRoaringArray) {
             final ImmutableRoaringArray srb = (ImmutableRoaringArray) o;
             MappeableContainerPointer cp1 = srb.getContainerPointer();
+            // seems fishy: should always return true
             MappeableContainerPointer cp2 = srb.getContainerPointer();
             while (cp1.hasContainer()) {
                 if (!cp2.hasContainer())
@@ -534,6 +543,8 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
      * @throws IOException
      *             Signals that an I/O exception has occurred.
      */
+
+    // OFK: mod
     public void serialize(DataOutput out) throws IOException {
         out.writeInt(Integer.reverseBytes(SERIAL_COOKIE));
         out.writeInt(Integer.reverseBytes(size));
@@ -557,6 +568,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
      * 
      * @return the size in bytes
      */
+    // OFK: mod for run bitmap
     public int serializedSizeInBytes() {
         int count = 4 + 4 + 4*this.size + 4*this.size;
         for (int k = 0; k < this.size; ++k) {

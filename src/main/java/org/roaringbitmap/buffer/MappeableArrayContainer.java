@@ -177,6 +177,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         return x.and(this);
     }
 
+    // OFK ANDing to MappeableRunContainer
+
     @Override
     public MappeableArrayContainer andNot(final MappeableArrayContainer value2) {
         final MappeableArrayContainer value1 = this;
@@ -215,6 +217,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         return answer;
     }
 
+    // OFK ANDNOTing to MappeableRunContainer
+
     @Override
     public void clear() {
         cardinality = 0;
@@ -251,6 +255,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
                         return false;
                 }
             return true;
+                // OFK: mod needed
+
         }
         return false;
     }
@@ -319,6 +325,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         return this;
     }
 
+    // OFK iANDing to MappeableRunContainer
+
     @Override
     public MappeableArrayContainer iandNot(final MappeableArrayContainer value2) {
         if (BufferUtil.isBackedBySimpleArray(value2.content))
@@ -344,6 +352,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         this.cardinality = pos;
         return this;
     }
+
+
+    // OFK iANDNOTing to MappeableRunContainer
 
     private void increaseCapacity() {
         int newCapacity = (this.content.limit() == 0) ? DEFAULT_INIT_SIZE : this.content.limit() < 64 ? this.content.limit() * 2
@@ -426,6 +437,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         return x.or(this);
     }
 
+    // OFK iORing to MappeableRunContainer
+
     @Override
     public Iterator<Short> iterator() {
 
@@ -459,6 +472,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     public MappeableContainer ixor(MappeableBitmapContainer x) {
         return x.xor(this);
     }
+
+    // OFK iXORing to MappeableRunContainer
 
     protected void loadData(final MappeableBitmapContainer bitmapContainer) {
         this.cardinality = bitmapContainer.cardinality;
@@ -619,6 +634,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         return x.or(this);
     }
 
+
+    // OFK ORing to MappeableRunContainer
+
     @Override
     public void readExternal(ObjectInput in) throws IOException,
             ClassNotFoundException {
@@ -770,6 +788,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     public MappeableContainer xor(MappeableBitmapContainer x) {
         return x.xor(this);
     }
+
+
+    // OFK XORing to MappeableRunContainer
 
     @Override
     public int rank(short lowbits) {

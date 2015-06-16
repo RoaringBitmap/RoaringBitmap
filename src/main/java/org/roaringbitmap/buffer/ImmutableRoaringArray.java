@@ -23,8 +23,9 @@ import java.nio.channels.WritableByteChannel;
  */
 public final class ImmutableRoaringArray implements PointableRoaringArray {
 
+    // OFK two options
     protected static final short SERIAL_COOKIE = MutableRoaringArray.SERIAL_COOKIE;
-    private final static int startofkeyscardinalities = 8;
+    private final static int startofkeyscardinalities = 8;  // OFK nonconstant
     ByteBuffer buffer;
     int size;
 
@@ -51,6 +52,8 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
      * 
      * @param bbf The source ByteBuffer
      */
+
+    // OFK multiple cookies
     protected ImmutableRoaringArray(ByteBuffer bbf) {
         buffer = bbf.slice();
         buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -60,6 +63,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         buffer.limit(computeSerializedSizeInBytes());
     }
     
+    // OFK needs update in case last container is a  RunContainer
     private int computeSerializedSizeInBytes() {
         int CardinalityOfLastContainer = getCardinality(this.size - 1);
         int PositionOfLastContainer = getOffsetContainer(this.size - 1);
@@ -79,6 +83,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
 
     @Override
+    // OFK discard?
     public boolean equals(Object o) {
         if (o instanceof ImmutableRoaringArray) {
             final ImmutableRoaringArray srb = (ImmutableRoaringArray) o;
@@ -88,6 +93,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         if (o instanceof MutableRoaringArray) {
             final MutableRoaringArray srb = (MutableRoaringArray) o;
             MappeableContainerPointer cp1 = srb.getContainerPointer();
+            // ofk: seems like one of these should be this.getContainerPointer() ??
             MappeableContainerPointer cp2 = srb.getContainerPointer();
             while (cp1.hasContainer()) {
                 if (!cp2.hasContainer())
@@ -109,6 +115,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
 
     @Override
+    // OFK okay if startofkeyscardinality is adjusted
     public int getCardinality(int k) {
         return BufferUtil.toIntUnsigned(buffer.getShort(startofkeyscardinalities + 4 * k + 2)) + 1;
     }
@@ -122,7 +129,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
 
     public MappeableContainer getContainerAtIndex(int i) {
-
+        // OFK adjustment needed
     	int cardinality = getCardinality(i);
         boolean isBitmap = cardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE;
         buffer.position(getOffsetContainer(i));
@@ -138,6 +145,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         }
     }
     
+    // OFK possible run bitmap
     private int getOffsetContainer(int k){
     	return buffer.getInt(4 + 4 + 4*this.size + 4*k);
     }
@@ -203,6 +211,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         };
     }
 
+    // OFK should be fine
     private short getKey(int k) {
         return buffer.getShort(startofkeyscardinalities + 4 * k);
     }
@@ -212,6 +221,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         return binarySearch(x);
     }
 
+    // OFK should be fine
     public short getKeyAtIndex(int i) {
         return buffer.getShort(4 * i + startofkeyscardinalities);
     }

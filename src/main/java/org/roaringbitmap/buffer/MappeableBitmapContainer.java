@@ -163,6 +163,9 @@ public final class MappeableBitmapContainer extends MappeableContainer
         return ac;
     }
 
+
+    // OFK ANDing to MappeableRunContainer
+
     @Override
     public MappeableContainer andNot(final MappeableArrayContainer value2) {
         final MappeableBitmapContainer answer = clone();
@@ -232,6 +235,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
         return ac;
     }
 
+    // OFK ANDNOTing to MappeableRunContainer
+
+
+
     @Override
     public void clear() {
         if (cardinality != 0) {
@@ -253,6 +260,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
     }
 
     @Override
+
+    // OFK mods required
     public boolean equals(Object o) {
         if (o instanceof MappeableBitmapContainer) {
             final MappeableBitmapContainer srb = (MappeableBitmapContainer) o;
@@ -388,6 +397,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
         return ac;
     }
 
+
+    // OFK iANDing to MappeableRunContainer
     @Override
     public MappeableContainer iandNot(final MappeableArrayContainer b2) {
         for (int k = 0; k < b2.cardinality; ++k) {
@@ -443,6 +454,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
     }
 
 
+
+    // OFK iANDNOTing to MappeableRunContainer
+
+
     @Override
     public MappeableContainer inot(final int firstOfRange, final int lastOfRange) {
         return not(this, firstOfRange, lastOfRange); 
@@ -489,6 +504,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
         }
         return this;
     }
+
+
+    // OFK iORing to MappeableRunContainer
+
 
     @Override
     public Iterator<Short> iterator() {
@@ -581,6 +600,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
         ac.cardinality = newCardinality;
         return ac;
     }
+
+
+
+    // OFK iXORing to MappeableRunContainer
 
     protected void loadData(final MappeableArrayContainer arrayContainer) {
         this.cardinality = arrayContainer.cardinality;
@@ -811,6 +834,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
         return answer;
     }
 
+    // OFK ORing to MappeableRunContainer
+
     @Override
     public void readExternal(ObjectInput in) throws IOException,
             ClassNotFoundException {
@@ -956,6 +981,13 @@ public final class MappeableBitmapContainer extends MappeableContainer
         return ac;
     }
  
+
+
+    // OFK XORing to MappeableRunContainer
+
+
+
+
     protected MappeableContainer ilazyor(MappeableArrayContainer value2) {
         this.cardinality = -1;// invalid
         long[] b = this.bitmap.array();
@@ -982,6 +1014,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
         return this;
     }
     
+
+    // OFK iLazyORing to MappeableRunContainer
     protected MappeableContainer lazyor(MappeableArrayContainer value2) {
         MappeableBitmapContainer answer = clone();
         answer.cardinality = -1;// invalid
@@ -1002,6 +1036,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
         }
         return answer;
     }    
+
+    // OFK lazyORing to MappeableRunContainer
     
     protected void computeCardinality() {
         this.cardinality = 0;

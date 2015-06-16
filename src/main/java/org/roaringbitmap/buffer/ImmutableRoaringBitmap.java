@@ -395,7 +395,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
                     .getContainerPointer();
             while (mp1.hasContainer()) {
                 if (mp1.key() != mp2.key())
-                    return false;
+                     return false;
                 if (mp1.getCardinality() != mp2.getCardinality())
                     return false;
                 if (!mp1.getContainer().equals(mp2.getContainer()))
@@ -459,6 +459,8 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
      * 
      * @return estimated memory usage.
      */
+
+    // OFK needs mod for RunContainer 
     public int getSizeInBytes() {
         int size = 4;
         for(int i = 0 ; i < this.highLowContainer.size(); ++i ) {

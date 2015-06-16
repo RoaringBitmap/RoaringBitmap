@@ -70,6 +70,8 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      *            other container
      * @return aggregated container
      */
+
+    // OFK needs mod
     public MappeableContainer and(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return and((MappeableArrayContainer) x);
@@ -105,6 +107,8 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      *            other container
      * @return aggregated container
      */
+
+    // OFK needs mod
     public MappeableContainer andNot(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return andNot((MappeableArrayContainer) x);
@@ -223,6 +227,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      *            other container
      * @return aggregated container
      */
+    // OFK needs mod
     public MappeableContainer iand(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return iand((MappeableArrayContainer) x);
@@ -261,6 +266,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      *            other container
      * @return aggregated container
      */
+    //ofk needs mod
     public MappeableContainer iandNot(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return iandNot((MappeableArrayContainer) x);
@@ -312,6 +318,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      *            other container
      * @return aggregated container
      */
+    // OFK needs mod
     public MappeableContainer ior(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return ior((MappeableArrayContainer) x);
@@ -349,6 +356,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      *            other container
      * @return aggregated container
      */
+    // OFK needs mod
     public MappeableContainer ixor(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return ixor((MappeableArrayContainer) x);
@@ -357,6 +365,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
 
     }
 
+    // OFK may need mod
     protected MappeableContainer lazyOR(MappeableContainer x) {
         if (this instanceof MappeableArrayContainer) {
             if (x instanceof MappeableArrayContainer)
@@ -369,6 +378,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
         }
     }
     
+    // OFK may need mod
     protected MappeableContainer lazyIOR(MappeableContainer x) {
         if (this instanceof MappeableArrayContainer) {
             if (x instanceof MappeableArrayContainer)
@@ -422,6 +432,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      *            other container
      * @return aggregated container
      */
+    // OFK may need mod
     public MappeableContainer or(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return or((MappeableArrayContainer) x);
@@ -480,6 +491,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      *            other parameter
      * @return aggregated container
      */
+    // OFK may need mod
     public MappeableContainer xor(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return xor((MappeableArrayContainer) x);
