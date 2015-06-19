@@ -704,6 +704,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     @Override
     public void trim() {
+        // could we do nothing if size is already ok?
         final ShortBuffer co = ShortBuffer.allocate(this.cardinality);
         for (int k = 0; k < this.cardinality; ++k)
             co.put(this.content.get(k));
@@ -714,8 +715,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     protected void writeArray(DataOutput out) throws IOException {
         // little endian
         for (int k = 0; k < this.cardinality; ++k) {
-            out.write(this.content.get(k) & 0xFF);
-            out.write((this.content.get(k) >>> 8) & 0xFF);
+            out.writeShort(Short.reverseBytes(content.get(k)));
+            // was: out.write(this.content.get(k) & 0xFF);
+            // out.write((this.content.get(k) >>> 8) & 0xFF);
         }
     }
 

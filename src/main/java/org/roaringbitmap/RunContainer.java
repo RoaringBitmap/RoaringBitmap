@@ -813,6 +813,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
             }
         }
         RunContainer rc = new RunContainer(r, Arrays.copyOf(valueslength, 2*r));
+        // OFK: this ends up doing a double array copy.
         rc.setLength(r - 1, (short) (Util.toIntUnsigned(rc.getLength(r - 1)) - cardinality + maxcardinality));
         return rc;
     }

@@ -343,6 +343,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
         return MAX_CAPACITY / 8;
     }
 
+
     @Override
     public int getCardinality() {
         return cardinality;
