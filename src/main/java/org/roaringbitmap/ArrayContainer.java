@@ -254,6 +254,8 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         increaseCapacity(false);
     }
 
+    // temporarily allow an illegally large size, as long as the operation creating
+    // the illegal container does not return it.
     private void increaseCapacity(boolean allowIllegalSize) {
         int newCapacity = (this.content.length == 0) ? DEFAULT_INIT_SIZE : this.content.length < 64 ? this.content.length * 2
                 : this.content.length < 1024 ? this.content.length * 3 / 2

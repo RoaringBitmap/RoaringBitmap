@@ -71,10 +71,14 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      * @return aggregated container
      */
 
-    // OFK needs mod
+    public abstract MappeableContainer and(MappeableRunContainer x);
+
+
     public MappeableContainer and(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return and((MappeableArrayContainer) x);
+        else if ( x instanceof MappeableRunContainer)
+            return and((MappeableRunContainer) x);
         return and((MappeableBitmapContainer) x);
 
     }
@@ -108,10 +112,14 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      * @return aggregated container
      */
 
-    // OFK needs mod
+    public abstract MappeableContainer andNot(MappeableRunContainer x);
+
     public MappeableContainer andNot(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return andNot((MappeableArrayContainer) x);
+        else if ( x instanceof MappeableRunContainer)
+            return andNot((MappeableRunContainer) x);
+
         return andNot((MappeableBitmapContainer) x);
     }
 
@@ -227,10 +235,16 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      *            other container
      * @return aggregated container
      */
-    // OFK needs mod
+
+    public abstract MappeableContainer iand(MappeableRunContainer x);
+
+
     public MappeableContainer iand(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return iand((MappeableArrayContainer) x);
+        else if ( x instanceof MappeableRunContainer)
+            return iand((MappeableRunContainer) x);
+
         return iand((MappeableBitmapContainer) x);
 
     }
@@ -266,10 +280,15 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      *            other container
      * @return aggregated container
      */
-    //ofk needs mod
+
+    public abstract MappeableContainer iandNot(MappeableRunContainer x);
+
     public MappeableContainer iandNot(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return iandNot((MappeableArrayContainer) x);
+        else if ( x instanceof MappeableRunContainer)
+            return iandNot((MappeableRunContainer) x);
+
         return iandNot((MappeableBitmapContainer) x);
     }
 
@@ -318,10 +337,15 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      *            other container
      * @return aggregated container
      */
-    // OFK needs mod
+
+    public abstract MappeableContainer ior(MappeableRunContainer x);
+
     public MappeableContainer ior(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return ior((MappeableArrayContainer) x);
+        else if ( x instanceof MappeableRunContainer)
+            return ior((MappeableRunContainer) x);
+
         return ior((MappeableBitmapContainer) x);
     }
 
@@ -356,41 +380,53 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      *            other container
      * @return aggregated container
      */
-    // OFK needs mod
+
+    public abstract MappeableContainer ixor(MappeableRunContainer x);
+
+
     public MappeableContainer ixor(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return ixor((MappeableArrayContainer) x);
-        else
+        else if ( x instanceof MappeableRunContainer)
+            return ixor((MappeableRunContainer) x);
+
             return ixor((MappeableBitmapContainer) x);
 
     }
 
-    // OFK may need mod
-    protected MappeableContainer lazyOR(MappeableContainer x) {
-        if (this instanceof MappeableArrayContainer) {
+  
+protected MappeableContainer lazyOR(MappeableContainer x) {
+        if ((this instanceof MappeableArrayContainer) || (this instanceof MappeableRunContainer)) {
             if (x instanceof MappeableArrayContainer)
                 return or((MappeableArrayContainer) x);
-            return or((MappeableBitmapContainer) x);
-        } else {
+            else if (x instanceof MappeableBitmapContainer) return or((MappeableBitmapContainer) x);
+            return or((MappeableRunContainer) x);
+        } else  {
             if (x instanceof MappeableArrayContainer)
                 return ((MappeableBitmapContainer)this).lazyor((MappeableArrayContainer) x);
-            return ((MappeableBitmapContainer)this).lazyor((MappeableBitmapContainer) x);
+            else if (x instanceof MappeableBitmapContainer) return ((MappeableBitmapContainer)this).lazyor((MappeableBitmapContainer) x);
+            return ((MappeableBitmapContainer)this).lazyor((MappeableRunContainer) x);
         }
     }
     
-    // OFK may need mod
     protected MappeableContainer lazyIOR(MappeableContainer x) {
-        if (this instanceof MappeableArrayContainer) {
+        if ((this instanceof MappeableArrayContainer) || (this instanceof MappeableRunContainer)) {
             if (x instanceof MappeableArrayContainer)
                 return ior((MappeableArrayContainer) x);
-            return ior((MappeableBitmapContainer) x);
+            else if (x instanceof MappeableBitmapContainer) return ior((MappeableBitmapContainer) x);
+            return ior((MappeableRunContainer) x);
         } else {
             if (x instanceof MappeableArrayContainer)
                 return ((MappeableBitmapContainer)this).ilazyor((MappeableArrayContainer) x);
-            return ((MappeableBitmapContainer)this).ilazyor((MappeableBitmapContainer) x);
+            else if (x instanceof MappeableBitmapContainer) return ((MappeableBitmapContainer)this).ilazyor((MappeableBitmapContainer) x);
+            return ((MappeableBitmapContainer)this).ilazyor((MappeableRunContainer) x);
         }
     }
     
+
+
+
+  
     /**
      * Computes the bitwise NOT of this container (complement). Only those bits
      * within the range are affected. The current container is left unaffected.
@@ -432,10 +468,15 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      *            other container
      * @return aggregated container
      */
-    // OFK may need mod
+
+    public abstract MappeableContainer or(MappeableRunContainer x);
+
     public MappeableContainer or(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return or((MappeableArrayContainer) x);
+        else if ( x instanceof MappeableRunContainer)
+            return or((MappeableRunContainer) x);
+
         return or((MappeableBitmapContainer) x);
     }
 
@@ -491,10 +532,15 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      *            other parameter
      * @return aggregated container
      */
-    // OFK may need mod
+
+    public abstract MappeableContainer xor(MappeableRunContainer x);
+
     public MappeableContainer xor(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return xor((MappeableArrayContainer) x);
+        else if ( x instanceof MappeableRunContainer)
+            return xor((MappeableRunContainer) x);
+
         return xor((MappeableBitmapContainer) x);
 
     }
@@ -567,4 +613,27 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      * @return the new container
      */
     public abstract MappeableContainer remove(int begin, int end);
+
+     /**
+      * Convert to MappeableRunContainers, when the result is smaller.  Overridden by MappeableRunContainer
+      *   to possibily switch from MappeableRunContainer to a smaller alternative.
+      */
+
+     public MappeableContainer runOptimize() {
+         int numRuns = 0;
+         ShortIterator sIt = getShortIterator();
+         int previous = -2;
+         while (sIt.hasNext()) {
+             int val = BufferUtil.toIntUnsigned(sIt.next());
+             if (val != previous+1) 
+                 ++numRuns;
+             previous = val;
+         }
+         int sizeAsRunContainer = MappeableRunContainer.getArraySizeInBytes(numRuns);
+         if (getArraySizeInBytes() > sizeAsRunContainer)
+             return new MappeableRunContainer( getShortIterator(),  numRuns);
+         else 
+             return this;
+     }
+
 }

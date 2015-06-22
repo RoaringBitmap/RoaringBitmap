@@ -103,7 +103,7 @@ public final class BufferUtil {
      * @return x greater than pos such that array[pos] is at least as large as
      *         min, pos is is equal to length if it is not possible.
      */
-    private static int advanceUntil(ShortBuffer array, int pos, int length,
+    protected static int advanceUntil(ShortBuffer array, int pos, int length,
             short min) {
         int lower = pos + 1;
 
@@ -235,6 +235,10 @@ public final class BufferUtil {
         return (short) 0xFFFF;
     }
 
+    protected static int maxLowBitAsInteger() {
+        return 0xFFFF;
+    }
+
     protected static void arraycopy(ShortBuffer src, int srcPos, ShortBuffer dest, int destPos, int length) {
       if(BufferUtil.isBackedBySimpleArray(src) && BufferUtil.isBackedBySimpleArray(dest)) {
           System.arraycopy(src.array(), srcPos,  dest.array(), destPos, length);
@@ -249,10 +253,6 @@ public final class BufferUtil {
               }              
           }
       }
-    }
-
-    protected static int maxLowBitAsInteger() {
-        return  0xFFFF;
     }
 
     protected static int toIntUnsigned(short x) {

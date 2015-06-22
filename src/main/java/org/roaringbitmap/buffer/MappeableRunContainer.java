@@ -101,19 +101,19 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
          int currentSize = getArraySizeInBytes(); //serializedSizeInBytes();
          int card = getCardinality(); 
          if (card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
-             if (currentSize > MappeableArrayContainer.getArraySizeInBytes())  
+             if (currentSize > MappeableArrayContainer.getArraySizeInBytes(card))  
                  return toBitmapOrArrayContainer();
          }
-         else if (currentSize > MappeableBitmapContainer.getArraySizeInBytes()) {  
+         else if (currentSize > MappeableBitmapContainer.getArraySizeInBytes(card)) {  
              return toBitmapOrArrayContainer();
          }
          return this;
      }
 
     private void increaseCapacity() {
-        int newCapacity = (valueslength.length == 0) ? DEFAULT_INIT_SIZE : valueslength.length < 64 ? valueslength.length * 2
-                : valueslength.length < 1024 ? valueslength.length * 3 / 2
-                : valueslength.length * 5 / 4;
+        int newCapacity = (valueslength.capacity() == 0) ? DEFAULT_INIT_SIZE : valueslength.capacity() < 64 ? valueslength.capacity() * 2
+            : valueslength.capacity() < 1024 ? valueslength.capacity() * 3 / 2
+            : valueslength.capacity() * 5 / 4;
         
         final ShortBuffer nv = ShortBuffer.allocate(newCapacity);
         valueslength.rewind();
@@ -177,7 +177,7 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
             ClassNotFoundException {
         // little endian
         this.nbrruns = 0xFFFF & Short.reverseBytes(in.readShort());
-        if (this.valueslength.limit() < 2*this.nbrruns)
+        if (this.valueslength.capacity() < 2*this.nbrruns)
             this.valueslength = ShortBuffer.allocate(2*this.nbrruns);
         for (int k = 0; k < 2*this.nbrruns; ++k) {
             this.valueslength.put(k,Short.reverseBytes(in.readShort()));
@@ -287,13 +287,13 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
 
     @Override
     public MappeableContainer add(int begin, int end) {
-        RunContainer rc = (RunContainer) clone();
+        MappeableRunContainer rc = (MappeableRunContainer) clone();
         return rc.iadd(begin, end);
     }
 
     @Override
     public MappeableContainer and(MappeableArrayContainer x) {
-        MappeableArrayContainer ac = new ArrayMappeableContainer(x.cardinality);
+        MappeableArrayContainer ac = new MappeableArrayContainer(x.cardinality);
         /*
         int rlepos = 0;
         int arraypos = 0;
@@ -312,7 +312,7 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
         int rlepos = 0;
         int arraypos = 0;
         while((arraypos < x.cardinality) && (rlepos < this.nbrruns)) {
-            if(BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) < BufferUtil.toIntUnsigned(x.content[arraypos])) {
+            if(BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) < BufferUtil.toIntUnsigned(x.content.get(arraypos))) {
                 ++rlepos;
             } else if(BufferUtil.toIntUnsigned(this.getValue(rlepos)) > BufferUtil.toIntUnsigned(x.content.get(arraypos)))  {
                 arraypos = BufferUtil.advanceUntil(x.content,arraypos,x.cardinality,this.getValue(rlepos));
@@ -347,9 +347,9 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
             BufferUtil.resetBitmapRange(answer.bitmap, start, end); 
             start = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
         }
-        BufferUtil.resetBitmapRange(answer.bitmap, start, Util.maxLowBitAsInteger() + 1); 
+        BufferUtil.resetBitmapRange(answer.bitmap, start, BufferUtil.maxLowBitAsInteger() + 1); 
         answer.computeCardinality();
-        if(answer.getCardinality() > MergeableArrayContainer.DEFAULT_MAX_SIZE)
+        if(answer.getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE)
             return answer;
         else return answer.toArrayContainer();
 
@@ -391,9 +391,9 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
         */
 
     	int card = this.getCardinality();
-        if (card <=  MergeableArrayContainer.DEFAULT_MAX_SIZE) {
+        if (card <=  MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             // result can only be an array (assuming that we never make a RunContainer)
-        	MergeableArrayContainer answer = new MergeableArrayContainer(card);
+        	MappeableArrayContainer answer = new MappeableArrayContainer(card);
         	answer.cardinality=0;
             for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
                 int runStart = BufferUtil.toIntUnsigned(this.getValue(rlepos));
@@ -408,16 +408,16 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
         }
         // we expect the answer to be a bitmap (if we are lucky)
 
-    	MergeableBitmapContainer answer = x.clone();
+    	MappeableBitmapContainer answer = x.clone();
         int start = 0;
         for(int rlepos = 0; rlepos < this.nbrruns; ++rlepos ) {
             int end = BufferUtil.toIntUnsigned(this.getValue(rlepos));
             BufferUtil.resetBitmapRange(answer.bitmap, start, end);  
             start = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
         }
-        BufferUtil.resetBitmapRange(answer.bitmap, start, Util.maxLowBitAsInteger() + 1); 
+        BufferUtil.resetBitmapRange(answer.bitmap, start, BufferUtil.maxLowBitAsInteger() + 1); 
         answer.computeCardinality();
-        if(answer.getCardinality() > MergeableArrayContainer.DEFAULT_MAX_SIZE)
+        if(answer.getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE)
             return answer;
         else return answer.toArrayContainer();
 
@@ -444,7 +444,7 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
             return answer.toArrayContainer();
         */
 
-        MergeableBitmapContainer answer = x.clone();
+        MappeableBitmapContainer answer = x.clone();
         int lastPos = 0;
         for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
             int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
@@ -453,9 +453,9 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
             BufferUtil.flipBitmapRange(answer.bitmap, start, end);
             lastPos = end;
         }
-        BufferUtil.resetBitmapRange(answer.bitmap, lastPos, answer.bitmap.length*64);
+        BufferUtil.resetBitmapRange(answer.bitmap, lastPos, answer.bitmap.capacity()*64);
         answer.computeCardinality();
-        if (answer.getCardinality() > MergeableArrayContainer.DEFAULT_MAX_SIZE)
+        if (answer.getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE)
             return answer;
         else
             return answer.toArrayContainer();
@@ -523,13 +523,12 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
             BufferUtil.flipBitmapRange(answer.bitmap, start, end);
             lastPos = end;
         }
-        BufferUtil.resetBitmapRange(answer.bitmap, lastPos, answer.bitmap.length*64);
+        BufferUtil.resetBitmapRange(answer.bitmap, lastPos, answer.bitmap.capacity()*64);
         answer.computeCardinality();
-        if (answer.getCardinality() > MergeableArrayContainer.DEFAULT_MAX_SIZE)
+        if (answer.getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE)
             return answer;
         else
             return answer.toArrayContainer();
-    	int card = this.getCardinality();
     }
 
 
@@ -590,6 +589,11 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
         return 2+4*this.nbrruns;  // "array" includes its size
     }
 
+    protected static int getArraySizeInBytes(int nbrruns) {
+        return 2+4*nbrruns;  
+    }
+
+
     @Override
     public int getCardinality() {
         /**
@@ -620,12 +624,12 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
 
     @Override
     public ShortIterator getShortIterator() {
-        return new RunContainerShortIterator(this);
+        return new MappeableRunContainerShortIterator(this);
     }
 
     @Override
     public ShortIterator getReverseShortIterator() {
-        return new ReverseRunContainerShortIterator(this);
+        return new ReverseMappeableRunContainerShortIterator(this);
     }
 
     @Override
@@ -815,6 +819,7 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
     }
 
     @Override
+    // OFK: requires MappeableArrayContainer have ShortIterator param
     public MappeableContainer or(MappeableArrayContainer x) {
         return x.or(getShortIterator());   // performance may not be great, depending on iterator overheads...
     }
@@ -896,8 +901,8 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
         // could we do nothing if size is already ok?
         final ShortBuffer co = ShortBuffer.allocate(2*nbrruns);
         for (int k = 0; k < 2*nbrruns; ++k)
-            co.put(this.content.get(k));
-        this.content = co;
+            co.put(this.valueslength.get(k));
+        this.valueslength = co;
     }
 
 
@@ -920,7 +925,7 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
         for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
             int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
             int end = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
-            Util.flipBitmapRange(answer.bitmap, start, end);
+            BufferUtil.flipBitmapRange(answer.bitmap, start, end);
         }
         answer.computeCardinality();
         if (answer.getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE)
@@ -1159,7 +1164,7 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
 
     @Override
     public MappeableContainer remove(int begin, int end) {
-        RunContainer rc = (RunContainer) clone();
+        MappeableRunContainer rc = (MappeableRunContainer) clone();
         return rc.iremove(begin, end);
     }
 
@@ -1238,26 +1243,26 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
     }
 
       private void incrementLength(int index) {
-          valueslength.put(2*index + 1, 1 + valueslength.get(2*index+1)); 
+          valueslength.put(2*index + 1, (short) (1 + valueslength.get(2*index+1))); 
     }
     
     private void incrementValue(int index) {
-        valueslength.put(2*index, 1 + valueslength.get(2*index));
+        valueslength.put(2*index, (short) (1 + valueslength.get(2*index)));
     }
 
     private void decrementLength(int index) {
-        valueslength.put(2*index + 1, valueslength.get(2*index+1)-1);
+        valueslength.put(2*index + 1, (short) (valueslength.get(2*index+1)-1));
     }
 
     private void decrementValue(int index) {
-        valueslength.put(2*index, valueslength.get(2*index)-1);
+        valueslength.put(2*index, (short) (valueslength.get(2*index)-1));
     }
 
     private void setLength(int index, short v) {
         setLength(valueslength, index, v);
     }
 
-    private void setLength(short[] valueslength, int index, short v) {
+    private void setLength(ShortBuffer valueslength, int index, short v) {
         valueslength.put(2*index + 1,v);
     }
 
@@ -1265,7 +1270,7 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
         setValue(valueslength, index, v);
     }
 
-    private void setValue(short[] valueslength, int index, short v) {
+    private void setValue(ShortBuffer valueslength, int index, short v) {
         valueslength.put(2*index, v);
     }
 
@@ -1280,7 +1285,7 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
         //     copyValuesLength(sarray, index, sarray, index + 1, nbrruns - index);
         // }
         // else {
-            if (2*(nbrruns+1) > valueslength.limit())
+            if (2*(nbrruns+1) > valueslength.capacity())
                 increaseCapacity();
             copyValuesLength(valueslength, index, valueslength, index + 1, nbrruns - index);
         // }
@@ -1403,15 +1408,16 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
 
     // borrowed this tuned-looking code from ArrayContainer.
     // except: DEFAULT_INIT_SIZE is private...borrowed current setting
+    // OFK: compare to similar increaseCapacity method elsewhere...
     private ShortBuffer increaseCapacity(ShortBuffer content) {
-        int newCapacity = (content.limit() == 0) ? 4 : content.limit() < 64 ? content.limit() * 2
-            : content.limit() < 1024 ? content.limit() * 3 / 2
-            : content.limit() * 5 / 4;
+        int newCapacity = (content.capacity() == 0) ? 4 : content.capacity() < 64 ? content.capacity() * 2
+            : content.capacity() < 1024 ? content.capacity() * 3 / 2
+            : content.capacity() * 5 / 4;
         // allow it to exceed DEFAULT_MAX_SIZE
         ShortBuffer ans = ShortBuffer.allocate(newCapacity);
         content.rewind();
         ans.put(content);
-        return answer;
+        return ans;
         //return Arrays.copyOf(content, newCapacity);
     }
 
@@ -1508,7 +1514,7 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
                 // item present in x only: we want for OR and XOR only
                 if (opcode == OP_OR|| opcode == OP_XOR) {
                     // emit item to array
-                    if (card == ansArray.length) ansArray = increaseCapacity(ansArray);
+                    if (card == ansArray.capacity()) ansArray = increaseCapacity(ansArray);
                     ansArray.put(card++, (short) xHead);
                 }
                 xHead =  (xIt.hasNext() ?  BufferUtil.toIntUnsigned(xIt.next()) : -1);
@@ -1517,7 +1523,7 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
                 // item present in this only.  We want for OR, XOR plus ANDNOT  (all except AND)
                 if (opcode != OP_AND) {
                     // emit to array
-                    if (card == ansArray.length) ansArray = increaseCapacity(ansArray);
+                    if (card == ansArray.capacity()) ansArray = increaseCapacity(ansArray);
                     ansArray.put(card++, (short) thisHead);
                 }
                 thisHead = (it.hasNext() ?  BufferUtil.toIntUnsigned(it.next()) : -1);
@@ -1525,7 +1531,7 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
             else { // item is present in both x and this;   AND and OR should get it, but not XOR or ANDNOT
                 if (opcode == OP_AND || opcode == OP_OR) {
                     // emit to array
-                    if (card == ansArray.length) ansArray = increaseCapacity(ansArray);
+                    if (card == ansArray.capacity()) ansArray = increaseCapacity(ansArray);
                     ansArray.put(card++,(short) thisHead);
                 }
                 thisHead = (it.hasNext() ?  BufferUtil.toIntUnsigned(it.next()) : -1);
@@ -1539,7 +1545,7 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
             // OR, ANDNOT, XOR all want extra items in this sequence
             while (thisHead != -1) {
                 // emit to array
-                if (card == ansArray.length) ansArray = increaseCapacity(ansArray);
+                if (card == ansArray.capacity()) ansArray = increaseCapacity(ansArray);
                 ansArray.put(card++, (short) thisHead);
                 thisHead = (it.hasNext() ?  BufferUtil.toIntUnsigned(it.next()) : -1);
             }
@@ -1548,15 +1554,15 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
             if (opcode == OP_OR || opcode == OP_XOR)
                 while (xHead != -1) {
                     // emit to array
-                    if (card == ansArray.length) ansArray = increaseCapacity(ansArray);
+                    if (card == ansArray.capacity()) ansArray = increaseCapacity(ansArray);
                     ansArray.put(card++,(short) xHead);
                     xHead =  (xIt.hasNext() ?  BufferUtil.toIntUnsigned(xIt.next()) : -1);
                 } 
         }
 
-        ShortBuffer [] content = ShortBuffer.allocate(card);  //Arrays.copyOf(ansArray, card);
-        ansArr.flip();
-        content.put(ansArr);
+        ShortBuffer content = ShortBuffer.allocate(card);  //Arrays.copyOf(ansArray, card);
+        ansArray.flip();
+        content.put(ansArray);
         
         MappeableArrayContainer ac = new MappeableArrayContainer(content, card);
         if (card > MappeableArrayContainer.DEFAULT_MAX_SIZE)

@@ -178,6 +178,10 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
     // OFK ANDing to MappeableRunContainer
+    @Override
+    public MappeableContainer and(final MappeableRunContainer value2) {
+        return null;
+    }
 
     @Override
     public MappeableArrayContainer andNot(final MappeableArrayContainer value2) {
@@ -218,6 +222,10 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
     // OFK ANDNOTing to MappeableRunContainer
+    @Override
+    public MappeableContainer andNot(final MappeableRunContainer value2) {
+        return null;
+    }
 
     @Override
     public void clear() {
@@ -275,8 +283,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     @Override
     protected int getArraySizeInBytes() {
+        return getArraySizeInBytes(cardinality);
+    }
+
+    protected static int getArraySizeInBytes(int cardinality) {
         return cardinality * 2;
     }
+
 
     @Override
     public int getCardinality() {
@@ -326,6 +339,10 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
     // OFK iANDing to MappeableRunContainer
+    @Override
+    public MappeableContainer iand(final MappeableRunContainer value2) {
+        return null;
+    }
 
     @Override
     public MappeableArrayContainer iandNot(final MappeableArrayContainer value2) {
@@ -355,12 +372,24 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
 
     // OFK iANDNOTing to MappeableRunContainer
+    @Override
+    public MappeableContainer iandNot(final MappeableRunContainer value2) {
+        return null;
+    }
 
-    private void increaseCapacity() {
+
+    private void increaseCapacity() { 
+        increaseCapacity(false);
+    }
+
+    // temporarily allow an illegally large size, as long as the operation creating
+    // the illegal container does not return it.
+
+    private void increaseCapacity(boolean allowIllegalSize) {
         int newCapacity = (this.content.limit() == 0) ? DEFAULT_INIT_SIZE : this.content.limit() < 64 ? this.content.limit() * 2
                 : this.content.limit() < 1024 ? this.content.limit() * 3 / 2
                         : this.content.limit() * 5 / 4;
-        if (newCapacity > MappeableArrayContainer.DEFAULT_MAX_SIZE)
+        if (newCapacity > MappeableArrayContainer.DEFAULT_MAX_SIZE && !allowIllegalSize )
             newCapacity = MappeableArrayContainer.DEFAULT_MAX_SIZE;
         final ShortBuffer newContent = ShortBuffer.allocate(newCapacity);
         this.content.rewind();
@@ -438,6 +467,10 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
     // OFK iORing to MappeableRunContainer
+    @Override
+    public MappeableContainer ior(final MappeableRunContainer value2) {
+        return null;
+    }
 
     @Override
     public Iterator<Short> iterator() {
@@ -474,6 +507,10 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
     // OFK iXORing to MappeableRunContainer
+    @Override
+    public MappeableContainer ixor(final MappeableRunContainer value2) {
+        return null;
+    }
 
     protected void loadData(final MappeableBitmapContainer bitmapContainer) {
         this.cardinality = bitmapContainer.cardinality;
@@ -634,8 +671,79 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         return x.or(this);
     }
 
+   
+    private int advance(ShortIterator it) {
+        int ans;
+        if (it.hasNext()) 
+           return  BufferUtil.toIntUnsigned(it.next());
+        else
+            return -1;
+    }
+
+    // in order 
+    private void emit(short val) {
+        if (cardinality == content.limit())
+            increaseCapacity(true);
+        content.put(cardinality++, val);
+    }
+
+
+    /** it must return items in (unsigned) sorted order.  Possible candidate for
+        Container interface?  **/
+    private MappeableContainer or(ShortIterator it, boolean exclusive) {
+        MappeableArrayContainer ac = new MappeableArrayContainer();
+        int myItPos = 0;
+        ac.cardinality=0;
+        // do a merge.  int -1 denotes end of input.
+        int myHead = (myItPos == cardinality) ? -1 : BufferUtil.toIntUnsigned(content.get(myItPos++));
+        int hisHead =  advance(it);
+
+        while (myHead != -1 && hisHead != -1) {
+            if (myHead < hisHead) {
+                ac.emit( (short) myHead);
+                myHead = (myItPos == cardinality) ? -1 : BufferUtil.toIntUnsigned(content.get(myItPos++));
+            }
+            else if (myHead > hisHead) {
+                ac.emit(  (short) hisHead);
+                hisHead = advance(it);
+            }
+            else {
+                if (! exclusive) 
+                    ac.emit( (short) hisHead);
+                hisHead = advance(it);
+                myHead = (myItPos == cardinality) ? -1 : BufferUtil.toIntUnsigned(content.get(myItPos++));
+            }
+        }
+
+        while (myHead != -1) {
+            ac.emit( (short) myHead);
+            myHead = (myItPos == cardinality) ? -1 : BufferUtil.toIntUnsigned(content.get(myItPos++));
+        }
+
+        while (hisHead != -1) {
+            ac.emit( (short) hisHead);
+            hisHead = advance(it);
+        }
+
+        if (ac.cardinality > DEFAULT_MAX_SIZE)
+            return ac.toBitmapContainer();
+        else return ac;
+    }
+
+    public MappeableContainer or(ShortIterator it) {
+        return or(it, false);
+    }
+
+    public MappeableContainer xor(ShortIterator it) {
+        return or(it,true);
+    }
+
 
     // OFK ORing to MappeableRunContainer
+    @Override
+    public MappeableContainer or(final MappeableRunContainer value2) {
+        return null;
+    }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException,
@@ -793,6 +901,10 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
 
     // OFK XORing to MappeableRunContainer
+    @Override
+    public MappeableContainer xor(final MappeableRunContainer value2) {
+        return null;
+    }
 
     @Override
     public int rank(short lowbits) {

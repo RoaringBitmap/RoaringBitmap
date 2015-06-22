@@ -165,6 +165,12 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
 
     // OFK ANDing to MappeableRunContainer
+    @Override
+    public MappeableContainer and(final MappeableRunContainer value2) {
+        return null;
+    }
+
+
 
     @Override
     public MappeableContainer andNot(final MappeableArrayContainer value2) {
@@ -236,6 +242,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
     }
 
     // OFK ANDNOTing to MappeableRunContainer
+    @Override
+    public MappeableContainer andNot(final MappeableRunContainer value2) {
+        return null;
+    }
 
 
 
@@ -344,6 +354,12 @@ public final class MappeableBitmapContainer extends MappeableContainer
     }
 
 
+    protected static int getArraySizeInBytes(int unusedCardinality) {
+        return MAX_CAPACITY / 8;
+    }
+
+
+
     @Override
     public int getCardinality() {
         return cardinality;
@@ -401,6 +417,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     // OFK iANDing to MappeableRunContainer
     @Override
+    public MappeableContainer iand(final MappeableRunContainer value2) {
+        return null;
+    }
+    @Override
     public MappeableContainer iandNot(final MappeableArrayContainer b2) {
         for (int k = 0; k < b2.cardinality; ++k) {
             this.remove(b2.content.get(k));
@@ -457,7 +477,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
 
     // OFK iANDNOTing to MappeableRunContainer
-
+    @Override
+    public MappeableContainer iandNot(final MappeableRunContainer value2) {
+        return null;
+    }
 
     @Override
     public MappeableContainer inot(final int firstOfRange, final int lastOfRange) {
@@ -508,6 +531,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
 
     // OFK iORing to MappeableRunContainer
+    @Override
+    public MappeableContainer ior(final MappeableRunContainer value2) {
+        return null;
+    }
 
 
     @Override
@@ -605,6 +632,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
 
     // OFK iXORing to MappeableRunContainer
+    @Override
+    public MappeableContainer ixor(final MappeableRunContainer value2) {
+        return null;
+    }
 
     protected void loadData(final MappeableArrayContainer arrayContainer) {
         this.cardinality = arrayContainer.cardinality;
@@ -836,6 +867,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
     }
 
     // OFK ORing to MappeableRunContainer
+    @Override
+    public MappeableContainer or(final MappeableRunContainer value2) {
+        return null;
+    }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException,
@@ -985,7 +1020,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
 
     // OFK XORing to MappeableRunContainer
-
+    @Override
+    public MappeableContainer xor(final MappeableRunContainer value2) {
+        return null;
+    }
 
 
 
@@ -1016,7 +1054,14 @@ public final class MappeableBitmapContainer extends MappeableContainer
     }
     
 
-    // OFK iLazyORing to MappeableRunContainer
+    // OFK writeme
+   protected MappeableContainer ilazyor(MappeableRunContainer x) {
+       return null;
+   }
+
+
+
+
     protected MappeableContainer lazyor(MappeableArrayContainer value2) {
         MappeableBitmapContainer answer = clone();
         answer.cardinality = -1;// invalid
@@ -1039,6 +1084,11 @@ public final class MappeableBitmapContainer extends MappeableContainer
     }    
 
     // OFK lazyORing to MappeableRunContainer
+    protected MappeableContainer lazyor(MappeableRunContainer x) {
+        return null;
+    }
+
+
     
     protected void computeCardinality() {
         this.cardinality = 0;
