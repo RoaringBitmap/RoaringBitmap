@@ -1,4 +1,4 @@
-upcoming
+version 0.4.10
  - faster intersections (and) in some cases thanks to @gssiyankai
  - fast range add and remove
  - improved select performance (Bob Potter)
