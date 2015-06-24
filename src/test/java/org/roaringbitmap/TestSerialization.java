@@ -54,9 +54,20 @@ public class TestSerialization {
     
     @Test
     public void testMutableSerialize()  throws IOException {
+        System.out.println("testMutableSerialize");
         outbb.rewind();
         ByteBufferBackedOutputStream out = new ByteBufferBackedOutputStream(outbb);
+        System.out.println("bitmap_ar is "+bitmap_ar.getClass().getName());
         bitmap_ar.serialize(new DataOutputStream(out));
+    }
+
+
+    @Test
+    public void testMutableBuilding() {
+        int cksum1 = 0, cksum2 = 0;
+        for (int x : bitmap_a) cksum1 += x;
+        for (int x: bitmap_ar) cksum2 += x;
+        assertEquals(cksum1,cksum2);
     }
 
     @BeforeClass
@@ -69,15 +80,18 @@ public class TestSerialization {
             bitmap_ar.add(3 * k);
         }
 
-        /*  add back once RunContainer support exists in all Roaring flavours (Immutable, Mutable, etc)
-
         for (int k=700000; k < 800000; ++k) {  // runcontainer would be best
             bitmap_a.add(k);
             bitmap_ar.add(k);
         }
 
         bitmap_a.runOptimize();  // mix of all 3 container kinds
-        */
+        bitmap_ar.runOptimize(); // must stay in sync with bitmap_a
+        /* There is potentially some "slop" betweeen the size estimates used for
+           RoaringBitmaps and MutableRoaringBitmaps, so it is risky to assume that
+           they will both *always* agree whether to run encode a container.  Nevertheless
+           testMutableSerialize effectively does that, by using the serialized size 
+           of one as the output buffer size for the other. */
        
         outbb = ByteBuffer.allocate(bitmap_a.serializedSizeInBytes());
         presoutbb = ByteBuffer.allocate(bitmap_a.serializedSizeInBytes());

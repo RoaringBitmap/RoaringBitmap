@@ -335,6 +335,9 @@ public final class RoaringArray implements Cloneable, Externalizable {
     public void serialize(DataOutput out) throws IOException {
         int startOffset=0;
         if (hasRunContainer()) {
+
+            //System.out.println("nonbuffered serializes with a runcontainer");
+
             out.writeInt(Integer.reverseBytes(SERIAL_COOKIE));
             out.writeInt(Integer.reverseBytes(size));
             int [] bitmapOfRunContainers = new int[ (size+31)/32];
@@ -346,6 +349,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
             startOffset = 4 + 4 + 4*this.size + 4*this.size + 4*bitmapOfRunContainers.length;
         }
         else {  // backwards compatibilility
+            // System.out.println("nonbuffered serializes without a runcontainer");
             out.writeInt(Integer.reverseBytes(SERIAL_COOKIE_NO_RUNCONTAINER));
             out.writeInt(Integer.reverseBytes(size));
             startOffset = 4 + 4 + 4*this.size + 4*this.size;

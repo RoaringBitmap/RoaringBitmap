@@ -540,16 +540,14 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
         System.arraycopy(this.array, begin, this.array, newBegin, range);
     }
 
-    private boolean hasRunContainer() {
+    private boolean hasRunContainer() 
+    {
         for (int k=0; k < size; ++k) {
             MappeableContainer ck = array[k].value;
             if (ck instanceof MappeableRunContainer) return true;
         }
         return false;
     }
-
-
-
 
 
     /**
@@ -566,17 +564,21 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
     public void serialize(DataOutput out) throws IOException {
     int startOffset=0;
         if (hasRunContainer()) {
+            //            System.out.println("hasRunContainer true");
             out.writeInt(Integer.reverseBytes(SERIAL_COOKIE));
             out.writeInt(Integer.reverseBytes(size));
             int [] bitmapOfRunContainers = new int[ (size+31)/32];
             for (int i=0; i < size; ++i)
-                if (this.array[i].value instanceof MappeableRunContainer)
+                if (this.array[i].value instanceof MappeableRunContainer) {
+                    // System.out.println("container "+i+" is run coded");
                     bitmapOfRunContainers[ i/32] |= (1 << (i%32));
+                }
             for (int i=0; i < bitmapOfRunContainers.length; ++i)
                 out.writeInt(Integer.reverseBytes(bitmapOfRunContainers[i]));
             startOffset = 4 + 4 + 4*this.size + 4*this.size + 4*bitmapOfRunContainers.length;
         }
         else {  // backwards compatibilility
+            //System.out.println("hasRunContainer false");
             out.writeInt(Integer.reverseBytes(SERIAL_COOKIE_NO_RUNCONTAINER));
             out.writeInt(Integer.reverseBytes(size));            
             startOffset = 4 + 4 + this.size*4 + this.size*4;

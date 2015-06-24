@@ -743,6 +743,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
     @Override
     protected void writeArray(DataOutput out) throws IOException {
         out.writeShort(Short.reverseBytes((short) this.nbrruns));
+        //System.out.println("RC: I wrote a short and will now write "+(2*nbrruns)+" more");
         for (int k = 0; k < 2 * this.nbrruns; ++k) {
             out.writeShort(Short.reverseBytes(this.valueslength[k]));
         }

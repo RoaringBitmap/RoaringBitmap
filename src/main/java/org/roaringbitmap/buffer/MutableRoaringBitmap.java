@@ -944,6 +944,18 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         getMappeableRoaringArray().writeExternal(out);
     }
 
+
+    /**
+     *  Use a run-length encoding where it is estimated as more space efficient
+     */
+    public void runOptimize() {
+        for (int i = 0; i < this.highLowContainer.size(); i++)
+            getMappeableRoaringArray().setContainerAtIndex(i, getMappeableRoaringArray().getContainerAtIndex(i).runOptimize());
+    }
+
+
+
+
     /**
      * In-place bitwise XOR (symmetric difference) operation. The current bitmap
      * is modified.
