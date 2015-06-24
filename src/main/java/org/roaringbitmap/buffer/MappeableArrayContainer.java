@@ -177,10 +177,10 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         return x.and(this);
     }
 
-    // OFK ANDing to MappeableRunContainer
+
     @Override
     public MappeableContainer and(final MappeableRunContainer value2) {
-        return null;
+        return value2.and(this);
     }
 
     @Override
@@ -221,10 +221,81 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         return answer;
     }
 
-    // OFK ANDNOTing to MappeableRunContainer
+
     @Override
-    public MappeableContainer andNot(final MappeableRunContainer value2) {
-        return null;
+    public MappeableContainer andNot(final MappeableRunContainer x) {
+        /*
+        int writeLocation=0;
+        int runStart, runEnd;  // the current or upcoming run.
+        int whichRun;
+        short [] buffer = new short[ cardinality];
+        if (x.nbrruns == 0) return clone();
+        else {
+            runStart = Util.toIntUnsigned(x.getValue(0));
+            runEnd = runStart + Util.toIntUnsigned(x.getLength(0));
+            whichRun=0;
+        }
+
+        short val;
+        for (int i = 0; i < cardinality; ++i) {
+            val = content[i];
+            int valInt = Util.toIntUnsigned(val);
+            if ( valInt < runStart)  {
+                buffer[writeLocation++] = val;
+            }
+            else if (valInt <= runEnd)
+                ; // don't want item
+            else {
+                // greater than this run, need to do an advanceUntil on runs
+                // done sequentially for now (no galloping attempts).
+                do {
+                    if (whichRun+1 < x.nbrruns) {
+                        whichRun++;
+                        runStart = Util.toIntUnsigned(x.getValue(whichRun));
+                        runEnd = runStart + Util.toIntUnsigned(x.getLength(whichRun));
+                    }
+                    else runStart = runEnd = (1 << 16) + 1;  // infinity....
+                } while ( valInt > runEnd);
+                --i;  // need to re-process this val
+            }
+        }
+        return new ArrayContainer(writeLocation,buffer);
+         */
+        int writeLocation=0;
+        int runStart, runEnd;  // the current or upcoming run.
+        int whichRun;
+        if (x.nbrruns == 0) return clone();
+
+        ShortBuffer buffer = ShortBuffer.allocate(cardinality);
+
+        runStart = BufferUtil.toIntUnsigned(x.getValue(0));
+        runEnd = runStart + BufferUtil.toIntUnsigned(x.getLength(0));
+        whichRun=0;
+
+        short val;
+        for (int i = 0; i < cardinality; ++i) {
+            val = content.get(i);
+            int valInt = BufferUtil.toIntUnsigned(val);
+            if ( valInt < runStart)  {
+                buffer.put(writeLocation++, val);
+            }
+            else if (valInt <= runEnd)
+                ; // don't want item
+            else {
+                // greater than this run, need to do an advanceUntil on runs
+                // done sequentially for now (no galloping attempts).
+                do {
+                    if (whichRun+1 < x.nbrruns) {
+                        whichRun++;
+                        runStart = BufferUtil.toIntUnsigned(x.getValue(whichRun));
+                        runEnd = runStart + BufferUtil.toIntUnsigned(x.getLength(whichRun));
+                    }
+                    else runStart = runEnd = (1 << 16) + 1;  // infinity....
+                } while ( valInt > runEnd);
+                --i;  // need to re-process this val
+            }
+        }
+        return new MappeableArrayContainer(writeLocation,buffer);
     }
 
     @Override
@@ -263,9 +334,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
                         return false;
                 }
             return true;
-                // OFK: mod needed
-
-        }
+        } else if (o instanceof MappeableRunContainer)
+            return o.equals(this);
         return false;
     }
 
@@ -338,10 +408,10 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         return this;
     }
 
-    // OFK iANDing to MappeableRunContainer
+    // Note it is never inplace, may wish to fix
     @Override
     public MappeableContainer iand(final MappeableRunContainer value2) {
-        return null;
+        return value2.and(this);
     }
 
     @Override
@@ -371,10 +441,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
 
-    // OFK iANDNOTing to MappeableRunContainer
     @Override
-    public MappeableContainer iandNot(final MappeableRunContainer value2) {
-        return null;
+    public MappeableContainer iandNot(final MappeableRunContainer value2) { // not inplace, revisit?
+        return andNot(value2);
     }
 
 
@@ -466,10 +535,10 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         return x.or(this);
     }
 
-    // OFK iORing to MappeableRunContainer
+
     @Override
-    public MappeableContainer ior(final MappeableRunContainer value2) {
-        return null;
+    public MappeableContainer ior(final MappeableRunContainer value2) {  // not inplace
+        return value2.or(this);
     }
 
     @Override
@@ -506,10 +575,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         return x.xor(this);
     }
 
-    // OFK iXORing to MappeableRunContainer
     @Override
     public MappeableContainer ixor(final MappeableRunContainer value2) {
-        return null;
+        return value2.xor(this);
     }
 
     protected void loadData(final MappeableBitmapContainer bitmapContainer) {
@@ -739,10 +807,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
 
-    // OFK ORing to MappeableRunContainer
     @Override
     public MappeableContainer or(final MappeableRunContainer value2) {
-        return null;
+        return value2.or(this);
     }
 
     @Override
@@ -900,10 +967,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
 
-    // OFK XORing to MappeableRunContainer
     @Override
     public MappeableContainer xor(final MappeableRunContainer value2) {
-        return null;
+        return value2.xor(this);
     }
 
     @Override

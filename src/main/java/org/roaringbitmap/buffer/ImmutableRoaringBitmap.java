@@ -460,11 +460,16 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
      * @return estimated memory usage.
      */
 
-    // OFK needs mod for RunContainer 
+
     public int getSizeInBytes() {
         int size = 4;
         for(int i = 0 ; i < this.highLowContainer.size(); ++i ) {
-            size += 4 + BufferUtil.getSizeInBytesFromCardinality(this.highLowContainer.getCardinality(i));
+            if (this.highLowContainer.getContainerAtIndex(i) instanceof MappeableRunContainer) {
+                MappeableRunContainer thisRunContainer = (MappeableRunContainer) this.highLowContainer.getContainerAtIndex(i);
+                size += 4 + BufferUtil.getSizeInBytesFromCardinalityEtc(0,thisRunContainer.nbrruns, true);
+            }
+            else
+                size += 4 + BufferUtil.getSizeInBytesFromCardinalityEtc(this.highLowContainer.getCardinality(i),0,false);
         }
         return size;
     }

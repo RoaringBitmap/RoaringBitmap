@@ -362,8 +362,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
             // MappableArrayContainer.DEFAULT_MAX_SIZE were set different from ArrayContainer(?)
             //was: startOffset=startOffset+BufferUtil.getSizeInBytesFromCardinality(this.array[k].value.getCardinality());
             // just ask the container its  array size?  Need something that works for RunContainers too.
-            // Daniel should review this because Owen does not understand the interactions between the
-            // code for basic RoaringBitmaps and the buffered stuff
+            // Owen's code below matches that already in MutableRoaringArray
             startOffset = startOffset+this.array[k].value.getArraySizeInBytes(); 
         }        
         for (int k = 0; k < size; ++k) {

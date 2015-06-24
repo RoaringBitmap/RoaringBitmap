@@ -203,14 +203,25 @@ public final class BufferUtil {
 
     /**
      * From the cardinality of a container, compute the corresponding size in
-     * bytes of the container.
+     * bytes of the container.  Additional information is required
+     * if the container is run encoded.
      * 
      * @param card
-     *            the cardinality
+     *            the cardinality if this is not run encoded, otherwise ignored
+     * @param numRuns
+     *            number of runs if run encoded, othewise ignored
+     * @param isRunEncoded
+     *            boolean 
+     *
      * @return the size in bytes
      */
-    // OFK can no longer use
-    public static int getSizeInBytesFromCardinality(int card) {
+
+
+    // this is ugly now.
+    
+    protected static int getSizeInBytesFromCardinalityEtc(int card, int numRuns, boolean isRunEncoded) {
+        if (isRunEncoded)
+            return numRuns * 2 * 2;  // each run uses 2 shorts
         boolean isBitmap = card > MappeableArrayContainer.DEFAULT_MAX_SIZE;
         if (isBitmap)
             return MappeableBitmapContainer.MAX_CAPACITY / 8;
@@ -218,7 +229,8 @@ public final class BufferUtil {
             return card * 2;
 
     }
-    
+
+
     protected static boolean isBackedBySimpleArray(Buffer b) {
         return b.hasArray() && (b.arrayOffset() == 0);
     }

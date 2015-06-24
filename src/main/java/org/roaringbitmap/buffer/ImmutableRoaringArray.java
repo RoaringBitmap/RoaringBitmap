@@ -23,11 +23,14 @@ import java.nio.channels.WritableByteChannel;
  */
 public final class ImmutableRoaringArray implements PointableRoaringArray {
 
-    // OFK two options
     protected static final short SERIAL_COOKIE = MutableRoaringArray.SERIAL_COOKIE;
-    private final static int startofkeyscardinalities = 8;  // OFK nonconstant
+    protected static final short SERIAL_COOKIE_NO_RUNCONTAINER = MutableRoaringArray.SERIAL_COOKIE_NO_RUNCONTAINER;
+    private /* final static*/ int startofkeyscardinalities = 8;  // RunContainers will increase this :(
+    private final static int startofrunbitmap = 8; // if there is a runcontainer bitmap
+
     ByteBuffer buffer;
     int size;
+    boolean hasRunContainers;
 
     protected int binarySearch(short k) {
         int low = 0;
@@ -53,21 +56,44 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
      * @param bbf The source ByteBuffer
      */
 
-    // OFK multiple cookies
     protected ImmutableRoaringArray(ByteBuffer bbf) {
         buffer = bbf.slice();
         buffer.order(ByteOrder.LITTLE_ENDIAN);
-        if (buffer.getInt() != SERIAL_COOKIE)
-            throw new RuntimeException("I failed to find the right cookie. "+ buffer.getInt());
+        final int cookie = buffer.getInt();
+        if (cookie != SERIAL_COOKIE && cookie != SERIAL_COOKIE_NO_RUNCONTAINER)
+            throw new RuntimeException("I failed to find one of the right cookies. "+ cookie);
+        hasRunContainers = (cookie == SERIAL_COOKIE);  
         this.size = buffer.getInt();
+        if (hasRunContainers)
+            startofkeyscardinalities += 4* (( this.size+31)/32);  // account for Runcontainers bitmap
         buffer.limit(computeSerializedSizeInBytes());
     }
+
+   
+        private boolean isRunContainer( int i) {
+        if (hasRunContainers) { // info is in the buffer
+            int j = buffer.get(startofrunbitmap+4*(i/32));
+            int mask = 1<<(i&31);
+            return (j & mask) != 0;
+        }
+        else
+            return false;
+    }
+
     
-    // OFK needs update in case last container is a  RunContainer
+
+    
     private int computeSerializedSizeInBytes() {
         int CardinalityOfLastContainer = getCardinality(this.size - 1);
         int PositionOfLastContainer = getOffsetContainer(this.size - 1);
-        int SizeOfLastContainer = BufferUtil.getSizeInBytesFromCardinality(CardinalityOfLastContainer);
+        int SizeOfLastContainer;
+        if (isRunContainer(this.size - 1)) {
+            MappeableRunContainer finalContainer = (MappeableRunContainer) getContainerAtIndex(this.size-1);
+            SizeOfLastContainer = BufferUtil.getSizeInBytesFromCardinalityEtc(0,finalContainer.nbrruns, true);
+        }
+        else
+            SizeOfLastContainer = BufferUtil.getSizeInBytesFromCardinalityEtc(CardinalityOfLastContainer,0,false);
+        
         return SizeOfLastContainer + PositionOfLastContainer;
     }
 
@@ -83,39 +109,6 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
 
     @Override
-    // OFK discard?
-    public boolean equals(Object o) {
-        if (o instanceof ImmutableRoaringArray) {
-            final ImmutableRoaringArray srb = (ImmutableRoaringArray) o;
-            return srb.buffer.equals(this.buffer);
-        }
-
-        if (o instanceof MutableRoaringArray) {
-            final MutableRoaringArray srb = (MutableRoaringArray) o;
-            MappeableContainerPointer cp1 = srb.getContainerPointer();
-            // ofk: seems like one of these should be this.getContainerPointer() ??
-            MappeableContainerPointer cp2 = srb.getContainerPointer();
-            while (cp1.hasContainer()) {
-                if (!cp2.hasContainer())
-                    return false;
-                if (cp1.key() != cp2.key())
-                    return false;
-                if (cp1.getCardinality() != cp2.getCardinality())
-                    return false;
-                if (!cp1.getContainer().equals(cp2.getContainer()))
-                    return false;
-                cp1.advance();
-                cp2.advance();
-            }
-            if (cp2.hasContainer())
-                return false;
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    // OFK okay if startofkeyscardinality is adjusted
     public int getCardinality(int k) {
         return BufferUtil.toIntUnsigned(buffer.getShort(startofkeyscardinalities + 4 * k + 2)) + 1;
     }
@@ -129,25 +122,32 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
 
     public MappeableContainer getContainerAtIndex(int i) {
-        // OFK adjustment needed
     	int cardinality = getCardinality(i);
-        boolean isBitmap = cardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE;
+        boolean isBitmap = cardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE; // if not a runcontainer
         buffer.position(getOffsetContainer(i));
+        if (isRunContainer(i))  {
+            // first, we have a short giving the number of runs
+            short nbrruns = buffer.get();
+            final ShortBuffer shortArray = buffer.asShortBuffer().slice();
+            shortArray.limit(2*nbrruns);
+            return new MappeableRunContainer(shortArray,nbrruns);
+        }
         if (isBitmap) {
             final LongBuffer bitmapArray = buffer.asLongBuffer().slice();
             bitmapArray.limit(MappeableBitmapContainer.MAX_CAPACITY / 64);            
             return new MappeableBitmapContainer(bitmapArray, cardinality);
         } else {
             final ShortBuffer shortArray = buffer.asShortBuffer().slice();
-
             shortArray.limit(cardinality);
             return new MappeableArrayContainer(shortArray, cardinality);
         }
     }
     
-    // OFK possible run bitmap
     private int getOffsetContainer(int k){
-    	return buffer.getInt(4 + 4 + 4*this.size + 4*k);
+        if (hasRunContainers)  // account for size of runcontainer bitmap
+            return buffer.getInt(4 + 4 + 4 * ((this.size+31)/32) * 4 *this.size + 4*k);
+        else
+            return buffer.getInt(4 + 4 + 4*this.size + 4*k);
     }
 
     public MappeableContainerPointer getContainerPointer() {
@@ -211,7 +211,6 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         };
     }
 
-    // OFK should be fine
     private short getKey(int k) {
         return buffer.getShort(startofkeyscardinalities + 4 * k);
     }
@@ -221,7 +220,6 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         return binarySearch(x);
     }
 
-    // OFK should be fine
     public short getKeyAtIndex(int i) {
         return buffer.getShort(4 * i + startofkeyscardinalities);
     }

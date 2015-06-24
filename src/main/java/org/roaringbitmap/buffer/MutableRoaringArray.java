@@ -65,12 +65,14 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
         }
     }
 
-    // OFK need update
     protected static final int INITIAL_CAPACITY = 4;
 
-    protected static final short SERIAL_COOKIE = 12346;
+    protected static final short SERIAL_COOKIE_NO_RUNCONTAINER = 12346;
+    protected static final short SERIAL_COOKIE = 12347;
 
-    private static final long serialVersionUID = 4L;
+    private static final long serialVersionUID = 5L;  // OFK was 4L, not sure
+    protected boolean mayHaveRunContainers = false;  // does not necessarily have them, after optimization
+ 
 
     Element[] array = null;
 
@@ -90,26 +92,36 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
      */
     protected MutableRoaringArray(ByteBuffer bb) {
         bb.order(ByteOrder.LITTLE_ENDIAN);
-        if (bb.getInt() != SERIAL_COOKIE)
-            throw new RuntimeException("I failed to find the right cookie.");
+        final int cookie = bb.getInt();
+        if (cookie != SERIAL_COOKIE && cookie != SERIAL_COOKIE_NO_RUNCONTAINER)
+            throw new RuntimeException("I failed to find one of the right cookies: "+ cookie);
+        mayHaveRunContainers = (cookie == SERIAL_COOKIE);
         this.size = bb.getInt();
         // we fully read the meta-data array to RAM, but the containers
         // themselves are memory-mapped
+        int [] bitmapOfRunContainers = null;
+        if (mayHaveRunContainers) {
+            bitmapOfRunContainers = new int[ (size+31)/32];
+            for (int i=0; i < bitmapOfRunContainers.length; ++i)
+                bitmapOfRunContainers[i] = bb.getInt();// Integer.reverseBytes(bb.getInt());
+        }
+
         this.array = new Element[this.size];
         final short keys[] = new short[this.size];
         final int cardinalities[] = new int[this.size];
         final boolean isBitmap[] = new boolean[this.size];
-        // ofk optional run bitmap
+
         for (int k = 0; k < this.size; ++k) {
             keys[k] = bb.getShort();
             cardinalities[k] = BufferUtil.toIntUnsigned(bb.getShort()) + 1;
             isBitmap[k] = cardinalities[k] > MappeableArrayContainer.DEFAULT_MAX_SIZE;
+            if (mayHaveRunContainers && (bitmapOfRunContainers[k/32] & (1>>(k%32))) != 0)
+                isBitmap[k] = false;
         }
         for (int k = 0; k < this.size; ++k) {
             if (cardinalities[k] == 0)
                 throw new RuntimeException("no");
             MappeableContainer val;
-            // ofk RunContainer
             if (isBitmap[k]) {
                 final LongBuffer bitmapArray = bb.asLongBuffer().slice();
                 bitmapArray.limit(MappeableBitmapContainer.MAX_CAPACITY / 64);
@@ -117,7 +129,15 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
                         + MappeableBitmapContainer.MAX_CAPACITY / 8);
                 val = new MappeableBitmapContainer(bitmapArray,
                         cardinalities[k]);
-            } else {
+            } else if (mayHaveRunContainers && ((bitmapOfRunContainers[k/32] & (1<<(k%32))) != 0)) {
+                // first grab the number of runs metadata
+                int numRuns = BufferUtil.toIntUnsigned(bb.getShort());
+                final ShortBuffer shortArray = bb.asShortBuffer().slice();
+                shortArray.limit(2*numRuns);
+                bb.position(bb.position()+ cardinalities[k] * 2 * 2);
+                val = new MappeableRunContainer(shortArray, numRuns);
+            }
+            else {
                 final ShortBuffer shortArray = bb.asShortBuffer().slice();
                 shortArray.limit(cardinalities[k]);
                 bb.position(bb.position() + cardinalities[k] * 2);
@@ -236,7 +256,8 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
         try {
             sa = (MutableRoaringArray) super.clone();
 
-            // OFK: do we need runcontainer bitmap?
+            // OFK: do we need runcontainer bitmap?  Guess not, this is just a directory
+            // and each container knows what kind it is.
             sa.array = Arrays.copyOf(this.array, this.size);
             for (int k = 0; k < this.size; ++k)
                 sa.array[k] = sa.array[k].clone();
@@ -258,16 +279,24 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
      */
 
 
-    //OFK: mod
     public void deserialize(DataInput in) throws IOException {
         this.clear();
         // little endian
         final int cookie = Integer.reverseBytes(in.readInt());
-        if (cookie != SERIAL_COOKIE)
-            throw new IOException("I failed to find the right cookie.");
+        if (cookie != SERIAL_COOKIE && cookie != SERIAL_COOKIE_NO_RUNCONTAINER)
+            throw new IOException("I failed to find the one of the right cookies.");
         this.size = Integer.reverseBytes(in.readInt());
         if ((this.array == null) || (this.array.length < this.size))
             this.array = new Element[this.size];
+        
+        int [] bitmapOfRunContainers = null;
+        if (cookie == SERIAL_COOKIE) {
+            bitmapOfRunContainers = new int[ (size+31)/32];
+            for (int i=0; i < bitmapOfRunContainers.length; ++i)
+                bitmapOfRunContainers[i] = Integer.reverseBytes(in.readInt());
+        }
+
+
         final short keys[] = new short[this.size];
         final int cardinalities[] = new int[this.size];
         final boolean isBitmap[] = new boolean[this.size];
@@ -275,6 +304,10 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
             keys[k] = Short.reverseBytes(in.readShort());
             cardinalities[k] = 1 + (0xFFFF & Short.reverseBytes(in.readShort()));
             isBitmap[k] = cardinalities[k] > MappeableArrayContainer.DEFAULT_MAX_SIZE;
+            if (bitmapOfRunContainers != null &&
+                ( bitmapOfRunContainers[k/32] & (1<<(k%32))) != 0) {
+                isBitmap[k] = false;
+            }
         }
         //skipping the offsets
         in.skipBytes(this.size*4);
@@ -290,7 +323,18 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
                 }
                 val = new MappeableBitmapContainer(bitmapArray,
                         cardinalities[k]);
-            } else {
+            } else if (bitmapOfRunContainers != null && ((bitmapOfRunContainers[k/32] & (1<<(k%32))) != 0)) {
+                int nbrruns = BufferUtil.toIntUnsigned(Short.reverseBytes(in.readShort()));
+                final ShortBuffer shortArray = ShortBuffer
+                        .allocate(2*nbrruns);
+                for (int l = 0; l < shortArray.limit(); ++l) {
+                    shortArray
+                            .put(l,Short.reverseBytes(in.readShort()));
+                }
+                val = new MappeableRunContainer(shortArray, nbrruns);
+            }
+
+            else {
                 final ShortBuffer shortArray = ShortBuffer
                         .allocate(cardinalities[k]);
                 for (int l = 0; l < shortArray.limit(); ++l) {
@@ -301,43 +345,6 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
             }
             this.array[k] = new Element(keys[k], val);
         }
-    }
-
-    @Override
-    // OFK remove
-    public boolean equals(Object o) {
-        if (o instanceof MutableRoaringArray) {
-            final MutableRoaringArray srb = (MutableRoaringArray) o;
-            if (srb.size != this.size)
-                return false;
-            for (int i = 0; i < srb.size; ++i) {
-                Element self = this.array[i];
-                Element other = srb.array[i];
-                if (self.key != other.key || !self.value.equals(other.value))
-                    return false;
-            }
-            return true;
-        }
-        if (o instanceof ImmutableRoaringArray) {
-            final ImmutableRoaringArray srb = (ImmutableRoaringArray) o;
-            MappeableContainerPointer cp1 = srb.getContainerPointer();
-            // seems fishy: should always return true
-            MappeableContainerPointer cp2 = srb.getContainerPointer();
-            while (cp1.hasContainer()) {
-                if (!cp2.hasContainer())
-                    return false;
-                if (cp1.key() != cp2.key())
-                    return false;
-                if (cp1.getCardinality() != cp2.getCardinality())
-                    return false;
-                if (!cp1.getContainer().equals(cp2.getContainer()))
-                    return false;
-            }
-            if (cp2.hasContainer())
-                return false;
-            return true;
-        }
-        return false;
     }
 
     // make sure there is capacity for at least k more elements
@@ -533,6 +540,18 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
         System.arraycopy(this.array, begin, this.array, newBegin, range);
     }
 
+    private boolean hasRunContainer() {
+        for (int k=0; k < size; ++k) {
+            MappeableContainer ck = array[k].value;
+            if (ck instanceof MappeableRunContainer) return true;
+        }
+        return false;
+    }
+
+
+
+
+
     /**
      * Serialize.
      * 
@@ -544,19 +563,33 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
      *             Signals that an I/O exception has occurred.
      */
 
-    // OFK: mod
     public void serialize(DataOutput out) throws IOException {
-        out.writeInt(Integer.reverseBytes(SERIAL_COOKIE));
-        out.writeInt(Integer.reverseBytes(size));
+    int startOffset=0;
+        if (hasRunContainer()) {
+            out.writeInt(Integer.reverseBytes(SERIAL_COOKIE));
+            out.writeInt(Integer.reverseBytes(size));
+            int [] bitmapOfRunContainers = new int[ (size+31)/32];
+            for (int i=0; i < size; ++i)
+                if (this.array[i].value instanceof MappeableRunContainer)
+                    bitmapOfRunContainers[ i/32] |= (1 << (i%32));
+            for (int i=0; i < bitmapOfRunContainers.length; ++i)
+                out.writeInt(Integer.reverseBytes(bitmapOfRunContainers[i]));
+            startOffset = 4 + 4 + 4*this.size + 4*this.size + 4*bitmapOfRunContainers.length;
+        }
+        else {  // backwards compatibilility
+            out.writeInt(Integer.reverseBytes(SERIAL_COOKIE_NO_RUNCONTAINER));
+            out.writeInt(Integer.reverseBytes(size));            
+            startOffset = 4 + 4 + this.size*4 + this.size*4;
+        }
         for (int k = 0; k < size; ++k) {
             out.writeShort(Short.reverseBytes(this.array[k].key));
             out.writeShort(Short.reverseBytes((short) ((this.array[k].value.getCardinality() - 1))));
         }
+        
         //writing the containers offset
-        int startOffset = 4 + 4 + this.size*4 + this.size*4;
         for(int k=0; k<this.size; k++){
             out.writeInt(Integer.reverseBytes(startOffset));
-        	startOffset=startOffset+array[k].value.getArraySizeInBytes();
+            startOffset=startOffset+array[k].value.getArraySizeInBytes();
         }
         for (int k = 0; k < size; ++k) {
             array[k].value.writeArray(out);
@@ -568,12 +601,13 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
      * 
      * @return the size in bytes
      */
-    // OFK: mod for run bitmap
     public int serializedSizeInBytes() {
         int count = 4 + 4 + 4*this.size + 4*this.size;
         for (int k = 0; k < this.size; ++k) {
             count += array[k].value.getArraySizeInBytes();
         }
+        if (hasRunContainer())
+            count += 4*((size+31)/32);
         return count;
     }
 

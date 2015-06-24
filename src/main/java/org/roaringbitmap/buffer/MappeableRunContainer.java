@@ -25,13 +25,34 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
 
     protected int nbrruns = 0;// how many runs, this number should fit in 16 bits.
 
-    // OFK should this be like MappeableArrayContainer(int, ShortBuffer) or (ShortBuffer, int)?
     private MappeableRunContainer(int nbrruns, final ShortBuffer valueslength) {
         this.nbrruns = nbrruns;
         this.valueslength = ShortBuffer.allocate(Math.max(2*nbrruns,valueslength.limit()));
         valueslength.rewind();
         this.valueslength.put(valueslength);  // may copy more than it needs to??
     }
+
+    /**
+     * Construct a new RunContainer backed by the provided ShortBuffer. Note
+     * that if you modify the RunContainer a new ShortBuffer may be produced.
+     * 
+     * @param array
+     *            ShortBuffer where the data is stored
+     * @param numRuns
+     *            number of runs (each using 2 shorts in the buffer)
+     *            
+     */
+    public MappeableRunContainer(final ShortBuffer array,
+            final int numRuns) {
+        if (array.limit() != 2*numRuns)
+            throw new RuntimeException(
+                    "Mismatch between buffer and numRuns");
+        this.nbrruns = numRuns;
+        this.valueslength = array;
+    }
+
+
+
     
     // needed for deserialization
     public MappeableRunContainer(ShortBuffer valueslength) {
@@ -819,7 +840,6 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
     }
 
     @Override
-    // OFK: requires MappeableArrayContainer have ShortIterator param
     public MappeableContainer or(MappeableArrayContainer x) {
         return x.or(getShortIterator());   // performance may not be great, depending on iterator overheads...
     }

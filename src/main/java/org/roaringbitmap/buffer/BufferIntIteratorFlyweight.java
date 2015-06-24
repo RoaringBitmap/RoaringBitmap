@@ -24,8 +24,9 @@ public class BufferIntIteratorFlyweight implements IntIterator {
     private MappeableArrayContainerShortIterator arrIter = new MappeableArrayContainerShortIterator();
     
     private MappeableBitmapContainerShortIterator bitmapIter = new MappeableBitmapContainerShortIterator();
-
-    // OFK modification needed
+    
+    private MappeableRunContainerShortIterator runIter = new MappeableRunContainerShortIterator();
+    
 
     private int pos;
 
@@ -76,12 +77,15 @@ public class BufferIntIteratorFlyweight implements IntIterator {
             if (container instanceof MappeableBitmapContainer) {
                 bitmapIter.wrap((MappeableBitmapContainer) container);
                 iter = bitmapIter;
-            } else {
+            } else if (container instanceof MappeableRunContainer) {
+                runIter.wrap((MappeableRunContainer) container);
+                iter = runIter;
+            }
+            else
+                {
                 arrIter.wrap((MappeableArrayContainer) container);
                 iter = arrIter;
             }
-
-            // OFK mod needed
 
             hs = BufferUtil.toIntUnsigned(this.roaringBitmap.highLowContainer
                     .getKeyAtIndex(pos)) << 16;

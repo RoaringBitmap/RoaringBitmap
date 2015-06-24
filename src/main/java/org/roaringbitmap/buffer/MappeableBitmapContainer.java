@@ -164,10 +164,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
     }
 
 
-    // OFK ANDing to MappeableRunContainer
+   
     @Override
     public MappeableContainer and(final MappeableRunContainer value2) {
-        return null;
+        return value2.and(this);
     }
 
 
@@ -241,10 +241,19 @@ public final class MappeableBitmapContainer extends MappeableContainer
         return ac;
     }
 
-    // OFK ANDNOTing to MappeableRunContainer
+    // todo: specialized code for simple array case
     @Override
     public MappeableContainer andNot(final MappeableRunContainer value2) {
-        return null;
+        MappeableBitmapContainer answer = this.clone();
+        for(int rlepos = 0; rlepos < value2.nbrruns; ++rlepos ) {
+            int start = BufferUtil.toIntUnsigned(value2.getValue(rlepos));
+            int end = BufferUtil.toIntUnsigned(value2.getValue(rlepos)) + BufferUtil.toIntUnsigned(value2.getLength(rlepos)) + 1;
+            BufferUtil.resetBitmapRange(answer.bitmap, start, end);
+        }
+        answer.computeCardinality();
+        if(answer.getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE)
+            return answer;
+        else return answer.toArrayContainer();
     }
 
 
@@ -271,7 +280,6 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     @Override
 
-    // OFK mods required
     public boolean equals(Object o) {
         if (o instanceof MappeableBitmapContainer) {
             final MappeableBitmapContainer srb = (MappeableBitmapContainer) o;
@@ -289,6 +297,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
                         return false;
             return true;
 
+        } else if (o instanceof MappeableRunContainer) {
+            return o.equals(this);
         }
         return false;
     }
@@ -415,11 +425,70 @@ public final class MappeableBitmapContainer extends MappeableContainer
     }
 
 
-    // OFK iANDing to MappeableRunContainer
+    //   TODO: simplearray case 
     @Override
-    public MappeableContainer iand(final MappeableRunContainer value2) {
-        return null;
+    public MappeableContainer iand(final MappeableRunContainer x) {
+        /*
+    	int card = x.getCardinality();
+    	if(x.getCardinality() <= ArrayContainer.DEFAULT_MAX_SIZE) {
+    		// no point in doing it in-place
+        	ArrayContainer answer = new ArrayContainer(card);
+        	answer.cardinality=0;
+            for (int rlepos=0; rlepos < x.nbrruns; ++rlepos) {
+                int runStart = Util.toIntUnsigned(x.getValue(rlepos));
+                int runEnd = runStart + Util.toIntUnsigned(x.getLength(rlepos));
+                for (int runValue = runStart; runValue <= runEnd; ++runValue) {
+                    if ( this.contains((short) runValue)) {// it looks like contains() should be cheap enough if accessed sequentially
+                        answer.content[answer.cardinality++] = (short) runValue;
+                    }
+                }
+            }
+            return answer;
+    	}
+        int start = 0;
+        for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
+            int end = Util.toIntUnsigned(x.getValue(rlepos));
+            Util.resetBitmapRange(this.bitmap, start, end);
+            start = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
+        }
+        Util.resetBitmapRange(this.bitmap, start, Util.maxLowBitAsInteger() + 1);
+        computeCardinality();
+        if(getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
+            return this;
+        else return toArrayContainer();
     }
+
+         */
+
+    	int card = x.getCardinality();
+    	if(x.getCardinality() <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
+    		// no point in doing it in-place
+        	MappeableArrayContainer answer = new MappeableArrayContainer(card);
+        	answer.cardinality=0;
+            for (int rlepos=0; rlepos < x.nbrruns; ++rlepos) {
+                int runStart = BufferUtil.toIntUnsigned(x.getValue(rlepos));
+                int runEnd = runStart + BufferUtil.toIntUnsigned(x.getLength(rlepos));
+                for (int runValue = runStart; runValue <= runEnd; ++runValue) {
+                    if ( this.contains((short) runValue)) {
+                        answer.content.put(answer.cardinality++,(short) runValue);
+                    }
+                }
+            }
+            return answer;
+    	}
+        int start = 0;
+        for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
+            int end = BufferUtil.toIntUnsigned(x.getValue(rlepos));
+            BufferUtil.resetBitmapRange(this.bitmap, start, end);
+            start = BufferUtil.toIntUnsigned(x.getValue(rlepos)) + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
+        }
+        BufferUtil.resetBitmapRange(this.bitmap, start, BufferUtil.maxLowBitAsInteger() + 1);
+        computeCardinality();
+        if(getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE)
+            return this;
+        else return toArrayContainer();
+    }
+
     @Override
     public MappeableContainer iandNot(final MappeableArrayContainer b2) {
         for (int k = 0; k < b2.cardinality; ++k) {
@@ -476,10 +545,31 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
 
 
-    // OFK iANDNOTing to MappeableRunContainer
+    // todo: specialized simplearray
     @Override
-    public MappeableContainer iandNot(final MappeableRunContainer value2) {
-        return null;
+    public MappeableContainer iandNot(final MappeableRunContainer x) {
+        /*
+    for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
+            int start = Util.toIntUnsigned(x.getValue(rlepos));
+            int end = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
+            Util.resetBitmapRange(this.bitmap, start, end);
+        }
+        computeCardinality();
+        if(getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
+            return this;
+        else return toArrayContainer();
+    
+         */
+    for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
+            int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
+            int end = BufferUtil.toIntUnsigned(x.getValue(rlepos)) + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
+            BufferUtil.resetBitmapRange(this.bitmap, start, end);
+        }
+        computeCardinality();
+        if(getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE)
+            return this;
+        else return toArrayContainer();
+    
     }
 
     @Override
@@ -530,10 +620,26 @@ public final class MappeableBitmapContainer extends MappeableContainer
     }
 
 
-    // OFK iORing to MappeableRunContainer
+    //  todo: specialized simplearray
     @Override
-    public MappeableContainer ior(final MappeableRunContainer value2) {
-        return null;
+    public MappeableContainer ior(final MappeableRunContainer x) {
+        /*
+        for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
+            int start = Util.toIntUnsigned(x.getValue(rlepos));
+            int end = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
+            Util.setBitmapRange(this.bitmap, start, end);
+        }
+        computeCardinality();
+        return this;
+         */
+        for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
+            int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
+            int end = BufferUtil.toIntUnsigned(x.getValue(rlepos)) + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
+            BufferUtil.setBitmapRange(this.bitmap, start, end);
+        }
+        computeCardinality();
+        return this;
+
     }
 
 
@@ -631,10 +737,30 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
 
 
-    // OFK iXORing to MappeableRunContainer
+    // todo: simplearray case
     @Override
-    public MappeableContainer ixor(final MappeableRunContainer value2) {
-        return null;
+    public MappeableContainer ixor(final MappeableRunContainer x) {
+        /*
+     for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
+            int start = Util.toIntUnsigned(x.getValue(rlepos));
+            int end = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
+            Util.flipBitmapRange(this.bitmap, start, end);
+        }
+        computeCardinality();
+        if(this.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
+            return this;
+        else return toArrayContainer();
+        */
+     for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
+            int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
+            int end = BufferUtil.toIntUnsigned(x.getValue(rlepos)) + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
+            BufferUtil.flipBitmapRange(this.bitmap, start, end);
+        }
+        computeCardinality();
+        if(this.getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE)
+            return this;
+        else return toArrayContainer();
+   
     }
 
     protected void loadData(final MappeableArrayContainer arrayContainer) {
@@ -866,10 +992,9 @@ public final class MappeableBitmapContainer extends MappeableContainer
         return answer;
     }
 
-    // OFK ORing to MappeableRunContainer
     @Override
     public MappeableContainer or(final MappeableRunContainer value2) {
-        return null;
+        return value2.or(this);
     }
 
     @Override
@@ -1019,10 +1144,9 @@ public final class MappeableBitmapContainer extends MappeableContainer
  
 
 
-    // OFK XORing to MappeableRunContainer
     @Override
     public MappeableContainer xor(final MappeableRunContainer value2) {
-        return null;
+        return value2.xor(this);
     }
 
 
@@ -1054,11 +1178,13 @@ public final class MappeableBitmapContainer extends MappeableContainer
     }
     
 
-    // OFK writeme
+    /*
    protected MappeableContainer ilazyor(MappeableRunContainer x) {
        return null;
    }
+    */
 
+  
 
 
 
@@ -1083,10 +1209,28 @@ public final class MappeableBitmapContainer extends MappeableContainer
         return answer;
     }    
 
-    // OFK lazyORing to MappeableRunContainer
+
+    // todo: specialized code for simplearray?
     protected MappeableContainer lazyor(MappeableRunContainer x) {
-        return null;
+        MappeableBitmapContainer bc = clone();
+        bc.cardinality = -1;
+        for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
+            int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
+            int end = BufferUtil.toIntUnsigned(x.getValue(rlepos)) + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
+            BufferUtil.setBitmapRange(bc.bitmap, start, end);
+        }
+        return bc;
     }
+
+    protected MappeableContainer ilazyor(MappeableRunContainer x) {
+        for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
+            int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
+            int end = BufferUtil.toIntUnsigned(x.getValue(rlepos)) + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
+            BufferUtil.setBitmapRange(this.bitmap, start, end);
+        }
+        return this;
+    }
+
 
 
     

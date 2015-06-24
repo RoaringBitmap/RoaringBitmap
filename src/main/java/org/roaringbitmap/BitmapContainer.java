@@ -857,6 +857,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
 
     protected Container lazyor(RunContainer x) {
         BitmapContainer bc = clone();
+        bc.cardinality = -1; // invalid
         for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
             int start = Util.toIntUnsigned(x.getValue(rlepos));
             int end = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
