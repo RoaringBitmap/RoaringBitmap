@@ -128,6 +128,21 @@ Usage
 * mvn test will run the unit tests
 * mvn package will package in a jar (found in target)
 
+FAQ
+----
+
+1. I am getting an error about a bad cookie. What is this about?
+
+In the serialized files, the first 4 bytes are dedicated to a "cookie"
+which serves to indicate the file format.
+
+If you try to deserialize or map a bitmap from data that has an
+unrecognized "cookie", the code will abort the process and report
+an error.
+
+This problem will occur to all users who serialized Roaring bitmaps
+using versions prior to 0.4.x as they upgrade to version 0.4.x or better.
+These users need to refresh their serialized bitmaps.
 Benchmark
 -----------
         
