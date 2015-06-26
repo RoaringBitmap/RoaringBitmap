@@ -91,34 +91,17 @@ public class TestSerialization {
 
     @Test
     public void testImmutableBuildingBySerialization() {
-        System.out.println("testImmutableBuildingBySerialization data occupies "+presoutbb.limit());
         presoutbb.rewind();
         ImmutableRoaringBitmap imrb = new ImmutableRoaringBitmap(presoutbb);
         int cksum1 = 0, cksum2 = 0, count1=0, count2=0;
-        for (int x : bitmap_a1) {  // had problem with bitmap_a
+        for (int x : bitmap_a) {  // or bitmap_a1 for a version without run
             cksum1 += x; ++count1;
         }
         for (int x: imrb) {cksum2 += x; ++count2;}
 
-
-        for (int x: bitmap_a1) 
-            if (x == 655360)
-                System.out.println("bitmapa1 has 655360 too");
-
-        int temp = -1;
-        System.out.println("attempt to iterate over imrb");
-        for (int x: imrb) { // this is not happening
-            if (x == 655360) {
-                System.out.println("before 655360 imrb reports "+temp);
-            }
-            if (temp >= x ) {System.out.println("nonmonoton problem with "+temp+" and "+x);}
-            temp = x;}
-
-        System.out.println("re-attempt to iterate over imrb");
-
         Iterator<Integer> it1, it2;
-        // it1 = bitmap_a.iterator();
-        it1 = bitmap_a1.iterator();
+        it1 = bitmap_a.iterator();
+        //it1 = bitmap_a1.iterator();
         it2 = imrb.iterator();
         int blabcount=0;
         int valcount=0;
@@ -133,11 +116,6 @@ public class TestSerialization {
         System.out.println("there were "+blabcount+" diffs");
         if (it1.hasNext() != it2.hasNext()) 
             System.out.println("one ran out earlier");
-                                           
-
-
-    
-        System.out.println("imrb returns count "+count2+" and cksum "+ cksum2);
 
         assertEquals(count1,count2);
         assertEquals(cksum1,cksum2);
