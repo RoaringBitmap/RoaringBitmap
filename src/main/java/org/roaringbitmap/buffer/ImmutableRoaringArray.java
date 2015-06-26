@@ -62,17 +62,24 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         final int cookie = buffer.getInt();
         if (cookie != SERIAL_COOKIE && cookie != SERIAL_COOKIE_NO_RUNCONTAINER)
             throw new RuntimeException("I failed to find one of the right cookies. "+ cookie);
-        hasRunContainers = (cookie == SERIAL_COOKIE);  
+        hasRunContainers = (cookie == SERIAL_COOKIE); 
+
+        //        System.out.println("cookie is "+cookie);
         this.size = buffer.getInt();
-        if (hasRunContainers)
+        //  System.out.println("IRA: size is "+size);
+        if (hasRunContainers) {
+            //  System.out.println("hasRunContainers is true");
             startofkeyscardinalities += 4* (( this.size+31)/32);  // account for Runcontainers bitmap
-        buffer.limit(computeSerializedSizeInBytes());
+        }
+        int theLimit = computeSerializedSizeInBytes();
+        //        System.out.println("setting limit to "+theLimit+"whereas capacity is "+buffer.capacity());
+        buffer.limit(theLimit);
     }
 
    
         private boolean isRunContainer( int i) {
         if (hasRunContainers) { // info is in the buffer
-            int j = buffer.get(startofrunbitmap+4*(i/32));
+            int j = buffer.getInt(startofrunbitmap+4*(i/32));
             int mask = 1<<(i&31);
             return (j & mask) != 0;
         }
@@ -84,15 +91,28 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
     
     private int computeSerializedSizeInBytes() {
+
+        //        System.out.println("computeSerializeSizeInBytes() with size = "+size);
+
         int CardinalityOfLastContainer = getCardinality(this.size - 1);
+        //         System.out.println("and lastcard = "+CardinalityOfLastContainer);   
         int PositionOfLastContainer = getOffsetContainer(this.size - 1);
         int SizeOfLastContainer;
         if (isRunContainer(this.size - 1)) {
+
+            //            System.out.println("last container is a runcontainer");
+
             MappeableRunContainer finalContainer = (MappeableRunContainer) getContainerAtIndex(this.size-1);
             SizeOfLastContainer = BufferUtil.getSizeInBytesFromCardinalityEtc(0,finalContainer.nbrruns, true);
+            //            System.out.println("sizeoflast = "+SizeOfLastContainer+" position is "+ PositionOfLastContainer);
+
+
         }
-        else
+        else {
+            //            System.out.println("last container is NOT a runcontainer");
             SizeOfLastContainer = BufferUtil.getSizeInBytesFromCardinalityEtc(CardinalityOfLastContainer,0,false);
+
+        }
         
         return SizeOfLastContainer + PositionOfLastContainer;
     }
@@ -127,11 +147,18 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         buffer.position(getOffsetContainer(i));
         if (isRunContainer(i))  {
             // first, we have a short giving the number of runs
-            short nbrruns = buffer.get();
+            int nbrruns = BufferUtil.toIntUnsigned(buffer.getShort());
+            //            System.out.println("IMA: getContainerAtIndex sees a runcontainer index "+i+"  with nbrruns="+nbrruns + "from "+getOffsetContainer(i));
+
+            //            System.out.println("limit and capacity of buffer are "+ buffer.limit() + " and " + buffer.capacity());
+            
             final ShortBuffer shortArray = buffer.asShortBuffer().slice();
+            //            System.out.println("try to set limit to "+2*nbrruns+" from " + shortArray.limit()+" and capacity is "+shortArray.capacity());
             shortArray.limit(2*nbrruns);
             return new MappeableRunContainer(shortArray,nbrruns);
         }
+
+
         if (isBitmap) {
             final LongBuffer bitmapArray = buffer.asLongBuffer().slice();
             bitmapArray.limit(MappeableBitmapContainer.MAX_CAPACITY / 64);            
@@ -144,10 +171,15 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
     
     private int getOffsetContainer(int k){
-        if (hasRunContainers)  // account for size of runcontainer bitmap
-            return buffer.getInt(4 + 4 + 4 * ((this.size+31)/32) * 4 *this.size + 4*k);
-        else
+        if (hasRunContainers) { // account for size of runcontainer bitmap
+            //System.out.println("getOffsetContainer("+k+") for RunContainer will fetch at "+ (4 + 4 + 4 * ((this.size+31)/32) + 4 *this.size + 4*k));
+            int offsetContainer = buffer.getInt(4 + 4 + 4 * ((this.size+31)/32) + 4 *this.size + 4*k);
+            //System.out.println("fetched "+offsetContainer);
+            return offsetContainer;
+        }
+        else {
             return buffer.getInt(4 + 4 + 4*this.size + 4*k);
+        }
     }
 
     public MappeableContainerPointer getContainerPointer() {

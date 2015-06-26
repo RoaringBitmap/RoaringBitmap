@@ -221,7 +221,7 @@ public final class BufferUtil {
     
     protected static int getSizeInBytesFromCardinalityEtc(int card, int numRuns, boolean isRunEncoded) {
         if (isRunEncoded)
-            return numRuns * 2 * 2;  // each run uses 2 shorts
+            return 2 + numRuns * 2 * 2;  // each run uses 2 shorts, plus the initial short giving num runs
         boolean isBitmap = card > MappeableArrayContainer.DEFAULT_MAX_SIZE;
         if (isBitmap)
             return MappeableBitmapContainer.MAX_CAPACITY / 8;

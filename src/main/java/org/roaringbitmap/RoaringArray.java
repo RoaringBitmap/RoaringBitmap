@@ -336,19 +336,21 @@ public final class RoaringArray implements Cloneable, Externalizable {
         int startOffset=0;
         if (hasRunContainer()) {
 
-            //System.out.println("nonbuffered serializes with a runcontainer");
+            //System.out.println("nonbuffered serializes with a runcontainer, writing size as "+size);
 
             out.writeInt(Integer.reverseBytes(SERIAL_COOKIE));
             out.writeInt(Integer.reverseBytes(size));
             int [] bitmapOfRunContainers = new int[ (size+31)/32];
             for (int i=0; i < size; ++i)
-                if (this.array[i].value instanceof RunContainer)
+                if (this.array[i].value instanceof RunContainer) {
+                    //                    System.out.println("RA serializes a runcontainer for position "+i);
                     bitmapOfRunContainers[ i/32] |= (1 << (i%32));
+                }
             for (int i=0; i < bitmapOfRunContainers.length; ++i)
                 out.writeInt(Integer.reverseBytes(bitmapOfRunContainers[i]));
             startOffset = 4 + 4 + 4*this.size + 4*this.size + 4*bitmapOfRunContainers.length;
         }
-        else {  // backwards compatibilility
+        else {  // backwards compatibility
             // System.out.println("nonbuffered serializes without a runcontainer");
             out.writeInt(Integer.reverseBytes(SERIAL_COOKIE_NO_RUNCONTAINER));
             out.writeInt(Integer.reverseBytes(size));
@@ -367,7 +369,11 @@ public final class RoaringArray implements Cloneable, Externalizable {
             //was: startOffset=startOffset+BufferUtil.getSizeInBytesFromCardinality(this.array[k].value.getCardinality());
             // just ask the container its  array size?  Need something that works for RunContainers too.
             // Owen's code below matches that already in MutableRoaringArray
+            
             startOffset = startOffset+this.array[k].value.getArraySizeInBytes(); 
+            // if (k > 8 && k < 14) {
+            //     System.out.println("startOffset for k="+k+" is "+startOffset);
+            // }
         }        
         for (int k = 0; k < size; ++k) {
             array[k].value.writeArray(out);

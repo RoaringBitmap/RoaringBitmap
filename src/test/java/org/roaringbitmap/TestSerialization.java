@@ -9,14 +9,18 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Random;
+import java.util.Iterator;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
+import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import static org.junit.Assert.*;
 
 public class TestSerialization {
     static RoaringBitmap bitmap_a;
+
+    static RoaringBitmap bitmap_a1;
 
     static RoaringBitmap bitmap_b = new RoaringBitmap();
 
@@ -54,7 +58,7 @@ public class TestSerialization {
     
     @Test
     public void testMutableSerialize()  throws IOException {
-        System.out.println("testMutableSerialize");
+        //System.out.println("testMutableSerialize");
         outbb.rewind();
         ByteBufferBackedOutputStream out = new ByteBufferBackedOutputStream(outbb);
         System.out.println("bitmap_ar is "+bitmap_ar.getClass().getName());
@@ -62,27 +66,135 @@ public class TestSerialization {
     }
 
 
+
     @Test
     public void testMutableBuilding() {
+        // did we build a mutable equal to the regular one?
         int cksum1 = 0, cksum2 = 0;
         for (int x : bitmap_a) cksum1 += x;
         for (int x: bitmap_ar) cksum2 += x;
         assertEquals(cksum1,cksum2);
     }
 
+
+    @Test
+    public void testMutableBuildingBySerialization() throws IOException {
+        presoutbb.rewind();
+        ByteBufferBackedInputStream in = new ByteBufferBackedInputStream(presoutbb);
+        MutableRoaringBitmap mrb = new MutableRoaringBitmap();
+        mrb.deserialize(new DataInputStream(in));
+        int cksum1 = 0, cksum2 = 0;
+        for (int x : bitmap_a) cksum1 += x;
+        for (int x: mrb) cksum2 += x;
+        assertEquals(cksum1,cksum2);
+    }
+
+    @Test
+    public void testImmutableBuildingBySerialization() {
+        System.out.println("testImmutableBuildingBySerialization data occupies "+presoutbb.limit());
+        presoutbb.rewind();
+        ImmutableRoaringBitmap imrb = new ImmutableRoaringBitmap(presoutbb);
+        int cksum1 = 0, cksum2 = 0, count1=0, count2=0;
+        for (int x : bitmap_a1) {  // had problem with bitmap_a
+            cksum1 += x; ++count1;
+        }
+        for (int x: imrb) {cksum2 += x; ++count2;}
+
+
+        for (int x: bitmap_a1) 
+            if (x == 655360)
+                System.out.println("bitmapa1 has 655360 too");
+
+        int temp = -1;
+        System.out.println("attempt to iterate over imrb");
+        for (int x: imrb) { // this is not happening
+            if (x == 655360) {
+                System.out.println("before 655360 imrb reports "+temp);
+            }
+            if (temp >= x ) {System.out.println("nonmonoton problem with "+temp+" and "+x);}
+            temp = x;}
+
+        System.out.println("re-attempt to iterate over imrb");
+
+        Iterator<Integer> it1, it2;
+        // it1 = bitmap_a.iterator();
+        it1 = bitmap_a1.iterator();
+        it2 = imrb.iterator();
+        int blabcount=0;
+        int valcount=0;
+        while (it1.hasNext() && it2.hasNext()) {
+            ++valcount;
+            int val1 = it1.next(), val2 = it2.next();
+            if (val1 != val2) {
+                    if (++blabcount < 10)
+                        System.out.println("disagree on "+valcount+" nonmatching values are "+val1+" "+val2);
+            }
+        }
+        System.out.println("there were "+blabcount+" diffs");
+        if (it1.hasNext() != it2.hasNext()) 
+            System.out.println("one ran out earlier");
+                                           
+
+
+    
+        System.out.println("imrb returns count "+count2+" and cksum "+ cksum2);
+
+        assertEquals(count1,count2);
+        assertEquals(cksum1,cksum2);
+    }
+
+
+ @Test
+    public void testImmutableBuildingBySerializationSimple() {
+     System.out.println("testImmutableBuildingBySerializationSimple ");
+     ByteBuffer bb1; 
+     MutableRoaringBitmap bm1 = new MutableRoaringBitmap();
+        for (int k=20; k < 30; ++k) {  // runcontainer would be best
+            bm1.add(k);
+        }
+        bm1.runOptimize();  
+       
+        bb1 = ByteBuffer.allocate(bitmap_a.serializedSizeInBytes());
+        ByteBufferBackedOutputStream out = new ByteBufferBackedOutputStream(bb1);
+        try {
+           bm1.serialize(new DataOutputStream(out));
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        bb1.flip();
+        ImmutableRoaringBitmap imrb = new ImmutableRoaringBitmap(bb1);
+        int cksum1 = 0, cksum2 = 0, count1=0, count2=0;
+        for (int x : bm1) {
+            cksum1 += x; ++count1;
+        }
+
+        for (int x: imrb) {cksum2 += x; ++count2;}
+    
+        assertEquals(count1,count2);
+        assertEquals(cksum1,cksum2);
+    }
+
+
+
+
+
     @BeforeClass
     public static void init() throws IOException {
         final int[] data = takeSortedAndDistinct(new Random(0xcb000a2b9b5bdfb6l), 100000);
         bitmap_a = RoaringBitmap.bitmapOf(data);
         bitmap_ar = MutableRoaringBitmap.bitmapOf(data);
+        bitmap_a1 = RoaringBitmap.bitmapOf(data);
+      
         for(int k = 100000; k < 200000; ++k) {
             bitmap_a.add(3 * k);   // bitmap density and too many little runs
             bitmap_ar.add(3 * k);
+            bitmap_a1.add(3*k);
         }
 
         for (int k=700000; k < 800000; ++k) {  // runcontainer would be best
             bitmap_a.add(k);
             bitmap_ar.add(k);
+            bitmap_a1.add(k);
         }
 
         bitmap_a.runOptimize();  // mix of all 3 container kinds
@@ -92,6 +204,7 @@ public class TestSerialization {
            they will both *always* agree whether to run encode a container.  Nevertheless
            testMutableSerialize effectively does that, by using the serialized size 
            of one as the output buffer size for the other. */
+        // do not runoptimize bitmap_a1
        
         outbb = ByteBuffer.allocate(bitmap_a.serializedSizeInBytes());
         presoutbb = ByteBuffer.allocate(bitmap_a.serializedSizeInBytes());
@@ -165,6 +278,49 @@ public class TestSerialization {
 
         assertEquals(bitmap_a, bitmap_c);
   }
+
+
+    
+  @Test
+  public void testMutableRunSerializationBasicDeserialization() throws java.io.IOException {
+      final int[] data = takeSortedAndDistinct(new Random(07734), 100000);
+      RoaringBitmap bitmap_a = RoaringBitmap.bitmapOf(data);
+      MutableRoaringBitmap bitmap_ar = MutableRoaringBitmap.bitmapOf(data);
+      
+        for(int k = 100000; k < 200000; ++k) {
+            bitmap_a.add(3 * k);   // bitmap density and too many little runs
+            bitmap_ar.add(3 * k);
+        }
+
+        for (int k=700000; k < 800000; ++k) {  //  will choose a runcontainer on this
+            bitmap_a.add(k);
+            bitmap_ar.add(k);
+        }
+      
+        bitmap_a.runOptimize();  // mix of all 3 container kinds
+        bitmap_ar.runOptimize();
+
+        ByteBuffer outbuf = ByteBuffer.allocate(bitmap_a.serializedSizeInBytes());
+        ByteBufferBackedOutputStream out = new ByteBufferBackedOutputStream(outbuf);
+        try {
+           bitmap_a.serialize(new DataOutputStream(out));
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        outbuf.flip();
+
+        RoaringBitmap bitmap_c = new RoaringBitmap();
+
+        ByteBufferBackedInputStream in = new ByteBufferBackedInputStream(outbuf);
+        bitmap_c.deserialize(new DataInputStream(in));
+
+        assertEquals(bitmap_a, bitmap_c);
+  }
+
+
+
+
+
    
 }
 

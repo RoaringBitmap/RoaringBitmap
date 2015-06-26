@@ -49,6 +49,7 @@ public class TestRoaringBitmap {
 		// when adding new ints
 		for (int i = 0; i < 2 * (1 << 16); i++)
 			rb.add(i);
+
 		for (int i = 0; i < 2 * (1 << 16); i += 2)
 			Assert.assertTrue(rb.checkedRemove(i));
 		for (int i = 0; i < 2 * (1 << 16); i += 2)
@@ -252,6 +253,7 @@ public class TestRoaringBitmap {
         for (int k = 10 * 65535; k < 10 * 65535 + 5000; ++k) {
             rr2.add(k);
         }
+
         final MutableRoaringBitmap correct = MutableRoaringBitmap.andNot(rr, rr2);
         rr.andNot(rr2);
         Assert.assertTrue(correct.equals(rr));
