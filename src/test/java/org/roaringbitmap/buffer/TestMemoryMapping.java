@@ -5,8 +5,6 @@
 
 package org.roaringbitmap.buffer;
 
-
-
 import org.junit.Assert;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -42,6 +40,28 @@ public class TestMemoryMapping {
         Assert.assertTrue(rr1.equals(rrback1));
         Assert.assertTrue(rr2.equals(rrback2));
     }
+
+    @Test
+    public void standardTest1() throws IOException {
+        // use some run containers
+        MutableRoaringBitmap rr1 = MutableRoaringBitmap.bitmapOf(1, 2, 3, 4, 5, 6, 1000);
+        rr1.runOptimize();
+        MutableRoaringBitmap rr2 = MutableRoaringBitmap.bitmapOf( 2, 3, 1010);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(bos);
+        rr1.serialize(dos);
+        rr2.serialize(dos);
+        dos.close();
+        ByteBuffer bb = ByteBuffer.wrap(bos.toByteArray());
+        ImmutableRoaringBitmap rrback1 = new ImmutableRoaringBitmap(bb);
+        Assert.assertTrue(rr1.equals(rrback1));
+        bb.position(bb.position() + rrback1.serializedSizeInBytes());
+        ImmutableRoaringBitmap rrback2 = new ImmutableRoaringBitmap(bb);
+        Assert.assertTrue(rr1.equals(rrback1));
+        Assert.assertTrue(rr2.equals(rrback2));
+    }
+
+
 
     @Test
     public void basic() {
@@ -206,6 +226,16 @@ public class TestMemoryMapping {
                 for (int x = 0; x < N; x += gap) {
                     rb1.add(x);
                 }
+                // make containers 8 and 10 be run encoded
+                
+                for (int x = 8*65536; x < 8*65536 + 1000; ++x)
+                    rb1.add(x);
+
+                for (int x = 10*65536; x < 10*65536 + 1000; ++x)
+                    { rb1.add(x); rb1.add(10000 + x);}
+                
+                rb1.runOptimize();
+
                 rambitmaps.add(rb1);
                 offsets.add(fos.getChannel().position());
                 rb1.serialize(dos);
@@ -215,6 +245,8 @@ public class TestMemoryMapping {
                     for (int x = 0; x < N; x += gap) {
                         rb2.add(x + offset);
                     }
+                    // gap 1 gives runcontainers
+                    rb2.runOptimize();
                     offsets.add(fos.getChannel().position());
                     long pbef = fos.getChannel().position();
                     rb2.serialize(dos);

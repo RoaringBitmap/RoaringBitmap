@@ -12,6 +12,7 @@ import com.google.common.primitives.Ints;
 import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import org.junit.Assert;
@@ -41,6 +42,22 @@ public class TestIterators {
         Assert.assertEquals(ImmutableList.of(3, 2, 1), reverseIntIteratorCopy);
     }
 
+
+    @Test
+    public void testSmallIteration1() {
+        MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(1, 2, 3);
+        bitmap.runOptimize();
+
+        final List<Integer> iteratorCopy = ImmutableList.copyOf(bitmap.iterator());
+        final List<Integer> intIteratorCopy = asList(bitmap.getIntIterator());
+        final List<Integer> reverseIntIteratorCopy = asList(bitmap.getReverseIntIterator());
+
+        Assert.assertEquals(ImmutableList.of(1, 2, 3), iteratorCopy);
+        Assert.assertEquals(ImmutableList.of(1, 2, 3), intIteratorCopy);
+        Assert.assertEquals(ImmutableList.of(3, 2, 1), reverseIntIteratorCopy);
+    }
+
+
     @Test
     public void testBitmapIteration() {
         final MappeableBitmapContainer bits = new MappeableBitmapContainer(2, LongBuffer.allocate(2).put(0x1l).put(1l << 63));
@@ -66,6 +83,47 @@ public class TestIterators {
         Assert.assertEquals(Ints.asList(data), intIteratorCopy);
         Assert.assertEquals(Lists.reverse(Ints.asList(data)), reverseIntIteratorCopy);
     }
+
+    
+    @Test
+    public void testIteration1() {
+        final Random source = new Random(0xcb000a2b9b5bdfb6l);
+        final int[] data1 = takeSortedAndDistinct(source, 450000);
+        final int[] data = Arrays.copyOf(data1, data1.length + 50000);
+       
+        HashSet<Integer> data1Members = new HashSet<Integer>();
+        for (int i : data1) 
+            data1Members.add(i);
+
+        int counter = 77777;
+        for (int i = data1.length; i < data.length; ++i) {
+            // ensure uniqueness
+            while (data1Members.contains(counter)) 
+                ++counter;
+            data[i] = counter; // must be unique
+            counter++;
+            if (i % 15 == 0) counter += 10;  // runs of length 15 or so, with gaps of 10
+        }
+        Arrays.sort(data);
+
+        MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(data);
+        bitmap.runOptimize();  // result should have some runcontainers and some non.
+
+        final List<Integer> iteratorCopy = ImmutableList.copyOf(bitmap.iterator());
+        final List<Integer> intIteratorCopy = asList(bitmap.getIntIterator());
+        final List<Integer> reverseIntIteratorCopy = asList(bitmap.getReverseIntIterator());
+
+        Assert.assertEquals(bitmap.getCardinality(), iteratorCopy.size());
+        Assert.assertEquals(bitmap.getCardinality(), intIteratorCopy.size());
+        Assert.assertEquals(bitmap.getCardinality(), reverseIntIteratorCopy.size());
+        Assert.assertEquals(Ints.asList(data), iteratorCopy);
+        Assert.assertEquals(Ints.asList(data), intIteratorCopy);
+        Assert.assertEquals(Lists.reverse(Ints.asList(data)), reverseIntIteratorCopy);
+    }
+    
+
+
+
 
     private static int[] takeSortedAndDistinct(Random source, int count) {
         LinkedHashSet<Integer> ints = new LinkedHashSet<Integer>(count);

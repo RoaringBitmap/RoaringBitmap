@@ -73,6 +73,48 @@ public class TestIntIteratorFlyweight {
         Assert.assertEquals(Lists.reverse(Ints.asList(data)), reverseIntIteratorCopy);
     }
 
+
+    @Test
+    public void testIteration1() {
+        final Random source = new Random(0xcb000a2b9b5bdfb6l);
+        final int[] data1 = takeSortedAndDistinct(source, 450000);
+        final int[] data = Arrays.copyOf(data1, data1.length + 50000);
+       
+        LinkedHashSet<Integer> data1Members = new LinkedHashSet<Integer>();
+        for (int i : data1) 
+            data1Members.add(i);
+
+        int counter = 77777;
+        for (int i = data1.length; i < data.length; ++i) {
+            // ensure uniqueness
+            while (data1Members.contains(counter)) 
+                ++counter;
+            data[i] = counter; // must be unique
+            counter++;
+            if (i % 15 == 0) counter += 10;  // runs of length 15 or so, with gaps of 10
+        }
+        Arrays.sort(data);
+
+        MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(data);
+
+        BufferIntIteratorFlyweight iter = new BufferIntIteratorFlyweight();
+        iter.wrap(bitmap);
+
+        BufferReverseIntIteratorFlyweight reverseIter = new BufferReverseIntIteratorFlyweight();
+        reverseIter.wrap(bitmap);
+
+        final List<Integer> intIteratorCopy = asList(iter);
+        final List<Integer> reverseIntIteratorCopy = asList(reverseIter);
+
+        Assert.assertEquals(bitmap.getCardinality(), intIteratorCopy.size());
+        Assert.assertEquals(bitmap.getCardinality(), reverseIntIteratorCopy.size());
+
+        Assert.assertEquals(Ints.asList(data), intIteratorCopy);
+        Assert.assertEquals(Lists.reverse(Ints.asList(data)), reverseIntIteratorCopy);
+    }
+
+
+
     private static int[] takeSortedAndDistinct(Random source, int count) {
         LinkedHashSet<Integer> ints = new LinkedHashSet<Integer>(count);
         for (int size = 0; size < count; size++) {

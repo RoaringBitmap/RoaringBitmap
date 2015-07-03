@@ -15,8 +15,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Various tests on Container and its subclasses, ArrayContainer and
- * BitmapContainer
+ * Various tests on Container and its subclasses, ArrayContainer,
+ * RunContainer and BitmapContainer
  */
 @SuppressWarnings({"static-method", "javadoc"})
 public class TestContainer {
@@ -38,6 +38,14 @@ public class TestContainer {
         c = c.remove((short) 4096);
         assertEquals(c.getCardinality(), 4096);
         assertTrue(c instanceof MappeableArrayContainer);
+        c = c.runOptimize();
+        assertEquals(c.getCardinality(), 4096);
+        assertTrue(c instanceof MappeableRunContainer);
+        c = c.inot(0, 4095);  // just 4095 left
+        c = c.runOptimize();
+        assertEquals(c.getCardinality(), 1);
+        assertTrue(c instanceof MappeableArrayContainer);
+
     }
 
     
@@ -54,6 +62,25 @@ public class TestContainer {
                 s[pos++] = (short) i;
         assertTrue(checkContent(c, s));
     }
+
+
+    @Test
+    public void inotTest1A() {
+        // Run container, range is complete
+        final short[] content = {1, 2, 3, 55, 56, 57};
+        MappeableContainer c = makeContainer(content);
+        c = c.runOptimize();
+        c = c.inot(0, 65536);
+        final short[] s = new short[65536 - content.length];
+        int pos = 0;
+        for (int i = 0; i < 65536; ++i)
+            if (Arrays.binarySearch(content, (short) i) < 0)
+                s[pos++] = (short) i;
+        assertTrue(checkContent(c, s));
+    }
+
+
+
 
     @Test
     public void inotTest10() {
@@ -74,6 +101,25 @@ public class TestContainer {
                 (short) 65199, (short) 65200}));
     }
 
+
+  @Test
+    public void inotTest10A() {
+        System.out.println("inotTest10A");
+        // Run container, inverting a range past any set bit
+        final short[] content = new short[]{1,2,3,4,5};
+        MappeableContainer c = makeContainer(content);
+        c = c.runOptimize();
+        assertTrue(c instanceof MappeableRunContainer);
+        final MappeableContainer c1 = c.inot(65190, 65201);
+        assertTrue(c1 instanceof MappeableRunContainer);
+        assertEquals(16, c1.getCardinality());
+        assertTrue(checkContent(c1, new short[]{1, 2, 3, 4, 5,
+                (short) 65190, (short) 65191, (short) 65192,
+                (short) 65193, (short) 65194, (short) 65195,
+                (short) 65196, (short) 65197, (short) 65198,
+                (short) 65199, (short) 65200}));
+    }
+
     @Test
     public void inotTest2() {
         // Array and then Bitmap container, range is complete
@@ -81,6 +127,19 @@ public class TestContainer {
         MappeableContainer c = makeContainer(content);
         c = c.inot(0, 65535);
         c = c.inot(0, 65535);
+        assertTrue(checkContent(c, content));
+    }
+
+  @Test
+    public void inotTest2A() {
+        // Run,  range is complete
+      final short[] content = {1, 2, 3, 8, 9,10, 11, 12, 13, 14};
+        MappeableContainer c = makeContainer(content);
+        c= c.runOptimize();
+        assertTrue(c instanceof MappeableRunContainer);
+        c = c.inot(0, 65535);
+        c = c.inot(0, 65535);
+        assertTrue(c instanceof MappeableRunContainer);
         assertTrue(checkContent(c, content));
     }
 
@@ -113,6 +172,20 @@ public class TestContainer {
         assertTrue(checkContent(c, content));
     }
 
+ @Test
+    public void inotTest4A() {
+        // Run container, range is partial, 
+     final short[] content = {1, 2, 3, 5, 6,7, 8};
+        MappeableContainer c = makeContainer(content);
+        c = c.runOptimize();
+        c = c.inot(4, 1000);
+        assertTrue(c instanceof MappeableRunContainer);
+        assertEquals(995, c.getCardinality());
+        c = c.inot(4, 1000); // back
+        assertTrue(checkContent(c, content));
+    }
+
+
     @Test
     public void inotTest5() {
         System.out.println("inotTest5");
@@ -131,6 +204,28 @@ public class TestContainer {
         assertEquals(31773, c.getCardinality());
         c = c.inot(4, 1000); // back, as a bitmap
         assertTrue(c instanceof MappeableBitmapContainer);
+        assertTrue(checkContent(c, content));
+
+    }
+ @Test
+    public void inotTest5A() {
+        System.out.println("inotTest5A");
+        // Run container, range is partial, result stays run (repeats 4A somewhat)
+        final short[] content = new short[32768 - 5];
+        content[0] = 0;
+        content[1] = 2;
+        content[2] = 4;
+        content[3] = 6;
+        content[4] = 8;
+        for (int i = 10; i <= 32767; ++i)
+            content[i - 10 + 5] = (short) i;
+        MappeableContainer c = makeContainer(content);
+        c = c.runOptimize();
+        c = c.inot(4, 1000);
+        assertTrue(c instanceof MappeableRunContainer);
+        assertEquals(31773, c.getCardinality());
+        c = c.inot(4, 1000); // back, as a bitmap
+        assertTrue(c instanceof MappeableRunContainer);
         assertTrue(checkContent(c, content));
 
     }
@@ -222,6 +317,23 @@ public class TestContainer {
         assertTrue(checkContent(c, content));
     }
 
+
+ @Test
+    public void notTest1A() {
+        // Run container, range is complete
+     final short[] content = {1, 2, 3, 6, 7, 8};
+        MappeableContainer c = makeContainer(content);
+        c = c.runOptimize();
+        final MappeableContainer c1 = c.not(0, 65536);
+        final short[] s = new short[65536 - content.length];
+        int pos = 0;
+        for (int i = 0; i < 65536; ++i)
+            if (Arrays.binarySearch(content, (short) i) < 0)
+                s[pos++] = (short) i;
+        assertTrue(checkContent(c1, s));
+        assertTrue(checkContent(c, content));
+    }
+
     @Test
     public void notTest10() {
         System.out.println("notTest10");
@@ -277,6 +389,17 @@ public class TestContainer {
     }
 
     @Test
+    public void notTest2A() {
+        // complete range
+        final short[] content = {2, 3, 4, 7, 8};
+         MappeableContainer c = makeContainer(content);
+        c=c.runOptimize();
+        final MappeableContainer c1 = c.not(0, 65535);
+        final MappeableContainer c2 = c1.not(0, 65535);
+        assertTrue(checkContent(c2, content));
+    }
+
+    @Test
     public void notTest3() {
         // Bitmap to bitmap, full range
 
@@ -302,6 +425,21 @@ public class TestContainer {
         final MappeableContainer c1 = c.not(4, 1000);
         assertTrue(c1 instanceof MappeableArrayContainer);
         assertEquals(999 - 4 + 1 - 3 + 2, c1.getCardinality());
+        final MappeableContainer c2 = c1.not(4, 1000); // back
+        assertTrue(checkContent(c2, content));
+    }
+
+
+    @Test
+    public void notTest4A() {
+        System.out.println("notTest4A");
+        // Runcontainer version
+        final short[] content = {1, 2, 3, 5, 6, 7, 8};
+        MappeableContainer c = makeContainer(content);
+        c = c.runOptimize();
+        final MappeableContainer c1 = c.not(4, 1000);
+        assertTrue(c1 instanceof MappeableRunContainer);
+        assertEquals(995, c1.getCardinality());
         final MappeableContainer c2 = c1.not(4, 1000); // back
         assertTrue(checkContent(c2, content));
     }
@@ -375,6 +513,29 @@ public class TestContainer {
             assertTrue(c2 instanceof MappeableBitmapContainer);
         assertTrue(checkContent(c2, content));
     }
+    @Test
+    public void notTest7A() {
+        System.out.println("notTest7A");
+        // Runcontainer version of notTest7
+        final short[] content = new short[32768 - 5];
+        content[0] = 0;
+        content[1] = 2;
+        content[2] = 4;
+        content[3] = 6;
+        content[4] = 8;
+        for (int i = 10; i <= 32767; ++i)
+            content[i - 10 + 5] = (short) i;
+        MappeableContainer c = makeContainer(content);
+        c = c.runOptimize();
+        MappeableContainer c1 = c.not(5, 31001);
+        assertTrue(c1 instanceof MappeableRunContainer);
+        c1 = c1.runOptimize();  // should not change
+        assertTrue(c1 instanceof MappeableRunContainer);
+        assertEquals(1773, c1.getCardinality());
+        final MappeableContainer c2 = c1.not(5, 31001); // back, as a bitmap
+        assertTrue(c2 instanceof MappeableRunContainer);
+        assertTrue(checkContent(c2, content));
+    }
 
     @Test
     public void notTest8() {
@@ -427,6 +588,17 @@ public class TestContainer {
         assertTrue(checkContent(c, new short[]{4, 5, 6, 7, 8, 9, 10}));
     }
 
+
+    @Test
+    public void rangeOfOnesTest1A() {
+        MappeableContainer c = MappeableContainer.rangeOfOnes(4, 11); // sparse
+        c = c.runOptimize();
+        assertTrue(c instanceof MappeableRunContainer); 
+        assertTrue(checkContent(c, new short[]{4, 5, 6, 7, 8, 9, 10}));
+    }
+
+
+
     @Test
     public void rangeOfOnesTest2() {
         final MappeableContainer c = MappeableContainer.rangeOfOnes(1000, 35001); // dense
@@ -442,6 +614,19 @@ public class TestContainer {
             s[i - 1000] = (short) i;
         assertTrue(checkContent(c, s));
     }
+
+    @Test
+    public void rangeOfOnesTest2AA() {
+         MappeableContainer c = MappeableContainer.rangeOfOnes(1000, 35001); // dense
+         c = c.runOptimize();
+        final short s[] = new short[35000 - 1000 + 1];
+        for (int i = 1000; i <= 35000; ++i)
+            s[i - 1000] = (short) i;
+        assertTrue(checkContent(c, s));
+    }
+
+
+
 
     @Test
     public void rangeOfOnesTest3() {
