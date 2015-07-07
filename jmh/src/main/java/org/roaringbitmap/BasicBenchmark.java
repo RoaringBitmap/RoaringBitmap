@@ -5,6 +5,8 @@ import org.roaringbitmap.buffer.BufferFastAggregation;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
+import com.zaxxer.sparsebits.SparseBitSet;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -119,7 +121,6 @@ public class BasicBenchmark {
       for (int k = 0; k < 65536; k++) {
          r.add(k * 32);
       }
-
       return r;
    }
 
@@ -131,7 +132,6 @@ public class BasicBenchmark {
       for (int k = 0; k < 65536; k++) {
          r.add(k * 32);
       }
-
       return r;
    }
 
@@ -153,6 +153,28 @@ public class BasicBenchmark {
 
       for (int k = 65536 - 1; k >= 0; k--) {
          r.add(k * 32);
+      }
+      return r;
+   }
+
+   @Benchmark
+   public SparseBitSet createSparseBitSetOrdered() {
+
+      SparseBitSet r = new SparseBitSet();
+
+      for (int k = 0; k < 65536; k++) {
+         r.set(k * 32);
+      }
+      return r;
+   }
+
+   @Benchmark
+   public SparseBitSet createSparseBitSetUnordered() {
+
+      SparseBitSet r = new SparseBitSet();
+
+      for (int k = 65536 - 1; k >= 0; k--) {
+         r.set(k * 32);
       }
       return r;
    }

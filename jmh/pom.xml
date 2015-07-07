@@ -4,7 +4,7 @@
 
     <groupId>org.roaringbitmap</groupId>
     <artifactId>jmh</artifactId>
-    <version>0.4.10-SNAPSHOT</version>
+    <version>0.4.11-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>JMH benchmark : RoaringBitmap</name>
@@ -30,11 +30,16 @@
             <artifactId>RoaringBitmap</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>SparseBitSet</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <jmh.version>1.7</jmh.version>
+        <jmh.version>1.10.1</jmh.version>
         <javac.target>1.6</javac.target>
         <uberjar.name>benchmarks</uberjar.name>
     </properties>
