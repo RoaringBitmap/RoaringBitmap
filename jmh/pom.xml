@@ -30,6 +30,11 @@
             <artifactId>RoaringBitmap</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>SparseBitSet</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
 
     <properties>
