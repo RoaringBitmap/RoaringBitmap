@@ -44,11 +44,11 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
             return c;
         }
 
-        @Override
-        public int compareTo(Element o) {
-            return this.key
-                    - o.key;
-        }
+		@Override
+		public int compareTo(Element o) {
+			return BufferUtil.toIntUnsigned(this.key)
+					- BufferUtil.toIntUnsigned(o.key);
+		}
 
         @Override
         public boolean equals(Object o) {
@@ -188,10 +188,10 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
      */
     protected void appendCopiesUntil(PointableRoaringArray highLowContainer,
             short stoppingKey) {
-        final int stopKey = stoppingKey;
+    	final int stopKey = BufferUtil.toIntUnsigned(stoppingKey);
         MappeableContainerPointer cp = highLowContainer.getContainerPointer();
         while (cp.hasContainer()) {
-            if (cp.key() >= stopKey)
+        	if (BufferUtil.toIntUnsigned(cp.key()) >= stopKey)
                 break;
             extendArray(1);
             this.array[this.size++] = new Element(cp.key(), cp.getContainer()
@@ -229,11 +229,11 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
     private int binarySearch(int begin, int end, short key) {
         int low = begin;
         int high = end - 1;
-        final int ikey = key;
+        final int ikey = BufferUtil.toIntUnsigned(key);
 
         while (low <= high) {
             final int middleIndex = (low + high) >>> 1;
-            final int middleValue = array[middleIndex].key;
+            final int middleValue = BufferUtil.toIntUnsigned(array[middleIndex].key);
 
             if (middleValue < ikey)
                 low = middleIndex + 1;
@@ -392,12 +392,12 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
             }
 
             @Override
-            public int compareTo(MappeableContainerPointer o) {
-                if (key() != o.key())
-                    return key()
-                            - o.key();
-                return o.getCardinality() - getCardinality();
-            }
+			public int compareTo(MappeableContainerPointer o) {
+				if (key() != o.key())
+					return BufferUtil.toIntUnsigned(key())
+							- BufferUtil.toIntUnsigned(o.key());
+				return o.getCardinality() - getCardinality();
+			}
 
             @Override
             public int getCardinality() {
@@ -452,14 +452,14 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
         int lower = pos + 1;
 
         // special handling for a possibly common sequential case
-        if (lower >= size || array[lower].key >= x) {
+        if (lower >= size || BufferUtil.toIntUnsigned(array[lower].key) >= BufferUtil.toIntUnsigned(x)) {
             return lower;
         }
 
         int spansize = 1; // could set larger
         // bootstrap an upper limit
 
-        while (lower + spansize < size && array[lower + spansize].key < x)
+        while (lower + spansize < size && BufferUtil.toIntUnsigned(array[lower + spansize].key) < BufferUtil.toIntUnsigned(x))
             spansize *= 2; // hoping for compiler will reduce to shift
         int upper = (lower + spansize < size) ? lower + spansize : size - 1;
 
@@ -469,7 +469,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
             return upper;
         }
 
-        if (array[upper].key < x) {// means array has no item key >= x
+        if (BufferUtil.toIntUnsigned(array[upper].key) < BufferUtil.toIntUnsigned(x)) {// means array has no item key >= x
             return size;
         }
 
@@ -482,7 +482,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
             int mid = (lower + upper) / 2;
             if (array[mid].key == x)
                 return mid;
-            else if (array[mid].key < x)
+            else if (BufferUtil.toIntUnsigned(array[mid].key) < BufferUtil.toIntUnsigned(x))
                 lower = mid;
             else
                 upper = mid;

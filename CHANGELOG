@@ -1,10 +1,10 @@
-upcoming
+version 0.4.10
  - faster intersections (and) in some cases thanks to @gssiyankai
  - fast range add and remove
  - improved select performance (Bob Potter)
  - serialization and deserialization are faster (deserialization is about 30% less CPU intensive)
  - checkedAdd and checkedRemove (Samy Chambi)
- - proper support for signed integers (reported by S. Chambi)
+ - improved the handling of large (or negative) integers
 
 version 0.4.9
  - Moved select method in the right interface

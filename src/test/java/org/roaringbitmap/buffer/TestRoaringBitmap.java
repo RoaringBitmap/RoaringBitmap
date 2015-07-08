@@ -11,6 +11,7 @@ import static org.junit.Assert.*;
 import org.junit.Assert;
 import org.junit.Test;
 import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.RoaringBitmap;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -22,22 +23,45 @@ import java.util.*;
  */
 @SuppressWarnings({"static-method", "javadoc"})
 public class TestRoaringBitmap {
+	
+	@Test
+	public void testEqual() {
+		MutableRoaringBitmap rr1 = MutableRoaringBitmap.bitmapOf(1,2,100000);
+		MutableRoaringBitmap rr2 = MutableRoaringBitmap.bitmapOf(3,4,100001);
+		MutableRoaringBitmap rr3 = MutableRoaringBitmap.bitmapOf(1,2,100000);
+		Assert.assertEquals(rr1, rr3);
+		Assert.assertNotEquals(rr1, rr2);
+		Assert.assertNotEquals(rr3, rr2);
+	}
+	
+	@Test
+	public void bitmapOfTest() {
+		int[] cuiRelsArray = new int[1024];
+		for(int k = 0; k < cuiRelsArray.length; ++k)
+			cuiRelsArray[k] = k;
+		MutableRoaringBitmap rr1 = MutableRoaringBitmap.bitmapOf(cuiRelsArray);
+		int[] back = rr1.toArray();
+		Assert.assertArrayEquals(cuiRelsArray, back);
+	}
+	
 	@Test
 	public void testHighBits() {
 		for (int offset = 1 << 14; offset < 1 << 18; offset *= 2) {
 			MutableRoaringBitmap rb = new MutableRoaringBitmap();
+			RoaringBitmap srb = new RoaringBitmap();
 			for (long k = Integer.MIN_VALUE; k < Integer.MAX_VALUE; k += offset) {
 				rb.add((int) k);
+				srb.add((int)k);
 			}
+			int cardinality = 0;
 			for (long k = Integer.MIN_VALUE; k < Integer.MAX_VALUE; k += offset) {
 				Assert.assertTrue(rb.contains((int) k));
+				++cardinality;
 			}
 			int[] array = rb.toArray();
-			int pos = 0;
-			for (long k = Integer.MIN_VALUE; k < Integer.MAX_VALUE; k += offset) {
-				Assert.assertTrue(array[pos++] == (int)k);
-			}
-			assert(pos == array.length);
+			int[] sarray = srb.toArray();
+			Assert.assertTrue(Arrays.equals(sarray, array));
+			Assert.assertTrue(array.length == cardinality);
 		}
 	}
 	
@@ -49,7 +73,6 @@ public class TestRoaringBitmap {
 		// when adding new ints
 		for (int i = 0; i < 2 * (1 << 16); i++)
 			rb.add(i);
-
 		for (int i = 0; i < 2 * (1 << 16); i += 2)
 			Assert.assertTrue(rb.checkedRemove(i));
 		for (int i = 0; i < 2 * (1 << 16); i += 2)
@@ -217,6 +240,27 @@ public class TestRoaringBitmap {
 	}
 
     @Test
+    public void sparseAndNot() {
+        final MutableRoaringBitmap rr1 = new MutableRoaringBitmap();
+        rr1.add(1);
+        rr1.add(1 << 31);
+        System.out.println("rr1.contains(1)= "+rr1.contains(1));
+        final MutableRoaringBitmap rr2 = new MutableRoaringBitmap();
+        rr2.add(1 << 31);
+        MutableRoaringBitmap andNot = MutableRoaringBitmap.andNot(rr1, rr2);
+        Assert.assertEquals(1, andNot.getCardinality());
+        Assert.assertTrue(andNot.contains(1));
+        rr1.andNot(rr2);
+        Assert.assertEquals(1, rr1.getCardinality());
+        Assert.assertTrue(andNot.contains(1));
+    }
+    
+    @Test
+    public void andNotBigIntsTest(){
+    	
+    }
+
+    @Test
     public void ANDNOTtest() {
         final MutableRoaringBitmap rr = new MutableRoaringBitmap();
         for (int k = 4000; k < 4256; ++k)
@@ -253,7 +297,6 @@ public class TestRoaringBitmap {
         for (int k = 10 * 65535; k < 10 * 65535 + 5000; ++k) {
             rr2.add(k);
         }
-
         final MutableRoaringBitmap correct = MutableRoaringBitmap.andNot(rr, rr2);
         rr.andNot(rr2);
         Assert.assertTrue(correct.equals(rr));
@@ -282,6 +325,21 @@ public class TestRoaringBitmap {
     }
 
     @Test
+    public void sparseAnd() {
+        final MutableRoaringBitmap rr1 = new MutableRoaringBitmap();
+        rr1.add(1);
+        rr1.add(1 << 31);
+        final MutableRoaringBitmap rr2 = new MutableRoaringBitmap();
+        rr2.add(1 << 31);
+        MutableRoaringBitmap and = MutableRoaringBitmap.and(rr1, rr2);
+        Assert.assertEquals(1, and.getCardinality());
+        Assert.assertTrue(and.contains(1 << 31));
+        rr1.and(rr2);
+        Assert.assertEquals(1, rr1.getCardinality());
+        Assert.assertTrue(and.contains(1 << 31));
+    }
+
+    @Test
     public void andtest() {
         final MutableRoaringBitmap rr = new MutableRoaringBitmap();
         for (int k = 0; k < 4000; ++k) {
@@ -300,7 +358,6 @@ public class TestRoaringBitmap {
         array = rr.toArray();
         Assert.assertEquals(array.length, 1);
         Assert.assertEquals(array[0], 13);
-
     }
 
     @Test
@@ -1023,6 +1080,23 @@ public class TestRoaringBitmap {
     }
 
     @Test
+    public void sparseOr() {
+        final MutableRoaringBitmap rr1 = new MutableRoaringBitmap();
+        rr1.add(1);
+        rr1.add(1 << 31);
+        final MutableRoaringBitmap rr2 = new MutableRoaringBitmap();
+        rr2.add(1 << 31);
+        MutableRoaringBitmap or = MutableRoaringBitmap.or(rr1, rr2);
+        Assert.assertEquals(2, or.getCardinality());
+        Assert.assertTrue(or.contains(1));
+        Assert.assertTrue(or.contains(1 << 31));
+        rr1.or(rr2);
+        Assert.assertEquals(2, rr1.getCardinality());
+        Assert.assertTrue(or.contains(1));
+        Assert.assertTrue(or.contains(1 << 31));
+    }
+
+    @Test
     public void ortest() {
         final MutableRoaringBitmap rr = new MutableRoaringBitmap();
         for (int k = 0; k < 4000; ++k) {
@@ -1541,6 +1615,22 @@ public class TestRoaringBitmap {
       rrback.deserialize(new DataInputStream(bis));
       Assert.assertEquals(rr.getCardinality(), rrback.getCardinality());
       Assert.assertTrue(rr.equals(rrback));
+    }
+
+
+    @Test
+    public void sparseXor() {
+        final MutableRoaringBitmap rr1 = new MutableRoaringBitmap();
+        rr1.add(1);
+        rr1.add(1 << 31);
+        final MutableRoaringBitmap rr2 = new MutableRoaringBitmap();
+        rr2.add(1 << 31);
+        MutableRoaringBitmap xor = MutableRoaringBitmap.xor(rr1, rr2);
+        Assert.assertEquals(1, xor.getCardinality());
+        Assert.assertTrue(xor.contains(1));
+        rr1.xor(rr2);
+        Assert.assertEquals(1, rr1.getCardinality());
+        Assert.assertTrue(xor.contains(1));
     }
 
 

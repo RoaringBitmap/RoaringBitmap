@@ -5,10 +5,8 @@
 package org.roaringbitmap.buffer;
 
 import org.roaringbitmap.ShortIterator;
-import org.roaringbitmap.Util;
 
 import java.io.*;
-import java.util.Arrays;
 import java.nio.ShortBuffer;
 import java.util.Iterator;
 

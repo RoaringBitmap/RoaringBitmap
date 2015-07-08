@@ -8,6 +8,7 @@ package org.roaringbitmap.buffer;
 import org.roaringbitmap.ImmutableBitmapDataProvider;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.ShortIterator;
+import org.roaringbitmap.Util;
 
 import java.io.DataOutput;
 import java.io.IOException;
@@ -66,8 +67,8 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
         final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
 
         while (pos1 < length1 && pos2 < length2) {
-            short s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-            short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+            final short s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+            final short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
 
             if (s1 == s2) {
                 final MappeableContainer c1 = x1.highLowContainer.getContainerAtIndex(pos1);
@@ -78,7 +79,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
                 }
                 ++pos1;
                 ++pos2;
-            } else if (s1 < s2) {
+            } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
                 pos1 = x1.highLowContainer.advanceUntil(s2,pos1);
             } else { // s1 > s2
                 pos2 = x2.highLowContainer.advanceUntil(s1,pos2);
@@ -116,7 +117,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
                 }
                 ++pos1;
                 ++pos2;
-            } else if (s1 < s2) {
+            } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
                 final int nextPos1 = x1.highLowContainer.advanceUntil(s2,pos1);
                 answer.getMappeableRoaringArray().appendCopy(x1.highLowContainer, pos1, nextPos1);
                 pos1 = nextPos1;
@@ -217,30 +218,26 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
                 .getContainerPointer();
         MappeableContainerPointer i2 = x2.highLowContainer
                 .getContainerPointer();
-
         main: if (i1.hasContainer() && i2.hasContainer()) {
-
             while (true) {
-                if (i1.key() < i2.key()) {
-                    answer.getMappeableRoaringArray().appendCopy(i1.key(),
-                            i1.getContainer());
-                    i1.advance();
-                    if (!i1.hasContainer())
-                        break main;
-
-                } else if (i1.key() > i2.key()) {
-                    answer.getMappeableRoaringArray().appendCopy(i2.key(),
-                            i2.getContainer());
-                    i2.advance();
-                    if (!i2.hasContainer())
-                        break main;
-
-                } else {
+                if (i1.key() == i2.key()) {
                     answer.getMappeableRoaringArray().append(i1.key(),
                             i1.getContainer().or(i2.getContainer()));
                     i1.advance();
                     i2.advance();
                     if (!i1.hasContainer() || !i2.hasContainer())
+                        break main;
+                } else if (Util.compareUnsigned(i1.key(), i2.key()) < 0) { // i1.key() < i2.key()
+                    answer.getMappeableRoaringArray().appendCopy(i1.key(),
+                            i1.getContainer());
+                    i1.advance();
+                    if (!i1.hasContainer())
+                        break main;
+                } else { // i1.key() > i2.key()
+                    answer.getMappeableRoaringArray().appendCopy(i2.key(),
+                            i2.getContainer());
+                    i2.advance();
+                    if (!i2.hasContainer())
                         break main;
                 }
             }
@@ -286,21 +283,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
                 .getContainerPointer();
         main: if (i1.hasContainer() && i2.hasContainer()) {
             while (true) {
-                if (i1.key() < i2.key()) {
-                    answer.getMappeableRoaringArray().appendCopy(i1.key(),
-                            i1.getContainer());
-                    i1.advance();
-                    if (!i1.hasContainer())
-                        break main;
-
-                } else if (i1.key() > i2.key()) {
-                    answer.getMappeableRoaringArray().appendCopy(i2.key(),
-                            i2.getContainer());
-                    i2.advance();
-                    if (!i2.hasContainer())
-                        break main;
-
-                } else {
+                if (i1.key() == i2.key()) {
                     final MappeableContainer c = i1.getContainer().xor(
                             i2.getContainer());
                     if (c.getCardinality() > 0)
@@ -308,6 +291,18 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
                     i1.advance();
                     i2.advance();
                     if (!i1.hasContainer() || !i2.hasContainer())
+                        break main;
+                } else if (Util.compareUnsigned(i1.key(), i2.key()) < 0) { // i1.key() < i2.key()
+                    answer.getMappeableRoaringArray().appendCopy(i1.key(),
+                            i1.getContainer());
+                    i1.advance();
+                    if (!i1.hasContainer())
+                        break main;
+                } else { // i1.key() < i2.key()
+                    answer.getMappeableRoaringArray().appendCopy(i2.key(),
+                            i2.getContainer());
+                    i2.advance();
+                    if (!i2.hasContainer())
                         break main;
                 }
             }
@@ -725,10 +720,10 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
      */
     public int rank(int x) {
         int size = 0;
-        int xhigh = BufferUtil.highbits(x);        
+        short xhigh = BufferUtil.highbits(x);
         for (int i = 0; i < this.highLowContainer.size(); i++) {
             short key =  this.highLowContainer.getKeyAtIndex(i);
-            if( key < xhigh )      
+            if (Util.compareUnsigned(key, xhigh) < 0)
               size += this.highLowContainer.getCardinality(i);
             else 
                 return size + this.highLowContainer.getContainerAtIndex(i).rank(BufferUtil.lowbits(x));

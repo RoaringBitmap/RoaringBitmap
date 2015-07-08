@@ -2,50 +2,50 @@ package org.roaringbitmap.bithacking;
 
 
 import org.openjdk.jmh.annotations.*;
-import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @State(Scope.Benchmark)
-@OutputTimeUnit(TimeUnit.MICROSECONDS)
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
 public class UnsignedVSFlip {
-    short[] key;
-    int N;
+    @Param({"1", "31", "65", "101", "103"})
+    public short key;
     
-    @Setup
-    public void setup() {
-        Random r = new Random();
-        N = 65536;
-        key = new short[N];
-        for(int k = 0; k < N; ++k)
-            while(key[k] == 0) 
-            	key[k] = (short)r.nextInt();        
-    }
     
     @Benchmark
-    @BenchmarkMode(Mode.AverageTime)
+    @BenchmarkMode(Mode.Throughput)
     public int tointUnsignedTime() {
-        int answer = 0;
-        for(int k = 0; k < N; ++k)
-            answer += key[k] & 0xFFFF;
-        return answer;
+        return key & 0xFFFF;
     }
     
     @Benchmark
     @BenchmarkMode(Mode.AverageTime)
-    public int flipTime() {
-        int answer = 0;
-        for(int k = 0; k < N; ++k)
-            answer += (short) (key[k] ^ Short.MIN_VALUE);
-        return answer;
+    public int tointUnsignedTimeAvg() {
+        return key & 0xFFFF;
     }
     
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    public int flipTime() {
+        return key ^ Short.MIN_VALUE;
+    }
+
 
     @Benchmark
     @BenchmarkMode(Mode.AverageTime)
-    public int flipTimeNoCast() {
-        int answer = 0;
-        for(int k = 0; k < N; ++k)
-            answer += key[k] ^ Short.MIN_VALUE;
-        return answer;
+    public int flipTimeAvg() {
+        return key ^ Short.MIN_VALUE;
     }
+
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    public short flipTimeShort() {
+        return (short) (key ^ Short.MIN_VALUE);
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.AverageTime)
+    public short flipTimeShortAvg() {
+        return (short) (key ^ Short.MIN_VALUE);
+    }
+    
 }

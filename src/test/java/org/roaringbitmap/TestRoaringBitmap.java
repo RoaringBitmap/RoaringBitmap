@@ -6,6 +6,7 @@ package org.roaringbitmap;
 
 import static org.junit.Assert.assertEquals;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -17,6 +18,36 @@ import java.util.*;
  */
 @SuppressWarnings({"static-method", "javadoc"})
 public class TestRoaringBitmap {
+
+	@Test
+	public void testEqual() {
+		RoaringBitmap rr1 = RoaringBitmap.bitmapOf(1,2,100000);
+		RoaringBitmap rr2 = RoaringBitmap.bitmapOf(3,4,100001);
+		RoaringBitmap rr3 = RoaringBitmap.bitmapOf(1,2,100000);
+		Assert.assertEquals(rr1, rr3);
+		Assert.assertNotEquals(rr1, rr2);
+		Assert.assertNotEquals(rr3, rr2);
+	}
+	
+	
+	@Test
+	public void bitmapOfTest() {
+		int[] cuiRelsArray = new int[1024];
+		for(int k = 0; k < cuiRelsArray.length; ++k)
+			cuiRelsArray[k] = k;
+		RoaringBitmap rr1 = RoaringBitmap.bitmapOf(cuiRelsArray);
+		int[] back = rr1.toArray();
+		Assert.assertArrayEquals(cuiRelsArray, back);
+	}
+	
+	@Test
+	public void sillytestHighBits() {
+		RoaringBitmap rb = RoaringBitmap.bitmapOf(-1,0);
+		int[] array = rb.toArray();
+		Assert.assertTrue(array[0] == 0);
+		Assert.assertTrue(array[1] == -1);
+	}
+	
 	@Test
 	public void testHighBits() {
 		for (int offset = 1 << 14; offset < 1 << 18; offset *= 2) {
@@ -24,15 +55,16 @@ public class TestRoaringBitmap {
 			for (long k = Integer.MIN_VALUE; k < Integer.MAX_VALUE; k += offset) {
 				rb.add((int) k);
 			}
+			int cardinality = 0;
 			for (long k = Integer.MIN_VALUE; k < Integer.MAX_VALUE; k += offset) {
 				Assert.assertTrue(rb.contains((int) k));
+				++cardinality;
 			}
 			int[] array = rb.toArray();
-			int pos = 0;
-			for (long k = Integer.MIN_VALUE; k < Integer.MAX_VALUE; k += offset, pos++) {
-				Assert.assertTrue(array[pos] == (int)k);
+			Assert.assertTrue(array.length == cardinality);
+			for(int k = 0; k < array.length - 1; ++k) {
+				Assert.assertTrue((0xFFFFFFFFL & array[k]) <= (0xFFFFFFFFL & array[k + 1]));
 			}
-			assert(pos == array.length);
 		}
 	}
 	
@@ -209,7 +241,205 @@ public class TestRoaringBitmap {
 		rbm2 = rbm1.clone();
 		Assert.assertTrue(rbm1.hashCode() == rbm2.hashCode());
 	}
+
+    @Test
+    public void sparseAndNot() {
+        final RoaringBitmap rr1 = new RoaringBitmap();
+        rr1.add(1);
+        rr1.add(1 << 31);
+        final RoaringBitmap rr2 = new RoaringBitmap();
+        rr2.add(1 << 31);
+        RoaringBitmap andNot = RoaringBitmap.andNot(rr1, rr2);
+        Assert.assertEquals(1, andNot.getCardinality());
+        Assert.assertTrue(andNot.contains(1));
+        rr1.andNot(rr2);
+        Assert.assertEquals(1, rr1.getCardinality());
+        Assert.assertTrue(andNot.contains(1));
+    }
 	
+    @Test
+    public void orBigIntsTest() {
+    	RoaringBitmap rb = new RoaringBitmap();
+    	RoaringBitmap rb2 = new RoaringBitmap(); 
+    	HashSet<Integer> hs= new HashSet<Integer>();
+    	
+    	for(int i=1<<31; i<(1<<31)+65536; i+=2){
+    		rb.add(i);
+    		hs.add(i);
+    	}
+    	for(int i=(1<<31)+3*65536; i<(1<<31)+4*65536; i+=3){
+    		hs.add(i);
+    		rb.add(i);
+    	}
+    	for(int i=(1<<31)+5*65536; i<(1<<31)+7*65536; i+=5){
+    		hs.add(i);
+    		rb.add(i);
+    	}
+    	for(int i=(1<<31)+9*65536; i<(1<<31)+10*65536; i+=3){
+    		hs.add(i);
+    		rb.add(i);
+    	}
+    	
+    	for(int i=1<<31+3*65536; i<(1<<31)+4*65536; i+=5){
+    		hs.add(i);
+    		rb2.add(i);
+    	}
+    	for(int i=(1<<31)+6*65536; i<(1<<31)+7*65536; i+=3){
+    		hs.add(i);
+    		rb2.add(i);
+    	}
+    	for(int i=(1<<31)+9*65536; i<(1<<31)+11*65536; i+=5){
+    		hs.add(i);
+    		rb2.add(i);
+    	}
+    	for(int i=(1<<31)+13*65536; i<(1<<31)+14*65536; i+=7){
+    		hs.add(i);
+    		rb2.add(i);
+    	}
+    	
+    	RoaringBitmap rbor = RoaringBitmap.or(rb, rb2);
+    	
+    	Object[] correct= hs.toArray();
+    	Arrays.sort(correct);
+    	Integer[] resor= ArrayUtils.toObject(rbor.toArray());
+    	Assert.assertArrayEquals(correct, resor);
+    }
+    
+    @Test
+    public void andBigIntsTest() {
+    	RoaringBitmap rb = new RoaringBitmap();
+    	RoaringBitmap rb2 = new RoaringBitmap();
+    	HashSet<Integer> hs= new HashSet<Integer>();
+    	
+    	for(int i=1<<31; i<(1<<31)+65536; i+=2){
+    		rb.add(i);
+    	}
+    	for(int i=(1<<31)+3*65536; i<(1<<31)+4*65536; i+=3){
+    		rb.add(i);
+    	}
+    	for(int i=(1<<31)+5*65536; i<(1<<31)+7*65536; i+=3){
+    		rb.add(i);
+    	}
+    	for(int i=(1<<31)+6*65536; i<(1<<31)+7*65536; i+=4){
+    		rb.add(i);
+    	}
+    	for(int i=(1<<31)+9*65536; i<(1<<31)+10*65536; i+=5){
+    		rb.add(i);
+    	}
+    	
+    	for(int i=(1<<31)+3*65536; i<(1<<31)+4*65536; i+=3){
+    		hs.add(i);
+    		rb2.add(i);
+    	}
+    	for(int i=(1<<31)+6*65536; i<(1<<31)+7*65536; i+=4){
+    		hs.add(i);
+    		rb2.add(i);
+    	}
+    	for(int i=(1<<31)+9*65536; i<(1<<31)+10*65536; i+=5){
+    		hs.add(i);
+    		rb2.add(i);
+    	}
+    	for(int i=(1<<31)+13*65536; i<(1<<31)+14*65536; i+=7){
+    		rb2.add(i);
+    	}
+    	
+    	RoaringBitmap rband = RoaringBitmap.and(rb, rb2);
+    	
+    	Object[] correct= hs.toArray();
+    	Arrays.sort(correct);
+    	Integer[] resand= ArrayUtils.toObject(rband.toArray());
+    	Assert.assertArrayEquals(correct, resand);
+    }
+    
+    @Test
+    public void andNotBigIntsTest() {
+    	RoaringBitmap rb = new RoaringBitmap();
+    	RoaringBitmap rb2 = new RoaringBitmap();
+    	HashSet<Integer> hs= new HashSet<Integer>();
+    	
+    	for(int i=1<<31; i<(1<<31)+65536; i+=2){
+    		rb.add(i);
+    		hs.add(i);
+    	}
+    	for(int i=(1<<31)+3*65536; i<(1<<31)+4*65536; i+=3){
+    		rb.add(i);
+    	}
+    	for(int i=(1<<31)+5*65536; i<(1<<31)+6*65536; i+=3){
+    		hs.add(i);
+    		rb.add(i);
+    	}
+    	for(int i=(1<<31)+9*65536; i<(1<<31)+10*65536; i+=5){
+    		rb.add(i);
+    	}
+    	
+    	for(int i=(1<<31)+3*65536; i<(1<<31)+4*65536; i+=3){
+    		rb2.add(i);
+    	}
+    	for(int i=(1<<31)+6*65536; i<(1<<31)+7*65536; i+=4){
+    		rb2.add(i);
+    	}
+    	for(int i=(1<<31)+9*65536; i<(1<<31)+10*65536; i+=5){
+    		rb2.add(i);
+    	}
+    	for(int i=(1<<31)+13*65536; i<(1<<31)+14*65536; i+=7){
+    		rb2.add(i);
+    	}
+    	
+    	RoaringBitmap rbandnot = RoaringBitmap.andNot(rb, rb2);
+    	
+    	Object[] correct= hs.toArray();
+    	Arrays.sort(correct);
+    	Integer[] resandNot= ArrayUtils.toObject(rbandnot.toArray());
+    	Assert.assertArrayEquals(correct, resandNot);
+    }
+    
+    @Test
+    public void xorBigIntsTest() {
+    	RoaringBitmap rb = new RoaringBitmap();
+    	RoaringBitmap rb2 = new RoaringBitmap();
+    	HashSet<Integer> hs= new HashSet<Integer>();
+    	
+    	for(int i=1<<31; i<(1<<31)+65536; i+=2){
+    		hs.add(i);
+    		rb.add(i);
+    	}
+    	for(int i=(1<<31)+3*65536; i<(1<<31)+4*65536; i+=3){
+    		rb.add(i);
+    	}
+    	for(int i=(1<<31)+5*65536; i<(1<<31)+7*65536; i+=5){
+    		rb.add(i);
+    	}
+    	for(int i=(1<<31)+9*65536; i<(1<<31)+10*65536; i+=7){
+    		rb.add(i);
+    	}
+    	for(int i=(1<<31)+11*65536; i<(1<<31)+12*65536; i+=6){
+    		hs.add(i);
+    		rb.add(i);
+    	}
+    	
+    	for(int i=(1<<31)+3*65536; i<(1<<31)+4*65536; i+=3){
+    		rb2.add(i);
+    	}
+    	for(int i=(1<<31)+5*65536; i<(1<<31)+7*65536; i+=5){
+    		rb2.add(i);
+    	}
+    	for(int i=(1<<31)+9*65536; i<(1<<31)+10*65536; i+=7){
+    		rb2.add(i);
+    	}
+    	for(int i=(1<<31)+13*65536; i<(1<<31)+14*65536; i+=2){
+    		hs.add(i);
+    		rb2.add(i);
+    	}
+    	
+    	
+    	RoaringBitmap rbxor = RoaringBitmap.xor(rb, rb2);
+    	
+    	Object[] correct= hs.toArray();
+    	Arrays.sort(correct);
+    	Integer[] resxor= ArrayUtils.toObject(rbxor.toArray());
+    	Assert.assertArrayEquals(correct, resxor);
+    }
+    
     @Test
     public void ANDNOTtest() {
         final RoaringBitmap rr = new RoaringBitmap();
@@ -293,7 +523,6 @@ public class TestRoaringBitmap {
         Assert.assertEquals(rb2, off);
         rb2.andNot(rb);
         Assert.assertEquals(rb2, off);
-
     }
 
     @Test
@@ -316,6 +545,21 @@ public class TestRoaringBitmap {
         Assert.assertEquals(array.length, 1);
         Assert.assertEquals(array[0], 13);
 
+    }
+
+    @Test
+    public void sparseAnd() {
+        final RoaringBitmap rr1 = new RoaringBitmap();
+        rr1.add(1);
+        rr1.add(1 << 31);
+        final RoaringBitmap rr2 = new RoaringBitmap();
+        rr2.add(1 << 31);
+        RoaringBitmap and = RoaringBitmap.and(rr1, rr2);
+        Assert.assertEquals(1, and.getCardinality());
+        Assert.assertTrue(and.contains(1 << 31));
+        rr1.and(rr2);
+        Assert.assertEquals(1, rr1.getCardinality());
+        Assert.assertTrue(and.contains(1 << 31));
     }
 
     @Test
@@ -1062,6 +1306,23 @@ public class TestRoaringBitmap {
     }
 
     @Test
+    public void sparseOr() {
+        final RoaringBitmap rr1 = new RoaringBitmap();
+        rr1.add(1);
+        rr1.add(1 << 31);
+        final RoaringBitmap rr2 = new RoaringBitmap();
+        rr2.add(1 << 31);
+        RoaringBitmap or = RoaringBitmap.or(rr1, rr2);
+        Assert.assertEquals(2, or.getCardinality());
+        Assert.assertTrue(or.contains(1));
+        Assert.assertTrue(or.contains(1 << 31));
+        rr1.or(rr2);
+        Assert.assertEquals(2, rr1.getCardinality());
+        Assert.assertTrue(or.contains(1));
+        Assert.assertTrue(or.contains(1 << 31));
+    }
+
+    @Test
     public void ortest() {
         final RoaringBitmap rr = new RoaringBitmap();
         for (int k = 0; k < 4000; ++k) {
@@ -1539,6 +1800,20 @@ public class TestRoaringBitmap {
       Assert.assertTrue(rr.equals(rrback));
     }
 
+    @Test
+    public void sparseXor() {
+        final RoaringBitmap rr1 = new RoaringBitmap();
+        rr1.add(1);
+        rr1.add(1 << 31);
+        final RoaringBitmap rr2 = new RoaringBitmap();
+        rr2.add(1 << 31);
+        RoaringBitmap xor = RoaringBitmap.xor(rr1, rr2);
+        Assert.assertEquals(1, xor.getCardinality());
+        Assert.assertTrue(xor.contains(1));
+        rr1.xor(rr2);
+        Assert.assertEquals(1, rr1.getCardinality());
+        Assert.assertTrue(xor.contains(1));
+    }
 
     @Test
     public void XORtest() {

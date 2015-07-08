@@ -5,7 +5,6 @@
 
 package org.roaringbitmap;
 
-import org.roaringbitmap.buffer.BufferUtil;
 
 import java.io.*;
 import java.util.Arrays;
@@ -53,11 +52,9 @@ public final class RoaringArray implements Cloneable, Externalizable {
      */
     protected void appendCopy(RoaringArray sa, int startingIndex, int end) {
         extendArray(end - startingIndex);
-        for (int i = startingIndex; i < end; ++i) {
-            this.array[this.size++] = new Element(sa.array[i].key,
-                    sa.array[i].value.clone());
-        }
-
+        for (int i = startingIndex; i < end; ++i)
+        	this.array[this.size++] = new Element(sa.array[i].key,
+                    sa.array[i].value.clone());            
     }
 
     /**
@@ -68,9 +65,9 @@ public final class RoaringArray implements Cloneable, Externalizable {
      *                    copying
      */
     protected void appendCopiesUntil(RoaringArray sourceArray, short stoppingKey) {
-        int stopKey = stoppingKey;
+    	int stopKey = Util.toIntUnsigned(stoppingKey);
         for (int i = 0; i < sourceArray.size; ++i) {
-            if (sourceArray.array[i].key >= stopKey)
+        	if (Util.toIntUnsigned(sourceArray.array[i].key) >= stopKey)
                 break;
             extendArray(1);
             this.array[this.size++] = new Element(sourceArray.array[i].key, sourceArray.array[i].value.clone());
@@ -148,7 +145,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
     // involves a binary search
     protected Container getContainer(short x) {
-        int i = this.binarySearch(0, size, x);
+    	int i = this.binarySearch(0, size, x);
         if (i < 0)
             return null;
         return this.array[i].value;
@@ -180,14 +177,14 @@ public final class RoaringArray implements Cloneable, Externalizable {
         int lower = pos + 1;
 
         // special handling for a possibly common sequential case
-        if (lower >= size || array[lower].key >= x) {
+        if (lower >= size || Util.toIntUnsigned(array[lower].key) >= Util.toIntUnsigned(x)) {
             return lower;
         }
 
         int spansize = 1; // could set larger
         // bootstrap an upper limit
 
-        while (lower + spansize < size && array[lower + spansize].key < x)
+        while (lower + spansize < size && Util.toIntUnsigned(array[lower + spansize].key) < Util.toIntUnsigned(x))
             spansize *= 2; // hoping for compiler will reduce to shift
         int upper = (lower + spansize < size) ? lower + spansize : size - 1;
 
@@ -197,7 +194,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
             return upper;
         }
 
-        if (array[upper].key < x) {// means array has no item key >= x
+        if (Util.toIntUnsigned(array[upper].key) < Util.toIntUnsigned(x)) {// means array has no item key >= x
             return size;
         }
 
@@ -210,7 +207,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
             int mid = (lower + upper) / 2;
             if (array[mid].key == x)
                 return mid;
-            else if (array[mid].key < x)
+            else if (Util.toIntUnsigned(array[mid].key) < Util.toIntUnsigned(x))
                 lower = mid;
             else
                 upper = mid;
@@ -281,12 +278,10 @@ public final class RoaringArray implements Cloneable, Externalizable {
     private int binarySearch(int begin, int end, short key) {
         int low = begin;
         int high = end - 1;
-        int ikey = key;
-
+        final int ikey = Util.toIntUnsigned(key);
         while (low <= high) {
-            int middleIndex = (low + high) >>> 1;
-            int middleValue = array[middleIndex].key;
-
+            int middleIndex = (low + high) >>> 1;        	
+            int middleValue = Util.toIntUnsigned(array[middleIndex].key);            
             if (middleValue < ikey)
                 low = middleIndex + 1;
             else if (middleValue > ikey)
@@ -476,7 +471,6 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
     protected static final class Element implements Cloneable, Comparable<Element> {
         short key;
-
         Container value = null;
 
         public Element(short key, Container value) {
@@ -507,7 +501,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
         }
         @Override
 		public int compareTo(Element o) {
-			return this.key - o.key;
+        	return Util.toIntUnsigned(this.key) - Util.toIntUnsigned(o.key);
 		}
     }
     
@@ -536,11 +530,10 @@ public final class RoaringArray implements Cloneable, Externalizable {
 			@Override
 			public int compareTo(ContainerPointer o) {
 				if (key() != o.key())
-					return key() - o.key();
+					return Util.toIntUnsigned(key()) - Util.toIntUnsigned(o.key());
 				return o.getContainer().getCardinality()
 						- getContainer().getCardinality();
 			}
 		};
     }
-
 }

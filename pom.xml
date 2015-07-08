@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.roaringbitmap</groupId>
   <artifactId>RoaringBitmap</artifactId>
-  <version>0.4.10-SNAPSHOT</version>
+  <version>0.4.11-SNAPSHOT</version>
   <name>RoaringBitmap</name>
     <url>https://github.com/lemire/RoaringBitmap</url>
    <description>Roaring bitmaps are compressed bitmaps (also called bitsets) which tend to outperform 
@@ -76,7 +76,13 @@
             <version>18.0</version>
             <scope>test</scope>
         </dependency>
-		</dependencies>
+        <dependency>
+        	<groupId>org.apache.commons</groupId>
+  			<artifactId>commons-lang3</artifactId>
+  			<version>3.4</version>
+  			<scope>test</scope>
+  		</dependency>
+	</dependencies>
    <parent>
     <groupId>org.sonatype.oss</groupId>
     <artifactId>oss-parent</artifactId>

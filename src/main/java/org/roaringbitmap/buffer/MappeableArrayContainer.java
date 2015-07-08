@@ -741,7 +741,6 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
    
     private int advance(ShortIterator it) {
-        int ans;
         if (it.hasNext()) 
            return  BufferUtil.toIntUnsigned(it.next());
         else

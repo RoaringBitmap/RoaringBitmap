@@ -495,7 +495,6 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
 
    
     private int advance(ShortIterator it) {
-        int ans;
         if (it.hasNext()) 
            return  Util.toIntUnsigned(it.next());
         else
