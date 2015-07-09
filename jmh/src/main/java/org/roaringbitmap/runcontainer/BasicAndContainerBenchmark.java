@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 
-public class BasicContainerBenchmark {
+public class BasicAndContainerBenchmark {
 
 	@Benchmark
 	public int andRunContainer(BenchmarkState benchmarkState) {
@@ -26,9 +26,9 @@ public class BasicContainerBenchmark {
 	   
     @State(Scope.Benchmark)
     public static class BenchmarkState {
-        @Param({"1", "16", "32", "48", "52", "64"})
+        @Param({"1",  "32", "64"})
         public static int bitsetperword1;
-        @Param({"1", "16", "32", "48", "52", "64"})
+        @Param({"1",  "32",  "64"})
         public static int bitsetperword2;
 
        final RunContainer rc1, rc2;
