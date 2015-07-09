@@ -25,14 +25,11 @@ public class BasicOrContainerBenchmark {
 	}
 	   
     @State(Scope.Benchmark)
-    public static class BenchmarkState {
-        @Param({"1",  "32", "64"})
-        public static int bitsetperword1;
-        @Param({"1",  "32",  "64"})
-        public static int bitsetperword2;
+    public static class BenchmarkState {        
+	   public int bitsetperword1 = 32;
+	   public int bitsetperword2 = 63;
 
-       final RunContainer rc1, rc2;
-       final ArrayContainer ac1, ac2;
+       Container rc1, rc2, ac1, ac2;
        Random rand = new Random();
 
        /**
@@ -73,26 +70,43 @@ public class BasicOrContainerBenchmark {
                return ans;
        }
        
-       public static void fillMeUp(Container c, int[] values) {
+       public static Container fillMeUp(Container c, int[] values) {
+    	   if(values.length == 0)
+    		   throw new RuntimeException("You are trying to create an empty bitmap! ");
     	   for(int k = 0; k < values.length; ++k)
     		   c = c.add((short)values[k]);
+    	   if(c.getCardinality() != values.length)
+    		   throw new RuntimeException("add failure");
+    	   System.out.println("Generated container of size "+c.getSizeInBytes());
+    	   return c;
        }
        
        public BenchmarkState() {
-    	 int max = 1<<16;
-    	 int[] values1 = generateUniformHash(bitsetperword1 * max  / 64, max);
-    	 int[] values2 = generateUniformHash(bitsetperword2 * max  / 64, max);
+      	 final int max = 1<<16;
+      	 final int howmanywords = ( 1 << 16 ) / 64;
+      	 int[] values1 = generateUniformHash(bitsetperword1 * howmanywords, max);
+      	 int[] values2 = generateUniformHash(bitsetperword2 * howmanywords, max);
+      	 
 
     	 rc1 = new RunContainer();
-    	 fillMeUp(rc1, values1);
+    	 rc1 = fillMeUp(rc1, values1);
     	 
     	 rc2 = new RunContainer();
-    	 fillMeUp(rc2, values2);
+    	 rc2 = fillMeUp(rc2, values2);
     	 
     	 ac1 = new ArrayContainer();
-    	 fillMeUp(ac1, values1);
+    	 ac1 = fillMeUp(ac1, values1);
     	 
     	 ac2 = new ArrayContainer();
+    	 ac2 = fillMeUp(ac2, values2);
+
+    	 if( !rc1.equals(ac1)) 
+    		 throw new RuntimeException("first containers do not match");
+
+    	 if( !rc2.equals(ac2)) 
+    		 throw new RuntimeException("second containers do not match");
+
+    	 
     	 if( !rc1.or(rc2).equals(ac1.or(ac2))) 
     		 throw new RuntimeException("ors do not match");
 	   }

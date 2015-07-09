@@ -4,8 +4,11 @@ import org.junit.Test;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Random;
 
 import static org.junit.Assert.*;
 import static org.roaringbitmap.ArrayContainer.DEFAULT_MAX_SIZE;
@@ -1904,5 +1907,100 @@ public class TestRunContainer {
         assertTrue(atLeastOneArray);
   }
 
+
+  /**
+   * generates randomly N distinct integers from 0 to Max.
+   */
+  public static int[] generateUniformHash(Random rand, int N, int Max) {
+
+          if (N > Max)
+                  throw new RuntimeException("not possible");
+          if(N > Max/2) {
+       	   return negate(generateUniformHash(rand,Max-N, Max),Max);
+          }
+          int[] ans = new int[N];
+          HashSet<Integer> s = new HashSet<Integer>();
+          while (s.size() < N)
+                  s.add(new Integer(rand.nextInt(Max)));
+          Iterator<Integer> i = s.iterator();
+          for (int k = 0; k < N; ++k)
+                  ans[k] = i.next().intValue();
+          Arrays.sort(ans);
+          return ans;
+  }
+  /**
+  * output all integers from the range [0,Max) that are not
+  * in the array
+  */
+  static int[] negate(int[] x, int Max) {
+          int[] ans = new int[Max - x.length];
+          int i = 0;
+          int c = 0;
+          for (int j = 0; j < x.length; ++j) {
+                  int v = x[j];
+                  for (; i < v; ++i)
+                          ans[c++] = i;
+                  ++i;
+          }
+          while (c < ans.length)
+                  ans[c++] = i++;
+          return ans;
+  }
+  
+  public static Container fillMeUp(Container c, int[] values) {
+	   if(values.length == 0)
+		   throw new RuntimeException("You are trying to create an empty bitmap! ");
+	   for(int k = 0; k < values.length; ++k)
+		   c = c.add((short)values[k]);
+	   if(c.getCardinality() != values.length)
+		   throw new RuntimeException("add failure");
+	   return c;
+  }
+  
+  
+  @Test 
+  public void randomFun() {
+     final int bitsetperword1 = 32;
+     final int bitsetperword2 = 63;
+
+     Container rc1, rc2, ac1, ac2;
+     Random rand = new Random(0);
+	 final int max = 1<<16;
+	 final int howmanywords = ( 1 << 16 ) / 64;
+	 int[] values1 = generateUniformHash(rand, bitsetperword1 * howmanywords, max);
+	 int[] values2 = generateUniformHash(rand, bitsetperword2 * howmanywords, max);
+	 
+
+	 rc1 = new RunContainer();
+	 rc1 = fillMeUp(rc1, values1);
+	 
+	 rc2 = new RunContainer();
+	 rc2 = fillMeUp(rc2, values2);
+	 
+	 ac1 = new ArrayContainer();
+	 ac1 = fillMeUp(ac1, values1);
+	 
+	 ac2 = new ArrayContainer();
+	 ac2 = fillMeUp(ac2, values2);
+
+	 if( !rc1.equals(ac1)) 
+		 throw new RuntimeException("first containers do not match");
+
+	 if( !rc2.equals(ac2)) 
+		 throw new RuntimeException("second containers do not match");
+
+	 
+	 if( !rc1.or(rc2).equals(ac1.or(ac2))) 
+		 throw new RuntimeException("ors do not match");
+	 if( !rc1.and(rc2).equals(ac1.and(ac2))) 
+		 throw new RuntimeException("ands do not match");
+	 if( !rc1.andNot(rc2).equals(ac1.andNot(ac2))) 
+		 throw new RuntimeException("andnots do not match");
+	 if( !rc2.andNot(rc1).equals(ac2.andNot(ac1))) 
+		 throw new RuntimeException("andnots do not match");
+	 if( !rc1.xor(rc2).equals(ac1.xor(ac2))) 
+		 throw new RuntimeException("xors do not match");
+	 
+  }
 
 }
