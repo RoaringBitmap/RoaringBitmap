@@ -1672,12 +1672,12 @@ public class TestRunContainer {
     }
 
     @Test
-    public void not14() {
+    public void not14() { // much slower than unbuffered
         not14once(10,1);
         not14once(10,10);
         not14once(1000, 100);
-        for (int i=1; i <= 100; ++i) {
-            if (i % 10 == 0)
+        for (int i=1; i <= 10; ++i) {
+            if (i % 2 == 0)
                 System.out.println("not 14 attempt "+i);
             not14once(50000,100);
         }
@@ -2008,7 +2008,7 @@ public class TestRunContainer {
 	 if( !rc1.andNot(rc2).equals(ac1.andNot(ac2))) 
 		 throw new RuntimeException("andnots do not match");
 	 if( !rc2.andNot(rc1).equals(ac2.andNot(ac1))) 
-		 throw new RuntimeException("andnots do not match");
+		 throw new RuntimeException("second andnots do not match");
 	 if( !rc1.xor(rc2).equals(ac1.xor(ac2))) 
 		 throw new RuntimeException("xors do not match");
 	 

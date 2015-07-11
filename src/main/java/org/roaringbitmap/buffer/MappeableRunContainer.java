@@ -653,7 +653,8 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
 
     @Override
     public int getSizeInBytes() {
-        return valueslength.limit()*4 + 4;  //this.nbrruns * 4 + 4;
+        return this.nbrruns*4+4;  // not sure about how exact it will be
+     // valueslength.limit()*4 + 4;  //this.nbrruns * 4 + 4;
     }
 
     @Override
