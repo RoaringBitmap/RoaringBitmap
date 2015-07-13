@@ -1758,17 +1758,43 @@ public class TestRunContainer {
     
     @Test
     public void MappeableRunContainerVSMappeableRunContainerAND() {
+        // System.out.println("beginning MappeableRunContainerVSMappeableRunContainerAND");
     	ArrayList<MappeableRunContainer> set = new ArrayList<MappeableRunContainer>();
     	ArrayList<MappeableContainer> setb = new ArrayList<MappeableContainer>();
     	getSetOfMappeableRunContainers( set, setb);
     	for(int k = 0; k < set.size(); ++k ) {
-    		for(int l = 0; l < set.size(); ++l) {
-    			assertTrue(set.get(k).equals(setb.get(k)));
-    			assertTrue(set.get(l).equals(setb.get(l)));
-    			MappeableContainer c1 = set.get(k).and(set.get(l));
-    			MappeableContainer c2 = setb.get(k).and(setb.get(l));
+            for(int l = 0; l < set.size(); ++l) {
+                //System.out.println("testing k="+k+" l="+l);
+                assertTrue(set.get(k).equals(setb.get(k)));
+                assertTrue(set.get(l).equals(setb.get(l)));
+                MappeableContainer c1 = set.get(k).and(set.get(l));
+                MappeableContainer c2 = setb.get(k).and(setb.get(l));
+                /*
+                if (c1.equals(c2)) 
+                    System.out.println("...passes");
+                else {
+                    System.out.println("...fails");
+                    System.out.println("c1 is a "+c1.getClass()+" of cardinality "+ c1.getCardinality());
+                    System.out.println("c2 is a "+c2.getClass()+" of cardinality "+ c2.getCardinality());
+                    for (int i=0; i < 65536; ++i) {
+                        if (c1.contains((short)i) != c2.contains((short)i)) {
+                            System.out.println("First diff is that c1.contains("+i+") is "+ c1.contains((short)i)+" but c2 disagrees");
+                            if (c1.getCardinality() < 500) 
+                                System.out.println("Here is c1 : "+c1);
+
+                            if (c2.getCardinality() < 500) 
+                                System.out.println("Here is c2 : "+c2);
+
+                            System.out.println("First ANDed  input is "+ setb.get(k));
+                            System.out.println("Second ANDed input is "+ setb.get(l));
+                            
+                            break;
+                            }
+                        }
+                        }
+                */ 
                 assertTrue(c1.equals(c2));
-    		}
+            }
     	}
     }
 

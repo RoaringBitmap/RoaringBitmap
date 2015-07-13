@@ -1535,7 +1535,8 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
                 if (opcode == OP_OR|| opcode == OP_XOR) {
                     // emit item to array
                     if (card == ansArray.capacity()) ansArray = increaseCapacity(ansArray);
-                    ansArray.put(card++, (short) xHead);
+                    ansArray.put((short) xHead);
+                    card++;
                 }
                 xHead =  (xIt.hasNext() ?  BufferUtil.toIntUnsigned(xIt.next()) : -1);
             }
@@ -1544,7 +1545,8 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
                 if (opcode != OP_AND) {
                     // emit to array
                     if (card == ansArray.capacity()) ansArray = increaseCapacity(ansArray);
-                    ansArray.put(card++, (short) thisHead);
+                    ansArray.put((short) thisHead);
+                    card++;
                 }
                 thisHead = (it.hasNext() ?  BufferUtil.toIntUnsigned(it.next()) : -1);
             }
@@ -1552,7 +1554,8 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
                 if (opcode == OP_AND || opcode == OP_OR) {
                     // emit to array
                     if (card == ansArray.capacity()) ansArray = increaseCapacity(ansArray);
-                    ansArray.put(card++,(short) thisHead);
+                    ansArray.put((short) thisHead);
+                    card++;
                 }
                 thisHead = (it.hasNext() ?  BufferUtil.toIntUnsigned(it.next()) : -1);
                 xHead =  (xIt.hasNext() ?  BufferUtil.toIntUnsigned(xIt.next()) : -1);
@@ -1566,7 +1569,8 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
             while (thisHead != -1) {
                 // emit to array
                 if (card == ansArray.capacity()) ansArray = increaseCapacity(ansArray);
-                ansArray.put(card++, (short) thisHead);
+                ansArray.put((short) thisHead);
+                card++;
                 thisHead = (it.hasNext() ?  BufferUtil.toIntUnsigned(it.next()) : -1);
             }
 
@@ -1575,13 +1579,16 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
                 while (xHead != -1) {
                     // emit to array
                     if (card == ansArray.capacity()) ansArray = increaseCapacity(ansArray);
-                    ansArray.put(card++,(short) xHead);
+                    ansArray.put((short) xHead);
+                    card++;
                     xHead =  (xIt.hasNext() ?  BufferUtil.toIntUnsigned(xIt.next()) : -1);
                 } 
         }
 
-        ShortBuffer content = ShortBuffer.allocate(card);  //Arrays.copyOf(ansArray, card);
+        // we can end up with an empty result...allocate(0) may not be healthy??
+        ShortBuffer content = ShortBuffer.allocate(card);
         ansArray.flip();
+        
         content.put(ansArray);
         
         MappeableArrayContainer ac = new MappeableArrayContainer(content, card);
