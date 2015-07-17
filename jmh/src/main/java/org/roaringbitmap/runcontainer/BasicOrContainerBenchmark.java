@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 
 public class BasicOrContainerBenchmark {
-
+	
 	@Benchmark
 	public int orBitmapContainerVSRunContainerContainer(BenchmarkState benchmarkState) {
 		if(benchmarkState.rc2.serializedSizeInBytes() > benchmarkState.ac2.serializedSizeInBytes())
@@ -51,7 +51,7 @@ public class BasicOrContainerBenchmark {
 	
     @State(Scope.Benchmark)
     public static class BenchmarkState {        
- 	   public int bitsetperword1 = 32;
+   	   public int offvalues = 32;
  	   public int bitsetperword2 = 63;
  	   public int bitsetperword3 = 1;
 
@@ -62,7 +62,7 @@ public class BasicOrContainerBenchmark {
         public BenchmarkState() {
        	 final int max = 1<<16;
        	 final int howmanywords = ( 1 << 16 ) / 64;
-       	 int[] values1 = RandomUtil.generateUniformHash(rand,bitsetperword1 * howmanywords, max);
+    	 int[] values1 = RandomUtil.negate(RandomUtil.generateUniformHash(rand,offvalues, max), max); 
        	 int[] values2 = RandomUtil.generateUniformHash(rand,bitsetperword2 * howmanywords, max);
        	 int[] values3 = RandomUtil.generateCrazyRun(rand, max);
        	 int[] values4 = RandomUtil.generateUniformHash(rand,bitsetperword3 * howmanywords, max);

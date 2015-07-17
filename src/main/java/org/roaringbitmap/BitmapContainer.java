@@ -736,7 +736,10 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
         return answer;
     }    
     
-    protected void computeCardinality() {
+    /**
+     * Recomputes the cardinality of the bitmap.
+     */
+    public void computeCardinality() {
         this.cardinality = 0;
         for (int k = 0; k < this.bitmap.length; k++) {
             this.cardinality += Long.bitCount(this.bitmap[k]);
@@ -867,6 +870,8 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
     }
 
     protected Container ilazyor(RunContainer x) {
+        // could be implemented as return ilazyor(x.toTemporaryBitmap());
+        cardinality = -1; // invalid
         for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
             int start = Util.toIntUnsigned(x.getValue(rlepos));
             int end = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
@@ -882,6 +887,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
 
     @Override
     public Container andNot(RunContainer x) {
+        //could be rewritten as return andNot(x.toBitmapOrArrayContainer());
         BitmapContainer answer = this.clone();
         for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
             int start = Util.toIntUnsigned(x.getValue(rlepos));
@@ -896,11 +902,12 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
 
     @Override
     public Container iand(RunContainer x) {
-    	int card = x.getCardinality();
-    	if(x.getCardinality() <= ArrayContainer.DEFAULT_MAX_SIZE) {
-    		// no point in doing it in-place
-        	ArrayContainer answer = new ArrayContainer(card);
-        	answer.cardinality=0;
+        // could probably be replaced with return iand(x.toBitmapOrArrayContainer()); 
+        int card = x.getCardinality();
+        if(x.getCardinality() <= ArrayContainer.DEFAULT_MAX_SIZE) {
+            // no point in doing it in-place
+            ArrayContainer answer = new ArrayContainer(card);
+            answer.cardinality=0;
             for (int rlepos=0; rlepos < x.nbrruns; ++rlepos) {
                 int runStart = Util.toIntUnsigned(x.getValue(rlepos));
                 int runEnd = runStart + Util.toIntUnsigned(x.getLength(rlepos));
@@ -911,7 +918,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
                 }
             }
             return answer;
-    	}
+        }
         int start = 0;
         for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
             int end = Util.toIntUnsigned(x.getValue(rlepos));
@@ -927,6 +934,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
 
     @Override
     public Container iandNot(RunContainer x) {
+        // could probably be replaced with return iandNot(x.toBitmapOrArrayContainer()); 
         for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
             int start = Util.toIntUnsigned(x.getValue(rlepos));
             int end = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
@@ -940,6 +948,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
 
     @Override
     public Container ior(RunContainer x) {
+        // could probably be replaced with return ior(x.toBitmapOrArrayContainer()); 
         for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
             int start = Util.toIntUnsigned(x.getValue(rlepos));
             int end = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
@@ -951,6 +960,7 @@ public final class BitmapContainer extends Container implements Cloneable, Seria
 
     @Override
     public Container ixor(RunContainer x) {
+        // could probably be replaced with return ixor(x.toBitmapOrArrayContainer()); 
         for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
             int start = Util.toIntUnsigned(x.getValue(rlepos));
             int end = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;

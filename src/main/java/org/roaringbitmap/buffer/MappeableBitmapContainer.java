@@ -1233,8 +1233,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
 
 
-    
-    protected void computeCardinality() {
+    /**
+     * Recomputes the cardinality of the bitmap.
+     */    
+    public void computeCardinality() {
         this.cardinality = 0;
         long[] b = this.bitmap.array();
         for (int k = 0; k < b.length; k++) {

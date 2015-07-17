@@ -28,7 +28,6 @@ public class RandomUtil {
             return ans;
     }
     
-    
     static int[] generateCrazyRun(Random rand, int Max) {
     	int[] answer = new int[Max/2];
     	int start = Max/3;

@@ -1072,7 +1072,6 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         }
     }
 
-
     /**
      *  Use a run-length encoding where it is more space efficient
      */

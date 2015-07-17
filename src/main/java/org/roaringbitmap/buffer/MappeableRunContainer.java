@@ -4,6 +4,7 @@
  */
 package org.roaringbitmap.buffer;
 
+
 import org.roaringbitmap.ShortIterator;
 
 import java.io.*;
@@ -110,6 +111,19 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
         answer.cardinality = card;
         return answer;
     }
+    
+    // force conversion to bitmap irrespective of cardinality, result is not a valid container
+    // this is potentially unsafe, use at your own risks
+    protected MappeableBitmapContainer toTemporaryBitmap() {
+    	MappeableBitmapContainer answer = new MappeableBitmapContainer();
+        for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
+            int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+            int end = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+            BufferUtil.setBitmapRange(answer.bitmap, start, end); 
+        }
+        return answer;
+    }
+
 
     /** 
      *  Convert to Array or Bitmap container if the serialized form would be shorter

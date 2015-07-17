@@ -422,8 +422,21 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
         return ixor((RunContainer) x);
     }
 
-    protected Container lazyOR(Container x) {
-        if ((this instanceof ArrayContainer) || (this instanceof RunContainer)) {
+
+    /**
+     * Computes the bitwise OR of this container with another (union). This
+     * container as well as the provided container are left unaffected.
+     * The resulting container may not track its cardinality correctly. This
+     * can be fixed as follows:   if(c.getCardinality()&lt;0) ((BitmapContainer)c).computeCardinality();
+     *    
+     * @param x other container
+     * @return aggregated container
+     */
+    public Container lazyOR(Container x) {
+        if(this instanceof RunContainer) {
+            // this is probably a good heuristic is most cases.
+            return ((RunContainer)this).toTemporaryBitmap().lazyIOR(x);
+        } else if (this instanceof ArrayContainer) {
             if (x instanceof ArrayContainer)
                 return or((ArrayContainer) x);
             else if (x instanceof BitmapContainer) return or((BitmapContainer) x);
@@ -435,8 +448,20 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
             return ((BitmapContainer)this).lazyor((RunContainer) x);
         }
     }
-    
-    protected Container lazyIOR(Container x) {
+
+    /**
+     * Computes the in-place bitwise OR of this container with another
+     * (union). The current container is generally modified, whereas the
+     * provided container (x) is unaffected. May generate a new container.
+     * The resulting container may not track its cardinality correctly.
+     * The resulting container may not track its cardinality correctly. This
+     * can be fixed as follows:   if(c.getCardinality()&lt;0) ((BitmapContainer)c).computeCardinality();
+     *
+     * @param x other container
+     * @return aggregated container
+     */
+    public Container lazyIOR(Container x) {
+        // Most times, "this" will be of type BitmapContainer
         if ((this instanceof ArrayContainer) || (this instanceof RunContainer)) {
             if (x instanceof ArrayContainer)
                 return ior((ArrayContainer) x);
@@ -652,11 +677,14 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
 
      /**
       * Convert to RunContainers, when the result is smaller.  Overridden by RunContainer
-      *   to possibily switch from RunContainer to a smaller alternative.
+      *   to possibility switch from RunContainer to a smaller alternative.
+      *   @return the new container
       */
-
      public Container runOptimize() {
-         int numRuns = 0;
+         // TODO: this code could possibly be faster when the initial container is a bitmap
+         // TODO: should probably not convert if the container is a run container initially
+         // TODO: or maybe one would need to check that the run container is really appropriate
+         int numRuns = 0; 
          ShortIterator sIt = getShortIterator();
          int previous = -2;
          while (sIt.hasNext()) {
@@ -667,7 +695,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
          }
          int sizeAsRunContainer = RunContainer.serializedSizeInBytes(numRuns);
          if (serializedSizeInBytes() > sizeAsRunContainer)
-             return new RunContainer( getShortIterator(),  numRuns);
+             return new RunContainer( getShortIterator(),  numRuns); // this could be maybe faster if initial container is a bitmap
          else 
              return this;
      }

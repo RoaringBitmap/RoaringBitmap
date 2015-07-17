@@ -394,22 +394,51 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
 
     }
 
-  
-protected MappeableContainer lazyOR(MappeableContainer x) {
-        if ((this instanceof MappeableArrayContainer) || (this instanceof MappeableRunContainer)) {
+    /**
+     * Computes the bitwise OR of this container with another (union). This
+     * container as well as the provided container are left unaffected.
+     * The resulting container may not track its cardinality correctly. This
+     * can be fixed as follows:   if(c.getCardinality()&lt;0) ((MappeableBitmapContainer)c).computeCardinality();
+     *    
+     * @param x other container
+     * @return aggregated container
+     */
+    public MappeableContainer lazyOR(MappeableContainer x) {
+        if (this instanceof MappeableRunContainer) {
+            // this is probably a good heuristic is most cases.
+            return ((MappeableRunContainer) this).toTemporaryBitmap().lazyIOR(x);
+
+        } else if (this instanceof MappeableArrayContainer) {
             if (x instanceof MappeableArrayContainer)
                 return or((MappeableArrayContainer) x);
-            else if (x instanceof MappeableBitmapContainer) return or((MappeableBitmapContainer) x);
+            else if (x instanceof MappeableBitmapContainer)
+                return or((MappeableBitmapContainer) x);
             return or((MappeableRunContainer) x);
-        } else  {
+        } else {
             if (x instanceof MappeableArrayContainer)
-                return ((MappeableBitmapContainer)this).lazyor((MappeableArrayContainer) x);
-            else if (x instanceof MappeableBitmapContainer) return ((MappeableBitmapContainer)this).lazyor((MappeableBitmapContainer) x);
-            return ((MappeableBitmapContainer)this).lazyor((MappeableRunContainer) x);
+                return ((MappeableBitmapContainer) this)
+                        .lazyor((MappeableArrayContainer) x);
+            else if (x instanceof MappeableBitmapContainer)
+                return ((MappeableBitmapContainer) this)
+                        .lazyor((MappeableBitmapContainer) x);
+            return ((MappeableBitmapContainer) this)
+                    .lazyor((MappeableRunContainer) x);
         }
     }
     
-    protected MappeableContainer lazyIOR(MappeableContainer x) {
+    /**
+     * Computes the in-place bitwise OR of this container with another
+     * (union). The current container is generally modified, whereas the
+     * provided container (x) is unaffected. May generate a new container.
+     * The resulting container may not track its cardinality correctly.
+     * The resulting container may not track its cardinality correctly. This
+     * can be fixed as follows:   if(c.getCardinality()&lt;0) ((MappeableBitmapContainer)c).computeCardinality();
+     *
+     * @param x other container
+     * @return aggregated container
+     */    
+    public MappeableContainer lazyIOR(MappeableContainer x) {
+        // Most times, "this" will be of type BitmapContainer
         if ((this instanceof MappeableArrayContainer) || (this instanceof MappeableRunContainer)) {
             if (x instanceof MappeableArrayContainer)
                 return ior((MappeableArrayContainer) x);
@@ -616,10 +645,15 @@ protected MappeableContainer lazyOR(MappeableContainer x) {
 
      /**
       * Convert to MappeableRunContainers, when the result is smaller.  Overridden by MappeableRunContainer
-      *   to possibily switch from MappeableRunContainer to a smaller alternative.
+      *   to possibly switch from MappeableRunContainer to a smaller alternative.
+      *         
+      *   @return the new container
       */
 
      public MappeableContainer runOptimize() {
+         // TODO: this code could possibly be faster when the initial container is a bitmap
+         // TODO: should probably not convert if the container is a run container initially
+         // TODO: or maybe one would need to check that the run container is really appropriate
          int numRuns = 0;
          ShortIterator sIt = getShortIterator();
          int previous = -2;
@@ -631,7 +665,7 @@ protected MappeableContainer lazyOR(MappeableContainer x) {
          }
          int sizeAsRunContainer = MappeableRunContainer.getArraySizeInBytes(numRuns);
          if (getArraySizeInBytes() > sizeAsRunContainer)
-             return new MappeableRunContainer( getShortIterator(),  numRuns);
+             return new MappeableRunContainer( getShortIterator(),  numRuns); // this could be maybe faster if initial container is a bitmap
          else 
              return this;
      }

@@ -1835,27 +1835,28 @@ public class TestRunContainer {
   }
 
 
-  @Test
-  public void RunContainerArg_ArrayAND() {
-        boolean atLeastOneArray = false;
-    	ArrayList<RunContainer> set = new ArrayList<RunContainer>();
-    	ArrayList<Container> setb = new ArrayList<Container>();
-    	getSetOfRunContainers( set, setb);
-    	for(int k = 0; k < set.size(); ++k ) {
-    		for(int l = 0; l < set.size(); ++l) {
-    			assertTrue(set.get(k).equals(setb.get(k)));
-    			assertTrue(set.get(l).equals(setb.get(l)));
-                        Container thisContainer = setb.get(k);
-                        if (thisContainer instanceof BitmapContainer) ; //continue;
-                        else atLeastOneArray = true;
-                        
-    			Container c1 = thisContainer.and(set.get(l));
-    			Container c2 = setb.get(k).and(setb.get(l));
-                        assertTrue(c1.equals(c2));
-    		}
-    	}   
-        assertTrue(atLeastOneArray);
-  }
+	@Test
+	public void RunContainerArg_ArrayAND() {
+		boolean atLeastOneArray = false;
+		ArrayList<RunContainer> set = new ArrayList<RunContainer>();
+		ArrayList<Container> setb = new ArrayList<Container>();
+		getSetOfRunContainers(set, setb);
+		for (int k = 0; k < set.size(); ++k) {
+			for (int l = 0; l < set.size(); ++l) {
+				assertTrue(set.get(k).equals(setb.get(k)));
+				assertTrue(set.get(l).equals(setb.get(l)));
+				Container thisContainer = setb.get(k);
+				if (thisContainer instanceof BitmapContainer)
+					; // continue;
+				else
+					atLeastOneArray = true;
+				Container c1 = thisContainer.and(set.get(l));
+				Container c2 = setb.get(k).and(setb.get(l));
+				assertTrue(c1.equals(c2));
+			}
+		}
+		assertTrue(atLeastOneArray);
+	}
 
 
 
