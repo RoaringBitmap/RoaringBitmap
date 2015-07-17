@@ -56,6 +56,36 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         }
         setLength(runCount-1, (short) runLen);
     }
+    // convert to bitmap or array *if needed*
+    protected Container toEfficientContainer() { 
+        int sizeAsRunContainer = RunContainer.serializedSizeInBytes(this.nbrruns);
+        int sizeAsBitmapContainer = BitmapContainer.serializedSizeInBytes(0);
+        int card = this.getCardinality();
+        int sizeAsArrayContainer = ArrayContainer.serializedSizeInBytes(card);
+        if(sizeAsRunContainer <= Math.min(sizeAsBitmapContainer, sizeAsArrayContainer))
+            return this;
+        if(card <= ArrayContainer.DEFAULT_MAX_SIZE) {
+            ArrayContainer answer = new ArrayContainer(card);
+            answer.cardinality=0;
+            for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
+                int runStart = Util.toIntUnsigned(this.getValue(rlepos));
+                int runEnd = runStart + Util.toIntUnsigned(this.getLength(rlepos));
+
+                for (int runValue = runStart; runValue <= runEnd; ++runValue) {
+                    answer.content[answer.cardinality++] = (short) runValue;
+                }
+            }
+            return answer;
+        }
+        BitmapContainer answer = new BitmapContainer();
+        for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
+            int start = Util.toIntUnsigned(this.getValue(rlepos));
+            int end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+            Util.setBitmapRange(answer.bitmap, start, end); 
+        }
+        answer.cardinality = card;
+        return answer;
+    }
 
     /**
      * Convert the container to either a Bitmap or an Array Container, depending
@@ -710,7 +740,6 @@ public class RunContainer extends Container implements Cloneable, Serializable {
     @Override
     protected void writeArray(DataOutput out) throws IOException {
         out.writeShort(Short.reverseBytes((short) this.nbrruns));
-        //System.out.println("RC: I wrote a short and will now write "+(2*nbrruns)+" more");
         for (int k = 0; k < 2 * this.nbrruns; ++k) {
             out.writeShort(Short.reverseBytes(this.valueslength[k]));
         }
@@ -1328,7 +1357,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
          * runs than the other...
          * TODO: make sure buffer version is updated as well.
          */
-        RunContainer answer = new RunContainer(0,new short[2 * Math.max( this.nbrruns , x.nbrruns ) ]);
+        RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.nbrruns)]);
         int rlepos = 0;
         int xrlepos = 0;
         int start = Util.toIntUnsigned(this.getValue(rlepos));
@@ -1386,7 +1415,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
                 answer.nbrruns++;
             }
         }
-        return answer;
+        return answer.toEfficientContainer();
 
         /*
         double myDensity = getDensity();
@@ -1411,7 +1440,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
          * 
          * TODO: make sure buffer version is updated as well.
          */
-        RunContainer answer = new RunContainer(0,new short[2 * Math.max( this.nbrruns , x.nbrruns ) ]);
+        RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.nbrruns)]);
         int rlepos = 0;
         int xrlepos = 0;
         int start = Util.toIntUnsigned(this.getValue(rlepos));
@@ -1463,7 +1492,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
                 end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
             } 
         } 
-        return answer;
+        return answer.toEfficientContainer();
         /*double myDensity = getDensity();
         double xDensity = x.getDensity();
         double resultDensityEstimate = myDensity*(1-xDensity);
@@ -1502,7 +1531,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
          * 
          * TODO: make sure buffer version is updated as well.
          */
-        RunContainer answer = new RunContainer(0,new short[2 * ( this.nbrruns + x.nbrruns ) ]);
+        RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.nbrruns)]);
         int rlepos = 0;
         int xrlepos = 0;
         int start = Util.toIntUnsigned(this.getValue(rlepos));
@@ -1630,7 +1659,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
          * 
          * TODO: make sure buffer version is updated as well.
          */
-        RunContainer answer = new RunContainer(0,new short[2 * ( this.nbrruns + x.nbrruns ) ]);
+        RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.nbrruns)]);
         int rlepos = 0;
         int xrlepos = 0;
         int start = Util.toIntUnsigned(this.getValue(rlepos));
@@ -1641,8 +1670,6 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         while ((rlepos < this.nbrruns ) && (xrlepos < x.nbrruns )) {
             if (end  <= xstart) {
                 // output the first run
-                //System.out.println("1 output : ["+xstart+","+xend+") ");
-
                 answer.valueslength[2 * answer.nbrruns] = this.valueslength[2 * rlepos];
                 answer.valueslength[2 * answer.nbrruns + 1] = this.valueslength[2 * rlepos + 1];
                 answer.nbrruns++;
@@ -1653,8 +1680,6 @@ public class RunContainer extends Container implements Cloneable, Serializable {
                 }
             } else if (xend <= start) {
                 // output the second run
-                //System.out.println("2 output : ["+xstart+","+xend+") ");
-
                 answer.valueslength[2 * answer.nbrruns] = x.valueslength[2 * xrlepos];
                 answer.valueslength[2 * answer.nbrruns + 1] = x.valueslength[2 * xrlepos + 1];
                 answer.nbrruns++;
@@ -1666,18 +1691,12 @@ public class RunContainer extends Container implements Cloneable, Serializable {
             } else {// they overlap
                 int startpoint = start < xstart ? start : xstart;
                 do {
-                    //System.out.println("They overlap : ["+start+","+end+") vs ["+xstart+","+xend+")");
-
                     if( startpoint < xstart ) {
-                        //System.out.println("output : ["+startpoint+","+xstart+") ");
-
                         answer.valueslength[2 * answer.nbrruns] = (short) startpoint;
                         answer.valueslength[2 * answer.nbrruns + 1] = (short) (xstart - startpoint - 1);
                         answer.nbrruns++;
 
                     } else if(startpoint < start) {
-                        //System.out.println("output : ["+startpoint+","+start+") ");
-
                         answer.valueslength[2 * answer.nbrruns] = (short) startpoint;
                         answer.valueslength[2 * answer.nbrruns + 1] = (short) (start - startpoint - 1);
                         answer.nbrruns++;                
@@ -1696,7 +1715,6 @@ public class RunContainer extends Container implements Cloneable, Serializable {
                         }
                         break;
                     } else if(end < xend) {
-                        //System.out.println("advancing first");
                         startpoint = end;
                         rlepos++;
                         if(rlepos < this.nbrruns ) {
@@ -1706,8 +1724,6 @@ public class RunContainer extends Container implements Cloneable, Serializable {
                         } else break;
 
                     } else {// end > xend
-                        //System.out.println("advancing second");
-
                         startpoint =  xend;
                         xrlepos++;
                         if(xrlepos < x.nbrruns) {
@@ -1719,11 +1735,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
 
                 } while (true);
-                //System.out.println("End startpoint = "+startpoint);
-
                 if((start < startpoint) && (startpoint < end)) {
-                    //System.out.println("=output : ["+startpoint+","+end+") ");
-
                     answer.valueslength[2 * answer.nbrruns] = (short) startpoint;
                     answer.valueslength[2 * answer.nbrruns + 1] = (short) (end - startpoint - 1);
                     answer.nbrruns++;                
@@ -1733,8 +1745,6 @@ public class RunContainer extends Container implements Cloneable, Serializable {
                         end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
                     }
                 } else if((xstart < startpoint) && (startpoint < xend) ){
-                    //System.out.println("=output : ["+startpoint+","+xend+") ");
-
                     answer.valueslength[2 * answer.nbrruns] = (short) startpoint;
                     answer.valueslength[2 * answer.nbrruns + 1] = (short) (xend - startpoint - 1);
                     answer.nbrruns++;                
@@ -1744,11 +1754,6 @@ public class RunContainer extends Container implements Cloneable, Serializable {
                         xend = xstart + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
                     } 
                 }
-
-
-                /*                answer.valueslength[2 * answer.nbrruns] = (short) earlieststart;
-            answer.valueslength[2 * answer.nbrruns + 1] = (short) (earliestend - earlieststart - 1);
-            answer.nbrruns++;*/
             }
         }
         while(rlepos < this.nbrruns) {
@@ -1763,8 +1768,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
             answer.nbrruns++;
             xrlepos++;
         }
-        return answer;
-
+        return answer.toEfficientContainer();
         /*
         double myDensity = getDensity();
         double xDensity = x.getDensity();
