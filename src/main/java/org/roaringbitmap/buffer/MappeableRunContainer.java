@@ -327,34 +327,31 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
     @Override
     public MappeableContainer and(MappeableArrayContainer x) {
         MappeableArrayContainer ac = new MappeableArrayContainer(x.cardinality);
-        /*
+        if(this.nbrruns == 0) return ac;
         int rlepos = 0;
         int arraypos = 0;
-        while((arraypos < x.cardinality) && (rlepos < this.nbrruns)) {
-            if(BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) < BufferUtil.toIntUnsigned(x.content[arraypos])) {
-                ++rlepos;
-            } else if(BufferUtil.toIntUnsigned(this.getValue(rlepos)) > BufferUtil.toIntUnsigned(x.content[arraypos]))  {
-                arraypos = Util.advanceUntil(x.content,arraypos,x.cardinality,this.getValue(rlepos));
-            } else {
-                ac.content[ac.cardinality ++ ] = x.content[arraypos++];
-            }
-        }
-        return ac;
-        */
 
-        int rlepos = 0;
-        int arraypos = 0;
-        while((arraypos < x.cardinality) && (rlepos < this.nbrruns)) {
-            if(BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) < BufferUtil.toIntUnsigned(x.content.get(arraypos))) {
+        int rleval = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+        int rlelength = BufferUtil.toIntUnsigned(this.getLength(rlepos));
+        while(arraypos < x.cardinality)  {
+            int arrayval = BufferUtil.toIntUnsigned(x.content.get(arraypos));
+            while(rleval + rlelength < arrayval) {// this will frequently be false
                 ++rlepos;
-            } else if(BufferUtil.toIntUnsigned(this.getValue(rlepos)) > BufferUtil.toIntUnsigned(x.content.get(arraypos)))  {
+                if(rlepos == this.nbrruns) {
+                    return ac;// we are done
+                }
+                rleval = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+                rlelength = BufferUtil.toIntUnsigned(this.getLength(rlepos));
+            }
+            if(rleval > arrayval)  {
                 arraypos = BufferUtil.advanceUntil(x.content,arraypos,x.cardinality,this.getValue(rlepos));
             } else {
-                ac.content.put(ac.cardinality++, x.content.get(arraypos++));
+                ac.content.put(ac.cardinality, (short) arrayval);
+                ac.cardinality++;
+                arraypos++;
             }
         }
         return ac;
-
     }
     
 

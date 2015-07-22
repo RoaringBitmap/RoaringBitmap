@@ -271,7 +271,6 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public Container and(ArrayContainer x) {
-        // TODO: this was rewritten July 10th for better perfs, make sure buffer version is also updated.
         ArrayContainer ac = new ArrayContainer(x.cardinality);
         if(this.nbrruns == 0) return ac;
         int rlepos = 0;
@@ -293,7 +292,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
                 arraypos = Util.advanceUntil(x.content,arraypos,x.cardinality,this.getValue(rlepos));
             } else {
                 ac.content[ac.cardinality] = (short) arrayval;
-                ac.cardinality ++ ;
+                ac.cardinality++;
                 arraypos++;
             }
         }
