@@ -851,7 +851,8 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
 
     @Override
     public MappeableContainer or(MappeableArrayContainer x) {
-        return x.or(getShortIterator());   // performance may not be great, depending on iterator overheads...
+        return toBitmapOrArrayContainer().ior(x);
+        //return x.or(getShortIterator());   // performance may not be great, depending on iterator overheads...
     }
 
     @Override
@@ -947,7 +948,8 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
 
     @Override
     public MappeableContainer xor(MappeableArrayContainer x) {
-        return x.xor(getShortIterator());   
+        return toBitmapOrArrayContainer().ixor(x);
+        //return x.xor(getShortIterator());
     }
 
     @Override
