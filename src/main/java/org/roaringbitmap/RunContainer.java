@@ -8,6 +8,7 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.Iterator;
 
+
 /**
  * This container takes the form of runs of consecutive values (effectively,
  * run-length encoding).
@@ -419,8 +420,10 @@ public class RunContainer extends Container implements Cloneable, Serializable {
     public void fillLeastSignificant16bits(int[] x, int i, int mask) {
         int pos = i;
         for (int k = 0; k < this.nbrruns; ++k) {
-            for(int le = 0; le <= Util.toIntUnsigned(this.getLength(k)); ++le) {
-                x[pos++] = (Util.toIntUnsigned(this.getValue(k)) + le) | mask;
+            final int limit = Util.toIntUnsigned(this.getLength(k));
+            final int base = Util.toIntUnsigned(this.getValue(k));
+            for(int le = 0; le <= limit; ++le) {
+                x[pos++] = (base + le) | mask;
             }
         }
     }
@@ -1780,6 +1783,8 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 final class RunContainerShortIterator implements ShortIterator {
     int pos;
     int le = 0;
+    int maxlength;
+    int base;
 
     RunContainer parent;
 
@@ -1793,11 +1798,15 @@ final class RunContainerShortIterator implements ShortIterator {
         parent = p;
         pos = 0;
         le = 0;
+        if(pos < parent.nbrruns) {
+            maxlength = Util.toIntUnsigned(parent.getLength(pos));
+            base = Util.toIntUnsigned(parent.getValue(pos));
+        }
     }
 
     @Override
     public boolean hasNext() {
-        return (pos < parent.nbrruns) && (le <= Util.toIntUnsigned(parent.getLength(pos)));
+        return pos < parent.nbrruns;
     }
 
     @Override
@@ -1813,9 +1822,13 @@ final class RunContainerShortIterator implements ShortIterator {
     public short next() {
         short ans = (short) (parent.getValue(pos) + le);
         le++;
-        if(le > Util.toIntUnsigned(parent.getLength(pos))) {
+        if(le > maxlength) {
             pos++;
             le = 0;
+            if(pos < parent.nbrruns) {
+                maxlength = Util.toIntUnsigned(parent.getLength(pos));
+                base = Util.toIntUnsigned(parent.getValue(pos));
+            }
         }
         return ans;
     }
@@ -1831,6 +1844,8 @@ final class ReverseRunContainerShortIterator implements ShortIterator {
     int pos;
     int le;
     RunContainer parent;
+    int maxlength;
+    int base;
 
 
     ReverseRunContainerShortIterator(){}
@@ -1843,11 +1858,15 @@ final class ReverseRunContainerShortIterator implements ShortIterator {
         parent = p;
         pos = parent.nbrruns - 1;
         le = 0;
+        if(pos >= 0) {
+            maxlength = Util.toIntUnsigned(parent.getLength(pos));
+            base = Util.toIntUnsigned(parent.getValue(pos));
+        }
     }
 
     @Override
     public boolean hasNext() {
-        return (pos >= 0) && (le <= Util.toIntUnsigned(parent.getLength(pos)));
+        return pos >= 0;
     }
 
     @Override
@@ -1861,11 +1880,15 @@ final class ReverseRunContainerShortIterator implements ShortIterator {
 
     @Override
     public short next() {
-        short ans = (short) (parent.getValue(pos) + Util.toIntUnsigned(parent.getLength(pos)) - le);
+        short ans = (short) (base + maxlength - le);
         le++;
-        if(le > Util.toIntUnsigned(parent.getLength(pos))) {
+        if(le > maxlength) {
             pos--;
             le = 0;
+            if(pos >= 0) {
+                maxlength = Util.toIntUnsigned(parent.getLength(pos));
+                base = Util.toIntUnsigned(parent.getValue(pos));
+            }
         }
         return ans;
     }

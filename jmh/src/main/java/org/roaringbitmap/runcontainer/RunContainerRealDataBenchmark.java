@@ -16,6 +16,7 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.roaringbitmap.FastAggregation;
+import org.roaringbitmap.IntIteratorFlyweight;
 import org.roaringbitmap.RoaringBitmap;
 
 @BenchmarkMode(Mode.AverageTime)
@@ -36,7 +37,7 @@ public class RunContainerRealDataBenchmark {
 	}
 
 	@Benchmark
-	public int horizontalOr_BitmapContainer(BenchmarkState benchmarkState) {
+	public int horizontalOr_Roaring(BenchmarkState benchmarkState) {
 		return FastAggregation.horizontal_or(benchmarkState.ac.iterator())
 				.getCardinality();
 	}
@@ -184,6 +185,19 @@ public class RunContainerRealDataBenchmark {
     }
 
     @Benchmark
+    public int iterate_RoaringWithRun_flyweight(BenchmarkState benchmarkState) {
+        int total = 0;
+        for (int k = 0; k < benchmarkState.rc.size(); ++k) {
+            RoaringBitmap rb = benchmarkState.rc.get(k);
+            IntIteratorFlyweight i = new IntIteratorFlyweight(rb);
+            while(i.hasNext())
+                total += i.next();
+        }
+        return total;
+    }
+
+    
+    @Benchmark
     public int iterate_Roaring(BenchmarkState benchmarkState) {
         int total = 0;
         for (int k = 0; k < benchmarkState.rc.size(); ++k) {
@@ -195,6 +209,19 @@ public class RunContainerRealDataBenchmark {
         return total;
 
     }
+    @Benchmark
+    public int iterate_Roaring_flyweight(BenchmarkState benchmarkState) {
+        int total = 0;
+        for (int k = 0; k < benchmarkState.rc.size(); ++k) {
+            RoaringBitmap rb = benchmarkState.ac.get(k);
+            IntIteratorFlyweight i = new IntIteratorFlyweight(rb);
+            while(i.hasNext())
+                total += i.next();
+        }
+        return total;
+
+    }    
+    
 
     @Benchmark
     public int iterate_Concise(BenchmarkState benchmarkState) {

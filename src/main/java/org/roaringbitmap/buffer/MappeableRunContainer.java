@@ -608,8 +608,10 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
     public void fillLeastSignificant16bits(int[] x, int i, int mask) {
         int pos = i;
         for (int k = 0; k < this.nbrruns; ++k) {
-            for(int le = 0; le <= BufferUtil.toIntUnsigned(this.getLength(k)); ++le) {
-              x[pos++] = (BufferUtil.toIntUnsigned(this.getValue(k)) + le) | mask;
+            final int limit = BufferUtil.toIntUnsigned(this.getLength(k));
+            final int base = BufferUtil.toIntUnsigned(this.getValue(k));
+            for(int le = 0; le <= limit; ++le) {
+                x[pos++] = (base + le) | mask;
             }
         }
     }
@@ -1790,6 +1792,8 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
 final class MappeableRunContainerShortIterator implements ShortIterator {
     int pos;
     int le = 0;
+    int maxlength;
+    int base;
 
     MappeableRunContainer parent;
 
@@ -1803,11 +1807,15 @@ final class MappeableRunContainerShortIterator implements ShortIterator {
         parent = p;
         pos = 0;
         le = 0;
+        if(pos < parent.nbrruns) {
+            maxlength = BufferUtil.toIntUnsigned(parent.getLength(pos));
+            base = BufferUtil.toIntUnsigned(parent.getValue(pos));
+        }
     }
 
     @Override
     public boolean hasNext() {
-        return (pos < parent.nbrruns) && (le <= BufferUtil.toIntUnsigned(parent.getLength(pos)));
+        return pos < parent.nbrruns;
     }
     
     @Override
@@ -1821,11 +1829,15 @@ final class MappeableRunContainerShortIterator implements ShortIterator {
 
     @Override
     public short next() {
-        short ans = (short) (parent.getValue(pos) + le);
+        short ans = (short) (base + le);
         le++;
-        if(le > BufferUtil.toIntUnsigned(parent.getLength(pos))) {
+        if(le > maxlength) {
             pos++;
             le = 0;
+            if(pos < parent.nbrruns) {
+                maxlength = BufferUtil.toIntUnsigned(parent.getLength(pos));
+                base = BufferUtil.toIntUnsigned(parent.getValue(pos));
+            }
         }
         return ans;
     }
@@ -1840,6 +1852,8 @@ final class MappeableRunContainerShortIterator implements ShortIterator {
 final class ReverseMappeableRunContainerShortIterator implements ShortIterator {
     int pos;
     int le;
+    int maxlength;
+    int base;
     MappeableRunContainer parent;
 
 
@@ -1853,11 +1867,15 @@ final class ReverseMappeableRunContainerShortIterator implements ShortIterator {
         parent = p;
         pos = parent.nbrruns - 1;
         le = 0;
+        if(pos >= 0) {
+            maxlength = BufferUtil.toIntUnsigned(parent.getLength(pos));
+            base = BufferUtil.toIntUnsigned(parent.getValue(pos));
+        }
     }
 
     @Override
     public boolean hasNext() {
-        return (pos >= 0) && (le <= BufferUtil.toIntUnsigned(parent.getLength(pos)));
+        return pos >= 0;
     }
     
     @Override
@@ -1871,11 +1889,15 @@ final class ReverseMappeableRunContainerShortIterator implements ShortIterator {
 
     @Override
     public short next() {
-        short ans = (short) (parent.getValue(pos) + BufferUtil.toIntUnsigned(parent.getLength(pos)) - le);
+        short ans = (short) (base + maxlength - le);
         le++;
-        if(le > BufferUtil.toIntUnsigned(parent.getLength(pos))) {
+        if(le > maxlength) {
             pos--;
             le = 0;
+            if(pos >= 0) {
+                maxlength = BufferUtil.toIntUnsigned(parent.getLength(pos));
+                base = BufferUtil.toIntUnsigned(parent.getValue(pos));
+            }
         }
         return ans;
     }
