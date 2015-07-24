@@ -43,7 +43,7 @@ public class IntIteratorFlyweight implements IntIterator {
      *            bitmap to be iterated over
      */
     public IntIteratorFlyweight(RoaringBitmap r) {
-
+        wrap(r);
     }
 
     /**

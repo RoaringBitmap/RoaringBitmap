@@ -847,7 +847,7 @@ public final class ArrayContainer extends Container implements Cloneable, Serial
         for (int i = 0; i < cardinality; ++i) {
             val = content[i];
             int valInt = Util.toIntUnsigned(val);
-            if ( valInt < runStart)  {
+            if ( valInt < runStart) {
                 buffer[writeLocation++] = val;
             }
             else if (valInt <= runEnd)
