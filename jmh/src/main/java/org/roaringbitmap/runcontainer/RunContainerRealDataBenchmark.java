@@ -3,7 +3,8 @@ package org.roaringbitmap.runcontainer;
 
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 
-import java.io.File;
+import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
@@ -29,7 +30,7 @@ public class RunContainerRealDataBenchmark {
         }
         return ans;
     }
-  
+    
 	@Benchmark
 	public int horizontalOr_RoaringWithRun(BenchmarkState benchmarkState) {
 		return FastAggregation.horizontal_or(benchmarkState.rc.iterator())
@@ -187,9 +188,10 @@ public class RunContainerRealDataBenchmark {
     @Benchmark
     public int iterate_RoaringWithRun_flyweight(BenchmarkState benchmarkState) {
         int total = 0;
+        IntIteratorFlyweight i = new IntIteratorFlyweight();
         for (int k = 0; k < benchmarkState.rc.size(); ++k) {
             RoaringBitmap rb = benchmarkState.rc.get(k);
-            IntIteratorFlyweight i = new IntIteratorFlyweight(rb);
+            i.wrap(rb);
             while(i.hasNext())
                 total += i.next();
         }
@@ -212,9 +214,10 @@ public class RunContainerRealDataBenchmark {
     @Benchmark
     public int iterate_Roaring_flyweight(BenchmarkState benchmarkState) {
         int total = 0;
+        IntIteratorFlyweight i = new IntIteratorFlyweight();
         for (int k = 0; k < benchmarkState.rc.size(); ++k) {
             RoaringBitmap rb = benchmarkState.ac.get(k);
-            IntIteratorFlyweight i = new IntIteratorFlyweight(rb);
+            i.wrap(rb);
             while(i.hasNext())
                 total += i.next();
         }
@@ -266,13 +269,12 @@ public class RunContainerRealDataBenchmark {
         return total;
     }
 
-
-    
 	@State(Scope.Benchmark)
 	public static class BenchmarkState {
 	    String basedir = "src/main/resources/real-roaring-dataset/";
-	    @Param ({"dimension_033", 
+	    @Param ({// putting the data sets in alpha. order
 	        "census-income", "census1881", 
+	        "dimension_008", "dimension_003", "dimension_033",  
 	        "uscensus2000", "weather_sept_85", 
 	        "wikileaks-noquotes"})
 	    String foldername;
@@ -290,16 +292,29 @@ public class RunContainerRealDataBenchmark {
 		}
 		
 	    @Setup		
-        public void setup() {
-            File folder = new File(basedir + foldername);
-            System.out
-                    .println("Loading files from " + folder.getAbsolutePath());
-            RealDataRetriever dataRetriever = new RealDataRetriever(folder);
+        public void setup() throws IOException {
+	        ZipRealDataRetriever folder = new ZipRealDataRetriever(basedir + foldername + ".zip");
+	        System.out.println();
+	        System.out
+                    .println("Loading files from " + folder.getName());
             int normalsize = 0;
             int runsize = 0;
             int concisesize = 0;
-            for (File datafile : folder.listFiles()) {
-                int[] data = dataRetriever.fetchBitPositions(datafile);
+            long stupidarraysize = 0;
+            long stupidbitmapsize = 0;
+            int totalcount = 0;
+            int numberofbitmaps = 0;
+            int universesize = 0;
+
+            DecimalFormat df = new DecimalFormat("0.###");
+            for (String datafile : folder.files()) {
+                int[] data = folder.fetchBitPositions(datafile);
+                numberofbitmaps++;
+                if(universesize < data[data.length - 1 ])
+                    universesize = data[data.length - 1 ];
+                stupidarraysize += 8 + data.length * 4L;
+                stupidbitmapsize += 8 + (data[data.length - 1] + 63L) / 64 * 8; 
+                totalcount += data.length;
                 RoaringBitmap basic = RoaringBitmap.bitmapOf(data);
                 RoaringBitmap opti = ((RoaringBitmap) basic.clone());
                 opti.runOptimize();
@@ -312,10 +327,38 @@ public class RunContainerRealDataBenchmark {
                 concisesize += (int) (concise.size() * concise
                         .collectionCompressionRatio()) * 4;
             }
+            /***
+             * This is a hack. JMH does not allow us to report
+             * anything directly ourselves, so we do it forcefully.
+             */
+            System.out.println();
             System.out.println("==============");
-            System.out.println("Run size = " + runsize + " / normal size = "
-                    + normalsize + " / concise size = " + concisesize);
+            System.out.println("Number of bitmaps = " + numberofbitmaps
+                    + " total count = " + totalcount
+                    + " universe size = "+universesize);
+            System.out.println("Average bits per bitmap = " 
+                    + df.format(totalcount * 1.0 / numberofbitmaps));
+
+            System.out.println("(in bytes) Run size = " + runsize 
+                    + " / normal size = " + normalsize 
+                    + " / concise size = " + concisesize
+                    + " / stupid array size = " + stupidarraysize
+                    + " / stupid bitmap size = "+ stupidbitmapsize);
+            System.out.println("Bits per int: Run  = "
+                    + df.format(runsize * 8.0 / totalcount)
+                    + " / normal size = "
+                    + df.format(normalsize * 8.0 / totalcount)
+                    + " / concise size = "
+                    + df.format(concisesize * 8.0 / totalcount)
+                    + " / stupid array size = "
+                    + df.format(stupidarraysize * 8.0 / totalcount)
+                    + " / stupid bitmap size = "+ df.format(stupidbitmapsize * 8.0 / totalcount));
+            int bestofroaring = runsize < normalsize ? runsize : normalsize;
+            System.out.println(" Average savings due to Roaring per bitmap (can be neg.) : "
+                    + df.format((concisesize - bestofroaring) * 1.0 / numberofbitmaps ) 
+                    + " bytes" );
             System.out.println("==============");
+            System.out.println();
             // compute pairwise AND and OR
             for (int k = 0; k + 1 < rc.size(); ++k) {
                 totalandnot += RoaringBitmap.andNot(rc.get(k), rc.get(k + 1))

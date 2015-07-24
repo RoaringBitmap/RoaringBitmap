@@ -25,13 +25,18 @@
             <version>${jmh.version}</version>
             <scope>provided</scope>
         </dependency>
-          	<dependency>
+      <!--    	<dependency>
     	<artifactId>ConciseSet</artifactId>
     	<groupId>it.uniroma3.mat.extendedset.intset</groupId>
      	<version>2.2.0</version>
     	<scope>system</scope>
     	<systemPath>${basedir}/lib/extendedSet2.2.jar</systemPath>
-	</dependency>
+	</dependency>-->
+	        <dependency>
+                <groupId>it.uniroma3.mat</groupId>
+                <artifactId>extendedset</artifactId>
+                <version>1.3.4</version>
+            </dependency>
         <dependency>
             <groupId>org.roaringbitmap</groupId>
             <artifactId>RoaringBitmap</artifactId>
@@ -119,5 +124,23 @@
             </plugin>
         </plugins>
     </build>
-
+    <repositories>
+        <repository>
+            <id>pub-libs</id>
+            <name>pub-libs-local</name>
+            <url>https://metamx.artifactoryonline.com/metamx/pub-libs-releases-local</url>
+        </repository>
+        <repository>
+            <id>thirdparty-uploads</id>
+            <name>JBoss Thirdparty Uploads</name>
+            <url>https://repository.jboss.org/nexus/content/repositories/thirdparty-uploads</url>
+        </repository>
+    </repositories>
+    <distributionManagement>
+        <repository>
+            <id>central-local</id>
+            <name>Central</name>
+            <url>https://metamx.artifactoryonline.com/metamx/pub-libs-releases-local</url>
+        </repository>
+    </distributionManagement>
 </project>
