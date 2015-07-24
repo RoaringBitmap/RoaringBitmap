@@ -330,15 +330,11 @@ public final class RoaringArray implements Cloneable, Externalizable {
     public void serialize(DataOutput out) throws IOException {
         int startOffset=0;
         if (hasRunContainer()) {
-
-            //System.out.println("nonbuffered serializes with a runcontainer, writing size as "+size);
-
             out.writeInt(Integer.reverseBytes(SERIAL_COOKIE));
             out.writeInt(Integer.reverseBytes(size));
             int [] bitmapOfRunContainers = new int[ (size+31)/32];
             for (int i=0; i < size; ++i)
                 if (this.array[i].value instanceof RunContainer) {
-                    //                    System.out.println("RA serializes a runcontainer for position "+i);
                     bitmapOfRunContainers[ i/32] |= (1 << (i%32));
                 }
             for (int i=0; i < bitmapOfRunContainers.length; ++i)
@@ -346,7 +342,6 @@ public final class RoaringArray implements Cloneable, Externalizable {
             startOffset = 4 + 4 + 4*this.size + 4*this.size + 4*bitmapOfRunContainers.length;
         }
         else {  // backwards compatibility
-            // System.out.println("nonbuffered serializes without a runcontainer");
             out.writeInt(Integer.reverseBytes(SERIAL_COOKIE_NO_RUNCONTAINER));
             out.writeInt(Integer.reverseBytes(size));
             startOffset = 4 + 4 + 4*this.size + 4*this.size;
@@ -366,9 +361,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
             // Owen's code below matches that already in MutableRoaringArray
             
             startOffset = startOffset+this.array[k].value.getArraySizeInBytes(); 
-            // if (k > 8 && k < 14) {
-            //     System.out.println("startOffset for k="+k+" is "+startOffset);
-            // }
+
         }        
         for (int k = 0; k < size; ++k) {
             array[k].value.writeArray(out);
@@ -384,7 +377,8 @@ public final class RoaringArray implements Cloneable, Externalizable {
      * @return the size in bytes
      */
     public int serializedSizeInBytes() {
-        int count = 4 + 4 + 4 * size + 4*size;
+        int count = 4 + 4 + 8 * size;
+        // for each container, we store cardinality (16 bits), key (16 bits) and location offset (32 bits). 
         for (int k = 0; k < size; ++k) {
             count += array[k].value.getArraySizeInBytes();
         }
