@@ -15,7 +15,7 @@ import java.util.zip.ZipFile;
  * portable format (as lists of ints) inside a zip file
  * 
  * 
- * @author Daneil Lemire
+ * @author Daniel Lemire
  */
  public class ZipRealDataRetriever {
 
