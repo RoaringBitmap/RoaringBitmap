@@ -1,5 +1,6 @@
 package org.roaringbitmap;
 
+import it.uniroma3.mat.extendedset.intset.ConciseSet;
 import net.sourceforge.sizeof.SizeOf;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,20 +43,33 @@ public class RealDataBenchmark {
 
         long basicSize = 0;
         long optiSize = 0;
+        long conciseSize = 0;
 
         for (int[] data : dataRetriever.fetchBitPositions()) {
             RoaringBitmap basic = RoaringBitmap.bitmapOf(data);
             RoaringBitmap opti = basic.clone();
             opti.runOptimize();
+            ConciseSet concise = toConcise(data);
 
             basicSize += SizeOf.deepSizeOf(basic);
             optiSize += SizeOf.deepSizeOf(opti);
+            conciseSize += SizeOf.deepSizeOf(concise);
         }
 
         System.out.println();
         System.out.println("==============");
-        System.out.println(dataset + " / Run size = " + SizeOf.humanReadable(optiSize) + " / normal size = " + SizeOf.humanReadable(basicSize));
+        System.out.println(dataset + " / Run size = " + SizeOf.humanReadable(optiSize)
+                                   + " / normal size = " + SizeOf.humanReadable(basicSize)
+                                   + " / consize size = " + SizeOf.humanReadable(conciseSize));
         System.out.println("==============");
+    }
+
+    private static ConciseSet toConcise(int[] dat) {
+        ConciseSet ans = new ConciseSet();
+        for (int i : dat) {
+            ans.add(i);
+        }
+        return ans;
     }
 
 }
