@@ -662,7 +662,6 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      public MappeableContainer runOptimize() {
          // TODO: this code could possibly be faster when the initial container is a bitmap
          // TODO: should probably not convert if the container is a run container initially
-         // TODO: or maybe one would need to check that the run container is really appropriate
          int numRuns = 0;
          ShortIterator sIt = getShortIterator();
          int previous = -2;
@@ -673,10 +672,11 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
              previous = val;
          }
          int sizeAsRunContainer = MappeableRunContainer.getArraySizeInBytes(numRuns);
-         if (getArraySizeInBytes() > sizeAsRunContainer)
+         if (getArraySizeInBytes() > sizeAsRunContainer) {
              return new MappeableRunContainer( getShortIterator(),  numRuns); // this could be maybe faster if initial container is a bitmap
-         else 
+         } else { 
              return this;
+         }
      }
 
 }

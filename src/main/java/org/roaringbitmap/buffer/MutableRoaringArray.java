@@ -610,7 +610,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
             count += 4*((size+31)/32);
         return count;
     }
-
+    
     protected void setContainerAtIndex(int i, MappeableContainer c) {
         this.array[i].value = c;
     }

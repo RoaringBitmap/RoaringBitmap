@@ -683,7 +683,6 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      public Container runOptimize() {
          // TODO: this code could possibly be faster when the initial container is a bitmap
          // TODO: should probably not convert if the container is a run container initially
-         // TODO: or maybe one would need to check that the run container is really appropriate
          int numRuns = 0; 
          ShortIterator sIt = getShortIterator();
          int previous = -2;
@@ -694,9 +693,10 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
              previous = val;
          }
          int sizeAsRunContainer = RunContainer.serializedSizeInBytes(numRuns);
-         if (serializedSizeInBytes() > sizeAsRunContainer)
+         if (getArraySizeInBytes() > sizeAsRunContainer) {
              return new RunContainer( getShortIterator(),  numRuns); // this could be maybe faster if initial container is a bitmap
-         else 
+         } else { 
              return this;
+         }
      }
 }

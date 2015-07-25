@@ -386,7 +386,6 @@ public final class RoaringArray implements Cloneable, Externalizable {
         // the RunContainer exists, all else being equal, you will get different answers...is this ok?
         if (hasRunContainer())
             count += 4*((size+31)/32);
-        
         return count;
     }
 
