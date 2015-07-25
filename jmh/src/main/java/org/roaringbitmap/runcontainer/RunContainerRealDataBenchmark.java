@@ -506,7 +506,6 @@ public class RunContainerRealDataBenchmark {
                 cc.add(concise);
                 if(basic.serializedSizeInBytes() != mbasic.serializedSizeInBytes())
                     throw new RuntimeException("size mismatch");
-                System.out.println("opti = "+opti.serializedSizeInBytes()+" mopti = "+mopti.serializedSizeInBytes());
                 if(opti.serializedSizeInBytes() != mopti.serializedSizeInBytes())
                     throw new RuntimeException("size mismatch");
                 normalsize += basic.serializedSizeInBytes();
