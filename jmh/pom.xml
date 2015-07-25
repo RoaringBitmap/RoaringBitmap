@@ -25,13 +25,6 @@
             <version>${jmh.version}</version>
             <scope>provided</scope>
         </dependency>
-      <!--    	<dependency>
-    	<artifactId>ConciseSet</artifactId>
-    	<groupId>it.uniroma3.mat.extendedset.intset</groupId>
-     	<version>2.2.0</version>
-    	<scope>system</scope>
-    	<systemPath>${basedir}/lib/extendedSet2.2.jar</systemPath>
-	</dependency>-->
 	        <dependency>
                 <groupId>it.uniroma3.mat</groupId>
                 <artifactId>extendedset</artifactId>
@@ -68,25 +61,6 @@
                     <target>${javac.target}</target>
                 </configuration>
             </plugin>
-            <plugin>
-    <groupId>com.googlecode.addjars-maven-plugin</groupId>
-    <artifactId>addjars-maven-plugin</artifactId>
-    <version>1.0.5</version>
-    <executions>
-        <execution>
-            <goals>
-                <goal>add-jars</goal>
-            </goals>
-            <configuration>
-                <resources>
-                    <resource>
-                        <directory>${basedir}/lib</directory>
-                    </resource>
-                </resources>
-            </configuration>
-        </execution>
-    </executions>
-</plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -130,17 +104,5 @@
             <name>pub-libs-local</name>
             <url>https://metamx.artifactoryonline.com/metamx/pub-libs-releases-local</url>
         </repository>
-        <repository>
-            <id>thirdparty-uploads</id>
-            <name>JBoss Thirdparty Uploads</name>
-            <url>https://repository.jboss.org/nexus/content/repositories/thirdparty-uploads</url>
-        </repository>
     </repositories>
-    <distributionManagement>
-        <repository>
-            <id>central-local</id>
-            <name>Central</name>
-            <url>https://metamx.artifactoryonline.com/metamx/pub-libs-releases-local</url>
-        </repository>
-    </distributionManagement>
 </project>
