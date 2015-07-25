@@ -3,7 +3,6 @@ package org.roaringbitmap.runcontainer;
 
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 
-import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +18,7 @@ import org.openjdk.jmh.annotations.State;
 import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.IntIteratorFlyweight;
 import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.ZipRealDataRetriever;
 import org.roaringbitmap.buffer.BufferFastAggregation;
 import org.roaringbitmap.buffer.BufferIntIteratorFlyweight;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
@@ -444,14 +444,13 @@ public class RunContainerRealDataBenchmark {
 
     @State(Scope.Benchmark)
     public static class BenchmarkState {
-        String basedir = "src/main/resources/real-roaring-dataset/";
         @Param ({// putting the data sets in alpha. order
             "census-income", "census1881",
             "dimension_008", "dimension_003", "dimension_033",
             "uscensus2000", "weather_sept_85",
             "wikileaks-noquotes"
         })
-        String foldername;
+        String dataset;
 
         int totalandnot = 0;
         int totaland = 0;
@@ -469,11 +468,11 @@ public class RunContainerRealDataBenchmark {
         }
 
         @Setup
-        public void setup() throws IOException {
-            ZipRealDataRetriever folder = new ZipRealDataRetriever(basedir + foldername + ".zip");
+        public void setup() throws Exception {
+            ZipRealDataRetriever dataRetriever = new ZipRealDataRetriever(dataset);
             System.out.println();
-            System.out
-            .println("Loading files from " + folder.getName());
+            System.out.println("Loading files from " + dataRetriever.getName());
+
             int normalsize = 0;
             int runsize = 0;
             int concisesize = 0;
@@ -483,9 +482,7 @@ public class RunContainerRealDataBenchmark {
             int numberofbitmaps = 0;
             int universesize = 0;
 
-            DecimalFormat df = new DecimalFormat("0.###");
-            for (String datafile : folder.files()) {
-                int[] data = folder.fetchBitPositions(datafile);
+            for (int[] data : dataRetriever.fetchBitPositions()) {
                 numberofbitmaps++;
                 if(universesize < data[data.length - 1 ])
                     universesize = data[data.length - 1 ];
@@ -493,11 +490,11 @@ public class RunContainerRealDataBenchmark {
                 stupidbitmapsize += 8 + (data[data.length - 1] + 63L) / 64 * 8;
                 totalcount += data.length;
                 MutableRoaringBitmap mbasic = MutableRoaringBitmap.bitmapOf(data);
-                MutableRoaringBitmap mopti = ((MutableRoaringBitmap) mbasic.clone());
+                MutableRoaringBitmap mopti = mbasic.clone();
                 mopti.runOptimize();
 
                 RoaringBitmap basic = RoaringBitmap.bitmapOf(data);
-                RoaringBitmap opti = ((RoaringBitmap) basic.clone());
+                RoaringBitmap opti = basic.clone();
                 opti.runOptimize();
                 ConciseSet concise = toConcise(data);
                 rc.add(opti);
@@ -514,10 +511,12 @@ public class RunContainerRealDataBenchmark {
                 concisesize += (int) (concise.size() * concise
                                       .collectionCompressionRatio()) * 4;
             }
+
             /***
              * This is a hack. JMH does not allow us to report
              * anything directly ourselves, so we do it forcefully.
              */
+            DecimalFormat df = new DecimalFormat("0.###");
             System.out.println();
             System.out.println("==============");
             System.out.println("Number of bitmaps = " + numberofbitmaps

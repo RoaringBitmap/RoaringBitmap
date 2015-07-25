@@ -40,6 +40,11 @@
             <artifactId>SparseBitSet</artifactId>
             <version>1.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.roaringbitmap</groupId>
+            <artifactId>real-roaring-dataset</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <properties>

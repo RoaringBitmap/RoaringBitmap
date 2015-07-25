@@ -3,6 +3,9 @@
 echo Building RoaringBitmap.jar
 call mvn -f ../pom.xml clean install -DskipTests -Dgpg.skip=true
 
+echo Building Real Roaring Dataset jar
+call mvn -f ../real-roaring-dataset/pom.xml clean install
+
 echo Building benchmarks.jar
 call mvn -f pom.xml clean package
 
