@@ -1,9 +1,11 @@
 package org.roaringbitmap;
 
 import net.sourceforge.sizeof.SizeOf;
+import org.junit.Test;
+
 import java.util.*;
 
-public class ElementSizeBench {
+public class ElementSizeBenchmark {
 	
 	
 	private static void calculateElementAverageSize() {
@@ -20,8 +22,9 @@ public class ElementSizeBench {
 	    }
 	    
 	}   
-	
-	public static void main(String[] args) {
+
+    @Test
+	public void benchmark() {
 		Locale.setDefault(Locale.US);
         System.out.println("# " + System.getProperty("java.vendor")
                 + " " + System.getProperty("java.version") + " "
