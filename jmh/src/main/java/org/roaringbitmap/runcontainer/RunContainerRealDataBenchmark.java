@@ -34,66 +34,66 @@ public class RunContainerRealDataBenchmark {
         }
         return ans;
     }
-    
-	@Benchmark
-	public int horizontalOr_RoaringWithRun(BenchmarkState benchmarkState) {
-		return FastAggregation.horizontal_or(benchmarkState.rc.iterator())
-				.getCardinality();
-	}
 
-	@Benchmark
-	public int horizontalOr_Roaring(BenchmarkState benchmarkState) {
-		return FastAggregation.horizontal_or(benchmarkState.ac.iterator())
-				.getCardinality();
-	}
+    @Benchmark
+    public int horizontalOr_RoaringWithRun(BenchmarkState benchmarkState) {
+        return FastAggregation.horizontal_or(benchmarkState.rc.iterator())
+               .getCardinality();
+    }
 
-	@Benchmark
+    @Benchmark
+    public int horizontalOr_Roaring(BenchmarkState benchmarkState) {
+        return FastAggregation.horizontal_or(benchmarkState.ac.iterator())
+               .getCardinality();
+    }
+
+    @Benchmark
     public int horizontalOr_MutableRoaringWithRun(BenchmarkState benchmarkState) {
         return BufferFastAggregation.horizontal_or(benchmarkState.mrc.iterator())
-                .getCardinality();
+               .getCardinality();
     }
 
     @Benchmark
     public int horizontalOr_MutableRoaring(BenchmarkState benchmarkState) {
         return BufferFastAggregation.horizontal_or(benchmarkState.mac.iterator())
-                .getCardinality();
+               .getCardinality();
     }
-	
-	@Benchmark
-	public int horizontalOr_Concise(BenchmarkState benchmarkState) {
-		ConciseSet bitmapor = benchmarkState.cc.get(0);
-		for (int j = 1; j < benchmarkState.cc.size() ; ++j) {
-			bitmapor = bitmapor.union(benchmarkState.cc.get(j));
-		}
-		return bitmapor.size();
-	}
 
-	@Benchmark
-	public int pairwiseAnd_RoaringWithRun(BenchmarkState benchmarkState) {
-		int total = 0;
-		for(int k = 0; k + 1 < benchmarkState.rc.size(); ++k)
-			total += RoaringBitmap.and(benchmarkState.rc.get(k),benchmarkState.rc.get(k+1)).getCardinality();
-		if(total !=benchmarkState.totaland )
-			throw new RuntimeException("bad pairwise and result");
-		return total;
-	}
+    @Benchmark
+    public int horizontalOr_Concise(BenchmarkState benchmarkState) {
+        ConciseSet bitmapor = benchmarkState.cc.get(0);
+        for (int j = 1; j < benchmarkState.cc.size() ; ++j) {
+            bitmapor = bitmapor.union(benchmarkState.cc.get(j));
+        }
+        return bitmapor.size();
+    }
 
-	@Benchmark
-	public int pairwiseAnd_Roaring(BenchmarkState benchmarkState) {
-		int total = 0;
-		for(int k = 0; k + 1 < benchmarkState.ac.size(); ++k)
-			total += RoaringBitmap.and(benchmarkState.ac.get(k),benchmarkState.ac.get(k+1)).getCardinality();
-		if(total !=benchmarkState.totaland )
-			throw new RuntimeException("bad pairwise and result");
-		return total;
-	}
+    @Benchmark
+    public int pairwiseAnd_RoaringWithRun(BenchmarkState benchmarkState) {
+        int total = 0;
+        for(int k = 0; k + 1 < benchmarkState.rc.size(); ++k)
+            total += RoaringBitmap.and(benchmarkState.rc.get(k),benchmarkState.rc.get(k+1)).getCardinality();
+        if(total !=benchmarkState.totaland )
+            throw new RuntimeException("bad pairwise and result");
+        return total;
+    }
+
+    @Benchmark
+    public int pairwiseAnd_Roaring(BenchmarkState benchmarkState) {
+        int total = 0;
+        for(int k = 0; k + 1 < benchmarkState.ac.size(); ++k)
+            total += RoaringBitmap.and(benchmarkState.ac.get(k),benchmarkState.ac.get(k+1)).getCardinality();
+        if(total !=benchmarkState.totaland )
+            throw new RuntimeException("bad pairwise and result");
+        return total;
+    }
 
     @Benchmark
     public int pairwiseAnd_MutableRoaringWithRun(BenchmarkState benchmarkState) {
         int total = 0;
         for (int k = 0; k + 1 < benchmarkState.mrc.size(); ++k)
             total += MutableRoaringBitmap.and(benchmarkState.mrc.get(k),
-                    benchmarkState.mrc.get(k + 1)).getCardinality();
+                                              benchmarkState.mrc.get(k + 1)).getCardinality();
         if (total != benchmarkState.totaland)
             throw new RuntimeException("bad pairwise and result");
         return total;
@@ -104,48 +104,48 @@ public class RunContainerRealDataBenchmark {
         int total = 0;
         for (int k = 0; k + 1 < benchmarkState.mac.size(); ++k)
             total += MutableRoaringBitmap.and(benchmarkState.mac.get(k),
-                    benchmarkState.mac.get(k + 1)).getCardinality();
+                                              benchmarkState.mac.get(k + 1)).getCardinality();
         if (total != benchmarkState.totaland)
             throw new RuntimeException("bad pairwise and result");
         return total;
     }
-	
-	@Benchmark
-	public int pairwiseAnd_Concise(BenchmarkState benchmarkState) {
-		int total = 0;
-		for(int k = 0; k + 1 < benchmarkState.cc.size(); ++k)
-			total += benchmarkState.cc.get(k).intersection(benchmarkState.cc.get(k+1)).size();
-		if(total !=benchmarkState.totaland )
-			throw new RuntimeException("bad pairwise and result");
-		return total;
-	}
 
-	@Benchmark
-	public int pairwiseAndNot_RoaringWithRun(BenchmarkState benchmarkState) {
-		int total = 0;
-		for(int k = 0; k + 1 < benchmarkState.rc.size(); ++k)
-			total += RoaringBitmap.andNot(benchmarkState.rc.get(k),benchmarkState.rc.get(k+1)).getCardinality();
-		if(total !=benchmarkState.totalandnot )
-			throw new RuntimeException("bad pairwise andNot result");
-		return total;
-	}
+    @Benchmark
+    public int pairwiseAnd_Concise(BenchmarkState benchmarkState) {
+        int total = 0;
+        for(int k = 0; k + 1 < benchmarkState.cc.size(); ++k)
+            total += benchmarkState.cc.get(k).intersection(benchmarkState.cc.get(k+1)).size();
+        if(total !=benchmarkState.totaland )
+            throw new RuntimeException("bad pairwise and result");
+        return total;
+    }
 
-	@Benchmark
-	public int pairwiseAndNot_Roaring(BenchmarkState benchmarkState) {
-		int total = 0;
-		for(int k = 0; k + 1 < benchmarkState.ac.size(); ++k)
-			total += RoaringBitmap.andNot(benchmarkState.ac.get(k),benchmarkState.ac.get(k+1)).getCardinality();
-		if(total !=benchmarkState.totalandnot )
-			throw new RuntimeException("bad pairwise andNot result");
-		return total;
-	}
+    @Benchmark
+    public int pairwiseAndNot_RoaringWithRun(BenchmarkState benchmarkState) {
+        int total = 0;
+        for(int k = 0; k + 1 < benchmarkState.rc.size(); ++k)
+            total += RoaringBitmap.andNot(benchmarkState.rc.get(k),benchmarkState.rc.get(k+1)).getCardinality();
+        if(total !=benchmarkState.totalandnot )
+            throw new RuntimeException("bad pairwise andNot result");
+        return total;
+    }
+
+    @Benchmark
+    public int pairwiseAndNot_Roaring(BenchmarkState benchmarkState) {
+        int total = 0;
+        for(int k = 0; k + 1 < benchmarkState.ac.size(); ++k)
+            total += RoaringBitmap.andNot(benchmarkState.ac.get(k),benchmarkState.ac.get(k+1)).getCardinality();
+        if(total !=benchmarkState.totalandnot )
+            throw new RuntimeException("bad pairwise andNot result");
+        return total;
+    }
 
     @Benchmark
     public int pairwiseAndNot_MutableRoaringWithRun(BenchmarkState benchmarkState) {
         int total = 0;
         for (int k = 0; k + 1 < benchmarkState.mrc.size(); ++k)
             total += MutableRoaringBitmap.andNot(benchmarkState.mrc.get(k),
-                    benchmarkState.mrc.get(k + 1)).getCardinality();
+                                                 benchmarkState.mrc.get(k + 1)).getCardinality();
         if (total != benchmarkState.totalandnot)
             throw new RuntimeException("bad pairwise andNot result");
         return total;
@@ -156,45 +156,45 @@ public class RunContainerRealDataBenchmark {
         int total = 0;
         for (int k = 0; k + 1 < benchmarkState.mac.size(); ++k)
             total += MutableRoaringBitmap.andNot(benchmarkState.mac.get(k),
-                    benchmarkState.mac.get(k + 1)).getCardinality();
+                                                 benchmarkState.mac.get(k + 1)).getCardinality();
         if (total != benchmarkState.totalandnot)
             throw new RuntimeException("bad pairwise andNot result");
         return total;
     }
-	
-	@Benchmark
-	public int pairwiseAndNot_Concise(BenchmarkState benchmarkState) {
-		int total = 0;
-		for(int k = 0; k + 1 < benchmarkState.cc.size(); ++k)
-			total += benchmarkState.cc.get(k).difference(benchmarkState.cc.get(k+1)).size();
-		if(total !=benchmarkState.totalandnot )
-			throw new RuntimeException("bad pairwise andNot result");
-		return total;
-	}
 
-	
-	@Benchmark
-	public int pairwiseOr_RoaringWithRun(BenchmarkState benchmarkState) {
-		int total = 0;
-		for(int k = 0; k + 1 < benchmarkState.rc.size(); ++k)
-			total += RoaringBitmap.or(benchmarkState.rc.get(k),benchmarkState.rc.get(k+1)).getCardinality();
-		if(total != benchmarkState.totalor )
-			throw new RuntimeException("bad pairwise or result");
-		return total;
-	}
-	
-	@Benchmark
-	public int pairwiseOr_Roaring(BenchmarkState benchmarkState) {
-		int total = 0;
-		for(int k = 0; k + 1 < benchmarkState.ac.size(); ++k)
-			total += RoaringBitmap.or(benchmarkState.ac.get(k),benchmarkState.ac.get(k+1)).getCardinality();
-		if(total != benchmarkState.totalor )
-			throw new RuntimeException("bad pairwise or result");
-		return total;
-	}
-	
+    @Benchmark
+    public int pairwiseAndNot_Concise(BenchmarkState benchmarkState) {
+        int total = 0;
+        for(int k = 0; k + 1 < benchmarkState.cc.size(); ++k)
+            total += benchmarkState.cc.get(k).difference(benchmarkState.cc.get(k+1)).size();
+        if(total !=benchmarkState.totalandnot )
+            throw new RuntimeException("bad pairwise andNot result");
+        return total;
+    }
 
-    
+
+    @Benchmark
+    public int pairwiseOr_RoaringWithRun(BenchmarkState benchmarkState) {
+        int total = 0;
+        for(int k = 0; k + 1 < benchmarkState.rc.size(); ++k)
+            total += RoaringBitmap.or(benchmarkState.rc.get(k),benchmarkState.rc.get(k+1)).getCardinality();
+        if(total != benchmarkState.totalor )
+            throw new RuntimeException("bad pairwise or result");
+        return total;
+    }
+
+    @Benchmark
+    public int pairwiseOr_Roaring(BenchmarkState benchmarkState) {
+        int total = 0;
+        for(int k = 0; k + 1 < benchmarkState.ac.size(); ++k)
+            total += RoaringBitmap.or(benchmarkState.ac.get(k),benchmarkState.ac.get(k+1)).getCardinality();
+        if(total != benchmarkState.totalor )
+            throw new RuntimeException("bad pairwise or result");
+        return total;
+    }
+
+
+
     @Benchmark
     public int pairwiseOr_MutableRoaringWithRun(BenchmarkState benchmarkState) {
         int total = 0;
@@ -204,7 +204,7 @@ public class RunContainerRealDataBenchmark {
             throw new RuntimeException("bad pairwise or result");
         return total;
     }
-    
+
     @Benchmark
     public int pairwiseOr_MutableRoaring(BenchmarkState benchmarkState) {
         int total = 0;
@@ -214,38 +214,38 @@ public class RunContainerRealDataBenchmark {
             throw new RuntimeException("bad pairwise or result");
         return total;
     }
-	
-	@Benchmark
-	public int pairwiseOr_Concise(BenchmarkState benchmarkState) {
-		int total = 0;
-		for(int k = 0; k + 1 < benchmarkState.cc.size(); ++k)
-			total += benchmarkState.cc.get(k).union(benchmarkState.cc.get(k+1)).size();
-		if(total != benchmarkState.totalor )
-			throw new RuntimeException("bad pairwise or result");
-		return total;
-	}
 
-	@Benchmark
-	public int pairwiseXor_RoaringWithRun(BenchmarkState benchmarkState) {
-		int total = 0;
-		for(int k = 0; k + 1 < benchmarkState.rc.size(); ++k)
-			total += RoaringBitmap.xor(benchmarkState.rc.get(k),benchmarkState.rc.get(k+1)).getCardinality();
-		if(total != benchmarkState.totalxor )
-			throw new RuntimeException("bad pairwise xor result");
-		return total;
-	}
-	
-	@Benchmark
-	public int pairwiseXor_Roaring(BenchmarkState benchmarkState) {
-		int total = 0;
-		for(int k = 0; k + 1 < benchmarkState.ac.size(); ++k)
-			total += RoaringBitmap.xor(benchmarkState.ac.get(k),benchmarkState.ac.get(k+1)).getCardinality();
-		if(total != benchmarkState.totalxor )
-			throw new RuntimeException("bad pairwise xor result");
-		return total;
-	}
-	
-	@Benchmark
+    @Benchmark
+    public int pairwiseOr_Concise(BenchmarkState benchmarkState) {
+        int total = 0;
+        for(int k = 0; k + 1 < benchmarkState.cc.size(); ++k)
+            total += benchmarkState.cc.get(k).union(benchmarkState.cc.get(k+1)).size();
+        if(total != benchmarkState.totalor )
+            throw new RuntimeException("bad pairwise or result");
+        return total;
+    }
+
+    @Benchmark
+    public int pairwiseXor_RoaringWithRun(BenchmarkState benchmarkState) {
+        int total = 0;
+        for(int k = 0; k + 1 < benchmarkState.rc.size(); ++k)
+            total += RoaringBitmap.xor(benchmarkState.rc.get(k),benchmarkState.rc.get(k+1)).getCardinality();
+        if(total != benchmarkState.totalxor )
+            throw new RuntimeException("bad pairwise xor result");
+        return total;
+    }
+
+    @Benchmark
+    public int pairwiseXor_Roaring(BenchmarkState benchmarkState) {
+        int total = 0;
+        for(int k = 0; k + 1 < benchmarkState.ac.size(); ++k)
+            total += RoaringBitmap.xor(benchmarkState.ac.get(k),benchmarkState.ac.get(k+1)).getCardinality();
+        if(total != benchmarkState.totalxor )
+            throw new RuntimeException("bad pairwise xor result");
+        return total;
+    }
+
+    @Benchmark
     public int pairwiseXor_MutableRoaringWithRun(BenchmarkState benchmarkState) {
         int total = 0;
         for(int k = 0; k + 1 < benchmarkState.mrc.size(); ++k)
@@ -254,7 +254,7 @@ public class RunContainerRealDataBenchmark {
             throw new RuntimeException("bad pairwise xor result");
         return total;
     }
-    
+
     @Benchmark
     public int pairwiseXor_MutableRoaring(BenchmarkState benchmarkState) {
         int total = 0;
@@ -264,16 +264,16 @@ public class RunContainerRealDataBenchmark {
             throw new RuntimeException("bad pairwise xor result");
         return total;
     }
-	
-	@Benchmark
-	public int pairwiseXor_Concise(BenchmarkState benchmarkState) {
-		int total = 0;
-		for(int k = 0; k + 1 < benchmarkState.cc.size(); ++k)
-			total += benchmarkState.cc.get(k).symmetricDifference(benchmarkState.cc.get(k+1)).size();
-		if(total != benchmarkState.totalxor )
-			throw new RuntimeException("bad pairwise xor result");
-		return total;
-	}
+
+    @Benchmark
+    public int pairwiseXor_Concise(BenchmarkState benchmarkState) {
+        int total = 0;
+        for(int k = 0; k + 1 < benchmarkState.cc.size(); ++k)
+            total += benchmarkState.cc.get(k).symmetricDifference(benchmarkState.cc.get(k+1)).size();
+        if(total != benchmarkState.totalxor )
+            throw new RuntimeException("bad pairwise xor result");
+        return total;
+    }
 
     @Benchmark
     public int iterate_RoaringWithRun(BenchmarkState benchmarkState) {
@@ -300,7 +300,7 @@ public class RunContainerRealDataBenchmark {
         return total;
     }
 
-    
+
     @Benchmark
     public int iterate_Roaring(BenchmarkState benchmarkState) {
         int total = 0;
@@ -324,7 +324,7 @@ public class RunContainerRealDataBenchmark {
                 total += i.next();
         }
         return total;
-    }    
+    }
 
     @Benchmark
     public int iterate_MutableRoaringWithRun(BenchmarkState benchmarkState) {
@@ -351,7 +351,7 @@ public class RunContainerRealDataBenchmark {
         return total;
     }
 
-    
+
     @Benchmark
     public int iterate_MutableRoaring(BenchmarkState benchmarkState) {
         int total = 0;
@@ -375,7 +375,7 @@ public class RunContainerRealDataBenchmark {
                 total += i.next();
         }
         return total;
-    }        
+    }
 
     @Benchmark
     public int iterate_Concise(BenchmarkState benchmarkState) {
@@ -430,7 +430,7 @@ public class RunContainerRealDataBenchmark {
         }
         return total;
 
-    }    
+    }
 
     @Benchmark
     public int toarray_Concise(BenchmarkState benchmarkState) {
@@ -442,37 +442,38 @@ public class RunContainerRealDataBenchmark {
         return total;
     }
 
-	@State(Scope.Benchmark)
-	public static class BenchmarkState {
-	    String basedir = "src/main/resources/real-roaring-dataset/";
-	    @Param ({// putting the data sets in alpha. order
-	        "census-income",/* "census1881", 
-	        "dimension_008", "dimension_003", "dimension_033",  
-	        "uscensus2000", "weather_sept_85", 
-	        "wikileaks-noquotes"*/})
-	    String foldername;
+    @State(Scope.Benchmark)
+    public static class BenchmarkState {
+        String basedir = "src/main/resources/real-roaring-dataset/";
+        @Param ({// putting the data sets in alpha. order
+            "census-income", "census1881",
+            "dimension_008", "dimension_003", "dimension_033",
+            "uscensus2000", "weather_sept_85",
+            "wikileaks-noquotes"
+        })
+        String foldername;
 
-		int totalandnot = 0;
-		int totaland = 0;
-		int totalor = 0;
-		int totalxor = 0;
+        int totalandnot = 0;
+        int totaland = 0;
+        int totalor = 0;
+        int totalxor = 0;
 
-		ArrayList<RoaringBitmap> rc = new ArrayList<RoaringBitmap>();
-		ArrayList<RoaringBitmap> ac = new ArrayList<RoaringBitmap>();
+        ArrayList<RoaringBitmap> rc = new ArrayList<RoaringBitmap>();
+        ArrayList<RoaringBitmap> ac = new ArrayList<RoaringBitmap>();
         ArrayList<ImmutableRoaringBitmap> mrc = new ArrayList<ImmutableRoaringBitmap>();
         ArrayList<ImmutableRoaringBitmap> mac = new ArrayList<ImmutableRoaringBitmap>();
 
-		ArrayList<ConciseSet> cc = new ArrayList<ConciseSet>();
-	    
-		public BenchmarkState() {
-		}
-		
-	    @Setup		
+        ArrayList<ConciseSet> cc = new ArrayList<ConciseSet>();
+
+        public BenchmarkState() {
+        }
+
+        @Setup
         public void setup() throws IOException {
-	        ZipRealDataRetriever folder = new ZipRealDataRetriever(basedir + foldername + ".zip");
-	        System.out.println();
-	        System.out
-                    .println("Loading files from " + folder.getName());
+            ZipRealDataRetriever folder = new ZipRealDataRetriever(basedir + foldername + ".zip");
+            System.out.println();
+            System.out
+            .println("Loading files from " + folder.getName());
             int normalsize = 0;
             int runsize = 0;
             int concisesize = 0;
@@ -489,7 +490,7 @@ public class RunContainerRealDataBenchmark {
                 if(universesize < data[data.length - 1 ])
                     universesize = data[data.length - 1 ];
                 stupidarraysize += 8 + data.length * 4L;
-                stupidbitmapsize += 8 + (data[data.length - 1] + 63L) / 64 * 8; 
+                stupidbitmapsize += 8 + (data[data.length - 1] + 63L) / 64 * 8;
                 totalcount += data.length;
                 MutableRoaringBitmap mbasic = MutableRoaringBitmap.bitmapOf(data);
                 MutableRoaringBitmap mopti = ((MutableRoaringBitmap) mbasic.clone());
@@ -511,7 +512,7 @@ public class RunContainerRealDataBenchmark {
                 normalsize += basic.serializedSizeInBytes();
                 runsize += opti.serializedSizeInBytes();
                 concisesize += (int) (concise.size() * concise
-                        .collectionCompressionRatio()) * 4;
+                                      .collectionCompressionRatio()) * 4;
             }
             /***
              * This is a hack. JMH does not allow us to report
@@ -520,44 +521,44 @@ public class RunContainerRealDataBenchmark {
             System.out.println();
             System.out.println("==============");
             System.out.println("Number of bitmaps = " + numberofbitmaps
-                    + " total count = " + totalcount
-                    + " universe size = "+universesize);
-            System.out.println("Average bits per bitmap = " 
-                    + df.format(totalcount * 1.0 / numberofbitmaps));
+                               + " total count = " + totalcount
+                               + " universe size = "+universesize);
+            System.out.println("Average bits per bitmap = "
+                               + df.format(totalcount * 1.0 / numberofbitmaps));
 
-            System.out.println("(in bytes) Run size = " + runsize 
-                    + " / normal size = " + normalsize 
-                    + " / concise size = " + concisesize
-                    + " / stupid array size = " + stupidarraysize
-                    + " / stupid bitmap size = "+ stupidbitmapsize);
+            System.out.println("(in bytes) Run size = " + runsize
+                               + " / normal size = " + normalsize
+                               + " / concise size = " + concisesize
+                               + " / stupid array size = " + stupidarraysize
+                               + " / stupid bitmap size = "+ stupidbitmapsize);
             System.out.println("Bits per int: Run  = "
-                    + df.format(runsize * 8.0 / totalcount)
-                    + " / normal size = "
-                    + df.format(normalsize * 8.0 / totalcount)
-                    + " / concise size = "
-                    + df.format(concisesize * 8.0 / totalcount)
-                    + " / stupid array size = "
-                    + df.format(stupidarraysize * 8.0 / totalcount)
-                    + " / stupid bitmap size = "+ df.format(stupidbitmapsize * 8.0 / totalcount));
+                               + df.format(runsize * 8.0 / totalcount)
+                               + " / normal size = "
+                               + df.format(normalsize * 8.0 / totalcount)
+                               + " / concise size = "
+                               + df.format(concisesize * 8.0 / totalcount)
+                               + " / stupid array size = "
+                               + df.format(stupidarraysize * 8.0 / totalcount)
+                               + " / stupid bitmap size = "+ df.format(stupidbitmapsize * 8.0 / totalcount));
             int bestofroaring = runsize < normalsize ? runsize : normalsize;
             System.out.println(" Average savings due to Roaring per bitmap (can be neg.) : "
-                    + df.format((concisesize - bestofroaring) * 1.0 / numberofbitmaps ) 
-                    + " bytes" );
+                               + df.format((concisesize - bestofroaring) * 1.0 / numberofbitmaps )
+                               + " bytes" );
             System.out.println("==============");
             System.out.println();
             // compute pairwise AND and OR
             for (int k = 0; k + 1 < rc.size(); ++k) {
                 totalandnot += RoaringBitmap.andNot(rc.get(k), rc.get(k + 1))
-                        .getCardinality();
+                               .getCardinality();
                 totaland += RoaringBitmap.and(rc.get(k), rc.get(k + 1))
-                        .getCardinality();
+                            .getCardinality();
                 totalor += RoaringBitmap.or(rc.get(k), rc.get(k + 1))
-                        .getCardinality();
+                           .getCardinality();
                 totalxor += RoaringBitmap.xor(rc.get(k), rc.get(k + 1))
-                        .getCardinality();
+                            .getCardinality();
             }
         }
 
-	}
+    }
 
 }
