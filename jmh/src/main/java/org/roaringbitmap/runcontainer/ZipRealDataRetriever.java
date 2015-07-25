@@ -12,7 +12,7 @@ import java.util.zip.ZipFile;
 
 /**
  * This class will retrieve bitmaps that have been previously stored in a
- * portable format (as lists of ints) insize a zip file
+ * portable format (as lists of ints) inside a zip file
  * 
  * 
  * @author Daneil Lemire
