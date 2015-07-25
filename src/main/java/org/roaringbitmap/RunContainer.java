@@ -13,7 +13,7 @@ import java.util.Iterator;
  * This container takes the form of runs of consecutive values (effectively,
  * run-length encoding).
  */
-public class RunContainer extends Container implements Cloneable, Serializable {
+public class RunContainer extends Container implements Cloneable {
     private static final int DEFAULT_INIT_SIZE = 4;
     private short[] valueslength;// we interleave values and lengths, so 
     // that if you have the values 11,12,13,14,15, you store that as 11,4 where 4 means that beyond 11 itself, there are
@@ -22,6 +22,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     int nbrruns = 0;// how many runs, this number should fit in 16 bits.
 
+    private static final long serialVersionUID = 1L;
 
     private RunContainer(int nbrruns, short[] valueslength) {
         this.nbrruns = nbrruns;
@@ -57,6 +58,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         }
         setLength(runCount-1, (short) runLen);
     }
+    
     // convert to bitmap or array *if needed*
     protected Container toEfficientContainer() { 
         int sizeAsRunContainer = RunContainer.serializedSizeInBytes(this.nbrruns);
@@ -377,7 +379,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
 
     @Override
     public Container andNot(ArrayContainer x) {
-        // TODO: this is lazy, but is this wise?
+        // this is lazy, but is this wise?
         return toBitmapOrArrayContainer().iandNot(x);
     }
 
@@ -436,7 +438,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
     @Override
     public int getCardinality() {
         /**
-         * TODO: Daniel has a concern with this part of the
+         * Daniel has a concern with this part of the
          * code. Lots of code may assume that we can query
          * the cardinality in constant-time. That is the case
          * with other containers. So it might be worth
@@ -452,8 +454,6 @@ public class RunContainer extends Container implements Cloneable, Serializable {
          * 
          * Current verdict: keep things as they are, but be
          * aware that  getCardinality might become a bottleneck.
-         * 
-         * 
          */
         int sum = 0;
         for(int k = 0; k < nbrruns; ++k)
@@ -565,7 +565,7 @@ public class RunContainer extends Container implements Cloneable, Serializable {
         RunContainer ans = new RunContainer(nbrruns+1);
 
         // annoying special case: there is no run.  Then the range becomes the run.
-        if (nbrruns==0) {
+        if (nbrruns == 0) {
             ans.addRun(0, rangeStart, rangeEnd-1);
             return ans;
         }

@@ -13,14 +13,14 @@ import java.util.Iterator;
 /**
  * Simple container made of an array of 16-bit integers
  */
-public final class ArrayContainer extends Container implements Cloneable, Serializable {
+public final class ArrayContainer extends Container implements Cloneable {
     private static final int DEFAULT_INIT_SIZE = 4;
 
     static final int DEFAULT_MAX_SIZE = 4096;// containers with DEFAULT_MAX_SZE or less integers should be ArrayContainers
 
-    private static final long serialVersionUID = 1L;
-
     protected int cardinality = 0;
+    
+    private static final long serialVersionUID = 1L;
 
     short[] content;
 

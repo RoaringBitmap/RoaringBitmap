@@ -1,8 +1,6 @@
 package org.roaringbitmap.runcontainer;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -33,11 +31,11 @@ import java.util.zip.ZipFile;
     }
     
     Iterable<String> files() {
+        @SuppressWarnings("unchecked")
         final Enumeration<ZipEntry> e = (Enumeration<ZipEntry>) directory.entries();
         return new Iterable<String>() {
             @Override
             public Iterator<String> iterator() {
-                // TODO Auto-generated method stub
                 return new Iterator<String>() {
 
                     @Override
@@ -58,6 +56,7 @@ import java.util.zip.ZipFile;
     
     
     Enumeration<String> entries() {
+        @SuppressWarnings("unchecked")
         final Enumeration<ZipEntry> e = (Enumeration<ZipEntry>) directory.entries();
         return new Enumeration<String>() {
 

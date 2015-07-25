@@ -518,6 +518,15 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      */
     public abstract MappeableContainer remove(short x);
 
+
+    /**
+     * Report the number of bytes required to serialize this container.
+     *
+     * @return the size in bytes
+     */
+    public abstract int serializedSizeInBytes();
+
+    
     /**
      * If possible, recover wasted memory.
      */

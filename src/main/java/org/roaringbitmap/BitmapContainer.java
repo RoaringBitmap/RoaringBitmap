@@ -13,14 +13,14 @@ import java.util.Iterator;
 /**
  * Simple bitset-like container.
  */
-public final class BitmapContainer extends Container implements Cloneable, Serializable {
+public final class BitmapContainer extends Container implements Cloneable {
     protected static final int MAX_CAPACITY = 1 << 16;
-
-    private static final long serialVersionUID = 2L;
 
     private static boolean USE_IN_PLACE = true; // optimization flag
 
     long[] bitmap;
+    
+    private static final long serialVersionUID = 2L;
 
     int cardinality;
 

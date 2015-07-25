@@ -17,14 +17,14 @@ import java.util.Iterator;
  * class uses a LongBuffer to store data.
  */
 public final class MappeableBitmapContainer extends MappeableContainer
-        implements Cloneable, Serializable {
+        implements Cloneable {
     protected static final int MAX_CAPACITY = 1 << 16;
-
-    private static final long serialVersionUID = 2L;
 
     private static boolean USE_IN_PLACE = true; // optimization flag
 
     LongBuffer bitmap;
+    
+    private static final long serialVersionUID = 2L;
 
     int cardinality;
 
@@ -1026,7 +1026,17 @@ public final class MappeableBitmapContainer extends MappeableContainer
         bitmap.put(x / 64, bitmap.get(x / 64) & ~(1l << x));
         return this;
     }
-
+    
+    @Override
+    public int serializedSizeInBytes() {
+        return serializedSizeInBytes(0);
+    }
+    
+    // the parameter is for overloading and symmetry with ArrayContainer
+    public static int serializedSizeInBytes(int unusedCardinality) {
+        return MAX_CAPACITY / 8;
+    }
+    
     /**
      * Copies the data to an array container
      * 

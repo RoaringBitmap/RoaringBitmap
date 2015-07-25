@@ -18,14 +18,14 @@ import java.util.Iterator;
  * data.
  */
 public final class MappeableArrayContainer extends MappeableContainer implements
-        Cloneable, Serializable {
+        Cloneable {
     private static final int DEFAULT_INIT_SIZE = 4;
 
     protected static final int DEFAULT_MAX_SIZE = 4096; // containers with DEFAULT_MAX_SZE or less integers should be ArrayContainers
 
-    private static final long serialVersionUID = 1L;
-
     protected int cardinality = 0;
+    
+    private static final long serialVersionUID = 1L;
 
     protected ShortBuffer content;
 
@@ -849,7 +849,17 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
 		}
 	}
+    
+    @Override
+    public int serializedSizeInBytes() {
+        return serializedSizeInBytes(cardinality);
+    }
 
+
+    public static int serializedSizeInBytes( int cardinality) {
+        return cardinality * 2 + 2;
+    }
+    
     /**
      * Copies the data in a bitmap container.
      * 

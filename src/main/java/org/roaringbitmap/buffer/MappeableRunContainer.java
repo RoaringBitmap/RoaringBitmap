@@ -16,14 +16,14 @@ import java.util.Iterator;
  * run-length encoding).  Uses a ShortBuffer to store data, unlike
  * org.roaringbitmap.RunContainer.  Otherwise similar.
  */
-
-//TODO: OFK: not sure why we need serializable
-public class MappeableRunContainer extends MappeableContainer implements Cloneable, Serializable {
+public class MappeableRunContainer extends MappeableContainer implements Cloneable {
     private static final int DEFAULT_INIT_SIZE = 4;
     private ShortBuffer valueslength;
 
     protected int nbrruns = 0;// how many runs, this number should fit in 16 bits.
 
+    private static final long serialVersionUID = 1L;
+    
     private MappeableRunContainer(int nbrruns, final ShortBuffer valueslength) {
         this.nbrruns = nbrruns;
         this.valueslength = ShortBuffer.allocate(Math.max(2*nbrruns,valueslength.limit()));
@@ -124,6 +124,44 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
         return answer;
     }
 
+    // convert to bitmap or array *if needed*
+    protected MappeableContainer toEfficientContainer() { 
+        int sizeAsRunContainer = MappeableRunContainer.serializedSizeInBytes(this.nbrruns);
+        int sizeAsBitmapContainer = MappeableBitmapContainer.serializedSizeInBytes(0);
+        int card = this.getCardinality();
+        int sizeAsArrayContainer = MappeableArrayContainer.serializedSizeInBytes(card);
+        if(sizeAsRunContainer <= Math.min(sizeAsBitmapContainer, sizeAsArrayContainer))
+            return this;
+        if(card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
+            MappeableArrayContainer answer = new MappeableArrayContainer(card);
+            answer.cardinality=0;
+            for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
+                int runStart = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+                int runEnd = runStart + BufferUtil.toIntUnsigned(this.getLength(rlepos));
+                // next bit could potentially be faster, test 
+                if (BufferUtil.isBackedBySimpleArray(answer.content)) {
+                    short[] ba = answer.content.array();
+                    for (int runValue = runStart; runValue <= runEnd; ++runValue) {
+                        ba[answer.cardinality++] = (short) runValue;
+                    }
+                } else {
+                    for (int runValue = runStart; runValue <= runEnd; ++runValue) {
+                        answer.content.put(answer.cardinality++,
+                                (short) runValue);
+                    }
+                }
+            }
+            return answer;
+        }
+        MappeableBitmapContainer answer = new MappeableBitmapContainer();
+        for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
+            int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+            int end = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+            BufferUtil.setBitmapRange(answer.bitmap, start, end); 
+        }
+        answer.cardinality = card;
+        return answer;
+    }
 
     /** 
      *  Convert to Array or Bitmap container if the serialized form would be shorter
@@ -910,7 +948,6 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
     }
     */
 
-    /*
     @Override
     public int serializedSizeInBytes() {
         return serializedSizeInBytes(nbrruns);
@@ -919,7 +956,6 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
     public static int serializedSizeInBytes( int numberOfRuns) {
         return 2 + 2 * 2 * numberOfRuns;  // each run requires 2 2-byte entries.
     }
-    */
 
     /*
     @Override
@@ -1430,7 +1466,7 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
     // used for estimates of whether to prefer Array or Bitmap container results
     // when combining two RunContainers
 
-    private double getDensity() {
+  /*  private double getDensity() {
         int myCard = getCardinality();
         return ((double) myCard) / (1 << 16);
     }
@@ -1439,11 +1475,11 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
     private final double ARRAY_MAX_DENSITY  = ( (double) MappeableArrayContainer.DEFAULT_MAX_SIZE)  / (1<<16);
     
     private static final int OP_AND=0, OP_ANDNOT=1, OP_OR=2, OP_XOR=3;
-
+*/
     // borrowed this tuned-looking code from ArrayContainer.
     // except: DEFAULT_INIT_SIZE is private...borrowed current setting
     // OFK: compare to similar increaseCapacity method elsewhere...
-    private ShortBuffer increaseCapacity(ShortBuffer content) {
+    /*private ShortBuffer increaseCapacity(ShortBuffer content) {
         int newCapacity = (content.capacity() == 0) ? 4 : content.capacity() < 64 ? content.capacity() * 2
             : content.capacity() < 1024 ? content.capacity() * 3 / 2
             : content.capacity() * 5 / 4;
@@ -1453,85 +1489,12 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
         ans.put(content);
         return ans;
         //return Arrays.copyOf(content, newCapacity);
-    }
+    }*/
 
     // generic merge algorithm, Array output.  Should be possible to
     // improve on it for AND and ANDNOT, at least.
 
-    private MappeableContainer operationArrayGuess(MappeableRunContainer x, int opcode) {
-        /*
-        short [] ansArray = new short[10]; 
-        int card = 0;
-        int thisHead, xHead; // -1 means end of run
-        
-        // hoping that iterator overhead can be largely optimized away, dunno...
-
-        ShortIterator it = getShortIterator();  // rely on unsigned ordering
-        ShortIterator xIt = x.getShortIterator();
-        
-        thisHead = (it.hasNext() ?  BufferUtil.toIntUnsigned(it.next()) : -1);
-        xHead =  (xIt.hasNext() ?  BufferUtil.toIntUnsigned(xIt.next()) : -1);
-
-        while (thisHead != -1 && xHead != -1) {
-
-            if (thisHead > xHead) {
-                // item present in x only: we want for OR and XOR only
-                if (opcode == OP_OR|| opcode == OP_XOR) {
-                    // emit item to array
-                    if (card == ansArray.length) ansArray = increaseCapacity(ansArray);
-                    ansArray[card++] = (short) xHead;
-                }
-                xHead =  (xIt.hasNext() ?  BufferUtil.toIntUnsigned(xIt.next()) : -1);
-            }
-            else if (thisHead < xHead) {
-                // item present in this only.  We want for OR, XOR plus ANDNOT  (all except AND)
-                if (opcode != OP_AND) {
-                    // emit to array
-                    if (card == ansArray.length) ansArray = increaseCapacity(ansArray);
-                    ansArray[card++] = (short) thisHead;
-                }
-                thisHead = (it.hasNext() ?  BufferUtil.toIntUnsigned(it.next()) : -1);
-            }
-            else { // item is present in both x and this;   AND and OR should get it, but not XOR or ANDNOT
-                if (opcode == OP_AND || opcode == OP_OR) {
-                    // emit to array
-                    if (card == ansArray.length) ansArray = increaseCapacity(ansArray);
-                    ansArray[card++] = (short) thisHead;
-                }
-                thisHead = (it.hasNext() ?  BufferUtil.toIntUnsigned(it.next()) : -1);
-                xHead =  (xIt.hasNext() ?  BufferUtil.toIntUnsigned(xIt.next()) : -1);
-            }
-        }
-
-        // AND does not care if there are extra items in either 
-        if (opcode != OP_AND) {
-            
-            // OR, ANDNOT, XOR all want extra items in this sequence
-            while (thisHead != -1) {
-                // emit to array
-                if (card == ansArray.length) ansArray = increaseCapacity(ansArray);
-                ansArray[card++] = (short) thisHead;
-                thisHead = (it.hasNext() ?  BufferUtil.toIntUnsigned(it.next()) : -1);
-            }
-
-            // OR and XOR want extra items in x sequence
-            if (opcode == OP_OR || opcode == OP_XOR)
-                while (xHead != -1) {
-                    // emit to array
-                    if (card == ansArray.length) ansArray = increaseCapacity(ansArray);
-                    ansArray[card++] = (short) xHead;
-                    xHead =  (xIt.hasNext() ?  BufferUtil.toIntUnsigned(xIt.next()) : -1);
-                } 
-        }
-
-        // double copy could be avoided if the private card-is-parameter constructor for ArrayContainer were protected rather than private.
-        short [] content = Arrays.copyOf(ansArray, card);
-        ArrayContainer ac = new ArrayContainer(content);
-        if (card > ArrayContainer.DEFAULT_MAX_SIZE)
-            return ac.toBitmapContainer();
-        else
-            return ac;
-        */
+  /*  private MappeableContainer operationArrayGuess(MappeableRunContainer x, int opcode) {
         ShortBuffer ansArray = ShortBuffer.allocate(10); 
         int card = 0;
         int thisHead, xHead; // -1 means end of run
@@ -1616,60 +1579,6 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
 
     // generic merge algorithm, copy-paste for bitmap output
     private MappeableContainer operationBitmapGuess(MappeableRunContainer x, int opcode) {
-        /*
-        BitmapContainer answer = new BitmapContainer();
-        int thisHead, xHead; // -1 means end of run
-        
-        ShortIterator it = getShortIterator();  
-        ShortIterator xIt = x.getShortIterator();
-        
-        thisHead = (it.hasNext() ?  BufferUtil.toIntUnsigned(it.next()) : -1);
-        xHead =  (xIt.hasNext() ?  BufferUtil.toIntUnsigned(xIt.next()) : -1);
-
-        while (thisHead != -1 && xHead != -1) {
-
-            if (thisHead > xHead) {
-                // item present in x only: we want for OR and XOR only
-                if (opcode == OP_OR|| opcode == OP_XOR) 
-                    answer.add((short) xHead);
-                xHead =  (xIt.hasNext() ?  BufferUtil.toIntUnsigned(xIt.next()) : -1);
-            }
-            else if (thisHead < xHead) {
-                // item present in this only.  We want for OR, XOR plus ANDNOT  (all except AND)
-                if (opcode != OP_AND) 
-                    answer.add((short) thisHead);
-                thisHead = (it.hasNext() ?  BufferUtil.toIntUnsigned(it.next()) : -1);
-            }
-            else { // item is present in both x and this;   AND and OR should get it, but not XOR or ANDNOT
-                if (opcode == OP_AND || opcode == OP_OR) 
-                    answer.add((short) thisHead);
-                thisHead = (it.hasNext() ?  BufferUtil.toIntUnsigned(it.next()) : -1);
-                xHead =  (xIt.hasNext() ?  BufferUtil.toIntUnsigned(xIt.next()) : -1);
-            }
-        }
-
-        // AND does not care if there are extra items in either 
-        if (opcode != OP_AND) {
-            
-            // OR, ANDNOT, XOR all want extra items in this sequence
-            while (thisHead != -1) {
-                answer.add((short) thisHead);
-                thisHead = (it.hasNext() ?  BufferUtil.toIntUnsigned(it.next()) : -1);
-            }
-
-            // OR and XOR want extra items in x sequence
-            if (opcode == OP_OR || opcode == OP_XOR)
-                while (xHead != -1) {
-                    answer.add((short) xHead);
-                    xHead =  (xIt.hasNext() ?  BufferUtil.toIntUnsigned(xIt.next()) : -1);
-                } 
-        }
-        
-        if (answer.getCardinality() <= ArrayContainer.DEFAULT_MAX_SIZE)
-            return answer.toArrayContainer();
-        else
-            return answer;
-        */
 
         MappeableBitmapContainer answer = new MappeableBitmapContainer();
         int thisHead, xHead; // -1 means end of run
@@ -1725,24 +1634,140 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
             return answer;
       
  }
-
+*/
 
 
     @Override
     public MappeableContainer and(MappeableRunContainer x) {
-        double myDensity = getDensity();
+        MappeableRunContainer answer = new MappeableRunContainer(0,        ShortBuffer.allocate(2 * (this.nbrruns + x.nbrruns)));
+        int rlepos = 0;
+        int xrlepos = 0;
+        int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+        int end = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+        int xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
+        int xend = BufferUtil.toIntUnsigned(x.getValue(xrlepos)) + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
+        while ((rlepos < this.nbrruns ) && (xrlepos < x.nbrruns )) {
+            if (end  <= xstart) {
+                // exit the first run
+                rlepos++;
+                if(rlepos < this.nbrruns ) {
+                    start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+                    end = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+                }
+            } else if (xend <= start) {
+                // exit the second run
+                xrlepos++;
+                if(xrlepos < x.nbrruns ) {
+                    xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
+                    xend = BufferUtil.toIntUnsigned(x.getValue(xrlepos)) + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                }
+            } else {// they overlap
+                final int lateststart = start > xstart ? start : xstart;
+                int earliestend;
+                if(end == xend) {// improbable
+                    earliestend = end;
+                    rlepos++;
+                    xrlepos++;
+                    if(rlepos < this.nbrruns ) {
+                        start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+                        end = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+                    }
+                    if(xrlepos < x.nbrruns) {
+                        xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
+                        xend = BufferUtil.toIntUnsigned(x.getValue(xrlepos)) + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                    }
+                } else if(end < xend) {
+                    earliestend = end;
+                    rlepos++;
+                    if(rlepos < this.nbrruns ) {
+                        start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+                        end = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+                    }
+
+                } else {// end > xend
+                    earliestend = xend;
+                    xrlepos++;
+                    if(xrlepos < x.nbrruns) {
+                        xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
+                        xend = BufferUtil.toIntUnsigned(x.getValue(xrlepos)) + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                    }                
+                }
+                answer.valueslength.put(2 * answer.nbrruns,(short) lateststart);
+                answer.valueslength.put(2 * answer.nbrruns + 1, (short) (earliestend - lateststart - 1));
+                answer.nbrruns++;
+            }
+        }
+        return answer.toEfficientContainer();
+
+        /*double myDensity = getDensity();
         double xDensity = x.getDensity();
         double resultDensityEstimate = myDensity*xDensity;
         return (resultDensityEstimate < ARRAY_MAX_DENSITY ? operationArrayGuess(x, OP_AND) : operationBitmapGuess(x, OP_AND));
+        */
     }
 
 
     @Override
     public MappeableContainer andNot(MappeableRunContainer x) {
+        MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.nbrruns)));
+        int rlepos = 0;
+        int xrlepos = 0;
+        int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+        int end = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+        int xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
+        int xend = BufferUtil.toIntUnsigned(x.getValue(xrlepos)) + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
+        while ((rlepos < this.nbrruns ) && (xrlepos < x.nbrruns )) {
+            if (end  <= xstart) {
+                // output the first run
+                answer.valueslength.put(2 * answer.nbrruns, (short) start);
+                answer.valueslength.put(2 * answer.nbrruns + 1,  (short)(end - start - 1));
+                answer.nbrruns++;
+                rlepos++;
+                if(rlepos < this.nbrruns ) {
+                    start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+                    end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+                }
+            } else if (xend <= start) {
+                // exit the second run
+                xrlepos++;
+                if(xrlepos < x.nbrruns ) {
+                    xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
+                    xend = BufferUtil.toIntUnsigned(x.getValue(xrlepos)) + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                }
+            } else {
+                if ( start < xstart ) {
+                    answer.valueslength.put(2 * answer.nbrruns, (short) start);
+                    answer.valueslength.put(2 * answer.nbrruns + 1, (short) (xstart - start - 1));
+                    answer.nbrruns++;
+                }
+                if(xend < end) {
+                    start = xend;
+                } else {
+                    rlepos++;
+                    if(rlepos < this.nbrruns ) {
+                        start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+                        end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+                    }
+                }
+            }
+        }
+        while(rlepos < this.nbrruns) {
+            answer.valueslength.put(2 * answer.nbrruns, (short) start);
+            answer.valueslength.put(2 * answer.nbrruns + 1, (short)(end - start - 1));
+            answer.nbrruns++;
+            rlepos++;
+            if(rlepos < this.nbrruns ) {
+                start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+                end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+            } 
+        } 
+        return answer.toEfficientContainer();
+
+        /*
         double myDensity = getDensity();
         double xDensity = x.getDensity();
         double resultDensityEstimate = myDensity*(1-xDensity);
-        return (resultDensityEstimate < ARRAY_MAX_DENSITY ? operationArrayGuess(x, OP_ANDNOT) : operationBitmapGuess(x, OP_ANDNOT));
+        return (resultDensityEstimate < ARRAY_MAX_DENSITY ? operationArrayGuess(x, OP_ANDNOT) : operationBitmapGuess(x, OP_ANDNOT));*/
     }
 
     // assume that the (maybe) inplace operations
@@ -1771,18 +1796,240 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
 
     @Override
     public MappeableContainer or(MappeableRunContainer x) {
+        MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.nbrruns)));
+        int rlepos = 0;
+        int xrlepos = 0;
+        int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+        int end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+        int xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
+        int xend = xstart + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
+
+        while ((rlepos < this.nbrruns ) && (xrlepos < x.nbrruns )) {
+            if (end  < xstart) {
+                // output the first run
+                answer.valueslength.put(2 * answer.nbrruns, this.valueslength.get(2 * rlepos));
+                answer.valueslength.put(2 * answer.nbrruns + 1, this.valueslength.get(2 * rlepos + 1));
+                answer.nbrruns++;
+                rlepos++;
+                if(rlepos < this.nbrruns ) {
+                    start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+                    end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+                }
+            } else if (xend < start) {
+                // output the second run
+                answer.valueslength.put(2 * answer.nbrruns, x.valueslength.get(2 * xrlepos));
+                answer.valueslength.put(2 * answer.nbrruns + 1, x.valueslength.get(2 * xrlepos + 1));
+                answer.nbrruns++;
+                xrlepos++;
+                if(xrlepos < x.nbrruns ) {
+                    xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
+                    xend = xstart + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                }
+            } else {// they overlap or are right next to each other
+                final int earlieststart = start < xstart ? start : xstart;
+                int maxend = end < xend ? xend : end;
+                while (true) {
+                    if (end == xend) { // improbable
+                        break;
+                    } else if (end < xend) {
+                        // we can advance the first
+                        rlepos++;
+                        if (rlepos < this.nbrruns) {
+                            start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+                            end = start
+                                    + BufferUtil.toIntUnsigned(this.getLength(rlepos))
+                                    + 1;
+                            if (start < maxend) {
+                                if (end > maxend) {
+                                    maxend = end;
+                                }
+                            } else {
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
+                    } else {// end > xend
+                        // we can advance the second
+                        xrlepos++;
+                        if (xrlepos < x.nbrruns) {
+                            xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
+                            xend = xstart
+                                    + BufferUtil.toIntUnsigned(x.getLength(xrlepos))
+                                    + 1;
+                            if (xstart < maxend) {
+                                if (xend > maxend) {
+                                    maxend = xend;
+                                }
+                            } else {
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+                }
+                if((rlepos < this.nbrruns) && (start < maxend)) {
+                    rlepos++;
+                    if (rlepos < this.nbrruns) {
+                        start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+                        end = start
+                                + BufferUtil.toIntUnsigned(this.getLength(rlepos))
+                                + 1;
+                    }
+                }
+                if((xrlepos < x.nbrruns) && (xstart < maxend)) {
+                    xrlepos++;
+                    if (xrlepos < x.nbrruns) {
+                        xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
+                        xend = xstart
+                                + BufferUtil.toIntUnsigned(x.getLength(xrlepos))
+                                + 1;
+                    }
+                }
+                answer.valueslength.put(2 * answer.nbrruns, (short) earlieststart);
+                answer.valueslength.put(2 * answer.nbrruns + 1, (short) (maxend - earlieststart - 1));
+                answer.nbrruns++;
+            }
+        }
+        while(rlepos < this.nbrruns) {
+            answer.valueslength.put(2 * answer.nbrruns, this.valueslength.get(2 * rlepos));
+            answer.valueslength.put(2 * answer.nbrruns + 1, this.valueslength.get(2 * rlepos + 1));
+            answer.nbrruns++;
+            rlepos++;        
+        } 
+        while(xrlepos < x.nbrruns) {
+            answer.valueslength.put(2 * answer.nbrruns, x.valueslength.get(2 * xrlepos));
+            answer.valueslength.put(2 * answer.nbrruns + 1, x.valueslength.get(2 * xrlepos + 1));
+            answer.nbrruns++;
+            xrlepos++;
+        }
+        return answer;
+
+        /*
         double myDensity = getDensity();
         double xDensity = x.getDensity();
         double resultDensityEstimate = 1- (1-myDensity)*(1-xDensity);
         return (resultDensityEstimate < ARRAY_MAX_DENSITY ? operationArrayGuess(x, OP_OR) : operationBitmapGuess(x, OP_OR));
+        */
     }
 
     @Override
     public MappeableContainer xor(MappeableRunContainer x) {
-        double myDensity = getDensity();
+        MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.nbrruns)));
+        int rlepos = 0;
+        int xrlepos = 0;
+        int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+        int end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+        int xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
+        int xend = xstart + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
+
+        while ((rlepos < this.nbrruns ) && (xrlepos < x.nbrruns )) {
+            if (end  <= xstart) {
+                // output the first run
+                answer.valueslength.put(2 * answer.nbrruns, this.valueslength.get(2 * rlepos));
+                answer.valueslength.put(2 * answer.nbrruns + 1, this.valueslength.get(2 * rlepos + 1));
+                answer.nbrruns++;
+                rlepos++;
+                if(rlepos < this.nbrruns ) {
+                    start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+                    end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+                }
+            } else if (xend <= start) {
+                // output the second run
+                answer.valueslength.put(2 * answer.nbrruns, x.valueslength.get(2 * xrlepos));
+                answer.valueslength.put(2 * answer.nbrruns + 1, x.valueslength.get(2 * xrlepos + 1));
+                answer.nbrruns++;
+                xrlepos++;
+                if(xrlepos < x.nbrruns ) {
+                    xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
+                    xend = xstart + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                }
+            } else {// they overlap
+                int startpoint = start < xstart ? start : xstart;
+                do {
+                    if( startpoint < xstart ) {
+                        answer.valueslength.put(2 * answer.nbrruns, (short) startpoint);
+                        answer.valueslength.put(2 * answer.nbrruns + 1, (short) (xstart - startpoint - 1));
+                        answer.nbrruns++;
+
+                    } else if(startpoint < start) {
+                        answer.valueslength.put(2 * answer.nbrruns, (short) startpoint);
+                        answer.valueslength.put(2 * answer.nbrruns + 1, (short) (start - startpoint - 1));
+                        answer.nbrruns++;                
+                    }
+                    if(end == xend) {// improbable
+                        startpoint = end;
+                        rlepos++;
+                        xrlepos++;
+                        if(rlepos < this.nbrruns ) {
+                            start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+                            end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+                        }
+                        if(xrlepos < x.nbrruns) {
+                            xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
+                            xend = xstart + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                        }
+                        break;
+                    } else if(end < xend) {
+                        startpoint = end;
+                        rlepos++;
+                        if(rlepos < this.nbrruns ) {
+                            start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+                            end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+                            if(start >= xend) break;
+                        } else break;
+
+                    } else {// end > xend
+                        startpoint =  xend;
+                        xrlepos++;
+                        if(xrlepos < x.nbrruns) {
+                            xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
+                            xend = xstart + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                            if(xstart >= end) break;
+                        } else break;               
+                    }
+
+
+                } while (true);
+                if((start < startpoint) && (startpoint < end)) {
+                    answer.valueslength.put(2 * answer.nbrruns, (short) startpoint);
+                    answer.valueslength.put(2 * answer.nbrruns + 1, (short) (end - startpoint - 1));
+                    answer.nbrruns++;                
+                    rlepos++;
+                    if(rlepos < this.nbrruns ) {
+                        start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+                        end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+                    }
+                } else if((xstart < startpoint) && (startpoint < xend) ){
+                    answer.valueslength.put(2 * answer.nbrruns, (short) startpoint);
+                    answer.valueslength.put(2 * answer.nbrruns + 1, (short) (xend - startpoint - 1));
+                    answer.nbrruns++;                
+                    xrlepos++;
+                    if(xrlepos < x.nbrruns) {
+                        xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
+                        xend = xstart + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                    } 
+                }
+            }
+        }
+        while(rlepos < this.nbrruns) {
+            answer.valueslength.put(2 * answer.nbrruns, this.valueslength.get(2 * rlepos));
+            answer.valueslength.put(2 * answer.nbrruns + 1, this.valueslength.get(2 * rlepos + 1));
+            answer.nbrruns++;
+            rlepos++;        
+        } 
+        while(xrlepos < x.nbrruns) {
+            answer.valueslength.put(2 * answer.nbrruns, x.valueslength.get(2 * xrlepos));
+            answer.valueslength.put(2 * answer.nbrruns + 1, x.valueslength.get(2 * xrlepos + 1));
+            answer.nbrruns++;
+            xrlepos++;
+        }
+        return answer.toEfficientContainer();
+        /*double myDensity = getDensity();
         double xDensity = x.getDensity();
         double resultDensityEstimate = 1- (1-myDensity)*(1-xDensity)  - myDensity*xDensity;  // I guess
-        return (resultDensityEstimate < ARRAY_MAX_DENSITY ? operationArrayGuess(x, OP_XOR) : operationBitmapGuess(x, OP_XOR));
+        return (resultDensityEstimate < ARRAY_MAX_DENSITY ? operationArrayGuess(x, OP_XOR) : operationBitmapGuess(x, OP_XOR));*/
     }
 
 }
