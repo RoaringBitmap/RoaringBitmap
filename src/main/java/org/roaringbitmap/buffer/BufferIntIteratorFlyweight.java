@@ -94,7 +94,7 @@ public class BufferIntIteratorFlyweight implements IntIterator {
 
     @Override
     public int next() {
-        int x = BufferUtil.toIntUnsigned(iter.next()) | hs;
+        int x = iter.nextAsInt() | hs;
         if (!iter.hasNext()) {
             ++pos;
             nextContainer();

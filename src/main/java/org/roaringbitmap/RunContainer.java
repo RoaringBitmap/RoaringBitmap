@@ -1482,16 +1482,16 @@ public class RunContainer extends Container implements Cloneable {
                 }
             }
         }
-        while(rlepos < this.nbrruns) {
+        if(rlepos < this.nbrruns) {
             answer.valueslength[2 * answer.nbrruns] = (short) start;
             answer.valueslength[2 * answer.nbrruns + 1] = (short)(end - start - 1);
             answer.nbrruns++;
             rlepos++;
             if(rlepos < this.nbrruns ) {
-                start = Util.toIntUnsigned(this.getValue(rlepos));
-                end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+                System.arraycopy(this.valueslength, 2 * rlepos, answer.valueslength, 2 * answer.nbrruns, 2*(this.nbrruns-rlepos ));
+                answer.nbrruns  = answer.nbrruns + this.nbrruns - rlepos;
             } 
-        } 
+        }
         return answer.toEfficientContainer();
         /*double myDensity = getDensity();
         double xDensity = x.getDensity();
@@ -1627,17 +1627,13 @@ public class RunContainer extends Container implements Cloneable {
                 answer.nbrruns++;
             }
         }
-        while(rlepos < this.nbrruns) {
-            answer.valueslength[2 * answer.nbrruns] = this.valueslength[2 * rlepos];
-            answer.valueslength[2 * answer.nbrruns + 1] = this.valueslength[2 * rlepos + 1];
-            answer.nbrruns++;
-            rlepos++;        
-        } 
-        while(xrlepos < x.nbrruns) {
-            answer.valueslength[2 * answer.nbrruns] = x.valueslength[2 * xrlepos];
-            answer.valueslength[2 * answer.nbrruns + 1] = x.valueslength[2 * xrlepos + 1];
-            answer.nbrruns++;
-            xrlepos++;
+        if(rlepos < this.nbrruns) {
+            System.arraycopy(this.valueslength, 2 * rlepos, answer.valueslength, 2 * answer.nbrruns, 2*(this.nbrruns-rlepos ));
+            answer.nbrruns = answer.nbrruns + this.nbrruns - rlepos;
+        }
+        if(xrlepos < x.nbrruns) {
+            System.arraycopy(x.valueslength, 2 * xrlepos, answer.valueslength, 2 * answer.nbrruns, 2*(x.nbrruns-xrlepos ));
+            answer.nbrruns = answer.nbrruns + x.nbrruns - xrlepos;
         }
         return answer;
 
@@ -1756,6 +1752,15 @@ public class RunContainer extends Container implements Cloneable {
                 }
             }
         }
+        if(rlepos < this.nbrruns) {
+            System.arraycopy(this.valueslength, 2 * rlepos, answer.valueslength, 2 * answer.nbrruns, 2*(this.nbrruns-rlepos ));
+            answer.nbrruns = answer.nbrruns + this.nbrruns - rlepos;
+        }
+        if(xrlepos < x.nbrruns) {
+            System.arraycopy(x.valueslength, 2 * xrlepos, answer.valueslength, 2 * answer.nbrruns, 2*(x.nbrruns-xrlepos ));
+            answer.nbrruns = answer.nbrruns + x.nbrruns - xrlepos;
+        }
+        /*
         while(rlepos < this.nbrruns) {
             answer.valueslength[2 * answer.nbrruns] = this.valueslength[2 * rlepos];
             answer.valueslength[2 * answer.nbrruns + 1] = this.valueslength[2 * rlepos + 1];
@@ -1767,7 +1772,7 @@ public class RunContainer extends Container implements Cloneable {
             answer.valueslength[2 * answer.nbrruns + 1] = x.valueslength[2 * xrlepos + 1];
             answer.nbrruns++;
             xrlepos++;
-        }
+        }*/
         return answer.toEfficientContainer();
         /*
         double myDensity = getDensity();

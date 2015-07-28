@@ -71,8 +71,6 @@ public class BufferReverseIntIteratorFlyweight implements IntIterator {
 
    private void nextContainer() {
 
-
-
       if (pos >= 0) {
 
           MappeableContainer container = this.roaringBitmap.highLowContainer.getContainerAtIndex(pos);
@@ -94,7 +92,7 @@ public class BufferReverseIntIteratorFlyweight implements IntIterator {
 
    @Override
    public int next() {
-      final int x = BufferUtil.toIntUnsigned(iter.next()) | hs;
+      final int x = iter.nextAsInt() | hs;
       if (!iter.hasNext()) {
          --pos;
          nextContainer();

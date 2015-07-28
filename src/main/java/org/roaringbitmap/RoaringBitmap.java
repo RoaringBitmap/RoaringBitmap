@@ -6,6 +6,7 @@
 package org.roaringbitmap;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -1149,8 +1150,6 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
         private int pos = 0;
 
-        private int x;
-
         private RoaringIntIterator() {
             nextContainer();
         }
@@ -1169,7 +1168,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
         @Override
         public int next() {
-            x = iter.nextAsInt() | hs;
+            final int x = iter.nextAsInt() | hs;
             if (!iter.hasNext()) {
                 ++pos;
                 nextContainer();
@@ -1193,7 +1192,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     private final class RoaringReverseIntIterator implements IntIterator {
 
         int hs = 0;
+
         ShortIterator iter;
+        
         // don't need an int because we go to 0, not Short.MAX_VALUE, and signed shorts underflow well below zero
         short pos = (short) (RoaringBitmap.this.highLowContainer.size() - 1);
 

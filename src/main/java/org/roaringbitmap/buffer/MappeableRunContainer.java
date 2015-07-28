@@ -492,42 +492,6 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
     }
 
 
-    // TODO: kept temporarily for perf. testing
-    public MappeableContainer andNotold(MappeableBitmapContainer x) {
-        /*
-        BitmapContainer answer = x.clone();
-        int lastPos = 0;
-        for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
-            int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-            int end = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
-            Util.resetBitmapRange(answer.bitmap, lastPos, start); 
-            Util.flipBitmapRange(answer.bitmap, start, end);
-            lastPos = end;
-        }
-        Util.resetBitmapRange(answer.bitmap, lastPos, answer.bitmap.length*64);
-        answer.computeCardinality();
-        if (answer.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
-            return answer;
-        else
-            return answer.toArrayContainer();
-        */
-
-        MappeableBitmapContainer answer = x.clone();
-        int lastPos = 0;
-        for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
-            int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-            int end = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
-            BufferUtil.resetBitmapRange(answer.bitmap, lastPos, start); 
-            BufferUtil.flipBitmapRange(answer.bitmap, start, end);
-            lastPos = end;
-        }
-        BufferUtil.resetBitmapRange(answer.bitmap, lastPos, answer.bitmap.capacity()*64);
-        answer.computeCardinality();
-        if (answer.getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE)
-            return answer;
-        else
-            return answer.toArrayContainer();
-    }
     
     @Override
     public MappeableContainer andNot(MappeableBitmapContainer x) {
@@ -1640,6 +1604,7 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
     @Override
     public MappeableContainer and(MappeableRunContainer x) {
         MappeableRunContainer answer = new MappeableRunContainer(0,        ShortBuffer.allocate(2 * (this.nbrruns + x.nbrruns)));
+        short[] vl = answer.valueslength.array();
         int rlepos = 0;
         int xrlepos = 0;
         int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
@@ -1692,8 +1657,8 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
                         xend = BufferUtil.toIntUnsigned(x.getValue(xrlepos)) + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
                     }                
                 }
-                answer.valueslength.put(2 * answer.nbrruns,(short) lateststart);
-                answer.valueslength.put(2 * answer.nbrruns + 1, (short) (earliestend - lateststart - 1));
+                vl[2 * answer.nbrruns] = (short) lateststart;
+                vl[2 * answer.nbrruns + 1] =  (short) (earliestend - lateststart - 1);
                 answer.nbrruns++;
             }
         }
@@ -1710,6 +1675,7 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
     @Override
     public MappeableContainer andNot(MappeableRunContainer x) {
         MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.nbrruns)));
+        short[] vl = answer.valueslength.array();
         int rlepos = 0;
         int xrlepos = 0;
         int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
@@ -1719,8 +1685,8 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
         while ((rlepos < this.nbrruns ) && (xrlepos < x.nbrruns )) {
             if (end  <= xstart) {
                 // output the first run
-                answer.valueslength.put(2 * answer.nbrruns, (short) start);
-                answer.valueslength.put(2 * answer.nbrruns + 1,  (short)(end - start - 1));
+                vl[2 * answer.nbrruns] =  (short) start;
+                vl[2 * answer.nbrruns + 1] =   (short)(end - start - 1);
                 answer.nbrruns++;
                 rlepos++;
                 if(rlepos < this.nbrruns ) {
@@ -1736,8 +1702,8 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
                 }
             } else {
                 if ( start < xstart ) {
-                    answer.valueslength.put(2 * answer.nbrruns, (short) start);
-                    answer.valueslength.put(2 * answer.nbrruns + 1, (short) (xstart - start - 1));
+                    vl[2 * answer.nbrruns] =  (short) start;
+                    vl[2 * answer.nbrruns + 1] =  (short) (xstart - start - 1);
                     answer.nbrruns++;
                 }
                 if(xend < end) {
@@ -1751,15 +1717,16 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
                 }
             }
         }
-        while(rlepos < this.nbrruns) {
-            answer.valueslength.put(2 * answer.nbrruns, (short) start);
-            answer.valueslength.put(2 * answer.nbrruns + 1, (short)(end - start - 1));
+        if(rlepos < this.nbrruns) {
+            vl[2 * answer.nbrruns] =  (short) start;
+            vl[2 * answer.nbrruns + 1] =  (short)(end - start - 1);
             answer.nbrruns++;
             rlepos++;
-            if(rlepos < this.nbrruns ) {
-                start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-                end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
-            } 
+            if(rlepos < this.nbrruns) {                
+              this.valueslength.position(2 * rlepos);
+              this.valueslength.get(vl, 2 * answer.nbrruns, 2*(this.nbrruns-rlepos ));
+              answer.nbrruns  = answer.nbrruns + this.nbrruns - rlepos;
+            }
         } 
         return answer.toEfficientContainer();
 
@@ -1797,6 +1764,7 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
     @Override
     public MappeableContainer or(MappeableRunContainer x) {
         MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.nbrruns)));
+        short[] vl = answer.valueslength.array();
         int rlepos = 0;
         int xrlepos = 0;
         int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
@@ -1807,8 +1775,8 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
         while ((rlepos < this.nbrruns ) && (xrlepos < x.nbrruns )) {
             if (end  < xstart) {
                 // output the first run
-                answer.valueslength.put(2 * answer.nbrruns, this.valueslength.get(2 * rlepos));
-                answer.valueslength.put(2 * answer.nbrruns + 1, this.valueslength.get(2 * rlepos + 1));
+                vl[2 * answer.nbrruns] = this.valueslength.get(2 * rlepos);
+                vl[2 * answer.nbrruns + 1] = this.valueslength.get(2 * rlepos + 1);
                 answer.nbrruns++;
                 rlepos++;
                 if(rlepos < this.nbrruns ) {
@@ -1817,8 +1785,8 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
                 }
             } else if (xend < start) {
                 // output the second run
-                answer.valueslength.put(2 * answer.nbrruns, x.valueslength.get(2 * xrlepos));
-                answer.valueslength.put(2 * answer.nbrruns + 1, x.valueslength.get(2 * xrlepos + 1));
+                vl[2 * answer.nbrruns] = x.valueslength.get(2 * xrlepos);
+                vl[2 * answer.nbrruns + 1] = x.valueslength.get(2 * xrlepos + 1);
                 answer.nbrruns++;
                 xrlepos++;
                 if(xrlepos < x.nbrruns ) {
@@ -1887,22 +1855,20 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
                                 + 1;
                     }
                 }
-                answer.valueslength.put(2 * answer.nbrruns, (short) earlieststart);
-                answer.valueslength.put(2 * answer.nbrruns + 1, (short) (maxend - earlieststart - 1));
+                vl[2 * answer.nbrruns] = (short) earlieststart;
+                vl[2 * answer.nbrruns + 1] = (short) (maxend - earlieststart - 1);
                 answer.nbrruns++;
             }
         }
-        while(rlepos < this.nbrruns) {
-            answer.valueslength.put(2 * answer.nbrruns, this.valueslength.get(2 * rlepos));
-            answer.valueslength.put(2 * answer.nbrruns + 1, this.valueslength.get(2 * rlepos + 1));
-            answer.nbrruns++;
-            rlepos++;        
-        } 
-        while(xrlepos < x.nbrruns) {
-            answer.valueslength.put(2 * answer.nbrruns, x.valueslength.get(2 * xrlepos));
-            answer.valueslength.put(2 * answer.nbrruns + 1, x.valueslength.get(2 * xrlepos + 1));
-            answer.nbrruns++;
-            xrlepos++;
+        if(rlepos < this.nbrruns) {
+            this.valueslength.position(2 * rlepos);
+            this.valueslength.get(vl, 2 * answer.nbrruns, (this.nbrruns - rlepos) * 2 );
+            answer.nbrruns = answer.nbrruns + this.nbrruns - rlepos;
+        }
+        if(xrlepos < x.nbrruns) {
+            x.valueslength.position(2 * xrlepos);
+            x.valueslength.get(vl, 2 * answer.nbrruns, (x.nbrruns - xrlepos) * 2 );
+            answer.nbrruns = answer.nbrruns + x.nbrruns - xrlepos;
         }
         return answer;
 
@@ -1917,6 +1883,7 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
     @Override
     public MappeableContainer xor(MappeableRunContainer x) {
         MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.nbrruns)));
+        short[] vl = answer.valueslength.array();
         int rlepos = 0;
         int xrlepos = 0;
         int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
@@ -1927,8 +1894,8 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
         while ((rlepos < this.nbrruns ) && (xrlepos < x.nbrruns )) {
             if (end  <= xstart) {
                 // output the first run
-                answer.valueslength.put(2 * answer.nbrruns, this.valueslength.get(2 * rlepos));
-                answer.valueslength.put(2 * answer.nbrruns + 1, this.valueslength.get(2 * rlepos + 1));
+                vl[2 * answer.nbrruns] = this.valueslength.get(2 * rlepos);
+                vl[2 * answer.nbrruns + 1] = this.valueslength.get(2 * rlepos + 1);
                 answer.nbrruns++;
                 rlepos++;
                 if(rlepos < this.nbrruns ) {
@@ -1937,8 +1904,8 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
                 }
             } else if (xend <= start) {
                 // output the second run
-                answer.valueslength.put(2 * answer.nbrruns, x.valueslength.get(2 * xrlepos));
-                answer.valueslength.put(2 * answer.nbrruns + 1, x.valueslength.get(2 * xrlepos + 1));
+                vl[2 * answer.nbrruns] = x.valueslength.get(2 * xrlepos);
+                vl[2 * answer.nbrruns + 1] = x.valueslength.get(2 * xrlepos + 1);
                 answer.nbrruns++;
                 xrlepos++;
                 if(xrlepos < x.nbrruns ) {
@@ -1949,13 +1916,13 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
                 int startpoint = start < xstart ? start : xstart;
                 do {
                     if( startpoint < xstart ) {
-                        answer.valueslength.put(2 * answer.nbrruns, (short) startpoint);
-                        answer.valueslength.put(2 * answer.nbrruns + 1, (short) (xstart - startpoint - 1));
+                        vl[2 * answer.nbrruns] = (short) startpoint;
+                        vl[2 * answer.nbrruns + 1] = (short) (xstart - startpoint - 1);
                         answer.nbrruns++;
 
                     } else if(startpoint < start) {
-                        answer.valueslength.put(2 * answer.nbrruns, (short) startpoint);
-                        answer.valueslength.put(2 * answer.nbrruns + 1, (short) (start - startpoint - 1));
+                        vl[2 * answer.nbrruns] = (short) startpoint;
+                        vl[2 * answer.nbrruns + 1] = (short) (start - startpoint - 1);
                         answer.nbrruns++;                
                     }
                     if(end == xend) {// improbable
@@ -1993,8 +1960,8 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
 
                 } while (true);
                 if((start < startpoint) && (startpoint < end)) {
-                    answer.valueslength.put(2 * answer.nbrruns, (short) startpoint);
-                    answer.valueslength.put(2 * answer.nbrruns + 1, (short) (end - startpoint - 1));
+                    vl[2 * answer.nbrruns] = (short) startpoint;
+                    vl[2 * answer.nbrruns + 1] = (short) (end - startpoint - 1);
                     answer.nbrruns++;                
                     rlepos++;
                     if(rlepos < this.nbrruns ) {
@@ -2002,8 +1969,8 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
                         end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
                     }
                 } else if((xstart < startpoint) && (startpoint < xend) ){
-                    answer.valueslength.put(2 * answer.nbrruns, (short) startpoint);
-                    answer.valueslength.put(2 * answer.nbrruns + 1, (short) (xend - startpoint - 1));
+                    vl[2 * answer.nbrruns] = (short) startpoint;
+                    vl[2 * answer.nbrruns + 1] = (short) (xend - startpoint - 1);
                     answer.nbrruns++;                
                     xrlepos++;
                     if(xrlepos < x.nbrruns) {
@@ -2013,17 +1980,15 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
                 }
             }
         }
-        while(rlepos < this.nbrruns) {
-            answer.valueslength.put(2 * answer.nbrruns, this.valueslength.get(2 * rlepos));
-            answer.valueslength.put(2 * answer.nbrruns + 1, this.valueslength.get(2 * rlepos + 1));
-            answer.nbrruns++;
-            rlepos++;        
-        } 
-        while(xrlepos < x.nbrruns) {
-            answer.valueslength.put(2 * answer.nbrruns, x.valueslength.get(2 * xrlepos));
-            answer.valueslength.put(2 * answer.nbrruns + 1, x.valueslength.get(2 * xrlepos + 1));
-            answer.nbrruns++;
-            xrlepos++;
+        if(rlepos < this.nbrruns) {
+            this.valueslength.position(2 * rlepos);
+            this.valueslength.get(vl, 2 * answer.nbrruns, (this.nbrruns - rlepos) * 2 );
+            answer.nbrruns = answer.nbrruns + this.nbrruns - rlepos;
+        }
+        if(xrlepos < x.nbrruns) {
+            x.valueslength.position(2 * xrlepos);
+            x.valueslength.get(vl, 2 * answer.nbrruns, (x.nbrruns - xrlepos) * 2 );
+            answer.nbrruns = answer.nbrruns + x.nbrruns - xrlepos;
         }
         return answer.toEfficientContainer();
         /*double myDensity = getDensity();

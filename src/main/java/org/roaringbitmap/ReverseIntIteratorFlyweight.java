@@ -89,7 +89,7 @@ public class ReverseIntIteratorFlyweight implements IntIterator {
 
    @Override
    public int next() {
-      final int x = Util.toIntUnsigned(iter.next()) | hs;
+      final int x = iter.nextAsInt() | hs;
       if (!iter.hasNext()) {
          --pos;
          nextContainer();
