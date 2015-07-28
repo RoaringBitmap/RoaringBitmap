@@ -509,7 +509,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
 
             @Override
             public Integer next() {
-                x = BufferUtil.toIntUnsigned(iter.next()) | hs;
+                x = iter.nextAsInt() | hs;
                 if (!iter.hasNext()) {
                     ++pos;
                     init();
@@ -647,7 +647,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
 
         @Override
         public int next() {
-            int x = BufferUtil.toIntUnsigned(iter.next()) | hs;
+            int x = iter.nextAsInt() | hs;
             if (!iter.hasNext()) {
                 cp.advance();
                 nextContainer();
@@ -700,7 +700,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
 
         @Override
         public int next() {
-            int x = BufferUtil.toIntUnsigned(iter.next()) | hs;
+            int x = iter.nextAsInt() | hs;
             if (!iter.hasNext()) {
                 cp.previous();
                 nextContainer();

@@ -1012,6 +1012,14 @@ final class BitmapContainerShortIterator implements ShortIterator {
         return (short) j;
     }
 
+
+    @Override
+    public int nextAsInt() {
+        final int j = i;
+        i = i + 1 < parent.bitmap.length * 64 ? parent.nextSetBit(i + 1) : -1;
+        return j;
+    }
+    
     @Override
     public ShortIterator clone() {
         try {
@@ -1059,6 +1067,12 @@ final class ReverseBitmapContainerShortIterator implements ShortIterator {
         return (short) j;
     }
 
+    @Override
+    public int nextAsInt() {
+        final int j = i;
+        i = i > 0 ? parent.prevSetBit(i - 1) : -1;
+        return j;
+    }
     @Override
     public ShortIterator clone() {
         try {

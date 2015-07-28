@@ -2089,6 +2089,20 @@ final class MappeableRunContainerShortIterator implements ShortIterator {
     }
 
     @Override
+    public int nextAsInt() {
+        int ans = base + le;
+        le++;
+        if(le > maxlength) {
+            pos++;
+            le = 0;
+            if(pos < parent.nbrruns) {
+                maxlength = BufferUtil.toIntUnsigned(parent.getLength(pos));
+                base = BufferUtil.toIntUnsigned(parent.getValue(pos));
+            }
+        }
+        return ans;
+    }
+    @Override
     public void remove() {
         throw new RuntimeException("Not implemented");// TODO
     }
@@ -2148,6 +2162,20 @@ final class ReverseMappeableRunContainerShortIterator implements ShortIterator {
         return ans;
     }
 
+    @Override
+    public int nextAsInt() {
+        int ans = base + maxlength - le;
+        le++;
+        if(le > maxlength) {
+            pos--;
+            le = 0;
+            if(pos >= 0) {
+                maxlength = BufferUtil.toIntUnsigned(parent.getLength(pos));
+                base = BufferUtil.toIntUnsigned(parent.getValue(pos));
+            }
+        }
+        return ans;
+    }
     @Override
     public void remove() {
         throw new RuntimeException("Not implemented");// TODO

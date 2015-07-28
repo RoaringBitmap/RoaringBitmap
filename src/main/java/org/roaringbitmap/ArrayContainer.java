@@ -932,6 +932,11 @@ final class ArrayContainerShortIterator implements ShortIterator {
     public short next() {
         return parent.content[pos++];
     }
+
+    @Override
+    public int nextAsInt() {
+        return Util.toIntUnsigned(parent.content[pos++]);
+    }
     
     @Override
     public ShortIterator clone() {
@@ -975,7 +980,13 @@ final class ReverseArrayContainerShortIterator implements ShortIterator {
     public short next() {
         return parent.content[pos--];
     }
-
+    
+    
+    @Override
+    public int nextAsInt() {
+        return Util.toIntUnsigned(parent.content[pos--]);
+    }
+    
     @Override
     public ShortIterator clone() {
         try {

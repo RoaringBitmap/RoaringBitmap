@@ -848,7 +848,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
             @Override
             public Integer next() {
-                x = Util.toIntUnsigned(iter.next()) | hs;
+                x = iter.nextAsInt() | hs;
                 if (!iter.hasNext()) {
                     ++pos;
                     init();
@@ -1169,7 +1169,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
         @Override
         public int next() {
-            x = Util.toIntUnsigned(iter.next()) | hs;
+            x = iter.nextAsInt() | hs;
             if (!iter.hasNext()) {
                 ++pos;
                 nextContainer();
@@ -1215,7 +1215,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
         @Override
         public int next() {
-            final int x = Util.toIntUnsigned(iter.next()) | hs;
+            final int x = iter.nextAsInt() | hs;
             if (!iter.hasNext()) {
                 --pos;
                 nextContainer();

@@ -1203,6 +1203,12 @@ final class MappeableArrayContainerShortIterator implements ShortIterator {
     }
 
     @Override
+    public int nextAsInt() {
+        return BufferUtil.toIntUnsigned(parent.content.get(pos++));
+    }
+
+    
+    @Override
     public ShortIterator clone() {
         try {
             return (ShortIterator) super.clone();
@@ -1248,7 +1254,13 @@ final class ReverseMappeableArrayContainerShortIterator implements ShortIterator
     public short next() {
         return parent.content.get(pos--);
     }
+    
 
+    @Override
+    public int nextAsInt() {
+        return BufferUtil.toIntUnsigned(parent.content.get(pos--));
+    }
+    
     @Override
     public ShortIterator clone() {
         try {

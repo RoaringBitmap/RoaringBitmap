@@ -1423,6 +1423,13 @@ final class MappeableBitmapContainerShortIterator implements ShortIterator {
     }
 
     @Override
+    public int nextAsInt() {
+        final int j = i;
+        i = i + 1 < parent.bitmap.limit() * 64 ? parent.nextSetBit(i + 1) : -1;
+        return j;
+    }
+    
+    @Override
     public ShortIterator clone() {
         try {
             return (ShortIterator) super.clone();
@@ -1469,6 +1476,14 @@ final class ReverseMappeableBitmapContainerShortIterator implements ShortIterato
         return (short) j;
     }
 
+
+    @Override
+    public int nextAsInt() {
+        final int j = i;
+        i = i > 0 ? parent.prevSetBit(i - 1) : -1;
+        return j;
+    }
+    
     @Override
     public ShortIterator clone() {
         try {

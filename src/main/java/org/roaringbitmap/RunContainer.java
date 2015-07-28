@@ -1834,6 +1834,21 @@ final class RunContainerShortIterator implements ShortIterator {
     }
 
     @Override
+    public int nextAsInt() {
+        int ans = base + le;
+        le++;
+        if(le > maxlength) {
+            pos++;
+            le = 0;
+            if(pos < parent.nbrruns) {
+                maxlength = Util.toIntUnsigned(parent.getLength(pos));
+                base = Util.toIntUnsigned(parent.getValue(pos));
+            }
+        }
+        return ans;
+    }
+
+    @Override
     public void remove() {
         throw new RuntimeException("Not implemented");// TODO
     }
@@ -1881,6 +1896,21 @@ final class ReverseRunContainerShortIterator implements ShortIterator {
     @Override
     public short next() {
         short ans = (short) (base + maxlength - le);
+        le++;
+        if(le > maxlength) {
+            pos--;
+            le = 0;
+            if(pos >= 0) {
+                maxlength = Util.toIntUnsigned(parent.getLength(pos));
+                base = Util.toIntUnsigned(parent.getValue(pos));
+            }
+        }
+        return ans;
+    }
+    
+    @Override
+    public int nextAsInt() {
+        int ans = base + maxlength - le;
         le++;
         if(le > maxlength) {
             pos--;

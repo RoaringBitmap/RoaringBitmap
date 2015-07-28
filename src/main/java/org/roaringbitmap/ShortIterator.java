@@ -21,6 +21,11 @@ public interface ShortIterator  extends Cloneable {
     
 
     /**
+     * @return next short value as int value (using the least significant 16 bits)
+     */
+    int nextAsInt();
+    
+    /**
      * Creates a copy of the iterator.
      * 
      * @return a clone of the current iterator
