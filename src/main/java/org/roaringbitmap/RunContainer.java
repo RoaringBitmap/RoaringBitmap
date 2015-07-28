@@ -1820,7 +1820,7 @@ final class RunContainerShortIterator implements ShortIterator {
 
     @Override
     public short next() {
-        short ans = (short) (parent.getValue(pos) + le);
+        short ans = (short) (base + le);
         le++;
         if(le > maxlength) {
             pos++;
