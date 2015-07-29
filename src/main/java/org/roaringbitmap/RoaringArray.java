@@ -352,14 +352,13 @@ public final class RoaringArray implements Cloneable, Externalizable {
         if (hasRunContainer()) {
             out.writeInt(Integer.reverseBytes(SERIAL_COOKIE));
             out.writeInt(Integer.reverseBytes(size));
-            int [] bitmapOfRunContainers = new int[ (size+31)/32];
+            byte [] bitmapOfRunContainers = new byte[ (size+7)/8];
             for (int i=0; i < size; ++i)
                 if (this.values[i] instanceof RunContainer) {
-                    bitmapOfRunContainers[ i/32] |= (1 << (i%32));
+                    bitmapOfRunContainers[ i/8] |= (1 << (i%8));
                 }
-            for (int i=0; i < bitmapOfRunContainers.length; ++i)
-                out.writeInt(Integer.reverseBytes(bitmapOfRunContainers[i]));
-            startOffset = 4 + 4 + 4*this.size + 4*this.size + 4*bitmapOfRunContainers.length;
+            out.write(bitmapOfRunContainers);
+            startOffset = 4 + 4 + 4*this.size + 4*this.size + bitmapOfRunContainers.length;
         }
         else {  // backwards compatibility
             out.writeInt(Integer.reverseBytes(SERIAL_COOKIE_NO_RUNCONTAINER));
@@ -371,17 +370,9 @@ public final class RoaringArray implements Cloneable, Externalizable {
             out.writeShort(Short.reverseBytes((short) ((this.values[k].getCardinality() - 1))));
         }
         //writing the containers offsets
-
         for(int k=0; k<this.size; k++){
             out.writeInt(Integer.reverseBytes(startOffset));
-            // using the BufferUtil version seems risky, as things will break if
-            // MappableArrayContainer.DEFAULT_MAX_SIZE were set different from ArrayContainer(?)
-            //was: startOffset=startOffset+BufferUtil.getSizeInBytesFromCardinality(this.array[k].value.getCardinality());
-            // just ask the container its  array size?  Need something that works for RunContainers too.
-            // Owen's code below matches that already in MutableRoaringArray
-
             startOffset = startOffset+this.values[k].getArraySizeInBytes();
-
         }
         for (int k = 0; k < size; ++k) {
             values[k].writeArray(out);
@@ -402,7 +393,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
         // if there are any RunContainers, the size will be larger....if you ask before and after
         // the RunContainer exists, all else being equal, you will get different answers...is this ok?
         if (hasRunContainer())
-            count += 4*((size+31)/32);
+            count += (size+7)/8;
         return count;
     }
 
@@ -426,11 +417,10 @@ public final class RoaringArray implements Cloneable, Externalizable {
         }
 
 
-        int [] bitmapOfRunContainers = null;
+        byte [] bitmapOfRunContainers = null;
         if (cookie == SERIAL_COOKIE) {
-            bitmapOfRunContainers = new int[ (size+31)/32];
-            for (int i=0; i < bitmapOfRunContainers.length; ++i)
-                bitmapOfRunContainers[i] = Integer.reverseBytes(in.readInt());
+            bitmapOfRunContainers = new byte[ (size+7)/8];
+            in.readFully(bitmapOfRunContainers);
         }
 
         final short keys[] = new short[this.size];
@@ -442,7 +432,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
             isBitmap[k] = cardinalities[k] > ArrayContainer.DEFAULT_MAX_SIZE;
             if (bitmapOfRunContainers != null &&
-                ( bitmapOfRunContainers[k/32] & (1<<(k%32))) != 0) {
+                ( bitmapOfRunContainers[k/8] & (1<<(k%8))) != 0) {
                 isBitmap[k] = false;
             }
         }
@@ -459,7 +449,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
                 }
                 val = new BitmapContainer(bitmapArray, cardinalities[k]);
             } else
-                if (bitmapOfRunContainers != null && ((bitmapOfRunContainers[k/32] & (1<<(k%32))) != 0)) {
+                if (bitmapOfRunContainers != null && ((bitmapOfRunContainers[k/8] & (1<<(k%8))) != 0)) {
                     // cf RunContainer.writeArray()
                     int nbrruns = Util.toIntUnsigned(Short.reverseBytes(in.readShort()));
                     final short lengthsAndValues [] = new short[2*nbrruns];

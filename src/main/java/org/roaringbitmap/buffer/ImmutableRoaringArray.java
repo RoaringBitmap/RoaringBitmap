@@ -65,23 +65,21 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         hasRunContainers = (cookie == SERIAL_COOKIE); 
         this.size = buffer.getInt();
         if (hasRunContainers) {
-            startofkeyscardinalities += 4* (( this.size+31)/32);  // account for Runcontainers bitmap
+            startofkeyscardinalities +=  (( this.size+7)/8);  // account for Runcontainers bitmap
         }
         int theLimit = computeSerializedSizeInBytes();
         buffer.limit(theLimit);
     }
 
    
-        private boolean isRunContainer( int i) {
+    private boolean isRunContainer(int i) {
         if (hasRunContainers) { // info is in the buffer
-            int j = buffer.getInt(startofrunbitmap+4*(i/32));
-            int mask = 1<<(i&31);
+            int j = buffer.get(startofrunbitmap + i / 8);
+            int mask = 1 << (i % 8);
             return (j & mask) != 0;
-        }
-        else
+        } else
             return false;
     }
-
     
 
     
@@ -151,7 +149,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     
     private int getOffsetContainer(int k){
         if (hasRunContainers) { // account for size of runcontainer bitmap
-            int offsetContainer = buffer.getInt(4 + 4 + 4 * ((this.size+31)/32) + 4 *this.size + 4*k);
+            int offsetContainer = buffer.getInt(4 + 4 + ((this.size+7)/8) + 4 *this.size + 4*k);
             return offsetContainer;
         }
         else {

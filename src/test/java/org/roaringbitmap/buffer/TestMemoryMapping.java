@@ -212,6 +212,7 @@ public class TestMemoryMapping {
         tmpfile.delete();
     }
 
+    @SuppressWarnings("resource")
     @BeforeClass
     public static void initFiles() throws IOException {
         System.out.println("Setting up memory-mapped file. (Can take some time.)");
@@ -256,6 +257,22 @@ public class TestMemoryMapping {
                     }
                     dos.flush();
                     rambitmaps.add(rb2);
+                    // we add tests
+                    ByteBuffer outbb = ByteBuffer.allocate(rb2.serializedSizeInBytes());
+                    rb2.serialize(new DataOutputStream(new OutputStream(){
+                        ByteBuffer mBB;
+                        OutputStream init(final ByteBuffer mbb) {mBB=mbb; return this;}
+                        public void close() {}
+                        public void flush() {}
+                        public void write(final int b) {
+                            mBB.put((byte) b);}
+                        public void write(final byte[] b) {mBB.put(b);}            
+                        public void write(final byte[] b, final int off, final int l) {mBB.put(b,off,l);}
+                    }.init(outbb)));
+                    //
+                    outbb.flip();
+                    ImmutableRoaringBitmap irb = new ImmutableRoaringBitmap(outbb);
+                    if(!irb.equals(rb2)) throw new RuntimeException("No hope of working");
                 }
             }
         }

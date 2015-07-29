@@ -6,7 +6,6 @@
 package org.roaringbitmap;
 
 import java.io.*;
-import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -22,6 +21,10 @@ import java.util.Iterator;
  *      RoaringBitmap rr2 = new RoaringBitmap();
  *      for(int k = 4000; k<4255;++k) rr2.add(k);
  *      RoaringBitmap rror = RoaringBitmap.or(rr, rr2);
+ *      
+ *      //...
+ *      DataOutputStream wheretoserialize = ...
+ *      rr.serialize(wheretoserialize);
  * }
  * </pre>
  * 
