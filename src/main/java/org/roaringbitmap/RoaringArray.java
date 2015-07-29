@@ -385,16 +385,19 @@ public final class RoaringArray implements Cloneable, Externalizable {
      * @return the size in bytes
      */
     public int serializedSizeInBytes() {
-        int count = 4 + 4 + 8 * size;
+        int count = headerSize();
         // for each container, we store cardinality (16 bits), key (16 bits) and location offset (32 bits).
         for (int k = 0; k < size; ++k) {
             count += values[k].getArraySizeInBytes();
         }
-        // if there are any RunContainers, the size will be larger....if you ask before and after
-        // the RunContainer exists, all else being equal, you will get different answers...is this ok?
-        if (hasRunContainer())
-            count += (size+7)/8 - 4;// - 4 because we pack the size with the cookie
         return count;
+    }
+    
+    protected int headerSize() {
+        int count = 4 + 4 + 8 * size;
+        if (hasRunContainer()) 
+            count += (size+7)/8 - 4;// - 4 because we pack the size with the cookie
+        return count;        
     }
 
     /**
