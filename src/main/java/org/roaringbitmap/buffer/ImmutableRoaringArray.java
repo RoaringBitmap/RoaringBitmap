@@ -26,7 +26,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     protected static final short SERIAL_COOKIE = MutableRoaringArray.SERIAL_COOKIE;
     protected static final short SERIAL_COOKIE_NO_RUNCONTAINER = MutableRoaringArray.SERIAL_COOKIE_NO_RUNCONTAINER;
     private /* final static*/ int startofkeyscardinalities = 8;  // RunContainers will increase this :(
-    private final static int startofrunbitmap = 8; // if there is a runcontainer bitmap
+    private final static int startofrunbitmap = 4; // if there is a runcontainer bitmap
 
     ByteBuffer buffer;
     int size;
@@ -60,12 +60,13 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         buffer = bbf.slice();
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         final int cookie = buffer.getInt();
-        if (cookie != SERIAL_COOKIE && cookie != SERIAL_COOKIE_NO_RUNCONTAINER)
+        if ((cookie & 0xFFFF) != SERIAL_COOKIE && cookie != SERIAL_COOKIE_NO_RUNCONTAINER)
             throw new RuntimeException("I failed to find one of the right cookies. "+ cookie);
-        hasRunContainers = (cookie == SERIAL_COOKIE); 
-        this.size = buffer.getInt();
+        hasRunContainers = ((cookie & 0xFFFF) == SERIAL_COOKIE); 
+        this.size = hasRunContainers? (cookie >>> 16) + 1 : buffer.getInt();
         if (hasRunContainers) {
-            startofkeyscardinalities +=  (( this.size+7)/8);  // account for Runcontainers bitmap
+            // - 4 because when we have runs, we pack the size with the cookie
+            startofkeyscardinalities +=  (( this.size+7)/8) - 4;  // account for Runcontainers bitmap
         }
         int theLimit = computeSerializedSizeInBytes();
         buffer.limit(theLimit);
@@ -149,7 +150,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     
     private int getOffsetContainer(int k){
         if (hasRunContainers) { // account for size of runcontainer bitmap
-            int offsetContainer = buffer.getInt(4 + 4 + ((this.size+7)/8) + 4 *this.size + 4*k);
+            int offsetContainer = buffer.getInt(4 + ((this.size+7)/8) + 4 *this.size + 4*k);
             return offsetContainer;
         }
         else {

@@ -43,7 +43,6 @@ public class TestSerialization {
     public void testMutableDeserializeMutable() throws IOException {
         presoutbb.rewind();
         ByteBufferBackedInputStream in = new ByteBufferBackedInputStream(presoutbb);
-        System.out.println(presoutbb.limit());
         bitmap_br.deserialize(new DataInputStream(in));
     }
 
@@ -58,7 +57,7 @@ public class TestSerialization {
     
     @Test
     public void testMutableSerialize()  throws IOException {
-        //System.out.println("testMutableSerialize");
+        System.out.println("testMutableSerialize");
         outbb.rewind();
         ByteBufferBackedOutputStream out = new ByteBufferBackedOutputStream(outbb);
         System.out.println("bitmap_ar is "+bitmap_ar.getClass().getName());

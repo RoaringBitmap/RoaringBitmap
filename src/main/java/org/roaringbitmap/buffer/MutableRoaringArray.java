@@ -182,16 +182,16 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
         this.clear();
         // little endian
         final int cookie = Integer.reverseBytes(in.readInt());
-        if (cookie != SERIAL_COOKIE && cookie != SERIAL_COOKIE_NO_RUNCONTAINER)
+        if ((cookie & 0xFFFF) != SERIAL_COOKIE && cookie != SERIAL_COOKIE_NO_RUNCONTAINER)
             throw new IOException("I failed to find the one of the right cookies.");
-        this.size = Integer.reverseBytes(in.readInt());
+        this.size = ((cookie & 0xFFFF) == SERIAL_COOKIE) ? (cookie >>> 16) + 1: Integer.reverseBytes(in.readInt());
         if ((this.keys == null) || (this.keys.length < this.size)) {
             this.keys = new short[this.size];
             this.values = new MappeableContainer[this.size];
         }
 
         byte [] bitmapOfRunContainers = null;
-        if (cookie == SERIAL_COOKIE) {
+        if ((cookie & 0xFFFF) == SERIAL_COOKIE) {
             bitmapOfRunContainers = new byte[ (size+7)/8];
             in.readFully(bitmapOfRunContainers);
         }
@@ -471,8 +471,8 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
     public void serialize(DataOutput out) throws IOException {
         int startOffset=0;
         if (hasRunContainer()) {
-            out.writeInt(Integer.reverseBytes(SERIAL_COOKIE));
-            out.writeInt(Integer.reverseBytes(size));
+            out.writeInt(Integer.reverseBytes(SERIAL_COOKIE | ((this.size-1) << 16)));
+            //out.writeInt(Integer.reverseBytes(size));
             
             byte [] bitmapOfRunContainers = new byte[ (size+7)/8];
             for (int i=0; i < size; ++i) {
@@ -481,7 +481,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
                 }
             }
             out.write(bitmapOfRunContainers);
-            startOffset = 4 + 4 + 4*this.size + 4*this.size + bitmapOfRunContainers.length;
+            startOffset = 4 + 4*this.size + 4*this.size + bitmapOfRunContainers.length;
         }
         else {  // backwards compatibilility
             out.writeInt(Integer.reverseBytes(SERIAL_COOKIE_NO_RUNCONTAINER));
@@ -492,7 +492,6 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
             out.writeShort(Short.reverseBytes(this.keys[k]));
             out.writeShort(Short.reverseBytes((short) ((this.values[k].getCardinality() - 1))));
         }
-
         //writing the containers offset
         for(int k=0; k<this.size; k++){
             out.writeInt(Integer.reverseBytes(startOffset));
@@ -501,6 +500,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
         for (int k = 0; k < size; ++k) {
             values[k].writeArray(out);
         }
+
     }
 
     /**
@@ -515,7 +515,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
             count += values[k].getArraySizeInBytes();
         }
         if (hasRunContainer())
-            count += ((size+7)/8);
+            count += ((size+7)/8) - 4;// -4 since we pack the size with the cookie
         return count;
     }
 

@@ -325,7 +325,7 @@ public class TestImmutableRoaringBitmap {
 
     @SuppressWarnings("resource")
 	static ByteBuffer serializeRoaring(ImmutableRoaringBitmap mrb) throws IOException {
-            byte[] backingArray = new byte[mrb.serializedSizeInBytes()+1024];
+        byte[] backingArray = new byte[mrb.serializedSizeInBytes()+1024];
 			ByteBuffer outbb = ByteBuffer.wrap(backingArray, 1024, mrb.serializedSizeInBytes()).slice();
 			DataOutputStream dos = new DataOutputStream(new OutputStream(){
 	        ByteBuffer mBB;
@@ -336,6 +336,7 @@ public class TestImmutableRoaringBitmap {
 	        }.init(outbb));
 			mrb.serialize(dos);
 			dos.close();
+			
 
 			return outbb;
 	}
@@ -609,7 +610,6 @@ public class TestImmutableRoaringBitmap {
         MutableRoaringBitmap mr3 = new MutableRoaringBitmap();
         buffer = serializeRoaring(mr3);
         buffer.rewind();
-        System.out.println("buffer capacity = "+buffer.capacity());
         ImmutableRoaringBitmap ir3 = new ImmutableRoaringBitmap(buffer);
         mr3 = ir3.toMutableRoaringBitmap();
         
@@ -690,7 +690,6 @@ public class TestImmutableRoaringBitmap {
         MutableRoaringBitmap mr3 = new MutableRoaringBitmap();
         buffer = serializeRoaring(mr3);
         buffer.rewind();
-        System.out.println("buffer capacity = "+buffer.capacity());
         ImmutableRoaringBitmap ir3 = new ImmutableRoaringBitmap(buffer);
         mr3 = ir3.toMutableRoaringBitmap();
         

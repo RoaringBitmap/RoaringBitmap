@@ -350,15 +350,15 @@ public final class RoaringArray implements Cloneable, Externalizable {
     public void serialize(DataOutput out) throws IOException {
         int startOffset=0;
         if (hasRunContainer()) {
-            out.writeInt(Integer.reverseBytes(SERIAL_COOKIE));
-            out.writeInt(Integer.reverseBytes(size));
+            out.writeInt(Integer.reverseBytes(SERIAL_COOKIE | ((size-1)<<16)));
+            //out.writeInt(Integer.reverseBytes(size));
             byte [] bitmapOfRunContainers = new byte[ (size+7)/8];
             for (int i=0; i < size; ++i)
                 if (this.values[i] instanceof RunContainer) {
                     bitmapOfRunContainers[ i/8] |= (1 << (i%8));
                 }
             out.write(bitmapOfRunContainers);
-            startOffset = 4 + 4 + 4*this.size + 4*this.size + bitmapOfRunContainers.length;
+            startOffset =  4 + 4*this.size + 4*this.size + bitmapOfRunContainers.length;
         }
         else {  // backwards compatibility
             out.writeInt(Integer.reverseBytes(SERIAL_COOKIE_NO_RUNCONTAINER));
@@ -393,7 +393,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
         // if there are any RunContainers, the size will be larger....if you ask before and after
         // the RunContainer exists, all else being equal, you will get different answers...is this ok?
         if (hasRunContainer())
-            count += (size+7)/8;
+            count += (size+7)/8 - 4;// - 4 because we pack the size with the cookie
         return count;
     }
 
@@ -407,9 +407,9 @@ public final class RoaringArray implements Cloneable, Externalizable {
         this.clear();
         // little endian
         final int cookie = Integer.reverseBytes(in.readInt());
-        if (cookie != SERIAL_COOKIE && cookie != SERIAL_COOKIE_NO_RUNCONTAINER)
+        if ((cookie & 0xFFFF) != SERIAL_COOKIE && cookie != SERIAL_COOKIE_NO_RUNCONTAINER)
             throw new IOException("I failed to find one of the right cookies.");
-        this.size = Integer.reverseBytes(in.readInt());
+        this.size = ((cookie & 0xFFFF) == SERIAL_COOKIE) ? (cookie >>> 16) + 1: Integer.reverseBytes(in.readInt());
 
         if ((this.keys == null) || (this.keys.length < this.size)) {
             this.keys = new short[this.size];
@@ -418,7 +418,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
 
         byte [] bitmapOfRunContainers = null;
-        if (cookie == SERIAL_COOKIE) {
+        if ((cookie & 0xFFFF) == SERIAL_COOKIE) {
             bitmapOfRunContainers = new byte[ (size+7)/8];
             in.readFully(bitmapOfRunContainers);
         }
