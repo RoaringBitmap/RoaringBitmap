@@ -7,8 +7,6 @@ package org.roaringbitmap.buffer;
 
 
 import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 import java.util.Arrays;
