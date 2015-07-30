@@ -87,7 +87,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
         if (o instanceof MutableRoaringArray) {
             final MutableRoaringArray srb = (MutableRoaringArray) o;
-            MappeableContainerPointer cp1 = srb.getContainerPointer();
+            MappeableContainerPointer cp1 = this.getContainerPointer();
             MappeableContainerPointer cp2 = srb.getContainerPointer();
             while (cp1.hasContainer()) {
                 if (!cp2.hasContainer())
