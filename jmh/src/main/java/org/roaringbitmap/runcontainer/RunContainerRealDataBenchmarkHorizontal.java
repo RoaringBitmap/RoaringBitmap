@@ -24,7 +24,7 @@ import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
-public class RunContainerRealDataBenchmark {
+public class RunContainerRealDataBenchmarkHorizontal {
 
     static ConciseSet toConcise(int[] dat) {
         ConciseSet ans = new ConciseSet();
