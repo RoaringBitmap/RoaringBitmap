@@ -108,9 +108,8 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         int SizeOfLastContainer;
         boolean hasrun = hasRunContainer();
         if (isRunContainer(this.size - 1,hasrun)) {
-            // TODO: construction of a run container should be avoided here 
-            MappeableRunContainer finalContainer = (MappeableRunContainer) getContainerAtIndex(this.size-1);
-            SizeOfLastContainer = BufferUtil.getSizeInBytesFromCardinalityEtc(0,finalContainer.nbrruns, true);
+            int nbrruns = BufferUtil.toIntUnsigned(buffer.getShort(PositionOfLastContainer));
+            SizeOfLastContainer = BufferUtil.getSizeInBytesFromCardinalityEtc(0,nbrruns, true);
         }
         else {
             SizeOfLastContainer = BufferUtil.getSizeInBytesFromCardinalityEtc(CardinalityOfLastContainer,0,false);
