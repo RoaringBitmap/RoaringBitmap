@@ -18,13 +18,12 @@ import org.openjdk.jmh.annotations.State;
 import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.ZipRealDataRetriever;
-import org.roaringbitmap.buffer.BufferFastAggregation;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
-public class RunContainerRealDataBenchmark {
+public class RunContainerRealDataBenchmarkAndNot {
 
     static ConciseSet toConcise(int[] dat) {
         ConciseSet ans = new ConciseSet();
@@ -34,57 +33,57 @@ public class RunContainerRealDataBenchmark {
         return ans;
     }
 
-    @Benchmark
-    public int horizontalOr_RoaringWithRun(BenchmarkState benchmarkState) {
-        int answer = FastAggregation.horizontal_or(benchmarkState.rc.iterator())
-               .getCardinality();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("buggy horizontal or");
-        return answer;
-    }
+     @Benchmark
+     public int pairwiseAndNot_RoaringWithRun(BenchmarkState benchmarkState) {
+         int total = 0;
+         for(int k = 0; k + 1 < benchmarkState.rc.size(); ++k)
+             total += RoaringBitmap.andNot(benchmarkState.rc.get(k),benchmarkState.rc.get(k+1)).getCardinality();
+         if(total !=benchmarkState.totalandnot )
+             throw new RuntimeException("bad pairwise andNot result");
+         return total;
+     }
 
-    @Benchmark
-    public int horizontalOr_Roaring(BenchmarkState benchmarkState) {
-        int answer = FastAggregation.horizontal_or(benchmarkState.ac.iterator())
-               .getCardinality();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("buggy horizontal or");
-        return answer;
+     @Benchmark
+     public int pairwiseAndNot_Roaring(BenchmarkState benchmarkState) {
+         int total = 0;
+         for(int k = 0; k + 1 < benchmarkState.ac.size(); ++k)
+             total += RoaringBitmap.andNot(benchmarkState.ac.get(k),benchmarkState.ac.get(k+1)).getCardinality();
+         if(total !=benchmarkState.totalandnot )
+             throw new RuntimeException("bad pairwise andNot result");
+         return total;
+     }
 
-    }
+     @Benchmark
+     public int pairwiseAndNot_MutableRoaringWithRun(BenchmarkState benchmarkState) {
+         int total = 0;
+         for (int k = 0; k + 1 < benchmarkState.mrc.size(); ++k)
+             total += MutableRoaringBitmap.andNot(benchmarkState.mrc.get(k),
+                                                  benchmarkState.mrc.get(k + 1)).getCardinality();
+         if (total != benchmarkState.totalandnot)
+             throw new RuntimeException("bad pairwise andNot result");
+         return total;
+     }
 
-    @Benchmark
-    public int horizontalOr_MutableRoaringWithRun(BenchmarkState benchmarkState) {
-        int answer = BufferFastAggregation.horizontal_or(benchmarkState.mrc.iterator())
-               .getCardinality();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("buggy horizontal or");
-        return answer;
+     @Benchmark
+     public int pairwiseAndNot_MutableRoaring(BenchmarkState benchmarkState) {
+         int total = 0;
+         for (int k = 0; k + 1 < benchmarkState.mac.size(); ++k)
+             total += MutableRoaringBitmap.andNot(benchmarkState.mac.get(k),
+                                                  benchmarkState.mac.get(k + 1)).getCardinality();
+         if (total != benchmarkState.totalandnot)
+             throw new RuntimeException("bad pairwise andNot result");
+         return total;
+     }
 
-    }
-
-    @Benchmark
-    public int horizontalOr_MutableRoaring(BenchmarkState benchmarkState) {
-        int answer = BufferFastAggregation.horizontal_or(benchmarkState.mac.iterator())
-               .getCardinality();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("buggy horizontal or");
-        return answer;
-
-    }
-
-    @Benchmark
-    public int horizontalOr_Concise(BenchmarkState benchmarkState) {
-        ConciseSet bitmapor = benchmarkState.cc.get(0);
-        for (int j = 1; j < benchmarkState.cc.size() ; ++j) {
-            bitmapor = bitmapor.union(benchmarkState.cc.get(j));
-        }
-        int answer = bitmapor.size();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("buggy horizontal or");
-        return answer;
-
-    }
+     @Benchmark
+     public int pairwiseAndNot_Concise(BenchmarkState benchmarkState) {
+         int total = 0;
+         for(int k = 0; k + 1 < benchmarkState.cc.size(); ++k)
+             total += benchmarkState.cc.get(k).difference(benchmarkState.cc.get(k+1)).size();
+         if(total !=benchmarkState.totalandnot )
+             throw new RuntimeException("bad pairwise andNot result");
+         return total;
+     }
 
 
 
