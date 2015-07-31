@@ -15,6 +15,8 @@ import java.util.Iterator;
  */
 public class RunContainer extends Container implements Cloneable {
     private static final int DEFAULT_INIT_SIZE = 4;
+    private static final boolean ENABLE_GALLOPING_AND = false;
+
     private short[] valueslength;// we interleave values and lengths, so 
     // that if you have the values 11,12,13,14,15, you store that as 11,4 where 4 means that beyond 11 itself, there are
     // 4 contiguous values that follows.
@@ -1343,9 +1345,9 @@ public class RunContainer extends Container implements Cloneable {
     }*/
 
 
-
-    @Override
-    public Container and(RunContainer x) {
+  
+    //@Override
+      public Container andNoSkip(RunContainer x) {
         /*
          * Main idea here: if you have two RunContainers, why 
          * not output the result as a RunContainer? Well,
@@ -1415,15 +1417,148 @@ public class RunContainer extends Container implements Cloneable {
                 answer.nbrruns++;
             }
         }
-        return answer.toEfficientContainer();
-
-        /*
-        double myDensity = getDensity();
-        double xDensity = x.getDensity();
-        double resultDensityEstimate = myDensity*xDensity;
-        return (resultDensityEstimate < ARRAY_MAX_DENSITY ? operationArrayGuess(x, OP_AND) : operationBitmapGuess(x, OP_AND));
-         */
+        return answer.toEfficientContainer();  // subsequent trim() may be required to avoid wasted space.
     }
+
+
+    // bootstrapping (aka "galloping")  binary search.  Always skips at least one.
+    // On our "real data" benchmarks, enabling galloping is a minor loss
+
+    //.."ifdef ENABLE_GALLOPING_AND"   :)
+    private int skipAhead(RunContainer skippingOn, int pos, int targetToExceed) {
+        int left=pos;
+        int span=1;
+        int probePos=0;
+        int end;
+        // jump ahead to find a spot where end > targetToExceed (if it exists)
+        do {
+            probePos = left + span;
+            if (probePos >= skippingOn.nbrruns - 1)  {
+                // expect it might be quite common to find the container cannot be advanced as far as requested.  Optimize for it.
+                probePos = skippingOn.nbrruns - 1;
+                end = Util.toIntUnsigned(skippingOn.getValue(probePos)) + Util.toIntUnsigned(skippingOn.getLength(probePos)) + 1; 
+                if (end <= targetToExceed) 
+                    return skippingOn.nbrruns;
+            }
+            end = Util.toIntUnsigned(skippingOn.getValue(probePos)) + Util.toIntUnsigned(skippingOn.getLength(probePos)) + 1;
+            span *= 2;
+        }  while (end <= targetToExceed);
+        int right = probePos;
+        // left and right are both valid positions.  Invariant: left <= targetToExceed && right > targetToExceed
+        // do a binary search to discover the spot where left and right are separated by 1, and invariant is maintained.
+        while (right - left > 1) {
+            int mid =  (right + left)/2;
+            int midVal =  Util.toIntUnsigned(skippingOn.getValue(mid)) + Util.toIntUnsigned(skippingOn.getLength(mid)) + 1; 
+            if (midVal > targetToExceed) 
+                right = mid;
+            else
+                left = mid;
+        }
+        return right;
+    }
+
+    @Override
+      public Container and(RunContainer x) {
+        /*
+         * Main idea here: if you have two RunContainers, why 
+         * not output the result as a RunContainer? Well,
+         * result might not be storage efficient...
+         * 
+         * So that is the one catch.
+         * 
+         * TODO: this could be optimized if one has far fewer
+         * runs than the other...
+         * TODO: make sure buffer version is updated as well.
+         */
+        RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.nbrruns)]);
+        int rlepos = 0;
+        int xrlepos = 0;
+        // remove on cleanup...stuff to see why galloping is not a win
+        //        int countSkips=0;
+        //        int totalSkipLen=0;
+        int start = Util.toIntUnsigned(this.getValue(rlepos));
+        int end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+        int xstart = Util.toIntUnsigned(x.getValue(xrlepos));
+        int xend = Util.toIntUnsigned(x.getValue(xrlepos)) + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
+        while ((rlepos < this.nbrruns ) && (xrlepos < x.nbrruns )) {
+            if (end  <= xstart) {
+                if (ENABLE_GALLOPING_AND) {
+                    // int temptemp_old = rlepos;
+                    rlepos = skipAhead(this, rlepos, xstart); // skip over runs until we have end > xstart  (or rlepos is advanced beyond end)
+                    // ++countSkips;
+                    //totalSkipLen += (rlepos - temptemp_old);
+                }
+                else
+                    ++rlepos;
+
+                if(rlepos < this.nbrruns ) {
+                    start = Util.toIntUnsigned(this.getValue(rlepos));
+                    end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+                }
+            } else if (xend <= start) {
+                // exit the second run
+                if (ENABLE_GALLOPING_AND) {
+                    // int temptemp_old = xrlepos;
+                    xrlepos = skipAhead(x, xrlepos, start);
+                    //++countSkips;
+                    //totalSkipLen += (xrlepos - temptemp_old);
+                }
+                else
+                    ++xrlepos;
+
+                if(xrlepos < x.nbrruns ) {
+                    xstart = Util.toIntUnsigned(x.getValue(xrlepos));
+                    xend = Util.toIntUnsigned(x.getValue(xrlepos)) + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                }
+            } else {// they overlap
+                final int lateststart = start > xstart ? start : xstart;
+                int earliestend;
+                if(end == xend) {// improbable
+                    earliestend = end;
+                    rlepos++;
+                    xrlepos++;
+                    if(rlepos < this.nbrruns ) {
+                        start = Util.toIntUnsigned(this.getValue(rlepos));
+                        end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+                    }
+                    if(xrlepos < x.nbrruns) {
+                        xstart = Util.toIntUnsigned(x.getValue(xrlepos));
+                        xend = Util.toIntUnsigned(x.getValue(xrlepos)) + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                    }
+                } else if(end < xend) {
+                    earliestend = end;
+                    rlepos++;
+                    if(rlepos < this.nbrruns ) {
+                        start = Util.toIntUnsigned(this.getValue(rlepos));
+                        end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+                    }
+
+                } else {// end > xend
+                    earliestend = xend;
+                    xrlepos++;
+                    if(xrlepos < x.nbrruns) {
+                        xstart = Util.toIntUnsigned(x.getValue(xrlepos));
+                        xend = Util.toIntUnsigned(x.getValue(xrlepos)) + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                    }                
+                }
+                answer.valueslength[2 * answer.nbrruns] = (short) lateststart;
+                answer.valueslength[2 * answer.nbrruns + 1] = (short) (earliestend - lateststart - 1);
+                answer.nbrruns++;
+            }
+        }
+
+        // remove on cleanup
+        //if (countSkips > 0)
+        //   System.out.println("container avg skip amount is "+
+        //                        ( totalSkipLen / ( (double) countSkips)));
+
+        return answer.toEfficientContainer();  // subsequent trim() may be required to avoid wasted space.
+    }
+
+
+
+
+
 
 
     @Override
