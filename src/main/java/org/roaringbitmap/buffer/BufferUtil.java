@@ -18,6 +18,7 @@ import org.roaringbitmap.Util;
  * memory mapping.
  */
 public final class BufferUtil {
+
     
     /**
      * flip bits at start, start+1,..., end-1

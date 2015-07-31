@@ -17,6 +17,7 @@ import java.util.Arrays;
 public final class RoaringArray implements Cloneable, Externalizable {
     protected static final short SERIAL_COOKIE_NO_RUNCONTAINER = 12346;
     protected static final short SERIAL_COOKIE = 12347;
+    protected static final int NO_OFFSET_THRESHOLD = 4; 
 
     // bumped serialVersionUID with runcontainers, so default serialization
     // will not work...
@@ -349,16 +350,19 @@ public final class RoaringArray implements Cloneable, Externalizable {
      */
     public void serialize(DataOutput out) throws IOException {
         int startOffset=0;
-        if (hasRunContainer()) {
+        boolean hasrun = hasRunContainer();
+        if (hasrun) {
             out.writeInt(Integer.reverseBytes(SERIAL_COOKIE | ((size-1)<<16)));
-            //out.writeInt(Integer.reverseBytes(size));
             byte [] bitmapOfRunContainers = new byte[ (size+7)/8];
             for (int i=0; i < size; ++i)
                 if (this.values[i] instanceof RunContainer) {
                     bitmapOfRunContainers[ i/8] |= (1 << (i%8));
                 }
-            out.write(bitmapOfRunContainers);
-            startOffset =  4 + 4*this.size + 4*this.size + bitmapOfRunContainers.length;
+            out.write(bitmapOfRunContainers);   
+            if(this.size < NO_OFFSET_THRESHOLD)
+                startOffset =  4 + 4 * this.size + bitmapOfRunContainers.length;
+            else 
+                startOffset =  4 + 8 * this.size + bitmapOfRunContainers.length;
         }
         else {  // backwards compatibility
             out.writeInt(Integer.reverseBytes(SERIAL_COOKIE_NO_RUNCONTAINER));
@@ -369,10 +373,12 @@ public final class RoaringArray implements Cloneable, Externalizable {
             out.writeShort(Short.reverseBytes(this.keys[k]));
             out.writeShort(Short.reverseBytes((short) ((this.values[k].getCardinality() - 1))));
         }
-        //writing the containers offsets
-        for(int k=0; k<this.size; k++){
-            out.writeInt(Integer.reverseBytes(startOffset));
-            startOffset = startOffset+this.values[k].getArraySizeInBytes();
+        if((! hasrun) || (this.size >= NO_OFFSET_THRESHOLD) ) {
+            //writing the containers offsets
+            for(int k=0; k<this.size; k++){
+                out.writeInt(Integer.reverseBytes(startOffset));
+                startOffset = startOffset+this.values[k].getArraySizeInBytes();
+            }
         }
         for (int k = 0; k < size; ++k) {
             values[k].writeArray(out);
@@ -394,10 +400,14 @@ public final class RoaringArray implements Cloneable, Externalizable {
     }
     
     protected int headerSize() {
-        int count = 4 + 4 + 8 * size;
-        if (hasRunContainer()) 
-            count += (size+7)/8 - 4;// - 4 because we pack the size with the cookie
-        return count;        
+        if (hasRunContainer()) { 
+            if(size < NO_OFFSET_THRESHOLD) {// for small bitmaps, we omit the offsets
+                return 4 + (size+7)/8 + 4 * size;
+            }
+            return  4 + (size+7)/8 + 8 * size;// - 4 because we pack the size with the cookie
+        } else {
+            return 4 + 4 + 8 * size;
+        }
     }
 
     /**
@@ -421,7 +431,8 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
 
         byte [] bitmapOfRunContainers = null;
-        if ((cookie & 0xFFFF) == SERIAL_COOKIE) {
+        boolean hasrun = (cookie & 0xFFFF) == SERIAL_COOKIE; 
+        if (hasrun) {
             bitmapOfRunContainers = new byte[ (size+7)/8];
             in.readFully(bitmapOfRunContainers);
         }
@@ -439,8 +450,10 @@ public final class RoaringArray implements Cloneable, Externalizable {
                 isBitmap[k] = false;
             }
         }
-        //skipping the offsets
-        in.skipBytes(this.size*4);
+        if((! hasrun) || (this.size >= NO_OFFSET_THRESHOLD) ) {
+            //skipping the offsets
+            in.skipBytes(this.size*4);
+        }
         //Reading the containers
         for (int k = 0; k < this.size; ++k) {
             Container val;

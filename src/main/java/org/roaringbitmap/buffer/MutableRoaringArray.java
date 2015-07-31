@@ -26,6 +26,8 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
 
     protected static final short SERIAL_COOKIE_NO_RUNCONTAINER = 12346;
     protected static final short SERIAL_COOKIE = 12347;
+    
+    protected static final int NO_OFFSET_THRESHOLD = 4;
 
     private static final long serialVersionUID = 5L;  // TODO: OFK was 4L, not sure
     protected boolean mayHaveRunContainers = false;  // does not necessarily have them, after optimization
@@ -191,7 +193,8 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
         }
 
         byte [] bitmapOfRunContainers = null;
-        if ((cookie & 0xFFFF) == SERIAL_COOKIE) {
+        boolean hasrun = (cookie & 0xFFFF) == SERIAL_COOKIE; 
+        if (hasrun) {
             bitmapOfRunContainers = new byte[ (size+7)/8];
             in.readFully(bitmapOfRunContainers);
         }
@@ -208,8 +211,10 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
                 isBitmap[k] = false;
             }
         }
-        //skipping the offsets
-        in.skipBytes(this.size*4);
+        if((! hasrun) || (this.size >= NO_OFFSET_THRESHOLD) ) {
+            //skipping the offsets
+            in.skipBytes(this.size*4);
+        }
         //Reading the containers
         for (int k = 0; k < this.size; ++k) {
             MappeableContainer val;
@@ -470,10 +475,9 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
      */
     public void serialize(DataOutput out) throws IOException {
         int startOffset=0;
-        if (hasRunContainer()) {
+        boolean hasrun = hasRunContainer();
+        if (hasrun) {
             out.writeInt(Integer.reverseBytes(SERIAL_COOKIE | ((this.size-1) << 16)));
-            //out.writeInt(Integer.reverseBytes(size));
-            
             byte [] bitmapOfRunContainers = new byte[ (size+7)/8];
             for (int i=0; i < size; ++i) {
                 if (this.values[i] instanceof MappeableRunContainer) {
@@ -481,7 +485,10 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
                 }
             }
             out.write(bitmapOfRunContainers);
-            startOffset = 4 + 4*this.size + 4*this.size + bitmapOfRunContainers.length;
+            if(this.size < NO_OFFSET_THRESHOLD)
+                startOffset =  4 + 4 * this.size + bitmapOfRunContainers.length;
+           else 
+                startOffset =  4 + 8 * this.size + bitmapOfRunContainers.length;
         }
         else {  // backwards compatibilility
             out.writeInt(Integer.reverseBytes(SERIAL_COOKIE_NO_RUNCONTAINER));
@@ -492,10 +499,11 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
             out.writeShort(Short.reverseBytes(this.keys[k]));
             out.writeShort(Short.reverseBytes((short) ((this.values[k].getCardinality() - 1))));
         }
-        //writing the containers offset
-        for(int k=0; k<this.size; k++){
-            out.writeInt(Integer.reverseBytes(startOffset));
-            startOffset=startOffset+values[k].getArraySizeInBytes();
+        if ((!hasrun) || (this.size >= NO_OFFSET_THRESHOLD)) {
+            for (int k = 0; k < this.size; k++) {
+                out.writeInt(Integer.reverseBytes(startOffset));
+                startOffset = startOffset + values[k].getArraySizeInBytes();
+            }
         }
         for (int k = 0; k < size; ++k) {
             values[k].writeArray(out);
@@ -509,14 +517,24 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
      * @return the size in bytes
      */
     public int serializedSizeInBytes() {
-        int count = 4 + 4 + 8 * this.size;
+        int count = headerSize();
         // for each container, we store cardinality (16 bits), key (16 bits) and location offset (32 bits).
         for (int k = 0; k < this.size; ++k) {
             count += values[k].getArraySizeInBytes();
         }
-        if (hasRunContainer())
-            count += ((size+7)/8) - 4;// -4 since we pack the size with the cookie
         return count;
+    }
+    
+
+    protected int headerSize() {
+        if (hasRunContainer()) { 
+            if(size < NO_OFFSET_THRESHOLD) {// for small bitmaps, we omit the offsets
+                return 4 + (size+7)/8 + 4 * size;
+            }
+            return  4 + (size+7)/8 + 8 * size;// - 4 because we pack the size with the cookie
+        } else {
+            return 4 + 4 + 8 * size;
+        }
     }
 
     protected void setContainerAtIndex(int i, MappeableContainer c) {

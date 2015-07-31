@@ -27,6 +27,7 @@ import org.roaringbitmap.buffer.MutableRoaringBitmap;
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 public class RunContainerRealDataBenchmark {
+
     static ConciseSet toConcise(int[] dat) {
         ConciseSet ans = new ConciseSet();
         for (int i : dat) {
@@ -37,26 +38,41 @@ public class RunContainerRealDataBenchmark {
 
     @Benchmark
     public int horizontalOr_RoaringWithRun(BenchmarkState benchmarkState) {
-        return FastAggregation.horizontal_or(benchmarkState.rc.iterator())
+        int answer = FastAggregation.horizontal_or(benchmarkState.rc.iterator())
                .getCardinality();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("buggy horizontal or");
+        return answer;
     }
 
     @Benchmark
     public int horizontalOr_Roaring(BenchmarkState benchmarkState) {
-        return FastAggregation.horizontal_or(benchmarkState.ac.iterator())
+        int answer = FastAggregation.horizontal_or(benchmarkState.ac.iterator())
                .getCardinality();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("buggy horizontal or");
+        return answer;
+
     }
 
     @Benchmark
     public int horizontalOr_MutableRoaringWithRun(BenchmarkState benchmarkState) {
-        return BufferFastAggregation.horizontal_or(benchmarkState.mrc.iterator())
+        int answer = BufferFastAggregation.horizontal_or(benchmarkState.mrc.iterator())
                .getCardinality();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("buggy horizontal or");
+        return answer;
+
     }
 
     @Benchmark
     public int horizontalOr_MutableRoaring(BenchmarkState benchmarkState) {
-        return BufferFastAggregation.horizontal_or(benchmarkState.mac.iterator())
+        int answer = BufferFastAggregation.horizontal_or(benchmarkState.mac.iterator())
                .getCardinality();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("buggy horizontal or");
+        return answer;
+
     }
 
     @Benchmark
@@ -65,7 +81,11 @@ public class RunContainerRealDataBenchmark {
         for (int j = 1; j < benchmarkState.cc.size() ; ++j) {
             bitmapor = bitmapor.union(benchmarkState.cc.get(j));
         }
-        return bitmapor.size();
+        int answer = bitmapor.size();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("buggy horizontal or");
+        return answer;
+
     }
 
     @Benchmark
@@ -73,7 +93,7 @@ public class RunContainerRealDataBenchmark {
         int total = 0;
         for(int k = 0; k + 1 < benchmarkState.rc.size(); ++k)
             total += RoaringBitmap.and(benchmarkState.rc.get(k),benchmarkState.rc.get(k+1)).getCardinality();
-        if(total !=benchmarkState.totaland )
+        if(total != benchmarkState.totaland )
             throw new RuntimeException("bad pairwise and result");
         return total;
     }
@@ -446,9 +466,9 @@ public class RunContainerRealDataBenchmark {
     public static class BenchmarkState {
         @Param ({// putting the data sets in alpha. order
             "census-income", "census1881",
-            "dimension_008", "dimension_003", "dimension_033",
-            "uscensus2000", "weather_sept_85",
-            "wikileaks-noquotes"
+            "dimension_008", "dimension_003", 
+            "dimension_033", "uscensus2000", 
+            "weather_sept_85", "wikileaks-noquotes"
         })
         String dataset;
 
@@ -456,17 +476,17 @@ public class RunContainerRealDataBenchmark {
         int totaland = 0;
         int totalor = 0;
         int totalxor = 0;
+        int horizontalor = 0;
 
         ArrayList<RoaringBitmap> rc = new ArrayList<RoaringBitmap>();
         ArrayList<RoaringBitmap> ac = new ArrayList<RoaringBitmap>();
         ArrayList<ImmutableRoaringBitmap> mrc = new ArrayList<ImmutableRoaringBitmap>();
         ArrayList<ImmutableRoaringBitmap> mac = new ArrayList<ImmutableRoaringBitmap>();
-
         ArrayList<ConciseSet> cc = new ArrayList<ConciseSet>();
 
         public BenchmarkState() {
         }
-
+                
         @Setup
         public void setup() throws Exception {
             ZipRealDataRetriever dataRetriever = new ZipRealDataRetriever(dataset);
@@ -516,33 +536,45 @@ public class RunContainerRealDataBenchmark {
              * This is a hack. JMH does not allow us to report
              * anything directly ourselves, so we do it forcefully.
              */
-            DecimalFormat df = new DecimalFormat("0.###");
+            DecimalFormat df = new DecimalFormat("0.0");
             System.out.println();
             System.out.println("==============");
+            System.out.println("= data set "+dataset);
             System.out.println("Number of bitmaps = " + numberofbitmaps
                                + " total count = " + totalcount
                                + " universe size = "+universesize);
             System.out.println("Average bits per bitmap = "
                                + df.format(totalcount * 1.0 / numberofbitmaps));
-
-            System.out.println("(in bytes) Run size = " + runsize
-                               + " / normal size = " + normalsize
-                               + " / concise size = " + concisesize
-                               + " / stupid array size = " + stupidarraysize
-                               + " / stupid bitmap size = "+ stupidbitmapsize);
-            System.out.println("Bits per int: Run  = "
-                               + df.format(runsize * 8.0 / totalcount)
-                               + " / normal size = "
-                               + df.format(normalsize * 8.0 / totalcount)
-                               + " / concise size = "
-                               + df.format(concisesize * 8.0 / totalcount)
-                               + " / stupid array size = "
-                               + df.format(stupidarraysize * 8.0 / totalcount)
-                               + " / stupid bitmap size = "+ df.format(stupidbitmapsize * 8.0 / totalcount));
-            int bestofroaring = runsize < normalsize ? runsize : normalsize;
-            System.out.println(" Average savings due to Roaring per bitmap (can be neg.) : "
-                               + df.format((concisesize - bestofroaring) * 1.0 / numberofbitmaps )
-                               + " bytes" );
+            System.out.println("Run-roaring total     = "
+                    + String.format("%1$10s", "" + runsize)
+                    + "B, average per bitmap = "
+                    + String.format("%1$10s",df.format(runsize * 1.0 / numberofbitmaps))
+                    + "B, average bits per entry =  "
+                    + String.format("%1$10s",df.format(runsize * 8.0 / totalcount)));
+            System.out.println("Regular roaring total = "
+                    + String.format("%1$10s", "" + normalsize)
+                    + "B, average per bitmap = "
+                    + String.format("%1$10s",df.format(normalsize * 1.0 / numberofbitmaps))
+                    + "B, average bits per entry =  "
+                    + String.format("%1$10s",df.format(normalsize * 8.0 / totalcount)));
+            System.out.println("Concise total         = "
+                    + String.format("%1$10s", "" + concisesize)
+                    + "B, average per bitmap = "
+                    + String.format("%1$10s",df.format(concisesize * 1.0 / numberofbitmaps))
+                    + "B, average bits per entry =  "
+                    + String.format("%1$10s",df.format(concisesize * 8.0 / totalcount)));
+            System.out.println("Naive array total     = "
+                    + String.format("%1$10s", "" + stupidarraysize)
+                    + "B, average per bitmap = "
+                    + String.format("%1$10s",df.format(stupidarraysize * 1.0 / numberofbitmaps))
+                    + "B, average bits per entry =  "
+                    + String.format("%1$10s",df.format(stupidarraysize * 8.0 / totalcount)));
+            System.out.println("Naive bitmap total    = "
+                    + String.format("%1$10s", "" + stupidbitmapsize)
+                    + "B, average per bitmap = "
+                    + String.format("%1$10s",df.format(stupidbitmapsize * 1.0 / numberofbitmaps))
+                    + "B, average bits per entry =  "
+                    + String.format("%1$10s",df.format(stupidbitmapsize * 8.0 / totalcount)));
             System.out.println("==============");
             System.out.println();
             // compute pairwise AND and OR
@@ -556,6 +588,8 @@ public class RunContainerRealDataBenchmark {
                 totalxor += RoaringBitmap.xor(rc.get(k), rc.get(k + 1))
                             .getCardinality();
             }
+            horizontalor = FastAggregation.horizontal_or(rc.iterator())
+                    .getCardinality();
         }
 
     }

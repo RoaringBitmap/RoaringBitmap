@@ -14,6 +14,7 @@ import org.roaringbitmap.RoaringBitmap;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
@@ -211,6 +212,64 @@ public class TestMemoryMapping {
         mappedbitmaps = null;
         tmpfile.delete();
     }
+    
+    public static ByteBuffer toByteBuffer(RoaringBitmap rb) {
+        // we add tests
+        ByteBuffer outbb = ByteBuffer.allocate(rb.serializedSizeInBytes());
+        try {
+            rb.serialize(new DataOutputStream(new ByteBufferBackedOutputStream(outbb)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        //
+        outbb.flip();
+        outbb.order(ByteOrder.LITTLE_ENDIAN);
+        return outbb;
+    }
+
+    public static RoaringBitmap toRoaringBitmap(ByteBuffer bb) {
+        RoaringBitmap rb = new RoaringBitmap();
+        try {
+            rb.deserialize(new DataInputStream(new ByteBufferBackedInputStream(bb)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return rb;
+    }
+
+    public static MutableRoaringBitmap toMutableRoaringBitmap(ByteBuffer bb) {
+        MutableRoaringBitmap rb = new MutableRoaringBitmap();
+        try {
+            rb.deserialize(new DataInputStream(new ByteBufferBackedInputStream(bb)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return rb;
+    }
+    
+    public static ByteBuffer toByteBuffer(MutableRoaringBitmap rb) {
+        // we add tests
+        ByteBuffer outbb = ByteBuffer.allocate(rb.serializedSizeInBytes());
+        try {
+            rb.serialize(new DataOutputStream(new ByteBufferBackedOutputStream(outbb)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        //
+        outbb.flip();
+        outbb.order(ByteOrder.LITTLE_ENDIAN);
+        return outbb;
+    }
+    
+    public static boolean equals(ByteBuffer bb1, ByteBuffer bb2) {
+        if(bb1.limit() != bb2.limit())
+            return false;
+        for(int k = 0 ; k < bb1.limit() ; ++k) {
+            if(bb1.get(k) != bb2.get(k))
+                return false;
+        }
+        return true;
+    }
 
     @SuppressWarnings("resource")
     @BeforeClass
@@ -235,7 +294,42 @@ public class TestMemoryMapping {
                 for (int x = 10*65536; x < 10*65536 + 1000; ++x)
                     { rb1.add(x); rb1.add(10000 + x);}
                 
+                {
+                    RoaringBitmap rr = RoaringBitmap.bitmapOf(rb1.toArray());
+                    ByteBuffer bb = toByteBuffer(rb1);
+                    if(!equals(toByteBuffer(rr), bb ))
+                            throw new RuntimeException("serialized output not identical.");
+                    bb.rewind();
+                    RoaringBitmap rr2 = toRoaringBitmap(bb);
+                    if(!rr2.equals(rr)) throw new RuntimeException("Can't recover RoaringBitmap");
+                    bb.rewind();
+                    MutableRoaringBitmap rb2 = toMutableRoaringBitmap(bb);
+                    if(!rb1.equals(rb2)) throw new RuntimeException("Can't recover MutableRoaringBitmap");
+                    bb.rewind();
+                    ImmutableRoaringBitmap irb = new ImmutableRoaringBitmap(bb);
+                    if(!irb.equals(rb1))
+                      throw new RuntimeException("serialized output cannot be mapped.");
+                }
+                
                 rb1.runOptimize();
+
+                {
+                    RoaringBitmap rr = RoaringBitmap.bitmapOf(rb1.toArray());
+                    rr.runOptimize();
+                    ByteBuffer bb = toByteBuffer(rb1);
+                    if(!equals(toByteBuffer(rr), bb))
+                            throw new RuntimeException("serialized output not identical.");
+                    bb.rewind();
+                    RoaringBitmap rr2 = toRoaringBitmap(bb);
+                    if(!rr2.equals(rr)) throw new RuntimeException("Can't recover RoaringBitmap");
+                    bb.rewind();
+                    MutableRoaringBitmap rb2 = toMutableRoaringBitmap(bb);
+                    if(!rb1.equals(rb2)) throw new RuntimeException("Can't recover MutableRoaringBitmap");
+                    bb.rewind();
+                    ImmutableRoaringBitmap irb = new ImmutableRoaringBitmap(bb);
+                    if(!irb.equals(rb1))
+                     throw new RuntimeException("serialized output cannot be mapped.");
+                }
 
                 rambitmaps.add(rb1);
                 offsets.add(fos.getChannel().position());
@@ -259,16 +353,7 @@ public class TestMemoryMapping {
                     rambitmaps.add(rb2);
                     // we add tests
                     ByteBuffer outbb = ByteBuffer.allocate(rb2.serializedSizeInBytes());
-                    rb2.serialize(new DataOutputStream(new OutputStream(){
-                        ByteBuffer mBB;
-                        OutputStream init(final ByteBuffer mbb) {mBB=mbb; return this;}
-                        public void close() {}
-                        public void flush() {}
-                        public void write(final int b) {
-                            mBB.put((byte) b);}
-                        public void write(final byte[] b) {mBB.put(b);}            
-                        public void write(final byte[] b, final int off, final int l) {mBB.put(b,off,l);}
-                    }.init(outbb)));
+                    rb2.serialize(new DataOutputStream(new ByteBufferBackedOutputStream(outbb)));
                     //
                     outbb.flip();
                     ImmutableRoaringBitmap irb = new ImmutableRoaringBitmap(outbb);
@@ -315,3 +400,62 @@ public class TestMemoryMapping {
 
     static File tmpfile;
 }
+
+
+class ByteBufferBackedInputStream extends InputStream {
+    
+    ByteBuffer buf;
+    ByteBufferBackedInputStream( ByteBuffer buf){
+      this.buf = buf;
+    }
+    public int read() throws IOException {
+      if (!buf.hasRemaining()) {
+        return -1;
+      }
+      return 0xFF & buf.get();
+    }
+    public int read(byte[] bytes) throws IOException {
+        int len = Math.min(bytes.length, buf.remaining());
+        buf.get(bytes, 0, len);
+        return len;
+     }
+    
+    public long skip(long n) {
+        int len = Math.min((int)n, buf.remaining());
+        buf.position(buf.position() + (int)n);
+        return len;
+    }
+    
+    public int available() throws IOException {
+        return buf.remaining();
+    }
+    
+    public boolean markSupported() {
+        return false;
+    }
+        
+    public int read(byte[] bytes, int off, int len) throws IOException {
+      len = Math.min(len, buf.remaining());
+      buf.get(bytes, off, len);
+      return len;
+    }
+  }
+
+  class ByteBufferBackedOutputStream extends OutputStream{
+    ByteBuffer buf;
+    ByteBufferBackedOutputStream( ByteBuffer buf){
+      this.buf = buf;
+    }
+    public synchronized void write(int b) throws IOException {
+      buf.put((byte) b);
+    }
+
+    public synchronized void write(byte[] bytes) throws IOException {
+      buf.put(bytes);
+    }
+    
+    public synchronized void write(byte[] bytes, int off, int len) throws IOException {
+      buf.put(bytes, off, len);
+    }
+    
+  }
