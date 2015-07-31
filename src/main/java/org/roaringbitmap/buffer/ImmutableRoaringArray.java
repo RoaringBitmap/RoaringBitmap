@@ -154,8 +154,6 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
             shortArray.limit(2*nbrruns);
             return new MappeableRunContainer(shortArray,nbrruns);
         }
-
-
         if (isBitmap) {
             final LongBuffer bitmapArray = buffer.asLongBuffer().slice();
             bitmapArray.limit(MappeableBitmapContainer.MAX_CAPACITY / 64);            
@@ -167,6 +165,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         }
     }
 
+    
     private int getOffsetContainerSlow(int k) {
         boolean hasrun = hasRunContainer();
         int pos = this.headerSize(hasrun);

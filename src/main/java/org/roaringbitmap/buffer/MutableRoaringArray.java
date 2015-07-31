@@ -328,7 +328,6 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
 
             }
 
-
             @Override
             public MappeableContainerPointer clone() {
                 try {
