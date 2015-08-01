@@ -93,6 +93,20 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         this.content = array;
     }
 
+    @Override
+    int numberOfRuns() {
+        int numRuns = 0;
+        ShortIterator sIt = getShortIterator();
+        int previous = -2;
+        while (sIt.hasNext()) {
+            int val = BufferUtil.toIntUnsigned(sIt.next());
+            if (val != previous+1)
+                ++numRuns;
+            previous = val;
+        }
+        return numRuns;
+    }
+
     /**
      * running time is in O(n) time if insert is not in order.
      */
@@ -240,7 +254,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         for (int i = 0; i < cardinality; ++i) {
             val = content[i];
             int valInt = Util.toIntUnsigned(val);
-            if ( valInt < runStart)  {
+            if ( valInt < runStart) 
+ {
                 buffer[writeLocation++] = val;
             }
             else if (valInt <= runEnd)
@@ -276,7 +291,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         for (int i = 0; i < cardinality; ++i) {
             val = content.get(i);
             int valInt = BufferUtil.toIntUnsigned(val);
-            if ( valInt < runStart)  {
+            if ( valInt < runStart) 
+ {
                 buffer.put(writeLocation++, val);
             }
             else if (valInt <= runEnd)
@@ -537,7 +553,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
 
     @Override
-    public MappeableContainer ior(final MappeableRunContainer value2) {  // not inplace
+    public MappeableContainer ior(final MappeableRunContainer value2) {
+  // not inplace
         return value2.or(this);
     }
 
