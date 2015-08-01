@@ -106,7 +106,6 @@ public final class FastAggregation {
             ContainerPointer x2 = pq.poll();
             Container newc = x1.getContainer().lazyOR(x2.getContainer());
             while (!pq.isEmpty() && (pq.peek().key() == x1.key())) {
-
                 ContainerPointer x = pq.poll();
                 newc = newc.lazyIOR(x.getContainer());
                 x.advance();

@@ -433,10 +433,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      * @return aggregated container
      */
     public Container lazyOR(Container x) {
-        if(this instanceof RunContainer) {
-            // this is probably a good heuristic is most cases.
-            return ((RunContainer)this).toTemporaryBitmap().lazyIOR(x);
-        } else if (this instanceof ArrayContainer) {
+        if ((this instanceof ArrayContainer) || (this instanceof RunContainer)) {
             if (x instanceof ArrayContainer)
                 return or((ArrayContainer) x);
             else if (x instanceof BitmapContainer) return or((BitmapContainer) x);

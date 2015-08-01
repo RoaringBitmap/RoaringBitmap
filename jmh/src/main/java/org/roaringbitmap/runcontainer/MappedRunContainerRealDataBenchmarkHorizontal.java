@@ -12,6 +12,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -44,6 +45,8 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
     public int horizontalOr_RoaringWithRun(BenchmarkState benchmarkState) {
         int answer = BufferFastAggregation.horizontal_or(benchmarkState.mrc.iterator())
                .getCardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
         return answer;
     }
 
@@ -51,6 +54,8 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
     public int horizontalOr_Roaring(BenchmarkState benchmarkState) {
         int answer = BufferFastAggregation.horizontal_or(benchmarkState.mac.iterator())
                .getCardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
         return answer;
     }
 
@@ -58,7 +63,10 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
     @Benchmark
     public int horizontalOr_Concise(BenchmarkState benchmarkState) {
         ImmutableConciseSet bitmapor = ImmutableConciseSet.union(benchmarkState.cc);
-        return bitmapor.size();
+        int answer = bitmapor.size();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return answer;
     }
 
 
@@ -72,6 +80,7 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
             "weather_sept_85", "wikileaks-noquotes"
         })
         String dataset;
+        public int expectedvalue = 0;
 
         List<ImmutableRoaringBitmap> mrc = new ArrayList<ImmutableRoaringBitmap>();
         List<ImmutableRoaringBitmap> mac = new ArrayList<ImmutableRoaringBitmap>();
@@ -99,7 +108,9 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
             ArrayList<ImmutableRoaringBitmap> answer = new ArrayList<ImmutableRoaringBitmap>(source.size());
             while(out.position()< out.limit()) {
                     final ByteBuffer bb = out.slice();
+                    MutableRoaringBitmap equiv = source.get(answer.size());
                     ImmutableRoaringBitmap newbitmap = new ImmutableRoaringBitmap(bb);       
+                    if(!equiv.equals(newbitmap)) throw new RuntimeException("bitmaps do not match");
                     answer.add(newbitmap);
                     out.position(out.position() + newbitmap.serializedSizeInBytes());
             }
@@ -116,11 +127,10 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
             int[] sizes = new int[source.size()];
             int pos = 0;
             for(ConciseSet cc : source) {
-                byte[] data = cc.toByteBuffer().array();
+                byte[] data = ImmutableConciseSet.newImmutableFromMutable(cc).toBytes();
                 sizes[pos++] = data.length;
                 fos.write(data);
             }
-            
             final long totalcount = fos.getChannel().position();
             System.out.println("[concise] Wrote " + totalcount / 1024 + " KB");
             dos.close();
@@ -128,14 +138,20 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
             ByteBuffer out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, totalcount);
             ArrayList<ImmutableConciseSet> answer = new ArrayList<ImmutableConciseSet>(source.size());
             while(out.position() < out.limit()) {
+                    byte[] olddata = ImmutableConciseSet.newImmutableFromMutable(source.get(answer.size())).toBytes();
                     final ByteBuffer bb = out.slice();
-                    ImmutableConciseSet newbitmap = new ImmutableConciseSet(bb);       
+                    bb.limit(sizes[answer.size()]);
+                    ImmutableConciseSet newbitmap = new ImmutableConciseSet(bb);
+                    byte[] newdata = newbitmap.toBytes();
+                    if(!Arrays.equals(olddata, newdata))
+                       throw new RuntimeException("bad concise serialization");
                     answer.add(newbitmap);
-                    out.position(out.position() + newbitmap.toBytes().length);
+                    out.position(out.position() + bb.limit());
             }
             memoryMappedFile.close();
             return answer;
         }
+
                 
                 
         @Setup
@@ -159,6 +175,10 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
             mrc = convertToImmutableRoaring(tmprc);
             mac = convertToImmutableRoaring(tmpac);
             cc = convertToImmutableConcise(tmpcc);
+            if((mrc.size() != mac.size()) || (mac.size() != cc.size()))
+                throw new RuntimeException("number of bitmaps do not match.");
+            expectedvalue = BufferFastAggregation.horizontal_or(mrc.iterator())
+                    .getCardinality();
         }
 
     }

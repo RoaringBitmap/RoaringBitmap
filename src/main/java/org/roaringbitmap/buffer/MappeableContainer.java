@@ -404,11 +404,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      * @return aggregated container
      */
     public MappeableContainer lazyOR(MappeableContainer x) {
-        if (this instanceof MappeableRunContainer) {
-            // this is probably a good heuristic is most cases.
-            return ((MappeableRunContainer) this).toTemporaryBitmap().lazyIOR(x);
-
-        } else if (this instanceof MappeableArrayContainer) {
+        if ((this instanceof MappeableArrayContainer) || (this instanceof MappeableRunContainer)) {
             if (x instanceof MappeableArrayContainer)
                 return or((MappeableArrayContainer) x);
             else if (x instanceof MappeableBitmapContainer)

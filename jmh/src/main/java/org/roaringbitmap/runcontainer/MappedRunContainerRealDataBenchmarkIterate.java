@@ -12,6 +12,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -48,6 +49,8 @@ public class MappedRunContainerRealDataBenchmarkIterate {
             while(i.hasNext())
                 total += i.next();
         }
+        if(total != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
         return total;
     }
 
@@ -61,6 +64,8 @@ public class MappedRunContainerRealDataBenchmarkIterate {
             while(i.hasNext())
                 total += i.next();
         }
+        if(total != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
         return total;
     }
     
@@ -74,6 +79,8 @@ public class MappedRunContainerRealDataBenchmarkIterate {
             while(i.hasNext())
                 total += i.next();
         }
+        if(total != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
         return total;
     }
 
@@ -87,6 +94,7 @@ public class MappedRunContainerRealDataBenchmarkIterate {
             "weather_sept_85", "wikileaks-noquotes"
         })
         String dataset;
+        public int expectedvalue = 0;
 
         List<ImmutableRoaringBitmap> mrc = new ArrayList<ImmutableRoaringBitmap>();
         List<ImmutableRoaringBitmap> mac = new ArrayList<ImmutableRoaringBitmap>();
@@ -131,11 +139,10 @@ public class MappedRunContainerRealDataBenchmarkIterate {
             int[] sizes = new int[source.size()];
             int pos = 0;
             for(ConciseSet cc : source) {
-                byte[] data = cc.toByteBuffer().array();
+                byte[] data = ImmutableConciseSet.newImmutableFromMutable(cc).toBytes();
                 sizes[pos++] = data.length;
                 fos.write(data);
             }
-            
             final long totalcount = fos.getChannel().position();
             System.out.println("[concise] Wrote " + totalcount / 1024 + " KB");
             dos.close();
@@ -143,14 +150,20 @@ public class MappedRunContainerRealDataBenchmarkIterate {
             ByteBuffer out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, totalcount);
             ArrayList<ImmutableConciseSet> answer = new ArrayList<ImmutableConciseSet>(source.size());
             while(out.position() < out.limit()) {
+                    byte[] olddata = ImmutableConciseSet.newImmutableFromMutable(source.get(answer.size())).toBytes();
                     final ByteBuffer bb = out.slice();
-                    ImmutableConciseSet newbitmap = new ImmutableConciseSet(bb);       
+                    bb.limit(sizes[answer.size()]);
+                    ImmutableConciseSet newbitmap = new ImmutableConciseSet(bb);
+                    byte[] newdata = newbitmap.toBytes();
+                    if(!Arrays.equals(olddata, newdata))
+                       throw new RuntimeException("bad concise serialization");
                     answer.add(newbitmap);
-                    out.position(out.position() + newbitmap.toBytes().length);
+                    out.position(out.position() + bb.limit());
             }
             memoryMappedFile.close();
             return answer;
         }
+
                 
                 
         @Setup
@@ -174,6 +187,16 @@ public class MappedRunContainerRealDataBenchmarkIterate {
             mrc = convertToImmutableRoaring(tmprc);
             mac = convertToImmutableRoaring(tmpac);
             cc = convertToImmutableConcise(tmpcc);
+            if((mrc.size() != mac.size()) || (mac.size() != cc.size()))
+                throw new RuntimeException("number of bitmaps do not match.");
+            expectedvalue = 0;
+            for (int k = 0; k < mrc.size(); ++k) {
+                ImmutableRoaringBitmap rb = mrc.get(k);
+                org.roaringbitmap.IntIterator i = rb.getIntIterator();
+                while(i.hasNext())
+                    expectedvalue += i.next();
+            }
+
         }
 
     }

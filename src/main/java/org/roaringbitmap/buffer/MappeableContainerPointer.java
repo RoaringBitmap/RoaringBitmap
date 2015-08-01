@@ -39,6 +39,13 @@ interface MappeableContainerPointer extends
     MappeableContainer getContainer();
 
     /**
+     * Returns true if it is a bitmap container (MappeableBitmapContainer).
+     * 
+     * @return boolean indicated if it is a bitmap container
+     */
+    public boolean isBitmapContainer();
+    
+    /**
      * 
      * @return whether there is a container at the current position
      */

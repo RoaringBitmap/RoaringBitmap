@@ -16,6 +16,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 
 
+
 /**
  * This is the underlying data structure for an ImmutableRoaringBitmap. This
  * class is not meant for end-users.
@@ -200,8 +201,17 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     public MappeableContainerPointer getContainerPointer() {
         return getContainerPointer(0);
     }
+    
+    /**
+     * Returns true if this bitmap is empty.
+     * @return true if empty
+     */
+    public boolean isEmpty() {
+        return this.size == 0;
+    }
 
-    public MappeableContainerPointer getContainerPointer(final int startIndex) {
+    public MappeableContainerPointer getContainerPointer(final int startIndex) {        
+        final boolean hasrun = isEmpty() ? false: hasRunContainer();
         return new MappeableContainerPointer() {
             int k = startIndex;
 
@@ -220,8 +230,21 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 				if (key() != o.key())
 					return BufferUtil.toIntUnsigned(key())
 							- BufferUtil.toIntUnsigned(o.key());
+                // we make sure that if there is a bitmap, it comes up first, always
+                if(this.isBitmapContainer())
+                    return -1;
+				if(o.isBitmapContainer())
+                    return 1;
+                // otherwise, we sort by cardinality
 				return o.getCardinality() - getCardinality();
 			}
+
+            @Override
+            public boolean isBitmapContainer() {
+                if(ImmutableRoaringArray.this.isRunContainer(k, hasrun))
+                    return false;
+                return getCardinality() >MappeableArrayContainer.DEFAULT_MAX_SIZE;
+            }
 
             @Override
             public int getCardinality() {

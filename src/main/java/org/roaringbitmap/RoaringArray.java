@@ -513,8 +513,14 @@ public final class RoaringArray implements Cloneable, Externalizable {
 			public int compareTo(ContainerPointer o) {
 				if (key() != o.key())
 					return Util.toIntUnsigned(key()) - Util.toIntUnsigned(o.key());
+				// we make sure that if there is a bitmap, it comes up first, always
+                if(this.getContainer() instanceof BitmapContainer)
+                    return -1;
+				if(o.getContainer() instanceof BitmapContainer)
+				    return 1;
+                // otherwise, we sort by cardinality
 				return o.getContainer().getCardinality()
-						- getContainer().getCardinality();
+				        - getContainer().getCardinality();
 			}
 		};
     }

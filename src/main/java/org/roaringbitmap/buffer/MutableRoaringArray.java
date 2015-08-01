@@ -302,7 +302,16 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
 				if (key() != o.key())
 					return BufferUtil.toIntUnsigned(key())
 							- BufferUtil.toIntUnsigned(o.key());
-				return o.getCardinality() - getCardinality();
+                // we make sure that if there is a bitmap, it comes up first, always
+                MappeableContainer mc = getContainer();
+                MappeableContainer omc = o.getContainer();
+                
+				if(mc instanceof MappeableBitmapContainer)
+                    return -1;
+                if(omc instanceof MappeableBitmapContainer)
+                    return 1;
+                // otherwise, we sort by cardinality
+				return omc.getCardinality() - mc.getCardinality();
 			}
 
             @Override
@@ -335,6 +344,11 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
                 } catch (CloneNotSupportedException e) {
                     return null;// will not happen
                 }
+            }
+
+            @Override
+            public boolean isBitmapContainer() {
+                return getContainer() instanceof MappeableBitmapContainer;
             }
         };
 
