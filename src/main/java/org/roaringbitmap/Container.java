@@ -675,11 +675,15 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      /**
       * Convert to RunContainers, when the result is smaller.  Overridden by RunContainer
       *   to possibility switch from RunContainer to a smaller alternative.
+      *   Overridden by BitmapContainer with a more efficient approach.
       *   @return the new container
       */
+
+     
      public Container runOptimize() {
-         // TODO: this code could possibly be faster when the initial container is a bitmap
-         // TODO: should probably not convert if the container is a run container initially
+         // TODO:  consider borrowing the BitmapContainer idea of early abandonment 
+         // with ArrayContainers, when the number of runs in the arrayContainer
+         // passes some threshold based on the cardinality.
          int numRuns = numberOfRuns();
          int sizeAsRunContainer = RunContainer.serializedSizeInBytes(numRuns);
          if (getArraySizeInBytes() > sizeAsRunContainer) {
@@ -689,6 +693,5 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
          }
      }
 
-    abstract int numberOfRuns();
-
+     abstract int numberOfRuns(); // exact
 }

@@ -61,11 +61,60 @@ public class RunContainer extends Container implements Cloneable {
         setLength(runCount-1, (short) runLen);
     }
 
+    // convert a bitmap container to a run container somewhat efficiently.
+    public RunContainer( BitmapContainer bc, int nbrRuns) {
+        this.nbrruns = nbrRuns;
+        valueslength = new short[ 2*nbrRuns];
+        if (nbrRuns == 0) return;
+        
+        int longCtr = 0;  // index of current long in bitmap
+        long curWord = bc.bitmap[0];  //its value
+        int runCount=0;
+        while (true) {
+            // potentially multiword advance to first 1 bit
+            while (curWord == 0L && longCtr < bc.bitmap.length-1)
+                curWord = bc.bitmap[ ++longCtr];
+            
+            if (curWord == 0L) {
+                // wrap up, no more runs
+                return;
+            }
+            int localRunStart = Long.numberOfTrailingZeros(curWord);
+            int runStart = localRunStart   + 64*longCtr;
+            // stuff 1s into number's LSBs
+            long curWordWith1s = curWord | ((1L << runStart) - 1);
+            
+            // find the next 0, potentially in a later word
+            int runEnd = 0;
+            while (curWordWith1s == -1L && longCtr < bc.bitmap.length-1)
+                curWordWith1s = bc.bitmap[++longCtr];
+            
+            if (curWordWith1s == -1L) {
+                // a final unterminated run of 1s (32 of them)
+                runEnd = Long.numberOfTrailingZeros(~curWordWith1s) + longCtr*64;
+                setValue(runCount, (short) runStart);
+                setLength(runCount, (short) (runEnd-runStart-1));
+                return;
+            }
+            int localRunEnd = Long.numberOfTrailingZeros(~curWordWith1s);
+            runEnd = localRunEnd + longCtr*64;
+            setValue(runCount, (short) runStart);
+            setLength(runCount, (short) (runEnd-runStart-1));
+            runCount++;
+            // now, zero out everything right of runEnd.
+            
+            curWord = (curWordWith1s >>> localRunEnd) << localRunEnd;
+            // We've lathered and rinsed, so repeat...
+        }
+    }
+
+
     @Override
     int numberOfRuns() {
         return nbrruns;
     }
 
+    
     // convert to bitmap or array *if needed*
     protected Container toEfficientContainer() { 
         int sizeAsRunContainer = RunContainer.serializedSizeInBytes(this.nbrruns);

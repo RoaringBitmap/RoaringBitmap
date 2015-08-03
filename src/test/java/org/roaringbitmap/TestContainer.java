@@ -8,6 +8,8 @@ package org.roaringbitmap;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Random;
+import java.util.ArrayList;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -821,10 +823,41 @@ public class TestContainer {
             bc.add(position);
             rc.add(position);
         }
-
         assertEquals(rc.numberOfRuns(), ac.numberOfRuns());
         assertEquals(rc.numberOfRuns(), bc.numberOfRuns());
     }
+
+
+    @Test
+    public void numberOfRuns1() {
+        System.out.println("numberOfRuns1");
+        Random r = new Random(12345);
+        
+        for (double density = 0.001; density < 0.8; density *= 2)  {
+
+            ArrayList<Integer> values = new ArrayList<Integer>();
+            for (int i = 0; i < 65536; ++i)
+                if (r.nextDouble() < density)  values.add(i);
+            Integer [] positions = values.toArray( new Integer[0]);
+            Container ac = new ArrayContainer();  //at high density becomes  Bitmap
+            BitmapContainer bc = new BitmapContainer();
+            Container rc = new RunContainer();
+            for (int position : positions) {
+                ac = ac.add((short) position);
+                bc.add((short) position);
+                rc.add((short) position);
+            }
+
+            assertEquals(rc.numberOfRuns(), ac.numberOfRuns());
+            assertEquals(rc.numberOfRuns(), bc.numberOfRuns());
+            assertEquals(bc.numberOfRuns(), bc.numberOfRunsLowerBound()+bc.numberOfRunsAdjustment());
+            assertEquals(bc.numberOfRunsLowerBound(), bc.numberOfRunsLowerBoundUnrolled()); 
+            assertEquals(bc.numberOfRunsLowerBound(), bc.numberOfRunsLowerBoundUnrolled2()); 
+            assertEquals(bc.numberOfRunsAdjustment(), bc.numberOfRunsAdjustmentUnrolled()); 
+        }
+    }
+
+
     
     
 }

@@ -1693,6 +1693,7 @@ public class TestRunContainer {
     	
     	RunContainer r3 = new RunContainer();
     	Container b3 = new ArrayContainer();
+        // mayhaps some of the 655536s were intended to be 65536s?? And later...
     	for(int k = 0; k < 655536; k += 2) {
     		r3 = (RunContainer) r3.add((short) k);
     		b3 = b3.add((short) k);
@@ -1957,6 +1958,115 @@ public class TestRunContainer {
 		   throw new RuntimeException("add failure");
 	   return c;
   }
+
+
+  @Test
+  public void RunContainerFromBitmap() {
+      Container rc = new RunContainer();
+      Container bc = new BitmapContainer();
+
+      rc = rc.add((short)2); bc = bc.add((short)2);
+      rc = rc.add((short)3); bc = bc.add((short)3);
+      rc = rc.add((short) 4); bc = bc.add((short)4);
+      rc = rc.add((short)17); bc = bc.add((short)17);
+      for (int i=192; i < 500; ++i) {
+          rc = rc.add((short) i);
+          bc = bc.add((short) i);
+      }
+      rc = rc.add((short)1700); bc = bc.add((short)1700);
+      rc = rc.add((short)1701); bc = bc.add((short)1701);
+      
+      // cases depending on whether we have largest item.
+      // this test: no, we don't get near largest word
+
+      RunContainer rc2 = new RunContainer((BitmapContainer) bc, ((RunContainer)rc).nbrruns);
+      assertEquals(rc,rc2);
+  }
+
+
+  @Test
+  public void RunContainerFromBitmap1() {
+      Container rc = new RunContainer();
+      Container bc = new BitmapContainer();
+
+
+      rc = rc.add((short)2); bc = bc.add((short)2);
+      rc = rc.add((short)3); bc = bc.add((short)3);
+      rc = rc.add((short) 4); bc = bc.add((short)4);
+      rc = rc.add((short)17); bc = bc.add((short)17);
+      for (int i=192; i < 500; ++i) {
+          rc = rc.add((short) i);
+          bc = bc.add((short) i);
+      }
+      rc = rc.add((short)1700); bc = bc.add((short)1700);
+      rc = rc.add((short)1701); bc = bc.add((short)1701);
+      
+      // cases depending on whether we have largest item.
+      // this test: we have a 1 in the largest word but not at end
+      rc = rc.add((short)65530); bc = bc.add((short)65530);
+
+      RunContainer rc2 = new RunContainer((BitmapContainer) bc, ((RunContainer)rc).nbrruns);
+      assertEquals(rc,rc2);
+  }
+
+
+  @Test
+  public void RunContainerFromBitmap2() {
+      Container rc = new RunContainer();
+      Container bc = new BitmapContainer();
+
+      rc = rc.add((short)2); bc = bc.add((short)2);
+      rc = rc.add((short)3); bc = bc.add((short)3);
+      rc = rc.add((short) 4); bc = bc.add((short)4);
+      rc = rc.add((short)17); bc = bc.add((short)17);
+      for (int i=192; i < 500; ++i) {
+          rc = rc.add((short) i);
+          bc = bc.add((short) i);
+      }
+      rc = rc.add((short)1700); bc = bc.add((short)1700);
+      rc = rc.add((short)1701); bc = bc.add((short)1701);
+      
+      // cases depending on whether we have largest item.
+      // this test: we have a 1 in the largest word and at end
+      rc = rc.add((short)65530); bc = bc.add((short)65530);
+      rc = rc.add((short)65535); bc = bc.add((short)65535);
+
+
+      RunContainer rc2 = new RunContainer((BitmapContainer) bc, ((RunContainer)rc).nbrruns);
+      assertEquals(rc,rc2);
+  }
+
+
+
+  @Test
+  public void RunContainerFromBitmap3() {
+      Container rc = new RunContainer();
+      Container bc = new BitmapContainer();
+
+      rc = rc.add((short)2); bc = bc.add((short)2);
+      rc = rc.add((short)3); bc = bc.add((short)3);
+      rc = rc.add((short) 4); bc = bc.add((short)4);
+      rc = rc.add((short)17); bc = bc.add((short)17);
+      for (int i=192; i < 500; ++i) {
+          rc = rc.add((short) i);
+          bc = bc.add((short) i);
+      }
+      rc = rc.add((short)1700); bc = bc.add((short)1700);
+      rc = rc.add((short)1701); bc = bc.add((short)1701);
+      // cases depending on whether we have largest item.
+      // this test: we have a lot of 1s in a run at the end
+
+      for (int i=65000; i < 65535; ++i) {
+          rc = rc.add((short) i);
+          bc = bc.add((short) i);
+      }
+
+      RunContainer rc2 = new RunContainer((BitmapContainer) bc, ((RunContainer)rc).nbrruns);
+      assertEquals(rc,rc2);
+  }
+
+      
+
   
   
   @Test 

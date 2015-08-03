@@ -71,6 +71,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
     @Override
     int numberOfRuns() {
+        // OFK: could use shifting etc to make a branch-free adjustment, see code below.
         int numRuns = 0;
         for (int i = 0; i < bitmap.length; i++) {
             long word = bitmap[i];
@@ -87,6 +88,183 @@ public final class BitmapContainer extends Container implements Cloneable {
             }
         }
         return numRuns;
+    }
+
+    int numberOfRunsLowerBound() {
+        int numRuns = 0;
+        for (int i = 0; i < bitmap.length; i++) {
+            long word = bitmap[i];
+            numRuns += Long.bitCount((~word) & (word << 1));
+        }
+        return numRuns;
+    }
+
+
+
+    // bail out early when the number of runs excessive, without
+    // an accurate estimate.
+
+    static final int BLOCKSIZE = 128;
+    // 64 words can have max 32 runs per word, max 2k runs
+
+    int numberOfRunsLowerBound(int mustNotExceed) {
+        int numRuns = 0;
+      
+        for (int blockOffset = 0; blockOffset < bitmap.length; blockOffset+= BLOCKSIZE) {
+            
+            for (int i = 0; i < BLOCKSIZE; i++) {
+                long word = bitmap[i+blockOffset];
+                numRuns += Long.bitCount((~word) & (word << 1));
+            }
+            if (numRuns > mustNotExceed)
+                return numRuns; 
+        }
+        return numRuns;
+    }
+
+
+
+    int numberOfRunsLowerBoundUnrolled2(int mustNotExceed) {
+        int numRunsUpper = 0, numRunsLower = 0;
+      
+        int halfway = bitmap.length/2;
+        for (int blockOffset = 0; blockOffset < bitmap.length/2; blockOffset+= BLOCKSIZE) {
+            
+            for (int i = 0; i < BLOCKSIZE; i++) {
+                long wordLower = bitmap[i+blockOffset];
+                numRunsLower += Long.bitCount((~wordLower) & (wordLower << 1));
+                long wordUpper = bitmap[halfway+i+blockOffset];
+                numRunsUpper += Long.bitCount((~wordUpper) & (wordUpper << 1));
+            }
+            int numRuns = numRunsUpper + numRunsLower;
+            if (numRuns > mustNotExceed)
+                return numRuns; 
+        }
+        return numRunsUpper + numRunsLower;
+    }
+
+
+
+    int numberOfRunsLowerBoundUnrolled() {
+        assert bitmap.length % 4 == 0;
+        
+        // these guys usually in the same cache line, so if one misses, the others
+        // will probably also miss.  So there might not be an opportunity to proceed.
+
+        int numRuns1 = 0, numRuns2 = 0, numRuns3=0, numRuns4=0;
+        for (int i = 0; i < bitmap.length; i  += 4) {
+            final long word1 = bitmap[i];
+            numRuns1 += Long.bitCount((~word1) & (word1 << 1));
+            final long word2 = bitmap[i+1];
+            numRuns2 += Long.bitCount((~word2) & (word2 << 1));
+            final long word3 = bitmap[i+2];
+            numRuns3 += Long.bitCount((~word3) & (word3 << 1));
+            final long word4 = bitmap[i+3];
+            numRuns3 += Long.bitCount((~word4) & (word4 << 1));
+        }
+        return numRuns1+numRuns2+numRuns3+numRuns4;
+    }
+
+    // try unrolling for first and second halves.  If there is a cache miss on one,
+    // the other miss won't necessarily miss too.
+
+    int numberOfRunsLowerBoundUnrolled2() {
+        final int halfway = bitmap.length/2;
+        int numRuns1 = 0, numRuns2 = 0;
+        for (int i = 0; i < halfway; i++) {
+            long word1 = bitmap[i];
+            long word2 = bitmap[i+halfway];
+            numRuns1 += Long.bitCount((~word1) & (word1 << 1));
+            numRuns1 += Long.bitCount((~word2) & (word2 << 1));
+        }
+        return numRuns1+numRuns2;
+    }
+
+
+
+    int numberOfRunsAdjustment() {
+        int ans = 0;
+        long nextWord = bitmap[0];
+        for (int i = 0; i < bitmap.length-1; i++) {
+            final long word = nextWord;
+
+            nextWord = bitmap[i+1];
+            ans += ( (word >>> 63) & ~nextWord & 1);
+            //            if ( ((word & 0x8000000000000000L) != 0))
+            //    System.out.println("foo!");
+
+            //if ( ((word & 0x8000000000000000L) != 0) &&
+            //     ((nextWord & 1) == 0)) {
+            //    System.out.println("case should have incremented");
+            //    System.out.println("firstval is " + ( word >>> 63));
+            //    System.out.println("secondval is " + (nextWord & 1));
+            //}                
+        }
+        final long word = nextWord;
+          
+        if((word & 0x8000000000000000L) != 0)
+            ans++;
+        //System.out.println("adjustment is "+ans);
+
+        return ans;
+    }
+
+
+    // unrolled to work on first and second halves of the array at once
+    // 
+    int numberOfRunsAdjustmentUnrolled() {
+        int ans1 = 0, ans2=0;
+        final int halfway = bitmap.length / 2;
+
+        long nextWord1 = bitmap[0], nextWord2 = bitmap[0+halfway];
+        for (int i = 0; i < bitmap.length/2-1; i++) {
+            final long word1 = nextWord1;
+            final long word2 = nextWord2;
+
+            nextWord1 = bitmap[i+1];
+            nextWord2 = bitmap[halfway+i+1];
+
+            ans1 += ((word1 >>> 63) & ~nextWord1 & 1);
+            ans2 += ((word2 >>> 63) & ~nextWord2 & 1);
+
+        }
+        final long word2 = nextWord2;
+        if ((word2 & 0x8000000000000000L) != 0)
+            ans2++;
+        final long word1 = nextWord1;
+        ans1 += ((word1 >> 63) & ~bitmap[halfway] & 1);
+        return ans1+ans2;
+    }
+
+
+
+    // nruns value for which RunContainer.serializedSizeInBytes == BitmapContainer.getArraySizeInBytes()
+    private final int MAXRUNS = (getArraySizeInBytes() - 2) / 4;
+    
+    @Override
+    public Container runOptimize() {
+
+        assert RunContainer.serializedSizeInBytes(MAXRUNS) <= getArraySizeInBytes() && RunContainer.serializedSizeInBytes(MAXRUNS+1) > getArraySizeInBytes();
+        int numRuns = numberOfRunsLowerBoundUnrolled2(MAXRUNS); // numberOfRunsLowerBound(MAXRUNS);
+        int sizeAsRunContainerLowerBound = RunContainer.serializedSizeInBytes(numRuns);
+
+        if (sizeAsRunContainerLowerBound >= getArraySizeInBytes())
+            return this;
+        // else numRuns is a relatively tight bound that needs to be exact
+        // in some cases (or if we need to make the runContainer the right
+        // size)
+        numRuns += numberOfRunsAdjustment();
+        /*
+        if (numRuns != numberOfRuns())
+            System.out.println("oops, numRuns is "+numRuns+" but should have been "+numberOfRuns()+" MAXRUNS ="+MAXRUNS+" nruns = "+numberOfRunsLowerBoundUnrolled2(MAXRUNS) + " nonunrolled is "+numberOfRunsLowerBound(MAXRUNS));
+        */
+        int sizeAsRunContainer = RunContainer.serializedSizeInBytes(numRuns);
+        
+        if (getArraySizeInBytes() > sizeAsRunContainer) {
+            return new RunContainer(this,  numRuns); 
+        } 
+        else 
+            return this;
     }
 
     @Override
