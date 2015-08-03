@@ -70,6 +70,26 @@ public final class BitmapContainer extends Container implements Cloneable {
     }
 
     @Override
+    int numberOfRuns() {
+        int numRuns = 0;
+        for (int i = 0; i < bitmap.length; i++) {
+            long word = bitmap[i];
+            numRuns += Long.bitCount((~word) & (word << 1));
+            if((word & 0x8000000000000000L) != 0) {
+                if(i == bitmap.length - 1) {
+                    numRuns++;
+                } else {
+                    long nextWord = bitmap[i+1];
+                    if((nextWord & 1) == 0) {
+                        numRuns++;
+                    }
+                }
+            }
+        }
+        return numRuns;
+    }
+
+    @Override
     public Container add(final short i) {
         final int x = Util.toIntUnsigned(i);
         final long previous = bitmap[x / 64];

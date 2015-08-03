@@ -81,7 +81,12 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
         }
         setLength(runCount-1, (short) runLen);
     }
-    
+
+    @Override
+    int numberOfRuns() {
+        return this.nbrruns;
+    }
+
     /**
      * Convert the container to either a Bitmap or an Array Container, depending
      * on the cardinality.

@@ -60,7 +60,12 @@ public class RunContainer extends Container implements Cloneable {
         }
         setLength(runCount-1, (short) runLen);
     }
-    
+
+    @Override
+    int numberOfRuns() {
+        return nbrruns;
+    }
+
     // convert to bitmap or array *if needed*
     protected Container toEfficientContainer() { 
         int sizeAsRunContainer = RunContainer.serializedSizeInBytes(this.nbrruns);

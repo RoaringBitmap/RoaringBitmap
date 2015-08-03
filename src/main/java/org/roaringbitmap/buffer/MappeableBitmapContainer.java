@@ -94,6 +94,26 @@ public final class MappeableBitmapContainer extends MappeableContainer
     }
 
     @Override
+    int numberOfRuns() {
+        int numRuns = 0;
+        for (int i = 0; i < bitmap.limit(); i++) {
+            long word = bitmap.get(i);
+            numRuns += Long.bitCount((~word) & (word << 1));
+            if((word & 0x8000000000000000L) != 0) {
+                if(i == bitmap.limit() - 1) {
+                    numRuns++;
+                } else {
+                    long nextWord = bitmap.get(i+1);
+                    if((nextWord & 1) == 0) {
+                        numRuns++;
+                    }
+                }
+            }
+        }
+        return numRuns;
+    }
+
+    @Override
     public MappeableContainer add(final short i) {
         final int x = BufferUtil.toIntUnsigned(i);
         final long previous = bitmap.get(x / 64);

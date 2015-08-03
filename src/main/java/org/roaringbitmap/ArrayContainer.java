@@ -66,6 +66,19 @@ public final class ArrayContainer extends Container implements Cloneable {
         this.content = newContent;
     }
 
+    @Override
+    int numberOfRuns() {
+        int numRuns = 0;
+        int previous = -2;
+        for (int i = 0; i < cardinality; i++) {
+            int val = Util.toIntUnsigned(content[i]);
+            if (val != previous+1)
+                ++numRuns;
+            previous = val;
+        }
+        return numRuns;
+    }
+
     /**
      * running time is in O(n) time if insert is not in order.
      */

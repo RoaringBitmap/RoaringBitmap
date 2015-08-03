@@ -809,6 +809,22 @@ public class TestContainer {
             c = c.add(s);
         return c;
     }
+
+    @Test
+    public void numberOfRuns() {
+        short[] positions = { 3, 4, 5, 10, 11, 13, 15, 62, 63, 64, 65 };
+        Container ac = new ArrayContainer();
+        Container bc = new BitmapContainer();
+        Container rc = new RunContainer();
+        for (short position : positions) {
+            ac.add(position);
+            bc.add(position);
+            rc.add(position);
+        }
+
+        assertEquals(rc.numberOfRuns(), ac.numberOfRuns());
+        assertEquals(rc.numberOfRuns(), bc.numberOfRuns());
+    }
     
     
 }
