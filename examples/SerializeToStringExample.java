@@ -1,16 +1,17 @@
 /**
-* This example shows how to serialize a Roaring bitmap to a ByteBuffer
+* This example shows how to serialize a Roaring bitmap to a String (Java 8)
 */
 import org.roaringbitmap.buffer.*;
 import java.io.*;
 import java.nio.*;
+import java.util.*;
 
-public class SerializeToByteBufferExample {
+public class SerializeToStringExample {
     
     
     
     
-    
+    // This example uses the Base64 class introduced in Java 8. Any byte[] to String encoder would do
     public static void main(String[] args) throws IOException{
         MutableRoaringBitmap mrb = MutableRoaringBitmap.bitmapOf(1,2,3,1000); 
         System.out.println("starting with  bitmap "+ mrb);
@@ -27,10 +28,10 @@ public class SerializeToByteBufferExample {
         }.init(outbb)));
         //
         outbb.flip();
-        ImmutableRoaringBitmap irb = new ImmutableRoaringBitmap(outbb);
+        String serializedstring = Base64.getEncoder().encodeToString(outbb.array());
+        ByteBuffer newbb = ByteBuffer.wrap(Base64.getDecoder().decode(serializedstring));
+        ImmutableRoaringBitmap irb = new ImmutableRoaringBitmap(newbb);
         System.out.println("read bitmap "+ irb);        
-        if( ! irb.equals(mrb) ) throw new RuntimeException("bug");
-        
     }
 }
 
