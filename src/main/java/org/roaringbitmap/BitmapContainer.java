@@ -72,6 +72,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     // various methods below made public just for microbenchmarking, revert...
 
 
+    /*  The branchless version below is a little faster.
     public int numberOfRuns_old() {
         int numRuns = 0;
         for (int i = 0; i < bitmap.length; i++) {
@@ -90,10 +91,11 @@ public final class BitmapContainer extends Container implements Cloneable {
         }
         return numRuns;
     }
+    */
 
 
     @Override
-    public int numberOfRuns() {
+    int numberOfRuns() {
         int numRuns = 0;
         long nextWord = bitmap[0];
 
@@ -113,7 +115,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
 
 
-
+    /* 
     public int numberOfRunsLowerBound() {
         int numRuns = 0;
         for (int i = 0; i < bitmap.length; i++) {
@@ -122,11 +124,11 @@ public final class BitmapContainer extends Container implements Cloneable {
         }
         return numRuns;
     }
-
+    */
 
 
     // bail out early when the number of runs is excessive, without
-    // an accurate estimate.
+    // an exact count (just a decent lower bound)
 
     static final int BLOCKSIZE = 128;
     // 64 words can have max 32 runs per word, max 2k runs
@@ -146,7 +148,7 @@ public final class BitmapContainer extends Container implements Cloneable {
         return numRuns;
     }
 
-
+    /* check at the halfway point.
     public int numberOfRunsLowerBound512(int mustNotExceed) {
         int numRuns = 0;
       
@@ -161,10 +163,11 @@ public final class BitmapContainer extends Container implements Cloneable {
         }
         return numRuns;
     }
+    */
 
 
 
-    // mysteriously much better than not unrolled on core2, for dimension003
+    /* the unrolling did not seem to help
     public int numberOfRunsLowerBoundUnrolled2(int mustNotExceed) {
         int numRunsUpper = 0, numRunsLower = 0;
       
@@ -220,7 +223,7 @@ public final class BitmapContainer extends Container implements Cloneable {
         }
         return numRuns1+numRuns2;
     }
-
+    */
 
 
     public int numberOfRunsAdjustment() {
@@ -236,15 +239,13 @@ public final class BitmapContainer extends Container implements Cloneable {
           
         if((word & 0x8000000000000000L) != 0)
             ans++;
-        //System.out.println("adjustment is "+ans);
-
         return ans;
     }
 
 
     /*  JMH show this about 20% slower than not unrolled, on strife.unbsj.ca 
-    // unrolled to work on first and second halves of the array at once*/
-    // 
+    // unrolled to work on first and second halves of the array at once
+    
     public int numberOfRunsAdjustmentUnrolled() {
         int ans1 = 0, ans2=0;
         final int halfway = bitmap.length / 2;
@@ -268,29 +269,19 @@ public final class BitmapContainer extends Container implements Cloneable {
         ans1 += ((word1 >> 63) & ~bitmap[halfway] & 1);
         return ans1+ans2;
     }
-    
+    */
 
 
     // nruns value for which RunContainer.serializedSizeInBytes == BitmapContainer.getArraySizeInBytes()
     private final int MAXRUNS = (getArraySizeInBytes() - 2) / 4;
     
 
-    /* JMH shows this about 100 times faster (on one data set) than runOptimize_old */
-
-
-
-
-    @Override
     public Container runOptimize() {
-        return runOptimize_old();
-    }
-
-    Container runOptimize_new() {
         //assert RunContainer.serializedSizeInBytes(MAXRUNS) <= getArraySizeInBytes() && RunContainer.serializedSizeInBytes(MAXRUNS+1) > getArraySizeInBytes();
-        int numRuns = numberOfRunsLowerBoundUnrolled2(MAXRUNS); // baseline
+        //int numRuns = numberOfRunsLowerBoundUnrolled2(MAXRUNS); // "baseline" in some tests, Aug 2015
         // int numRuns = numberOfRunsLowerBound512(MAXRUNS);  on core2 worse
-        // int numRuns = numberOfRunsLowerBound();  ; worse on ci and weather
-        //int numRuns = numberOfRunsLowerBound(MAXRUNS); on core2 myst. worse on dim003
+        //int numRuns = numberOfRunsLowerBound(); //  worse on ci and weather "nobail"
+        int numRuns = numberOfRunsLowerBound(MAXRUNS); // decent choice
 
         int sizeAsRunContainerLowerBound = RunContainer.serializedSizeInBytes(numRuns);
 
@@ -303,6 +294,7 @@ public final class BitmapContainer extends Container implements Cloneable {
         /*
         if (numRuns != numberOfRuns())
             System.out.println("oops, numRuns is "+numRuns+" but should have been "+numberOfRuns()+" MAXRUNS ="+MAXRUNS+" nruns = "+numberOfRunsLowerBoundUnrolled2(MAXRUNS) + " nonunrolled is "+numberOfRunsLowerBound(MAXRUNS));
+            throw new RuntimeException("bug in getting num runs");
         */
         int sizeAsRunContainer = RunContainer.serializedSizeInBytes(numRuns);
         
@@ -313,7 +305,8 @@ public final class BitmapContainer extends Container implements Cloneable {
             return this;
     }
 
-    // for benchmarking, 100 times slower on a test
+    /*
+    // for benchmarking, 100 times slower on a test (iterating was terrible)
         public Container runOptimize_old() {
         int numRuns = numberOfRuns(); 
         int sizeAsRunContainerLowerBound = RunContainer.serializedSizeInBytes(numRuns);
@@ -323,10 +316,11 @@ public final class BitmapContainer extends Container implements Cloneable {
         else
             return new RunContainer(getShortIterator(),  numRuns); 
     }
+    */
     
 
 
-   
+    /* 
         Container runOptimize_nobail() {
         int numRuns = numberOfRuns(); 
         int sizeAsRunContainerLowerBound = RunContainer.serializedSizeInBytes(numRuns);
@@ -336,7 +330,8 @@ public final class BitmapContainer extends Container implements Cloneable {
         else
             return new RunContainer(this,  numRuns); 
     }
-    
+    */
+
 
 
 

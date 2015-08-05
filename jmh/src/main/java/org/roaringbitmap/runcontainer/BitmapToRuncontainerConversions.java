@@ -10,7 +10,8 @@ import java.util.concurrent.TimeUnit;
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 
 public class BitmapToRuncontainerConversions {
-	
+
+    /*  These are commented out in BitmapContainer and soon be be deleted
 	@Benchmark
 	public int numberOfRunsData1(BenchmarkState benchmarkState) {
             return benchmarkState.ac1.numberOfRuns();
@@ -43,7 +44,7 @@ public class BitmapToRuncontainerConversions {
             return benchmarkState.ac2.numberOfRunsLowerBound();
         }
 
-
+    */
 	@Benchmark
 	public int numberOfRunsLowerBound1281(BenchmarkState benchmarkState) {
             return benchmarkState.ac1.numberOfRunsLowerBound(1000);
@@ -56,6 +57,7 @@ public class BitmapToRuncontainerConversions {
         }
 
 
+    /* soon to be deleted...
 	@Benchmark
 	public int numberOfRunsLowerBound5121(BenchmarkState benchmarkState) {
             return benchmarkState.ac1.numberOfRunsLowerBound512(10);
@@ -66,13 +68,15 @@ public class BitmapToRuncontainerConversions {
 	public int numberOfRunsLowerBound5122(BenchmarkState benchmarkState) {
             return benchmarkState.ac2.numberOfRunsLowerBound512(1000);
         }
-
+    */
 
 	@Benchmark
 	public int numberOfRunsAdjustment(BenchmarkState benchmarkState) {
             return benchmarkState.ac2.numberOfRunsAdjustment();
         }
 
+
+    /* soon to be deleted...
 	@Benchmark
 	public int numberOfRunsAdjustmentUnrolled(BenchmarkState benchmarkState) {
             return benchmarkState.ac2.numberOfRunsAdjustmentUnrolled();
@@ -95,7 +99,7 @@ public class BitmapToRuncontainerConversions {
 	public int numberOfRunsLowerBoundUnrolled2threshold1000(BenchmarkState benchmarkState) {
             return benchmarkState.ac2.numberOfRunsLowerBoundUnrolled2(1000);
         }
-
+    */
 
 	@Benchmark
 	public int numberOfRunsLowerBoundThreshold1000(BenchmarkState benchmarkState) {
@@ -110,26 +114,26 @@ public class BitmapToRuncontainerConversions {
             return benchmarkState.ac2.runOptimize() instanceof RunContainer ? 1 : 0;
         }
 
-
+    /*
 	@Benchmark
 	public int runOptimizeOld(BenchmarkState benchmarkState) {
             return benchmarkState.ac2.runOptimize_old() instanceof RunContainer ? 1 : 0;
         }
 
-
+    */
 
 	@Benchmark
 	public int runOptimize1(BenchmarkState benchmarkState) {
             return benchmarkState.ac1.runOptimize() instanceof RunContainer ? 1 : 0;
         }
 
-
+    /*
 	@Benchmark
 	public int runOptimizeOld1(BenchmarkState benchmarkState) {
             return benchmarkState.ac1.runOptimize_old() instanceof RunContainer ? 1 : 0;
         }
 
-
+    */
 
     
 

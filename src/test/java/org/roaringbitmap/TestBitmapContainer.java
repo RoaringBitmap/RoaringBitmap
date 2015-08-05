@@ -55,22 +55,24 @@ public class TestBitmapContainer {
             assertTrue(bc.numberOfRunsLowerBound(1) > 1);
             assertTrue(bc.numberOfRunsLowerBound(100) <= bc.numberOfRuns());
 
+            // a big parameter like 100000 ensures that the full lower bound
+            // is taken
+
+
             assertTrue(bc.numberOfRunsLowerBound(100000) <= bc.numberOfRuns());
             assertEquals(bc.numberOfRuns(),
                          bc.numberOfRunsLowerBound(100000)+bc.numberOfRunsAdjustment());
 
-
+            /* the unrolled guys are commented out, did not help performance
+               and slated for removal soon...
 
             assertTrue(bc.numberOfRunsLowerBoundUnrolled2(1) > 1);
             assertTrue(bc.numberOfRunsLowerBoundUnrolled2(100) <= bc.numberOfRuns());
 
-            assertTrue(bc.numberOfRunsLowerBound(100000) <= bc.numberOfRuns());
             assertEquals(bc.numberOfRunsLowerBound(100000),
                          bc.numberOfRunsLowerBoundUnrolled2(100000));
+            */
         }
 
     }
-
-
-
 }
