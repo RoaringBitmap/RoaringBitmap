@@ -92,8 +92,6 @@ public final class BitmapContainer extends Container implements Cloneable {
     }
 
 
-
-
     @Override
     public int numberOfRuns() {
         int numRuns = 0;
@@ -166,7 +164,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
 
 
-
+    // mysteriously much better than not unrolled on core2, for dimension003
     public int numberOfRunsLowerBoundUnrolled2(int mustNotExceed) {
         int numRunsUpper = 0, numRunsLower = 0;
       
@@ -278,11 +276,22 @@ public final class BitmapContainer extends Container implements Cloneable {
     
 
     /* JMH shows this about 100 times faster (on one data set) than runOptimize_old */
+
+
+
+
     @Override
     public Container runOptimize() {
+        return runOptimize_old();
+    }
 
-        assert RunContainer.serializedSizeInBytes(MAXRUNS) <= getArraySizeInBytes() && RunContainer.serializedSizeInBytes(MAXRUNS+1) > getArraySizeInBytes();
-        int numRuns = numberOfRunsLowerBoundUnrolled2(MAXRUNS); // numberOfRunsLowerBound(MAXRUNS);
+    Container runOptimize_new() {
+        //assert RunContainer.serializedSizeInBytes(MAXRUNS) <= getArraySizeInBytes() && RunContainer.serializedSizeInBytes(MAXRUNS+1) > getArraySizeInBytes();
+        int numRuns = numberOfRunsLowerBoundUnrolled2(MAXRUNS); // baseline
+        // int numRuns = numberOfRunsLowerBound512(MAXRUNS);  on core2 worse
+        // int numRuns = numberOfRunsLowerBound();  ; worse on ci and weather
+        //int numRuns = numberOfRunsLowerBound(MAXRUNS); on core2 myst. worse on dim003
+
         int sizeAsRunContainerLowerBound = RunContainer.serializedSizeInBytes(numRuns);
 
         if (sizeAsRunContainerLowerBound >= getArraySizeInBytes())
@@ -313,6 +322,19 @@ public final class BitmapContainer extends Container implements Cloneable {
             return this;
         else
             return new RunContainer(getShortIterator(),  numRuns); 
+    }
+    
+
+
+   
+        Container runOptimize_nobail() {
+        int numRuns = numberOfRuns(); 
+        int sizeAsRunContainerLowerBound = RunContainer.serializedSizeInBytes(numRuns);
+
+        if (sizeAsRunContainerLowerBound >= getArraySizeInBytes())
+            return this;
+        else
+            return new RunContainer(this,  numRuns); 
     }
     
 
