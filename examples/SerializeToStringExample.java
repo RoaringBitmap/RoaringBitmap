@@ -1,5 +1,10 @@
 /**
 * This example shows how to serialize a Roaring bitmap to a String (Java 8)
+*
+*
+* It is not difficult to encode a byte array to a String so that it can be later recovered. 
+* A standard way is to use Base 64 : https://en.wikipedia.org/wiki/Base64
+*
 */
 import org.roaringbitmap.buffer.*;
 import java.io.*;

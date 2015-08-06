@@ -14,7 +14,22 @@ import java.io.IOException;
  * Base container class.
  */
 public abstract class Container implements Iterable<Short>, Cloneable, Externalizable {
-
+    
+    /**
+     * Get the name of this container. 
+     * 
+     * @return name of the container
+     */
+    public String getContainerName() {
+        if (this instanceof BitmapContainer) {
+            return "bitmap ";
+        } else if (this instanceof ArrayContainer) {
+            return "array";
+        } else {
+            return "run";
+        }
+    }
+    
     /**
      * Create a container initialized with a range of consecutive values
      *

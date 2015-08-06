@@ -64,5 +64,19 @@ interface MappeableContainerPointer extends
      * @return return a clone of this pointer
      */
     MappeableContainerPointer clone();
+
+    /**
+     * Get the size in bytes of the container. Used for sorting.
+     * @return the size in bytes
+     */
+    int getSizeInBytes();
+    
+    /**
+     * Returns true if it is a run container (MappeableRunContainer).
+     * 
+     * @return boolean indicated if it is a run container
+     */
+    boolean isRunContainer();
+    
     
 }

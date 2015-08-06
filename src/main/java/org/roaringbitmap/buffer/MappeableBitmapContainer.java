@@ -127,6 +127,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
         final MappeableArrayContainer answer = new MappeableArrayContainer(
                 value2.content.limit());
+        if(!BufferUtil.isBackedBySimpleArray(answer.content))
+            throw new RuntimeException("Should not happen. Internal bug.");
         short[] sarray = answer.content.array();
         if (BufferUtil.isBackedBySimpleArray(value2.content)) {
             short[] c = value2.content.array();
@@ -157,6 +159,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
             }
         if (newCardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             final MappeableBitmapContainer answer = new MappeableBitmapContainer();
+            if(!BufferUtil.isBackedBySimpleArray(answer.bitmap))
+                throw new RuntimeException("Should not happen. Internal bug.");
             long[] bitArray = answer.bitmap.array();
             if (BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(value2.bitmap)) {
                 long[] tb = this.bitmap.array();
@@ -195,6 +199,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
     @Override
     public MappeableContainer andNot(final MappeableArrayContainer value2) {
         final MappeableBitmapContainer answer = clone();
+        if(!BufferUtil.isBackedBySimpleArray(answer.bitmap))
+            throw new RuntimeException("Should not happen. Internal bug.");
         long[] bitArray = answer.bitmap.array();
         if (BufferUtil.isBackedBySimpleArray(value2.content) && BufferUtil.isBackedBySimpleArray(this.bitmap)) {
             short[] v2 = value2.content.array();
@@ -234,6 +240,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
             }
         if (newCardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             final MappeableBitmapContainer answer = new MappeableBitmapContainer();
+            if(!BufferUtil.isBackedBySimpleArray(answer.bitmap))
+                throw new RuntimeException("Should not happen. Internal bug.");
             long[] bitArray = answer.bitmap.array();
             if (BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(value2.bitmap)) {
                 long[] b = this.bitmap.array();
@@ -522,7 +530,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
     @Override
     public MappeableContainer iandNot(final MappeableBitmapContainer b2) {
         int newCardinality = 0;
-
+        if(!BufferUtil.isBackedBySimpleArray(bitmap))
+            throw new RuntimeException("Should not happen. Internal bug.");
         long[] b = this.bitmap.array();
         if (BufferUtil.isBackedBySimpleArray(b2.bitmap)) {
             long[] b2Arr = b2.bitmap.array();
@@ -580,15 +589,17 @@ public final class MappeableBitmapContainer extends MappeableContainer
         else return toArrayContainer();
     
          */
-    for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
+        for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
             int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
-            int end = BufferUtil.toIntUnsigned(x.getValue(rlepos)) + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
+            int end = BufferUtil.toIntUnsigned(x.getValue(rlepos))
+                    + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
             BufferUtil.resetBitmapRange(this.bitmap, start, end);
         }
         computeCardinality();
-        if(getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE)
+        if (getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE)
             return this;
-        else return toArrayContainer();
+        else
+            return toArrayContainer();
     
     }
 
@@ -599,6 +610,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     @Override
     public MappeableBitmapContainer ior(final MappeableArrayContainer value2) {
+        if(!BufferUtil.isBackedBySimpleArray(this.bitmap))
+            throw new RuntimeException("Should not happen. Internal bug.");
         long[] b = this.bitmap.array();
         if (BufferUtil.isBackedBySimpleArray(value2.content)) {
 
@@ -622,6 +635,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     @Override
     public MappeableContainer ior(final MappeableBitmapContainer b2) {
+        if(!BufferUtil.isBackedBySimpleArray(bitmap))
+            throw new RuntimeException("Should not happen. Internal bug.");
         long[] b = this.bitmap.array();
         this.cardinality = 0;
         if (BufferUtil.isBackedBySimpleArray(b2.bitmap)) {
@@ -688,6 +703,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     @Override
     public MappeableContainer ixor(final MappeableArrayContainer value2) {
+        if(!BufferUtil.isBackedBySimpleArray(bitmap))
+            throw new RuntimeException("Should not happen. Internal bug.");
         long[] b = bitmap.array();
         if (BufferUtil.isBackedBySimpleArray(value2.content)) {
             short[] v2 = value2.content.array();
@@ -713,6 +730,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     @Override
     public MappeableContainer ixor(MappeableBitmapContainer b2) {
+        if(!BufferUtil.isBackedBySimpleArray(bitmap))
+            throw new RuntimeException("Should not happen. Internal bug.");
         long[] b = bitmap.array();
         if (BufferUtil.isBackedBySimpleArray(b2.bitmap)) {
             long[] b2Arr = b2.bitmap.array();
@@ -785,6 +804,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     protected void loadData(final MappeableArrayContainer arrayContainer) {
         this.cardinality = arrayContainer.cardinality;
+        if(!BufferUtil.isBackedBySimpleArray(bitmap))
+            throw new RuntimeException("Should not happen. Internal bug.");
         long[] bitArray = bitmap.array();
         if (BufferUtil.isBackedBySimpleArray(bitmap) && BufferUtil.isBackedBySimpleArray(arrayContainer.content)) {
             long[] b = bitmap.array();
@@ -968,6 +989,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
     public MappeableBitmapContainer or(final MappeableArrayContainer value2) {
 
         final MappeableBitmapContainer answer = clone();
+        if(!BufferUtil.isBackedBySimpleArray(answer.bitmap))
+            throw new RuntimeException("Should not happen. Internal bug.");
         long[] bitArray = answer.bitmap.array();
         if (BufferUtil.isBackedBySimpleArray(answer.bitmap) && BufferUtil.isBackedBySimpleArray(value2.content)) {
             long[] ab = answer.bitmap.array();
@@ -995,6 +1018,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
             return value1.ior(value2);
         }
         final MappeableBitmapContainer answer = new MappeableBitmapContainer();
+        if(!BufferUtil.isBackedBySimpleArray(answer.bitmap))
+            throw new RuntimeException("Should not happen. Internal bug.");
         long[] bitArray = answer.bitmap.array();
         answer.cardinality = 0;
         if (BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(value2.bitmap)) {
@@ -1104,6 +1129,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
     @Override
     public MappeableContainer xor(final MappeableArrayContainer value2) {
         final MappeableBitmapContainer answer = clone();
+        if(!BufferUtil.isBackedBySimpleArray(answer.bitmap))
+            throw new RuntimeException("Should not happen. Internal bug.");
         long[] bitArray = answer.bitmap.array();
         if (BufferUtil.isBackedBySimpleArray(value2.content)) {
             short[] v2 = value2.content.array();
@@ -1183,6 +1210,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     protected MappeableContainer ilazyor(MappeableArrayContainer value2) {
         this.cardinality = -1;// invalid
+        if(!BufferUtil.isBackedBySimpleArray(bitmap))
+            throw new RuntimeException("Should not happen. Internal bug.");
         long[] b = this.bitmap.array();
         for (int k = 0; k < value2.cardinality; ++k) {
             final int i = BufferUtil.toIntUnsigned(value2.content.get(k)) >>> 6;
@@ -1192,18 +1221,19 @@ public final class MappeableBitmapContainer extends MappeableContainer
     }
 
     protected MappeableContainer ilazyor(MappeableBitmapContainer x) {
-        this.cardinality = -1;// invalid
-        long[] b = this.bitmap.array();
         if (BufferUtil.isBackedBySimpleArray(x.bitmap)) {
+            long[] b = this.bitmap.array();
             long[] b2 = x.bitmap.array();
             for (int k = 0; k < b.length; k++) {
                 b[k] |= b2[k];
             }
         } else {
-            for (int k = 0; k < b.length; k++) {
-                b[k] |= x.bitmap.get(k);
+            final int m = this.bitmap.limit();
+            for (int k = 0; k < m; k++) {
+                this.bitmap.put(k, this.bitmap.get(k) | x.bitmap.get(k));
             }
         }
+        this.cardinality = -1;// invalid
         return this;
     }
     
@@ -1221,6 +1251,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
     protected MappeableContainer lazyor(MappeableArrayContainer value2) {
         MappeableBitmapContainer answer = clone();
         answer.cardinality = -1;// invalid
+        if(!BufferUtil.isBackedBySimpleArray(answer.bitmap))
+            throw new RuntimeException("Should not happen. Internal bug.");
         long[] b = answer.bitmap.array();
         for (int k = 0; k < value2.cardinality; ++k) {
             final int i = BufferUtil.toIntUnsigned(value2.content.get(k)) >>> 6;
@@ -1232,6 +1264,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
     protected MappeableContainer lazyor(MappeableBitmapContainer x) {
         MappeableBitmapContainer answer = new MappeableBitmapContainer();
         answer.cardinality = -1;// invalid
+        if(!BufferUtil.isBackedBySimpleArray(answer.bitmap))
+            throw new RuntimeException("Should not happen. Internal bug.");
         long[] b = answer.bitmap.array();
         for (int k = 0; k < b.length; k++) {
             b[k] = this.bitmap.get(k) | x.bitmap.get(k);
@@ -1258,6 +1292,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
             int end = BufferUtil.toIntUnsigned(x.getValue(rlepos)) + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
             BufferUtil.setBitmapRange(this.bitmap, start, end);
         }
+        this.cardinality = -1;
         return this;
     }
 
@@ -1268,9 +1303,16 @@ public final class MappeableBitmapContainer extends MappeableContainer
      */    
     public void computeCardinality() {
         this.cardinality = 0;
-        long[] b = this.bitmap.array();
-        for (int k = 0; k < b.length; k++) {
-            this.cardinality += Long.bitCount(b[k]);
+        if (BufferUtil.isBackedBySimpleArray(bitmap)) {
+            long[] b = this.bitmap.array();
+            for (int k = 0; k < b.length; k++) {
+                this.cardinality += Long.bitCount(b[k]);
+            }
+        } else {
+            int m = this.bitmap.limit();
+            for (int k = 0; k < m; k++) {
+                this.cardinality += Long.bitCount(this.bitmap.get(k));
+            }
         }
     }
 
@@ -1333,6 +1375,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
         if(maxcardinality <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             MappeableArrayContainer ac = new MappeableArrayContainer(maxcardinality);
             int pos = 0;
+            if(!BufferUtil.isBackedBySimpleArray(ac.content))
+                throw new RuntimeException("Should not happen. Internal bug.");
             short[] cont = ac.content.array();
             for (int k = 0; (ac.cardinality <maxcardinality) && (k < bitmap.limit()); ++k) {
                 long bitset = bitmap.get(k);

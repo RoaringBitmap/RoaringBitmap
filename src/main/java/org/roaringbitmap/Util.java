@@ -180,7 +180,7 @@ public final class Util {
      * @param begin first index (inclusive)
      * @param end last index (exclusive)
      * @param k value we search for
-     * @return
+     * @return count
      */
     public static int unsignedBinarySearch(final short[] array, final int begin,
                                               final int end, final short k) {

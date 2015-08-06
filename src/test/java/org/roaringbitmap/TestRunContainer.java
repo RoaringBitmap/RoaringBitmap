@@ -1913,7 +1913,7 @@ public class TestRunContainer {
   /**
    * generates randomly N distinct integers from 0 to Max.
    */
-  public static int[] generateUniformHash(Random rand, int N, int Max) {
+  static int[] generateUniformHash(Random rand, int N, int Max) {
 
           if (N > Max)
                   throw new RuntimeException("not possible");
@@ -2100,7 +2100,6 @@ public class TestRunContainer {
 	 if( !rc2.equals(ac2)) 
 		 throw new RuntimeException("second containers do not match");
 
-	 
 	 if( !rc1.or(rc2).equals(ac1.or(ac2))) 
 		 throw new RuntimeException("ors do not match");
 	 if( !rc1.and(rc2).equals(ac1.and(ac2))) 

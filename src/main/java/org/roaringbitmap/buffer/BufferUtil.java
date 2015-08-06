@@ -525,7 +525,19 @@ public final class BufferUtil {
         }
         //return pos;
     }
-    
+
+    /**
+     * Compares the two specified {@code short} values, treating them as unsigned values between
+     * {@code 0} and {@code 2^16 - 1} inclusive.
+     *
+     * @param a the first unsigned {@code short} to compare
+     * @param b the second unsigned {@code short} to compare
+     * @return a negative value if {@code a} is less than {@code b}; a positive value if {@code a} is
+     *         greater than {@code b}; or zero if they are equal
+     */
+    public static int compareUnsigned(short a, short b) {
+        return Integer.compare(toIntUnsigned(a), toIntUnsigned(b));
+    }
 
     /**
      * Private constructor to prevent instantiation of utility class

@@ -20,7 +20,7 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-@SuppressWarnings({"javadoc", "static-method"})
+@SuppressWarnings({"static-method"})
 public class TestMemoryMapping {
 
     
@@ -271,7 +271,6 @@ public class TestMemoryMapping {
         return true;
     }
 
-    @SuppressWarnings("resource")
     @BeforeClass
     public static void initFiles() throws IOException {
         System.out.println("Setting up memory-mapped file. (Can take some time.)");

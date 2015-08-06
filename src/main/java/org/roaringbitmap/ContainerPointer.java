@@ -31,4 +31,23 @@ interface ContainerPointer extends Comparable<ContainerPointer>{
 	 * @return the key
 	 */
 	short key();
+
+    /**
+     * Check whether the current container is a bitmap container.
+     * 
+     * @return whether it is a bitmap container
+     */
+    boolean isBitmapContainer();
+    /**
+     * Check whether the current container is a run container.
+     * 
+     * @return whether it is a run container
+     */
+    boolean isRunContainer();
+    
+    /**
+     * Return the cardinality of the current container
+     * @return the cardinality
+     */
+    int getCardinality();
 }

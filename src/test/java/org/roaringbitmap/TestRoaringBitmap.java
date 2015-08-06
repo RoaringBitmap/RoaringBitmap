@@ -16,7 +16,7 @@ import java.util.*;
 /**
  * Generic testing of the roaring bitmaps
  */
-@SuppressWarnings({"static-method", "javadoc"})
+@SuppressWarnings({"static-method"})
 public class TestRoaringBitmap {
 
 	@Test

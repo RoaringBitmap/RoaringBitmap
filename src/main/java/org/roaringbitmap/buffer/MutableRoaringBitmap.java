@@ -445,6 +445,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
      * @param rb initial bitmap (will not be modified)
      * @param rangeStart inclusive beginning of range
      * @param rangeEnd   exclusive ending of range
+     * @return new bitmap
      */
     public static MutableRoaringBitmap add(MutableRoaringBitmap rb, final int rangeStart, final int rangeEnd) {
         if (rangeStart >= rangeEnd)
@@ -545,6 +546,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
      * @param rb initial bitmap (will not be modified)
      * @param rangeStart inclusive beginning of range
      * @param rangeEnd   exclusive ending of range
+     * @return new bitmap
      */
     public static MutableRoaringBitmap remove(MutableRoaringBitmap rb, final int rangeStart, final int rangeEnd) {
         if (rangeStart >= rangeEnd)

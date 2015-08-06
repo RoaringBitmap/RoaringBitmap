@@ -32,6 +32,9 @@ public class BasicHorizontalOrBenchmark {
 		 return c;
 	}
 
+
+
+	
 	@Benchmark
 	public int horizontalOrRunContainer(BenchmarkState benchmarkState) {
 		Container answer = horizontal_or(benchmarkState.rc.iterator());
@@ -39,6 +42,19 @@ public class BasicHorizontalOrBenchmark {
 			throw new RuntimeException("bug");
 		return answer.getCardinality();
 	}
+    @Benchmark
+    public int horizontalOrRunContainer_withconversion(BenchmarkState benchmarkState) {
+        BitmapContainer c = (BitmapContainer) benchmarkState.ac.get(0);
+        Container c2 = benchmarkState.rc.get(1);
+        c = (BitmapContainer) c.lazyOR(c2);
+        for(int k = 2; k < benchmarkState.rc.size(); ++k) {
+            c = (BitmapContainer) c.lazyIOR(benchmarkState.rc.get(k));
+        }
+        if(c.getCardinality()<0) ((BitmapContainer)c).computeCardinality();
+        if(!c.equals(benchmarkState.aggregate))
+            throw new RuntimeException("bug");
+        return c.getCardinality();
+    }
 	
 	@Benchmark
 	public int horizontalOrBitmapContainer(BenchmarkState benchmarkState) {
@@ -78,7 +94,6 @@ public class BasicHorizontalOrBenchmark {
          		throw new RuntimeException("unequal containers");
          	if(act.serializedSizeInBytes() < rct.serializedSizeInBytes())
          		throw new RuntimeException("You cannot win");
-         	System.out.println(act.serializedSizeInBytes()+" "+rct.serializedSizeInBytes());
          	rc.add(rct);
          	ac.add(act);
       	 }
@@ -88,9 +103,6 @@ public class BasicHorizontalOrBenchmark {
       	 for(int k = 1; k < N ; ++k ) {
           	 b1 = b1.lazyIOR(rc.get(1));
           	 b2 = b2.lazyIOR(ac.get(1));
-          	 ((BitmapContainer)b1).computeCardinality();
-          	 ((BitmapContainer)b2).computeCardinality();
-          	 if(!b1.equals(b2)) throw new RuntimeException("bug "+k);
       	 }
       	 
       	 if(! horizontal_or(rc.iterator()).equals(horizontal_or(ac.iterator())))

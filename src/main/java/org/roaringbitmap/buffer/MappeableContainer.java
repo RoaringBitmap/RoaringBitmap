@@ -17,7 +17,21 @@ import java.io.IOException;
  */
 public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
         Externalizable {
-
+    /**
+     * Get the name of this container. 
+     * 
+     * @return name of the container
+     */
+    public String getContainerName() {
+        if (this instanceof MappeableBitmapContainer) {
+            return "mappeablebitmap ";
+        } else if (this instanceof MappeableArrayContainer) {
+            return "mappeablearray";
+        } else {
+            return "mappeablerun";
+        }
+    }
+    
     /**
      * Create a container initialized with a range of consecutive values
      * 

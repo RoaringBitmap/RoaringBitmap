@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
  * Various tests on Container and its subclasses, ArrayContainer,
  * RunContainer and BitmapContainer
  */
-@SuppressWarnings({"static-method", "javadoc"})
+@SuppressWarnings({"static-method"})
 public class TestContainer {
 
     @Test

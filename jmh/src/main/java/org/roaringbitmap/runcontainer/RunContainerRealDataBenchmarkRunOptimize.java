@@ -1,15 +1,10 @@
 package org.roaringbitmap.runcontainer;
 
 
-import it.uniroma3.mat.extendedset.intset.ConciseSet;
 import org.openjdk.jmh.annotations.*;
-import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.ZipRealDataRetriever;
-import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
-import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 

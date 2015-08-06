@@ -162,7 +162,6 @@ public class TestIterators {
                 return shorts.next();
             }
 
-            @SuppressWarnings("CloneDoesntCallSuperClone")
             @Override
             public IntIterator clone() {
                 throw new UnsupportedOperationException();

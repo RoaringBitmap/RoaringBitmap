@@ -16,7 +16,7 @@ import java.util.Iterator;
  * run-length encoding).  Uses a ShortBuffer to store data, unlike
  * org.roaringbitmap.RunContainer.  Otherwise similar.
  */
-public class MappeableRunContainer extends MappeableContainer implements Cloneable {
+public final class MappeableRunContainer extends MappeableContainer implements Cloneable {
     private static final int DEFAULT_INIT_SIZE = 4;
     private ShortBuffer valueslength;
 
@@ -860,8 +860,39 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
 
     @Override
     public MappeableContainer or(MappeableArrayContainer x) {
-        return toBitmapOrArrayContainer().ior(x);
+        //return toBitmapOrArrayContainer().ior(x);
         //return x.or(getShortIterator());   // performance may not be great, depending on iterator overheads...
+        // we can hope to get lucky? 
+        MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.getCardinality())));
+        short[] vl = answer.valueslength.array();
+        int rlepos = 0;
+        ShortIterator i = x.getShortIterator();
+        short cv = i.next();
+
+        while (true) {
+            if(BufferUtil.compareUnsigned(getValue(rlepos), cv) < 0) {
+                answer.smartAppend(vl,getValue(rlepos), getLength(rlepos));
+                rlepos++;
+                if(rlepos == this.nbrruns )  {
+                    answer.smartAppend(vl,cv);
+
+                    while (i.hasNext()) {
+                        answer.smartAppend(vl,i.next());
+                    }
+                    break;
+                }
+            } else {
+                answer.smartAppend(vl,cv);
+                if(! i.hasNext() ) {
+                    while (rlepos < this.nbrruns) {
+                        answer.smartAppend(vl,getValue(rlepos), getLength(rlepos));
+                        rlepos++;
+                    }
+                    break;
+                } else cv = i.next();
+            }
+        }        
+        return answer.toEfficientContainer();
     }
 
     @Override
@@ -1765,124 +1796,84 @@ public class MappeableRunContainer extends MappeableContainer implements Cloneab
     public MappeableContainer ixor(MappeableRunContainer x) {
         return xor(x);
     }
+    
+    
+    private void smartAppend(short[] vl, short start, short length) {
+        int oldend;
+        if((nbrruns==0) ||
+                (BufferUtil.toIntUnsigned(start) > 
+                (oldend= BufferUtil.toIntUnsigned(vl[2 * (nbrruns - 1)]) + BufferUtil.toIntUnsigned(vl[2 * (nbrruns - 1) + 1])) + 1)) { // we add a new one
+            vl[2 * nbrruns] =  start;
+            vl[2 * nbrruns + 1] = length;
+            nbrruns++;
+            return;
+        } 
+        int newend = BufferUtil.toIntUnsigned(start) + BufferUtil.toIntUnsigned(length) + 1;
+        if(newend > oldend)  { // we merge
+            vl[2 * (nbrruns - 1) + 1] = (short) (newend - 1 - BufferUtil.toIntUnsigned(vl[2 * (nbrruns - 1)]));
+        }
+    }
+    
 
+    public String toString() {
+        StringBuffer sb = new StringBuffer();
+        for(int k = 0; k < this.nbrruns; ++k) {
+            sb.append("[");
+            sb.append(BufferUtil.toIntUnsigned(this.getValue(k)));
+            sb.append(",");
+            sb.append(BufferUtil.toIntUnsigned(this.getValue(k)) +
+                    BufferUtil.toIntUnsigned(this.getLength(k)) + 1);
+            sb.append("]");
+        }
+        return sb.toString();
+    }
+    
+    private void smartAppend(short[] vl, short val) {
+        int oldend;
+        if((nbrruns==0) ||
+                (BufferUtil.toIntUnsigned(val) > 
+                (oldend= BufferUtil.toIntUnsigned(vl[2 * (nbrruns - 1)]) + BufferUtil.toIntUnsigned(vl[2 * (nbrruns - 1) + 1])) + 1)) { // we add a new one
+            vl[2 * nbrruns] =  val;
+            vl[2 * nbrruns + 1] = 0;
+            nbrruns++;
+            return;
+        } 
+        if(val == (short)(oldend + 1))  { // we merge
+            vl[2 * (nbrruns - 1) + 1]++;
+        }
+    }
+    
     @Override
     public MappeableContainer or(MappeableRunContainer x) {
         MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.nbrruns)));
         short[] vl = answer.valueslength.array();
         int rlepos = 0;
         int xrlepos = 0;
-        int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-        int end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
-        int xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
-        int xend = xstart + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
 
-        while ((rlepos < this.nbrruns ) && (xrlepos < x.nbrruns )) {
-            if (end  < xstart) {
-                // output the first run
-                vl[2 * answer.nbrruns] = this.valueslength.get(2 * rlepos);
-                vl[2 * answer.nbrruns + 1] = this.valueslength.get(2 * rlepos + 1);
-                answer.nbrruns++;
+        while (true) {
+            if(BufferUtil.compareUnsigned(getValue(rlepos), x.getValue(xrlepos)) < 0) {
+                answer.smartAppend(vl,getValue(rlepos), getLength(rlepos));
                 rlepos++;
-                if(rlepos < this.nbrruns ) {
-                    start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-                    end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
-                }
-            } else if (xend < start) {
-                // output the second run
-                vl[2 * answer.nbrruns] = x.valueslength.get(2 * xrlepos);
-                vl[2 * answer.nbrruns + 1] = x.valueslength.get(2 * xrlepos + 1);
-                answer.nbrruns++;
-                xrlepos++;
-                if(xrlepos < x.nbrruns ) {
-                    xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
-                    xend = xstart + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
-                }
-            } else {// they overlap or are right next to each other
-                final int earlieststart = start < xstart ? start : xstart;
-                int maxend = end < xend ? xend : end;
-                while (true) {
-                    if (end == xend) { // improbable
-                        break;
-                    } else if (end < xend) {
-                        // we can advance the first
-                        rlepos++;
-                        if (rlepos < this.nbrruns) {
-                            start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-                            end = start
-                                    + BufferUtil.toIntUnsigned(this.getLength(rlepos))
-                                    + 1;
-                            if (start < maxend) {
-                                if (end > maxend) {
-                                    maxend = end;
-                                }
-                            } else {
-                                break;
-                            }
-                        } else {
-                            break;
-                        }
-                    } else {// end > xend
-                        // we can advance the second
+                if(rlepos == this.nbrruns )  {
+                    while (xrlepos < x.nbrruns) {
+                        answer.smartAppend(vl,x.getValue(xrlepos), x.getLength(xrlepos));
                         xrlepos++;
-                        if (xrlepos < x.nbrruns) {
-                            xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
-                            xend = xstart
-                                    + BufferUtil.toIntUnsigned(x.getLength(xrlepos))
-                                    + 1;
-                            if (xstart < maxend) {
-                                if (xend > maxend) {
-                                    maxend = xend;
-                                }
-                            } else {
-                                break;
-                            }
-                        } else {
-                            break;
-                        }
                     }
+                    break;
                 }
-                if((rlepos < this.nbrruns) && (start < maxend)) {
-                    rlepos++;
-                    if (rlepos < this.nbrruns) {
-                        start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-                        end = start
-                                + BufferUtil.toIntUnsigned(this.getLength(rlepos))
-                                + 1;
+            } else {
+                answer.smartAppend(vl,x.getValue(xrlepos), x.getLength(xrlepos));
+                xrlepos++;
+                if(xrlepos == x.nbrruns ) {
+                    while (rlepos < this.nbrruns) {
+                        answer.smartAppend(vl,getValue(rlepos), getLength(rlepos));
+                        rlepos++;
                     }
+                    break;
                 }
-                if((xrlepos < x.nbrruns) && (xstart < maxend)) {
-                    xrlepos++;
-                    if (xrlepos < x.nbrruns) {
-                        xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
-                        xend = xstart
-                                + BufferUtil.toIntUnsigned(x.getLength(xrlepos))
-                                + 1;
-                    }
-                }
-                vl[2 * answer.nbrruns] = (short) earlieststart;
-                vl[2 * answer.nbrruns + 1] = (short) (maxend - earlieststart - 1);
-                answer.nbrruns++;
             }
-        }
-        if(rlepos < this.nbrruns) {
-            this.valueslength.position(2 * rlepos);
-            this.valueslength.get(vl, 2 * answer.nbrruns, (this.nbrruns - rlepos) * 2 );
-            answer.nbrruns = answer.nbrruns + this.nbrruns - rlepos;
-        }
-        if(xrlepos < x.nbrruns) {
-            x.valueslength.position(2 * xrlepos);
-            x.valueslength.get(vl, 2 * answer.nbrruns, (x.nbrruns - xrlepos) * 2 );
-            answer.nbrruns = answer.nbrruns + x.nbrruns - xrlepos;
-        }
+        }        
         return answer;
-
-        /*
-        double myDensity = getDensity();
-        double xDensity = x.getDensity();
-        double resultDensityEstimate = 1- (1-myDensity)*(1-xDensity);
-        return (resultDensityEstimate < ARRAY_MAX_DENSITY ? operationArrayGuess(x, OP_OR) : operationBitmapGuess(x, OP_OR));
-        */
     }
 
     @Override

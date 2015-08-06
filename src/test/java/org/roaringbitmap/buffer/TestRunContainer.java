@@ -2,7 +2,6 @@ package org.roaringbitmap.buffer;
 
 import org.junit.Test;
 
-import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -466,18 +465,22 @@ public class TestRunContainer {
         System.out.println("union2");
         MappeableContainer ac = new MappeableArrayContainer();
         MappeableContainer rc = new MappeableRunContainer();
-        for(int k = 0; k<100; ++k) {
+        int N = 1;
+        for(int k = 0; k<N; ++k) {
             ac = ac.add((short) (k*10));
             rc = rc.add((short) (k*10+3));
         }
+        System.out.println("run="+rc);
+        System.out.println("array="+ac);
         MappeableContainer union = rc.or(ac);
-        assertEquals(200, union.getCardinality());
-        for(int k=0; k<100; ++k) {
+        System.out.println(union);
+        assertEquals(2*N, union.getCardinality());
+        for(int k=0; k<N; ++k) {
             assertTrue(union.contains((short) (k*10)));
             assertTrue(union.contains((short) (k*10+3)));
         }
-        assertEquals(100, ac.getCardinality());
-        assertEquals(100, rc.getCardinality());
+        assertEquals(N, ac.getCardinality());
+        assertEquals(N, rc.getCardinality());
     }
 
 
@@ -1948,7 +1951,7 @@ public class TestRunContainer {
   /**
    * generates randomly N distinct integers from 0 to Max.
    */
-  public static int[] generateUniformHash(Random rand, int N, int Max) {
+  static int[] generateUniformHash(Random rand, int N, int Max) {
 
           if (N > Max)
                   throw new RuntimeException("not possible");

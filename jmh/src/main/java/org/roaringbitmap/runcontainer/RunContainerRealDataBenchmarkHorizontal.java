@@ -50,7 +50,53 @@ public class RunContainerRealDataBenchmarkHorizontal {
         if(answer != benchmarkState.horizontalor)
             throw new RuntimeException("buggy horizontal or");
         return answer;
+    }
+    
+    @Benchmark
+    public int naiveOr_MutableRoaringWithRun(BenchmarkState benchmarkState) {
+        MutableRoaringBitmap X = new MutableRoaringBitmap();
+        for(int k = 0; k < benchmarkState.mrc.size(); ++k)
+            X.or(benchmarkState.mrc.get(k));
+        int answer = X.getCardinality();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+    
 
+    @Benchmark
+    public int naiveOr_MutableRoaring(BenchmarkState benchmarkState) {
+        MutableRoaringBitmap X = new MutableRoaringBitmap();
+        for(int k = 0; k < benchmarkState.mac.size(); ++k)
+            X.or(benchmarkState.mac.get(k));
+        int answer = X.getCardinality();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+
+    
+    @Benchmark
+    public int naiveOr_RoaringWithRun(BenchmarkState benchmarkState) {
+        RoaringBitmap X = new RoaringBitmap();
+        for(int k = 0; k < benchmarkState.rc.size(); ++k)
+            X.or(benchmarkState.rc.get(k));
+        int answer = X.getCardinality();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+    
+
+    @Benchmark
+    public int naiveOr_Roaring(BenchmarkState benchmarkState) {
+        RoaringBitmap X = new RoaringBitmap();
+        for(int k = 0; k < benchmarkState.ac.size(); ++k)
+            X.or(benchmarkState.ac.get(k));
+        int answer = X.getCardinality();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("bug");
+        return answer;
     }
 
     @Benchmark
@@ -83,7 +129,6 @@ public class RunContainerRealDataBenchmarkHorizontal {
         if(answer != benchmarkState.horizontalor)
             throw new RuntimeException("buggy horizontal or");
         return answer;
-
     }
 
 
@@ -127,7 +172,7 @@ public class RunContainerRealDataBenchmarkHorizontal {
             int totalcount = 0;
             int numberofbitmaps = 0;
             int universesize = 0;
-
+            final int MAX_NUMBER = 20000; // we put an upper bound on the number of bitmaps loaded to avoid pathological cases
             for (int[] data : dataRetriever.fetchBitPositions()) {
                 numberofbitmaps++;
                 if(universesize < data[data.length - 1 ])
@@ -156,6 +201,7 @@ public class RunContainerRealDataBenchmarkHorizontal {
                 runsize += opti.serializedSizeInBytes();
                 concisesize += (int) (concise.size() * concise
                                       .collectionCompressionRatio()) * 4;
+                if(mrc.size() >= MAX_NUMBER) break;
             }
 
             /***

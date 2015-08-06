@@ -51,6 +51,30 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
     }
 
     @Benchmark
+    public int naiveOr_RoaringWithRun(BenchmarkState benchmarkState) {
+        MutableRoaringBitmap X = new MutableRoaringBitmap();
+        for(int k = 0; k < benchmarkState.mrc.size(); ++k)
+            X.or(benchmarkState.mrc.get(k));
+        int answer = X.getCardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+    
+
+    @Benchmark
+    public int naiveOr_Roaring(BenchmarkState benchmarkState) {
+        MutableRoaringBitmap X = new MutableRoaringBitmap();
+        for(int k = 0; k < benchmarkState.mac.size(); ++k)
+            X.or(benchmarkState.mac.get(k));
+        int answer = X.getCardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+        
+    
+    @Benchmark
     public int horizontalOr_Roaring(BenchmarkState benchmarkState) {
         int answer = BufferFastAggregation.horizontal_or(benchmarkState.mac.iterator())
                .getCardinality();
@@ -65,7 +89,7 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
         ImmutableConciseSet bitmapor = ImmutableConciseSet.union(benchmarkState.cc);
         int answer = bitmapor.size();
         if(answer != benchmarkState.expectedvalue)
-            throw new RuntimeException("bug");
+            throw new RuntimeException("bug ");
         return answer;
     }
 
@@ -162,16 +186,27 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
             ArrayList<MutableRoaringBitmap> tmpac = new ArrayList<MutableRoaringBitmap>();
             ArrayList<MutableRoaringBitmap> tmprc = new ArrayList<MutableRoaringBitmap>();
             ArrayList<ConciseSet> tmpcc = new ArrayList<ConciseSet>();
-
+            
+            MutableRoaringBitmap testbasic = new MutableRoaringBitmap();
+            MutableRoaringBitmap testopti = new MutableRoaringBitmap();
+            final int MAX_NUMBER = 20000; // we put an upper bound on the number of bitmaps loaded to avoid pathological cases
             for (int[] data : dataRetriever.fetchBitPositions()) {
                 MutableRoaringBitmap mbasic = MutableRoaringBitmap.bitmapOf(data);
                 MutableRoaringBitmap mopti = mbasic.clone();
                 mopti.runOptimize();
+                if(!mopti.equals(mbasic)) throw new RuntimeException("bug");
+                testbasic.or(mbasic);
+                testopti.or(mopti);
+                if(!testbasic.equals(testopti)) throw new RuntimeException("bug");
+
                 ConciseSet concise = toConcise(data);
                 tmpac.add(mbasic);
                 tmprc.add(mopti);
                 tmpcc.add(concise);
+                
+                if(tmprc.size() >= MAX_NUMBER) break;
             }
+            int mexpected = BufferFastAggregation.horizontal_or(BufferFastAggregation.convertToImmutable(tmprc.iterator())).getCardinality();
             mrc = convertToImmutableRoaring(tmprc);
             mac = convertToImmutableRoaring(tmpac);
             cc = convertToImmutableConcise(tmpcc);
@@ -179,6 +214,11 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
                 throw new RuntimeException("number of bitmaps do not match.");
             expectedvalue = BufferFastAggregation.horizontal_or(mrc.iterator())
                     .getCardinality();
+            if(expectedvalue != testbasic.getCardinality())
+                throw new RuntimeException("bug");
+            if(expectedvalue != mexpected)
+                throw new RuntimeException("bug");
+
         }
 
     }

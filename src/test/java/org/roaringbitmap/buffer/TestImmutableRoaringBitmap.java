@@ -20,7 +20,7 @@ import java.util.Random;
 /**
  * Generic testing of the roaring bitmaps
  */
-@SuppressWarnings({"static-method", "javadoc"})
+@SuppressWarnings({"static-method"})
 public class TestImmutableRoaringBitmap {
 	@Test
 	public void testHighBits() throws IOException {

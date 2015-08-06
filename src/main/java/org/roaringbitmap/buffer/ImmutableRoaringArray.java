@@ -17,6 +17,7 @@ import java.nio.channels.WritableByteChannel;
 
 
 
+
 /**
  * This is the underlying data structure for an ImmutableRoaringBitmap. This
  * class is not meant for end-users.
@@ -165,7 +166,6 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
             return new MappeableArrayContainer(shortArray, cardinality);
         }
     }
-
     
     private int getOffsetContainerSlow(int k) {
         boolean hasrun = hasRunContainer();
@@ -185,7 +185,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
 
 
-    private int getOffsetContainer(int k){
+    private int getOffsetContainer(int k) {
         if (hasRunContainer()) { // account for size of runcontainer bitmap
             if(this.size < MutableRoaringArray.NO_OFFSET_THRESHOLD) {
                 // we do it the hard way
@@ -216,6 +216,23 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
             int k = startIndex;
 
             @Override
+            public int getSizeInBytes() {
+                // might be a tad expensive
+                if (ImmutableRoaringArray.this.isRunContainer(k, hasrun)) {
+                    int pos = getOffsetContainer(k);
+                    int nbrruns = BufferUtil
+                            .toIntUnsigned(buffer.getShort(pos));
+                    return BufferUtil.getSizeInBytesFromCardinalityEtc(0,
+                            nbrruns, true);
+                } else {
+                    int CardinalityOfLastContainer = getCardinality();
+                    return BufferUtil.getSizeInBytesFromCardinalityEtc(
+                            CardinalityOfLastContainer, 0, false);
+                }
+            }
+
+            
+            @Override
             public void advance() {
                 ++k;
             }
@@ -230,13 +247,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 				if (key() != o.key())
 					return BufferUtil.toIntUnsigned(key())
 							- BufferUtil.toIntUnsigned(o.key());
-                // we make sure that if there is a bitmap, it comes up first, always
-                if(this.isBitmapContainer())
-                    return -1;
-				if(o.isBitmapContainer())
-                    return 1;
-                // otherwise, we sort by cardinality
-				return o.getCardinality() - getCardinality();
+                return o.getCardinality() - this.getCardinality();
 			}
 
             @Override
@@ -244,6 +255,12 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
                 if(ImmutableRoaringArray.this.isRunContainer(k, hasrun))
                     return false;
                 return getCardinality() >MappeableArrayContainer.DEFAULT_MAX_SIZE;
+            }
+            
+
+            @Override
+            public boolean isRunContainer() {
+                return ImmutableRoaringArray.this.isRunContainer(k, hasrun);
             }
 
             @Override

@@ -19,7 +19,7 @@ import static org.junit.Assert.assertSame;
  * Various tests on Container and its subclasses, ArrayContainer and
  * BitmapContainer
  */
-@SuppressWarnings({"static-method", "javadoc"})
+@SuppressWarnings({"static-method"})
 public class TestContainer {
 
     @Test
