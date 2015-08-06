@@ -37,6 +37,9 @@ public final class BufferFastAggregation {
             public ImmutableRoaringBitmap next() {
                 return i.next();
             }
+
+            @Override
+                public void remove() {};
             
         };
         
