@@ -461,6 +461,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      * @param rb initial bitmap (will not be modified)
      * @param rangeStart inclusive beginning of range
      * @param rangeEnd   exclusive ending of range
+     * @return the bitmap
      */
     public static RoaringBitmap add(RoaringBitmap rb, final int rangeStart, final int rangeEnd) {
         if (rangeStart >= rangeEnd)
@@ -561,6 +562,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      * @param rb initial bitmap (will not be modified)
      * @param rangeStart inclusive beginning of range
      * @param rangeEnd   exclusive ending of range
+     * @return the bitmap
      */
     public static RoaringBitmap remove(RoaringBitmap rb, final int rangeStart, final int rangeEnd) {
         if (rangeStart >= rangeEnd)

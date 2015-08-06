@@ -445,6 +445,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
      * @param rb initial bitmap (will not be modified)
      * @param rangeStart inclusive beginning of range
      * @param rangeEnd   exclusive ending of range
+     * @return the bitmap
      */
     public static MutableRoaringBitmap add(MutableRoaringBitmap rb, final int rangeStart, final int rangeEnd) {
         if (rangeStart >= rangeEnd)
@@ -545,6 +546,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
      * @param rb initial bitmap (will not be modified)
      * @param rangeStart inclusive beginning of range
      * @param rangeEnd   exclusive ending of range
+     * @return the bitmap
      */
     public static MutableRoaringBitmap remove(MutableRoaringBitmap rb, final int rangeStart, final int rangeEnd) {
         if (rangeStart >= rangeEnd)
@@ -838,7 +840,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
                     s1 = highLowContainer.getKeyAtIndex(pos1);
                 } else { // s1 > s2
                     getMappeableRoaringArray().insertNewKeyValueAt(pos1, (short)s2,
-                            x2.highLowContainer.getContainerAtIndex(pos2));
+                            x2.highLowContainer.getContainerAtIndex(pos2).clone());
                     pos1++;
                     length1++;
                     pos2++;
@@ -989,7 +991,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
                     s1 = highLowContainer.getKeyAtIndex(pos1);
                 } else { // s1 > s2
                     getMappeableRoaringArray().insertNewKeyValueAt(pos1, (short)s2,
-                            x2.highLowContainer.getContainerAtIndex(pos2));
+                            x2.highLowContainer.getContainerAtIndex(pos2).clone());
                     pos1++;
                     length1++;
                     pos2++;

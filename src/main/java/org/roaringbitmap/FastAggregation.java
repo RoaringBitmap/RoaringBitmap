@@ -61,6 +61,7 @@ public final class FastAggregation {
         ArrayList<RoaringBitmap> array = new ArrayList<RoaringBitmap>();
         while(bitmaps.hasNext())
             array.add(bitmaps.next());
+        if(array.size() == 1) return array.get(0);
         Collections.sort(array, new Comparator<RoaringBitmap>() {
             @Override
             public int compare(RoaringBitmap a, RoaringBitmap b) {
