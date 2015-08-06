@@ -840,7 +840,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
                     s1 = highLowContainer.getKeyAtIndex(pos1);
                 } else { // s1 > s2
                     getMappeableRoaringArray().insertNewKeyValueAt(pos1, (short)s2,
-                            x2.highLowContainer.getContainerAtIndex(pos2));
+                            x2.highLowContainer.getContainerAtIndex(pos2).clone());
                     pos1++;
                     length1++;
                     pos2++;
@@ -1003,7 +1003,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
                     s1 = highLowContainer.getKeyAtIndex(pos1);
                 } else { // s1 > s2
                     getMappeableRoaringArray().insertNewKeyValueAt(pos1, (short)s2,
-                            x2.highLowContainer.getContainerAtIndex(pos2));
+                            x2.highLowContainer.getContainerAtIndex(pos2).clone());
                     pos1++;
                     length1++;
                     pos2++;

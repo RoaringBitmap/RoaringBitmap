@@ -408,6 +408,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     @Override
     public MappeableArrayContainer iand(final MappeableArrayContainer value2) {
         final MappeableArrayContainer value1 = this;
+        if(!BufferUtil.isBackedBySimpleArray(value1.content))
+            throw new RuntimeException("Should not happen. Internal bug.");
         value1.cardinality = BufferUtil.unsignedIntersect2by2(value1.content,
                 value1.getCardinality(), value2.content,
                 value2.getCardinality(), value1.content.array());
@@ -432,6 +434,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     @Override
     public MappeableArrayContainer iandNot(final MappeableArrayContainer value2) {
+        if(!BufferUtil.isBackedBySimpleArray(this.content))
+            throw new RuntimeException("Should not happen. Internal bug.");
         if (BufferUtil.isBackedBySimpleArray(value2.content))
             this.cardinality = org.roaringbitmap.Util.unsignedDifference(
                     this.content.array(), this.getCardinality(),
@@ -447,6 +451,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     @Override
     public MappeableArrayContainer iandNot(MappeableBitmapContainer value2) {
+        if(!BufferUtil.isBackedBySimpleArray(this.content))
+            throw new RuntimeException("Should not happen. Internal bug.");
         short[] c = this.content.array();
         int pos = 0;
         for (int k = 0; k < cardinality; ++k)
@@ -599,6 +605,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     protected void loadData(final MappeableBitmapContainer bitmapContainer) {
         this.cardinality = bitmapContainer.cardinality;
+        if(!BufferUtil.isBackedBySimpleArray(this.content))
+            throw new RuntimeException("Should not happen. Internal bug.");
         bitmapContainer.fillArray(content.array());
     }
 
@@ -668,6 +676,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
         final MappeableArrayContainer answer = new MappeableArrayContainer(
                 newCardinality);
+        if(!BufferUtil.isBackedBySimpleArray(answer.content))
+            throw new RuntimeException("Should not happen. Internal bug.");
         short[] sarray = answer.content.array();
 
         for (int i = 0; i < startIndex; ++i)
@@ -704,6 +714,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
                 + value2.getCardinality();
         if (totalCardinality > DEFAULT_MAX_SIZE) {// it could be a bitmap!
             final MappeableBitmapContainer bc = new MappeableBitmapContainer();
+            if(!BufferUtil.isBackedBySimpleArray(bc.bitmap))
+                throw new RuntimeException("Should not happen. Internal bug.");
             long[] bitArray = bc.bitmap.array();
             if (BufferUtil.isBackedBySimpleArray(value2.content)) {
                 short[] sarray = value2.content.array();
@@ -940,6 +952,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
                 + value2.getCardinality();
         if (totalCardinality > DEFAULT_MAX_SIZE) {// it could be a bitmap!
             final MappeableBitmapContainer bc = new MappeableBitmapContainer();
+            if(!BufferUtil.isBackedBySimpleArray(bc.bitmap))
+                throw new RuntimeException("Should not happen. Internal bug.");
             long[] bitArray = bc.bitmap.array();
             if (BufferUtil.isBackedBySimpleArray(value2.content)) {
                 short[] sarray = value2.content.array();
@@ -1102,6 +1116,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 	            return a.iadd(begin, end);
 	        }
 	        MappeableArrayContainer answer = new MappeableArrayContainer(newcardinality, content);
+	        if(!BufferUtil.isBackedBySimpleArray(answer.content))
+	            throw new RuntimeException("Should not happen. Internal bug.");
 	        BufferUtil.arraycopy(content, indexend, answer.content, indexstart
 	                + rangelength, cardinality - indexend);
 	        short[] answerarray = answer.content.array();
@@ -1185,6 +1201,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 	        cardinality -= rangelength;
 	        return this;
 	    }
+
+        @Override
+        protected boolean isArrayBacked() {
+            return BufferUtil.isBackedBySimpleArray(this.content);
+        }
 
 
 

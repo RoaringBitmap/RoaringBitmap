@@ -22,6 +22,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     protected int nbrruns = 0;// how many runs, this number should fit in 16 bits.
 
+
     private static final long serialVersionUID = 1L;
     
     private MappeableRunContainer(int nbrruns, final ShortBuffer valueslength) {
@@ -974,6 +975,10 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         this.valueslength = co;
     }
 
+    @Override
+    protected boolean isArrayBacked() {
+        return BufferUtil.isBackedBySimpleArray(this.valueslength);
+    }
 
     @Override
     protected void writeArray(DataOutput out) throws IOException {

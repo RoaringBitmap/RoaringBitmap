@@ -655,6 +655,11 @@ public final class MappeableBitmapContainer extends MappeableContainer
     }
 
 
+    @Override
+    protected boolean isArrayBacked() {
+        return BufferUtil.isBackedBySimpleArray(this.bitmap);
+    }
+    
     //  todo: specialized simplearray
     @Override
     public MappeableContainer ior(final MappeableRunContainer x) {

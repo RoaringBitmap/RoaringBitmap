@@ -680,6 +680,8 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
              return this;
          }
      }
+     
+     protected abstract boolean isArrayBacked();
 
      abstract int numberOfRuns();
 
