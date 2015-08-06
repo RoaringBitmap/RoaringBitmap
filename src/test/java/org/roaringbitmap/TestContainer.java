@@ -850,10 +850,12 @@ public class TestContainer {
 
             assertEquals(rc.numberOfRuns(), ac.numberOfRuns());
             assertEquals(rc.numberOfRuns(), bc.numberOfRuns());
-            assertEquals(bc.numberOfRuns(), bc.numberOfRunsLowerBound()+bc.numberOfRunsAdjustment());
-            assertEquals(bc.numberOfRunsLowerBound(), bc.numberOfRunsLowerBoundUnrolled()); 
-            assertEquals(bc.numberOfRunsLowerBound(), bc.numberOfRunsLowerBoundUnrolled2()); 
-            assertEquals(bc.numberOfRunsAdjustment(), bc.numberOfRunsAdjustmentUnrolled()); 
+            // a limit of 50k assures that the no early bail-out can be taken
+            assertEquals(bc.numberOfRuns(), bc.numberOfRunsLowerBound(50000)+bc.numberOfRunsAdjustment());
+            // inferior approaches to be removed in a future cleanup, now commented...
+            //assertEquals(bc.numberOfRunsLowerBound(), bc.numberOfRunsLowerBoundUnrolled()); 
+            //assertEquals(bc.numberOfRunsLowerBound(), bc.numberOfRunsLowerBoundUnrolled2()); 
+            //assertEquals(bc.numberOfRunsAdjustment(), bc.numberOfRunsAdjustmentUnrolled()); 
         }
     }
 
