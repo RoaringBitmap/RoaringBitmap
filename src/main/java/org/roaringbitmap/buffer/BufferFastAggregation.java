@@ -18,6 +18,134 @@ import java.util.PriorityQueue;
  * @author Daniel Lemire
  */
 public final class BufferFastAggregation {
+    
+    
+    /**
+     * Compute overall AND between bitmaps two-by-two.
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static MutableRoaringBitmap naive_and(MutableRoaringBitmap... bitmaps) {
+       MutableRoaringBitmap answer = new MutableRoaringBitmap();
+       for(int k = 0; k < bitmaps.length; ++k)
+          answer.and(bitmaps[k]);
+       return answer;
+    }
+
+    /**
+     * Compute overall AND between bitmaps two-by-two.
+     *
+     * @param bitmaps input bitmaps (ImmutableRoaringBitmap or MutableRoaringBitmap)
+     * @return aggregated bitmap
+     */
+    public static MutableRoaringBitmap naive_and(@SuppressWarnings("rawtypes") Iterator bitmaps) {
+       MutableRoaringBitmap answer = new MutableRoaringBitmap();
+       while(bitmaps.hasNext())
+           answer.and((ImmutableRoaringBitmap) bitmaps.next());
+       return answer;
+    }
+
+    
+    /**
+     * Compute overall OR between bitmaps two-by-two.
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static MutableRoaringBitmap naive_or(MutableRoaringBitmap... bitmaps) {
+       MutableRoaringBitmap answer = new MutableRoaringBitmap();
+       for(int k = 0; k < bitmaps.length; ++k)
+          answer.or(bitmaps[k]);
+       return answer;
+    }
+    
+
+    /**
+     * Compute overall AND between bitmaps two-by-two.
+     *
+     * @param bitmaps input bitmaps (ImmutableRoaringBitmap or MutableRoaringBitmap)
+     * @return aggregated bitmap
+     */
+    public static MutableRoaringBitmap naive_or(@SuppressWarnings("rawtypes") Iterator bitmaps) {
+       MutableRoaringBitmap answer = new MutableRoaringBitmap();
+       while(bitmaps.hasNext())
+           answer.or((ImmutableRoaringBitmap) bitmaps.next());
+       return answer;
+    }
+    
+    /**
+     * Compute overall XOR between bitmaps two-by-two.
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static MutableRoaringBitmap naive_xor(MutableRoaringBitmap... bitmaps) {
+       MutableRoaringBitmap answer = new MutableRoaringBitmap();
+       for(int k = 0; k < bitmaps.length; ++k)
+          answer.xor(bitmaps[k]);
+       return answer;
+    }
+    
+
+    /**
+     * Compute overall AND between bitmaps two-by-two.
+     *
+     * @param bitmaps input bitmaps (ImmutableRoaringBitmap or MutableRoaringBitmap)
+     * @return aggregated bitmap
+     */
+    public static MutableRoaringBitmap naive_xor(@SuppressWarnings("rawtypes") Iterator bitmaps) {
+       MutableRoaringBitmap answer = new MutableRoaringBitmap();
+       while(bitmaps.hasNext())
+           answer.xor((ImmutableRoaringBitmap) bitmaps.next());
+       return answer;
+    }
+
+    
+    /**
+     * Compute overall AND between bitmaps two-by-two.
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static MutableRoaringBitmap naive_and(ImmutableRoaringBitmap... bitmaps) {
+       MutableRoaringBitmap answer = new MutableRoaringBitmap();
+       for(int k = 0; k < bitmaps.length; ++k)
+          answer.and(bitmaps[k]);
+       return answer;
+    }
+
+
+    
+    /**
+     * Compute overall OR between bitmaps two-by-two.
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static MutableRoaringBitmap naive_or(ImmutableRoaringBitmap... bitmaps) {
+       MutableRoaringBitmap answer = new MutableRoaringBitmap();
+       for(int k = 0; k < bitmaps.length; ++k)
+          answer.or(bitmaps[k]);
+       return answer;
+    }
+    
+    /**
+     * Compute overall XOR between bitmaps two-by-two.
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static MutableRoaringBitmap naive_xor(ImmutableRoaringBitmap... bitmaps) {
+       MutableRoaringBitmap answer = new MutableRoaringBitmap();
+       for(int k = 0; k < bitmaps.length; ++k)
+          answer.xor(bitmaps[k]);
+       return answer;
+    }
+    
+
+
+    
     /**
      * Convenience method converting one type of iterator into another,
      * to avoid unnecessary warnings.
@@ -94,15 +222,15 @@ public final class BufferFastAggregation {
     /**
      * Sort the bitmap prior to using the and aggregate.
      *
-     * @param bitmaps input bitmaps
+     * @param bitmaps input bitmaps  (ImmutableRoaringBitmap or MutableRoaringBitmap)
      * @return aggregated bitmap
      */
-    public static MutableRoaringBitmap and(Iterator<ImmutableRoaringBitmap> bitmaps) {
+    public static MutableRoaringBitmap and(@SuppressWarnings("rawtypes") Iterator bitmaps) {
         if (!bitmaps.hasNext())
             return new MutableRoaringBitmap();
         ArrayList<ImmutableRoaringBitmap> array = new ArrayList<ImmutableRoaringBitmap>();
         while(bitmaps.hasNext())
-            array.add(bitmaps.next());
+            array.add((ImmutableRoaringBitmap) bitmaps.next());
         if(array.size() == 1) return array.get(0).toMutableRoaringBitmap();
         Collections.sort(array, new Comparator<ImmutableRoaringBitmap>() {
             @Override
@@ -119,20 +247,21 @@ public final class BufferFastAggregation {
     
     
     /**
-     * Minimizes memory usage while computing the or aggregate.
+     * Calls naive_or.
      * 
      * @param bitmaps
-     *            input bitmaps
+     *            input bitmaps (ImmutableRoaringBitmap or MutableRoaringBitmap)
      * @return aggregated bitmap
      */
+    @Deprecated
     public static MutableRoaringBitmap horizontal_or(
-            Iterator<ImmutableRoaringBitmap> bitmaps) {
+            @SuppressWarnings("rawtypes") Iterator bitmaps) {
         MutableRoaringBitmap answer = new MutableRoaringBitmap();
         if (!bitmaps.hasNext())
             return answer;
         PriorityQueue<MappeableContainerPointer> pq = new PriorityQueue<MappeableContainerPointer>();
         while (bitmaps.hasNext()) {
-            ImmutableRoaringBitmap b = bitmaps.next();
+            ImmutableRoaringBitmap b = (ImmutableRoaringBitmap) bitmaps.next();
             MappeableContainerPointer x = b.highLowContainer
                     .getContainerPointer();
             if (x.getContainer() != null)
@@ -177,7 +306,7 @@ public final class BufferFastAggregation {
     }
     
     /**
-     * Minimizes memory usage while computing the or aggregate.
+     * Minimizes memory usage while computing the or aggregate on a moderate number of bitmaps.
      * 
      * @param bitmaps
      *            input bitmaps
@@ -190,7 +319,7 @@ public final class BufferFastAggregation {
     }
     
     /**
-     * Minimizes memory usage while computing the or aggregate.
+     * Minimizes memory usage while computing the or aggregate on a moderate number of bitmaps.
      * 
      * @param bitmaps
      *            input bitmaps
@@ -247,7 +376,7 @@ public final class BufferFastAggregation {
     }
 
     /**
-     * Minimizes memory usage while computing the xor aggregate.
+     * Minimizes memory usage while computing the xor aggregate  on a moderate number of bitmaps.
      * 
      * @param bitmaps
      *            input bitmaps
@@ -260,7 +389,7 @@ public final class BufferFastAggregation {
     }
     
     /**
-     * Minimizes memory usage while computing the xor aggregate.
+     * Minimizes memory usage while computing the xor aggregate  on a moderate number of bitmaps.
      * 
      * @param bitmaps
      *            input bitmaps

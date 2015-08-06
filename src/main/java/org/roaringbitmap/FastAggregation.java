@@ -20,12 +20,93 @@ import java.util.PriorityQueue;
  * @author Daniel Lemire
  */
 public final class FastAggregation {
-
+    
     /**
      * Private constructor to prevent instantiation of utility class
      */
     private FastAggregation() {}
 
+    /**
+     * Compute overall AND between bitmaps two-by-two.
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static RoaringBitmap naive_and(RoaringBitmap... bitmaps) {
+       RoaringBitmap answer = new RoaringBitmap();
+       for(int k = 0; k < bitmaps.length; ++k)
+          answer.and(bitmaps[k]);
+       return answer;
+    }
+
+    /**
+     * Compute overall AND between bitmaps two-by-two.
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static RoaringBitmap naive_and(Iterator<RoaringBitmap> bitmaps) {
+       RoaringBitmap answer = new RoaringBitmap();
+       while(bitmaps.hasNext())
+           answer.and(bitmaps.next());
+       return answer;
+    }
+
+    
+    /**
+     * Compute overall OR between bitmaps two-by-two.
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static RoaringBitmap naive_or(RoaringBitmap... bitmaps) {
+       RoaringBitmap answer = new RoaringBitmap();
+       for(int k = 0; k < bitmaps.length; ++k)
+          answer.or(bitmaps[k]);
+       return answer;
+    }
+    
+
+    /**
+     * Compute overall AND between bitmaps two-by-two.
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static RoaringBitmap naive_or(Iterator<RoaringBitmap> bitmaps) {
+       RoaringBitmap answer = new RoaringBitmap();
+       while(bitmaps.hasNext())
+           answer.or(bitmaps.next());
+       return answer;
+    }
+    
+    /**
+     * Compute overall XOR between bitmaps two-by-two.
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static RoaringBitmap naive_xor(RoaringBitmap... bitmaps) {
+       RoaringBitmap answer = new RoaringBitmap();
+       for(int k = 0; k < bitmaps.length; ++k)
+          answer.xor(bitmaps[k]);
+       return answer;
+    }
+    
+
+    /**
+     * Compute overall AND between bitmaps two-by-two.
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static RoaringBitmap naive_xor(Iterator<RoaringBitmap> bitmaps) {
+       RoaringBitmap answer = new RoaringBitmap();
+       while(bitmaps.hasNext())
+           answer.xor(bitmaps.next());
+       return answer;
+    }
+    
     /**
      * Sort the bitmap prior to using the and aggregate.
      *
@@ -49,6 +130,7 @@ public final class FastAggregation {
             answer.and(array[k]);
         return answer;
     }
+    
     /**
      * Sort the bitmap prior to using the and aggregate.
      *
@@ -75,14 +157,16 @@ public final class FastAggregation {
     }
     
     /**
-     * Minimizes memory usage while computing the or aggregate.
+     * Calls naive_or.
      * 
      * @param bitmaps
      *            input bitmaps
      * @return aggregated bitmap
      */
+    @Deprecated
     public static RoaringBitmap horizontal_or(Iterator<RoaringBitmap> bitmaps) {
-        RoaringBitmap answer = new RoaringBitmap();
+        return naive_or(bitmaps);
+        /*RoaringBitmap answer = new RoaringBitmap();
         if (!bitmaps.hasNext())
             return answer;
         PriorityQueue<ContainerPointer> pq = new PriorityQueue<ContainerPointer>();
@@ -125,7 +209,7 @@ public final class FastAggregation {
             if (x2.getContainer() != null)
                 pq.add(x2);
         }
-        return answer;
+        return answer;*/
     }
 
     /**
@@ -156,7 +240,7 @@ public final class FastAggregation {
     }
     
     /**
-     * Minimizes memory usage while computing the or aggregate.
+     * Minimizes memory usage while computing the or aggregate on a moderate number of bitmaps.
      *
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
@@ -234,7 +318,7 @@ public final class FastAggregation {
     }
 
     /**
-     * Minimizes memory usage while computing the xor aggregate.
+     * Minimizes memory usage while computing the xor aggregate on a moderate number of bitmaps.
      *
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
