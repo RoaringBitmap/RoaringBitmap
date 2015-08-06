@@ -28,6 +28,8 @@ public final class FastAggregation {
 
     /**
      * Compute overall AND between bitmaps two-by-two.
+     * 
+     * This function runs in linear time with respect to the number of bitmaps.
      *
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
@@ -41,6 +43,8 @@ public final class FastAggregation {
 
     /**
      * Compute overall AND between bitmaps two-by-two.
+     * 
+     * This function runs in linear time with respect to the number of bitmaps.
      *
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
@@ -55,6 +59,8 @@ public final class FastAggregation {
     
     /**
      * Compute overall OR between bitmaps two-by-two.
+     * 
+     * This function runs in linear time with respect to the number of bitmaps.
      *
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
@@ -70,6 +76,8 @@ public final class FastAggregation {
     /**
      * Compute overall AND between bitmaps two-by-two.
      *
+     * This function runs in linear time with respect to the number of bitmaps.
+     *
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
      */
@@ -83,6 +91,8 @@ public final class FastAggregation {
     /**
      * Compute overall XOR between bitmaps two-by-two.
      *
+     * This function runs in linear time with respect to the number of bitmaps.
+     * 
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
      */
@@ -96,6 +106,8 @@ public final class FastAggregation {
 
     /**
      * Compute overall AND between bitmaps two-by-two.
+     * 
+     * This function runs in linear time with respect to the number of bitmaps.
      *
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
@@ -109,6 +121,8 @@ public final class FastAggregation {
     
     /**
      * Sort the bitmap prior to using the and aggregate.
+     * 
+     * This function runs in linearithmic (O(n log n))  time with respect to the number of bitmaps.
      *
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
@@ -133,6 +147,8 @@ public final class FastAggregation {
     
     /**
      * Sort the bitmap prior to using the and aggregate.
+     *      
+     * This function runs in linearithmic (O(n log n))  time with respect to the number of bitmaps.
      *
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
@@ -214,6 +230,8 @@ public final class FastAggregation {
 
     /**
      * Uses a priority queue to compute the or aggregate.
+     * 
+     * This function runs in linearithmic (O(n log n))  time with respect to the number of bitmaps.
      *
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
@@ -241,6 +259,8 @@ public final class FastAggregation {
     
     /**
      * Minimizes memory usage while computing the or aggregate on a moderate number of bitmaps.
+     *      
+     * This function runs in linearithmic (O(n log n))  time with respect to the number of bitmaps.
      *
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
@@ -292,6 +312,8 @@ public final class FastAggregation {
     
     /**
      * Uses a priority queue to compute the xor aggregate.
+     * 
+     * This function runs in linearithmic (O(n log n))  time with respect to the number of bitmaps.
      *
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
@@ -319,6 +341,8 @@ public final class FastAggregation {
 
     /**
      * Minimizes memory usage while computing the xor aggregate on a moderate number of bitmaps.
+     * 
+     * This function runs in linearithmic (O(n log n))  time with respect to the number of bitmaps.
      *
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
