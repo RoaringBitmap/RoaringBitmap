@@ -528,7 +528,7 @@ public final class ArrayContainer extends Container implements Cloneable {
         
     /** it must return items in (unsigned) sorted order.  Possible candidate for
         Container interface?  **/
-    private Container or(ShortIterator it, boolean exclusive) {
+    private Container or(ShortIterator it, final boolean exclusive) {
         ArrayContainer ac = new ArrayContainer();
         int myItPos = 0;
         ac.cardinality=0;

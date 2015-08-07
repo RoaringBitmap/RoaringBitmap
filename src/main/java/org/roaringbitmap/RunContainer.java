@@ -847,8 +847,13 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public Container xor(ArrayContainer x) {
+        int card = getCardinality();
+        if(card <= ArrayContainer.DEFAULT_MAX_SIZE) {
+            // if the cardinality is small, we construct the solution in place
+            return x.xor(this.getShortIterator());
+        }
+        // otherwise, we generate a bitmap
         return toBitmapOrArrayContainer(getCardinality()).ixor(x);
-        //  return x.xor(getShortIterator());   // performance may not be great, depending on iterator overheads...
     }
 
     @Override

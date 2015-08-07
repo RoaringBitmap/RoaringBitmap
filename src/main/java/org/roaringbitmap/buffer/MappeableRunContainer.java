@@ -962,8 +962,13 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer xor(MappeableArrayContainer x) {
+        int card = getCardinality();
+        if (card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
+            // if the cardinality is small, we construct the solution in place
+            return x.xor(this.getShortIterator());
+        }
+        // otherwise, we generate a bitmap
         return toBitmapOrArrayContainer(getCardinality()).ixor(x);
-        //return x.xor(getShortIterator());
     }
 
     @Override
