@@ -567,11 +567,11 @@ public final class ArrayContainer extends Container implements Cloneable {
         else return ac;
     }
 
-    public Container or(ShortIterator it) {
+    protected Container or(ShortIterator it) {
         return or(it, false);
     }
 
-    public Container xor(ShortIterator it) {
+    protected Container xor(ShortIterator it) {
         return or(it,true);
     }
 
@@ -607,7 +607,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     }
 
 
-    public static int serializedSizeInBytes( int cardinality) {
+    protected static int serializedSizeInBytes( int cardinality) {
         return cardinality * 2 + 2;
     }
 

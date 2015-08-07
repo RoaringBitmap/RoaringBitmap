@@ -258,9 +258,7 @@ public final class Util {
      * output array
      *
      * @param set1    first array
-     * @param length1 length of first array
      * @param set2    second array
-     * @param length2 length of second array
      * @param buffer  output array
      * @return cardinality of the difference
      */

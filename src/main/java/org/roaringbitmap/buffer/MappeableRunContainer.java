@@ -55,11 +55,11 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     
     // needed for deserialization
-    public MappeableRunContainer(ShortBuffer valueslength) {
+    protected MappeableRunContainer(ShortBuffer valueslength) {
         this(valueslength.limit()/2, valueslength);
     }
 
-    public MappeableRunContainer( ShortIterator sIt, int nbrRuns) {
+    protected MappeableRunContainer( ShortIterator sIt, int nbrRuns) {
         this.nbrruns = nbrRuns;
         valueslength = ShortBuffer.allocate(2*nbrRuns);
         if (nbrRuns == 0) return;
@@ -94,7 +94,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
      * @param card the current cardinality
      * @return new container
      */
-    private MappeableContainer toBitmapOrArrayContainer(int card) {
+    MappeableContainer toBitmapOrArrayContainer(int card) {
     	//int card = this.getCardinality();
     	if(card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
         	MappeableArrayContainer answer = new MappeableArrayContainer(card);
@@ -388,36 +388,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         return ac;
     }
     
-
-    // TODO: kept temporarily for perf. testing
-    public MappeableContainer andold(MappeableBitmapContainer x) {
-        MappeableBitmapContainer answer = x.clone();
-        /*        
-        int start = 0;
-        for(int rlepos = 0; rlepos < this.nbrruns; ++rlepos ) {
-            int end = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-            Util.resetBitmapRange(answer.bitmap, start, end);  // had been x.bitmap
-            start = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
-        }
-        Util.resetBitmapRange(answer.bitmap, start, Util.maxLowBitAsInteger() + 1);   // had been x.bitmap
-        answer.computeCardinality();
-        if(answer.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
-            return answer;
-        else return answer.toArrayContainer();
-        */
-        int start = 0;
-        for(int rlepos = 0; rlepos < this.nbrruns; ++rlepos ) {
-            int end = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-            BufferUtil.resetBitmapRange(answer.bitmap, start, end); 
-            start = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
-        }
-        BufferUtil.resetBitmapRange(answer.bitmap, start, BufferUtil.maxLowBitAsInteger() + 1); 
-        answer.computeCardinality();
-        if(answer.getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE)
-            return answer;
-        else return answer.toArrayContainer();
-
-    }
 
     @Override
     public MappeableContainer and(MappeableBitmapContainer x) {
@@ -944,7 +914,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         return serializedSizeInBytes(nbrruns);
     }
 
-    public static int serializedSizeInBytes( int numberOfRuns) {
+    protected static int serializedSizeInBytes( int numberOfRuns) {
         return 2 + 2 * 2 * numberOfRuns;  // each run requires 2 2-byte entries.
     }
 

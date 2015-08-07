@@ -1083,7 +1083,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
     }
     
     // the parameter is for overloading and symmetry with ArrayContainer
-    public static int serializedSizeInBytes(int unusedCardinality) {
+    protected static int serializedSizeInBytes(int unusedCardinality) {
         return MAX_CAPACITY / 8;
     }
     

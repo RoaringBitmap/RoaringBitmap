@@ -826,11 +826,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         else return ac;
     }
 
-    public MappeableContainer or(ShortIterator it) {
+    protected MappeableContainer or(ShortIterator it) {
         return or(it, false);
     }
 
-    public MappeableContainer xor(ShortIterator it) {
+    protected MappeableContainer xor(ShortIterator it) {
         return or(it,true);
     }
 
@@ -885,7 +885,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
 
-    public static int serializedSizeInBytes( int cardinality) {
+    protected static int serializedSizeInBytes( int cardinality) {
         return cardinality * 2 + 2;
     }
     

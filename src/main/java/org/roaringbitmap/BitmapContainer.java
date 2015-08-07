@@ -133,7 +133,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     static final int BLOCKSIZE = 128;
     // 64 words can have max 32 runs per word, max 2k runs
 
-    public int numberOfRunsLowerBound(int mustNotExceed) {
+    int numberOfRunsLowerBound(int mustNotExceed) {
         int numRuns = 0;
       
         for (int blockOffset = 0; blockOffset < bitmap.length; blockOffset+= BLOCKSIZE) {
@@ -226,7 +226,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     */
 
 
-    public int numberOfRunsAdjustment() {
+    int numberOfRunsAdjustment() {
         int ans = 0;
         long nextWord = bitmap[0];
         for (int i = 0; i < bitmap.length-1; i++) {
@@ -887,7 +887,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     }
     
     // the parameter is for overloading and symmetry with ArrayContainer
-    public static int serializedSizeInBytes(int unusedCardinality) {
+    protected static int serializedSizeInBytes(int unusedCardinality) {
         return MAX_CAPACITY / 8;
     }
 

@@ -5,6 +5,10 @@
 
 package org.roaringbitmap;
 
+/**
+ * Representing a general bitmap interface.
+ *
+ */
 public interface BitmapDataProvider extends ImmutableBitmapDataProvider {
     /**
      * set the value to "true", whether it already appears or not.

@@ -274,14 +274,14 @@ public class TestRunContainer {
     public void toBitmapOrArrayContainer() {
         RunContainer rc = new RunContainer();
         rc.iadd(0, DEFAULT_MAX_SIZE / 2);
-        Container ac = rc.toBitmapOrArrayContainer();
+        Container ac = rc.toBitmapOrArrayContainer(rc.getCardinality());
         assertTrue(ac instanceof ArrayContainer);
         assertEquals(DEFAULT_MAX_SIZE/2, ac.getCardinality());
         for(short k=0; k<DEFAULT_MAX_SIZE/2; ++k) {
             assertTrue(ac.contains(k));
         }
         rc.iadd(DEFAULT_MAX_SIZE/2, 2*DEFAULT_MAX_SIZE);
-        Container bc = rc.toBitmapOrArrayContainer();
+        Container bc = rc.toBitmapOrArrayContainer(rc.getCardinality());
         assertTrue(bc instanceof BitmapContainer);
         assertEquals(2*DEFAULT_MAX_SIZE, bc.getCardinality());
         for(short k=0; k<2*DEFAULT_MAX_SIZE; ++k) {

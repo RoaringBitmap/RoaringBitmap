@@ -88,7 +88,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
     public abstract MappeableContainer and(MappeableRunContainer x);
 
 
-    public MappeableContainer and(MappeableContainer x) {
+    protected MappeableContainer and(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return and((MappeableArrayContainer) x);
         else if ( x instanceof MappeableRunContainer)
@@ -128,7 +128,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
 
     public abstract MappeableContainer andNot(MappeableRunContainer x);
 
-    public MappeableContainer andNot(MappeableContainer x) {
+    protected MappeableContainer andNot(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return andNot((MappeableArrayContainer) x);
         else if ( x instanceof MappeableRunContainer)
@@ -253,7 +253,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
     public abstract MappeableContainer iand(MappeableRunContainer x);
 
 
-    public MappeableContainer iand(MappeableContainer x) {
+    protected MappeableContainer iand(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return iand((MappeableArrayContainer) x);
         else if ( x instanceof MappeableRunContainer)
@@ -297,7 +297,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
 
     public abstract MappeableContainer iandNot(MappeableRunContainer x);
 
-    public MappeableContainer iandNot(MappeableContainer x) {
+    protected MappeableContainer iandNot(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return iandNot((MappeableArrayContainer) x);
         else if ( x instanceof MappeableRunContainer)
@@ -354,7 +354,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
 
     public abstract MappeableContainer ior(MappeableRunContainer x);
 
-    public MappeableContainer ior(MappeableContainer x) {
+    protected MappeableContainer ior(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return ior((MappeableArrayContainer) x);
         else if ( x instanceof MappeableRunContainer)
@@ -398,7 +398,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
     public abstract MappeableContainer ixor(MappeableRunContainer x);
 
 
-    public MappeableContainer ixor(MappeableContainer x) {
+    protected MappeableContainer ixor(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return ixor((MappeableArrayContainer) x);
         else if ( x instanceof MappeableRunContainer)
@@ -510,7 +510,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
 
     public abstract MappeableContainer or(MappeableRunContainer x);
 
-    public MappeableContainer or(MappeableContainer x) {
+    protected MappeableContainer or(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return or((MappeableArrayContainer) x);
         else if ( x instanceof MappeableRunContainer)
@@ -583,7 +583,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
 
     public abstract MappeableContainer xor(MappeableRunContainer x);
 
-    public MappeableContainer xor(MappeableContainer x) {
+    protected MappeableContainer xor(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
             return xor((MappeableArrayContainer) x);
         else if ( x instanceof MappeableRunContainer)

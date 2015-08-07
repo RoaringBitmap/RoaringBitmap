@@ -8,6 +8,10 @@ package org.roaringbitmap;
 import java.io.DataOutput;
 import java.io.IOException;
 
+/**
+ * Interface representing an immutable bitmap.
+ *
+ */
 public interface ImmutableBitmapDataProvider {
     /**
      * @return a custom iterator over set bits, the bits are traversed

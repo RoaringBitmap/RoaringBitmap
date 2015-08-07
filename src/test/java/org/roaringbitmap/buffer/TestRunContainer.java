@@ -274,14 +274,14 @@ public class TestRunContainer {
     public void toBitmapOrArrayContainer() {
         MappeableRunContainer rc = new MappeableRunContainer();
         rc.iadd(0, DEFAULT_MAX_SIZE / 2);
-        MappeableContainer ac = rc.toBitmapOrArrayContainer();
+        MappeableContainer ac = rc.toBitmapOrArrayContainer(rc.getCardinality());
         assertTrue(ac instanceof MappeableArrayContainer);
         assertEquals(DEFAULT_MAX_SIZE/2, ac.getCardinality());
         for(short k=0; k<DEFAULT_MAX_SIZE/2; ++k) {
             assertTrue(ac.contains(k));
         }
         rc.iadd(DEFAULT_MAX_SIZE/2, 2*DEFAULT_MAX_SIZE);
-        MappeableContainer bc = rc.toBitmapOrArrayContainer();
+        MappeableContainer bc = rc.toBitmapOrArrayContainer(rc.getCardinality());
         assertTrue(bc instanceof MappeableBitmapContainer);
         assertEquals(2*DEFAULT_MAX_SIZE, bc.getCardinality());
         for(short k=0; k<2*DEFAULT_MAX_SIZE; ++k) {

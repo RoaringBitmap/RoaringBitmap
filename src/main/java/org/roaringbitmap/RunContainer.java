@@ -46,12 +46,12 @@ public final class RunContainer extends Container implements Cloneable {
     }
 
     // needed for deserialization
-    public RunContainer(short [] valueslength) {
+    protected RunContainer(short [] valueslength) {
         this(valueslength.length/2, valueslength);
     }
 
     // lower-level specialized implementations might be faster
-    public RunContainer( ShortIterator sIt, int nbrRuns) {
+    protected RunContainer( ShortIterator sIt, int nbrRuns) {
         this.nbrruns = nbrRuns;
         valueslength = new short[ 2*nbrRuns];
         if (nbrRuns == 0) return;
@@ -76,7 +76,7 @@ public final class RunContainer extends Container implements Cloneable {
     }
 
     // convert a bitmap container to a run container somewhat efficiently.
-    public RunContainer( BitmapContainer bc, int nbrRuns) {
+    protected RunContainer( BitmapContainer bc, int nbrRuns) {
         this.nbrruns = nbrRuns;
         valueslength = new short[ 2*nbrRuns];
         if (nbrRuns == 0) return;
@@ -166,7 +166,7 @@ public final class RunContainer extends Container implements Cloneable {
      * @param card the current cardinality
      * @return new container
      */
-    private Container toBitmapOrArrayContainer(int card) {
+    Container toBitmapOrArrayContainer(int card) {
         //int card = this.getCardinality();
         if(card <= ArrayContainer.DEFAULT_MAX_SIZE) {
             ArrayContainer answer = new ArrayContainer(card);
@@ -820,7 +820,7 @@ public final class RunContainer extends Container implements Cloneable {
         return serializedSizeInBytes(nbrruns);
     }
 
-    public static int serializedSizeInBytes( int numberOfRuns) {
+    protected static int serializedSizeInBytes( int numberOfRuns) {
         return 2 + 2 * 2 * numberOfRuns;  // each run requires 2 2-byte entries.
     }
 
@@ -1437,7 +1437,7 @@ public final class RunContainer extends Container implements Cloneable {
 
   
     //@Override
-      public Container andNoSkip(RunContainer x) {
+      protected Container andNoSkip(RunContainer x) {
         /*
          * Main idea here: if you have two RunContainers, why 
          * not output the result as a RunContainer? Well,
