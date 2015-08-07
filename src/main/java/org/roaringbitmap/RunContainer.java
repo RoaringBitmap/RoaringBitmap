@@ -130,7 +130,7 @@ public final class RunContainer extends Container implements Cloneable {
 
     
     // convert to bitmap or array *if needed*
-    protected Container toEfficientContainer() { 
+    private Container toEfficientContainer() { 
         int sizeAsRunContainer = RunContainer.serializedSizeInBytes(this.nbrruns);
         int sizeAsBitmapContainer = BitmapContainer.serializedSizeInBytes(0);
         int card = this.getCardinality();
@@ -163,10 +163,11 @@ public final class RunContainer extends Container implements Cloneable {
     /**
      * Convert the container to either a Bitmap or an Array Container, depending
      * on the cardinality.
+     * @param card the current cardinality
      * @return new container
      */
-    protected Container toBitmapOrArrayContainer() {
-        int card = this.getCardinality();
+    private Container toBitmapOrArrayContainer(int card) {
+        //int card = this.getCardinality();
         if(card <= ArrayContainer.DEFAULT_MAX_SIZE) {
             ArrayContainer answer = new ArrayContainer(card);
             answer.cardinality=0;
@@ -190,17 +191,8 @@ public final class RunContainer extends Container implements Cloneable {
         return answer;
     }
 
-    // force conversion to bitmap irrespective of cardinality, result is not a valid container
-    // this is potentially unsafe, use at your own risks
-    protected BitmapContainer toTemporaryBitmap() {
-        BitmapContainer answer = new BitmapContainer();
-        for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
-            int start = Util.toIntUnsigned(this.getValue(rlepos));
-            int end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
-            Util.setBitmapRange(answer.bitmap, start, end); 
-        }
-        return answer;
-    }
+
+
 
     /** 
      *  Convert to Array or Bitmap container if the serialized form would be shorter
@@ -212,10 +204,10 @@ public final class RunContainer extends Container implements Cloneable {
         int card = getCardinality(); 
         if (card <= ArrayContainer.DEFAULT_MAX_SIZE) {
             if (currentSize > ArrayContainer.serializedSizeInBytes(card))
-                return toBitmapOrArrayContainer();
+                return toBitmapOrArrayContainer(card);
         }
         else if (currentSize > BitmapContainer.serializedSizeInBytes(card)) {
-            return toBitmapOrArrayContainer();
+            return toBitmapOrArrayContainer(card);
         }
         return this;
     }
@@ -450,7 +442,7 @@ public final class RunContainer extends Container implements Cloneable {
     @Override
     public Container andNot(ArrayContainer x) {
         // this is lazy, but is this wise?
-        return toBitmapOrArrayContainer().iandNot(x);
+        return toBitmapOrArrayContainer(getCardinality()).iandNot(x);
     }
 
 
@@ -848,7 +840,7 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public Container xor(ArrayContainer x) {
-        return toBitmapOrArrayContainer().ixor(x);
+        return toBitmapOrArrayContainer(getCardinality()).ixor(x);
         //  return x.xor(getShortIterator());   // performance may not be great, depending on iterator overheads...
     }
 
@@ -1126,7 +1118,7 @@ public final class RunContainer extends Container implements Cloneable {
     }
 
 
-    protected static int unsignedInterleavedBinarySearch(final short[] array,
+    private static int unsignedInterleavedBinarySearch(final short[] array,
             final int begin, final int end, final short k) {
         int ikey = Util.toIntUnsigned(k);
         int low = begin;

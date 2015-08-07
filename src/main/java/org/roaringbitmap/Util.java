@@ -253,6 +253,60 @@ public final class Util {
         }
         return pos;
     }
+    /**
+     * Compute the difference between two sorted lists and write the result to the provided
+     * output array
+     *
+     * @param set1    first array
+     * @param length1 length of first array
+     * @param set2    second array
+     * @param length2 length of second array
+     * @param buffer  output array
+     * @return cardinality of the difference
+     */
+    public static int unsignedDifference(ShortIterator set1, ShortIterator set2,
+                                         final short[] buffer) {
+        int pos = 0;
+        if (!set2.hasNext()) {
+            while(set1.hasNext())
+                buffer[pos++] = set1.next();
+            return pos;
+        }
+        if (!set1.hasNext()) {
+            return 0;
+        }
+        short v1 = set1.next();
+        short v2 = set2.next();
+        while (true) {
+            if (toIntUnsigned(v1) < toIntUnsigned(v2)) {
+                buffer[pos++] = v1;
+                if (! set1.hasNext()) {
+                    break;
+                }
+                v1 = set1.next();
+            } else if (v1 == v2) {
+                if (! set1.hasNext()) {
+                    break;
+                }
+                if (! set2.hasNext()) {
+                    while(set1.hasNext())
+                        buffer[pos++] = set1.next();
+                    return pos;
+                }
+                v1 = set1.next();
+                v2 = set2.next();
+            } else {// if (val1>val2)
+                if (!set2.hasNext()) {
+                    while(set1.hasNext())
+                        buffer[pos++] = set1.next();
+                    return pos;
+                }
+                v2 = set2.next();
+                
+            }
+        }
+        return pos;
+    }
 
     /**
      * Compute the exclusive union of two sorted lists and write the result to the provided

@@ -91,10 +91,11 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     /**
      * Convert the container to either a Bitmap or an Array Container, depending
      * on the cardinality.
+     * @param card the current cardinality
      * @return new container
      */
-    protected MappeableContainer toBitmapOrArrayContainer() {
-    	int card = this.getCardinality();
+    private MappeableContainer toBitmapOrArrayContainer(int card) {
+    	//int card = this.getCardinality();
     	if(card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
         	MappeableArrayContainer answer = new MappeableArrayContainer(card);
         	answer.cardinality=0;
@@ -117,21 +118,10 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         answer.cardinality = card;
         return answer;
     }
-    
-    // force conversion to bitmap irrespective of cardinality, result is not a valid container
-    // this is potentially unsafe, use at your own risks
-    protected MappeableBitmapContainer toTemporaryBitmap() {
-    	MappeableBitmapContainer answer = new MappeableBitmapContainer();
-        for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
-            int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-            int end = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
-            BufferUtil.setBitmapRange(answer.bitmap, start, end); 
-        }
-        return answer;
-    }
+
 
     // convert to bitmap or array *if needed*
-    protected MappeableContainer toEfficientContainer() { 
+    private MappeableContainer toEfficientContainer() { 
         int sizeAsRunContainer = MappeableRunContainer.serializedSizeInBytes(this.nbrruns);
         int sizeAsBitmapContainer = MappeableBitmapContainer.serializedSizeInBytes(0);
         int card = this.getCardinality();
@@ -179,10 +169,10 @@ public final class MappeableRunContainer extends MappeableContainer implements C
          int card = getCardinality(); 
          if (card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
              if (currentSize > MappeableArrayContainer.getArraySizeInBytes(card))  
-                 return toBitmapOrArrayContainer();
+                 return toBitmapOrArrayContainer(card);
          }
          else if (currentSize > MappeableBitmapContainer.getArraySizeInBytes(card)) {  
-             return toBitmapOrArrayContainer();
+             return toBitmapOrArrayContainer(card);
          }
          return this;
      }
@@ -572,7 +562,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer andNot(MappeableArrayContainer x) {
-    	return toBitmapOrArrayContainer().iandNot(x);
+    	return toBitmapOrArrayContainer(getCardinality()).iandNot(x);
     }
 
 
@@ -990,7 +980,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer xor(MappeableArrayContainer x) {
-        return toBitmapOrArrayContainer().ixor(x);
+        return toBitmapOrArrayContainer(getCardinality()).ixor(x);
         //return x.xor(getShortIterator());
     }
 
@@ -1291,7 +1281,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     }
 */
 
-    protected static int bufferedUnsignedInterleavedBinarySearch(final ShortBuffer sb,
+    private static int bufferedUnsignedInterleavedBinarySearch(final ShortBuffer sb,
             final int begin, final int end, final short k) {
         int ikey = BufferUtil.toIntUnsigned(k);
         int low = begin;
