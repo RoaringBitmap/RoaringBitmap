@@ -4,7 +4,7 @@
 
     <groupId>org.roaringbitmap</groupId>
     <artifactId>jmh</artifactId>
-    <version>0.4.11-SNAPSHOT</version>
+    <version>0.4.12-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>JMH benchmark : RoaringBitmap</name>
