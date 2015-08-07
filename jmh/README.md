@@ -16,3 +16,13 @@ For specific queries, try :
 
      $ ls src/main/java/org/roaringbitmap/runcontainer/MappedRunContainerRealDataBenchmark*
 
+Here is an example: 
+
+     $ ./run.sh RunContainerRealDataBenchmarkHorizontal > horizontallog.txt
+     $ ./run.sh RunContainerRealDataBenchmarkIterate > iteratelog.txt
+     $ ./run.sh RunContainerRealDataBenchmarkAnd > andlog.txt
+     $ ./run.sh RunContainerRealDataBenchmarkOr > orlog.txt
+
+You can then parse files with a script:
+
+     $ ./grabresults.sh horizontallog.txt
