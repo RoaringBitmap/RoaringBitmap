@@ -18,7 +18,7 @@ import java.util.Iterator;
  */
 public final class MappeableRunContainer extends MappeableContainer implements Cloneable {
     private static final int DEFAULT_INIT_SIZE = 4;
-    private ShortBuffer valueslength;
+    protected ShortBuffer valueslength;
 
     protected int nbrruns = 0;// how many runs, this number should fit in 16 bits.
 
@@ -532,7 +532,15 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer andNot(MappeableArrayContainer x) {
-    	return toBitmapOrArrayContainer(getCardinality()).iandNot(x);
+        int card = getCardinality();
+        if(card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
+            // if the cardinality is small, we construct the solution in place
+            MappeableArrayContainer ac = new MappeableArrayContainer(card);
+            ac.cardinality = org.roaringbitmap.Util.unsignedDifference(this.getShortIterator(), x.getShortIterator(), ac.content.array());
+            return ac;
+        }
+        // otherwise, we generate a bitmap
+        return toBitmapOrArrayContainer(getCardinality()).iandNot(x);
     }
 
 
@@ -624,11 +632,15 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public ShortIterator getShortIterator() {
+        if(isArrayBacked())
+            return new RawMappeableRunContainerShortIterator(this);
         return new MappeableRunContainerShortIterator(this);
     }
 
     @Override
     public ShortIterator getReverseShortIterator() {
+        if(isArrayBacked())
+            return new RawReverseMappeableRunContainerShortIterator(this);
         return new ReverseMappeableRunContainerShortIterator(this);
     }
 
@@ -2109,3 +2121,176 @@ final class ReverseMappeableRunContainerShortIterator implements ShortIterator {
 
 }
 
+
+final class RawMappeableRunContainerShortIterator implements ShortIterator {
+    int pos;
+    int le = 0;
+    int maxlength;
+    int base;
+
+    MappeableRunContainer parent;
+    short[] vl;
+
+
+    RawMappeableRunContainerShortIterator(MappeableRunContainer p) {
+        wrap(p);
+    }
+    
+    void wrap(MappeableRunContainer p) {
+        parent = p;
+        if(!parent.isArrayBacked())
+            throw new RuntimeException("internal error");
+        vl = parent.valueslength.array();        
+        pos = 0;
+        le = 0;
+        if(pos < parent.nbrruns) {
+            maxlength = BufferUtil.toIntUnsigned(getLength(pos));
+            base = BufferUtil.toIntUnsigned(getValue(pos));
+        }
+    }
+
+    @Override
+    public boolean hasNext() {
+        return pos < parent.nbrruns;
+    }
+    
+    @Override
+    public ShortIterator clone() {
+        try {
+            return (ShortIterator) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return null;// will not happen
+        }
+    }
+
+    @Override
+    public short next() {
+        short ans = (short) (base + le);
+        le++;
+        if(le > maxlength) {
+            pos++;
+            le = 0;
+            if(pos < parent.nbrruns) {
+                maxlength = BufferUtil.toIntUnsigned(getLength(pos));
+                base = BufferUtil.toIntUnsigned(getValue(pos));
+            }
+        }
+        return ans;
+    }
+
+    @Override
+    public int nextAsInt() {
+        int ans = base + le;
+        le++;
+        if(le > maxlength) {
+            pos++;
+            le = 0;
+            if(pos < parent.nbrruns) {
+                maxlength = BufferUtil.toIntUnsigned(getLength(pos));
+                base = BufferUtil.toIntUnsigned(getValue(pos));
+            }
+        }
+        return ans;
+    }
+    
+    
+    short getValue(int index) {
+        return vl[2*index];
+    }
+
+    short getLength(int index) {
+        return vl[2*index + 1];
+    }
+    
+    @Override
+    public void remove() {
+        throw new RuntimeException("Not implemented");// TODO
+    }
+
+};
+
+final class RawReverseMappeableRunContainerShortIterator implements ShortIterator {
+    int pos;
+    int le;
+    int maxlength;
+    int base;
+    MappeableRunContainer parent;
+    short[] vl;
+
+
+
+    RawReverseMappeableRunContainerShortIterator(MappeableRunContainer p) {
+        wrap(p);
+    }
+    
+    void wrap(MappeableRunContainer p) {
+        parent = p;
+        if(!parent.isArrayBacked())
+            throw new RuntimeException("internal error");
+        vl = parent.valueslength.array();
+        pos = parent.nbrruns - 1;
+        le = 0;
+        if(pos >= 0) {
+            maxlength = BufferUtil.toIntUnsigned(getLength(pos));
+            base = BufferUtil.toIntUnsigned(getValue(pos));
+        }
+    }
+
+    @Override
+    public boolean hasNext() {
+        return pos >= 0;
+    }
+    
+    @Override
+    public ShortIterator clone() {
+        try {
+            return (ShortIterator) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return null;// will not happen
+        }
+    }
+
+    @Override
+    public short next() {
+        short ans = (short) (base + maxlength - le);
+        le++;
+        if(le > maxlength) {
+            pos--;
+            le = 0;
+            if(pos >= 0) {
+                maxlength = BufferUtil.toIntUnsigned(getLength(pos));
+                base = BufferUtil.toIntUnsigned(getValue(pos));
+            }
+        }
+        return ans;
+    }
+
+    @Override
+    public int nextAsInt() {
+        int ans = base + maxlength - le;
+        le++;
+        if(le > maxlength) {
+            pos--;
+            le = 0;
+            if(pos >= 0) {
+                maxlength = BufferUtil.toIntUnsigned(getLength(pos));
+                base = BufferUtil.toIntUnsigned(getValue(pos));
+            }
+        }
+        return ans;
+    }
+    
+    short getValue(int index) {
+        return vl[2*index];
+    }
+
+    short getLength(int index) {
+        return vl[2*index + 1];
+    }
+
+    @Override
+    public void remove() {
+        throw new RuntimeException("Not implemented");// TODO
+    }
+
+}

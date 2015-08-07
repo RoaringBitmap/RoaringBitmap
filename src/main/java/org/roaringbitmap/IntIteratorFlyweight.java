@@ -71,7 +71,7 @@ public class IntIteratorFlyweight implements IntIterator {
                     .getContainerAtIndex(pos);
 
             if (container instanceof BitmapContainer) {
-                bitmapIter.wrap((BitmapContainer) container);
+                bitmapIter.wrap(((BitmapContainer) container).bitmap);
                 iter = bitmapIter;
             } else if (container instanceof ArrayContainer) {
                 arrIter.wrap((ArrayContainer) container);

@@ -441,7 +441,14 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public Container andNot(ArrayContainer x) {
-        // this is lazy, but is this wise?
+        int card = getCardinality();
+        if(card <= ArrayContainer.DEFAULT_MAX_SIZE) {
+            // if the cardinality is small, we construct the solution in place
+            ArrayContainer ac = new ArrayContainer(card);
+            ac.cardinality = Util.unsignedDifference(this.getShortIterator(), x.getShortIterator(), ac.content);
+            return ac;
+        }
+        // otherwise, we generate a bitmap
         return toBitmapOrArrayContainer(getCardinality()).iandNot(x);
     }
 

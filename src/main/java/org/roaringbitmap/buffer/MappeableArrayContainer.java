@@ -384,11 +384,15 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     @Override
     public ShortIterator getShortIterator() {
+        if(this.isArrayBacked())
+            return new RawArrayContainerShortIterator(this);
         return new MappeableArrayContainerShortIterator(this);
     }
 
     @Override
     public ShortIterator getReverseShortIterator() {
+        if(this.isArrayBacked())
+            return new RawReverseArrayContainerShortIterator(this);
         return new ReverseMappeableArrayContainerShortIterator(this);
     }
 
@@ -1297,6 +1301,100 @@ final class ReverseMappeableArrayContainerShortIterator implements ShortIterator
     @Override
     public int nextAsInt() {
         return BufferUtil.toIntUnsigned(parent.content.get(pos--));
+    }
+    
+    @Override
+    public ShortIterator clone() {
+        try {
+            return (ShortIterator) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return null;// will not happen
+        }
+    }
+
+    @Override
+    public void remove() {
+        parent.remove((short) (pos + 1));
+        pos++;
+    }
+
+}
+
+
+
+final class RawArrayContainerShortIterator implements ShortIterator {
+    int pos;
+    MappeableArrayContainer parent;
+    short[] content;
+
+    
+    RawArrayContainerShortIterator(MappeableArrayContainer p) {
+        parent = p;
+        if(!p.isArrayBacked()) throw new RuntimeException("internal bug");
+        content = p.content.array();
+        pos = 0;
+    }
+
+    @Override
+    public boolean hasNext() {
+        return pos < parent.cardinality;
+    }
+
+    @Override
+    public short next() {
+        return content[pos++];
+    }
+
+    @Override
+    public int nextAsInt() {
+        return BufferUtil.toIntUnsigned(content[pos++]);
+    }
+    
+    @Override
+    public ShortIterator clone() {
+        try {
+            return (ShortIterator) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return null;// will not happen
+        }
+    }
+
+    @Override
+    public void remove() {
+        parent.remove((short) (pos - 1));
+        pos--;                
+    }
+
+
+};
+
+final class RawReverseArrayContainerShortIterator implements ShortIterator {
+    int pos;
+    MappeableArrayContainer parent;
+    short[] content;
+    
+    
+    RawReverseArrayContainerShortIterator(MappeableArrayContainer p) {
+        parent = p;
+        if(!p.isArrayBacked()) throw new RuntimeException("internal bug");
+        content = p.content.array();
+        pos = parent.cardinality - 1;
+    }
+ 
+    @Override
+    public boolean hasNext() {
+        return pos >= 0;
+    }
+
+    @Override
+    public short next() {
+        return content[pos--];
+    }
+    
+    
+    @Override
+    public int nextAsInt() {
+        return BufferUtil.toIntUnsigned(content[pos--]);
     }
     
     @Override

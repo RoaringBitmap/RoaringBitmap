@@ -74,7 +74,7 @@ public class ReverseIntIteratorFlyweight implements IntIterator {
 
          Container container = this.roaringBitmap.highLowContainer.getContainerAtIndex(pos);
             if (container instanceof BitmapContainer) {
-                bitmapIter.wrap((BitmapContainer) container);
+                bitmapIter.wrap(((BitmapContainer) container).bitmap);
                 iter = bitmapIter;
             } else if (container instanceof ArrayContainer) {
                 arrIter.wrap((ArrayContainer) container);

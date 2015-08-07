@@ -5,6 +5,7 @@
 
 package org.roaringbitmap.buffer;
 
+import org.roaringbitmap.BitmapContainer;
 import org.roaringbitmap.ShortIterator;
 import org.roaringbitmap.Util;
 
@@ -405,11 +406,15 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     @Override
     public ShortIterator getShortIterator() {
+        if(this.isArrayBacked())
+            return BitmapContainer.getShortIterator(bitmap.array()); 
         return new MappeableBitmapContainerShortIterator(this);
     }
 
     @Override
     public ShortIterator getReverseShortIterator() {
+        if(this.isArrayBacked())
+            return BitmapContainer.getReverseShortIterator(bitmap.array());
         return new ReverseMappeableBitmapContainerShortIterator(this);
     }
 

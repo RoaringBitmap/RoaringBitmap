@@ -209,12 +209,13 @@ public final class ArrayContainer extends Container implements Cloneable {
     public ShortIterator getShortIterator() {
         return new ArrayContainerShortIterator(this);
     }
+    
 
     @Override
     public ShortIterator getReverseShortIterator() {
         return new ReverseArrayContainerShortIterator(this);
     }
-
+    
     @Override
     public int getSizeInBytes() {
         return this.cardinality * 2 + 4;
@@ -953,6 +954,7 @@ final class ArrayContainerShortIterator implements ShortIterator {
     public int nextAsInt() {
         return Util.toIntUnsigned(parent.content[pos++]);
     }
+
     
     @Override
     public ShortIterator clone() {
@@ -997,12 +999,12 @@ final class ReverseArrayContainerShortIterator implements ShortIterator {
         return parent.content[pos--];
     }
     
-    
     @Override
     public int nextAsInt() {
         return Util.toIntUnsigned(parent.content[pos--]);
     }
-    
+
+
     @Override
     public ShortIterator clone() {
         try {
