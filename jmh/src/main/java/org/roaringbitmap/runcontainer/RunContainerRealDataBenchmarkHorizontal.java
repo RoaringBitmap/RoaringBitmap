@@ -36,7 +36,7 @@ public class RunContainerRealDataBenchmarkHorizontal {
 
     @Benchmark
     public int horizontalOr_RoaringWithRun(BenchmarkState benchmarkState) {
-        int answer = FastAggregation.horizontal_or(benchmarkState.rc.iterator())
+        int answer = FastAggregation.naive_or(benchmarkState.rc.iterator())
                .getCardinality();
         if(answer != benchmarkState.horizontalor)
             throw new RuntimeException("buggy horizontal or");
@@ -45,79 +45,13 @@ public class RunContainerRealDataBenchmarkHorizontal {
 
     @Benchmark
     public int horizontalOr_Roaring(BenchmarkState benchmarkState) {
-        int answer = FastAggregation.horizontal_or(benchmarkState.ac.iterator())
+        int answer = FastAggregation.naive_or(benchmarkState.ac.iterator())
                .getCardinality();
         if(answer != benchmarkState.horizontalor)
             throw new RuntimeException("buggy horizontal or");
         return answer;
     }
     
-    @Benchmark
-    public int naiveOr_MutableRoaringWithRun(BenchmarkState benchmarkState) {
-        MutableRoaringBitmap X = new MutableRoaringBitmap();
-        for(int k = 0; k < benchmarkState.mrc.size(); ++k)
-            X.or(benchmarkState.mrc.get(k));
-        int answer = X.getCardinality();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("bug");
-        return answer;
-    }
-    
-
-    @Benchmark
-    public int naiveOr_MutableRoaring(BenchmarkState benchmarkState) {
-        MutableRoaringBitmap X = new MutableRoaringBitmap();
-        for(int k = 0; k < benchmarkState.mac.size(); ++k)
-            X.or(benchmarkState.mac.get(k));
-        int answer = X.getCardinality();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("bug");
-        return answer;
-    }
-
-    
-    @Benchmark
-    public int naiveOr_RoaringWithRun(BenchmarkState benchmarkState) {
-        RoaringBitmap X = new RoaringBitmap();
-        for(int k = 0; k < benchmarkState.rc.size(); ++k)
-            X.or(benchmarkState.rc.get(k));
-        int answer = X.getCardinality();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("bug");
-        return answer;
-    }
-    
-
-    @Benchmark
-    public int naiveOr_Roaring(BenchmarkState benchmarkState) {
-        RoaringBitmap X = new RoaringBitmap();
-        for(int k = 0; k < benchmarkState.ac.size(); ++k)
-            X.or(benchmarkState.ac.get(k));
-        int answer = X.getCardinality();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("bug");
-        return answer;
-    }
-
-    @Benchmark
-    public int horizontalOr_MutableRoaringWithRun(BenchmarkState benchmarkState) {
-        int answer = BufferFastAggregation.horizontal_or(benchmarkState.mrc.iterator())
-               .getCardinality();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("buggy horizontal or");
-        return answer;
-
-    }
-
-    @Benchmark
-    public int horizontalOr_MutableRoaring(BenchmarkState benchmarkState) {
-        int answer = BufferFastAggregation.horizontal_or(benchmarkState.mac.iterator())
-               .getCardinality();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("buggy horizontal or");
-        return answer;
-
-    }
 
     @Benchmark
     public int horizontalOr_Concise(BenchmarkState benchmarkState) {
@@ -262,7 +196,7 @@ public class RunContainerRealDataBenchmarkHorizontal {
                 totalxor += RoaringBitmap.xor(rc.get(k), rc.get(k + 1))
                             .getCardinality();
             }
-            horizontalor = FastAggregation.horizontal_or(rc.iterator())
+            horizontalor = FastAggregation.naive_or(rc.iterator())
                     .getCardinality();
         }
 

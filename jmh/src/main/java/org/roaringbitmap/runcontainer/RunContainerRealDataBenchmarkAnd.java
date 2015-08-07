@@ -53,28 +53,6 @@ public class RunContainerRealDataBenchmarkAnd {
         return total;
     }
 
-     @Benchmark
-     public int pairwiseAnd_MutableRoaringWithRun(BenchmarkState benchmarkState) {
-         int total = 0;
-         for (int k = 0; k + 1 < benchmarkState.mrc.size(); ++k)
-             total += MutableRoaringBitmap.and(benchmarkState.mrc.get(k),
-                                               benchmarkState.mrc.get(k + 1)).getCardinality();
-         if (total != benchmarkState.totaland)
-             throw new RuntimeException("bad pairwise and result");
-         return total;
-     }
-
-     @Benchmark
-     public int pairwiseAnd_MutableRoaring(BenchmarkState benchmarkState) {
-         int total = 0;
-         for (int k = 0; k + 1 < benchmarkState.mac.size(); ++k)
-             total += MutableRoaringBitmap.and(benchmarkState.mac.get(k),
-                                               benchmarkState.mac.get(k + 1)).getCardinality();
-         if (total != benchmarkState.totaland)
-             throw new RuntimeException("bad pairwise and result");
-         return total;
-     }
-
     @Benchmark
     public int pairwiseAnd_Concise(BenchmarkState benchmarkState) {
         int total = 0;

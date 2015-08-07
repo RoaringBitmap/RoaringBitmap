@@ -1775,7 +1775,7 @@ public final class RunContainer extends Container implements Cloneable {
         int oldend;
         if((nbrruns==0) ||
                 (Util.toIntUnsigned(start) > 
-                (oldend= Util.toIntUnsigned(getValue(nbrruns - 1)) + Util.toIntUnsigned(getLength(nbrruns - 1))) + 1)) { // we add a new one
+                (oldend = Util.toIntUnsigned(getValue(nbrruns - 1)) + Util.toIntUnsigned(getLength(nbrruns - 1))) + 1)) { // we add a new one
             valueslength[2 * nbrruns] =  start;
             valueslength[2 * nbrruns + 1] = length;
             nbrruns++;

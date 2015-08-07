@@ -47,19 +47,6 @@ public class RunContainerRealDataBenchmarkIterate {
          return total;
      }
 
-     @Benchmark
-     public int iterate_RoaringWithRun_flyweight(BenchmarkState benchmarkState) {
-         int total = 0;
-         IntIteratorFlyweight i = new IntIteratorFlyweight();
-         for (int k = 0; k < benchmarkState.rc.size(); ++k) {
-             RoaringBitmap rb = benchmarkState.rc.get(k);
-             i.wrap(rb);
-             while(i.hasNext())
-                 total += i.next();
-         }
-         return total;
-     }
-
 
      @Benchmark
      public int iterate_Roaring(BenchmarkState benchmarkState) {
@@ -73,69 +60,7 @@ public class RunContainerRealDataBenchmarkIterate {
          return total;
 
      }
-     @Benchmark
-     public int iterate_Roaring_flyweight(BenchmarkState benchmarkState) {
-         int total = 0;
-         IntIteratorFlyweight i = new IntIteratorFlyweight();
-         for (int k = 0; k < benchmarkState.ac.size(); ++k) {
-             RoaringBitmap rb = benchmarkState.ac.get(k);
-             i.wrap(rb);
-             while(i.hasNext())
-                 total += i.next();
-         }
-         return total;
-     }
 
-     @Benchmark
-     public int iterate_MutableRoaringWithRun(BenchmarkState benchmarkState) {
-         int total = 0;
-         for (int k = 0; k < benchmarkState.mrc.size(); ++k) {
-             ImmutableRoaringBitmap rb = benchmarkState.mrc.get(k);
-             org.roaringbitmap.IntIterator i = rb.getIntIterator();
-             while(i.hasNext())
-                 total += i.next();
-         }
-         return total;
-     }
-
-     @Benchmark
-     public int iterate_MutableRoaringWithRun_flyweight(BenchmarkState benchmarkState) {
-         int total = 0;
-         BufferIntIteratorFlyweight i = new BufferIntIteratorFlyweight();
-         for (int k = 0; k < benchmarkState.mrc.size(); ++k) {
-             ImmutableRoaringBitmap rb = benchmarkState.mrc.get(k);
-             i.wrap(rb);
-             while(i.hasNext())
-                 total += i.next();
-         }
-         return total;
-     }
-
-
-     @Benchmark
-     public int iterate_MutableRoaring(BenchmarkState benchmarkState) {
-         int total = 0;
-         for (int k = 0; k < benchmarkState.mac.size(); ++k) {
-             ImmutableRoaringBitmap rb = benchmarkState.mac.get(k);
-             org.roaringbitmap.IntIterator i = rb.getIntIterator();
-             while(i.hasNext())
-                 total += i.next();
-         }
-         return total;
-     }
-     
-     @Benchmark
-     public int iterate_MutableRoaring_flyweight(BenchmarkState benchmarkState) {
-         int total = 0;
-         BufferIntIteratorFlyweight i = new BufferIntIteratorFlyweight();
-         for (int k = 0; k < benchmarkState.mac.size(); ++k) {
-             ImmutableRoaringBitmap rb = benchmarkState.mac.get(k);
-             i.wrap(rb);
-             while(i.hasNext())
-                 total += i.next();
-         }
-         return total;
-     }
 
      @Benchmark
      public int iterate_Concise(BenchmarkState benchmarkState) {
@@ -149,56 +74,6 @@ public class RunContainerRealDataBenchmarkIterate {
          return total;
      }
 
-     @Benchmark
-     public int toarray_RoaringWithRun(BenchmarkState benchmarkState) {
-         int total = 0;
-         for (int k = 0; k < benchmarkState.rc.size(); ++k) {
-             RoaringBitmap rb = benchmarkState.rc.get(k);
-             total += rb.toArray().length;
-         }
-         return total;
-     }
-
-     @Benchmark
-     public int toarray_Roaring(BenchmarkState benchmarkState) {
-         int total = 0;
-         for (int k = 0; k < benchmarkState.ac.size(); ++k) {
-             RoaringBitmap rb = benchmarkState.ac.get(k);
-             total += rb.toArray().length;
-         }
-         return total;
-     }
-
-
-     @Benchmark
-     public int toarray_MutableRoaringWithRun(BenchmarkState benchmarkState) {
-         int total = 0;
-         for (int k = 0; k < benchmarkState.mrc.size(); ++k) {
-             ImmutableRoaringBitmap rb = benchmarkState.mrc.get(k);
-             total += rb.toArray().length;
-         }
-         return total;
-     }
-
-     @Benchmark
-     public int toarray_MutableRoaring(BenchmarkState benchmarkState) {
-         int total = 0;
-         for (int k = 0; k < benchmarkState.mac.size(); ++k) {
-             ImmutableRoaringBitmap rb = benchmarkState.mac.get(k);
-             total += rb.toArray().length;
-         }
-         return total;
-     }
-
-     @Benchmark
-     public int toarray_Concise(BenchmarkState benchmarkState) {
-         int total = 0;
-         for (int k = 0; k < benchmarkState.rc.size(); ++k) {
-             ConciseSet cs = benchmarkState.cc.get(k);
-             total += cs.toArray().length;
-         }
-         return total;
-     }
 
     @State(Scope.Benchmark)
     public static class BenchmarkState {

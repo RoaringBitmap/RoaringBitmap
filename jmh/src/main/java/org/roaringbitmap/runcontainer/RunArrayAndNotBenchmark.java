@@ -18,7 +18,7 @@ import org.roaringbitmap.RoaringBitmap;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
-public class AllRunHorizontalOrBenchmark {
+public class RunArrayAndNotBenchmark {
 
     static ConciseSet toConcise(int[] dat) {
         ConciseSet ans = new ConciseSet();
@@ -29,56 +29,29 @@ public class AllRunHorizontalOrBenchmark {
     }
 
     @Benchmark
-    public int OrARunContainer(BenchmarkState benchmarkState) {
-        RoaringBitmap base = benchmarkState.rc.get(0);
+    public int AndNotRunContainer(BenchmarkState benchmarkState) {
+        int answer = 0;
         for(int k = 1; k < benchmarkState.rc.size(); ++k)
-            base = RoaringBitmap.or(base, benchmarkState.rc.get(k));
-        return base.getCardinality();
+            answer += RoaringBitmap.andNot(benchmarkState.rc.get(k-1),benchmarkState.rc.get(k)).getCardinality();
+        return answer;
     }
     
     @Benchmark
-    public int OrBitmapContainer(BenchmarkState benchmarkState) {
-        RoaringBitmap base = benchmarkState.ac.get(0);
+    public int AndNotBitmapContainer(BenchmarkState benchmarkState) {
+        int answer = 0;
         for(int k = 1; k < benchmarkState.ac.size(); ++k)
-            base = RoaringBitmap.or(base, benchmarkState.ac.get(k));
-        return base.getCardinality();
+            answer += RoaringBitmap.andNot(benchmarkState.ac.get(k-1),benchmarkState.ac.get(k)).getCardinality();
+        return answer;
     }
+
     @Benchmark
-    public int OrConcise(BenchmarkState benchmarkState) {
-        ConciseSet base = benchmarkState.cc.get(0);
+    public int AndNotConcise(BenchmarkState benchmarkState) {
+        int answer = 0;
         for(int k = 1; k < benchmarkState.cc.size(); ++k)
-            base.union(benchmarkState.cc.get(k));
-        return base.size();
+            answer += benchmarkState.cc.get(k-1).difference(benchmarkState.cc.get(k)).size();
+        return answer;
     }
     
-    @Benchmark
-	public int horizontalOrARunContainer(BenchmarkState benchmarkState) {
-		return FastAggregation.naive_or(benchmarkState.rc.iterator())
-	               .getCardinality();
-	}
-	
-  
-	@Benchmark
-	public int horizontalOrBitmapContainer(BenchmarkState benchmarkState) {
-        return FastAggregation.naive_or(benchmarkState.ac.iterator())
-                .getCardinality();
-	}
-
-    @Benchmark
-    public int fastOrARunContainer(BenchmarkState benchmarkState) {
-        RoaringBitmap[] v = new RoaringBitmap[benchmarkState.rc.size()];
-        return FastAggregation.or((RoaringBitmap[]) benchmarkState.rc.toArray(v))
-                   .getCardinality();
-    }
-    
-  
-    @Benchmark
-    public int fastOrBitmapContainer(BenchmarkState benchmarkState) {
-        RoaringBitmap[] v = new RoaringBitmap[benchmarkState.rc.size()];
-        return FastAggregation.or((RoaringBitmap[]) benchmarkState.ac.toArray(v))
-                .getCardinality();
-    }
-
     @State(Scope.Benchmark)
     public static class BenchmarkState {        
  	  
@@ -105,10 +78,24 @@ public class AllRunHorizontalOrBenchmark {
                 cc.add(toConcise(rb.toArray()));
 
                 ac.add(rb);
-                
+
                 rb = rb.clone();
                 rb.runOptimize();
                 rc.add(rb);
+                
+                rb = new RoaringBitmap();
+                
+                for (int z = 0; z < 50; ++z) {
+                    rb.add(rand.nextInt(100000));
+                }
+                cc.add(toConcise(rb.toArray()));
+
+                ac.add(rb);
+
+                rb = rb.clone();
+                rb.runOptimize();
+                rc.add(rb);
+
             }
         }
     }
