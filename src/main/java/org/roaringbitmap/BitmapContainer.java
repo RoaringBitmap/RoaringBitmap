@@ -133,7 +133,12 @@ public final class BitmapContainer extends Container implements Cloneable {
     static final int BLOCKSIZE = 128;
     // 64 words can have max 32 runs per word, max 2k runs
 
-    int numberOfRunsLowerBound(int mustNotExceed) {
+    /**
+     * Counts how many runs there is in the bitmap, up to a maximum
+     * @param mustNotExceed maximum of runs beyond which counting is pointless
+     * @return estimated number of courses
+     */
+    public int numberOfRunsLowerBound(int mustNotExceed) {
         int numRuns = 0;
       
         for (int blockOffset = 0; blockOffset < bitmap.length; blockOffset+= BLOCKSIZE) {
@@ -225,8 +230,11 @@ public final class BitmapContainer extends Container implements Cloneable {
     }
     */
 
-
-    int numberOfRunsAdjustment() {
+    /**
+     * Computes the number of runs
+     * @return the number of runs
+     */
+    public int numberOfRunsAdjustment() {
         int ans = 0;
         long nextWord = bitmap[0];
         for (int i = 0; i < bitmap.length-1; i++) {

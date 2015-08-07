@@ -98,9 +98,10 @@ public final class BufferUtil {
      * Find the smallest integer larger than pos such that array[pos]&gt;= min. If
      * none can be found, return length. Based on code by O. Kaser.
      * 
-     * @param array
-     * @param pos
-     * @param min
+     * @param array container where we search
+     * @param pos initial position
+     * @param min minimal threshold
+     * @param length how big should the array consider to be
      * @return x greater than pos such that array[pos] is at least as large as
      *         min, pos is is equal to length if it is not possible.
      */
