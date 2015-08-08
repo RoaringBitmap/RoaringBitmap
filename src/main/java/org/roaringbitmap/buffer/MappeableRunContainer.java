@@ -260,6 +260,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer add(short k) {
+        //TODO: we should ensure that if we add to a run containers, it does not become obviously wasteful
         /*  could be code for the simple array 
         int index = unsignedInterleavedBinarySearch(valueslength, 0, nbrruns, k);
         if(index >= 0) return this;// already there
@@ -899,11 +900,12 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer remove(short x) {
+        //TODO: we should ensure that if we remove values from a run containers, it does not become obviously wasteful
         int index = bufferedUnsignedInterleavedBinarySearch(valueslength, 0, nbrruns, x);
         if(index >= 0) {
             int le =  BufferUtil.toIntUnsigned(getLength(index));
             if(le == 0) {
-                recoverRoomAtIndex(index);
+                recoverRoomAtIndex(index); 
             } else {
                 incrementValue(index);
                 decrementLength(index);
@@ -920,7 +922,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
                 // need to insert
                 int newvalue = BufferUtil.toIntUnsigned(x) + 1;
                 int newlength = le - offset - 1;
-                makeRoomAtIndex(index+1);
+                makeRoomAtIndex(index+1); // TODO: should check whether we need to revert back to bitmap or array
                 this.setValue(index+1, (short) newvalue);
                 this.setLength(index+1, (short) newlength);
             } else if(offset == le) {
@@ -1061,6 +1063,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer iadd(int begin, int end) {
+        // TODO: should check whether we need to revert back to bitmap or array at the end
+        // TODO: hint: if you create a new small run, you may need to check
         if((begin >= end) || (end > (1<<16))) {
             throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
         }
@@ -1153,6 +1157,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer iremove(int begin, int end) {
+        // TODO: should check whether we need to revert back to bitmap or array at the end
+        // TODO: hint: if you create a new small run, you may need to check
         if((begin >= end) || (end > (1<<16))) {
             throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
         }
