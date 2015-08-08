@@ -38,9 +38,9 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      * @return a new container initialized with the specified values
      */
     public static Container rangeOfOnes(final int start, final int last) {
-        if (last - start  > ArrayContainer.DEFAULT_MAX_SIZE)
-            return new BitmapContainer(start, last);
-        return new ArrayContainer(start, last);
+        Container answer = new RunContainer();
+        answer = answer.iadd(start, last);
+        return answer;
     }
 
     /**

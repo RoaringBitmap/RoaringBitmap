@@ -18,8 +18,12 @@ public class MemoryMappingExample {
                                 654, 1 << 35);
         System.out.println("Created the bitmap "+Bitmap2);
         int pos1 = 0; // bitmap 1 is at offset 0
+        // If there were runs of consecutive values, you could
+        // call Bitmap1.runOptimize(); to improve compression 
         Bitmap1.serialize(new DataOutputStream(fos));
         int pos2 = Bitmap1.serializedSizeInBytes(); // bitmap 2 will be right after it
+        // If there were runs of consecutive values, you could
+        // call Bitmap2.runOptimize(); to improve compression 
         Bitmap2.serialize(new DataOutputStream(fos));
         long totalcount = fos.getChannel().position();
         if(totalcount != Bitmap1.serializedSizeInBytes() + Bitmap2.serializedSizeInBytes()) 

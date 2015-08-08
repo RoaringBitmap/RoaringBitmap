@@ -29,6 +29,8 @@ import java.util.Iterator;
  *       MutableRoaringBitmap rr2 = MutableRoaringBitmap.bitmapOf( 2, 3, 1010);
  *       ByteArrayOutputStream bos = new ByteArrayOutputStream();
  *       DataOutputStream dos = new DataOutputStream(bos);
+ *       // could call "rr1.runOptimize()" and "rr2.runOptimize" if there 
+ *       // there were runs to compress
  *       rr1.serialize(dos);
  *       rr2.serialize(dos);
  *       dos.close();
@@ -528,6 +530,9 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
 
     /**
      * Serialize this bitmap.
+     * 
+     * Consider calling {@link MutableRoaringBitmap#runOptimize} before serialization to
+     * improve compression.
      * 
      * The current bitmap is not modified.
      * 

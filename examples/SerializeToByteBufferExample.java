@@ -15,6 +15,8 @@ public class SerializeToByteBufferExample {
         MutableRoaringBitmap mrb = MutableRoaringBitmap.bitmapOf(1,2,3,1000); 
         System.out.println("starting with  bitmap "+ mrb);
         ByteBuffer outbb = ByteBuffer.allocate(mrb.serializedSizeInBytes());
+        // If there were runs of consecutive values, you could
+        // call mrb.runOptimize(); to improve compression 
         mrb.serialize(new DataOutputStream(new OutputStream(){
             ByteBuffer mBB;
             OutputStream init(ByteBuffer mbb) {mBB=mbb; return this;}

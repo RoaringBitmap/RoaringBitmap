@@ -235,6 +235,14 @@ public class TestRunContainer {
         }
         assertEquals(8, rc.getSizeInBytes());
     }
+    
+    @Test
+    public void iremove17() {
+        Container rc = new RunContainer();
+        rc.iadd(37543,65536);
+        rc.iremove(9795, 65536);
+        assertEquals(rc.getCardinality() , 0);
+    }
 
     @Test
     public void iremoveRange() {

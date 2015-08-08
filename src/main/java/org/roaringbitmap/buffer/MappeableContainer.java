@@ -42,9 +42,12 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      * @return a new container initialized with the specified values
      */
     public static MappeableContainer rangeOfOnes(final int start, final int last) {
-        if (last - start  > MappeableArrayContainer.DEFAULT_MAX_SIZE)
+        MappeableContainer answer = new MappeableRunContainer();
+        answer = answer.iadd(start, last);
+        return answer;
+        /*if (last - start  > MappeableArrayContainer.DEFAULT_MAX_SIZE)
             return new MappeableBitmapContainer(start, last);
-        return new MappeableArrayContainer(start, last);
+        return new MappeableArrayContainer(start, last);*/
     }
 
     /**

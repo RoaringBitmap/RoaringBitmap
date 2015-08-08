@@ -8,6 +8,7 @@ import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
+
 import org.roaringbitmap.ShortIterator;
 
 import static org.junit.Assert.*;
@@ -234,6 +235,14 @@ public class TestRunContainer {
             assertTrue(rc.contains(k));
         }
         assertEquals(8, rc.getSizeInBytes());
+    }
+    
+    @Test
+    public void iremove17() {
+        MappeableContainer rc = new MappeableRunContainer();
+        rc.iadd(37543,65536);
+        rc.iremove(9795, 65536);
+        assertEquals(rc.getCardinality() , 0);
     }
 
     @Test

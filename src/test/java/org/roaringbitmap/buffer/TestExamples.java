@@ -24,6 +24,8 @@ public class TestExamples {
         MutableRoaringBitmap Bitmap = MutableRoaringBitmap.bitmapOf(0, 2, 55,
                                 64, 1 << 30);
         System.out.println("Created the bitmap "+Bitmap);
+        // If there were runs of consecutive values, you could
+        // call Bitmap.runOptimize(); to improve compression 
         Bitmap.serialize(new DataOutputStream(fos));
         long totalcount = fos.getChannel().position();
         System.out.println("Serialized total count = "+totalcount+" bytes");

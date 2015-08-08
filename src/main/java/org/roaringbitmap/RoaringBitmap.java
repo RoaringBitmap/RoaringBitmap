@@ -8,6 +8,7 @@ package org.roaringbitmap;
 import java.io.*;
 import java.util.Iterator;
 
+
 /**
  * RoaringBitmap, a compressed alternative to the BitSet.
  *
@@ -24,6 +25,7 @@ import java.util.Iterator;
  *      
  *      //...
  *      DataOutputStream wheretoserialize = ...
+ *      rr.runOptimize(); // can help compression 
  *      rr.serialize(wheretoserialize);
  * }
  * </pre>
@@ -985,6 +987,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
     /**
      * Serialize this bitmap.
+     * 
+     * Consider calling {@link #runOptimize} before serialization to
+     * improve compression.
      *
      * The current bitmap is not modified.
      *

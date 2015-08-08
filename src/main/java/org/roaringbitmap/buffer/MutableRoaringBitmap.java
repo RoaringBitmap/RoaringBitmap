@@ -29,6 +29,11 @@ import java.util.Iterator;
  *      for(int k = 4000; k<4255;++k) rr2.add(k);
  *      
  *      RoaringBitmap rror = RoaringBitmap.or(rr, rr2);
+ *      
+ *      //...
+ *      DataOutputStream wheretoserialize = ...
+ *      rr.runOptimize(); // can help compression 
+ *      rr.serialize(wheretoserialize);
  * }
  * </pre>
  */

@@ -78,6 +78,8 @@ in RAM while the actual data is accessed from the ByteBuffer on demand.
         MutableRoaringBitmap rr2 = MutableRoaringBitmap.bitmapOf( 2, 3, 1010);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(bos);
+        // If there were runs of consecutive values, you could
+        // call rr1.runOptimize(); or rr2.runOptimize(); to improve compression 
         rr1.serialize(dos);
         rr2.serialize(dos);
         dos.close();
