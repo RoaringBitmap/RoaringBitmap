@@ -1050,26 +1050,34 @@ public final class RunContainer extends Container implements Cloneable {
         int bIndex = unsignedInterleavedBinarySearch(this.valueslength, 0, this.nbrruns, (short) begin);
         int eIndex = unsignedInterleavedBinarySearch(this.valueslength, 0, this.nbrruns, (short) (end-1));
 
-        if(bIndex>=0) {
+        // note, eIndex is looking for (end-1)
+
+        if(bIndex>=0) {  // beginning marks beginning of a run
             if(eIndex<0) {
                 eIndex = -eIndex - 2;
             }
+            // eIndex could be a run that begins exactly at "end"
+            // or it might be an earlier run
+            
+            // if the end is before the first run, we'd have eIndex==-1. But bIndex makes this impossible.
 
             if(valueLengthContains(end, eIndex)) {
-                initValueLength(end, eIndex);
+                initValueLength(end, eIndex); // there is something left in the run
                 recoverRoomsInRange(bIndex-1, eIndex-1);
             } else {
-                recoverRoomsInRange(bIndex-1, eIndex);
+                recoverRoomsInRange(bIndex-1, eIndex); // nothing left in the run
             }
 
         } else if(bIndex<0 && eIndex>=0) {
+            // start does not coincide to a run start, but end does.
             bIndex = -bIndex - 2;
-
+            
             if(bIndex >= 0) {
                 if (valueLengthContains(begin, bIndex)) {
                     closeValueLength(begin - 1, bIndex);
                 }
             }
+            // last run is one shorter
             incrementValue(eIndex);
             decrementLength(eIndex);
             recoverRoomsInRange(bIndex, eIndex-1);
@@ -1078,38 +1086,50 @@ public final class RunContainer extends Container implements Cloneable {
             bIndex = -bIndex - 2;
             eIndex = -eIndex - 2;
 
-            if(eIndex>=0) {
-                if(bIndex>=0) {
-                    if(bIndex==eIndex) {
+            if(eIndex>=0) { // end-1 is not before first run.
+                if(bIndex>=0) { // nor is begin
+                    if(bIndex==eIndex) { // all removal nested properly between
+                                         // one run start and the next
                         if (valueLengthContains(begin, bIndex)) {
                             if (valueLengthContains(end, eIndex)) {
+                                // proper nesting within a run, generates 2 sub-runs
                                 makeRoomAtIndex(bIndex);
                                 closeValueLength(begin-1, bIndex);
                                 initValueLength(end, bIndex+1);
                                 return this;
                             }
+                            // removed area extends beyond run.
                             closeValueLength(begin-1, bIndex);
                         }
-                    } else {
+                    } else { // begin in one run area, end in a later one.
                         if (valueLengthContains(begin, bIndex)) {
                             closeValueLength(begin - 1, bIndex);
+                            // this cannot leave the bIndex run empty.
                         }
                         if (valueLengthContains(end, eIndex)) {
+                            // there is additional stuff in the eIndex run
                             initValueLength(end, eIndex);
                             eIndex--;
+                        }
+                        else {
+                            // run ends at or before the range being removed, can delete it
                         }
                         recoverRoomsInRange(bIndex, eIndex);
                     }
 
-                } else {
-                    if(valueLengthContains(end-1, eIndex)) {
+                } else { 
+                    // removed range begins before the first run
+                    if(valueLengthContains(end, eIndex)) { // had been end-1
                         initValueLength(end, eIndex);
                         recoverRoomsInRange(bIndex, eIndex - 1);
-                    } else {
+                    } else {  // removed range includes all the last run
                         recoverRoomsInRange(bIndex, eIndex);
                     }
                 }
 
+            }
+            else {
+                // eIndex == -1: whole range is before first run, nothing to delete...
             }
 
         }

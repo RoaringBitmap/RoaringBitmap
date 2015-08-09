@@ -1223,7 +1223,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
                     }
 
                 } else {
-                    if(valueLengthContains(end-1, eIndex)) {
+                    if(valueLengthContains(end, eIndex)) { // was end-1
                         initValueLength(end, eIndex);
                         recoverRoomsInRange(bIndex, eIndex - 1);
                     } else {
