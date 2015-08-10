@@ -16,10 +16,8 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.roaringbitmap.FastAggregation;
-import org.roaringbitmap.IntIteratorFlyweight;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.ZipRealDataRetriever;
-import org.roaringbitmap.buffer.BufferIntIteratorFlyweight;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
@@ -29,6 +27,15 @@ public class RunContainerRealDataBenchmarkIterate {
 
     static ConciseSet toConcise(int[] dat) {
         ConciseSet ans = new ConciseSet();
+        for (int i : dat) {
+            ans.add(i);
+        }
+        return ans;
+    }
+    
+
+    static ConciseSet toWAH(int[] dat) {
+        ConciseSet ans = new ConciseSet(true);
         for (int i : dat) {
             ans.add(i);
         }
@@ -65,7 +72,7 @@ public class RunContainerRealDataBenchmarkIterate {
      @Benchmark
      public int iterate_Concise(BenchmarkState benchmarkState) {
          int total = 0;
-         for (int k = 0; k < benchmarkState.rc.size(); ++k) {
+         for (int k = 0; k < benchmarkState.cc.size(); ++k) {
              ConciseSet cs = benchmarkState.cc.get(k);
              it.uniroma3.mat.extendedset.intset.IntSet.IntIterator i = cs.iterator();
              while(i.hasNext())
@@ -75,6 +82,21 @@ public class RunContainerRealDataBenchmarkIterate {
      }
 
 
+     @Benchmark
+     public int iterate_WAH(BenchmarkState benchmarkState) {
+         int total = 0;
+         for (int k = 0; k < benchmarkState.wah.size(); ++k) {
+             ConciseSet cs = benchmarkState.wah.get(k);
+             it.uniroma3.mat.extendedset.intset.IntSet.IntIterator i = cs.iterator();
+             while(i.hasNext())
+                 total += i.next();
+         }
+         return total;
+     }
+
+
+     
+     
     @State(Scope.Benchmark)
     public static class BenchmarkState {
         @Param ({// putting the data sets in alpha. order
@@ -98,6 +120,8 @@ public class RunContainerRealDataBenchmarkIterate {
         ArrayList<ImmutableRoaringBitmap> mrc = new ArrayList<ImmutableRoaringBitmap>();
         ArrayList<ImmutableRoaringBitmap> mac = new ArrayList<ImmutableRoaringBitmap>();
         ArrayList<ConciseSet> cc = new ArrayList<ConciseSet>();
+        ArrayList<ConciseSet> wah = new ArrayList<ConciseSet>();
+
 
         public BenchmarkState() {
         }
@@ -111,6 +135,7 @@ public class RunContainerRealDataBenchmarkIterate {
             int normalsize = 0;
             int runsize = 0;
             int concisesize = 0;
+            int wahsize = 0;
             long stupidarraysize = 0;
             long stupidbitmapsize = 0;
             int totalcount = 0;
@@ -132,6 +157,10 @@ public class RunContainerRealDataBenchmarkIterate {
                 RoaringBitmap opti = basic.clone();
                 opti.runOptimize();
                 ConciseSet concise = toConcise(data);
+                ConciseSet w = toWAH(data);
+                wah.add(w);
+                wahsize += (int) (concise.size() * concise
+                        .collectionCompressionRatio()) * 4;
                 rc.add(opti);
                 ac.add(basic);
                 mrc.add(mopti);
@@ -178,6 +207,12 @@ public class RunContainerRealDataBenchmarkIterate {
                     + String.format("%1$10s",df.format(concisesize * 1.0 / numberofbitmaps))
                     + "B, average bits per entry =  "
                     + String.format("%1$10s",df.format(concisesize * 8.0 / totalcount)));
+            System.out.println("WAH total         = "
+                    + String.format("%1$10s", "" + wahsize)
+                    + "B, average per bitmap = "
+                    + String.format("%1$10s",df.format(wahsize * 1.0 / numberofbitmaps))
+                    + "B, average bits per entry =  "
+                    + String.format("%1$10s",df.format(wahsize * 8.0 / totalcount)));
             System.out.println("Naive array total     = "
                     + String.format("%1$10s", "" + stupidarraysize)
                     + "B, average per bitmap = "
@@ -203,7 +238,7 @@ public class RunContainerRealDataBenchmarkIterate {
                 totalxor += RoaringBitmap.xor(rc.get(k), rc.get(k + 1))
                             .getCardinality();
             }
-            horizontalor = FastAggregation.horizontal_or(rc.iterator())
+            horizontalor = FastAggregation.naive_or(rc.iterator())
                     .getCardinality();
         }
 
