@@ -52,7 +52,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
         this.cardinality = lastOfRun - firstOfRun ;
         this.bitmap = LongBuffer.allocate(MAX_CAPACITY / 64);
         if (this.cardinality == MAX_CAPACITY) {// perhaps a common case
-            for (int k = 0; k < bitmap.limit(); ++k)
+            int len = bitmap.limit();
+            for (int k = 0; k < len; ++k)
                 bitmap.put(k, -1L);
         } else {
             final int firstWord = firstOfRun / 64;
@@ -96,30 +97,53 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     @Override
     int numberOfRuns() {
-        int numRuns = 0;
-        for (int i = 0; i < bitmap.limit(); i++) {
-            long word = bitmap.get(i);
-            numRuns += Long.bitCount((~word) & (word << 1));
-            if((word & 0x8000000000000000L) != 0) {
-                if(i == bitmap.limit() - 1) {
-                    numRuns++;
-                } else {
-                    long nextWord = bitmap.get(i+1);
-                    if((nextWord & 1) == 0) {
-                        numRuns++;
-                    }
-                }
+        if (BufferUtil.isBackedBySimpleArray(this.bitmap)) {
+            long[] src = this.bitmap.array();
+            int numRuns = 0;
+            long nextWord = src[0];
+
+            for (int i = 0; i < src.length - 1; i++) {
+                long word = nextWord;
+                nextWord = src[i + 1];
+                numRuns += Long.bitCount((~word) & (word << 1))
+                        + ((word >>> 63) & ~nextWord);
             }
+
+            long word = nextWord;
+            numRuns += Long.bitCount((~word) & (word << 1));
+            if ((word & 0x8000000000000000L) != 0)
+                numRuns++;
+
+            return numRuns;
+        } else {
+            int numRuns = 0;
+            long nextWord = bitmap.get(0);
+            int len = bitmap.limit();
+
+            for (int i = 0; i < len - 1; i++) {
+                long word = nextWord;
+                nextWord = bitmap.get(i + 1);
+                numRuns += Long.bitCount((~word) & (word << 1))
+                        + ((word >>> 63) & ~nextWord);
+            }
+
+            long word = nextWord;
+            numRuns += Long.bitCount((~word) & (word << 1));
+            if ((word & 0x8000000000000000L) != 0)
+                numRuns++;
+
+            return numRuns;
+
         }
-        return numRuns;
     }
 
     @Override
     public MappeableContainer add(final short i) {
         final int x = BufferUtil.toIntUnsigned(i);
         final long previous = bitmap.get(x / 64);
-        bitmap.put(x / 64, previous | (1l << x));
-        cardinality += (previous ^ bitmap.get(x / 64)) >>> x;
+        final long newv = previous | (1l << x);
+        bitmap.put(x / 64, newv);
+        cardinality += (previous ^ newv) >>> x;
         return this;
     }
 
@@ -138,9 +162,11 @@ public final class MappeableBitmapContainer extends MappeableContainer
                     sarray[answer.cardinality++] = c[k];
 
         } else
-            for (int k = 0; k < value2.getCardinality(); ++k)
-                if (this.contains(value2.content.get(k)))
-                    sarray[answer.cardinality++] = value2.content.get(k);
+            for (int k = 0; k < value2.getCardinality(); ++k) {
+                short v = value2.content.get(k);
+                if (this.contains(v))
+                    sarray[answer.cardinality++] = v;
+            }
         return answer;
     }
 
@@ -150,14 +176,17 @@ public final class MappeableBitmapContainer extends MappeableContainer
         if (BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(value2.bitmap)) {
             long[] tb = this.bitmap.array();
             long[] v2b = value2.bitmap.array();
-            for (int k = 0; k < this.bitmap.limit(); ++k) {
+            int len = this.bitmap.limit();
+            for (int k = 0; k < len; ++k) {
                 newCardinality += Long.bitCount(tb[k] & v2b[k]);
             }
-        } else
-            for (int k = 0; k < this.bitmap.limit(); ++k) {
+        } else {
+            int len = this.bitmap.limit();
+            for (int k = 0; k < len; ++k) {
                 newCardinality += Long.bitCount(this.bitmap.get(k)
                         & value2.bitmap.get(k));
             }
+        }
         if (newCardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             final MappeableBitmapContainer answer = new MappeableBitmapContainer();
             if(!BufferUtil.isBackedBySimpleArray(answer.bitmap))
@@ -166,13 +195,16 @@ public final class MappeableBitmapContainer extends MappeableContainer
             if (BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(value2.bitmap)) {
                 long[] tb = this.bitmap.array();
                 long[] v2b = value2.bitmap.array();
-                for (int k = 0; k < answer.bitmap.limit(); ++k) {
+                int len = this.bitmap.limit();
+                for (int k = 0; k < len; ++k) {
                     bitArray[k] = tb[k] & v2b[k];
                 }
-            } else
-                for (int k = 0; k < answer.bitmap.limit(); ++k) {
+            } else {
+                int len = this.bitmap.limit();
+                for (int k = 0; k < len; ++k) {
                     bitArray[k] = this.bitmap.get(k) & value2.bitmap.get(k);
                 }
+            }
             answer.cardinality = newCardinality;
             return answer;
         }
@@ -213,10 +245,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
             }
         } else
             for (int k = 0; k < value2.cardinality; ++k) {
-                final int i = BufferUtil.toIntUnsigned(value2.content.get(k)) >>> 6;
-                bitArray[i] &= (~(1l << value2.content.get(k)));
-                answer.cardinality -= (bitArray[i] ^ this.bitmap.get(i)) >>> value2.content
-                        .get(k);
+                short v2 = value2.content.get(k);
+                final int i = BufferUtil.toIntUnsigned(v2) >>> 6;
+                bitArray[i] &= (~(1l << v2));
+                answer.cardinality -= (bitArray[i] ^ this.bitmap.get(i)) >>> v2;
             }
         if (answer.cardinality <= MappeableArrayContainer.DEFAULT_MAX_SIZE)
             return answer.toArrayContainer();
@@ -230,15 +262,18 @@ public final class MappeableBitmapContainer extends MappeableContainer
         if (BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(value2.bitmap)) {
             long[] b = this.bitmap.array();
             long[] v2 = value2.bitmap.array();
-            for (int k = 0; k < this.bitmap.limit(); ++k) {
+            int len = this.bitmap.limit();
+            for (int k = 0; k < len; ++k) {
                 newCardinality += Long.bitCount(b[k] & (~v2[k]));
             }
 
-        } else
-            for (int k = 0; k < this.bitmap.limit(); ++k) {
+        } else { 
+            int len = this.bitmap.limit();
+            for (int k = 0; k < len; ++k) {
                 newCardinality += Long.bitCount(this.bitmap.get(k)
                         & (~value2.bitmap.get(k)));
             }
+        }
         if (newCardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             final MappeableBitmapContainer answer = new MappeableBitmapContainer();
             if(!BufferUtil.isBackedBySimpleArray(answer.bitmap))
@@ -247,14 +282,16 @@ public final class MappeableBitmapContainer extends MappeableContainer
             if (BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(value2.bitmap)) {
                 long[] b = this.bitmap.array();
                 long[] v2 = value2.bitmap.array();
-
-                for (int k = 0; k < answer.bitmap.limit(); ++k) {
+                int len = answer.bitmap.limit();
+                for (int k = 0; k < len; ++k) {
                     bitArray[k] = b[k] & (~v2[k]);
                 }
-            } else
-                for (int k = 0; k < answer.bitmap.limit(); ++k) {
+            } else {
+                int len = answer.bitmap.limit();
+                for (int k = 0; k < len; ++k) {
                     bitArray[k] = this.bitmap.get(k) & (~value2.bitmap.get(k));
                 }
+            }
             answer.cardinality = newCardinality;
             return answer;
         }
@@ -291,7 +328,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
     public void clear() {
         if (cardinality != 0) {
             cardinality = 0;
-            for (int k = 0; k < bitmap.limit(); ++k)
+            int len = this.bitmap.limit();
+            for (int k = 0; k < len; ++k)
                 bitmap.put(k, 0);
         }
     }
@@ -317,13 +355,16 @@ public final class MappeableBitmapContainer extends MappeableContainer
             if (BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(srb.bitmap)) {
                 long[] b = this.bitmap.array();
                 long[] s = srb.bitmap.array();
-                for (int k = 0; k < this.bitmap.limit(); ++k)
+                int len = this.bitmap.limit();
+                for (int k = 0; k < len; ++k)
                     if (b[k] != s[k])
                         return false;
-            } else
-                for (int k = 0; k < this.bitmap.limit(); ++k)
+            } else {
+                int len = this.bitmap.limit();
+                for (int k = 0; k < len; ++k)
                     if (this.bitmap.get(k) != srb.bitmap.get(k))
                         return false;
+            }
             return true;
 
         } else if (o instanceof MappeableRunContainer) {
@@ -342,7 +383,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
         int pos = 0;
         if (BufferUtil.isBackedBySimpleArray(bitmap)) {
             long[] b = bitmap.array();
-            for (int k = 0; k < bitmap.limit(); ++k) {
+            for (int k = 0; k < b.length; ++k) {
                 long bitset = b[k];
                 while (bitset != 0) {
                     final long t = bitset & -bitset;
@@ -351,8 +392,9 @@ public final class MappeableBitmapContainer extends MappeableContainer
                 }
             }
 
-        } else
-            for (int k = 0; k < bitmap.limit(); ++k) {
+        } else {
+            int len = this.bitmap.limit();
+            for (int k = 0; k < len; ++k) {
                 long bitset = bitmap.get(k);
                 while (bitset != 0) {
                     final long t = bitset & -bitset;
@@ -360,6 +402,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
                     bitset ^= t;
                 }
             }
+        }
     }
 
     @Override
@@ -367,7 +410,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
         int pos = i;
         if (BufferUtil.isBackedBySimpleArray(bitmap)) {
             long[] b = bitmap.array();
-            for (int k = 0; k < bitmap.limit(); ++k) {
+            int len = this.bitmap.limit();
+            for (int k = 0; k < len; ++k) {
                 long bitset = b[k];
                 while (bitset != 0) {
                     final long t = bitset & -bitset;
@@ -376,8 +420,9 @@ public final class MappeableBitmapContainer extends MappeableContainer
                 }
             }
 
-        } else
-            for (int k = 0; k < bitmap.limit(); ++k) {
+        } else {
+            int len = this.bitmap.limit();
+            for (int k = 0; k < len; ++k) {
                 long bitset = bitmap.get(k);
                 while (bitset != 0) {
                     final long t = bitset & -bitset;
@@ -385,6 +430,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
                     bitset ^= t;
                 }
             }
+        }
     }
 
     @Override
@@ -426,7 +472,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
     @Override
     public int hashCode() {
         long hash = 0;
-        for (int k = 0; k < this.bitmap.limit(); ++k)
+        int len = this.bitmap.limit();
+        for (int k = 0; k < len; ++k)
             hash += 31 * hash + this.bitmap.get(k);
         return (int) hash;
     }
@@ -438,62 +485,53 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     @Override
     public MappeableContainer iand(final MappeableBitmapContainer b2) {
-        int newCardinality = 0;
-        for (int k = 0; k < this.bitmap.limit(); ++k) {
-            newCardinality += Long.bitCount(this.bitmap.get(k)
-                    & b2.bitmap.get(k));
-        }
-        if (newCardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
-            for (int k = 0; k < this.bitmap.limit(); ++k) {
-                this.bitmap.put(k, this.bitmap.get(k) & b2.bitmap.get(k));
+        if(BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(b2.bitmap)) {
+            int newCardinality = 0;
+            long[] tb = this.bitmap.array();
+            long[] tb2 = b2.bitmap.array();
+            int len = this.bitmap.limit();
+            for (int k = 0; k < len; ++k) {
+                newCardinality += Long.bitCount(tb[k]
+                        & tb2[k]);
             }
-            this.cardinality = newCardinality;
-            return this;
+            if (newCardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
+                for (int k = 0; k < len; ++k) {
+                    tb[k] &= tb2[k];
+                }
+                this.cardinality = newCardinality;
+                return this;
+            }
+            final MappeableArrayContainer ac = new MappeableArrayContainer(
+                    newCardinality);
+            BufferUtil.fillArrayAND(ac.content.array(), this.bitmap, b2.bitmap);
+            ac.cardinality = newCardinality;
+            return ac;    
+        } else {
+            int newCardinality = 0;
+            int len = this.bitmap.limit();
+            for (int k = 0; k < len; ++k) {
+                newCardinality += Long.bitCount(this.bitmap.get(k)
+                        & b2.bitmap.get(k));
+            }
+            if (newCardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
+                for (int k = 0; k < len; ++k) {
+                    this.bitmap.put(k, this.bitmap.get(k) & b2.bitmap.get(k));
+                }
+                this.cardinality = newCardinality;
+                return this;
+            }
+            final MappeableArrayContainer ac = new MappeableArrayContainer(
+                    newCardinality);
+            BufferUtil.fillArrayAND(ac.content.array(), this.bitmap, b2.bitmap);
+            ac.cardinality = newCardinality;
+            return ac;
         }
-        final MappeableArrayContainer ac = new MappeableArrayContainer(
-                newCardinality);
-        BufferUtil.fillArrayAND(ac.content.array(), this.bitmap, b2.bitmap);
-        ac.cardinality = newCardinality;
-        return ac;
     }
 
 
-    //   TODO: simplearray case 
     @Override
     public MappeableContainer iand(final MappeableRunContainer x) {
-        /*
-    	int card = x.getCardinality();
-    	if(x.getCardinality() <= ArrayContainer.DEFAULT_MAX_SIZE) {
-    		// no point in doing it in-place
-        	ArrayContainer answer = new ArrayContainer(card);
-        	answer.cardinality=0;
-            for (int rlepos=0; rlepos < x.nbrruns; ++rlepos) {
-                int runStart = Util.toIntUnsigned(x.getValue(rlepos));
-                int runEnd = runStart + Util.toIntUnsigned(x.getLength(rlepos));
-                for (int runValue = runStart; runValue <= runEnd; ++runValue) {
-                    if ( this.contains((short) runValue)) {// it looks like contains() should be cheap enough if accessed sequentially
-                        answer.content[answer.cardinality++] = (short) runValue;
-                    }
-                }
-            }
-            return answer;
-    	}
-        int start = 0;
-        for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
-            int end = Util.toIntUnsigned(x.getValue(rlepos));
-            Util.resetBitmapRange(this.bitmap, start, end);
-            start = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
-        }
-        Util.resetBitmapRange(this.bitmap, start, Util.maxLowBitAsInteger() + 1);
-        computeCardinality();
-        if(getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
-            return this;
-        else return toArrayContainer();
-    }
-
-         */
-
-    	int card = x.getCardinality();
+     	int card = x.getCardinality();
     	if(x.getCardinality() <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
     		// no point in doing it in-place
         	MappeableArrayContainer answer = new MappeableArrayContainer(card);
@@ -540,11 +578,12 @@ public final class MappeableBitmapContainer extends MappeableContainer
         long[] b = this.bitmap.array();
         if (BufferUtil.isBackedBySimpleArray(b2.bitmap)) {
             long[] b2Arr = b2.bitmap.array();
-            for (int k = 0; k < this.bitmap.limit(); ++k) {
+            int len = this.bitmap.limit();
+            for (int k = 0; k < len; ++k) {
                 newCardinality += Long.bitCount(b[k] & (~b2Arr[k]));
             }
             if (newCardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
-                for (int k = 0; k < this.bitmap.limit(); ++k) {
+                for (int k = 0; k < len; ++k) {
                     this.bitmap.put(k, b[k] & (~b2Arr[k]));
                 }
                 this.cardinality = newCardinality;
@@ -558,12 +597,12 @@ public final class MappeableBitmapContainer extends MappeableContainer
             return ac;
 
         }
-
-        for (int k = 0; k < this.bitmap.limit(); ++k) {
+        int len = this.bitmap.limit();
+        for (int k = 0; k < len; ++k) {
             newCardinality += Long.bitCount(b[k] & (~b2.bitmap.get(k)));
         }
         if (newCardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
-            for (int k = 0; k < this.bitmap.limit(); ++k) {
+            for (int k = 0; k < len; ++k) {
                 b[k] &= (~b2.bitmap.get(k));
             }
             this.cardinality = newCardinality;
@@ -630,10 +669,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
         }
 
         for (int k = 0; k < value2.cardinality; ++k) {
-            final int i = BufferUtil.toIntUnsigned(value2.content.get(k)) >>> 6;
-            this.cardinality += ((~b[i]) & (1l << value2.content.get(k))) >>> value2.content
-                    .get(k);
-            b[i] |= (1l << value2.content.get(k));
+            short v2 = value2.content.get(k);
+            final int i = BufferUtil.toIntUnsigned(v2) >>> 6;
+            this.cardinality += ((~b[i]) & (1l << v2)) >>> v2;
+            b[i] |= (1l << v2);
         }
         return this;
     }
@@ -646,13 +685,15 @@ public final class MappeableBitmapContainer extends MappeableContainer
         this.cardinality = 0;
         if (BufferUtil.isBackedBySimpleArray(b2.bitmap)) {
             long[] b2Arr = b2.bitmap.array();
-            for (int k = 0; k < this.bitmap.limit(); k++) {
+            int len = this.bitmap.limit();
+            for (int k = 0; k < len; k++) {
                 b[k] |= b2Arr[k];
                 this.cardinality += Long.bitCount(b[k]);
             }
             return this;
         }
-        for (int k = 0; k < this.bitmap.limit(); k++) {
+        int len = this.bitmap.limit();
+        for (int k = 0; k < len; k++) {
             b[k] |= b2.bitmap.get(k);
             this.cardinality += Long.bitCount(b[k]);
         }
@@ -726,11 +767,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
         } else
             for (int k = 0; k < value2.getCardinality(); ++k) {
-                final int index = BufferUtil.toIntUnsigned(value2.content
-                        .get(k)) >>> 6;
-                this.cardinality += 1 - 2 * ((b[index] & (1l << value2.content
-                        .get(k))) >>> value2.content.get(k));
-                b[index] ^= (1l << value2.content.get(k));
+                short v2 = value2.content.get(k);
+                final int index = BufferUtil.toIntUnsigned(v2) >>> 6;
+                this.cardinality += 1 - 2 * ((b[index] & (1l << v2)) >>> v2);
+                b[index] ^= (1l << v2);
             }
         if (this.cardinality <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             return this.toArrayContainer();
@@ -747,11 +787,12 @@ public final class MappeableBitmapContainer extends MappeableContainer
             long[] b2Arr = b2.bitmap.array();
 
             int newCardinality = 0;
-            for (int k = 0; k < this.bitmap.limit(); ++k) {
+            int len = this.bitmap.limit();
+            for (int k = 0; k < len; ++k) {
                 newCardinality += Long.bitCount(b[k] ^ b2Arr[k]);
             }
             if (newCardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
-                for (int k = 0; k < this.bitmap.limit(); ++k) {
+                for (int k = 0; k < len; ++k) {
                     b[k] ^= b2Arr[k];
                 }
                 this.cardinality = newCardinality;
@@ -766,11 +807,12 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
         }
         int newCardinality = 0;
-        for (int k = 0; k < this.bitmap.limit(); ++k) {
+        int len = this.bitmap.limit();
+        for (int k = 0; k < len; ++k) {
             newCardinality += Long.bitCount(b[k] ^ b2.bitmap.get(k));
         }
         if (newCardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
-            for (int k = 0; k < this.bitmap.limit(); ++k) {
+            for (int k = 0; k < len; ++k) {
                 b[k] ^= b2.bitmap.get(k);
             }
             this.cardinality = newCardinality;
@@ -849,9 +891,11 @@ public final class MappeableBitmapContainer extends MappeableContainer
         if (w != 0) {
             return i + Long.numberOfTrailingZeros(w);
         }
-        for (++x; x < bitmap.limit(); ++x) {
-            if (bitmap.get(x) != 0) {
-                return x * 64 + Long.numberOfTrailingZeros(bitmap.get(x));
+        // for speed, replaced bitmap.limit() with hardcoded MAX_CAPACITY / 64
+        for (++x; x < MAX_CAPACITY / 64; ++x) {
+            long X = bitmap.get(x);
+            if (X != 0) {
+                return x * 64 + Long.numberOfTrailingZeros(X);
             }
         }
         return -1;
@@ -872,8 +916,9 @@ public final class MappeableBitmapContainer extends MappeableContainer
             return i - Long.numberOfLeadingZeros(w);
         }
         for (--x; x >= 0; --x) {
-            if (bitmap.get(x) != 0) {
-                return x * 64 + 63 - Long.numberOfLeadingZeros(bitmap.get(x));
+            long X = bitmap.get(x);
+            if (X != 0) {
+                return x * 64 + 63 - Long.numberOfLeadingZeros(X);
             }
         }
         return -1;
@@ -895,10 +940,11 @@ public final class MappeableBitmapContainer extends MappeableContainer
             return (short) (i + Long.numberOfTrailingZeros(w));
         }
         ++x;
-        for (; x < bitmap.limit(); ++x) {
-            if (bitmap.get(x) != ~0L) {
-                return (short) (x * 64 + Long.numberOfTrailingZeros(~bitmap
-                        .get(x)));
+        // for speed, replaced bitmap.limit() with hardcoded MAX_CAPACITY / 64
+        for (; x < MAX_CAPACITY / 64; ++x) {
+            long X = bitmap.get(x);
+            if (X != ~0L) {
+                return (short) (x * 64 + Long.numberOfTrailingZeros(~X));
             }
         }
         return -1;
@@ -922,7 +968,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
         // an easy case for full range, should be common
         if (lastOfRange - firstOfRange  == MAX_CAPACITY) {
             final int newCardinality = MAX_CAPACITY - cardinality;
-            for (int k = 0; k < this.bitmap.limit(); ++k)
+            int len = this.bitmap.limit();
+            for (int k = 0; k < len; ++k)
                 answer.bitmap.put(k, ~this.bitmap.get(k));
             answer.cardinality = newCardinality;
             if (newCardinality <= MappeableArrayContainer.DEFAULT_MAX_SIZE)
@@ -944,7 +991,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
         if (answer != this) {
             for (int i = 0; i < rangeFirstWord; ++i)
                 answer.bitmap.put(i, bitmap.get(i));
-            for (int i = rangeLastWord + 1; i < bitmap.limit(); ++i)
+            int len = this.bitmap.limit();
+            for (int i = rangeLastWord + 1; i < len; ++i)
                 answer.bitmap.put(i, bitmap.get(i));
         }
 
@@ -1008,15 +1056,15 @@ public final class MappeableBitmapContainer extends MappeableContainer
             for (int k = 0; k < value2.cardinality; ++k) {
                 final int i = BufferUtil.toIntUnsigned(v2[k]) >>> 6;
                 answer.cardinality += ((~ab[i]) & (1l << v2[k])) >>> v2[k];
-                bitArray[i] |= (1l << value2.content.get(k));
+                bitArray[i] |= (1l << v2[k]);
             }
 
         } else
             for (int k = 0; k < value2.cardinality; ++k) {
-                final int i = BufferUtil.toIntUnsigned(value2.content.get(k)) >>> 6;
-                answer.cardinality += ((~answer.bitmap.get(i)) & (1l << value2.content
-                        .get(k))) >>> value2.content.get(k);
-                bitArray[i] |= (1l << value2.content.get(k));
+                short v2 = value2.content.get(k);
+                final int i = BufferUtil.toIntUnsigned(v2) >>> 6;
+                answer.cardinality += ((~answer.bitmap.get(i)) & (1l << v2)) >>> v2;
+                bitArray[i] |= (1l << v2);
             }
         return answer;
     }
@@ -1035,15 +1083,18 @@ public final class MappeableBitmapContainer extends MappeableContainer
         if (BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(value2.bitmap)) {
             long[] b = this.bitmap.array();
             long[] v2 = value2.bitmap.array();
-            for (int k = 0; k < answer.bitmap.limit(); ++k) {
+            int len = this.bitmap.limit();
+            for (int k = 0; k < len; ++k) {
                 bitArray[k] = b[k] | v2[k];
                 answer.cardinality += Long.bitCount(bitArray[k]);
             }
-        } else
-            for (int k = 0; k < answer.bitmap.limit(); ++k) {
+        } else {
+            int len = this.bitmap.limit();
+            for (int k = 0; k < len; ++k) {
                 bitArray[k] = this.bitmap.get(k) | value2.bitmap.get(k);
                 answer.cardinality += Long.bitCount(bitArray[k]);
             }
+        }
         return answer;
     }
 
@@ -1057,10 +1108,20 @@ public final class MappeableBitmapContainer extends MappeableContainer
             ClassNotFoundException {
         // little endian
         this.cardinality = 0;
-        for (int k = 0; k < bitmap.limit(); ++k) {
-            long w = Long.reverseBytes(in.readLong());
-            bitmap.put(k,w);
-            this.cardinality += Long.bitCount(w);
+        int len = this.bitmap.limit();
+        if(BufferUtil.isBackedBySimpleArray(bitmap)) {
+            long[] b = this.bitmap.array();
+            for (int k = 0; k < len; ++k) {
+                long w = Long.reverseBytes(in.readLong());
+                b[k] = w;
+                this.cardinality += Long.bitCount(w);
+            }
+        } else {
+            for (int k = 0; k < len; ++k) {
+                long w = Long.reverseBytes(in.readLong());
+                bitmap.put(k,w);
+                this.cardinality += Long.bitCount(w);
+            }
         }
     }
 
@@ -1077,8 +1138,9 @@ public final class MappeableBitmapContainer extends MappeableContainer
                 return this.toArrayContainer();
             }
         }
-        cardinality -= (bitmap.get(x / 64) & (1l << x)) >>> x;
-        bitmap.put(x / 64, bitmap.get(x / 64) & ~(1l << x));
+        long X = bitmap.get(x / 64);
+        cardinality -= (X & (1l << x)) >>> x;
+        bitmap.put(x / 64, X & ~(1l << x));
         return this;
     }
     
@@ -1125,9 +1187,17 @@ public final class MappeableBitmapContainer extends MappeableContainer
     @Override
     protected void writeArray(DataOutput out) throws IOException {
         // little endian
-        for (int k = 0; k < bitmap.limit(); ++k) {
-            final long w = bitmap.get(k);
-            out.writeLong(Long.reverseBytes(w));
+        int len = this.bitmap.limit();
+        if(BufferUtil.isBackedBySimpleArray(bitmap)) {
+            long[] b = bitmap.array();
+            for (int k = 0; k < len; ++k) {
+                out.writeLong(Long.reverseBytes(b[k]));
+            }    
+        } else {
+            for (int k = 0; k < len; ++k) {
+                final long w = bitmap.get(k);
+                out.writeLong(Long.reverseBytes(w));
+            }
         }
     }
 
@@ -1151,11 +1221,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
             }
         } else
             for (int k = 0; k < value2.getCardinality(); ++k) {
-                final int index = BufferUtil.toIntUnsigned(value2.content
-                        .get(k)) >>> 6;
-                answer.cardinality += 1 - 2 * ((bitArray[index] & (1l << value2.content
-                        .get(k))) >>> value2.content.get(k));
-                bitArray[index] ^= (1l << value2.content.get(k));
+                short v2 = value2.content.get(k);
+                final int index = BufferUtil.toIntUnsigned(v2) >>> 6;
+                answer.cardinality += 1 - 2 * ((bitArray[index] & (1l << v2)) >>> v2);
+                bitArray[index] ^= (1l << v2);
             }
         if (answer.cardinality <= MappeableArrayContainer.DEFAULT_MAX_SIZE)
             return answer.toArrayContainer();
@@ -1169,30 +1238,35 @@ public final class MappeableBitmapContainer extends MappeableContainer
         if (BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(value2.bitmap)) {
             long[] b = this.bitmap.array();
             long[] v2 = value2.bitmap.array();
-            for (int k = 0; k < this.bitmap.limit(); ++k) {
+            int len = this.bitmap.limit();
+            for (int k = 0; k < len; ++k) {
 
                 newCardinality += Long.bitCount(b[k] ^ v2[k]);
 
             }
-        } else
-
-            for (int k = 0; k < this.bitmap.limit(); ++k) {
+        } else {
+            int len = this.bitmap.limit();
+            for (int k = 0; k < len; ++k) {
                 newCardinality += Long.bitCount(this.bitmap.get(k)
                         ^ value2.bitmap.get(k));
             }
+        }
         if (newCardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             final MappeableBitmapContainer answer = new MappeableBitmapContainer();
             long[] bitArray = answer.bitmap.array();
             if (BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(value2.bitmap)) {
                 long[] b = this.bitmap.array();
                 long[] v2 = value2.bitmap.array();
-                for (int k = 0; k < answer.bitmap.limit(); ++k) {
+                int len = answer.bitmap.limit();
+                for (int k = 0; k < len; ++k) {
                     bitArray[k] = b[k] ^ v2[k];
                 }
-            } else
-                for (int k = 0; k < answer.bitmap.limit(); ++k) {
+            } else {
+                int len = answer.bitmap.limit();
+                for (int k = 0; k < len; ++k) {
                     bitArray[k] = this.bitmap.get(k) ^ value2.bitmap.get(k);
                 }
+            }
             answer.cardinality = newCardinality;
             return answer;
         }
@@ -1224,8 +1298,9 @@ public final class MappeableBitmapContainer extends MappeableContainer
             throw new RuntimeException("Should not happen. Internal bug.");
         long[] b = this.bitmap.array();
         for (int k = 0; k < value2.cardinality; ++k) {
-            final int i = BufferUtil.toIntUnsigned(value2.content.get(k)) >>> 6;
-            b[i] |= (1l << value2.content.get(k));
+            short v2 = value2.content.get(k);
+            final int i = BufferUtil.toIntUnsigned(v2) >>> 6;
+            b[i] |= (1l << v2);
         }
         return this;
     }
@@ -1265,8 +1340,9 @@ public final class MappeableBitmapContainer extends MappeableContainer
             throw new RuntimeException("Should not happen. Internal bug.");
         long[] b = answer.bitmap.array();
         for (int k = 0; k < value2.cardinality; ++k) {
-            final int i = BufferUtil.toIntUnsigned(value2.content.get(k)) >>> 6;
-            b[i] |=  1l << value2.content.get(k);
+            short v2 = value2.content.get(k);
+            final int i = BufferUtil.toIntUnsigned(v2) >>> 6;
+            b[i] |=  1l << v2;
         }
         return answer;
     }
@@ -1364,11 +1440,12 @@ public final class MappeableBitmapContainer extends MappeableContainer
                 leftover -= w;
             }
         } else {
-
-            for (int k = 0; k < bitmap.limit(); ++k) {
-                int w = Long.bitCount(bitmap.get(k));
+            int len = this.bitmap.limit();
+            for (int k = 0; k < len; ++k) {
+                long X = bitmap.get(k);
+                int w = Long.bitCount(X);
                 if (w > leftover) {
-                    return (short) (k * 64 + Util.select(bitmap.get(k),
+                    return (short) (k * 64 + Util.select(X,
                             leftover));
                 }
                 leftover -= w;
@@ -1388,7 +1465,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
             if(!BufferUtil.isBackedBySimpleArray(ac.content))
                 throw new RuntimeException("Should not happen. Internal bug.");
             short[] cont = ac.content.array();
-            for (int k = 0; (ac.cardinality <maxcardinality) && (k < bitmap.limit()); ++k) {
+            int len = this.bitmap.limit();
+            for (int k = 0; (ac.cardinality <maxcardinality) && (k < len); ++k) {
                 long bitset = bitmap.get(k);
                 while ((ac.cardinality <maxcardinality) && ( bitset != 0)) {
                     long t = bitset & -bitset;
@@ -1403,9 +1481,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
         MappeableBitmapContainer bc = new MappeableBitmapContainer(maxcardinality,this.bitmap);
         int s = BufferUtil.toIntUnsigned(select(maxcardinality));
         int usedwords = (s+63)/64;
-        int todelete = this.bitmap.limit() - usedwords;
+        int len = this.bitmap.limit();
+        int todelete = len - usedwords;
         for(int k = 0; k<todelete; ++k)
-            bc.bitmap.put(bc.bitmap.limit()-1-k, 0);
+            bc.bitmap.put(len-1-k, 0);
         int lastword = s % 64; 
         if(lastword != 0) {
             bc.bitmap.put(s/64,  (bc.bitmap.get(s/64) << (64-lastword)) >> (64-lastword));
@@ -1427,8 +1506,9 @@ public final class MappeableBitmapContainer extends MappeableContainer
                 return this.toArrayContainer();
             }
         }
-        cardinality += 1 - 2 * ((bitmap.get(x / 64) & (1l << x)) >>> x);
-        bitmap.put(x / 64, bitmap.get(x / 64) ^ (1l << x));
+        long X = bitmap.get(x / 64);
+        cardinality += 1 - 2 * ((X & (1l << x)) >>> x);
+        bitmap.put(x / 64, X ^ (1l << x));
         return this;
     }
 
@@ -1492,14 +1572,15 @@ final class MappeableBitmapContainerShortIterator implements ShortIterator {
     @Override
     public short next() {
         final int j = i;
-        i = i + 1 < parent.bitmap.limit() * 64 ? parent.nextSetBit(i + 1) : -1;
+        // for speed, harcoding parent.bitmap.limit() * 64
+        i = i + 1 < MappeableBitmapContainer.MAX_CAPACITY ? parent.nextSetBit(i + 1) : -1;
         return (short) j;
     }
 
     @Override
     public int nextAsInt() {
         final int j = i;
-        i = i + 1 < parent.bitmap.limit() * 64 ? parent.nextSetBit(i + 1) : -1;
+        i = i + 1 < MappeableBitmapContainer.MAX_CAPACITY ? parent.nextSetBit(i + 1) : -1;
         return j;
     }
     

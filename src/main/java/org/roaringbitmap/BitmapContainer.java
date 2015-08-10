@@ -69,30 +69,6 @@ public final class BitmapContainer extends Container implements Cloneable {
         this.bitmap = newBitmap;
     }
 
-    // various methods below made public just for microbenchmarking, revert...
-
-
-    /*  The branchless version below is a little faster.
-    public int numberOfRuns_old() {
-        int numRuns = 0;
-        for (int i = 0; i < bitmap.length; i++) {
-            long word = bitmap[i];
-            numRuns += Long.bitCount((~word) & (word << 1));
-            if((word & 0x8000000000000000L) != 0) {
-                if(i == bitmap.length - 1) {
-                    numRuns++;
-                } else {
-                    long nextWord = bitmap[i+1];
-                    if((nextWord & 1) == 0) {
-                        numRuns++;
-                    }
-                }
-            }
-        }
-        return numRuns;
-    }
-    */
-
 
     @Override
     int numberOfRuns() {
@@ -115,22 +91,10 @@ public final class BitmapContainer extends Container implements Cloneable {
 
 
 
-    /* 
-    public int numberOfRunsLowerBound() {
-        int numRuns = 0;
-        for (int i = 0; i < bitmap.length; i++) {
-            long word = bitmap[i];
-            numRuns += Long.bitCount((~word) & (word << 1));
-        }
-        return numRuns;
-    }
-    */
-
 
     // bail out early when the number of runs is excessive, without
     // an exact count (just a decent lower bound)
-
-    static final int BLOCKSIZE = 128;
+    private static final int BLOCKSIZE = 128;
     // 64 words can have max 32 runs per word, max 2k runs
 
     /**

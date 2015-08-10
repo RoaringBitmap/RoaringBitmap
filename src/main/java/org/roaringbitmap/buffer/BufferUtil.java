@@ -163,12 +163,28 @@ public final class BufferUtil {
         int pos = 0;
         if (bitmap1.limit() != bitmap2.limit())
             throw new IllegalArgumentException("not supported");
-        for (int k = 0; k < bitmap1.limit(); ++k) {
-            long bitset = bitmap1.get(k) & bitmap2.get(k);
-            while (bitset != 0) {
-                final long t = bitset & -bitset;
-                container[pos++] = (short) (k * 64 + Long.bitCount(t - 1));
-                bitset ^= t;
+        if (BufferUtil.isBackedBySimpleArray(bitmap1)
+                && BufferUtil.isBackedBySimpleArray(bitmap2)) {
+            int len = bitmap1.limit();
+            long[] b1 = bitmap1.array();
+            long[] b2 = bitmap2.array();
+            for (int k = 0; k < len; ++k) {
+                long bitset = b1[k] & b2[k];
+                while (bitset != 0) {
+                    final long t = bitset & -bitset;
+                    container[pos++] = (short) (k * 64 + Long.bitCount(t - 1));
+                    bitset ^= t;
+                }
+            }
+        } else {
+            int len = bitmap1.limit();
+            for (int k = 0; k < len; ++k) {
+                long bitset = bitmap1.get(k) & bitmap2.get(k);
+                while (bitset != 0) {
+                    final long t = bitset & -bitset;
+                    container[pos++] = (short) (k * 64 + Long.bitCount(t - 1));
+                    bitset ^= t;
+                }
             }
         }
     }
@@ -178,12 +194,28 @@ public final class BufferUtil {
         int pos = 0;
         if (bitmap1.limit() != bitmap2.limit())
             throw new IllegalArgumentException("not supported");
-        for (int k = 0; k < bitmap1.limit(); ++k) {
-            long bitset = bitmap1.get(k) & (~bitmap2.get(k));
-            while (bitset != 0) {
-                final long t = bitset & -bitset;
-                container[pos++] = (short) (k * 64 + Long.bitCount(t - 1));
-                bitset ^= t;
+        if (BufferUtil.isBackedBySimpleArray(bitmap1)
+                && BufferUtil.isBackedBySimpleArray(bitmap2)) {
+            int len = bitmap1.limit();
+            long[] b1 = bitmap1.array();
+            long[] b2 = bitmap2.array();
+            for (int k = 0; k < len; ++k) {
+                long bitset = b1[k] & (~b2[k]);
+                while (bitset != 0) {
+                    final long t = bitset & -bitset;
+                    container[pos++] = (short) (k * 64 + Long.bitCount(t - 1));
+                    bitset ^= t;
+                }
+            }
+        } else {
+            int len = bitmap1.limit();
+            for (int k = 0; k < len; ++k) {
+                long bitset = bitmap1.get(k) & (~bitmap2.get(k));
+                while (bitset != 0) {
+                    final long t = bitset & -bitset;
+                    container[pos++] = (short) (k * 64 + Long.bitCount(t - 1));
+                    bitset ^= t;
+                }
             }
         }
     }
@@ -193,12 +225,29 @@ public final class BufferUtil {
         int pos = 0;
         if (bitmap1.limit() != bitmap2.limit())
             throw new IllegalArgumentException("not supported");
-        for (int k = 0; k < bitmap1.limit(); ++k) {
-            long bitset = bitmap1.get(k) ^ bitmap2.get(k);
-            while (bitset != 0) {
-                final long t = bitset & -bitset;
-                container[pos++] = (short) (k * 64 + Long.bitCount(t - 1));
-                bitset ^= t;
+        if (BufferUtil.isBackedBySimpleArray(bitmap1)
+                && BufferUtil.isBackedBySimpleArray(bitmap2)) {
+            int len = bitmap1.limit();
+            long[] b1 = bitmap1.array();
+            long[] b2 = bitmap2.array();
+            for (int k = 0; k < len; ++k) {
+                long bitset = b1[k] ^ b2[k];
+                while (bitset != 0) {
+                    final long t = bitset & -bitset;
+                    container[pos++] = (short) (k * 64 + Long.bitCount(t - 1));
+                    bitset ^= t;
+                }
+            }
+
+        } else {
+            int len = bitmap1.limit();
+            for (int k = 0; k < len; ++k) {
+                long bitset = bitmap1.get(k) ^ bitmap2.get(k);
+                while (bitset != 0) {
+                    final long t = bitset & -bitset;
+                    container[pos++] = (short) (k * 64 + Long.bitCount(t - 1));
+                    bitset ^= t;
+                }
             }
         }
     }
@@ -389,10 +438,10 @@ public final class BufferUtil {
     protected static int unsignedIntersect2by2(final ShortBuffer set1,
             final int length1, final ShortBuffer set2, final int length2,
             final short[] buffer) {
-        if (set1.limit() * 64 < set2.limit()) {
+        if (length1 * 64 < length2) {
             return unsignedOneSidedGallopingIntersect2by2(set1, length1, set2,
                     length2, buffer);
-        } else if (set2.limit() * 64 < set1.limit()) {
+        } else if (length2 * 64 < length1) {
             return unsignedOneSidedGallopingIntersect2by2(set2, length2, set1,
                     length1, buffer);
         } else {
