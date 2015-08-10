@@ -30,7 +30,12 @@ public class RealDataBenchmark {
                         { "dimension_033" },
                         { "uscensus2000" },
                         { "weather_sept_85" },
-                        { "wikileaks-noquotes"}
+                        { "wikileaks-noquotes"},                
+                        {"census-income_srt"},
+                        {"census1881_srt"},
+                        {"weather_sept_85_srt"},
+                        {"wikileaks-noquotes_srt"}
+
                 });
     }
 
