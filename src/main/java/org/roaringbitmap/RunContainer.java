@@ -283,7 +283,6 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public Container add(short k) {
-        //TODO: we should ensure that if we add to a run containers, it does not become obviously wasteful
         int index = unsignedInterleavedBinarySearch(valueslength, 0, nbrruns, k);
         if(index >= 0) return this;// already there
         index = - index - 2;// points to preceding value, possibly -1
@@ -324,10 +323,10 @@ public final class RunContainer extends Container implements Cloneable {
                 }
             }
         }
-        makeRoomAtIndex(index + 1); // TODO: should check whether we need to revert back to bitmap or array
+        makeRoomAtIndex(index + 1); 
         setValue(index + 1, k);
         setLength(index + 1, (short) 0);
-        return this;
+        return this.toEfficientContainer();
     }
 
     @Override
@@ -645,7 +644,6 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public Container remove(short x) {
-        //TODO: we should ensure that if we remove values from a run containers, it does not become obviously wasteful
         int index = unsignedInterleavedBinarySearch(valueslength, 0, nbrruns, x);
         if(index >= 0) {
             int le =  Util.toIntUnsigned(getLength(index));
@@ -667,9 +665,11 @@ public final class RunContainer extends Container implements Cloneable {
                 // need to insert
                 int newvalue = Util.toIntUnsigned(x) + 1;
                 int newlength = le - offset - 1;
-                makeRoomAtIndex(index+1); // TODO: should check whether we need to revert back to bitmap or array
+                makeRoomAtIndex(index+1); 
                 this.setValue(index+1, (short) newvalue);
                 this.setLength(index+1, (short) newlength);
+                return this.toEfficientContainer();
+
             } else if(offset == le) {
                 decrementLength(index);
             }
