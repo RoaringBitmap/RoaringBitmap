@@ -23,6 +23,8 @@ Here is an example:
      $ ./run.sh RunContainerRealDataBenchmarkAnd > andlog.txt
      $ ./run.sh RunContainerRealDataBenchmarkOr > orlog.txt
 
+See samplescript.sh for a more elaborate example.
+
 You can then parse files with a script:
 
      $ ./grabresults.sh horizontallog.txt
