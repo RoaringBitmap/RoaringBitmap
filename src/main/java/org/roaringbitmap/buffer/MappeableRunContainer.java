@@ -259,52 +259,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     @Override
     public MappeableContainer add(short k) {
         //TODO: we should ensure that if we add to a run containers, it does not become obviously wasteful
-        /*  could be code for the simple array 
-        int index = unsignedInterleavedBinarySearch(valueslength, 0, nbrruns, k);
-        if(index >= 0) return this;// already there
-        index = - index - 2;// points to preceding value, possibly -1
-        if(index >= 0) {// possible match
-            int offset = BufferUtil.toIntUnsigned(k) - BufferUtil.toIntUnsigned(getValue(index));
-            int le =     BufferUtil.toIntUnsigned(getLength(index)); 
-            if(offset <= le) return this;
-            if(offset == le + 1) {
-                // we may need to fuse
-                if(index + 1 < nbrruns) {
-                    if(BufferUtil.toIntUnsigned(getValue(index + 1))  == BufferUtil.toIntUnsigned(k) + 1) {
-                        // indeed fusion is needed
-                        setLength(index, (short) (getValue(index + 1) + getLength(index + 1) - getValue(index)));
-                        recoverRoomAtIndex(index + 1);
-                        return this;
-                    }
-                }
-                incrementLength(index);
-                return this;
-            }
-            if(index + 1 < nbrruns) {
-                // we may need to fuse
-                if(BufferUtil.toIntUnsigned(getValue(index + 1))  == BufferUtil.toIntUnsigned(k) + 1) {
-                    // indeed fusion is needed
-                    setValue(index+1, k);
-                    setLength(index+1, (short) (getLength(index + 1) + 1));
-                    return this;
-                }
-            }
-        }
-        if(index == -1) {
-            // we may need to extend the first run
-            if(0 < nbrruns) {
-                if(getValue(0)  == k + 1) {
-                    incrementLength(0);
-                    decrementValue(0);
-                    return this;
-                }
-            }
-        }
-        makeRoomAtIndex(index + 1);
-        setValue(index + 1, k);
-        setLength(index + 1, (short) 0);
-        return this;
-       */
         int index = bufferedUnsignedInterleavedBinarySearch(valueslength, 0, nbrruns, k);
         if(index >= 0) return this;// already there
         index = - index - 2;// points to preceding value, possibly -1
@@ -390,39 +344,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer and(MappeableBitmapContainer x) {
-        /*
-    	int card = this.getCardinality();
-        if (card <=  ArrayContainer.DEFAULT_MAX_SIZE) {
-            // result can only be an array (assuming that we never make a RunContainer)
-        	ArrayContainer answer = new ArrayContainer(card);
-        	answer.cardinality=0;
-            for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
-                int runStart = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-                int runEnd = runStart + BufferUtil.toIntUnsigned(this.getLength(rlepos));
-                for (int runValue = runStart; runValue <= runEnd; ++runValue) {
-                    if ( x.contains((short) runValue)) {// it looks like contains() should be cheap enough if accessed sequentially
-                        answer.content[answer.cardinality++] = (short) runValue;
-                    }
-                }
-            }
-            return answer;
-        }
-        // we expect the answer to be a bitmap (if we are lucky)
-
-    	BitmapContainer answer = x.clone();
-        int start = 0;
-        for(int rlepos = 0; rlepos < this.nbrruns; ++rlepos ) {
-            int end = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-            Util.resetBitmapRange(answer.bitmap, start, end);  // had been x.bitmap
-            start = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
-        }
-        Util.resetBitmapRange(answer.bitmap, start, Util.maxLowBitAsInteger() + 1);   // had been x.bitmap
-        answer.computeCardinality();
-        if(answer.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
-            return answer;
-        else return answer.toArrayContainer();
-        */
-
     	int card = this.getCardinality();
         if (card <=  MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             // result can only be an array (assuming that we never make a RunContainer)
@@ -460,40 +381,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     
     @Override
     public MappeableContainer andNot(MappeableBitmapContainer x) {
-        /*
-    	int card = this.getCardinality();
-        if (card <=  ArrayContainer.DEFAULT_MAX_SIZE) {
-            // result can only be an array (assuming that we never make a RunContainer)
-        	ArrayContainer answer = new ArrayContainer(card);
-        	answer.cardinality=0;
-            for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
-                int runStart = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-                int runEnd = runStart + BufferUtil.toIntUnsigned(this.getLength(rlepos));
-                for (int runValue = runStart; runValue <= runEnd; ++runValue) {
-                    if ( ! x.contains((short) runValue)) {// it looks like contains() should be cheap enough if accessed sequentially
-                        answer.content[answer.cardinality++] = (short) runValue;
-                    }
-                }
-            }
-            return answer;
-        }
-        // we expect the answer to be a bitmap (if we are lucky)
-    	BitmapContainer answer = x.clone();
-        int lastPos = 0;
-        for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
-            int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-            int end = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
-            Util.resetBitmapRange(answer.bitmap, lastPos, start); 
-            Util.flipBitmapRange(answer.bitmap, start, end);
-            lastPos = end;
-        }
-        Util.resetBitmapRange(answer.bitmap, lastPos, answer.bitmap.length*64);
-        answer.computeCardinality();
-        if (answer.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
-            return answer;
-        else
-            return answer.toArrayContainer();
-        */
     	int card = this.getCardinality();
         if (card <=  MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             // result can only be an array (assuming that we never make a RunContainer)
@@ -567,18 +454,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         return false;
     }
 
-    /*
-    @Override
-    public void deserialize(DataInput in) throws IOException {
-        nbrruns = Short.reverseBytes(in.readShort());
-        if(valueslength.length < 2 * nbrruns)
-            valueslength = new short[2 * nbrruns];
-        for (int k = 0; k < 2 * nbrruns; ++k) {
-            this.valueslength[k] = Short.reverseBytes(in.readShort());
-        }
-    }
-    */
-
     @Override
     public void fillLeastSignificant16bits(int[] x, int i, int mask) {
         int pos = i;
@@ -603,26 +478,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public int getCardinality() {
-        /**
-         * TODO: Daniel has a concern with this part of the
-         * code. Lots of code may assume that we can query
-         * the cardinality in constant-time. That is the case
-         * with other containers. So it might be worth
-         * the effort to have a pre-computed cardinality somewhere.
-         * The only downsides are: (1) slight increase in memory
-         * usage (probably negligible) (2) slower updates
-         * (this container type is probably not the subject of
-         * frequent updates).
-         * 
-         * On the other hand, storing a precomputed cardinality
-         * separately is maybe wasteful and introduces extra
-         * code. 
-         * 
-         * Current verdict: keep things as they are, but be
-         * aware that  getCardinality might become a bottleneck.
-         * 
-         * 
-         */
         int sum = 0;
         for(int k = 0; k < nbrruns; ++k)
             sum = sum + BufferUtil.toIntUnsigned(getLength(k)) + 1;
@@ -646,7 +501,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     @Override
     public int getSizeInBytes() {
         return this.nbrruns*4+4;  // not sure about how exact it will be
-     // valueslength.limit()*4 + 4;  //this.nbrruns * 4 + 4;
     }
 
     @Override
@@ -697,29 +551,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     }
 
 
-    // handles any required fusion, assumes space available 
-    //Note: replaced by smartAppend
-    /*private int addRun(int outputRlePos, int runStart, int lastRunElement) {
-        int runLength = lastRunElement - runStart;
-        // check whether fusion is required
-        if (outputRlePos > 0) { // there is a previous run
-            int prevRunStart = BufferUtil.toIntUnsigned(this.getValue(outputRlePos-1));
-            int prevRunEnd = prevRunStart + BufferUtil.toIntUnsigned(this.getLength(outputRlePos-1));
-            if (prevRunEnd+1 == runStart) { // we must fuse
-                int newRunEnd = prevRunEnd+(1+runLength);
-                int newRunLen = newRunEnd-prevRunStart;
-                setLength(outputRlePos-1, (short) newRunLen);
-                return outputRlePos; // do not advance, nbrruns unchanged
-            }
-        }
-        // cases without fusion
-        setValue(outputRlePos, (short) runStart);
-        setLength(outputRlePos, (short) runLength);
-        nbrruns=outputRlePos+1;
-
-        return  ++outputRlePos;
-    }*/
-
 
     @Override
     public MappeableContainer not(int rangeStart, int rangeEnd) {
@@ -740,118 +571,9 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         }
         return ans;
     }
-     /*   if (rangeEnd <= rangeStart) return this.clone();
- 
-        // A container that is best stored as a run container
-        // is frequently going to have its "inot" also best stored
-        // as a run container. This would violate an implicit
-        // "results are array or bitmaps only" rule, if we had one.
-        
-        MappeableRunContainer ans = new MappeableRunContainer(nbrruns+1);
-
-        // annoying special case: there is no run.  Then the range becomes the run.
-        if (nbrruns==0) {
-            ans.addRun(0, rangeStart, rangeEnd-1);
-            return ans;
-        }
-        
-        int outputRlepos = 0;
-        int rlepos;
-        // copy all runs before the range.
-        for (rlepos=0; rlepos < nbrruns; ++rlepos) {
-            int runStart = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-            int runEnd = runStart + BufferUtil.toIntUnsigned(this.getLength(rlepos));
-
-            if (runEnd >=  rangeStart) break;
-            outputRlepos = ans.addRun(outputRlepos, runStart, runEnd);
-        }
-
-        if (rlepos < nbrruns) {
-            // there may be a run that starts before the range but
-            //  intersects with the range; copy the part before the intersection.
-            
-            int runStart = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-            if (runStart < rangeStart) {
-                outputRlepos = ans.addRun(outputRlepos, runStart, rangeStart-1);
-                // do not increase rlepos, as the rest of this run needs to be handled
-            }
-        }
-        
-        
-        for (; rlepos < nbrruns; ++rlepos) {
-            int runStart = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-            int runEnd = runStart + BufferUtil.toIntUnsigned(this.getLength(rlepos));
-
-            if (runStart >= rangeEnd) break; // handle these next
-            
-            int endOfPriorRun;
-            if (rlepos == 0)
-                endOfPriorRun=-1;
-            else
-                endOfPriorRun = BufferUtil.toIntUnsigned(this.getValue(rlepos-1)) + BufferUtil.toIntUnsigned(this.getLength(rlepos-1));
-
-            // but only gap locations after the start of the range count.
-            int startOfInterRunGap = Math.max(endOfPriorRun+1, rangeStart);
-
-            int lastOfInterRunGap = Math.min(runStart-1, rangeEnd-1);            
-            // and only gap locations before (strictly) the rangeEnd count
-
-            if (lastOfInterRunGap >= startOfInterRunGap)
-                outputRlepos = ans.addRun(outputRlepos, startOfInterRunGap, lastOfInterRunGap);
-            // else we had a run that started before the range, and thus no gap
-      
-
-            // there can be a run that begins before the end of the range but ends afterward.
-            // the portion that extends beyond the range needs to be copied.
-            if (runEnd >= rangeEnd) // recall: runEnd is inclusive, rangeEnd is exclusive
-                outputRlepos = ans.addRun(outputRlepos, rangeEnd, runEnd);
-        }
-
-        // if the kth run is entirely within the range and the k+1st entirely outside,
-        // then we need to pick up the gap between the end of the kth run and the range's end
-        if (rlepos > 0) {
-            int endOfPriorRun = BufferUtil.toIntUnsigned(this.getValue(rlepos-1)) + BufferUtil.toIntUnsigned(this.getLength(rlepos-1));
-            if (rlepos < nbrruns) {
-               int  runStart= BufferUtil.toIntUnsigned(this.getValue(rlepos));
-               if (endOfPriorRun >= rangeStart &&
-                   endOfPriorRun < rangeEnd-1 && // there is a nonempty gap
-                   runStart >= rangeEnd)
-                   outputRlepos = ans.addRun(outputRlepos, endOfPriorRun+1, rangeEnd-1);
-            }
-            // else is handled by special processing for "last run ends before the range"
-        }
-
-
-        // handle case where range occurs before first run
-        if (rlepos == 0)  {
-            outputRlepos = ans.addRun(outputRlepos, rangeStart, rangeEnd-1);
-        }
-
-
-        // any more runs are totally after the range, copy them
-        for (; rlepos < nbrruns; ++rlepos) {
-            int runStart = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-            int runEnd = runStart + BufferUtil.toIntUnsigned(this.getLength(rlepos));
-
-            outputRlepos = ans.addRun(outputRlepos, runStart, runEnd);
-        }
-
-        // if the last run ends before the range, special processing needed.
-        int lastRunEnd =   BufferUtil.toIntUnsigned(this.getValue(nbrruns-1)) + 
-            BufferUtil.toIntUnsigned(this.getLength(nbrruns-1));
-
-        if (lastRunEnd < rangeEnd-1) {
-            int startOfFlippedRun = Math.max(rangeStart, lastRunEnd+1);
-            outputRlepos = ans.addRun(outputRlepos, startOfFlippedRun, rangeEnd-1);
-        }
-        return ans;
-    }*/
 
     @Override
     public MappeableContainer or(MappeableArrayContainer x) {
-        //return toBitmapOrArrayContainer().ior(x);
-        //return x.or(getShortIterator());   // performance may not be great, depending on iterator overheads...
-        // we can hope to get lucky? 
         MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.getCardinality())));
         short[] vl = answer.valueslength.array();
         int rlepos = 0;
@@ -931,13 +653,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         return this;
     }
 
-    /*
-    @Override
-    public void serialize(DataOutput out) throws IOException {
-        writeArray(out);
-    }
-    */
-
     @Override
     public int serializedSizeInBytes() {
         return serializedSizeInBytes(nbrruns);
@@ -947,15 +662,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         return 2 + 2 * 2 * numberOfRuns;  // each run requires 2 2-byte entries.
     }
 
-    /*
-    @Override
-    public void trim() {
-        if(valueslength.length == 2 * nbrruns) return;
-        valueslength = Arrays.copyOf(valueslength, 2 * nbrruns);
-    }
-    */
 
- @Override
+    @Override
     public void trim() {
         if(valueslength.limit() == 2 * nbrruns) return;
         if (BufferUtil.isBackedBySimpleArray(valueslength)) {
@@ -1276,25 +984,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         return false;
     }
 
-/*
-    protected static int unsignedInterleavedBinarySearch(final short[] array,
-            final int begin, final int end, final short k) {
-        int ikey = BufferUtil.toIntUnsigned(k);
-        int low = begin;
-        int high = end - 1;
-        while (low <= high) {
-            final int middleIndex = (low + high) >>> 1;
-            final int middleValue = BufferUtil.toIntUnsigned(array[2 * middleIndex]);
-            if (middleValue < ikey)
-                low = middleIndex + 1;
-            else if (middleValue > ikey)
-                high = middleIndex - 1;
-            else
-                return middleIndex;
-        }
-        return -(low + 1);
-    }
-*/
 
     private static int bufferedUnsignedInterleavedBinarySearch(final ShortBuffer sb,
             final int begin, final int end, final short k) {
@@ -1356,19 +1045,9 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
 
     private void makeRoomAtIndex(int index) {
-        // if (BufferUtil.isBackedBySimpleArray(valueslength)) {
-        //     short [] sarray = valueslength.array();
-        //     if (2 * (nbrruns+1) > sarray.length) {
-        //         increaseCapacity();
-        //         sarray = valueslength.array();
-        //     }
-        //     copyValuesLength(sarray, index, sarray, index + 1, nbrruns - index);
-        // }
-        // else {
-            if (2*(nbrruns+1) > valueslength.capacity())
-                increaseCapacity();
-            copyValuesLength(valueslength, index, valueslength, index + 1, nbrruns - index);
-        // }
+        if (2*(nbrruns+1) > valueslength.capacity())
+            increaseCapacity();
+        copyValuesLength(valueslength, index, valueslength, index + 1, nbrruns - index);
         nbrruns++;
     }
 
@@ -1451,18 +1130,12 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         setLength(index, (short) (value - initialValue));
     }
 
-    /*
-    private void copyValuesLength(short[] src, int srcIndex, short[] dst, int dstIndex, int length) {
-        System.arraycopy(src, 2*srcIndex, dst, 2*dstIndex, 2*length);
-    }
-    */
 
 
     private void copyValuesLength(ShortBuffer src, int srcIndex, ShortBuffer dst, int dstIndex, int length) {
         // source and destination may overlap
         //System.arraycopy(src, 2*srcIndex, dst, 2*dstIndex, 2*length);
         // consider specialized code for various cases, rather than using a second buffer
-
         ShortBuffer temp = ShortBuffer.allocate(2*length);
         for (int i=0; i < 2*length; ++i)
             temp.put( src.get(2*srcIndex + i));
@@ -1472,179 +1145,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     }
 
 
-
-    // used for estimates of whether to prefer Array or Bitmap container results
-    // when combining two RunContainers
-
-  /*  private double getDensity() {
-        int myCard = getCardinality();
-        return ((double) myCard) / (1 << 16);
-    }
-
-
-    private final double ARRAY_MAX_DENSITY  = ( (double) MappeableArrayContainer.DEFAULT_MAX_SIZE)  / (1<<16);
-    
-    private static final int OP_AND=0, OP_ANDNOT=1, OP_OR=2, OP_XOR=3;
-*/
-    // borrowed this tuned-looking code from ArrayContainer.
-    // except: DEFAULT_INIT_SIZE is private...borrowed current setting
-    // OFK: compare to similar increaseCapacity method elsewhere...
-    /*private ShortBuffer increaseCapacity(ShortBuffer content) {
-        int newCapacity = (content.capacity() == 0) ? 4 : content.capacity() < 64 ? content.capacity() * 2
-            : content.capacity() < 1024 ? content.capacity() * 3 / 2
-            : content.capacity() * 5 / 4;
-        // allow it to exceed DEFAULT_MAX_SIZE
-        ShortBuffer ans = ShortBuffer.allocate(newCapacity);
-        content.rewind();
-        ans.put(content);
-        return ans;
-        //return Arrays.copyOf(content, newCapacity);
-    }*/
-
-    // generic merge algorithm, Array output.  Should be possible to
-    // improve on it for AND and ANDNOT, at least.
-
-  /*  private MappeableContainer operationArrayGuess(MappeableRunContainer x, int opcode) {
-        ShortBuffer ansArray = ShortBuffer.allocate(10); 
-        int card = 0;
-        int thisHead, xHead; // -1 means end of run
-        
-        ShortIterator it = getShortIterator();  // rely on unsigned ordering
-        ShortIterator xIt = x.getShortIterator();
-        
-        thisHead = (it.hasNext() ?  BufferUtil.toIntUnsigned(it.next()) : -1);
-        xHead =  (xIt.hasNext() ?  BufferUtil.toIntUnsigned(xIt.next()) : -1);
-
-        while (thisHead != -1 && xHead != -1) {
-
-            if (thisHead > xHead) {
-                // item present in x only: we want for OR and XOR only
-                if (opcode == OP_OR|| opcode == OP_XOR) {
-                    // emit item to array
-                    if (card == ansArray.capacity()) ansArray = increaseCapacity(ansArray);
-                    ansArray.put((short) xHead);
-                    card++;
-                }
-                xHead =  (xIt.hasNext() ?  BufferUtil.toIntUnsigned(xIt.next()) : -1);
-            }
-            else if (thisHead < xHead) {
-                // item present in this only.  We want for OR, XOR plus ANDNOT  (all except AND)
-                if (opcode != OP_AND) {
-                    // emit to array
-                    if (card == ansArray.capacity()) ansArray = increaseCapacity(ansArray);
-                    ansArray.put((short) thisHead);
-                    card++;
-                }
-                thisHead = (it.hasNext() ?  BufferUtil.toIntUnsigned(it.next()) : -1);
-            }
-            else { // item is present in both x and this;   AND and OR should get it, but not XOR or ANDNOT
-                if (opcode == OP_AND || opcode == OP_OR) {
-                    // emit to array
-                    if (card == ansArray.capacity()) ansArray = increaseCapacity(ansArray);
-                    ansArray.put((short) thisHead);
-                    card++;
-                }
-                thisHead = (it.hasNext() ?  BufferUtil.toIntUnsigned(it.next()) : -1);
-                xHead =  (xIt.hasNext() ?  BufferUtil.toIntUnsigned(xIt.next()) : -1);
-            }
-        }
-
-        // AND does not care if there are extra items in either 
-        if (opcode != OP_AND) {
-            
-            // OR, ANDNOT, XOR all want extra items in this sequence
-            while (thisHead != -1) {
-                // emit to array
-                if (card == ansArray.capacity()) ansArray = increaseCapacity(ansArray);
-                ansArray.put((short) thisHead);
-                card++;
-                thisHead = (it.hasNext() ?  BufferUtil.toIntUnsigned(it.next()) : -1);
-            }
-
-            // OR and XOR want extra items in x sequence
-            if (opcode == OP_OR || opcode == OP_XOR)
-                while (xHead != -1) {
-                    // emit to array
-                    if (card == ansArray.capacity()) ansArray = increaseCapacity(ansArray);
-                    ansArray.put((short) xHead);
-                    card++;
-                    xHead =  (xIt.hasNext() ?  BufferUtil.toIntUnsigned(xIt.next()) : -1);
-                } 
-        }
-
-        // we can end up with an empty result...allocate(0) may not be healthy??
-        ShortBuffer content = ShortBuffer.allocate(card);
-        ansArray.flip();
-        
-        content.put(ansArray);
-        
-        MappeableArrayContainer ac = new MappeableArrayContainer(content, card);
-        if (card > MappeableArrayContainer.DEFAULT_MAX_SIZE)
-            return ac.toBitmapContainer();
-        else
-            return ac;
-
-    }
-
-
-    // generic merge algorithm, copy-paste for bitmap output
-    private MappeableContainer operationBitmapGuess(MappeableRunContainer x, int opcode) {
-
-        MappeableBitmapContainer answer = new MappeableBitmapContainer();
-        int thisHead, xHead; // -1 means end of run
-        
-        ShortIterator it = getShortIterator();  
-        ShortIterator xIt = x.getShortIterator();
-        
-        thisHead = (it.hasNext() ?  BufferUtil.toIntUnsigned(it.next()) : -1);
-        xHead =  (xIt.hasNext() ?  BufferUtil.toIntUnsigned(xIt.next()) : -1);
-
-        while (thisHead != -1 && xHead != -1) {
-
-            if (thisHead > xHead) {
-                // item present in x only: we want for OR and XOR only
-                if (opcode == OP_OR|| opcode == OP_XOR) 
-                    answer.add((short) xHead);
-                xHead =  (xIt.hasNext() ?  BufferUtil.toIntUnsigned(xIt.next()) : -1);
-            }
-            else if (thisHead < xHead) {
-                // item present in this only.  We want for OR, XOR plus ANDNOT  (all except AND)
-                if (opcode != OP_AND) 
-                    answer.add((short) thisHead);
-                thisHead = (it.hasNext() ?  BufferUtil.toIntUnsigned(it.next()) : -1);
-            }
-            else { // item is present in both x and this;   AND and OR should get it, but not XOR or ANDNOT
-                if (opcode == OP_AND || opcode == OP_OR) 
-                    answer.add((short) thisHead);
-                thisHead = (it.hasNext() ?  BufferUtil.toIntUnsigned(it.next()) : -1);
-                xHead =  (xIt.hasNext() ?  BufferUtil.toIntUnsigned(xIt.next()) : -1);
-            }
-        }
-
-        // AND does not care if there are extra items in either 
-        if (opcode != OP_AND) {
-            
-            // OR, ANDNOT, XOR all want extra items in this sequence
-            while (thisHead != -1) {
-                answer.add((short) thisHead);
-                thisHead = (it.hasNext() ?  BufferUtil.toIntUnsigned(it.next()) : -1);
-            }
-
-            // OR and XOR want extra items in x sequence
-            if (opcode == OP_OR || opcode == OP_XOR)
-                while (xHead != -1) {
-                    answer.add((short) xHead);
-                    xHead =  (xIt.hasNext() ?  BufferUtil.toIntUnsigned(xIt.next()) : -1);
-                } 
-        }
-        
-        if (answer.getCardinality() <= MappeableArrayContainer.DEFAULT_MAX_SIZE)
-            return answer.toArrayContainer();
-        else
-            return answer;
-      
- }
-*/
 
 
     @Override
@@ -1709,12 +1209,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
             }
         }
         return answer.toEfficientContainer();
-
-        /*double myDensity = getDensity();
-        double xDensity = x.getDensity();
-        double resultDensityEstimate = myDensity*xDensity;
-        return (resultDensityEstimate < ARRAY_MAX_DENSITY ? operationArrayGuess(x, OP_AND) : operationBitmapGuess(x, OP_AND));
-        */
     }
 
 
@@ -1775,12 +1269,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
             }
         } 
         return answer.toEfficientContainer();
-
-        /*
-        double myDensity = getDensity();
-        double xDensity = x.getDensity();
-        double resultDensityEstimate = myDensity*(1-xDensity);
-        return (resultDensityEstimate < ARRAY_MAX_DENSITY ? operationArrayGuess(x, OP_ANDNOT) : operationBitmapGuess(x, OP_ANDNOT));*/
     }
 
     // assume that the (maybe) inplace operations
@@ -1959,11 +1447,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
             }
         }        
         return answer.toEfficientContainer();
-
-        /*double myDensity = getDensity();
-        double xDensity = x.getDensity();
-        double resultDensityEstimate = 1- (1-myDensity)*(1-xDensity)  - myDensity*xDensity;  // I guess
-        return (resultDensityEstimate < ARRAY_MAX_DENSITY ? operationArrayGuess(x, OP_XOR) : operationBitmapGuess(x, OP_XOR));*/
     }
 
 }

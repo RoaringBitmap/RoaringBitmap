@@ -508,24 +508,6 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public int getCardinality() {
-        /**
-         * Daniel has a concern with this part of the
-         * code. Lots of code may assume that we can query
-         * the cardinality in constant-time. That is the case
-         * with other containers. So it might be worth
-         * the effort to have a pre-computed cardinality somewhere.
-         * The only downsides are: (1) slight increase in memory
-         * usage (probably negligible) (2) slower updates
-         * (this container type is probably not the subject of
-         * frequent updates).
-         * 
-         * On the other hand, storing a precomputed cardinality
-         * separately is maybe wasteful and introduces extra
-         * code. 
-         * 
-         * Current verdict: keep things as they are, but be
-         * aware that  getCardinality might become a bottleneck.
-         */
         int sum = 0;
         for(int k = 0; k < nbrruns; ++k)
             sum = sum + Util.toIntUnsigned(getLength(k)) + 1;
@@ -595,29 +577,6 @@ public final class RunContainer extends Container implements Cloneable {
     }
 
 
-    // handles any required fusion, assumes space available
-    //Note: replaced by smartAppend
-    /*private int addRun(int outputRlePos, int runStart, int lastRunElement) {
-        int runLength = lastRunElement - runStart;
-        // check whether fusion is required
-        if (outputRlePos > 0) { // there is a previous run
-            int prevRunStart = Util.toIntUnsigned(this.getValue(outputRlePos-1));
-            int prevRunEnd = prevRunStart + Util.toIntUnsigned(this.getLength(outputRlePos-1));
-            if (prevRunEnd+1 == runStart) { // we must fuse
-                int newRunEnd = prevRunEnd+(1+runLength);
-                int newRunLen = newRunEnd-prevRunStart;
-                setLength(outputRlePos-1, (short) newRunLen);
-                return outputRlePos; // do not advance, nbrruns unchanged
-            }
-        }
-        // cases without fusion
-        setValue(outputRlePos, (short) runStart);
-        setLength(outputRlePos, (short) runLength);
-        nbrruns=outputRlePos+1;
-
-        return  ++outputRlePos;
-    }*/
-
 
     @Override
     public Container not(int rangeStart, int rangeEnd) {
@@ -636,126 +595,9 @@ public final class RunContainer extends Container implements Cloneable {
         return ans;
     }
         
-/*
-        // This code is a pain to test...
-
-        if (rangeEnd <= rangeStart) return this.clone();
-
-        // A container that is best stored as a run container
-        // is frequently going to have its "inot" also best stored
-        // as a run container. This would violate an implicit
-        // "results are array or bitmaps only" rule, if we had one.
-
-        // The number of runs in the result can be bounded
-        // It's not clear, but I'm guessing the bound is a max increase of 1
-        // array bounds checking will kick in if this is wrong
-        RunContainer ans = new RunContainer(nbrruns+1);
-
-        // annoying special case: there is no run.  Then the range becomes the run.
-        if (nbrruns == 0) {
-            ans.addRun(0, rangeStart, rangeEnd-1);
-            return ans;
-        }
-
-        int outputRlepos = 0;
-        int rlepos;
-        // copy all runs before the range.
-        for (rlepos=0; rlepos < nbrruns; ++rlepos) {
-            int runStart = Util.toIntUnsigned(this.getValue(rlepos));
-            int runEnd = runStart + Util.toIntUnsigned(this.getLength(rlepos));
-
-            if (runEnd >=  rangeStart) break;
-            outputRlepos = ans.addRun(outputRlepos, runStart, runEnd);
-        }
-
-        if (rlepos < nbrruns) {
-            // there may be a run that starts before the range but
-            //  intersects with the range; copy the part before the intersection.
-
-            int runStart = Util.toIntUnsigned(this.getValue(rlepos));
-            if (runStart < rangeStart) {
-                outputRlepos = ans.addRun(outputRlepos, runStart, rangeStart-1);
-                // do not increase rlepos, as the rest of this run needs to be handled
-            }
-        }
-
-
-        for (; rlepos < nbrruns; ++rlepos) {
-            int runStart = Util.toIntUnsigned(this.getValue(rlepos));
-            int runEnd = runStart + Util.toIntUnsigned(this.getLength(rlepos));
-
-            if (runStart >= rangeEnd) break; // handle these next
-
-            int endOfPriorRun;
-            if (rlepos == 0)
-                endOfPriorRun=-1;
-            else
-                endOfPriorRun = Util.toIntUnsigned(this.getValue(rlepos-1)) + Util.toIntUnsigned(this.getLength(rlepos-1));
-
-            // but only gap locations after the start of the range count.
-            int startOfInterRunGap = Math.max(endOfPriorRun+1, rangeStart);
-
-            int lastOfInterRunGap = Math.min(runStart-1, rangeEnd-1);            
-            // and only gap locations before (strictly) the rangeEnd count
-
-            if (lastOfInterRunGap >= startOfInterRunGap)
-                outputRlepos = ans.addRun(outputRlepos, startOfInterRunGap, lastOfInterRunGap);
-            // else we had a run that started before the range, and thus no gap
-
-
-            // there can be a run that begins before the end of the range but ends afterward.
-            // the portion that extends beyond the range needs to be copied.
-            if (runEnd >= rangeEnd) // recall: runEnd is inclusive, rangeEnd is exclusive
-                outputRlepos = ans.addRun(outputRlepos, rangeEnd, runEnd);
-        }
-
-        // if the kth run is entirely within the range and the k+1st entirely outside,
-        // then we need to pick up the gap between the end of the kth run and the range's end
-        if (rlepos > 0) {
-            int endOfPriorRun = Util.toIntUnsigned(this.getValue(rlepos-1)) + Util.toIntUnsigned(this.getLength(rlepos-1));
-            if (rlepos < nbrruns) {
-                int  runStart= Util.toIntUnsigned(this.getValue(rlepos));
-                if (endOfPriorRun >= rangeStart &&
-                        endOfPriorRun < rangeEnd-1 && // there is a nonempty gap
-                        runStart >= rangeEnd)
-                    outputRlepos = ans.addRun(outputRlepos, endOfPriorRun+1, rangeEnd-1);
-            }
-            // else is handled by special processing for "last run ends before the range"
-        }
-
-
-        // handle case where range occurs before first run
-        if (rlepos == 0)  {
-            outputRlepos = ans.addRun(outputRlepos, rangeStart, rangeEnd-1);
-        }
-
-
-        // any more runs are totally after the range, copy them
-        for (; rlepos < nbrruns; ++rlepos) {
-            int runStart = Util.toIntUnsigned(this.getValue(rlepos));
-            int runEnd = runStart + Util.toIntUnsigned(this.getLength(rlepos));
-
-            outputRlepos = ans.addRun(outputRlepos, runStart, runEnd);
-        }
-
-        // if the last run ends before the range, special processing needed.
-        int lastRunEnd =   Util.toIntUnsigned(this.getValue(nbrruns-1)) + 
-                Util.toIntUnsigned(this.getLength(nbrruns-1));
-
-        if (lastRunEnd < rangeEnd-1) {
-            int startOfFlippedRun = Math.max(rangeStart, lastRunEnd+1);
-            outputRlepos = ans.addRun(outputRlepos, startOfFlippedRun, rangeEnd-1);
-        }
-        return ans;
-        // _could_ do a size check here and convert to
-        // array or bitmap (implying it was probably silly
-        // for the original container to be a Runcontainer..)*/
-    //}
 
     @Override
     public Container or(ArrayContainer x) {
-        //return toBitmapOrArrayContainer().ior(x);
-        //return x.or(getShortIterator());   // performance may not be great, depending on iterator overheads...
         RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.getCardinality())]);
         int rlepos = 0;
         ShortIterator i = x.getShortIterator();
@@ -1320,256 +1162,11 @@ public final class RunContainer extends Container implements Cloneable {
     private void copyValuesLength(short[] src, int srcIndex, short[] dst, int dstIndex, int length) {
         System.arraycopy(src, 2*srcIndex, dst, 2*dstIndex, 2*length);
     }
-
-    // used for estimates of whether to prefer Array or Bitmap container results
-    // when combining two RunContainers
-
-    /*private double getDensity() {
-        int myCard = getCardinality();
-        return ((double) myCard) / (1 << 16);
-    }
-
-
-    private final double ARRAY_MAX_DENSITY  = ( (double) ArrayContainer.DEFAULT_MAX_SIZE)  / (1<<16);
-     */
-
-
-
-
-    // If we care to depend on Java 8, and if the runtime cost
-    // is reasonable, lambdas could encode how to handle
-    // "first sequence only has item", "second sequence only has item"
-    // or "both sequences have item".  Could also use function objects
-    // with earlier Java.  It is worth microbenchmarking, maybe, but I
-    // guessed that using operation codes might be more efficient -owen
-
-    //private static final int OP_AND=0, OP_ANDNOT=1, OP_OR=2, OP_XOR=3;
-
-
-    // borrowed this tuned-looking code from ArrayContainer.
-    // except: DEFAULT_INIT_SIZE is private...borrowed current setting
-    /*private short [] increaseCapacity(short [] content) {
-        int newCapacity = (content.length == 0) ? 4 : content.length < 64 ? content.length * 2
-                : content.length < 1024 ? content.length * 3 / 2
-                : content.length * 5 / 4;
-        // allow it to exceed DEFAULT_MAX_SIZE
-        return Arrays.copyOf(content, newCapacity);
-    }*/
-
-    // generic merge algorithm, Array output.  Should be possible to
-    // improve on it for AND and ANDNOT, at least.
-
-    /*private Container operationArrayGuess(RunContainer x, int opcode) {
-        short [] ansArray = new short[10]; 
-        int card = 0;
-        int thisHead, xHead; // -1 means end of run
-
-        // hoping that iterator overhead can be largely optimized away, dunno...
-
-        ShortIterator it = getShortIterator();  // rely on unsigned ordering
-        ShortIterator xIt = x.getShortIterator();
-
-        thisHead = (it.hasNext() ?  Util.toIntUnsigned(it.next()) : -1);
-        xHead =  (xIt.hasNext() ?  Util.toIntUnsigned(xIt.next()) : -1);
-
-        while (thisHead != -1 && xHead != -1) {
-
-            if (thisHead > xHead) {
-                // item present in x only: we want for OR and XOR only
-                if (opcode == OP_OR|| opcode == OP_XOR) {
-                    // emit item to array
-                    if (card == ansArray.length) ansArray = increaseCapacity(ansArray);
-                    ansArray[card++] = (short) xHead;
-                }
-                xHead =  (xIt.hasNext() ?  Util.toIntUnsigned(xIt.next()) : -1);
-            }
-            else if (thisHead < xHead) {
-                // item present in this only.  We want for OR, XOR plus ANDNOT  (all except AND)
-                if (opcode != OP_AND) {
-                    // emit to array
-                    if (card == ansArray.length) ansArray = increaseCapacity(ansArray);
-                    ansArray[card++] = (short) thisHead;
-                }
-                thisHead = (it.hasNext() ?  Util.toIntUnsigned(it.next()) : -1);
-            }
-            else { // item is present in both x and this;   AND and OR should get it, but not XOR or ANDNOT
-                if (opcode == OP_AND || opcode == OP_OR) {
-                    // emit to array
-                    if (card == ansArray.length) ansArray = increaseCapacity(ansArray);
-                    ansArray[card++] = (short) thisHead;
-                }
-                thisHead = (it.hasNext() ?  Util.toIntUnsigned(it.next()) : -1);
-                xHead =  (xIt.hasNext() ?  Util.toIntUnsigned(xIt.next()) : -1);
-            }
-        }
-
-        // AND does not care if there are extra items in either 
-        if (opcode != OP_AND) {
-
-            // OR, ANDNOT, XOR all want extra items in this sequence
-            while (thisHead != -1) {
-                // emit to array
-                if (card == ansArray.length) ansArray = increaseCapacity(ansArray);
-                ansArray[card++] = (short) thisHead;
-                thisHead = (it.hasNext() ?  Util.toIntUnsigned(it.next()) : -1);
-            }
-
-            // OR and XOR want extra items in x sequence
-            if (opcode == OP_OR || opcode == OP_XOR)
-                while (xHead != -1) {
-                    // emit to array
-                    if (card == ansArray.length) ansArray = increaseCapacity(ansArray);
-                    ansArray[card++] = (short) xHead;
-                    xHead =  (xIt.hasNext() ?  Util.toIntUnsigned(xIt.next()) : -1);
-                } 
-        }
-
-        // double copy could be avoided if the private card-is-parameter constructor for ArrayContainer were protected rather than private.
-        short [] content = Arrays.copyOf(ansArray, card);
-        ArrayContainer ac = new ArrayContainer(content);
-        if (card > ArrayContainer.DEFAULT_MAX_SIZE)
-            return ac.toBitmapContainer();
-        else
-            return ac;
-    }*/
-
-
-    // generic merge algorithm, copy-paste for bitmap output
-    /*private Container operationBitmapGuess(RunContainer x, int opcode) {
-        BitmapContainer answer = new BitmapContainer();
-        int thisHead, xHead; // -1 means end of run
-
-        ShortIterator it = getShortIterator();  
-        ShortIterator xIt = x.getShortIterator();
-
-        thisHead = (it.hasNext() ?  Util.toIntUnsigned(it.next()) : -1);
-        xHead =  (xIt.hasNext() ?  Util.toIntUnsigned(xIt.next()) : -1);
-
-        while (thisHead != -1 && xHead != -1) {
-
-            if (thisHead > xHead) {
-                // item present in x only: we want for OR and XOR only
-                if (opcode == OP_OR|| opcode == OP_XOR) 
-                    answer.add((short) xHead);
-                xHead =  (xIt.hasNext() ?  Util.toIntUnsigned(xIt.next()) : -1);
-            }
-            else if (thisHead < xHead) {
-                // item present in this only.  We want for OR, XOR plus ANDNOT  (all except AND)
-                if (opcode != OP_AND) 
-                    answer.add((short) thisHead);
-                thisHead = (it.hasNext() ?  Util.toIntUnsigned(it.next()) : -1);
-            }
-            else { // item is present in both x and this;   AND and OR should get it, but not XOR or ANDNOT
-                if (opcode == OP_AND || opcode == OP_OR) 
-                    answer.add((short) thisHead);
-                thisHead = (it.hasNext() ?  Util.toIntUnsigned(it.next()) : -1);
-                xHead =  (xIt.hasNext() ?  Util.toIntUnsigned(xIt.next()) : -1);
-            }
-        }
-
-        // AND does not care if there are extra items in either 
-        if (opcode != OP_AND) {
-
-            // OR, ANDNOT, XOR all want extra items in this sequence
-            while (thisHead != -1) {
-                answer.add((short) thisHead);
-                thisHead = (it.hasNext() ?  Util.toIntUnsigned(it.next()) : -1);
-            }
-
-            // OR and XOR want extra items in x sequence
-            if (opcode == OP_OR || opcode == OP_XOR)
-                while (xHead != -1) {
-                    answer.add((short) xHead);
-                    xHead =  (xIt.hasNext() ?  Util.toIntUnsigned(xIt.next()) : -1);
-                } 
-        }
-
-        if (answer.getCardinality() <= ArrayContainer.DEFAULT_MAX_SIZE)
-            return answer.toArrayContainer();
-        else
-            return answer;
-    }*/
-
-
   
-    //@Override
-      protected Container andNoSkip(RunContainer x) {
-        /*
-         * Main idea here: if you have two RunContainers, why 
-         * not output the result as a RunContainer? Well,
-         * result might not be storage efficient...
-         * 
-         * So that is the one catch.
-         * 
-         * TODO: this could be optimized if one has far fewer
-         * runs than the other...
-         * TODO: make sure buffer version is updated as well.
-         */
-        RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.nbrruns)]);
-        int rlepos = 0;
-        int xrlepos = 0;
-        int start = Util.toIntUnsigned(this.getValue(rlepos));
-        int end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
-        int xstart = Util.toIntUnsigned(x.getValue(xrlepos));
-        int xend = Util.toIntUnsigned(x.getValue(xrlepos)) + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
-        while ((rlepos < this.nbrruns ) && (xrlepos < x.nbrruns )) {
-            if (end  <= xstart) {
-                // exit the first run
-                rlepos++;
-                if(rlepos < this.nbrruns ) {
-                    start = Util.toIntUnsigned(this.getValue(rlepos));
-                    end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
-                }
-            } else if (xend <= start) {
-                // exit the second run
-                xrlepos++;
-                if(xrlepos < x.nbrruns ) {
-                    xstart = Util.toIntUnsigned(x.getValue(xrlepos));
-                    xend = Util.toIntUnsigned(x.getValue(xrlepos)) + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
-                }
-            } else {// they overlap
-                final int lateststart = start > xstart ? start : xstart;
-                int earliestend;
-                if(end == xend) {// improbable
-                    earliestend = end;
-                    rlepos++;
-                    xrlepos++;
-                    if(rlepos < this.nbrruns ) {
-                        start = Util.toIntUnsigned(this.getValue(rlepos));
-                        end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
-                    }
-                    if(xrlepos < x.nbrruns) {
-                        xstart = Util.toIntUnsigned(x.getValue(xrlepos));
-                        xend = Util.toIntUnsigned(x.getValue(xrlepos)) + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
-                    }
-                } else if(end < xend) {
-                    earliestend = end;
-                    rlepos++;
-                    if(rlepos < this.nbrruns ) {
-                        start = Util.toIntUnsigned(this.getValue(rlepos));
-                        end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
-                    }
-
-                } else {// end > xend
-                    earliestend = xend;
-                    xrlepos++;
-                    if(xrlepos < x.nbrruns) {
-                        xstart = Util.toIntUnsigned(x.getValue(xrlepos));
-                        xend = Util.toIntUnsigned(x.getValue(xrlepos)) + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
-                    }                
-                }
-                answer.valueslength[2 * answer.nbrruns] = (short) lateststart;
-                answer.valueslength[2 * answer.nbrruns + 1] = (short) (earliestend - lateststart - 1);
-                answer.nbrruns++;
-            }
-        }
-        return answer.toEfficientContainer();  // subsequent trim() may be required to avoid wasted space.
-    }
 
 
     // bootstrapping (aka "galloping")  binary search.  Always skips at least one.
     // On our "real data" benchmarks, enabling galloping is a minor loss
-
     //.."ifdef ENABLE_GALLOPING_AND"   :)
     private int skipAhead(RunContainer skippingOn, int pos, int targetToExceed) {
         int left=pos;
@@ -1605,23 +1202,9 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
       public Container and(RunContainer x) {
-        /*
-         * Main idea here: if you have two RunContainers, why 
-         * not output the result as a RunContainer? Well,
-         * result might not be storage efficient...
-         * 
-         * So that is the one catch.
-         * 
-         * TODO: this could be optimized if one has far fewer
-         * runs than the other...
-         * TODO: make sure buffer version is updated as well.
-         */
         RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.nbrruns)]);
         int rlepos = 0;
         int xrlepos = 0;
-        // remove on cleanup...stuff to see why galloping is not a win
-        //        int countSkips=0;
-        //        int totalSkipLen=0;
         int start = Util.toIntUnsigned(this.getValue(rlepos));
         int end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
         int xstart = Util.toIntUnsigned(x.getValue(xrlepos));
@@ -1629,10 +1212,7 @@ public final class RunContainer extends Container implements Cloneable {
         while ((rlepos < this.nbrruns ) && (xrlepos < x.nbrruns )) {
             if (end  <= xstart) {
                 if (ENABLE_GALLOPING_AND) {
-                    // int temptemp_old = rlepos;
                     rlepos = skipAhead(this, rlepos, xstart); // skip over runs until we have end > xstart  (or rlepos is advanced beyond end)
-                    // ++countSkips;
-                    //totalSkipLen += (rlepos - temptemp_old);
                 }
                 else
                     ++rlepos;
@@ -1644,10 +1224,7 @@ public final class RunContainer extends Container implements Cloneable {
             } else if (xend <= start) {
                 // exit the second run
                 if (ENABLE_GALLOPING_AND) {
-                    // int temptemp_old = xrlepos;
                     xrlepos = skipAhead(x, xrlepos, start);
-                    //++countSkips;
-                    //totalSkipLen += (xrlepos - temptemp_old);
                 }
                 else
                     ++xrlepos;
@@ -1692,12 +1269,6 @@ public final class RunContainer extends Container implements Cloneable {
                 answer.nbrruns++;
             }
         }
-
-        // remove on cleanup
-        //if (countSkips > 0)
-        //   System.out.println("container avg skip amount is "+
-        //                        ( totalSkipLen / ( (double) countSkips)));
-
         return answer.toEfficientContainer();  // subsequent trim() may be required to avoid wasted space.
     }
 
@@ -1709,18 +1280,6 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public Container andNot(RunContainer x) {
-        /*
-         * Main idea here: if you have two RunContainers, why 
-         * not output the result as a RunContainer? Well,
-         * result might not be storage efficient...
-         * 
-         * So that is the one catch.
-         * 
-         * TODO: this could be optimized if one has far fewer
-         * runs than the other...
-         * 
-         * TODO: make sure buffer version is updated as well.
-         */
         RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.nbrruns)]);
         int rlepos = 0;
         int xrlepos = 0;
@@ -1774,15 +1333,7 @@ public final class RunContainer extends Container implements Cloneable {
             } 
         }
         return answer.toEfficientContainer();
-        /*double myDensity = getDensity();
-        double xDensity = x.getDensity();
-        double resultDensityEstimate = myDensity*(1-xDensity);
-        return (resultDensityEstimate < ARRAY_MAX_DENSITY ? operationArrayGuess(x, OP_ANDNOT) : operationBitmapGuess(x, OP_ANDNOT));*/
     }
-
-    // assume that the (maybe) inplace operations
-    // will never actually *be* in place if they are 
-    // to return ArrayContainer or BitmapContainer
 
     @Override
     public Container iand(RunContainer x) {
@@ -1942,12 +1493,6 @@ public final class RunContainer extends Container implements Cloneable {
             }
         }       
         return answer.toEfficientContainer();
-        /*
-        double myDensity = getDensity();
-        double xDensity = x.getDensity();
-        double resultDensityEstimate = 1- (1-myDensity)*(1-xDensity)  - myDensity*xDensity;  // I guess
-        return (resultDensityEstimate < ARRAY_MAX_DENSITY ? operationArrayGuess(x, OP_XOR) : operationBitmapGuess(x, OP_XOR));
-         */
     }
 
 }
