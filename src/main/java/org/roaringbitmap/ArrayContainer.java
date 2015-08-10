@@ -641,6 +641,7 @@ public final class ArrayContainer extends Container implements Cloneable {
 
     @Override
     public void trim() {
+        if(this.content.length == this.cardinality) return;
         this.content = Arrays.copyOf(this.content, this.cardinality);
     }
 

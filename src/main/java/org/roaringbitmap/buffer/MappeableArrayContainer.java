@@ -10,6 +10,7 @@ import org.roaringbitmap.Util;
 
 import java.io.*;
 import java.nio.ShortBuffer;
+import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -228,9 +229,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
                 if (!value2.contains(c[k]))
                     sarray[pos++] = c[k];
         } else
-            for (int k = 0; k < cardinality; ++k)
-                if (!value2.contains(this.content.get(k)))
-                    sarray[pos++] = this.content.get(k);
+            for (int k = 0; k < cardinality; ++k) {
+                short v = this.content.get(k);
+                if (!value2.contains(v))
+                    sarray[pos++] = v;
+            }
         answer.cardinality = pos;
         return answer;
     }
@@ -291,8 +294,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         for (int i = 0; i < cardinality; ++i) {
             val = content.get(i);
             int valInt = BufferUtil.toIntUnsigned(val);
-            if ( valInt < runStart) 
- {
+            if ( valInt < runStart) {
                 buffer.put(writeLocation++, val);
             }
             else if (valInt <= runEnd)
@@ -423,9 +425,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     @Override
     public MappeableContainer iand(MappeableBitmapContainer value2) {
         int pos = 0;
-        for (int k = 0; k < cardinality; ++k)
-            if (value2.contains(this.content.get(k)))
-                this.content.put(pos++, this.content.get(k));
+        for (int k = 0; k < cardinality; ++k) {
+            short v = this.content.get(k);
+            if (value2.contains(v))
+                this.content.put(pos++, v);
+        }
         cardinality = pos;
         return this;
     }
@@ -481,9 +485,10 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     // the illegal container does not return it.
 
     private void increaseCapacity(boolean allowIllegalSize) {
-        int newCapacity = (this.content.limit() == 0) ? DEFAULT_INIT_SIZE : this.content.limit() < 64 ? this.content.limit() * 2
-                : this.content.limit() < 1024 ? this.content.limit() * 3 / 2
-                        : this.content.limit() * 5 / 4;
+        int len = this.content.limit();
+        int newCapacity = (len == 0) ? DEFAULT_INIT_SIZE : len < 64 ? len * 2
+                : this.content.limit() < 1024 ? len * 3 / 2
+                        : len * 5 / 4;
         if (newCapacity > MappeableArrayContainer.DEFAULT_MAX_SIZE && !allowIllegalSize )
             newCapacity = MappeableArrayContainer.DEFAULT_MAX_SIZE;
         final ShortBuffer newContent = ShortBuffer.allocate(newCapacity);
@@ -493,9 +498,10 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
     private void increaseCapacity(int min) {
-        int newCapacity = (this.content.limit() == 0) ? DEFAULT_INIT_SIZE : this.content.limit() < 64 ? this.content.limit() * 2
-                : this.content.limit() < 1024 ? this.content.limit() * 3 / 2
-                        : this.content.limit() * 5 / 4;
+        int len = this.content.limit();
+        int newCapacity = (len == 0) ? DEFAULT_INIT_SIZE : len < 64 ? len * 2
+                : len < 1024 ? len * 3 / 2
+                        : len * 5 / 4;
         if(newCapacity < min) newCapacity = min;
         if (newCapacity > MappeableArrayContainer.DEFAULT_MAX_SIZE)
             newCapacity = MappeableArrayContainer.DEFAULT_MAX_SIZE;
@@ -646,7 +652,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         assert outPos == buffer.limit();
         // copy back from buffer...caller must ensure there is room
         int i = startIndex;
-        for (int k = 0; k < buffer.limit(); ++k) {
+        int len = buffer.limit();
+        for (int k = 0; k < len; ++k) {
             final short item = buffer.get(k);
             content.put(i++, item);
         }
@@ -729,9 +736,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
                 }
             } else
                 for (int k = 0; k < value2.cardinality; ++k) {
-                    final int i = BufferUtil.toIntUnsigned(value2.content
-                            .get(k)) >>> 6;
-                    bitArray[i] |= (1l << value2.content.get(k));
+                    short v2 = value2.content.get(k);
+                    final int i = BufferUtil.toIntUnsigned(v2) >>> 6;
+                    bitArray[i] |= (1l << v2);
                 }
             if (BufferUtil.isBackedBySimpleArray(this.content)) {
                 short[] sarray = this.content.array();
@@ -745,7 +752,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
                     bitArray[i] |= (1l << this.content.get(k));
                 }
             bc.cardinality = 0;
-            for (int index = 0; index < bc.bitmap.limit(); ++index) {
+            int len = bc.bitmap.limit();
+            for (int index = 0; index < len; ++index) {
                 bc.cardinality += Long.bitCount(bitArray[index]);
             }
             if (bc.cardinality <= DEFAULT_MAX_SIZE)
@@ -921,20 +929,32 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     @Override
     public void trim() {
-        // could we do nothing if size is already ok?
-        final ShortBuffer co = ShortBuffer.allocate(this.cardinality);
-        for (int k = 0; k < this.cardinality; ++k)
-            co.put(this.content.get(k));
-        this.content = co;
+        if(this.content.limit() == this.cardinality) return;
+        if (BufferUtil.isBackedBySimpleArray(content)) {
+            this.content = ShortBuffer.wrap(Arrays.copyOf(content.array(),
+                    cardinality));
+        } else {
+            final ShortBuffer co = ShortBuffer.allocate(this.cardinality);
+            // can assume that new co is array backed
+            short[] x = co.array();
+            for (int k = 0; k < this.cardinality; ++k)
+                x[k] = this.content.get(k);
+            this.content = co;
+        }
     }
 
     @Override
     protected void writeArray(DataOutput out) throws IOException {
         // little endian
-        for (int k = 0; k < this.cardinality; ++k) {
-            out.writeShort(Short.reverseBytes(content.get(k)));
-            // was: out.write(this.content.get(k) & 0xFF);
-            // out.write((this.content.get(k) >>> 8) & 0xFF);
+        if(BufferUtil.isBackedBySimpleArray(content)) {
+            short[] a = content.array();
+            for (int k = 0; k < this.cardinality; ++k) {
+                out.writeShort(Short.reverseBytes(a[k]));
+            }    
+        } else {
+            for (int k = 0; k < this.cardinality; ++k) {
+                out.writeShort(Short.reverseBytes(content.get(k)));
+            }
         }
     }
 
@@ -942,10 +962,15 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     public void writeExternal(ObjectOutput out) throws IOException {
         out.write(this.cardinality & 0xFF);
         out.write((this.cardinality >>> 8) & 0xFF);
-        // little endian
-        for (int k = 0; k < this.cardinality; ++k) {
-            out.write(this.content.get(k) & 0xFF);
-            out.write((this.content.get(k) >>> 8) & 0xFF);
+        if(BufferUtil.isBackedBySimpleArray(content)) {
+            short[] a = content.array();
+            for (int k = 0; k < this.cardinality; ++k) {
+                out.writeShort(Short.reverseBytes(a[k]));
+            }    
+        } else {
+            for (int k = 0; k < this.cardinality; ++k) {
+                out.writeShort(Short.reverseBytes(content.get(k)));
+            }
         }
     }
 
@@ -967,9 +992,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
                 }
             } else
                 for (int k = 0; k < value2.cardinality; ++k) {
-                    final int i = BufferUtil.toIntUnsigned(value2.content
-                            .get(k)) >>> 6;
-                    bitArray[i] ^= (1l << value2.content.get(k));
+                    short v2 = value2.content.get(k);
+                    final int i = BufferUtil.toIntUnsigned(v2) >>> 6;
+                    bitArray[i] ^= (1l << v2);
                 }
             if (BufferUtil.isBackedBySimpleArray(this.content)) {
                 short[] sarray = this.content.array();
@@ -979,12 +1004,14 @@ public final class MappeableArrayContainer extends MappeableContainer implements
                 }
             } else
                 for (int k = 0; k < this.cardinality; ++k) {
-                    final int i = BufferUtil.toIntUnsigned(this.content.get(k)) >>> 6;
-                    bitArray[i] ^= (1l << this.content.get(k));
+                    short v = this.content.get(k);
+                    final int i = BufferUtil.toIntUnsigned(v) >>> 6;
+                    bitArray[i] ^= (1l << v);
                 }
 
             bc.cardinality = 0;
-            for (int index = 0; index < bc.bitmap.limit(); ++index) {
+            int len = bc.bitmap.limit();
+            for (int index = 0; index < len; ++index) {
                 bc.cardinality += Long.bitCount(bitArray[index]);
             }
             if (bc.cardinality <= DEFAULT_MAX_SIZE)

@@ -9,6 +9,7 @@ import org.roaringbitmap.ShortIterator;
 
 import java.io.*;
 import java.nio.ShortBuffer;
+import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -230,12 +231,9 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.write(this.nbrruns & 0xFF);
-        out.write((this.nbrruns >>> 8) & 0xFF);
-        // little endian
-        for (int k = 0; k < 2*this.nbrruns; ++k) {
-            out.write(this.valueslength.get(k) & 0xFF);
-            out.write((this.valueslength.get(k) >>> 8) & 0xFF);
+        out.writeShort(Short.reverseBytes((short) this.nbrruns));
+        for (int k = 0; k < 2 * this.nbrruns; ++k) {
+            out.writeShort(Short.reverseBytes(this.valueslength.get(k)));
         }
     }
 
@@ -959,11 +957,18 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
  @Override
     public void trim() {
-        // could we do nothing if size is already ok?
-        final ShortBuffer co = ShortBuffer.allocate(2*nbrruns);
-        for (int k = 0; k < 2*nbrruns; ++k)
-            co.put(this.valueslength.get(k));
-        this.valueslength = co;
+        if(valueslength.limit() == 2 * nbrruns) return;
+        if (BufferUtil.isBackedBySimpleArray(valueslength)) {
+            this.valueslength = ShortBuffer.wrap(Arrays.copyOf(
+                    valueslength.array(), 2 * nbrruns));
+        } else {
+
+            final ShortBuffer co = ShortBuffer.allocate(2 * nbrruns);
+            short[] a = co.array();
+            for (int k = 0; k < 2 * nbrruns; ++k)
+                a[k] = this.valueslength.get(k);
+            this.valueslength = co;
+        }
     }
 
     @Override
