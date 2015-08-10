@@ -18,8 +18,10 @@ import org.openjdk.jmh.annotations.State;
 import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.ZipRealDataRetriever;
-import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
-import org.roaringbitmap.buffer.MutableRoaringBitmap;
+import org.roaringbitmap.runcontainer.RunContainerRealDataBenchmarkAndNot.BenchmarkState;
+
+import com.googlecode.javaewah.EWAHCompressedBitmap;
+import com.googlecode.javaewah32.EWAHCompressedBitmap32;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
@@ -94,6 +96,27 @@ public class RunContainerRealDataBenchmarkIterate {
          return total;
      }
 
+     @Benchmark
+     public int iterate_EWAH(BenchmarkState benchmarkState) {
+         int total = 0;
+         for(int k = 0; k < benchmarkState.ewah.size(); ++k) {
+             com.googlecode.javaewah.IntIterator i = benchmarkState.ewah.get(k).intIterator();
+             while(i.hasNext())
+                 total += i.next();             
+         }
+         return total;
+     }
+
+     @Benchmark
+     public int iterate_EWAH32(BenchmarkState benchmarkState) {
+         int total = 0;
+         for(int k = 0; k < benchmarkState.ewah32.size(); ++k) {
+             com.googlecode.javaewah.IntIterator i = benchmarkState.ewah32.get(k).intIterator();
+             while(i.hasNext())
+                 total += i.next();             
+         }
+         return total;
+     }
 
      
      
@@ -117,10 +140,11 @@ public class RunContainerRealDataBenchmarkIterate {
 
         ArrayList<RoaringBitmap> rc = new ArrayList<RoaringBitmap>();
         ArrayList<RoaringBitmap> ac = new ArrayList<RoaringBitmap>();
-        ArrayList<ImmutableRoaringBitmap> mrc = new ArrayList<ImmutableRoaringBitmap>();
-        ArrayList<ImmutableRoaringBitmap> mac = new ArrayList<ImmutableRoaringBitmap>();
         ArrayList<ConciseSet> cc = new ArrayList<ConciseSet>();
-        ArrayList<ConciseSet> wah = new ArrayList<ConciseSet>();
+        ArrayList<ConciseSet> wah = new ArrayList<ConciseSet>();        
+        ArrayList<EWAHCompressedBitmap> ewah = new ArrayList<EWAHCompressedBitmap>();
+        ArrayList<EWAHCompressedBitmap32> ewah32 = new ArrayList<EWAHCompressedBitmap32>();
+
 
 
         public BenchmarkState() {
@@ -136,6 +160,8 @@ public class RunContainerRealDataBenchmarkIterate {
             int runsize = 0;
             int concisesize = 0;
             int wahsize = 0;
+            int ewahsize = 0;
+            int ewahsize32 = 0;
             long stupidarraysize = 0;
             long stupidbitmapsize = 0;
             int totalcount = 0;
@@ -149,10 +175,13 @@ public class RunContainerRealDataBenchmarkIterate {
                 stupidarraysize += 8 + data.length * 4L;
                 stupidbitmapsize += 8 + (data[data.length - 1] + 63L) / 64 * 8;
                 totalcount += data.length;
-                MutableRoaringBitmap mbasic = MutableRoaringBitmap.bitmapOf(data);
-                MutableRoaringBitmap mopti = mbasic.clone();
-                mopti.runOptimize();
-
+                EWAHCompressedBitmap ewahBitmap = EWAHCompressedBitmap.bitmapOf(data);
+                ewahsize += ewahBitmap.serializedSizeInBytes();
+                ewah.add(ewahBitmap);
+                EWAHCompressedBitmap32 ewahBitmap32 = EWAHCompressedBitmap32.bitmapOf(data);
+                ewahsize32 += ewahBitmap32.serializedSizeInBytes();
+                ewah32.add(ewahBitmap32);
+                
                 RoaringBitmap basic = RoaringBitmap.bitmapOf(data);
                 RoaringBitmap opti = basic.clone();
                 opti.runOptimize();
@@ -163,13 +192,7 @@ public class RunContainerRealDataBenchmarkIterate {
                         .collectionCompressionRatio()) * 4;
                 rc.add(opti);
                 ac.add(basic);
-                mrc.add(mopti);
-                mac.add(mbasic);
                 cc.add(concise);
-                if(basic.serializedSizeInBytes() != mbasic.serializedSizeInBytes())
-                    throw new RuntimeException("size mismatch");
-                if(opti.serializedSizeInBytes() != mopti.serializedSizeInBytes())
-                    throw new RuntimeException("size mismatch");
                 normalsize += basic.serializedSizeInBytes();
                 runsize += opti.serializedSizeInBytes();
                 concisesize += (int) (concise.size() * concise
@@ -213,6 +236,18 @@ public class RunContainerRealDataBenchmarkIterate {
                     + String.format("%1$10s",df.format(wahsize * 1.0 / numberofbitmaps))
                     + "B, average bits per entry =  "
                     + String.format("%1$10s",df.format(wahsize * 8.0 / totalcount)));
+            System.out.println("EWAH 64-bit total = "
+                    + String.format("%1$10s", "" + ewahsize)
+                    + "B, average per bitmap = "
+                    + String.format("%1$10s",df.format(ewahsize * 1.0 / numberofbitmaps))
+                    + "B, average bits per entry =  "
+                    + String.format("%1$10s",df.format(ewahsize * 8.0 / totalcount)));
+            System.out.println("EWAH 32-bit total = "
+                    + String.format("%1$10s", "" + ewahsize32)
+                    + "B, average per bitmap = "
+                    + String.format("%1$10s",df.format(ewahsize32 * 1.0 / numberofbitmaps))
+                    + "B, average bits per entry =  "
+                    + String.format("%1$10s",df.format(ewahsize32 * 8.0 / totalcount)));
             System.out.println("Naive array total     = "
                     + String.format("%1$10s", "" + stupidarraysize)
                     + "B, average per bitmap = "

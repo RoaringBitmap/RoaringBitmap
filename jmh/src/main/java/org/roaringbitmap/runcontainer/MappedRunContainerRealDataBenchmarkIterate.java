@@ -28,6 +28,9 @@ import org.roaringbitmap.ZipRealDataRetriever;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
+import com.googlecode.javaewah.EWAHCompressedBitmap;
+import com.googlecode.javaewah32.EWAHCompressedBitmap32;
+
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 public class MappedRunContainerRealDataBenchmarkIterate {
@@ -101,6 +104,8 @@ public class MappedRunContainerRealDataBenchmarkIterate {
         List<ImmutableRoaringBitmap> mrc = new ArrayList<ImmutableRoaringBitmap>();
         List<ImmutableRoaringBitmap> mac = new ArrayList<ImmutableRoaringBitmap>();
         List<ImmutableConciseSet> cc = new ArrayList<ImmutableConciseSet>();
+        List<EWAHCompressedBitmap> ewah = new ArrayList<EWAHCompressedBitmap>();
+        List<EWAHCompressedBitmap32> ewah32 = new ArrayList<EWAHCompressedBitmap32>();
 
         public BenchmarkState() {
         }
@@ -176,6 +181,8 @@ public class MappedRunContainerRealDataBenchmarkIterate {
             ArrayList<MutableRoaringBitmap> tmpac = new ArrayList<MutableRoaringBitmap>();
             ArrayList<MutableRoaringBitmap> tmprc = new ArrayList<MutableRoaringBitmap>();
             ArrayList<ConciseSet> tmpcc = new ArrayList<ConciseSet>();
+            ArrayList<EWAHCompressedBitmap> tmpewah = new ArrayList<EWAHCompressedBitmap>();
+            ArrayList<EWAHCompressedBitmap32> tmpewah32 = new ArrayList<EWAHCompressedBitmap32>();
 
             for (int[] data : dataRetriever.fetchBitPositions()) {
                 MutableRoaringBitmap mbasic = MutableRoaringBitmap.bitmapOf(data);
@@ -185,6 +192,8 @@ public class MappedRunContainerRealDataBenchmarkIterate {
                 tmpac.add(mbasic);
                 tmprc.add(mopti);
                 tmpcc.add(concise);
+                tmpewah.add(EWAHCompressedBitmap.bitmapOf(data));
+                tmpewah32.add(EWAHCompressedBitmap32.bitmapOf(data));
             }
             mrc = convertToImmutableRoaring(tmprc);
             mac = convertToImmutableRoaring(tmpac);
