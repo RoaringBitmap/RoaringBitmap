@@ -49,23 +49,27 @@ public class RealDataBenchmark {
         long basicSize = 0;
         long optiSize = 0;
         long conciseSize = 0;
+        long wahSize = 0;
 
         for (int[] data : dataRetriever.fetchBitPositions()) {
             RoaringBitmap basic = RoaringBitmap.bitmapOf(data);
             RoaringBitmap opti = basic.clone();
             opti.runOptimize();
             ConciseSet concise = toConcise(data);
+            ConciseSet w = toWAH(data);
 
             basicSize += SizeOf.deepSizeOf(basic);
             optiSize += SizeOf.deepSizeOf(opti);
             conciseSize += SizeOf.deepSizeOf(concise);
+            wahSize += SizeOf.deepSizeOf(w);
         }
 
         System.out.println();
         System.out.println("==============");
         System.out.println(dataset + " / Run size = " + SizeOf.humanReadable(optiSize)
                                    + " / normal size = " + SizeOf.humanReadable(basicSize)
-                                   + " / consize size = " + SizeOf.humanReadable(conciseSize));
+                                   + " / consize size = " + SizeOf.humanReadable(conciseSize)
+                                   + " / WAH size = " + SizeOf.humanReadable(wahSize));
         System.out.println("==============");
     }
 
@@ -76,5 +80,15 @@ public class RealDataBenchmark {
         }
         return ans;
     }
+
+
+    private static ConciseSet toWAH(int[] dat) {
+        ConciseSet ans = new ConciseSet(true);
+        for (int i : dat) {
+            ans.add(i);
+        }
+        return ans;
+    }
+
 
 }
