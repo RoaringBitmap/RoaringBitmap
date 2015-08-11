@@ -262,6 +262,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer add(short k) {
+        // TODO: it might be better and simpler to do return toBitmapOrArrayContainer(getCardinality()).add(k) 
         int index = bufferedUnsignedInterleavedBinarySearch(valueslength, 0, nbrruns, k);
         if(index >= 0) return this;// already there
         index = - index - 2;// points to preceding value, possibly -1
@@ -779,6 +780,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer iadd(int begin, int end) {
+        // TODO: it might be better and simpler to do return toBitmapOrArrayContainer(getCardinality()).iadd(begin,end)
         if((begin >= end) || (end > (1<<16))) {
             throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
         }

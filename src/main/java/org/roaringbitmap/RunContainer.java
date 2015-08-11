@@ -286,6 +286,7 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public Container add(short k) {
+        // TODO: it might be better and simpler to do return toBitmapOrArrayContainer(getCardinality()).add(k)
         int index = unsignedInterleavedBinarySearch(valueslength, 0, nbrruns, k);
         if(index >= 0) return this;// already there
         index = - index - 2;// points to preceding value, possibly -1
@@ -788,6 +789,7 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public Container iadd(int begin, int end) {
+        // TODO: it might be better and simpler to do return toBitmapOrArrayContainer(getCardinality()).iadd(begin,end)
         if((begin >= end) || (end > (1<<16))) {
             throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
         }
@@ -880,6 +882,7 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public Container iremove(int begin, int end) {
+        // TODO: it might be better and simpler to do return toBitmapOrArrayContainer(getCardinality()).iremove(begin,end)
         if((begin >= end) || (end > (1<<16))) {
             throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
         }
