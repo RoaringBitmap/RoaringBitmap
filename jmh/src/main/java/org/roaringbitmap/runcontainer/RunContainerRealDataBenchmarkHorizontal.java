@@ -44,7 +44,7 @@ public class RunContainerRealDataBenchmarkHorizontal {
     }
 
     @Benchmark
-    public int horizontalOr_RoaringWithRun(BenchmarkState benchmarkState) {
+    public int horizontalOr_naive_RoaringWithRun(BenchmarkState benchmarkState) {
         int answer = FastAggregation.naive_or(benchmarkState.rc.iterator())
                .getCardinality();
         if(answer != benchmarkState.horizontalor)
@@ -53,7 +53,7 @@ public class RunContainerRealDataBenchmarkHorizontal {
     }
 
     @Benchmark
-    public int horizontalOr_Roaring(BenchmarkState benchmarkState) {
+    public int horizontalOr_naive_Roaring(BenchmarkState benchmarkState) {
         int answer = FastAggregation.naive_or(benchmarkState.ac.iterator())
                .getCardinality();
         if(answer != benchmarkState.horizontalor)
@@ -61,7 +61,53 @@ public class RunContainerRealDataBenchmarkHorizontal {
         return answer;
     }
     
+    
 
+    @Benchmark
+    public int horizontalOr_RoaringWithRun(BenchmarkState benchmarkState) {
+        RoaringBitmap[] a = new RoaringBitmap[benchmarkState.rc.size()];
+        int answer = FastAggregation.or(benchmarkState.rc.toArray(a))
+               .getCardinality();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+
+    
+    @Benchmark
+    public int horizontalOr_Roaring(BenchmarkState benchmarkState) {
+        RoaringBitmap[] a = new RoaringBitmap[benchmarkState.ac.size()];
+        int answer = FastAggregation.or(benchmarkState.ac.toArray(a))
+               .getCardinality();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+
+    
+
+    @Benchmark
+    public int horizontalOr_horizontal_RoaringWithRun(BenchmarkState benchmarkState) {
+        RoaringBitmap[] a = new RoaringBitmap[benchmarkState.rc.size()];
+        int answer = FastAggregation.horizontal_or(benchmarkState.rc.toArray(a))
+               .getCardinality();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+
+    
+    @Benchmark
+    public int horizontalOr_horizontal_Roaring(BenchmarkState benchmarkState) {
+        RoaringBitmap[] a = new RoaringBitmap[benchmarkState.ac.size()];
+        int answer = FastAggregation.or(benchmarkState.ac.toArray(a))
+               .getCardinality();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+
+    
     @Benchmark
     public int horizontalOr_Concise(BenchmarkState benchmarkState) {
         ConciseSet bitmapor = benchmarkState.cc.get(0);

@@ -45,7 +45,7 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
     }
 
     @Benchmark
-    public int horizontalOr_RoaringWithRun(BenchmarkState benchmarkState) {
+    public int horizontalOr_naive_RoaringWithRun(BenchmarkState benchmarkState) {
         int answer = BufferFastAggregation.naive_or(benchmarkState.mrc.iterator())
                .getCardinality();
         if(answer != benchmarkState.expectedvalue)
@@ -55,7 +55,7 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
 
     
     @Benchmark
-    public int horizontalOr_Roaring(BenchmarkState benchmarkState) {
+    public int horizontalOr_naive_Roaring(BenchmarkState benchmarkState) {
         int answer = BufferFastAggregation.naive_or(benchmarkState.mac.iterator())
                .getCardinality();
         if(answer != benchmarkState.expectedvalue)
@@ -63,6 +63,50 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
         return answer;
     }
 
+
+    @Benchmark
+    public int horizontalOr_RoaringWithRun(BenchmarkState benchmarkState) {
+        ImmutableRoaringBitmap[] a = new ImmutableRoaringBitmap[benchmarkState.mrc.size()];
+        int answer = BufferFastAggregation.or(benchmarkState.mrc.toArray(a))
+               .getCardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+
+    
+    @Benchmark
+    public int horizontalOr_Roaring(BenchmarkState benchmarkState) {
+        ImmutableRoaringBitmap[] a = new ImmutableRoaringBitmap[benchmarkState.mac.size()];
+        int answer = BufferFastAggregation.or(benchmarkState.mac.toArray(a))
+               .getCardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+    
+
+
+    @Benchmark
+    public int horizontalOr_horizontal_RoaringWithRun(BenchmarkState benchmarkState) {
+        ImmutableRoaringBitmap[] a = new ImmutableRoaringBitmap[benchmarkState.mrc.size()];
+        int answer = BufferFastAggregation.horizontal_or(benchmarkState.mrc.toArray(a))
+               .getCardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+
+    
+    @Benchmark
+    public int horizontalOr_horizontal_Roaring(BenchmarkState benchmarkState) {
+        ImmutableRoaringBitmap[] a = new ImmutableRoaringBitmap[benchmarkState.mac.size()];
+        int answer = BufferFastAggregation.horizontal_or(benchmarkState.mac.toArray(a))
+               .getCardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return answer;
+    }
 
     @Benchmark
     public int horizontalOr_Concise(BenchmarkState benchmarkState) {
