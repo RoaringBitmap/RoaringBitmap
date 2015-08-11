@@ -84,7 +84,8 @@ public final class FastAggregation {
     public static RoaringBitmap naive_or(Iterator<RoaringBitmap> bitmaps) {
        RoaringBitmap answer = new RoaringBitmap();
        while(bitmaps.hasNext())
-           answer.or(bitmaps.next());
+           answer.lazyor(bitmaps.next());
+       answer.computeCardinality();
        return answer;
     }
     

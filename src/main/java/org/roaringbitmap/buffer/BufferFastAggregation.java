@@ -78,7 +78,8 @@ public final class BufferFastAggregation {
     public static MutableRoaringBitmap naive_or(@SuppressWarnings("rawtypes") Iterator bitmaps) {
        MutableRoaringBitmap answer = new MutableRoaringBitmap();
        while(bitmaps.hasNext())
-           answer.or((ImmutableRoaringBitmap) bitmaps.next());
+           answer.lazyor((ImmutableRoaringBitmap) bitmaps.next());
+       answer.computeCardinality();
        return answer;
     }
     
@@ -281,7 +282,8 @@ public final class BufferFastAggregation {
     @Deprecated
     public static MutableRoaringBitmap horizontal_or(
             @SuppressWarnings("rawtypes") Iterator bitmaps) {
-        MutableRoaringBitmap answer = new MutableRoaringBitmap();
+        return naive_or(bitmaps);
+        /*MutableRoaringBitmap answer = new MutableRoaringBitmap();
         if (!bitmaps.hasNext())
             return answer;
         PriorityQueue<MappeableContainerPointer> pq = new PriorityQueue<MappeableContainerPointer>();
@@ -327,7 +329,7 @@ public final class BufferFastAggregation {
             if (x2.getContainer() != null)
                 pq.add(x2);
         }
-        return answer;
+        return answer;*/
     }
     
     /**

@@ -936,7 +936,64 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             highLowContainer.appendCopy(x2.highLowContainer, pos2, length2);
         }
     }
+    
+    // to be used with lazyor
+    protected void computeCardinality() {
+        for(int k = 0; k < highLowContainer.size(); ++k) {
+            Container c = highLowContainer.getContainerAtIndex(k);
+            if(c.getCardinality() < 0) {
+                ((BitmapContainer)c).computeCardinality();
+            }
+        }
+    }
 
+    // don't forget to call computeCardinality() afterward
+    protected void lazyor(final RoaringBitmap x2) {
+        int pos1 = 0, pos2 = 0;
+        int length1 = highLowContainer.size();
+        final int length2 = x2.highLowContainer.size();
+        main:
+        if (pos1 < length1 && pos2 < length2) {
+            short s1 = highLowContainer.getKeyAtIndex(pos1);
+            short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+
+            while (true) {
+                if (s1 == s2) {
+                    this.highLowContainer.setContainerAtIndex(pos1, highLowContainer.getContainerAtIndex(
+                                    pos1).lazyIOR(x2.highLowContainer.getContainerAtIndex(pos2))
+                    );
+                    pos1++;
+                    pos2++;
+                    if ((pos1 == length1) || (pos2 == length2)) {
+                        break main;
+                    }
+                    s1 = highLowContainer.getKeyAtIndex(pos1);
+                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+                } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
+                    pos1++;
+                    if (pos1 == length1) {
+                        break main;
+                    }
+                    s1 = highLowContainer.getKeyAtIndex(pos1);
+                } else { // s1 > s2
+                    highLowContainer.insertNewKeyValueAt(pos1, s2, x2.highLowContainer.getContainerAtIndex(pos2)
+                    );
+                    pos1++;
+                    length1++;
+                    pos2++;
+                    if (pos2 == length2) {
+                        break main;
+                    }
+                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+                }
+            }
+        }
+        if (pos1 == length1) {
+            highLowContainer.appendCopy(x2.highLowContainer, pos2, length2);
+        }
+    }
+
+    
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         this.highLowContainer.readExternal(in);

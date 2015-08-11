@@ -873,6 +873,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer iremove(int begin, int end) {
+        // TODO: it might be better and simpler to do return toBitmapOrArrayContainer(getCardinality()).iremove(begin,end)
         if((begin >= end) || (end > (1<<16))) {
             throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
         }
