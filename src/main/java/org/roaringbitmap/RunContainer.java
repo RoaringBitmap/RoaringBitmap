@@ -157,7 +157,7 @@ public final class RunContainer extends Container implements Cloneable {
         BitmapContainer answer = new BitmapContainer();
         for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
             int start = Util.toIntUnsigned(this.getValue(rlepos));
-            int end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+            int end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
             Util.setBitmapRange(answer.bitmap, start, end); 
         }
         answer.cardinality = card;
@@ -188,7 +188,7 @@ public final class RunContainer extends Container implements Cloneable {
         BitmapContainer answer = new BitmapContainer();
         for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
             int start = Util.toIntUnsigned(this.getValue(rlepos));
-            int end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+            int end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
             Util.setBitmapRange(answer.bitmap, start, end); 
         }
         answer.cardinality = card;
@@ -396,7 +396,7 @@ public final class RunContainer extends Container implements Cloneable {
         for(int rlepos = 0; rlepos < this.nbrruns; ++rlepos ) {
             int end = Util.toIntUnsigned(this.getValue(rlepos));
             Util.resetBitmapRange(answer.bitmap, start, end);  // had been x.bitmap
-            start = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+            start = end + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
         }
         Util.resetBitmapRange(answer.bitmap, start, Util.maxLowBitAsInteger() + 1);   // had been x.bitmap
         answer.computeCardinality();
@@ -430,7 +430,7 @@ public final class RunContainer extends Container implements Cloneable {
         int lastPos = 0;
         for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
             int start = Util.toIntUnsigned(this.getValue(rlepos));
-            int end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+            int end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
             Util.resetBitmapRange(answer.bitmap, lastPos, start); 
             Util.flipBitmapRange(answer.bitmap, start, end);
             lastPos = end;
@@ -601,6 +601,11 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public Container or(ArrayContainer x) {
+        return lazyor(x).toEfficientContainer();
+    }
+
+
+    protected RunContainer lazyor(ArrayContainer x) {
         RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.getCardinality())]);
         int rlepos = 0;
         ShortIterator i = x.getShortIterator();
@@ -629,23 +634,22 @@ public final class RunContainer extends Container implements Cloneable {
                 } else cv = i.next();
             }
         }        
-        return answer.toEfficientContainer();
-
+        return answer;
     }
-
+    
     @Override
     public Container or(BitmapContainer x) {
         // could be implemented as  return toTemporaryBitmap().ior(x);
         BitmapContainer answer = x.clone();
         for(int rlepos = 0; rlepos < this.nbrruns; ++rlepos ) {
             int start = Util.toIntUnsigned(this.getValue(rlepos));
-            int end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+            int end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
             Util.setBitmapRange(answer.bitmap, start, end);
         }
         answer.computeCardinality();
         return answer;
     }
-
+    
     @Override
     public Container remove(short x) {
         int index = unsignedInterleavedBinarySearch(valueslength, 0, nbrruns, x);
@@ -727,7 +731,7 @@ public final class RunContainer extends Container implements Cloneable {
         BitmapContainer answer = x.clone();
         for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
             int start = Util.toIntUnsigned(this.getValue(rlepos));
-            int end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+            int end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
             Util.flipBitmapRange(answer.bitmap, start, end);
         }
         answer.computeCardinality();
@@ -1208,9 +1212,9 @@ public final class RunContainer extends Container implements Cloneable {
         int rlepos = 0;
         int xrlepos = 0;
         int start = Util.toIntUnsigned(this.getValue(rlepos));
-        int end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+        int end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
         int xstart = Util.toIntUnsigned(x.getValue(xrlepos));
-        int xend = Util.toIntUnsigned(x.getValue(xrlepos)) + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
+        int xend = xstart + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
         while ((rlepos < this.nbrruns ) && (xrlepos < x.nbrruns )) {
             if (end  <= xstart) {
                 if (ENABLE_GALLOPING_AND) {
@@ -1221,7 +1225,7 @@ public final class RunContainer extends Container implements Cloneable {
 
                 if(rlepos < this.nbrruns ) {
                     start = Util.toIntUnsigned(this.getValue(rlepos));
-                    end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+                    end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
                 }
             } else if (xend <= start) {
                 // exit the second run
@@ -1233,7 +1237,7 @@ public final class RunContainer extends Container implements Cloneable {
 
                 if(xrlepos < x.nbrruns ) {
                     xstart = Util.toIntUnsigned(x.getValue(xrlepos));
-                    xend = Util.toIntUnsigned(x.getValue(xrlepos)) + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                    xend = xstart + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
                 }
             } else {// they overlap
                 final int lateststart = start > xstart ? start : xstart;
@@ -1244,18 +1248,18 @@ public final class RunContainer extends Container implements Cloneable {
                     xrlepos++;
                     if(rlepos < this.nbrruns ) {
                         start = Util.toIntUnsigned(this.getValue(rlepos));
-                        end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+                        end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
                     }
                     if(xrlepos < x.nbrruns) {
                         xstart = Util.toIntUnsigned(x.getValue(xrlepos));
-                        xend = Util.toIntUnsigned(x.getValue(xrlepos)) + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                        xend = xstart + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
                     }
                 } else if(end < xend) {
                     earliestend = end;
                     rlepos++;
                     if(rlepos < this.nbrruns ) {
                         start = Util.toIntUnsigned(this.getValue(rlepos));
-                        end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+                        end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
                     }
 
                 } else {// end > xend
@@ -1263,7 +1267,7 @@ public final class RunContainer extends Container implements Cloneable {
                     xrlepos++;
                     if(xrlepos < x.nbrruns) {
                         xstart = Util.toIntUnsigned(x.getValue(xrlepos));
-                        xend = Util.toIntUnsigned(x.getValue(xrlepos)) + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                        xend = xstart + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
                     }                
                 }
                 answer.valueslength[2 * answer.nbrruns] = (short) lateststart;
@@ -1286,9 +1290,9 @@ public final class RunContainer extends Container implements Cloneable {
         int rlepos = 0;
         int xrlepos = 0;
         int start = Util.toIntUnsigned(this.getValue(rlepos));
-        int end = Util.toIntUnsigned(this.getValue(rlepos)) + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+        int end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
         int xstart = Util.toIntUnsigned(x.getValue(xrlepos));
-        int xend = Util.toIntUnsigned(x.getValue(xrlepos)) + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
+        int xend = xstart + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
         while ((rlepos < this.nbrruns ) && (xrlepos < x.nbrruns )) {
             if (end  <= xstart) {
                 // output the first run
@@ -1305,7 +1309,7 @@ public final class RunContainer extends Container implements Cloneable {
                 xrlepos++;
                 if(xrlepos < x.nbrruns ) {
                     xstart = Util.toIntUnsigned(x.getValue(xrlepos));
-                    xend = Util.toIntUnsigned(x.getValue(xrlepos)) + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                    xend = xstart + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
                 }
             } else {
                 if ( start < xstart ) {
@@ -1495,6 +1499,12 @@ public final class RunContainer extends Container implements Cloneable {
             }
         }       
         return answer.toEfficientContainer();
+    }
+
+
+    @Override
+    public Container repairAfterLazy() {
+        return toEfficientContainer();
     }
 
 }

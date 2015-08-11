@@ -862,13 +862,13 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         }
     }
     
+    
+
     // to be used with lazyor
-    protected void computeCardinality() {
+    protected void repairAfterLazy() {
         for(int k = 0; k < highLowContainer.size(); ++k) {
             MappeableContainer c = highLowContainer.getContainerAtIndex(k);
-            if(c.getCardinality() < 0) {
-                ((MappeableBitmapContainer)c).computeCardinality();
-            }
+            ((MutableRoaringArray)highLowContainer).setContainerAtIndex(k,c.repairAfterLazy());
         }
     }
 
@@ -1015,8 +1015,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
      *  Use a run-length encoding where it is estimated as more space efficient
      */
     public void runOptimize() {
-        for (int i = 0; i < this.highLowContainer.size(); i++)
-            getMappeableRoaringArray().setContainerAtIndex(i, getMappeableRoaringArray().getContainerAtIndex(i).runOptimize());
+        for (int i = 0; i < this.highLowContainer.size(); i++) {
+            MappeableContainer c = getMappeableRoaringArray().getContainerAtIndex(i).runOptimize();
+            getMappeableRoaringArray().setContainerAtIndex(i, c);
+        }
     }
 
 

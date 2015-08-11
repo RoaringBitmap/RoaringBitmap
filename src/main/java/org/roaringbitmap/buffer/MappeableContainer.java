@@ -418,11 +418,17 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      * @return aggregated container
      */
     public MappeableContainer lazyOR(MappeableContainer x) {
-        if ((this instanceof MappeableArrayContainer) || (this instanceof MappeableRunContainer)) {
+        if (this instanceof MappeableArrayContainer) {
             if (x instanceof MappeableArrayContainer)
                 return or((MappeableArrayContainer) x);
             else if (x instanceof MappeableBitmapContainer)
-                return or((MappeableBitmapContainer) x);
+                return ((MappeableBitmapContainer) x).lazyor((MappeableArrayContainer) this);
+            return ((MappeableRunContainer) x).lazyor((MappeableArrayContainer) this);
+        } else if (this instanceof MappeableRunContainer)  {
+            if (x instanceof MappeableArrayContainer)
+                return ((MappeableRunContainer)this).lazyor((MappeableArrayContainer) x);
+            else if (x instanceof MappeableBitmapContainer)
+                return ((MappeableBitmapContainer) x).lazyor((MappeableRunContainer)this);
             return or((MappeableRunContainer) x);
         } else {
             if (x instanceof MappeableArrayContainer)
@@ -448,11 +454,17 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      * @return aggregated container
      */    
     public MappeableContainer lazyIOR(MappeableContainer x) {
-        // Most times, "this" will be of type BitmapContainer
-        if ((this instanceof MappeableArrayContainer) || (this instanceof MappeableRunContainer)) {
+        if (this instanceof MappeableArrayContainer) {
             if (x instanceof MappeableArrayContainer)
                 return ior((MappeableArrayContainer) x);
-            else if (x instanceof MappeableBitmapContainer) return ior((MappeableBitmapContainer) x);
+            else if (x instanceof MappeableBitmapContainer) 
+                return ((MappeableBitmapContainer) x).lazyor((MappeableArrayContainer) this);
+            return ((MappeableRunContainer) x).lazyor((MappeableArrayContainer) this);
+        } else if (this instanceof MappeableRunContainer) {
+            if (x instanceof MappeableArrayContainer)
+                return ((MappeableRunContainer) this).lazyor((MappeableArrayContainer) x);
+            else if (x instanceof MappeableBitmapContainer) 
+                return ((MappeableBitmapContainer) x).lazyor((MappeableRunContainer) this);
             return ior((MappeableRunContainer) x);
         } else {
             if (x instanceof MappeableArrayContainer)
@@ -463,6 +475,13 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
     }
     
 
+    /**
+     * The output of a lazyOR or lazyIOR might be an invalid container, this
+     * should be called on it.
+     * @return a new valid container
+     */
+    public abstract MappeableContainer repairAfterLazy();
+    
 
 
   
@@ -670,8 +689,6 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
       */
 
      public MappeableContainer runOptimize() {
-         // TODO: this code could possibly be faster when the initial container is a bitmap
-         // TODO: should probably not convert if the container is a run container initially
          int numRuns = numberOfRuns();
          int sizeAsRunContainer = MappeableRunContainer.getArraySizeInBytes(numRuns);
          if (getArraySizeInBytes() > sizeAsRunContainer) {

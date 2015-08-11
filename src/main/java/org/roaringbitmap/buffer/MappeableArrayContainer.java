@@ -1238,6 +1238,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
             return BufferUtil.isBackedBySimpleArray(this.content);
         }
 
+        @Override
+        public MappeableContainer repairAfterLazy() {
+            return this;
+        }
+
 
 
 }

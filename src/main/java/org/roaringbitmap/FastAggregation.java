@@ -85,7 +85,7 @@ public final class FastAggregation {
        RoaringBitmap answer = new RoaringBitmap();
        while(bitmaps.hasNext())
            answer.lazyor(bitmaps.next());
-       answer.computeCardinality();
+       answer.repairAfterLazy();
        return answer;
     }
     
@@ -298,8 +298,7 @@ public final class FastAggregation {
         			pq.add(x);
         		else if (pq.isEmpty()) break;
         	}
-        	if(newc.getCardinality()<0)
-        	    ((BitmapContainer)newc).computeCardinality();
+        	newc = newc.repairAfterLazy();
         	answer.highLowContainer.append(x1.key(), newc);
         	x1.advance();
     		if(x1.getContainer() != null)

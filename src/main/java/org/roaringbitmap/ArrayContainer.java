@@ -922,6 +922,11 @@ public final class ArrayContainer extends Container implements Cloneable {
         return x.xor(this);
     }
 
+    @Override
+    public Container repairAfterLazy() {
+        return this;
+    }
+
 }
 
 

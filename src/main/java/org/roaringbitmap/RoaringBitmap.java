@@ -938,16 +938,14 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     }
     
     // to be used with lazyor
-    protected void computeCardinality() {
+    protected void repairAfterLazy() {
         for(int k = 0; k < highLowContainer.size(); ++k) {
             Container c = highLowContainer.getContainerAtIndex(k);
-            if(c.getCardinality() < 0) {
-                ((BitmapContainer)c).computeCardinality();
-            }
+            highLowContainer.setContainerAtIndex(k,c.repairAfterLazy());
         }
     }
 
-    // don't forget to call computeCardinality() afterward
+    // don't forget to call repairAfterLazy() afterward
     protected void lazyor(final RoaringBitmap x2) {
         int pos1 = 0, pos2 = 0;
         int length1 = highLowContainer.size();
@@ -1144,8 +1142,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      *  Use a run-length encoding where it is more space efficient
      */
     public void runOptimize() {
-        for (int i = 0; i < this.highLowContainer.size(); i++)
-            this.highLowContainer.setContainerAtIndex(i, this.highLowContainer.getContainerAtIndex(i).runOptimize());
+        for (int i = 0; i < this.highLowContainer.size(); i++) {
+            Container c = this.highLowContainer.getContainerAtIndex(i).runOptimize();
+            this.highLowContainer.setContainerAtIndex(i, c);
+        }
     }
 
     @Override

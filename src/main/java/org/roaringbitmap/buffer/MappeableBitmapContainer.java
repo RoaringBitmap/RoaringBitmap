@@ -551,7 +551,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
         for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
             int end = BufferUtil.toIntUnsigned(x.getValue(rlepos));
             BufferUtil.resetBitmapRange(this.bitmap, start, end);
-            start = BufferUtil.toIntUnsigned(x.getValue(rlepos)) + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
+            start = end + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
         }
         BufferUtil.resetBitmapRange(this.bitmap, start, BufferUtil.maxLowBitAsInteger() + 1);
         computeCardinality();
@@ -635,7 +635,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
          */
         for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
             int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
-            int end = BufferUtil.toIntUnsigned(x.getValue(rlepos))
+            int end = start
                     + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
             BufferUtil.resetBitmapRange(this.bitmap, start, end);
         }
@@ -720,7 +720,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
          */
         for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
             int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
-            int end = BufferUtil.toIntUnsigned(x.getValue(rlepos)) + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
+            int end = start + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
             BufferUtil.setBitmapRange(this.bitmap, start, end);
         }
         computeCardinality();
@@ -844,7 +844,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
         */
      for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
             int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
-            int end = BufferUtil.toIntUnsigned(x.getValue(rlepos)) + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
+            int end = start + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
             BufferUtil.flipBitmapRange(this.bitmap, start, end);
         }
         computeCardinality();
@@ -1366,7 +1366,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
         bc.cardinality = -1;
         for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
             int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
-            int end = BufferUtil.toIntUnsigned(x.getValue(rlepos)) + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
+            int end = start + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
             BufferUtil.setBitmapRange(bc.bitmap, start, end);
         }
         return bc;
@@ -1375,7 +1375,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
     protected MappeableContainer ilazyor(MappeableRunContainer x) {
         for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
             int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
-            int end = BufferUtil.toIntUnsigned(x.getValue(rlepos)) + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
+            int end = start + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
             BufferUtil.setBitmapRange(this.bitmap, start, end);
         }
         this.cardinality = -1;
@@ -1387,7 +1387,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
     /**
      * Recomputes the cardinality of the bitmap.
      */    
-    public void computeCardinality() {
+    protected void computeCardinality() {
         this.cardinality = 0;
         if (BufferUtil.isBackedBySimpleArray(bitmap)) {
             long[] b = this.bitmap.array();
@@ -1544,6 +1544,13 @@ public final class MappeableBitmapContainer extends MappeableContainer
         if (answer.getCardinality() < MappeableArrayContainer.DEFAULT_MAX_SIZE)
             return answer.toArrayContainer();
         return answer;
+    }
+
+    @Override
+    public MappeableContainer repairAfterLazy() {
+        if(getCardinality() < 0)
+            computeCardinality();
+        return this;
     }
 }
 

@@ -117,7 +117,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     	MappeableBitmapContainer answer = new MappeableBitmapContainer();
         for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
             int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-            int end = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+            int end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
             BufferUtil.setBitmapRange(answer.bitmap, start, end); 
         }
         answer.cardinality = card;
@@ -157,7 +157,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         MappeableBitmapContainer answer = new MappeableBitmapContainer();
         for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
             int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-            int end = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+            int end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
             BufferUtil.setBitmapRange(answer.bitmap, start, end); 
         }
         answer.cardinality = card;
@@ -371,7 +371,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         for(int rlepos = 0; rlepos < this.nbrruns; ++rlepos ) {
             int end = BufferUtil.toIntUnsigned(this.getValue(rlepos));
             BufferUtil.resetBitmapRange(answer.bitmap, start, end);  
-            start = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+            start = end + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
         }
         BufferUtil.resetBitmapRange(answer.bitmap, start, BufferUtil.maxLowBitAsInteger() + 1); 
         answer.computeCardinality();
@@ -406,7 +406,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         int lastPos = 0;
         for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
             int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-            int end = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+            int end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
             BufferUtil.resetBitmapRange(answer.bitmap, lastPos, start); 
             BufferUtil.flipBitmapRange(answer.bitmap, start, end);
             lastPos = end;
@@ -578,6 +578,10 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer or(MappeableArrayContainer x) {
+        return lazyor(x).toEfficientContainer();
+    }
+
+    protected MappeableRunContainer lazyor(MappeableArrayContainer x) {
         MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.getCardinality())));
         short[] vl = answer.valueslength.array();
         int rlepos = 0;
@@ -607,15 +611,16 @@ public final class MappeableRunContainer extends MappeableContainer implements C
                 } else cv = i.next();
             }
         }        
-        return answer.toEfficientContainer();
+        return answer;
     }
 
+    
     @Override
     public MappeableContainer or(MappeableBitmapContainer x) {
         MappeableBitmapContainer answer = x.clone();
         for(int rlepos = 0; rlepos < this.nbrruns; ++rlepos ) {
             int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-            int end = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+            int end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
             BufferUtil.setBitmapRange(answer.bitmap, start, end);
         }
         answer.computeCardinality();
@@ -712,7 +717,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         MappeableBitmapContainer answer = x.clone();
         for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
             int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-            int end = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+            int end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
             BufferUtil.flipBitmapRange(answer.bitmap, start, end);
         }
         answer.computeCardinality();
@@ -1156,23 +1161,23 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         int rlepos = 0;
         int xrlepos = 0;
         int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-        int end = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+        int end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
         int xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
-        int xend = BufferUtil.toIntUnsigned(x.getValue(xrlepos)) + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
+        int xend = xstart + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
         while ((rlepos < this.nbrruns ) && (xrlepos < x.nbrruns )) {
             if (end  <= xstart) {
                 // exit the first run
                 rlepos++;
                 if(rlepos < this.nbrruns ) {
                     start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-                    end = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+                    end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
                 }
             } else if (xend <= start) {
                 // exit the second run
                 xrlepos++;
                 if(xrlepos < x.nbrruns ) {
                     xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
-                    xend = BufferUtil.toIntUnsigned(x.getValue(xrlepos)) + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                    xend = xstart + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
                 }
             } else {// they overlap
                 final int lateststart = start > xstart ? start : xstart;
@@ -1183,18 +1188,18 @@ public final class MappeableRunContainer extends MappeableContainer implements C
                     xrlepos++;
                     if(rlepos < this.nbrruns ) {
                         start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-                        end = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+                        end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
                     }
                     if(xrlepos < x.nbrruns) {
                         xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
-                        xend = BufferUtil.toIntUnsigned(x.getValue(xrlepos)) + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                        xend = xstart + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
                     }
                 } else if(end < xend) {
                     earliestend = end;
                     rlepos++;
                     if(rlepos < this.nbrruns ) {
                         start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-                        end = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+                        end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
                     }
 
                 } else {// end > xend
@@ -1202,7 +1207,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
                     xrlepos++;
                     if(xrlepos < x.nbrruns) {
                         xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
-                        xend = BufferUtil.toIntUnsigned(x.getValue(xrlepos)) + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                        xend = xstart + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
                     }                
                 }
                 vl[2 * answer.nbrruns] = (short) lateststart;
@@ -1221,9 +1226,9 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         int rlepos = 0;
         int xrlepos = 0;
         int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-        int end = BufferUtil.toIntUnsigned(this.getValue(rlepos)) + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+        int end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
         int xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
-        int xend = BufferUtil.toIntUnsigned(x.getValue(xrlepos)) + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
+        int xend = xstart + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
         while ((rlepos < this.nbrruns ) && (xrlepos < x.nbrruns )) {
             if (end  <= xstart) {
                 // output the first run
@@ -1240,7 +1245,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
                 xrlepos++;
                 if(xrlepos < x.nbrruns ) {
                     xstart = BufferUtil.toIntUnsigned(x.getValue(xrlepos));
-                    xend = BufferUtil.toIntUnsigned(x.getValue(xrlepos)) + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                    xend = xstart + BufferUtil.toIntUnsigned(x.getLength(xrlepos)) + 1;
                 }
             } else {
                 if ( start < xstart ) {
@@ -1450,6 +1455,12 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         }        
         return answer.toEfficientContainer();
     }
+
+    @Override
+    public MappeableContainer repairAfterLazy() {
+        return toEfficientContainer();
+    }
+
 
 }
 

@@ -79,7 +79,7 @@ public final class BufferFastAggregation {
        MutableRoaringBitmap answer = new MutableRoaringBitmap();
        while(bitmaps.hasNext())
            answer.lazyor((ImmutableRoaringBitmap) bitmaps.next());
-       answer.computeCardinality();
+       answer.repairAfterLazy();
        return answer;
     }
     
@@ -393,8 +393,7 @@ public final class BufferFastAggregation {
                 else if (pq.isEmpty())
                     break;
             }
-            if(newc.getCardinality()<0)
-                ((MappeableBitmapContainer)newc).computeCardinality();
+            newc = newc.repairAfterLazy();
             answer.getMappeableRoaringArray().append(x1.key(), newc);
             x1.advance();
             if (x1.getContainer() != null)

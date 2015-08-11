@@ -996,7 +996,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     /**
      * Recomputes the cardinality of the bitmap.
      */
-    public void computeCardinality() {
+    protected void computeCardinality() {
         this.cardinality = 0;
         for (int k = 0; k < this.bitmap.length; k++) {
             this.cardinality += Long.bitCount(this.bitmap[k]);
@@ -1120,7 +1120,7 @@ public final class BitmapContainer extends Container implements Cloneable {
         bc.cardinality = -1; // invalid
         for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
             int start = Util.toIntUnsigned(x.getValue(rlepos));
-            int end = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
+            int end = start + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
             Util.setBitmapRange(bc.bitmap, start, end);
         }
         return bc;
@@ -1131,7 +1131,7 @@ public final class BitmapContainer extends Container implements Cloneable {
         cardinality = -1; // invalid
         for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
             int start = Util.toIntUnsigned(x.getValue(rlepos));
-            int end = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
+            int end = start + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
             Util.setBitmapRange(this.bitmap, start, end);
         }
         return this;
@@ -1148,7 +1148,7 @@ public final class BitmapContainer extends Container implements Cloneable {
         BitmapContainer answer = this.clone();
         for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
             int start = Util.toIntUnsigned(x.getValue(rlepos));
-            int end = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
+            int end = start + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
             Util.resetBitmapRange(answer.bitmap, start, end);
         }
         answer.computeCardinality();
@@ -1180,7 +1180,7 @@ public final class BitmapContainer extends Container implements Cloneable {
         for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
             int end = Util.toIntUnsigned(x.getValue(rlepos));
             Util.resetBitmapRange(this.bitmap, start, end);
-            start = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
+            start = end + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
         }
         Util.resetBitmapRange(this.bitmap, start, Util.maxLowBitAsInteger() + 1);
         computeCardinality();
@@ -1194,7 +1194,7 @@ public final class BitmapContainer extends Container implements Cloneable {
         // could probably be replaced with return iandNot(x.toBitmapOrArrayContainer()); 
         for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
             int start = Util.toIntUnsigned(x.getValue(rlepos));
-            int end = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
+            int end = start + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
             Util.resetBitmapRange(this.bitmap, start, end);
         }
         computeCardinality();
@@ -1208,7 +1208,7 @@ public final class BitmapContainer extends Container implements Cloneable {
         // could probably be replaced with return ior(x.toBitmapOrArrayContainer()); 
         for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
             int start = Util.toIntUnsigned(x.getValue(rlepos));
-            int end = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
+            int end = start + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
             Util.setBitmapRange(this.bitmap, start, end);
         }
         computeCardinality();
@@ -1220,7 +1220,7 @@ public final class BitmapContainer extends Container implements Cloneable {
         // could probably be replaced with return ixor(x.toBitmapOrArrayContainer()); 
         for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
             int start = Util.toIntUnsigned(x.getValue(rlepos));
-            int end = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
+            int end = start + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
             Util.flipBitmapRange(this.bitmap, start, end);
         }
         computeCardinality();
@@ -1237,6 +1237,13 @@ public final class BitmapContainer extends Container implements Cloneable {
     @Override
     public Container xor(RunContainer x) {
         return x.xor(this);
+    }
+
+    @Override
+    public Container repairAfterLazy() {
+        if(getCardinality() < 0)
+            computeCardinality();
+        return this;
     }
 }
 

@@ -448,10 +448,17 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      * @return aggregated container
      */
     public Container lazyOR(Container x) {
-        if ((this instanceof ArrayContainer) || (this instanceof RunContainer)) {
+        if (this instanceof ArrayContainer) {
             if (x instanceof ArrayContainer)
                 return or((ArrayContainer) x);
-            else if (x instanceof BitmapContainer) return or((BitmapContainer) x);
+            else if (x instanceof BitmapContainer) 
+                return ((BitmapContainer)x).lazyor((ArrayContainer) this);
+            return ((RunContainer) x).lazyor((ArrayContainer) this);
+        } else if (this instanceof RunContainer) {
+            if (x instanceof ArrayContainer)
+                return ((RunContainer)this).lazyor((ArrayContainer) x);
+            else if (x instanceof BitmapContainer) 
+                return ((BitmapContainer) x).lazyor((RunContainer) this);
             return or((RunContainer) x);
         } else  {
             if (x instanceof ArrayContainer)
@@ -473,10 +480,14 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      * @return aggregated container
      */
     public Container lazyIOR(Container x) {
-        // Most times, "this" will be of type BitmapContainer
-        if ((this instanceof ArrayContainer) || (this instanceof RunContainer)) {
+        if (this instanceof ArrayContainer) {
             if (x instanceof ArrayContainer)
                 return ior((ArrayContainer) x);
+            else if (x instanceof BitmapContainer) return ior((BitmapContainer) x);
+            return ((RunContainer) x).lazyor((ArrayContainer) this);
+        } else if (this instanceof RunContainer) {
+            if (x instanceof ArrayContainer)
+                return ((RunContainer) this).lazyor((ArrayContainer) x);
             else if (x instanceof BitmapContainer) return ior((BitmapContainer) x);
             return ior((RunContainer) x);
         } else {
@@ -486,6 +497,13 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
             return ((BitmapContainer)this).ilazyor((RunContainer) x);
         }
     }
+    
+    /**
+     * The output of a lazyOR or lazyIOR might be an invalid container, this
+     * should be called on it.
+     * @return a new valid container
+     */
+    public abstract Container repairAfterLazy();
     
     /**
      * Computes the bitwise NOT of this container (complement). Only those
