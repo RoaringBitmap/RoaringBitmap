@@ -28,7 +28,6 @@ import org.roaringbitmap.ZipRealDataRetriever;
 import org.roaringbitmap.buffer.BufferFastAggregation;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
-import org.roaringbitmap.runcontainer.RunContainerRealDataBenchmarkHorizontal.BenchmarkState;
 
 import com.googlecode.javaewah.EWAHCompressedBitmap;
 import com.googlecode.javaewah32.EWAHCompressedBitmap32;
@@ -75,21 +74,22 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
     }
     @Benchmark
     public int horizontalOr_EWAH(BenchmarkState benchmarkState) {
-        EWAHCompressedBitmap bitmapor = benchmarkState.ewah.get(0);
-        for (int j = 1; j < benchmarkState.ewah.size() ; ++j) {
-            bitmapor = bitmapor.or(benchmarkState.ewah.get(j));
-        }
+        EWAHCompressedBitmap[] a = new EWAHCompressedBitmap[benchmarkState.ewah.size()];
+        EWAHCompressedBitmap bitmapor = EWAHCompressedBitmap.or(benchmarkState.ewah.toArray(a)); 
         int answer = bitmapor.cardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
         return answer;
+
     }
 
     @Benchmark
     public int horizontalOr_EWAH32(BenchmarkState benchmarkState) {
-        EWAHCompressedBitmap32 bitmapor = benchmarkState.ewah32.get(0);
-        for (int j = 1; j < benchmarkState.ewah32.size() ; ++j) {
-            bitmapor = bitmapor.or(benchmarkState.ewah32.get(j));
-        }
+        EWAHCompressedBitmap32[] a = new EWAHCompressedBitmap32[benchmarkState.ewah32.size()];
+        EWAHCompressedBitmap32 bitmapor = EWAHCompressedBitmap32.or(benchmarkState.ewah32.toArray(a)); 
         int answer = bitmapor.cardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
         return answer;
     }
 
@@ -279,6 +279,7 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
             if(expectedvalue != mexpected)
                 throw new RuntimeException("bug");
 
+            
         }
 
     }

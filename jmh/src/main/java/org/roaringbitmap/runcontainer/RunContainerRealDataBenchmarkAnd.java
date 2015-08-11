@@ -86,7 +86,7 @@ public class RunContainerRealDataBenchmarkAnd {
     public int pairwiseAnd_EWAH(BenchmarkState benchmarkState) {
         int total = 0;
         for(int k = 0; k + 1 < benchmarkState.ewah.size(); ++k)
-            total += EWAHCompressedBitmap.and(benchmarkState.ewah.get(k),benchmarkState.ewah.get(k+1)).cardinality();
+            total += benchmarkState.ewah.get(k).and(benchmarkState.ewah.get(k+1)).cardinality();
         if(total !=benchmarkState.totaland )
             throw new RuntimeException("bad pairwise and result");
         return total;
@@ -96,7 +96,7 @@ public class RunContainerRealDataBenchmarkAnd {
     public int pairwiseAnd_EWAH32(BenchmarkState benchmarkState) {
         int total = 0;
         for(int k = 0; k + 1 < benchmarkState.ewah32.size(); ++k)
-            total += EWAHCompressedBitmap32.and(benchmarkState.ewah32.get(k),benchmarkState.ewah32.get(k+1)).cardinality();
+            total += benchmarkState.ewah32.get(k).and(benchmarkState.ewah32.get(k+1)).cardinality();
         if(total !=benchmarkState.totaland )
             throw new RuntimeException("bad pairwise and result");
         return total;

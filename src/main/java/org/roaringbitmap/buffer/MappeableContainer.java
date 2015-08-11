@@ -45,9 +45,6 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
         MappeableContainer answer = new MappeableRunContainer();
         answer = answer.iadd(start, last);
         return answer;
-        /*if (last - start  > MappeableArrayContainer.DEFAULT_MAX_SIZE)
-            return new MappeableBitmapContainer(start, last);
-        return new MappeableArrayContainer(start, last);*/
     }
 
     /**

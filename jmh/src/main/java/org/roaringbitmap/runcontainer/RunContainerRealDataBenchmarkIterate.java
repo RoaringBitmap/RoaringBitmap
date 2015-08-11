@@ -18,7 +18,6 @@ import org.openjdk.jmh.annotations.State;
 import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.ZipRealDataRetriever;
-import org.roaringbitmap.runcontainer.RunContainerRealDataBenchmarkAndNot.BenchmarkState;
 
 import com.googlecode.javaewah.EWAHCompressedBitmap;
 import com.googlecode.javaewah32.EWAHCompressedBitmap32;

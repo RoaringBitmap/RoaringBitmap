@@ -13,6 +13,9 @@ import java.util.Iterator;
 /**
  * This container takes the form of runs of consecutive values (effectively,
  * run-length encoding).
+ * 
+ * Adding and removing content from this container might make it wasteful
+ * so regular calls to "runOptimize" might be warranted.
  */
 public final class RunContainer extends Container implements Cloneable {
     private static final int DEFAULT_INIT_SIZE = 4;
@@ -326,7 +329,7 @@ public final class RunContainer extends Container implements Cloneable {
         makeRoomAtIndex(index + 1); 
         setValue(index + 1, k);
         setLength(index + 1, (short) 0);
-        return this.toEfficientContainer();
+        return this;
     }
 
     @Override
@@ -668,7 +671,7 @@ public final class RunContainer extends Container implements Cloneable {
                 makeRoomAtIndex(index+1); 
                 this.setValue(index+1, (short) newvalue);
                 this.setLength(index+1, (short) newlength);
-                return this.toEfficientContainer();
+                return this;
 
             } else if(offset == le) {
                 decrementLength(index);
@@ -785,8 +788,6 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public Container iadd(int begin, int end) {
-        // TODO: should check whether we need to revert back to bitmap or array at the end
-        // TODO: hint: if you create a new small run, you may need to check
         if((begin >= end) || (end > (1<<16))) {
             throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
         }
@@ -879,8 +880,6 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public Container iremove(int begin, int end) {
-        // TODO: should check whether we need to revert back to bitmap or array at the end
-        // TODO: hint: if you create a new small run, you may need to check
         if((begin >= end) || (end > (1<<16))) {
             throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
         }

@@ -1,5 +1,6 @@
 package org.roaringbitmap;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.*;
@@ -15,6 +16,16 @@ import static org.roaringbitmap.ArrayContainer.DEFAULT_MAX_SIZE;
 
 public class TestRunContainer {
 
+    @Test
+    public void testAndNot() {
+        int[] array1 = {39173,39174,39175,39176,39177,39178,39179,39180,39181,39182,39183,39184,39185,39186,39187,39188};
+        int[] array2 = {14205};
+        RoaringBitmap rb1 = RoaringBitmap.bitmapOf(array1);
+        rb1.runOptimize();
+        RoaringBitmap rb2 = RoaringBitmap.bitmapOf(array2);
+        RoaringBitmap answer = RoaringBitmap.andNot(rb1,rb2);
+        Assert.assertEquals(answer.getCardinality() , array1.length);
+    }
     // @Test
     // public void remove() {
     //     Container rc = new RunContainer();

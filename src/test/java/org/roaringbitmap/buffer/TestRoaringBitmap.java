@@ -23,6 +23,17 @@ import java.util.*;
  */
 @SuppressWarnings({"static-method"})
 public class TestRoaringBitmap {
+    
+    
+    @Test
+    public void testAndNot() {
+        int[] array1 = {39173,39174,39175,39176,39177,39178,39179,39180,39181,39182,39183,39184,39185,39186,39187,39188};
+        int[] array2 = {14205};
+        MutableRoaringBitmap rb1 = MutableRoaringBitmap.bitmapOf(array1);
+        MutableRoaringBitmap rb2 = MutableRoaringBitmap.bitmapOf(array2);
+        MutableRoaringBitmap answer = MutableRoaringBitmap.andNot(rb1,rb2);
+        Assert.assertEquals(answer.getCardinality() , array1.length);
+    }
 	
 	@Test
 	public void testEqual() {

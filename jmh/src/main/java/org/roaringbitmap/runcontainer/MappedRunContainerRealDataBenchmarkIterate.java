@@ -87,6 +87,32 @@ public class MappedRunContainerRealDataBenchmarkIterate {
         return total;
     }
 
+    @Benchmark
+    public int iterate_EWAH(BenchmarkState benchmarkState) {
+        int total = 0;
+        for(int k = 0; k < benchmarkState.ewah.size(); ++k) {
+            com.googlecode.javaewah.IntIterator i = benchmarkState.ewah.get(k).intIterator();
+            while(i.hasNext())
+                total += i.next();             
+        }
+        if(total != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return total;
+    }
+
+    @Benchmark
+    public int iterate_EWAH32(BenchmarkState benchmarkState) {
+        int total = 0;
+        for(int k = 0; k < benchmarkState.ewah32.size(); ++k) {
+            com.googlecode.javaewah.IntIterator i = benchmarkState.ewah32.get(k).intIterator();
+            while(i.hasNext())
+                total += i.next();             
+        }
+        if(total != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return total;
+    }
+
 
     @State(Scope.Benchmark)
     public static class BenchmarkState {
@@ -171,7 +197,59 @@ public class MappedRunContainerRealDataBenchmarkIterate {
             return answer;
         }
 
+        public List<EWAHCompressedBitmap> convertToImmutableEWAH(List<EWAHCompressedBitmap> source) throws IOException {
+            System.out.println("Setting up memory-mapped file. (Can take some time.)");
+            File tmpfile = File.createTempFile("ewah", "bin");
+            tmpfile.deleteOnExit();
+            final FileOutputStream fos = new FileOutputStream(tmpfile);
+            final DataOutputStream dos = new DataOutputStream(fos);
+            for(EWAHCompressedBitmap cc : source) 
+                cc.serialize(dos);
+            final long totalcount = fos.getChannel().position();
+            System.out.println("[concise] Wrote " + totalcount / 1024 + " KB");
+            dos.close();
+            RandomAccessFile  memoryMappedFile = new RandomAccessFile(tmpfile, "r");
+            ByteBuffer out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, totalcount);
+            ArrayList<EWAHCompressedBitmap> answer = new ArrayList<EWAHCompressedBitmap>(source.size());
+            while(out.position() < out.limit()) {
+                final ByteBuffer bb = out.slice();
+                EWAHCompressedBitmap equiv = source.get(answer.size());
+                EWAHCompressedBitmap newbitmap = new EWAHCompressedBitmap(bb);       
+                if(!equiv.equals(newbitmap)) throw new RuntimeException("bitmaps do not match");
+                answer.add(newbitmap);
+                out.position(out.position() + newbitmap.serializedSizeInBytes());
+            }
+            memoryMappedFile.close();
+            return answer;
+        }
+
+        public List<EWAHCompressedBitmap32> convertToImmutableEWAH32(List<EWAHCompressedBitmap32> source) throws IOException {
+            System.out.println("Setting up memory-mapped file. (Can take some time.)");
+            File tmpfile = File.createTempFile("ewah", "bin");
+            tmpfile.deleteOnExit();
+            final FileOutputStream fos = new FileOutputStream(tmpfile);
+            final DataOutputStream dos = new DataOutputStream(fos);
+            for(EWAHCompressedBitmap32 cc : source) 
+                cc.serialize(dos);
+            final long totalcount = fos.getChannel().position();
+            System.out.println("[concise] Wrote " + totalcount / 1024 + " KB");
+            dos.close();
+            RandomAccessFile  memoryMappedFile = new RandomAccessFile(tmpfile, "r");
+            ByteBuffer out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, totalcount);
+            ArrayList<EWAHCompressedBitmap32> answer = new ArrayList<EWAHCompressedBitmap32>(source.size());
+            while(out.position() < out.limit()) {
+                final ByteBuffer bb = out.slice();
+                EWAHCompressedBitmap32 equiv = source.get(answer.size());
+                EWAHCompressedBitmap32 newbitmap = new EWAHCompressedBitmap32(bb);       
+                if(!equiv.equals(newbitmap)) throw new RuntimeException("bitmaps do not match");
+                answer.add(newbitmap);
+                out.position(out.position() + newbitmap.serializedSizeInBytes());
+            }
+            memoryMappedFile.close();
+            return answer;
+        }
                 
+
                 
         @Setup
         public void setup() throws Exception {
@@ -198,6 +276,9 @@ public class MappedRunContainerRealDataBenchmarkIterate {
             mrc = convertToImmutableRoaring(tmprc);
             mac = convertToImmutableRoaring(tmpac);
             cc = convertToImmutableConcise(tmpcc);
+            ewah = convertToImmutableEWAH(tmpewah);
+            ewah32 = convertToImmutableEWAH32(tmpewah32);
+
             if((mrc.size() != mac.size()) || (mac.size() != cc.size()))
                 throw new RuntimeException("number of bitmaps do not match.");
             expectedvalue = 0;

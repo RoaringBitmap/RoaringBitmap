@@ -27,7 +27,6 @@ import org.openjdk.jmh.annotations.State;
 import org.roaringbitmap.ZipRealDataRetriever;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
-import org.roaringbitmap.runcontainer.RunContainerRealDataBenchmarkAnd.BenchmarkState;
 
 import com.googlecode.javaewah.EWAHCompressedBitmap;
 import com.googlecode.javaewah32.EWAHCompressedBitmap32;
@@ -81,6 +80,8 @@ public class MappedRunContainerRealDataBenchmarkAnd {
         int total = 0;
         for(int k = 0; k + 1 < benchmarkState.ewah.size(); ++k)
             total += benchmarkState.ewah.get(k).and(benchmarkState.ewah.get(k+1)).cardinality();
+        if(total != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
         return total;
     }
 
@@ -89,6 +90,8 @@ public class MappedRunContainerRealDataBenchmarkAnd {
         int total = 0;
         for(int k = 0; k + 1 < benchmarkState.ewah32.size(); ++k)
             total += benchmarkState.ewah32.get(k).and(benchmarkState.ewah32.get(k+1)).cardinality();
+        if(total != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
         return total;
     }
 

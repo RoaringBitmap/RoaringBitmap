@@ -87,6 +87,25 @@ public class RunContainerRealDataBenchmarkOr {
          return total;
      }
 
+     @Benchmark
+     public int pairwiseOr_EWAH(BenchmarkState benchmarkState) {
+         int total = 0;
+         for(int k = 0; k + 1 < benchmarkState.ewah.size(); ++k)
+             total += benchmarkState.ewah.get(k).or(benchmarkState.ewah.get(k+1)).cardinality();
+         if(total !=benchmarkState.totalor )
+             throw new RuntimeException("bad pairwise and result");
+         return total;
+     }
+
+     @Benchmark
+     public int pairwiseOr_EWAH32(BenchmarkState benchmarkState) {
+         int total = 0;
+         for(int k = 0; k + 1 < benchmarkState.ewah32.size(); ++k)
+             total += benchmarkState.ewah32.get(k).or(benchmarkState.ewah32.get(k+1)).cardinality();
+         if(total !=benchmarkState.totalor )
+             throw new RuntimeException("bad pairwise and result");
+         return total;
+     }
 
     @State(Scope.Benchmark)
     public static class BenchmarkState {

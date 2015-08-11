@@ -279,7 +279,7 @@ public final class Util {
             if (toIntUnsigned(v1) < toIntUnsigned(v2)) {
                 buffer[pos++] = v1;
                 if (! set1.hasNext()) {
-                    break;
+                    return pos;
                 }
                 v1 = set1.next();
             } else if (v1 == v2) {
@@ -295,12 +295,12 @@ public final class Util {
                 v2 = set2.next();
             } else {// if (val1>val2)
                 if (!set2.hasNext()) {
+                    buffer[pos++] = v1;
                     while(set1.hasNext())
                         buffer[pos++] = set1.next();
                     return pos;
                 }
-                v2 = set2.next();
-                
+                v2 = set2.next();                
             }
         }
         return pos;

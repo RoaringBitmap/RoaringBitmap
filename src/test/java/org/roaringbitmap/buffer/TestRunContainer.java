@@ -1,5 +1,6 @@
 package org.roaringbitmap.buffer;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
 
+import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.ShortIterator;
 
 import static org.junit.Assert.*;
@@ -16,6 +18,17 @@ import static org.roaringbitmap.buffer.MappeableArrayContainer.DEFAULT_MAX_SIZE;
 
 public class TestRunContainer {
 
+    @Test
+    public void testAndNot() {
+        int[] array1 = {39173,39174,39175,39176,39177,39178,39179,39180,39181,39182,39183,39184,39185,39186,39187,39188};
+        int[] array2 = {14205};
+        MutableRoaringBitmap rb1 = MutableRoaringBitmap.bitmapOf(array1);
+        rb1.runOptimize();
+        MutableRoaringBitmap rb2 = MutableRoaringBitmap.bitmapOf(array2);
+        MutableRoaringBitmap answer = MutableRoaringBitmap.andNot(rb1,rb2);
+        Assert.assertEquals(answer.getCardinality() , array1.length);
+    }
+    
     @Test
     public void remove() {
         MappeableContainer rc = new MappeableRunContainer();
@@ -1198,121 +1211,12 @@ public class TestRunContainer {
 
 
     @Test
-    public void basic() {
-        MappeableRunContainer x = new MappeableRunContainer();
-        for(int k = 0; k < (1<<16);++k) {
-            assertFalse(x.contains((short)k));
-        }
-        for(int k = 0; k < (1<<16);++k) {
-            assertFalse(x.contains((short)k));
-            x = (MappeableRunContainer)x.add((short)k);
-            assertEquals(k+1,x.getCardinality());
-            assertTrue(x.contains((short)k));
-        }
-        for(int k = 0; k < (1<<16);++k) {
-            assertTrue(x.contains((short)k));
-        }
-        for(int k = 0; k < (1<<16);++k) {
-            assertTrue(x.contains((short)k));
-            x = (MappeableRunContainer)x.remove((short)k);
-            assertFalse(x.contains((short)k));
-            assertEquals(k+1,(1<<16)-x.getCardinality());
-        }
-        for(int k = 0; k < (1<<16);++k) {
-            assertFalse(x.contains((short)k));
-            x = (MappeableRunContainer) x.add((short)k);
-            assertEquals(k+1,x.getCardinality());
-            assertTrue(x.contains((short)k));
-        }
-        for(int k = (1<<16)-1; k >= 0 ;--k) {
-            assertTrue(x.contains((short)k));
-            x = (MappeableRunContainer) x.remove((short)k);
-            assertFalse(x.contains((short)k));
-            assertEquals(k,x.getCardinality());
-        }
-        for(int k = 0; k < (1<<16);++k) {
-            assertFalse(x.contains((short)k));
-            x = (MappeableRunContainer) x.add((short)k);
-            assertEquals(k+1,x.getCardinality());
-            assertTrue(x.contains((short)k));
-        }
-        for(int k = 0; k < (1<<16);++k) {
-            MappeableRunContainer copy = (MappeableRunContainer) x.clone();
-            copy = (MappeableRunContainer) copy.remove((short) k);
-            assertEquals(copy.getCardinality() + 1,x.getCardinality());
-            copy = (MappeableRunContainer) copy.add((short) k);
-            assertEquals(copy.getCardinality(),x.getCardinality());
-            assertTrue(copy.equals(x));
-            assertTrue(x.equals(copy));
-            copy.trim();
-            assertTrue(copy.equals(x));
-            assertTrue(x.equals(copy));
-        }        
-    }
-    @Test
-    public void basictri() {
-        MappeableRunContainer x = new MappeableRunContainer();
-        for(int k = 0; k < (1<<16);++k) {
-            assertFalse(x.contains((short)k));
-        }
-        for(int k = 0; k < (1<<16);++k) {
-            assertFalse(x.contains((short)k));
-            x = (MappeableRunContainer)x.add((short)k);
-            x.trim();
-            assertEquals(k+1,x.getCardinality());
-            assertTrue(x.contains((short)k));
-        }
-        for(int k = 0; k < (1<<16);++k) {
-            assertTrue(x.contains((short)k));
-        }
-        for(int k = 0; k < (1<<16);++k) {
-            assertTrue(x.contains((short)k));
-            x = (MappeableRunContainer)x.remove((short)k);
-            x.trim();
-            assertFalse(x.contains((short)k));
-            assertEquals(k+1,(1<<16)-x.getCardinality());
-        }
-        for(int k = 0; k < (1<<16);++k) {
-            assertFalse(x.contains((short)k));
-            x = (MappeableRunContainer) x.add((short)k);
-            x.trim();
-            assertEquals(k+1,x.getCardinality());
-            assertTrue(x.contains((short)k));
-        }
-        for(int k = (1<<16)-1; k >= 0 ;--k) {
-            assertTrue(x.contains((short)k));
-            x = (MappeableRunContainer) x.remove((short)k);
-            x.trim();
-            assertFalse(x.contains((short)k));
-            assertEquals(k,x.getCardinality());
-        }
-        for(int k = 0; k < (1<<16);++k) {
-            assertFalse(x.contains((short)k));
-            x = (MappeableRunContainer) x.add((short)k);
-            x.trim();
-            assertEquals(k+1,x.getCardinality());
-            assertTrue(x.contains((short)k));
-        }
-        for(int k = 0; k < (1<<16);++k) {
-            MappeableRunContainer copy = (MappeableRunContainer) x.clone();
-            copy.trim();
-            copy = (MappeableRunContainer) copy.remove((short) k);
-            copy = (MappeableRunContainer) copy.add((short) k);
-            assertEquals(copy.getCardinality(),x.getCardinality());
-            assertTrue(copy.equals(x));
-            assertTrue(x.equals(copy));
-            copy.trim();
-            assertTrue(copy.equals(x));
-            assertTrue(x.equals(copy));
-        }        
-    }
-
-    @Test
     public void simpleIterator() {
-        MappeableRunContainer x = new MappeableRunContainer();
+        MappeableContainer x = new MappeableRunContainer();
         for(int k = 0; k < 100;++k) {
-              x = (MappeableRunContainer)x.add((short)(k));
+              x = x.add((short)(k));
         }
+        x = new MappeableRunContainer(x.getShortIterator(),x.numberOfRuns());
         ShortIterator i = x.getShortIterator();
         for(int k = 0; k < 100;++k) {
                 assertTrue(i.hasNext());
@@ -1323,10 +1227,11 @@ public class TestRunContainer {
 
     @Test
     public void longsimpleIterator() {
-        MappeableRunContainer x = new MappeableRunContainer();
+        MappeableContainer x = new MappeableRunContainer();
         for(int k = 0; k < (1<<16);++k) {
-              x = (MappeableRunContainer)x.add((short)(k));
+              x = (MappeableContainer)x.add((short)(k));
         }
+        x = new MappeableRunContainer(x.getShortIterator(),x.numberOfRuns());
         ShortIterator i = x.getShortIterator();
         for(int k = 0; k < (1<<16);++k) {
                 assertTrue(i.hasNext());
@@ -1337,10 +1242,12 @@ public class TestRunContainer {
     
     @Test
     public void longbacksimpleIterator() {
-        MappeableRunContainer x = new MappeableRunContainer();
+        MappeableContainer x = new MappeableRunContainer();
         for(int k = 0; k < (1<<16);++k) {
-              x = (MappeableRunContainer)x.add((short)k);
+              x = x.add((short)k);
         }
+        x = new MappeableRunContainer(x.getShortIterator(),x.numberOfRuns());
+
         ShortIterator i = x.getReverseShortIterator();
         for(int k = (1<<16)-1; k >=0 ;--k) {
                 assertTrue(i.hasNext());
@@ -1351,10 +1258,11 @@ public class TestRunContainer {
 
     @Test
     public void longcsimpleIterator() {
-        MappeableRunContainer x = new MappeableRunContainer();
+        MappeableContainer x = new MappeableRunContainer();
         for(int k = 0; k < (1<<16);++k) {
-              x = (MappeableRunContainer)x.add((short)k);
+              x = x.add((short)k);
         }
+        x = new MappeableRunContainer(x.getShortIterator(),x.numberOfRuns());
         Iterator<Short> i = x.iterator();
         for(int k = 0; k < (1<<16);++k) {
                 assertTrue(i.hasNext());
@@ -1365,11 +1273,12 @@ public class TestRunContainer {
     
     @Test
     public void iterator() {
-        MappeableRunContainer x = new MappeableRunContainer();
+        MappeableContainer x = new MappeableRunContainer();
         for(int k = 0; k < 100;++k) {
             for(int j = 0; j < k; ++j)
-              x = (MappeableRunContainer)x.add((short)(k*100+j));
+              x = (MappeableContainer)x.add((short)(k*100+j));
         }
+        x = new MappeableRunContainer(x.getShortIterator(),x.numberOfRuns());
         ShortIterator i = x.getShortIterator();
         for(int k = 0; k < 100;++k) {
             for(int j = 0; j < k; ++j) {
@@ -1382,12 +1291,14 @@ public class TestRunContainer {
 
     @Test
     public void basic2() {
-        MappeableRunContainer x = new MappeableRunContainer();
+        MappeableContainer x = new MappeableRunContainer();
         int a = 33;
         int b = 50000;
         for(int k = a; k < b;++k) {
-            x = (MappeableRunContainer)x.add((short)k);
+            x = x.add((short)k);
         }
+        x = new MappeableRunContainer(x.getShortIterator(),x.numberOfRuns());
+
         for(int k = 0; k < (1<<16);++k) {
             if(x.contains((short) k)) {
                 MappeableRunContainer copy = (MappeableRunContainer) x.clone();
@@ -1770,41 +1681,15 @@ public class TestRunContainer {
     
     @Test
     public void MappeableRunContainerVSMappeableRunContainerAND() {
-        // System.out.println("beginning MappeableRunContainerVSMappeableRunContainerAND");
     	ArrayList<MappeableRunContainer> set = new ArrayList<MappeableRunContainer>();
     	ArrayList<MappeableContainer> setb = new ArrayList<MappeableContainer>();
     	getSetOfMappeableRunContainers( set, setb);
     	for(int k = 0; k < set.size(); ++k ) {
             for(int l = 0; l < set.size(); ++l) {
-                //System.out.println("testing k="+k+" l="+l);
                 assertTrue(set.get(k).equals(setb.get(k)));
                 assertTrue(set.get(l).equals(setb.get(l)));
                 MappeableContainer c1 = set.get(k).and(set.get(l));
                 MappeableContainer c2 = setb.get(k).and(setb.get(l));
-                /*
-                if (c1.equals(c2)) 
-                    System.out.println("...passes");
-                else {
-                    System.out.println("...fails");
-                    System.out.println("c1 is a "+c1.getClass()+" of cardinality "+ c1.getCardinality());
-                    System.out.println("c2 is a "+c2.getClass()+" of cardinality "+ c2.getCardinality());
-                    for (int i=0; i < 65536; ++i) {
-                        if (c1.contains((short)i) != c2.contains((short)i)) {
-                            System.out.println("First diff is that c1.contains("+i+") is "+ c1.contains((short)i)+" but c2 disagrees");
-                            if (c1.getCardinality() < 500) 
-                                System.out.println("Here is c1 : "+c1);
-
-                            if (c2.getCardinality() < 500) 
-                                System.out.println("Here is c2 : "+c2);
-
-                            System.out.println("First ANDed  input is "+ setb.get(k));
-                            System.out.println("Second ANDed input is "+ setb.get(l));
-                            
-                            break;
-                            }
-                        }
-                        }
-                */ 
                 assertTrue(c1.equals(c2));
             }
     	}

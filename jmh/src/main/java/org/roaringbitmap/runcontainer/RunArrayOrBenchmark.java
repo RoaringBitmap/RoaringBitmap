@@ -13,7 +13,6 @@ import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.roaringbitmap.Container;
-import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.RoaringBitmap;
 
 @BenchmarkMode(Mode.AverageTime)

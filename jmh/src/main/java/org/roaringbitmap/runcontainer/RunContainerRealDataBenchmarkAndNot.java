@@ -81,13 +81,34 @@ public class RunContainerRealDataBenchmarkAndNot {
              throw new RuntimeException("bad pairwise andNot result");
          return total;
      }
+     
+     @Benchmark
+     public int pairwiseAndNot_EWAH(BenchmarkState benchmarkState) {
+         int total = 0;
+         for(int k = 0; k + 1 < benchmarkState.ewah.size(); ++k)
+             total += benchmarkState.ewah.get(k).andNot(benchmarkState.ewah.get(k+1)).cardinality();
+         if(total !=benchmarkState.totalandnot )
+             throw new RuntimeException("bad pairwise and result");
+         return total;
+     }
+
+     @Benchmark
+     public int pairwiseAndNot_EWAH32(BenchmarkState benchmarkState) {
+         int total = 0;
+         for(int k = 0; k + 1 < benchmarkState.ewah32.size(); ++k)
+             total += benchmarkState.ewah32.get(k).andNot(benchmarkState.ewah32.get(k+1)).cardinality();
+         if(total !=benchmarkState.totalandnot )
+             throw new RuntimeException("bad pairwise and result");
+         return total;
+     }
+
 
 
     @State(Scope.Benchmark)
     public static class BenchmarkState {
         @Param ({// putting the data sets in alpha. order
             "census-income", "census1881",
-            "dimension_008", "dimension_003", 
+            "dimension_008","dimension_003", 
             "dimension_033", "uscensus2000", 
             "weather_sept_85", "wikileaks-noquotes",
             "census-income_srt","census1881_srt",
@@ -220,7 +241,26 @@ public class RunContainerRealDataBenchmarkAndNot {
             System.out.println("==============");
             System.out.println();
             // compute pairwise AND and OR
+            totalandnot = 0;
             for (int k = 0; k + 1 < rc.size(); ++k) {
+                
+                int answer1 = RoaringBitmap.andNot(rc.get(k), rc.get(k + 1))
+                        .getCardinality();
+                int answer2 = RoaringBitmap.andNot(ac.get(k),ac.get(k+1)).getCardinality();
+                int answer3 = cc.get(k).difference(cc.get(k+1)).size();
+                int answer4 = wah.get(k).difference(wah.get(k+1)).size();
+                int answer5 = ewah.get(k).andNot(ewah.get(k+1)).cardinality();
+                int answer6 = ewah32.get(k).andNot(ewah32.get(k+1)).cardinality();
+                if((answer1 != answer2) || (answer2 != answer3) || (answer3 != answer4) || (answer4 != answer5) || (answer5 != answer6)) {
+                    System.out.println("and Not results differ!");
+                    System.out.println("roaring (regular) : "+answer1);
+                    System.out.println("roaring (run)     : "+answer2);
+                    System.out.println("roaring (concise) : "+answer3);
+                    System.out.println("roaring (wah)     : "+answer4);
+                    System.out.println("roaring (ewah)    : "+answer5);
+                    System.out.println("roaring (ewah32)  : "+answer6);
+                    throw new RuntimeException("bug");
+                }
                 totalandnot += RoaringBitmap.andNot(rc.get(k), rc.get(k + 1))
                                .getCardinality();
             }

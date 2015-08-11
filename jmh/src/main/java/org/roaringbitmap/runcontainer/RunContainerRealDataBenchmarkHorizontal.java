@@ -100,10 +100,8 @@ public class RunContainerRealDataBenchmarkHorizontal {
 
     @Benchmark
     public int horizontalOr_EWAH32(BenchmarkState benchmarkState) {
-        EWAHCompressedBitmap32 bitmapor = benchmarkState.ewah32.get(0);
-        for (int j = 1; j < benchmarkState.ewah32.size() ; ++j) {
-            bitmapor = bitmapor.or(benchmarkState.ewah32.get(j));
-        }
+        EWAHCompressedBitmap32[] a = new EWAHCompressedBitmap32[benchmarkState.ewah32.size()];
+        EWAHCompressedBitmap32 bitmapor = EWAHCompressedBitmap32.or(benchmarkState.ewah32.toArray(a)); 
         int answer = bitmapor.cardinality();
         if(answer != benchmarkState.horizontalor)
             throw new RuntimeException("buggy horizontal or");

@@ -16,6 +16,10 @@ import java.util.Iterator;
  * This container takes the form of runs of consecutive values (effectively,
  * run-length encoding).  Uses a ShortBuffer to store data, unlike
  * org.roaringbitmap.RunContainer.  Otherwise similar.
+ * 
+ * 
+ * Adding and removing content from this container might make it wasteful
+ * so regular calls to "runOptimize" might be warranted.
  */
 public final class MappeableRunContainer extends MappeableContainer implements Cloneable {
     private static final int DEFAULT_INIT_SIZE = 4;
@@ -166,7 +170,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
      @Override
      public MappeableContainer runOptimize() {
-         int currentSize = getArraySizeInBytes(); //serializedSizeInBytes();
+         int currentSize = getArraySizeInBytes(); 
          int card = getCardinality(); 
          if (card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
              if (currentSize > MappeableArrayContainer.getArraySizeInBytes(card))  
@@ -301,7 +305,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         makeRoomAtIndex(index + 1);
         setValue(index + 1, k);
         setLength(index + 1, (short) 0);
-        return this.toEfficientContainer();
+        return this;
     }
 
     @Override
@@ -643,7 +647,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
                 makeRoomAtIndex(index+1); 
                 this.setValue(index+1, (short) newvalue);
                 this.setLength(index+1, (short) newlength);
-                return this.toEfficientContainer();
+                return this;
             } else if(offset == le) {
                 decrementLength(index);
             }
@@ -775,8 +779,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer iadd(int begin, int end) {
-        // TODO: should check whether we need to revert back to bitmap or array at the end
-        // TODO: hint: if you create a new small run, you may need to check
         if((begin >= end) || (end > (1<<16))) {
             throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
         }
@@ -869,8 +871,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer iremove(int begin, int end) {
-        // TODO: should check whether we need to revert back to bitmap or array at the end
-        // TODO: hint: if you create a new small run, you may need to check
         if((begin >= end) || (end > (1<<16))) {
             throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
         }
@@ -1207,7 +1207,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
                 answer.nbrruns++;
             }
         }
-        return answer.toEfficientContainer();
+        return answer;
     }
 
 
@@ -1267,7 +1267,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
               answer.nbrruns  = answer.nbrruns + this.nbrruns - rlepos;
             }
         } 
-        return answer.toEfficientContainer();
+        return answer;
     }
 
     // assume that the (maybe) inplace operations
