@@ -116,6 +116,7 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
             throw new RuntimeException("bug ");
         return answer;
     }
+
     @Benchmark
     public int horizontalOr_EWAH(BenchmarkState benchmarkState) {
         EWAHCompressedBitmap[] a = new EWAHCompressedBitmap[benchmarkState.ewah.size()];
@@ -131,6 +132,31 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
     public int horizontalOr_EWAH32(BenchmarkState benchmarkState) {
         EWAHCompressedBitmap32[] a = new EWAHCompressedBitmap32[benchmarkState.ewah32.size()];
         EWAHCompressedBitmap32 bitmapor = EWAHCompressedBitmap32.or(benchmarkState.ewah32.toArray(a)); 
+        int answer = bitmapor.cardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+
+    @Benchmark
+    public int horizontalOr_naive_EWAH(BenchmarkState benchmarkState) {
+        EWAHCompressedBitmap bitmapor = new EWAHCompressedBitmap();
+        for(EWAHCompressedBitmap b : benchmarkState.ewah) {
+            bitmapor = bitmapor.or(b);
+        }
+        int answer = bitmapor.cardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return answer;
+
+    }
+
+    @Benchmark
+    public int horizontalOr_naive_EWAH32(BenchmarkState benchmarkState) {
+        EWAHCompressedBitmap32 bitmapor = new EWAHCompressedBitmap32();
+        for(EWAHCompressedBitmap32 b : benchmarkState.ewah32) {
+            bitmapor = bitmapor.or(b);
+        }
         int answer = bitmapor.cardinality();
         if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug");

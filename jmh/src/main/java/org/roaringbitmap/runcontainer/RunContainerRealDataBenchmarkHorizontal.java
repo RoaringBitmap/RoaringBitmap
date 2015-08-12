@@ -153,6 +153,32 @@ public class RunContainerRealDataBenchmarkHorizontal {
             throw new RuntimeException("buggy horizontal or");
         return answer;
     }
+    
+
+    @Benchmark
+    public int horizontalOr_naive_EWAH(BenchmarkState benchmarkState) {
+        EWAHCompressedBitmap bitmapor = new EWAHCompressedBitmap();
+        for(EWAHCompressedBitmap b : benchmarkState.ewah) {
+            bitmapor = bitmapor.or(b);
+        }
+        int answer = bitmapor.cardinality();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("bug");
+        return answer;
+
+    }
+
+    @Benchmark
+    public int horizontalOr_naive_EWAH32(BenchmarkState benchmarkState) {
+        EWAHCompressedBitmap32 bitmapor = new EWAHCompressedBitmap32();
+        for(EWAHCompressedBitmap32 b : benchmarkState.ewah32) {
+            bitmapor = bitmapor.or(b);
+        }
+        int answer = bitmapor.cardinality();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("bug");
+        return answer;
+    }
 
     @State(Scope.Benchmark)
     public static class BenchmarkState {
