@@ -13,9 +13,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
-import java.util.PriorityQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.openjdk.jmh.annotations.Benchmark;
@@ -95,45 +93,6 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
         return answer;
     }
 
-    @Benchmark
-    public int horizontalOr_pq_EWAH(BenchmarkState benchmarkState) {
-        PriorityQueue<EWAHCompressedBitmap> pq = new PriorityQueue<EWAHCompressedBitmap>(benchmarkState.ewah.size(),
-                new Comparator<EWAHCompressedBitmap>() {
-                    @Override
-                    public int compare(EWAHCompressedBitmap a, EWAHCompressedBitmap b) {
-                        return a.sizeInBytes()
-                                - b.sizeInBytes();
-                    }
-                }
-        );
-        pq.addAll(benchmarkState.ewah);
-        while (pq.size() > 1) {
-            EWAHCompressedBitmap x1 = pq.poll();
-            EWAHCompressedBitmap x2 = pq.poll();
-            pq.add(x1.or(x2));
-        }
-        return pq.poll().cardinality();
-    }
-
-    @Benchmark
-    public int horizontalOr_pq_EWAH32(BenchmarkState benchmarkState) {
-        PriorityQueue<EWAHCompressedBitmap32> pq = new PriorityQueue<EWAHCompressedBitmap32>(benchmarkState.ewah32.size(),
-                new Comparator<EWAHCompressedBitmap32>() {
-                    @Override
-                    public int compare(EWAHCompressedBitmap32 a, EWAHCompressedBitmap32 b) {
-                        return a.sizeInBytes()
-                                - b.sizeInBytes();
-                    }
-                }
-        );
-        pq.addAll(benchmarkState.ewah32);
-        while (pq.size() > 1) {
-            EWAHCompressedBitmap32 x1 = pq.poll();
-            EWAHCompressedBitmap32 x2 = pq.poll();
-            pq.add(x1.or(x2));
-        }
-        return pq.poll().cardinality();
-    }
 
     @State(Scope.Benchmark)
     public static class BenchmarkState {
