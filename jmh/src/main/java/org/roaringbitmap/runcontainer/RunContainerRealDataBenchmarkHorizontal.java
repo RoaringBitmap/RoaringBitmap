@@ -5,6 +5,8 @@ import it.uniroma3.mat.extendedset.intset.ConciseSet;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.PriorityQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.openjdk.jmh.annotations.Benchmark;
@@ -19,6 +21,7 @@ import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.ZipRealDataRetriever;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+import org.roaringbitmap.runcontainer.MappedRunContainerRealDataBenchmarkHorizontal.BenchmarkState;
 
 import com.googlecode.javaewah.EWAHCompressedBitmap;
 import com.googlecode.javaewah32.EWAHCompressedBitmap32;
@@ -89,25 +92,9 @@ public class RunContainerRealDataBenchmarkHorizontal {
         return answer;
     }
 
-
-    
     @Benchmark
-    public int horizontalOr_EWAH32(BenchmarkState benchmarkState) {
-        EWAHCompressedBitmap32[] a = new EWAHCompressedBitmap32[benchmarkState.ewah32.size()];
-        EWAHCompressedBitmap32 bitmapor = EWAHCompressedBitmap32.or(benchmarkState.ewah32.toArray(a)); 
-        int answer = bitmapor.cardinality();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("buggy horizontal or");
-        return answer;
-    }
-    
-
-    @Benchmark
-    public int horizontalOr_naive_EWAH(BenchmarkState benchmarkState) {
-        EWAHCompressedBitmap bitmapor = new EWAHCompressedBitmap();
-        for(EWAHCompressedBitmap b : benchmarkState.ewah) {
-            bitmapor = bitmapor.or(b);
-        }
+    public int horizontalOr_EWAH(BenchmarkState benchmarkState) {
+        EWAHCompressedBitmap bitmapor = com.googlecode.javaewah.FastAggregation.or(benchmarkState.ewah.iterator());
         int answer = bitmapor.cardinality();
         if(answer != benchmarkState.horizontalor)
             throw new RuntimeException("bug");
@@ -115,6 +102,54 @@ public class RunContainerRealDataBenchmarkHorizontal {
 
     }
 
+    @Benchmark
+    public int horizontalOr_EWAH32(BenchmarkState benchmarkState) {
+        EWAHCompressedBitmap32 bitmapor = com.googlecode.javaewah32.FastAggregation32.or(benchmarkState.ewah32.iterator());
+        int answer = bitmapor.cardinality();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+
+    @Benchmark
+    public int horizontalOr_pq_EWAH(BenchmarkState benchmarkState) {
+        PriorityQueue<EWAHCompressedBitmap> pq = new PriorityQueue<EWAHCompressedBitmap>(benchmarkState.ewah.size(),
+                new Comparator<EWAHCompressedBitmap>() {
+                    @Override
+                    public int compare(EWAHCompressedBitmap a, EWAHCompressedBitmap b) {
+                        return a.sizeInBytes()
+                                - b.sizeInBytes();
+                    }
+                }
+        );
+        pq.addAll(benchmarkState.ewah);
+        while (pq.size() > 1) {
+            EWAHCompressedBitmap x1 = pq.poll();
+            EWAHCompressedBitmap x2 = pq.poll();
+            pq.add(x1.or(x2));
+        }
+        return pq.poll().cardinality();
+    }
+
+    @Benchmark
+    public int horizontalOr_pq_EWAH32(BenchmarkState benchmarkState) {
+        PriorityQueue<EWAHCompressedBitmap32> pq = new PriorityQueue<EWAHCompressedBitmap32>(benchmarkState.ewah32.size(),
+                new Comparator<EWAHCompressedBitmap32>() {
+                    @Override
+                    public int compare(EWAHCompressedBitmap32 a, EWAHCompressedBitmap32 b) {
+                        return a.sizeInBytes()
+                                - b.sizeInBytes();
+                    }
+                }
+        );
+        pq.addAll(benchmarkState.ewah32);
+        while (pq.size() > 1) {
+            EWAHCompressedBitmap32 x1 = pq.poll();
+            EWAHCompressedBitmap32 x2 = pq.poll();
+            pq.add(x1.or(x2));
+        }
+        return pq.poll().cardinality();
+    }
     
     @State(Scope.Benchmark)
     public static class BenchmarkState {
