@@ -1,6 +1,7 @@
 package org.roaringbitmap.runcontainer;
 
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
+import it.uniroma3.mat.extendedset.intset.ImmutableConciseSet;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,28 +45,17 @@ public class AllRunHorizontalOrBenchmark {
         return ans;
     }
 
-    
-    @Benchmark
-    public int OrARunContainer(BenchmarkState benchmarkState) {
-        RoaringBitmap base = benchmarkState.rc.get(0);
-        for(int k = 1; k < benchmarkState.rc.size(); ++k)
-            base = RoaringBitmap.or(base, benchmarkState.rc.get(k));
-        return base.getCardinality();
-    }
-    
-    @Benchmark
-    public int OrBitmapContainer(BenchmarkState benchmarkState) {
-        RoaringBitmap base = benchmarkState.ac.get(0);
-        for(int k = 1; k < benchmarkState.ac.size(); ++k)
-            base = RoaringBitmap.or(base, benchmarkState.ac.get(k));
-        return base.getCardinality();
-    }
-    
     @Benchmark
     public int OrConcise(BenchmarkState benchmarkState) {
         ConciseSet base = benchmarkState.cc.get(0);
         for(int k = 1; k < benchmarkState.cc.size(); ++k)
             base.union(benchmarkState.cc.get(k));
+        return base.size();
+    }
+    
+    @Benchmark
+    public int OrImmutableConcise(BenchmarkState benchmarkState) {
+        ImmutableConciseSet base = ImmutableConciseSet.union(benchmarkState.icc.iterator());
         return base.size();
     }
     
@@ -78,14 +68,14 @@ public class AllRunHorizontalOrBenchmark {
     }
     
     @Benchmark
-	public int horizontalOrARunContainer(BenchmarkState benchmarkState) {
+	public int horizontalOrARunContainer_naive(BenchmarkState benchmarkState) {
 		return FastAggregation.naive_or(benchmarkState.rc.iterator())
 	               .getCardinality();
 	}
 	
   
 	@Benchmark
-	public int horizontalOrBitmapContainer(BenchmarkState benchmarkState) {
+	public int horizontalOrBitmapContainer_naive(BenchmarkState benchmarkState) {
         return FastAggregation.naive_or(benchmarkState.ac.iterator())
                 .getCardinality();
 	}
@@ -127,6 +117,7 @@ public class AllRunHorizontalOrBenchmark {
  	  
         ArrayList<RoaringBitmap> rc = new  ArrayList<RoaringBitmap>();
         ArrayList<RoaringBitmap> ac = new  ArrayList<RoaringBitmap>();
+        ArrayList<ImmutableConciseSet> icc = new  ArrayList<ImmutableConciseSet>();
         ArrayList<ConciseSet> cc = new  ArrayList<ConciseSet>();
         ArrayList<ConciseSet> wah = new  ArrayList<ConciseSet>();
         List<EWAHCompressedBitmap> ewah = new ArrayList<EWAHCompressedBitmap>();
@@ -148,8 +139,10 @@ public class AllRunHorizontalOrBenchmark {
                     rb.add(start, end);
                     start = end + rand.nextInt(1000);
                 }
-                cc.add(toConcise(rb.toArray()));
+                ConciseSet ccs = toConcise(rb.toArray());
+                cc.add(ccs);
                 wah.add(toWAH(rb.toArray()));
+                icc.add(ImmutableConciseSet.newImmutableFromMutable(ccs));
 
                 ac.add(rb);
                 
