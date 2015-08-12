@@ -28,8 +28,8 @@ public class BasicHorizontalOrBenchmark {
 		c = c.lazyOR(c2);
 		while(i.hasNext())
 			c = c.lazyIOR(i.next());
-		 if(c.getCardinality()<0) ((BitmapContainer)c).computeCardinality();
-		 return c;
+		c = c.repairAfterLazy();
+		return c;
 	}
 
 
@@ -42,6 +42,7 @@ public class BasicHorizontalOrBenchmark {
 			throw new RuntimeException("bug");
 		return answer.getCardinality();
 	}
+	
     @Benchmark
     public int horizontalOrRunContainer_withconversion(BenchmarkState benchmarkState) {
         BitmapContainer c = (BitmapContainer) benchmarkState.ac.get(0);
@@ -50,7 +51,7 @@ public class BasicHorizontalOrBenchmark {
         for(int k = 2; k < benchmarkState.rc.size(); ++k) {
             c = (BitmapContainer) c.lazyIOR(benchmarkState.rc.get(k));
         }
-        if(c.getCardinality()<0) ((BitmapContainer)c).computeCardinality();
+        c = (BitmapContainer) c.repairAfterLazy();
         if(!c.equals(benchmarkState.aggregate))
             throw new RuntimeException("bug");
         return c.getCardinality();
