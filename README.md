@@ -135,6 +135,10 @@ Usage
 * mvn test will run the unit tests
 * mvn package will package in a jar (found in target)
 
+A convenient command to build the code is :
+
+             mvn clean install -DskipTests -Dgpg.skip=true
+
 FAQ
 ----
 
