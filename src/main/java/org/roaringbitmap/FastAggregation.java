@@ -74,7 +74,7 @@ public final class FastAggregation {
     
 
     /**
-     * Compute overall AND between bitmaps two-by-two.
+     * Compute overall OR between bitmaps two-by-two.
      *
      * This function runs in linear time with respect to the number of bitmaps.
      *
@@ -106,7 +106,7 @@ public final class FastAggregation {
     
 
     /**
-     * Compute overall AND between bitmaps two-by-two.
+     * Compute overall XOR between bitmaps two-by-two.
      * 
      * This function runs in linear time with respect to the number of bitmaps.
      *
@@ -134,9 +134,8 @@ public final class FastAggregation {
     
 
     /**
-     * Compute overall AND between bitmaps.
+     * Compute overall OR between bitmaps.
      *
-     * This function runs in linear time with respect to the number of bitmaps.
      *
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
@@ -148,7 +147,6 @@ public final class FastAggregation {
     /**
      * Compute overall XOR between bitmaps.
      *
-     * This function runs in linear time with respect to the number of bitmaps.
      * 
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
@@ -159,9 +157,8 @@ public final class FastAggregation {
     
 
     /**
-     * Compute overall AND between bitmaps.
+     * Compute overall XOR between bitmaps.
      * 
-     * This function runs in linear time with respect to the number of bitmaps.
      *
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
