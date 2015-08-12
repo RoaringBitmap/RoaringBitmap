@@ -3,6 +3,10 @@ package org.roaringbitmap.runcontainer;
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -16,6 +20,9 @@ import org.roaringbitmap.Container;
 import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.RoaringBitmap;
 
+import com.googlecode.javaewah.EWAHCompressedBitmap;
+import com.googlecode.javaewah32.EWAHCompressedBitmap32;
+
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 public class AllRunHorizontalOrBenchmark {
@@ -28,6 +35,16 @@ public class AllRunHorizontalOrBenchmark {
         return ans;
     }
 
+
+    static ConciseSet toWAH(int[] dat) {
+        ConciseSet ans = new ConciseSet(true);
+        for (int i : dat) {
+            ans.add(i);
+        }
+        return ans;
+    }
+
+    
     @Benchmark
     public int OrARunContainer(BenchmarkState benchmarkState) {
         RoaringBitmap base = benchmarkState.rc.get(0);
@@ -43,11 +60,20 @@ public class AllRunHorizontalOrBenchmark {
             base = RoaringBitmap.or(base, benchmarkState.ac.get(k));
         return base.getCardinality();
     }
+    
     @Benchmark
     public int OrConcise(BenchmarkState benchmarkState) {
         ConciseSet base = benchmarkState.cc.get(0);
         for(int k = 1; k < benchmarkState.cc.size(); ++k)
             base.union(benchmarkState.cc.get(k));
+        return base.size();
+    }
+    
+    @Benchmark
+    public int OrWAH(BenchmarkState benchmarkState) {
+        ConciseSet base = benchmarkState.wah.get(0);
+        for(int k = 1; k < benchmarkState.wah.size(); ++k)
+            base.union(benchmarkState.wah.get(k));
         return base.size();
     }
     
@@ -78,13 +104,33 @@ public class AllRunHorizontalOrBenchmark {
         return FastAggregation.or((RoaringBitmap[]) benchmarkState.ac.toArray(v))
                 .getCardinality();
     }
+    
+    @Benchmark
+    public int horizontalOr_EWAH(BenchmarkState benchmarkState) {
+        EWAHCompressedBitmap[] a = new EWAHCompressedBitmap[benchmarkState.ewah.size()];
+        EWAHCompressedBitmap bitmapor = EWAHCompressedBitmap.or(benchmarkState.ewah.toArray(a)); 
+        int answer = bitmapor.cardinality();
+        return answer;
 
+    }
+
+    @Benchmark
+    public int horizontalOr_EWAH32(BenchmarkState benchmarkState) {
+        EWAHCompressedBitmap32[] a = new EWAHCompressedBitmap32[benchmarkState.ewah32.size()];
+        EWAHCompressedBitmap32 bitmapor = EWAHCompressedBitmap32.or(benchmarkState.ewah32.toArray(a)); 
+        int answer = bitmapor.cardinality();
+        return answer;
+    }
+    
     @State(Scope.Benchmark)
     public static class BenchmarkState {        
  	  
         ArrayList<RoaringBitmap> rc = new  ArrayList<RoaringBitmap>();
         ArrayList<RoaringBitmap> ac = new  ArrayList<RoaringBitmap>();
         ArrayList<ConciseSet> cc = new  ArrayList<ConciseSet>();
+        ArrayList<ConciseSet> wah = new  ArrayList<ConciseSet>();
+        List<EWAHCompressedBitmap> ewah = new ArrayList<EWAHCompressedBitmap>();
+        List<EWAHCompressedBitmap32> ewah32 = new ArrayList<EWAHCompressedBitmap32>();
 
         Random rand = new Random();
         Container aggregate;
@@ -103,12 +149,16 @@ public class AllRunHorizontalOrBenchmark {
                     start = end + rand.nextInt(1000);
                 }
                 cc.add(toConcise(rb.toArray()));
+                wah.add(toWAH(rb.toArray()));
 
                 ac.add(rb);
                 
                 rb = rb.clone();
                 rb.runOptimize();
                 rc.add(rb);
+                ewah.add(EWAHCompressedBitmap.bitmapOf(rb.toArray()));
+                ewah32.add(EWAHCompressedBitmap32.bitmapOf(rb.toArray()));
+
             }
         }
     }
