@@ -24,6 +24,7 @@ import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.TearDown;
 import org.roaringbitmap.ZipRealDataRetriever;
 import org.roaringbitmap.buffer.BufferFastAggregation;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
@@ -75,8 +76,7 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
 
     @Benchmark
     public int horizontalOr_EWAH(BenchmarkState benchmarkState) {
-        EWAHCompressedBitmap[] a = new EWAHCompressedBitmap[benchmarkState.ewah.size()];
-        EWAHCompressedBitmap bitmapor = EWAHCompressedBitmap.or(benchmarkState.ewah.toArray(a)); 
+        EWAHCompressedBitmap bitmapor = com.googlecode.javaewah.FastAggregation.or(benchmarkState.ewah.iterator());
         int answer = bitmapor.cardinality();
         if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug");
@@ -86,38 +86,13 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
 
     @Benchmark
     public int horizontalOr_EWAH32(BenchmarkState benchmarkState) {
-        EWAHCompressedBitmap32[] a = new EWAHCompressedBitmap32[benchmarkState.ewah32.size()];
-        EWAHCompressedBitmap32 bitmapor = EWAHCompressedBitmap32.or(benchmarkState.ewah32.toArray(a)); 
+        EWAHCompressedBitmap32 bitmapor = com.googlecode.javaewah32.FastAggregation32.or(benchmarkState.ewah32.iterator());
         int answer = bitmapor.cardinality();
         if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug");
         return answer;
     }
 
-    @Benchmark
-    public int horizontalOr_naive_EWAH(BenchmarkState benchmarkState) {
-        EWAHCompressedBitmap bitmapor = new EWAHCompressedBitmap();
-        for(EWAHCompressedBitmap b : benchmarkState.ewah) {
-            bitmapor = bitmapor.or(b);
-        }
-        int answer = bitmapor.cardinality();
-        if(answer != benchmarkState.expectedvalue)
-            throw new RuntimeException("bug");
-        return answer;
-
-    }
-
-    @Benchmark
-    public int horizontalOr_naive_EWAH32(BenchmarkState benchmarkState) {
-        EWAHCompressedBitmap32 bitmapor = new EWAHCompressedBitmap32();
-        for(EWAHCompressedBitmap32 b : benchmarkState.ewah32) {
-            bitmapor = bitmapor.or(b);
-        }
-        int answer = bitmapor.cardinality();
-        if(answer != benchmarkState.expectedvalue)
-            throw new RuntimeException("bug");
-        return answer;
-    }
 
 
     @State(Scope.Benchmark)
@@ -132,6 +107,7 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
         })
         String dataset;
         public int expectedvalue = 0;
+        List<File> createdfiles = new ArrayList<File>();
 
         List<ImmutableRoaringBitmap> mrc = new ArrayList<ImmutableRoaringBitmap>();
         List<ImmutableRoaringBitmap> mac = new ArrayList<ImmutableRoaringBitmap>();
@@ -146,6 +122,7 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
         public List<ImmutableRoaringBitmap> convertToImmutableRoaring(List<MutableRoaringBitmap> source) throws IOException {
             System.out.println("Setting up memory-mapped file. (Can take some time.)");
             File tmpfile = File.createTempFile("roaring", "bin");
+            createdfiles.add(tmpfile);
             tmpfile.deleteOnExit();
             final FileOutputStream fos = new FileOutputStream(tmpfile);
             final DataOutputStream dos = new DataOutputStream(fos);
@@ -174,6 +151,7 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
         public List<ImmutableConciseSet> convertToImmutableConcise(List<ConciseSet> source) throws IOException {
             System.out.println("Setting up memory-mapped file. (Can take some time.)");
             File tmpfile = File.createTempFile("concise", "bin");
+            createdfiles.add(tmpfile);
             tmpfile.deleteOnExit();
             final FileOutputStream fos = new FileOutputStream(tmpfile);
             final DataOutputStream dos = new DataOutputStream(fos);
@@ -208,13 +186,14 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
         public List<EWAHCompressedBitmap> convertToImmutableEWAH(List<EWAHCompressedBitmap> source) throws IOException {
             System.out.println("Setting up memory-mapped file. (Can take some time.)");
             File tmpfile = File.createTempFile("ewah", "bin");
+            createdfiles.add(tmpfile);
             tmpfile.deleteOnExit();
             final FileOutputStream fos = new FileOutputStream(tmpfile);
             final DataOutputStream dos = new DataOutputStream(fos);
             for(EWAHCompressedBitmap cc : source) 
                 cc.serialize(dos);
             final long totalcount = fos.getChannel().position();
-            System.out.println("[concise] Wrote " + totalcount / 1024 + " KB");
+            System.out.println("[EWAHCompressedBitmap] Wrote " + totalcount / 1024 + " KB");
             dos.close();
             RandomAccessFile  memoryMappedFile = new RandomAccessFile(tmpfile, "r");
             ByteBuffer out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, totalcount);
@@ -233,14 +212,15 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
 
         public List<EWAHCompressedBitmap32> convertToImmutableEWAH32(List<EWAHCompressedBitmap32> source) throws IOException {
             System.out.println("Setting up memory-mapped file. (Can take some time.)");
-            File tmpfile = File.createTempFile("ewah", "bin");
+            File tmpfile = File.createTempFile("ewah32", "bin");
+            createdfiles.add(tmpfile);
             tmpfile.deleteOnExit();
             final FileOutputStream fos = new FileOutputStream(tmpfile);
             final DataOutputStream dos = new DataOutputStream(fos);
             for(EWAHCompressedBitmap32 cc : source) 
                 cc.serialize(dos);
             final long totalcount = fos.getChannel().position();
-            System.out.println("[concise] Wrote " + totalcount / 1024 + " KB");
+            System.out.println("[EWAHCompressedBitmap32] Wrote " + totalcount / 1024 + " KB");
             dos.close();
             RandomAccessFile  memoryMappedFile = new RandomAccessFile(tmpfile, "r");
             ByteBuffer out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, totalcount);
@@ -257,6 +237,16 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
             return answer;
         }
                 
+        @TearDown
+        public void clean() {
+            mrc.clear();
+            mac.clear();
+            cc.clear();
+            ewah.clear();
+            ewah32.clear();
+            for(File f: createdfiles)
+                f.delete();
+        }
 
                 
         @Setup

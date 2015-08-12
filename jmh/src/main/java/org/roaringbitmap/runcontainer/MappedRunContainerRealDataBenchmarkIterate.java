@@ -24,6 +24,7 @@ import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.TearDown;
 import org.roaringbitmap.ZipRealDataRetriever;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
@@ -126,7 +127,7 @@ public class MappedRunContainerRealDataBenchmarkIterate {
         })
         String dataset;
         public int expectedvalue = 0;
-
+        List<File> createdfiles = new ArrayList<File>();
         List<ImmutableRoaringBitmap> mrc = new ArrayList<ImmutableRoaringBitmap>();
         List<ImmutableRoaringBitmap> mac = new ArrayList<ImmutableRoaringBitmap>();
         List<ImmutableConciseSet> cc = new ArrayList<ImmutableConciseSet>();
@@ -140,6 +141,7 @@ public class MappedRunContainerRealDataBenchmarkIterate {
         public List<ImmutableRoaringBitmap> convertToImmutableRoaring(List<MutableRoaringBitmap> source) throws IOException {
             System.out.println("Setting up memory-mapped file. (Can take some time.)");
             File tmpfile = File.createTempFile("roaring", "bin");
+            createdfiles.add(tmpfile);
             tmpfile.deleteOnExit();
             final FileOutputStream fos = new FileOutputStream(tmpfile);
             final DataOutputStream dos = new DataOutputStream(fos);
@@ -166,6 +168,7 @@ public class MappedRunContainerRealDataBenchmarkIterate {
         public List<ImmutableConciseSet> convertToImmutableConcise(List<ConciseSet> source) throws IOException {
             System.out.println("Setting up memory-mapped file. (Can take some time.)");
             File tmpfile = File.createTempFile("concise", "bin");
+            createdfiles.add(tmpfile);
             tmpfile.deleteOnExit();
             final FileOutputStream fos = new FileOutputStream(tmpfile);
             final DataOutputStream dos = new DataOutputStream(fos);
@@ -200,13 +203,14 @@ public class MappedRunContainerRealDataBenchmarkIterate {
         public List<EWAHCompressedBitmap> convertToImmutableEWAH(List<EWAHCompressedBitmap> source) throws IOException {
             System.out.println("Setting up memory-mapped file. (Can take some time.)");
             File tmpfile = File.createTempFile("ewah", "bin");
+            createdfiles.add(tmpfile);
             tmpfile.deleteOnExit();
             final FileOutputStream fos = new FileOutputStream(tmpfile);
             final DataOutputStream dos = new DataOutputStream(fos);
             for(EWAHCompressedBitmap cc : source) 
                 cc.serialize(dos);
             final long totalcount = fos.getChannel().position();
-            System.out.println("[concise] Wrote " + totalcount / 1024 + " KB");
+            System.out.println("[EWAHCompressedBitmap] Wrote " + totalcount / 1024 + " KB");
             dos.close();
             RandomAccessFile  memoryMappedFile = new RandomAccessFile(tmpfile, "r");
             ByteBuffer out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, totalcount);
@@ -225,14 +229,15 @@ public class MappedRunContainerRealDataBenchmarkIterate {
 
         public List<EWAHCompressedBitmap32> convertToImmutableEWAH32(List<EWAHCompressedBitmap32> source) throws IOException {
             System.out.println("Setting up memory-mapped file. (Can take some time.)");
-            File tmpfile = File.createTempFile("ewah", "bin");
+            File tmpfile = File.createTempFile("ewah32", "bin");
+            createdfiles.add(tmpfile);
             tmpfile.deleteOnExit();
             final FileOutputStream fos = new FileOutputStream(tmpfile);
             final DataOutputStream dos = new DataOutputStream(fos);
             for(EWAHCompressedBitmap32 cc : source) 
                 cc.serialize(dos);
             final long totalcount = fos.getChannel().position();
-            System.out.println("[concise] Wrote " + totalcount / 1024 + " KB");
+            System.out.println("[EWAHCompressedBitmap32] Wrote " + totalcount / 1024 + " KB");
             dos.close();
             RandomAccessFile  memoryMappedFile = new RandomAccessFile(tmpfile, "r");
             ByteBuffer out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, totalcount);
@@ -249,6 +254,16 @@ public class MappedRunContainerRealDataBenchmarkIterate {
             return answer;
         }
                 
+        @TearDown
+        public void clean() {
+            mrc.clear();
+            mac.clear();
+            cc.clear();
+            ewah.clear();
+            ewah32.clear();
+            for(File f: createdfiles)
+                f.delete();
+        }
 
                 
         @Setup
