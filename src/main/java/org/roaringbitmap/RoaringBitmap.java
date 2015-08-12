@@ -820,6 +820,32 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         return size;
     }
 
+    /**
+     * Compute overall OR between bitmaps.
+     * 
+     * (Effectively calls {@link FastAggregation#or})
+     * 
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static RoaringBitmap or(RoaringBitmap... bitmaps) {
+        return FastAggregation.or(bitmaps);
+    }
+    
+
+    /**
+     * Compute overall AND between bitmaps.
+     *
+     * (Effectively calls {@link FastAggregation#or})
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static RoaringBitmap or(Iterator<RoaringBitmap> bitmaps) {
+        return FastAggregation.or(bitmaps);
+    }
+
     @Override
     public int hashCode() {
         return highLowContainer.hashCode();

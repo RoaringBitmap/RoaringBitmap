@@ -476,6 +476,33 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
         return highLowContainer.hashCode();
     }
 
+
+    /**
+     * Compute overall OR between bitmaps.
+     * 
+     * (Effectively calls {@link BufferFastAggregation#or})
+     * 
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static MutableRoaringBitmap or(ImmutableRoaringBitmap... bitmaps) {
+        return BufferFastAggregation.or(bitmaps);
+    }
+    
+
+    /**
+     * Compute overall AND between bitmaps.
+     *
+     * (Effectively calls {@link BufferFastAggregation#or})
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static MutableRoaringBitmap or(@SuppressWarnings("rawtypes") Iterator bitmaps) {
+        return BufferFastAggregation.or(bitmaps);
+    }
+    
     /**
      * iterate over the positions of the true values.
      * 

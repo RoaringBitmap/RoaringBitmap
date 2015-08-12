@@ -119,6 +119,57 @@ public final class FastAggregation {
            answer.xor(bitmaps.next());
        return answer;
     }
+
+
+    /**
+     * Compute overall OR between bitmaps.
+     * 
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static RoaringBitmap or(RoaringBitmap... bitmaps) {
+        return naive_or(bitmaps);
+    }
+    
+
+    /**
+     * Compute overall AND between bitmaps.
+     *
+     * This function runs in linear time with respect to the number of bitmaps.
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static RoaringBitmap or(Iterator<RoaringBitmap> bitmaps) {
+        return naive_or(bitmaps);
+    }
+    
+    /**
+     * Compute overall XOR between bitmaps.
+     *
+     * This function runs in linear time with respect to the number of bitmaps.
+     * 
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static RoaringBitmap xor(RoaringBitmap... bitmaps) {
+       return naive_xor(bitmaps);
+    }
+    
+
+    /**
+     * Compute overall AND between bitmaps.
+     * 
+     * This function runs in linear time with respect to the number of bitmaps.
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static RoaringBitmap xor(Iterator<RoaringBitmap> bitmaps) {
+       return naive_xor(bitmaps);
+    }
+
     
     /**
      * Sort the bitmap prior to using the and aggregate.
@@ -183,50 +234,6 @@ public final class FastAggregation {
     @Deprecated
     public static RoaringBitmap horizontal_or(Iterator<RoaringBitmap> bitmaps) {
         return naive_or(bitmaps);
-        /*RoaringBitmap answer = new RoaringBitmap();
-        if (!bitmaps.hasNext())
-            return answer;
-        PriorityQueue<ContainerPointer> pq = new PriorityQueue<ContainerPointer>();
-        while(bitmaps.hasNext()) {
-            RoaringBitmap b = bitmaps.next();
-            ContainerPointer x = b.highLowContainer
-                    .getContainerPointer();
-            if (x.getContainer() != null)
-                pq.add(x);
-        }
-
-        while (!pq.isEmpty()) {
-            ContainerPointer x1 = pq.poll();
-            if (pq.isEmpty() || (pq.peek().key() != x1.key())) {
-                answer.highLowContainer.append(x1.key(),
-                        x1.getContainer().clone());
-                x1.advance();
-                if (x1.getContainer() != null)
-                    pq.add(x1);
-                continue;
-            }
-            ContainerPointer x2 = pq.poll();
-            Container newc = x1.getContainer().lazyOR(x2.getContainer());
-            while (!pq.isEmpty() && (pq.peek().key() == x1.key())) {
-                ContainerPointer x = pq.poll();
-                newc = newc.lazyIOR(x.getContainer());
-                x.advance();
-                if (x.getContainer() != null)
-                    pq.add(x);
-                else if (pq.isEmpty())
-                    break;
-            }
-            if(newc.getCardinality()<0)
-                ((BitmapContainer)newc).computeCardinality();
-            answer.highLowContainer.append(x1.key(), newc);
-            x1.advance();
-            if (x1.getContainer() != null)
-                pq.add(x1);
-            x2.advance();
-            if (x2.getContainer() != null)
-                pq.add(x2);
-        }
-        return answer;*/
     }
 
     /**
@@ -238,7 +245,7 @@ public final class FastAggregation {
      * @return aggregated bitmap
      * @see #horizontal_or(RoaringBitmap...)
      */
-    public static RoaringBitmap or(RoaringBitmap... bitmaps) {
+    public static RoaringBitmap priorityqueue_or(RoaringBitmap... bitmaps) {
         if (bitmaps.length == 0)
             return new RoaringBitmap();
 
@@ -319,7 +326,7 @@ public final class FastAggregation {
      * @return aggregated bitmap
      * @see #horizontal_xor(RoaringBitmap...)
      */
-    public static RoaringBitmap xor(RoaringBitmap... bitmaps) {
+    public static RoaringBitmap priorityqueue_xor(RoaringBitmap... bitmaps) {
         if (bitmaps.length == 0)
             return new RoaringBitmap();
 

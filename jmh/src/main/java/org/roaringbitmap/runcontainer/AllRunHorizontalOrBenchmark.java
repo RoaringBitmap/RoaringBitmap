@@ -4,10 +4,7 @@ import it.uniroma3.mat.extendedset.intset.ConciseSet;
 import it.uniroma3.mat.extendedset.intset.ImmutableConciseSet;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -18,7 +15,6 @@ import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.roaringbitmap.Container;
-import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.RoaringBitmap;
 
 import com.googlecode.javaewah.EWAHCompressedBitmap;
@@ -68,32 +64,17 @@ public class AllRunHorizontalOrBenchmark {
     }
     
     @Benchmark
-	public int horizontalOrARunContainer_naive(BenchmarkState benchmarkState) {
-		return FastAggregation.naive_or(benchmarkState.rc.iterator())
+	public int horizontalOr_Roaringwithrun(BenchmarkState benchmarkState) {
+		return RoaringBitmap.or(benchmarkState.rc.iterator())
 	               .getCardinality();
 	}
 	
   
 	@Benchmark
-	public int horizontalOrBitmapContainer_naive(BenchmarkState benchmarkState) {
-        return FastAggregation.naive_or(benchmarkState.ac.iterator())
+	public int horizontalOr_Roaring(BenchmarkState benchmarkState) {
+        return RoaringBitmap.or(benchmarkState.ac.iterator())
                 .getCardinality();
 	}
-
-    @Benchmark
-    public int fastOrARunContainer(BenchmarkState benchmarkState) {
-        RoaringBitmap[] v = new RoaringBitmap[benchmarkState.rc.size()];
-        return FastAggregation.or((RoaringBitmap[]) benchmarkState.rc.toArray(v))
-                   .getCardinality();
-    }
-    
-  
-    @Benchmark
-    public int fastOrBitmapContainer(BenchmarkState benchmarkState) {
-        RoaringBitmap[] v = new RoaringBitmap[benchmarkState.rc.size()];
-        return FastAggregation.or((RoaringBitmap[]) benchmarkState.ac.toArray(v))
-                .getCardinality();
-    }
     
     @Benchmark
     public int horizontalOr_EWAH(BenchmarkState benchmarkState) {
