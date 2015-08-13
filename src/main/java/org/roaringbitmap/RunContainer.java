@@ -446,7 +446,7 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public Container andNot(ArrayContainer x) {
-        int card = getCardinality();
+        final int card = getCardinality();
         if(card <= ArrayContainer.DEFAULT_MAX_SIZE) {
             // if the cardinality is small, we construct the solution in place
             ArrayContainer ac = new ArrayContainer(card);
@@ -454,7 +454,7 @@ public final class RunContainer extends Container implements Cloneable {
             return ac;
         }
         // otherwise, we generate a bitmap
-        return toBitmapOrArrayContainer(getCardinality()).iandNot(x);
+        return toBitmapOrArrayContainer(card).iandNot(x);
     }
 
 
@@ -716,13 +716,13 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public Container xor(ArrayContainer x) {
-        int card = getCardinality();
+        final int card = getCardinality();
         if(card <= ArrayContainer.DEFAULT_MAX_SIZE) {
             // if the cardinality is small, we construct the solution in place
             return x.xor(this.getShortIterator());
         }
         // otherwise, we generate a bitmap
-        return toBitmapOrArrayContainer(getCardinality()).ixor(x);
+        return toBitmapOrArrayContainer(card).ixor(x);
     }
 
     @Override

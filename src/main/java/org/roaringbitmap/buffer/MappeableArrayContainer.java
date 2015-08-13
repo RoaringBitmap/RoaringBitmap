@@ -97,13 +97,23 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     @Override
     int numberOfRuns() {
         int numRuns = 0;
-        ShortIterator sIt = getShortIterator();
-        int previous = -2;
-        while (sIt.hasNext()) {
-            int val = BufferUtil.toIntUnsigned(sIt.next());
-            if (val != previous+1)
-                ++numRuns;
-            previous = val;
+        if(BufferUtil.isBackedBySimpleArray(content)) {
+            short[] c = content.array();
+            int previous = -2;
+            for (int i = 0; i < cardinality; i++) {
+                int val = BufferUtil.toIntUnsigned(c[i]);
+                if (val != previous+1)
+                    ++numRuns;
+                previous = val;
+            }
+        } else {
+            int previous = -2;
+            for (int i = 0; i < cardinality; i++) {
+                int val = BufferUtil.toIntUnsigned(content.get(i));
+                if (val != previous+1)
+                    ++numRuns;
+                previous = val;
+            }
         }
         return numRuns;
     }

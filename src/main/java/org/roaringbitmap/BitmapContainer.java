@@ -117,83 +117,6 @@ public final class BitmapContainer extends Container implements Cloneable {
         return numRuns;
     }
 
-    /* check at the halfway point.
-    public int numberOfRunsLowerBound512(int mustNotExceed) {
-        int numRuns = 0;
-      
-        for (int blockOffset = 0; blockOffset < bitmap.length; blockOffset+= 512) {
-            
-            for (int i = blockOffset; i < blockOffset+512; i++) {
-                long word = bitmap[i];
-                numRuns += Long.bitCount((~word) & (word << 1));
-            }
-            if (numRuns > mustNotExceed)
-                return numRuns; 
-        }
-        return numRuns;
-    }
-    */
-
-
-
-    /* the unrolling did not seem to help
-    public int numberOfRunsLowerBoundUnrolled2(int mustNotExceed) {
-        int numRunsUpper = 0, numRunsLower = 0;
-      
-        int halfway = bitmap.length/2;
-        for (int blockOffset = 0; blockOffset < bitmap.length/2; blockOffset+= BLOCKSIZE) {
-            
-            for (int i = 0; i < BLOCKSIZE; i++) {
-                long wordLower = bitmap[i+blockOffset];
-                numRunsLower += Long.bitCount((~wordLower) & (wordLower << 1));
-                long wordUpper = bitmap[halfway+i+blockOffset];
-                numRunsUpper += Long.bitCount((~wordUpper) & (wordUpper << 1));
-            }
-            int numRuns = numRunsUpper + numRunsLower;
-            if (numRuns > mustNotExceed)
-                return numRuns; 
-        }
-        return numRunsUpper + numRunsLower;
-    }
-
-
-
-    public int numberOfRunsLowerBoundUnrolled() {
-        assert bitmap.length % 4 == 0;
-        
-        // these guys usually in the same cache line, so if one misses, the others
-        // will probably also miss.  So there might not be an opportunity to proceed.
-
-        int numRuns1 = 0, numRuns2 = 0, numRuns3=0, numRuns4=0;
-        for (int i = 0; i < bitmap.length; i  += 4) {
-            final long word1 = bitmap[i];
-            numRuns1 += Long.bitCount((~word1) & (word1 << 1));
-            final long word2 = bitmap[i+1];
-            numRuns2 += Long.bitCount((~word2) & (word2 << 1));
-            final long word3 = bitmap[i+2];
-            numRuns3 += Long.bitCount((~word3) & (word3 << 1));
-            final long word4 = bitmap[i+3];
-            numRuns3 += Long.bitCount((~word4) & (word4 << 1));
-        }
-        return numRuns1+numRuns2+numRuns3+numRuns4;
-    }
-
-    // try unrolling for first and second halves.  If there is a cache miss on one,
-    // the other miss won't necessarily miss too.
-
-    public int numberOfRunsLowerBoundUnrolled2() {
-        final int halfway = bitmap.length/2;
-        int numRuns1 = 0, numRuns2 = 0;
-        for (int i = 0; i < halfway; i++) {
-            long word1 = bitmap[i];
-            long word2 = bitmap[i+halfway];
-            numRuns1 += Long.bitCount((~word1) & (word1 << 1));
-            numRuns1 += Long.bitCount((~word2) & (word2 << 1));
-        }
-        return numRuns1+numRuns2;
-    }
-    */
-
     /**
      * Computes the number of runs
      * @return the number of runs
@@ -215,44 +138,12 @@ public final class BitmapContainer extends Container implements Cloneable {
     }
 
 
-    /*  JMH show this about 20% slower than not unrolled, on strife.unbsj.ca 
-    // unrolled to work on first and second halves of the array at once
-    
-    public int numberOfRunsAdjustmentUnrolled() {
-        int ans1 = 0, ans2=0;
-        final int halfway = bitmap.length / 2;
-
-        long nextWord1 = bitmap[0], nextWord2 = bitmap[0+halfway];
-        for (int i = 0; i < bitmap.length/2-1; i++) {
-            final long word1 = nextWord1;
-            final long word2 = nextWord2;
-
-            nextWord1 = bitmap[i+1];
-            nextWord2 = bitmap[halfway+i+1];
-
-            ans1 += ((word1 >>> 63) & ~nextWord1);
-            ans2 += ((word2 >>> 63) & ~nextWord2);
-
-        }
-        final long word2 = nextWord2;
-        if ((word2 & 0x8000000000000000L) != 0)
-            ans2++;
-        final long word1 = nextWord1;
-        ans1 += ((word1 >> 63) & ~bitmap[halfway] & 1);
-        return ans1+ans2;
-    }
-    */
-
 
     // nruns value for which RunContainer.serializedSizeInBytes == BitmapContainer.getArraySizeInBytes()
     private final int MAXRUNS = (getArraySizeInBytes() - 2) / 4;
     
 
     public Container runOptimize() {
-        //assert RunContainer.serializedSizeInBytes(MAXRUNS) <= getArraySizeInBytes() && RunContainer.serializedSizeInBytes(MAXRUNS+1) > getArraySizeInBytes();
-        //int numRuns = numberOfRunsLowerBoundUnrolled2(MAXRUNS); // "baseline" in some tests, Aug 2015
-        // int numRuns = numberOfRunsLowerBound512(MAXRUNS);  on core2 worse
-        //int numRuns = numberOfRunsLowerBound(); //  worse on ci and weather "nobail"
         int numRuns = numberOfRunsLowerBound(MAXRUNS); // decent choice
 
         int sizeAsRunContainerLowerBound = RunContainer.serializedSizeInBytes(numRuns);
@@ -263,11 +154,6 @@ public final class BitmapContainer extends Container implements Cloneable {
         // in some cases (or if we need to make the runContainer the right
         // size)
         numRuns += numberOfRunsAdjustment();
-        /*
-        if (numRuns != numberOfRuns())
-            System.out.println("oops, numRuns is "+numRuns+" but should have been "+numberOfRuns()+" MAXRUNS ="+MAXRUNS+" nruns = "+numberOfRunsLowerBoundUnrolled2(MAXRUNS) + " nonunrolled is "+numberOfRunsLowerBound(MAXRUNS));
-            throw new RuntimeException("bug in getting num runs");
-        */
         int sizeAsRunContainer = RunContainer.serializedSizeInBytes(numRuns);
         
         if (getArraySizeInBytes() > sizeAsRunContainer) {
@@ -276,33 +162,6 @@ public final class BitmapContainer extends Container implements Cloneable {
         else 
             return this;
     }
-
-    /*
-    // for benchmarking, 100 times slower on a test (iterating was terrible)
-        public Container runOptimize_old() {
-        int numRuns = numberOfRuns(); 
-        int sizeAsRunContainerLowerBound = RunContainer.serializedSizeInBytes(numRuns);
-
-        if (sizeAsRunContainerLowerBound >= getArraySizeInBytes())
-            return this;
-        else
-            return new RunContainer(getShortIterator(),  numRuns); 
-    }
-    */
-    
-
-
-    /* 
-        Container runOptimize_nobail() {
-        int numRuns = numberOfRuns(); 
-        int sizeAsRunContainerLowerBound = RunContainer.serializedSizeInBytes(numRuns);
-
-        if (sizeAsRunContainerLowerBound >= getArraySizeInBytes())
-            return this;
-        else
-            return new RunContainer(this,  numRuns); 
-    }
-    */
 
 
 
@@ -1160,8 +1019,8 @@ public final class BitmapContainer extends Container implements Cloneable {
     @Override
     public Container iand(RunContainer x) {
         // could probably be replaced with return iand(x.toBitmapOrArrayContainer()); 
-        int card = x.getCardinality();
-        if(x.getCardinality() <= ArrayContainer.DEFAULT_MAX_SIZE) {
+        final int card = x.getCardinality();
+        if(card <= ArrayContainer.DEFAULT_MAX_SIZE) {
             // no point in doing it in-place
             ArrayContainer answer = new ArrayContainer(card);
             answer.cardinality=0;

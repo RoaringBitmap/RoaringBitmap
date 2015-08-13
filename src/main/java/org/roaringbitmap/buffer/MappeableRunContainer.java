@@ -88,6 +88,110 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         setLength(runCount-1, (short) runLen);
     }
 
+    // convert a bitmap container to a run container somewhat efficiently.
+    protected MappeableRunContainer(MappeableBitmapContainer bc, int nbrRuns) {
+        this.nbrruns = nbrRuns;
+        valueslength = ShortBuffer.allocate(2 * nbrRuns);
+        if(! BufferUtil.isBackedBySimpleArray(valueslength))
+            throw new RuntimeException("Unexpected internal error.");
+        short[] vl = valueslength.array();
+        if (nbrRuns == 0) return;
+        if(bc.isArrayBacked()) {
+            long[] b = bc.bitmap.array();
+            int longCtr = 0;  // index of current long in bitmap
+            long curWord = b[0];  //its value
+            int runCount=0;
+            final int len = bc.bitmap.limit();
+            while (true) {
+                // potentially multiword advance to first 1 bit
+                while (curWord == 0L && longCtr < len - 1)
+                    curWord = b[ ++longCtr];
+
+                if (curWord == 0L) {
+                    // wrap up, no more runs
+                    return;
+                }
+                int localRunStart = Long.numberOfTrailingZeros(curWord);
+                int runStart = localRunStart   + 64*longCtr;
+                // stuff 1s into number's LSBs
+                long curWordWith1s = curWord | ((1L << runStart) - 1);
+
+                // find the next 0, potentially in a later word
+                int runEnd = 0;
+                while (curWordWith1s == -1L && longCtr < len - 1)
+                    curWordWith1s = b[++longCtr];
+
+                if (curWordWith1s == -1L) {
+                    // a final unterminated run of 1s (32 of them)
+                    runEnd = Long.numberOfTrailingZeros(~curWordWith1s) + longCtr*64;
+                    //setValue(runCount, (short) runStart);
+                    vl[2 * runCount ] = (short) runStart;
+                    //setLength(runCount, (short) (runEnd-runStart-1));
+                    vl[2 * runCount + 1 ] = (short) (runEnd-runStart-1);
+                    return;
+                }
+                int localRunEnd = Long.numberOfTrailingZeros(~curWordWith1s);
+                runEnd = localRunEnd + longCtr*64;
+                // setValue(runCount, (short) runStart);
+                vl[2 * runCount ] = (short) runStart;
+                // setLength(runCount, (short) (runEnd-runStart-1));
+                vl[2 * runCount + 1 ] = (short) (runEnd-runStart-1);
+                runCount++;
+                // now, zero out everything right of runEnd.
+
+                curWord = (curWordWith1s >>> localRunEnd) << localRunEnd;
+                // We've lathered and rinsed, so repeat...
+            }
+        } else {
+            int longCtr = 0;  // index of current long in bitmap
+            long curWord = bc.bitmap.get(0);  //its value
+            int runCount=0;
+            final int len = bc.bitmap.limit();
+            while (true) {
+                // potentially multiword advance to first 1 bit
+                while (curWord == 0L && longCtr < len - 1)
+                    curWord = bc.bitmap.get( ++longCtr);
+
+                if (curWord == 0L) {
+                    // wrap up, no more runs
+                    return;
+                }
+                int localRunStart = Long.numberOfTrailingZeros(curWord);
+                int runStart = localRunStart   + 64*longCtr;
+                // stuff 1s into number's LSBs
+                long curWordWith1s = curWord | ((1L << runStart) - 1);
+
+                // find the next 0, potentially in a later word
+                int runEnd = 0;
+                while (curWordWith1s == -1L && longCtr < len - 1)
+                    curWordWith1s = bc.bitmap.get(++longCtr);
+
+                if (curWordWith1s == -1L) {
+                    // a final unterminated run of 1s (32 of them)
+                    runEnd = Long.numberOfTrailingZeros(~curWordWith1s) + longCtr*64;
+                    //setValue(runCount, (short) runStart);
+                    vl[2 * runCount ] = (short) runStart;
+                    //setLength(runCount, (short) (runEnd-runStart-1));
+                    vl[2 * runCount + 1 ] = (short) (runEnd-runStart-1);
+                    return;
+                }
+                int localRunEnd = Long.numberOfTrailingZeros(~curWordWith1s);
+                runEnd = localRunEnd + longCtr*64;
+                // setValue(runCount, (short) runStart);
+                vl[2 * runCount ] = (short) runStart;
+                // setLength(runCount, (short) (runEnd-runStart-1));
+                vl[2 * runCount + 1 ] = (short) (runEnd-runStart-1);
+                runCount++;
+                // now, zero out everything right of runEnd.
+
+                curWord = (curWordWith1s >>> localRunEnd) << localRunEnd;
+                // We've lathered and rinsed, so repeat...
+            }
+
+        }            
+    }
+
+
     @Override
     int numberOfRuns() {
         return this.nbrruns;
@@ -209,7 +313,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         valueslength = ShortBuffer.allocate(2 * capacity);
     }
 
-    
+
     @Override
     public Iterator<Short> iterator() {
         final ShortIterator i  = getShortIterator();
@@ -422,7 +526,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer andNot(MappeableArrayContainer x) {
-        int card = getCardinality();
+        final int card = getCardinality();
         if(card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             // if the cardinality is small, we construct the solution in place
             MappeableArrayContainer ac = new MappeableArrayContainer(card);
@@ -430,7 +534,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
             return ac;
         }
         // otherwise, we generate a bitmap
-        return toBitmapOrArrayContainer(getCardinality()).iandNot(x);
+        return toBitmapOrArrayContainer(card).iandNot(x);
     }
 
 
@@ -703,13 +807,13 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer xor(MappeableArrayContainer x) {
-        int card = getCardinality();
+        final int card = getCardinality();
         if (card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             // if the cardinality is small, we construct the solution in place
             return x.xor(this.getShortIterator());
         }
         // otherwise, we generate a bitmap
-        return toBitmapOrArrayContainer(getCardinality()).ixor(x);
+        return toBitmapOrArrayContainer(card).ixor(x);
     }
 
     @Override

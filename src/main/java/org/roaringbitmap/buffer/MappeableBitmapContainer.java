@@ -136,6 +136,110 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
         }
     }
+    
+    /**
+   * Computes the number of runs
+   * @return the number of runs
+   */
+  public int numberOfRunsAdjustment() {
+      int ans = 0;
+        if (BufferUtil.isBackedBySimpleArray(bitmap)) {
+            long[] b = bitmap.array();
+            long nextWord = b[0];
+            for (int i = 0; i < b.length - 1; i++) {
+                final long word = nextWord;
+
+                nextWord = b[i + 1];
+                ans += ((word >>> 63) & ~nextWord);
+            }
+
+            final long word = nextWord;
+
+            if ((word & 0x8000000000000000L) != 0)
+                ans++;
+
+        } else {
+            long nextWord = bitmap.get(0);
+            int len = bitmap.limit();
+            for (int i = 0; i < len - 1; i++) {
+                final long word = nextWord;
+
+                nextWord = bitmap.get(i + 1);
+                ans += ((word >>> 63) & ~nextWord);
+            }
+
+            final long word = nextWord;
+
+            if ((word & 0x8000000000000000L) != 0)
+                ans++;
+        }
+        return ans;
+  }
+
+
+
+  // bail out early when the number of runs is excessive, without
+  // an exact count (just a decent lower bound)
+  private static final int BLOCKSIZE = 128;
+  // 64 words can have max 32 runs per word, max 2k runs
+
+  /**
+   * Counts how many runs there is in the bitmap, up to a maximum
+   * @param mustNotExceed maximum of runs beyond which counting is pointless
+   * @return estimated number of courses
+   */
+    public int numberOfRunsLowerBound(int mustNotExceed) {
+        int numRuns = 0;
+        if (BufferUtil.isBackedBySimpleArray(bitmap)) {
+            long[] b = bitmap.array();
+
+            for (int blockOffset = 0; blockOffset < b.length; blockOffset += BLOCKSIZE) {
+
+                for (int i = blockOffset; i < blockOffset + BLOCKSIZE; i++) {
+                    long word = b[i];
+                    numRuns += Long.bitCount((~word) & (word << 1));
+                }
+                if (numRuns > mustNotExceed)
+                    return numRuns;
+            }
+        } else {
+            int len = bitmap.limit();
+            for (int blockOffset = 0; blockOffset < len; blockOffset += BLOCKSIZE) {
+
+                for (int i = blockOffset; i < blockOffset + BLOCKSIZE; i++) {
+                    long word = bitmap.get(i);
+                    numRuns += Long.bitCount((~word) & (word << 1));
+                }
+                if (numRuns > mustNotExceed)
+                    return numRuns;
+            }
+        }
+        return numRuns;
+    }
+
+    // nruns value for which RunContainer.serializedSizeInBytes == BitmapContainer.getArraySizeInBytes()
+    private final int MAXRUNS = (getArraySizeInBytes() - 2) / 4;
+    
+
+    public MappeableContainer runOptimize() {
+        int numRuns = numberOfRunsLowerBound(MAXRUNS); // decent choice
+
+        int sizeAsRunContainerLowerBound = MappeableRunContainer.serializedSizeInBytes(numRuns);
+
+        if (sizeAsRunContainerLowerBound >= getArraySizeInBytes())
+            return this;
+        // else numRuns is a relatively tight bound that needs to be exact
+        // in some cases (or if we need to make the runContainer the right
+        // size)
+        numRuns += numberOfRunsAdjustment();
+        int sizeAsRunContainer = MappeableRunContainer.serializedSizeInBytes(numRuns);
+        
+        if (getArraySizeInBytes() > sizeAsRunContainer) {
+            return new MappeableRunContainer(this,  numRuns); 
+        } 
+        else 
+            return this;
+    }
 
     @Override
     public MappeableContainer add(final short i) {
@@ -531,8 +635,8 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     @Override
     public MappeableContainer iand(final MappeableRunContainer x) {
-     	int card = x.getCardinality();
-    	if(x.getCardinality() <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
+     	final int card = x.getCardinality();
+    	if(card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
     		// no point in doing it in-place
         	MappeableArrayContainer answer = new MappeableArrayContainer(card);
         	answer.cardinality=0;
