@@ -935,17 +935,6 @@ public final class MappeableBitmapContainer extends MappeableContainer
     // todo: simplearray case
     @Override
     public MappeableContainer ixor(final MappeableRunContainer x) {
-        /*
-     for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
-            int start = Util.toIntUnsigned(x.getValue(rlepos));
-            int end = Util.toIntUnsigned(x.getValue(rlepos)) + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
-            Util.flipBitmapRange(this.bitmap, start, end);
-        }
-        computeCardinality();
-        if(this.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE)
-            return this;
-        else return toArrayContainer();
-        */
      for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
             int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
             int end = start + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
@@ -1659,7 +1648,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
 }
 
 final class MappeableBitmapContainerShortIterator implements ShortIterator {
-    int i;
+    long w; 
+    int x; 
+    final static int len = MappeableBitmapContainer.MAX_CAPACITY / 64;//hard coded for speed
+    
     
     MappeableBitmapContainer parent;
 
@@ -1672,27 +1664,41 @@ final class MappeableBitmapContainerShortIterator implements ShortIterator {
 
     void wrap(MappeableBitmapContainer p) {
         parent = p;
-        i = parent.nextSetBit(0);
+        for(x=0; x < len;++x)
+            if((w=parent.bitmap.get(x))!=0) break;
     }
 
     @Override
     public boolean hasNext() {
-        return i >= 0;
+        return x < len;
     }
 
     @Override
     public short next() {
-        final int j = i;
-        // for speed, harcoding parent.bitmap.limit() * 64
-        i = i + 1 < MappeableBitmapContainer.MAX_CAPACITY ? parent.nextSetBit(i + 1) : -1;
-        return (short) j;
+        long t = w & -w;
+        short answer  = (short) (x * 64 + Long
+                .bitCount(t - 1));
+        w ^= t;
+        while (w == 0) {
+            ++x;
+            if(x == len) break;
+            w = parent.bitmap.get(x);
+        }
+        return answer;
     }
 
     @Override
     public int nextAsInt() {
-        final int j = i;
-        i = i + 1 < MappeableBitmapContainer.MAX_CAPACITY ? parent.nextSetBit(i + 1) : -1;
-        return j;
+        long t = w & -w;
+        int answer  = x * 64 + Long
+                .bitCount(t - 1);
+        w ^= t;
+        while (w == 0) {
+            ++x;
+            if(x == len) break;
+            w = parent.bitmap.get(x);
+        }
+        return answer;
     }
     
     @Override
@@ -1711,7 +1717,7 @@ final class MappeableBitmapContainerShortIterator implements ShortIterator {
     }
 }
 
-
+// TODO: Recode as MappeableBitmapContainerShortIterator for better speed
 final class ReverseMappeableBitmapContainerShortIterator implements ShortIterator {
     
     int i;

@@ -75,12 +75,44 @@ public class IteratorsBenchmark {
 
    }
 
+   @Benchmark
+   public int testStandard_c(BenchmarkState benchmarkState) {
+
+      IntIterator intIterator = benchmarkState.bitmap_c.getIntIterator();
+      int result = 0;
+      while (intIterator.hasNext()) {
+         result = intIterator.next();
+
+      }
+      return result;
+
+   }
+
+   @Benchmark
+   public int testFlyweight_c(BenchmarkState benchmarkState) {
+
+      IntIteratorFlyweight intIterator = benchmarkState.flyweightIterator;
+
+      intIterator.wrap(benchmarkState.bitmap_c);
+
+      int result = 0;
+      while (intIterator.hasNext()) {
+         result = intIterator.next();
+
+      }
+      return result;
+
+   }
+
+   
    @State(Scope.Benchmark)
    public static class BenchmarkState {
 
       final RoaringBitmap bitmap_a;
 
       final RoaringBitmap bitmap_b;
+
+      final RoaringBitmap bitmap_c;
 
       final IntIteratorFlyweight flyweightIterator = new IntIteratorFlyweight();
 
@@ -92,7 +124,11 @@ public class IteratorsBenchmark {
          bitmap_b = new RoaringBitmap();
          for (int k = 0; k < (1 << 30); k += 32)
             bitmap_b.add(k);
-
+         
+         bitmap_c = new RoaringBitmap();
+         for (int k = 0; k < (1 << 30); k += 3)
+            bitmap_c.add(k);
+         
       }
 
       private int[] takeSortedAndDistinct(Random source, int count) {

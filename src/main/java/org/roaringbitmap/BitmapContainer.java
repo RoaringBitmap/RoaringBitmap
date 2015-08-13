@@ -1108,7 +1108,8 @@ public final class BitmapContainer extends Container implements Cloneable {
 
 final class BitmapContainerShortIterator implements ShortIterator {
     
-    int i;
+    long w; 
+    int x; 
     
     long[] bitmap;
     
@@ -1120,27 +1121,42 @@ final class BitmapContainerShortIterator implements ShortIterator {
 
     public void wrap(long[] b) {
         bitmap = b;
-        i = nextSetBit(0);
+        for(x=0; x <bitmap.length;++x)
+            if((w=bitmap[x])!=0) break;
     }
 
     @Override
     public boolean hasNext() {
-        return i >= 0;
+        return x < bitmap.length;
     }
 
     @Override
     public short next() {
-        final int j = i;
-        i = i + 1 < bitmap.length * 64 ? nextSetBit(i + 1) : -1;
-        return (short) j;
+        long t = w & -w;
+        short answer  = (short) (x * 64 + Long
+                .bitCount(t - 1));
+        w ^= t;
+        while (w == 0) {
+            ++x;
+            if(x == bitmap.length) break;
+            w = bitmap[x];
+        }
+        return answer;
     }
 
 
     @Override
     public int nextAsInt() {
-        final int j = i;
-        i = i + 1 < bitmap.length * 64 ? nextSetBit(i + 1) : -1;
-        return j;
+        long t = w & -w;
+        int answer  = x * 64 + Long
+                .bitCount(t - 1);
+        w ^= t;
+        while (w == 0) {
+            ++x;
+            if(x == bitmap.length) break;
+            w = bitmap[x];
+        }
+        return answer;
     }
     
     @Override
@@ -1152,20 +1168,6 @@ final class BitmapContainerShortIterator implements ShortIterator {
         }
     }
     
-    int nextSetBit(final int i) {
-        int x = i >> 6; // i / 64 with sign extension
-        long w = bitmap[x];
-        w >>>= i;
-        if (w != 0) {
-            return i + Long.numberOfTrailingZeros(w);
-        }
-        for (++x; x < bitmap.length; ++x) {
-            if (bitmap[x] != 0) {
-                return x * 64 + Long.numberOfTrailingZeros(bitmap[x]);
-            }
-        }
-        return -1;
-    }
 
     @Override
     public void remove() {
@@ -1174,7 +1176,7 @@ final class BitmapContainerShortIterator implements ShortIterator {
     }
 }
 
-
+//TODO: should be recorded to use the approach from BitmapContainerShortIterator for better perfs
 final class ReverseBitmapContainerShortIterator implements ShortIterator {
     
     int i;
