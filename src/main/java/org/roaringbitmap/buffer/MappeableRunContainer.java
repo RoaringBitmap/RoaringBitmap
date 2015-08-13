@@ -526,6 +526,11 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer andNot(MappeableArrayContainer x) {
+        // when x is small, we guess that the result will still be a run container
+        final int arbitrary_threshold = 32; // this is arbitrary
+        if(x.getCardinality() < arbitrary_threshold)
+            return lazyandNot(x).toEfficientContainer();
+        // otherwise we generate either an array or bitmap container
         final int card = getCardinality();
         if(card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             // if the cardinality is small, we construct the solution in place
@@ -682,10 +687,13 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer or(MappeableArrayContainer x) {
-        return lazyor(x).toEfficientContainer();
+        // we guess that, often, the result will still be efficiently expressed as a run container
+        return lazyor(x).repairAfterLazy();
     }
 
-    protected MappeableRunContainer lazyor(MappeableArrayContainer x) {
+    protected MappeableContainer lazyor(MappeableArrayContainer x) {
+        if(x.getCardinality() == 0) return this;
+        if(this.getCardinality() == 0) return x;
         MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.getCardinality())));
         short[] vl = answer.valueslength.array();
         int rlepos = 0;
@@ -718,6 +726,40 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         return answer;
     }
 
+    protected MappeableContainer lazyxor(MappeableArrayContainer x) {
+        if(x.getCardinality() == 0) return this;
+        if(this.getCardinality() == 0) return x;
+        MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.getCardinality())));
+        short[] vl = answer.valueslength.array();
+        int rlepos = 0;
+        ShortIterator i = x.getShortIterator();
+        short cv = i.next();
+
+        while (true) {
+            if(BufferUtil.compareUnsigned(getValue(rlepos), cv) < 0) {
+                answer.smartAppendExclusive(vl,getValue(rlepos), getLength(rlepos));
+                rlepos++;
+                if(rlepos == this.nbrruns )  {
+                    answer.smartAppendExclusive(vl,cv);
+
+                    while (i.hasNext()) {
+                        answer.smartAppendExclusive(vl,i.next());
+                    }
+                    break;
+                }
+            } else {
+                answer.smartAppendExclusive(vl,cv);
+                if(! i.hasNext() ) {
+                    while (rlepos < this.nbrruns) {
+                        answer.smartAppendExclusive(vl,getValue(rlepos), getLength(rlepos));
+                        rlepos++;
+                    }
+                    break;
+                } else cv = i.next();
+            }
+        }        
+        return answer;
+    }
     
     @Override
     public MappeableContainer or(MappeableBitmapContainer x) {
@@ -807,6 +849,11 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer xor(MappeableArrayContainer x) {
+        // if the cardinality of the array is small, guess that the output will still be a run container
+        final int arbitrary_threshold = 32; // 32 is arbitrary here
+        if(x.getCardinality() < arbitrary_threshold)
+          return lazyxor(x).repairAfterLazy();
+        // otherwise, we expect the output to be either an array or bitmap
         final int card = getCardinality();
         if (card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             // if the cardinality is small, we construct the solution in place
@@ -1382,6 +1429,65 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         return answer;
     }
 
+    protected MappeableRunContainer lazyandNot(MappeableArrayContainer x) {
+        if(x.getCardinality() == 0) return this;
+        MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.cardinality)));
+        short[] vl = answer.valueslength.array();
+        int rlepos = 0;
+        int xrlepos = 0;
+        int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+        int end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+        int xstart = BufferUtil.toIntUnsigned(x.content.get(xrlepos));
+        while ((rlepos < this.nbrruns ) && (xrlepos < x.cardinality )) {
+            if (end  <= xstart) {
+                // output the first run
+                vl[2 * answer.nbrruns] =  (short) start;
+                vl[2 * answer.nbrruns + 1] =   (short)(end - start - 1);
+                answer.nbrruns++;
+                rlepos++;
+                if(rlepos < this.nbrruns ) {
+                    start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+                    end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+                }
+            } else if (xstart + 1 <= start) {
+                // exit the second run
+                xrlepos++;
+                if(xrlepos < x.cardinality ) {
+                    xstart = BufferUtil.toIntUnsigned(x.content.get(xrlepos));
+                }
+            } else {
+                if ( start < xstart ) {
+                    vl[2 * answer.nbrruns] =  (short) start;
+                    vl[2 * answer.nbrruns + 1] =  (short) (xstart - start - 1);
+                    answer.nbrruns++;
+                }
+                if(xstart + 1 < end) {
+                    start = xstart + 1;
+                } else {
+                    rlepos++;
+                    if(rlepos < this.nbrruns ) {
+                        start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+                        end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+                    }
+                }
+            }
+        }
+        if(rlepos < this.nbrruns) {
+            vl[2 * answer.nbrruns] =  (short) start;
+            vl[2 * answer.nbrruns + 1] =  (short)(end - start - 1);
+            answer.nbrruns++;
+            rlepos++;
+            if(rlepos < this.nbrruns) {                
+              this.valueslength.position(2 * rlepos);
+              this.valueslength.get(vl, 2 * answer.nbrruns, 2*(this.nbrruns-rlepos ));
+              answer.nbrruns  = answer.nbrruns + this.nbrruns - rlepos;
+            }
+        } 
+        return answer;
+    }
+
+    
+    
     // assume that the (maybe) inplace operations
     // will never actually *be* in place if they are 
     // to return ArrayContainer or BitmapContainer
@@ -1460,6 +1566,38 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         }
     }
 
+    private void smartAppendExclusive(short[] vl, short val) {
+        int oldend;
+        if((nbrruns==0) ||
+                (BufferUtil.toIntUnsigned(val) > 
+                (oldend = BufferUtil.toIntUnsigned(getValue(nbrruns - 1)) + BufferUtil.toIntUnsigned(getLength(nbrruns - 1)) + 1))) { // we add a new one
+            vl[2 * nbrruns] =  val;
+            vl[2 * nbrruns + 1] = 0;
+            nbrruns++;
+            return;
+        } 
+        
+        int newend = BufferUtil.toIntUnsigned(val) + 1;
+        
+        if(BufferUtil.toIntUnsigned(val) == BufferUtil.toIntUnsigned(getValue(nbrruns - 1))) {
+            // we wipe out previous
+            if( newend != oldend ) {
+                setValue(nbrruns - 1, (short) newend);
+                setLength(nbrruns - 1, (short) (oldend - newend - 1));
+                return;
+            } else { // they cancel out
+                nbrruns--;
+                return;
+            }
+        }
+        setLength(nbrruns - 1, (short) (val - BufferUtil.toIntUnsigned(getValue(nbrruns - 1)) -1));
+
+        if(newend != oldend) {
+            setValue(nbrruns, (short) newend);
+            setLength(nbrruns , (short) (oldend - newend - 1));
+            nbrruns ++;
+        }
+    }
     
 
     public String toString() {

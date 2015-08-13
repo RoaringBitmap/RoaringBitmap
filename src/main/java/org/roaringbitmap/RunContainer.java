@@ -163,6 +163,7 @@ public final class RunContainer extends Container implements Cloneable {
         answer.cardinality = card;
         return answer;
     }
+  
 
     /**
      * Convert the container to either a Bitmap or an Array Container, depending
@@ -446,6 +447,11 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public Container andNot(ArrayContainer x) {
+        // when x is small, we guess that the result will still be a run container
+        final int arbitrary_threshold = 32; // this is arbitrary
+        if(x.getCardinality() < arbitrary_threshold)
+            return lazyandNot(x).toEfficientContainer();
+        // otherwise we generate either an array or bitmap container
         final int card = getCardinality();
         if(card <= ArrayContainer.DEFAULT_MAX_SIZE) {
             // if the cardinality is small, we construct the solution in place
@@ -601,11 +607,14 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public Container or(ArrayContainer x) {
-        return lazyor(x).toEfficientContainer();
+        // we guess that, often, the result will still be efficiently expressed as a run container
+        return lazyor(x).repairAfterLazy();
     }
 
 
-    protected RunContainer lazyor(ArrayContainer x) {
+    protected Container lazyor(ArrayContainer x) {
+        if(x.getCardinality() == 0) return this;
+        if(this.getCardinality() == 0) return x;
         RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.getCardinality())]);
         int rlepos = 0;
         ShortIterator i = x.getShortIterator();
@@ -636,6 +645,41 @@ public final class RunContainer extends Container implements Cloneable {
         }        
         return answer;
     }
+
+    protected Container lazyxor(ArrayContainer x) {
+        if(x.getCardinality() == 0) return this;
+        if(this.getCardinality() == 0) return x;
+        RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.getCardinality())]);
+        int rlepos = 0;
+        ShortIterator i = x.getShortIterator();
+        short cv = i.next();
+
+        while (true) {
+            if(Util.compareUnsigned(getValue(rlepos), cv) < 0) {
+                answer.smartAppendExclusive(getValue(rlepos), getLength(rlepos));
+                rlepos++;
+                if(rlepos == this.nbrruns )  {
+                    answer.smartAppendExclusive(cv);
+
+                    while (i.hasNext()) {
+                        answer.smartAppendExclusive(i.next());
+                    }
+                    break;
+                }
+            } else {
+                answer.smartAppendExclusive(cv);
+                if(! i.hasNext() ) {
+                    while (rlepos < this.nbrruns) {
+                        answer.smartAppendExclusive(getValue(rlepos), getLength(rlepos));
+                        rlepos++;
+                    }
+                    break;
+                } else cv = i.next();
+            }
+        }        
+        return answer;
+    }
+
     
     @Override
     public Container or(BitmapContainer x) {
@@ -716,6 +760,12 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public Container xor(ArrayContainer x) {
+        // if the cardinality of the array is small, guess that the output will still be a run container
+        final int arbitrary_threshold = 32; // 32 is arbitrary here
+        if(x.getCardinality() < arbitrary_threshold) {
+            return lazyxor(x).repairAfterLazy();
+        }
+        // otherwise, we expect the output to be either an array or bitmap
         final int card = getCardinality();
         if(card <= ArrayContainer.DEFAULT_MAX_SIZE) {
             // if the cardinality is small, we construct the solution in place
@@ -1341,6 +1391,61 @@ public final class RunContainer extends Container implements Cloneable {
         return answer.toEfficientContainer();
     }
 
+    protected RunContainer lazyandNot(ArrayContainer x) {
+        if(x.getCardinality() == 0) return this;
+        RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.cardinality)]);
+        int rlepos = 0;
+        int xrlepos = 0;
+        int start = Util.toIntUnsigned(this.getValue(rlepos));
+        int end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+        int xstart = Util.toIntUnsigned(x.content[xrlepos]);
+        while ((rlepos < this.nbrruns ) && (xrlepos < x.cardinality )) {
+            if (end  <= xstart) {
+                // output the first run
+                answer.valueslength[2 * answer.nbrruns] = (short) start;
+                answer.valueslength[2 * answer.nbrruns + 1] = (short)(end - start - 1);
+                answer.nbrruns++;
+                rlepos++;
+                if(rlepos < this.nbrruns ) {
+                    start = Util.toIntUnsigned(this.getValue(rlepos));
+                    end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+                }
+            } else if (xstart + 1 <= start) {
+                // exit the second run
+                xrlepos++;
+                if(xrlepos < x.cardinality ) {
+                    xstart = Util.toIntUnsigned(x.content[xrlepos]);
+                }
+            } else {
+                if ( start < xstart ) {
+                    answer.valueslength[2 * answer.nbrruns] = (short) start;
+                    answer.valueslength[2 * answer.nbrruns + 1] = (short) (xstart - start - 1);
+                    answer.nbrruns++;
+                }
+                if(xstart + 1 < end) {
+                    start = xstart + 1;
+                } else {
+                    rlepos++;
+                    if(rlepos < this.nbrruns ) {
+                        start = Util.toIntUnsigned(this.getValue(rlepos));
+                        end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+                    }
+                }
+            }
+        }
+        if(rlepos < this.nbrruns) {
+            answer.valueslength[2 * answer.nbrruns] = (short) start;
+            answer.valueslength[2 * answer.nbrruns + 1] = (short)(end - start - 1);
+            answer.nbrruns++;
+            rlepos++;
+            if(rlepos < this.nbrruns ) {
+                System.arraycopy(this.valueslength, 2 * rlepos, answer.valueslength, 2 * answer.nbrruns, 2*(this.nbrruns-rlepos ));
+                answer.nbrruns  = answer.nbrruns + this.nbrruns - rlepos;
+            } 
+        }
+        return answer;
+    }
+    
     @Override
     public Container iand(RunContainer x) {
         return and(x);
@@ -1374,6 +1479,39 @@ public final class RunContainer extends Container implements Cloneable {
         if(val == (short)(oldend + 1))  { // we merge
             valueslength[2 * (nbrruns - 1) + 1]++;
         }
+    }
+    private void smartAppendExclusive(short val) {
+        int oldend;
+        if((nbrruns==0) ||
+                (Util.toIntUnsigned(val) > 
+                (oldend = Util.toIntUnsigned(getValue(nbrruns - 1)) + Util.toIntUnsigned(getLength(nbrruns - 1)) + 1))) { // we add a new one
+            valueslength[2 * nbrruns] =  val;
+            valueslength[2 * nbrruns + 1] = 0;
+            nbrruns++;
+            return;
+        } 
+        
+        int newend = Util.toIntUnsigned(val)  + 1;
+        
+        if(Util.toIntUnsigned(val) == Util.toIntUnsigned(getValue(nbrruns - 1))) {
+            // we wipe out previous
+            if( newend != oldend ) {
+                setValue(nbrruns - 1, (short) newend);
+                setLength(nbrruns - 1, (short) (oldend - newend - 1));
+                return;
+            } else { // they cancel out
+                nbrruns--;
+                return;
+            }
+        }
+        setLength(nbrruns - 1, (short) (val - Util.toIntUnsigned(getValue(nbrruns - 1)) -1));
+
+        if(newend != oldend) {
+            setValue(nbrruns, (short) newend);
+            setLength(nbrruns , (short) (oldend - newend - 1));
+            nbrruns ++;
+        }
+
     }
     
     private void smartAppend(short start, short length) {
