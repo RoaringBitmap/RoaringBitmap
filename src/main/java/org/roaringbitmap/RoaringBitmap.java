@@ -970,6 +970,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             highLowContainer.setContainerAtIndex(k,c.repairAfterLazy());
         }
     }
+    
 
     // don't forget to call repairAfterLazy() afterward
     protected void lazyor(final RoaringBitmap x2) {

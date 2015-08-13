@@ -63,7 +63,45 @@ public class RunContainerRealDataBenchmarkHorizontal {
         return answer;
     }
 
-        
+    @Benchmark
+    public int horizontalOr_Roaring_pq(BenchmarkState benchmarkState) {
+        int answer = FastAggregation.priorityqueue_or(benchmarkState.ac.iterator())
+               .getCardinality();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+
+
+    @Benchmark
+    public int horizontalOr_RoaringWithRun_pq(BenchmarkState benchmarkState) {
+        int answer = FastAggregation.priorityqueue_or(benchmarkState.rc.iterator())
+               .getCardinality();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+
+
+    @Benchmark
+    public int horizontalOr_Roaring_experimental(BenchmarkState benchmarkState) {
+        int answer = FastAggregation.experimental_or(benchmarkState.ac.iterator())
+               .getCardinality();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+
+
+    @Benchmark
+    public int horizontalOr_RoaringWithRun_experimental(BenchmarkState benchmarkState) {
+        int answer = FastAggregation.experimental_or(benchmarkState.rc.iterator())
+               .getCardinality();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("bug");
+        return answer;
+    }    
+    
     @Benchmark
     public int horizontalOr_Concise(BenchmarkState benchmarkState) {
         ConciseSet bitmapor = benchmarkState.cc.get(0);

@@ -330,7 +330,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
         serialize(out);
     }
 
-    private boolean hasRunContainer() {
+    boolean hasRunContainer() {
         for (int k=0; k < size; ++k) {
             Container ck = values[k];
             if (ck instanceof RunContainer) return true;
