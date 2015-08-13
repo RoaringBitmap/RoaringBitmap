@@ -160,66 +160,6 @@ public final class FastAggregation {
             return horizontal_or(list);
         else 
             return priorityqueue_or(list.iterator());
-        
-        /*RoaringBitmap answer = new RoaringBitmap();
-        if (!bitmaps.hasNext())
-            return answer;
-        PriorityQueue<ContainerPointer> pq = new PriorityQueue<ContainerPointer>();
-        while(bitmaps.hasNext()) {
-            ContainerPointer x = bitmaps.next().highLowContainer.getContainerPointer();
-            if(x.getContainer() != null)
-                pq.add(x);
-        }
-        ArrayList<Container> buffer = new ArrayList<Container>(pq.size());
-        PriorityQueue<Container> pqc = new PriorityQueue<Container>(pq.size(), smallerfirst);
-        while (!pq.isEmpty()) {         
-            ContainerPointer x1 = pq.poll();
-            if(pq.isEmpty() || (pq.peek().key() != x1.key())) {
-                answer.highLowContainer.append(x1.key(), x1.getContainer().clone());
-                x1.advance();
-                if(x1.getContainer() != null)
-                    pq.add(x1);
-                continue;
-            }
-            short k1 = x1.key();
-            buffer.add(x1.getContainer());
-            x1.advance();
-            if(x1.getContainer() != null)
-                pq.add(x1);
-            int hasbitmap = -1;
-            while(!pq.isEmpty() && (pq.peek().key() == k1)) {
-                ContainerPointer x = pq.poll();
-                if(   (hasbitmap == -1) && (x.isBitmapContainer()))
-                    hasbitmap = buffer.size();
-                buffer.add(x.getContainer());
-                x.advance();
-                if(x.getContainer() != null)
-                    pq.add(x);
-                else if (pq.isEmpty()) break;
-            }
-            if(hasbitmap >= 0 ) {// we have a bitmap container, we are going to use the silly 
-                // make sure that the bitmap comes first
-                Container first = buffer.get(0);
-                buffer.set(0, buffer.get(hasbitmap));
-                buffer.set(hasbitmap, first);
-                Container newc = buffer.get(0).lazyOR(buffer.get(1));
-                for(int k = 2; k < buffer.size(); ++k)
-                    newc = newc.lazyIOR(buffer.get(k));
-                buffer.clear();
-                answer.highLowContainer.append(k1, newc);
-            } else { // we have only soft containers
-                pqc.addAll(buffer);
-                buffer.clear();
-                while (pqc.size() > 1) {
-                    Container z1 = pqc.poll();
-                    Container z2 = pqc.poll();
-                    pqc.add(z1.or(z2));
-                }
-                answer.highLowContainer.append(k1, pqc.poll());                
-            }
-        }
-        return answer;*/
-
     }
     /**
      * Compute overall OR between bitmaps.

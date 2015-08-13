@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
 
-import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.ShortIterator;
 
 import static org.junit.Assert.*;
@@ -403,6 +402,23 @@ public class TestRunContainer {
         MappeableContainer result = rc.xor(bc);
         assertEquals(0, result.getCardinality());
     }
+    
+    @Test
+    public void xor4() {
+        MappeableContainer bc = new MappeableArrayContainer();
+        MappeableContainer rc = new MappeableRunContainer();
+        MappeableContainer answer = new MappeableArrayContainer();
+        answer = answer.add(28203,28214);
+        rc = rc.add(28203,28214);
+        int[] data = {17739,17740,17945,19077,19278,19407};
+        for(int x : data) {
+            answer = answer.add((short) x);
+            bc =  bc.add((short) x);
+        }        
+        MappeableContainer result = rc.xor(bc);
+        assertEquals(answer, result);
+    }
+    
 
     @Test
     public void xor_array() {

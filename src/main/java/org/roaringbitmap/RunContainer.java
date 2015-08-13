@@ -660,7 +660,6 @@ public final class RunContainer extends Container implements Cloneable {
                 rlepos++;
                 if(rlepos == this.nbrruns )  {
                     answer.smartAppendExclusive(cv);
-
                     while (i.hasNext()) {
                         answer.smartAppendExclusive(i.next());
                     }
@@ -1490,7 +1489,11 @@ public final class RunContainer extends Container implements Cloneable {
             nbrruns++;
             return;
         } 
-        
+        if(oldend == Util.toIntUnsigned(val)) {
+            // we merge
+            valueslength[2 * ( nbrruns - 1) + 1]++;
+            return;
+        }
         int newend = Util.toIntUnsigned(val)  + 1;
         
         if(Util.toIntUnsigned(val) == Util.toIntUnsigned(getValue(nbrruns - 1))) {
@@ -1505,11 +1508,14 @@ public final class RunContainer extends Container implements Cloneable {
             }
         }
         setLength(nbrruns - 1, (short) (val - Util.toIntUnsigned(getValue(nbrruns - 1)) -1));
-
-        if(newend != oldend) {
+        if(newend < oldend) {
             setValue(nbrruns, (short) newend);
             setLength(nbrruns , (short) (oldend - newend - 1));
             nbrruns ++;
+        } else if (oldend < newend) {
+            setValue(nbrruns, (short) oldend);
+            setLength(nbrruns , (short) (newend - oldend - 1));
+            nbrruns ++;            
         }
 
     }
@@ -1540,6 +1546,11 @@ public final class RunContainer extends Container implements Cloneable {
             nbrruns++;
             return;
         } 
+        if(oldend == Util.toIntUnsigned(start)) {
+            // we merge
+            valueslength[2 * ( nbrruns - 1) + 1] += length + 1;
+            return;
+        }
         
         int newend = Util.toIntUnsigned(start) + Util.toIntUnsigned(length) + 1;
         

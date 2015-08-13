@@ -6,6 +6,7 @@ package org.roaringbitmap.buffer;
 
 
 import org.roaringbitmap.ShortIterator;
+import org.roaringbitmap.Util;
 
 import java.io.*;
 import java.nio.ShortBuffer;
@@ -734,14 +735,12 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         int rlepos = 0;
         ShortIterator i = x.getShortIterator();
         short cv = i.next();
-
         while (true) {
             if(BufferUtil.compareUnsigned(getValue(rlepos), cv) < 0) {
                 answer.smartAppendExclusive(vl,getValue(rlepos), getLength(rlepos));
                 rlepos++;
                 if(rlepos == this.nbrruns )  {
                     answer.smartAppendExclusive(vl,cv);
-
                     while (i.hasNext()) {
                         answer.smartAppendExclusive(vl,i.next());
                     }
@@ -1539,6 +1538,12 @@ public final class MappeableRunContainer extends MappeableContainer implements C
             nbrruns++;
             return;
         } 
+        if(oldend == BufferUtil.toIntUnsigned(start)) {
+            // we merge
+            vl[2 * ( nbrruns - 1) + 1] += length + 1;
+            return;
+        }
+        
         
         int newend = BufferUtil.toIntUnsigned(start) + BufferUtil.toIntUnsigned(length) + 1;
         
@@ -1576,6 +1581,12 @@ public final class MappeableRunContainer extends MappeableContainer implements C
             nbrruns++;
             return;
         } 
+        if(oldend == BufferUtil.toIntUnsigned(val)) {
+            // we merge
+            vl[2 * ( nbrruns - 1) + 1] ++;
+            return;
+        }
+        
         
         int newend = BufferUtil.toIntUnsigned(val) + 1;
         
@@ -1592,10 +1603,14 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         }
         setLength(nbrruns - 1, (short) (val - BufferUtil.toIntUnsigned(getValue(nbrruns - 1)) -1));
 
-        if(newend != oldend) {
+        if(newend < oldend) {
             setValue(nbrruns, (short) newend);
             setLength(nbrruns , (short) (oldend - newend - 1));
             nbrruns ++;
+        } else if (oldend < newend) {
+            setValue(nbrruns, (short) oldend);
+            setLength(nbrruns , (short) (newend - oldend - 1));
+            nbrruns ++;            
         }
     }
     

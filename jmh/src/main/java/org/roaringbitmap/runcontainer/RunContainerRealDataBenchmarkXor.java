@@ -91,7 +91,7 @@ public class RunContainerRealDataBenchmarkXor {
          for(int k = 0; k + 1 < benchmarkState.ewah.size(); ++k)
              total += benchmarkState.ewah.get(k).xor(benchmarkState.ewah.get(k+1)).cardinality();
          if(total !=benchmarkState.totalxor )
-             throw new RuntimeException("bad pairwise and result");
+             throw new RuntimeException("bad pairwise xor result");
          return total;
      }
 
@@ -101,7 +101,7 @@ public class RunContainerRealDataBenchmarkXor {
          for(int k = 0; k + 1 < benchmarkState.ewah32.size(); ++k)
              total += benchmarkState.ewah32.get(k).xor(benchmarkState.ewah32.get(k+1)).cardinality();
          if(total !=benchmarkState.totalxor )
-             throw new RuntimeException("bad pairwise and result");
+             throw new RuntimeException("bad pairwise xor result");
          return total;
      }
 
