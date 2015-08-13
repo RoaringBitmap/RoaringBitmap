@@ -17,6 +17,7 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.ZipRealDataRetriever;
+import org.roaringbitmap.runcontainer.RunContainerRealDataBenchmarkOr.BenchmarkState;
 
 import com.googlecode.javaewah.EWAHCompressedBitmap;
 import com.googlecode.javaewah32.EWAHCompressedBitmap32;
@@ -69,6 +70,16 @@ public class RunContainerRealDataBenchmarkXor {
          int total = 0;
          for(int k = 0; k + 1 < benchmarkState.cc.size(); ++k)
              total += benchmarkState.cc.get(k).symmetricDifference(benchmarkState.cc.get(k+1)).size();
+         if(total != benchmarkState.totalxor )
+             throw new RuntimeException("bad pairwise xor result");
+         return total;
+     }
+     
+     @Benchmark
+     public int pairwiseOr_WAH(BenchmarkState benchmarkState) {
+         int total = 0;
+         for(int k = 0; k + 1 < benchmarkState.wah.size(); ++k)
+             total += benchmarkState.wah.get(k).symmetricDifference(benchmarkState.wah.get(k+1)).size();
          if(total != benchmarkState.totalxor )
              throw new RuntimeException("bad pairwise xor result");
          return total;
