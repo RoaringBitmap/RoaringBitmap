@@ -96,26 +96,29 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     @Override
     int numberOfRuns() {
-        int numRuns = 0;
+        if(cardinality == 0)
+            return 0; // should never happen
+        
         if(BufferUtil.isBackedBySimpleArray(content)) {
             short[] c = content.array();
-            int previous = -2;
-            for (int i = 0; i < cardinality; i++) {
-                int val = BufferUtil.toIntUnsigned(c[i]);
-                if (val != previous+1)
-                    ++numRuns;
-                previous = val;
+            int numRuns = 1;
+            for (int i = 0; i < cardinality - 1; i++) {
+                // this way of doing the computation maximizes superscalar opportunities, can even vectorize!
+                if(BufferUtil.toIntUnsigned(c[i]) + 1 != BufferUtil.toIntUnsigned(c[i+1])) ++numRuns;
             }
+            return numRuns;
         } else {
+            int numRuns = 0;
             int previous = -2;
+            // we do not proceed like above for fear that calling "get" twice per loop would be too much 
             for (int i = 0; i < cardinality; i++) {
                 int val = BufferUtil.toIntUnsigned(content.get(i));
                 if (val != previous+1)
                     ++numRuns;
                 previous = val;
             }
+            return numRuns;
         }
-        return numRuns;
     }
 
     /**

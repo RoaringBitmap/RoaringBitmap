@@ -68,13 +68,12 @@ public final class ArrayContainer extends Container implements Cloneable {
 
     @Override
     int numberOfRuns() {
-        int numRuns = 0;
-        int previous = -2;
-        for (int i = 0; i < cardinality; i++) {
-            int val = Util.toIntUnsigned(content[i]);
-            if (val != previous+1)
-                ++numRuns;
-            previous = val;
+        if(cardinality == 0)
+            return 0; // should never happen
+        int numRuns = 1;
+        for (int i = 0; i < cardinality - 1; i++) {
+            // this way of doing the computation maximizes superscalar opportunities, can even vectorize!
+            if(Util.toIntUnsigned(content[i]) + 1 != Util.toIntUnsigned(content[i+1])) ++numRuns;
         }
         return numRuns;
     }
