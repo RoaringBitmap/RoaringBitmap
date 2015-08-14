@@ -1027,15 +1027,35 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
     /**
      *  Use a run-length encoding where it is estimated as more space efficient
+     * @return whether a change was applied
      */
-    public void runOptimize() {
+    public boolean runOptimize() {
+        boolean answer = false;
         for (int i = 0; i < this.highLowContainer.size(); i++) {
             MappeableContainer c = getMappeableRoaringArray().getContainerAtIndex(i).runOptimize();
+            if(c instanceof MappeableRunContainer) answer = true;
             getMappeableRoaringArray().setContainerAtIndex(i, c);
         }
+        return answer;
     }
 
 
+    /**
+     *  Remove run-length encoding even when it is more space efficient
+     * @return whether a change was applied
+     */
+    public boolean removeRunCompression() {
+        boolean answer = false;
+        for (int i = 0; i < this.highLowContainer.size(); i++) {
+            MappeableContainer c = getMappeableRoaringArray().getContainerAtIndex(i);
+            if(c instanceof MappeableRunContainer) {
+                ((MappeableRunContainer)c).toBitmapOrArrayContainer(c.getCardinality());
+                getMappeableRoaringArray().setContainerAtIndex(i, c);
+                answer = true;
+            }
+        }
+        return answer;
+    }    
 
 
     /**
