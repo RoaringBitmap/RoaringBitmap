@@ -240,10 +240,12 @@ public class RunContainerRealDataBenchmarkAnd {
                     + String.format("%1$10s",df.format(stupidbitmapsize * 8.0 / totalcount)));
             System.out.println("==============");
             System.out.println();
-            // compute pairwise AND and OR
+            // compute pairwise AND 
             for (int k = 0; k + 1 < rc.size(); ++k) {
-                totaland += RoaringBitmap.and(rc.get(k), rc.get(k + 1))
-                            .getCardinality();
+                RoaringBitmap v1 = RoaringBitmap.and(rc.get(k), rc.get(k + 1));
+                RoaringBitmap v2 = RoaringBitmap.and(ac.get(k), ac.get(k + 1));
+                if(!v1.equals(v2)) throw new RuntimeException("bug");
+                totaland += v1.getCardinality();
             }
         }
 

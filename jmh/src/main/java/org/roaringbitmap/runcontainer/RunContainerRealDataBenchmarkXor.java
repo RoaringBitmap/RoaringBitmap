@@ -246,8 +246,10 @@ public class RunContainerRealDataBenchmarkXor {
             System.out.println();
             // compute pairwise AND and OR
             for (int k = 0; k + 1 < rc.size(); ++k) {
-                totalxor += RoaringBitmap.xor(rc.get(k), rc.get(k + 1))
-                            .getCardinality();
+                RoaringBitmap v1 = RoaringBitmap.xor(rc.get(k), rc.get(k + 1));
+                RoaringBitmap v2 = RoaringBitmap.xor(ac.get(k), ac.get(k + 1));
+                if(!v1.equals(v2)) throw new RuntimeException("bug");
+                totalxor += v1.getCardinality();
             }
         }
 
