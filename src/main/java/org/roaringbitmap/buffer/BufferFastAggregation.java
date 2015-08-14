@@ -569,7 +569,7 @@ public final class BufferFastAggregation {
     public static MutableRoaringBitmap priorityqueue_or(@SuppressWarnings("rawtypes") Iterator bitmaps) {
         if (!bitmaps.hasNext())
             return new MutableRoaringBitmap();
-        final PriorityQueue<ImmutableRoaringBitmap> pq = new PriorityQueue<ImmutableRoaringBitmap>(
+        final PriorityQueue<ImmutableRoaringBitmap> pq = new PriorityQueue<ImmutableRoaringBitmap>(16,
                  new Comparator<ImmutableRoaringBitmap>() {
                     @Override
                     public int compare(ImmutableRoaringBitmap a,

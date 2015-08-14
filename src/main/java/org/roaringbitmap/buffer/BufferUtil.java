@@ -586,7 +586,7 @@ public final class BufferUtil {
      *         greater than {@code b}; or zero if they are equal
      */
     public static int compareUnsigned(short a, short b) {
-        return Integer.compare(toIntUnsigned(a), toIntUnsigned(b));
+        return toIntUnsigned(a) - toIntUnsigned(b);
     }
 
     /**

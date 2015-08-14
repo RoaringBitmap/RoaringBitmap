@@ -299,7 +299,7 @@ public final class FastAggregation {
         if (!bitmaps.hasNext())
             return new RoaringBitmap();
 
-        PriorityQueue<RoaringBitmap> pq = new PriorityQueue<RoaringBitmap>( new Comparator<RoaringBitmap>() {
+        PriorityQueue<RoaringBitmap> pq = new PriorityQueue<RoaringBitmap>(16, new Comparator<RoaringBitmap>() {
             @Override
             public int compare(RoaringBitmap a,
                                RoaringBitmap b) {
