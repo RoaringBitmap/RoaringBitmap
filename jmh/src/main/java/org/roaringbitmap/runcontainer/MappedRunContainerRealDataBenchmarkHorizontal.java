@@ -73,6 +73,15 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
             throw new RuntimeException("bug");
         return answer;
     }
+    
+    @Benchmark
+    public int horizontalOr_Roaring_or(BenchmarkState benchmarkState) {
+        int answer = BufferFastAggregation.or(benchmarkState.mac.iterator())
+               .getCardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return answer;
+    }
 
 
     @Benchmark
@@ -84,6 +93,14 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
         return answer;
     }
 
+    @Benchmark
+    public int horizontalOr_RoaringWithRun_or(BenchmarkState benchmarkState) {
+        int answer = BufferFastAggregation.or(benchmarkState.mrc.iterator())
+                .getCardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return answer;
+    }
 
     @Benchmark
     public int horizontalOr_Roaring_experimental(BenchmarkState benchmarkState) {
