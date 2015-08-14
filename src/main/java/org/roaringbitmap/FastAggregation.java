@@ -91,6 +91,7 @@ public final class FastAggregation {
        return answer;
     }
     
+    
     /**
      * Compute overall XOR between bitmaps two-by-two.
      *
@@ -142,20 +143,16 @@ public final class FastAggregation {
      * @return aggregated bitmap
      */
     public static RoaringBitmap experimental_or(Iterator<RoaringBitmap> bitmaps) {
-        ArrayList<RoaringBitmap> list = new ArrayList<RoaringBitmap>();
-        boolean nonehaverun = true;
-        while(bitmaps.hasNext()) {
-            RoaringBitmap tb = bitmaps.next();
-            if(tb.highLowContainer.hasRunContainer())
-                nonehaverun = false;
-            list.add(tb);
-        }
-        if(nonehaverun)
-            // bitmap containers will probably do their work
-            return naive_or(list.iterator());
-        else 
-            // when we have runs, it defeats the magic of bitmaps
-            return priorityqueue_or(list.iterator());
+        ArrayList<RoaringBitmap> list = new ArrayList<RoaringBitmap>(128);
+        while(bitmaps.hasNext())
+            list.add(bitmaps.next());
+        Collections.sort(list,new Comparator<RoaringBitmap>() {
+
+            @Override
+            public int compare(RoaringBitmap o1, RoaringBitmap o2) {
+                return o1.serializedSizeInBytes() - o2.serializedSizeInBytes();
+            }});
+        return naive_or(list.iterator());
     }
     /**
      * Compute overall OR between bitmaps.

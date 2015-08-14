@@ -423,10 +423,10 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
                 return or((MappeableArrayContainer) x);
             else if (x instanceof MappeableBitmapContainer)
                 return ((MappeableBitmapContainer) x).lazyor((MappeableArrayContainer) this);
-            return ((MappeableRunContainer) x).lazyor((MappeableArrayContainer) this);
+            return ((MappeableRunContainer) x).lazyorToArrayOrBitmap((MappeableArrayContainer) this);
         } else if (this instanceof MappeableRunContainer)  {
             if (x instanceof MappeableArrayContainer)
-                return ((MappeableRunContainer)this).lazyor((MappeableArrayContainer) x);
+                return ((MappeableRunContainer)this).lazyorToArrayOrBitmap((MappeableArrayContainer) x);
             else if (x instanceof MappeableBitmapContainer)
                 return ((MappeableBitmapContainer) x).lazyor((MappeableRunContainer)this);
             return or((MappeableRunContainer) x);
@@ -459,10 +459,10 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
                 return ior((MappeableArrayContainer) x);
             else if (x instanceof MappeableBitmapContainer) 
                 return ((MappeableBitmapContainer) x).lazyor((MappeableArrayContainer) this);
-            return ((MappeableRunContainer) x).lazyor((MappeableArrayContainer) this);
+            return ((MappeableRunContainer) x).lazyorToArrayOrBitmap((MappeableArrayContainer) this);
         } else if (this instanceof MappeableRunContainer) {
             if (x instanceof MappeableArrayContainer)
-                return ((MappeableRunContainer) this).lazyor((MappeableArrayContainer) x);
+                return ((MappeableRunContainer) this).lazyorToArrayOrBitmap((MappeableArrayContainer) x);
             else if (x instanceof MappeableBitmapContainer) 
                 return ((MappeableBitmapContainer) x).lazyor((MappeableRunContainer) this);
             return ior((MappeableRunContainer) x);

@@ -125,20 +125,16 @@ public final class BufferFastAggregation {
      * @return aggregated bitmap
      */
     public static MutableRoaringBitmap experimental_or(@SuppressWarnings("rawtypes") Iterator bitmaps) {
-        ArrayList<ImmutableRoaringBitmap> list = new ArrayList<ImmutableRoaringBitmap>();
-        boolean nonehaverun = true;
-        while(bitmaps.hasNext()) {
-            ImmutableRoaringBitmap tb = (ImmutableRoaringBitmap) bitmaps.next();
-            if(tb.highLowContainer.hasRunContainer())
-                nonehaverun = false;
-            list.add(tb);
-        }
-        if(nonehaverun)
-            // bitmap containers will probably do their work
-            return naive_or(list.iterator());
-        else 
-            // when we have runs, it defeats the magic of bitmaps
-            return priorityqueue_or(list.iterator());
+        ArrayList<ImmutableRoaringBitmap> list = new ArrayList<ImmutableRoaringBitmap>(128);
+        while(bitmaps.hasNext())
+            list.add((ImmutableRoaringBitmap) bitmaps.next());
+        Collections.sort(list,new Comparator<ImmutableRoaringBitmap>() {
+
+            @Override
+            public int compare(ImmutableRoaringBitmap o1, ImmutableRoaringBitmap o2) {
+                return o1.serializedSizeInBytes() - o2.serializedSizeInBytes();
+            }});
+        return naive_or(list.iterator());
     }
 
 
