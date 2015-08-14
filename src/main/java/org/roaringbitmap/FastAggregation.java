@@ -70,7 +70,8 @@ public final class FastAggregation {
     public static RoaringBitmap naive_or(RoaringBitmap... bitmaps) {
        RoaringBitmap answer = new RoaringBitmap();
        for(int k = 0; k < bitmaps.length; ++k)
-          answer.or(bitmaps[k]);
+          answer.lazyor(bitmaps[k]);
+       answer.repairAfterLazy();
        return answer;
     }
 

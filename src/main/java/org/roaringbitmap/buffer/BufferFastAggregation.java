@@ -62,7 +62,8 @@ public final class BufferFastAggregation {
     public static MutableRoaringBitmap naive_or(MutableRoaringBitmap... bitmaps) {
        MutableRoaringBitmap answer = new MutableRoaringBitmap();
        for(int k = 0; k < bitmaps.length; ++k)
-          answer.or(bitmaps[k]);
+          answer.lazyor(bitmaps[k]);
+       answer.repairAfterLazy();
        return answer;
     }
 
