@@ -468,8 +468,9 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
         System.arraycopy(this.keys, begin, this.keys, newBegin, range);
         System.arraycopy(this.values, begin, this.values, newBegin, range);
     }
-
-    private boolean hasRunContainer() {
+    
+    @Override
+    public boolean hasRunContainer() {
         for (int k=0; k < size; ++k) {
             MappeableContainer ck = values[k];
             if (ck instanceof MappeableRunContainer) return true;

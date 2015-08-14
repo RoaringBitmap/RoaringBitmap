@@ -114,6 +114,31 @@ public final class BufferFastAggregation {
            answer.xor((ImmutableRoaringBitmap) bitmaps.next());
        return answer;
     }
+    
+
+    /**
+     * Compute overall OR between bitmaps.
+     *
+     *
+     * @param bitmaps input bitmaps
+     * @return aggregated bitmap
+     */
+    public static MutableRoaringBitmap experimental_or(@SuppressWarnings("rawtypes") Iterator bitmaps) {
+        ArrayList<ImmutableRoaringBitmap> list = new ArrayList<ImmutableRoaringBitmap>();
+        boolean nonehaverun = true;
+        while(bitmaps.hasNext()) {
+            ImmutableRoaringBitmap tb = (ImmutableRoaringBitmap) bitmaps.next();
+            if(tb.highLowContainer.hasRunContainer())
+                nonehaverun = false;
+            list.add(tb);
+        }
+        if(nonehaverun)
+            // bitmap containers will probably do their work
+            return naive_or(list.iterator());
+        else 
+            // when we have runs, it defeats the magic of bitmaps
+            return priorityqueue_or(list.iterator());
+    }
 
 
     
@@ -529,6 +554,37 @@ public final class BufferFastAggregation {
         return (MutableRoaringBitmap) pq.poll();
     }
     
+
+    /**
+     * Uses a priority queue to compute the or aggregate.
+     * 
+     * This function runs in linearithmic (O(n log n))  time with respect to the number of bitmaps.
+     * 
+     * @param bitmaps
+     *            input bitmaps
+     * @return aggregated bitmap
+     * @see #horizontal_or(ImmutableRoaringBitmap...)
+     */
+    public static MutableRoaringBitmap priorityqueue_or(@SuppressWarnings("rawtypes") Iterator bitmaps) {
+        if (!bitmaps.hasNext())
+            return new MutableRoaringBitmap();
+        final PriorityQueue<ImmutableRoaringBitmap> pq = new PriorityQueue<ImmutableRoaringBitmap>(
+                 new Comparator<ImmutableRoaringBitmap>() {
+                    @Override
+                    public int compare(ImmutableRoaringBitmap a,
+                            ImmutableRoaringBitmap b) {
+                        return a.getSizeInBytes() - b.getSizeInBytes();
+                    }
+                });
+        while(bitmaps.hasNext())
+            pq.add((ImmutableRoaringBitmap) bitmaps.next());
+        while (pq.size() > 1) {
+            final ImmutableRoaringBitmap x1 = pq.poll();
+            final ImmutableRoaringBitmap x2 = pq.poll();
+            pq.add(ImmutableRoaringBitmap.or(x1, x2));
+        }
+        return (MutableRoaringBitmap) pq.poll();
+    }
 
 
     /**

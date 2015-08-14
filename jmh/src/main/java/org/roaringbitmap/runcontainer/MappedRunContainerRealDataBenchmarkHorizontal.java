@@ -66,6 +66,45 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
     }
 
     @Benchmark
+    public int horizontalOr_Roaring_pq(BenchmarkState benchmarkState) {
+        int answer = BufferFastAggregation.priorityqueue_or(benchmarkState.mac.iterator())
+               .getCardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+
+
+    @Benchmark
+    public int horizontalOr_RoaringWithRun_pq(BenchmarkState benchmarkState) {
+        int answer = BufferFastAggregation.priorityqueue_or(benchmarkState.mrc.iterator())
+                .getCardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+
+
+    @Benchmark
+    public int horizontalOr_Roaring_experimental(BenchmarkState benchmarkState) {
+        int answer = BufferFastAggregation.experimental_or(benchmarkState.mac.iterator())
+               .getCardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+
+
+    @Benchmark
+    public int horizontalOr_RoaringWithRun_experimental(BenchmarkState benchmarkState) {
+        int answer = BufferFastAggregation.experimental_or(benchmarkState.mrc.iterator())
+                .getCardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+    
+    @Benchmark
     public int horizontalOr_Concise(BenchmarkState benchmarkState) {
         ImmutableConciseSet bitmapor = ImmutableConciseSet.union(benchmarkState.cc);
         int answer = bitmapor.size();

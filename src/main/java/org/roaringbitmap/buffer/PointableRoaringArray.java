@@ -102,4 +102,10 @@ public interface PointableRoaringArray extends Cloneable {
     * @return the cardinality
     */
     public int getCardinality(int i);
+    
+    /**
+     * Check if the bitmap contains a run container
+     * @return whether there are run containers
+     */
+    public boolean hasRunContainer();
 }

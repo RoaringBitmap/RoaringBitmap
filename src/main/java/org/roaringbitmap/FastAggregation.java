@@ -22,13 +22,6 @@ import java.util.PriorityQueue;
  */
 public final class FastAggregation {
     
-    private static Comparator<Container> smallerfirst =  new Comparator<Container>() {
-        @Override
-        public int compare(Container a,
-                Container b) {
-            return a.serializedSizeInBytes() - b.serializedSizeInBytes();
-        }
-    };
     
     /**
      * Private constructor to prevent instantiation of utility class
@@ -157,8 +150,10 @@ public final class FastAggregation {
             list.add(tb);
         }
         if(nonehaverun)
-            return horizontal_or(list);
+            // bitmap containers will probably do their work
+            return naive_or(list.iterator());
         else 
+            // when we have runs, it defeats the magic of bitmaps
             return priorityqueue_or(list.iterator());
     }
     /**

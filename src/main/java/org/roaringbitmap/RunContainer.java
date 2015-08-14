@@ -1556,11 +1556,13 @@ public final class RunContainer extends Container implements Cloneable {
         
         if(Util.toIntUnsigned(start) == Util.toIntUnsigned(getValue(nbrruns - 1))) {
             // we wipe out previous
-            if( newend != oldend ) {
-                int m = Math.min(newend, oldend);
-                int M = Math.max(newend, oldend);                
-                setValue(nbrruns - 1, (short) m);
-                setLength(nbrruns - 1, (short) (M - m - 1));
+            if( newend < oldend ) {           
+                setValue(nbrruns - 1, (short) newend);
+                setLength(nbrruns - 1, (short) (oldend - newend - 1));
+                return;
+            } else if ( newend > oldend ) {  
+                setValue(nbrruns - 1, (short) oldend);
+                setLength(nbrruns - 1, (short) (newend - oldend - 1));
                 return;
             } else { // they cancel out
                 nbrruns--;
@@ -1568,12 +1570,13 @@ public final class RunContainer extends Container implements Cloneable {
             }
         }
         setLength(nbrruns - 1, (short) (start - Util.toIntUnsigned(getValue(nbrruns - 1)) -1));
-
-        if(newend != oldend) {
-            int m = Math.min(newend, oldend);
-            int M = Math.max(newend, oldend);                
-            setValue(nbrruns, (short) m);
-            setLength(nbrruns , (short) (M - m - 1));
+        if( newend < oldend ) {           
+            setValue(nbrruns, (short) newend);
+            setLength(nbrruns, (short) (oldend - newend - 1));
+            nbrruns ++;
+        } else if ( newend > oldend ) {  
+            setValue(nbrruns, (short) oldend);
+            setLength(nbrruns, (short) (newend - oldend - 1));
             nbrruns ++;
         }
     }

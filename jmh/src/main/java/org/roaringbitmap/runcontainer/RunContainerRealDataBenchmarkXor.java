@@ -244,7 +244,7 @@ public class RunContainerRealDataBenchmarkXor {
                     + String.format("%1$10s",df.format(stupidbitmapsize * 8.0 / totalcount)));
             System.out.println("==============");
             System.out.println();
-            // compute pairwise AND and OR
+            // compute pairwise XOR
             for (int k = 0; k + 1 < rc.size(); ++k) {
                 RoaringBitmap v1 = RoaringBitmap.xor(rc.get(k), rc.get(k + 1));
                 RoaringBitmap v2 = RoaringBitmap.xor(ac.get(k), ac.get(k + 1));

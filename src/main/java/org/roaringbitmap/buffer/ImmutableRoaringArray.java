@@ -68,7 +68,8 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         buffer.limit(theLimit);
     }
     
-    private boolean hasRunContainer() {
+    @Override
+    public  boolean hasRunContainer() {
         return (buffer.getInt(0) & 0xFFFF) == SERIAL_COOKIE;
     }
 
