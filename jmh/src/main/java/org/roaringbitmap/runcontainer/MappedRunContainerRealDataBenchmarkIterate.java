@@ -115,6 +115,63 @@ public class MappedRunContainerRealDataBenchmarkIterate {
     }
 
 
+    @Benchmark
+    public int reverseIterate_RoaringWithRun(BenchmarkState benchmarkState) {
+        int total = 0;
+        for (int k = 0; k < benchmarkState.mrc.size(); ++k) {
+            ImmutableRoaringBitmap rb = benchmarkState.mrc.get(k);
+            org.roaringbitmap.IntIterator i = rb.getReverseIntIterator();
+            while(i.hasNext())
+                total += i.next();
+        }
+        if(total != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return total;
+    }
+
+
+    @Benchmark
+    public int reverseIterate_Roaring(BenchmarkState benchmarkState) {
+        int total = 0;
+        for (int k = 0; k < benchmarkState.mac.size(); ++k) {
+            ImmutableRoaringBitmap rb = benchmarkState.mac.get(k);
+            org.roaringbitmap.IntIterator i = rb.getReverseIntIterator();
+            while(i.hasNext())
+                total += i.next();
+        }
+        if(total != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return total;
+    }
+
+
+    @Benchmark
+    public int reverseIterate_EWAH(BenchmarkState benchmarkState) {
+        int total = 0;
+        for(int k = 0; k < benchmarkState.ewah.size(); ++k) {
+            com.googlecode.javaewah.IntIterator i = benchmarkState.ewah.get(k).reverseIntIterator();
+            while(i.hasNext())
+                total += i.next();
+        }
+        if(total != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return total;
+    }
+
+    @Benchmark
+    public int reverseIterate_EWAH32(BenchmarkState benchmarkState) {
+        int total = 0;
+        for(int k = 0; k < benchmarkState.ewah32.size(); ++k) {
+            com.googlecode.javaewah.IntIterator i = benchmarkState.ewah32.get(k).reverseIntIterator();
+            while(i.hasNext())
+                total += i.next();
+        }
+        if(total != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return total;
+    }
+
+
     @State(Scope.Benchmark)
     public static class BenchmarkState {
         @Param ({// putting the data sets in alpha. order

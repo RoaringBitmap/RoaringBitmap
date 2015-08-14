@@ -3,6 +3,7 @@ package org.roaringbitmap.iteration;
 import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.IntIteratorFlyweight;
+import org.roaringbitmap.ReverseIntIteratorFlyweight;
 import org.roaringbitmap.RoaringBitmap;
 
 import java.util.Arrays;
@@ -104,6 +105,93 @@ public class IteratorsBenchmark {
 
    }
 
+   @Benchmark
+   public int testReverseStandard_a(BenchmarkState benchmarkState) {
+
+      IntIterator intIterator = benchmarkState.bitmap_a.getReverseIntIterator();
+      int result = 0;
+      while (intIterator.hasNext()) {
+         result = intIterator.next();
+
+      }
+      return result;
+
+   }
+
+   @Benchmark
+   public int testReverseFlyweight_a(BenchmarkState benchmarkState) {
+
+      ReverseIntIteratorFlyweight intIterator = benchmarkState.flyweightReverseIterator;
+
+      intIterator.wrap(benchmarkState.bitmap_a);
+
+      int result = 0;
+      while (intIterator.hasNext()) {
+         result = intIterator.next();
+
+      }
+      return result;
+
+   }
+
+   @Benchmark
+   public int testReverseStandard_b(BenchmarkState benchmarkState) {
+
+      IntIterator intIterator = benchmarkState.bitmap_b.getReverseIntIterator();
+      int result = 0;
+      while (intIterator.hasNext()) {
+         result = intIterator.next();
+
+      }
+      return result;
+
+   }
+
+   @Benchmark
+   public int testReverseFlyweight_b(BenchmarkState benchmarkState) {
+
+      ReverseIntIteratorFlyweight intIterator = benchmarkState.flyweightReverseIterator;
+
+      intIterator.wrap(benchmarkState.bitmap_b);
+
+      int result = 0;
+      while (intIterator.hasNext()) {
+         result = intIterator.next();
+
+      }
+      return result;
+
+   }
+
+   @Benchmark
+   public int testReverseStandard_c(BenchmarkState benchmarkState) {
+
+      IntIterator intIterator = benchmarkState.bitmap_c.getReverseIntIterator();
+      int result = 0;
+      while (intIterator.hasNext()) {
+         result = intIterator.next();
+
+      }
+      return result;
+
+   }
+
+   @Benchmark
+   public int testReverseFlyweight_c(BenchmarkState benchmarkState) {
+
+      ReverseIntIteratorFlyweight intIterator = benchmarkState.flyweightReverseIterator;
+
+      intIterator.wrap(benchmarkState.bitmap_c);
+
+      int result = 0;
+      while (intIterator.hasNext()) {
+         result = intIterator.next();
+
+      }
+      return result;
+
+   }
+
    
    @State(Scope.Benchmark)
    public static class BenchmarkState {
@@ -115,6 +203,8 @@ public class IteratorsBenchmark {
       final RoaringBitmap bitmap_c;
 
       final IntIteratorFlyweight flyweightIterator = new IntIteratorFlyweight();
+
+      final ReverseIntIteratorFlyweight flyweightReverseIterator = new ReverseIntIteratorFlyweight();
 
       public BenchmarkState() {
 

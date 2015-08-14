@@ -117,6 +117,81 @@ public class RunContainerRealDataBenchmarkIterate {
          return total;
      }
 
+
+   @Benchmark
+   public int reverseIterate_RoaringWithRun(BenchmarkState benchmarkState) {
+      int total = 0;
+      for (int k = 0; k < benchmarkState.rc.size(); ++k) {
+         RoaringBitmap rb = benchmarkState.rc.get(k);
+         org.roaringbitmap.IntIterator i = rb.getReverseIntIterator();
+         while(i.hasNext())
+            total += i.next();
+      }
+      return total;
+   }
+
+
+   @Benchmark
+   public int reverseIterate_Roaring(BenchmarkState benchmarkState) {
+      int total = 0;
+      for (int k = 0; k < benchmarkState.ac.size(); ++k) {
+         RoaringBitmap rb = benchmarkState.ac.get(k);
+         org.roaringbitmap.IntIterator i = rb.getReverseIntIterator();
+         while(i.hasNext())
+            total += i.next();
+      }
+      return total;
+
+   }
+
+
+   @Benchmark
+   public int reverseIterate_Concise(BenchmarkState benchmarkState) {
+      int total = 0;
+      for (int k = 0; k < benchmarkState.cc.size(); ++k) {
+         ConciseSet cs = benchmarkState.cc.get(k);
+         it.uniroma3.mat.extendedset.intset.IntSet.IntIterator i = cs.descendingIterator();
+         while(i.hasNext())
+            total += i.next();
+      }
+      return total;
+   }
+
+
+   @Benchmark
+   public int reverseIterate_WAH(BenchmarkState benchmarkState) {
+      int total = 0;
+      for (int k = 0; k < benchmarkState.wah.size(); ++k) {
+         ConciseSet cs = benchmarkState.wah.get(k);
+         it.uniroma3.mat.extendedset.intset.IntSet.IntIterator i = cs.descendingIterator();
+         while(i.hasNext())
+            total += i.next();
+      }
+      return total;
+   }
+
+   @Benchmark
+   public int reverseIterate_EWAH(BenchmarkState benchmarkState) {
+      int total = 0;
+      for(int k = 0; k < benchmarkState.ewah.size(); ++k) {
+         com.googlecode.javaewah.IntIterator i = benchmarkState.ewah.get(k).reverseIntIterator();
+         while(i.hasNext())
+            total += i.next();
+      }
+      return total;
+   }
+
+   @Benchmark
+   public int reverseIterate_EWAH32(BenchmarkState benchmarkState) {
+      int total = 0;
+      for(int k = 0; k < benchmarkState.ewah32.size(); ++k) {
+         com.googlecode.javaewah.IntIterator i = benchmarkState.ewah32.get(k).reverseIntIterator();
+         while(i.hasNext())
+            total += i.next();
+      }
+      return total;
+   }
+
      
      
     @State(Scope.Benchmark)
