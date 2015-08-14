@@ -694,7 +694,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     protected MappeableContainer lazyor(MappeableArrayContainer x) {
         if(x.getCardinality() == 0) return this;
-        if(this.getCardinality() == 0) return x;
+        if(this.nbrruns == 0) return x;
         MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.getCardinality())));
         short[] vl = answer.valueslength.array();
         int rlepos = 0;
@@ -729,7 +729,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     protected MappeableContainer lazyxor(MappeableArrayContainer x) {
         if(x.getCardinality() == 0) return this;
-        if(this.getCardinality() == 0) return x;
+        if(this.nbrruns == 0) return x;
         MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.getCardinality())));
         short[] vl = answer.valueslength.array();
         int rlepos = 0;

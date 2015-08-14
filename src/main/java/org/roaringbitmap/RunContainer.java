@@ -614,7 +614,7 @@ public final class RunContainer extends Container implements Cloneable {
 
     protected Container lazyor(ArrayContainer x) {
         if(x.getCardinality() == 0) return this;
-        if(this.getCardinality() == 0) return x;
+        if(this.nbrruns == 0) return x;
         RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.getCardinality())]);
         int rlepos = 0;
         ShortIterator i = x.getShortIterator();
@@ -648,7 +648,7 @@ public final class RunContainer extends Container implements Cloneable {
 
     protected Container lazyxor(ArrayContainer x) {
         if(x.getCardinality() == 0) return this;
-        if(this.getCardinality() == 0) return x;
+        if(this.nbrruns == 0) return x;
         RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.getCardinality())]);
         int rlepos = 0;
         ShortIterator i = x.getShortIterator();
