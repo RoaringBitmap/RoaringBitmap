@@ -116,28 +116,6 @@ public final class BufferFastAggregation {
        return answer;
     }
     
-
-    /**
-     * Compute overall OR between bitmaps.
-     *
-     *
-     * @param bitmaps input bitmaps
-     * @return aggregated bitmap
-     */
-    public static MutableRoaringBitmap experimental_or(@SuppressWarnings("rawtypes") Iterator bitmaps) {
-        ArrayList<ImmutableRoaringBitmap> list = new ArrayList<ImmutableRoaringBitmap>(128);
-        while(bitmaps.hasNext())
-            list.add((ImmutableRoaringBitmap) bitmaps.next());
-        Collections.sort(list,new Comparator<ImmutableRoaringBitmap>() {
-
-            @Override
-            public int compare(ImmutableRoaringBitmap o1, ImmutableRoaringBitmap o2) {
-                return o1.serializedSizeInBytes() - o2.serializedSizeInBytes();
-            }});
-        return naive_or(list.iterator());
-    }
-
-
     
     /**
      * Compute overall OR between bitmaps.

@@ -5,6 +5,7 @@ import it.uniroma3.mat.extendedset.intset.ConciseSet;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
 import org.openjdk.jmh.annotations.Benchmark;
@@ -24,7 +25,8 @@ import com.googlecode.javaewah32.EWAHCompressedBitmap32;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
-public class RunContainerRealDataBenchmarkHorizontal {
+@SuppressWarnings("rawtypes")
+public class RunContainerRealDataBenchmarkWideOr {
 
     static ConciseSet toConcise(int[] dat) {
         ConciseSet ans = new ConciseSet();
@@ -42,11 +44,37 @@ public class RunContainerRealDataBenchmarkHorizontal {
         }
         return ans;
     }
+    
+    // only include the first count items
+    // Note: if you application is routinely aggregating
+    // hundreds or thousands of bitmaps, you are maybe missing
+    // optimization opportunities (e.g., one can precompute
+    // some aggregates) so we mostly care for "moderate"
+    // queries.
+    protected static Iterator limit(final int count, final Iterator x) {
+        
+        return new Iterator(){
+            int pos = 0;
 
+            @Override
+            public boolean hasNext() {
+                return (pos < count) && (x.hasNext());
+            }
+
+            @Override
+            public Object next() {
+                pos++;
+                return x.next();
+            }
+            
+        };
+    }
+    
+    protected static int count = 32;// arbitrary number
 
     @Benchmark
     public int horizontalOr_Roaring(BenchmarkState benchmarkState) {
-        int answer = RoaringBitmap.or(benchmarkState.ac.iterator())
+        int answer = RoaringBitmap.or(limit(count,benchmarkState.ac.iterator()))
                .getCardinality();
         if(answer != benchmarkState.horizontalor)
             throw new RuntimeException("bug");
@@ -56,74 +84,17 @@ public class RunContainerRealDataBenchmarkHorizontal {
 
     @Benchmark
     public int horizontalOr_RoaringWithRun(BenchmarkState benchmarkState) {
-        int answer = RoaringBitmap.or(benchmarkState.rc.iterator())
+        int answer = RoaringBitmap.or(limit(count,benchmarkState.rc.iterator()))
                .getCardinality();
         if(answer != benchmarkState.horizontalor)
             throw new RuntimeException("bug");
         return answer;
     }
-
-    @Benchmark
-    public int horizontalOr_Roaring_pq(BenchmarkState benchmarkState) {
-        int answer = FastAggregation.priorityqueue_or(benchmarkState.ac.iterator())
-               .getCardinality();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("bug");
-        return answer;
-    }
-    
-
-    @Benchmark
-    public int horizontalOr_Roaring_or(BenchmarkState benchmarkState) {
-        int answer = FastAggregation.or(benchmarkState.ac.iterator())
-               .getCardinality();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("bug");
-        return answer;
-    }
-
-
-    @Benchmark
-    public int horizontalOr_RoaringWithRun_pq(BenchmarkState benchmarkState) {
-        int answer = FastAggregation.priorityqueue_or(benchmarkState.rc.iterator())
-               .getCardinality();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("bug");
-        return answer;
-    }
-
-    @Benchmark
-    public int horizontalOr_RoaringWithRun_or(BenchmarkState benchmarkState) {
-        int answer = FastAggregation.or(benchmarkState.rc.iterator())
-               .getCardinality();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("bug");
-        return answer;
-    }
-
-    @Benchmark
-    public int horizontalOr_Roaring_experimental(BenchmarkState benchmarkState) {
-        int answer = FastAggregation.experimental_or(benchmarkState.ac.iterator())
-               .getCardinality();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("bug");
-        return answer;
-    }
-
-
-    @Benchmark
-    public int horizontalOr_RoaringWithRun_experimental(BenchmarkState benchmarkState) {
-        int answer = FastAggregation.experimental_or(benchmarkState.rc.iterator())
-               .getCardinality();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("bug");
-        return answer;
-    }    
     
     @Benchmark
     public int horizontalOr_Concise(BenchmarkState benchmarkState) {
         ConciseSet bitmapor = benchmarkState.cc.get(0);
-        for (int j = 1; j < benchmarkState.cc.size() ; ++j) {
+        for (int j = 1; j < Math.max(count, benchmarkState.cc.size()) ; ++j) {
             bitmapor = bitmapor.union(benchmarkState.cc.get(j));
         }
         int answer = bitmapor.size();
@@ -135,7 +106,7 @@ public class RunContainerRealDataBenchmarkHorizontal {
     @Benchmark
     public int horizontalOr_WAH(BenchmarkState benchmarkState) {
         ConciseSet bitmapor = benchmarkState.wah.get(0);
-        for (int j = 1; j < benchmarkState.wah.size() ; ++j) {
+        for (int j = 1; j < Math.max(benchmarkState.wah.size(),count) ; ++j) {
             bitmapor = bitmapor.union(benchmarkState.cc.get(j));
         }
         int answer = bitmapor.size();
@@ -146,7 +117,7 @@ public class RunContainerRealDataBenchmarkHorizontal {
 
     @Benchmark
     public int horizontalOr_EWAH(BenchmarkState benchmarkState) {
-        EWAHCompressedBitmap bitmapor = com.googlecode.javaewah.FastAggregation.or(benchmarkState.ewah.iterator());
+        EWAHCompressedBitmap bitmapor = com.googlecode.javaewah.FastAggregation.or(limit(count,benchmarkState.ewah.iterator()));
         int answer = bitmapor.cardinality();
         if(answer != benchmarkState.horizontalor)
             throw new RuntimeException("bug");
@@ -156,7 +127,7 @@ public class RunContainerRealDataBenchmarkHorizontal {
 
     @Benchmark
     public int horizontalOr_EWAH32(BenchmarkState benchmarkState) {
-        EWAHCompressedBitmap32 bitmapor = com.googlecode.javaewah32.FastAggregation32.or(benchmarkState.ewah32.iterator());
+        EWAHCompressedBitmap32 bitmapor = com.googlecode.javaewah32.FastAggregation32.or(limit(count,benchmarkState.ewah32.iterator()));
         int answer = bitmapor.cardinality();
         if(answer != benchmarkState.horizontalor)
             throw new RuntimeException("bug");
@@ -237,6 +208,7 @@ public class RunContainerRealDataBenchmarkHorizontal {
                 concisesize += (int) (concise.size() * concise
                                       .collectionCompressionRatio()) * 4;
             }
+            System.out.println("# aggregating the first "+count+" bitmaps out of "+ac.size());
 
             /***
              * This is a hack. JMH does not allow us to report
@@ -301,7 +273,7 @@ public class RunContainerRealDataBenchmarkHorizontal {
                     + String.format("%1$10s",df.format(stupidbitmapsize * 8.0 / totalcount)));
             System.out.println("==============");
             System.out.println();
-            horizontalor = FastAggregation.naive_or(rc.iterator())
+            horizontalor = FastAggregation.naive_or(limit(count,rc.iterator()))
                     .getCardinality();
         }
 

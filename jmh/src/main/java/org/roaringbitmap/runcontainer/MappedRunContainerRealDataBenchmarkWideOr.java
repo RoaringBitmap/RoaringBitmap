@@ -13,6 +13,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -35,7 +36,8 @@ import com.googlecode.javaewah32.EWAHCompressedBitmap32;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
-public class MappedRunContainerRealDataBenchmarkHorizontal {
+@SuppressWarnings("rawtypes")
+public class MappedRunContainerRealDataBenchmarkWideOr {
 
     static ConciseSet toConcise(int[] dat) {
         ConciseSet ans = new ConciseSet();
@@ -44,11 +46,38 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
         }
         return ans;
     }
+    
+    // only include the first count items
+    // Note: if you application is routinely aggregating
+    // hundreds or thousands of bitmaps, you are maybe missing
+    // optimization opportunities (e.g., one can precompute
+    // some aggregates) so we mostly care for "moderate"
+    // queries.
+    protected static Iterator limit(final int count, final Iterator x) {
+        
+        return new Iterator(){
+            int pos = 0;
+
+            @Override
+            public boolean hasNext() {
+                return (pos < count) && (x.hasNext());
+            }
+
+            @Override
+            public Object next() {
+                pos++;
+                return x.next();
+            }
+            
+        };
+    }
+    
+    protected static int count = 32;// arbitrary number
 
     
     @Benchmark
     public int horizontalOr_Roaring(BenchmarkState benchmarkState) {
-        int answer = ImmutableRoaringBitmap.or(benchmarkState.mac.iterator())
+        int answer = ImmutableRoaringBitmap.or(limit(count,benchmarkState.mac.iterator()))
                .getCardinality();
         if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug");
@@ -58,72 +87,17 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
 
     @Benchmark
     public int horizontalOr_RoaringWithRun(BenchmarkState benchmarkState) {
-        int answer = ImmutableRoaringBitmap.or(benchmarkState.mrc.iterator())
+        int answer = ImmutableRoaringBitmap.or(limit(count,benchmarkState.mrc.iterator()))
                .getCardinality();
         if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug");
         return answer;
     }
 
-    @Benchmark
-    public int horizontalOr_Roaring_pq(BenchmarkState benchmarkState) {
-        int answer = BufferFastAggregation.priorityqueue_or(benchmarkState.mac.iterator())
-               .getCardinality();
-        if(answer != benchmarkState.expectedvalue)
-            throw new RuntimeException("bug");
-        return answer;
-    }
-    
-    @Benchmark
-    public int horizontalOr_Roaring_or(BenchmarkState benchmarkState) {
-        int answer = BufferFastAggregation.or(benchmarkState.mac.iterator())
-               .getCardinality();
-        if(answer != benchmarkState.expectedvalue)
-            throw new RuntimeException("bug");
-        return answer;
-    }
-
-
-    @Benchmark
-    public int horizontalOr_RoaringWithRun_pq(BenchmarkState benchmarkState) {
-        int answer = BufferFastAggregation.priorityqueue_or(benchmarkState.mrc.iterator())
-                .getCardinality();
-        if(answer != benchmarkState.expectedvalue)
-            throw new RuntimeException("bug");
-        return answer;
-    }
-
-    @Benchmark
-    public int horizontalOr_RoaringWithRun_or(BenchmarkState benchmarkState) {
-        int answer = BufferFastAggregation.or(benchmarkState.mrc.iterator())
-                .getCardinality();
-        if(answer != benchmarkState.expectedvalue)
-            throw new RuntimeException("bug");
-        return answer;
-    }
-
-    @Benchmark
-    public int horizontalOr_Roaring_experimental(BenchmarkState benchmarkState) {
-        int answer = BufferFastAggregation.experimental_or(benchmarkState.mac.iterator())
-               .getCardinality();
-        if(answer != benchmarkState.expectedvalue)
-            throw new RuntimeException("bug");
-        return answer;
-    }
-
-
-    @Benchmark
-    public int horizontalOr_RoaringWithRun_experimental(BenchmarkState benchmarkState) {
-        int answer = BufferFastAggregation.experimental_or(benchmarkState.mrc.iterator())
-                .getCardinality();
-        if(answer != benchmarkState.expectedvalue)
-            throw new RuntimeException("bug");
-        return answer;
-    }
     
     @Benchmark
     public int horizontalOr_Concise(BenchmarkState benchmarkState) {
-        ImmutableConciseSet bitmapor = ImmutableConciseSet.union(benchmarkState.cc);
+        ImmutableConciseSet bitmapor = ImmutableConciseSet.union(limit(count,benchmarkState.cc.iterator()));
         int answer = bitmapor.size();
         if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug ");
@@ -132,7 +106,7 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
 
     @Benchmark
     public int horizontalOr_EWAH(BenchmarkState benchmarkState) {
-        EWAHCompressedBitmap bitmapor = com.googlecode.javaewah.FastAggregation.or(benchmarkState.ewah.iterator());
+        EWAHCompressedBitmap bitmapor = com.googlecode.javaewah.FastAggregation.or(limit(count,benchmarkState.ewah.iterator()));
         int answer = bitmapor.cardinality();
         if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug");
@@ -142,7 +116,7 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
 
     @Benchmark
     public int horizontalOr_EWAH32(BenchmarkState benchmarkState) {
-        EWAHCompressedBitmap32 bitmapor = com.googlecode.javaewah32.FastAggregation32.or(benchmarkState.ewah32.iterator());
+        EWAHCompressedBitmap32 bitmapor = com.googlecode.javaewah32.FastAggregation32.or(limit(count,benchmarkState.ewah32.iterator()));
         int answer = bitmapor.cardinality();
         if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug");
@@ -153,13 +127,12 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
     @State(Scope.Benchmark)
     public static class BenchmarkState {
         @Param ({// putting the data sets in alpha. order
-          //  "census-income", "census1881",
-        //    "dimension_008", "dimension_003", 
-      //      "dimension_033", "uscensus2000", 
-    //        "weather_sept_85", "wikileaks-noquotes",
-  //          "census-income_srt","census1881_srt",
-//            "weather_sept_85_srt",
-"wikileaks-noquotes_srt"
+            "census-income", "census1881",
+            "dimension_008", "dimension_003", 
+            "dimension_033", "uscensus2000", 
+            "weather_sept_85", "wikileaks-noquotes",
+            "census-income_srt","census1881_srt",
+            "weather_sept_85_srt","wikileaks-noquotes_srt"
         })
         String dataset;
         public int expectedvalue = 0;
@@ -316,17 +289,11 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
             ArrayList<EWAHCompressedBitmap> tmpewah = new ArrayList<EWAHCompressedBitmap>();
             ArrayList<EWAHCompressedBitmap32> tmpewah32 = new ArrayList<EWAHCompressedBitmap32>();
 
-            MutableRoaringBitmap testbasic = new MutableRoaringBitmap();
-            MutableRoaringBitmap testopti = new MutableRoaringBitmap();
             for (int[] data : dataRetriever.fetchBitPositions()) {
                 MutableRoaringBitmap mbasic = MutableRoaringBitmap.bitmapOf(data);
                 MutableRoaringBitmap mopti = mbasic.clone();
                 mopti.runOptimize();
                 if(!mopti.equals(mbasic)) throw new RuntimeException("bug");
-                testbasic.or(mbasic);
-                testopti.or(mopti);
-                if(!testbasic.equals(testopti)) throw new RuntimeException("bug");
-
                 ConciseSet concise = toConcise(data);
                 tmpac.add(mbasic);
                 tmprc.add(mopti);
@@ -335,7 +302,6 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
                 tmpewah32.add(EWAHCompressedBitmap32.bitmapOf(data));
 
             }
-            int mexpected = BufferFastAggregation.naive_or(BufferFastAggregation.convertToImmutable(tmprc.iterator())).getCardinality();
             mrc = convertToImmutableRoaring(tmprc);
             mac = convertToImmutableRoaring(tmpac);
             cc = convertToImmutableConcise(tmpcc);
@@ -344,13 +310,8 @@ public class MappedRunContainerRealDataBenchmarkHorizontal {
 
             if((mrc.size() != mac.size()) || (mac.size() != cc.size()))
                 throw new RuntimeException("number of bitmaps do not match.");
-            expectedvalue = BufferFastAggregation.naive_or(mrc.iterator())
+            expectedvalue = BufferFastAggregation.naive_or(limit(count,mrc.iterator()))
                     .getCardinality();
-            if(expectedvalue != testbasic.getCardinality())
-                throw new RuntimeException("bug");
-            if(expectedvalue != mexpected)
-                throw new RuntimeException("bug");
-
             
         }
 

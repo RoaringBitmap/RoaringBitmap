@@ -135,25 +135,7 @@ public final class FastAggregation {
         return naive_or(bitmaps);
     }
     
-    /**
-     * Compute overall OR between bitmaps.
-     *
-     *
-     * @param bitmaps input bitmaps
-     * @return aggregated bitmap
-     */
-    public static RoaringBitmap experimental_or(Iterator<RoaringBitmap> bitmaps) {
-        ArrayList<RoaringBitmap> list = new ArrayList<RoaringBitmap>(128);
-        while(bitmaps.hasNext())
-            list.add(bitmaps.next());
-        Collections.sort(list,new Comparator<RoaringBitmap>() {
 
-            @Override
-            public int compare(RoaringBitmap o1, RoaringBitmap o2) {
-                return o1.serializedSizeInBytes() - o2.serializedSizeInBytes();
-            }});
-        return naive_or(list.iterator());
-    }
     /**
      * Compute overall OR between bitmaps.
      *
