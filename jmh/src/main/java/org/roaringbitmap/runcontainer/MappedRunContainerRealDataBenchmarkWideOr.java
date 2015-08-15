@@ -116,6 +116,25 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
         return answer;
     }
 
+    @Benchmark
+    public int horizontalOr_Roaring_pq(BenchmarkState benchmarkState) {
+        int answer = BufferFastAggregation.priorityqueue_or(limit(count,benchmarkState.mac.iterator()))
+               .getCardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+
+
+    @Benchmark
+    public int horizontalOr_RoaringWithRun_pq(BenchmarkState benchmarkState) {
+        int answer = BufferFastAggregation.priorityqueue_or(limit(count,benchmarkState.mrc.iterator()))
+               .getCardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+    
     
     @Benchmark
     public int horizontalOr_Concise(BenchmarkState benchmarkState) {
