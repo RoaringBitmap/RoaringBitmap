@@ -14,8 +14,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by Borislav Ivanov on 4/2/15.
  */
-@BenchmarkMode(Mode.Throughput)
-@OutputTimeUnit(TimeUnit.SECONDS)
+@BenchmarkMode(Mode.AverageTime)
+@OutputTimeUnit(TimeUnit.MICROSECONDS)
 public class IteratorsBenchmark {
 
    @Benchmark
