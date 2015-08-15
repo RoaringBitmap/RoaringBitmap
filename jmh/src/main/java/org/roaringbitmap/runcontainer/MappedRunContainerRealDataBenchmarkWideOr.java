@@ -13,8 +13,10 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.openjdk.jmh.annotations.Benchmark;
@@ -73,7 +75,27 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
     }
     
     protected static int count = 32;// arbitrary number
-
+    
+    // Concise does not provide a pq approach, we should provide it
+    public static ImmutableConciseSet pq_or(final Iterator<ImmutableConciseSet> bitmaps) {
+        PriorityQueue<ImmutableConciseSet> pq = new PriorityQueue<ImmutableConciseSet>(128,
+                new Comparator<ImmutableConciseSet>() {
+                    @Override
+                    public int compare(ImmutableConciseSet a, ImmutableConciseSet b) {
+                        return a.getLastWordIndex() - b.getLastWordIndex();
+                    }
+                }
+        );
+        while(bitmaps.hasNext())
+            pq.add(bitmaps.next());
+        if(pq.isEmpty()) return new ImmutableConciseSet();
+        while (pq.size() > 1) {
+            ImmutableConciseSet x1 = pq.poll();
+            ImmutableConciseSet x2 = pq.poll();
+            pq.add(ImmutableConciseSet.union(x1,x2));
+        }
+        return pq.poll();
+    }
     
     @Benchmark
     public int horizontalOr_Roaring(BenchmarkState benchmarkState) {
@@ -98,6 +120,16 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
     @Benchmark
     public int horizontalOr_Concise(BenchmarkState benchmarkState) {
         ImmutableConciseSet bitmapor = ImmutableConciseSet.union(limit(count,benchmarkState.cc.iterator()));
+        int answer = bitmapor.size();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug ");
+        return answer;
+    }
+    
+
+    @Benchmark
+    public int horizontalOr_Concise_pq(BenchmarkState benchmarkState) {
+        ImmutableConciseSet bitmapor = pq_or(limit(count,benchmarkState.cc.iterator()));
         int answer = bitmapor.size();
         if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug ");
@@ -302,6 +334,7 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
                 tmpewah32.add(EWAHCompressedBitmap32.bitmapOf(data));
 
             }
+            System.out.println("# aggregating the first "+count+" bitmaps out of "+tmpac.size());
             mrc = convertToImmutableRoaring(tmprc);
             mac = convertToImmutableRoaring(tmpac);
             cc = convertToImmutableConcise(tmpcc);

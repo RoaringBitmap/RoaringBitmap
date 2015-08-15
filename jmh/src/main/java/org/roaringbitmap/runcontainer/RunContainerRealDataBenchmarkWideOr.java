@@ -5,7 +5,9 @@ import it.uniroma3.mat.extendedset.intset.ConciseSet;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.PriorityQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.openjdk.jmh.annotations.Benchmark;
@@ -72,6 +74,30 @@ public class RunContainerRealDataBenchmarkWideOr {
     
     protected static int count = 32;// arbitrary number
 
+    // Concise does not provide a pq approach, we should provide it
+    public static ConciseSet pq_or(final Iterator<ConciseSet> bitmaps) {
+        PriorityQueue<ConciseSet> pq = new PriorityQueue<ConciseSet>(128,
+                new Comparator<ConciseSet>() {
+                    @Override
+                    public int compare(ConciseSet a, ConciseSet b) {
+                        return (int) (a.size() * a
+                                .collectionCompressionRatio())  - (int) (b.size() * b
+                                        .collectionCompressionRatio()) ;
+                    }
+                }
+        );
+        while(bitmaps.hasNext())
+            pq.add(bitmaps.next());
+        if(pq.isEmpty()) return new ConciseSet();
+        while (pq.size() > 1) {
+            ConciseSet x1 = pq.poll();
+            ConciseSet x2 = pq.poll();
+            pq.add(x1.union(x2));
+        }
+        return pq.poll();
+    }
+
+    
     @Benchmark
     public int horizontalOr_Roaring(BenchmarkState benchmarkState) {
         int answer = RoaringBitmap.or(limit(count,benchmarkState.ac.iterator()))
@@ -92,9 +118,9 @@ public class RunContainerRealDataBenchmarkWideOr {
     }
     
     @Benchmark
-    public int horizontalOr_Concise(BenchmarkState benchmarkState) {
+    public int horizontalOr_Concise_naive(BenchmarkState benchmarkState) {
         ConciseSet bitmapor = benchmarkState.cc.get(0);
-        for (int j = 1; j < Math.max(count, benchmarkState.cc.size()) ; ++j) {
+        for (int j = 1; j < Math.min(count, benchmarkState.cc.size()) ; ++j) {
             bitmapor = bitmapor.union(benchmarkState.cc.get(j));
         }
         int answer = bitmapor.size();
@@ -104,11 +130,29 @@ public class RunContainerRealDataBenchmarkWideOr {
     }
 
     @Benchmark
-    public int horizontalOr_WAH(BenchmarkState benchmarkState) {
+    public int horizontalOr_WAH_naive(BenchmarkState benchmarkState) {
         ConciseSet bitmapor = benchmarkState.wah.get(0);
-        for (int j = 1; j < Math.max(benchmarkState.wah.size(),count) ; ++j) {
+        for (int j = 1; j < Math.min(benchmarkState.wah.size(),count) ; ++j) {
             bitmapor = bitmapor.union(benchmarkState.cc.get(j));
         }
+        int answer = bitmapor.size();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("buggy horizontal or");
+        return answer;
+    }
+    
+    @Benchmark
+    public int horizontalOr_Concise_pq(BenchmarkState benchmarkState) {
+        ConciseSet bitmapor = pq_or(limit(count,benchmarkState.cc.iterator()));
+        int answer = bitmapor.size();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("buggy horizontal or");
+        return answer;
+    }
+
+    @Benchmark
+    public int horizontalOr_WAH_pq(BenchmarkState benchmarkState) {
+        ConciseSet bitmapor = pq_or(limit(count,benchmarkState.wah.iterator()));
         int answer = bitmapor.size();
         if(answer != benchmarkState.horizontalor)
             throw new RuntimeException("buggy horizontal or");
