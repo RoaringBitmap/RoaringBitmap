@@ -24,7 +24,7 @@ import com.googlecode.javaewah32.EWAHCompressedBitmap32;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
-public class RunContainerRealDataBenchmarkIterate {
+public class RunContainerRealDataBenchmarkReverseIterate {
 
     static ConciseSet toConcise(int[] dat) {
         ConciseSet ans = new ConciseSet();
@@ -43,81 +43,80 @@ public class RunContainerRealDataBenchmarkIterate {
         return ans;
     }
 
-     @Benchmark
-     public int iterate_RoaringWithRun(BenchmarkState benchmarkState) {
-         int total = 0;
-         for (int k = 0; k < benchmarkState.rc.size(); ++k) {
-             RoaringBitmap rb = benchmarkState.rc.get(k);
-             org.roaringbitmap.IntIterator i = rb.getIntIterator();
-             while(i.hasNext())
-                 total += i.next();
-         }
-         return total;
-     }
+
+   @Benchmark
+   public int reverseIterate_RoaringWithRun(BenchmarkState benchmarkState) {
+      int total = 0;
+      for (int k = 0; k < benchmarkState.rc.size(); ++k) {
+         RoaringBitmap rb = benchmarkState.rc.get(k);
+         org.roaringbitmap.IntIterator i = rb.getReverseIntIterator();
+         while(i.hasNext())
+            total += i.next();
+      }
+      return total;
+   }
 
 
-     @Benchmark
-     public int iterate_Roaring(BenchmarkState benchmarkState) {
-         int total = 0;
-         for (int k = 0; k < benchmarkState.ac.size(); ++k) {
-             RoaringBitmap rb = benchmarkState.ac.get(k);
-             org.roaringbitmap.IntIterator i = rb.getIntIterator();
-             while(i.hasNext())
-                 total += i.next();
-         }
-         return total;
+   @Benchmark
+   public int reverseIterate_Roaring(BenchmarkState benchmarkState) {
+      int total = 0;
+      for (int k = 0; k < benchmarkState.ac.size(); ++k) {
+         RoaringBitmap rb = benchmarkState.ac.get(k);
+         org.roaringbitmap.IntIterator i = rb.getReverseIntIterator();
+         while(i.hasNext())
+            total += i.next();
+      }
+      return total;
 
-     }
-
-
-     @Benchmark
-     public int iterate_Concise(BenchmarkState benchmarkState) {
-         int total = 0;
-         for (int k = 0; k < benchmarkState.cc.size(); ++k) {
-             ConciseSet cs = benchmarkState.cc.get(k);
-             it.uniroma3.mat.extendedset.intset.IntSet.IntIterator i = cs.iterator();
-             while(i.hasNext())
-                 total += i.next();
-         }
-         return total;
-     }
+   }
 
 
-     @Benchmark
-     public int iterate_WAH(BenchmarkState benchmarkState) {
-         int total = 0;
-         for (int k = 0; k < benchmarkState.wah.size(); ++k) {
-             ConciseSet cs = benchmarkState.wah.get(k);
-             it.uniroma3.mat.extendedset.intset.IntSet.IntIterator i = cs.iterator();
-             while(i.hasNext())
-                 total += i.next();
-         }
-         return total;
-     }
-
-     @Benchmark
-     public int iterate_EWAH(BenchmarkState benchmarkState) {
-         int total = 0;
-         for(int k = 0; k < benchmarkState.ewah.size(); ++k) {
-             com.googlecode.javaewah.IntIterator i = benchmarkState.ewah.get(k).intIterator();
-             while(i.hasNext())
-                 total += i.next();             
-         }
-         return total;
-     }
-
-     @Benchmark
-     public int iterate_EWAH32(BenchmarkState benchmarkState) {
-         int total = 0;
-         for(int k = 0; k < benchmarkState.ewah32.size(); ++k) {
-             com.googlecode.javaewah.IntIterator i = benchmarkState.ewah32.get(k).intIterator();
-             while(i.hasNext())
-                 total += i.next();             
-         }
-         return total;
-     }
+   @Benchmark
+   public int reverseIterate_Concise(BenchmarkState benchmarkState) {
+      int total = 0;
+      for (int k = 0; k < benchmarkState.cc.size(); ++k) {
+         ConciseSet cs = benchmarkState.cc.get(k);
+         it.uniroma3.mat.extendedset.intset.IntSet.IntIterator i = cs.descendingIterator();
+         while(i.hasNext())
+            total += i.next();
+      }
+      return total;
+   }
 
 
+   @Benchmark
+   public int reverseIterate_WAH(BenchmarkState benchmarkState) {
+      int total = 0;
+      for (int k = 0; k < benchmarkState.wah.size(); ++k) {
+         ConciseSet cs = benchmarkState.wah.get(k);
+         it.uniroma3.mat.extendedset.intset.IntSet.IntIterator i = cs.descendingIterator();
+         while(i.hasNext())
+            total += i.next();
+      }
+      return total;
+   }
+
+   @Benchmark
+   public int reverseIterate_EWAH(BenchmarkState benchmarkState) {
+      int total = 0;
+      for(int k = 0; k < benchmarkState.ewah.size(); ++k) {
+         com.googlecode.javaewah.IntIterator i = benchmarkState.ewah.get(k).reverseIntIterator();
+         while(i.hasNext())
+            total += i.next();
+      }
+      return total;
+   }
+
+   @Benchmark
+   public int reverseIterate_EWAH32(BenchmarkState benchmarkState) {
+      int total = 0;
+      for(int k = 0; k < benchmarkState.ewah32.size(); ++k) {
+         com.googlecode.javaewah.IntIterator i = benchmarkState.ewah32.get(k).reverseIntIterator();
+         while(i.hasNext())
+            total += i.next();
+      }
+      return total;
+   }
 
      
      

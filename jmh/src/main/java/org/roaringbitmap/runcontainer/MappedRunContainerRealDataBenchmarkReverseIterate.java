@@ -34,7 +34,7 @@ import com.googlecode.javaewah32.EWAHCompressedBitmap32;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
-public class MappedRunContainerRealDataBenchmarkIterate {
+public class MappedRunContainerRealDataBenchmarkReverseIterate {
 
     static ConciseSet toConcise(int[] dat) {
         ConciseSet ans = new ConciseSet();
@@ -44,12 +44,13 @@ public class MappedRunContainerRealDataBenchmarkIterate {
         return ans;
     }
 
+
     @Benchmark
-    public int iterate_RoaringWithRun(BenchmarkState benchmarkState) {
+    public int reverseIterate_RoaringWithRun(BenchmarkState benchmarkState) {
         int total = 0;
         for (int k = 0; k < benchmarkState.mrc.size(); ++k) {
             ImmutableRoaringBitmap rb = benchmarkState.mrc.get(k);
-            org.roaringbitmap.IntIterator i = rb.getIntIterator();
+            org.roaringbitmap.IntIterator i = rb.getReverseIntIterator();
             while(i.hasNext())
                 total += i.next();
         }
@@ -60,26 +61,11 @@ public class MappedRunContainerRealDataBenchmarkIterate {
 
 
     @Benchmark
-    public int iterate_Roaring(BenchmarkState benchmarkState) {
+    public int reverseIterate_Roaring(BenchmarkState benchmarkState) {
         int total = 0;
         for (int k = 0; k < benchmarkState.mac.size(); ++k) {
             ImmutableRoaringBitmap rb = benchmarkState.mac.get(k);
-            org.roaringbitmap.IntIterator i = rb.getIntIterator();
-            while(i.hasNext())
-                total += i.next();
-        }
-        if(total != benchmarkState.expectedvalue)
-            throw new RuntimeException("bug");
-        return total;
-    }
-    
-    
-    @Benchmark
-    public int iterate_Concise(BenchmarkState benchmarkState) {
-        int total = 0;
-        for (int k = 0; k < benchmarkState.cc.size(); ++k) {
-            ImmutableConciseSet cs = benchmarkState.cc.get(k);
-            it.uniroma3.mat.extendedset.intset.IntSet.IntIterator i = cs.iterator();
+            org.roaringbitmap.IntIterator i = rb.getReverseIntIterator();
             while(i.hasNext())
                 total += i.next();
         }
@@ -88,13 +74,14 @@ public class MappedRunContainerRealDataBenchmarkIterate {
         return total;
     }
 
+
     @Benchmark
-    public int iterate_EWAH(BenchmarkState benchmarkState) {
+    public int reverseIterate_EWAH(BenchmarkState benchmarkState) {
         int total = 0;
         for(int k = 0; k < benchmarkState.ewah.size(); ++k) {
-            com.googlecode.javaewah.IntIterator i = benchmarkState.ewah.get(k).intIterator();
+            com.googlecode.javaewah.IntIterator i = benchmarkState.ewah.get(k).reverseIntIterator();
             while(i.hasNext())
-                total += i.next();             
+                total += i.next();
         }
         if(total != benchmarkState.expectedvalue)
             throw new RuntimeException("bug");
@@ -102,18 +89,17 @@ public class MappedRunContainerRealDataBenchmarkIterate {
     }
 
     @Benchmark
-    public int iterate_EWAH32(BenchmarkState benchmarkState) {
+    public int reverseIterate_EWAH32(BenchmarkState benchmarkState) {
         int total = 0;
         for(int k = 0; k < benchmarkState.ewah32.size(); ++k) {
-            com.googlecode.javaewah.IntIterator i = benchmarkState.ewah32.get(k).intIterator();
+            com.googlecode.javaewah.IntIterator i = benchmarkState.ewah32.get(k).reverseIntIterator();
             while(i.hasNext())
-                total += i.next();             
+                total += i.next();
         }
         if(total != benchmarkState.expectedvalue)
             throw new RuntimeException("bug");
         return total;
     }
-
 
 
     @State(Scope.Benchmark)
