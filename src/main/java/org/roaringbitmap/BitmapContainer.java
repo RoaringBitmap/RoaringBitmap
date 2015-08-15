@@ -1176,10 +1176,10 @@ final class BitmapContainerShortIterator implements ShortIterator {
     }
 }
 
-//TODO: should be recorded to use the approach from BitmapContainerShortIterator for better perfs
 final class ReverseBitmapContainerShortIterator implements ShortIterator {
-    
-    int i;
+
+    long w;
+    int x;
     
     long[] bitmap;
     
@@ -1192,27 +1192,41 @@ final class ReverseBitmapContainerShortIterator implements ShortIterator {
 
     void wrap(long[] b) {
         bitmap = b;
-        i = prevSetBit(bitmap.length * 64 - 1);
+        for(x=bitmap.length-1; x>=0; --x)
+            if((w=Long.reverse(bitmap[x]))!=0) break;
     }
 
     @Override
     public boolean hasNext() {
-        return i >= 0;
+        return x >= 0;
     }
 
     @Override
     public short next() {
-        final int j = i;
-        i = i > 0 ? prevSetBit(i - 1) : -1;
-        return (short) j;
+        long t = w & -w;
+        short answer  = (short) ((x+1) * 64 - 1 - Long.bitCount(t - 1));
+        w ^= t;
+        while (w == 0) {
+            --x;
+            if(x < 0) break;
+            w = Long.reverse(bitmap[x]);
+        }
+        return answer;
     }
 
     @Override
     public int nextAsInt() {
-        final int j = i;
-        i = i > 0 ? prevSetBit(i - 1) : -1;
-        return j;
+        long t = w & -w;
+        int answer = (x+1) * 64 - 1 -Long.bitCount(t - 1);
+        w ^= t;
+        while (w == 0) {
+            --x;
+            if(x < 0) break;
+            w = Long.reverse(bitmap[x]);
+        }
+        return answer;
     }
+
     @Override
     public ShortIterator clone() {
         try {
@@ -1220,21 +1234,6 @@ final class ReverseBitmapContainerShortIterator implements ShortIterator {
         } catch (CloneNotSupportedException e) {
             return null;
         }
-    }
-    
-    int prevSetBit(final int i) {
-        int x = i >> 6; // i / 64 with sign extension
-        long w = bitmap[x];
-        w <<= 64 - i - 1;
-        if (w != 0) {
-            return i - Long.numberOfLeadingZeros(w);
-        }
-        for (--x; x >= 0; --x) {
-            if (bitmap[x] != 0) {
-                return x * 64 + 63 - Long.numberOfLeadingZeros(bitmap[x]);
-            }
-        }
-        return -1;
     }
 
     @Override
