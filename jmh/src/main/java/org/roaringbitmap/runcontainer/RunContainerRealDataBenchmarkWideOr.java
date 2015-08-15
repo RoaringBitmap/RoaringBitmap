@@ -116,6 +116,25 @@ public class RunContainerRealDataBenchmarkWideOr {
             throw new RuntimeException("bug");
         return answer;
     }
+
+    @Benchmark
+    public int horizontalOr_Roaring_pq(BenchmarkState benchmarkState) {
+        int answer = FastAggregation.priorityqueue_or(limit(count,benchmarkState.ac.iterator()))
+               .getCardinality();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+
+
+    @Benchmark
+    public int horizontalOr_RoaringWithRun_pq(BenchmarkState benchmarkState) {
+        int answer = FastAggregation.priorityqueue_or(limit(count,benchmarkState.rc.iterator()))
+               .getCardinality();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("bug");
+        return answer;
+    }
     
     @Benchmark
     public int horizontalOr_Concise_naive(BenchmarkState benchmarkState) {
