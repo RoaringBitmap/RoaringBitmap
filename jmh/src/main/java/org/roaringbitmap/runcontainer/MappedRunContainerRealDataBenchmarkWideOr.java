@@ -74,7 +74,6 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
         };
     }
     
-    protected static int count = 32;// arbitrary number
     
     // Concise does not provide a pq approach, we should provide it
     public static ImmutableConciseSet pq_or(final Iterator<ImmutableConciseSet> bitmaps) {
@@ -99,7 +98,7 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
     
     @Benchmark
     public int horizontalOr_Roaring(BenchmarkState benchmarkState) {
-        int answer = ImmutableRoaringBitmap.or(limit(count,benchmarkState.mac.iterator()))
+        int answer = ImmutableRoaringBitmap.or(limit(benchmarkState.count,benchmarkState.mac.iterator()))
                .getCardinality();
         if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug");
@@ -109,7 +108,7 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
 
     @Benchmark
     public int horizontalOr_RoaringWithRun(BenchmarkState benchmarkState) {
-        int answer = ImmutableRoaringBitmap.or(limit(count,benchmarkState.mrc.iterator()))
+        int answer = ImmutableRoaringBitmap.or(limit(benchmarkState.count,benchmarkState.mrc.iterator()))
                .getCardinality();
         if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug");
@@ -118,7 +117,7 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
 
     @Benchmark
     public int horizontalOr_Roaring_pq(BenchmarkState benchmarkState) {
-        int answer = BufferFastAggregation.priorityqueue_or(limit(count,benchmarkState.mac.iterator()))
+        int answer = BufferFastAggregation.priorityqueue_or(limit(benchmarkState.count,benchmarkState.mac.iterator()))
                .getCardinality();
         if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug");
@@ -128,7 +127,7 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
 
     @Benchmark
     public int horizontalOr_RoaringWithRun_pq(BenchmarkState benchmarkState) {
-        int answer = BufferFastAggregation.priorityqueue_or(limit(count,benchmarkState.mrc.iterator()))
+        int answer = BufferFastAggregation.priorityqueue_or(limit(benchmarkState.count,benchmarkState.mrc.iterator()))
                .getCardinality();
         if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug");
@@ -138,7 +137,7 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
     
     @Benchmark
     public int horizontalOr_Concise(BenchmarkState benchmarkState) {
-        ImmutableConciseSet bitmapor = ImmutableConciseSet.union(limit(count,benchmarkState.cc.iterator()));
+        ImmutableConciseSet bitmapor = ImmutableConciseSet.union(limit(benchmarkState.count,benchmarkState.cc.iterator()));
         int answer = bitmapor.size();
         if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug ");
@@ -148,7 +147,7 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
 
     @Benchmark
     public int horizontalOr_Concise_pq(BenchmarkState benchmarkState) {
-        ImmutableConciseSet bitmapor = pq_or(limit(count,benchmarkState.cc.iterator()));
+        ImmutableConciseSet bitmapor = pq_or(limit(benchmarkState.count,benchmarkState.cc.iterator()));
         int answer = bitmapor.size();
         if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug ");
@@ -157,7 +156,7 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
 
     @Benchmark
     public int horizontalOr_EWAH(BenchmarkState benchmarkState) {
-        EWAHCompressedBitmap bitmapor = com.googlecode.javaewah.FastAggregation.or(limit(count,benchmarkState.ewah.iterator()));
+        EWAHCompressedBitmap bitmapor = com.googlecode.javaewah.FastAggregation.or(limit(benchmarkState.count,benchmarkState.ewah.iterator()));
         int answer = bitmapor.cardinality();
         if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug");
@@ -167,7 +166,7 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
 
     @Benchmark
     public int horizontalOr_EWAH32(BenchmarkState benchmarkState) {
-        EWAHCompressedBitmap32 bitmapor = com.googlecode.javaewah32.FastAggregation32.or(limit(count,benchmarkState.ewah32.iterator()));
+        EWAHCompressedBitmap32 bitmapor = com.googlecode.javaewah32.FastAggregation32.or(limit(benchmarkState.count,benchmarkState.ewah32.iterator()));
         int answer = bitmapor.cardinality();
         if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug");
@@ -187,6 +186,11 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
         })
         String dataset;
         public int expectedvalue = 0;
+        
+        protected int count = 8;// arbitrary number but warning: when increasing this number 
+        // check that reported timings increase monotonically, I found that as of ~12, they sharply decreased
+        // for some schemes, suggesting that the benchmark was defeated.
+        
         List<File> createdfiles = new ArrayList<File>();
 
         List<ImmutableRoaringBitmap> mrc = new ArrayList<ImmutableRoaringBitmap>();

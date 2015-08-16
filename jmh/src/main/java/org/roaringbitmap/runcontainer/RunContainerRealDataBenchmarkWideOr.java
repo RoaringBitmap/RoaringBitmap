@@ -72,7 +72,6 @@ public class RunContainerRealDataBenchmarkWideOr {
         };
     }
     
-    protected static int count = 32;// arbitrary number
 
     // Concise does not provide a pq approach, we should provide it
     public static ConciseSet pq_or(final Iterator<ConciseSet> bitmaps) {
@@ -100,17 +99,16 @@ public class RunContainerRealDataBenchmarkWideOr {
     
     @Benchmark
     public int horizontalOr_Roaring(BenchmarkState benchmarkState) {
-        int answer = RoaringBitmap.or(limit(count,benchmarkState.ac.iterator()))
+        int answer = RoaringBitmap.or(limit(benchmarkState.count,benchmarkState.ac.iterator()))
                .getCardinality();
         if(answer != benchmarkState.horizontalor)
             throw new RuntimeException("bug");
         return answer;
     }
 
-
     @Benchmark
     public int horizontalOr_RoaringWithRun(BenchmarkState benchmarkState) {
-        int answer = RoaringBitmap.or(limit(count,benchmarkState.rc.iterator()))
+        int answer = RoaringBitmap.or(limit(benchmarkState.count,benchmarkState.rc.iterator()))
                .getCardinality();
         if(answer != benchmarkState.horizontalor)
             throw new RuntimeException("bug");
@@ -119,17 +117,16 @@ public class RunContainerRealDataBenchmarkWideOr {
 
     @Benchmark
     public int horizontalOr_Roaring_pq(BenchmarkState benchmarkState) {
-        int answer = FastAggregation.priorityqueue_or(limit(count,benchmarkState.ac.iterator()))
+        int answer = FastAggregation.priorityqueue_or(limit(benchmarkState.count,benchmarkState.ac.iterator()))
                .getCardinality();
         if(answer != benchmarkState.horizontalor)
             throw new RuntimeException("bug");
         return answer;
     }
 
-
     @Benchmark
     public int horizontalOr_RoaringWithRun_pq(BenchmarkState benchmarkState) {
-        int answer = FastAggregation.priorityqueue_or(limit(count,benchmarkState.rc.iterator()))
+        int answer = FastAggregation.priorityqueue_or(limit(benchmarkState.count,benchmarkState.rc.iterator()))
                .getCardinality();
         if(answer != benchmarkState.horizontalor)
             throw new RuntimeException("bug");
@@ -139,7 +136,7 @@ public class RunContainerRealDataBenchmarkWideOr {
     @Benchmark
     public int horizontalOr_Concise_naive(BenchmarkState benchmarkState) {
         ConciseSet bitmapor = benchmarkState.cc.get(0);
-        for (int j = 1; j < Math.min(count, benchmarkState.cc.size()) ; ++j) {
+        for (int j = 1; j < Math.min(benchmarkState.count, benchmarkState.cc.size()) ; ++j) {
             bitmapor = bitmapor.union(benchmarkState.cc.get(j));
         }
         int answer = bitmapor.size();
@@ -151,7 +148,7 @@ public class RunContainerRealDataBenchmarkWideOr {
     @Benchmark
     public int horizontalOr_WAH_naive(BenchmarkState benchmarkState) {
         ConciseSet bitmapor = benchmarkState.wah.get(0);
-        for (int j = 1; j < Math.min(benchmarkState.wah.size(),count) ; ++j) {
+        for (int j = 1; j < Math.min(benchmarkState.wah.size(),benchmarkState.count) ; ++j) {
             bitmapor = bitmapor.union(benchmarkState.cc.get(j));
         }
         int answer = bitmapor.size();
@@ -162,7 +159,7 @@ public class RunContainerRealDataBenchmarkWideOr {
     
     @Benchmark
     public int horizontalOr_Concise_pq(BenchmarkState benchmarkState) {
-        ConciseSet bitmapor = pq_or(limit(count,benchmarkState.cc.iterator()));
+        ConciseSet bitmapor = pq_or(limit(benchmarkState.count,benchmarkState.cc.iterator()));
         int answer = bitmapor.size();
         if(answer != benchmarkState.horizontalor)
             throw new RuntimeException("buggy horizontal or");
@@ -171,7 +168,7 @@ public class RunContainerRealDataBenchmarkWideOr {
 
     @Benchmark
     public int horizontalOr_WAH_pq(BenchmarkState benchmarkState) {
-        ConciseSet bitmapor = pq_or(limit(count,benchmarkState.wah.iterator()));
+        ConciseSet bitmapor = pq_or(limit(benchmarkState.count,benchmarkState.wah.iterator()));
         int answer = bitmapor.size();
         if(answer != benchmarkState.horizontalor)
             throw new RuntimeException("buggy horizontal or");
@@ -180,7 +177,7 @@ public class RunContainerRealDataBenchmarkWideOr {
 
     @Benchmark
     public int horizontalOr_EWAH(BenchmarkState benchmarkState) {
-        EWAHCompressedBitmap bitmapor = com.googlecode.javaewah.FastAggregation.or(limit(count,benchmarkState.ewah.iterator()));
+        EWAHCompressedBitmap bitmapor = com.googlecode.javaewah.FastAggregation.or(limit(benchmarkState.count,benchmarkState.ewah.iterator()));
         int answer = bitmapor.cardinality();
         if(answer != benchmarkState.horizontalor)
             throw new RuntimeException("bug");
@@ -190,7 +187,7 @@ public class RunContainerRealDataBenchmarkWideOr {
 
     @Benchmark
     public int horizontalOr_EWAH32(BenchmarkState benchmarkState) {
-        EWAHCompressedBitmap32 bitmapor = com.googlecode.javaewah32.FastAggregation32.or(limit(count,benchmarkState.ewah32.iterator()));
+        EWAHCompressedBitmap32 bitmapor = com.googlecode.javaewah32.FastAggregation32.or(limit(benchmarkState.count,benchmarkState.ewah32.iterator()));
         int answer = bitmapor.cardinality();
         if(answer != benchmarkState.horizontalor)
             throw new RuntimeException("bug");
@@ -204,13 +201,18 @@ public class RunContainerRealDataBenchmarkWideOr {
             "census-income", "census1881",
             "dimension_008", "dimension_003", 
             "dimension_033", "uscensus2000", 
-            "weather_sept_85", "wikileaks-noquotes"
-                ,"census-income_srt","census1881_srt",
-                "weather_sept_85_srt","wikileaks-noquotes_srt"
+            "weather_sept_85", "wikileaks-noquotes",
+            "census-income_srt","census1881_srt",
+            "weather_sept_85_srt","wikileaks-noquotes_srt"
         })
         String dataset;
 
         int horizontalor = 0;
+        
+        protected int count = 8;// arbitrary number but warning: when increasing this number 
+        // check that reported timings increase monotonically, I found that as of ~12, they sharply decreased
+        // for some schemes, suggesting that the benchmark was defeated.
+
 
         ArrayList<RoaringBitmap> rc = new ArrayList<RoaringBitmap>();
         ArrayList<RoaringBitmap> ac = new ArrayList<RoaringBitmap>();

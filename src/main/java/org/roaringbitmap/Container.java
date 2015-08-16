@@ -453,10 +453,10 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
                 return or((ArrayContainer) x);
             else if (x instanceof BitmapContainer) 
                 return ((BitmapContainer)x).lazyor((ArrayContainer) this);
-            return ((RunContainer) x).lazyorToArrayOrBitmap((ArrayContainer) this);
+            return ((RunContainer) x).lazyor((ArrayContainer) this);
         } else if (this instanceof RunContainer) {
             if (x instanceof ArrayContainer)
-                return ((RunContainer)this).lazyorToArrayOrBitmap((ArrayContainer) x);
+                return ((RunContainer)this).lazyor((ArrayContainer) x);
             else if (x instanceof BitmapContainer) 
                 return ((BitmapContainer) x).lazyor((RunContainer) this);
             return or((RunContainer) x);
@@ -467,7 +467,6 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
             return ((BitmapContainer)this).lazyor((RunContainer) x);
         }
     }
-
     /**
      * Computes the in-place bitwise OR of this container with another
      * (union). The current container is generally modified, whereas the
@@ -484,10 +483,10 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
             if (x instanceof ArrayContainer)
                 return ior((ArrayContainer) x);
             else if (x instanceof BitmapContainer) return ior((BitmapContainer) x);
-            return ((RunContainer) x).lazyorToArrayOrBitmap((ArrayContainer) this);
+            return ((RunContainer) x).lazyor((ArrayContainer) this);
         } else if (this instanceof RunContainer) {
             if (x instanceof ArrayContainer)
-                return ((RunContainer) this).lazyorToArrayOrBitmap((ArrayContainer) x);
+                return ((RunContainer) this).lazyor((ArrayContainer) x);
             else if (x instanceof BitmapContainer) return ior((BitmapContainer) x);
             return ior((RunContainer) x);
         } else {

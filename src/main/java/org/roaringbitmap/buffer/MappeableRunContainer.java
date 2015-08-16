@@ -691,13 +691,17 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         return lazyorToRun(x).repairAfterLazy();
     }
     // in some contexts, it might be better to convert the run container as it will generate bitmaps
-    protected MappeableContainer lazyorToArrayOrBitmap(MappeableArrayContainer x) {
+    /*protected MappeableContainer lazyorToArrayOrBitmap(MappeableArrayContainer x) {
         MappeableContainer c = ((MappeableRunContainer) this).toBitmapOrArrayContainer(this
                 .getCardinality());
         if (c instanceof MappeableBitmapContainer)
             return ((MappeableBitmapContainer) c).ilazyor((MappeableArrayContainer) x);
         else
             return c.ior((MappeableArrayContainer) x);
+    }*/
+    
+    protected MappeableContainer lazyor(MappeableArrayContainer x) {
+        return lazyorToRun(x);
     }
 
     protected MappeableContainer lazyorToRun(MappeableArrayContainer x) {

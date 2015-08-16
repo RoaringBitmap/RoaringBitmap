@@ -612,14 +612,18 @@ public final class RunContainer extends Container implements Cloneable {
     }
     
     // in some contexts, it might be better to convert the run container as it will generate bitmaps
-    protected Container lazyorToArrayOrBitmap(ArrayContainer x) {
+    /*protected Container lazyorToArrayOrBitmap(ArrayContainer x) {
         Container c = ((RunContainer) this).toBitmapOrArrayContainer(this
                 .getCardinality());
         if (c instanceof BitmapContainer)
             return ((BitmapContainer) c).ilazyor((ArrayContainer) x);
         else
             return c.ior((ArrayContainer) x);
-    }
+    }*/
+
+    protected Container lazyor(ArrayContainer x) {
+        return this.lazyorToRun(x);
+    } 
     
     protected Container lazyorToRun(ArrayContainer x) {
         if(x.getCardinality() == 0) return this;
