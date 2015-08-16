@@ -98,7 +98,7 @@ public class RunContainerRealDataBenchmarkWideOr {
 
     
     @Benchmark
-    public int horizontalOr_Roaring(BenchmarkState benchmarkState) {
+    public int Roaring(BenchmarkState benchmarkState) {
         int answer = RoaringBitmap.or(limit(benchmarkState.count,benchmarkState.ac.iterator()))
                .getCardinality();
         if(answer != benchmarkState.horizontalor)
@@ -107,7 +107,7 @@ public class RunContainerRealDataBenchmarkWideOr {
     }
 
     @Benchmark
-    public int horizontalOr_RoaringWithRun(BenchmarkState benchmarkState) {
+    public int RoaringWithRun(BenchmarkState benchmarkState) {
         int answer = RoaringBitmap.or(limit(benchmarkState.count,benchmarkState.rc.iterator()))
                .getCardinality();
         if(answer != benchmarkState.horizontalor)
@@ -116,7 +116,7 @@ public class RunContainerRealDataBenchmarkWideOr {
     }
 
     @Benchmark
-    public int horizontalOr_Roaring_pq(BenchmarkState benchmarkState) {
+    public int Roaring_pq(BenchmarkState benchmarkState) {
         int answer = FastAggregation.priorityqueue_or(limit(benchmarkState.count,benchmarkState.ac.iterator()))
                .getCardinality();
         if(answer != benchmarkState.horizontalor)
@@ -125,7 +125,7 @@ public class RunContainerRealDataBenchmarkWideOr {
     }
 
     @Benchmark
-    public int horizontalOr_RoaringWithRun_pq(BenchmarkState benchmarkState) {
+    public int RoaringWithRun_pq(BenchmarkState benchmarkState) {
         int answer = FastAggregation.priorityqueue_or(limit(benchmarkState.count,benchmarkState.rc.iterator()))
                .getCardinality();
         if(answer != benchmarkState.horizontalor)
@@ -134,7 +134,7 @@ public class RunContainerRealDataBenchmarkWideOr {
     }
     
     @Benchmark
-    public int horizontalOr_Concise_naive(BenchmarkState benchmarkState) {
+    public int Concise_naive(BenchmarkState benchmarkState) {
         ConciseSet bitmapor = benchmarkState.cc.get(0);
         for (int j = 1; j < Math.min(benchmarkState.count, benchmarkState.cc.size()) ; ++j) {
             bitmapor = bitmapor.union(benchmarkState.cc.get(j));
@@ -146,7 +146,7 @@ public class RunContainerRealDataBenchmarkWideOr {
     }
 
     @Benchmark
-    public int horizontalOr_WAH_naive(BenchmarkState benchmarkState) {
+    public int WAH_naive(BenchmarkState benchmarkState) {
         ConciseSet bitmapor = benchmarkState.wah.get(0);
         for (int j = 1; j < Math.min(benchmarkState.wah.size(),benchmarkState.count) ; ++j) {
             bitmapor = bitmapor.union(benchmarkState.cc.get(j));
@@ -158,7 +158,7 @@ public class RunContainerRealDataBenchmarkWideOr {
     }
     
     @Benchmark
-    public int horizontalOr_Concise_pq(BenchmarkState benchmarkState) {
+    public int Concise_pq(BenchmarkState benchmarkState) {
         ConciseSet bitmapor = pq_or(limit(benchmarkState.count,benchmarkState.cc.iterator()));
         int answer = bitmapor.size();
         if(answer != benchmarkState.horizontalor)
@@ -167,7 +167,7 @@ public class RunContainerRealDataBenchmarkWideOr {
     }
 
     @Benchmark
-    public int horizontalOr_WAH_pq(BenchmarkState benchmarkState) {
+    public int WAH_pq(BenchmarkState benchmarkState) {
         ConciseSet bitmapor = pq_or(limit(benchmarkState.count,benchmarkState.wah.iterator()));
         int answer = bitmapor.size();
         if(answer != benchmarkState.horizontalor)
@@ -176,7 +176,7 @@ public class RunContainerRealDataBenchmarkWideOr {
     }
 
     @Benchmark
-    public int horizontalOr_EWAH(BenchmarkState benchmarkState) {
+    public int EWAH(BenchmarkState benchmarkState) {
         EWAHCompressedBitmap bitmapor = com.googlecode.javaewah.FastAggregation.or(limit(benchmarkState.count,benchmarkState.ewah.iterator()));
         int answer = bitmapor.cardinality();
         if(answer != benchmarkState.horizontalor)
@@ -186,7 +186,7 @@ public class RunContainerRealDataBenchmarkWideOr {
     }
 
     @Benchmark
-    public int horizontalOr_EWAH32(BenchmarkState benchmarkState) {
+    public int EWAH32(BenchmarkState benchmarkState) {
         EWAHCompressedBitmap32 bitmapor = com.googlecode.javaewah32.FastAggregation32.or(limit(benchmarkState.count,benchmarkState.ewah32.iterator()));
         int answer = bitmapor.cardinality();
         if(answer != benchmarkState.horizontalor)

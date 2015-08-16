@@ -97,7 +97,7 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
     }
     
     @Benchmark
-    public int horizontalOr_Roaring(BenchmarkState benchmarkState) {
+    public int Roaring(BenchmarkState benchmarkState) {
         int answer = ImmutableRoaringBitmap.or(limit(benchmarkState.count,benchmarkState.mac.iterator()))
                .getCardinality();
         if(answer != benchmarkState.expectedvalue)
@@ -107,7 +107,7 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
 
 
     @Benchmark
-    public int horizontalOr_RoaringWithRun(BenchmarkState benchmarkState) {
+    public int RoaringWithRun(BenchmarkState benchmarkState) {
         int answer = ImmutableRoaringBitmap.or(limit(benchmarkState.count,benchmarkState.mrc.iterator()))
                .getCardinality();
         if(answer != benchmarkState.expectedvalue)
@@ -116,7 +116,7 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
     }
 
     @Benchmark
-    public int horizontalOr_Roaring_pq(BenchmarkState benchmarkState) {
+    public int Roaring_pq(BenchmarkState benchmarkState) {
         int answer = BufferFastAggregation.priorityqueue_or(limit(benchmarkState.count,benchmarkState.mac.iterator()))
                .getCardinality();
         if(answer != benchmarkState.expectedvalue)
@@ -126,7 +126,7 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
 
 
     @Benchmark
-    public int horizontalOr_RoaringWithRun_pq(BenchmarkState benchmarkState) {
+    public int RoaringWithRun_pq(BenchmarkState benchmarkState) {
         int answer = BufferFastAggregation.priorityqueue_or(limit(benchmarkState.count,benchmarkState.mrc.iterator()))
                .getCardinality();
         if(answer != benchmarkState.expectedvalue)
@@ -136,7 +136,7 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
     
     
     @Benchmark
-    public int horizontalOr_Concise(BenchmarkState benchmarkState) {
+    public int Concise(BenchmarkState benchmarkState) {
         ImmutableConciseSet bitmapor = ImmutableConciseSet.union(limit(benchmarkState.count,benchmarkState.cc.iterator()));
         int answer = bitmapor.size();
         if(answer != benchmarkState.expectedvalue)
@@ -146,7 +146,7 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
     
 
     @Benchmark
-    public int horizontalOr_Concise_pq(BenchmarkState benchmarkState) {
+    public int Concise_pq(BenchmarkState benchmarkState) {
         ImmutableConciseSet bitmapor = pq_or(limit(benchmarkState.count,benchmarkState.cc.iterator()));
         int answer = bitmapor.size();
         if(answer != benchmarkState.expectedvalue)
@@ -155,7 +155,7 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
     }
 
     @Benchmark
-    public int horizontalOr_EWAH(BenchmarkState benchmarkState) {
+    public int EWAH(BenchmarkState benchmarkState) {
         EWAHCompressedBitmap bitmapor = com.googlecode.javaewah.FastAggregation.or(limit(benchmarkState.count,benchmarkState.ewah.iterator()));
         int answer = bitmapor.cardinality();
         if(answer != benchmarkState.expectedvalue)
@@ -165,7 +165,7 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
     }
 
     @Benchmark
-    public int horizontalOr_EWAH32(BenchmarkState benchmarkState) {
+    public int EWAH32(BenchmarkState benchmarkState) {
         EWAHCompressedBitmap32 bitmapor = com.googlecode.javaewah32.FastAggregation32.or(limit(benchmarkState.count,benchmarkState.ewah32.iterator()));
         int answer = bitmapor.cardinality();
         if(answer != benchmarkState.expectedvalue)
