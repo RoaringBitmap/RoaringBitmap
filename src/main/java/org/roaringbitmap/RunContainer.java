@@ -1671,8 +1671,10 @@ public final class RunContainer extends Container implements Cloneable {
         return toEfficientContainer();
     }
     
+    // a very cheap check... if you have more than 2048, then you should use a bitmap container.
+    // this function avoids computing the cardinality
     private Container convertToLazyBitmapIfNeeded() {
-        if(this.nbrruns > 4096) {
+        if(this.nbrruns > 2048) {//RunContainer.serializedSizeInBytes(this.nbrruns) > BitmapContainer.serializedSizeInBytes(0)
             BitmapContainer answer = new BitmapContainer();
             for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
                 int start = Util.toIntUnsigned(this.getValue(rlepos));
