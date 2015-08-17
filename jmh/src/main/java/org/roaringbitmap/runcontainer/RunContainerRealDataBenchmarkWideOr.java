@@ -273,6 +273,7 @@ public class RunContainerRealDataBenchmarkWideOr {
                 concisesize += (int) (concise.size() * concise
                                       .collectionCompressionRatio()) * 4;
             }
+            count = rc.size();
             System.out.println("# aggregating the first "+count+" bitmaps out of "+ac.size());
 
             /***
