@@ -573,6 +573,14 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
     }
 
     /**
+     *  Check whether this bitmap has had its runs compressed.
+     * @return whether this bitmap has run compression
+     */
+    public boolean hasRunCompression() {
+        return this.highLowContainer.hasRunCompression();
+    }
+
+    /**
      * Report the number of bytes required for serialization. This count will
      * match the bytes written when calling the serialize method. 
      * 

@@ -67,13 +67,14 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         int theLimit = computeSerializedSizeInBytes();
         buffer.limit(theLimit);
     }
-    
+
+
     @Override
-    public  boolean hasRunContainer() {
+    public  boolean hasRunCompression() {
         return (buffer.getInt(0) & 0xFFFF) == SERIAL_COOKIE;
     }
 
-    // hasrun should be equal to hasRunContainer()
+    // hasrun should be equal to hasRunCompression()
     protected int headerSize(boolean hasrun) {
         if (hasrun) { 
             if(size < MutableRoaringArray.NO_OFFSET_THRESHOLD) {// for small bitmaps, we omit the offsets
@@ -87,13 +88,13 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
     
     private int getStartOfKeys() {
-        if (hasRunContainer()) { // info is in the buffer
+        if (hasRunCompression()) { // info is in the buffer
             return 4 + (( this.size+7)/8);
         } else
             return 8;
     }
 
-    // hasrun should be initialized with hasRunContainer()
+    // hasrun should be initialized with hasRunCompression()
     private boolean isRunContainer(int i, boolean hasrun) {
         if (hasrun) { // info is in the buffer
             int j = buffer.get(startofrunbitmap + i / 8);
@@ -109,7 +110,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         int CardinalityOfLastContainer = getCardinality(this.size - 1);
         int PositionOfLastContainer = getOffsetContainer(this.size - 1);
         int SizeOfLastContainer;
-        boolean hasrun = hasRunContainer();
+        boolean hasrun = hasRunCompression();
         if (isRunContainer(this.size - 1,hasrun)) {
             int nbrruns = BufferUtil.toIntUnsigned(buffer.getShort(PositionOfLastContainer));
             SizeOfLastContainer = BufferUtil.getSizeInBytesFromCardinalityEtc(0,nbrruns, true);
@@ -149,7 +150,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     	int cardinality = getCardinality(i);
         boolean isBitmap = cardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE; // if not a runcontainer
         buffer.position(getOffsetContainer(i));
-        boolean hasrun = hasRunContainer();
+        boolean hasrun = hasRunCompression();
         if (isRunContainer(i,hasrun))  {
             // first, we have a short giving the number of runs
             int nbrruns = BufferUtil.toIntUnsigned(buffer.getShort());
@@ -169,7 +170,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
     
     private int getOffsetContainerSlow(int k) {
-        boolean hasrun = hasRunContainer();
+        boolean hasrun = hasRunCompression();
         int pos = this.headerSize(hasrun);
         for(int z = 0; z < k; ++z) {
             if (isRunContainer(z,hasrun))  {
@@ -187,7 +188,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
 
     private int getOffsetContainer(int k) {
-        if (hasRunContainer()) { // account for size of runcontainer bitmap
+        if (hasRunCompression()) { // account for size of runcontainer bitmap
             if(this.size < MutableRoaringArray.NO_OFFSET_THRESHOLD) {
                 // we do it the hard way
                 return getOffsetContainerSlow(k);
@@ -212,7 +213,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
 
     public MappeableContainerPointer getContainerPointer(final int startIndex) {        
-        final boolean hasrun = isEmpty() ? false: hasRunContainer();
+        final boolean hasrun = isEmpty() ? false: hasRunCompression();
         return new MappeableContainerPointer() {
             int k = startIndex;
 

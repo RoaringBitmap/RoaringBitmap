@@ -103,9 +103,10 @@ public interface PointableRoaringArray extends Cloneable {
     */
     public int getCardinality(int i);
     
+
     /**
-     * Check if the bitmap contains a run container
-     * @return whether there are run containers
+     *  Check whether this bitmap has had its runs compressed.
+     * @return whether this bitmap has run compression
      */
-    public boolean hasRunContainer();
+    public boolean hasRunCompression();
 }

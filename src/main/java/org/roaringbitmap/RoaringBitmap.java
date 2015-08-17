@@ -1196,8 +1196,21 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             }
         }
         return answer;
-    }    
-
+    } 
+    
+    /**
+     *  Check whether this bitmap has had its runs compressed.
+     * @return whether this bitmap has run compression
+     */
+    public boolean hasRunCompression() {
+        for (int i = 0; i < this.highLowContainer.size(); i++) {
+            Container c = this.highLowContainer.getContainerAtIndex(i);
+            if(c instanceof RunContainer) {
+                return true;
+            }
+        }
+        return false;
+    }
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         this.highLowContainer.writeExternal(out);

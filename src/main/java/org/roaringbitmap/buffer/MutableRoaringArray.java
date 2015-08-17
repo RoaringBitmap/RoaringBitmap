@@ -470,7 +470,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
     }
     
     @Override
-    public boolean hasRunContainer() {
+    public boolean hasRunCompression() {
         for (int k=0; k < size; ++k) {
             MappeableContainer ck = values[k];
             if (ck instanceof MappeableRunContainer) return true;
@@ -491,7 +491,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
      */
     public void serialize(DataOutput out) throws IOException {
         int startOffset=0;
-        boolean hasrun = hasRunContainer();
+        boolean hasrun = hasRunCompression();
         if (hasrun) {
             out.writeInt(Integer.reverseBytes(SERIAL_COOKIE | ((this.size-1) << 16)));
             byte [] bitmapOfRunContainers = new byte[ (size+7)/8];
@@ -543,7 +543,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
     
 
     protected int headerSize() {
-        if (hasRunContainer()) { 
+        if (hasRunCompression()) { 
             if(size < NO_OFFSET_THRESHOLD) {// for small bitmaps, we omit the offsets
                 return 4 + (size+7)/8 + 4 * size;
             }
