@@ -567,11 +567,13 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public Container ior(ArrayContainer x) {
+        if(isFull()) return this;
         return or(x);
     }
 
     @Override
     public Container ior(BitmapContainer x) {
+        if(isFull()) return this;
         return or(x);
     }
 
@@ -611,13 +613,22 @@ public final class RunContainer extends Container implements Cloneable {
         return lazyor(x).repairAfterLazy();
     }
     
+    protected Container ilazyor(ArrayContainer x) {
+        if(isFull()) return this; // this can sometimes solve a lot of computation!
+        return lazyorToRun(x);
+     } 
 
     protected Container lazyor(ArrayContainer x) {
-       return lazyorToRun(x);
+       return lazyorToRun(x);  // this can sometimes solve a lot of computation!
     } 
     
+    protected boolean isFull() {
+        return (this.nbrruns == 1) && (this.getValue(0) == 0) && (this.getLength(0) == -1);
+    }
 
     protected Container lazyorToRun(ArrayContainer x) {
+        if(isFull()) return this.clone();
+        // TODO: should optimize for the frequent case where we have a single run
         RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.getCardinality())]);
         int rlepos = 0;
         PeekableShortIterator i = (PeekableShortIterator) x.getShortIterator();
@@ -686,6 +697,7 @@ public final class RunContainer extends Container implements Cloneable {
     
     @Override
     public Container or(BitmapContainer x) {
+        if(isFull()) return clone();
         // could be implemented as  return toTemporaryBitmap().ior(x);
         BitmapContainer answer = x.clone();
         for(int rlepos = 0; rlepos < this.nbrruns; ++rlepos ) {
@@ -1461,6 +1473,7 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public Container ior(RunContainer x) {
+        if(isFull()) return this;
         return or(x);
     }
 
@@ -1587,6 +1600,8 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public Container or(RunContainer x) {
+        if(isFull() || x.isFull()) return clone(); // cheap case that can save a lot of computation
+        // we really ought to optimize the rest of the code for the frequent case where there is a single run
         RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.nbrruns)]);
         int rlepos = 0;
         int xrlepos = 0;

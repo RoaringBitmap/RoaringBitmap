@@ -486,7 +486,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
             return ((RunContainer) x).lazyor((ArrayContainer) this);
         } else if (this instanceof RunContainer) {
             if (x instanceof ArrayContainer)
-                return ((RunContainer) this).lazyor((ArrayContainer) x);
+                return ((RunContainer) this).ilazyor((ArrayContainer) x);
             else if (x instanceof BitmapContainer) return ior((BitmapContainer) x);
             return ior((RunContainer) x);
         } else {

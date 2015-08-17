@@ -647,11 +647,13 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer ior(MappeableArrayContainer x) {
+        if(isFull()) return this;
         return or(x);
     }
 
     @Override
     public MappeableContainer ior(MappeableBitmapContainer x) {
+        if(isFull()) return this;
         return or(x);
     }
 
@@ -693,11 +695,22 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         return lazyorToRun(x).repairAfterLazy();
     }
     
+
+    protected boolean isFull() {
+        return (this.nbrruns == 1) && (this.getValue(0) == 0) && (this.getLength(0) == -1);
+    }
+    protected MappeableContainer ilazyor(MappeableArrayContainer x) {
+        if(isFull()) return this;  // this can sometimes solve a lot of computation!
+        return lazyorToRun(x);
+    }
+   
     protected MappeableContainer lazyor(MappeableArrayContainer x) {
         return lazyorToRun(x);
     }
 
     protected MappeableContainer lazyorToRun(MappeableArrayContainer x) {
+        if(isFull()) return this.clone();
+        // TODO: should optimize for the frequent case where we have a single run
         MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.getCardinality())));
         short[] vl = answer.valueslength.array();
         int rlepos = 0;
@@ -768,6 +781,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     
     @Override
     public MappeableContainer or(MappeableBitmapContainer x) {
+        if(isFull()) return clone();
         MappeableBitmapContainer answer = x.clone();
         for(int rlepos = 0; rlepos < this.nbrruns; ++rlepos ) {
             int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
@@ -1509,6 +1523,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer ior(MappeableRunContainer x) {
+        if(isFull()) return this;
         return or(x);
     }
 
@@ -1655,6 +1670,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     
     @Override
     public MappeableContainer or(MappeableRunContainer x) {
+        if(isFull() || x.isFull()) return clone(); // cheap case that can save a lot of computation
+        // we really ought to optimize the rest of the code for the frequent case where there is a single run
         MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.nbrruns)));
         short[] vl = answer.valueslength.array();
         int rlepos = 0;
