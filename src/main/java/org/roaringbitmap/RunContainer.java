@@ -134,7 +134,7 @@ public final class RunContainer extends Container implements Cloneable {
 
     
     // convert to bitmap or array *if needed*
-    private Container toEfficientContainer() { 
+    private Container toEfficientContainer() {
         int sizeAsRunContainer = RunContainer.serializedSizeInBytes(this.nbrruns);
         int sizeAsBitmapContainer = BitmapContainer.serializedSizeInBytes(0);
         int card = this.getCardinality();
@@ -658,10 +658,10 @@ public final class RunContainer extends Container implements Cloneable {
                 rlepos++;
             }
         }
-        return answer;
+        return answer.convertToLazyBitmapIfNeeded();
     }
     
-    protected Container lazyxor(ArrayContainer x) {
+    private Container lazyxor(ArrayContainer x) {
         if(x.getCardinality() == 0) return this;
         if(this.nbrruns == 0) return x;
         RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.getCardinality())]);
@@ -1406,7 +1406,7 @@ public final class RunContainer extends Container implements Cloneable {
         return answer.toEfficientContainer();
     }
 
-    protected RunContainer lazyandNot(ArrayContainer x) {
+    private RunContainer lazyandNot(ArrayContainer x) {
         if(x.getCardinality() == 0) return this;
         RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.cardinality)]);
         int rlepos = 0;
@@ -1669,6 +1669,20 @@ public final class RunContainer extends Container implements Cloneable {
     @Override
     public Container repairAfterLazy() {
         return toEfficientContainer();
+    }
+    
+    private Container convertToLazyBitmapIfNeeded() {
+        if(this.nbrruns > 4096) {
+            BitmapContainer answer = new BitmapContainer();
+            for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
+                int start = Util.toIntUnsigned(this.getValue(rlepos));
+                int end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+                Util.setBitmapRange(answer.bitmap, start, end); 
+            }
+            answer.cardinality = -1;
+            return answer;
+        }
+        return this;
     }
 
 }

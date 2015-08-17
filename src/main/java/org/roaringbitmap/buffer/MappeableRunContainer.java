@@ -743,10 +743,10 @@ public final class MappeableRunContainer extends MappeableContainer implements C
                 rlepos++;
             }
         }
-        return answer;
+        return answer.convertToLazyBitmapIfNeeded();
     }
 
-    protected MappeableContainer lazyxor(MappeableArrayContainer x) {
+    private MappeableContainer lazyxor(MappeableArrayContainer x) {
         if(x.getCardinality() == 0) return this;
         if(this.nbrruns == 0) return x;
         MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.getCardinality())));
@@ -1448,7 +1448,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         return answer;
     }
 
-    protected MappeableRunContainer lazyandNot(MappeableArrayContainer x) {
+    private MappeableRunContainer lazyandNot(MappeableArrayContainer x) {
         if(x.getCardinality() == 0) return this;
         MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.cardinality)));
         short[] vl = answer.valueslength.array();
@@ -1738,6 +1738,19 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         return toEfficientContainer();
     }
 
+    private MappeableContainer convertToLazyBitmapIfNeeded() {
+        if(this.nbrruns > 4096) {
+            MappeableBitmapContainer answer = new MappeableBitmapContainer();
+            for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
+                int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+                int end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+                BufferUtil.setBitmapRange(answer.bitmap, start, end); 
+            }
+            answer.cardinality = -1;
+            return answer;
+        }
+        return this;
+    }
 
 }
 
