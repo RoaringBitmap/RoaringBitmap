@@ -357,6 +357,7 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
                 tmpewah32.add(EWAHCompressedBitmap32.bitmapOf(data));
 
             }
+            count = mac.size();
             System.out.println("# aggregating the first "+count+" bitmaps out of "+tmpac.size());
             mrc = convertToImmutableRoaring(tmprc);
             mac = convertToImmutableRoaring(tmpac);

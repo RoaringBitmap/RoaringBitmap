@@ -626,7 +626,7 @@ public final class RunContainer extends Container implements Cloneable {
         return (this.nbrruns == 1) && (this.getValue(0) == 0) && (this.getLength(0) == -1);
     }
 
-    protected Container lazyorToRun(ArrayContainer x) {
+    private Container lazyorToRun(ArrayContainer x) {
         if(isFull()) return this.clone();
         // TODO: should optimize for the frequent case where we have a single run
         RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.getCardinality())]);

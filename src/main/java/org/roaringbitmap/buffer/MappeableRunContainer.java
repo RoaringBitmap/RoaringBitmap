@@ -708,7 +708,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         return lazyorToRun(x);
     }
 
-    protected MappeableContainer lazyorToRun(MappeableArrayContainer x) {
+    private MappeableContainer lazyorToRun(MappeableArrayContainer x) {
         if(isFull()) return this.clone();
         // TODO: should optimize for the frequent case where we have a single run
         MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.getCardinality())));
