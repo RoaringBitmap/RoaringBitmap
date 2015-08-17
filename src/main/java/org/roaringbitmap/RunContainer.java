@@ -634,7 +634,7 @@ public final class RunContainer extends Container implements Cloneable {
         PeekableShortIterator i = (PeekableShortIterator) x.getShortIterator();
 
         while (i.hasNext() && (rlepos < this.nbrruns) ) {
-            if(Util.compareUnsigned(getValue(rlepos), i.peekNext()) < 0) {
+            if(Util.compareUnsigned(getValue(rlepos), i.peekNext()) <= 0) {
                 answer.smartAppend(getValue(rlepos), getLength(rlepos));
                 // here we could call i.advanceIfNeeded(minval);
                 rlepos++;
