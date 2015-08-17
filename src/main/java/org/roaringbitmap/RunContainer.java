@@ -1600,14 +1600,15 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public Container or(RunContainer x) {
-        if(isFull() || x.isFull()) return clone(); // cheap case that can save a lot of computation
+        if(isFull()) return clone();
+        if(x.isFull()) return x.clone(); // cheap case that can save a lot of computation
         // we really ought to optimize the rest of the code for the frequent case where there is a single run
         RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.nbrruns)]);
         int rlepos = 0;
         int xrlepos = 0;
 
         while ((xrlepos < x.nbrruns) && (rlepos < this.nbrruns)) {
-            if(Util.compareUnsigned(getValue(rlepos), x.getValue(xrlepos)) < 0) {
+            if(Util.compareUnsigned(getValue(rlepos), x.getValue(xrlepos)) <= 0) {
                 answer.smartAppend(getValue(rlepos), getLength(rlepos));
                 rlepos++;
             } else {

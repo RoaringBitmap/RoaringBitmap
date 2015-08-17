@@ -1670,7 +1670,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     
     @Override
     public MappeableContainer or(MappeableRunContainer x) {
-        if(isFull() || x.isFull()) return clone(); // cheap case that can save a lot of computation
+        if(isFull()) return clone();
+        if(x.isFull()) return x.clone(); // cheap case that can save a lot of computation
         // we really ought to optimize the rest of the code for the frequent case where there is a single run
         MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.nbrruns)));
         short[] vl = answer.valueslength.array();
@@ -1678,7 +1679,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         int xrlepos = 0;
 
         while ((rlepos < this.nbrruns) && (xrlepos < x.nbrruns)) {
-            if(BufferUtil.compareUnsigned(getValue(rlepos), x.getValue(xrlepos)) < 0) {
+            if(BufferUtil.compareUnsigned(getValue(rlepos), x.getValue(xrlepos)) <= 0) {
                 answer.smartAppend(vl,getValue(rlepos), getLength(rlepos));
                 rlepos++;
             } else {
