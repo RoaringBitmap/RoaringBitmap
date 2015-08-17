@@ -18,7 +18,7 @@ public interface PeekableShortIterator extends ShortIterator {
      */
     public short peekNext();
     /**
-     * If needed, advance as long as the next value is >= minval
+     * If needed, advance as long as the next value is greater or equal to minval (as an unsigned short)
      * @param minval threshold
      */
     public void advanceIfNeeded(short minval);
