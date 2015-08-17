@@ -717,7 +717,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         PeekableShortIterator i = (PeekableShortIterator) x.getShortIterator();
 
         while ((rlepos < this.nbrruns ) && i.hasNext()) {
-            if(BufferUtil.compareUnsigned(getValue(rlepos), i.peekNext()) < 0) {
+            if(BufferUtil.compareUnsigned(getValue(rlepos), i.peekNext()) <= 0) {
                 answer.smartAppend(vl,getValue(rlepos), getLength(rlepos));
                 // could call i.advanceIfNeeded(minval);
                 rlepos++;
