@@ -5,7 +5,9 @@
 package org.roaringbitmap.buffer;
 
 
+import org.roaringbitmap.PeekableShortIterator;
 import org.roaringbitmap.ShortIterator;
+import org.roaringbitmap.Util;
 
 import java.io.*;
 import java.nio.ShortBuffer;
@@ -690,52 +692,44 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         // we guess that, often, the result will still be efficiently expressed as a run container
         return lazyorToRun(x).repairAfterLazy();
     }
-    // in some contexts, it might be better to convert the run container as it will generate bitmaps
-    /*protected MappeableContainer lazyorToArrayOrBitmap(MappeableArrayContainer x) {
-        MappeableContainer c = ((MappeableRunContainer) this).toBitmapOrArrayContainer(this
-                .getCardinality());
-        if (c instanceof MappeableBitmapContainer)
-            return ((MappeableBitmapContainer) c).ilazyor((MappeableArrayContainer) x);
-        else
-            return c.ior((MappeableArrayContainer) x);
-    }*/
     
     protected MappeableContainer lazyor(MappeableArrayContainer x) {
         return lazyorToRun(x);
     }
 
     protected MappeableContainer lazyorToRun(MappeableArrayContainer x) {
-        if(x.getCardinality() == 0) return this;
-        if(this.nbrruns == 0) return x;
         MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.getCardinality())));
         short[] vl = answer.valueslength.array();
         int rlepos = 0;
-        ShortIterator i = x.getShortIterator();
-        short cv = i.next();
+        PeekableShortIterator i = (PeekableShortIterator) x.getShortIterator();
 
-        while (true) {
-            if(BufferUtil.compareUnsigned(getValue(rlepos), cv) < 0) {
+        while ((rlepos < this.nbrruns ) && i.hasNext()) {
+            if(BufferUtil.compareUnsigned(getValue(rlepos), i.peekNext()) < 0) {
+                answer.smartAppend(vl,getValue(rlepos), getLength(rlepos));
+                // could call i.advanceIfNeeded(minval);
+                rlepos++;
+            } else {
+                answer.smartAppend(vl,i.next());
+            }
+        }   
+        if(i.hasNext()) {
+            if(answer.nbrruns>0) {
+                // this might be useful if the run container has just one very large run
+                int lastval = BufferUtil.toIntUnsigned(answer.getValue(answer.nbrruns))
+                        + BufferUtil.toIntUnsigned(answer.getLength(answer.nbrruns)) + 1;
+                i.advanceIfNeeded((short) lastval);
+            }
+            while (i.hasNext()) {
+
+                answer.smartAppend(vl,i.next());
+            }
+        } else {
+
+            while (rlepos < this.nbrruns) {
                 answer.smartAppend(vl,getValue(rlepos), getLength(rlepos));
                 rlepos++;
-                if(rlepos == this.nbrruns )  {
-                    answer.smartAppend(vl,cv);
-
-                    while (i.hasNext()) {
-                        answer.smartAppend(vl,i.next());
-                    }
-                    break;
-                }
-            } else {
-                answer.smartAppend(vl,cv);
-                if(! i.hasNext() ) {
-                    while (rlepos < this.nbrruns) {
-                        answer.smartAppend(vl,getValue(rlepos), getLength(rlepos));
-                        rlepos++;
-                    }
-                    break;
-                } else cv = i.next();
             }
-        }        
+        }
         return answer;
     }
 
@@ -1661,36 +1655,28 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     
     @Override
     public MappeableContainer or(MappeableRunContainer x) {
-        if(x.nbrruns == 0) return this.clone();
-        if(this.nbrruns == 0) return x.clone();
         MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.nbrruns)));
         short[] vl = answer.valueslength.array();
         int rlepos = 0;
         int xrlepos = 0;
 
-        while (true) {
+        while ((rlepos < this.nbrruns) && (xrlepos < x.nbrruns)) {
             if(BufferUtil.compareUnsigned(getValue(rlepos), x.getValue(xrlepos)) < 0) {
                 answer.smartAppend(vl,getValue(rlepos), getLength(rlepos));
                 rlepos++;
-                if(rlepos == this.nbrruns )  {
-                    while (xrlepos < x.nbrruns) {
-                        answer.smartAppend(vl,x.getValue(xrlepos), x.getLength(xrlepos));
-                        xrlepos++;
-                    }
-                    break;
-                }
             } else {
                 answer.smartAppend(vl,x.getValue(xrlepos), x.getLength(xrlepos));
                 xrlepos++;
-                if(xrlepos == x.nbrruns ) {
-                    while (rlepos < this.nbrruns) {
-                        answer.smartAppend(vl,getValue(rlepos), getLength(rlepos));
-                        rlepos++;
-                    }
-                    break;
-                }
             }
         }        
+        while (xrlepos < x.nbrruns) {
+            answer.smartAppend(vl,x.getValue(xrlepos), x.getLength(xrlepos));
+            xrlepos++;
+        }
+        while (rlepos < this.nbrruns) {
+            answer.smartAppend(vl,getValue(rlepos), getLength(rlepos));
+            rlepos++;
+        }
         return answer;
     }
 

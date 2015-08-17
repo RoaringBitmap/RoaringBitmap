@@ -1056,6 +1056,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         }
         return answer;
     }    
+    
 
 
     /**

@@ -36,4 +36,5 @@ public interface ShortIterator  extends Cloneable {
      * If possible, remove the current value
      */
     void remove();
+
 }

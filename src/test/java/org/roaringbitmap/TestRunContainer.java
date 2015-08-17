@@ -538,11 +538,11 @@ public class TestRunContainer {
      @Test
      public void union2() {
          System.out.println("union2");
-         Container ac = new ArrayContainer();
-         Container rc = new RunContainer();
+         ArrayContainer ac = new ArrayContainer();
+         RunContainer rc = new RunContainer();
          for(int k = 0; k<100; ++k) {
-             ac = ac.add((short) (k*10));
-             rc = rc.add((short) (k*10+3));
+             ac = (ArrayContainer) ac.add((short) (k*10));
+             rc = (RunContainer) rc.add((short) (k*10+3));
          }
          Container union = rc.or(ac);
          assertEquals(200, union.getCardinality());

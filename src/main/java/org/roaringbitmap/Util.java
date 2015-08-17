@@ -29,7 +29,7 @@ public final class Util {
      * @return x greater than pos such that array[pos] is at least as large
      * as min, pos is is equal to length if it is not possible.
      */
-    protected static int advanceUntil(short[] array, int pos, int length, short min) {
+    public static int advanceUntil(short[] array, int pos, int length, short min) {
         int lower = pos + 1;
 
         // special handling for a possibly common sequential case

@@ -608,57 +608,48 @@ public final class RunContainer extends Container implements Cloneable {
     @Override
     public Container or(ArrayContainer x) {
         // we guess that, often, the result will still be efficiently expressed as a run container
-        return lazyorToRun(x).repairAfterLazy();
+        return lazyor(x).repairAfterLazy();
     }
     
-    // in some contexts, it might be better to convert the run container as it will generate bitmaps
-    /*protected Container lazyorToArrayOrBitmap(ArrayContainer x) {
-        Container c = ((RunContainer) this).toBitmapOrArrayContainer(this
-                .getCardinality());
-        if (c instanceof BitmapContainer)
-            return ((BitmapContainer) c).ilazyor((ArrayContainer) x);
-        else
-            return c.ior((ArrayContainer) x);
-    }*/
 
     protected Container lazyor(ArrayContainer x) {
-        return this.lazyorToRun(x);
+       return lazyorToRun(x);
     } 
     
+
     protected Container lazyorToRun(ArrayContainer x) {
-        if(x.getCardinality() == 0) return this;
-        if(this.nbrruns == 0) return x;
         RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.getCardinality())]);
         int rlepos = 0;
-        ShortIterator i = x.getShortIterator();
-        short cv = i.next();
+        PeekableShortIterator i = (PeekableShortIterator) x.getShortIterator();
 
-        while (true) {
-            if(Util.compareUnsigned(getValue(rlepos), cv) < 0) {
+        while (i.hasNext() && (rlepos < this.nbrruns) ) {
+            if(Util.compareUnsigned(getValue(rlepos), i.peekNext()) < 0) {
                 answer.smartAppend(getValue(rlepos), getLength(rlepos));
+                // here we could call i.advanceIfNeeded(minval);
                 rlepos++;
-                if(rlepos == this.nbrruns )  {
-                    answer.smartAppend(cv);
-
-                    while (i.hasNext()) {
-                        answer.smartAppend(i.next());
-                    }
-                    break;
-                }
             } else {
-                answer.smartAppend(cv);
-                if(! i.hasNext() ) {
-                    while (rlepos < this.nbrruns) {
-                        answer.smartAppend(getValue(rlepos), getLength(rlepos));
-                        rlepos++;
-                    }
-                    break;
-                } else cv = i.next();
+                answer.smartAppend(i.next());
             }
         }        
+        if (i.hasNext()) {
+            if(answer.nbrruns>0) {
+                // this might be useful if the run container has just one very large run
+                int lastval = Util.toIntUnsigned(answer.getValue(answer.nbrruns))
+                        + Util.toIntUnsigned(answer.getLength(answer.nbrruns)) + 1;
+                i.advanceIfNeeded((short) lastval);
+            }
+            while (i.hasNext()) {
+                answer.smartAppend(i.next());
+            }
+        } else {
+            while (rlepos < this.nbrruns) {
+                answer.smartAppend(getValue(rlepos), getLength(rlepos));
+                rlepos++;
+            }
+        }
         return answer;
     }
-
+    
     protected Container lazyxor(ArrayContainer x) {
         if(x.getCardinality() == 0) return this;
         if(this.nbrruns == 0) return x;
@@ -1594,38 +1585,30 @@ public final class RunContainer extends Container implements Cloneable {
         }
     }
 
-    
     @Override
     public Container or(RunContainer x) {
-        if(x.nbrruns == 0) return this.clone();
-        if(this.nbrruns == 0) return x.clone();
         RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.nbrruns)]);
         int rlepos = 0;
         int xrlepos = 0;
 
-        while (true) {
+        while ((xrlepos < x.nbrruns) && (rlepos < this.nbrruns)) {
             if(Util.compareUnsigned(getValue(rlepos), x.getValue(xrlepos)) < 0) {
                 answer.smartAppend(getValue(rlepos), getLength(rlepos));
                 rlepos++;
-                if(rlepos == this.nbrruns )  {
-                    while (xrlepos < x.nbrruns) {
-                        answer.smartAppend(x.getValue(xrlepos), x.getLength(xrlepos));
-                        xrlepos++;
-                    }
-                    break;
-                }
             } else {
                 answer.smartAppend(x.getValue(xrlepos), x.getLength(xrlepos));
                 xrlepos++;
-                if(xrlepos == x.nbrruns ) {
-                    while (rlepos < this.nbrruns) {
-                        answer.smartAppend(getValue(rlepos), getLength(rlepos));
-                        rlepos++;
-                    }
-                    break;
-                }
             }
         }        
+        while (xrlepos < x.nbrruns) {
+            answer.smartAppend(x.getValue(xrlepos), x.getLength(xrlepos));
+            xrlepos++;
+        }
+        while (rlepos < this.nbrruns) {
+            answer.smartAppend(getValue(rlepos), getLength(rlepos));
+            rlepos++;
+        }
+
         return answer;
     }
 

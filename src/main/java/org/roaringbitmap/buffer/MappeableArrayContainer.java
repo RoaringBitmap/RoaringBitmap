@@ -5,6 +5,7 @@
 
 package org.roaringbitmap.buffer;
 
+import org.roaringbitmap.PeekableShortIterator;
 import org.roaringbitmap.ShortIterator;
 import org.roaringbitmap.Util;
 
@@ -254,44 +255,6 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     @Override
     public MappeableContainer andNot(final MappeableRunContainer x) {
-        /*
-        int writeLocation=0;
-        int runStart, runEnd;  // the current or upcoming run.
-        int whichRun;
-        short [] buffer = new short[ cardinality];
-        if (x.nbrruns == 0) return clone();
-        else {
-            runStart = Util.toIntUnsigned(x.getValue(0));
-            runEnd = runStart + Util.toIntUnsigned(x.getLength(0));
-            whichRun=0;
-        }
-
-        short val;
-        for (int i = 0; i < cardinality; ++i) {
-            val = content[i];
-            int valInt = Util.toIntUnsigned(val);
-            if ( valInt < runStart) 
- {
-                buffer[writeLocation++] = val;
-            }
-            else if (valInt <= runEnd)
-                ; // don't want item
-            else {
-                // greater than this run, need to do an advanceUntil on runs
-                // done sequentially for now (no galloping attempts).
-                do {
-                    if (whichRun+1 < x.nbrruns) {
-                        whichRun++;
-                        runStart = Util.toIntUnsigned(x.getValue(whichRun));
-                        runEnd = runStart + Util.toIntUnsigned(x.getLength(whichRun));
-                    }
-                    else runStart = runEnd = (1 << 16) + 1;  // infinity....
-                } while ( valInt > runEnd);
-                --i;  // need to re-process this val
-            }
-        }
-        return new ArrayContainer(writeLocation,buffer);
-         */
         int writeLocation=0;
         int runStart, runEnd;  // the current or upcoming run.
         int whichRun;
@@ -1261,8 +1224,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 }
 
 
-
-final class MappeableArrayContainerShortIterator implements ShortIterator {
+final class MappeableArrayContainerShortIterator implements PeekableShortIterator {
     int pos;
     MappeableArrayContainer parent;
 
@@ -1309,6 +1271,19 @@ final class MappeableArrayContainerShortIterator implements ShortIterator {
         parent.remove((short) (pos - 1));
         pos--;                
     }
+
+
+    @Override
+    public short peekNext() {
+        return parent.content.get(pos);
+    }
+
+    @Override
+    public void advanceIfNeeded(short minval) {
+        pos = BufferUtil.advanceUntil(parent.content, pos - 1, parent.cardinality, minval);
+    }
+    
+    
 
 }
 
@@ -1366,8 +1341,7 @@ final class ReverseMappeableArrayContainerShortIterator implements ShortIterator
 }
 
 
-
-final class RawArrayContainerShortIterator implements ShortIterator {
+final class RawArrayContainerShortIterator implements PeekableShortIterator {
     int pos;
     MappeableArrayContainer parent;
     short[] content;
@@ -1380,6 +1354,12 @@ final class RawArrayContainerShortIterator implements ShortIterator {
         pos = 0;
     }
 
+
+    @Override    
+    public short peekNext() {
+        return content[pos];
+    }
+    
     @Override
     public boolean hasNext() {
         return pos < parent.cardinality;
@@ -1410,6 +1390,10 @@ final class RawArrayContainerShortIterator implements ShortIterator {
         pos--;                
     }
 
+    @Override
+    public void advanceIfNeeded(short minval) {
+        pos = Util.advanceUntil(content, pos - 1, parent.cardinality, minval);
+    }
 
 };
 

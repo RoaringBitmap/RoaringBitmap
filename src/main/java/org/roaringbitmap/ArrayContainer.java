@@ -929,7 +929,7 @@ public final class ArrayContainer extends Container implements Cloneable {
 }
 
 
-final class ArrayContainerShortIterator implements ShortIterator {
+final class ArrayContainerShortIterator implements PeekableShortIterator {
     int pos;
     ArrayContainer parent;
     
@@ -938,6 +938,15 @@ final class ArrayContainerShortIterator implements ShortIterator {
     
     ArrayContainerShortIterator(ArrayContainer p) {
         wrap(p);
+    }
+
+    public short peekNext() {
+        return parent.content[pos];
+    }
+    
+
+    public void advanceIfNeeded(short minval) {
+        pos = Util.advanceUntil(parent.content, pos - 1, parent.cardinality, minval);
     }
     
     void wrap(ArrayContainer p) {
