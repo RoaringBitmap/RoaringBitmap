@@ -357,13 +357,13 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
                 tmpewah32.add(EWAHCompressedBitmap32.bitmapOf(data));
 
             }
-            count = mac.size();
-            System.out.println("# aggregating the first "+count+" bitmaps out of "+tmpac.size());
             mrc = convertToImmutableRoaring(tmprc);
             mac = convertToImmutableRoaring(tmpac);
             cc = convertToImmutableConcise(tmpcc);
             ewah = convertToImmutableEWAH(tmpewah);
             ewah32 = convertToImmutableEWAH32(tmpewah32);
+            count = mac.size();
+            System.out.println("# aggregating the first "+count+" bitmaps out of "+tmpac.size());
 
             if((mrc.size() != mac.size()) || (mac.size() != cc.size()))
                 throw new RuntimeException("number of bitmaps do not match.");
