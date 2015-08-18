@@ -1,3 +1,7 @@
+version 0.5
+ - Introduced run containers and the runOptimize method
+ - Resolved performance issue #31 : Reduce memory usage by getting rid of the internal Element classes
+
 version 0.4.11
  - Fixing issue https://github.com/lemire/RoaringBitmap/issues/39
  - Fixing a critical issue with in-place xor and or functions for mapped bitmaps
