@@ -37,8 +37,9 @@ public final class FastAggregation {
      * @return aggregated bitmap
      */
     public static RoaringBitmap naive_and(RoaringBitmap... bitmaps) {
-       RoaringBitmap answer = new RoaringBitmap();
-       for(int k = 0; k < bitmaps.length; ++k)
+       if(bitmaps.length == 0) return new RoaringBitmap();
+       RoaringBitmap answer = bitmaps[0];
+       for(int k = 1; k < bitmaps.length; ++k)
           answer.and(bitmaps[k]);
        return answer;
     }
@@ -52,7 +53,8 @@ public final class FastAggregation {
      * @return aggregated bitmap
      */
     public static RoaringBitmap naive_and(Iterator<RoaringBitmap> bitmaps) {
-       RoaringBitmap answer = new RoaringBitmap();
+       if(!bitmaps.hasNext()) return new RoaringBitmap();
+       RoaringBitmap answer = bitmaps.next();
        while(bitmaps.hasNext())
            answer.and(bitmaps.next());
        return answer;

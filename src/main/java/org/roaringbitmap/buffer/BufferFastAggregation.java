@@ -29,8 +29,9 @@ public final class BufferFastAggregation {
      * @return aggregated bitmap
      */
     public static MutableRoaringBitmap naive_and(MutableRoaringBitmap... bitmaps) {
-       MutableRoaringBitmap answer = new MutableRoaringBitmap();
-       for(int k = 0; k < bitmaps.length; ++k)
+       if(bitmaps.length == 0) return new MutableRoaringBitmap();
+       MutableRoaringBitmap answer = bitmaps[0];
+       for(int k = 1; k < bitmaps.length; ++k)
           answer.and(bitmaps[k]);
        return answer;
     }
@@ -44,7 +45,8 @@ public final class BufferFastAggregation {
      * @return aggregated bitmap
      */
     public static MutableRoaringBitmap naive_and(@SuppressWarnings("rawtypes") Iterator bitmaps) {
-       MutableRoaringBitmap answer = new MutableRoaringBitmap();
+       if(!bitmaps.hasNext()) return new MutableRoaringBitmap();
+       MutableRoaringBitmap answer = ((ImmutableRoaringBitmap) bitmaps.next()).toMutableRoaringBitmap();
        while(bitmaps.hasNext())
            answer.and((ImmutableRoaringBitmap) bitmaps.next());
        return answer;
