@@ -92,7 +92,7 @@ public class MappedRunContainerRealDataBenchmarkWideAnd {
     }
 
     @Benchmark
-    public int Roaring_withsort(BenchmarkState benchmarkState) {
+    public int Roaring(BenchmarkState benchmarkState) {
         int answer = BufferFastAggregation.and(limit(benchmarkState.count,benchmarkState.mac.iterator()))
                .getCardinality();
         if(answer != benchmarkState.expectedvalue)
@@ -102,7 +102,7 @@ public class MappedRunContainerRealDataBenchmarkWideAnd {
 
 
     @Benchmark
-    public int RoaringWithRun_withsort(BenchmarkState benchmarkState) {
+    public int RoaringWithRun(BenchmarkState benchmarkState) {
         int answer = BufferFastAggregation.and(limit(benchmarkState.count,benchmarkState.mrc.iterator()))
                .getCardinality();
         if(answer != benchmarkState.expectedvalue)
@@ -112,8 +112,8 @@ public class MappedRunContainerRealDataBenchmarkWideAnd {
     
     @Benchmark
     public int Concise_whatever(BenchmarkState benchmarkState) {
-        ImmutableConciseSet bitmapor = ImmutableConciseSet.intersection(limit(benchmarkState.count,benchmarkState.cc.iterator()));
-        int answer = bitmapor.size();
+        ImmutableConciseSet bitmapand = ImmutableConciseSet.intersection(limit(benchmarkState.count,benchmarkState.cc.iterator()));
+        int answer = bitmapand.size();
         if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug ");
         return answer;
@@ -122,11 +122,11 @@ public class MappedRunContainerRealDataBenchmarkWideAnd {
 
     @Benchmark
     public int Concise_naive(BenchmarkState benchmarkState) {
-        ImmutableConciseSet bitmapor = benchmarkState.cc.get(0);
+        ImmutableConciseSet bitmapand = benchmarkState.cc.get(0);
         for (int j = 1; j < Math.min(benchmarkState.count, benchmarkState.cc.size()) ; ++j) {
-            bitmapor = ImmutableConciseSet.intersection(bitmapor,benchmarkState.cc.get(j));
+            bitmapand = ImmutableConciseSet.intersection(bitmapand,benchmarkState.cc.get(j));
         }
-        int answer = bitmapor.size();
+        int answer = bitmapand.size();
         if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug");
         return answer;
@@ -137,10 +137,10 @@ public class MappedRunContainerRealDataBenchmarkWideAnd {
     @Benchmark
     public int EWAH_naive(BenchmarkState benchmarkState) {
         Iterator i = limit(benchmarkState.count,benchmarkState.ewah.iterator());
-        EWAHCompressedBitmap bitmapor = (EWAHCompressedBitmap) i.next();
+        EWAHCompressedBitmap bitmapand = (EWAHCompressedBitmap) i.next();
         while(i.hasNext())
-            bitmapor = bitmapor.and((EWAHCompressedBitmap) i.next());
-        int answer = bitmapor.cardinality();
+            bitmapand = bitmapand.and((EWAHCompressedBitmap) i.next());
+        int answer = bitmapand.cardinality();
         if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug");
         return answer;
@@ -149,10 +149,10 @@ public class MappedRunContainerRealDataBenchmarkWideAnd {
     @Benchmark
     public int EWAH32_naive(BenchmarkState benchmarkState) {
         Iterator i = limit(benchmarkState.count,benchmarkState.ewah32.iterator());
-        EWAHCompressedBitmap32 bitmapor = (EWAHCompressedBitmap32) i.next();
+        EWAHCompressedBitmap32 bitmapand = (EWAHCompressedBitmap32) i.next();
         while(i.hasNext())
-            bitmapor = bitmapor.and((EWAHCompressedBitmap32) i.next());
-        int answer = bitmapor.cardinality();
+            bitmapand = bitmapand.and((EWAHCompressedBitmap32) i.next());
+        int answer = bitmapand.cardinality();
         if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug");
         return answer;
@@ -343,12 +343,17 @@ public class MappedRunContainerRealDataBenchmarkWideAnd {
                 tmpewah32.add(EWAHCompressedBitmap32.bitmapOf(data));
 
             }
+            // we seek the point where ANDs are meaningful.
+            MutableRoaringBitmap answer = tmprc.get(0);
+            for(count = 1; count < tmprc.size(); ++count) {
+               answer = MutableRoaringBitmap.and(answer,tmprc.get(count));
+               if(answer.isEmpty()) break;
+            }
             mrc = convertToImmutableRoaring(tmprc);
             mac = convertToImmutableRoaring(tmpac);
             cc = convertToImmutableConcise(tmpcc);
             ewah = convertToImmutableEWAH(tmpewah);
             ewah32 = convertToImmutableEWAH32(tmpewah32);
-            count = mac.size();
             System.out.println("# aggregating the first "+count+" bitmaps out of "+tmpac.size());
 
             if((mrc.size() != mac.size()) || (mac.size() != cc.size()))

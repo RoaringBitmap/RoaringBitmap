@@ -202,9 +202,7 @@ public class RunContainerRealDataBenchmarkWideAnd {
 
         int expectedvalue = 0;
         
-        protected int count = 8;// arbitrary number but warning: when increasing this number 
-        // check that reported timings increase monotonically, I found that as of ~12, they sharply decreased
-        // for some schemes, suggesting that the benchmark was defeated.
+        protected int count = 8;
 
 
         ArrayList<RoaringBitmap> rc = new ArrayList<RoaringBitmap>();
@@ -266,7 +264,12 @@ public class RunContainerRealDataBenchmarkWideAnd {
                 concisesize += (int) (concise.size() * concise
                                       .collectionCompressionRatio()) * 4;
             }
-            count = rc.size();
+            // we seek the point where ANDs are meaningful.
+            RoaringBitmap answer = rc.get(0);
+            for(count = 1; count < rc.size(); ++count) {
+               answer = RoaringBitmap.and(answer,rc.get(count));
+               if(answer.isEmpty()) break;
+            }
             System.out.println("# aggregating the first "+count+" bitmaps out of "+ac.size());
 
             /***

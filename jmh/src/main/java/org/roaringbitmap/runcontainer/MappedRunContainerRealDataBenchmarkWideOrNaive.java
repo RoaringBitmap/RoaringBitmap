@@ -156,9 +156,7 @@ public class MappedRunContainerRealDataBenchmarkWideOrNaive {
         String dataset;
         public int expectedvalue = 0;
         
-        protected int count = 8;// arbitrary number but warning: when increasing this number 
-        // check that reported timings increase monotonically, I found that as of ~12, they sharply decreased
-        // for some schemes, suggesting that the benchmark was defeated.
+        protected int count = 8;
         
         List<File> createdfiles = new ArrayList<File>();
 

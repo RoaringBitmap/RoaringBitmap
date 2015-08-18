@@ -187,9 +187,7 @@ public class RunContainerRealDataBenchmarkWideOrPQ {
 
         int horizontalor = 0;
         
-        protected int count = 8;// arbitrary number but warning: when increasing this number 
-        // check that reported timings increase monotonically, I found that as of ~12, they sharply decreased
-        // for some schemes, suggesting that the benchmark was defeated.
+        protected int count = 8;
 
 
         ArrayList<RoaringBitmap> rc = new ArrayList<RoaringBitmap>();
