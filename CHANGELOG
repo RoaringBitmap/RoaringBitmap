@@ -1,4 +1,7 @@
-version 0.5
+version 0.5.1
+ - Bug fix release (rarely occuring bug with "or")
+
+version 0.5.0
  - Introduced run containers and the runOptimize method
  - Resolved performance issue #31 : Reduce memory usage by getting rid of the internal Element classes
 

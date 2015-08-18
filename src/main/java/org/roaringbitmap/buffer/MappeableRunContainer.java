@@ -1737,10 +1737,11 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         return toEfficientContainer();
     }
     
-    // a very cheap check... if you have more than 2048, then you should use a bitmap container.
+    // a very cheap check... if you have more than 4096, then you should use a bitmap container.
     // this function avoids computing the cardinality
     private MappeableContainer convertToLazyBitmapIfNeeded() {
-        if(this.nbrruns > 2048) {//RunContainer.serializedSizeInBytes(this.nbrruns) > BitmapContainer.serializedSizeInBytes(0)
+        // when nbrruns exceed MappeableArrayContainer.DEFAULT_MAX_SIZE, then we know it should be stored as a bitmap, always 
+        if(this.nbrruns > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             MappeableBitmapContainer answer = new MappeableBitmapContainer();
             for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
                 int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
