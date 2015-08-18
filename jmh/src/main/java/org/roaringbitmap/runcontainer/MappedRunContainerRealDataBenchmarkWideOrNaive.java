@@ -131,7 +131,7 @@ public class MappedRunContainerRealDataBenchmarkWideOrNaive {
     
     @Benchmark
     public int EWAH32_naive(BenchmarkState benchmarkState) {
-        Iterator i = limit(benchmarkState.count,benchmarkState.ewah.iterator());
+        Iterator i = limit(benchmarkState.count,benchmarkState.ewah32.iterator());
         EWAHCompressedBitmap32 bitmapor = (EWAHCompressedBitmap32) i.next();
         while(i.hasNext())
             bitmapor = bitmapor.or((EWAHCompressedBitmap32) i.next());
