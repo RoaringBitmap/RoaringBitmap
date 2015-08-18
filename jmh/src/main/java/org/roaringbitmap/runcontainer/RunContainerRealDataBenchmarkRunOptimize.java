@@ -5,6 +5,9 @@ import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.ZipRealDataRetriever;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
@@ -23,7 +26,7 @@ public class RunContainerRealDataBenchmarkRunOptimize {
     }
 
     @Benchmark
-    public int runOptimize(BenchmarkState benchmarkState) {
+    public int cloneAndrunOptimize(BenchmarkState benchmarkState) {
         int total = 0;
         for (int i = 0; i < benchmarkState.ac.size(); i++) {
             RoaringBitmap bitmap = benchmarkState.ac.get(i).clone();
@@ -33,6 +36,27 @@ public class RunContainerRealDataBenchmarkRunOptimize {
         return total;
     }
 
+    @Benchmark
+    public int serializeToBAOS(BenchmarkState benchmarkState) throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        for (int i = 0; i < benchmarkState.ac.size(); i++) {
+            RoaringBitmap bitmap = benchmarkState.ac.get(i).clone();
+            bitmap.serialize(new DataOutputStream(bos));
+            bitmap.runOptimize();
+        }
+        return bos.size();
+    }
+
+    @Benchmark
+    public int runOptimizeAndserializeToBAOS(BenchmarkState benchmarkState) throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        for (int i = 0; i < benchmarkState.ac.size(); i++) {
+            RoaringBitmap bitmap = benchmarkState.ac.get(i).clone();
+            bitmap.runOptimize();
+            bitmap.serialize(new DataOutputStream(bos));
+        }
+        return bos.size();
+    }
 
     @State(Scope.Benchmark)
     public static class BenchmarkState {

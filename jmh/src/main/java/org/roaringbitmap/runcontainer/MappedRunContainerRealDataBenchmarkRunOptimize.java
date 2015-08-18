@@ -5,6 +5,9 @@ import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.ZipRealDataRetriever;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -24,7 +27,7 @@ public class MappedRunContainerRealDataBenchmarkRunOptimize {
     }
 
     @Benchmark
-    public int mutable_runOptimize(BenchmarkState benchmarkState) {
+    public int mutable_cloneAndrunOptimize(BenchmarkState benchmarkState) {
         int total = 0;
         for (int i = 0; i < benchmarkState.mac.size(); i++) {
             MutableRoaringBitmap bitmap = benchmarkState.mac.get(i).clone();
@@ -34,6 +37,27 @@ public class MappedRunContainerRealDataBenchmarkRunOptimize {
         return total;
     }
 
+    @Benchmark
+    public int mutable_serializeToBAOS(BenchmarkState benchmarkState) throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        for (int i = 0; i < benchmarkState.mac.size(); i++) {
+            MutableRoaringBitmap bitmap = benchmarkState.mac.get(i).clone();
+            bitmap.serialize(new DataOutputStream(bos));
+            bitmap.runOptimize();
+        }
+        return bos.size();
+    }
+
+    @Benchmark
+    public int mutable_runOptimizeAndserializeToBAOS(BenchmarkState benchmarkState) throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        for (int i = 0; i < benchmarkState.mac.size(); i++) {
+            MutableRoaringBitmap bitmap = benchmarkState.mac.get(i).clone();
+            bitmap.runOptimize();
+            bitmap.serialize(new DataOutputStream(bos));
+        }
+        return bos.size();
+    }
 
     @State(Scope.Benchmark)
     public static class BenchmarkState {
