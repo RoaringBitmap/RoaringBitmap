@@ -32,6 +32,7 @@ import org.roaringbitmap.ZipRealDataRetriever;
 import org.roaringbitmap.buffer.BufferFastAggregation;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
+import org.roaringbitmap.runcontainer.MappedRunContainerRealDataBenchmarkWideOrNaive.BenchmarkState;
 
 import com.googlecode.javaewah.EWAHCompressedBitmap;
 import com.googlecode.javaewah32.EWAHCompressedBitmap32;
@@ -95,7 +96,25 @@ public class MappedRunContainerRealDataBenchmarkWideOrPQ {
         }
         return pq.poll();
     }
+    
+    @Benchmark
+    public int Roaring(BenchmarkState benchmarkState) {
+        int answer = ImmutableRoaringBitmap.or(limit(benchmarkState.count,benchmarkState.mac.iterator()))
+               .getCardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return answer;
+    }
 
+
+    @Benchmark
+    public int RoaringWithRun(BenchmarkState benchmarkState) {
+        int answer = ImmutableRoaringBitmap.or(limit(benchmarkState.count,benchmarkState.mrc.iterator()))
+               .getCardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return answer;
+    }
 
     @Benchmark
     public int Roaring_pq(BenchmarkState benchmarkState) {

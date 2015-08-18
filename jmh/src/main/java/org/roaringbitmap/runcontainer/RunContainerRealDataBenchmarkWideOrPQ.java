@@ -21,6 +21,7 @@ import org.openjdk.jmh.annotations.State;
 import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.ZipRealDataRetriever;
+import org.roaringbitmap.runcontainer.RunContainerRealDataBenchmarkWideOrNaive.BenchmarkState;
 
 import com.googlecode.javaewah.EWAHCompressedBitmap;
 import com.googlecode.javaewah32.EWAHCompressedBitmap32;
@@ -97,6 +98,23 @@ public class RunContainerRealDataBenchmarkWideOrPQ {
     }
 
     
+    @Benchmark
+    public int Roaring(BenchmarkState benchmarkState) {
+        int answer = RoaringBitmap.or(limit(benchmarkState.count,benchmarkState.ac.iterator()))
+               .getCardinality();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+
+    @Benchmark
+    public int RoaringWithRun(BenchmarkState benchmarkState) {
+        int answer = RoaringBitmap.or(limit(benchmarkState.count,benchmarkState.rc.iterator()))
+               .getCardinality();
+        if(answer != benchmarkState.horizontalor)
+            throw new RuntimeException("bug");
+        return answer;
+    }    
 
     @Benchmark
     public int Roaring_pq(BenchmarkState benchmarkState) {
