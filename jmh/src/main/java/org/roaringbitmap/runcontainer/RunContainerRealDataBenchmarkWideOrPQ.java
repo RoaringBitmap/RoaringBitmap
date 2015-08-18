@@ -28,7 +28,7 @@ import com.googlecode.javaewah32.EWAHCompressedBitmap32;
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @SuppressWarnings("rawtypes")
-public class RunContainerRealDataBenchmarkWideOr {
+public class RunContainerRealDataBenchmarkWideOrPQ {
 
     static ConciseSet toConcise(int[] dat) {
         ConciseSet ans = new ConciseSet();
@@ -97,23 +97,6 @@ public class RunContainerRealDataBenchmarkWideOr {
     }
 
     
-    @Benchmark
-    public int Roaring(BenchmarkState benchmarkState) {
-        int answer = RoaringBitmap.or(limit(benchmarkState.count,benchmarkState.ac.iterator()))
-               .getCardinality();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("bug");
-        return answer;
-    }
-
-    @Benchmark
-    public int RoaringWithRun(BenchmarkState benchmarkState) {
-        int answer = RoaringBitmap.or(limit(benchmarkState.count,benchmarkState.rc.iterator()))
-               .getCardinality();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("bug");
-        return answer;
-    }
 
     @Benchmark
     public int Roaring_pq(BenchmarkState benchmarkState) {
@@ -133,29 +116,6 @@ public class RunContainerRealDataBenchmarkWideOr {
         return answer;
     }
     
-    @Benchmark
-    public int Concise_naive(BenchmarkState benchmarkState) {
-        ConciseSet bitmapor = benchmarkState.cc.get(0);
-        for (int j = 1; j < Math.min(benchmarkState.count, benchmarkState.cc.size()) ; ++j) {
-            bitmapor = bitmapor.union(benchmarkState.cc.get(j));
-        }
-        int answer = bitmapor.size();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("buggy horizontal or");
-        return answer;
-    }
-
-    @Benchmark
-    public int WAH_naive(BenchmarkState benchmarkState) {
-        ConciseSet bitmapor = benchmarkState.wah.get(0);
-        for (int j = 1; j < Math.min(benchmarkState.wah.size(),benchmarkState.count) ; ++j) {
-            bitmapor = bitmapor.union(benchmarkState.cc.get(j));
-        }
-        int answer = bitmapor.size();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("buggy horizontal or");
-        return answer;
-    }
     
     @Benchmark
     public int Concise_pq(BenchmarkState benchmarkState) {
@@ -176,7 +136,7 @@ public class RunContainerRealDataBenchmarkWideOr {
     }
 
     @Benchmark
-    public int EWAH(BenchmarkState benchmarkState) {
+    public int EWAH_pq(BenchmarkState benchmarkState) {
         EWAHCompressedBitmap bitmapor = com.googlecode.javaewah.FastAggregation.or(limit(benchmarkState.count,benchmarkState.ewah.iterator()));
         int answer = bitmapor.cardinality();
         if(answer != benchmarkState.horizontalor)
@@ -186,7 +146,7 @@ public class RunContainerRealDataBenchmarkWideOr {
     }
 
     @Benchmark
-    public int EWAH32(BenchmarkState benchmarkState) {
+    public int EWAH32_pq(BenchmarkState benchmarkState) {
         EWAHCompressedBitmap32 bitmapor = com.googlecode.javaewah32.FastAggregation32.or(limit(benchmarkState.count,benchmarkState.ewah32.iterator()));
         int answer = bitmapor.cardinality();
         if(answer != benchmarkState.horizontalor)

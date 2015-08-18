@@ -13,10 +13,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.PriorityQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.openjdk.jmh.annotations.Benchmark;
@@ -39,7 +37,7 @@ import com.googlecode.javaewah32.EWAHCompressedBitmap32;
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @SuppressWarnings("rawtypes")
-public class MappedRunContainerRealDataBenchmarkWideOr {
+public class MappedRunContainerRealDataBenchmarkWideOrNaive {
 
     static ConciseSet toConcise(int[] dat) {
         ConciseSet ans = new ConciseSet();
@@ -74,28 +72,6 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
         };
     }
     
-    
-    // Concise does not provide a pq approach, we should provide it
-    public static ImmutableConciseSet pq_or(final Iterator<ImmutableConciseSet> bitmaps) {
-        PriorityQueue<ImmutableConciseSet> pq = new PriorityQueue<ImmutableConciseSet>(128,
-                new Comparator<ImmutableConciseSet>() {
-                    @Override
-                    public int compare(ImmutableConciseSet a, ImmutableConciseSet b) {
-                        return a.getLastWordIndex() - b.getLastWordIndex();
-                    }
-                }
-        );
-        while(bitmaps.hasNext())
-            pq.add(bitmaps.next());
-        if(pq.isEmpty()) return new ImmutableConciseSet();
-        while (pq.size() > 1) {
-            ImmutableConciseSet x1 = pq.poll();
-            ImmutableConciseSet x2 = pq.poll();
-            pq.add(ImmutableConciseSet.union(x1,x2));
-        }
-        return pq.poll();
-    }
-    
     @Benchmark
     public int Roaring(BenchmarkState benchmarkState) {
         int answer = ImmutableRoaringBitmap.or(limit(benchmarkState.count,benchmarkState.mac.iterator()))
@@ -115,28 +91,10 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
         return answer;
     }
 
-    @Benchmark
-    public int Roaring_pq(BenchmarkState benchmarkState) {
-        int answer = BufferFastAggregation.priorityqueue_or(limit(benchmarkState.count,benchmarkState.mac.iterator()))
-               .getCardinality();
-        if(answer != benchmarkState.expectedvalue)
-            throw new RuntimeException("bug");
-        return answer;
-    }
-
-
-    @Benchmark
-    public int RoaringWithRun_pq(BenchmarkState benchmarkState) {
-        int answer = BufferFastAggregation.priorityqueue_or(limit(benchmarkState.count,benchmarkState.mrc.iterator()))
-               .getCardinality();
-        if(answer != benchmarkState.expectedvalue)
-            throw new RuntimeException("bug");
-        return answer;
-    }
     
     
     @Benchmark
-    public int Concise(BenchmarkState benchmarkState) {
+    public int Concise_whatever(BenchmarkState benchmarkState) {
         ImmutableConciseSet bitmapor = ImmutableConciseSet.union(limit(benchmarkState.count,benchmarkState.cc.iterator()));
         int answer = bitmapor.size();
         if(answer != benchmarkState.expectedvalue)
@@ -146,31 +104,42 @@ public class MappedRunContainerRealDataBenchmarkWideOr {
     
 
     @Benchmark
-    public int Concise_pq(BenchmarkState benchmarkState) {
-        ImmutableConciseSet bitmapor = pq_or(limit(benchmarkState.count,benchmarkState.cc.iterator()));
+    public int Concise_naive(BenchmarkState benchmarkState) {
+        ImmutableConciseSet bitmapor = benchmarkState.cc.get(0);
+        for (int j = 1; j < Math.min(benchmarkState.count, benchmarkState.cc.size()) ; ++j) {
+            bitmapor = ImmutableConciseSet.union(bitmapor,benchmarkState.cc.get(j));
+        }
         int answer = bitmapor.size();
         if(answer != benchmarkState.expectedvalue)
-            throw new RuntimeException("bug ");
+            throw new RuntimeException("buggy horizontal or");
         return answer;
     }
 
+    
+
     @Benchmark
-    public int EWAH(BenchmarkState benchmarkState) {
-        EWAHCompressedBitmap bitmapor = com.googlecode.javaewah.FastAggregation.or(limit(benchmarkState.count,benchmarkState.ewah.iterator()));
+    public int EWAH_naive(BenchmarkState benchmarkState) {
+        Iterator i = limit(benchmarkState.count,benchmarkState.ewah.iterator());
+        EWAHCompressedBitmap bitmapor = (EWAHCompressedBitmap) i.next();
+        while(i.hasNext())
+            bitmapor = bitmapor.or((EWAHCompressedBitmap) i.next());
+        int answer = bitmapor.cardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+    
+    @Benchmark
+    public int EWAH32_naive(BenchmarkState benchmarkState) {
+        Iterator i = limit(benchmarkState.count,benchmarkState.ewah.iterator());
+        EWAHCompressedBitmap32 bitmapor = (EWAHCompressedBitmap32) i.next();
+        while(i.hasNext())
+            bitmapor = bitmapor.or((EWAHCompressedBitmap32) i.next());
         int answer = bitmapor.cardinality();
         if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug");
         return answer;
 
-    }
-
-    @Benchmark
-    public int EWAH32(BenchmarkState benchmarkState) {
-        EWAHCompressedBitmap32 bitmapor = com.googlecode.javaewah32.FastAggregation32.or(limit(benchmarkState.count,benchmarkState.ewah32.iterator()));
-        int answer = bitmapor.cardinality();
-        if(answer != benchmarkState.expectedvalue)
-            throw new RuntimeException("bug");
-        return answer;
     }
 
 
