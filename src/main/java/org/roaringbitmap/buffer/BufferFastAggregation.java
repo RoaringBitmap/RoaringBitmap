@@ -5,8 +5,6 @@
 
 package org.roaringbitmap.buffer;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -30,7 +28,7 @@ public final class BufferFastAggregation {
      */
     public static MutableRoaringBitmap naive_and(MutableRoaringBitmap... bitmaps) {
        if(bitmaps.length == 0) return new MutableRoaringBitmap();
-       MutableRoaringBitmap answer = bitmaps[0];
+       MutableRoaringBitmap answer = bitmaps[0].clone();
        for(int k = 1; k < bitmaps.length; ++k)
           answer.and(bitmaps[k]);
        return answer;

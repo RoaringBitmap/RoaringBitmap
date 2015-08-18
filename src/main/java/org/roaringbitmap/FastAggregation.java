@@ -5,8 +5,6 @@
 
 package org.roaringbitmap;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -38,7 +36,7 @@ public final class FastAggregation {
      */
     public static RoaringBitmap naive_and(RoaringBitmap... bitmaps) {
        if(bitmaps.length == 0) return new RoaringBitmap();
-       RoaringBitmap answer = bitmaps[0];
+       RoaringBitmap answer = bitmaps[0].clone();
        for(int k = 1; k < bitmaps.length; ++k)
           answer.and(bitmaps[k]);
        return answer;
@@ -54,9 +52,10 @@ public final class FastAggregation {
      */
     public static RoaringBitmap naive_and(Iterator<RoaringBitmap> bitmaps) {
        if(!bitmaps.hasNext()) return new RoaringBitmap();
-       RoaringBitmap answer = bitmaps.next();
-       while(bitmaps.hasNext())
+       RoaringBitmap answer = bitmaps.next().clone();
+       while(bitmaps.hasNext()) {
            answer.and(bitmaps.next());
+       }
        return answer;
     }
 
