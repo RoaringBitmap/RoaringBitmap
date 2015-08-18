@@ -28,7 +28,7 @@ import com.googlecode.javaewah32.EWAHCompressedBitmap32;
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @SuppressWarnings("rawtypes")
-public class RunContainerRealDataBenchmarkWideOrNaive {
+public class RunContainerRealDataBenchmarkWideAnd {
 
     static ConciseSet toConcise(int[] dat) {
         ConciseSet ans = new ConciseSet();
@@ -73,34 +73,78 @@ public class RunContainerRealDataBenchmarkWideOrNaive {
     }
     
 
+    // Concise does not provide a pq approach, we should provide it
+    public static ConciseSet pq_or(final Iterator<ConciseSet> bitmaps) {
+        PriorityQueue<ConciseSet> pq = new PriorityQueue<ConciseSet>(128,
+                new Comparator<ConciseSet>() {
+                    @Override
+                    public int compare(ConciseSet a, ConciseSet b) {
+                        return (int) (a.size() * a
+                                .collectionCompressionRatio())  - (int) (b.size() * b
+                                        .collectionCompressionRatio()) ;
+                    }
+                }
+        );
+        while(bitmaps.hasNext())
+            pq.add(bitmaps.next());
+        if(pq.isEmpty()) return new ConciseSet();
+        while (pq.size() > 1) {
+            ConciseSet x1 = pq.poll();
+            ConciseSet x2 = pq.poll();
+            pq.add(x1.union(x2));
+        }
+        return pq.poll();
+    }
+
     
     @Benchmark
-    public int Roaring(BenchmarkState benchmarkState) {
-        int answer = RoaringBitmap.or(limit(benchmarkState.count,benchmarkState.ac.iterator()))
+    public int Roaring_naive(BenchmarkState benchmarkState) {
+        
+        int answer = FastAggregation.naive_and(limit(benchmarkState.count,benchmarkState.ac.iterator()))
                .getCardinality();
-        if(answer != benchmarkState.horizontalor)
+        if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug");
         return answer;
     }
 
     @Benchmark
-    public int RoaringWithRun(BenchmarkState benchmarkState) {
-        int answer = RoaringBitmap.or(limit(benchmarkState.count,benchmarkState.rc.iterator()))
+    public int RoaringWithRun_naive(BenchmarkState benchmarkState) {
+        int answer = FastAggregation.naive_and(limit(benchmarkState.count,benchmarkState.rc.iterator()))
                .getCardinality();
-        if(answer != benchmarkState.horizontalor)
+        if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug");
         return answer;
     }
 
+    
+    @Benchmark
+    public int Roaring_withsort(BenchmarkState benchmarkState) {
+        
+        int answer = FastAggregation.and(limit(benchmarkState.count,benchmarkState.ac.iterator()))
+               .getCardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+
+    @Benchmark
+    public int RoaringWithRun_withsort(BenchmarkState benchmarkState) {
+        int answer = FastAggregation.and(limit(benchmarkState.count,benchmarkState.rc.iterator()))
+               .getCardinality();
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
+        return answer;
+    }
+    
     @Benchmark
     public int Concise_naive(BenchmarkState benchmarkState) {
         ConciseSet bitmapor = benchmarkState.cc.get(0);
         for (int j = 1; j < Math.min(benchmarkState.count, benchmarkState.cc.size()) ; ++j) {
-            bitmapor = bitmapor.union(benchmarkState.cc.get(j));
+            bitmapor = bitmapor.intersection(benchmarkState.cc.get(j));
         }
         int answer = bitmapor.size();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("buggy horizontal or");
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
         return answer;
     }
 
@@ -108,11 +152,11 @@ public class RunContainerRealDataBenchmarkWideOrNaive {
     public int WAH_naive(BenchmarkState benchmarkState) {
         ConciseSet bitmapor = benchmarkState.wah.get(0);
         for (int j = 1; j < Math.min(benchmarkState.wah.size(),benchmarkState.count) ; ++j) {
-            bitmapor = bitmapor.union(benchmarkState.cc.get(j));
+            bitmapor = bitmapor.intersection(benchmarkState.cc.get(j));
         }
         int answer = bitmapor.size();
-        if(answer != benchmarkState.horizontalor)
-            throw new RuntimeException("buggy horizontal or");
+        if(answer != benchmarkState.expectedvalue)
+            throw new RuntimeException("bug");
         return answer;
     }
     
@@ -122,9 +166,9 @@ public class RunContainerRealDataBenchmarkWideOrNaive {
         Iterator i = limit(benchmarkState.count,benchmarkState.ewah.iterator());
         EWAHCompressedBitmap bitmapor = (EWAHCompressedBitmap) i.next();
         while(i.hasNext())
-            bitmapor = bitmapor.or((EWAHCompressedBitmap) i.next());
+            bitmapor = bitmapor.and((EWAHCompressedBitmap) i.next());
         int answer = bitmapor.cardinality();
-        if(answer != benchmarkState.horizontalor)
+        if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug");
         return answer;
     }
@@ -134,9 +178,9 @@ public class RunContainerRealDataBenchmarkWideOrNaive {
         Iterator i = limit(benchmarkState.count,benchmarkState.ewah32.iterator());
         EWAHCompressedBitmap32 bitmapor = (EWAHCompressedBitmap32) i.next();
         while(i.hasNext())
-            bitmapor = bitmapor.or((EWAHCompressedBitmap32) i.next());
+            bitmapor = bitmapor.and((EWAHCompressedBitmap32) i.next());
         int answer = bitmapor.cardinality();
-        if(answer != benchmarkState.horizontalor)
+        if(answer != benchmarkState.expectedvalue)
             throw new RuntimeException("bug");
         return answer;
 
@@ -156,7 +200,7 @@ public class RunContainerRealDataBenchmarkWideOrNaive {
         })
         String dataset;
 
-        int horizontalor = 0;
+        int expectedvalue = 0;
         
         protected int count = 8;// arbitrary number but warning: when increasing this number 
         // check that reported timings increase monotonically, I found that as of ~12, they sharply decreased
@@ -288,7 +332,7 @@ public class RunContainerRealDataBenchmarkWideOrNaive {
                     + String.format("%1$10s",df.format(stupidbitmapsize * 8.0 / totalcount)));
             System.out.println("==============");
             System.out.println();
-            horizontalor = FastAggregation.naive_or(limit(count,rc.iterator()))
+            expectedvalue = FastAggregation.naive_or(limit(count,rc.iterator()))
                     .getCardinality();
         }
 
