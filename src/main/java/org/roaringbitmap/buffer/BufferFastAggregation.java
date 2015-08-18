@@ -265,10 +265,10 @@ public final class BufferFastAggregation {
         return answer;
     }
     /**
-     * Sort the bitmap prior to using the and aggregate.
+     * Compute the AND aggregate.
      * 
-     * This function runs in linearithmic (O(n log n))  time with respect to the number of bitmaps.
-     * 
+     * In practice, calls {#link naive_and}
+     *     
      * @param bitmaps
      *            input bitmaps
      * @return aggregated bitmap
@@ -279,62 +279,29 @@ public final class BufferFastAggregation {
 
     
     /**
-     * Sort the bitmap prior to using the and aggregate.
+     * Compute the AND aggregate.
      * 
-     * This function runs in linearithmic (O(n log n))  time with respect to the number of bitmaps.
+     * In practice, calls {#link naive_and}
      * 
      * @param bitmaps
      *            input bitmaps
      * @return aggregated bitmap
      */
     public static MutableRoaringBitmap and(ImmutableRoaringBitmap... bitmaps) {
-        if (bitmaps.length == 0)
-            return new MutableRoaringBitmap();
-        else if (bitmaps.length == 1)
-            return bitmaps[0].toMutableRoaringBitmap();
-        final ImmutableRoaringBitmap[] array = Arrays.copyOf(bitmaps,
-                bitmaps.length);
-        Arrays.sort(array, new Comparator<ImmutableRoaringBitmap>() {
-            @Override
-            public int compare(ImmutableRoaringBitmap a,
-                    ImmutableRoaringBitmap b) {
-                return a.getSizeInBytes() - b.getSizeInBytes();
-            }
-        });
-        MutableRoaringBitmap answer = ImmutableRoaringBitmap.and(array[0],
-                array[1]);
-        for (int k = 2; k < array.length; ++k)
-            answer.and(array[k]);
-        return answer;
+        return naive_and(bitmaps);
     }
     
     
     /**
-     * Sort the bitmap prior to using the and aggregate.
+     * Compute the AND aggregate.
      * 
-     * This function runs in linearithmic (O(n log n))  time with respect to the number of bitmaps.
+     * In practice, calls {#link naive_and}
      *
      * @param bitmaps input bitmaps  (ImmutableRoaringBitmap or MutableRoaringBitmap)
      * @return aggregated bitmap
      */
     public static MutableRoaringBitmap and(@SuppressWarnings("rawtypes") Iterator bitmaps) {
-        if (!bitmaps.hasNext())
-            return new MutableRoaringBitmap();
-        ArrayList<ImmutableRoaringBitmap> array = new ArrayList<ImmutableRoaringBitmap>();
-        while(bitmaps.hasNext())
-            array.add((ImmutableRoaringBitmap) bitmaps.next());
-        if(array.size() == 1) return array.get(0).toMutableRoaringBitmap();
-        Collections.sort(array, new Comparator<ImmutableRoaringBitmap>() {
-            @Override
-            public int compare(ImmutableRoaringBitmap a,
-                    ImmutableRoaringBitmap b) {
-                return a.getSizeInBytes() - b.getSizeInBytes();
-            }
-        });
-        MutableRoaringBitmap answer = ImmutableRoaringBitmap.and(array.get(0), array.get(1));
-        for (int k = 2; k < array.size(); ++k)
-            answer.and(array.get(k));
-        return answer;
+        return naive_and(bitmaps);
     }
     
     

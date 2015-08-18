@@ -172,56 +172,25 @@ public final class FastAggregation {
 
     
     /**
-     * Sort the bitmap prior to using the and aggregate.
+     * Compute the AND aggregate.
      * 
-     * This function runs in linearithmic (O(n log n))  time with respect to the number of bitmaps.
-     *
+     * In practice, calls {#link naive_and}
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
      */
     public static RoaringBitmap and(RoaringBitmap... bitmaps) {
-        if (bitmaps.length == 0)
-            return new RoaringBitmap();
-        else if(bitmaps.length == 1)
-        	return bitmaps[0].clone();
-        RoaringBitmap[] array = Arrays.copyOf(bitmaps, bitmaps.length);
-        Arrays.sort(array, new Comparator<RoaringBitmap>() {
-            @Override
-            public int compare(RoaringBitmap a, RoaringBitmap b) {
-                return a.getSizeInBytes() - b.getSizeInBytes();
-            }
-        });
-        RoaringBitmap answer = RoaringBitmap.and(array[0], array[1]);
-        for (int k = 2; k < array.length; ++k)
-            answer.and(array[k]);
-        return answer;
+        return naive_and(bitmaps);
     }
     
     /**
-     * Sort the bitmap prior to using the and aggregate.
-     *      
-     * This function runs in linearithmic (O(n log n))  time with respect to the number of bitmaps.
-     *
+     * Compute the AND aggregate.
+     * 
+     * In practice, calls {#link naive_and}
      * @param bitmaps input bitmaps
      * @return aggregated bitmap
      */
     public static RoaringBitmap and(Iterator<RoaringBitmap> bitmaps) {
-        if (!bitmaps.hasNext())
-            return new RoaringBitmap();
-        ArrayList<RoaringBitmap> array = new ArrayList<RoaringBitmap>();
-        while(bitmaps.hasNext())
-            array.add(bitmaps.next());
-        if(array.size() == 1) return array.get(0);
-        Collections.sort(array, new Comparator<RoaringBitmap>() {
-            @Override
-            public int compare(RoaringBitmap a, RoaringBitmap b) {
-                return a.getSizeInBytes() - b.getSizeInBytes();
-            }
-        });
-        RoaringBitmap answer = RoaringBitmap.and(array.get(0), array.get(1));
-        for (int k = 2; k < array.size(); ++k)
-            answer.and(array.get(k));
-        return answer;
+        return naive_and(bitmaps);
     }
     
     /**
