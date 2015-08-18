@@ -268,6 +268,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         return answer;
     }
 
+
+    
     /**
      * Bitwise XOR (symmetric difference) operation. The provided bitmaps are
      * *not* modified. This operation is thread-safe as long as the provided

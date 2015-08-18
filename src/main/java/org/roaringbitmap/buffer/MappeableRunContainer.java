@@ -7,7 +7,6 @@ package org.roaringbitmap.buffer;
 
 import org.roaringbitmap.PeekableShortIterator;
 import org.roaringbitmap.ShortIterator;
-import org.roaringbitmap.Util;
 
 import java.io.*;
 import java.nio.ShortBuffer;

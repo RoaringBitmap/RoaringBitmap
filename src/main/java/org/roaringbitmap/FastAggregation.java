@@ -260,9 +260,11 @@ public final class FastAggregation {
         while (pq.size() > 1) {
             RoaringBitmap x1 = pq.poll();
             RoaringBitmap x2 = pq.poll();
-            pq.add(RoaringBitmap.or(x1, x2));
+            pq.add(RoaringBitmap.lazyor(x1, x2));
         }
-        return pq.poll();
+        RoaringBitmap answer = pq.poll();
+        answer.repairAfterLazy();
+        return answer;
     }
     
     /**
@@ -290,9 +292,11 @@ public final class FastAggregation {
         while (pq.size() > 1) {
             RoaringBitmap x1 = pq.poll();
             RoaringBitmap x2 = pq.poll();
-            pq.add(RoaringBitmap.or(x1, x2));
+            pq.add(RoaringBitmap.lazyor(x1, x2));
         }
-        return pq.poll();
+        RoaringBitmap answer = pq.poll();
+        answer.repairAfterLazy();
+        return answer;
     }
     
     /**

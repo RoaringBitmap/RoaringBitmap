@@ -247,6 +247,59 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         return answer;
     }
 
+    protected static RoaringBitmap lazyor(final RoaringBitmap x1,
+            final RoaringBitmap x2) {
+        final RoaringBitmap answer = new RoaringBitmap();
+        int pos1 = 0, pos2 = 0;
+        final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer
+                .size();
+        main: if (pos1 < length1 && pos2 < length2) {
+            short s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+            short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+
+            while (true) {
+                if (s1 == s2) {
+                    answer.highLowContainer.append(
+                            s1,
+                            x1.highLowContainer.getContainerAtIndex(pos1).lazyOR(
+                                    x2.highLowContainer
+                                            .getContainerAtIndex(pos2)));
+                    pos1++;
+                    pos2++;
+                    if ((pos1 == length1) || (pos2 == length2)) {
+                        break main;
+                    }
+                    s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+                } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
+                    answer.highLowContainer.appendCopy(x1.highLowContainer,
+                            pos1);
+                    pos1++;
+                    if (pos1 == length1) {
+                        break main;
+                    }
+                    s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+                } else { // s1 > s2
+                    answer.highLowContainer.appendCopy(x2.highLowContainer,
+                            pos2);
+                    pos2++;
+                    if (pos2 == length2) {
+                        break main;
+                    }
+                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+                }
+            }
+        }
+        if (pos1 == length1) {
+            answer.highLowContainer.appendCopy(x2.highLowContainer, pos2,
+                    length2);
+        } else if (pos2 == length2) {
+            answer.highLowContainer.appendCopy(x1.highLowContainer, pos1,
+                    length1);
+        }
+        return answer;
+    }
+
     /**
      * Rank returns the number of integers that are smaller or equal to x (Rank(infinity) would be GetCardinality()).
      * @param x upper limit

@@ -524,9 +524,11 @@ public final class BufferFastAggregation {
         while (pq.size() > 1) {
             final ImmutableRoaringBitmap x1 = pq.poll();
             final ImmutableRoaringBitmap x2 = pq.poll();
-            pq.add(ImmutableRoaringBitmap.or(x1, x2));
+            pq.add(ImmutableRoaringBitmap.lazyor(x1, x2));
         }
-        return (MutableRoaringBitmap) pq.poll();
+        MutableRoaringBitmap answer = (MutableRoaringBitmap) pq.poll();
+        answer.repairAfterLazy();
+        return answer;
     }
     
 
@@ -556,9 +558,11 @@ public final class BufferFastAggregation {
         while (pq.size() > 1) {
             final ImmutableRoaringBitmap x1 = pq.poll();
             final ImmutableRoaringBitmap x2 = pq.poll();
-            pq.add(ImmutableRoaringBitmap.or(x1, x2));
+            pq.add(ImmutableRoaringBitmap.lazyor(x1, x2));
         }
-        return (MutableRoaringBitmap) pq.poll();
+        MutableRoaringBitmap answer = (MutableRoaringBitmap) pq.poll();
+        answer.repairAfterLazy();
+        return answer;
     }
 
 

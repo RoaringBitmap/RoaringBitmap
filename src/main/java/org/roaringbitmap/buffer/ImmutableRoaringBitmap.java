@@ -260,6 +260,53 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
         return answer;
     }
 
+    protected static MutableRoaringBitmap lazyor(final ImmutableRoaringBitmap x1,
+            final ImmutableRoaringBitmap x2) {
+        final MutableRoaringBitmap answer = new MutableRoaringBitmap();
+        MappeableContainerPointer i1 = x1.highLowContainer
+                .getContainerPointer();
+        MappeableContainerPointer i2 = x2.highLowContainer
+                .getContainerPointer();
+        main: if (i1.hasContainer() && i2.hasContainer()) {
+            while (true) {
+                if (i1.key() == i2.key()) {
+                    answer.getMappeableRoaringArray().append(i1.key(),
+                            i1.getContainer().lazyOR(i2.getContainer()));
+                    i1.advance();
+                    i2.advance();
+                    if (!i1.hasContainer() || !i2.hasContainer())
+                        break main;
+                } else if (Util.compareUnsigned(i1.key(), i2.key()) < 0) { // i1.key() < i2.key()
+                    answer.getMappeableRoaringArray().appendCopy(i1.key(),
+                            i1.getContainer());
+                    i1.advance();
+                    if (!i1.hasContainer())
+                        break main;
+                } else { // i1.key() > i2.key()
+                    answer.getMappeableRoaringArray().appendCopy(i2.key(),
+                            i2.getContainer());
+                    i2.advance();
+                    if (!i2.hasContainer())
+                        break main;
+                }
+            }
+        }
+        if (!i1.hasContainer()) {
+            while (i2.hasContainer()) {
+                answer.getMappeableRoaringArray().appendCopy(i2.key(),
+                        i2.getContainer());
+                i2.advance();
+            }
+        } else if (!i2.hasContainer()) {
+            while (i1.hasContainer()) {
+                answer.getMappeableRoaringArray().appendCopy(i1.key(),
+                        i1.getContainer());
+                i1.advance();
+            }
+        }
+        return answer;
+    }
+
     /**
      * Bitwise XOR (symmetric difference) operation. The provided bitmaps are
      * *not* modified. This operation is thread-safe as long as the provided
