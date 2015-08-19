@@ -163,7 +163,23 @@ public final class RunContainer extends Container implements Cloneable {
         answer.cardinality = card;
         return answer;
     }
-  
+
+    // convert to bitmap  *if needed* (useful if you know it can't be an array)
+    private Container toBitmapIfNeeded() {
+        int sizeAsRunContainer = RunContainer.serializedSizeInBytes(this.nbrruns);
+        int sizeAsBitmapContainer = BitmapContainer.serializedSizeInBytes(0);
+        if(sizeAsBitmapContainer > sizeAsRunContainer) return this;
+        int card = this.getCardinality();
+        BitmapContainer answer = new BitmapContainer();
+        for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
+            int start = Util.toIntUnsigned(this.getValue(rlepos));
+            int end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+            Util.setBitmapRange(answer.bitmap, start, end); 
+        }
+        answer.cardinality = card;
+        return answer;
+    }
+
 
     /**
      * Convert the container to either a Bitmap or an Array Container, depending
@@ -1625,7 +1641,7 @@ public final class RunContainer extends Container implements Cloneable {
             rlepos++;
         }
 
-        return answer;
+        return answer.toBitmapIfNeeded();
     }
 
 

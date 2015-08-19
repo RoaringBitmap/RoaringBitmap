@@ -5,6 +5,7 @@
 package org.roaringbitmap.buffer;
 
 
+import org.roaringbitmap.Container;
 import org.roaringbitmap.PeekableShortIterator;
 import org.roaringbitmap.ShortIterator;
 
@@ -269,6 +270,23 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         return answer;
     }
 
+
+    // convert to bitmap  *if needed* (useful if you know it can't be an array)
+    private MappeableContainer toBitmapIfNeeded() {
+        int sizeAsRunContainer = MappeableRunContainer.serializedSizeInBytes(this.nbrruns);
+        int sizeAsBitmapContainer = MappeableBitmapContainer.serializedSizeInBytes(0);
+        if(sizeAsBitmapContainer > sizeAsRunContainer)
+            return this;
+        int card = this.getCardinality();
+        MappeableBitmapContainer answer = new MappeableBitmapContainer();
+        for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
+            int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+            int end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+            BufferUtil.setBitmapRange(answer.bitmap, start, end); 
+        }
+        answer.cardinality = card;
+        return answer;        
+    }
     /** 
      *  Convert to Array or Bitmap container if the serialized form would be shorter
      */
@@ -1694,7 +1712,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
             answer.smartAppend(vl,getValue(rlepos), getLength(rlepos));
             rlepos++;
         }
-        return answer;
+        return answer.toBitmapIfNeeded();
     }
 
     @Override
