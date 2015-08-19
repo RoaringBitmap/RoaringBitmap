@@ -42,3 +42,11 @@ it should be possible to double the performance or more. You can run these bench
 or, more simply, as 
 
      $ ./run.sh needwork
+
+
+A specific case of interest is slowORaggregate. We can analyze the result with JMC.
+
+     $ java -jar target/benchmarks.jar needwork.SlowORaggregate -jvmArgs="-XX:+UnlockCommercialFeatures -XX:+FlightRecorder -XX:StartFlightRecording=duration=60s,filename=SlowORaggregate.jfr"
+     $ jmc SlowORaggregate.jfr
+
+It indicates that 85% of the running time is spent in RunContainer.or(RunContainer).
