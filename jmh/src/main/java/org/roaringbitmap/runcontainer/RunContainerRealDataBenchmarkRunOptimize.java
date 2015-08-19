@@ -39,22 +39,25 @@ public class RunContainerRealDataBenchmarkRunOptimize {
     @Benchmark
     public int serializeToBAOS(BenchmarkState benchmarkState) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(bos);
         for (int i = 0; i < benchmarkState.ac.size(); i++) {
             RoaringBitmap bitmap = benchmarkState.ac.get(i).clone();
-            bitmap.serialize(new DataOutputStream(bos));
-            bitmap.runOptimize();
+            bitmap.serialize(dos);
         }
+        dos.flush();
         return bos.size();
     }
 
     @Benchmark
     public int runOptimizeAndserializeToBAOS(BenchmarkState benchmarkState) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(bos);
         for (int i = 0; i < benchmarkState.ac.size(); i++) {
             RoaringBitmap bitmap = benchmarkState.ac.get(i).clone();
             bitmap.runOptimize();
-            bitmap.serialize(new DataOutputStream(bos));
+            bitmap.serialize(dos);
         }
+        dos.flush();
         return bos.size();
     }
 

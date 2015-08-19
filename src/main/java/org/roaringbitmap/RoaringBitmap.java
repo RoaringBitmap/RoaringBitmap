@@ -1028,6 +1028,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     // don't forget to call repairAfterLazy() afterward
     protected void lazyor(final RoaringBitmap x2) {
         int pos1 = 0, pos2 = 0;
+//        System.out.println("lazyor");
         int length1 = highLowContainer.size();
         final int length2 = x2.highLowContainer.size();
         main:
@@ -1038,8 +1039,11 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             while (true) {
                 if (s1 == s2) {
                     this.highLowContainer.setContainerAtIndex(pos1, highLowContainer.getContainerAtIndex(
-                                    pos1).lazyIOR(x2.highLowContainer.getContainerAtIndex(pos2))
-                    );
+                            pos1).clone());//lazyIOR(x2.highLowContainer.getContainerAtIndex(pos2)
+
+//                    this.highLowContainer.setContainerAtIndex(pos1, highLowContainer.getContainerAtIndex(
+  //                                  pos1).lazyIOR(x2.highLowContainer.getContainerAtIndex(pos2))
+                    //);
                     pos1++;
                     pos2++;
                     if ((pos1 == length1) || (pos2 == length2)) {

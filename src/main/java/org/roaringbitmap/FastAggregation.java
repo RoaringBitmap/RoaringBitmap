@@ -86,9 +86,15 @@ public final class FastAggregation {
      */
     public static RoaringBitmap naive_or(Iterator<RoaringBitmap> bitmaps) {
        RoaringBitmap answer = new RoaringBitmap();
-       while(bitmaps.hasNext())
+       int counter = 0;
+       while(bitmaps.hasNext()) {
+           long bef = System.nanoTime();
            answer.lazyor(bitmaps.next());
-       answer.repairAfterLazy();
+           long aft = System.nanoTime();
+          // if(aft-bef>1000000)
+           //System.out.println(" at "+(counter++)+" time is "+(aft-bef));
+       }
+//       answer.repairAfterLazy();
        return answer;
     }
     
