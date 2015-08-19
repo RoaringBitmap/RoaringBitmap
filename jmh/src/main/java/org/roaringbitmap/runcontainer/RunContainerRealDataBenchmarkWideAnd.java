@@ -335,7 +335,7 @@ public class RunContainerRealDataBenchmarkWideAnd {
                     + String.format("%1$10s",df.format(stupidbitmapsize * 8.0 / totalcount)));
             System.out.println("==============");
             System.out.println();
-            expectedvalue = FastAggregation.naive_or(limit(count,rc.iterator()))
+            expectedvalue = FastAggregation.naive_and(limit(count,rc.iterator()))
                     .getCardinality();
         }
 
