@@ -1,3 +1,5 @@
+## Usage
+
 Try:
 
      $ ./run.sh RunContainerRealDataBenchmark
@@ -27,3 +29,16 @@ See samplescript.sh for a more elaborate example.
 You can then parse files with a script:
 
      $ ./grabresults.sh horizontallog.txt
+
+
+## Need work
+
+
+There are some cases where we get results that we believe are underwhelming, meaning that
+it should be possible to double the performance or more. You can run these benchmarks as:
+
+     $ ./run.sh org.roaringbitmap.needwork
+
+or, more simply, as 
+
+     $ ./run.sh needwork
