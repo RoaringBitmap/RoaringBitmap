@@ -37,7 +37,7 @@ public class RunContainerRealDataBenchmarkRunOptimize {
     }
 
     @Benchmark
-    public int serializeToBAOS(BenchmarkState benchmarkState) throws IOException {
+    public int serializeToBAOSFromClone(BenchmarkState benchmarkState) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(bos);
         for (int i = 0; i < benchmarkState.ac.size(); i++) {
@@ -49,7 +49,42 @@ public class RunContainerRealDataBenchmarkRunOptimize {
     }
 
     @Benchmark
-    public int runOptimizeAndserializeToBAOS(BenchmarkState benchmarkState) throws IOException {
+    public int serializeToBAOSNoClone(BenchmarkState benchmarkState) throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(bos);
+        for (int i = 0; i < benchmarkState.ac.size(); i++) {
+            RoaringBitmap bitmap = benchmarkState.ac.get(i);
+            bitmap.serialize(dos);
+        }
+        dos.flush();
+        return bos.size();
+    }
+
+    @Benchmark
+    public int serializeToBAOSFromClonePreOpti(BenchmarkState benchmarkState) throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(bos);
+        for (int i = 0; i < benchmarkState.rc.size(); i++) {
+            RoaringBitmap bitmap = benchmarkState.rc.get(i).clone();
+            bitmap.serialize(dos);
+        }
+        dos.flush();
+        return bos.size();
+    }
+
+    @Benchmark
+    public int serializeToBAOSNoClonePreOpti(BenchmarkState benchmarkState) throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(bos);
+        for (int i = 0; i < benchmarkState.rc.size(); i++) {
+            RoaringBitmap bitmap = benchmarkState.rc.get(i);
+            bitmap.serialize(dos);
+        }
+        dos.flush();
+        return bos.size();
+    }
+    @Benchmark
+    public int runOptimizeAndserializeToBAOSFromClone(BenchmarkState benchmarkState) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(bos);
         for (int i = 0; i < benchmarkState.ac.size(); i++) {
@@ -64,16 +99,17 @@ public class RunContainerRealDataBenchmarkRunOptimize {
     @State(Scope.Benchmark)
     public static class BenchmarkState {
         @Param ({// putting the data sets in alpha. order
-                "census-income", "census1881",
+            "census-income", "census1881",
             "dimension_008", "dimension_003", 
             "dimension_033", "uscensus2000", 
             "weather_sept_85", "wikileaks-noquotes"
-                ,"census-income_srt","census1881_srt",
-                "weather_sept_85_srt","wikileaks-noquotes_srt"
+            ,"census-income_srt","census1881_srt",
+            "weather_sept_85_srt","wikileaks-noquotes_srt"
         })
         String dataset;
 
         ArrayList<RoaringBitmap> ac = new ArrayList<RoaringBitmap>();
+        ArrayList<RoaringBitmap> rc = new ArrayList<RoaringBitmap>();
 
         public BenchmarkState() {
         }
@@ -87,6 +123,9 @@ public class RunContainerRealDataBenchmarkRunOptimize {
             for (int[] data : dataRetriever.fetchBitPositions()) {
                 RoaringBitmap basic = RoaringBitmap.bitmapOf(data);
                 ac.add(basic);
+                RoaringBitmap opti = basic.clone();
+                opti.runOptimize();
+                rc.add(opti);
             }
         }
 

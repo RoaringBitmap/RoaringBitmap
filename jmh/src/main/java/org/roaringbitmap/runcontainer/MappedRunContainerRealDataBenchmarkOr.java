@@ -65,6 +65,21 @@ public class MappedRunContainerRealDataBenchmarkOr {
         return total;
     }
 
+    @Benchmark
+    public int pairwiseOr_RoaringWithRun_NoCardinality(BenchmarkState benchmarkState) {
+        int total = 0;
+        for(int k = 0; k + 1 < benchmarkState.mrc.size(); ++k)
+            total += ImmutableRoaringBitmap.or(benchmarkState.mrc.get(k),benchmarkState.mrc.get(k+1)).serializedSizeInBytes();
+        return total;
+    }
+
+    @Benchmark
+    public int pairwiseOr_Roaring_NoCardinality(BenchmarkState benchmarkState) {
+        int total = 0;
+        for(int k = 0; k + 1 < benchmarkState.mac.size(); ++k)
+            total += ImmutableRoaringBitmap.or(benchmarkState.mac.get(k),benchmarkState.mac.get(k+1)).serializedSizeInBytes();
+        return total;
+    }
 
      @Benchmark
      public int pairwiseOr_Concise(BenchmarkState benchmarkState) {
@@ -76,6 +91,15 @@ public class MappedRunContainerRealDataBenchmarkOr {
          return total;
      }
 
+     @Benchmark
+     public int pairwiseOr_Concise_NoCardinality(BenchmarkState benchmarkState) {
+         int total = 0;
+         for(int k = 0; k + 1 < benchmarkState.cc.size(); ++k)
+             total += ImmutableConciseSet.union(benchmarkState.cc.get(k),benchmarkState.cc.get(k+1)).getLastWordIndex();
+         return total;
+     }
+
+     
      @Benchmark
      public int pairwiseOr_EWAH(BenchmarkState benchmarkState) {
          int total = 0;
@@ -96,6 +120,24 @@ public class MappedRunContainerRealDataBenchmarkOr {
          return total;
      }
 
+
+     
+     @Benchmark
+     public int pairwiseOr_EWAH_NoCardinality(BenchmarkState benchmarkState) {
+         int total = 0;
+         for(int k = 0; k + 1 < benchmarkState.ewah.size(); ++k)
+             total += benchmarkState.ewah.get(k).or(benchmarkState.ewah.get(k+1)).serializedSizeInBytes();
+         return total;
+     }
+
+     @Benchmark
+     public int pairwiseOr_EWAH32_NoCardinality(BenchmarkState benchmarkState) {
+         int total = 0;
+         for(int k = 0; k + 1 < benchmarkState.ewah32.size(); ++k)
+             total += benchmarkState.ewah32.get(k).or(benchmarkState.ewah32.get(k+1)).serializedSizeInBytes();
+         return total;
+     }
+     
     @State(Scope.Benchmark)
     public static class BenchmarkState {
         @Param ({// putting the data sets in alpha. order

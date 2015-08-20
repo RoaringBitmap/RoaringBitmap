@@ -38,7 +38,7 @@ public class MappedRunContainerRealDataBenchmarkRunOptimize {
     }
 
     @Benchmark
-    public int mutable_serializeToBAOS(BenchmarkState benchmarkState) throws IOException {
+    public int mutable_serializeToBAOSFromClone(BenchmarkState benchmarkState) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(bos);
         for (int i = 0; i < benchmarkState.mac.size(); i++) {
@@ -50,7 +50,32 @@ public class MappedRunContainerRealDataBenchmarkRunOptimize {
     }
 
     @Benchmark
-    public int mutable_runOptimizeAndserializeToBAOS(BenchmarkState benchmarkState) throws IOException {
+    public int mutable_serializeToBAOSNoClone(BenchmarkState benchmarkState) throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(bos);
+        for (int i = 0; i < benchmarkState.mac.size(); i++) {
+            MutableRoaringBitmap bitmap = benchmarkState.mac.get(i);
+            bitmap.serialize(dos);
+        }
+        dos.flush();
+        return bos.size();
+    }
+
+    @Benchmark
+    public int mutable_serializeToBAOSNoClonePreOpti(BenchmarkState benchmarkState) throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(bos);
+        for (int i = 0; i < benchmarkState.mrc.size(); i++) {
+            MutableRoaringBitmap bitmap = benchmarkState.mrc.get(i);
+            bitmap.serialize(dos);
+        }
+        dos.flush();
+        return bos.size();
+    }
+
+    
+    @Benchmark
+    public int mutable_runOptimizeAndserializeToBAOSFromClone(BenchmarkState benchmarkState) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(bos);
         for (int i = 0; i < benchmarkState.mac.size(); i++) {
@@ -75,6 +100,7 @@ public class MappedRunContainerRealDataBenchmarkRunOptimize {
         String dataset;
 
         List<MutableRoaringBitmap> mac = new ArrayList<MutableRoaringBitmap>();
+        List<MutableRoaringBitmap> mrc = new ArrayList<MutableRoaringBitmap>();
 
         public BenchmarkState() {
         }
@@ -88,6 +114,9 @@ public class MappedRunContainerRealDataBenchmarkRunOptimize {
             for (int[] data : dataRetriever.fetchBitPositions()) {
                 MutableRoaringBitmap mbasic = MutableRoaringBitmap.bitmapOf(data);
                 mac.add(mbasic);
+                MutableRoaringBitmap mopti = mbasic.clone();
+                mopti.runOptimize();
+                mrc.add(mopti);
             }
         }
 
