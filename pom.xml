@@ -50,19 +50,11 @@
       <comments>A business-friendly OSS license</comments>
     </license>
   </licenses>
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>4.11</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
+      <version>4.11</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -84,7 +76,6 @@
     <version>5</version>
   </parent>
   <build>
-    <sourceDirectory>${basedir}/src/main/java</sourceDirectory>
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
