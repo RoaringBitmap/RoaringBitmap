@@ -242,6 +242,22 @@ public final class RunContainer extends Container implements Cloneable {
         valueslength = nv;
     }
 
+    private void ensureCapacity(int minNbRuns) {
+        final int minCapacity = 2 * minNbRuns;
+        if(valueslength.length < minCapacity) {
+            int newCapacity = valueslength.length;
+            while (newCapacity < minCapacity) {
+                newCapacity = (newCapacity == 0) ? DEFAULT_INIT_SIZE
+                        : newCapacity < 64 ? newCapacity * 2
+                        : newCapacity < 1024 ? newCapacity * 3 / 2
+                        : newCapacity * 5 / 4;
+            }
+            short[] nv = new short[newCapacity];
+            copyValuesLength(valueslength, 0, nv, 0, nbrruns);
+            valueslength = nv;
+        }
+    }
+
     /**
      * Create a container with default capacity
      */
@@ -1489,8 +1505,48 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public Container ior(RunContainer x) {
-        if(isFull()) return this;
-        return or(x);
+        if (isFull()) return this;
+
+        final int nbrruns = this.nbrruns;
+        final int xnbrruns = x.nbrruns;
+        final int offset = Math.max(nbrruns, xnbrruns);
+
+        // Push all values length to the end of the array (resize array if needed)
+        ensureCapacity(offset + nbrruns);
+        copyValuesLength(this.valueslength, 0, this.valueslength, offset, nbrruns);
+
+        // Aggregate and store the result at the beginning of the array
+        this.nbrruns = 0;
+        int rlepos = 0;
+        int xrlepos = 0;
+
+        // Add values length (smaller first)
+        while ((rlepos < nbrruns) && (xrlepos < xnbrruns)) {
+            final short value = this.getValue(offset + rlepos);
+            final short xvalue = x.getValue(xrlepos);
+            final short length = this.getLength(offset + rlepos);
+            final short xlength = x.getLength(xrlepos);
+
+            if (Util.compareUnsigned(value, xvalue) <= 0) {
+                this.smartAppend(value, length);
+                ++rlepos;
+            } else {
+                this.smartAppend(xvalue, xlength);
+                ++xrlepos;
+            }
+        }
+
+        while (rlepos < nbrruns) {
+            this.smartAppend(this.getValue(offset + rlepos), this.getLength((offset + rlepos)));
+            ++rlepos;
+        }
+
+        while (xrlepos < xnbrruns) {
+            this.smartAppend(x.getValue(xrlepos), x.getLength(xrlepos));
+            ++xrlepos;
+        }
+
+        return this.toBitmapIfNeeded();
     }
 
     @Override
@@ -1631,7 +1687,7 @@ public final class RunContainer extends Container implements Cloneable {
                 answer.smartAppend(x.getValue(xrlepos), x.getLength(xrlepos));
                 xrlepos++;
             }
-        }        
+        }
         while (xrlepos < x.nbrruns) {
             answer.smartAppend(x.getValue(xrlepos), x.getLength(xrlepos));
             xrlepos++;
