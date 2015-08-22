@@ -43,7 +43,7 @@ public final class RunContainer extends Container implements Cloneable {
             sb.append(Util.toIntUnsigned(this.getValue(k)));
             sb.append(",");
             sb.append(Util.toIntUnsigned(this.getValue(k)) +
-                    Util.toIntUnsigned(this.getLength(k)) + 1);
+                    Util.toIntUnsigned(this.getLength(k)));
             sb.append("]");
         }
         return sb.toString();
