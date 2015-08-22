@@ -309,13 +309,30 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         int newCapacity = (valueslength.capacity() == 0) ? DEFAULT_INIT_SIZE : valueslength.capacity() < 64 ? valueslength.capacity() * 2
             : valueslength.capacity() < 1024 ? valueslength.capacity() * 3 / 2
             : valueslength.capacity() * 5 / 4;
-        
+
         final ShortBuffer nv = ShortBuffer.allocate(newCapacity);
         valueslength.rewind();
         nv.put(valueslength);
         valueslength = nv;
     }
-    
+
+    private void ensureCapacity(int minNbRuns) {
+        final int minCapacity = 2 * minNbRuns;
+        if (valueslength.capacity() < minCapacity) {
+            int newCapacity = valueslength.capacity();
+            while (newCapacity < minCapacity) {
+                newCapacity = (newCapacity == 0) ? DEFAULT_INIT_SIZE
+                        : newCapacity < 64 ? newCapacity * 2
+                        : newCapacity < 1024 ? newCapacity * 3 / 2
+                        : newCapacity * 5 / 4;
+            }
+            final ShortBuffer nv = ShortBuffer.allocate(newCapacity);
+            valueslength.rewind();
+            nv.put(valueslength);
+            valueslength = nv;
+        }
+    }
+
     /**
      * Create a container with default capacity
      */
@@ -1541,7 +1558,45 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     @Override
     public MappeableContainer ior(MappeableRunContainer x) {
         if(isFull()) return this;
-        return or(x);
+
+        final int nbrruns = this.nbrruns;
+        final int xnbrruns = x.nbrruns;
+        final int offset = Math.max(nbrruns, xnbrruns);
+
+        // Push all values length to the end of the array (resize array if needed)
+        ensureCapacity(offset + nbrruns);
+        copyValuesLength(this.valueslength, 0, this.valueslength, offset, nbrruns);
+
+        // Aggregate and store the result at the beginning of the array
+        this.nbrruns = 0;
+        int rlepos = 0;
+        int xrlepos = 0;
+        short[] vl = this.valueslength.array();
+
+        // Add values length (smaller first)
+        while ((rlepos < nbrruns) && (xrlepos < xnbrruns)) {
+            final short value = this.getValue(offset + rlepos);
+            final short xvalue = x.getValue(xrlepos);
+            final short length = this.getLength(offset + rlepos);
+            final short xlength = x.getLength(xrlepos);
+
+            if(BufferUtil.compareUnsigned(value, xvalue) <= 0) {
+                this.smartAppend(vl, value, length);
+                ++rlepos;
+            } else {
+                this.smartAppend(vl, xvalue, xlength);
+                ++xrlepos;
+            }
+        }
+        while (rlepos < nbrruns) {
+            this.smartAppend(vl, getValue(offset + rlepos), getLength(offset + rlepos));
+            ++rlepos;
+        }
+        while (xrlepos < xnbrruns) {
+            this.smartAppend(vl, x.getValue(xrlepos), x.getLength(xrlepos));
+            ++xrlepos;
+        }
+        return this.toBitmapIfNeeded();
     }
 
     @Override
@@ -1703,7 +1758,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
                 answer.smartAppend(vl,x.getValue(xrlepos), x.getLength(xrlepos));
                 xrlepos++;
             }
-        }        
+        }
         while (xrlepos < x.nbrruns) {
             answer.smartAppend(vl,x.getValue(xrlepos), x.getLength(xrlepos));
             xrlepos++;

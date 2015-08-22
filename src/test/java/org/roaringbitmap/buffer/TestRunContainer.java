@@ -18,6 +18,16 @@ import static org.roaringbitmap.buffer.MappeableArrayContainer.DEFAULT_MAX_SIZE;
 public class TestRunContainer {
 
     @Test
+    public void ior() {
+        MappeableContainer rc1 = new MappeableRunContainer();
+        MappeableContainer rc2 = new MappeableRunContainer();
+        rc1.iadd(0, 128);
+        rc2.iadd(128, 256);
+        rc1.ior(rc2);
+        assertEquals(256, rc1.getCardinality());
+    }
+
+    @Test
     public void testAndNot() {
         int[] array1 = {39173,39174,39175,39176,39177,39178,39179,39180,39181,39182,39183,39184,39185,39186,39187,39188};
         int[] array2 = {14205};
