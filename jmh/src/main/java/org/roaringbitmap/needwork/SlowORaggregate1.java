@@ -17,7 +17,7 @@ import org.roaringbitmap.ZipRealDataRetriever;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
-public class SlowORaggregate {
+public class SlowORaggregate1 {
 
     @Benchmark
     public RoaringBitmap RoaringWithRun(BenchmarkState benchmarkState) {
