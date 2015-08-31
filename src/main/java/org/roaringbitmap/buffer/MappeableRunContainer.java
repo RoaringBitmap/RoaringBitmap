@@ -309,10 +309,31 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         nv.put(valueslength);
         valueslength = nv;
     }
-
-    private void ensureCapacity(int minNbRuns) {
-        final int minCapacity = 2 * minNbRuns;
+    
+    // Push all values length to the end of the array (resize array if needed)
+    private void copyToOffset(int offset) {
+        final int minCapacity = 2 * (offset + nbrruns) ;
         if (valueslength.capacity() < minCapacity) {
+            // expensive case where we need to reallocate
+            int newCapacity = valueslength.capacity();
+            while (newCapacity < minCapacity) {
+                newCapacity = (newCapacity == 0) ? DEFAULT_INIT_SIZE
+                        : newCapacity < 64 ? newCapacity * 2
+                        : newCapacity < 1024 ? newCapacity * 3 / 2
+                        : newCapacity * 5 / 4;
+            }
+            ShortBuffer newvalueslength = ShortBuffer.allocate(newCapacity);
+            copyValuesLength(this.valueslength, 0, newvalueslength, offset, nbrruns);
+            this.valueslength = newvalueslength;
+        } else {
+            // efficient case where we just copy 
+            copyValuesLength(this.valueslength, 0, this.valueslength, offset, nbrruns);
+        }
+    }
+
+    protected void   ensureCapacity(int minNbRuns) {
+        final int minCapacity = 2 * minNbRuns;
+        if (valueslength.capacity() < minCapacity) {            
             int newCapacity = valueslength.capacity();
             while (newCapacity < minCapacity) {
                 newCapacity = (newCapacity == 0) ? DEFAULT_INIT_SIZE
@@ -678,10 +699,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         if(isFull()) return this;
         final int nbrruns = this.nbrruns;
         final int offset = Math.max(nbrruns, x.getCardinality());
-        ensureCapacity(offset + nbrruns);
-        copyValuesLength(this.valueslength, 0, this.valueslength, offset, nbrruns);
+        copyToOffset(offset);
         short[] vl = this.valueslength.array();
-
         int rlepos = 0;
         this.nbrruns = 0;
         PeekableShortIterator i = (PeekableShortIterator) x.getShortIterator();
@@ -811,9 +830,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         if(isFull()) return this.clone();
         final int nbrruns = this.nbrruns;
         final int offset = Math.max(nbrruns, x.getCardinality());
-        ensureCapacity(offset + nbrruns);
+        copyToOffset(offset);
         short[] vl = valueslength.array();
-        copyValuesLength(this.valueslength, 0, this.valueslength, offset, nbrruns);
         int rlepos = 0;
         this.nbrruns = 0;
         PeekableShortIterator i = (PeekableShortIterator) x.getShortIterator();
@@ -1639,8 +1657,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         final int offset = Math.max(nbrruns, xnbrruns);
 
         // Push all values length to the end of the array (resize array if needed)
-        ensureCapacity(offset + nbrruns);
-        copyValuesLength(this.valueslength, 0, this.valueslength, offset, nbrruns);
+        copyToOffset(offset);
 
         // Aggregate and store the result at the beginning of the array
         this.nbrruns = 0;

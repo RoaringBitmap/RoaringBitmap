@@ -257,8 +257,30 @@ public final class RunContainer extends Container implements Cloneable {
         System.arraycopy(valueslength, 0, nv, 0, 2 * nbrruns);
         valueslength = nv;
     }
+    
+ // Push all values length to the end of the array (resize array if needed)
+    private void copyToOffset(int offset) {
+        final int minCapacity = 2 * (offset + nbrruns) ;
+        if (valueslength.length < minCapacity) {
+            // expensive case where we need to reallocate
+            int newCapacity = valueslength.length;
+            while (newCapacity < minCapacity) {
+                newCapacity = (newCapacity == 0) ? DEFAULT_INIT_SIZE
+                        : newCapacity < 64 ? newCapacity * 2
+                        : newCapacity < 1024 ? newCapacity * 3 / 2
+                        : newCapacity * 5 / 4;
+            }
+            short[] newvalueslength = new short[newCapacity];
+            copyValuesLength(this.valueslength, 0, newvalueslength, offset, nbrruns);
+            this.valueslength = newvalueslength;
+        } else {
+            // efficient case where we just copy 
+            copyValuesLength(this.valueslength, 0, this.valueslength, offset, nbrruns);
+        }
+    }
 
-    private void ensureCapacity(int minNbRuns) {
+
+    /*private void ensureCapacity(int minNbRuns) {
         final int minCapacity = 2 * minNbRuns;
         if(valueslength.length < minCapacity) {
             int newCapacity = valueslength.length;
@@ -272,7 +294,7 @@ public final class RunContainer extends Container implements Cloneable {
             copyValuesLength(valueslength, 0, nv, 0, nbrruns);
             valueslength = nv;
         }
-    }
+    }*/
 
     /**
      * Create a container with default capacity
@@ -618,8 +640,7 @@ public final class RunContainer extends Container implements Cloneable {
         if(isFull()) return this;
         final int nbrruns = this.nbrruns;
         final int offset = Math.max(nbrruns, x.getCardinality());
-        ensureCapacity(offset + nbrruns);
-        copyValuesLength(this.valueslength, 0, this.valueslength, offset, nbrruns);
+        copyToOffset(offset);
         int rlepos = 0;
         this.nbrruns = 0;
         PeekableShortIterator i = (PeekableShortIterator) x.getShortIterator();
@@ -744,8 +765,7 @@ public final class RunContainer extends Container implements Cloneable {
         if(isFull()) return this.clone();
         final int nbrruns = this.nbrruns;
         final int offset = Math.max(nbrruns, x.getCardinality());
-        ensureCapacity(offset + nbrruns);
-        copyValuesLength(this.valueslength, 0, this.valueslength, offset, nbrruns);
+        copyToOffset(offset);
         int rlepos = 0;
         this.nbrruns = 0;
         PeekableShortIterator i = (PeekableShortIterator) x.getShortIterator();
@@ -1595,9 +1615,7 @@ public final class RunContainer extends Container implements Cloneable {
         final int offset = Math.max(nbrruns, xnbrruns);
 
         // Push all values length to the end of the array (resize array if needed)
-        ensureCapacity(offset + nbrruns);
-        copyValuesLength(this.valueslength, 0, this.valueslength, offset, nbrruns);
-
+        copyToOffset(offset);
         // Aggregate and store the result at the beginning of the array
         this.nbrruns = 0;
         int rlepos = 0;
