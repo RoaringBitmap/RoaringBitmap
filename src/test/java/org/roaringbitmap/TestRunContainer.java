@@ -27,7 +27,6 @@ public class TestRunContainer {
         Container x = rc1.or(rc2);
         rc1.ior(rc2);
         if(!rc1.equals(x)) throw new RuntimeException("bug");
-
     }
 
     @Test

@@ -600,7 +600,38 @@ public final class RunContainer extends Container implements Cloneable {
     @Override
     public Container ior(ArrayContainer x) {
         if(isFull()) return this;
-        return or(x);
+        final int nbrruns = this.nbrruns;
+        final int offset = Math.max(nbrruns, x.getCardinality());
+        ensureCapacity(offset + nbrruns);
+        copyValuesLength(this.valueslength, 0, this.valueslength, offset, nbrruns);
+        int rlepos = 0;
+        this.nbrruns = 0;
+        PeekableShortIterator i = (PeekableShortIterator) x.getShortIterator();
+        while (i.hasNext() && (rlepos < nbrruns) ) {
+            if(Util.compareUnsigned(getValue(rlepos + offset), i.peekNext()) <= 0) {
+                smartAppend(getValue(rlepos + offset), getLength(rlepos + offset));
+                rlepos++;
+            } else {
+                smartAppend(i.next());
+            }
+        }        
+        if (i.hasNext()) {
+            if(this.nbrruns>0) {
+                // this might be useful if the run container has just one very large run
+                int lastval = Util.toIntUnsigned(getValue(nbrruns + offset))
+                        + Util.toIntUnsigned(getLength(nbrruns + offset)) + 1;
+                i.advanceIfNeeded((short) lastval);
+            }
+            while (i.hasNext()) {
+                smartAppend(i.next());
+            }
+        } else {
+            while (rlepos < nbrruns) {
+                smartAppend(getValue(rlepos + offset), getLength(rlepos + offset));
+                rlepos++;
+            }
+        }
+        return toEfficientContainer();
     }
 
     @Override
@@ -647,11 +678,11 @@ public final class RunContainer extends Container implements Cloneable {
     
     protected Container ilazyor(ArrayContainer x) {
         if(isFull()) return this; // this can sometimes solve a lot of computation!
-        return lazyorToRun(x);
+        return ilazyorToRun(x);
      } 
 
     protected Container lazyor(ArrayContainer x) {
-       return lazyorToRun(x);  // this can sometimes solve a lot of computation!
+       return lazyorToRun(x);//lazyorToRun(x); 
     } 
     
     protected boolean isFull() {
@@ -692,6 +723,43 @@ public final class RunContainer extends Container implements Cloneable {
         }
         return answer.convertToLazyBitmapIfNeeded();
     }
+
+    private Container ilazyorToRun(ArrayContainer x) {
+        if(isFull()) return this.clone();
+        final int nbrruns = this.nbrruns;
+        final int offset = Math.max(nbrruns, x.getCardinality());
+        ensureCapacity(offset + nbrruns);
+        copyValuesLength(this.valueslength, 0, this.valueslength, offset, nbrruns);
+        int rlepos = 0;
+        this.nbrruns = 0;
+        PeekableShortIterator i = (PeekableShortIterator) x.getShortIterator();
+        while (i.hasNext() && (rlepos < nbrruns) ) {
+            if(Util.compareUnsigned(getValue(rlepos + offset), i.peekNext()) <= 0) {
+                smartAppend(getValue(rlepos + offset), getLength(rlepos + offset));
+                rlepos++;
+            } else {
+                smartAppend(i.next());
+            }
+        }        
+        if (i.hasNext()) {
+            if(this.nbrruns>0) {
+                // this might be useful if the run container has just one very large run
+                int lastval = Util.toIntUnsigned(getValue(nbrruns + offset))
+                        + Util.toIntUnsigned(getLength(nbrruns + offset)) + 1;
+                i.advanceIfNeeded((short) lastval);
+            }
+            while (i.hasNext()) {
+                smartAppend(i.next());
+            }
+        } else {
+            while (rlepos < nbrruns) {
+                smartAppend(getValue(rlepos + offset), getLength(rlepos + offset));
+                rlepos++;
+            }
+        }
+        return convertToLazyBitmapIfNeeded();
+    }
+
     
     private Container lazyxor(ArrayContainer x) {
         if(x.getCardinality() == 0) return this;
