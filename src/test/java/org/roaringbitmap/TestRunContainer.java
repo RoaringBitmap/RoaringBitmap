@@ -15,6 +15,20 @@ import static org.junit.Assert.*;
 import static org.roaringbitmap.ArrayContainer.DEFAULT_MAX_SIZE;
 
 public class TestRunContainer {
+    
+    @Test
+    public void safeor() {
+        Container rc1 = new RunContainer();
+        Container rc2 = new RunContainer();
+        for(int i = 0; i < 100; ++i) {
+            rc1 = rc1.iadd(i*4, (i+1)*4 - 1);
+            rc2 = rc2.iadd(i*4 + 10000, (i+1)*4 - 1  + 10000);
+        }
+        Container x = rc1.or(rc2);
+        rc1.ior(rc2);
+        if(!rc1.equals(x)) throw new RuntimeException("bug");
+
+    }
 
     @Test
     public void ior() {

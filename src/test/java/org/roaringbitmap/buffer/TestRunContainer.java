@@ -18,6 +18,19 @@ import static org.roaringbitmap.buffer.MappeableArrayContainer.DEFAULT_MAX_SIZE;
 public class TestRunContainer {
 
     @Test
+    public void safeor() {
+        MappeableContainer rc1 = new MappeableRunContainer();
+        MappeableContainer rc2 = new MappeableRunContainer();
+        for(int i = 0; i < 100; ++i) {
+            rc1 = rc1.iadd(i*4, (i+1)*4 - 1);
+            rc2 = rc2.iadd(i*4 + 10000, (i+1)*4 - 1  + 10000);
+        }
+        MappeableContainer x = rc1.or(rc2);
+        rc1.ior(rc2);
+        if(!rc1.equals(x)) throw new RuntimeException("bug");
+    }
+    
+    @Test
     public void ior() {
         MappeableContainer rc1 = new MappeableRunContainer();
         MappeableContainer rc2 = new MappeableRunContainer();

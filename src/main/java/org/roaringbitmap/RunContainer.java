@@ -1545,7 +1545,6 @@ public final class RunContainer extends Container implements Cloneable {
             this.smartAppend(x.getValue(xrlepos), x.getLength(xrlepos));
             ++xrlepos;
         }
-
         return this.toBitmapIfNeeded();
     }
 
