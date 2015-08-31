@@ -326,8 +326,10 @@ public final class MappeableRunContainer extends MappeableContainer implements C
                         : newCapacity * 5 / 4;
             }
             final ShortBuffer nv = ShortBuffer.allocate(newCapacity);
-            valueslength.rewind();
-            nv.put(valueslength);
+            short[] vl = nv.array();
+            System.arraycopy(valueslength.array(), 0, vl, 0, nbrruns * 2);
+            //valueslength.rewind();
+            //nv.put(valueslength);
             valueslength = nv;
         }
     }
