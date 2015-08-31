@@ -618,8 +618,8 @@ public final class RunContainer extends Container implements Cloneable {
         if (i.hasNext()) {
             if(this.nbrruns>0) {
                 // this might be useful if the run container has just one very large run
-                int lastval = Util.toIntUnsigned(getValue(nbrruns + offset))
-                        + Util.toIntUnsigned(getLength(nbrruns + offset)) + 1;
+                int lastval = Util.toIntUnsigned(getValue(nbrruns + offset - 1))
+                        + Util.toIntUnsigned(getLength(nbrruns + offset - 1)) + 1;
                 i.advanceIfNeeded((short) lastval);
             }
             while (i.hasNext()) {
@@ -708,8 +708,8 @@ public final class RunContainer extends Container implements Cloneable {
         if (i.hasNext()) {
             if(answer.nbrruns>0) {
                 // this might be useful if the run container has just one very large run
-                int lastval = Util.toIntUnsigned(answer.getValue(answer.nbrruns))
-                        + Util.toIntUnsigned(answer.getLength(answer.nbrruns)) + 1;
+                int lastval = Util.toIntUnsigned(answer.getValue(answer.nbrruns - 1))
+                        + Util.toIntUnsigned(answer.getLength(answer.nbrruns - 1)) + 1;
                 i.advanceIfNeeded((short) lastval);
             }
             while (i.hasNext()) {
@@ -744,8 +744,8 @@ public final class RunContainer extends Container implements Cloneable {
         if (i.hasNext()) {
             if(this.nbrruns>0) {
                 // this might be useful if the run container has just one very large run
-                int lastval = Util.toIntUnsigned(getValue(nbrruns + offset))
-                        + Util.toIntUnsigned(getLength(nbrruns + offset)) + 1;
+                int lastval = Util.toIntUnsigned(getValue(nbrruns + offset - 1))
+                        + Util.toIntUnsigned(getLength(nbrruns + offset - 1)) + 1;
                 i.advanceIfNeeded((short) lastval);
             }
             while (i.hasNext()) {

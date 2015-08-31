@@ -761,8 +761,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         if(i.hasNext()) {
             if(answer.nbrruns>0) {
                 // this might be useful if the run container has just one very large run
-                int lastval = BufferUtil.toIntUnsigned(answer.getValue(answer.nbrruns))
-                        + BufferUtil.toIntUnsigned(answer.getLength(answer.nbrruns)) + 1;
+                int lastval = BufferUtil.toIntUnsigned(answer.getValue(answer.nbrruns - 1))
+                        + BufferUtil.toIntUnsigned(answer.getLength(answer.nbrruns - 1)) + 1;
                 i.advanceIfNeeded((short) lastval);
             }
             while (i.hasNext()) {
