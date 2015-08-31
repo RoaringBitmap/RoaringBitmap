@@ -681,7 +681,40 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     @Override
     public MappeableContainer ior(MappeableArrayContainer x) {
         if(isFull()) return this;
-        return or(x);
+        final int nbrruns = this.nbrruns;
+        final int offset = Math.max(nbrruns, x.getCardinality());
+        ensureCapacity(offset + nbrruns);
+        copyValuesLength(this.valueslength, 0, this.valueslength, offset, nbrruns);
+        short[] vl = this.valueslength.array();
+
+        int rlepos = 0;
+        this.nbrruns = 0;
+        PeekableShortIterator i = (PeekableShortIterator) x.getShortIterator();
+        while (i.hasNext() && (rlepos < nbrruns) ) {
+            if(BufferUtil.compareUnsigned(getValue(rlepos + offset), i.peekNext()) <= 0) {
+                smartAppend(vl,getValue(rlepos + offset), getLength(rlepos + offset));
+                rlepos++;
+            } else {
+                smartAppend(vl,i.next());
+            }
+        }        
+        if (i.hasNext()) {
+            if(this.nbrruns>0) {
+                // this might be useful if the run container has just one very large run
+                int lastval = BufferUtil.toIntUnsigned(getValue(nbrruns + offset - 1))
+                        + BufferUtil.toIntUnsigned(getLength(nbrruns + offset - 1)) + 1;
+                i.advanceIfNeeded((short) lastval);
+            }
+            while (i.hasNext()) {
+                smartAppend(vl,i.next());
+            }
+        } else {
+            while (rlepos < nbrruns) {
+                smartAppend(vl,getValue(rlepos + offset), getLength(rlepos + offset));
+                rlepos++;
+            }
+        }
+        return toEfficientContainer();
     }
 
     @Override
@@ -734,7 +767,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     }
     protected MappeableContainer ilazyor(MappeableArrayContainer x) {
         if(isFull()) return this;  // this can sometimes solve a lot of computation!
-        return lazyorToRun(x);
+        return ilazyorToRun(x);
     }
    
     protected MappeableContainer lazyor(MappeableArrayContainer x) {
@@ -779,6 +812,44 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         return answer.convertToLazyBitmapIfNeeded();
     }
 
+    private MappeableContainer ilazyorToRun(MappeableArrayContainer x) {
+        if(isFull()) return this.clone();
+        final int nbrruns = this.nbrruns;
+        final int offset = Math.max(nbrruns, x.getCardinality());
+        ensureCapacity(offset + nbrruns);
+        short[] vl = valueslength.array();
+        copyValuesLength(this.valueslength, 0, this.valueslength, offset, nbrruns);
+        int rlepos = 0;
+        this.nbrruns = 0;
+        PeekableShortIterator i = (PeekableShortIterator) x.getShortIterator();
+        while (i.hasNext() && (rlepos < nbrruns) ) {
+            if(BufferUtil.compareUnsigned(getValue(rlepos + offset), i.peekNext()) <= 0) {
+                smartAppend(vl,getValue(rlepos + offset), getLength(rlepos + offset));
+                rlepos++;
+            } else {
+                smartAppend(vl,i.next());
+            }
+        }        
+        if (i.hasNext()) {
+            if(this.nbrruns>0) {
+                // this might be useful if the run container has just one very large run
+                int lastval = BufferUtil.toIntUnsigned(getValue(nbrruns + offset - 1))
+                        + BufferUtil.toIntUnsigned(getLength(nbrruns + offset - 1)) + 1;
+                i.advanceIfNeeded((short) lastval);
+            }
+            while (i.hasNext()) {
+                smartAppend(vl,i.next());
+            }
+        } else {
+            while (rlepos < nbrruns) {
+                smartAppend(vl,getValue(rlepos + offset), getLength(rlepos + offset));
+                rlepos++;
+            }
+        }
+        return convertToLazyBitmapIfNeeded();
+    }
+
+    
     private MappeableContainer lazyxor(MappeableArrayContainer x) {
         if(x.getCardinality() == 0) return this;
         if(this.nbrruns == 0) return x;
