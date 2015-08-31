@@ -691,8 +691,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         this.nbrruns = 0;
         PeekableShortIterator i = (PeekableShortIterator) x.getShortIterator();
         while (i.hasNext() && (rlepos < nbrruns) ) {
-            if(BufferUtil.compareUnsigned(getValue(rlepos + offset), i.peekNext()) <= 0) {
-                smartAppend(vl,getValue(rlepos + offset), getLength(rlepos + offset));
+            if(BufferUtil.compareUnsigned(getValue(vl,rlepos + offset), i.peekNext()) <= 0) {
+                smartAppend(vl,getValue(vl,rlepos + offset), getLength(vl,rlepos + offset));
                 rlepos++;
             } else {
                 smartAppend(vl,i.next());
@@ -710,7 +710,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
             }
         } else {
             while (rlepos < nbrruns) {
-                smartAppend(vl,getValue(rlepos + offset), getLength(rlepos + offset));
+                smartAppend(vl,getValue(vl,rlepos + offset), getLength(vl,rlepos + offset));
                 rlepos++;
             }
         }
@@ -823,8 +823,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         this.nbrruns = 0;
         PeekableShortIterator i = (PeekableShortIterator) x.getShortIterator();
         while (i.hasNext() && (rlepos < nbrruns) ) {
-            if(BufferUtil.compareUnsigned(getValue(rlepos + offset), i.peekNext()) <= 0) {
-                smartAppend(vl,getValue(rlepos + offset), getLength(rlepos + offset));
+            if(BufferUtil.compareUnsigned(getValue(vl,rlepos + offset), i.peekNext()) <= 0) {
+                smartAppend(vl,getValue(vl,rlepos + offset), getLength(vl,rlepos + offset));
                 rlepos++;
             } else {
                 smartAppend(vl,i.next());
@@ -833,8 +833,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         if (i.hasNext()) {
             if(this.nbrruns>0) {
                 // this might be useful if the run container has just one very large run
-                int lastval = BufferUtil.toIntUnsigned(getValue(nbrruns + offset - 1))
-                        + BufferUtil.toIntUnsigned(getLength(nbrruns + offset - 1)) + 1;
+                int lastval = BufferUtil.toIntUnsigned(getValue(vl,nbrruns + offset - 1))
+                        + BufferUtil.toIntUnsigned(getLength(vl,nbrruns + offset - 1)) + 1;
                 i.advanceIfNeeded((short) lastval);
             }
             while (i.hasNext()) {
@@ -842,7 +842,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
             }
         } else {
             while (rlepos < nbrruns) {
-                smartAppend(vl,getValue(rlepos + offset), getLength(rlepos + offset));
+                smartAppend(vl,getValue(vl,rlepos + offset), getLength(vl,rlepos + offset));
                 rlepos++;
             }
         }
@@ -1291,8 +1291,16 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     short getLength(int index) {
         return valueslength.get(2*index + 1);
     }
+    
+    static short getValue(short[] vl, int index) {
+        return vl[2*index];
+    }
 
-      private void incrementLength(int index) {
+    static short getLength(short[] vl, int index) {
+        return vl[2*index + 1];
+    }
+
+    private void incrementLength(int index) {
           valueslength.put(2*index + 1, (short) (1 + valueslength.get(2*index+1))); 
     }
     
@@ -1414,8 +1422,12 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
 
     private void copyValuesLength(ShortBuffer src, int srcIndex, ShortBuffer dst, int dstIndex, int length) {
+        if(BufferUtil.isBackedBySimpleArray(src) && BufferUtil.isBackedBySimpleArray(dst)) {
+            // common case.
+            System.arraycopy(src.array(), 2*srcIndex, dst.array(), 2*dstIndex, 2*length);
+            return;
+        }
         // source and destination may overlap
-        //System.arraycopy(src, 2*srcIndex, dst, 2*dstIndex, 2*length);
         // consider specialized code for various cases, rather than using a second buffer
         ShortBuffer temp = ShortBuffer.allocate(2*length);
         for (int i=0; i < 2*length; ++i)
@@ -1645,9 +1657,9 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
         // Add values length (smaller first)
         while ((rlepos < nbrruns) && (xrlepos < xnbrruns)) {
-            final short value = this.getValue(offset + rlepos);
+            final short value = getValue(vl,offset + rlepos);
             final short xvalue = x.getValue(xrlepos);
-            final short length = this.getLength(offset + rlepos);
+            final short length = getLength(vl,offset + rlepos);
             final short xlength = x.getLength(xrlepos);
 
             if(BufferUtil.compareUnsigned(value, xvalue) <= 0) {
@@ -1659,7 +1671,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
             }
         }
         while (rlepos < nbrruns) {
-            this.smartAppend(vl, getValue(offset + rlepos), getLength(offset + rlepos));
+            this.smartAppend(vl, getValue(vl,offset + rlepos), getLength(vl,offset + rlepos));
             ++rlepos;
         }
         while (xrlepos < xnbrruns) {
