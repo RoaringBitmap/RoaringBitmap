@@ -5,7 +5,6 @@
 package org.roaringbitmap.buffer;
 
 
-import org.roaringbitmap.Container;
 import org.roaringbitmap.PeekableShortIterator;
 import org.roaringbitmap.ShortIterator;
 
