@@ -1,3 +1,6 @@
+version 0.5.2
+ - Various performance enhancements regarding run containers
+
 version 0.5.1
  - Bug fix release (rarely occuring bug with "or" and totally wrong naive_and)
  - Removed the default "wide and" with sort option as it will generally be counterproductive
