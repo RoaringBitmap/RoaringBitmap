@@ -14,3 +14,4 @@
 ./run.sh org.roaringbitmap.runcontainer.RunContainerRealDataBenchmarkOr > orlog.txt
 ./run.sh org.roaringbitmap.runcontainer.RunContainerRealDataBenchmarkXor > xorlog.txt
 ./run.sh org.roaringbitmap.runcontainer.RunContainerRealDataBenchmarkRunOptimize > serializelog.txt
+./run.sh org.roaringbitmap.realdata.RealDataBenchmarkContains > containslog.txt
