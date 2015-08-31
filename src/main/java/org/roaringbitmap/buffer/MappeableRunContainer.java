@@ -50,7 +50,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
      */
     public MappeableRunContainer(final ShortBuffer array,
             final int numRuns) {
-        if (array.limit() != 2*numRuns)
+        if (array.limit() < 2*numRuns)
             throw new RuntimeException(
                     "Mismatch between buffer and numRuns");
         this.nbrruns = numRuns;
@@ -59,11 +59,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
 
 
-    
-    // needed for deserialization
-    protected MappeableRunContainer(ShortBuffer valueslength) {
-        this(valueslength.limit()/2, valueslength);
-    }
 
     protected MappeableRunContainer( ShortIterator sIt, int nbrRuns) {
         this.nbrruns = nbrRuns;
@@ -328,8 +323,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
             final ShortBuffer nv = ShortBuffer.allocate(newCapacity);
             short[] vl = nv.array();
             System.arraycopy(valueslength.array(), 0, vl, 0, nbrruns * 2);
-            //valueslength.rewind();
-            //nv.put(valueslength);
             valueslength = nv;
         }
     }
@@ -779,7 +772,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     private MappeableContainer lazyorToRun(MappeableArrayContainer x) {
         if(isFull()) return this.clone();
         // TODO: should optimize for the frequent case where we have a single run
-        MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.getCardinality())));
+        MappeableRunContainer answer = new MappeableRunContainer(ShortBuffer.allocate(2 * (this.nbrruns + x.getCardinality())),0);
         short[] vl = answer.valueslength.array();
         int rlepos = 0;
         PeekableShortIterator i = (PeekableShortIterator) x.getShortIterator();
@@ -855,7 +848,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     private MappeableContainer lazyxor(MappeableArrayContainer x) {
         if(x.getCardinality() == 0) return this;
         if(this.nbrruns == 0) return x;
-        MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.getCardinality())));
+        MappeableRunContainer answer = new MappeableRunContainer(ShortBuffer.allocate(2 * (this.nbrruns + x.getCardinality())),0);
         short[] vl = answer.valueslength.array();
         int rlepos = 0;
         ShortIterator i = x.getShortIterator();
@@ -1048,12 +1041,10 @@ public final class MappeableRunContainer extends MappeableContainer implements C
             }
         }
         
-        //MappeableRunContainer rc = new MappeableRunContainer(r, Arrays.copyOf(valueslength, 2*r));
         ShortBuffer newBuf = ShortBuffer.allocate(2*maxcardinality);
-        valueslength.rewind();
         for (int i=0; i < 2*r; ++i)
-            newBuf.put( valueslength.get());
-        MappeableRunContainer rc = new MappeableRunContainer(r, newBuf);
+            newBuf.put( valueslength.get(i)); // could be optimized
+        MappeableRunContainer rc = new MappeableRunContainer(newBuf,r);
 
         rc.setLength(r - 1, (short) (BufferUtil.toIntUnsigned(rc.getLength(r - 1)) - cardinality + maxcardinality));
         return rc;
@@ -1444,7 +1435,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer and(MappeableRunContainer x) {
-        MappeableRunContainer answer = new MappeableRunContainer(0,        ShortBuffer.allocate(2 * (this.nbrruns + x.nbrruns)));
+        MappeableRunContainer answer = new MappeableRunContainer(ShortBuffer.allocate(2 * (this.nbrruns + x.nbrruns)),0);
         short[] vl = answer.valueslength.array();
         int rlepos = 0;
         int xrlepos = 0;
@@ -1509,7 +1500,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer andNot(MappeableRunContainer x) {
-        MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.nbrruns)));
+        MappeableRunContainer answer = new MappeableRunContainer(ShortBuffer.allocate(2 * (this.nbrruns + x.nbrruns)),0);
         short[] vl = answer.valueslength.array();
         int rlepos = 0;
         int xrlepos = 0;
@@ -1568,7 +1559,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     private MappeableRunContainer lazyandNot(MappeableArrayContainer x) {
         if(x.getCardinality() == 0) return this;
-        MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.cardinality)));
+        MappeableRunContainer answer = new MappeableRunContainer(ShortBuffer.allocate(2 * (this.nbrruns + x.cardinality)),0);
         short[] vl = answer.valueslength.array();
         int rlepos = 0;
         int xrlepos = 0;
@@ -1829,7 +1820,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         if(isFull()) return clone();
         if(x.isFull()) return x.clone(); // cheap case that can save a lot of computation
         // we really ought to optimize the rest of the code for the frequent case where there is a single run
-        MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.nbrruns)));
+        MappeableRunContainer answer = new MappeableRunContainer(ShortBuffer.allocate(2 * (this.nbrruns + x.nbrruns)),0);
         short[] vl = answer.valueslength.array();
         int rlepos = 0;
         int xrlepos = 0;
@@ -1858,7 +1849,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     public MappeableContainer xor(MappeableRunContainer x) {
         if(x.nbrruns == 0) return this.clone();
         if(this.nbrruns == 0) return x.clone();
-        MappeableRunContainer answer = new MappeableRunContainer(0,ShortBuffer.allocate(2 * (this.nbrruns + x.nbrruns)));
+        MappeableRunContainer answer = new MappeableRunContainer(ShortBuffer.allocate(2 * (this.nbrruns + x.nbrruns)),0);
         short[] vl = answer.valueslength.array();
         int rlepos = 0;
         int xrlepos = 0;

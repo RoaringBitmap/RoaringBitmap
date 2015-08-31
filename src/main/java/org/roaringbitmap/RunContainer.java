@@ -49,10 +49,26 @@ public final class RunContainer extends Container implements Cloneable {
         return sb.toString();
     }
 
-    // needed for deserialization
-    protected RunContainer(short [] valueslength) {
-        this(valueslength.length/2, valueslength);
+    /**
+     * Construct a new RunContainer backed by the provided array. Note
+     * that if you modify the RunContainer a new array may be produced.
+     * 
+     * @param array
+     *            array where the data is stored
+     * @param numRuns
+     *            number of runs (each using 2 shorts in the buffer)
+     *            
+     */
+    public RunContainer(final short[] array,
+            final int numRuns) {
+        if (array.length < 2*numRuns)
+            throw new RuntimeException(
+                    "Mismatch between buffer and numRuns");
+        this.nbrruns = numRuns;
+        this.valueslength = array;
     }
+
+
 
     // lower-level specialized implementations might be faster
     protected RunContainer( ShortIterator sIt, int nbrRuns) {
@@ -692,7 +708,7 @@ public final class RunContainer extends Container implements Cloneable {
     private Container lazyorToRun(ArrayContainer x) {
         if(isFull()) return this.clone();
         // TODO: should optimize for the frequent case where we have a single run
-        RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.getCardinality())]);
+        RunContainer answer = new RunContainer(new short[2 * (this.nbrruns + x.getCardinality())],0);
         int rlepos = 0;
         PeekableShortIterator i = (PeekableShortIterator) x.getShortIterator();
 
@@ -764,7 +780,7 @@ public final class RunContainer extends Container implements Cloneable {
     private Container lazyxor(ArrayContainer x) {
         if(x.getCardinality() == 0) return this;
         if(this.nbrruns == 0) return x;
-        RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.getCardinality())]);
+        RunContainer answer = new RunContainer(new short[2 * (this.nbrruns + x.getCardinality())],0);
         int rlepos = 0;
         ShortIterator i = x.getShortIterator();
         short cv = i.next();
@@ -950,8 +966,7 @@ public final class RunContainer extends Container implements Cloneable {
                 break;
             }
         }
-        RunContainer rc = new RunContainer(r, Arrays.copyOf(valueslength, 2*r));
-        // TODO: OFK: this ends up doing a double array copy.
+        RunContainer rc = new RunContainer( Arrays.copyOf(valueslength, 2*r),r);
         rc.setLength(r - 1, (short) (Util.toIntUnsigned(rc.getLength(r - 1)) - cardinality + maxcardinality));
         return rc;
     }
@@ -1373,7 +1388,7 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
       public Container and(RunContainer x) {
-        RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.nbrruns)]);
+        RunContainer answer = new RunContainer(new short[2 * (this.nbrruns + x.nbrruns)],0);
         int rlepos = 0;
         int xrlepos = 0;
         int start = Util.toIntUnsigned(this.getValue(rlepos));
@@ -1451,7 +1466,7 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public Container andNot(RunContainer x) {
-        RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.nbrruns)]);
+        RunContainer answer = new RunContainer(new short[2 * (this.nbrruns + x.nbrruns)],0);
         int rlepos = 0;
         int xrlepos = 0;
         int start = Util.toIntUnsigned(this.getValue(rlepos));
@@ -1508,7 +1523,7 @@ public final class RunContainer extends Container implements Cloneable {
 
     private RunContainer lazyandNot(ArrayContainer x) {
         if(x.getCardinality() == 0) return this;
-        RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.cardinality)]);
+        RunContainer answer = new RunContainer(new short[2 * (this.nbrruns + x.cardinality)],0);
         int rlepos = 0;
         int xrlepos = 0;
         int start = Util.toIntUnsigned(this.getValue(rlepos));
@@ -1742,7 +1757,7 @@ public final class RunContainer extends Container implements Cloneable {
         if(isFull()) return clone();
         if(x.isFull()) return x.clone(); // cheap case that can save a lot of computation
         // we really ought to optimize the rest of the code for the frequent case where there is a single run
-        RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.nbrruns)]);
+        RunContainer answer = new RunContainer(new short[2 * (this.nbrruns + x.nbrruns)],0);
         int rlepos = 0;
         int xrlepos = 0;
 
@@ -1772,7 +1787,7 @@ public final class RunContainer extends Container implements Cloneable {
     public Container xor(RunContainer x) {
         if(x.nbrruns == 0) return this.clone();
         if(this.nbrruns == 0) return x.clone();
-        RunContainer answer = new RunContainer(0,new short[2 * (this.nbrruns + x.nbrruns)]);
+        RunContainer answer = new RunContainer(new short[2 * (this.nbrruns + x.nbrruns)],0);
         int rlepos = 0;
         int xrlepos = 0;
 

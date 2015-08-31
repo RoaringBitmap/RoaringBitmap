@@ -472,7 +472,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
                     for (int j = 0; j < 2 * nbrruns; ++j)
                         lengthsAndValues[j] = Short.reverseBytes(in.readShort());
-                    val = new RunContainer(lengthsAndValues);
+                    val = new RunContainer(lengthsAndValues,nbrruns);
                 }
                 else
                 {
