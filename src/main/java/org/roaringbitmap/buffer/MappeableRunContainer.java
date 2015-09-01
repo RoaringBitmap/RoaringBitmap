@@ -330,7 +330,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
             copyValuesLength(this.valueslength, 0, this.valueslength, offset, nbrruns);
         }
     }
-
+    
+    // not actually used anywhere, but potentially useful
     protected void   ensureCapacity(int minNbRuns) {
         final int minCapacity = 2 * minNbRuns;
         if (valueslength.capacity() < minCapacity) {            
@@ -342,8 +343,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
                         : newCapacity * 5 / 4;
             }
             final ShortBuffer nv = ShortBuffer.allocate(newCapacity);
-            short[] vl = nv.array();
-            System.arraycopy(valueslength.array(), 0, vl, 0, nbrruns * 2);
+            valueslength.rewind();
+            nv.put(valueslength);
             valueslength = nv;
         }
     }

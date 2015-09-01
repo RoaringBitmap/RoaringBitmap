@@ -280,7 +280,8 @@ public final class RunContainer extends Container implements Cloneable {
     }
 
 
-    /*private void ensureCapacity(int minNbRuns) {
+    // not actually used anywhere, but potentially useful
+    protected void ensureCapacity(int minNbRuns) {
         final int minCapacity = 2 * minNbRuns;
         if(valueslength.length < minCapacity) {
             int newCapacity = valueslength.length;
@@ -294,7 +295,7 @@ public final class RunContainer extends Container implements Cloneable {
             copyValuesLength(valueslength, 0, nv, 0, nbrruns);
             valueslength = nv;
         }
-    }*/
+    }
 
     /**
      * Create a container with default capacity
