@@ -5,6 +5,8 @@
 
 package org.roaringbitmap;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -219,21 +221,40 @@ public final class FastAggregation {
     public static RoaringBitmap priorityqueue_or(RoaringBitmap... bitmaps) {
         if (bitmaps.length == 0)
             return new RoaringBitmap();
-
-        PriorityQueue<RoaringBitmap> pq = new PriorityQueue<RoaringBitmap>(bitmaps.length, new Comparator<RoaringBitmap>() {
+        // we buffer the call to getSizeInBytes(), hence the code complexity
+        final RoaringBitmap[] buffer = Arrays.copyOf(bitmaps,bitmaps.length);
+        final int[] sizes = new int[buffer.length];
+        final boolean[] istmp = new boolean[buffer.length];
+        for(int k = 0 ; k < sizes.length; ++k)
+            sizes[k] = buffer[k].getSizeInBytes();
+        PriorityQueue<Integer> pq = new PriorityQueue<Integer>(128, new Comparator<Integer>() {
             @Override
-            public int compare(RoaringBitmap a,
-                               RoaringBitmap b) {
-                return a.getSizeInBytes() - b.getSizeInBytes();
+            public int compare(Integer a,
+                    Integer b) {
+                return sizes[a] - sizes[b];
             }
         });
-        Collections.addAll(pq, bitmaps);
+        for(int k = 0 ; k < sizes.length; ++k)
+            pq.add(k);
         while (pq.size() > 1) {
-            RoaringBitmap x1 = pq.poll();
-            RoaringBitmap x2 = pq.poll();
-            pq.add(RoaringBitmap.lazyor(x1, x2));
+            Integer x1 = pq.poll();
+            Integer x2 = pq.poll();
+            if(istmp[x2]) {
+                buffer[x2].lazyor(buffer[x1]);
+                sizes[x2] = buffer[x2].getSizeInBytes();
+                pq.add(x2);
+            } else if(istmp[x1]) {
+                buffer[x1].lazyor(buffer[x2]);
+                sizes[x1] = buffer[x1].getSizeInBytes();
+                pq.add(x1);
+            } else {
+              buffer[x1] = RoaringBitmap.lazyor(buffer[x1], buffer[x2]);
+              sizes[x1] = buffer[x1].getSizeInBytes();
+              istmp[x1] = true;
+              pq.add(x1);
+            }
         }
-        RoaringBitmap answer = pq.poll();
+        RoaringBitmap answer = buffer[pq.poll()];
         answer.repairAfterLazy();
         return answer;
     }
@@ -250,22 +271,42 @@ public final class FastAggregation {
     public static RoaringBitmap priorityqueue_or(Iterator<RoaringBitmap> bitmaps) {
         if (!bitmaps.hasNext())
             return new RoaringBitmap();
-
-        PriorityQueue<RoaringBitmap> pq = new PriorityQueue<RoaringBitmap>(16, new Comparator<RoaringBitmap>() {
+        // we buffer the call to getSizeInBytes(), hence the code complexity
+        ArrayList<RoaringBitmap> buffer = new ArrayList<RoaringBitmap>();
+        while(bitmaps.hasNext())
+            buffer.add(bitmaps.next());
+        final int[] sizes = new int[buffer.size()];
+        final boolean[] istmp = new boolean[buffer.size()];
+        for(int k = 0 ; k < sizes.length; ++k)
+            sizes[k] = buffer.get(k).getSizeInBytes();
+        PriorityQueue<Integer> pq = new PriorityQueue<Integer>(128, new Comparator<Integer>() {
             @Override
-            public int compare(RoaringBitmap a,
-                               RoaringBitmap b) {
-                return a.getSizeInBytes() - b.getSizeInBytes();
+            public int compare(Integer a,
+                    Integer b) {
+                return sizes[a] - sizes[b];
             }
         });
-        while(bitmaps.hasNext())
-            pq.add(bitmaps.next());
+        for(int k = 0 ; k < sizes.length; ++k)
+            pq.add(k);
         while (pq.size() > 1) {
-            RoaringBitmap x1 = pq.poll();
-            RoaringBitmap x2 = pq.poll();
-            pq.add(RoaringBitmap.lazyor(x1, x2));
+            Integer x1 = pq.poll();
+            Integer x2 = pq.poll();
+            if(istmp[x2]) {
+                buffer.get(x2).lazyor(buffer.get(x1));
+                sizes[x2] = buffer.get(x2).getSizeInBytes();
+                pq.add(x2);
+            } else if(istmp[x1]) {
+                buffer.get(x1).lazyor(buffer.get(x2));
+                sizes[x1] = buffer.get(x1).getSizeInBytes();
+                pq.add(x1);
+            } else {
+              buffer.set(x1, RoaringBitmap.lazyor(buffer.get(x1), buffer.get(x2)));
+              sizes[x1] = buffer.get(x1).getSizeInBytes();
+              istmp[x1] = true;
+              pq.add(x1);
+            }
         }
-        RoaringBitmap answer = pq.poll();
+        RoaringBitmap answer = buffer.get(pq.poll());
         answer.repairAfterLazy();
         return answer;
     }
@@ -384,6 +425,7 @@ public final class FastAggregation {
      * @see #horizontal_xor(RoaringBitmap...)
      */
     public static RoaringBitmap priorityqueue_xor(RoaringBitmap... bitmaps) {
+        //TODO: This code could be faster, see priorityqueue_or 
         if (bitmaps.length == 0)
             return new RoaringBitmap();
 
