@@ -35,7 +35,7 @@ You can then parse files with a script:
 
 
 There are some cases where we get results that we believe are underwhelming, meaning that
-it should be possible to double the performance or more. You can run these benchmarks as:
+at some point, we thought it should be possible to double the performance or more. You can run these benchmarks as:
 
      $ ./run.sh org.roaringbitmap.needwork
 
@@ -44,9 +44,8 @@ or, more simply, as
      $ ./run.sh needwork
 
 
-A specific case of interest is slowORaggregate. We can analyze the result with JMC.
+We can analyze the result with JMC.
 
-     $ java -jar target/benchmarks.jar needwork.SlowORaggregate -jvmArgs="-XX:+UnlockCommercialFeatures -XX:+FlightRecorder -XX:StartFlightRecording=duration=60s,filename=SlowORaggregate.jfr"
+     $ java -jar target/benchmarks.jar needwork.SlowORaggregate3 -wi 5 -i 5 -f 1 -jvmArgs="-XX:+UnlockCommercialFeatures -XX:+FlightRecorder -XX:StartFlightRecording=duration=60s,filename=SlowORaggregate.jfr"
      $ jmc SlowORaggregate.jfr
 
-It indicates that 85% of the running time is spent in RunContainer.or(RunContainer).
