@@ -239,7 +239,12 @@ public final class FastAggregation {
         while (pq.size() > 1) {
             Integer x1 = pq.poll();
             Integer x2 = pq.poll();
-            if(istmp[x2]) {
+            if(istmp[x2] && istmp[x1]) {
+                buffer[x1] = RoaringBitmap.lazyorfromlazyinputs(buffer[x1], buffer[x2]);
+                sizes[x1] = buffer[x1].getSizeInBytes();
+                istmp[x1] = true;
+                pq.add(x1);
+            } else if(istmp[x2]) {
                 buffer[x2].lazyor(buffer[x1]);
                 sizes[x2] = buffer[x2].getSizeInBytes();
                 pq.add(x2);
@@ -291,8 +296,15 @@ public final class FastAggregation {
         while (pq.size() > 1) {
             Integer x1 = pq.poll();
             Integer x2 = pq.poll();
-            if(istmp[x2]) {
+            if(istmp[x2] && istmp[x1]) {
+                buffer.set(x1, RoaringBitmap.lazyorfromlazyinputs(buffer.get(x1), buffer.get(x2)));
+                sizes[x1] = buffer.get(x1).getSizeInBytes();
+                istmp[x1] = true;
+                pq.add(x1);
+            } else if(istmp[x2]) {
                 buffer.get(x2).lazyor(buffer.get(x1));
+                RoaringBitmap c = buffer.get(x2).clone();
+                c.repairAfterLazy();
                 sizes[x2] = buffer.get(x2).getSizeInBytes();
                 pq.add(x2);
             } else if(istmp[x1]) {
