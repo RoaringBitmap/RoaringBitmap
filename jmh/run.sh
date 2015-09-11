@@ -15,4 +15,4 @@ rm -f  $BASEDIR/target/benchmarks.jar
 mvn -f $BASEDIR/pom.xml clean install
 
 echo "Running benchmarks"
-java -jar $BASEDIR/target/benchmarks.jar -wi 5 -i 5 -f 1 $1
+java -jar $BASEDIR/target/benchmarks.jar -foe true -wi 5 -i 5 -f 1 $1
