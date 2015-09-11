@@ -9,6 +9,10 @@ public interface Bitmap {
 
    int last();
 
+   int cardinality();
+
+   Bitmap and(Bitmap other);
+
    void serialize(DataOutputStream dos) throws IOException;
 
 }

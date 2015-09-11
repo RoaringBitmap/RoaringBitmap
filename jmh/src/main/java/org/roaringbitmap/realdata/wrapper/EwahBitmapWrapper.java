@@ -5,7 +5,7 @@ import com.googlecode.javaewah.EWAHCompressedBitmap;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public final class EwahBitmapWrapper implements Bitmap {
+final class EwahBitmapWrapper implements Bitmap {
 
    private final EWAHCompressedBitmap bitmap;
 
@@ -21,6 +21,16 @@ public final class EwahBitmapWrapper implements Bitmap {
    @Override
    public int last() {
       return bitmap.reverseIntIterator().next();
+   }
+
+   @Override
+   public int cardinality() {
+      return bitmap.cardinality();
+   }
+
+   @Override
+   public Bitmap and(Bitmap other) {
+      return new EwahBitmapWrapper(bitmap.and(((EwahBitmapWrapper)other).bitmap));
    }
 
    @Override

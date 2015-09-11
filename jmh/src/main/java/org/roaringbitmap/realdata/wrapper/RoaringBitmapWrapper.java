@@ -5,7 +5,7 @@ import org.roaringbitmap.RoaringBitmap;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public final class RoaringBitmapWrapper implements Bitmap {
+final class RoaringBitmapWrapper implements Bitmap {
 
    private final RoaringBitmap bitmap;
 
@@ -20,6 +20,16 @@ public final class RoaringBitmapWrapper implements Bitmap {
    @Override
    public int last() {
       return bitmap.getReverseIntIterator().next();
+   }
+
+   @Override
+   public int cardinality() {
+      return bitmap.getCardinality();
+   }
+
+   @Override
+   public Bitmap and(Bitmap other) {
+      return new RoaringBitmapWrapper(RoaringBitmap.and(bitmap, ((RoaringBitmapWrapper) other).bitmap));
    }
 
    @Override

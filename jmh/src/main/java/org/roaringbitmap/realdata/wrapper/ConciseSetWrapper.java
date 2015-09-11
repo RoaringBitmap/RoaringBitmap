@@ -6,7 +6,7 @@ import it.uniroma3.mat.extendedset.intset.ConciseSet;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public final class ConciseSetWrapper implements Bitmap {
+final class ConciseSetWrapper implements Bitmap {
 
    private final ConciseSet bitmap;
 
@@ -25,8 +25,18 @@ public final class ConciseSetWrapper implements Bitmap {
    }
 
    @Override
+   public int cardinality() {
+      return bitmap.size();
+   }
+
+   @Override
+   public Bitmap and(Bitmap other) {
+      return new ConciseSetWrapper(bitmap.intersection(((ConciseSetWrapper)other).bitmap));
+   }
+
+   @Override
    public void serialize(DataOutputStream dos) throws IOException {
-      throw new UnsupportedOperationException();
+      throw new UnsupportedOperationException("Not implemented in ConciseSet");
    }
 
 }

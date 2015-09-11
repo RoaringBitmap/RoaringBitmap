@@ -21,7 +21,7 @@ For specific queries, try :
 Here is an example: 
 
      $ ./run.sh RunContainerRealDataBenchmarkIterate > iteratelog.txt
-     $ ./run.sh RunContainerRealDataBenchmarkAnd > andlog.txt
+     $ ./run.sh RealDataBenchmarkAnd > andlog.txt
      $ ./run.sh RunContainerRealDataBenchmarkOr > orlog.txt
 
 See samplescript.sh for a more elaborate example.
