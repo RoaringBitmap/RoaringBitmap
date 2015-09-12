@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 public class RealDataBenchmarkContains {
 
    @Benchmark
-   public void get(BenchmarkState bs, Blackhole bh) {
+   public void contains(BenchmarkState bs, Blackhole bh) {
       for (int k = 0; k < bs.bitmaps.size(); ++k) {
          Bitmap bitmap = bs.bitmaps.get(k);
          int range = bs.ranges.get(k);

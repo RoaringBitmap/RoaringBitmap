@@ -50,6 +50,11 @@ final class ConciseSetWrapper implements Bitmap {
    }
 
    @Override
+   public Bitmap xor(Bitmap other) {
+      return new ConciseSetWrapper(bitmap.symmetricDifference(((ConciseSetWrapper)other).bitmap));
+   }
+
+   @Override
    public void serialize(DataOutputStream dos) throws IOException {
       throw new UnsupportedOperationException("Not implemented in ConciseSet");
    }
