@@ -17,6 +17,8 @@ public interface Bitmap {
 
    Bitmap and(Bitmap other);
 
+   Bitmap or(Bitmap other);
+
    void serialize(DataOutputStream dos) throws IOException;
 
 }

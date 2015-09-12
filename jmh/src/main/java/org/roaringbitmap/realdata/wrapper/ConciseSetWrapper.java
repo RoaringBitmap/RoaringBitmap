@@ -45,6 +45,11 @@ final class ConciseSetWrapper implements Bitmap {
    }
 
    @Override
+   public Bitmap or(Bitmap other) {
+      return new ConciseSetWrapper(bitmap.union(((ConciseSetWrapper)other).bitmap));
+   }
+
+   @Override
    public void serialize(DataOutputStream dos) throws IOException {
       throw new UnsupportedOperationException("Not implemented in ConciseSet");
    }

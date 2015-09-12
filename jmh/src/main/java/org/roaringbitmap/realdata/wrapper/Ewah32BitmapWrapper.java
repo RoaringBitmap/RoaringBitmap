@@ -44,6 +44,11 @@ final class Ewah32BitmapWrapper implements Bitmap {
    }
 
    @Override
+   public Bitmap or(Bitmap other) {
+      return new Ewah32BitmapWrapper(bitmap.or(((Ewah32BitmapWrapper) other).bitmap));
+   }
+
+   @Override
    public void serialize(DataOutputStream dos) throws IOException {
       bitmap.serialize(dos);
    }

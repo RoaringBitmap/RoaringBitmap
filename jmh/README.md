@@ -22,7 +22,7 @@ Here is an example:
 
      $ ./run.sh RealDataBenchmarkIterate > iteratelog.txt
      $ ./run.sh RealDataBenchmarkAnd > andlog.txt
-     $ ./run.sh RunContainerRealDataBenchmarkOr > orlog.txt
+     $ ./run.sh RealDataBenchmarkOr > orlog.txt
 
 See samplescript.sh for a more elaborate example.
 

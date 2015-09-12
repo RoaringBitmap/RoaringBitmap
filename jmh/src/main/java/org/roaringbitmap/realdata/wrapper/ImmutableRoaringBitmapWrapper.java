@@ -44,6 +44,11 @@ final class ImmutableRoaringBitmapWrapper implements Bitmap {
    }
 
    @Override
+   public Bitmap or(Bitmap other) {
+      return new ImmutableRoaringBitmapWrapper(ImmutableRoaringBitmap.or(bitmap, ((ImmutableRoaringBitmapWrapper) other).bitmap));
+   }
+
+   @Override
    public void serialize(DataOutputStream dos) throws IOException {
       bitmap.serialize(dos);
    }

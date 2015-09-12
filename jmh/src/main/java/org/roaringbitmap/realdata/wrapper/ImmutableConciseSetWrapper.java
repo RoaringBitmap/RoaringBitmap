@@ -7,6 +7,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import static it.uniroma3.mat.extendedset.intset.ImmutableConciseSet.intersection;
+import static it.uniroma3.mat.extendedset.intset.ImmutableConciseSet.union;
 
 final class ImmutableConciseSetWrapper implements Bitmap {
 
@@ -44,6 +45,11 @@ final class ImmutableConciseSetWrapper implements Bitmap {
    @Override
    public Bitmap and(Bitmap other) {
       return new ImmutableConciseSetWrapper(intersection(bitmap, ((ImmutableConciseSetWrapper) other).bitmap));
+   }
+
+   @Override
+   public Bitmap or(Bitmap other) {
+      return new ImmutableConciseSetWrapper(union(bitmap, ((ImmutableConciseSetWrapper) other).bitmap));
    }
 
    @Override
