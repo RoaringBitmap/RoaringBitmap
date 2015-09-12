@@ -58,6 +58,11 @@ final class ImmutableConciseSetWrapper implements Bitmap {
    }
 
    @Override
+   public Bitmap andNot(Bitmap other) {
+      throw new UnsupportedOperationException("Not implemented in ImmutableConciseSet");
+   }
+
+   @Override
    public void serialize(DataOutputStream dos) throws IOException {
       throw new UnsupportedOperationException("Not implemented in ImmutableConciseSet");
    }

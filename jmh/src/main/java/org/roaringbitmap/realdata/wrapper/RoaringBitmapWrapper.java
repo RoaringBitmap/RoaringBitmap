@@ -54,6 +54,11 @@ final class RoaringBitmapWrapper implements Bitmap {
    }
 
    @Override
+   public Bitmap andNot(Bitmap other) {
+      return new RoaringBitmapWrapper(RoaringBitmap.andNot(bitmap, ((RoaringBitmapWrapper) other).bitmap));
+   }
+
+   @Override
    public void serialize(DataOutputStream dos) throws IOException {
       bitmap.serialize(dos);
    }

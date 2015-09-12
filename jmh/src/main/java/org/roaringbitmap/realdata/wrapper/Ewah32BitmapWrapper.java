@@ -40,7 +40,7 @@ final class Ewah32BitmapWrapper implements Bitmap {
 
    @Override
    public Bitmap and(Bitmap other) {
-      return new Ewah32BitmapWrapper(bitmap.and(((Ewah32BitmapWrapper)other).bitmap));
+      return new Ewah32BitmapWrapper(bitmap.and(((Ewah32BitmapWrapper) other).bitmap));
    }
 
    @Override
@@ -51,6 +51,11 @@ final class Ewah32BitmapWrapper implements Bitmap {
    @Override
    public Bitmap xor(Bitmap other) {
       return new Ewah32BitmapWrapper(bitmap.xor(((Ewah32BitmapWrapper) other).bitmap));
+   }
+
+   @Override
+   public Bitmap andNot(Bitmap other) {
+      return new Ewah32BitmapWrapper(bitmap.andNot(((Ewah32BitmapWrapper) other).bitmap));
    }
 
    @Override

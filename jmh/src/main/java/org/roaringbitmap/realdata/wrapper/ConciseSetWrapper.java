@@ -41,17 +41,22 @@ final class ConciseSetWrapper implements Bitmap {
 
    @Override
    public Bitmap and(Bitmap other) {
-      return new ConciseSetWrapper(bitmap.intersection(((ConciseSetWrapper)other).bitmap));
+      return new ConciseSetWrapper(bitmap.intersection(((ConciseSetWrapper) other).bitmap));
    }
 
    @Override
    public Bitmap or(Bitmap other) {
-      return new ConciseSetWrapper(bitmap.union(((ConciseSetWrapper)other).bitmap));
+      return new ConciseSetWrapper(bitmap.union(((ConciseSetWrapper) other).bitmap));
    }
 
    @Override
    public Bitmap xor(Bitmap other) {
-      return new ConciseSetWrapper(bitmap.symmetricDifference(((ConciseSetWrapper)other).bitmap));
+      return new ConciseSetWrapper(bitmap.symmetricDifference(((ConciseSetWrapper) other).bitmap));
+   }
+
+   @Override
+   public Bitmap andNot(Bitmap other) {
+      return new ConciseSetWrapper(bitmap.difference(((ConciseSetWrapper) other).bitmap));
    }
 
    @Override
