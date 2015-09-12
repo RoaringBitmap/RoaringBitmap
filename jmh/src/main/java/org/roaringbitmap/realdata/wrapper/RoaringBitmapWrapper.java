@@ -34,6 +34,11 @@ final class RoaringBitmapWrapper implements Bitmap {
    }
 
    @Override
+   public BitmapIterator reverseIterator() {
+      return new RoaringIteratorWrapper(bitmap.getReverseIntIterator());
+   }
+
+   @Override
    public Bitmap and(Bitmap other) {
       return new RoaringBitmapWrapper(RoaringBitmap.and(bitmap, ((RoaringBitmapWrapper) other).bitmap));
    }

@@ -13,6 +13,8 @@ public interface Bitmap {
 
    BitmapIterator iterator();
 
+   BitmapIterator reverseIterator();
+
    Bitmap and(Bitmap other);
 
    void serialize(DataOutputStream dos) throws IOException;

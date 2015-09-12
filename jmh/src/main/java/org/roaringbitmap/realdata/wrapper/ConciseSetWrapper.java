@@ -35,6 +35,11 @@ final class ConciseSetWrapper implements Bitmap {
    }
 
    @Override
+   public BitmapIterator reverseIterator() {
+      return new ConciseSetIteratorWrapper(bitmap.descendingIterator());
+   }
+
+   @Override
    public Bitmap and(Bitmap other) {
       return new ConciseSetWrapper(bitmap.intersection(((ConciseSetWrapper)other).bitmap));
    }

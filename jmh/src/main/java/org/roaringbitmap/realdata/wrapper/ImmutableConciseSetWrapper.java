@@ -37,6 +37,11 @@ final class ImmutableConciseSetWrapper implements Bitmap {
    }
 
    @Override
+   public BitmapIterator reverseIterator() {
+      throw new UnsupportedOperationException("Not implemented in ImmutableConciseSet");
+   }
+
+   @Override
    public Bitmap and(Bitmap other) {
       return new ImmutableConciseSetWrapper(intersection(bitmap, ((ImmutableConciseSetWrapper) other).bitmap));
    }
