@@ -7,35 +7,31 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
-import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
+
+import static org.roaringbitmap.RealDataset.*;
 
 @RunWith(Parameterized.class)
-public class RealDataBenchmark {
+public class RealDataMemoryBenchmarkTest {
 
-    @Parameters
-    public static Collection<Object[]> data() {
+    @Parameters(name = "{0}")
+    public static Collection<Object[]> params() {
         return Arrays.asList(
                 new Object[][] {
-                        { "census-income" },
-                        { "census1881" },
-                        { "dimension_008" },
-                        { "dimension_003" },
-                        { "dimension_033" },
-                        { "uscensus2000" },
-                        { "weather_sept_85" },
-                        { "wikileaks-noquotes"},                
-                        {"census-income_srt"},
-                        {"census1881_srt"},
-                        {"weather_sept_85_srt"},
-                        {"wikileaks-noquotes_srt"}
-
+                        { CENSUS_INCOME },
+                        { CENSUS1881 },
+                        { DIMENSION_008 },
+                        { DIMENSION_003 },
+                        { DIMENSION_033 },
+                        { USCENSUS2000 },
+                        { WEATHER_SEPT_85 },
+                        { WIKILEAKS_NOQUOTES },
+                        { CENSUS_INCOME_SRT },
+                        { CENSUS1881_SRT },
+                        { WEATHER_SEPT_85_SRT },
+                        { WIKILEAKS_NOQUOTES_SRT }
                 });
     }
 
