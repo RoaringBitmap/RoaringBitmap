@@ -13,6 +13,7 @@ final class RoaringBitmapWrapper implements Bitmap {
       this.bitmap = bitmap;
    }
 
+   @Override
    public boolean contains(int i) {
       return bitmap.contains(i);
    }
@@ -25,6 +26,11 @@ final class RoaringBitmapWrapper implements Bitmap {
    @Override
    public int cardinality() {
       return bitmap.getCardinality();
+   }
+
+   @Override
+   public BitmapIterator iterator() {
+      return new RoaringIteratorWrapper(bitmap.getIntIterator());
    }
 
    @Override

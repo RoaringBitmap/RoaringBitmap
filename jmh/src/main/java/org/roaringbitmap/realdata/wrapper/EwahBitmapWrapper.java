@@ -29,6 +29,11 @@ final class EwahBitmapWrapper implements Bitmap {
    }
 
    @Override
+   public BitmapIterator iterator() {
+      return new EwahIteratorWrapper(bitmap.intIterator());
+   }
+
+   @Override
    public Bitmap and(Bitmap other) {
       return new EwahBitmapWrapper(bitmap.and(((EwahBitmapWrapper)other).bitmap));
    }

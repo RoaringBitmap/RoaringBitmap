@@ -11,6 +11,8 @@ public interface Bitmap {
 
    int cardinality();
 
+   BitmapIterator iterator();
+
    Bitmap and(Bitmap other);
 
    void serialize(DataOutputStream dos) throws IOException;
