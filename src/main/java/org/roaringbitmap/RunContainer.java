@@ -746,8 +746,11 @@ public final class RunContainer extends Container implements Cloneable {
         if (i.hasNext()) {
             if(answer.nbrruns>0) {
                 // this might be useful if the run container has just one very large run
-                int lastval = Util.toIntUnsigned(answer.getValue(answer.nbrruns - 1))
-                        + Util.toIntUnsigned(answer.getLength(answer.nbrruns - 1)) + 1;
+                int lastval = Util.toIntUnsigned(answer.valueslength[2*(answer.nbrruns - 1)])
+                          + Util.toIntUnsigned(answer.valueslength[2*(answer.nbrruns - 1)+1])+1;              
+                // We used to have the following line but it triggered a bug in one JVM (Oracle jdk 1.8u60 Linux x64).
+                //  int lastval = Util.toIntUnsigned(answer.getValue(answer.nbrruns - 1))
+                //        + Util.toIntUnsigned(answer.getLength(answer.nbrruns - 1)) + 1;
                 i.advanceIfNeeded((short) lastval);
             }
             while (i.hasNext()) {
