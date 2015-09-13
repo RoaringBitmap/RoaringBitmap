@@ -4,6 +4,7 @@ import com.googlecode.javaewah32.EWAHCompressedBitmap32;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Iterator;
 
 final class Ewah32BitmapWrapper implements Bitmap {
 
@@ -56,6 +57,21 @@ final class Ewah32BitmapWrapper implements Bitmap {
    @Override
    public Bitmap andNot(Bitmap other) {
       return new Ewah32BitmapWrapper(bitmap.andNot(((Ewah32BitmapWrapper) other).bitmap));
+   }
+
+   @Override
+   public BitmapAggregator naiveOrAggregator() {
+      return new BitmapAggregator() {
+         @Override
+         public Bitmap aggregate(Iterable<Bitmap> bitmaps) {
+             final Iterator<Bitmap> i = bitmaps.iterator();
+             EWAHCompressedBitmap32 bitmap = ((Ewah32BitmapWrapper) i.next()).bitmap;
+             while(i.hasNext()) {
+                 bitmap = bitmap.or(((Ewah32BitmapWrapper) i.next()).bitmap);
+             }
+             return new Ewah32BitmapWrapper(bitmap);
+         }
+      };
    }
 
    @Override

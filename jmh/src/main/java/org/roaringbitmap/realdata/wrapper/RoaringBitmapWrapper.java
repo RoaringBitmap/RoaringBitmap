@@ -4,6 +4,7 @@ import org.roaringbitmap.RoaringBitmap;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Iterator;
 
 final class RoaringBitmapWrapper implements Bitmap {
 
@@ -56,6 +57,29 @@ final class RoaringBitmapWrapper implements Bitmap {
    @Override
    public Bitmap andNot(Bitmap other) {
       return new RoaringBitmapWrapper(RoaringBitmap.andNot(bitmap, ((RoaringBitmapWrapper) other).bitmap));
+   }
+
+   @Override
+   public BitmapAggregator naiveOrAggregator() {
+      return new BitmapAggregator() {
+         @Override
+         public Bitmap aggregate(final Iterable<Bitmap> bitmaps) {
+             Iterator<RoaringBitmap> iterator = new Iterator<RoaringBitmap>() {
+                 final Iterator<Bitmap> i = bitmaps.iterator();
+
+                 @Override
+                 public boolean hasNext() {
+                     return i.hasNext();
+                 }
+
+                 @Override
+                 public RoaringBitmap next() {
+                     return ((RoaringBitmapWrapper) i.next()).bitmap;
+                 }
+             };
+             return new RoaringBitmapWrapper(RoaringBitmap.or(iterator));
+         }
+      };
    }
 
    @Override

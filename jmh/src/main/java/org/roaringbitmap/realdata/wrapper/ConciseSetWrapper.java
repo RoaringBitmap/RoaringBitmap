@@ -5,6 +5,7 @@ import it.uniroma3.mat.extendedset.intset.ConciseSet;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Iterator;
 
 final class ConciseSetWrapper implements Bitmap {
 
@@ -57,6 +58,21 @@ final class ConciseSetWrapper implements Bitmap {
    @Override
    public Bitmap andNot(Bitmap other) {
       return new ConciseSetWrapper(bitmap.difference(((ConciseSetWrapper) other).bitmap));
+   }
+
+   @Override
+   public BitmapAggregator naiveOrAggregator() {
+      return new BitmapAggregator() {
+         @Override
+         public Bitmap aggregate(Iterable<Bitmap> bitmaps) {
+             final Iterator<Bitmap> i = bitmaps.iterator();
+             ConciseSet bitmap = ((ConciseSetWrapper) i.next()).bitmap;
+             while(i.hasNext()) {
+                 bitmap = bitmap.union(((ConciseSetWrapper) i.next()).bitmap);
+             }
+             return new ConciseSetWrapper(bitmap);
+         }
+      };
    }
 
    @Override

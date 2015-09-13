@@ -23,6 +23,8 @@ public interface Bitmap {
 
    Bitmap andNot(Bitmap other);
 
+   BitmapAggregator naiveOrAggregator();
+
    void serialize(DataOutputStream dos) throws IOException;
 
 }
