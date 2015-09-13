@@ -1,5 +1,6 @@
 package org.roaringbitmap.realdata.wrapper;
 
+import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.RoaringBitmap;
 
 import java.io.DataOutputStream;
@@ -64,20 +65,35 @@ final class RoaringBitmapWrapper implements Bitmap {
       return new BitmapAggregator() {
          @Override
          public Bitmap aggregate(final Iterable<Bitmap> bitmaps) {
-             Iterator<RoaringBitmap> iterator = new Iterator<RoaringBitmap>() {
-                 final Iterator<Bitmap> i = bitmaps.iterator();
-
-                 @Override
-                 public boolean hasNext() {
-                     return i.hasNext();
-                 }
-
-                 @Override
-                 public RoaringBitmap next() {
-                     return ((RoaringBitmapWrapper) i.next()).bitmap;
-                 }
-             };
+             Iterator<RoaringBitmap> iterator = toRoaringBitmapIterator(bitmaps);
              return new RoaringBitmapWrapper(RoaringBitmap.or(iterator));
+         }
+      };
+   }
+
+   @Override
+   public BitmapAggregator priorityQueueOrAggregator() {
+      return new BitmapAggregator() {
+         @Override
+         public Bitmap aggregate(final Iterable<Bitmap> bitmaps) {
+            Iterator<RoaringBitmap> iterator = toRoaringBitmapIterator(bitmaps);
+            return new RoaringBitmapWrapper(FastAggregation.priorityqueue_or(iterator));
+         }
+      };
+   }
+
+   private Iterator<RoaringBitmap> toRoaringBitmapIterator(final Iterable<Bitmap> bitmaps) {
+      return new Iterator<RoaringBitmap>() {
+         final Iterator<Bitmap> i = bitmaps.iterator();
+
+         @Override
+         public boolean hasNext() {
+            return i.hasNext();
+         }
+
+         @Override
+         public RoaringBitmap next() {
+            return ((RoaringBitmapWrapper) i.next()).bitmap;
          }
       };
    }

@@ -25,6 +25,8 @@ public interface Bitmap {
 
    BitmapAggregator naiveOrAggregator();
 
+   BitmapAggregator priorityQueueOrAggregator();
+
    void serialize(DataOutputStream dos) throws IOException;
 
 }

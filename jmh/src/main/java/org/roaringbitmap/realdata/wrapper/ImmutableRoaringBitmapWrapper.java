@@ -1,5 +1,6 @@
 package org.roaringbitmap.realdata.wrapper;
 
+import org.roaringbitmap.buffer.BufferFastAggregation;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 
 import java.io.DataOutputStream;
@@ -64,20 +65,35 @@ final class ImmutableRoaringBitmapWrapper implements Bitmap {
       return new BitmapAggregator() {
          @Override
          public Bitmap aggregate(final Iterable<Bitmap> bitmaps) {
-             Iterator<ImmutableRoaringBitmap> iterator = new Iterator<ImmutableRoaringBitmap>() {
-                 final Iterator<Bitmap> i = bitmaps.iterator();
-
-                 @Override
-                 public boolean hasNext() {
-                     return i.hasNext();
-                 }
-
-                 @Override
-                 public ImmutableRoaringBitmap next() {
-                     return ((ImmutableRoaringBitmapWrapper) i.next()).bitmap;
-                 }
-             };
+             Iterator<ImmutableRoaringBitmap> iterator = toImmutableRoaringBitmapIterator(bitmaps);
              return new ImmutableRoaringBitmapWrapper(ImmutableRoaringBitmap.or(iterator));
+         }
+      };
+   }
+
+   @Override
+   public BitmapAggregator priorityQueueOrAggregator() {
+      return new BitmapAggregator() {
+         @Override
+         public Bitmap aggregate(final Iterable<Bitmap> bitmaps) {
+            Iterator<ImmutableRoaringBitmap> iterator = toImmutableRoaringBitmapIterator(bitmaps);
+            return new ImmutableRoaringBitmapWrapper(BufferFastAggregation.priorityqueue_or(iterator));
+         }
+      };
+   }
+
+   private Iterator<ImmutableRoaringBitmap> toImmutableRoaringBitmapIterator(final Iterable<Bitmap> bitmaps) {
+      return new Iterator<ImmutableRoaringBitmap>() {
+         final Iterator<Bitmap> i = bitmaps.iterator();
+
+         @Override
+         public boolean hasNext() {
+            return i.hasNext();
+         }
+
+         @Override
+         public ImmutableRoaringBitmap next() {
+            return ((ImmutableRoaringBitmapWrapper) i.next()).bitmap;
          }
       };
    }

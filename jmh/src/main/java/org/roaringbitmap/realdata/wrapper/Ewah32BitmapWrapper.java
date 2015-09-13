@@ -1,6 +1,7 @@
 package org.roaringbitmap.realdata.wrapper;
 
 import com.googlecode.javaewah32.EWAHCompressedBitmap32;
+import com.googlecode.javaewah32.FastAggregation32;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -70,6 +71,29 @@ final class Ewah32BitmapWrapper implements Bitmap {
                  bitmap = bitmap.or(((Ewah32BitmapWrapper) i.next()).bitmap);
              }
              return new Ewah32BitmapWrapper(bitmap);
+         }
+      };
+   }
+
+   @Override
+   public BitmapAggregator priorityQueueOrAggregator() {
+      return new BitmapAggregator() {
+         @Override
+         public Bitmap aggregate(final Iterable<Bitmap> bitmaps) {
+            Iterator<EWAHCompressedBitmap32> iterator = new Iterator<EWAHCompressedBitmap32>() {
+               final Iterator<Bitmap> i = bitmaps.iterator();
+
+               @Override
+               public boolean hasNext() {
+                  return i.hasNext();
+               }
+
+               @Override
+               public EWAHCompressedBitmap32 next() {
+                  return ((Ewah32BitmapWrapper) i.next()).bitmap;
+               }
+            };
+            return new Ewah32BitmapWrapper(FastAggregation32.or(iterator));
          }
       };
    }

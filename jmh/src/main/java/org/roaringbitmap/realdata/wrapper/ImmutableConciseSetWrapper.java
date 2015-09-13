@@ -5,7 +5,9 @@ import it.uniroma3.mat.extendedset.intset.ImmutableConciseSet;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.PriorityQueue;
 
 import static it.uniroma3.mat.extendedset.intset.ImmutableConciseSet.intersection;
 import static it.uniroma3.mat.extendedset.intset.ImmutableConciseSet.union;
@@ -74,6 +76,38 @@ final class ImmutableConciseSetWrapper implements Bitmap {
                  bitmap = ImmutableConciseSet.union(bitmap, ((ImmutableConciseSetWrapper) i.next()).bitmap);
              }
              return new ImmutableConciseSetWrapper(bitmap);
+         }
+      };
+   }
+
+   @Override
+   public BitmapAggregator priorityQueueOrAggregator() {
+      return new BitmapAggregator() {
+         @Override
+         public Bitmap aggregate(Iterable<Bitmap> bitmaps) {
+            PriorityQueue<ImmutableConciseSet> pq = new PriorityQueue<ImmutableConciseSet>(128,
+                    new Comparator<ImmutableConciseSet>() {
+                       @Override
+                       public int compare(ImmutableConciseSet a, ImmutableConciseSet b) {
+                          return a.getLastWordIndex() - b.getLastWordIndex();
+                       }
+                    }
+            );
+            for (Bitmap bitmap1 : bitmaps) {
+               pq.add(((ImmutableConciseSetWrapper) bitmap1).bitmap);
+            }
+            ImmutableConciseSet bitmap;
+            if(pq.isEmpty()) {
+               bitmap = new ImmutableConciseSet();
+            } else {
+               while (pq.size() > 1) {
+                  ImmutableConciseSet x1 = pq.poll();
+                  ImmutableConciseSet x2 = pq.poll();
+                  pq.add(ImmutableConciseSet.union(x1, x2));
+               }
+               bitmap = pq.poll();
+            }
+            return new ImmutableConciseSetWrapper(bitmap);
          }
       };
    }

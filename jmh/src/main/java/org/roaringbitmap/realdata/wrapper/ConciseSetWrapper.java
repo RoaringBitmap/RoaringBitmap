@@ -5,7 +5,9 @@ import it.uniroma3.mat.extendedset.intset.ConciseSet;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.PriorityQueue;
 
 final class ConciseSetWrapper implements Bitmap {
 
@@ -71,6 +73,39 @@ final class ConciseSetWrapper implements Bitmap {
                  bitmap = bitmap.union(((ConciseSetWrapper) i.next()).bitmap);
              }
              return new ConciseSetWrapper(bitmap);
+         }
+      };
+   }
+
+   @Override
+   public BitmapAggregator priorityQueueOrAggregator() {
+      return new BitmapAggregator() {
+         @Override
+         public Bitmap aggregate(Iterable<Bitmap> bitmaps) {
+            PriorityQueue<ConciseSet> pq = new PriorityQueue<ConciseSet>(128,
+                    new Comparator<ConciseSet>() {
+                       @Override
+                       public int compare(ConciseSet a, ConciseSet b) {
+                          return (int) (a.size() * a.collectionCompressionRatio())
+                                  - (int) (b.size() * b.collectionCompressionRatio());
+                       }
+                    }
+            );
+            for (Bitmap bitmap1 : bitmaps) {
+               pq.add(((ConciseSetWrapper) bitmap1).bitmap);
+            }
+            ConciseSet bitmap;
+            if(pq.isEmpty()) {
+               bitmap = new ConciseSet();
+            } else {
+               while (pq.size() > 1) {
+                  ConciseSet x1 = pq.poll();
+                  ConciseSet x2 = pq.poll();
+                  pq.add(x1.union(x2));
+               }
+               bitmap = pq.poll();
+            }
+            return new ConciseSetWrapper(bitmap);
          }
       };
    }
