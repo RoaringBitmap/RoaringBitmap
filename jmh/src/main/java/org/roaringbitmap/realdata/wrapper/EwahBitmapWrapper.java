@@ -61,6 +61,21 @@ final class EwahBitmapWrapper implements Bitmap {
    }
 
    @Override
+   public BitmapAggregator naiveAndAggregator() {
+      return new BitmapAggregator() {
+         @Override
+         public Bitmap aggregate(Iterable<Bitmap> bitmaps) {
+            final Iterator<Bitmap> i = bitmaps.iterator();
+            EWAHCompressedBitmap bitmap = ((EwahBitmapWrapper) i.next()).bitmap;
+            while(i.hasNext()) {
+               bitmap = bitmap.and(((EwahBitmapWrapper) i.next()).bitmap);
+            }
+            return new EwahBitmapWrapper(bitmap);
+         }
+      };
+   }
+
+   @Override
    public BitmapAggregator naiveOrAggregator() {
       return new BitmapAggregator() {
          @Override

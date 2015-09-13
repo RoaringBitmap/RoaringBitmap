@@ -61,12 +61,23 @@ final class RoaringBitmapWrapper implements Bitmap {
    }
 
    @Override
+   public BitmapAggregator naiveAndAggregator() {
+      return new BitmapAggregator() {
+         @Override
+         public Bitmap aggregate(Iterable<Bitmap> bitmaps) {
+            Iterator<RoaringBitmap> iterator = toRoaringBitmapIterator(bitmaps);
+            return new RoaringBitmapWrapper(FastAggregation.naive_and(iterator));
+         }
+      };
+   }
+
+   @Override
    public BitmapAggregator naiveOrAggregator() {
       return new BitmapAggregator() {
          @Override
          public Bitmap aggregate(final Iterable<Bitmap> bitmaps) {
              Iterator<RoaringBitmap> iterator = toRoaringBitmapIterator(bitmaps);
-             return new RoaringBitmapWrapper(RoaringBitmap.or(iterator));
+             return new RoaringBitmapWrapper(FastAggregation.naive_or(iterator));
          }
       };
    }

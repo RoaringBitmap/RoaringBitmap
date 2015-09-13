@@ -23,6 +23,8 @@ public interface Bitmap {
 
    Bitmap andNot(Bitmap other);
 
+   BitmapAggregator naiveAndAggregator();
+
    BitmapAggregator naiveOrAggregator();
 
    BitmapAggregator priorityQueueOrAggregator();

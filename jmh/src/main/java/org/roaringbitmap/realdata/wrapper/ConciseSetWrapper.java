@@ -63,6 +63,21 @@ final class ConciseSetWrapper implements Bitmap {
    }
 
    @Override
+   public BitmapAggregator naiveAndAggregator() {
+      return new BitmapAggregator() {
+         @Override
+         public Bitmap aggregate(Iterable<Bitmap> bitmaps) {
+            final Iterator<Bitmap> i = bitmaps.iterator();
+            ConciseSet bitmap = ((ConciseSetWrapper) i.next()).bitmap;
+            while(i.hasNext()) {
+               bitmap = bitmap.intersection(((ConciseSetWrapper) i.next()).bitmap);
+            }
+            return new ConciseSetWrapper(bitmap);
+         }
+      };
+   }
+
+   @Override
    public BitmapAggregator naiveOrAggregator() {
       return new BitmapAggregator() {
          @Override

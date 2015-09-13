@@ -66,16 +66,37 @@ final class ImmutableConciseSetWrapper implements Bitmap {
    }
 
    @Override
+   public BitmapAggregator naiveAndAggregator() {
+      return new BitmapAggregator() {
+         @Override
+         public Bitmap aggregate(Iterable<Bitmap> bitmaps) {
+            return new ImmutableConciseSetWrapper(intersection(toImmutableConciseSetIterator(bitmaps)));
+         }
+      };
+   }
+
+   @Override
    public BitmapAggregator naiveOrAggregator() {
       return new BitmapAggregator() {
          @Override
          public Bitmap aggregate(Iterable<Bitmap> bitmaps) {
-             final Iterator<Bitmap> i = bitmaps.iterator();
-             ImmutableConciseSet bitmap = ((ImmutableConciseSetWrapper) i.next()).bitmap;
-             while(i.hasNext()) {
-                 bitmap = ImmutableConciseSet.union(bitmap, ((ImmutableConciseSetWrapper) i.next()).bitmap);
-             }
-             return new ImmutableConciseSetWrapper(bitmap);
+             return new ImmutableConciseSetWrapper(union(toImmutableConciseSetIterator(bitmaps)));
+         }
+      };
+   }
+
+   private Iterator<ImmutableConciseSet> toImmutableConciseSetIterator(final Iterable<Bitmap> bitmaps) {
+      return new Iterator<ImmutableConciseSet>() {
+         final Iterator<Bitmap> i = bitmaps.iterator();
+
+         @Override
+         public boolean hasNext() {
+            return i.hasNext();
+         }
+
+         @Override
+         public ImmutableConciseSet next() {
+            return ((ImmutableConciseSetWrapper) i.next()).bitmap;
          }
       };
    }
