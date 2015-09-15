@@ -714,12 +714,12 @@ public final class MappeableRunContainer extends MappeableContainer implements C
             }
         }        
         if (i.hasNext()) {
-            if(this.nbrruns>0) {
+            /*if(this.nbrruns>0) {
                 // this might be useful if the run container has just one very large run
                 int lastval = BufferUtil.toIntUnsigned(getValue(nbrruns + offset - 1))
                         + BufferUtil.toIntUnsigned(getLength(nbrruns + offset - 1)) + 1;
                 i.advanceIfNeeded((short) lastval);
-            }
+            }*/
             while (i.hasNext()) {
                 smartAppend(vl,i.next());
             }
@@ -806,15 +806,14 @@ public final class MappeableRunContainer extends MappeableContainer implements C
                 answer.smartAppend(vl,i.next());
             }
         }   
-        if(i.hasNext()) {
-            if(answer.nbrruns>0) {
+        if (i.hasNext()) {
+            /*if(answer.nbrruns>0) {
                 // this might be useful if the run container has just one very large run
                 int lastval = BufferUtil.toIntUnsigned(answer.getValue(answer.nbrruns - 1))
                         + BufferUtil.toIntUnsigned(answer.getLength(answer.nbrruns - 1)) + 1;
                 i.advanceIfNeeded((short) lastval);
-            }
+            }*/
             while (i.hasNext()) {
-
                 answer.smartAppend(vl,i.next());
             }
         } else {
@@ -845,12 +844,12 @@ public final class MappeableRunContainer extends MappeableContainer implements C
             }
         }        
         if (i.hasNext()) {
-            if(this.nbrruns>0) {
+            /*if(this.nbrruns>0) {
                 // this might be useful if the run container has just one very large run
                 int lastval = BufferUtil.toIntUnsigned(getValue(vl,nbrruns + offset - 1))
                         + BufferUtil.toIntUnsigned(getLength(vl,nbrruns + offset - 1)) + 1;
                 i.advanceIfNeeded((short) lastval);
-            }
+            }*/
             while (i.hasNext()) {
                 smartAppend(vl,i.next());
             }
