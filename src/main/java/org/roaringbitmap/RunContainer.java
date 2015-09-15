@@ -738,9 +738,9 @@ public final class RunContainer extends Container implements Cloneable {
             if(Util.compareUnsigned(getValue(rlepos), i.peekNext()) <= 0) {
                 answer.smartAppend(getValue(rlepos), getLength(rlepos));
 
-                int lastval = Util.toIntUnsigned(answer.getValue(answer.nbrruns - 1))
-                        + Util.toIntUnsigned(answer.getLength(answer.nbrruns - 1)) + 1;
-                i.advanceIfNeeded((short) lastval);
+                //int lastval = Util.toIntUnsigned(answer.getValue(answer.nbrruns - 1))
+                //        + Util.toIntUnsigned(answer.getLength(answer.nbrruns - 1)) + 1;
+                //i.advanceIfNeeded((short) lastval);
 
                 rlepos++;
             } else {
@@ -750,9 +750,9 @@ public final class RunContainer extends Container implements Cloneable {
         if (i.hasNext()) {
             if(answer.nbrruns>0) {
                 // this might be useful if the run container has just one very large run
-                  int lastval = Util.toIntUnsigned(answer.getValue(answer.nbrruns - 1))
-                          + Util.toIntUnsigned(answer.getLength(answer.nbrruns - 1)) + 1;
-                i.advanceIfNeeded((short) lastval);
+                //  int lastval = Util.toIntUnsigned(answer.getValue(answer.nbrruns - 1))
+                //          + Util.toIntUnsigned(answer.getLength(answer.nbrruns - 1)) + 1;
+                //i.advanceIfNeeded((short) lastval);
             }
             while (i.hasNext()) {
                 answer.smartAppend(i.next());
