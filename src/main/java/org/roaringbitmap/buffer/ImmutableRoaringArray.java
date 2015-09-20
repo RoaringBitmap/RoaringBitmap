@@ -149,21 +149,23 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     public MappeableContainer getContainerAtIndex(int i) {
     	int cardinality = getCardinality(i);
         boolean isBitmap = cardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE; // if not a runcontainer
-        buffer.position(getOffsetContainer(i));
+        ByteBuffer tmp = buffer.duplicate();
+        tmp.order(buffer.order());
+        tmp.position(getOffsetContainer(i));
         boolean hasrun = hasRunCompression();
         if (isRunContainer(i,hasrun))  {
             // first, we have a short giving the number of runs
-            int nbrruns = BufferUtil.toIntUnsigned(buffer.getShort());
-            final ShortBuffer shortArray = buffer.asShortBuffer().slice();
+            int nbrruns = BufferUtil.toIntUnsigned(tmp.getShort());
+            final ShortBuffer shortArray = tmp.asShortBuffer().slice();
             shortArray.limit(2*nbrruns);
             return new MappeableRunContainer(shortArray,nbrruns);
         }
         if (isBitmap) {
-            final LongBuffer bitmapArray = buffer.asLongBuffer().slice();
+            final LongBuffer bitmapArray = tmp.asLongBuffer().slice();
             bitmapArray.limit(MappeableBitmapContainer.MAX_CAPACITY / 64);            
             return new MappeableBitmapContainer(bitmapArray, cardinality);
         } else {
-            final ShortBuffer shortArray = buffer.asShortBuffer().slice();
+            final ShortBuffer shortArray = tmp.asShortBuffer().slice();
             shortArray.limit(cardinality);
             return new MappeableArrayContainer(shortArray, cardinality);
         }
