@@ -9,6 +9,26 @@ public interface Bitmap {
 
    int last();
 
+   int cardinality();
+
+   BitmapIterator iterator();
+
+   BitmapIterator reverseIterator();
+
+   Bitmap and(Bitmap other);
+
+   Bitmap or(Bitmap other);
+
+   Bitmap xor(Bitmap other);
+
+   Bitmap andNot(Bitmap other);
+
+   BitmapAggregator naiveAndAggregator();
+
+   BitmapAggregator naiveOrAggregator();
+
+   BitmapAggregator priorityQueueOrAggregator();
+
    void serialize(DataOutputStream dos) throws IOException;
 
 }

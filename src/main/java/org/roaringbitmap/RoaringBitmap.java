@@ -247,6 +247,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         return answer;
     }
 
+    // important: inputs should not have been computed lazily
     protected static RoaringBitmap lazyor(final RoaringBitmap x1,
             final RoaringBitmap x2) {
         final RoaringBitmap answer = new RoaringBitmap();
@@ -300,6 +301,65 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         return answer;
     }
 
+    protected static RoaringBitmap lazyorfromlazyinputs(final RoaringBitmap x1,
+            final RoaringBitmap x2) {
+        final RoaringBitmap answer = new RoaringBitmap();
+        int pos1 = 0, pos2 = 0;
+        final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer
+                .size();
+        main: if (pos1 < length1 && pos2 < length2) {
+            short s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+            short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+
+            while (true) {
+                if (s1 == s2) {
+                    Container c1 = x1.highLowContainer.getContainerAtIndex(pos1);
+                    Container c2 = x2.highLowContainer.getContainerAtIndex(pos2);
+                    if((c2 instanceof BitmapContainer) && (!(c1 instanceof BitmapContainer))) {
+                        Container tmp = c1;
+                        c1 = c2;
+                        c2 = tmp;
+                    }
+                    answer.highLowContainer.append(
+                            s1,
+                            c1.lazyIOR(c2));
+                    pos1++;
+                    pos2++;
+                    if ((pos1 == length1) || (pos2 == length2)) {
+                        break main;
+                    }
+                    s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+                } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
+                    answer.highLowContainer.appendCopy(x1.highLowContainer,
+                            pos1);//TODO: would not need to copy
+                    pos1++;
+                    if (pos1 == length1) {
+                        break main;
+                    }
+                    s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+                } else { // s1 > s2
+                    answer.highLowContainer.appendCopy(x2.highLowContainer,
+                            pos2);//TODO: would not need to copy
+                    pos2++;
+                    if (pos2 == length2) {
+                        break main;
+                    }
+                    s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+                }
+            }
+        }
+        if (pos1 == length1) {
+            answer.highLowContainer.appendCopy(x2.highLowContainer, pos2,
+                    length2);
+        } else if (pos2 == length2) {
+            answer.highLowContainer.appendCopy(x1.highLowContainer, pos1,
+                    length1);
+        }
+        return answer;
+    }
+
+    
     /**
      * Rank returns the number of integers that are smaller or equal to x (Rank(infinity) would be GetCardinality()).
      * @param x upper limit
@@ -1026,6 +1086,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     
 
     // don't forget to call repairAfterLazy() afterward
+    // important: x2 should not have been computed lazily
     protected void lazyor(final RoaringBitmap x2) {
         int pos1 = 0, pos2 = 0;
         int length1 = highLowContainer.size();
@@ -1034,7 +1095,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         if (pos1 < length1 && pos2 < length2) {
             short s1 = highLowContainer.getKeyAtIndex(pos1);
             short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-
+            
             while (true) {
                 if (s1 == s2) {
                     this.highLowContainer.setContainerAtIndex(pos1, highLowContainer.getContainerAtIndex(

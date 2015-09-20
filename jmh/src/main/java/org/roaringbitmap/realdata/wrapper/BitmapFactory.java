@@ -4,6 +4,7 @@ package org.roaringbitmap.realdata.wrapper;
 import com.googlecode.javaewah.EWAHCompressedBitmap;
 import com.googlecode.javaewah32.EWAHCompressedBitmap32;
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
+import it.uniroma3.mat.extendedset.intset.ImmutableConciseSet;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 
@@ -15,6 +16,13 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
 public final class BitmapFactory {
+
+   public static final String CONCISE = "concise";
+   public static final String WAH = "wah";
+   public static final String EWAH = "ewah";
+   public static final String EWAH32 = "ewah32";
+   public static final String ROARING = "roaring";
+   public static final String ROARING_WITH_RUN = "roaring_with_run";
 
    private BitmapFactory() {
    }
@@ -28,11 +36,16 @@ public final class BitmapFactory {
    }
 
    private static Bitmap newConciseBitmap(int[] data, boolean simulateWAH) {
+      ConciseSet concise = newConciseSet(data, simulateWAH);
+      return new ConciseSetWrapper(concise);
+   }
+
+   private static ConciseSet newConciseSet(int[] data, boolean simulateWAH) {
       ConciseSet concise = new ConciseSet(simulateWAH);
       for (int i : data) {
          concise.add(i);
       }
-      return new ConciseSetWrapper(concise);
+      return concise;
    }
 
    public static Bitmap newEwahBitmap(int[] data) {
@@ -59,6 +72,19 @@ public final class BitmapFactory {
          roaring.runOptimize();
       }
       return new RoaringBitmapWrapper(roaring);
+   }
+
+   public static Bitmap newIImmutableConciseBitmap(int[] data) {
+      return newImmutableConciseBitmap(data, false);
+   }
+
+   public static Bitmap newImmutableWahBitmap(int[] data) {
+      return newImmutableConciseBitmap(data, true);
+   }
+
+   private static Bitmap newImmutableConciseBitmap(int[] data, boolean simulateWAH) {
+      ImmutableConciseSet concise = ImmutableConciseSet.newImmutableFromMutable(newConciseSet(data, simulateWAH));
+      return new org.roaringbitmap.realdata.wrapper.ImmutableConciseSetWrapper(concise);
    }
 
    public static Bitmap newImmutableEwahBitmap(int[] data) throws Exception {

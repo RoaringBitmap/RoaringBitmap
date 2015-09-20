@@ -1,3 +1,6 @@
+version 0.5.3
+ - Improving the performance of Priority-Queue OR aggregation 
+
 version 0.5.2
  - Various performance enhancements regarding run containers
 

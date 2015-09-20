@@ -887,8 +887,65 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
             ((MutableRoaringArray)highLowContainer).setContainerAtIndex(k,c.repairAfterLazy());
         }
     }
+    
+    // important: inputs should not have been computed lazily
+    protected static MutableRoaringBitmap lazyorfromlazyinputs(final MutableRoaringBitmap x1,
+            final MutableRoaringBitmap x2) {
+        final MutableRoaringBitmap answer = new MutableRoaringBitmap();
+        MappeableContainerPointer i1 = x1.highLowContainer
+                .getContainerPointer();
+        MappeableContainerPointer i2 = x2.highLowContainer
+                .getContainerPointer();
+        main: if (i1.hasContainer() && i2.hasContainer()) {
+            while (true) {
+                if (i1.key() == i2.key()) {
+                    MappeableContainer c1 = i1.getContainer();
+                    MappeableContainer c2 = i2.getContainer();
+                    if((c2 instanceof MappeableBitmapContainer) && (!(c1 instanceof MappeableBitmapContainer))) {
+                        MappeableContainer tmp = c1;
+                        c1 = c2;
+                        c2 = tmp;
+                    }
+                    answer.getMappeableRoaringArray().append(i1.key(),
+                            c1.lazyIOR(c2));
+                    i1.advance();
+                    i2.advance();
+                    if (!i1.hasContainer() || !i2.hasContainer())
+                        break main;
+                } else if (Util.compareUnsigned(i1.key(), i2.key()) < 0) { // i1.key() < i2.key()
+                    answer.getMappeableRoaringArray().appendCopy(i1.key(),
+                            i1.getContainer());// TODO: would not need to make a copy
+                    i1.advance();
+                    if (!i1.hasContainer())
+                        break main;
+                } else { // i1.key() > i2.key()
+                    answer.getMappeableRoaringArray().appendCopy(i2.key(),
+                            i2.getContainer());// TODO: would not need to make a copy
+                    i2.advance();
+                    if (!i2.hasContainer())
+                        break main;
+                }
+            }
+        }
+        if (!i1.hasContainer()) {
+            while (i2.hasContainer()) {
+                answer.getMappeableRoaringArray().appendCopy(i2.key(),
+                        i2.getContainer());
+                i2.advance();
+            }
+        } else if (!i2.hasContainer()) {
+            while (i1.hasContainer()) {
+                answer.getMappeableRoaringArray().appendCopy(i1.key(),
+                        i1.getContainer());
+                i1.advance();
+            }
+        }
+        return answer;
+    }
 
-    // call computeCardinality
+
+    // call repairAfterLazy on result, eventually
+    // important: x2 should not have been computed lazily
     protected void lazyor(final ImmutableRoaringBitmap x2) {
         int pos1 = 0, pos2 = 0;
         int length1 = highLowContainer.size();

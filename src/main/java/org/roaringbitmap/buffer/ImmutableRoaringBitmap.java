@@ -259,7 +259,8 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
         }
         return answer;
     }
-
+    
+    // important: inputs should not have been computed lazily
     protected static MutableRoaringBitmap lazyor(final ImmutableRoaringBitmap x1,
             final ImmutableRoaringBitmap x2) {
         final MutableRoaringBitmap answer = new MutableRoaringBitmap();
