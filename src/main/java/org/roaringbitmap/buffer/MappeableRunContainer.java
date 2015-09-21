@@ -1566,11 +1566,17 @@ public final class MappeableRunContainer extends MappeableContainer implements C
             vl[2 * answer.nbrruns + 1] =  (short)(end - start - 1);
             answer.nbrruns++;
             rlepos++;
-            if(rlepos < this.nbrruns) {                
-              this.valueslength.position(2 * rlepos);
-              this.valueslength.get(vl, 2 * answer.nbrruns, 2*(this.nbrruns-rlepos ));
-              answer.nbrruns  = answer.nbrruns + this.nbrruns - rlepos;
+            for(; rlepos < this.nbrruns; ++rlepos) {
+                vl[2 * answer.nbrruns] =  this.valueslength.get(2 * rlepos);
+                vl[2 * answer.nbrruns + 1] =  this.valueslength.get(2 * rlepos + 1);
+                answer.nbrruns++;                  
             }
+            // next bit would be faster but not thread-safe because of the "position"
+            //if(rlepos < this.nbrruns) {                
+            //  this.valueslength.position(2 * rlepos);
+            //  this.valueslength.get(vl, 2 * answer.nbrruns, 2*(this.nbrruns-rlepos ));
+            //  answer.nbrruns  = answer.nbrruns + this.nbrruns - rlepos;
+            //}
         } 
         return answer;
     }
@@ -1623,11 +1629,17 @@ public final class MappeableRunContainer extends MappeableContainer implements C
             vl[2 * answer.nbrruns + 1] =  (short)(end - start - 1);
             answer.nbrruns++;
             rlepos++;
-            if(rlepos < this.nbrruns) {                
-              this.valueslength.position(2 * rlepos);
-              this.valueslength.get(vl, 2 * answer.nbrruns, 2*(this.nbrruns-rlepos ));
-              answer.nbrruns  = answer.nbrruns + this.nbrruns - rlepos;
+            for(; rlepos < this.nbrruns; ++rlepos) {
+                  vl[2 * answer.nbrruns] =  this.valueslength.get(2 * rlepos);
+                  vl[2 * answer.nbrruns + 1] =  this.valueslength.get(2 * rlepos + 1);
+                  answer.nbrruns++;                  
             }
+            // next bit would be faster, but not thread-safe because of the "position"
+            //if(rlepos < this.nbrruns) {                
+              //this.valueslength.position(2 * rlepos);
+              //this.valueslength.get(vl, 2 * answer.nbrruns, 2*(this.nbrruns-rlepos ));
+              //answer.nbrruns  = answer.nbrruns + this.nbrruns - rlepos;
+            //}
         } 
         return answer;
     }

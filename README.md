@@ -20,7 +20,7 @@ Druid.io (http://druid.io/). Apache Lucene (http://lucene.apache.org/) uses  Roa
 
 
 
-(c) 2013-2015 Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, Björn Sperber, Seth Pellegrino, Borislav Ivanov, Gregory Ssi-Yan-Kai
+(c) 2013-2015 Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, Björn Sperber, Seth Pellegrino, Borislav Ivanov, Gregory Ssi-Yan-Kai, Galderic Puntí
 
 
 This code is licensed under Apache License, Version 2.0 (ASL2.0). 

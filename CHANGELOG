@@ -1,3 +1,6 @@
+version 0.5.4
+ - Improvement to thread-safety 
+
 version 0.5.3
  - Improving the performance of Priority-Queue OR aggregation 
 

@@ -52,10 +52,11 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
     /**
      * Create an array based on a previously serialized ByteBuffer.
+     * The input ByteBuffer is effectively copied (with the slice operation)
+     * so you should expect the provided ByteBuffer to remain unchanged.
      * 
      * @param bbf The source ByteBuffer
      */
-
     protected ImmutableRoaringArray(ByteBuffer bbf) {
         buffer = bbf.slice();
         buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -151,23 +152,24 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     public MappeableContainer getContainerAtIndex(int i) {
     	int cardinality = getCardinality(i);
         boolean isBitmap = cardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE; // if not a runcontainer
-        ByteBuffer tmp = buffer.duplicate();
+        ByteBuffer tmp = buffer.duplicate();// sad but ByteBuffer is not thread-safe so it is either a duplicate or a lock
+        // note that tmp will indeed be garbage-collected some time after the end of this function 
         tmp.order(buffer.order());
         tmp.position(getOffsetContainer(i));
         boolean hasrun = hasRunCompression();
         if (isRunContainer(i,hasrun))  {
             // first, we have a short giving the number of runs
             int nbrruns = BufferUtil.toIntUnsigned(tmp.getShort());
-            final ShortBuffer shortArray = tmp.asShortBuffer().slice();
+            final ShortBuffer shortArray = tmp.asShortBuffer();
             shortArray.limit(2*nbrruns);
             return new MappeableRunContainer(shortArray,nbrruns);
         }
         if (isBitmap) {
-            final LongBuffer bitmapArray = tmp.asLongBuffer().slice();
+            final LongBuffer bitmapArray = tmp.asLongBuffer();
             bitmapArray.limit(MappeableBitmapContainer.MAX_CAPACITY / 64);            
             return new MappeableBitmapContainer(bitmapArray, cardinality);
         } else {
-            final ShortBuffer shortArray = tmp.asShortBuffer().slice();
+            final ShortBuffer shortArray = tmp.asShortBuffer();
             shortArray.limit(cardinality);
             return new MappeableArrayContainer(shortArray, cardinality);
         }
