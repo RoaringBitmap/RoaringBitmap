@@ -422,6 +422,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
      *            integer value
      * @return whether the integer value is included.
      */
+    @Override
     public boolean contains(final int x) {
         final short hb = BufferUtil.highbits(x);
         final MappeableContainer c = highLowContainer.getContainer(hb);
@@ -459,6 +460,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
      * 
      * @return the cardinality
      */
+    @Override
     public int getCardinality() {
         int size = 0;
         for(int i = 0 ; i < this.highLowContainer.size(); ++i ) {
@@ -473,6 +475,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
      * 
      * @return true if this bitmap contains no set bit
      */
+    @Override
     public boolean isEmpty() {
         return highLowContainer.size() == 0;
     }
@@ -481,6 +484,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
      * @return a custom iterator over set bits, the bits are traversed
      * in ascending sorted order
      */
+    @Override
     public IntIterator getIntIterator() {
         return new ImmutableRoaringIntIterator();
     }
@@ -489,6 +493,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
      * @return a custom iterator over set bits, the bits are traversed
      * in descending sorted order
      */
+    @Override
     public IntIterator getReverseIntIterator() {
         return new ImmutableRoaringReverseIntIterator();
     }
@@ -504,8 +509,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
      * 
      * @return estimated memory usage.
      */
-
-
+    @Override
     public int getSizeInBytes() {
         int size = 4;
         for(int i = 0 ; i < this.highLowContainer.size(); ++i ) {
@@ -616,6 +620,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
      * @throws IOException
      *             Signals that an I/O exception has occurred.
      */
+    @Override
     public void serialize(DataOutput out) throws IOException {
         this.highLowContainer.serialize(out);
     }
@@ -634,6 +639,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
      * 
      * @return the size in bytes
      */
+    @Override
     public int serializedSizeInBytes() {
         return this.highLowContainer.serializedSizeInBytes();
     }
@@ -644,6 +650,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
      * 
      * @return array representing the set values.
      */
+    @Override
     public int[] toArray() {
         final int[] array = new int[this.getCardinality()];
         int pos = 0, pos2 = 0;
@@ -806,6 +813,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
      *
      * @return the rank
      */
+    @Override
     public int rank(int x) {
         int size = 0;
         short xhigh = BufferUtil.highbits(x);
@@ -826,6 +834,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
      *
      * @return the value
      */
+    @Override
     public int select(int j) {
         int leftover = j;
         for (int i = 0; i < this.highLowContainer.size(); i++) {
@@ -849,6 +858,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
      * @param maxcardinality maximal cardinality
      * @return a new bitmap with cardinality no more than maxcardinality
      */
+    @Override
     public MutableRoaringBitmap limit(int maxcardinality) {
         MutableRoaringBitmap answer = new MutableRoaringBitmap();
         int currentcardinality = 0;        

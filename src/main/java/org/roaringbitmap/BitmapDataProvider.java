@@ -32,6 +32,7 @@ public interface BitmapDataProvider extends ImmutableBitmapDataProvider {
      *
      * @return the value
      */
+    @Override
     public int select(int j);
 
     /**

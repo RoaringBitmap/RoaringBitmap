@@ -2070,7 +2070,8 @@ public class TestRoaringBitmap {
     private static <T> Iterator<T> toIterator(final T[] x) {
         return new Iterator<T>() {
             int pos = 0;
-
+            
+            @Override
             public boolean hasNext() {
                 return pos < x.length;
             }

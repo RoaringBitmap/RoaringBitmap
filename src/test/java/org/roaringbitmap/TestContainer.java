@@ -447,16 +447,14 @@ public class TestContainer {
     @Test
     public void rangeOfOnesTest3() {
         // bdry cases
-        final Container c = Container.rangeOfOnes(1,
+        Container.rangeOfOnes(1,
                 ArrayContainer.DEFAULT_MAX_SIZE);
-        //assertTrue(c instanceof ArrayContainer);
     }
 
     @Test
     public void rangeOfOnesTest4() {
-        final Container c = Container.rangeOfOnes(1,
+        Container.rangeOfOnes(1,
                 ArrayContainer.DEFAULT_MAX_SIZE + 2);
-        //assertTrue(c instanceof BitmapContainer);
     }
 
     @Test

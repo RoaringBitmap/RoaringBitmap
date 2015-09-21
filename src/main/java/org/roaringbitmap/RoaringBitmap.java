@@ -366,6 +366,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      *
      * @return the rank
      */
+    @Override
     public int rank(int x) {
         int size = 0;
         short xhigh = Util.highbits(x);
@@ -388,6 +389,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      *
      * @return the value
      */
+    @Override
     public int select(int j) {
         int leftover = j;
         for (int i = 0; i < this.highLowContainer.size(); i++) {
@@ -821,6 +823,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      * @param x integer value
      * @return whether the integer value is included.
      */
+    @Override
     public boolean contains(final int x) {
         final short hb = Util.highbits(x);
         final Container c = highLowContainer.getContainer(hb);
@@ -894,6 +897,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      * 
      * @return the cardinality
      */
+    @Override
     public int getCardinality() {
         int size = 0;
         for (int i = 0; i < this.highLowContainer.size(); i++) {
@@ -906,6 +910,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      * @return a custom iterator over set bits, the bits are traversed
      * in ascending sorted order
      */
+    @Override
     public IntIterator getIntIterator() {
         return new RoaringIntIterator();
     }
@@ -914,6 +919,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      * @return a custom iterator over set bits, the bits are traversed
      * in descending sorted order
      */
+    @Override
     public IntIterator getReverseIntIterator() {
         return new RoaringReverseIntIterator();
     }
@@ -924,6 +930,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      *
      * @return estimated memory usage.
      */
+    @Override
     public int getSizeInBytes() {
         int size = 8;
         for (int i = 0; i < this.highLowContainer.size(); i++) {
@@ -1020,6 +1027,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      *
      * @return true if this bitmap contains no set bit
      */
+    @Override
     public boolean isEmpty() {
     	return highLowContainer.size() == 0;
     }
@@ -1191,6 +1199,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      * @param out the DataOutput stream
      * @throws IOException Signals that an I/O exception has occurred.
      */
+    @Override
     public void serialize(DataOutput out) throws IOException {
         this.highLowContainer.serialize(out);
     }
@@ -1203,6 +1212,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      *
      * @return the size in bytes
      */
+    @Override
     public int serializedSizeInBytes() {
         return this.highLowContainer.serializedSizeInBytes();
     }
@@ -1213,6 +1223,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      * @param maxcardinality maximal cardinality
      * @return a new bitmap with cardinality no more than maxcardinality
      */
+    @Override
     public RoaringBitmap limit(int maxcardinality) {
         RoaringBitmap answer = new RoaringBitmap();
         int currentcardinality = 0;
@@ -1237,6 +1248,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      *
      * @return array representing the set values.
      */
+    @Override
     public int[] toArray() {
         final int[] array = new int[this.getCardinality()];
         int pos = 0, pos2 = 0;

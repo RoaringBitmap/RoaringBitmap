@@ -221,6 +221,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
     private final int MAXRUNS = (getArraySizeInBytes() - 2) / 4;
     
 
+    @Override
     public MappeableContainer runOptimize() {
         int numRuns = numberOfRunsLowerBound(MAXRUNS); // decent choice
 

@@ -940,11 +940,13 @@ final class ArrayContainerShortIterator implements PeekableShortIterator {
         wrap(p);
     }
 
+    @Override
     public short peekNext() {
         return parent.content[pos];
     }
     
 
+    @Override
     public void advanceIfNeeded(short minval) {
         pos = Util.advanceUntil(parent.content, pos - 1, parent.cardinality, minval);
     }

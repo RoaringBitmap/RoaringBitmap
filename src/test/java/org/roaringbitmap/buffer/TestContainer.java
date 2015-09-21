@@ -631,14 +631,12 @@ public class TestContainer {
     @Test
     public void rangeOfOnesTest3() {
         // bdry cases
-        final MappeableContainer c = MappeableContainer.rangeOfOnes(1, MappeableArrayContainer.DEFAULT_MAX_SIZE);
-        //assertTrue(c instanceof MappeableArrayContainer);
+        MappeableContainer.rangeOfOnes(1, MappeableArrayContainer.DEFAULT_MAX_SIZE);
     }
 
     @Test
     public void rangeOfOnesTest4() {
-        final MappeableContainer c = MappeableContainer.rangeOfOnes(1, MappeableArrayContainer.DEFAULT_MAX_SIZE + 2);
-        //assertTrue(c instanceof MappeableBitmapContainer);
+        MappeableContainer.rangeOfOnes(1, MappeableArrayContainer.DEFAULT_MAX_SIZE + 2);
     }
 
     public static boolean checkContent(MappeableContainer c, short[] s) {

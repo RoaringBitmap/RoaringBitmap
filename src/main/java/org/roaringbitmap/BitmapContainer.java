@@ -143,6 +143,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     private final int MAXRUNS = (getArraySizeInBytes() - 2) / 4;
     
 
+    @Override
     public Container runOptimize() {
         int numRuns = numberOfRunsLowerBound(MAXRUNS); // decent choice
 

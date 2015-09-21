@@ -139,13 +139,15 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
 
     // involves a binary search
+    @Override
     public MappeableContainer getContainer(short x) {
         final int i = unsignedBinarySearch(x);
         if (i < 0)
             return null;
         return getContainerAtIndex(i);
     }
-
+    
+    @Override
     public MappeableContainer getContainerAtIndex(int i) {
     	int cardinality = getCardinality(i);
         boolean isBitmap = cardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE; // if not a runcontainer
@@ -202,6 +204,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         }
     }
 
+    @Override
     public MappeableContainerPointer getContainerPointer() {
         return getContainerPointer(0);
     }
@@ -214,6 +217,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         return this.size == 0;
     }
 
+    @Override
     public MappeableContainerPointer getContainerPointer(final int startIndex) {        
         final boolean hasrun = isEmpty() ? false: hasRunCompression();
         return new MappeableContainerPointer() {
@@ -307,14 +311,17 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
 
     // involves a binary search
+    @Override
     public int getIndex(short x) {
         return unsignedBinarySearch(x);
     }
 
+    @Override
     public short getKeyAtIndex(int i) {
         return buffer.getShort(4 * i + getStartOfKeys());
     }
-
+    
+    @Override
     public int advanceUntil(short x, int pos) {
         int lower = pos + 1;
 
@@ -377,6 +384,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
      * @throws IOException
      *             Signals that an I/O exception has occurred.
      */
+    @Override
     public void serialize(DataOutput out) throws IOException {
         if(buffer.hasArray()) {
             out.write(buffer.array(), buffer.arrayOffset(), buffer.limit());
@@ -390,10 +398,12 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     /**
      * @return the size that the data structure occupies on disk
      */
+    @Override
     public int serializedSizeInBytes() {
         return buffer.limit();
     }
 
+    @Override
     public int size() {
         return this.size;
     }

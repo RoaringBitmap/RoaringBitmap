@@ -15,6 +15,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+
 import static org.junit.Assert.*;
 
 public class TestSerialization {
@@ -311,32 +312,40 @@ class ByteBufferBackedInputStream extends InputStream {
   ByteBufferBackedInputStream( ByteBuffer buf){
     this.buf = buf;
   }
+  
+  @Override
   public int read() throws IOException {
     if (!buf.hasRemaining()) {
       return -1;
     }
     return 0xFF & buf.get();
   }
+  
+  @Override
   public int read(byte[] bytes) throws IOException {
       int len = Math.min(bytes.length, buf.remaining());
       buf.get(bytes, 0, len);
       return len;
-   }
+  }
   
+  @Override
   public long skip(long n) {
       int len = Math.min((int)n, buf.remaining());
       buf.position(buf.position() + (int)n);
       return len;
   }
   
+  @Override
   public int available() throws IOException {
       return buf.remaining();
   }
   
+  @Override
   public boolean markSupported() {
       return false;
   }
       
+  @Override
   public int read(byte[] bytes, int off, int len) throws IOException {
     len = Math.min(len, buf.remaining());
     buf.get(bytes, off, len);
@@ -349,14 +358,18 @@ class ByteBufferBackedOutputStream extends OutputStream{
   ByteBufferBackedOutputStream( ByteBuffer buf){
     this.buf = buf;
   }
+  
+  @Override
   public synchronized void write(int b) throws IOException {
     buf.put((byte) b);
   }
 
+  @Override
   public synchronized void write(byte[] bytes) throws IOException {
     buf.put(bytes);
   }
   
+  @Override
   public synchronized void write(byte[] bytes, int off, int len) throws IOException {
     buf.put(bytes, off, len);
   }

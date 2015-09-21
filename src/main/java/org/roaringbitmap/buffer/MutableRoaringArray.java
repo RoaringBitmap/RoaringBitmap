@@ -268,21 +268,25 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
     }
 
     // involves a binary search
+    @Override
     public MappeableContainer getContainer(short x) {
         final int i = this.binarySearch(0, size, x);
         if (i < 0)
             return null;
         return this.values[i];
     }
-
+    
+    @Override
     public MappeableContainer getContainerAtIndex(int i) {
         return this.values[i];
     }
 
+    @Override
     public MappeableContainerPointer getContainerPointer() {
         return getContainerPointer(0);
     }
 
+    @Override
     public MappeableContainerPointer getContainerPointer(final int startIndex) {
         return new MappeableContainerPointer() {
             int k = startIndex;
@@ -357,6 +361,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
     }
 
     // involves a binary search
+    @Override
     public int getIndex(short x) {
         // before the binary search, we optimize for frequent cases
         if ((size == 0) || (keys[size - 1] == x))
@@ -365,10 +370,12 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
         return this.binarySearch(0, size, x);
     }
 
+    @Override
     public short getKeyAtIndex(int i) {
         return this.keys[i];
     }
-
+    
+    @Override
     public int advanceUntil(short x, int pos) {
         int lower = pos + 1;
 
@@ -489,6 +496,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
      * @throws IOException
      *             Signals that an I/O exception has occurred.
      */
+    @Override
     public void serialize(DataOutput out) throws IOException {
         int startOffset=0;
         boolean hasrun = hasRunCompression();
@@ -532,6 +540,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
      *
      * @return the size in bytes
      */
+    @Override
     public int serializedSizeInBytes() {
         int count = headerSize();
         // for each container, we store cardinality (16 bits), key (16 bits) and location offset (32 bits).
@@ -562,6 +571,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
         this.values[i] = c;
     }
 
+    @Override
     public int size() {
         return this.size;
     }
