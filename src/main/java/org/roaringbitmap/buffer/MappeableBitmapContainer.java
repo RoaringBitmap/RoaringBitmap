@@ -72,9 +72,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     MappeableBitmapContainer(int newCardinality, LongBuffer newBitmap) {
         this.cardinality = newCardinality;
-        this.bitmap = LongBuffer.allocate(newBitmap.limit());
-        newBitmap.rewind();
-        this.bitmap.put(newBitmap);
+        LongBuffer tmp = newBitmap.duplicate(); // for thread safety
+        this.bitmap = LongBuffer.allocate(tmp.limit());
+        tmp.rewind();
+        this.bitmap.put(tmp);
     }
 
     /**

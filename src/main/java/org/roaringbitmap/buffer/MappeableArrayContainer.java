@@ -69,12 +69,12 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
 
-    
-    private MappeableArrayContainer(int newCard, ShortBuffer newContent) {
+    private  MappeableArrayContainer(int newCard, ShortBuffer newContent) {
         this.cardinality = newCard;
-        this.content = ShortBuffer.allocate(Math.max(newCard,newContent.limit()));
-        newContent.rewind();
-        this.content.put(newContent);
+        ShortBuffer tmp = newContent.duplicate();// for thread-safety
+        this.content = ShortBuffer.allocate(Math.max(newCard,tmp.limit()));
+        tmp.rewind();
+        this.content.put(tmp);
     }
 
     /**
@@ -126,6 +126,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
      * running time is in O(n) time if insert is not in order.
      */
     @Override
+    // not thread-safe
     public MappeableContainer add(final short x) {
         if (BufferUtil.isBackedBySimpleArray(this.content)) {
             short[] sarray = content.array();
@@ -459,7 +460,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     // temporarily allow an illegally large size, as long as the operation creating
     // the illegal container does not return it.
-
+    // not thread safe!
     private void increaseCapacity(boolean allowIllegalSize) {
         int len = this.content.limit();
         int newCapacity = (len == 0) ? DEFAULT_INIT_SIZE : len < 64 ? len * 2
@@ -473,6 +474,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         this.content = newContent;
     }
 
+    // not thread safe!
     private void increaseCapacity(int min) {
         int len = this.content.limit();
         int newCapacity = (len == 0) ? DEFAULT_INIT_SIZE : len < 64 ? len * 2
@@ -488,6 +490,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
     @Override
+    // not thread safe! (duh!)
     public MappeableContainer inot(final int firstOfRange, final int lastOfRange) {
         // TODO: this can be optimized for performance
         // determine the span of array indices to be affected
@@ -765,6 +768,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
     // in order 
+    // not thread-safe
     private void emit(short val) {
         if (cardinality == content.limit())
             increaseCapacity(true);
@@ -1043,8 +1047,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
             return clone();
     }
 
-		@Override
-		public MappeableContainer flip(short x) {
+	@Override
+    // not thread-safe
+	public MappeableContainer flip(short x) {
       if (BufferUtil.isBackedBySimpleArray(this.content)) {
         short[] sarray = content.array();
 				int loc = Util.unsignedBinarySearch(sarray, 0, cardinality, x);
@@ -1156,6 +1161,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 	    }
 
 	    @Override
+	    // not thread-safe
 	    public MappeableContainer iadd(int begin, int end) {
 	        int indexstart = BufferUtil.unsignedBinarySearch(content, 0, cardinality,
 	                (short) begin);

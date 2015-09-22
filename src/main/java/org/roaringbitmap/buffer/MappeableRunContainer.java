@@ -33,9 +33,10 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     
     private MappeableRunContainer(int nbrruns, final ShortBuffer valueslength) {
         this.nbrruns = nbrruns;
-        this.valueslength = ShortBuffer.allocate(Math.max(2*nbrruns,valueslength.limit()));
-        valueslength.rewind();
-        this.valueslength.put(valueslength);  // may copy more than it needs to??
+        ShortBuffer tmp = valueslength.duplicate();// for thread safety
+        this.valueslength = ShortBuffer.allocate(Math.max(2*nbrruns,tmp.limit()));
+        tmp.rewind();
+        this.valueslength.put(tmp);  // may copy more than it needs to??
     }
 
     /**
@@ -299,6 +300,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
          return this;
      }
 
+    // not thread safe!
     private void increaseCapacity() {
         int newCapacity = (valueslength.capacity() == 0) ? DEFAULT_INIT_SIZE : valueslength.capacity() < 64 ? valueslength.capacity() * 2
             : valueslength.capacity() < 1024 ? valueslength.capacity() * 3 / 2
@@ -330,7 +332,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
             copyValuesLength(this.valueslength, 0, this.valueslength, offset, nbrruns);
         }
     }
-    
+    // not thread safe!
     // not actually used anywhere, but potentially useful
     protected void   ensureCapacity(int minNbRuns) {
         final int minCapacity = 2 * minNbRuns;
@@ -417,6 +419,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     }
 
     @Override
+    // not thread-safe
     public MappeableContainer add(short k) {
         // TODO: it might be better and simpler to do return toBitmapOrArrayContainer(getCardinality()).add(k) 
         int index = bufferedUnsignedInterleavedBinarySearch(valueslength, 0, nbrruns, k);
@@ -910,6 +913,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     }
 
     @Override
+    // not thread-safe
     public MappeableContainer remove(short x) {
         int index = bufferedUnsignedInterleavedBinarySearch(valueslength, 0, nbrruns, x);
         if(index >= 0) {
@@ -1069,6 +1073,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     }
 
     @Override
+    // not thread-safe
     public MappeableContainer iadd(int begin, int end) {
         // TODO: it might be better and simpler to do return toBitmapOrArrayContainer(getCardinality()).iadd(begin,end)
         if((begin >= end) || (end > (1<<16))) {
@@ -1162,6 +1167,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     }
 
     @Override
+    // not thread-safe
     public MappeableContainer iremove(int begin, int end) {
         // TODO: it might be better and simpler to do return toBitmapOrArrayContainer(getCardinality()).iremove(begin,end)
         if((begin >= end) || (end > (1<<16))) {
@@ -1343,7 +1349,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         valueslength.put(2*index, v);
     }
 
-
+    // not thread-safe
     private void makeRoomAtIndex(int index) {
         if (2*(nbrruns+1) > valueslength.capacity())
             increaseCapacity();

@@ -381,7 +381,8 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
     }
 
     /**
-     * Constructs a new ImmutableRoaringBitmap. Only meta-data is loaded to RAM.
+     * Constructs a new ImmutableRoaringBitmap starting at this ByteBuffer's position(). 
+     * Only meta-data is loaded to RAM.
      * The rest is mapped to the ByteBuffer.
      * 
      * It is not necessary that limit() on the input ByteBuffer indicates
