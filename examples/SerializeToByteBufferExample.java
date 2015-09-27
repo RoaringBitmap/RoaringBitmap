@@ -6,17 +6,16 @@ import java.io.*;
 import java.nio.*;
 
 public class SerializeToByteBufferExample {
-    
-    
-    
-    
-    
+
+
+
+
+
     public static void main(String[] args) throws IOException{
-        MutableRoaringBitmap mrb = MutableRoaringBitmap.bitmapOf(1,2,3,1000); 
+        MutableRoaringBitmap mrb = MutableRoaringBitmap.bitmapOf(1,2,3,1000);
         System.out.println("starting with  bitmap "+ mrb);
+        mrb.runOptimize(); //to improve compression
         ByteBuffer outbb = ByteBuffer.allocate(mrb.serializedSizeInBytes());
-        // If there were runs of consecutive values, you could
-        // call mrb.runOptimize(); to improve compression 
         mrb.serialize(new DataOutputStream(new OutputStream(){
             ByteBuffer mBB;
             OutputStream init(ByteBuffer mbb) {mBB=mbb; return this;}
@@ -24,15 +23,15 @@ public class SerializeToByteBufferExample {
             public void flush() {}
             public void write(int b) {
                 mBB.put((byte) b);}
-            public void write(byte[] b) {mBB.put(b);}            
+            public void write(byte[] b) {mBB.put(b);}
             public void write(byte[] b, int off, int l) {mBB.put(b,off,l);}
         }.init(outbb)));
         //
         outbb.flip();
         ImmutableRoaringBitmap irb = new ImmutableRoaringBitmap(outbb);
-        System.out.println("read bitmap "+ irb);        
+        System.out.println("read bitmap "+ irb);
         if( ! irb.equals(mrb) ) throw new RuntimeException("bug");
-        
+
     }
 }
 
@@ -41,7 +40,7 @@ public class SerializeToByteBufferExample {
 */
 
 class ByteBufferBackedInputStream extends InputStream {
-  
+
   ByteBuffer buf;
   ByteBufferBackedInputStream( ByteBuffer buf){
     this.buf = buf;
@@ -57,21 +56,21 @@ class ByteBufferBackedInputStream extends InputStream {
       buf.get(bytes, 0, len);
       return len;
    }
-  
+
   public long skip(long n) {
       int len = Math.min((int)n, buf.remaining());
       buf.position(buf.position() + (int)n);
       return len;
   }
-  
+
   public int available() throws IOException {
       return buf.remaining();
   }
-  
+
   public boolean markSupported() {
       return false;
   }
-      
+
   public int read(byte[] bytes, int off, int len) throws IOException {
     len = Math.min(len, buf.remaining());
     buf.get(bytes, off, len);
@@ -91,10 +90,9 @@ class ByteBufferBackedOutputStream extends OutputStream{
   public synchronized void write(byte[] bytes) throws IOException {
     buf.put(bytes);
   }
-  
+
   public synchronized void write(byte[] bytes, int off, int len) throws IOException {
     buf.put(bytes, off, len);
   }
-  
-}
 
+}

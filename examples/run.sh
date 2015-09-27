@@ -7,5 +7,8 @@ javac -cp "../target/*" ImmutableRoaringBitmapExample.java && java -cp ../target
 echo
 echo "Running MemoryMappingExample"
 javac -cp "../target/*" MemoryMappingExample.java && java -cp ../target/*:. MemoryMappingExample
+echo
+echo "Serializing to byte array" 
+javac -cp "../target/*":. SerializeToByteArrayExample.java && java -cp ../target/*:. SerializeToByteArrayExample
 
 rm *.class
