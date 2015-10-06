@@ -670,6 +670,15 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     public int getSizeInBytes() {
         return this.nbrruns*4+4;  // not sure about how exact it will be
     }
+    
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        for (int k = 0; k < nbrruns * 2; ++k)
+            hash += 31 * hash + valueslength.get(k);
+        return hash;
+    }
 
     @Override
     public MappeableContainer iand(MappeableArrayContainer x) {

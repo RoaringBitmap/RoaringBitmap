@@ -1,3 +1,6 @@
+version 0.5.5
+ - RunContainers should implement hashCode : https://github.com/lemire/RoaringBitmap/issues/46
+
 version 0.5.4
  - Improvement to thread-safety 
 

@@ -10,11 +10,46 @@ import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 import static org.roaringbitmap.ArrayContainer.DEFAULT_MAX_SIZE;
 
 public class TestRunContainer {
+    
+    
+    @Test
+    public void testRoaringWithOptimize() {
+        // create the same bitmap over and over again, with optimizing it
+        final Set<RoaringBitmap> setWithOptimize = new HashSet<RoaringBitmap>();
+        final int max = 1000;
+        for(int i = 0; i < max; i++) {
+            final RoaringBitmap bitmapWithOptimize = new RoaringBitmap();
+            bitmapWithOptimize.add(1);
+            bitmapWithOptimize.add(2);
+            bitmapWithOptimize.add(3);
+            bitmapWithOptimize.add(4);
+            bitmapWithOptimize.runOptimize();
+            setWithOptimize.add(bitmapWithOptimize);
+        }
+        assertEquals(1, setWithOptimize.size());        
+    }
+
+    @Test
+    public void testRoaringWithoutOptimize() {
+        // create the same bitmap over and over again, without optimizing it
+        final Set<RoaringBitmap> setWithoutOptimize = new HashSet<RoaringBitmap>();
+        final int max = 1000;
+        for(int i = 0; i < max; i++) {
+            final RoaringBitmap bitmapWithoutOptimize = new RoaringBitmap();
+            bitmapWithoutOptimize.add(1);
+            bitmapWithoutOptimize.add(2);
+            bitmapWithoutOptimize.add(3);
+            bitmapWithoutOptimize.add(4);
+            setWithoutOptimize.add(bitmapWithoutOptimize);
+        }
+        assertEquals(1, setWithoutOptimize.size());
+    }
     
     @Test
     public void safeor() {

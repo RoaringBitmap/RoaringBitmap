@@ -609,6 +609,15 @@ public final class RunContainer extends Container implements Cloneable {
         return this.nbrruns * 4 + 4;
     }
 
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        for (int k = 0; k < nbrruns * 2; ++k)
+            hash += 31 * hash + valueslength[k];
+        return hash;
+    }
+    
     @Override
     public Container iand(ArrayContainer x) {
         return and(x);
