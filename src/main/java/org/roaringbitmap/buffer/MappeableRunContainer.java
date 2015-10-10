@@ -647,8 +647,14 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     @Override
     public int getCardinality() {
         int sum = 0;
-        for(int k = 0; k < nbrruns; ++k)
-            sum = sum + BufferUtil.toIntUnsigned(getLength(k)) + 1;
+        if(isArrayBacked()) {
+            short[] vl = valueslength.array();
+            for(int k = 0; k < nbrruns; ++k)
+                sum = sum + BufferUtil.toIntUnsigned(vl[2 * k + 1]) + 1;
+        } else {
+            for(int k = 0; k < nbrruns; ++k)
+                sum = sum + BufferUtil.toIntUnsigned(getLength(k)) + 1;
+        }
         return sum;
     }
 
