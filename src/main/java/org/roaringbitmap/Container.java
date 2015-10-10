@@ -346,6 +346,42 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     public abstract Container inot(int rangeStart, int rangeEnd);
 
     /**
+     * Returns true if the current container intersects the other container.
+     *
+     * @param x other container
+     * @return aggregated container
+     */
+    public boolean intersects(Container x) {
+        if (x instanceof ArrayContainer)
+            return intersects((ArrayContainer) x);
+        else if (x instanceof BitmapContainer)
+            return intersects((BitmapContainer) x);
+        return intersects((RunContainer) x);
+    }
+
+    
+    /**
+     * Returns true if the current container intersects the other container.
+     *
+     * @param x other container
+     */
+    public abstract boolean intersects(ArrayContainer x);
+
+    /**
+     * Returns true if the current container intersects the other container.
+     *
+     * @param x other container
+     */
+    public abstract boolean intersects(BitmapContainer x);
+
+    /**
+     * Returns true if the current container intersects the other container.
+     *
+     * @param x other container
+     */
+    public abstract boolean intersects(RunContainer x);
+    
+    /**
      * Computes the in-place bitwise OR of this container with another
      * (union). The current container is generally modified, whereas the
      * provided container (x) is unaffected. May generate a new container.

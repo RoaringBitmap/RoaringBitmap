@@ -568,7 +568,7 @@ public class TestRoaringBitmap {
         Assert.assertEquals(array[0], 13);
 
     }
-
+    
     @Test
     public void sparseAnd() {
         final RoaringBitmap rr1 = new RoaringBitmap();
@@ -2932,5 +2932,30 @@ public class TestRoaringBitmap {
             { 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108,
                     109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120,
                     121, 122, 123, 124, 125, 126 } };
+ 
+    
+    @Test
+    public void intersecttest() {
+        final RoaringBitmap rr1 = new RoaringBitmap();
+        final RoaringBitmap rr2 = new RoaringBitmap();
+        for (int k = 0; k < 40000; ++k) {
+            rr1.add(2*k);
+            rr2.add(2*k+1);
+        }
+        Assert.assertEquals(RoaringBitmap.intersects(rr1, rr2),false);
+        rr1.add(2*500+1);
+        Assert.assertEquals(RoaringBitmap.intersects(rr1, rr2),true);
+        final RoaringBitmap rr3 = new RoaringBitmap();
+        rr3.add(2*501+1);
+        Assert.assertEquals(RoaringBitmap.intersects(rr3, rr2),true);
+        Assert.assertEquals(RoaringBitmap.intersects(rr3, rr1),false);
+        for (int k = 0; k < 40000; ++k) {
+            rr1.add(2*k+1);
+        }
+        rr1.runOptimize();
+        Assert.assertEquals(RoaringBitmap.intersects(rr1, rr2),true);
+    }
+
+
    
 }

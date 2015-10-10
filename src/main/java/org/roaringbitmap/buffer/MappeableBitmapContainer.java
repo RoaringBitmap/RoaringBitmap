@@ -1647,6 +1647,49 @@ public final class MappeableBitmapContainer extends MappeableContainer
             computeCardinality();
         return this;
     }
+
+    @Override
+    public boolean intersects(MappeableArrayContainer value2) {
+        if (BufferUtil.isBackedBySimpleArray(value2.content)) {
+            short[] c = value2.content.array();
+            for (int k = 0; k < value2.getCardinality(); ++k)
+                if (this.contains(c[k]))
+                    return true;
+
+        } else
+            for (int k = 0; k < value2.getCardinality(); ++k) {
+                short v = value2.content.get(k);
+                if (this.contains(v))
+                    return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean intersects(MappeableBitmapContainer value2) {
+        if (BufferUtil.isBackedBySimpleArray(this.bitmap)
+                && BufferUtil.isBackedBySimpleArray(value2.bitmap)) {
+            long[] tb = this.bitmap.array();
+            long[] v2b = value2.bitmap.array();
+            int len = this.bitmap.limit();
+            for (int k = 0; k < len; ++k) {
+                if ((tb[k] & v2b[k]) != 0)
+                    return true;
+            }
+        } else {
+            int len = this.bitmap.limit();
+            for (int k = 0; k < len; ++k) {
+                if ((this.bitmap.get(k) & value2.bitmap.get(k)) != 0)
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean intersects(MappeableRunContainer x) {
+        return x.intersects(this);
+    }
 }
 
 final class MappeableBitmapContainerShortIterator implements ShortIterator {

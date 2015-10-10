@@ -594,4 +594,45 @@ public final class BufferUtil {
      */
     private BufferUtil() {
     }
+    
+    /**
+     * Checks if two arrays intersect
+     *
+     * @param set1    first array
+     * @param length1 length of first array
+     * @param set2    second array
+     * @param length2 length of second array
+     * @return true if they intersect
+     */
+    public static boolean unsignedIntersects(ShortBuffer set1,
+            int length1, ShortBuffer set2, int length2) {
+        if ((0 == length1) || (0 == length2))
+            return false;
+        int k1 = 0;
+        int k2 = 0;
+        
+        // could be more efficient with galloping
+
+        mainwhile: while (true) {
+            if (toIntUnsigned(set2.get(k2)) < toIntUnsigned(set1.get(k1))) {
+                do {
+                    ++k2;
+                    if (k2 == length2)
+                        break mainwhile;
+                } while (toIntUnsigned(set2.get(k2)) < toIntUnsigned(set1
+                        .get(k1)));
+            }
+            if (toIntUnsigned(set1.get(k1)) < toIntUnsigned(set2.get(k2))) {
+                do {
+                    ++k1;
+                    if (k1 == length1)
+                        break mainwhile;
+                } while (toIntUnsigned(set1.get(k1)) < toIntUnsigned(set2
+                        .get(k2)));
+            } else {
+                return true;
+            }
+        }
+        return false;
+    }
 }

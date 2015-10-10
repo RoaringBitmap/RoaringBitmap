@@ -1225,6 +1225,24 @@ public final class MappeableArrayContainer extends MappeableContainer implements
             return this;
         }
 
+        @Override
+        public boolean intersects(MappeableArrayContainer value2) {
+            MappeableArrayContainer value1 = this;
+            return  BufferUtil.unsignedIntersects(value1.content,
+                    value1.getCardinality(), value2.content,
+                    value2.getCardinality());
+        }
+
+        @Override
+        public boolean intersects(MappeableBitmapContainer x) {
+            return x.intersects(this);
+        }
+
+        @Override
+        public boolean intersects(MappeableRunContainer x) {
+            return x.intersects(this);
+        }
+
 
 
 }

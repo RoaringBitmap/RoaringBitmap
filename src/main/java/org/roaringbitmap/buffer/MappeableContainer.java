@@ -320,6 +320,44 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      */
     public abstract MappeableContainer inot(int rangeStart, int rangeEnd);
 
+    
+    
+    /**
+     * Returns true if the current container intersects the other container.
+     *
+     * @param x other container
+     * @return aggregated container
+     */
+    public boolean intersects(MappeableContainer x) {
+        if (x instanceof MappeableArrayContainer)
+            return intersects((MappeableArrayContainer) x);
+        else if (x instanceof MappeableBitmapContainer)
+            return intersects((MappeableBitmapContainer) x);
+        return intersects((MappeableRunContainer) x);
+    }
+
+
+    /**
+     * Returns true if the current container intersects the other container.
+     *
+     * @param x other container
+     */
+    public abstract boolean intersects(MappeableArrayContainer x);
+
+    /**
+     * Returns true if the current container intersects the other container.
+     *
+     * @param x other container
+     */
+    public abstract boolean intersects(MappeableBitmapContainer x);
+
+    /**
+     * Returns true if the current container intersects the other container.
+     *
+     * @param x other container
+     */
+    public abstract boolean intersects(MappeableRunContainer x);
+
     /**
      * Computes the in-place bitwise OR of this container with another (union).
      * The current container is generally modified, whereas the provided

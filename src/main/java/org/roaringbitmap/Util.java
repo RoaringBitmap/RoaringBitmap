@@ -644,4 +644,44 @@ public final class Util {
         return toIntUnsigned(a) -  toIntUnsigned(b);
     }
 
+
+    /**
+     * Checks if two arrays intersect
+     *
+     * @param set1    first array
+     * @param length1 length of first array
+     * @param set2    second array
+     * @param length2 length of second array
+     * @return true if they intersect
+     */
+    public static boolean unsignedIntersects(short[] set1, int length1,
+            short[] set2, int length2) {
+        // galloping might be faster, but we do not expect this function to be slow
+        if ((0 == length1) || (0 == length2))
+            return false;
+        int k1 = 0;
+        int k2 = 0;
+
+        mainwhile:
+        while (true) {
+            if (toIntUnsigned(set2[k2]) < toIntUnsigned(set1[k1])) {
+                do {
+                    ++k2;
+                    if (k2 == length2)
+                        break mainwhile;
+                } while (toIntUnsigned(set2[k2]) < toIntUnsigned(set1[k1]));
+            }
+            if (toIntUnsigned(set1[k1]) < toIntUnsigned(set2[k2])) {
+                do {
+                    ++k1;
+                    if (k1 == length1)
+                        break mainwhile;
+                } while (toIntUnsigned(set1[k1]) < toIntUnsigned(set2[k2]));
+            } else {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

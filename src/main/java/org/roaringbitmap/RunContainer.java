@@ -1874,6 +1874,86 @@ public final class RunContainer extends Container implements Cloneable {
         return this;
     }
 
+    @Override
+    public boolean intersects(ArrayContainer x) {
+        if(this.nbrruns == 0) return false;
+        int rlepos = 0;
+        int arraypos = 0;
+        int rleval = Util.toIntUnsigned(this.getValue(rlepos));
+        int rlelength = Util.toIntUnsigned(this.getLength(rlepos));        
+        while(arraypos < x.cardinality)  {
+            int arrayval = Util.toIntUnsigned(x.content[arraypos]);
+            while(rleval + rlelength < arrayval) {// this will frequently be false
+                ++rlepos;
+                if(rlepos == this.nbrruns) {
+                    return false;
+                }
+                rleval = Util.toIntUnsigned(this.getValue(rlepos));
+                rlelength = Util.toIntUnsigned(this.getLength(rlepos));
+            }
+            if(rleval > arrayval)  {
+                arraypos = Util.advanceUntil(x.content,arraypos,x.cardinality,this.getValue(rlepos));
+            } else {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean intersects(BitmapContainer x) {
+        // TODO: this is probably not optimally fast
+        for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
+            int runStart = Util.toIntUnsigned(this.getValue(rlepos));
+            int runEnd = runStart + Util.toIntUnsigned(this.getLength(rlepos));
+            for (int runValue = runStart; runValue <= runEnd; ++runValue) {
+                if ( x.contains((short) runValue)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean intersects(RunContainer x) {
+        int rlepos = 0;
+        int xrlepos = 0;
+        int start = Util.toIntUnsigned(this.getValue(rlepos));
+        int end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+        int xstart = Util.toIntUnsigned(x.getValue(xrlepos));
+        int xend = xstart + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
+        while ((rlepos < this.nbrruns ) && (xrlepos < x.nbrruns )) {
+            if (end  <= xstart) {
+                if (ENABLE_GALLOPING_AND) {
+                    rlepos = skipAhead(this, rlepos, xstart); // skip over runs until we have end > xstart  (or rlepos is advanced beyond end)
+                }
+                else
+                    ++rlepos;
+
+                if(rlepos < this.nbrruns ) {
+                    start = Util.toIntUnsigned(this.getValue(rlepos));
+                    end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+                }
+            } else if (xend <= start) {
+                // exit the second run
+                if (ENABLE_GALLOPING_AND) {
+                    xrlepos = skipAhead(x, xrlepos, start);
+                }
+                else
+                    ++xrlepos;
+
+                if(xrlepos < x.nbrruns ) {
+                    xstart = Util.toIntUnsigned(x.getValue(xrlepos));
+                    xend = xstart + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                }
+            } else {// they overlap
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
 
 

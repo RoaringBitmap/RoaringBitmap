@@ -1105,6 +1105,27 @@ public final class BitmapContainer extends Container implements Cloneable {
             computeCardinality();
         return this;
     }
+    
+    @Override
+    public boolean intersects(ArrayContainer value2) {
+        for (int k = 0; k < value2.getCardinality(); ++k)
+            if (this.contains(value2.content[k]))
+                return true;
+        return false;
+    }
+
+    @Override
+    public boolean intersects(BitmapContainer value2) {
+        for (int k = 0; k < this.bitmap.length; ++k) {
+            if((this.bitmap[k] & value2.bitmap[k]) != 0) return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean intersects(RunContainer x) {
+        return x.intersects(this);
+    }
 }
 
 final class BitmapContainerShortIterator implements ShortIterator {

@@ -926,6 +926,24 @@ public final class ArrayContainer extends Container implements Cloneable {
         return this;
     }
 
+    @Override
+    public boolean intersects(ArrayContainer value2) {
+        ArrayContainer value1 = this;
+        return  Util.unsignedIntersects(value1.content,
+                value1.getCardinality(), value2.content,
+                value2.getCardinality());
+    }
+
+    @Override
+    public boolean intersects(BitmapContainer x) {
+        return x.intersects(this);
+    }
+
+    @Override
+    public boolean intersects(RunContainer x) {
+        return x.intersects(this);
+    }
+
 }
 
 

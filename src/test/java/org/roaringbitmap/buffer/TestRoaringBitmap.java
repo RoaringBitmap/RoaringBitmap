@@ -2002,4 +2002,28 @@ public class TestRoaringBitmap {
         Assert.assertTrue(rbor.equals(BufferFastAggregation.horizontal_or(rb1,rb2)));
     }
 
+    
+
+    @Test
+    public void intersecttest() {
+        final MutableRoaringBitmap rr1 = new MutableRoaringBitmap();
+        final MutableRoaringBitmap rr2 = new MutableRoaringBitmap();
+        for (int k = 0; k < 40000; ++k) {
+            rr1.add(2*k);
+            rr2.add(2*k+1);
+        }
+        Assert.assertEquals(ImmutableRoaringBitmap.intersects(rr1, rr2),false);
+        rr1.add(2*500+1);
+        Assert.assertEquals(ImmutableRoaringBitmap.intersects(rr1, rr2),true);
+        final MutableRoaringBitmap rr3 = new MutableRoaringBitmap();
+        rr3.add(2*501+1);
+        Assert.assertEquals(ImmutableRoaringBitmap.intersects(rr3, rr2),true);
+        Assert.assertEquals(ImmutableRoaringBitmap.intersects(rr3, rr1),false);
+        for (int k = 0; k < 40000; ++k) {
+            rr1.add(2*k+1);
+        }
+        rr1.runOptimize();
+        Assert.assertEquals(ImmutableRoaringBitmap.intersects(rr1, rr2),true);
+    }
+
 }
