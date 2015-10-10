@@ -713,7 +713,7 @@ public final class RunContainer extends Container implements Cloneable {
         for(; k < this.nbrruns ; ++k) {
             ans.smartAppendExclusive(getValue(k), getLength(k));
         }
-        return ans;
+        return ans.toEfficientContainer();
     }
         
 

@@ -779,7 +779,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         for(; k < this.nbrruns ; ++k) {
             ans.smartAppendExclusive(vl,getValue(k), getLength(k));
         }
-        return ans;
+        return ans.toEfficientContainer();
     }
 
     @Override
