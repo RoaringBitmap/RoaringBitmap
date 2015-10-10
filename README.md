@@ -15,7 +15,7 @@ compressed bitmaps such as WAH, EWAH or Concise. In some instances, roaring bitm
 be hundreds of times faster and they often offer significantly better compression.
 They can even be faster than uncompressed bitmaps.
 
-This library is used by Apache Spark (https://spark.apache.org/) and 
+This library is used by Apache Spark (https://spark.apache.org/), Apache Kylin (http://kylin.io) and 
 Druid.io (http://druid.io/). Apache Lucene (http://lucene.apache.org/) uses  Roaring bitmaps, though they have their own [independent implementation](https://svn.apache.org/viewvc/lucene/dev/branches/branch_5x/lucene/core/src/java/org/apache/lucene/util/RoaringDocIdSet.java?view=markup&pathrev=1629606).
 
 
