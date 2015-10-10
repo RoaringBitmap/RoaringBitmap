@@ -349,7 +349,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      * Returns true if the current container intersects the other container.
      *
      * @param x other container
-     * @return aggregated container
+     * @return whether they intersect
      */
     public boolean intersects(Container x) {
         if (x instanceof ArrayContainer)
@@ -364,21 +364,24 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      * Returns true if the current container intersects the other container.
      *
      * @param x other container
-     */
+     * @return whether they intersect
+      */
     public abstract boolean intersects(ArrayContainer x);
 
     /**
      * Returns true if the current container intersects the other container.
      *
      * @param x other container
-     */
+     * @return whether they intersect
+      */
     public abstract boolean intersects(BitmapContainer x);
 
     /**
      * Returns true if the current container intersects the other container.
      *
      * @param x other container
-     */
+     * @return whether they intersect
+      */
     public abstract boolean intersects(RunContainer x);
     
     /**

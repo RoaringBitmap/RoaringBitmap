@@ -326,7 +326,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      * Returns true if the current container intersects the other container.
      *
      * @param x other container
-     * @return aggregated container
+     * @return whether they intersect
      */
     public boolean intersects(MappeableContainer x) {
         if (x instanceof MappeableArrayContainer)
@@ -341,6 +341,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      * Returns true if the current container intersects the other container.
      *
      * @param x other container
+     * @return whether they intersect
      */
     public abstract boolean intersects(MappeableArrayContainer x);
 
@@ -348,13 +349,15 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
      * Returns true if the current container intersects the other container.
      *
      * @param x other container
-     */
+     * @return whether they intersect
+      */
     public abstract boolean intersects(MappeableBitmapContainer x);
 
     /**
      * Returns true if the current container intersects the other container.
      *
      * @param x other container
+     * @return whether they intersect
      */
     public abstract boolean intersects(MappeableRunContainer x);
 
