@@ -1408,22 +1408,7 @@ public class TestRunContainer {
     }
 
 
-   
-    @Test
-    public void not2() {
-        MappeableRunContainer container  = new MappeableRunContainer();
-        container.add((short) 0);
-        container.add((short) 2);
-        container.add((short) 55);
-        container.add((short) 64);
-        container.add((short) 256);
 
-        MappeableRunContainer result = (MappeableRunContainer) container.not(64,66);
-        assertEquals(5, result.getCardinality());
-        for (short i : new short[] {0,2,55,65,256})
-            assertTrue(result.contains(i));
-    }
-   
 
     @Test
     public void not3() {
@@ -1435,54 +1420,11 @@ public class TestRunContainer {
             assertTrue(result.contains(i));
     }
     
-    @Test
-    public void not4() {
-        MappeableRunContainer container  = new MappeableRunContainer();
-        container.add((short) 0);
-        container.add((short) 2);
-        container.add((short) 55);
-        container.add((short) 64);
-        container.add((short) 256);
-
-        // all runs are before the range
-        MappeableRunContainer result = (MappeableRunContainer) container.not(300,303);
-        assertEquals(8, result.getCardinality());
-        for (short i : new short[] {0,2,55,64,256,300,301,302})
-            assertTrue(result.contains(i));
-    }
 
 
-    @Test
-    public void not5() {
-        MappeableRunContainer container  = new MappeableRunContainer();
-        container.add((short) 500);
-        container.add((short) 502);
-        container.add((short) 555);
-        container.add((short) 564);
-        container.add((short) 756);
-
-        // all runs are after the range
-        MappeableRunContainer result = (MappeableRunContainer) container.not(300,303); 
-        assertEquals(8, result.getCardinality());
-        for (short i : new short[] {500,502,555,564,756,300,301,302})
-            assertTrue(result.contains(i));
-    }
 
 
-    @Test
-    public void not6() {
-        MappeableRunContainer container  = new MappeableRunContainer();
-        container.add((short) 500);
-        container.add((short) 501);
-        container.add((short) 502);
-        container.add((short) 503);
 
-        // one run is  strictly within the range
-        MappeableRunContainer result = (MappeableRunContainer) container.not(499,505); 
-        assertEquals(2, result.getCardinality());
-        for (short i : new short[] {499,504})
-            assertTrue(result.contains(i));
-    }
 
 
     @Test
@@ -1505,24 +1447,7 @@ public class TestRunContainer {
     }
 
 
-    @Test
-    public void not8() {
-        MappeableRunContainer container  = new MappeableRunContainer();
-        container.add((short) 300);
-        container.add((short) 500);
-        container.add((short) 501);
-        container.add((short) 502);
-        container.add((short) 503);
-        container.add((short) 504);
-        container.add((short) 505);
 
-        // second  run, spans the range
-        MappeableRunContainer result = (MappeableRunContainer) container.not(502,504); 
-
-        assertEquals(5, result.getCardinality());
-        for (short i : new short[] {300, 500,501,504,505})
-            assertTrue(result.contains(i));
-    }
 
     @Test
     public void not9() {
@@ -1539,107 +1464,6 @@ public class TestRunContainer {
 
         assertEquals(4, result.getCardinality());
         for (short i : new short[] {498,499,504,505})
-            assertTrue(result.contains(i));
-    }
-
-
-    @Test
-    public void not10() {
-        MappeableRunContainer container  = new MappeableRunContainer();
-        container.add((short) 300);
-        container.add((short) 500);
-        container.add((short) 501);
-        container.add((short) 502);
-        container.add((short) 503);
-        container.add((short) 504);
-        container.add((short) 505);
-
-        // second run begins inside the range but extends outside
-        MappeableRunContainer result = (MappeableRunContainer) container.not(498,504); 
-
-        assertEquals(5, result.getCardinality());
-        for (short i : new short[] {300, 498,499,504,505})
-            assertTrue(result.contains(i));
-    }
-
-
-
-    @Test
-    public void not11() {
-        MappeableRunContainer container  = new MappeableRunContainer();
-        container.add((short) 300);
-
-        container.add((short) 500);
-        container.add((short) 501);
-        container.add((short) 502);
-
-        container.add((short) 504);
-
-        container.add((short) 510);
-
-        // second run entirely inside range, third run entirely inside range, 4th run entirely outside
-        MappeableRunContainer result = (MappeableRunContainer) container.not(498,507); 
-
-        assertEquals(7, result.getCardinality());
-        for (short i : new short[] {300, 498,499,503,505,506, 510})
-            assertTrue(result.contains(i));
-    }
-
-    @Test
-    public void not12() {
-        MappeableRunContainer container  = new MappeableRunContainer();
-        container.add((short) 300);
-
-        container.add((short) 500);
-        container.add((short) 501);
-        container.add((short) 502);
-
-        container.add((short) 504);
-
-        container.add((short) 510);
-        container.add((short) 511);
-
-        // second run crosses into range, third run entirely inside range, 4th crosses outside
-        MappeableRunContainer result = (MappeableRunContainer) container.not(501,511); 
-
-        assertEquals(9, result.getCardinality());
-        for (short i : new short[] {300, 500, 503,505,506, 507, 508, 509, 511})
-            assertTrue(result.contains(i));
-    }
-
-
-
-    @Test
-    public void not12A() {
-        MappeableRunContainer container  = new MappeableRunContainer();
-        container.add((short) 300);
-        container.add((short) 301);
-
-        // first run crosses into range
-        MappeableRunContainer result = (MappeableRunContainer) container.not(301,303); 
-
-        assertEquals(2, result.getCardinality());
-        for (short i : new short[] {300, 302})
-            assertTrue(result.contains(i));
-    }
-
-
-
-
-
-    @Test
-    public void not13() {
-        MappeableRunContainer container  = new MappeableRunContainer();
-        // check for off-by-1 errors that might affect length 1 runs
-
-        for (int i=100; i < 120;  i += 3) 
-            container.add((short) i);
-
-        // second run crosses into range, third run entirely inside range, 4th crosses outside
-        MappeableRunContainer result = (MappeableRunContainer) container.not(110, 115); 
-
-        assertEquals(10, result.getCardinality());
-        for (short i : new short[] {100,103,106, 109, 110,111,113, 114, 115, 118})
             assertTrue(result.contains(i));
     }
 
@@ -1665,18 +1489,6 @@ public class TestRunContainer {
         for (int i=0; i < 65536; ++i)
             assertFalse(result.contains((short)i) ^ checker.get(i));
 
-    }
-
-    @Test
-    public void not14() { // much slower than unbuffered
-        not14once(10,1);
-        not14once(10,10);
-        not14once(1000, 100);
-        for (int i=1; i <= 10; ++i) {
-            if (i % 2 == 0)
-                System.out.println("not 14 attempt "+i);
-            not14once(50000,100);
-        }
     }
     
     
