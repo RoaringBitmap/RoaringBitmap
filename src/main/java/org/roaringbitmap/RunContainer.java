@@ -232,21 +232,13 @@ public final class RunContainer extends Container implements Cloneable {
 
 
     /** 
-     *  Convert to Array or Bitmap container if the serialized form would be shorter
+     *  Convert to Array or Bitmap container if the serialized form would be shorter.
+     *  Exactly the same functionality as toEfficientContainer.
      */
 
     @Override
     public Container runOptimize() {
-        int currentSize = serializedSizeInBytes();
-        int card = getCardinality(); 
-        if (card <= ArrayContainer.DEFAULT_MAX_SIZE) {
-            if (currentSize > ArrayContainer.serializedSizeInBytes(card))
-                return toBitmapOrArrayContainer(card);
-        }
-        else if (currentSize > BitmapContainer.serializedSizeInBytes(card)) {
-            return toBitmapOrArrayContainer(card);
-        }
-        return this;
+        return toEfficientContainer();
     }
 
     private void increaseCapacity() {
@@ -359,6 +351,7 @@ public final class RunContainer extends Container implements Cloneable {
     @Override
     public Container add(short k) {
         // TODO: it might be better and simpler to do return toBitmapOrArrayContainer(getCardinality()).add(k)
+        // but note that some unit tests use this method to build up test runcontainers without calling runOptimize
         int index = unsignedInterleavedBinarySearch(valueslength, 0, nbrruns, k);
         if(index >= 0) return this;// already there
         index = - index - 2;// points to preceding value, possibly -1
@@ -559,6 +552,10 @@ public final class RunContainer extends Container implements Cloneable {
         return false;
     }
 
+
+
+
+
     @Override
     public void deserialize(DataInput in) throws IOException {
         nbrruns = Short.reverseBytes(in.readShort());
@@ -638,11 +635,119 @@ public final class RunContainer extends Container implements Cloneable {
         return andNot(x);
     }
 
+    private static final boolean BLAB=true;
+
     @Override
     public Container inot(int rangeStart, int rangeEnd) {
-        if (rangeEnd <= rangeStart) return this;  
-        else
-            return not( rangeStart, rangeEnd);  // TODO: inplace option?
+        if (rangeEnd <= rangeStart) return this; 
+
+
+        // write special case code for rangeStart=0; rangeEnd=65535
+        // a "sliding" effect where each range records the gap adjacent it
+        // can probably be quite fast.
+        
+        if (valueslength.length <= 2*nbrruns)  {
+            // no room for expansion
+            // analyze whether this is a case that will require expansion (that we cannot do) 
+            // this is a bit costly now (4 "contains" checks)
+            
+            boolean lastValueBeforeRange= false;
+            boolean firstValueInRange = false;
+            boolean lastValueInRange = false;
+            boolean firstValuePastRange = false;
+
+            // contains is based on a binary search and is hopefully fairly fast.
+            // however, one binary search could *usually* suffice to find both
+            // lastValueBeforeRange AND firstValueInRange.  ditto for
+            // lastVaueInRange and firstValuePastRange
+
+            // find the start of the range
+            if (rangeStart > 0)
+                lastValueBeforeRange = contains( (short) (rangeStart-1));
+            firstValueInRange = contains( (short) rangeStart);
+            
+            // tougher to optimize out, but possible.
+            lastValueInRange = contains( (short) (rangeEnd-1));
+            if (rangeEnd != 65536)
+                firstValuePastRange = contains( (short) rangeEnd);
+            
+            // under some conditions ( given next) there is one more run after the operation
+            if (lastValueBeforeRange==firstValueInRange && lastValueInRange==firstValuePastRange)  {
+                if (BLAB) System.out.println("inot must default to not");
+                return not( rangeStart, rangeEnd);  // can't do in-place: true space limit
+            }
+            else if (BLAB) System.out.println("inot can work even without any extra space");
+        }
+        else if (BLAB) System.out.println(" room for expansion is "+(valueslength.length - 2*nbrruns));
+
+        // either no expansion required, or we have room to handle any required expansion for it.
+        
+        //could try using unsignedInterleavedBinarySearch(valueslength, 0, nbrruns, rangeStart) instead of sequential scan
+        //to find the starting location
+
+        int myNbrRuns = nbrruns;
+
+        RunContainer ans = this;  // copy on top of self.  
+        int k = 0;
+        ans.nbrruns=0;  // losing this.nbrruns, which is stashed in myNbrRuns.
+        for(; (k < myNbrRuns) && ((Util.toIntUnsigned(this.getValue(k)) < rangeStart)) ; ++k) {
+            //ans.valueslength[2 * k] = this.valueslength[2 * k];
+            //ans.valueslength[2 * k + 1] = this.valueslength[2 * k + 1];
+                ans.nbrruns++;
+        }
+        // We will work left to right, with a read pointer that hopefully always stays
+        // left of the write pointer.  However, we need to give the read pointer a head start.
+        
+        // slide the stuff to be read rightward one position, to give a headstart
+        // last item goes in a variable, since the array may not be large enough.
+
+        // there may not be any run, or we may have already "processed" it (range starts after it)
+        boolean finalUnprocessedRunExists = false;
+        short finalValue =  0;
+        short finalLength = 0;
+
+        if (k < myNbrRuns) {
+            finalUnprocessedRunExists = true; // need to know later, to process
+            finalValue = getValue(myNbrRuns-1);
+            finalLength = getLength(myNbrRuns-1);
+        }
+
+        if (BLAB) System.out.println("ans.nbrruns="+ans.nbrruns+"; myNbrRuns=" + myNbrRuns);
+
+        // we process the slid entries (and then final one). Counting shorts, not runs.
+        int entriesToSlide = 2*(myNbrRuns - ans.nbrruns - 1);
+        
+        // slide things down one run (two indexes).  But not the last pair (may not fit), which are recorded in above variables
+        if (entriesToSlide > 0) {
+            if (BLAB) System.out.println("System.arraycopy("+ans.valueslength + " " +( ans.nbrruns*2) + " " + ans.valueslength + " "+ (ans.nbrruns*2+2) + " "+ entriesToSlide + ")");
+
+            System.arraycopy(ans.valueslength, ans.nbrruns*2, ans.valueslength, ans.nbrruns*2+2,
+                             entriesToSlide);
+        }
+       
+        k++; // skip over the gap we created. If no slide, no gap...but no "slid" items to process, so harmless
+
+        // it appears that each call to smartAppendExclusive can cause ans.nbrruns
+        // to increase by at most one, in which case we should be able to stay ahead
+        // of it...k is the reading pointer, ans.nbrruns is the writing pointer
+
+        if (BLAB) System.out.println("initial k = "+k + " ans.nbrruns=" + ans.nbrruns);
+        ans.smartAppendExclusive((short)rangeStart,(short)(rangeEnd-rangeStart-1));
+        if (BLAB) System.out.println("after initial sAE k = "+k + " ans.nbrruns=" + ans.nbrruns);
+                           
+        for(; k < myNbrRuns ; ++k) {
+            if (k < ans.nbrruns)  {
+                throw new RuntimeException("error in inot, writer has overtaken reader!! "+ k + " " + ans.nbrruns);
+            }
+            ans.smartAppendExclusive(getValue(k), getLength(k));
+        }
+        // now handle the last run, saved into variables.., unless there are no runs, or the last one already processed.
+        if (finalUnprocessedRunExists)
+            ans.smartAppendExclusive(finalValue, finalLength);           
+        
+        // the number of runs can increase by one, meaning (rarely) a bitmap will become better
+        // or the cardinality can decrease by a lot, making an array better
+        return ans.toEfficientContainer();
     }
 
     @Override
@@ -713,7 +818,9 @@ public final class RunContainer extends Container implements Cloneable {
         for(; k < this.nbrruns ; ++k) {
             ans.smartAppendExclusive(getValue(k), getLength(k));
         }
-        return ans;
+        // the number of runs can increase by one, meaning (rarely) a bitmap will become better
+        // or the cardinality can decrease by a lot, making an array better
+        return ans.toEfficientContainer();
     }
         
 
@@ -936,7 +1043,7 @@ public final class RunContainer extends Container implements Cloneable {
             // if the cardinality is small, we construct the solution in place
             return x.xor(this.getShortIterator());
         }
-        // otherwise, we generate a bitmap
+        // otherwise, we generate a bitmap (even if runcontainer would be better)
         return toBitmapOrArrayContainer(card).ixor(x);
     }
 
