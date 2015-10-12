@@ -50,6 +50,14 @@ final class RoaringBitmapWrapper implements Bitmap {
       return new RoaringBitmapWrapper(RoaringBitmap.or(bitmap, ((RoaringBitmapWrapper) other).bitmap));
    }
 
+
+   @Override
+   public Bitmap flip(int rangeStart, int rangeEnd) {
+       return new RoaringBitmapWrapper(RoaringBitmap.flip(bitmap, rangeStart, rangeEnd));
+   }
+
+
+
    @Override
    public Bitmap xor(Bitmap other) {
       return new RoaringBitmapWrapper(RoaringBitmap.xor(bitmap, ((RoaringBitmapWrapper) other).bitmap));
@@ -101,6 +109,13 @@ final class RoaringBitmapWrapper implements Bitmap {
          public boolean hasNext() {
             return i.hasNext();
          }
+
+         
+         @Override
+             public void remove() {
+             throw new UnsupportedOperationException();
+         }
+         
 
          @Override
          public RoaringBitmap next() {

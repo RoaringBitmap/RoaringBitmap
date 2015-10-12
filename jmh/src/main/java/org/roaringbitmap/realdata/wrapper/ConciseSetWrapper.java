@@ -58,6 +58,18 @@ final class ConciseSetWrapper implements Bitmap {
    }
 
    @Override
+   public Bitmap flip(int rStart, int rEnd) {
+       // throw new UnsupportedOperationException();
+       // put this back, but have to hunt down the JMH param setting
+       // so the comparison does not abort.
+       return new ConciseSetWrapper(bitmap);  // wrong result
+
+   }
+
+
+
+
+   @Override
    public Bitmap andNot(Bitmap other) {
       return new ConciseSetWrapper(bitmap.difference(((ConciseSetWrapper) other).bitmap));
    }

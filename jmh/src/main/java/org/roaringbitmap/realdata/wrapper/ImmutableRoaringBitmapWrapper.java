@@ -55,6 +55,13 @@ final class ImmutableRoaringBitmapWrapper implements Bitmap {
       return new ImmutableRoaringBitmapWrapper(ImmutableRoaringBitmap.xor(bitmap, ((ImmutableRoaringBitmapWrapper) other).bitmap));
    }
 
+
+   @Override
+   public Bitmap flip(int rangeStart, int rangeEnd) {
+       return new ImmutableRoaringBitmapWrapper(ImmutableRoaringBitmap.flip(bitmap, rangeStart, rangeEnd));
+   }
+
+
    @Override
    public Bitmap andNot(Bitmap other) {
       return new ImmutableRoaringBitmapWrapper(ImmutableRoaringBitmap.andNot(bitmap, ((ImmutableRoaringBitmapWrapper) other).bitmap));
@@ -105,6 +112,10 @@ final class ImmutableRoaringBitmapWrapper implements Bitmap {
          @Override
          public ImmutableRoaringBitmap next() {
             return ((ImmutableRoaringBitmapWrapper) i.next()).bitmap;
+         }
+         @Override
+             public void remove() {
+             throw new UnsupportedOperationException();
          }
       };
    }

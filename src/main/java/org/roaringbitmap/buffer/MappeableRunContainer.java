@@ -705,7 +705,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     public MappeableContainer inot(int rangeStart, int rangeEnd) {
         if (rangeEnd <= rangeStart) return this;  
         else
-          return not( rangeStart, rangeEnd);  // TODO: inplace option?
+          return not( rangeStart, rangeEnd);  
+        // TODO: borrow the fancier inot approach from RunContainer, once it is complete
     }
 
     @Override

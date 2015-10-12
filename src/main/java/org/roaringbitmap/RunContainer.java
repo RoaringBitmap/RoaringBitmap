@@ -635,16 +635,15 @@ public final class RunContainer extends Container implements Cloneable {
         return andNot(x);
     }
 
-    private static final boolean BLAB=true;
-
     @Override
     public Container inot(int rangeStart, int rangeEnd) {
         if (rangeEnd <= rangeStart) return this; 
 
-
-        // write special case code for rangeStart=0; rangeEnd=65535
+        // TODO: write special case code for rangeStart=0; rangeEnd=65535
         // a "sliding" effect where each range records the gap adjacent it
-        // can probably be quite fast.
+        // can probably be quite fast.  Probably have 2 cases: start with a
+        // 0 run vs start with a 1 run.  If you both start and end with 0s,
+        // you will require room for expansion.
         
         if (valueslength.length <= 2*nbrruns)  {
             // no room for expansion
@@ -666,85 +665,61 @@ public final class RunContainer extends Container implements Cloneable {
                 lastValueBeforeRange = contains( (short) (rangeStart-1));
             firstValueInRange = contains( (short) rangeStart);
             
-            // tougher to optimize out, but possible.
-            lastValueInRange = contains( (short) (rangeEnd-1));
-            if (rangeEnd != 65536)
-                firstValuePastRange = contains( (short) rangeEnd);
-            
-            // under some conditions ( given next) there is one more run after the operation
-            if (lastValueBeforeRange==firstValueInRange && lastValueInRange==firstValuePastRange)  {
-                if (BLAB) System.out.println("inot must default to not");
-                return not( rangeStart, rangeEnd);  // can't do in-place: true space limit
+            if (lastValueBeforeRange == firstValueInRange) {
+                // expansion is required if also lastValueInRange==firstValuePastRange
+                
+                // tougher to optimize out, but possible.
+                lastValueInRange = contains( (short) (rangeEnd-1));
+                if (rangeEnd != 65536)
+                    firstValuePastRange = contains( (short) rangeEnd);
+                
+                // there is definitely one more run after the operation.
+                if (lastValueInRange==firstValuePastRange)  {
+                    return not( rangeStart, rangeEnd);  // can't do in-place: true space limit
+                }
             }
-            else if (BLAB) System.out.println("inot can work even without any extra space");
         }
-        else if (BLAB) System.out.println(" room for expansion is "+(valueslength.length - 2*nbrruns));
-
         // either no expansion required, or we have room to handle any required expansion for it.
         
-        //could try using unsignedInterleavedBinarySearch(valueslength, 0, nbrruns, rangeStart) instead of sequential scan
-        //to find the starting location
-
+        // remaining code is just a minor variation on not()
         int myNbrRuns = nbrruns;
 
         RunContainer ans = this;  // copy on top of self.  
         int k = 0;
         ans.nbrruns=0;  // losing this.nbrruns, which is stashed in myNbrRuns.
+
+        //could try using unsignedInterleavedBinarySearch(valueslength, 0, nbrruns, rangeStart) instead of sequential scan
+        //to find the starting location
+
         for(; (k < myNbrRuns) && ((Util.toIntUnsigned(this.getValue(k)) < rangeStart)) ; ++k) {
+            // since it is atop self, there is no copying needed
             //ans.valueslength[2 * k] = this.valueslength[2 * k];
             //ans.valueslength[2 * k + 1] = this.valueslength[2 * k + 1];
                 ans.nbrruns++;
         }
-        // We will work left to right, with a read pointer that hopefully always stays
+        // We will work left to right, with a read pointer that always stays
         // left of the write pointer.  However, we need to give the read pointer a head start.
-        
-        // slide the stuff to be read rightward one position, to give a headstart
-        // last item goes in a variable, since the array may not be large enough.
+        // use local variables so we are always reading 1 location ahead.
 
-        // there may not be any run, or we may have already "processed" it (range starts after it)
-        boolean finalUnprocessedRunExists = false;
-        short finalValue =  0;
-        short finalLength = 0;
-
-        if (k < myNbrRuns) {
-            finalUnprocessedRunExists = true; // need to know later, to process
-            finalValue = getValue(myNbrRuns-1);
-            finalLength = getLength(myNbrRuns-1);
+        short bufferedValue = 0, bufferedLength = 0;  // 65535 start and 65535 length would be illegal, could use as sentinel
+        short nextValue=0, nextLength=0;
+        if (k < myNbrRuns) {  // prime the readahead variables
+            bufferedValue = getValue(k);
+            bufferedLength = getLength(k);
         }
 
-        if (BLAB) System.out.println("ans.nbrruns="+ans.nbrruns+"; myNbrRuns=" + myNbrRuns);
-
-        // we process the slid entries (and then final one). Counting shorts, not runs.
-        int entriesToSlide = 2*(myNbrRuns - ans.nbrruns - 1);
-        
-        // slide things down one run (two indexes).  But not the last pair (may not fit), which are recorded in above variables
-        if (entriesToSlide > 0) {
-            if (BLAB) System.out.println("System.arraycopy("+ans.valueslength + " " +( ans.nbrruns*2) + " " + ans.valueslength + " "+ (ans.nbrruns*2+2) + " "+ entriesToSlide + ")");
-
-            System.arraycopy(ans.valueslength, ans.nbrruns*2, ans.valueslength, ans.nbrruns*2+2,
-                             entriesToSlide);
-        }
-       
-        k++; // skip over the gap we created. If no slide, no gap...but no "slid" items to process, so harmless
-
-        // it appears that each call to smartAppendExclusive can cause ans.nbrruns
-        // to increase by at most one, in which case we should be able to stay ahead
-        // of it...k is the reading pointer, ans.nbrruns is the writing pointer
-
-        if (BLAB) System.out.println("initial k = "+k + " ans.nbrruns=" + ans.nbrruns);
         ans.smartAppendExclusive((short)rangeStart,(short)(rangeEnd-rangeStart-1));
-        if (BLAB) System.out.println("after initial sAE k = "+k + " ans.nbrruns=" + ans.nbrruns);
-                           
-        for(; k < myNbrRuns ; ++k) {
-            if (k < ans.nbrruns)  {
-                throw new RuntimeException("error in inot, writer has overtaken reader!! "+ k + " " + ans.nbrruns);
-            }
-            ans.smartAppendExclusive(getValue(k), getLength(k));
-        }
-        // now handle the last run, saved into variables.., unless there are no runs, or the last one already processed.
-        if (finalUnprocessedRunExists)
-            ans.smartAppendExclusive(finalValue, finalLength);           
         
+        for (; k < myNbrRuns; ++k) {
+            if (ans.nbrruns > k+1)
+                throw new RuntimeException("internal error in inot, writer has overtaken reader!! "+ k + " " + ans.nbrruns);
+            if (k+1 < myNbrRuns) {
+                nextValue = getValue(k+1);  // readahead for next iteration
+                nextLength= getLength(k+1);
+            }
+            ans.smartAppendExclusive(bufferedValue, bufferedLength);
+            bufferedValue = nextValue; bufferedLength = nextLength;
+        }
         // the number of runs can increase by one, meaning (rarely) a bitmap will become better
         // or the cardinality can decrease by a lot, making an array better
         return ans.toEfficientContainer();

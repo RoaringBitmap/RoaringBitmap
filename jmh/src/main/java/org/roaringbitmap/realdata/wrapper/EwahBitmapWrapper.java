@@ -56,6 +56,29 @@ final class EwahBitmapWrapper implements Bitmap {
    }
 
    @Override
+   public Bitmap flip(int rangeStart, int rangeEnd) {
+       // synthesized with 2-upper-bounded NOTs
+       // unfortunately, cannot be used with an immutable bitmap.
+       // for that case, could synthesize from XOR and a mask for the range
+       int savedSize = bitmap.sizeInBits();
+       EWAHCompressedBitmap temp = null;
+       try {
+          temp = (EWAHCompressedBitmap) bitmap.clone();
+       } catch (CloneNotSupportedException e) {};
+
+       temp.setSizeInBits(rangeEnd, false);
+       temp.not();
+       if (rangeStart != 0) {
+           temp.setSizeInBits(rangeStart-1, false);
+           temp.not();
+       }
+       temp.setSizeInBits(savedSize,false);
+       return new EwahBitmapWrapper(temp);
+   }
+
+
+
+   @Override
    public Bitmap andNot(Bitmap other) {
       return new EwahBitmapWrapper(bitmap.andNot(((EwahBitmapWrapper) other).bitmap));
    }
@@ -106,6 +129,11 @@ final class EwahBitmapWrapper implements Bitmap {
                @Override
                public EWAHCompressedBitmap next() {
                   return ((EwahBitmapWrapper) i.next()).bitmap;
+               }
+
+               @Override
+               public void remove() {
+                   throw new UnsupportedOperationException();
                }
             };
             return new EwahBitmapWrapper(FastAggregation.or(iterator));
