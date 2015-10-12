@@ -18,6 +18,20 @@ import java.util.Iterator;
  * It is similar to org.roaringbitmap.RoaringBitmap, but it differs in that it
  * can interact with ImmutableRoaringBitmap objects.
  * 
+ * A MutableRoaringBitmap is an instance of an ImmutableRoaringBitmap
+ * (where methods like "serialize" are implemented). That is, they both
+ * share the same core (immutable) methods, but a  MutableRoaringBitmap 
+ * adds methods that allow you to modify the object. This design allows us
+ * to use MutableRoaringBitmap as ImmutableRoaringBitmap instances when needed.
+ * 
+ * A MutableRoaringBitmap can be used much like an org.roaringbitmap.RoaringBitmap
+ * instance, and they serialize to the same output. The RoaringBitmap instance
+ * will be faster since it does not carry the overhead of a ByteBuffer back-end,
+ * but the MutableRoaringBitmap can be used as an ImmutableRoaringBitmap 
+ * instance. Thus, if you use ImmutableRoaringBitmap, you probably need to use
+ * MutableRoaringBitmap instances as well; if you do not use ImmutableRoaringBitmap,
+ * you probably want to use only RoaringBitmap instances.
+ * 
  * <pre>
  * {@code
  *      import org.roaringbitmap.buffer.*;
@@ -36,6 +50,9 @@ import java.util.Iterator;
  *      rr.serialize(wheretoserialize);
  * }
  * </pre>
+ * 
+ * @see ImmutableRoaringBitmap
+ * @see org.roaringbitmap.RoaringBitmap
  */
 public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         implements Cloneable, Serializable, Iterable<Integer>, Externalizable, BitmapDataProvider {

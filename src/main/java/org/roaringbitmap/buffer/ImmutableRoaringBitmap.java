@@ -17,7 +17,8 @@ import java.util.Iterator;
 
 /**
  * ImmutableRoaringBitmap provides a compressed immutable (cannot be modified)
- * bitmap. It is meant to be used with org.roaringbitmap.buffer.MutableRoaringBitmap.
+ * bitmap. It is meant to be used with org.roaringbitmap.buffer.MutableRoaringBitmap,
+ * a derived class that adds methods to modify the bitmap.
  * 
  * <pre>
  * {@code
@@ -44,6 +45,8 @@ import java.util.Iterator;
  * It can also be constructed from a ByteBuffer (useful for memory mapping).
  * 
  * Objects of this class may reside almost entirely in memory-map files.
+ * 
+ * @see MutableRoaringBitmap
  */
 public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, ImmutableBitmapDataProvider {
 
@@ -612,9 +615,43 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
      * Serialize this bitmap.
      * 
      * Consider calling {@link MutableRoaringBitmap#runOptimize} before serialization to
-     * improve compression.
+     * improve compression if this is a MutableRoaringBitmap instance.
      * 
      * The current bitmap is not modified.
+     * 
+     * Advanced example: To serialize your bitmap to a ByteBuffer,
+     * you can do the following.
+     * 
+     * <pre>
+     * {@code
+     *   //r is your bitmap
+     *
+     *   // r.runOptimize(); // might improve compression, only if you have a 
+     *                       // MutableRoaringBitmap instance.
+     *   // next we create the ByteBuffer where the data will be stored
+     *   ByteBuffer outbb = ByteBuffer.allocate(r.serializedSizeInBytes());
+     *   // then we can serialize on a custom OutputStream
+     *   mrb.serialize(new DataOutputStream(new OutputStream(){
+     *       ByteBuffer mBB;
+     *       OutputStream init(ByteBuffer mbb) {mBB=mbb; return this;}
+     *       public void close() {}
+     *       public void flush() {}
+     *       public void write(int b) {
+     *         mBB.put((byte) b);}
+     *       public void write(byte[] b) {mBB.put(b);}
+     *       public void write(byte[] b, int off, int l) {mBB.put(b,off,l);}
+     *   }.init(outbb)));
+     *   // outbuff will now contain a serialized version of your bitmap
+     * }
+     * </pre>
+     * 
+     * Note: Java's data structures are in big endian format. Roaring
+     * serializes to a little endian format, so the bytes are flipped
+     * by the library  during serialization to ensure that what is stored 
+     * is in little endian---despite Java's big endianness. You can defeat 
+     * this process by reflipping the bytes again in a custom DataOutput which
+     * could lead to serialized Roaring objects with an incorrect byte order. 
+     *
      * 
      * @param out
      *            the DataOutput stream
