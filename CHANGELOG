@@ -1,3 +1,6 @@
+upcoming
+ - fast in-place complement (not) for RunContainers and MappeableRunContainers (Owen Kaser)
+
 version 0.5.6
  - Implemented fast intersects function, to check whether two bitmap intersects
 
