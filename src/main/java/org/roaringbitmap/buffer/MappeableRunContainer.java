@@ -289,16 +289,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
      @Override
      public MappeableContainer runOptimize() {
          return toEfficientContainer();  // which had the same functionality.
-         // int currentSize = getArraySizeInBytes(); 
-         // int card = getCardinality(); 
-         // if (card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
-         //     if (currentSize > MappeableArrayContainer.getArraySizeInBytes(card))  
-         //         return toBitmapOrArrayContainer(card);
-         // }
-         // else if (currentSize > MappeableBitmapContainer.getArraySizeInBytes(card)) {  
-         //     return toBitmapOrArrayContainer(card);
-         // }
-         // return this;
      }
 
     // not thread safe!
@@ -709,10 +699,93 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer inot(int rangeStart, int rangeEnd) {
-        if (rangeEnd <= rangeStart) return this;  
-        else
-          return not( rangeStart, rangeEnd);  
-        // TODO: borrow the fancier inot approach from RunContainer, once it is complete
+        if (rangeEnd <= rangeStart) return this; 
+        short[] vl = this.valueslength.array();
+
+        // TODO: write special case code for rangeStart=0; rangeEnd=65535
+        // a "sliding" effect where each range records the gap adjacent it
+        // can probably be quite fast.  Probably have 2 cases: start with a
+        // 0 run vs start with a 1 run.  If you both start and end with 0s,
+        // you will require room for expansion.
+        
+        if (vl.length <= 2*nbrruns)  {
+            // no room for expansion
+            // analyze whether this is a case that will require expansion (that we cannot do) 
+            // this is a bit costly now (4 "contains" checks)
+            
+            boolean lastValueBeforeRange= false;
+            boolean firstValueInRange = false;
+            boolean lastValueInRange = false;
+            boolean firstValuePastRange = false;
+
+            // contains is based on a binary search and is hopefully fairly fast.
+            // however, one binary search could *usually* suffice to find both
+            // lastValueBeforeRange AND firstValueInRange.  ditto for
+            // lastVaueInRange and firstValuePastRange
+
+            // find the start of the range
+            if (rangeStart > 0)
+                lastValueBeforeRange = contains( (short) (rangeStart-1));
+            firstValueInRange = contains( (short) rangeStart);
+            
+            if (lastValueBeforeRange == firstValueInRange) {
+                // expansion is required if also lastValueInRange==firstValuePastRange
+                
+                // tougher to optimize out, but possible.
+                lastValueInRange = contains( (short) (rangeEnd-1));
+                if (rangeEnd != 65536)
+                    firstValuePastRange = contains( (short) rangeEnd);
+                
+                // there is definitely one more run after the operation.
+                if (lastValueInRange==firstValuePastRange)  {
+                    return not( rangeStart, rangeEnd);  // can't do in-place: true space limit
+                }
+            }
+        }
+        // either no expansion required, or we have room to handle any required expansion for it.
+        
+        // remaining code is just a minor variation on not()
+        int myNbrRuns = nbrruns;
+
+        MappeableRunContainer ans = this;  // copy on top of self.  
+        int k = 0;
+        ans.nbrruns=0;  // losing this.nbrruns, which is stashed in myNbrRuns.
+
+        //could try using unsignedInterleavedBinarySearch(valueslength, 0, nbrruns, rangeStart) instead of sequential scan
+        //to find the starting location
+
+        for(; (k < myNbrRuns) && ((BufferUtil.toIntUnsigned(this.getValue(k)) < rangeStart)) ; ++k) {
+            // since it is atop self, there is no copying needed
+            //ans.valueslength[2 * k] = this.valueslength[2 * k];
+            //ans.valueslength[2 * k + 1] = this.valueslength[2 * k + 1];
+                ans.nbrruns++;
+        }
+        // We will work left to right, with a read pointer that always stays
+        // left of the write pointer.  However, we need to give the read pointer a head start.
+        // use local variables so we are always reading 1 location ahead.
+
+        short bufferedValue = 0, bufferedLength = 0;  // 65535 start and 65535 length would be illegal, could use as sentinel
+        short nextValue=0, nextLength=0;
+        if (k < myNbrRuns) {  // prime the readahead variables
+            bufferedValue = vl[2*k];//getValue(k);
+            bufferedLength = vl[2*k+1];//getLength(k);
+        }
+
+        ans.smartAppendExclusive(vl,(short)rangeStart,(short)(rangeEnd-rangeStart-1));
+        
+        for (; k < myNbrRuns; ++k) {
+            if (ans.nbrruns > k+1)
+                throw new RuntimeException("internal error in inot, writer has overtaken reader!! "+ k + " " + ans.nbrruns);
+            if (k+1 < myNbrRuns) {
+                nextValue = vl[2*(k+1)];//getValue(k+1);  // readahead for next iteration
+                nextLength= vl[2*(k+1)+1];//getLength(k+1);
+            }
+            ans.smartAppendExclusive(vl,bufferedValue, bufferedLength);
+            bufferedValue = nextValue; bufferedLength = nextLength;
+        }
+        // the number of runs can increase by one, meaning (rarely) a bitmap will become better
+        // or the cardinality can decrease by a lot, making an array better
+        return ans.toEfficientContainer();
     }
 
     @Override
