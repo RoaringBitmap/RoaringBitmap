@@ -288,16 +288,17 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
      @Override
      public MappeableContainer runOptimize() {
-         int currentSize = getArraySizeInBytes(); 
-         int card = getCardinality(); 
-         if (card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
-             if (currentSize > MappeableArrayContainer.getArraySizeInBytes(card))  
-                 return toBitmapOrArrayContainer(card);
-         }
-         else if (currentSize > MappeableBitmapContainer.getArraySizeInBytes(card)) {  
-             return toBitmapOrArrayContainer(card);
-         }
-         return this;
+         return toEfficientContainer();  // which had the same functionality.
+         // int currentSize = getArraySizeInBytes(); 
+         // int card = getCardinality(); 
+         // if (card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
+         //     if (currentSize > MappeableArrayContainer.getArraySizeInBytes(card))  
+         //         return toBitmapOrArrayContainer(card);
+         // }
+         // else if (currentSize > MappeableBitmapContainer.getArraySizeInBytes(card)) {  
+         //     return toBitmapOrArrayContainer(card);
+         // }
+         // return this;
      }
 
     // not thread safe!
@@ -710,7 +711,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     public MappeableContainer inot(int rangeStart, int rangeEnd) {
         if (rangeEnd <= rangeStart) return this;  
         else
-          return not( rangeStart, rangeEnd);  // TODO: inplace option?
+          return not( rangeStart, rangeEnd);  
+        // TODO: borrow the fancier inot approach from RunContainer, once it is complete
     }
 
     @Override
@@ -776,14 +778,30 @@ public final class MappeableRunContainer extends MappeableContainer implements C
             throw new RuntimeException("internal bug");
         short[] vl = ans.valueslength.array();
         int k = 0;
-        for(; (k < this.nbrruns) && ((BufferUtil.toIntUnsigned(this.getValue(k)) < rangeStart)) ; ++k) {
-                vl[2 * k] = getValue(k);//TODO: optimize when this is an array
+
+        if  (isArrayBacked()) {
+            short [] myVl = valueslength.array();
+            for(; (k < this.nbrruns) && ((BufferUtil.toIntUnsigned(getValue(myVl,k)) < rangeStart)) ; ++k) {
+                vl[2 * k] = myVl[2 * k];
+                vl[2 * k + 1] = myVl[2 * k + 1];
+                ans.nbrruns++;
+            }
+            ans.smartAppendExclusive(vl, (short)rangeStart,(short)(rangeEnd-rangeStart-1));
+            for(; k < this.nbrruns ; ++k) {
+                ans.smartAppendExclusive(vl, getValue(myVl, k), getLength(myVl,k));
+            }
+        }
+        else {  // not array backed
+
+            for(; (k < this.nbrruns) && ((BufferUtil.toIntUnsigned(this.getValue(k)) < rangeStart)) ; ++k) {
+                vl[2 * k] = getValue(k);
                 vl[2 * k + 1] = getLength(k);
                 ans.nbrruns++;
-        }
-        ans.smartAppendExclusive(vl,(short)rangeStart,(short)(rangeEnd-rangeStart-1));
-        for(; k < this.nbrruns ; ++k) {
-            ans.smartAppendExclusive(vl,getValue(k), getLength(k));
+            }
+            ans.smartAppendExclusive(vl,(short)rangeStart,(short)(rangeEnd-rangeStart-1));
+            for(; k < this.nbrruns ; ++k) {
+                ans.smartAppendExclusive(vl,getValue(k), getLength(k));
+            }
         }
         return ans.toEfficientContainer();
     }

@@ -50,6 +50,15 @@ final class ImmutableConciseSetWrapper implements Bitmap {
       return new ImmutableConciseSetWrapper(intersection(bitmap, ((ImmutableConciseSetWrapper) other).bitmap));
    }
 
+    @Override
+    public Bitmap flip(int s, int e) {
+        ImmutableConciseSet temp = ImmutableConciseSet.complement(bitmap, e);
+        if (e == 0)
+            return new ImmutableConciseSetWrapper(temp);
+        else
+            return new ImmutableConciseSetWrapper(ImmutableConciseSet.complement( temp, e-1));
+    }
+
    @Override
    public Bitmap or(Bitmap other) {
       return new ImmutableConciseSetWrapper(union(bitmap, ((ImmutableConciseSetWrapper) other).bitmap));
@@ -98,6 +107,13 @@ final class ImmutableConciseSetWrapper implements Bitmap {
          public ImmutableConciseSet next() {
             return ((ImmutableConciseSetWrapper) i.next()).bitmap;
          }
+
+         @Override
+             public void remove() {
+             throw new UnsupportedOperationException();
+         }
+         
+
       };
    }
 

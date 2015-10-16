@@ -56,6 +56,28 @@ final class Ewah32BitmapWrapper implements Bitmap {
    }
 
    @Override
+   public Bitmap flip(int rangeStart, int rangeEnd) {
+       // synthesized with 2-upper-bounded NOTs
+       int savedSize = bitmap.sizeInBits();
+       EWAHCompressedBitmap32 temp=null;
+
+       try { temp = (EWAHCompressedBitmap32) bitmap.clone();}
+       catch (CloneNotSupportedException e) {};
+
+       temp.setSizeInBits(rangeEnd, false);
+       temp.not();
+       if (rangeStart != 0) {
+           temp.setSizeInBits(rangeStart-1, false);
+           temp.not();
+       }
+       temp.setSizeInBits(savedSize,false);
+       return new Ewah32BitmapWrapper(temp);
+   }
+
+
+
+
+   @Override
    public Bitmap andNot(Bitmap other) {
       return new Ewah32BitmapWrapper(bitmap.andNot(((Ewah32BitmapWrapper) other).bitmap));
    }
@@ -107,6 +129,14 @@ final class Ewah32BitmapWrapper implements Bitmap {
                public EWAHCompressedBitmap32 next() {
                   return ((Ewah32BitmapWrapper) i.next()).bitmap;
                }
+
+
+               @Override
+               public void remove() {
+                   throw new UnsupportedOperationException();
+               }
+
+
             };
             return new Ewah32BitmapWrapper(FastAggregation32.or(iterator));
          }

@@ -535,6 +535,135 @@ public class TestRunContainer {
          assertEquals(4*DEFAULT_MAX_SIZE, rc.getCardinality());
      }
 
+
+     @Test
+     public void xor_array_smallcase() {
+         Container bc = new ArrayContainer();
+         Container rc = new RunContainer();
+         for(int k = 0; k< DEFAULT_MAX_SIZE/3; ++k) {
+             rc = rc.add((short) (k*10));  // most efficiently stored as runs
+             rc = rc.add((short) (k*10+1));
+             rc = rc.add((short) (k*10+2));
+             rc = rc.add((short) (k*10+3));
+             rc = rc.add((short) (k*10+4));
+         }
+
+         // very small array.  
+         bc = bc.add((short)1).add((short)2).add((short)3).add((short)4).add((short)5);
+
+         assertTrue(bc instanceof ArrayContainer);
+         assertTrue(rc instanceof RunContainer);
+         int rcSize = rc.getCardinality();
+         int bcSize = bc.getCardinality();
+
+
+         Container result = rc.xor(bc);
+
+         // input containers should not change (just check card)
+         assertEquals(rcSize, rc.getCardinality());
+         assertEquals(bcSize, bc.getCardinality());
+
+         assertEquals(rcSize-3, result.getCardinality());
+         assertTrue( result instanceof RunContainer);
+         assertTrue(result.contains((short) 5));
+         assertTrue(result.contains((short) 0));
+         
+
+         for(int k=1; k< DEFAULT_MAX_SIZE/3; ++k) {
+             for (int i=0; i < 5; ++i)
+                 assertTrue(result.contains((short) (k*10+i)));
+         }
+     }
+
+
+
+     @Test
+     public void xor_array_mediumcase() {
+         Container bc = new ArrayContainer();
+         Container rc = new RunContainer();
+         for(int k = 0; k< DEFAULT_MAX_SIZE/6; ++k) {
+             rc = rc.add((short) (k*10));  // most efficiently stored as runs
+             rc = rc.add((short) (k*10+1));
+             rc = rc.add((short) (k*10+2));
+         }
+
+         for(int k = 0; k< DEFAULT_MAX_SIZE/12; ++k) {
+             bc = bc.add((short) (k*10));  
+         }
+
+         // size ordering preference for rc: run, array, bitmap
+
+         assertTrue(bc instanceof ArrayContainer);
+         assertTrue(rc instanceof RunContainer);
+         int rcSize = rc.getCardinality();
+         int bcSize = bc.getCardinality();
+
+         Container result = rc.xor(bc);
+
+         // input containers should not change (just check card)
+         assertEquals(rcSize, rc.getCardinality());
+         assertEquals(bcSize, bc.getCardinality());
+
+         assertEquals(rcSize-bcSize, result.getCardinality());
+
+         // The result really ought to be a runcontainer, by its size
+         // however, as of test writing, the implementation
+         // will have converted the result to an array container.
+         // This is suboptimal, storagewise,  but arguably not an error
+
+         // assertTrue( result instanceof RunContainer);
+
+         for(int k = 0; k< DEFAULT_MAX_SIZE/12; ++k) {
+             assertTrue(result.contains((short) (k*10+1)));
+             assertTrue(result.contains((short) (k*10+2)));
+         }
+
+         for(int k = DEFAULT_MAX_SIZE/12; k < DEFAULT_MAX_SIZE/6; ++k) {
+             assertTrue(result.contains((short) (k*10+1)));
+             assertTrue(result.contains((short) (k*10+2)));
+         }
+     }
+
+
+  @Test
+  public void xor_array_largecase_runcontainer_best() {
+         Container bc = new ArrayContainer();
+         Container rc = new RunContainer();
+         for(int k = 0; k< 60; ++k)
+             for (int j = 0; j < 99; ++j) {
+                 rc = rc.add((short) (k*100+j));  // most efficiently stored as runs
+                 bc = bc.add((short)(k*100+98)).add((short)(k*100+99));
+             }
+
+         // size ordering preference for rc: run, bitmap, array
+
+         assertTrue(bc instanceof ArrayContainer);
+         assertTrue(rc instanceof RunContainer);
+         int rcSize = rc.getCardinality();
+         int bcSize = bc.getCardinality();
+
+         Container result = rc.xor(bc);
+
+         // input containers should not change (just check card)
+         assertEquals(rcSize, rc.getCardinality());
+         assertEquals(bcSize, bc.getCardinality());
+
+         // each group of 60, we gain the missing 99th value but lose the 98th.  Net wash
+         assertEquals(rcSize, result.getCardinality());
+
+         // a runcontainer would be, space-wise, best
+         // but the code may (and does) opt to produce a bitmap
+
+         // assertTrue( result instanceof RunContainer);
+
+         for(int k = 0; k< 60; ++k) {
+             for (int j=0; j < 98; ++j) 
+                 assertTrue(result.contains((short) (k*100+j)));
+             assertTrue(result.contains((short) (k*100+99)));
+         }
+     }
+
+
      @Test
      public void clear() {
          Container rc = new RunContainer();
@@ -1534,19 +1663,80 @@ public class TestRunContainer {
       }
 
 
+      @Test
+      public void not2() {
+          RunContainer container  = new RunContainer();
+          container.add((short) 0);
+          container.add((short) 2);
+          container.add((short) 55);
+          container.add((short) 64);
+          container.add((short) 256);
 
-   
+          Container result = container.not(64,66);
+          assertEquals(5, result.getCardinality());
+          for (short i : new short[] {0,2,55,65,256})
+              assertTrue(result.contains(i));
+      }
 
       @Test
       public void not3() {
           RunContainer container = new RunContainer();
           // applied to a run-less container
-          RunContainer result = (RunContainer) container.not(64,68);
+          Container result =  container.not(64,68);
           assertEquals(4, result.getCardinality());
           for (short i : new short[] {64,65,66,67})
               assertTrue(result.contains(i));
       }
     
+
+      @Test
+      public void not4() {
+          RunContainer container  = new RunContainer();
+          container.add((short) 0);
+          container.add((short) 2);
+          container.add((short) 55);
+          container.add((short) 64);
+          container.add((short) 256);
+
+          // all runs are before the range
+          Container result = container.not(300,303);
+          assertEquals(8, result.getCardinality());
+          for (short i : new short[] {0,2,55,64,256,300,301,302})
+              assertTrue(result.contains(i));
+      }
+
+
+      @Test
+      public void not5() {
+          RunContainer container  = new RunContainer();
+          container.add((short) 500);
+          container.add((short) 502);
+          container.add((short) 555);
+          container.add((short) 564);
+          container.add((short) 756);
+
+          // all runs are after the range
+          Container result =  container.not(300,303); 
+          assertEquals(8, result.getCardinality());
+          for (short i : new short[] {500,502,555,564,756,300,301,302})
+              assertTrue(result.contains(i));
+      }
+
+
+      @Test
+      public void not6() {
+          RunContainer container  = new RunContainer();
+          container.add((short) 500);
+          container.add((short) 501);
+          container.add((short) 502);
+          container.add((short) 503);
+
+          // one run is  strictly within the range
+          Container result = container.not(499,505); 
+          assertEquals(2, result.getCardinality());
+          for (short i : new short[] {499,504})
+              assertTrue(result.contains(i));
+      }
 
 
       @Test
@@ -1561,13 +1751,32 @@ public class TestRunContainer {
 
 
           // one run, spans the range
-          RunContainer result = (RunContainer) container.not(502,504); 
+          Container result = container.not(502,504); 
 
           assertEquals(4, result.getCardinality());
           for (short i : new short[] {500,501,504,505})
               assertTrue(result.contains(i));
       }
 
+
+      @Test
+      public void not8() {
+          RunContainer container  = new RunContainer();
+          container.add((short) 300);
+          container.add((short) 500);
+          container.add((short) 501);
+          container.add((short) 502);
+          container.add((short) 503);
+          container.add((short) 504);
+          container.add((short) 505);
+
+          // second  run, spans the range
+          Container result = container.not(502,504); 
+
+          assertEquals(5, result.getCardinality());
+          for (short i : new short[] {300, 500,501,504,505})
+              assertTrue(result.contains(i));
+      }
 
       @Test
       public void not9() {
@@ -1580,12 +1789,114 @@ public class TestRunContainer {
           container.add((short) 505);
 
           // first run, begins inside the range but extends outside
-          RunContainer result = (RunContainer) container.not(498,504); 
+          Container result = container.not(498,504); 
 
           assertEquals(4, result.getCardinality());
           for (short i : new short[] {498,499,504,505})
               assertTrue(result.contains(i));
       }
+
+
+      @Test
+      public void not10() {
+          RunContainer container  = new RunContainer();
+          container.add((short) 300);
+          container.add((short) 500);
+          container.add((short) 501);
+          container.add((short) 502);
+          container.add((short) 503);
+          container.add((short) 504);
+          container.add((short) 505);
+
+          // second run begins inside the range but extends outside
+          Container result = container.not(498,504); 
+
+          assertEquals(5, result.getCardinality());
+          for (short i : new short[] {300, 498,499,504,505})
+              assertTrue(result.contains(i));
+      }
+
+
+
+      @Test
+      public void not11() {
+          RunContainer container  = new RunContainer();
+          container.add((short) 300);
+
+          container.add((short) 500);
+          container.add((short) 501);
+          container.add((short) 502);
+
+          container.add((short) 504);
+
+          container.add((short) 510);
+
+          // second run entirely inside range, third run entirely inside range, 4th run entirely outside
+          Container result = (Container) container.not(498,507); 
+
+          assertEquals(7, result.getCardinality());
+          for (short i : new short[] {300, 498,499,503,505,506, 510})
+              assertTrue(result.contains(i));
+      }
+
+      @Test
+      public void not12() {
+          RunContainer container  = new RunContainer();
+          container.add((short) 300);
+
+          container.add((short) 500);
+          container.add((short) 501);
+          container.add((short) 502);
+
+          container.add((short) 504);
+
+          container.add((short) 510);
+          container.add((short) 511);
+
+          // second run crosses into range, third run entirely inside range, 4th crosses outside
+          Container result = (Container) container.not(501,511); 
+
+          assertEquals(9, result.getCardinality());
+          for (short i : new short[] {300, 500, 503,505,506, 507, 508, 509, 511})
+              assertTrue(result.contains(i));
+      }
+
+
+
+      @Test
+      public void not12A() {
+          RunContainer container  = new RunContainer();
+          container.add((short) 300);
+          container.add((short) 301);
+
+          // first run crosses into range
+          Container result = container.not(301,303); 
+
+          assertEquals(2, result.getCardinality());
+          for (short i : new short[] {300, 302})
+              assertTrue(result.contains(i));
+      }
+
+
+
+
+
+      @Test
+      public void not13() {
+          RunContainer container  = new RunContainer();
+          // check for off-by-1 errors that might affect length 1 runs
+
+          for (int i=100; i < 120;  i += 3) 
+              container.add((short) i);
+
+          // second run crosses into range, third run entirely inside range, 4th crosses outside
+          Container result = container.not(110, 115); 
+
+          assertEquals(10, result.getCardinality());
+          for (short i : new short[] {100,103,106, 109, 110,111,113, 114, 115, 118})
+              assertTrue(result.contains(i));
+      }
+
 
 
 
@@ -1601,7 +1912,9 @@ public class TestRunContainer {
           int rangeStart = (int) Math.random() * (65536-rangeSize);
           int rangeEnd = rangeStart+rangeSize;
 
-          RunContainer result = (RunContainer) container.not(rangeStart, rangeEnd);
+          assertTrue( container instanceof RunContainer);
+
+          Container result = container.not(rangeStart, rangeEnd);
           checker.flip(rangeStart,rangeEnd);
         
           // esnsure they agree on each possible bit
@@ -1610,7 +1923,353 @@ public class TestRunContainer {
 
       }
 
+      @Test
+      public void not14() {
+          not14once(10,1);
+          not14once(10,10);
+          not14once(1000, 100);
+
+          for (int i=1; i <= 100; ++i) {
+              if (i % 10 == 0)
+                  System.out.println("not 14 attempt "+i);
+              not14once(50000,100);
+          }
+      }
+ 
+
+      @Test
+      public void not15() {
+          RunContainer container  = new RunContainer();
+          for (int i=0; i < 20000; ++i)
+              container.add((short) i);
+          
+          for (int i=40000; i < 60000; ++i)
+              container.add((short) i);
+          
+          Container result = container.not(15000,25000); 
+
+          // this result should stay as a run container.
+          assertTrue(result instanceof RunContainer);
+      }
+
+
+
+
+      @Test
+      public void inot1() {
+          RunContainer container  = new RunContainer();
+          container.add((short) 0);
+          container.add((short) 2);
+          container.add((short) 55);
+          container.add((short) 64);
+          container.add((short) 256);
+
+          Container result = container.inot(64,64);  // empty range
+          assertSame(container, result);
+          assertEquals(5, container.getCardinality());
+      }
+
+
+   
+      @Test
+      public void inot2() {
+          RunContainer container  = new RunContainer();
+          container.add((short) 0);
+          container.add((short) 2);
+          container.add((short) 55);
+          container.add((short) 64);
+          container.add((short) 256);
+
+          Container result = container.inot(64,66);
+          assertEquals(5, result.getCardinality());
+          for (short i : new short[] {0,2,55,65,256})
+              assertTrue(result.contains(i));
+      }
+   
+
+      @Test
+      public void inot3() {
+          RunContainer container = new RunContainer();
+          // applied to a run-less container
+          Container result =  container.inot(64,68);
+          assertEquals(4, result.getCardinality());
+          for (short i : new short[] {64,65,66,67})
+              assertTrue(result.contains(i));
+      }
     
+      @Test
+      public void inot4() {
+          RunContainer container  = new RunContainer();
+          container.add((short) 0);
+          container.add((short) 2);
+          container.add((short) 55);
+          container.add((short) 64);
+          container.add((short) 256);
+
+          // all runs are before the range
+          Container result = container.inot(300,303);
+          assertEquals(8, result.getCardinality());
+          for (short i : new short[] {0,2,55,64,256,300,301,302})
+              assertTrue(result.contains(i));
+      }
+
+
+      @Test
+      public void inot5() {
+          RunContainer container  = new RunContainer();
+          container.add((short) 500);
+          container.add((short) 502);
+          container.add((short) 555);
+          container.add((short) 564);
+          container.add((short) 756);
+
+          // all runs are after the range
+          Container result =  container.inot(300,303); 
+          assertEquals(8, result.getCardinality());
+          for (short i : new short[] {500,502,555,564,756,300,301,302})
+              assertTrue(result.contains(i));
+      }
+
+
+      @Test
+      public void inot6() {
+          RunContainer container  = new RunContainer();
+          container.add((short) 500);
+          container.add((short) 501);
+          container.add((short) 502);
+          container.add((short) 503);
+
+          // one run is  strictly within the range
+          Container result = container.inot(499,505); 
+          assertEquals(2, result.getCardinality());
+          for (short i : new short[] {499,504})
+              assertTrue(result.contains(i));
+      }
+
+
+      @Test
+      public void inot7() {
+          RunContainer container  = new RunContainer();
+          container.add((short) 500);
+          container.add((short) 501);
+          container.add((short) 502);
+          container.add((short) 503);
+          container.add((short) 504);
+          container.add((short) 505);
+
+
+          // one run, spans the range
+          Container result = container.inot(502,504); 
+
+          assertEquals(4, result.getCardinality());
+          for (short i : new short[] {500,501,504,505})
+              assertTrue(result.contains(i));
+      }
+
+
+      @Test
+      public void inot8() {
+          RunContainer container  = new RunContainer();
+          container.add((short) 300);
+          container.add((short) 500);
+          container.add((short) 501);
+          container.add((short) 502);
+          container.add((short) 503);
+          container.add((short) 504);
+          container.add((short) 505);
+
+          // second  run, spans the range
+          Container result = container.inot(502,504); 
+
+          assertEquals(5, result.getCardinality());
+          for (short i : new short[] {300, 500,501,504,505})
+              assertTrue(result.contains(i));
+      }
+
+      @Test
+      public void inot9() {
+          RunContainer container  = new RunContainer();
+          container.add((short) 500);
+          container.add((short) 501);
+          container.add((short) 502);
+          container.add((short) 503);
+          container.add((short) 504);
+          container.add((short) 505);
+
+          // first run, begins inside the range but extends outside
+          Container result = container.inot(498,504); 
+
+          assertEquals(4, result.getCardinality());
+          for (short i : new short[] {498,499,504,505})
+              assertTrue(result.contains(i));
+      }
+
+
+      @Test
+      public void inot10() {
+          RunContainer container  = new RunContainer();
+          container.add((short) 300);
+          container.add((short) 500);
+          container.add((short) 501);
+          container.add((short) 502);
+          container.add((short) 503);
+          container.add((short) 504);
+          container.add((short) 505);
+
+          // second run begins inside the range but extends outside
+          Container result = container.inot(498,504); 
+
+          assertEquals(5, result.getCardinality());
+          for (short i : new short[] {300, 498,499,504,505})
+              assertTrue(result.contains(i));
+      }
+
+
+
+      @Test
+      public void inot11() {
+          RunContainer container  = new RunContainer();
+          container.add((short) 300);
+
+          container.add((short) 500);
+          container.add((short) 501);
+          container.add((short) 502);
+
+          container.add((short) 504);
+
+          container.add((short) 510);
+
+          // second run entirely inside range, third run entirely inside range, 4th run entirely outside
+          Container result = (Container) container.inot(498,507); 
+
+          assertEquals(7, result.getCardinality());
+          for (short i : new short[] {300, 498,499,503,505,506, 510})
+              assertTrue(result.contains(i));
+      }
+
+      @Test
+      public void inot12() {
+          RunContainer container  = new RunContainer();
+          container.add((short) 300);
+
+          container.add((short) 500);
+          container.add((short) 501);
+          container.add((short) 502);
+
+          container.add((short) 504);
+
+          container.add((short) 510);
+          container.add((short) 511);
+
+          // second run crosses into range, third run entirely inside range, 4th crosses outside
+          Container result = (Container) container.inot(501,511); 
+
+          assertEquals(9, result.getCardinality());
+          for (short i : new short[] {300, 500, 503,505,506, 507, 508, 509, 511})
+              assertTrue(result.contains(i));
+      }
+
+
+
+      @Test
+      public void inot12A() {
+          RunContainer container  = new RunContainer();
+          container.add((short) 300);
+          container.add((short) 301);
+
+          // first run crosses into range
+          Container result = container.inot(301,303); 
+
+          assertEquals(2, result.getCardinality());
+          for (short i : new short[] {300, 302})
+              assertTrue(result.contains(i));
+      }
+
+
+
+
+
+      @Test
+      public void inot13() {
+          RunContainer container  = new RunContainer();
+          // check for off-by-1 errors that might affect length 1 runs
+
+          for (int i=100; i < 120;  i += 3) 
+              container.add((short) i);
+
+          // second run crosses into range, third run entirely inside range, 4th crosses outside
+          Container result = container.inot(110, 115); 
+
+          assertEquals(10, result.getCardinality());
+          for (short i : new short[] {100,103,106, 109, 110,111,113, 114, 115, 118})
+              assertTrue(result.contains(i));
+      }
+
+
+
+
+      private void inot14once(int num, int rangeSize) {
+          RunContainer container  = new RunContainer();
+          BitSet checker = new BitSet();
+          for (int i=0; i < num; ++i) {
+              int val = (int) (Math.random()*65536);
+              checker.set(val);
+              container.add((short)val);
+          }
+
+          int rangeStart = (int) Math.random() * (65536-rangeSize);
+          int rangeEnd = rangeStart+rangeSize;
+
+          // this test is not checking runcontainer flip if "add" has converted
+          // a runcontainer to an array or bitmap container.  Flag this as requiring thought, if it happens
+          assertTrue( container instanceof RunContainer);
+
+          Container result = container.inot(rangeStart, rangeEnd);
+          checker.flip(rangeStart,rangeEnd);
+        
+          // esnsure they agree on each possible bit
+          for (int i=0; i < 65536; ++i)
+              assertFalse(result.contains((short)i) ^ checker.get(i));
+
+      }
+
+      @Test
+      public void inot14() {
+          inot14once(10,1);
+          inot14once(10,10);
+          inot14once(1000, 100);
+          for (int i=1; i <= 100; ++i) {
+              if (i % 10 == 0)
+                  System.out.println("inot 14 attempt "+i);
+              inot14once(50000,100);
+          }
+      }
+ 
+
+      @Test
+      public void inot15() {
+          RunContainer container  = new RunContainer();
+          for (int i=0; i < 20000; ++i)
+              container.add((short) i);
+          
+          for (int i=40000; i < 60000; ++i)
+              container.add((short) i);
+          
+          Container result = container.inot(15000,25000); 
+
+          // this result should stay as a run container (same one)
+          assertSame(container, result);
+      }
+
+
+
+
+
+
+
+
+
+
       private static void getSetOfRunContainers(ArrayList<RunContainer> set, ArrayList<Container> setb) {
       	RunContainer r1 = new RunContainer();
       	r1 = (RunContainer) r1.iadd(0, (1<<16));
@@ -1631,6 +2290,7 @@ public class TestRunContainer {
     	
       	RunContainer r3 = new RunContainer();
       	Container b3 = new ArrayContainer();
+
           // mayhaps some of the 655536s were intended to be 65536s?? And later...
       	for(int k = 0; k < 655536; k += 2) {
       		r3 = (RunContainer) r3.add((short) k);

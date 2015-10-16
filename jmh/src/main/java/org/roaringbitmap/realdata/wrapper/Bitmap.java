@@ -21,6 +21,8 @@ public interface Bitmap {
 
    Bitmap xor(Bitmap other);
 
+   Bitmap flip( int rangeStart, int rangeEnd);
+
    Bitmap andNot(Bitmap other);
 
    BitmapAggregator naiveAndAggregator();
