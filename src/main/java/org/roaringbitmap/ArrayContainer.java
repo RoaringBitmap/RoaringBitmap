@@ -716,52 +716,52 @@ public final class ArrayContainer extends Container implements Cloneable {
             return clone();
     }
 
-	@Override
-	public Container iadd(int begin, int end) {
-	    int indexstart = Util.unsignedBinarySearch(content, 0, cardinality,
-				(short) begin);
-		if (indexstart < 0)
-			indexstart = -indexstart - 1;
-		int indexend = Util.unsignedBinarySearch(content, 0, cardinality,
-				(short) (end - 1));
-		if (indexend < 0)
-			indexend = -indexend - 1;
-		else indexend++;
-		int rangelength = end - begin;
-		int newcardinality = indexstart + (cardinality - indexend) + rangelength;
-		if (newcardinality > DEFAULT_MAX_SIZE) {
-			BitmapContainer a = this.toBitmapContainer();
-			return a.iadd(begin, end);
-		}
-		if (newcardinality >= this.content.length)
-			increaseCapacity(newcardinality);
-		System.arraycopy(content, indexend, content, indexstart + rangelength,
-				cardinality - indexend);
-		for (int k = 0; k <  rangelength; ++k) {
-			content[k+indexstart] = (short) (begin + k);
-		}
-		cardinality = newcardinality;
-		return this;
-	}
+    @Override
+    public Container iadd(int begin, int end) {
+        int indexstart = Util.unsignedBinarySearch(content, 0, cardinality,
+                (short) begin);
+        if (indexstart < 0)
+            indexstart = -indexstart - 1;
+        int indexend = Util.unsignedBinarySearch(content, 0, cardinality,
+                (short) (end - 1));
+        if (indexend < 0)
+            indexend = -indexend - 1;
+        else indexend++;
+        int rangelength = end - begin;
+        int newcardinality = indexstart + (cardinality - indexend) + rangelength;
+        if (newcardinality > DEFAULT_MAX_SIZE) {
+            BitmapContainer a = this.toBitmapContainer();
+            return a.iadd(begin, end);
+        }
+        if (newcardinality >= this.content.length)
+            increaseCapacity(newcardinality);
+        System.arraycopy(content, indexend, content, indexstart + rangelength,
+                cardinality - indexend);
+        for (int k = 0; k <  rangelength; ++k) {
+            content[k+indexstart] = (short) (begin + k);
+        }
+        cardinality = newcardinality;
+        return this;
+    }
 
-	@Override
-	public Container iremove(int begin, int end) {
-		int indexstart = Util.unsignedBinarySearch(content, 0, cardinality,
-				(short) begin);
-		if (indexstart < 0)
-			indexstart = -indexstart - 1;
-		int indexend = Util.unsignedBinarySearch(content, 0, cardinality,
-				(short) (end - 1));
-		if (indexend < 0)
-			indexend = -indexend - 1;
-		else
-			indexend++;
-		int rangelength = indexend - indexstart;
-		System.arraycopy(content, indexstart + rangelength, content, indexstart,
-				cardinality - indexstart - rangelength);
-		cardinality -= rangelength;
-		return this;
-	}
+    @Override
+    public Container iremove(int begin, int end) {
+        int indexstart = Util.unsignedBinarySearch(content, 0, cardinality,
+                (short) begin);
+        if (indexstart < 0)
+            indexstart = -indexstart - 1;
+        int indexend = Util.unsignedBinarySearch(content, 0, cardinality,
+                (short) (end - 1));
+        if (indexend < 0)
+            indexend = -indexend - 1;
+        else
+            indexend++;
+        int rangelength = indexend - indexstart;
+        System.arraycopy(content, indexstart + rangelength, content, indexstart,
+                cardinality - indexstart - rangelength);
+        cardinality -= rangelength;
+        return this;
+    }
 
     @Override
     public Container flip(short x) {
@@ -821,25 +821,25 @@ public final class ArrayContainer extends Container implements Cloneable {
         return answer;
     }
 
-	@Override
-	public Container remove(int begin, int end) {
-		int indexstart = Util.unsignedBinarySearch(content, 0, cardinality,
-				(short) begin);
-		if (indexstart < 0)
-			indexstart = -indexstart - 1;
-		int indexend = Util.unsignedBinarySearch(content, 0, cardinality,
-				(short) (end - 1));
-		if (indexend < 0)
-			indexend = -indexend - 1;
-		else
-			indexend++;
-		int rangelength = indexend - indexstart;
-		ArrayContainer answer = clone();
-		System.arraycopy(content, indexstart + rangelength, answer.content,
-				indexstart, cardinality - indexstart - rangelength);
-		answer.cardinality = cardinality - rangelength;
-		return answer;
-	}
+    @Override
+    public Container remove(int begin, int end) {
+        int indexstart = Util.unsignedBinarySearch(content, 0, cardinality,
+                (short) begin);
+        if (indexstart < 0)
+            indexstart = -indexstart - 1;
+        int indexend = Util.unsignedBinarySearch(content, 0, cardinality,
+                (short) (end - 1));
+        if (indexend < 0)
+            indexend = -indexend - 1;
+        else
+            indexend++;
+        int rangelength = indexend - indexstart;
+        ArrayContainer answer = clone();
+        System.arraycopy(content, indexstart + rangelength, answer.content,
+                indexstart, cardinality - indexstart - rangelength);
+        answer.cardinality = cardinality - rangelength;
+        return answer;
+    }
 
     @Override
     // see andNot for an approach that might be better.

@@ -23,7 +23,7 @@ public class ReverseIntIteratorFlyweight implements IntIterator {
    
    private ReverseBitmapContainerShortIterator bitmapIter = new ReverseBitmapContainerShortIterator();
 
-    private ReverseRunContainerShortIterator runIter = new ReverseRunContainerShortIterator();
+   private ReverseRunContainerShortIterator runIter = new ReverseRunContainerShortIterator();
 
    private short pos;
 

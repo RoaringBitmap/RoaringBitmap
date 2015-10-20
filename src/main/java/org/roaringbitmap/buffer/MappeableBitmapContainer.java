@@ -637,11 +637,11 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     @Override
     public MappeableContainer iand(final MappeableRunContainer x) {
-     	final int card = x.getCardinality();
-    	if(card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
-    		// no point in doing it in-place
-        	MappeableArrayContainer answer = new MappeableArrayContainer(card);
-        	answer.cardinality=0;
+         final int card = x.getCardinality();
+        if(card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
+            // no point in doing it in-place
+            MappeableArrayContainer answer = new MappeableArrayContainer(card);
+            answer.cardinality=0;
             for (int rlepos=0; rlepos < x.nbrruns; ++rlepos) {
                 int runStart = BufferUtil.toIntUnsigned(x.getValue(rlepos));
                 int runEnd = runStart + BufferUtil.toIntUnsigned(x.getLength(rlepos));
@@ -652,7 +652,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
                 }
             }
             return answer;
-    	}
+        }
         int start = 0;
         for(int rlepos = 0; rlepos < x.nbrruns; ++rlepos ) {
             int end = BufferUtil.toIntUnsigned(x.getValue(rlepos));

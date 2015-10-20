@@ -372,9 +372,9 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         final short hb = BufferUtil.highbits(x);
         final int i = highLowContainer.getIndex(hb);
         if (i >= 0) {
-        	MappeableContainer C = highLowContainer.getContainerAtIndex(i);
-        	int oldcard = C.getCardinality();
-        	C = C.add(BufferUtil.lowbits(x));
+            MappeableContainer C = highLowContainer.getContainerAtIndex(i);
+            int oldcard = C.getCardinality();
+            C = C.add(BufferUtil.lowbits(x));
             getMappeableRoaringArray().setContainerAtIndex(
                     i,
                     C);
@@ -419,12 +419,12 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         final short hb = BufferUtil.highbits(x);
         final int i = highLowContainer.getIndex(hb);
         if (i >= 0) {
-        	MappeableContainer c =  highLowContainer.getContainerAtIndex(i);
-        	c = c.flip(BufferUtil.lowbits(x));
-        	if(c.getCardinality()>0)
+            MappeableContainer c =  highLowContainer.getContainerAtIndex(i);
+            c = c.flip(BufferUtil.lowbits(x));
+            if(c.getCardinality()>0)
             ((MutableRoaringArray) highLowContainer).setContainerAtIndex(i,c);
-        	else 
-        		((MutableRoaringArray) highLowContainer).removeAtIndex(i);
+            else 
+                ((MutableRoaringArray) highLowContainer).removeAtIndex(i);
         } else {
             final MappeableArrayContainer newac = new MappeableArrayContainer();
             ((MutableRoaringArray) highLowContainer).insertNewKeyValueAt(-i - 1, hb, newac.add(BufferUtil.lowbits(x)));
@@ -1019,32 +1019,32 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     }
     
 
-	/**
-	 * If present remove the specified integer (effectively, sets its bit value
-	 * to false)
-	 *
-	 * @param x
-	 *            integer value representing the index in a bitmap
-	 * @return true if the unset bit was already in the bitmap
-	 */
-	public boolean checkedRemove(final int x) {
-		final short hb = BufferUtil.highbits(x);
-		final int i = highLowContainer.getIndex(hb);
-		if (i < 0)
-			return false;
-		MappeableContainer C = highLowContainer.getContainerAtIndex(i);
-		int oldcard = C.getCardinality();
-		C.remove(BufferUtil.lowbits(x));
-		int newcard = C.getCardinality();
-		if (newcard == oldcard)
-			return false;
-		if (newcard > 0) {
-			((MutableRoaringArray) highLowContainer).setContainerAtIndex(i, C);
-		} else {
-			((MutableRoaringArray) highLowContainer).removeAtIndex(i);
-		}
-		return true;
-	}
+    /**
+     * If present remove the specified integer (effectively, sets its bit value
+     * to false)
+     *
+     * @param x
+     *            integer value representing the index in a bitmap
+     * @return true if the unset bit was already in the bitmap
+     */
+    public boolean checkedRemove(final int x) {
+        final short hb = BufferUtil.highbits(x);
+        final int i = highLowContainer.getIndex(hb);
+        if (i < 0)
+            return false;
+        MappeableContainer C = highLowContainer.getContainerAtIndex(i);
+        int oldcard = C.getCardinality();
+        C.remove(BufferUtil.lowbits(x));
+        int newcard = C.getCardinality();
+        if (newcard == oldcard)
+            return false;
+        if (newcard > 0) {
+            ((MutableRoaringArray) highLowContainer).setContainerAtIndex(i, C);
+        } else {
+            ((MutableRoaringArray) highLowContainer).removeAtIndex(i);
+        }
+        return true;
+    }
 
     /**
      * If present remove the specified integers (effectively, sets its bit value

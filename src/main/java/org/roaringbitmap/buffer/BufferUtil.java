@@ -349,7 +349,7 @@ public final class BufferUtil {
         int pos = 0;
         int k1 = 0, k2 = 0;
         if (0 == length2) {
-        	set1.get(buffer, 0, length1 );
+            set1.get(buffer, 0, length1 );
             return length1;
         }
         if (0 == length1) {
@@ -370,16 +370,16 @@ public final class BufferUtil {
                     break;
                 }
                 if (k2 >= length2) {
-                	set1.position(k1);
-                	set1.get(buffer, pos, length1 - k1);
-                	return pos + length1 - k1;
+                    set1.position(k1);
+                    set1.get(buffer, pos, length1 - k1);
+                    return pos + length1 - k1;
                 }
             } else {// if (val1>val2)
                 ++k2;
                 if (k2 >= length2) {
-                	set1.position(k1);
-                	set1.get(buffer, pos, length1 - k1);
-                	return pos + length1 - k1;
+                    set1.position(k1);
+                    set1.get(buffer, pos, length1 - k1);
+                    return pos + length1 - k1;
                 }
             }
         }
@@ -392,43 +392,43 @@ public final class BufferUtil {
         int pos = 0;
         int k1 = 0, k2 = 0;
         if (0 == length2) {
-        	set1.get(buffer, 0, length1);
-        	return length1;
+            set1.get(buffer, 0, length1);
+            return length1;
         }
         if (0 == length1) {
-        	set2.get(buffer, 0, length2);
-        	return length2;
+            set2.get(buffer, 0, length2);
+            return length2;
         }
         while (true) {
             if (toIntUnsigned(set1.get(k1)) < toIntUnsigned(set2.get(k2))) {
                 buffer[pos++] = set1.get(k1);
                 ++k1;
                 if (k1 >= length1) {
-                	set2.position(k2);
-                	set2.get(buffer, pos, length2 - k2);
-                	return pos + length2 - k2;
+                    set2.position(k2);
+                    set2.get(buffer, pos, length2 - k2);
+                    return pos + length2 - k2;
                 }
             } else if (toIntUnsigned(set1.get(k1)) == toIntUnsigned(set2
                     .get(k2))) {
                 ++k1;
                 ++k2;
                 if (k1 >= length1) {
-                	set2.position(k2);
-                	set2.get(buffer, pos, length2 - k2);
-                	return pos + length2 - k2;
+                    set2.position(k2);
+                    set2.get(buffer, pos, length2 - k2);
+                    return pos + length2 - k2;
                 }
                 if (k2 >= length2) {
-                	set1.position(k1);
-                	set1.get(buffer, pos, length1 - k1);
-                	return pos + length1 - k1;
+                    set1.position(k1);
+                    set1.get(buffer, pos, length1 - k1);
+                    return pos + length1 - k1;
                 }
             } else {// if (val1>val2)
                 buffer[pos++] = set2.get(k2);
                 ++k2;
                 if (k2 >= length2) {
-                	set1.position(k1);
-                	set1.get(buffer, pos, length1 - k1);
-                	return pos + length1 - k1;
+                    set1.position(k1);
+                    set1.get(buffer, pos, length1 - k1);
+                    return pos + length1 - k1;
                 }
             }
         }
@@ -532,11 +532,11 @@ public final class BufferUtil {
         int pos = 0;
         int k1 = 0, k2 = 0;
         if (0 == length2) {
-        	set1.get(buffer, 0, length1);
+            set1.get(buffer, 0, length1);
             return length1;
         }
         if (0 == length1) {
-        	set2.get(buffer, 0, length2);
+            set2.get(buffer, 0, length2);
             return length2;
         }
         while (true) {
@@ -544,9 +544,9 @@ public final class BufferUtil {
                 buffer[pos++] = set1.get(k1);
                 ++k1;
                 if (k1 >= length1) {
-                	set2.position(k2);
-                	set2.get(buffer, pos, length2 - k2);
-                	return pos + length2 - k2;
+                    set2.position(k2);
+                    set2.get(buffer, pos, length2 - k2);
+                    return pos + length2 - k2;
                 }
             } else if (toIntUnsigned(set1.get(k1)) == toIntUnsigned(set2
                     .get(k2))) {
@@ -554,22 +554,22 @@ public final class BufferUtil {
                 ++k1;
                 ++k2;
                 if (k1 >= length1) {
-                	set2.position(k2);
-                	set2.get(buffer, pos, length2 - k2);
-                	return pos + length2 - k2;
+                    set2.position(k2);
+                    set2.get(buffer, pos, length2 - k2);
+                    return pos + length2 - k2;
                 }
                 if (k2 >= length2) {
-                	set1.position(k1);
-                	set1.get(buffer, pos, length1 - k1);
-                	return pos + length1 - k1;
+                    set1.position(k1);
+                    set1.get(buffer, pos, length1 - k1);
+                    return pos + length1 - k1;
                 }
             } else {// if (set1.get(k1)>set2.get(k2))
                 buffer[pos++] = set2.get(k2);
                 ++k2;
                 if (k2 >= length2) {
-                	set1.position(k1);
-                	set1.get(buffer, pos, length1 - k1);
-                	return pos + length1 - k1;
+                    set1.position(k1);
+                    set1.get(buffer, pos, length1 - k1);
+                    return pos + length1 - k1;
                 }
             }
         }

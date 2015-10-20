@@ -201,10 +201,10 @@ public final class MappeableRunContainer extends MappeableContainer implements C
      * @return new container
      */
     MappeableContainer toBitmapOrArrayContainer(int card) {
-    	//int card = this.getCardinality();
-    	if(card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
-        	MappeableArrayContainer answer = new MappeableArrayContainer(card);
-        	answer.cardinality=0;
+        //int card = this.getCardinality();
+        if(card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
+            MappeableArrayContainer answer = new MappeableArrayContainer(card);
+            answer.cardinality=0;
             for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
                 int runStart = BufferUtil.toIntUnsigned(this.getValue(rlepos));
                 int runEnd = runStart + BufferUtil.toIntUnsigned(this.getLength(rlepos));
@@ -214,8 +214,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
                 }
             }
             return answer;
-    	}
-    	MappeableBitmapContainer answer = new MappeableBitmapContainer();
+        }
+        MappeableBitmapContainer answer = new MappeableBitmapContainer();
         for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
             int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
             int end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
@@ -498,11 +498,11 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     @Override
     public MappeableContainer and(MappeableBitmapContainer x) {
-    	int card = this.getCardinality();
+        int card = this.getCardinality();
         if (card <=  MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             // result can only be an array (assuming that we never make a RunContainer)
-        	MappeableArrayContainer answer = new MappeableArrayContainer(card);
-        	answer.cardinality=0;
+            MappeableArrayContainer answer = new MappeableArrayContainer(card);
+            answer.cardinality=0;
             for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
                 int runStart = BufferUtil.toIntUnsigned(this.getValue(rlepos));
                 int runEnd = runStart + BufferUtil.toIntUnsigned(this.getLength(rlepos));
@@ -516,7 +516,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         }
         // we expect the answer to be a bitmap (if we are lucky)
 
-    	MappeableBitmapContainer answer = x.clone();
+        MappeableBitmapContainer answer = x.clone();
         int start = 0;
         for(int rlepos = 0; rlepos < this.nbrruns; ++rlepos ) {
             int end = BufferUtil.toIntUnsigned(this.getValue(rlepos));
@@ -535,11 +535,11 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     
     @Override
     public MappeableContainer andNot(MappeableBitmapContainer x) {
-    	int card = this.getCardinality();
+        int card = this.getCardinality();
         if (card <=  MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             // result can only be an array (assuming that we never make a RunContainer)
-        	MappeableArrayContainer answer = new MappeableArrayContainer(card);
-        	answer.cardinality=0;
+            MappeableArrayContainer answer = new MappeableArrayContainer(card);
+            answer.cardinality=0;
             for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
                 int runStart = BufferUtil.toIntUnsigned(this.getValue(rlepos));
                 int runEnd = runStart + BufferUtil.toIntUnsigned(this.getLength(rlepos));
@@ -552,7 +552,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
             return answer;
         }
         // we expect the answer to be a bitmap (if we are lucky)
-    	MappeableBitmapContainer answer = x.clone();
+        MappeableBitmapContainer answer = x.clone();
         int lastPos = 0;
         for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
             int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));

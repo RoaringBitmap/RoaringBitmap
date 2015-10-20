@@ -87,10 +87,10 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
      */
     protected void appendCopiesUntil(PointableRoaringArray highLowContainer,
             short stoppingKey) {
-    	final int stopKey = BufferUtil.toIntUnsigned(stoppingKey);
+        final int stopKey = BufferUtil.toIntUnsigned(stoppingKey);
         MappeableContainerPointer cp = highLowContainer.getContainerPointer();
         while (cp.hasContainer()) {
-        	if (BufferUtil.toIntUnsigned(cp.key()) >= stopKey)
+            if (BufferUtil.toIntUnsigned(cp.key()) >= stopKey)
                 break;
             extendArray(1);
             this.keys[this.size] = cp.key();
@@ -302,12 +302,12 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
             }
 
             @Override
-			public int compareTo(MappeableContainerPointer o) {
-				if (key() != o.key())
-					return BufferUtil.toIntUnsigned(key())
-							- BufferUtil.toIntUnsigned(o.key());
+            public int compareTo(MappeableContainerPointer o) {
+                if (key() != o.key())
+                    return BufferUtil.toIntUnsigned(key())
+                            - BufferUtil.toIntUnsigned(o.key());
                 return o.getCardinality() - this.getCardinality();
-			}
+            }
 
             @Override
             public int getCardinality() {

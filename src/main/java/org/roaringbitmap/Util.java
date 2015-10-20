@@ -240,14 +240,14 @@ public final class Util {
                     break;
                 }
                 if (k2 >= length2) {
-                	System.arraycopy(set1, k1, buffer, pos, length1-k1);
-                	return pos + length1 - k1;
+                    System.arraycopy(set1, k1, buffer, pos, length1-k1);
+                    return pos + length1 - k1;
                 }
             } else {// if (val1>val2)
                 ++k2;
                 if (k2 >= length2) {
-                	System.arraycopy(set1, k1, buffer, pos, length1-k1);
-                	return pos + length1 - k1;
+                    System.arraycopy(set1, k1, buffer, pos, length1-k1);
+                    return pos + length1 - k1;
                 }
             }
         }
@@ -335,26 +335,26 @@ public final class Util {
                 buffer[pos++] = set1[k1];
                 ++k1;
                 if (k1 >= length1) {
-                	System.arraycopy(set2, k2, buffer, pos, length2-k2);
-                	return pos + length2 - k2;
+                    System.arraycopy(set2, k2, buffer, pos, length2-k2);
+                    return pos + length2 - k2;
                 }
             } else if (toIntUnsigned(set1[k1]) == toIntUnsigned(set2[k2])) {
                 ++k1;
                 ++k2;
                 if (k1 >= length1) {
-                	System.arraycopy(set2, k2, buffer, pos, length2-k2);
-                	return pos + length2 - k2;
+                    System.arraycopy(set2, k2, buffer, pos, length2-k2);
+                    return pos + length2 - k2;
                 }
                 if (k2 >= length2) {
-                	System.arraycopy(set1, k1, buffer, pos, length1-k1);
-                	return pos + length1 - k1;
+                    System.arraycopy(set1, k1, buffer, pos, length1-k1);
+                    return pos + length1 - k1;
                 }
             } else {// if (val1>val2)
                 buffer[pos++] = set2[k2];
                 ++k2;
                 if (k2 >= length2) {
-                	System.arraycopy(set1, k1, buffer, pos, length1-k1);
-                	return pos + length1 - k1;
+                    System.arraycopy(set1, k1, buffer, pos, length1-k1);
+                    return pos + length1 - k1;
                 }
             }
         }
@@ -486,27 +486,27 @@ public final class Util {
                 buffer[pos++] = set1[k1];
                 ++k1;
                 if (k1 >= length1) {
-                	System.arraycopy(set2, k2, buffer, pos, length2-k2);
-                	return pos + length2 - k2;
+                    System.arraycopy(set2, k2, buffer, pos, length2-k2);
+                    return pos + length2 - k2;
                 }
             } else if (toIntUnsigned(set1[k1]) == toIntUnsigned(set2[k2])) {
                 buffer[pos++] = set1[k1];
                 ++k1;
                 ++k2;
                 if (k1 >= length1) {
-                	System.arraycopy(set2, k2, buffer, pos, length2-k2);
-                	return pos + length2 - k2;
+                    System.arraycopy(set2, k2, buffer, pos, length2-k2);
+                    return pos + length2 - k2;
                 }
                 if (k2 >= length2) {
-                	System.arraycopy(set1, k1, buffer, pos, length1-k1);
-                	return pos + length1 - k1;
+                    System.arraycopy(set1, k1, buffer, pos, length1-k1);
+                    return pos + length1 - k1;
                 }
             } else {// if (set1[k1]>set2[k2])
                 buffer[pos++] = set2[k2];
                 ++k2;
                 if (k2 >= length2) {
-                	System.arraycopy(set1, k1, buffer, pos, length1-k1);
-                	return pos + length1 - k1;
+                    System.arraycopy(set1, k1, buffer, pos, length1-k1);
+                    return pos + length1 - k1;
                 }
             }
         }

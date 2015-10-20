@@ -72,7 +72,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
      *                    copying
      */
     protected void appendCopiesUntil(RoaringArray sourceArray, short stoppingKey) {
-    	int stopKey = Util.toIntUnsigned(stoppingKey);
+        int stopKey = Util.toIntUnsigned(stoppingKey);
         for (int i = 0; i < sourceArray.size; ++i) {
             if (Util.toIntUnsigned(sourceArray.keys[i]) >= stopKey)
                 break;
@@ -128,7 +128,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
         if (o instanceof RoaringArray) {
             RoaringArray srb = (RoaringArray) o;
             if (srb.size != this.size) {
-            	return false;
+                return false;
             }
             for (int i = 0; i < srb.size; ++i) {
                 if (this.keys[i] != srb.keys[i] || !this.values[i].equals(srb.values[i])) {
@@ -488,31 +488,31 @@ public final class RoaringArray implements Cloneable, Externalizable {
     }
 
     protected ContainerPointer getContainerPointer() {
-		return new ContainerPointer() {
-			int k = 0;
-			@Override
-			public Container getContainer() {
-				if (k >= RoaringArray.this.size)
-					return null;
-				return RoaringArray.this.values[k];
-			}
-
-			@Override
-			public void advance() {
-				++k;
-
-			}
-
-			@Override
-			public short key() {
-				return RoaringArray.this.keys[k];
-
-			}
+        return new ContainerPointer() {
+            int k = 0;
+            @Override
+            public Container getContainer() {
+                if (k >= RoaringArray.this.size)
+                    return null;
+                return RoaringArray.this.values[k];
+            }
 
             @Override
-			public boolean isBitmapContainer() {
-			    return getContainer() instanceof BitmapContainer;
-			}
+            public void advance() {
+                ++k;
+
+            }
+
+            @Override
+            public short key() {
+                return RoaringArray.this.keys[k];
+
+            }
+
+            @Override
+            public boolean isBitmapContainer() {
+                return getContainer() instanceof BitmapContainer;
+            }
             
 
             @Override
@@ -526,12 +526,12 @@ public final class RoaringArray implements Cloneable, Externalizable {
             }
 
 
-			@Override
-			public int compareTo(ContainerPointer o) {
-				if (key() != o.key())
-					return Util.toIntUnsigned(key()) - Util.toIntUnsigned(o.key());
-				return o.getCardinality() - getCardinality();
-			}
-		};
+            @Override
+            public int compareTo(ContainerPointer o) {
+                if (key() != o.key())
+                    return Util.toIntUnsigned(key()) - Util.toIntUnsigned(o.key());
+                return o.getCardinality() - getCardinality();
+            }
+        };
     }
 }

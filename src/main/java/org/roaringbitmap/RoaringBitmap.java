@@ -223,7 +223,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
                     s1 = x1.highLowContainer.getKeyAtIndex(pos1);
                     s2 = x2.highLowContainer.getKeyAtIndex(pos2);
                 } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
-                	answer.highLowContainer.appendCopy(x1.highLowContainer, pos1);
+                    answer.highLowContainer.appendCopy(x1.highLowContainer, pos1);
                     pos1++;
                     if (pos1 == length1) {
                         break main;
@@ -489,14 +489,14 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         final short hb = Util.highbits(x);
         final int i = highLowContainer.getIndex(hb);
         if (i >= 0) {
-        	Container c = highLowContainer.getContainerAtIndex(i);
-        	int oldCard = c.getCardinality();        	
-        	//we need to keep the newContainer if a switch between containers type
-        	//occur, in order to get the new cardinality
-        	Container newCont = c.add(Util.lowbits(x));
+            Container c = highLowContainer.getContainerAtIndex(i);
+            int oldCard = c.getCardinality();            
+            //we need to keep the newContainer if a switch between containers type
+            //occur, in order to get the new cardinality
+            Container newCont = c.add(Util.lowbits(x));
             highLowContainer.setContainerAtIndex(i, newCont);
             if(newCont.getCardinality()>oldCard)
-            	return true;
+                return true;
         } else {
             final ArrayContainer newac = new ArrayContainer();
             highLowContainer.insertNewKeyValueAt(-i - 1, hb, newac.add(Util.lowbits(x)));
@@ -532,11 +532,11 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         final short hb = Util.highbits(x);
         final int i = highLowContainer.getIndex(hb);
         if (i >= 0) {
-        	  Container c = highLowContainer.getContainerAtIndex(i).flip(Util.lowbits(x));
-        	  if(c.getCardinality() > 0)
+              Container c = highLowContainer.getContainerAtIndex(i).flip(Util.lowbits(x));
+              if(c.getCardinality() > 0)
               highLowContainer.setContainerAtIndex(i,c);
-        	  else
-        	  	highLowContainer.removeAtIndex(i);
+              else
+                  highLowContainer.removeAtIndex(i);
         } else {
             final ArrayContainer newac = new ArrayContainer();
             highLowContainer.insertNewKeyValueAt(-i - 1, hb, newac.add(Util.lowbits(x)));
@@ -877,7 +877,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             final int i = highLowContainer.getIndex((short) hb);
 
             if (i >= 0) {
-            	final Container c = highLowContainer.getContainerAtIndex(i).inot(
+                final Container c = highLowContainer.getContainerAtIndex(i).inot(
                                 containerStart, containerLast+1);
                 if (c.getCardinality() > 0)
                     highLowContainer.setContainerAtIndex(i, c);
@@ -1029,7 +1029,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      */
     @Override
     public boolean isEmpty() {
-    	return highLowContainer.size() == 0;
+        return highLowContainer.size() == 0;
     }
 
 
@@ -1145,32 +1145,32 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         this.highLowContainer.readExternal(in);
     }
 
-	/**
-	 * If present remove the specified integer (effectively, sets its bit value
-	 * to false)
-	 *
-	 * @param x
-	 *            integer value representing the index in a bitmap
-	 * @return true if the unset bit was already in the bitmap
-	 */
-	public boolean checkedRemove(final int x) {
-		final short hb = Util.highbits(x);
-		final int i = highLowContainer.getIndex(hb);
-		if (i < 0)
-			return false;
-		Container C = highLowContainer.getContainerAtIndex(i);
-		int oldcard = C.getCardinality();
-		C.remove(Util.lowbits(x));
-		int newcard = C.getCardinality();
-		if (newcard == oldcard)
-			return false;
-		if (newcard > 0) {
-			highLowContainer.setContainerAtIndex(i, C);
-		} else {
-			highLowContainer.removeAtIndex(i);
-		}
-		return true;
-	}
+    /**
+     * If present remove the specified integer (effectively, sets its bit value
+     * to false)
+     *
+     * @param x
+     *            integer value representing the index in a bitmap
+     * @return true if the unset bit was already in the bitmap
+     */
+    public boolean checkedRemove(final int x) {
+        final short hb = Util.highbits(x);
+        final int i = highLowContainer.getIndex(hb);
+        if (i < 0)
+            return false;
+        Container C = highLowContainer.getContainerAtIndex(i);
+        int oldcard = C.getCardinality();
+        C.remove(Util.lowbits(x));
+        int newcard = C.getCardinality();
+        if (newcard == oldcard)
+            return false;
+        if (newcard > 0) {
+            highLowContainer.setContainerAtIndex(i, C);
+        } else {
+            highLowContainer.removeAtIndex(i);
+        }
+        return true;
+    }
     
     /**
      * If present remove the specified integer (effectively, sets its bit

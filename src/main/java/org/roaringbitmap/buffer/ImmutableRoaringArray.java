@@ -150,7 +150,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     
     @Override
     public MappeableContainer getContainerAtIndex(int i) {
-    	int cardinality = getCardinality(i);
+        int cardinality = getCardinality(i);
         boolean isBitmap = cardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE; // if not a runcontainer
         ByteBuffer tmp = buffer.duplicate();// sad but ByteBuffer is not thread-safe so it is either a duplicate or a lock
         // note that tmp will indeed be garbage-collected some time after the end of this function 
@@ -252,13 +252,13 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
                 --k;
             }
 
-			@Override
-			public int compareTo(MappeableContainerPointer o) {
-				if (key() != o.key())
-					return BufferUtil.toIntUnsigned(key())
-							- BufferUtil.toIntUnsigned(o.key());
+            @Override
+            public int compareTo(MappeableContainerPointer o) {
+                if (key() != o.key())
+                    return BufferUtil.toIntUnsigned(key())
+                            - BufferUtil.toIntUnsigned(o.key());
                 return o.getCardinality() - this.getCardinality();
-			}
+            }
 
             @Override
             public boolean isBitmapContainer() {
@@ -309,7 +309,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
 
     private int getKey(int k) {
-    	return BufferUtil.toIntUnsigned(buffer.getShort(getStartOfKeys() + 4 * k));
+        return BufferUtil.toIntUnsigned(buffer.getShort(getStartOfKeys() + 4 * k));
     }
 
     // involves a binary search
