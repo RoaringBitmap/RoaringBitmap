@@ -184,9 +184,13 @@ public final class Util {
      */
     public static int unsignedBinarySearch(final short[] array, final int begin,
             final int end,  final short k) {
-        return branchlessUnsignedBinarySearch(array,begin,end, k);
+        if(USE_BRANCHLESS_BINSEARCH)
+          return branchlessUnsignedBinarySearch(array,begin,end, k);
+        else 
+          return branchyUnsignedBinarySearch(array,begin,end, k);
     }
-
+    // optimization flag
+    public static boolean USE_BRANCHLESS_BINSEARCH = false;
     protected static int branchlessUnsignedBinarySearch(final short[] array, final int begin,
             final int end,  final short k) {
         int ikey = toIntUnsigned(k);

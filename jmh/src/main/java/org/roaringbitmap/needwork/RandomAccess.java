@@ -20,22 +20,38 @@ import org.roaringbitmap.ZipRealDataRetriever;
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 public class RandomAccess {
 
-    @Benchmark
     public int RoaringWithRun(BenchmarkState benchmarkState) {
         int answer = 0;
+        org.roaringbitmap.Util.USE_BRANCHLESS_BINSEARCH = false;
         for(int k : benchmarkState.queries) {
-            if(benchmarkState.rc.contains(k))
-                answer++;
+            for(RoaringBitmap rb : benchmarkState.rc) 
+               if(rb.contains(k))
+                 answer++;
         }
         return answer;
     }
 
     @Benchmark
-    public int Roaring(BenchmarkState benchmarkState) {
+    public int branchlessRoaring(BenchmarkState benchmarkState) {
         int answer = 0;
+        org.roaringbitmap.Util.USE_BRANCHLESS_BINSEARCH = true;
         for(int k : benchmarkState.queries) {
-            if(benchmarkState.ac.contains(k))
-                answer++;
+            for(RoaringBitmap rb : benchmarkState.ac) 
+               if(rb.contains(k))
+                 answer++;
+        }
+        return answer;
+    }
+    
+
+    @Benchmark
+    public int branchyRoaring(BenchmarkState benchmarkState) {
+        int answer = 0;
+        org.roaringbitmap.Util.USE_BRANCHLESS_BINSEARCH = false;
+        for(int k : benchmarkState.queries) {
+            for(RoaringBitmap rb : benchmarkState.ac) 
+               if(rb.contains(k))
+                 answer++;
         }
         return answer;
     }
@@ -44,11 +60,11 @@ public class RandomAccess {
     public static class BenchmarkState {
         @Param ({// putting the data sets in alpha. order
             "census-income", "census1881",
-            "dimension_008", "dimension_003",
-            "dimension_033", "uscensus2000",
-            "weather_sept_85", "wikileaks-noquotes"
-            ,"census-income_srt","census1881_srt",
-            "weather_sept_85_srt","wikileaks-noquotes_srt"
+ //           "dimension_008", "dimension_003",
+   //         "dimension_033", "uscensus2000",
+     //       "weather_sept_85", "wikileaks-noquotes"
+       //     ,"census-income_srt","census1881_srt",
+         //   "weather_sept_85_srt","wikileaks-noquotes_srt"
         })
         String dataset;
         
