@@ -337,10 +337,13 @@ public final class BufferUtil {
      */
     public static int unsignedBinarySearch(final ShortBuffer array, final int begin,
             final int end,  final short k) {
-        return branchlessUnsignedBinarySearch(array,begin,end, k);
+        if(Util.USE_BRANCHLESS_BINSEARCH)
+          return branchlessUnsignedBinarySearch(array,begin,end, k);
+        else 
+          return branchyUnsignedBinarySearch(array,begin,end, k);
     }
 
-    
+
     protected static int branchlessUnsignedBinarySearch(final ShortBuffer array, final int begin,
             final int end,  final short k) {
         int ikey = toIntUnsigned(k);

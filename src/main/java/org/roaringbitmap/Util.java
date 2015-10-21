@@ -189,8 +189,10 @@ public final class Util {
         else 
           return branchyUnsignedBinarySearch(array,begin,end, k);
     }
-    // optimization flag
-    public static boolean USE_BRANCHLESS_BINSEARCH = false;
+    
+    // optimization flag: whether to use branchless binary search
+    public static boolean USE_BRANCHLESS_BINSEARCH = true;
+    
     protected static int branchlessUnsignedBinarySearch(final short[] array, final int begin,
             final int end,  final short k) {
         int ikey = toIntUnsigned(k);
