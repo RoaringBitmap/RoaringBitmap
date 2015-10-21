@@ -183,10 +183,43 @@ public final class Util {
      * @return count
      */
     public static int unsignedBinarySearch(final short[] array, final int begin,
-                                              final int end, final short k) {
+            final int end,  final short k) {
+        return branchlessUnsignedBinarySearch(array,begin,end, k);
+    }
+
+    protected static int branchlessUnsignedBinarySearch(final short[] array, final int begin,
+            final int end,  final short k) {
         int ikey = toIntUnsigned(k);
         // next line accelerates the possibly common case where the value would be inserted at the end
         if((end>0) && (toIntUnsigned(array[end-1]) < ikey)) return - end - 1;
+        int n = end - begin;
+        if(n == 0) return -1;
+        int pos = 0;
+        while (n > 1) {
+            final int half = n >>> 1;
+            n -= half;
+            final int index = pos + half;
+            final int val = array[index + begin] & 0xFFFF;
+            final int diff = val - ikey;
+            final int mask = diff >> 31;
+            final int addition = half & mask;
+            pos += addition;
+        }
+        // next  line is upper bound
+        if(toIntUnsigned(array[pos + begin]) < ikey) pos = pos + 1;
+        if ((pos +begin < end) && (toIntUnsigned(array[pos + begin]) == ikey)) {
+            return pos + begin;
+        }
+        return -(pos + begin + 1);
+    }
+
+    protected static int branchyUnsignedBinarySearch(final short[] array,
+            final int begin, final int end, final short k) {
+        int ikey = toIntUnsigned(k);
+        // next line accelerates the possibly common case where the value would
+        // be inserted at the end
+        if ((end > 0) && (toIntUnsigned(array[end - 1]) < ikey))
+            return -end - 1;
         int low = begin;
         int high = end - 1;
         while (low <= high) {
@@ -202,7 +235,7 @@ public final class Util {
         }
         return -(low + 1);
     }
-
+    
     /**
      * Compute the difference between two sorted lists and write the result to the provided
      * output array
