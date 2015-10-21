@@ -1609,6 +1609,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     @Override
     public MappeableContainer iadd(int begin, int end) {
+        // TODO: may need to convert to a RunContainer
         BufferUtil.setBitmapRange(bitmap, begin, end);
         computeCardinality();
         return this;
@@ -1625,6 +1626,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     @Override
     public MappeableContainer add(int begin, int end) {
+        // TODO: may need to convert to a RunContainer
         MappeableBitmapContainer answer = clone();
         BufferUtil.setBitmapRange(answer.bitmap, begin, end);
         answer.computeCardinality();

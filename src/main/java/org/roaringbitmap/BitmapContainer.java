@@ -924,6 +924,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
     @Override
     public Container iadd(int begin, int end) {
+        // TODO: may need to convert to a RunContainer
         Util.setBitmapRange(bitmap,begin,end);
         computeCardinality();
         return this;
@@ -958,6 +959,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
     @Override
     public Container add(int begin, int end) {
+        // TODO: may need to convert to a RunContainer
         BitmapContainer answer = clone();
         Util.setBitmapRange(answer.bitmap, begin, end);
         answer.computeCardinality(); 

@@ -492,6 +492,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     @Override
     // not thread safe! (duh!)
     public MappeableContainer inot(final int firstOfRange, final int lastOfRange) {
+        // TODO: may need to convert to a RunContainer
         // TODO: this can be optimized for performance
         // determine the span of array indices to be affected
         int startIndex = BufferUtil.unsignedBinarySearch(content, 0,
@@ -641,6 +642,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     // shares lots of code with inot; candidate for refactoring
     @Override
     public MappeableContainer not(final int firstOfRange, final int lastOfRange) {
+        // TODO: may need to convert to a RunContainer
         // TODO: this can be optimized for performance
         if (firstOfRange >= lastOfRange) {
             return clone(); // empty range
@@ -1109,7 +1111,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
         @Override
         public MappeableContainer add(int begin, int end) {
-
+            // TODO: may need to convert to a RunContainer
             int indexstart = BufferUtil.unsignedBinarySearch(content, 0, cardinality,
                     (short) begin);
             if (indexstart < 0)
@@ -1163,6 +1165,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         @Override
         // not thread-safe
         public MappeableContainer iadd(int begin, int end) {
+            // TODO: may need to convert to a RunContainer
             int indexstart = BufferUtil.unsignedBinarySearch(content, 0, cardinality,
                     (short) begin);
             if (indexstart < 0)

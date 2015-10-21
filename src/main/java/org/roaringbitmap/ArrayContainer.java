@@ -294,6 +294,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     
     @Override
     public Container inot(final int firstOfRange, final int lastOfRange) {
+        // TODO: may need to convert to a RunContainer
         // determine the span of array indices to be affected
         int startIndex = Util.unsignedBinarySearch(content, 0, cardinality, (short) firstOfRange);
         if (startIndex < 0)
@@ -423,6 +424,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     // shares lots of code with inot; candidate for refactoring
     @Override
     public Container not(final int firstOfRange, final int lastOfRange) {
+        // TODO: may need to convert to a RunContainer
         if (firstOfRange >= lastOfRange) {
             return clone(); // empty range
         }
@@ -718,6 +720,7 @@ public final class ArrayContainer extends Container implements Cloneable {
 
     @Override
     public Container iadd(int begin, int end) {
+        // TODO: may need to convert to a RunContainer
         int indexstart = Util.unsignedBinarySearch(content, 0, cardinality,
                 (short) begin);
         if (indexstart < 0)
@@ -793,7 +796,7 @@ public final class ArrayContainer extends Container implements Cloneable {
 
     @Override
     public Container add(int begin, int end) {
-
+        // TODO: may need to convert to a RunContainer
         int indexstart = Util.unsignedBinarySearch(content, 0, cardinality,
                 (short) begin);
         if (indexstart < 0)
