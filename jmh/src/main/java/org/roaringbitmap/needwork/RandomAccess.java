@@ -20,7 +20,8 @@ import org.roaringbitmap.ZipRealDataRetriever;
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 public class RandomAccess {
 
-    public int branchyRoaring(BenchmarkState benchmarkState) {
+    @Benchmark
+     public int branchyRoaring(BenchmarkState benchmarkState) {
         int answer = 0;
         org.roaringbitmap.Util.USE_BRANCHLESS_BINSEARCH = false;
         for(int k : benchmarkState.queries) {
@@ -44,6 +45,7 @@ public class RandomAccess {
         return answer;
     }
     
+    @Benchmark
     public int branchyRoaringWithRun(BenchmarkState benchmarkState) {
         int answer = 0;
         org.roaringbitmap.Util.USE_BRANCHLESS_BINSEARCH = false;
@@ -72,11 +74,11 @@ public class RandomAccess {
     public static class BenchmarkState {
         @Param ({// putting the data sets in alpha. order
             "census-income", "census1881",
- //           "dimension_008", "dimension_003",
-   //         "dimension_033", "uscensus2000",
-     //       "weather_sept_85", "wikileaks-noquotes"
-       //     ,"census-income_srt","census1881_srt",
-         //   "weather_sept_85_srt","wikileaks-noquotes_srt"
+            "dimension_008", "dimension_003",
+            "dimension_033", "uscensus2000",
+            "weather_sept_85", "wikileaks-noquotes"
+            ,"census-income_srt","census1881_srt",
+            "weather_sept_85_srt","wikileaks-noquotes_srt"
         })
         String dataset;
         
