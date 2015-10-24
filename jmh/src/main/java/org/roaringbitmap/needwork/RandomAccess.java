@@ -33,7 +33,7 @@ public class RandomAccess {
     }
 
     @Benchmark
-    public int branchlessRoaring(BenchmarkState benchmarkState) {
+    public int hybridRoaring(BenchmarkState benchmarkState) {
         int answer = 0;
         org.roaringbitmap.Util.USE_HYBRID_BINSEARCH = true;
         for(int k : benchmarkState.queries) {
