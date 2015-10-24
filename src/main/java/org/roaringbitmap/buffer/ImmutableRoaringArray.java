@@ -35,35 +35,39 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     int size;
 
     private int unsignedBinarySearch(short k) {
-        if(Util.USE_BRANCHLESS_BINSEARCH)
-            return branchlessUnsignedBinarySearch(k);
+        if(Util.USE_HYBRID_BINSEARCH)
+            return hybridUnsignedBinarySearch(k);
         else 
             return branchyUnsignedBinarySearch(k);
     }
     
-    private int branchlessUnsignedBinarySearch( final short k) {
-        int ikey = BufferUtil.toIntUnsigned(k);
-        int n = this.size;
-        if(n == 0) return -1;
-        int pos = 0;
-        while (n > 1) {
-            final int half = n >>> 1;
-            n -= half;
-            final int index = pos + half;
-            final int val = getKey(index);
-            final int diff = val - ikey;
-            final int mask = diff >> 31;
-            final int addition = half & mask;
-            pos += addition;
+    // starts with binary search and finishes with a sequential search
+    private int hybridUnsignedBinarySearch( final short k) {
+        int low = 0;
+        int high = this.size - 1;
+        final int ikey = BufferUtil.toIntUnsigned(k);
+        // 32 in the next line matches the size of a cache line
+        while (low + 16 <= high) {
+            final int middleIndex = (low + high) >>> 1;
+            final int middleValue = getKey(middleIndex);
+            if (middleValue < ikey)
+                low = middleIndex + 1;
+            else if (middleValue > ikey)
+                high = middleIndex - 1;
+            else
+                return middleIndex;
         }
-        // next  line is upper bound
-        if(getKey(pos) < ikey) pos = pos + 1;
-        if ((pos < this.size) && (getKey(pos) == ikey)) {
-            return pos;
+        // we finish the job with a sequential search 
+        int x = low;
+        for(; x <= high; ++x) {
+            final int val = getKey(x);
+            if(val >= ikey) {
+                if(val == ikey) return x;
+                break;
+            }
         }
-        return -(pos + 1);
+        return -(x + 1);
     }
-
     
     private int branchyUnsignedBinarySearch( final short k) {
         int low = 0;

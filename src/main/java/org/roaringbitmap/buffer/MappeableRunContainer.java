@@ -1392,8 +1392,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     private static int bufferedUnsignedInterleavedBinarySearch(final ShortBuffer sb,
             final int begin, final int end, final short k) {
-        if(Util.USE_BRANCHLESS_BINSEARCH)
-            return branchlessBufferedUnsignedInterleavedBinarySearch(sb,begin,end,k);
+        if(Util.USE_HYBRID_BINSEARCH)
+            return hybridBufferedUnsignedInterleavedBinarySearch(sb,begin,end,k);
         else 
             return branchyBufferedUnsignedInterleavedBinarySearch(sb,begin,end,k);
         
@@ -1417,32 +1417,37 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         return -(low + 1);
     }
 
-    
-    private static int branchlessBufferedUnsignedInterleavedBinarySearch(final ShortBuffer sb, final int begin,
-            final int end,  final short k) {
+    // starts with binary search and finishes with a sequential search
+    private static int hybridBufferedUnsignedInterleavedBinarySearch(final ShortBuffer sb,
+            final int begin, final int end, final short k) {
         int ikey = BufferUtil.toIntUnsigned(k);
-        int n = end - begin;
-        if(n == 0) return -1;
-        int pos = 0;
-        while (n > 1) {
-            final int half = n >>> 1;
-            n -= half;
-            final int index = pos + half;
-            final int val = sb.get(2*(index + begin)) & 0xFFFF;
-            final int diff = val - ikey;
-            final int mask = diff >> 31;
-            final int addition = half & mask;
-            pos += addition;
+        int low = begin;
+        int high = end - 1;
+        // 16 in the next line matches the size of a cache line
+        while (low + 16 <= high) {
+            final int middleIndex = (low + high) >>> 1;
+            final int middleValue = BufferUtil.toIntUnsigned(sb.get(2 * middleIndex));
+            if (middleValue < ikey)
+                low = middleIndex + 1;
+            else if (middleValue > ikey)
+                high = middleIndex - 1;
+            else
+                return middleIndex;
         }
-        // next  line is upper bound
-        if(BufferUtil.toIntUnsigned(sb.get(2*(pos + begin))) < ikey) pos = pos + 1;
-        if ((pos +begin < end) && (BufferUtil.toIntUnsigned(sb.get(2*(pos + begin))) == ikey)) {
-            return pos + begin;
+
+        // we finish the job with a sequential search 
+        int x = low;
+        for(; x <= high; ++x) {
+            final int val = BufferUtil.toIntUnsigned(sb.get(2 * x));
+            if(val >= ikey) {
+                if(val == ikey) return x;
+                break;
+            }
         }
-        return -(pos + begin + 1);
+        return -(x + 1);
     }
 
-
+    
 
     short getValue(int index) {
         return valueslength.get(2*index);

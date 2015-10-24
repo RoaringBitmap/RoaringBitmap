@@ -337,37 +337,42 @@ public final class BufferUtil {
      */
     public static int unsignedBinarySearch(final ShortBuffer array, final int begin,
             final int end,  final short k) {
-        if(Util.USE_BRANCHLESS_BINSEARCH)
-          return branchlessUnsignedBinarySearch(array,begin,end, k);
+        if(Util.USE_HYBRID_BINSEARCH)
+          return hybridUnsignedBinarySearch(array,begin,end, k);
         else 
           return branchyUnsignedBinarySearch(array,begin,end, k);
     }
-
-
-    protected static int branchlessUnsignedBinarySearch(final ShortBuffer array, final int begin,
-            final int end,  final short k) {
-        int ikey = toIntUnsigned(k);
+    
+    // starts with binary search and finishes with a sequential search
+    protected static int hybridUnsignedBinarySearch(final ShortBuffer array, final int begin,
+            final int end, final short k) {
+        final int ikey = toIntUnsigned(k);
         // next line accelerates the possibly common case where the value would be inserted at the end
         if((end>0) && (toIntUnsigned(array.get(end-1)) < ikey)) return - end - 1;
-        int n = end - begin;
-        if(n == 0) return -1;
-        int pos = 0;
-        while (n > 1) {
-            final int half = n >>> 1;
-            n -= half;
-            final int index = pos + half;
-            final int val = array.get(index + begin) & 0xFFFF;
-            final int diff = val - ikey;
-            final int mask = diff >> 31;
-            final int addition = half & mask;
-            pos += addition;
+        int low = begin;
+        int high = end - 1;
+        // 32 in the next line matches the size of a cache line
+        while (low + 32 <= high) {
+            final int middleIndex = (low + high) >>> 1;
+            final int middleValue = toIntUnsigned(array.get(middleIndex));
+
+            if (middleValue < ikey)
+                low = middleIndex + 1;
+            else if (middleValue > ikey)
+                high = middleIndex - 1;
+            else
+                return middleIndex;
         }
-        // next  line is upper bound
-        if(toIntUnsigned(array.get(pos + begin)) < ikey) pos = pos + 1;
-        if ((pos +begin < end) && (toIntUnsigned(array.get(pos + begin)) == ikey)) {
-            return pos + begin;
+        // we finish the job with a sequential search 
+        int x = low;
+        for(; x <= high; ++x) {
+            final int val = toIntUnsigned(array.get(x));
+            if(val >= ikey) {
+                if(val == ikey) return x;
+                break;
+            }
         }
-        return -(pos + begin + 1);
+        return -(x + 1);
     }
 
     

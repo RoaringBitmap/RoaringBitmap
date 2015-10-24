@@ -23,7 +23,7 @@ public class RandomAccess {
     @Benchmark
      public int branchyRoaring(BenchmarkState benchmarkState) {
         int answer = 0;
-        org.roaringbitmap.Util.USE_BRANCHLESS_BINSEARCH = false;
+        org.roaringbitmap.Util.USE_HYBRID_BINSEARCH = false;
         for(int k : benchmarkState.queries) {
             for(RoaringBitmap rb : benchmarkState.ac) 
                if(rb.contains(k))
@@ -35,7 +35,7 @@ public class RandomAccess {
     @Benchmark
     public int branchlessRoaring(BenchmarkState benchmarkState) {
         int answer = 0;
-        org.roaringbitmap.Util.USE_BRANCHLESS_BINSEARCH = true;
+        org.roaringbitmap.Util.USE_HYBRID_BINSEARCH = true;
         for(int k : benchmarkState.queries) {
             // on purpose we switch bitmaps between each contains to sabotage branchless
             for(RoaringBitmap rb : benchmarkState.ac) 
@@ -48,7 +48,7 @@ public class RandomAccess {
     @Benchmark
     public int branchyRoaringWithRun(BenchmarkState benchmarkState) {
         int answer = 0;
-        org.roaringbitmap.Util.USE_BRANCHLESS_BINSEARCH = false;
+        org.roaringbitmap.Util.USE_HYBRID_BINSEARCH = false;
         for(int k : benchmarkState.queries) {
             for(RoaringBitmap rb : benchmarkState.rc) 
                if(rb.contains(k))
@@ -58,9 +58,9 @@ public class RandomAccess {
     }
 
     @Benchmark
-    public int branchlessRoaringWithRun(BenchmarkState benchmarkState) {
+    public int hybridRoaringWithRun(BenchmarkState benchmarkState) {
         int answer = 0;
-        org.roaringbitmap.Util.USE_BRANCHLESS_BINSEARCH = true;
+        org.roaringbitmap.Util.USE_HYBRID_BINSEARCH = true;
         for(int k : benchmarkState.queries) {
             // on purpose we switch bitmaps between each contains to sabotage branchless
             for(RoaringBitmap rb : benchmarkState.rc) 
