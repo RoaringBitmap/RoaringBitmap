@@ -6,7 +6,7 @@ import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.roaringbitmap.realdata.state.BenchmarkState;
+import org.roaringbitmap.realdata.state.RealDataBenchmarkState;
 
 import java.util.Collection;
 import java.util.List;
@@ -16,7 +16,7 @@ import static org.roaringbitmap.RealDataset.*;
 import static org.roaringbitmap.realdata.wrapper.BitmapFactory.*;
 
 @RunWith(Parameterized.class)
-public abstract class BenchmarkSanityTest {
+public abstract class RealDataBenchmarkSanityTest {
 
     public static final String[] REAL_DATA_SETS = { CENSUS_INCOME, CENSUS1881,
                                                     DIMENSION_008, DIMENSION_003,
@@ -58,11 +58,11 @@ public abstract class BenchmarkSanityTest {
     public boolean immutable;
 
 
-    protected BenchmarkState bs;
+    protected RealDataBenchmarkState bs;
 
     @Before
     public void setup() throws Exception {
-        bs = new BenchmarkState();
+        bs = new RealDataBenchmarkState();
         bs.dataset = dataset;
         bs.type = type;
         bs.immutable = immutable;

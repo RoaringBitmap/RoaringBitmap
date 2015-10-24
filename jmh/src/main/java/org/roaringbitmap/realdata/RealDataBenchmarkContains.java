@@ -2,6 +2,7 @@ package org.roaringbitmap.realdata;
 
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
+import org.roaringbitmap.realdata.state.RealDataBenchmarkState;
 import org.roaringbitmap.realdata.wrapper.Bitmap;
 
 import java.util.ArrayList;
@@ -24,7 +25,7 @@ public class RealDataBenchmarkContains {
    }
 
    @State(Scope.Benchmark)
-   public static class BenchmarkState extends org.roaringbitmap.realdata.state.BenchmarkState {
+   public static class BenchmarkState extends RealDataBenchmarkState {
 
       List<Integer> ranges;
 

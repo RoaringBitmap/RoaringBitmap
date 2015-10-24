@@ -5,7 +5,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 
-public class RealDataBenchmarkWideAndNaiveTest extends BenchmarkSanityTest {
+public class RealDataBenchmarkWideAndNaiveTest extends RealDataBenchmarkSanityTest {
 
     @Test
     public void test() throws Exception {

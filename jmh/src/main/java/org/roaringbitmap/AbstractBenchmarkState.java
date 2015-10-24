@@ -1,55 +1,23 @@
-package org.roaringbitmap.realdata.state;
+package org.roaringbitmap;
 
-import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
-import org.roaringbitmap.ZipRealDataRetriever;
 import org.roaringbitmap.realdata.wrapper.Bitmap;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.roaringbitmap.RealDataset.*;
 import static org.roaringbitmap.realdata.wrapper.BitmapFactory.*;
 
 @State(Scope.Benchmark)
-public class BenchmarkState {
+public abstract class AbstractBenchmarkState {
 
-   @Param({// putting the data sets in alpha. order
-           CENSUS_INCOME, CENSUS1881,
-           DIMENSION_008, DIMENSION_003,
-           DIMENSION_033, USCENSUS2000,
-           WEATHER_SEPT_85, WIKILEAKS_NOQUOTES,
-           CENSUS_INCOME_SRT, CENSUS1881_SRT,
-           WEATHER_SEPT_85_SRT, WIKILEAKS_NOQUOTES_SRT
-   })
-   public String dataset;
+    public List<Bitmap> bitmaps;
 
-   @Param({
-           CONCISE,
-           WAH,
-           EWAH,
-           EWAH32,
-           ROARING,
-           ROARING_WITH_RUN
-   })
-   public String type;
+    public AbstractBenchmarkState() {
+    }
 
-   @Param({
-           "false",
-           "true"
-   })
-   public boolean immutable;
-
-
-   public List<Bitmap> bitmaps;
-
-   public BenchmarkState() {
-   }
-
-   @Setup
-   public void setup() throws Exception {
+   public void setup(String dataset, String type, boolean immutable) throws Exception {
        bitmaps = new ArrayList<Bitmap>();
 
        ZipRealDataRetriever dataRetriever = new ZipRealDataRetriever(dataset);

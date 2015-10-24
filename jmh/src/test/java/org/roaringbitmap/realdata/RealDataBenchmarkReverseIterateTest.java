@@ -13,7 +13,7 @@ import static org.roaringbitmap.realdata.wrapper.BitmapFactory.CONCISE;
 import static org.roaringbitmap.realdata.wrapper.BitmapFactory.WAH;
 
 
-public class RealDataBenchmarkReverseIterateTest extends BenchmarkSanityTest {
+public class RealDataBenchmarkReverseIterateTest extends RealDataBenchmarkSanityTest {
 
     private static final Map<String, Integer> EXPECTED_RESULTS =
             ImmutableMap.<String, Integer>builder()

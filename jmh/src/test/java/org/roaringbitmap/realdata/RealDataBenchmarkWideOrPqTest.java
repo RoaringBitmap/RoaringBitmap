@@ -9,7 +9,7 @@ import static org.junit.Assert.assertEquals;
 import static org.roaringbitmap.RealDataset.*;
 
 
-public class RealDataBenchmarkWideOrPqTest extends BenchmarkSanityTest {
+public class RealDataBenchmarkWideOrPqTest extends RealDataBenchmarkSanityTest {
 
     private static final Map<String, Integer> EXPECTED_RESULTS =
             ImmutableMap.<String, Integer>builder()
