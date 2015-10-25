@@ -7,7 +7,6 @@ package org.roaringbitmap.buffer;
 
 import org.roaringbitmap.PeekableShortIterator;
 import org.roaringbitmap.ShortIterator;
-import org.roaringbitmap.Util;
 
 import java.io.*;
 import java.nio.ShortBuffer;
@@ -1392,7 +1391,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     private static int bufferedUnsignedInterleavedBinarySearch(final ShortBuffer sb,
             final int begin, final int end, final short k) {
-        if(Util.USE_HYBRID_BINSEARCH)
+        if(BufferUtil.USE_HYBRID_BINSEARCH)
             return hybridBufferedUnsignedInterleavedBinarySearch(sb,begin,end,k);
         else 
             return branchyBufferedUnsignedInterleavedBinarySearch(sb,begin,end,k);

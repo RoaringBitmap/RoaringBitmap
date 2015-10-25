@@ -337,11 +337,16 @@ public final class BufferUtil {
      */
     public static int unsignedBinarySearch(final ShortBuffer array, final int begin,
             final int end,  final short k) {
-        if(Util.USE_HYBRID_BINSEARCH)
+        if(BufferUtil.USE_HYBRID_BINSEARCH)
           return hybridUnsignedBinarySearch(array,begin,end, k);
         else 
           return branchyUnsignedBinarySearch(array,begin,end, k);
     }
+    
+    // optimization flag: whether to use hybrid binary search: hybrid formats
+    // combine a binary search with a sequential search 
+    protected static boolean USE_HYBRID_BINSEARCH = true;
+
     
     // starts with binary search and finishes with a sequential search
     protected static int hybridUnsignedBinarySearch(final ShortBuffer array, final int begin,
