@@ -1,3 +1,6 @@
+version 0.5.8
+ - Disabling the faster binary search for the buffer package (was introduced by mistake)
+
 version 0.5.7
  - fast in-place complement (not) for RunContainers and MappeableRunContainers (Owen Kaser)
  - faster binary search (for org.roaringbitmap.RoaringBitmap)
