@@ -1317,8 +1317,16 @@ public final class RunContainer extends Container implements Cloneable {
         return false;
     }
 
-
     private static int unsignedInterleavedBinarySearch(final short[] array,
+            final int begin, final int end, final short k) {
+        if(Util.USE_BRANCHLESS_BINSEARCH)
+            return branchlessUnsignedInterleavedBinarySearch(array,begin,end,k);
+        else 
+            return branchyUnsignedInterleavedBinarySearch(array,begin,end,k);
+        
+    }
+
+    private static int branchyUnsignedInterleavedBinarySearch(final short[] array,
             final int begin, final int end, final short k) {
         int ikey = Util.toIntUnsigned(k);
         int low = begin;
@@ -1335,6 +1343,31 @@ public final class RunContainer extends Container implements Cloneable {
         }
         return -(low + 1);
     }
+    
+    private static int branchlessUnsignedInterleavedBinarySearch(final short[] array, final int begin,
+            final int end,  final short k) {
+        int ikey = Util.toIntUnsigned(k);
+        int n = end - begin;
+        if(n == 0) return -1;
+        int pos = 0;
+        while (n > 1) {
+            final int half = n >>> 1;
+            n -= half;
+            final int index = pos + half;
+            final int val = array[2*(index + begin)] & 0xFFFF;
+            final int diff = val - ikey;
+            final int mask = diff >> 31;
+            final int addition = half & mask;
+            pos += addition;
+        }
+        // next  line is upper bound
+        if(Util.toIntUnsigned(array[2*(pos + begin)]) < ikey) pos = pos + 1;
+        if ((pos +begin < end) && (Util.toIntUnsigned(array[2*(pos + begin)]) == ikey)) {
+            return pos + begin;
+        }
+        return -(pos + begin + 1);
+    }
+
 
     short getValue(int index) {
         return valueslength[2*index];

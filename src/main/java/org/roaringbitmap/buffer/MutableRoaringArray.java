@@ -11,6 +11,8 @@ import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 import java.util.Arrays;
 
+import org.roaringbitmap.Util;
+
 
 /**
  * Specialized array to store the containers used by a RoaringBitmap. This class
@@ -128,22 +130,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable,
     }
 
     private int binarySearch(int begin, int end, short key) {
-        int low = begin;
-        int high = end - 1;
-        final int ikey = BufferUtil.toIntUnsigned(key);
-
-        while (low <= high) {
-            final int middleIndex = (low + high) >>> 1;
-            final int middleValue = BufferUtil.toIntUnsigned(keys[middleIndex]);
-
-            if (middleValue < ikey)
-                low = middleIndex + 1;
-            else if (middleValue > ikey)
-                high = middleIndex - 1;
-            else
-                return middleIndex;
-        }
-        return -(low + 1);
+        return Util.unsignedBinarySearch(keys, begin, end, key);
     }
 
     protected void clear() {

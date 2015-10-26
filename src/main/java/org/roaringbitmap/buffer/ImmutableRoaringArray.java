@@ -15,6 +15,8 @@ import java.nio.ShortBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 
+import org.roaringbitmap.Util;
+
 
 
 
@@ -32,7 +34,38 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     ByteBuffer buffer;
     int size;
 
-    protected int unsignedBinarySearch(short k) {
+    private int unsignedBinarySearch(short k) {
+        if(Util.USE_BRANCHLESS_BINSEARCH)
+            return branchlessUnsignedBinarySearch(k);
+        else 
+            return branchyUnsignedBinarySearch(k);
+    }
+    
+    private int branchlessUnsignedBinarySearch( final short k) {
+        int ikey = BufferUtil.toIntUnsigned(k);
+        int n = this.size;
+        if(n == 0) return -1;
+        int pos = 0;
+        while (n > 1) {
+            final int half = n >>> 1;
+            n -= half;
+            final int index = pos + half;
+            final int val = getKey(index);
+            final int diff = val - ikey;
+            final int mask = diff >> 31;
+            final int addition = half & mask;
+            pos += addition;
+        }
+        // next  line is upper bound
+        if(getKey(pos) < ikey) pos = pos + 1;
+        if ((pos < this.size) && (getKey(pos) == ikey)) {
+            return pos;
+        }
+        return -(pos + 1);
+    }
+
+    
+    private int branchyUnsignedBinarySearch( final short k) {
         int low = 0;
         int high = this.size - 1;
         final int ikey = BufferUtil.toIntUnsigned(k);
@@ -48,6 +81,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         }
         return -(low + 1);
     }
+
     
 
     /**

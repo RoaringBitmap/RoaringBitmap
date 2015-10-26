@@ -321,8 +321,57 @@ public final class BufferUtil {
     protected static int toIntUnsigned(short x) {
         return x & 0xFFFF;
     }
+    
+    /**
+     * Look for value k in buffer in the range [begin,end). If the value
+     * is found, return its index. If not, return -(i+1) where i is the
+     * index where the value would be inserted. 
+     * The buffer is assumed to contain sorted values where shorts are
+     * interpreted as unsigned integers.
+     * 
+     * @param array buffer where we search
+     * @param begin first index (inclusive)
+     * @param end last index (exclusive)
+     * @param k value we search for
+     * @return count
+     */
+    public static int unsignedBinarySearch(final ShortBuffer array, final int begin,
+            final int end,  final short k) {
+        if(Util.USE_BRANCHLESS_BINSEARCH)
+          return branchlessUnsignedBinarySearch(array,begin,end, k);
+        else 
+          return branchyUnsignedBinarySearch(array,begin,end, k);
+    }
 
-    protected static int unsignedBinarySearch(final ShortBuffer array, final int begin,
+
+    protected static int branchlessUnsignedBinarySearch(final ShortBuffer array, final int begin,
+            final int end,  final short k) {
+        int ikey = toIntUnsigned(k);
+        // next line accelerates the possibly common case where the value would be inserted at the end
+        if((end>0) && (toIntUnsigned(array.get(end-1)) < ikey)) return - end - 1;
+        int n = end - begin;
+        if(n == 0) return -1;
+        int pos = 0;
+        while (n > 1) {
+            final int half = n >>> 1;
+            n -= half;
+            final int index = pos + half;
+            final int val = array.get(index + begin) & 0xFFFF;
+            final int diff = val - ikey;
+            final int mask = diff >> 31;
+            final int addition = half & mask;
+            pos += addition;
+        }
+        // next  line is upper bound
+        if(toIntUnsigned(array.get(pos + begin)) < ikey) pos = pos + 1;
+        if ((pos +begin < end) && (toIntUnsigned(array.get(pos + begin)) == ikey)) {
+            return pos + begin;
+        }
+        return -(pos + begin + 1);
+    }
+
+    
+    protected static int branchyUnsignedBinarySearch(final ShortBuffer array, final int begin,
             final int end, final short k) {
         final int ikey = toIntUnsigned(k);
         // next line accelerates the possibly common case where the value would be inserted at the end
@@ -342,6 +391,7 @@ public final class BufferUtil {
         }
         return -(low + 1);
     }
+    
 
     protected static int unsignedDifference(final ShortBuffer set1,
             final int length1, final ShortBuffer set2, final int length2,

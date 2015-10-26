@@ -296,20 +296,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
     }
 
     private int binarySearch(int begin, int end, short key) {
-        int low = begin;
-        int high = end - 1;
-        int ikey = Util.toIntUnsigned(key);
-        while (low <= high) {
-            int middleIndex = (low + high) >>> 1;
-            int middleValue = Util.toIntUnsigned(keys[middleIndex]);
-            if (middleValue < ikey)
-                low = middleIndex + 1;
-            else if (middleValue > ikey)
-                high = middleIndex - 1;
-            else
-                return middleIndex;
-        }
-        return -(low + 1);
+        return Util.unsignedBinarySearch(keys,begin,end,key);
     }
 
     short[] keys = null;
