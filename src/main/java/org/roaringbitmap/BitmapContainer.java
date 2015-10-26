@@ -271,8 +271,9 @@ public final class BitmapContainer extends Container implements Cloneable {
         // little endian
         this.cardinality = 0;
         for (int k = 0; k < bitmap.length; ++k) {
-            bitmap[k] = Long.reverseBytes(in.readLong()); 
-            this.cardinality += Long.bitCount(bitmap[k]);
+            long w = Long.reverseBytes(in.readLong()); 
+            bitmap[k] = w;
+            this.cardinality += Long.bitCount(w);
         }
     }
 
@@ -466,8 +467,9 @@ public final class BitmapContainer extends Container implements Cloneable {
     public Container ior(final BitmapContainer b2) {
         this.cardinality = 0;
         for (int k = 0; k < this.bitmap.length; k++) {
-            this.bitmap[k] |= b2.bitmap[k];
-            this.cardinality += Long.bitCount(this.bitmap[k]);
+            long w = this.bitmap[k] | b2.bitmap[k];
+            this.bitmap[k] = w;
+            this.cardinality += Long.bitCount(w);
         }
         return this;
     }
@@ -714,8 +716,9 @@ public final class BitmapContainer extends Container implements Cloneable {
         final BitmapContainer answer = new BitmapContainer();
         answer.cardinality = 0;
         for (int k = 0; k < answer.bitmap.length; ++k) {
-            answer.bitmap[k] = this.bitmap[k] | value2.bitmap[k];
-            answer.cardinality += Long.bitCount(answer.bitmap[k]);
+            long w = this.bitmap[k] | value2.bitmap[k];
+            answer.bitmap[k] = w;
+            answer.cardinality += Long.bitCount(w);
         }
         return answer;
     }
@@ -729,18 +732,22 @@ public final class BitmapContainer extends Container implements Cloneable {
     @Override
     public Container remove(final short i) {
         final int x = Util.toIntUnsigned(i);
+        int index = x / 64;
+        long bef = bitmap[index];
+        long mask = (1l << x);
         if (cardinality == ArrayContainer.DEFAULT_MAX_SIZE + 1) {// this is
             // the
             // uncommon
             // path
-            if ((bitmap[x / 64] & (1l << x)) != 0) {
+            if ((bef & mask) != 0) {
                 --cardinality;
-                bitmap[x / 64] &= ~(1l << x);
+                bitmap[x / 64] = bef &( ~mask);
                 return this.toArrayContainer();
             }
         }
-        cardinality -= (bitmap[x / 64] & (1l << x)) >>> x;
-        bitmap[x / 64] &= ~(1l << x);
+        long aft = bef & (~mask);
+        cardinality -= (aft - bef) >>> 63;
+        bitmap[index] = aft;
         return this;
     }
 

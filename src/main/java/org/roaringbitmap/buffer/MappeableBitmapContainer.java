@@ -774,7 +774,6 @@ public final class MappeableBitmapContainer extends MappeableContainer
                 long aft = bef | (1l << v2[k]);
                 b[i] = aft;
                 if (USE_BRANCHLESS) {
-
                     cardinality += (bef - aft) >>> 63;
                 } else {
                     if (aft != bef)
@@ -783,7 +782,6 @@ public final class MappeableBitmapContainer extends MappeableContainer
             }
             return this;
         }
-
         for (int k = 0; k < value2.cardinality; ++k) {
             short v2 = value2.content.get(k);
             final int i = BufferUtil.toIntUnsigned(v2) >>> 6;
@@ -810,15 +808,17 @@ public final class MappeableBitmapContainer extends MappeableContainer
             long[] b2Arr = b2.bitmap.array();
             int len = this.bitmap.limit();
             for (int k = 0; k < len; k++) {
-                b[k] |= b2Arr[k];
-                this.cardinality += Long.bitCount(b[k]);
+                long w = b[k] | b2Arr[k];
+                b[k] = w;
+                this.cardinality += Long.bitCount(w);
             }
             return this;
         }
         int len = this.bitmap.limit();
         for (int k = 0; k < len; k++) {
-            b[k] |= b2.bitmap.get(k);
-            this.cardinality += Long.bitCount(b[k]);
+            long w = b[k] | b2.bitmap.get(k);
+            b[k] = w;
+            this.cardinality += Long.bitCount(w);
         }
         return this;
     }
@@ -1159,7 +1159,6 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     @Override
     public MappeableBitmapContainer or(final MappeableArrayContainer value2) {
-
         final MappeableBitmapContainer answer = clone();
         if (!BufferUtil.isBackedBySimpleArray(answer.bitmap))
             throw new RuntimeException("Should not happen. Internal bug.");
@@ -1213,14 +1212,16 @@ public final class MappeableBitmapContainer extends MappeableContainer
             long[] v2 = value2.bitmap.array();
             int len = this.bitmap.limit();
             for (int k = 0; k < len; ++k) {
-                bitArray[k] = b[k] | v2[k];
-                answer.cardinality += Long.bitCount(bitArray[k]);
+                long w = b[k] | v2[k];
+                bitArray[k] = w;
+                answer.cardinality += Long.bitCount(w);
             }
         } else {
             int len = this.bitmap.limit();
             for (int k = 0; k < len; ++k) {
-                bitArray[k] = this.bitmap.get(k) | value2.bitmap.get(k);
-                answer.cardinality += Long.bitCount(bitArray[k]);
+                long w = this.bitmap.get(k) | value2.bitmap.get(k);
+                bitArray[k] = w;
+                answer.cardinality += Long.bitCount(w);
             }
         }
         return answer;
@@ -1256,19 +1257,22 @@ public final class MappeableBitmapContainer extends MappeableContainer
     @Override
     public MappeableContainer remove(final short i) {
         final int x = BufferUtil.toIntUnsigned(i);
+        long X = bitmap.get(x / 64);
+        long mask = 1l << x;
+
         if (cardinality == MappeableArrayContainer.DEFAULT_MAX_SIZE + 1) {// this is
             // the
             // uncommon
             // path
-            if ((bitmap.get(x / 64) & (1l << x)) != 0) {
+            if ((X & mask) != 0) {
                 --cardinality;
-                bitmap.put(x / 64, bitmap.get(x / 64) & ~(1l << x));
+                bitmap.put(x / 64, X & (~mask));
                 return this.toArrayContainer();
             }
         }
-        long X = bitmap.get(x / 64);
-        cardinality -= (X & (1l << x)) >>> x;
-        bitmap.put(x / 64, X & ~(1l << x));
+        long aft = X & ~(mask);
+        cardinality -= (aft - X) >>> 63;
+        bitmap.put(x / 64, aft);
         return this;
     }
     
@@ -1363,16 +1367,13 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     @Override
     public MappeableContainer xor(MappeableBitmapContainer value2) {
-
         int newCardinality = 0;
         if (BufferUtil.isBackedBySimpleArray(this.bitmap) && BufferUtil.isBackedBySimpleArray(value2.bitmap)) {
             long[] b = this.bitmap.array();
             long[] v2 = value2.bitmap.array();
             int len = this.bitmap.limit();
             for (int k = 0; k < len; ++k) {
-
                 newCardinality += Long.bitCount(b[k] ^ v2[k]);
-
             }
         } else {
             int len = this.bitmap.limit();
@@ -1619,21 +1620,23 @@ public final class MappeableBitmapContainer extends MappeableContainer
     @Override
     public MappeableContainer flip(short i) {
         final int x = BufferUtil.toIntUnsigned(i);
+        final long bef = bitmap.get(x / 64);
+        final long mask =  (1l << x);
         if (cardinality == MappeableArrayContainer.DEFAULT_MAX_SIZE + 1) {// this
                                                                           // is
             // the
             // uncommon
             // path
-            if ((bitmap.get(x / 64) & (1l << x)) != 0) {
+            if ((bef & mask) != 0) {
                 --cardinality;
-                bitmap.put(x / 64, bitmap.get(x / 64) & ~(1l << x));
+                bitmap.put(x / 64, bef & ~mask);
                 return this.toArrayContainer();
             }
         }
-        long X = bitmap.get(x / 64);
+        long aft = bef ^ mask;;
         //  TODO: check whether a branchy version could be faster
-        cardinality += 1 - 2 * ((X & (1l << x)) >>> x);
-        bitmap.put(x / 64, X ^ (1l << x));
+        cardinality += 1 - 2 * ((bef & mask) >>> x);
+        bitmap.put(x / 64, aft);
         return this;
     }
 
