@@ -1,5 +1,6 @@
-upcoming
+version 0.5.7
  - fast in-place complement (not) for RunContainers and MappeableRunContainers (Owen Kaser)
+ - faster binary search (for org.roaringbitmap.RoaringBitmap)
 
 version 0.5.6
  - Implemented fast intersects function, to check whether two bitmap intersects
