@@ -249,7 +249,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
         final long previous = bitmap.get(x / 64);
         final long newv = previous | (1l << x);
         bitmap.put(x / 64, newv);
-        cardinality += (previous ^ newv) >>> x;
+        if(USE_BRANCHLESS)
+            cardinality += (previous ^ newv) >>> x;
+        else 
+            if(previous != newv) cardinality++;
         return this;
     }
 
@@ -760,16 +763,23 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     @Override
     public MappeableBitmapContainer ior(final MappeableArrayContainer value2) {
-        if(!BufferUtil.isBackedBySimpleArray(this.bitmap))
+        if (!BufferUtil.isBackedBySimpleArray(this.bitmap))
             throw new RuntimeException("Should not happen. Internal bug.");
         long[] b = this.bitmap.array();
         if (BufferUtil.isBackedBySimpleArray(value2.content)) {
-
             short[] v2 = value2.content.array();
             for (int k = 0; k < value2.cardinality; ++k) {
                 final int i = BufferUtil.toIntUnsigned(v2[k]) >>> 6;
-                this.cardinality += ((~b[i]) & (1l << value2.content.get(k))) >>> v2[k];
-                b[i] |= (1l << v2[k]);
+                long bef = b[i];
+                long aft = bef | (1l << v2[k]);
+                b[i] = aft;
+                if (USE_BRANCHLESS) {
+
+                    cardinality += (bef - aft) >>> 63;
+                } else {
+                    if (aft != bef)
+                        cardinality++;
+                }
             }
             return this;
         }
@@ -777,8 +787,15 @@ public final class MappeableBitmapContainer extends MappeableContainer
         for (int k = 0; k < value2.cardinality; ++k) {
             short v2 = value2.content.get(k);
             final int i = BufferUtil.toIntUnsigned(v2) >>> 6;
-            this.cardinality += ((~b[i]) & (1l << v2)) >>> v2;
-            b[i] |= (1l << v2);
+            long bef = b[i];
+            long aft = bef | (1l << v2);
+            b[i] = aft;
+            if (USE_BRANCHLESS) {
+                cardinality += (bef - aft) >>> 63;
+            } else {
+                if (aft != bef)
+                    cardinality++;
+            }
         }
         return this;
     }
@@ -860,13 +877,14 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     @Override
     public MappeableContainer ixor(final MappeableArrayContainer value2) {
-        if(!BufferUtil.isBackedBySimpleArray(bitmap))
+        if (!BufferUtil.isBackedBySimpleArray(bitmap))
             throw new RuntimeException("Should not happen. Internal bug.");
         long[] b = bitmap.array();
         if (BufferUtil.isBackedBySimpleArray(value2.content)) {
             short[] v2 = value2.content.array();
             for (int k = 0; k < value2.getCardinality(); ++k) {
                 final int index = BufferUtil.toIntUnsigned(v2[k]) >>> 6;
+                // TODO: check whether a branchy version could be faster
                 this.cardinality += 1 - 2 * ((b[index] & (1l << v2[k])) >>> v2[k]);
                 b[index] ^= (1l << v2[k]);
             }
@@ -875,6 +893,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
             for (int k = 0; k < value2.getCardinality(); ++k) {
                 short v2 = value2.content.get(k);
                 final int index = BufferUtil.toIntUnsigned(v2) >>> 6;
+                // TODO: check whether a branchy version could be faster
                 this.cardinality += 1 - 2 * ((b[index] & (1l << v2)) >>> v2);
                 b[index] ^= (1l << v2);
             }
@@ -1142,24 +1161,38 @@ public final class MappeableBitmapContainer extends MappeableContainer
     public MappeableBitmapContainer or(final MappeableArrayContainer value2) {
 
         final MappeableBitmapContainer answer = clone();
-        if(!BufferUtil.isBackedBySimpleArray(answer.bitmap))
+        if (!BufferUtil.isBackedBySimpleArray(answer.bitmap))
             throw new RuntimeException("Should not happen. Internal bug.");
         long[] bitArray = answer.bitmap.array();
-        if (BufferUtil.isBackedBySimpleArray(answer.bitmap) && BufferUtil.isBackedBySimpleArray(value2.content)) {
+        if (BufferUtil.isBackedBySimpleArray(answer.bitmap)
+                && BufferUtil.isBackedBySimpleArray(value2.content)) {
             long[] ab = answer.bitmap.array();
             short[] v2 = value2.content.array();
             for (int k = 0; k < value2.cardinality; ++k) {
                 final int i = BufferUtil.toIntUnsigned(v2[k]) >>> 6;
-                answer.cardinality += ((~ab[i]) & (1l << v2[k])) >>> v2[k];
-                bitArray[i] |= (1l << v2[k]);
+                long w = ab[i];
+                long aft = w | (1l << v2[k]);
+                bitArray[i] = aft;
+                if (USE_BRANCHLESS) {
+                    answer.cardinality += (w - aft) >>> 63;
+                } else {
+                    if (w != aft)
+                        answer.cardinality++;
+                }
             }
-
         } else
             for (int k = 0; k < value2.cardinality; ++k) {
                 short v2 = value2.content.get(k);
                 final int i = BufferUtil.toIntUnsigned(v2) >>> 6;
-                answer.cardinality += ((~answer.bitmap.get(i)) & (1l << v2)) >>> v2;
-                bitArray[i] |= (1l << v2);
+                long w = answer.bitmap.get(i);
+                long aft = w | (1l << v2);
+                bitArray[i] = aft;
+                if (USE_BRANCHLESS) {
+                    answer.cardinality += (w - aft) >>> 63;
+                } else {
+                    if (w != aft)
+                        answer.cardinality++;
+                }
             }
         return answer;
     }
@@ -1304,13 +1337,14 @@ public final class MappeableBitmapContainer extends MappeableContainer
     @Override
     public MappeableContainer xor(final MappeableArrayContainer value2) {
         final MappeableBitmapContainer answer = clone();
-        if(!BufferUtil.isBackedBySimpleArray(answer.bitmap))
+        if (!BufferUtil.isBackedBySimpleArray(answer.bitmap))
             throw new RuntimeException("Should not happen. Internal bug.");
         long[] bitArray = answer.bitmap.array();
         if (BufferUtil.isBackedBySimpleArray(value2.content)) {
             short[] v2 = value2.content.array();
             for (int k = 0; k < value2.getCardinality(); ++k) {
                 final int index = BufferUtil.toIntUnsigned(v2[k]) >>> 6;
+                // TODO: check whether a branchy version could be faster
                 answer.cardinality += 1 - 2 * ((bitArray[index] & (1l << v2[k])) >>> v2[k]);
                 bitArray[index] ^= (1l << v2[k]);
             }
@@ -1318,6 +1352,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
             for (int k = 0; k < value2.getCardinality(); ++k) {
                 short v2 = value2.content.get(k);
                 final int index = BufferUtil.toIntUnsigned(v2) >>> 6;
+                // TODO: check whether a branchy version could be faster
                 answer.cardinality += 1 - 2 * ((bitArray[index] & (1l << v2)) >>> v2);
                 bitArray[index] ^= (1l << v2);
             }
@@ -1417,12 +1452,6 @@ public final class MappeableBitmapContainer extends MappeableContainer
         return this;
     }
     
-
-    /*
-   protected MappeableContainer ilazyor(MappeableRunContainer x) {
-       return null;
-   }
-    */
 
   
 
@@ -1602,6 +1631,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
             }
         }
         long X = bitmap.get(x / 64);
+        //  TODO: check whether a branchy version could be faster
         cardinality += 1 - 2 * ((X & (1l << x)) >>> x);
         bitmap.put(x / 64, X ^ (1l << x));
         return this;
@@ -1692,6 +1722,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
     public boolean intersects(MappeableRunContainer x) {
         return x.intersects(this);
     }
+    
+    // optimization flag: whether the cardinality of the bitmaps is maintained through branchless operations
+    public static final boolean USE_BRANCHLESS = true;
+
 }
 
 final class MappeableBitmapContainerShortIterator implements ShortIterator {
