@@ -345,7 +345,7 @@ public final class BufferUtil {
     
     // optimization flag: whether to use hybrid binary search: hybrid formats
     // combine a binary search with a sequential search 
-    protected static boolean USE_HYBRID_BINSEARCH = true;
+    protected static boolean USE_HYBRID_BINSEARCH = false;
 
     
     // starts with binary search and finishes with a sequential search
