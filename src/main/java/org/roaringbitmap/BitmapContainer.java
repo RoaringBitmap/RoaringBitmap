@@ -171,8 +171,12 @@ public final class BitmapContainer extends Container implements Cloneable {
     public Container add(final short i) {
         final int x = Util.toIntUnsigned(i);
         final long previous = bitmap[x / 64];
-        bitmap[x / 64] |= (1l << x);
-        cardinality += (previous ^ bitmap[x / 64]) >>> x;
+        long newval = previous | (1l << x);
+        bitmap[x / 64] = newval;
+        if(USE_BRANCHLESS) 
+          cardinality += (previous ^ newval) >>> x;
+        else 
+          if(previous != newval) ++cardinality;
         return this;
     }
 
@@ -444,8 +448,16 @@ public final class BitmapContainer extends Container implements Cloneable {
     public BitmapContainer ior(final ArrayContainer value2) {
         for (int k = 0; k < value2.cardinality; ++k) {
             final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
-            this.cardinality += ((~this.bitmap[i]) & (1l << value2.content[k])) >>> value2.content[k];
-            this.bitmap[i] |= (1l << value2.content[k]);
+            
+            if(USE_BRANCHLESS){
+                this.cardinality += ((~this.bitmap[i]) & (1l << value2.content[k])) >>> value2.content[k];
+                this.bitmap[i] |= (1l << value2.content[k]);
+            } else {
+                long bef = this.bitmap[i];
+                long aft = bef | (1l << value2.content[k]);
+                this.bitmap[i] = aft;
+                if(bef != aft) cardinality ++;
+            }
         }
         return this;
     }
@@ -487,6 +499,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     public Container ixor(final ArrayContainer value2) {
         for (int k = 0; k < value2.getCardinality(); ++k) {
             final int index = Util.toIntUnsigned(value2.content[k]) >>> 6;
+            // TODO: check whether a branchy version could be faster
             this.cardinality += 1 - 2 * ((this.bitmap[index] & (1l << value2.content[k])) >>> value2.content[k]);
             this.bitmap[index] ^= (1l << value2.content[k]);
         }
@@ -679,8 +692,16 @@ public final class BitmapContainer extends Container implements Cloneable {
         final BitmapContainer answer = clone();
         for (int k = 0; k < value2.cardinality; ++k) {
             final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
-            answer.cardinality += ((~answer.bitmap[i]) & (1l << value2.content[k])) >>> value2.content[k];
-            answer.bitmap[i] = answer.bitmap[i] | (1l << value2.content[k]);
+            if (USE_BRANCHLESS) {
+                answer.cardinality += ((~answer.bitmap[i]) & (1l << value2.content[k])) >>> value2.content[k];
+                answer.bitmap[i] = answer.bitmap[i] | (1l << value2.content[k]);
+            } else {
+                long w = answer.bitmap[i];
+                long aft = w | (1l << value2.content[k]);
+                answer.bitmap[i] = aft;
+                if (w != aft)
+                    answer.cardinality++;
+            }
         }
         return answer;
     }
@@ -788,6 +809,7 @@ public final class BitmapContainer extends Container implements Cloneable {
         final BitmapContainer answer = clone();
         for (int k = 0; k < value2.getCardinality(); ++k) {
             final int index = Util.toIntUnsigned(value2.content[k]) >>> 6;
+            // TODO: check whether a branchy version could be faster
             answer.cardinality += 1 - 2 * ((answer.bitmap[index] & (1l << value2.content[k])) >>> value2.content[k]);
             answer.bitmap[index] = answer.bitmap[index]
                     ^ (1l << value2.content[k]);
@@ -952,6 +974,7 @@ public final class BitmapContainer extends Container implements Cloneable {
                 return this.toArrayContainer();
             }
         }
+        // TODO: check whether a branchy version could be faster
         cardinality += 1 - 2 * ((bitmap[x / 64] & (1l << x)) >>> x);
         bitmap[x / 64] ^= (1l << x);
         return this;
@@ -1128,6 +1151,10 @@ public final class BitmapContainer extends Container implements Cloneable {
     public boolean intersects(RunContainer x) {
         return x.intersects(this);
     }
+    
+    // optimization flag: whether the cardinality of the bitmaps is maintained through branchless operations
+    public static final boolean USE_BRANCHLESS = false;
+
 }
 
 final class BitmapContainerShortIterator implements ShortIterator {
