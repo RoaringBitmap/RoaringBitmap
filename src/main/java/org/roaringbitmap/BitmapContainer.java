@@ -500,10 +500,13 @@ public final class BitmapContainer extends Container implements Cloneable {
     @Override
     public Container ixor(final ArrayContainer value2) {
         for (int k = 0; k < value2.getCardinality(); ++k) {
-            final int index = Util.toIntUnsigned(value2.content[k]) >>> 6;
+            short vc = value2.content[k];
+            long mask = 1l << vc;
+            final int index = Util.toIntUnsigned(vc) >>> 6;
+            long ba = this.bitmap[index];
             // TODO: check whether a branchy version could be faster
-            this.cardinality += 1 - 2 * ((this.bitmap[index] & (1l << value2.content[k])) >>> value2.content[k]);
-            this.bitmap[index] ^= (1l << value2.content[k]);
+            this.cardinality += 1 - 2 * ((ba & mask) >>> vc);
+            this.bitmap[index] =  ba ^ mask;
         }
         if (this.cardinality <= ArrayContainer.DEFAULT_MAX_SIZE) {
             return this.toArrayContainer();
@@ -814,11 +817,13 @@ public final class BitmapContainer extends Container implements Cloneable {
     public Container xor(final ArrayContainer value2) {
         final BitmapContainer answer = clone();
         for (int k = 0; k < value2.getCardinality(); ++k) {
-            final int index = Util.toIntUnsigned(value2.content[k]) >>> 6;
+            short vc =  value2.content[k];
+            final int index = Util.toIntUnsigned(vc) >>> 6;
+            final long mask = (1l << value2.content[k]);
+            final long val = answer.bitmap[index];
             // TODO: check whether a branchy version could be faster
-            answer.cardinality += 1 - 2 * ((answer.bitmap[index] & (1l << value2.content[k])) >>> value2.content[k]);
-            answer.bitmap[index] = answer.bitmap[index]
-                    ^ (1l << value2.content[k]);
+            answer.cardinality += 1 - 2 * ((val & mask) >>> vc);
+            answer.bitmap[index] = val ^ mask;
         }
         if (answer.cardinality <= ArrayContainer.DEFAULT_MAX_SIZE)
             return answer.toArrayContainer();

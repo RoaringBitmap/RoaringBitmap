@@ -883,19 +883,24 @@ public final class MappeableBitmapContainer extends MappeableContainer
         if (BufferUtil.isBackedBySimpleArray(value2.content)) {
             short[] v2 = value2.content.array();
             for (int k = 0; k < value2.getCardinality(); ++k) {
-                final int index = BufferUtil.toIntUnsigned(v2[k]) >>> 6;
+                short vc = v2[k];
+                long mask = (1l << v2[k]);
+                final int index = BufferUtil.toIntUnsigned(vc) >>> 6;
+                long ba = b[index];
                 // TODO: check whether a branchy version could be faster
-                this.cardinality += 1 - 2 * ((b[index] & (1l << v2[k])) >>> v2[k]);
-                b[index] ^= (1l << v2[k]);
+                this.cardinality += 1 - 2 * ((ba & mask) >>> vc);
+                b[index] = ba ^  mask;
             }
 
         } else
             for (int k = 0; k < value2.getCardinality(); ++k) {
                 short v2 = value2.content.get(k);
+                long mask = (1l << v2);
                 final int index = BufferUtil.toIntUnsigned(v2) >>> 6;
+                long ba = b[index];
                 // TODO: check whether a branchy version could be faster
-                this.cardinality += 1 - 2 * ((b[index] & (1l << v2)) >>> v2);
-                b[index] ^= (1l << v2);
+                this.cardinality += 1 - 2 * ((ba & mask) >>> v2);
+                b[index] = ba ^ mask;
             }
         if (this.cardinality <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             return this.toArrayContainer();
@@ -1347,18 +1352,23 @@ public final class MappeableBitmapContainer extends MappeableContainer
         if (BufferUtil.isBackedBySimpleArray(value2.content)) {
             short[] v2 = value2.content.array();
             for (int k = 0; k < value2.getCardinality(); ++k) {
-                final int index = BufferUtil.toIntUnsigned(v2[k]) >>> 6;
+                short vc = v2[k];
+                long mask = 1l << vc;
+                final int index = BufferUtil.toIntUnsigned(vc) >>> 6;
+                long ba = bitArray[index];
                 // TODO: check whether a branchy version could be faster
-                answer.cardinality += 1 - 2 * ((bitArray[index] & (1l << v2[k])) >>> v2[k]);
-                bitArray[index] ^= (1l << v2[k]);
+                answer.cardinality += 1 - 2 * ((ba & mask) >>> vc);
+                bitArray[index] = ba ^ mask;
             }
         } else
             for (int k = 0; k < value2.getCardinality(); ++k) {
                 short v2 = value2.content.get(k);
+                long mask = 1l << v2;
                 final int index = BufferUtil.toIntUnsigned(v2) >>> 6;
+                long ba = bitArray[index];
                 // TODO: check whether a branchy version could be faster
-                answer.cardinality += 1 - 2 * ((bitArray[index] & (1l << v2)) >>> v2);
-                bitArray[index] ^= (1l << v2);
+                answer.cardinality += 1 - 2 * ((ba & mask) >>> v2);
+                bitArray[index] = ba ^ mask;
             }
         if (answer.cardinality <= MappeableArrayContainer.DEFAULT_MAX_SIZE)
             return answer.toArrayContainer();
