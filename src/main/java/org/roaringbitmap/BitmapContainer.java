@@ -448,15 +448,15 @@ public final class BitmapContainer extends Container implements Cloneable {
     public BitmapContainer ior(final ArrayContainer value2) {
         for (int k = 0; k < value2.cardinality; ++k) {
             final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
-            
-            if(USE_BRANCHLESS){
-                this.cardinality += ((~this.bitmap[i]) & (1l << value2.content[k])) >>> value2.content[k];
-                this.bitmap[i] |= (1l << value2.content[k]);
+
+            long bef = this.bitmap[i];
+            long aft = bef | (1l << value2.content[k]);
+            this.bitmap[i] = aft;
+            if (USE_BRANCHLESS) {
+                cardinality += (bef - aft) >>> 63;
             } else {
-                long bef = this.bitmap[i];
-                long aft = bef | (1l << value2.content[k]);
-                this.bitmap[i] = aft;
-                if(bef != aft) cardinality ++;
+                if (bef != aft)
+                    cardinality++;
             }
         }
         return this;
@@ -692,13 +692,12 @@ public final class BitmapContainer extends Container implements Cloneable {
         final BitmapContainer answer = clone();
         for (int k = 0; k < value2.cardinality; ++k) {
             final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
+            long w = answer.bitmap[i];
+            long aft = w | (1l << value2.content[k]);
+            answer.bitmap[i] = aft;
             if (USE_BRANCHLESS) {
-                answer.cardinality += ((~answer.bitmap[i]) & (1l << value2.content[k])) >>> value2.content[k];
-                answer.bitmap[i] = answer.bitmap[i] | (1l << value2.content[k]);
+                answer.cardinality += (w - aft) >>> 63;
             } else {
-                long w = answer.bitmap[i];
-                long aft = w | (1l << value2.content[k]);
-                answer.bitmap[i] = aft;
                 if (w != aft)
                     answer.cardinality++;
             }
@@ -1153,7 +1152,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     }
     
     // optimization flag: whether the cardinality of the bitmaps is maintained through branchless operations
-    public static final boolean USE_BRANCHLESS = false;
+    public static final boolean USE_BRANCHLESS = true;
 
 }
 

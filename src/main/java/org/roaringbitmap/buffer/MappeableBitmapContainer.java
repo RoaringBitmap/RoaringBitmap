@@ -763,21 +763,22 @@ public final class MappeableBitmapContainer extends MappeableContainer
 
     @Override
     public MappeableBitmapContainer ior(final MappeableArrayContainer value2) {
-        if(!BufferUtil.isBackedBySimpleArray(this.bitmap))
+        if (!BufferUtil.isBackedBySimpleArray(this.bitmap))
             throw new RuntimeException("Should not happen. Internal bug.");
-        long[] b = this.bitmap.array();        
+        long[] b = this.bitmap.array();
         if (BufferUtil.isBackedBySimpleArray(value2.content)) {
             short[] v2 = value2.content.array();
             for (int k = 0; k < value2.cardinality; ++k) {
                 final int i = BufferUtil.toIntUnsigned(v2[k]) >>> 6;
-                if(USE_BRANCHLESS) {
-                  this.cardinality += ((~b[i]) & (1l << value2.content.get(k))) >>> v2[k];
-                  b[i] |= (1l << v2[k]);
+                long bef = b[i];
+                long aft = bef | (1l << v2[k]);
+                b[i] = aft;
+                if (USE_BRANCHLESS) {
+
+                    cardinality += (bef - aft) >>> 63;
                 } else {
-                  long bef = b[i];
-                  long aft = bef | (1l << v2[k]);
-                  b[i] = aft;
-                  if(aft != bef) cardinality ++;
+                    if (aft != bef)
+                        cardinality++;
                 }
             }
             return this;
@@ -786,16 +787,15 @@ public final class MappeableBitmapContainer extends MappeableContainer
         for (int k = 0; k < value2.cardinality; ++k) {
             short v2 = value2.content.get(k);
             final int i = BufferUtil.toIntUnsigned(v2) >>> 6;
-                  if(USE_BRANCHLESS) {
-                      this.cardinality += ((~b[i]) & (1l << v2)) >>> v2;
-                      b[i] |= (1l << v2);
-                  } else {
-                      long bef = b[i];
-                      long aft = bef | (1l << v2);
-                      b[i] = aft;
-                      if(aft != bef) cardinality ++;
-
-                  }
+            long bef = b[i];
+            long aft = bef | (1l << v2);
+            b[i] = aft;
+            if (USE_BRANCHLESS) {
+                cardinality += (bef - aft) >>> 63;
+            } else {
+                if (aft != bef)
+                    cardinality++;
+            }
         }
         return this;
     }
@@ -1170,33 +1170,29 @@ public final class MappeableBitmapContainer extends MappeableContainer
             short[] v2 = value2.content.array();
             for (int k = 0; k < value2.cardinality; ++k) {
                 final int i = BufferUtil.toIntUnsigned(v2[k]) >>> 6;
+                long w = ab[i];
+                long aft = w | (1l << v2[k]);
+                bitArray[i] = aft;
                 if (USE_BRANCHLESS) {
-                    answer.cardinality += ((~ab[i]) & (1l << v2[k])) >>> v2[k];
-                    bitArray[i] |= (1l << v2[k]);
+                    answer.cardinality += (w - aft) >>> 63;
                 } else {
-                    long w = ab[i];
-                    long aft = w | (1l << v2[k]);
-                    bitArray[i] = aft;
                     if (w != aft)
                         answer.cardinality++;
                 }
             }
-
         } else
             for (int k = 0; k < value2.cardinality; ++k) {
                 short v2 = value2.content.get(k);
                 final int i = BufferUtil.toIntUnsigned(v2) >>> 6;
+                long w = answer.bitmap.get(i);
+                long aft = w | (1l << v2);
+                bitArray[i] = aft;
                 if (USE_BRANCHLESS) {
-                    answer.cardinality += ((~answer.bitmap.get(i)) & (1l << v2)) >>> v2;
-                    bitArray[i] |= (1l << v2);
+                    answer.cardinality += (w - aft) >>> 63;
                 } else {
-                    long w = answer.bitmap.get(i);
-                    long aft = w | (1l << v2);
-                    bitArray[i] = aft;
                     if (w != aft)
                         answer.cardinality++;
                 }
-
             }
         return answer;
     }
@@ -1728,7 +1724,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
     }
     
     // optimization flag: whether the cardinality of the bitmaps is maintained through branchless operations
-    public static final boolean USE_BRANCHLESS = false;
+    public static final boolean USE_BRANCHLESS = true;
 
 }
 
