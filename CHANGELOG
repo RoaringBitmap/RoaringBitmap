@@ -1,3 +1,6 @@
+version 0.5.9
+ - Faster cardinality maintenance of unions between bitmap containers and array containers.
+
 version 0.5.8
  - Disabling the faster binary search for the buffer package (was introduced by mistake)
 
