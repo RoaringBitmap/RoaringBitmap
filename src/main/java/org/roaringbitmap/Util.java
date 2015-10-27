@@ -68,9 +68,10 @@ public final class Util {
         // invariant: array[lower]<min && array[upper]>min
         while (lower + 1 != upper) {
             int mid = (lower + upper) / 2;
-            if (array[mid] == min) {
+            short arraymid = array[mid];
+            if (arraymid == min) {
                 return mid;
-            } else if (toIntUnsigned(array[mid]) < toIntUnsigned(min))
+            } else if (toIntUnsigned(arraymid) < toIntUnsigned(min))
                 lower = mid;
             else
                 upper = mid;

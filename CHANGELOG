@@ -1,4 +1,4 @@
-upcoming
+version 0.5.10
  - Fast numberOfRuns for array containers.
  - Diminished array and buffer accesses in some operations.
 
