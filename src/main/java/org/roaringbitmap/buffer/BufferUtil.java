@@ -415,15 +415,17 @@ public final class BufferUtil {
         if (0 == length1) {
             return 0;
         }
+        short s1 = set1.get(k1);
+        short s2 = set2.get(k2);
         while (true) {
-            if (toIntUnsigned(set1.get(k1)) < toIntUnsigned(set2.get(k2))) {
-                buffer[pos++] = set1.get(k1);
+            if (toIntUnsigned(s1) < toIntUnsigned(s2)) {
+                buffer[pos++] = s1;
                 ++k1;
                 if (k1 >= length1) {
                     break;
                 }
-            } else if (toIntUnsigned(set1.get(k1)) == toIntUnsigned(set2
-                    .get(k2))) {
+                s1 = set1.get(k1);
+            } else if (toIntUnsigned(s1) == toIntUnsigned(s2)) {
                 ++k1;
                 ++k2;
                 if (k1 >= length1) {
@@ -434,6 +436,8 @@ public final class BufferUtil {
                     set1.get(buffer, pos, length1 - k1);
                     return pos + length1 - k1;
                 }
+                s1 = set1.get(k1);
+                s2 = set2.get(k2);
             } else {// if (val1>val2)
                 ++k2;
                 if (k2 >= length2) {
@@ -441,6 +445,7 @@ public final class BufferUtil {
                     set1.get(buffer, pos, length1 - k1);
                     return pos + length1 - k1;
                 }
+                s2 = set2.get(k2);
             }
         }
         return pos;
@@ -459,17 +464,19 @@ public final class BufferUtil {
             set2.get(buffer, 0, length2);
             return length2;
         }
+        short s1 = set1.get(k1);
+        short s2 = set2.get(k2);
         while (true) {
-            if (toIntUnsigned(set1.get(k1)) < toIntUnsigned(set2.get(k2))) {
-                buffer[pos++] = set1.get(k1);
+            if (toIntUnsigned(s1) < toIntUnsigned(s2)) {
+                buffer[pos++] = s1;
                 ++k1;
                 if (k1 >= length1) {
                     set2.position(k2);
                     set2.get(buffer, pos, length2 - k2);
                     return pos + length2 - k2;
                 }
-            } else if (toIntUnsigned(set1.get(k1)) == toIntUnsigned(set2
-                    .get(k2))) {
+                s1 = set1.get(k1);
+            } else if (toIntUnsigned(s1) == toIntUnsigned(s2)) {
                 ++k1;
                 ++k2;
                 if (k1 >= length1) {
@@ -482,14 +489,17 @@ public final class BufferUtil {
                     set1.get(buffer, pos, length1 - k1);
                     return pos + length1 - k1;
                 }
+                s1 = set1.get(k1);
+                s2 = set2.get(k2);
             } else {// if (val1>val2)
-                buffer[pos++] = set2.get(k2);
+                buffer[pos++] = s2;
                 ++k2;
                 if (k2 >= length2) {
                     set1.position(k1);
                     set1.get(buffer, pos, length1 - k1);
                     return pos + length1 - k1;
                 }
+                s2 = set2.get(k2);
             }
         }
         //return pos;
@@ -510,6 +520,49 @@ public final class BufferUtil {
         }
     }
 
+    protected static int unsignedOneSidedGallopingIntersect2by2(
+            final ShortBuffer smallSet, final int smallLength,
+            final ShortBuffer largeSet, final int largeLength,
+            final short[] buffer) {
+        if (0 == smallLength)
+            return 0;
+        int k1 = 0;
+        int k2 = 0;
+        int pos = 0;
+
+        short s1 = largeSet.get(k1);
+        short s2 = smallSet.get(k2);
+        while (true) {
+            if (toIntUnsigned(s1) < toIntUnsigned(s2)) {
+                k1 = advanceUntil(largeSet, k1, largeLength, s2);
+                if (k1 == largeLength)
+                    break;
+                s1 = largeSet.get(k1);
+            }
+            if (toIntUnsigned(s2) < toIntUnsigned(s1)) {
+                ++k2;
+                if (k2 == smallLength)
+                    break;
+                s2 = smallSet.get(k2);
+            } else {
+                // (set2.get(k2) == set1.get(k1))
+                buffer[pos++] = s2;
+                ++k2;
+                if (k2 == smallLength)
+                    break;
+                s2 = smallSet.get(k2);
+                k1 = advanceUntil(largeSet, k1, largeLength, s2);
+                if (k1 == largeLength)
+                    break;
+                s1 = largeSet.get(k1);
+            }
+
+        }
+        return pos;
+
+    }
+
+
     protected static int unsignedLocalIntersect2by2(final ShortBuffer set1,
             final int length1, final ShortBuffer set2, final int length2,
             final short[] buffer) {
@@ -518,38 +571,45 @@ public final class BufferUtil {
         int k1 = 0;
         int k2 = 0;
         int pos = 0;
+        short s1 = set1.get(k1);
+        short s2 = set2.get(k2);
 
         mainwhile: while (true) {
-            if (toIntUnsigned(set2.get(k2)) < toIntUnsigned(set1.get(k1))) {
+            if (toIntUnsigned(s2) < toIntUnsigned(s1)) {
                 do {
                     ++k2;
                     if (k2 == length2)
                         break mainwhile;
-                } while (toIntUnsigned(set2.get(k2)) < toIntUnsigned(set1
-                        .get(k1)));
+                    s2 = set2.get(k2);
+
+                } while (toIntUnsigned(s2) < toIntUnsigned(s1));
             }
-            if (toIntUnsigned(set1.get(k1)) < toIntUnsigned(set2.get(k2))) {
+            if (toIntUnsigned(s1) < toIntUnsigned(s2)) {
                 do {
                     ++k1;
                     if (k1 == length1)
                         break mainwhile;
-                } while (toIntUnsigned(set1.get(k1)) < toIntUnsigned(set2
-                        .get(k2)));
+                    s1 = set1.get(k1);
+
+                } while (toIntUnsigned(s1) < toIntUnsigned(s2));
             } else {
                 // (set2.get(k2) == set1.get(k1))
-                buffer[pos++] = set1.get(k1);
+                buffer[pos++] = s1;
                 ++k1;
                 if (k1 == length1)
                     break;
+                s1 = set1.get(k1);
                 ++k2;
                 if (k2 == length2)
                     break;
+                s2 = set2.get(k2);
+
             }
         }
         return pos;
     }
 
-    protected static int unsignedOneSidedGallopingIntersect2by2(
+    protected static int oldunsignedOneSidedGallopingIntersect2by2(
             final ShortBuffer smallSet, final int smallLength,
             final ShortBuffer largeSet, final int largeLength,
             final short[] buffer) {
@@ -585,7 +645,7 @@ public final class BufferUtil {
         return pos;
 
     }
-
+    
     protected static int unsignedUnion2by2(final ShortBuffer set1,
             final int length1, final ShortBuffer set2, final int length2,
             final short[] buffer) {
@@ -599,18 +659,22 @@ public final class BufferUtil {
             set2.get(buffer, 0, length2);
             return length2;
         }
+        short s1 = set1.get(k1);
+        short s2 = set2.get(k2);
         while (true) {
-            if (toIntUnsigned(set1.get(k1)) < toIntUnsigned(set2.get(k2))) {
-                buffer[pos++] = set1.get(k1);
+            int v1 = toIntUnsigned(s1);
+            int v2 = toIntUnsigned(s2);
+            if (v1 < v2) {
+                buffer[pos++] = s1;
                 ++k1;
                 if (k1 >= length1) {
                     set2.position(k2);
                     set2.get(buffer, pos, length2 - k2);
                     return pos + length2 - k2;
                 }
-            } else if (toIntUnsigned(set1.get(k1)) == toIntUnsigned(set2
-                    .get(k2))) {
-                buffer[pos++] = set1.get(k1);
+                s1 = set1.get(k1);
+            } else if (v1 == v2) {
+                buffer[pos++] = s1;
                 ++k1;
                 ++k2;
                 if (k1 >= length1) {
@@ -623,14 +687,17 @@ public final class BufferUtil {
                     set1.get(buffer, pos, length1 - k1);
                     return pos + length1 - k1;
                 }
+                s1 = set1.get(k1);
+                s2 = set2.get(k2);
             } else {// if (set1.get(k1)>set2.get(k2))
-                buffer[pos++] = set2.get(k2);
+                buffer[pos++] = s2;
                 ++k2;
                 if (k2 >= length2) {
                     set1.position(k1);
                     set1.get(buffer, pos, length1 - k1);
                     return pos + length1 - k1;
                 }
+                s2 = set2.get(k2);
             }
         }
         //return pos;
@@ -672,23 +739,25 @@ public final class BufferUtil {
         int k2 = 0;
         
         // could be more efficient with galloping
+        short s1 = set1.get(k1);
+        short s2 = set2.get(k2);
 
         mainwhile: while (true) {
-            if (toIntUnsigned(set2.get(k2)) < toIntUnsigned(set1.get(k1))) {
+            if (toIntUnsigned(s2) < toIntUnsigned(s1)) {
                 do {
                     ++k2;
                     if (k2 == length2)
                         break mainwhile;
-                } while (toIntUnsigned(set2.get(k2)) < toIntUnsigned(set1
-                        .get(k1)));
+                    s2 = set2.get(k2);
+                } while (toIntUnsigned(s2) < toIntUnsigned(s1));
             }
-            if (toIntUnsigned(set1.get(k1)) < toIntUnsigned(set2.get(k2))) {
+            if (toIntUnsigned(s1) < toIntUnsigned(s2)) {
                 do {
                     ++k1;
                     if (k1 == length1)
                         break mainwhile;
-                } while (toIntUnsigned(set1.get(k1)) < toIntUnsigned(set2
-                        .get(k2)));
+                    s1 = set1.get(k1);
+                } while (toIntUnsigned(s1) < toIntUnsigned(s2));
             } else {
                 return true;
             }
