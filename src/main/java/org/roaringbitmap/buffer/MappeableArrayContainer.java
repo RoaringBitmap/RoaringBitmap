@@ -242,9 +242,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         short[] sarray = answer.content.array();
         if (BufferUtil.isBackedBySimpleArray(this.content)) {
             short[] c = content.array();
-            for (int k = 0; k < cardinality; ++k)
-                if (!value2.contains(c[k]))
-                    sarray[pos++] = c[k];
+            for (int k = 0; k < cardinality; ++k) {
+                short v = c[k];
+                if (!value2.contains(v))
+                    sarray[pos++] = v;
+            }
         } else
             for (int k = 0; k < cardinality; ++k) {
                 short v = this.content.get(k);
@@ -442,9 +444,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
             throw new RuntimeException("Should not happen. Internal bug.");
         short[] c = this.content.array();
         int pos = 0;
-        for (int k = 0; k < cardinality; ++k)
-            if (!value2.contains(c[k]))
-                c[pos++] = c[k];
+        for (int k = 0; k < cardinality; ++k) {
+            short v = c[k];
+            if (!value2.contains(v))
+                c[pos++] = v;
+        }
         this.cardinality = pos;
         return this;
     }
@@ -714,8 +718,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
             if (BufferUtil.isBackedBySimpleArray(value2.content)) {
                 short[] sarray = value2.content.array();
                 for (int k = 0; k < value2.cardinality; ++k) {
-                    final int i = BufferUtil.toIntUnsigned(sarray[k]) >>> 6;
-                    bitArray[i] |= (1l << sarray[k]);
+                    short v = sarray[k];
+                    final int i = BufferUtil.toIntUnsigned(v) >>> 6;
+                    bitArray[i] |= (1l << v);
                 }
             } else
                 for (int k = 0; k < value2.cardinality; ++k) {
@@ -726,13 +731,15 @@ public final class MappeableArrayContainer extends MappeableContainer implements
             if (BufferUtil.isBackedBySimpleArray(this.content)) {
                 short[] sarray = this.content.array();
                 for (int k = 0; k < this.cardinality; ++k) {
-                    final int i = BufferUtil.toIntUnsigned(sarray[k]) >>> 6;
-                    bitArray[i] |= (1l << sarray[k]);
+                    short v = sarray[k];
+                    final int i = BufferUtil.toIntUnsigned(v) >>> 6;
+                    bitArray[i] |= (1l << v);
                 }
             } else
                 for (int k = 0; k < this.cardinality; ++k) {
-                    final int i = BufferUtil.toIntUnsigned(this.content.get(k)) >>> 6;
-                    bitArray[i] |= (1l << this.content.get(k));
+                    short v = this.content.get(k);
+                    final int i = BufferUtil.toIntUnsigned(v) >>> 6;
+                    bitArray[i] |= (1l << v);
                 }
             bc.cardinality = 0;
             int len = bc.bitmap.limit();
@@ -971,8 +978,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
             if (BufferUtil.isBackedBySimpleArray(value2.content)) {
                 short[] sarray = value2.content.array();
                 for (int k = 0; k < value2.cardinality; ++k) {
-                    final int i = BufferUtil.toIntUnsigned(sarray[k]) >>> 6;
-                    bitArray[i] ^= (1l << sarray[k]);
+                    short v = sarray[k];
+                    final int i = BufferUtil.toIntUnsigned(v) >>> 6;
+                    bitArray[i] ^= (1l << v);
                 }
             } else
                 for (int k = 0; k < value2.cardinality; ++k) {
@@ -983,8 +991,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
             if (BufferUtil.isBackedBySimpleArray(this.content)) {
                 short[] sarray = this.content.array();
                 for (int k = 0; k < this.cardinality; ++k) {
-                    final int i = BufferUtil.toIntUnsigned(sarray[k]) >>> 6;
-                    bitArray[i] ^= (1l << sarray[k]);
+                    short v = sarray[k];
+                    final int i = BufferUtil.toIntUnsigned(v) >>> 6;
+                    bitArray[i] ^= (1l << v);
                 }
             } else
                 for (int k = 0; k < this.cardinality; ++k) {

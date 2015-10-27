@@ -266,9 +266,11 @@ public final class MappeableBitmapContainer extends MappeableContainer
         short[] sarray = answer.content.array();
         if (BufferUtil.isBackedBySimpleArray(value2.content)) {
             short[] c = value2.content.array();
-            for (int k = 0; k < value2.getCardinality(); ++k)
-                if (this.contains(c[k]))
-                    sarray[answer.cardinality++] = c[k];
+            for (int k = 0; k < value2.getCardinality(); ++k) {
+                short v = c[k];
+                if (this.contains(v))
+                    sarray[answer.cardinality++] = v;
+            }
 
         } else
             for (int k = 0; k < value2.getCardinality(); ++k) {
@@ -346,18 +348,22 @@ public final class MappeableBitmapContainer extends MappeableContainer
         long[] bitArray = answer.bitmap.array();
         if (BufferUtil.isBackedBySimpleArray(value2.content) && BufferUtil.isBackedBySimpleArray(this.bitmap)) {
             short[] v2 = value2.content.array();
-            long[] ba = this.bitmap.array();
             for (int k = 0; k < value2.cardinality; ++k) {
-                final int i = BufferUtil.toIntUnsigned(v2[k]) >>> 6;
-                bitArray[i] &= (~(1l << v2[k]));
-                answer.cardinality -= (bitArray[i] ^ ba[i]) >>> v2[k];
+                short v = v2[k];
+                final int i = BufferUtil.toIntUnsigned(v) >>> 6;
+                long w = bitArray[i];
+                long aft = w & (~(1l << v));
+                bitArray[i] = aft;
+                answer.cardinality -= (w ^ aft) >>> v;
             }
         } else
             for (int k = 0; k < value2.cardinality; ++k) {
                 short v2 = value2.content.get(k);
                 final int i = BufferUtil.toIntUnsigned(v2) >>> 6;
-                bitArray[i] &= (~(1l << v2));
-                answer.cardinality -= (bitArray[i] ^ this.bitmap.get(i)) >>> v2;
+                long w = bitArray[i];
+                long aft = bitArray[i]  & (~(1l << v2));
+                bitArray[i] = aft;
+                answer.cardinality -= (w ^ aft) >>> v2;
             }
         if (answer.cardinality <= MappeableArrayContainer.DEFAULT_MAX_SIZE)
             return answer.toArrayContainer();
@@ -1173,9 +1179,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
             long[] ab = answer.bitmap.array();
             short[] v2 = value2.content.array();
             for (int k = 0; k < value2.cardinality; ++k) {
-                final int i = BufferUtil.toIntUnsigned(v2[k]) >>> 6;
+                short v = v2[k];
+                final int i = BufferUtil.toIntUnsigned(v) >>> 6;
                 long w = ab[i];
-                long aft = w | (1l << v2[k]);
+                long aft = w | (1l << v);
                 bitArray[i] = aft;
                 if (USE_BRANCHLESS) {
                     answer.cardinality += (w - aft) >>> 63;

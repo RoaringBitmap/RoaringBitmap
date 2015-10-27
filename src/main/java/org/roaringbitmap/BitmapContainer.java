@@ -183,9 +183,11 @@ public final class BitmapContainer extends Container implements Cloneable {
     @Override
     public ArrayContainer and(final ArrayContainer value2) {
         final ArrayContainer answer = new ArrayContainer(value2.content.length);
-        for (int k = 0; k < value2.getCardinality(); ++k)
-            if (this.contains(value2.content[k]))
-                answer.content[answer.cardinality++] = value2.content[k];
+        for (int k = 0; k < value2.getCardinality(); ++k) {
+            short v = value2.content[k];
+            if (this.contains(v))
+                answer.content[answer.cardinality++] = v;
+        }
         return answer;
     }
 
@@ -215,10 +217,12 @@ public final class BitmapContainer extends Container implements Cloneable {
     public Container andNot(final ArrayContainer value2) {
         final BitmapContainer answer = clone();
         for (int k = 0; k < value2.cardinality; ++k) {
-            final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
-            answer.bitmap[i] = answer.bitmap[i]
-                    & (~(1l << value2.content[k]));
-            answer.cardinality -= (answer.bitmap[i] ^ this.bitmap[i]) >>> value2.content[k];
+            short v = value2.content[k];
+            final int i = Util.toIntUnsigned(v) >>> 6;
+            long w = answer.bitmap[i];
+            long aft = w & (~(1l << v));
+            answer.bitmap[i] = aft;
+            answer.cardinality -= (w ^ aft) >>> v;
         }
         if (answer.cardinality <= ArrayContainer.DEFAULT_MAX_SIZE)
             return answer.toArrayContainer();
@@ -696,9 +700,10 @@ public final class BitmapContainer extends Container implements Cloneable {
     public BitmapContainer or(final ArrayContainer value2) {
         final BitmapContainer answer = clone();
         for (int k = 0; k < value2.cardinality; ++k) {
-            final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
+            short v = value2.content[k];
+            final int i = Util.toIntUnsigned(v) >>> 6;
             long w = answer.bitmap[i];
-            long aft = w | (1l << value2.content[k]);
+            long aft = w | (1l << v);
             answer.bitmap[i] = aft;
             if (USE_BRANCHLESS) {
                 answer.cardinality += (w - aft) >>> 63;
@@ -819,7 +824,7 @@ public final class BitmapContainer extends Container implements Cloneable {
         for (int k = 0; k < value2.getCardinality(); ++k) {
             short vc =  value2.content[k];
             final int index = Util.toIntUnsigned(vc) >>> 6;
-            final long mask = (1l << value2.content[k]);
+            final long mask = (1l << vc);
             final long val = answer.bitmap[index];
             // TODO: check whether a branchy version could be faster
             answer.cardinality += 1 - 2 * ((val & mask) >>> vc);
@@ -853,8 +858,9 @@ public final class BitmapContainer extends Container implements Cloneable {
     protected Container ilazyor(ArrayContainer value2) {
         this.cardinality = -1;// invalid
         for (int k = 0; k < value2.cardinality; ++k) {
-            final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
-            this.bitmap[i] |= (1l << value2.content[k]);
+            short v = value2.content[k];
+            final int i = Util.toIntUnsigned(v) >>> 6;
+            this.bitmap[i] |= (1l << v);
         }
         return this;
     }
@@ -871,8 +877,9 @@ public final class BitmapContainer extends Container implements Cloneable {
         BitmapContainer answer = this.clone();
         answer.cardinality = -1;// invalid
         for (int k = 0; k < value2.cardinality; ++k) {
-            final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
-            answer.bitmap[i] |= (1l << value2.content[k]);
+            short v = value2.content[k];
+            final int i = Util.toIntUnsigned(v) >>> 6;
+            answer.bitmap[i] |= (1l << v);
         }
         return answer;
     }
@@ -975,19 +982,22 @@ public final class BitmapContainer extends Container implements Cloneable {
     @Override
     public Container flip(short i) {
         final int x = Util.toIntUnsigned(i);
+        int index = x / 64;
+        long bef = bitmap[index];
+        long mask = 1l << x;
         if (cardinality == ArrayContainer.DEFAULT_MAX_SIZE + 1) {// this is
             // the
             // uncommon
             // path
-            if ((bitmap[x / 64] & (1l << x)) != 0) {
+            if ((bef & mask) != 0) {
                 --cardinality;
-                bitmap[x / 64] &= ~(1l << x);
+                bitmap[index] &= ~mask;
                 return this.toArrayContainer();
             }
         }
         // TODO: check whether a branchy version could be faster
-        cardinality += 1 - 2 * ((bitmap[x / 64] & (1l << x)) >>> x);
-        bitmap[x / 64] ^= (1l << x);
+        cardinality += 1 - 2 * ((bef & mask) >>> x);
+        bitmap[index] ^= mask;
         return this;
     }
 

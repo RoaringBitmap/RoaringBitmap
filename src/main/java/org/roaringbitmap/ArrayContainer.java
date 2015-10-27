@@ -140,9 +140,11 @@ public final class ArrayContainer extends Container implements Cloneable {
     public ArrayContainer andNot(BitmapContainer value2) {
         final ArrayContainer answer = new ArrayContainer(content.length);
         int pos = 0;
-        for (int k = 0; k < cardinality; ++k)
-            if (!value2.contains(this.content[k]))
-                answer.content[pos++] = this.content[k];
+        for (int k = 0; k < cardinality; ++k) {
+            short val = this.content[k];
+            if (!value2.contains(val))
+                answer.content[pos++] = val;
+        }
         answer.cardinality = pos;
         return answer;
     }
@@ -242,9 +244,11 @@ public final class ArrayContainer extends Container implements Cloneable {
     @Override
     public Container iand(BitmapContainer value2) {
         int pos = 0;
-        for (int k = 0; k < cardinality; ++k)
-            if (value2.contains(this.content[k]))
-                this.content[pos++] = this.content[k];
+        for (int k = 0; k < cardinality; ++k) {
+            short v = this.content[k];
+            if (value2.contains(v))
+                this.content[pos++] = v;
+        }
         cardinality = pos;
         return this;
     }
@@ -260,9 +264,11 @@ public final class ArrayContainer extends Container implements Cloneable {
     @Override
     public ArrayContainer iandNot(BitmapContainer value2) {
         int pos = 0;
-        for (int k = 0; k < cardinality; ++k)
-            if (!value2.contains(this.content[k]))
-                this.content[pos++] = this.content[k];
+        for (int k = 0; k < cardinality; ++k) {
+            short v = this.content[k];
+            if (!value2.contains(v))
+                this.content[pos++] = v;
+        }
         this.cardinality = pos;
         return this;
     }
@@ -484,12 +490,14 @@ public final class ArrayContainer extends Container implements Cloneable {
         if (totalCardinality > DEFAULT_MAX_SIZE) {// it could be a bitmap!
             BitmapContainer bc = new BitmapContainer();
             for (int k = 0; k < value2.cardinality; ++k) {
-                final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
-                bc.bitmap[i] |= (1l << value2.content[k]);
+                short v = value2.content[k];
+                final int i = Util.toIntUnsigned(v) >>> 6;
+                bc.bitmap[i] |= (1l << v);
             }
             for (int k = 0; k < this.cardinality; ++k) {
-                final int i = Util.toIntUnsigned(this.content[k]) >>> 6;
-                bc.bitmap[i] |= (1l << this.content[k]);
+                short v = this.content[k];
+                final int i = Util.toIntUnsigned(v) >>> 6;
+                bc.bitmap[i] |= (1l << v);
             }
             bc.cardinality = 0;
             for (long k : bc.bitmap) {
@@ -652,8 +660,9 @@ public final class ArrayContainer extends Container implements Cloneable {
     protected void writeArray(DataOutput out) throws IOException {
         // little endian
         for (int k = 0; k < this.cardinality; ++k) {
-            out.write((this.content[k]) & 0xFF);
-            out.write((this.content[k] >>> 8) & 0xFF);
+            short v = this.content[k];
+            out.write(v & 0xFF);
+            out.write((v >>> 8) & 0xFF);
         }
     }
 
@@ -669,12 +678,14 @@ public final class ArrayContainer extends Container implements Cloneable {
         if (totalCardinality > DEFAULT_MAX_SIZE) {// it could be a bitmap!
             BitmapContainer bc = new BitmapContainer();
             for (int k = 0; k < value2.cardinality; ++k) {
-                final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
-                bc.bitmap[i] ^= (1l << value2.content[k]);
+                short v = value2.content[k];
+                final int i = Util.toIntUnsigned(v) >>> 6;
+                bc.bitmap[i] ^= (1l << v);
             }
             for (int k = 0; k < this.cardinality; ++k) {
-                final int i = Util.toIntUnsigned(this.content[k]) >>> 6;
-                bc.bitmap[i] ^= (1l << this.content[k]);
+                short v = this.content[k];
+                final int i = Util.toIntUnsigned(v) >>> 6;
+                bc.bitmap[i] ^= (1l << v);
             }
             bc.cardinality = 0;
             for (long k : bc.bitmap) {
