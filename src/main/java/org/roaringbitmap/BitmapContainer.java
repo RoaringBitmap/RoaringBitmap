@@ -183,7 +183,8 @@ public final class BitmapContainer extends Container implements Cloneable {
     @Override
     public ArrayContainer and(final ArrayContainer value2) {
         final ArrayContainer answer = new ArrayContainer(value2.content.length);
-        for (int k = 0; k < value2.getCardinality(); ++k) {
+        int c = value2.cardinality;
+        for (int k = 0; k < c; ++k) {
             short v = value2.content[k];
             if (this.contains(v))
                 answer.content[answer.cardinality++] = v;
@@ -216,7 +217,8 @@ public final class BitmapContainer extends Container implements Cloneable {
     @Override
     public Container andNot(final ArrayContainer value2) {
         final BitmapContainer answer = clone();
-        for (int k = 0; k < value2.cardinality; ++k) {
+        int c = value2.cardinality;
+        for (int k = 0; k < c; ++k) {
             short v = value2.content[k];
             final int i = Util.toIntUnsigned(v) >>> 6;
             long w = answer.bitmap[i];
@@ -451,7 +453,8 @@ public final class BitmapContainer extends Container implements Cloneable {
 
     @Override
     public BitmapContainer ior(final ArrayContainer value2) {
-        for (int k = 0; k < value2.cardinality; ++k) {
+        int c = value2.cardinality;
+        for (int k = 0; k < c; ++k) {
             final int i = Util.toIntUnsigned(value2.content[k]) >>> 6;
 
             long bef = this.bitmap[i];
@@ -503,7 +506,8 @@ public final class BitmapContainer extends Container implements Cloneable {
 
     @Override
     public Container ixor(final ArrayContainer value2) {
-        for (int k = 0; k < value2.getCardinality(); ++k) {
+        int c = value2.cardinality;
+        for (int k = 0; k < c; ++k) {
             short vc = value2.content[k];
             long mask = 1l << vc;
             final int index = Util.toIntUnsigned(vc) >>> 6;
@@ -699,7 +703,8 @@ public final class BitmapContainer extends Container implements Cloneable {
     @Override
     public BitmapContainer or(final ArrayContainer value2) {
         final BitmapContainer answer = clone();
-        for (int k = 0; k < value2.cardinality; ++k) {
+        int c = value2.cardinality;
+        for (int k = 0; k < c ; ++k) {
             short v = value2.content[k];
             final int i = Util.toIntUnsigned(v) >>> 6;
             long w = answer.bitmap[i];
@@ -821,7 +826,8 @@ public final class BitmapContainer extends Container implements Cloneable {
     @Override
     public Container xor(final ArrayContainer value2) {
         final BitmapContainer answer = clone();
-        for (int k = 0; k < value2.getCardinality(); ++k) {
+        int c = value2.cardinality;
+        for (int k = 0; k < c; ++k) {
             short vc =  value2.content[k];
             final int index = Util.toIntUnsigned(vc) >>> 6;
             final long mask = (1l << vc);
@@ -857,7 +863,8 @@ public final class BitmapContainer extends Container implements Cloneable {
 
     protected Container ilazyor(ArrayContainer value2) {
         this.cardinality = -1;// invalid
-        for (int k = 0; k < value2.cardinality; ++k) {
+        int c = value2.cardinality;
+        for (int k = 0; k < c; ++k) {
             short v = value2.content[k];
             final int i = Util.toIntUnsigned(v) >>> 6;
             this.bitmap[i] |= (1l << v);
@@ -876,7 +883,8 @@ public final class BitmapContainer extends Container implements Cloneable {
     protected Container lazyor(ArrayContainer value2) {
         BitmapContainer answer = this.clone();
         answer.cardinality = -1;// invalid
-        for (int k = 0; k < value2.cardinality; ++k) {
+        int c = value2.cardinality;
+        for (int k = 0; k < c; ++k) {
             short v = value2.content[k];
             final int i = Util.toIntUnsigned(v) >>> 6;
             answer.bitmap[i] |= (1l << v);
@@ -1154,7 +1162,8 @@ public final class BitmapContainer extends Container implements Cloneable {
     
     @Override
     public boolean intersects(ArrayContainer value2) {
-        for (int k = 0; k < value2.getCardinality(); ++k)
+        int c = value2.cardinality;
+        for (int k = 0; k < c; ++k)
             if (this.contains(value2.content[k]))
                 return true;
         return false;
