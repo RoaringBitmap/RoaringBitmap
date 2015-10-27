@@ -1,5 +1,6 @@
 upcoming
  - Fast numberOfRuns for array containers.
+ - Diminished array and buffer accesses in some operations.
 
 version 0.5.9
  - Faster cardinality maintenance of unions between bitmap containers and array containers.
