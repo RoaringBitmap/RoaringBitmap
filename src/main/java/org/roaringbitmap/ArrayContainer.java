@@ -71,9 +71,9 @@ public final class ArrayContainer extends Container implements Cloneable {
         if(cardinality == 0)
             return 0; // should never happen
         int numRuns = 1;
-        short oldv = content[0];
+        int oldv = Util.toIntUnsigned(content[0]);
         for (int i = 1; i < cardinality ; i++) {
-            short newv = content[i];
+            int newv = Util.toIntUnsigned(content[i]);
             if(oldv + 1 != newv) ++numRuns;
             oldv = newv;
         }

@@ -103,19 +103,19 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         if(BufferUtil.isBackedBySimpleArray(content)) {
             short[] c = content.array();
             int numRuns = 1;
-            short oldv = c[0];
+            int oldv = BufferUtil.toIntUnsigned(c[0]);
             for (int i = 1; i < cardinality; i++) {
-                short newv = c[i];
+                int newv = BufferUtil.toIntUnsigned(c[i]);
                 if(oldv + 1 != newv) ++numRuns;
                 oldv = newv;
             }
             return numRuns;
         } else {
             int numRuns = 0;
-            int previous = content.get(0);
+            int previous = BufferUtil.toIntUnsigned(content.get(0));
             // we do not proceed like above for fear that calling "get" twice per loop would be too much 
             for (int i = 1; i < cardinality; i++) {
-                int val = content.get(i);
+                int val = BufferUtil.toIntUnsigned(content.get(i));
                 if (val != previous+1)
                     ++numRuns;
                 previous = val;
