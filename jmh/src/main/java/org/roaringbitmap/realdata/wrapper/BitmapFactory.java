@@ -14,6 +14,8 @@ import java.io.FileOutputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class BitmapFactory {
 
@@ -23,6 +25,8 @@ public final class BitmapFactory {
    public static final String EWAH32 = "ewah32";
    public static final String ROARING = "roaring";
    public static final String ROARING_WITH_RUN = "roaring_with_run";
+
+   private static final List<File> TEMP_FILES = new ArrayList<File>();
 
    private BitmapFactory() {
    }
@@ -74,7 +78,7 @@ public final class BitmapFactory {
       return new RoaringBitmapWrapper(roaring);
    }
 
-   public static Bitmap newIImmutableConciseBitmap(int[] data) {
+   public static Bitmap newImmutableConciseBitmap(int[] data) {
       return newImmutableConciseBitmap(data, false);
    }
 
@@ -117,6 +121,7 @@ public final class BitmapFactory {
    private static ByteBuffer toByteBuffer(Bitmap bitmap) throws Exception {
       File file = File.createTempFile("bitmap", "bin");
       file.deleteOnExit();
+      TEMP_FILES.add(file);
       FileOutputStream fos = new FileOutputStream(file);
       DataOutputStream dos = new DataOutputStream(fos);
       bitmap.serialize(dos);
@@ -126,6 +131,12 @@ public final class BitmapFactory {
       ByteBuffer bb = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, size);
       memoryMappedFile.close();
       return bb;
+   }
+
+   public static void cleanup() {
+      for (File tempFile : TEMP_FILES) {
+         tempFile.delete();
+      }
    }
 
 }

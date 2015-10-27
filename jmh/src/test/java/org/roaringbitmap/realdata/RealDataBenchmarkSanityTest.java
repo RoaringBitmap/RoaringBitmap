@@ -3,6 +3,7 @@ package org.roaringbitmap.realdata;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Sets;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -67,6 +68,13 @@ public abstract class RealDataBenchmarkSanityTest {
         bs.type = type;
         bs.immutable = immutable;
         bs.setup();
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        if(bs!=null) {
+            bs.tearDown();
+        }
     }
 
 }
