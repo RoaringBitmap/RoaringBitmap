@@ -147,9 +147,10 @@ public final class BufferUtil {
         // invariant: array[lower]<min && array[upper]>min
         while (lower + 1 != upper) {
             int mid = (lower + upper) / 2;
-            if (array.get(mid) == min) {
+            short arraymid = array.get(mid);
+            if (arraymid == min) {
                 return mid;
-            } else if (toIntUnsigned(array.get(mid)) < toIntUnsigned(min))
+            } else if (toIntUnsigned(arraymid) < toIntUnsigned(min))
                 lower = mid;
             else
                 upper = mid;
