@@ -111,7 +111,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
                 int localRunStart = Long.numberOfTrailingZeros(curWord);
                 int runStart = localRunStart   + 64*longCtr;
                 // stuff 1s into number's LSBs
-                long curWordWith1s = curWord | ((1L << runStart) - 1);
+                long curWordWith1s = curWord | (curWord - 1);
 
                 // find the next 0, potentially in a later word
                 int runEnd = 0;
@@ -120,7 +120,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
                 if (curWordWith1s == -1L) {
                     // a final unterminated run of 1s (32 of them)
-                    runEnd = Long.numberOfTrailingZeros(~curWordWith1s) + longCtr*64;
+                    runEnd =  64 + longCtr*64;
                     //setValue(runCount, (short) runStart);
                     vl[2 * runCount ] = (short) runStart;
                     //setLength(runCount, (short) (runEnd-runStart-1));
@@ -135,8 +135,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
                 vl[2 * runCount + 1 ] = (short) (runEnd-runStart-1);
                 runCount++;
                 // now, zero out everything right of runEnd.
-
-                curWord = (curWordWith1s >>> localRunEnd) << localRunEnd;
+                curWord = curWordWith1s & (curWordWith1s + 1);
                 // We've lathered and rinsed, so repeat...
             }
         } else {
