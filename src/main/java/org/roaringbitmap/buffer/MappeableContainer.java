@@ -728,16 +728,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
       *         
       *   @return the new container
       */
-
-     public MappeableContainer runOptimize() {
-         int numRuns = numberOfRuns();
-         int sizeAsRunContainer = MappeableRunContainer.getArraySizeInBytes(numRuns);
-         if (getArraySizeInBytes() > sizeAsRunContainer) {
-             return new MappeableRunContainer( getShortIterator(),  numRuns); // this could be maybe faster if initial container is a bitmap
-         } else { 
-             return this;
-         }
-     }
+     public abstract MappeableContainer runOptimize();
      
      protected abstract boolean isArrayBacked();
 

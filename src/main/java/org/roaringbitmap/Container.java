@@ -749,20 +749,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
       *   Overridden by BitmapContainer with a more efficient approach.
       *   @return the new container
       */
-
-     
-     public Container runOptimize() {
-         // TODO:  consider borrowing the BitmapContainer idea of early abandonment 
-         // with ArrayContainers, when the number of runs in the arrayContainer
-         // passes some threshold based on the cardinality.
-         int numRuns = numberOfRuns();
-         int sizeAsRunContainer = RunContainer.serializedSizeInBytes(numRuns);
-         if (getArraySizeInBytes() > sizeAsRunContainer) {
-             return new RunContainer(getShortIterator(),  numRuns); // this could be maybe faster if initial container is a bitmap
-         } else { 
-             return this;
-         }
-     }
+     public abstract Container runOptimize();
 
      abstract int numberOfRuns(); // exact
 }

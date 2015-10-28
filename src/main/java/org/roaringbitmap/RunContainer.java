@@ -71,6 +71,7 @@ public final class RunContainer extends Container implements Cloneable {
 
 
     // lower-level specialized implementations might be faster
+    // unused method, can be used as part of unit testing
     protected RunContainer( ShortIterator sIt, int nbrRuns) {
         this.nbrruns = nbrRuns;
         valueslength = new short[ 2*nbrRuns];
@@ -81,6 +82,31 @@ public final class RunContainer extends Container implements Cloneable {
         int runCount=0;
         while (sIt.hasNext()) {
             int curVal = Util.toIntUnsigned(sIt.next());
+            if (curVal == prevVal+1)
+                ++runLen;
+            else {
+                if (runCount > 0)
+                    setLength(runCount-1, (short) runLen); 
+                setValue(runCount, (short) curVal);
+                runLen=0;
+                ++runCount;
+            }
+            prevVal = curVal;
+        }
+        setLength(runCount-1, (short) runLen);
+    }
+
+    protected RunContainer( ArrayContainer arr, int nbrRuns) {
+        this.nbrruns = nbrRuns;
+        valueslength = new short[ 2*nbrRuns];
+        if (nbrRuns == 0) return;
+
+        int prevVal = -2; 
+        int runLen=0;
+        int runCount=0;
+        
+        for (int i = 0; i < arr.cardinality; i++) {
+            int curVal = Util.toIntUnsigned(arr.content[i]);
             if (curVal == prevVal+1)
                 ++runLen;
             else {

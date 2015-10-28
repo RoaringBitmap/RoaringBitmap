@@ -60,7 +60,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
 
 
-
+    // unused method, can be used as part of unit testing
     protected MappeableRunContainer( ShortIterator sIt, int nbrRuns) {
         this.nbrruns = nbrRuns;
         valueslength = ShortBuffer.allocate(2*nbrRuns);
@@ -83,6 +83,54 @@ public final class MappeableRunContainer extends MappeableContainer implements C
             prevVal = curVal;
         }
         setLength(runCount-1, (short) runLen);
+    }
+
+    protected MappeableRunContainer( MappeableArrayContainer arr, int nbrRuns) {
+        this.nbrruns = nbrRuns;
+        valueslength = ShortBuffer.allocate(2*nbrRuns);
+        short[] vl = valueslength.array();
+        if (nbrRuns == 0) return;
+
+        int prevVal = -2; 
+        int runLen=0;
+        int runCount=0;
+        if (BufferUtil.isBackedBySimpleArray(arr.content)) {
+            short[] a = arr.content.array();
+            for (int i = 0; i < arr.cardinality; i++) {
+                int curVal = BufferUtil.toIntUnsigned(a[i]);
+                if (curVal == prevVal + 1)
+                    ++runLen;
+                else {
+                    if (runCount > 0)
+                        vl[2 * (runCount - 1) + 1]  = (short) runLen;
+                        //setLength(runCount - 1, (short) runLen);
+                    vl[2 * runCount ] = (short) curVal;
+                    //setValue(runCount, (short) curVal);
+                    runLen = 0;
+                    ++runCount;
+                }
+                prevVal = curVal;
+            }
+
+        } else {
+            for (int i = 0; i < arr.cardinality; i++) {
+                int curVal = BufferUtil.toIntUnsigned(arr.content.get(i));
+                if (curVal == prevVal + 1)
+                    ++runLen;
+                else {
+                    if (runCount > 0)
+                        vl[2 * (runCount - 1) + 1]  = (short) runLen;
+                        //setLength(runCount - 1, (short) runLen);
+                    vl[2 * runCount ] = (short) curVal;
+                    //setValue(runCount, (short) curVal);
+                    runLen = 0;
+                    ++runCount;
+                }
+                prevVal = curVal;
+            }
+        }
+        //setLength(runCount-1, (short) runLen);
+        vl[2 * (runCount - 1) + 1]  = (short) runLen;
     }
 
     // convert a bitmap container to a run container somewhat efficiently.
@@ -155,7 +203,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
                 int localRunStart = Long.numberOfTrailingZeros(curWord);
                 int runStart = localRunStart   + 64*longCtr;
                 // stuff 1s into number's LSBs
-                long curWordWith1s = curWord | ((1L << runStart) - 1);
+                long curWordWith1s = curWord | (curWord - 1);
 
                 // find the next 0, potentially in a later word
                 int runEnd = 0;
@@ -164,7 +212,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
                 if (curWordWith1s == -1L) {
                     // a final unterminated run of 1s (32 of them)
-                    runEnd = Long.numberOfTrailingZeros(~curWordWith1s) + longCtr*64;
+                    runEnd = 64 + longCtr*64;
                     //setValue(runCount, (short) runStart);
                     vl[2 * runCount ] = (short) runStart;
                     //setLength(runCount, (short) (runEnd-runStart-1));
@@ -180,7 +228,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
                 runCount++;
                 // now, zero out everything right of runEnd.
 
-                curWord = (curWordWith1s >>> localRunEnd) << localRunEnd;
+                curWord = curWordWith1s & (curWordWith1s + 1) ;
                 // We've lathered and rinsed, so repeat...
             }
 

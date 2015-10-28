@@ -960,6 +960,24 @@ public final class ArrayContainer extends Container implements Cloneable {
         return x.intersects(this);
     }
 
+    @Override
+    public Container runOptimize() {
+        // TODO: consider borrowing the BitmapContainer idea of early
+        // abandonment
+        // with ArrayContainers, when the number of runs in the arrayContainer
+        // passes some threshold based on the cardinality.
+        int numRuns = numberOfRuns();
+        int sizeAsRunContainer = RunContainer.serializedSizeInBytes(numRuns);
+        if (getArraySizeInBytes() > sizeAsRunContainer) {
+            return new RunContainer(this, numRuns); // this could be maybe
+                                                    // faster if initial
+                                                    // container is a bitmap
+        } else {
+            return this;
+        }
+    }
+   
+
 }
 
 

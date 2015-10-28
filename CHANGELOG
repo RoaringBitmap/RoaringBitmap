@@ -1,5 +1,6 @@
 upcoming
  - More efficient conversion from bitmap containers to run containers.
+ - More efficient conversion from array containers to run containers.
 
 version 0.5.10
  - Fast numberOfRuns for array containers.
