@@ -476,8 +476,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         if (newCapacity > MappeableArrayContainer.DEFAULT_MAX_SIZE && !allowIllegalSize )
             newCapacity = MappeableArrayContainer.DEFAULT_MAX_SIZE;
         // if we are within 1/16th of the max., go to max right away to avoid further reallocations
-        if(MappeableArrayContainer.DEFAULT_MAX_SIZE  - newCapacity 
-                < MappeableArrayContainer.DEFAULT_MAX_SIZE / 16)
+        if(newCapacity < MappeableArrayContainer.DEFAULT_MAX_SIZE  -  MappeableArrayContainer.DEFAULT_MAX_SIZE / 16)
             newCapacity = MappeableArrayContainer.DEFAULT_MAX_SIZE;
         final ShortBuffer newContent = ShortBuffer.allocate(newCapacity);
         this.content.rewind();
@@ -493,6 +492,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
                         : len * 5 / 4;
         if(newCapacity < min) newCapacity = min;
         if (newCapacity > MappeableArrayContainer.DEFAULT_MAX_SIZE)
+            newCapacity = MappeableArrayContainer.DEFAULT_MAX_SIZE;
+        if(newCapacity < MappeableArrayContainer.DEFAULT_MAX_SIZE  -  MappeableArrayContainer.DEFAULT_MAX_SIZE / 16)
             newCapacity = MappeableArrayContainer.DEFAULT_MAX_SIZE;
         final ShortBuffer newContent = ShortBuffer.allocate(newCapacity);
         this.content.rewind();
