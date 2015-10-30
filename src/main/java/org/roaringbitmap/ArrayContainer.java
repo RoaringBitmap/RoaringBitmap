@@ -282,9 +282,13 @@ public final class ArrayContainer extends Container implements Cloneable {
     // the illegal container does not return it.
     private void increaseCapacity(boolean allowIllegalSize) {
         int newCapacity = (this.content.length == 0) ? DEFAULT_INIT_SIZE : this.content.length < 64 ? this.content.length * 2
-                : this.content.length < 1024 ? this.content.length * 3 / 2
+                : this.content.length < 1067 ? this.content.length * 3 / 2
                 : this.content.length * 5 / 4;
+        // never allocate more than we will ever need
         if (newCapacity > ArrayContainer.DEFAULT_MAX_SIZE  && ! allowIllegalSize)
+            newCapacity = ArrayContainer.DEFAULT_MAX_SIZE;
+        // if we are within 1/16th of the max, go to max 
+        if(ArrayContainer.DEFAULT_MAX_SIZE - newCapacity < ArrayContainer.DEFAULT_MAX_SIZE/16)
             newCapacity = ArrayContainer.DEFAULT_MAX_SIZE;
         this.content = Arrays.copyOf(this.content, newCapacity);
     }
@@ -294,7 +298,11 @@ public final class ArrayContainer extends Container implements Cloneable {
                 : this.content.length < 1024 ? this.content.length * 3 / 2
                 : this.content.length * 5 / 4;
         if(newCapacity < min) newCapacity = min;
+        // never allocate more than we will ever need
         if (newCapacity > ArrayContainer.DEFAULT_MAX_SIZE)
+            newCapacity = ArrayContainer.DEFAULT_MAX_SIZE;
+        // if we are within 1/16th of the max, go to max 
+        if(ArrayContainer.DEFAULT_MAX_SIZE - newCapacity < ArrayContainer.DEFAULT_MAX_SIZE/16)
             newCapacity = ArrayContainer.DEFAULT_MAX_SIZE;
         this.content = Arrays.copyOf(this.content, newCapacity);
     }

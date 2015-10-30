@@ -470,9 +470,14 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     private void increaseCapacity(boolean allowIllegalSize) {
         int len = this.content.limit();
         int newCapacity = (len == 0) ? DEFAULT_INIT_SIZE : len < 64 ? len * 2
-                : this.content.limit() < 1024 ? len * 3 / 2
+                : this.content.limit() < 1067 ? len * 3 / 2
                         : len * 5 / 4;
+        // do not allocate more than we will ever need
         if (newCapacity > MappeableArrayContainer.DEFAULT_MAX_SIZE && !allowIllegalSize )
+            newCapacity = MappeableArrayContainer.DEFAULT_MAX_SIZE;
+        // if we are within 1/16th of the max., go to max right away to avoid further reallocations
+        if(MappeableArrayContainer.DEFAULT_MAX_SIZE  - newCapacity 
+                < MappeableArrayContainer.DEFAULT_MAX_SIZE / 16)
             newCapacity = MappeableArrayContainer.DEFAULT_MAX_SIZE;
         final ShortBuffer newContent = ShortBuffer.allocate(newCapacity);
         this.content.rewind();
