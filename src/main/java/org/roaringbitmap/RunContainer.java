@@ -467,6 +467,7 @@ public final class RunContainer extends Container implements Cloneable {
         int card = this.getCardinality();
         if (card <=  ArrayContainer.DEFAULT_MAX_SIZE) {
             // result can only be an array (assuming that we never make a RunContainer)
+            if(card > x.cardinality) card = x.cardinality;
             ArrayContainer answer = new ArrayContainer(card);
             answer.cardinality=0;
             for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {

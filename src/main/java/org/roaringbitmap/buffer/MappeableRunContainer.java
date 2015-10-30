@@ -548,6 +548,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         int card = this.getCardinality();
         if (card <=  MappeableArrayContainer.DEFAULT_MAX_SIZE) {
             // result can only be an array (assuming that we never make a RunContainer)
+            if(card > x.cardinality) card = x.cardinality;
             MappeableArrayContainer answer = new MappeableArrayContainer(card);
             answer.cardinality=0;
             for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
