@@ -38,6 +38,8 @@ public class CompressionResults {
     System.out.println("Bits used per value = "+F.format(r.getSizeInBytes()*8.0/r.getCardinality()));
     r.runOptimize();
     System.out.println("Bits used per value after run optimize = "+F.format(r.getSizeInBytes()*8.0/r.getCardinality()));
+    System.out.println("Bits used per gap after run optimize = "+F.format(r.getSizeInBytes()*8.0/howmany));
+
     System.out.println("An uncompressed bitset might use "+F.format(universe_size*1.0/r.getCardinality())+" bits per value set");
     System.out.println();
   }
