@@ -14,7 +14,7 @@ import java.util.Collection;
 import static org.roaringbitmap.RealDataset.*;
 
 @RunWith(Parameterized.class)
-public class RealDataMemoryBenchmarkTest {
+public class RealDataMemoryBenchmark {
 
     @Parameters(name = "{0}")
     public static Collection<Object[]> params() {
