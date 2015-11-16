@@ -671,7 +671,8 @@ public final class RunContainer extends Container implements Cloneable {
         // 0 run vs start with a 1 run.  If you both start and end with 0s,
         // you will require room for expansion.
         
-        if (valueslength.length <= 2*nbrruns)  {
+        // the +1 below is needed in case the valueslength.length is odd
+        if (valueslength.length <= 2*nbrruns+1)  {
             // no room for expansion
             // analyze whether this is a case that will require expansion (that we cannot do) 
             // this is a bit costly now (4 "contains" checks)
