@@ -1,4 +1,5 @@
-upcoming
+version 0.5.11
+ - Fixing regression introduced by version 0.5.7 regarding in-place flips (issue #50)
  - More efficient conversion from bitmap containers to run containers.
  - More efficient conversion from array containers to run containers.
 
