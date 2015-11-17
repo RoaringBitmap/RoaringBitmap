@@ -16,6 +16,7 @@ be hundreds of times faster and they often offer significantly better compressio
 They can even be faster than uncompressed bitmaps.
 
 This library is used by
+* Apache Spark (http://spark.apache.org/),
 * Apache Kylin (http://kylin.io) and
 * Druid.io (http://druid.io/).
 
