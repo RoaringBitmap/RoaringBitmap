@@ -2074,5 +2074,77 @@ public class TestRoaringBitmap {
      }
      assertEquals(182, bitmap.getCardinality());
  }
+ 
+ @Test
+ public void andCounttest3() {
+     //This is based on andtest3
+     final int[] arrayand = new int[11256];
+     int pos = 0;
+     final MutableRoaringBitmap rr = new MutableRoaringBitmap();
+     for (int k = 4000; k < 4256; ++k)
+         rr.add(k);
+     for (int k = 65536; k < 65536 + 4000; ++k)
+         rr.add(k);
+     for (int k = 3 * 65536; k < 3 * 65536 + 1000; ++k)
+         rr.add(k);
+     for (int k = 3 * 65536 + 1000; k < 3 * 65536 + 7000; ++k)
+         rr.add(k);
+     for (int k = 3 * 65536 + 7000; k < 3 * 65536 + 9000; ++k)
+         rr.add(k);
+     for (int k = 4 * 65536; k < 4 * 65536 + 7000; ++k)
+         rr.add(k);
+     for (int k = 6 * 65536; k < 6 * 65536 + 10000; ++k)
+         rr.add(k);
+     for (int k = 8 * 65536; k < 8 * 65536 + 1000; ++k)
+         rr.add(k);
+     for (int k = 9 * 65536; k < 9 * 65536 + 30000; ++k)
+         rr.add(k);
+     final MutableRoaringBitmap rr2 = new MutableRoaringBitmap();
+     for (int k = 4000; k < 4256; ++k) {
+         rr2.add(k);
+         arrayand[pos++] = k;
+     }
+     for (int k = 65536; k < 65536 + 4000; ++k) {
+         rr2.add(k);
+         arrayand[pos++] = k;
+     }
+     for (int k = 3 * 65536 + 1000; k < 3 * 65536 + 7000; ++k) {
+         rr2.add(k);
+         arrayand[pos++] = k;
+     }
+     for (int k = 6 * 65536; k < 6 * 65536 + 1000; ++k) {
+         rr2.add(k);
+         arrayand[pos++] = k;
+     }
+     for (int k = 7 * 65536; k < 7 * 65536 + 1000; ++k) {
+         rr2.add(k);
+     }
+     for (int k = 10 * 65536; k < 10 * 65536 + 5000; ++k) {
+         rr2.add(k);
+     }
+
+     final ImmutableRoaringBitmap rrand = ImmutableRoaringBitmap.and(rr, rr2);
+     final int rrandCount = ImmutableRoaringBitmap.andCardinality(rr, rr2);
+
+     Assert.assertEquals(rrand.getCardinality(), rrandCount);
+ }
+
+ @Test
+ public void andcounttest() {
+     //This is based on andtest
+     final MutableRoaringBitmap rr = new MutableRoaringBitmap();
+     for (int k = 0; k < 4000; ++k) {
+         rr.add(k);
+     }
+     rr.add(100000);
+     rr.add(110000);
+     final MutableRoaringBitmap rr2 = new MutableRoaringBitmap();
+     rr2.add(13);
+     final MutableRoaringBitmap rrand = ImmutableRoaringBitmap.and(rr, rr2);
+     assertEquals(rrand.getCardinality(), ImmutableRoaringBitmap.andCardinality(rr, rr2));
+     assertEquals(rrand.getCardinality(), ImmutableRoaringBitmap.andCardinality(rr2, rr));
+     rr.and(rr2);
+     assertEquals(rrand.getCardinality(), ImmutableRoaringBitmap.andCardinality(rr2, rr));
+ }
 
 }

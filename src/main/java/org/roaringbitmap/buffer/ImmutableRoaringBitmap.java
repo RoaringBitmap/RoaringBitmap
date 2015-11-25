@@ -5,8 +5,10 @@
 
 package org.roaringbitmap.buffer;
 
+import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.ImmutableBitmapDataProvider;
 import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.ShortIterator;
 import org.roaringbitmap.Util;
 
@@ -82,6 +84,45 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
                 if (c.getCardinality() > 0) {
                     answer.getMappeableRoaringArray().append(s1, c);
                 }
+                ++pos1;
+                ++pos2;
+            } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
+                pos1 = x1.highLowContainer.advanceUntil(s2,pos1);
+            } else { // s1 > s2
+                pos2 = x2.highLowContainer.advanceUntil(s1,pos2);
+            }
+        }
+        return answer;
+    }
+
+
+    /**
+     * Cardinality of Bitwise AND (intersection) operation. 
+     * The provided bitmaps are *not* 
+     * modified. This operation is thread-safe as long as the provided
+     * bitmaps remain unchanged.
+     *
+     * @param x1 first bitmap
+     * @param x2 other bitmap
+     * @return as if you did and(x2,x2).getCardinality()
+     * @see BufferFastAggregation#and(ImmutableRoaringBitmap...)
+     */
+    public static int andCardinality(final ImmutableRoaringBitmap x1,
+                                           final ImmutableRoaringBitmap x2) {
+        int answer = 0;
+        int pos1 = 0, pos2 = 0;
+        final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
+
+        while (pos1 < length1 && pos2 < length2) {
+            final short s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+            final short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+
+            if (s1 == s2) {
+                final MappeableContainer c1 = x1.highLowContainer.getContainerAtIndex(pos1);
+                final MappeableContainer c2 = x2.highLowContainer.getContainerAtIndex(pos2);
+                // TODO: could be made faster if we did not have to materialize container
+                final MappeableContainer c = c1.and(c2);
+                answer += c.getCardinality();
                 ++pos1;
                 ++pos2;
             } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
