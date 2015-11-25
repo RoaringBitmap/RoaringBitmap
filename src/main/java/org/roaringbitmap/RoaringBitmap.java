@@ -82,6 +82,41 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     }
 
     /**
+     * Cardinality of Bitwise AND (intersection) operation. 
+     * The provided bitmaps are *not* 
+     * modified. This operation is thread-safe as long as the provided
+     * bitmaps remain unchanged.
+     *
+     * @param x1 first bitmap
+     * @param x2 other bitmap
+     * @return as if you did and(x2,x2).getCardinality()
+     * @see FastAggregation#and(RoaringBitmap...)
+     */
+    public static int andCardinality(final RoaringBitmap x1,
+                                    final RoaringBitmap x2) {
+        int answer = 0;
+        final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
+        int pos1 = 0, pos2 = 0;
+
+        while (pos1 < length1 && pos2 < length2) {
+            final short s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+            final short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+            if (s1 == s2) {
+                final Container c1 = x1.highLowContainer.getContainerAtIndex(pos1);
+                final Container c2 = x2.highLowContainer.getContainerAtIndex(pos2);
+                final Container c = c1.and(c2);
+                answer += c.getCardinality();
+                ++pos1;
+                ++pos2;
+            } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
+                pos1 = x1.highLowContainer.advanceUntil(s2,pos1);
+            } else { // s1 > s2
+                pos2 = x2.highLowContainer.advanceUntil(s1,pos2);
+            }
+        }
+        return answer;
+    }
+    /**
      * Bitwise ANDNOT (difference) operation. The provided bitmaps are *not*
      * modified. This operation is thread-safe as long as the provided
      * bitmaps remain unchanged.
