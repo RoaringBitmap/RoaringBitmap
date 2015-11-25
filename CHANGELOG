@@ -1,3 +1,6 @@
+version 0.5.12
+ - Added orCardinality and andCardinality method (correct though probably suboptimal implementations)
+
 version 0.5.11
  - Fixing regression introduced by version 0.5.7 regarding in-place flips (issue #50)
  - More efficient conversion from bitmap containers to run containers.

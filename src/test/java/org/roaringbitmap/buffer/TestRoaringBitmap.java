@@ -2146,5 +2146,24 @@ public class TestRoaringBitmap {
      rr.and(rr2);
      assertEquals(rrand.getCardinality(), ImmutableRoaringBitmap.andCardinality(rr2, rr));
  }
+ 
+ @Test
+ public void orcount() {
+     final MutableRoaringBitmap rr = new MutableRoaringBitmap();
+     for (int k = 0; k < 4000; ++k) {
+         rr.add(k);
+     }
+     rr.add(100000);
+     rr.add(110000);
+     final MutableRoaringBitmap rr2 = new MutableRoaringBitmap();
+     for (int k = 0; k < 4000; ++k) {
+         rr2.add(k);
+     }
+
+     final MutableRoaringBitmap rror = ImmutableRoaringBitmap.or(rr, rr2);
+     Assert.assertEquals(rror.getCardinality(),ImmutableRoaringBitmap.orCardinality(rr, rr2));
+
+ }
+
 
 }

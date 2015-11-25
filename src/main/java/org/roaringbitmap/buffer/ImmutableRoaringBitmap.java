@@ -303,7 +303,67 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
         }
         return answer;
     }
-    
+
+    /**
+     * Cardinality of the bitwise OR (union) operation. The provided bitmaps are *not* modified.
+     * This operation is thread-safe as long as the provided bitmaps remain
+     * unchanged.
+     * 
+     * If you have more than 2 bitmaps, consider using the FastAggregation
+     * class.
+     * 
+     * @param x1
+     *            first bitmap
+     * @param x2
+     *            other bitmap
+     * @return cardinality of the union
+     * @see BufferFastAggregation#or(ImmutableRoaringBitmap...)
+     * @see BufferFastAggregation#horizontal_or(ImmutableRoaringBitmap...)
+     */
+    public static int orCardinality(final ImmutableRoaringBitmap x1,
+            final ImmutableRoaringBitmap x2) {
+        int answer = 0;
+        MappeableContainerPointer i1 = x1.highLowContainer
+                .getContainerPointer();
+        MappeableContainerPointer i2 = x2.highLowContainer
+                .getContainerPointer();
+        main: if (i1.hasContainer() && i2.hasContainer()) {
+            while (true) {
+                if (i1.key() == i2.key()) {
+                    // TODO: could be faster if we did not have to materialize the container
+                    answer+= i1.getContainer().or(i2.getContainer()).getCardinality();
+                    i1.advance();
+                    i2.advance();
+                    if (!i1.hasContainer() || !i2.hasContainer())
+                        break main;
+                } else if (Util.compareUnsigned(i1.key(), i2.key()) < 0) { // i1.key() < i2.key()
+                    answer += i1.getCardinality();
+                    i1.advance();
+                    if (!i1.hasContainer())
+                        break main;
+                } else { // i1.key() > i2.key()
+                    answer += i2.getCardinality();
+                    i2.advance();
+                    if (!i2.hasContainer())
+                        break main;
+                }
+            }
+        }
+        if (!i1.hasContainer()) {
+            while (i2.hasContainer()) {
+                answer += i2.getCardinality();
+                i2.advance();
+            }
+        } else if (!i2.hasContainer()) {
+            while (i1.hasContainer()) {
+                answer += i1.getCardinality();
+                i1.advance();
+            }
+        }
+        return answer;
+    }
+
+
     // important: inputs should not have been computed lazily
     protected static MutableRoaringBitmap lazyor(final ImmutableRoaringBitmap x1,
             final ImmutableRoaringBitmap x2) {

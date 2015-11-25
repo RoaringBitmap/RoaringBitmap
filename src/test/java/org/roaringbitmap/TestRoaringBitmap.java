@@ -3622,7 +3622,7 @@ public class TestRoaringBitmap {
     
     @Test
     public void andCounttest3() {
-    	//This is based on andtest3
+        //This is based on andtest3
         final int[] arrayand = new int[11256];
         int pos = 0;
         final RoaringBitmap rr = new RoaringBitmap();
@@ -3644,7 +3644,6 @@ public class TestRoaringBitmap {
             rr.add(k);
         for (int k = 9 * 65536; k < 9 * 65536 + 30000; ++k)
             rr.add(k);
-
         final RoaringBitmap rr2 = new RoaringBitmap();
         for (int k = 4000; k < 4256; ++k) {
             rr2.add(k);
@@ -3677,7 +3676,7 @@ public class TestRoaringBitmap {
     
     @Test
     public void andcounttest() {
-    	//This is based on andtest
+        //This is based on andtest
         final RoaringBitmap rr = new RoaringBitmap();
         for (int k = 0; k < 4000; ++k) {
             rr.add(k);
@@ -3691,5 +3690,23 @@ public class TestRoaringBitmap {
         assertEquals(rrand.getCardinality(), RoaringBitmap.andCardinality(rr2, rr));
         rr.and(rr2);
         assertEquals(rrand.getCardinality(), RoaringBitmap.andCardinality(rr2, rr));
+    }
+    
+    @Test
+    public void orcount() {
+        final RoaringBitmap rr = new RoaringBitmap();
+        for (int k = 0; k < 4000; ++k) {
+            rr.add(k);
+        }
+        rr.add(100000);
+        rr.add(110000);
+        final RoaringBitmap rr2 = new RoaringBitmap();
+        for (int k = 0; k < 4000; ++k) {
+            rr2.add(k);
+        }
+
+        final RoaringBitmap rror = RoaringBitmap.or(rr, rr2);
+        Assert.assertEquals(rror.getCardinality(),RoaringBitmap.orCardinality(rr, rr2));
+
     }
 }
