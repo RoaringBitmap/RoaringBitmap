@@ -3670,7 +3670,7 @@ public class TestRoaringBitmap {
         }
 
         final RoaringBitmap rrand = RoaringBitmap.and(rr, rr2);
-        final int rrandCount = RoaringBitmap.andCount(rr, rr2);
+        final int rrandCount = RoaringBitmap.andCardinality(rr, rr2);
 
         Assert.assertEquals(rrand.getCardinality(), rrandCount);
     }
@@ -3687,9 +3687,9 @@ public class TestRoaringBitmap {
         final RoaringBitmap rr2 = new RoaringBitmap();
         rr2.add(13);
         final RoaringBitmap rrand = RoaringBitmap.and(rr, rr2);
-        assertEquals(rrand.getCardinality(), RoaringBitmap.andCount(rr, rr2));
-        assertEquals(rrand.getCardinality(), RoaringBitmap.andCount(rr2, rr));
+        assertEquals(rrand.getCardinality(), RoaringBitmap.andCardinality(rr, rr2));
+        assertEquals(rrand.getCardinality(), RoaringBitmap.andCardinality(rr2, rr));
         rr.and(rr2);
-        assertEquals(rrand.getCardinality(), RoaringBitmap.andCount(rr2, rr));
+        assertEquals(rrand.getCardinality(), RoaringBitmap.andCardinality(rr2, rr));
     }
 }

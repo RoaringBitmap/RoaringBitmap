@@ -87,15 +87,12 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
      * modified. This operation is thread-safe as long as the provided
      * bitmaps remain unchanged.
      *
-     * If you have more than 2 bitmaps, consider using the
-     * FastAggregation class.
-     *
      * @param x1 first bitmap
      * @param x2 other bitmap
      * @return as if you did and(x2,x2).getCardinality()
      * @see FastAggregation#and(RoaringBitmap...)
      */
-    public static int andCount(final RoaringBitmap x1,
+    public static int andCardinality(final RoaringBitmap x1,
                                     final RoaringBitmap x2) {
         int answer = 0;
         final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
