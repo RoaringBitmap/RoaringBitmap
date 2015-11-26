@@ -1,3 +1,6 @@
+version 0.5.13
+ - Fix for issue #53 by Navis Ryu: ClassCastException on cloning ImmutableRoaringReverseIntI…
+
 version 0.5.12
  - Added orCardinality and andCardinality method (correct though probably suboptimal implementations)
 
