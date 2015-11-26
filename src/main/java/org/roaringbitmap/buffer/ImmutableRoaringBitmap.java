@@ -955,7 +955,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
         @Override
         public IntIterator clone() {
             try {
-                ImmutableRoaringIntIterator x = (ImmutableRoaringIntIterator) super.clone();
+                ImmutableRoaringReverseIntIterator x = (ImmutableRoaringReverseIntIterator) super.clone();
                 x.iter = this.iter.clone();
                 x.cp = this.cp.clone();
                 return x;
