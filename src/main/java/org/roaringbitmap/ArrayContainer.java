@@ -122,10 +122,25 @@ public final class ArrayContainer extends Container implements Cloneable {
     }
 
     @Override
+    public int andCardinality(final ArrayContainer value2) {
+        ArrayContainer value1 = this;
+        final int desiredCapacity = Math.min(value1.getCardinality(), value2.getCardinality());
+        ArrayContainer answer = new ArrayContainer(desiredCapacity);
+        return Util.unsignedIntersect2by2(value1.content,
+                value1.getCardinality(), value2.content,
+                value2.getCardinality(), answer.content);
+    }
+    
+    @Override
     public Container and(BitmapContainer x) {
         return x.and(this);
     }
 
+    @Override
+    public int andCardinality(BitmapContainer x) {
+        return x.andCardinality(this);
+    }
+    
     @Override
     public ArrayContainer andNot(final ArrayContainer value2) {
         ArrayContainer value1 = this;
@@ -872,6 +887,12 @@ public final class ArrayContainer extends Container implements Cloneable {
         return x.and(this);
     }
 
+    @Override
+    // see andNot for an approach that might be better.
+    public int andCardinality(RunContainer x) {
+        return x.andCardinality(this);
+    }
+    
     @Override
     public Container andNot(RunContainer x) {
         int writeLocation=0;

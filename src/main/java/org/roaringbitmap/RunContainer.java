@@ -459,7 +459,33 @@ public final class RunContainer extends Container implements Cloneable {
         return ac;
     }
 
-
+    @Override
+    public int andCardinality(ArrayContainer x) {
+        if(this.nbrruns == 0) return x.cardinality;
+        int rlepos = 0;
+        int arraypos = 0;
+        int andCardinality=0;
+        int rleval = Util.toIntUnsigned(this.getValue(rlepos));
+        int rlelength = Util.toIntUnsigned(this.getLength(rlepos));        
+        while(arraypos < x.cardinality)  {
+            int arrayval = Util.toIntUnsigned(x.content[arraypos]);
+            while(rleval + rlelength < arrayval) {// this will frequently be false
+                ++rlepos;
+                if(rlepos == this.nbrruns) {
+                    return andCardinality;// we are done
+                }
+                rleval = Util.toIntUnsigned(this.getValue(rlepos));
+                rlelength = Util.toIntUnsigned(this.getLength(rlepos));
+            }
+            if(rleval > arrayval)  {
+                arraypos = Util.advanceUntil(x.content,arraypos,x.cardinality,this.getValue(rlepos));
+            } else {
+            	andCardinality++;
+                arraypos++;
+            }
+        }
+        return andCardinality;
+    }
 
     @Override
     public Container and(BitmapContainer x) {
@@ -496,6 +522,38 @@ public final class RunContainer extends Container implements Cloneable {
         else return answer.toArrayContainer();
     }
 
+    @Override
+    public int andCardinality(BitmapContainer x) {
+        // could be implemented as return toBitmapOrArrayContainer().iand(x);
+        int card = this.getCardinality();
+        int cardinality=0;
+        if (card <=  ArrayContainer.DEFAULT_MAX_SIZE) {
+            // result can only be an array (assuming that we never make a RunContainer)
+            if(card > x.cardinality) card = x.cardinality;
+            cardinality=0;
+            for (int rlepos=0; rlepos < this.nbrruns; ++rlepos) {
+                int runStart = Util.toIntUnsigned(this.getValue(rlepos));
+                int runEnd = runStart + Util.toIntUnsigned(this.getLength(rlepos));
+                for (int runValue = runStart; runValue <= runEnd; ++runValue) {
+                    if ( x.contains((short) runValue)) {// it looks like contains() should be cheap enough if accessed sequentially
+                        cardinality++;
+                    }
+                }
+            }
+            return cardinality;
+        }
+        // we expect the answer to be a bitmap (if we are lucky)
+        BitmapContainer answer = x.clone();
+        int start = 0;
+        for(int rlepos = 0; rlepos < this.nbrruns; ++rlepos ) {
+            int end = Util.toIntUnsigned(this.getValue(rlepos));
+            Util.resetBitmapRange(answer.bitmap, start, end);  // had been x.bitmap
+            start = end + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+        }
+        Util.resetBitmapRange(answer.bitmap, start, Util.maxLowBitAsInteger() + 1);   // had been x.bitmap
+        answer.computeCardinality();
+        return answer.getCardinality();
+    }
 
     @Override
     public Container andNot(BitmapContainer x) {
@@ -1639,7 +1697,76 @@ public final class RunContainer extends Container implements Cloneable {
         return answer.toEfficientContainer();  // subsequent trim() may be required to avoid wasted space.
     }
 
+    @Override
+    public int andCardinality(RunContainer x) {
+      int answer = 0;
+      int rlepos = 0;
+      int xrlepos = 0;
+      int start = Util.toIntUnsigned(this.getValue(rlepos));
+      int end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+      int xstart = Util.toIntUnsigned(x.getValue(xrlepos));
+      int xend = xstart + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
+      while ((rlepos < this.nbrruns ) && (xrlepos < x.nbrruns )) {
+          if (end  <= xstart) {
+              if (ENABLE_GALLOPING_AND) {
+                  rlepos = skipAhead(this, rlepos, xstart); // skip over runs until we have end > xstart  (or rlepos is advanced beyond end)
+              }
+              else
+                  ++rlepos;
 
+              if(rlepos < this.nbrruns ) {
+                  start = Util.toIntUnsigned(this.getValue(rlepos));
+                  end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+              }
+          } else if (xend <= start) {
+              // exit the second run
+              if (ENABLE_GALLOPING_AND) {
+                  xrlepos = skipAhead(x, xrlepos, start);
+              }
+              else
+                  ++xrlepos;
+
+              if(xrlepos < x.nbrruns ) {
+                  xstart = Util.toIntUnsigned(x.getValue(xrlepos));
+                  xend = xstart + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
+              }
+          } else {// they overlap
+              final int lateststart = start > xstart ? start : xstart;
+              int earliestend;
+              if(end == xend) {// improbable
+                  earliestend = end;
+                  rlepos++;
+                  xrlepos++;
+                  if(rlepos < this.nbrruns ) {
+                      start = Util.toIntUnsigned(this.getValue(rlepos));
+                      end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+                  }
+                  if(xrlepos < x.nbrruns) {
+                      xstart = Util.toIntUnsigned(x.getValue(xrlepos));
+                      xend = xstart + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                  }
+              } else if(end < xend) {
+                  earliestend = end;
+                  rlepos++;
+                  if(rlepos < this.nbrruns ) {
+                      start = Util.toIntUnsigned(this.getValue(rlepos));
+                      end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+                  }
+
+              } else {// end > xend
+                  earliestend = xend;
+                  xrlepos++;
+                  if(xrlepos < x.nbrruns) {
+                      xstart = Util.toIntUnsigned(x.getValue(xrlepos));
+                      xend = xstart + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                  }                
+              }
+              answer = answer + Util.toIntUnsigned(getLength((short) lateststart));
+              answer = answer + Util.toIntUnsigned(getLength((short) (earliestend - lateststart - 1)));
+          }
+      }
+      return answer;  // subsequent trim() may be required to avoid wasted space.
+  }
 
 
 
