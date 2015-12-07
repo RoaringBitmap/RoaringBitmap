@@ -232,16 +232,7 @@ public final class BitmapContainer extends Container implements Cloneable {
             newCardinality += Long.bitCount(this.bitmap[k]
                     & value2.bitmap[k]);
         }
-        if (newCardinality > ArrayContainer.DEFAULT_MAX_SIZE) {
-            final BitmapContainer answer = new BitmapContainer();
-            for (int k = 0; k < answer.bitmap.length; ++k) {
-                answer.bitmap[k] = this.bitmap[k]
-                        & value2.bitmap[k];
-            }
-            return newCardinality;
-        } else {
-        	return newCardinality;
-        }
+        return newCardinality;
     }
     
     @Override

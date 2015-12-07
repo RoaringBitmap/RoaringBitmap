@@ -877,6 +877,8 @@ public class TestContainer {
 				Container result = ac.and(ac1);
 				assertTrue(checkContent(result, new short[] {}));
 				assertEquals(0, result.getCardinality());
+				assertEquals(0, ac.andCardinality(ac1));
+				assertEquals(0, ac1.andCardinality(ac));
 			}
 		}
 	}

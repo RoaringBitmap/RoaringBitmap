@@ -124,11 +124,11 @@ public final class ArrayContainer extends Container implements Cloneable {
     @Override
     public int andCardinality(final ArrayContainer value2) {
         ArrayContainer value1 = this;
-        final int desiredCapacity = Math.min(value1.getCardinality(), value2.getCardinality());
-        ArrayContainer answer = new ArrayContainer(desiredCapacity);
-        return Util.unsignedIntersect2by2(value1.content,
-                value1.getCardinality(), value2.content,
-                value2.getCardinality(), answer.content);
+        int desiredCardinality = Math.min(value1.getCardinality(), value2.getCardinality());
+        if (0 == desiredCardinality)
+            return 0;
+        //TODO this should be replaced by a non allocating algorithm.
+        return and(value2).cardinality;
     }
     
     @Override

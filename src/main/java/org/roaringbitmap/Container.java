@@ -107,18 +107,17 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
      * @return aggregated container
      */
     public int andCardinality(Container x) {
-    	if (this.getCardinality() == 0)
-    		return 0;
-    	else if (x.getCardinality() ==0)
-    		return 0;
-		else
-		{
-    		if (x instanceof ArrayContainer)
-            	return and((ArrayContainer) x).getCardinality();
-        	else if (x instanceof BitmapContainer)
-            	return and((BitmapContainer) x).getCardinality();
-        	return and((RunContainer) x).getCardinality();
-    	}
+        if (this.getCardinality() == 0)
+            return 0;
+        else if (x.getCardinality() == 0)
+            return 0;
+        else {
+            if (x instanceof ArrayContainer)
+                return andCardinality((ArrayContainer) x);
+            else if (x instanceof BitmapContainer)
+                return andCardinality((BitmapContainer) x);
+            return andCardinality((RunContainer) x);
+        }
     }
     
     public abstract int andCardinality(ArrayContainer x);
