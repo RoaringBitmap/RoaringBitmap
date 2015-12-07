@@ -123,12 +123,9 @@ public final class ArrayContainer extends Container implements Cloneable {
 
     @Override
     public int andCardinality(final ArrayContainer value2) {
-        ArrayContainer value1 = this;
-        int desiredCardinality = Math.min(value1.getCardinality(), value2.getCardinality());
-        if (0 == desiredCardinality)
-            return 0;
-        //TODO this should be replaced by a non allocating algorithm.
-        return and(value2).cardinality;
+        return Util.unsignedLocalIntersect2by2Cardinality(content,
+                cardinality, value2.content,
+                value2.getCardinality());
     }
     
     @Override
