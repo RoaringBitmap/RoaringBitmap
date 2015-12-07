@@ -99,6 +99,31 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     }
 
     /**
+     * Computes the bitwise AND of this container with another
+     * (intersection). This container as well as the provided container are
+     * left unaffected.
+     *
+     * @param x other container
+     * @return aggregated container
+     */
+    public int andCardinality(Container x) {
+        if (this.getCardinality() == 0)
+            return 0;
+        else if (x.getCardinality() == 0)
+            return 0;
+        else {
+            if (x instanceof ArrayContainer)
+                return andCardinality((ArrayContainer) x);
+            else if (x instanceof BitmapContainer)
+                return andCardinality((BitmapContainer) x);
+            return andCardinality((RunContainer) x);
+        }
+    }
+    
+    public abstract int andCardinality(ArrayContainer x);
+    public abstract int andCardinality(BitmapContainer x);
+    public abstract int andCardinality(RunContainer x);
+    /**
      * Computes the bitwise ANDNOT of this container with another
      * (difference). This container as well as the provided container are
      * left unaffected.

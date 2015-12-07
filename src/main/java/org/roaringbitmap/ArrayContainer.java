@@ -122,10 +122,22 @@ public final class ArrayContainer extends Container implements Cloneable {
     }
 
     @Override
+    public int andCardinality(final ArrayContainer value2) {
+        return Util.unsignedLocalIntersect2by2Cardinality(content,
+                cardinality, value2.content,
+                value2.getCardinality());
+    }
+    
+    @Override
     public Container and(BitmapContainer x) {
         return x.and(this);
     }
 
+    @Override
+    public int andCardinality(BitmapContainer x) {
+        return x.andCardinality(this);
+    }
+    
     @Override
     public ArrayContainer andNot(final ArrayContainer value2) {
         ArrayContainer value1 = this;
@@ -872,6 +884,12 @@ public final class ArrayContainer extends Container implements Cloneable {
         return x.and(this);
     }
 
+    @Override
+    // see andNot for an approach that might be better.
+    public int andCardinality(RunContainer x) {
+        return x.andCardinality(this);
+    }
+    
     @Override
     public Container andNot(RunContainer x) {
         int writeLocation=0;

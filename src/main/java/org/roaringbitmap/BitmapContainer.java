@@ -191,6 +191,18 @@ public final class BitmapContainer extends Container implements Cloneable {
         }
         return answer;
     }
+    
+    @Override
+    public int andCardinality(final ArrayContainer value2) {
+        int answer=0;
+        int c = value2.cardinality;
+        for (int k = 0; k < c; ++k) {
+            short v = value2.content[k];
+            if (this.contains(v))
+                answer++;
+        }
+        return answer;
+    }
 
     @Override
     public Container and(final BitmapContainer value2) {
@@ -213,7 +225,16 @@ public final class BitmapContainer extends Container implements Cloneable {
         ac.cardinality = newCardinality;
         return ac;
     }
-
+    @Override
+    public int andCardinality(final BitmapContainer value2) {
+        int newCardinality = 0;
+        for (int k = 0; k < this.bitmap.length; ++k) {
+            newCardinality += Long.bitCount(this.bitmap[k]
+                    & value2.bitmap[k]);
+        }
+        return newCardinality;
+    }
+    
     @Override
     public Container andNot(final ArrayContainer value2) {
         final BitmapContainer answer = clone();
@@ -1054,6 +1075,11 @@ public final class BitmapContainer extends Container implements Cloneable {
     @Override
     public Container and(RunContainer x) {
         return x.and(this);
+    }
+    
+    @Override
+    public int andCardinality(RunContainer x) {
+        return x.andCardinality(this);
     }
 
     @Override
