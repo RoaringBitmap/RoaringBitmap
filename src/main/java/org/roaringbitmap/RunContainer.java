@@ -1686,8 +1686,73 @@ public final class RunContainer extends Container implements Cloneable {
 
     @Override
     public int andCardinality(RunContainer x) {
-        //TODO replace this by non allocating method
-        return and(x).getCardinality();
+        int cardinality=0;
+        int rlepos = 0;
+        int xrlepos = 0;
+        int start = Util.toIntUnsigned(this.getValue(rlepos));
+        int end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+        int xstart = Util.toIntUnsigned(x.getValue(xrlepos));
+        int xend = xstart + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
+        while ((rlepos < this.nbrruns ) && (xrlepos < x.nbrruns )) {
+            if (end  <= xstart) {
+                if (ENABLE_GALLOPING_AND) {
+                    rlepos = skipAhead(this, rlepos, xstart); // skip over runs until we have end > xstart  (or rlepos is advanced beyond end)
+                }
+                else
+                    ++rlepos;
+
+                if(rlepos < this.nbrruns ) {
+                    start = Util.toIntUnsigned(this.getValue(rlepos));
+                    end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+                }
+            } else if (xend <= start) {
+                // exit the second run
+                if (ENABLE_GALLOPING_AND) {
+                    xrlepos = skipAhead(x, xrlepos, start);
+                }
+                else
+                    ++xrlepos;
+
+                if(xrlepos < x.nbrruns ) {
+                    xstart = Util.toIntUnsigned(x.getValue(xrlepos));
+                    xend = xstart + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                }
+            } else {// they overlap
+                final int lateststart = start > xstart ? start : xstart;
+                int earliestend;
+                if(end == xend) {// improbable
+                    earliestend = end;
+                    rlepos++;
+                    xrlepos++;
+                    if(rlepos < this.nbrruns ) {
+                        start = Util.toIntUnsigned(this.getValue(rlepos));
+                        end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+                    }
+                    if(xrlepos < x.nbrruns) {
+                        xstart = Util.toIntUnsigned(x.getValue(xrlepos));
+                        xend = xstart + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                    }
+                } else if(end < xend) {
+                    earliestend = end;
+                    rlepos++;
+                    if(rlepos < this.nbrruns ) {
+                        start = Util.toIntUnsigned(this.getValue(rlepos));
+                        end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+                    }
+
+                } else {// end > xend
+                    earliestend = xend;
+                    xrlepos++;
+                    if(xrlepos < x.nbrruns) {
+                        xstart = Util.toIntUnsigned(x.getValue(xrlepos));
+                        xend = xstart + Util.toIntUnsigned(x.getLength(xrlepos)) + 1;
+                    }                
+                }
+                //earliestend - lateststart are all values that are true.
+                cardinality += (short) (earliestend - lateststart);
+            }
+        }
+        return cardinality;
   }
 
 
