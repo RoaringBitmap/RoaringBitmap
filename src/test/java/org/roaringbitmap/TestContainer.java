@@ -857,13 +857,13 @@ public class TestContainer {
         }
     }
 
-    private final static Class[] CONTAINER_TYPES = new Class[] { ArrayContainer.class, BitmapContainer.class, RunContainer.class};
+    private final static Class<?>[] CONTAINER_TYPES = new Class[] { ArrayContainer.class, BitmapContainer.class, RunContainer.class};
 	@Test
 	public void and1()
 	    throws InstantiationException, IllegalAccessException
 	{
 		System.out.println("and1");
-		for (Class ct : CONTAINER_TYPES)
+		for (Class<?> ct : CONTAINER_TYPES)
 		{
 			Container ac = (Container) ct.newInstance();
 			ac.add((short) 1);
@@ -871,7 +871,7 @@ public class TestContainer {
 			ac.add((short) 5);
 			ac.add((short) 50000);
 			ac.add((short) 50001);
-			for (Class ct1 : CONTAINER_TYPES)
+			for (Class<?> ct1 : CONTAINER_TYPES)
 			{
 				Container ac1 = (Container) ct1.newInstance();
 				Container result = ac.and(ac1);
@@ -888,11 +888,11 @@ public class TestContainer {
 	    throws InstantiationException, IllegalAccessException
 	{
 		System.out.println("and2");
-		for (Class ct : CONTAINER_TYPES)
+		for (Class<?> ct : CONTAINER_TYPES)
 		{
 			Container ac = (Container) ct.newInstance();
 			ac.add((short) 1);
-			for (Class ct1 : CONTAINER_TYPES)
+			for (Class<?> ct1 : CONTAINER_TYPES)
 			{
 				Container ac1 = (Container) ct1.newInstance();
 
@@ -921,7 +921,7 @@ public class TestContainer {
 	    throws InstantiationException, IllegalAccessException
 	{
 		System.out.println("and3");
-		for (Class ct : CONTAINER_TYPES)
+		for (Class<?> ct : CONTAINER_TYPES)
 		{
 			Container ac = (Container) ct.newInstance();
 
@@ -933,7 +933,7 @@ public class TestContainer {
 
 			// array ends first
 
-			for (Class ct1 : CONTAINER_TYPES)
+			for (Class<?> ct1 : CONTAINER_TYPES)
 			{
 				Container ac1 = (Container) ct1.newInstance();
 
@@ -961,7 +961,7 @@ public class TestContainer {
 	    throws InstantiationException, IllegalAccessException
 	{
 		System.out.println("and4");
-		for (Class ct : CONTAINER_TYPES)
+		for (Class<?> ct : CONTAINER_TYPES)
 		{
 			Container ac = (Container) ct.newInstance();
 
@@ -974,7 +974,7 @@ public class TestContainer {
 
 			// iterator ends first
 
-			for (Class ct1 : CONTAINER_TYPES)
+			for (Class<?> ct1 : CONTAINER_TYPES)
 			{
 				Container ac1 = (Container) ct1.newInstance();
 
@@ -1002,7 +1002,7 @@ public class TestContainer {
 	    throws InstantiationException, IllegalAccessException
 	{
 		System.out.println("and5");
-		for (Class ct : CONTAINER_TYPES)
+		for (Class<?> ct : CONTAINER_TYPES)
 		{
 			Container ac = (Container) ct.newInstance();
 
@@ -1014,7 +1014,7 @@ public class TestContainer {
 
 			// end together
 
-			for (Class ct1 : CONTAINER_TYPES)
+			for (Class<?> ct1 : CONTAINER_TYPES)
 			{
 				Container ac1 = (Container) ct1.newInstance();
 
