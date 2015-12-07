@@ -26,7 +26,7 @@ Other platforms such as Whoosh (https://pypi.python.org/pypi/Whoosh/) also use R
 their own implementations.
 
 
-(c) 2013-2015 Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, Björn Sperber, Seth Pellegrino, Borislav Ivanov, Gregory Ssi-Yan-Kai, Galderic Puntí, Navis Ryu
+(c) 2013-2015 Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, Björn Sperber, Seth Pellegrino, Borislav Ivanov, Gregory Ssi-Yan-Kai, Galderic Puntí, Navis Ryu, Jerven Bolleman
 
 
 This code is licensed under Apache License, Version 2.0 (ASL2.0).
