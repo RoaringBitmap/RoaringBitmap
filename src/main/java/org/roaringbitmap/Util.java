@@ -492,6 +492,52 @@ public final class Util {
         }
         return pos;
     }
+    
+    protected static int unsignedLocalIntersect2by2Cardinality(final short[] set1, final int length1,
+            final short[] set2, final int length2) {
+        if ((0 == length1) || (0 == length2))
+            return 0;
+        int k1 = 0;
+        int k2 = 0;
+        int pos = 0;
+        short s1 = set1[k1];
+        short s2 = set2[k2];
+
+        mainwhile: while (true) {
+            int v1 = toIntUnsigned(s1);
+            int v2 = toIntUnsigned(s2);
+            if (v2 < v1) {
+                do {
+                    ++k2;
+                    if (k2 == length2)
+                        break mainwhile;
+                    s2 = set2[k2];
+                    v2 = toIntUnsigned(s2);
+                } while (v2 < v1);
+            }
+            if (v1 < v2) {
+                do {
+                    ++k1;
+                    if (k1 == length1)
+                        break mainwhile;
+                    s1 = set1[k1];
+                    v1 = toIntUnsigned(s1);
+                } while (v1 < v2);
+            } else {
+                // (set2[k2] == set1[k1])
+                pos++;
+                ++k1;
+                if (k1 == length1)
+                    break;
+                ++k2;
+                if (k2 == length2)
+                    break;
+                s1 = set1[k1];
+                s2 = set2[k2];
+            }
+        }
+        return pos;
+    }
 
     protected static int unsignedOneSidedGallopingIntersect2by2(
             final short[] smallSet, final int smallLength,

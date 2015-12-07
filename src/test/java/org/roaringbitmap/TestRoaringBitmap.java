@@ -2669,14 +2669,16 @@ public class TestRoaringBitmap {
         for (int N = 2; N < ewah.length; ++N) {
             RoaringBitmap answer = ewah[0];
             for (int k = 1; k < N; ++k)
-                answer = RoaringBitmap.and(answer, ewah[k]);
-
+            {
+            	RoaringBitmap oldAnswer = answer;
+                answer = RoaringBitmap.and(oldAnswer, ewah[k]);
+                Assert.assertEquals(answer.getCardinality(), RoaringBitmap.andCardinality(oldAnswer, ewah[k]));
+            }
             RoaringBitmap answer2 = FastAggregation.and(Arrays.copyOf(ewah, N));
             Assert.assertTrue(answer.equals(answer2));
             RoaringBitmap answer2b = FastAggregation.and(toIterator(Arrays
                     .copyOf(ewah, N)));
             Assert.assertTrue(answer.equals(answer2b));
-
         }
     }
 

@@ -5,15 +5,15 @@
 package org.roaringbitmap;
 
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
-import java.util.ArrayList;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertSame;
+import org.junit.Test;
 
 /**
  * Various tests on Container and its subclasses, ArrayContainer and
@@ -857,7 +857,179 @@ public class TestContainer {
         }
     }
 
+    private final static Class<?>[] CONTAINER_TYPES = new Class[] { ArrayContainer.class, BitmapContainer.class, RunContainer.class};
+	@Test
+	public void and1()
+	    throws InstantiationException, IllegalAccessException
+	{
+		System.out.println("and1");
+		for (Class<?> ct : CONTAINER_TYPES)
+		{
+			Container ac = (Container) ct.newInstance();
+			ac.add((short) 1);
+			ac.add((short) 3);
+			ac.add((short) 5);
+			ac.add((short) 50000);
+			ac.add((short) 50001);
+			for (Class<?> ct1 : CONTAINER_TYPES)
+			{
+				Container ac1 = (Container) ct1.newInstance();
+				Container result = ac.and(ac1);
+				assertTrue(checkContent(result, new short[] {}));
+				assertEquals(0, result.getCardinality());
+				assertEquals(0, ac.andCardinality(ac1));
+				assertEquals(0, ac1.andCardinality(ac));
+			}
+		}
+	}
 
-    
-    
+	@Test
+	public void and2()
+	    throws InstantiationException, IllegalAccessException
+	{
+		System.out.println("and2");
+		for (Class<?> ct : CONTAINER_TYPES)
+		{
+			Container ac = (Container) ct.newInstance();
+			ac.add((short) 1);
+			for (Class<?> ct1 : CONTAINER_TYPES)
+			{
+				Container ac1 = (Container) ct1.newInstance();
+
+				ac1.add((short) 1);
+				ac1.add((short) 4);
+				ac1.add((short) 5);
+				ac1.add((short) 50000);
+				ac1.add((short) 50002);
+				ac1.add((short) 50003);
+				ac1.add((short) 50004);
+
+				Container result = ac.and(ac1);
+				assertTrue(checkContent(result, new short[] { 1 }));
+				assertEquals(result.getCardinality(), ac.andCardinality(ac1));
+				assertEquals(result.getCardinality(), ac1.andCardinality(ac));
+				assertEquals(1, ac1.andCardinality(ac));
+			}
+		}
+	}
+ 
+
+
+
+	@Test
+	public void and3()
+	    throws InstantiationException, IllegalAccessException
+	{
+		System.out.println("and3");
+		for (Class<?> ct : CONTAINER_TYPES)
+		{
+			Container ac = (Container) ct.newInstance();
+
+			ac.add((short) 1);
+			ac.add((short) 3);
+			ac.add((short) 5);
+			ac.add((short) 50000);
+			ac.add((short) 50001);
+
+			// array ends first
+
+			for (Class<?> ct1 : CONTAINER_TYPES)
+			{
+				Container ac1 = (Container) ct1.newInstance();
+
+				ac1.add((short) 1);
+				ac1.add((short) 4);
+				ac1.add((short) 5);
+				ac1.add((short) 50000);
+				ac1.add((short) 50002);
+				ac1.add((short) 50003);
+				ac1.add((short) 50004);
+
+				Container result = ac.and(ac1);
+				assertTrue(checkContent(result, new short[] { 1, 5, (short) 50000 }));
+				assertEquals(result.getCardinality(), ac.andCardinality(ac1));
+				assertEquals(result.getCardinality(), ac1.andCardinality(ac));
+				assertEquals(3, ac1.andCardinality(ac));
+			}
+		}
+	}
+  
+
+  
+	@Test
+	public void and4()
+	    throws InstantiationException, IllegalAccessException
+	{
+		System.out.println("and4");
+		for (Class<?> ct : CONTAINER_TYPES)
+		{
+			Container ac = (Container) ct.newInstance();
+
+			ac.add((short) 1);
+			ac.add((short) 3);
+			ac.add((short) 5);
+			ac.add((short) 50000);
+			ac.add((short) 50001);
+			ac.add((short) 50011);
+
+			// iterator ends first
+
+			for (Class<?> ct1 : CONTAINER_TYPES)
+			{
+				Container ac1 = (Container) ct1.newInstance();
+
+				ac1.add((short) 1);
+				ac1.add((short) 4);
+				ac1.add((short) 5);
+				ac1.add((short) 50000);
+				ac1.add((short) 50002);
+				ac1.add((short) 50003);
+				ac1.add((short) 50004);
+
+				Container result = ac.and(ac1);
+				assertTrue(checkContent(result, new short[] { 1, 5, (short) 50000 }));
+				assertEquals(result.getCardinality(), ac.andCardinality(ac1));
+				assertEquals(result.getCardinality(), ac1.andCardinality(ac));
+				assertEquals(3, ac1.andCardinality(ac));
+			}
+		}
+	}
+                
+
+
+	@Test
+	public void and5()
+	    throws InstantiationException, IllegalAccessException
+	{
+		System.out.println("and5");
+		for (Class<?> ct : CONTAINER_TYPES)
+		{
+			Container ac = (Container) ct.newInstance();
+
+			ac.add((short) 1);
+			ac.add((short) 3);
+			ac.add((short) 5);
+			ac.add((short) 50000);
+			ac.add((short) 50001);
+
+			// end together
+
+			for (Class<?> ct1 : CONTAINER_TYPES)
+			{
+				Container ac1 = (Container) ct1.newInstance();
+
+				ac1.add((short) 1);
+				ac1.add((short) 4);
+				ac1.add((short) 5);
+				ac1.add((short) 50000);
+				ac1.add((short) 50001);
+
+				Container result = ac.and(ac1);
+				assertTrue(checkContent(result, new short[] { 1, 5, (short) 50000, (short) 50001 }));
+				assertEquals(result.getCardinality(), ac.andCardinality(ac1));
+				assertEquals(result.getCardinality(), ac1.andCardinality(ac));
+				assertEquals(4, ac1.andCardinality(ac));
+			}
+		}
+	}
 }
