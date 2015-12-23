@@ -18,7 +18,7 @@ They can even be faster than uncompressed bitmaps.
 This library is used by
 * Apache Spark (http://spark.apache.org/),
 * Apache Kylin (http://kylin.io) and
-* Druid.io (http://druid.io/).
+* Druid (http://druid.io/).
 
 
 Apache Lucene (http://lucene.apache.org/) uses  Roaring bitmaps, though they have their own [independent implementation](https://svn.apache.org/viewvc/lucene/dev/branches/branch_5x/lucene/core/src/java/org/apache/lucene/util/RoaringDocIdSet.java?view=markup&pathrev=1629606). Derivatives of Lucene such as Solr and Elastic also use Roaring bitmaps. 
@@ -179,7 +179,7 @@ Operations on an ImmutableRoaringBitmap such as and, or, xor, flip, will
 generate a RoaringBitmap which lies in RAM. As the name suggest, the
 ImmutableRoaringBitmap itself cannot be modified.
 
-This design was inspired by druid.io.
+This design was inspired by Druid.
 
 One can find a complete working example in the test file TestMemoryMapping.java.
 
