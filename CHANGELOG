@@ -1,3 +1,6 @@
+version 0.5.14
+ - Fix for issue #60:  RoaringBitmap.or(RoaringBitmap) has side effect on argument 
+
 version 0.5.13
  - Fix for issue #53 by Navis Ryu: ClassCastException on cloning ImmutableRoaringReverseIntI…
 

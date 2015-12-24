@@ -18,6 +18,25 @@ import java.util.*;
  */
 @SuppressWarnings({ "static-method" })
 public class TestRoaringBitmap {
+    
+    @Test
+    public void testAstesana() {
+        RoaringBitmap r1 = new RoaringBitmap();
+        // Strange thing: Replace this line by r1.add(131000) and the bug vanishes!
+        r1.flip(131000, 131001);
+        RoaringBitmap r2 = new RoaringBitmap();
+        r2.add(220000);
+        RoaringBitmap r3 = new RoaringBitmap();
+        int killingPosition = 66000;
+        r3.add(killingPosition);
+        Assert.assertFalse(r1.contains(killingPosition)); //ok
+        r2.or(r1);
+        Assert.assertFalse(r1.contains(killingPosition)); //ok
+        r2.or(r3);
+        Assert.assertFalse(r1.contains(killingPosition)); //ko
+    }
+    
+    
     @Test
     public void testOr001() {
         int[] array1 = { 22871, 22873, 22876, 22880, 22886, 22889, 22893,
