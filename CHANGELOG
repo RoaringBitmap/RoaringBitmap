@@ -1,3 +1,6 @@
+version 0.5.15
+ - Fix container sharing between bitmaps aggregated with xor
+
 version 0.5.14
  - Fix for issue #60:  RoaringBitmap.or(RoaringBitmap) has side effect on argument 
 
