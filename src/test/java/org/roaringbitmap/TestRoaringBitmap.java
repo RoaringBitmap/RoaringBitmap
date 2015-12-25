@@ -18,7 +18,26 @@ import java.util.*;
  */
 @SuppressWarnings({ "static-method" })
 public class TestRoaringBitmap {
-    
+
+    @Test
+    public void containerSharingWithXor() {
+        RoaringBitmap r1 = new RoaringBitmap();
+        r1.flip(131000, 131001);
+        RoaringBitmap r2 = new RoaringBitmap();
+        r2.add(220000);
+        RoaringBitmap r3 = new RoaringBitmap();
+        int killingPosition = 66000;
+        r3.add(killingPosition);
+        Assert.assertFalse(r1.contains(killingPosition));
+        r2.xor(r1);
+        Assert.assertTrue(r2.contains(131000));
+        Assert.assertFalse(r1.contains(killingPosition));
+        r2.or(r3);
+        Assert.assertTrue(r2.contains(131000));
+        Assert.assertTrue(r2.contains(killingPosition));
+        Assert.assertFalse(r1.contains(killingPosition));
+    }
+
     @Test
     public void testAstesana() {
         RoaringBitmap r1 = new RoaringBitmap();

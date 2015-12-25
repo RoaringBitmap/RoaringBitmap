@@ -23,7 +23,26 @@ import java.util.*;
  */
 @SuppressWarnings({"static-method"})
 public class TestRoaringBitmap {
-    
+
+    @Test
+    public void containerSharingWithXor() {
+        MutableRoaringBitmap r1 = new MutableRoaringBitmap();
+        r1.flip(131000, 131001);
+        MutableRoaringBitmap r2 = new MutableRoaringBitmap();
+        r2.add(220000);
+        MutableRoaringBitmap r3 = new MutableRoaringBitmap();
+        int killingPosition = 66000;
+        r3.add(killingPosition);
+        Assert.assertFalse(r1.contains(killingPosition));
+        r2.xor(r1);
+        Assert.assertTrue(r2.contains(131000));
+        Assert.assertFalse(r1.contains(killingPosition));
+        r2.or(r3);
+        Assert.assertTrue(r2.contains(131000));
+        Assert.assertTrue(r2.contains(killingPosition));
+        Assert.assertFalse(r1.contains(killingPosition));
+    }
+
     @Test
     public void testAstesana() {
         MutableRoaringBitmap r1 = new MutableRoaringBitmap();
