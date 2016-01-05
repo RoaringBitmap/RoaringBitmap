@@ -1,3 +1,6 @@
+version 0.5.16
+ - flip() of ImmutableRoaringBitmap skips last bit of bitmap
+
 version 0.5.15
  - Fix container sharing between bitmaps aggregated with xor
 
