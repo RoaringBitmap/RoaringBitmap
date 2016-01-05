@@ -769,4 +769,29 @@ public class TestImmutableRoaringBitmap {
         rb2.andNot(rb);
         Assert.assertEquals(rb2, off);
     }
+
+  @Test
+  public void fliptest1() {
+    final MutableRoaringBitmap rb = new MutableRoaringBitmap();
+    rb.add(0);
+    rb.add(2);
+    final MutableRoaringBitmap rb2 = MutableRoaringBitmap.flip(rb, 0, 3);
+    final MutableRoaringBitmap result = new MutableRoaringBitmap();
+    result.add(1);
+
+    Assert.assertEquals(result, rb2);
+  }
+
+  @Test
+  public void fliptest2() {
+    final MutableRoaringBitmap rb = new MutableRoaringBitmap();
+    rb.add(0);
+    rb.add(2);
+    final MutableRoaringBitmap rb2 = ImmutableRoaringBitmap.flip(rb, 0, 3);
+    final MutableRoaringBitmap result = new MutableRoaringBitmap();
+    result.add(1);
+
+    Assert.assertEquals(result, rb2);
+  }
+
 }
