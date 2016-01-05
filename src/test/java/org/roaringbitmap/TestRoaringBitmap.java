@@ -9,6 +9,7 @@ import static org.junit.Assert.assertEquals;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Assert;
 import org.junit.Test;
+import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 
 import java.io.*;
 import java.util.*;
@@ -1883,6 +1884,20 @@ public class TestRoaringBitmap {
             bs.set(i);
         Assert.assertTrue(equals(bs, rb2));
     }
+
+    @Test
+    public void flipTest8()
+    {
+        final RoaringBitmap rb = new RoaringBitmap();
+        rb.add(0);
+        rb.add(2);
+        final RoaringBitmap rb2 = RoaringBitmap.flip(rb, 0, 3);
+
+        final BitSet bs = new BitSet();
+        bs.set(1);
+        Assert.assertTrue(equals(bs, rb2));
+    }
+
 
     @Test
     public void flipTestBig() {

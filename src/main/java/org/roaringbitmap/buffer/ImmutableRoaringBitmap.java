@@ -220,7 +220,7 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
             if (i >= 0) {
                 final MappeableContainer c = bm.highLowContainer
                         .getContainerAtIndex(i).not(containerStart,
-                                containerLast);
+                                containerLast+1);
                 if (c.getCardinality() > 0)
                     answer.getMappeableRoaringArray().insertNewKeyValueAt(
                             -j - 1, hb, c);
