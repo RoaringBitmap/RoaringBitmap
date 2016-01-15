@@ -1,7 +1,7 @@
 RoaringBitmap
 =============
 
-[![Build Status](https://travis-ci.org/lemire/RoaringBitmap.png)](https://travis-ci.org/lemire/RoaringBitmap)
+[![Build Status](https://travis-ci.org/RoaringBitmap/RoaringBitmap.png)](https://travis-ci.org/RoaringBitmap/RoaringBitmap)
 [![][maven img]][maven]
 [![][license img]][license]
 [![docs-badge][]][docs]
@@ -26,7 +26,7 @@ Other platforms such as Whoosh (https://pypi.python.org/pypi/Whoosh/) also use R
 their own implementations.
 
 
-(c) 2013-2015 Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, Björn Sperber, Seth Pellegrino, Borislav Ivanov, Gregory Ssi-Yan-Kai, Galderic Puntí, Navis Ryu, Jerven Bolleman, Keuntae Park
+(c) 2013-2016 Daniel Lemire, Owen Kaser, Samy Chambi, Jon Alvarado, Rory Graves, Björn Sperber, Seth Pellegrino, Borislav Ivanov, Gregory Ssi-Yan-Kai, Galderic Puntí, Navis Ryu, Jerven Bolleman, Keuntae Park
 
 
 This code is licensed under Apache License, Version 2.0 (ASL2.0).
