@@ -23,6 +23,14 @@ import java.util.*;
  */
 @SuppressWarnings({"static-method"})
 public class TestRoaringBitmap {
+    
+    
+    @Test
+    public void testFlipOnEmpty() {
+        MutableRoaringBitmap r1 = new MutableRoaringBitmap();
+        r1.flip(0, 10);
+        Assert.assertTrue(r1.getCardinality() == 10);
+    }
 
     @Test
     public void emptySerialization() throws IOException {

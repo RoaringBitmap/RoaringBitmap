@@ -20,7 +20,12 @@ import java.util.*;
 @SuppressWarnings({ "static-method" })
 public class TestRoaringBitmap {
 
-
+    @Test
+    public void testFlipOnEmpty() {
+        RoaringBitmap r1 = new RoaringBitmap();
+        r1.flip(0, 10);
+        Assert.assertTrue(r1.getCardinality() == 10);
+    }
 
     @Test
     public void containerSharingWithXor() {
