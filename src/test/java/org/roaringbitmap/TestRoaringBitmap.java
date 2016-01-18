@@ -20,6 +20,8 @@ import java.util.*;
 @SuppressWarnings({ "static-method" })
 public class TestRoaringBitmap {
 
+
+
     @Test
     public void containerSharingWithXor() {
         RoaringBitmap r1 = new RoaringBitmap();

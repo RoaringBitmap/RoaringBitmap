@@ -102,7 +102,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
             throw new RuntimeException("I failed to find one of the right cookies. "+ cookie);
         boolean hasRunContainers = ((cookie & 0xFFFF) == SERIAL_COOKIE); 
         this.size = hasRunContainers? (cookie >>> 16) + 1 : buffer.getInt(4);
-        int theLimit = computeSerializedSizeInBytes();
+        int theLimit = size > 0 ? computeSerializedSizeInBytes() : headerSize(hasRunContainers);
         buffer.limit(theLimit);
     }
 
@@ -145,6 +145,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
     
     private int computeSerializedSizeInBytes() {
+        if(this.size == 0) return headerSize(hasRunCompression());
         int CardinalityOfLastContainer = getCardinality(this.size - 1);
         int PositionOfLastContainer = getOffsetContainer(this.size - 1);
         int SizeOfLastContainer;
@@ -155,7 +156,6 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         }
         else {
             SizeOfLastContainer = BufferUtil.getSizeInBytesFromCardinalityEtc(CardinalityOfLastContainer,0,false);
-
         }
         return SizeOfLastContainer + PositionOfLastContainer;
     }
@@ -173,6 +173,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
     @Override
     public int getCardinality(int k) {
+        if((k<0) || (k>= this.size)) throw new IllegalArgumentException("out of range container index: "+k+" (report as a bug)");
         return BufferUtil.toIntUnsigned(buffer.getShort(this.getStartOfKeys() + 4 * k + 2)) + 1;
     }
 
@@ -231,6 +232,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
 
     private int getOffsetContainer(int k) {
+        if((k<0) || (k>= this.size)) throw new IllegalArgumentException("out of range container index: "+k+" (report as a bug)");
         if (hasRunCompression()) { // account for size of runcontainer bitmap
             if(this.size < MutableRoaringArray.NO_OFFSET_THRESHOLD) {
                 // we do it the hard way

@@ -25,6 +25,23 @@ import java.util.*;
 public class TestRoaringBitmap {
 
     @Test
+    public void emptySerialization() throws IOException {
+        MutableRoaringBitmap rr1 = MutableRoaringBitmap.bitmapOf();
+        MutableRoaringBitmap rr2 = MutableRoaringBitmap.bitmapOf();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(bos);
+        // could call "rr1.runOptimize()" and "rr2.runOptimize" if there
+        // there were runs to compress
+        rr1.serialize(dos);
+        rr2.serialize(dos);
+        dos.close();
+        ByteBuffer bb = ByteBuffer.wrap(bos.toByteArray());
+        ImmutableRoaringBitmap rrback1 = new ImmutableRoaringBitmap(bb);
+        bb.position(bb.position() + rrback1.serializedSizeInBytes());
+        ImmutableRoaringBitmap rrback2 = new ImmutableRoaringBitmap(bb);
+    }
+
+    @Test
     public void containerSharingWithXor() {
         MutableRoaringBitmap r1 = new MutableRoaringBitmap();
         r1.flip(131000, 131001);
