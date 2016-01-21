@@ -1445,8 +1445,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         for (int i = 0; i < this.highLowContainer.size(); i++) {
             Container c = this.highLowContainer.getContainerAtIndex(i);
             if(c instanceof RunContainer) {
-                ((RunContainer)c).toBitmapOrArrayContainer(c.getCardinality());
-                this.highLowContainer.setContainerAtIndex(i, c);
+                Container newc = ((RunContainer)c).toBitmapOrArrayContainer(c.getCardinality());
+                this.highLowContainer.setContainerAtIndex(i, newc);
                 answer = true;
             }
         }

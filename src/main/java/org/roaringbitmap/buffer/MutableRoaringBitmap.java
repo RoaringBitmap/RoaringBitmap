@@ -1128,8 +1128,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         for (int i = 0; i < this.highLowContainer.size(); i++) {
             MappeableContainer c = getMappeableRoaringArray().getContainerAtIndex(i);
             if(c instanceof MappeableRunContainer) {
-                ((MappeableRunContainer)c).toBitmapOrArrayContainer(c.getCardinality());
-                getMappeableRoaringArray().setContainerAtIndex(i, c);
+                MappeableContainer mc = ((MappeableRunContainer)c).toBitmapOrArrayContainer(c.getCardinality());
+                getMappeableRoaringArray().setContainerAtIndex(i, mc);
                 answer = true;
             }
         }

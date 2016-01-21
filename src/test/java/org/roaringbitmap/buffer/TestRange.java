@@ -9,6 +9,41 @@ import org.junit.Test;
 
 
 public class TestRange {
+
+    @Test
+    public void testRangeRemovalWithEightBitsAndRunlengthEncoding1() {
+        final MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+        bitmap.add(1); // index 1
+        bitmap.add(2);
+        bitmap.add(3);
+        bitmap.add(4);
+        bitmap.add(5);
+        bitmap.add(7); // index 7
+
+        bitmap.runOptimize();
+        // should remove from index 0 to 7
+        bitmap.remove(0, 8);
+
+        assertTrue(bitmap.isEmpty());
+    }
+
+    @Test
+    public void testRangeRemovalWithEightBitsAndRunlengthEncoding2() {
+        final MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+        bitmap.add(1); // index 1
+        bitmap.add(2);
+        bitmap.add(3);
+        bitmap.add(4);
+        bitmap.add(5);
+        bitmap.add(7); // index 7
+
+        bitmap.runOptimize();
+        bitmap.removeRunCompression();
+        assertFalse(bitmap.hasRunCompression());
+        // should remove from index 0 to 7
+        bitmap.remove(0, 8);
+        assertTrue(bitmap.isEmpty());
+    }
     @Test
     public void testRangeRemoval() {
         final MutableRoaringBitmap bitmap = new MutableRoaringBitmap();

@@ -1017,8 +1017,7 @@ public final class RunContainer extends Container implements Cloneable {
     public Container remove(short x) {
         int index = unsignedInterleavedBinarySearch(valueslength, 0, nbrruns, x);
         if(index >= 0) {
-            int le =  Util.toIntUnsigned(getLength(index));
-            if(le == 0) {
+            if(getLength(index) == 0) {
                 recoverRoomAtIndex(index); 
             } else {
                 incrementValue(index);
@@ -1293,9 +1292,14 @@ public final class RunContainer extends Container implements Cloneable {
                     closeValueLength(begin - 1, bIndex);
                 }
             }
+
             // last run is one shorter
-            incrementValue(eIndex);
-            decrementLength(eIndex);
+            if(getLength(eIndex) == 0) {// special case where we remove last run
+                recoverRoomsInRange(eIndex,eIndex+1);
+            } else {
+              incrementValue(eIndex);
+              decrementLength(eIndex);
+            }
             recoverRoomsInRange(bIndex, eIndex-1);
 
         } else {
@@ -1463,7 +1467,7 @@ public final class RunContainer extends Container implements Cloneable {
     }
 
     private void decrementLength(int index) {
-        valueslength[2*index + 1]--;
+        valueslength[2*index + 1]--;// caller is responsible to ensure that value is non-zero
     }
 
     private void decrementValue(int index) {

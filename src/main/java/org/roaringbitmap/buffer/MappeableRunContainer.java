@@ -1072,8 +1072,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     public MappeableContainer remove(short x) {
         int index = bufferedUnsignedInterleavedBinarySearch(valueslength, 0, nbrruns, x);
         if(index >= 0) {
-            int le =  BufferUtil.toIntUnsigned(getLength(index));
-            if(le == 0) {
+            if(getLength(index) == 0) {
                 recoverRoomAtIndex(index); 
             } else {
                 incrementValue(index);
@@ -1357,8 +1356,13 @@ public final class MappeableRunContainer extends MappeableContainer implements C
                     closeValueLength(begin - 1, bIndex);
                 }
             }
-            incrementValue(eIndex);
-            decrementLength(eIndex);
+            // last run is one shorter
+            if(getLength(eIndex) == 0) {// special case where we remove last run
+                recoverRoomsInRange(eIndex,eIndex+1);
+            } else {
+              incrementValue(eIndex);
+              decrementLength(eIndex);
+            }
             recoverRoomsInRange(bIndex, eIndex-1);
 
         } else {
@@ -1522,6 +1526,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     }
 
     private void decrementLength(int index) {
+        // caller is responsible to ensure that value is non-zero
         valueslength.put(2*index + 1, (short) (valueslength.get(2*index+1)-1));
     }
 
