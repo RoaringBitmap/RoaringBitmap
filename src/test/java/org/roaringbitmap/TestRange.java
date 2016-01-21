@@ -12,7 +12,86 @@ import org.junit.Test;
 
 
 public class TestRange {
+    @Test
+    public void testRangeRemoval() {
+        final RoaringBitmap bitmap = new RoaringBitmap();
+        bitmap.add(1);
+        assertTrue((bitmap.getCardinality() == 1)&& bitmap.contains(1));
+        bitmap.runOptimize();
+        assertTrue((bitmap.getCardinality() == 1)&& bitmap.contains(1));
+        bitmap.removeRunCompression();
+        assertTrue((bitmap.getCardinality() == 1)&& bitmap.contains(1));
+        bitmap.remove(0,1); // should do nothing
+        assertTrue((bitmap.getCardinality() == 1)&& bitmap.contains(1));        bitmap.remove(1,2);
+        bitmap.remove(1,2); // should clear [1,2)
+        assertTrue(bitmap.isEmpty());
+    }
     
+    @Test
+    public void testRemovalWithAddedAndRemovedRunOptimization() {
+        // with runlength encoding
+        testRangeRemovalWithRandomBits(true);
+    }
+
+    @Test
+    public void testRemovalWithoutAddedAndRemovedRunOptimization() {
+        // without runlength encoding
+        testRangeRemovalWithRandomBits(false);
+    }
+
+    private void testRangeRemovalWithRandomBits(boolean withRunCompression) {
+        final int iterations = 4096;
+        final int bits = 8;
+
+        for (int i = 0; i < iterations; i++) {
+            final BitSet bitset = new BitSet(bits);
+            final RoaringBitmap bitmap = new RoaringBitmap();
+
+            // check, if empty
+            assertTrue(bitset.isEmpty());
+            assertTrue(bitmap.isEmpty());
+
+            // fill with random bits
+            final int added = fillWithRandomBits(bitmap, bitset, bits);
+
+            // check for cardinalities and if not empty
+            assertTrue(added > 0 ? !bitmap.isEmpty() : bitmap.isEmpty());
+            assertTrue(added > 0 ? !bitset.isEmpty() : bitset.isEmpty());
+            assertEquals(added, bitmap.getCardinality());
+            assertEquals(added, bitset.cardinality());
+
+            // apply runtime compression or not
+            if (withRunCompression) {
+                bitmap.runOptimize();
+                bitmap.removeRunCompression();
+            }
+
+            // clear and check bitmap, if really empty
+            bitmap.remove(0, bits);          
+            assertEquals("fails with bits: "+bitset, 0, bitmap.getCardinality());
+            assertTrue(bitmap.isEmpty());
+
+            // clear java's bitset
+            bitset.clear(0, bits);
+            assertEquals(0, bitset.cardinality());
+            assertTrue(bitset.isEmpty());
+        }
+    }
+
+    private static int fillWithRandomBits(final RoaringBitmap bitmap, final BitSet bitset, final int bits) {
+        int added = 0;
+        Random r = new Random(1011);
+        for (int j = 0; j < bits; j++) {
+            if (r.nextBoolean()) {
+                added++;
+                bitmap.add(j);
+                bitset.set(j);
+            }
+        }
+        return added;
+    }
+
+
 	@Test
 	public void testFlipRanges()  {
 		int N = 256;
