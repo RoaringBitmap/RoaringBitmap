@@ -1,3 +1,6 @@
+version 0.5.18
+ - Fix for issue #67 Range removal fails with specific bits, when runlength encoding was applied/removed
+
 version 0.5.17
  - Fix for issue #64 Unserialising empty ImmutableRoaringBitmaps results in a RuntimeException
 
