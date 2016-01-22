@@ -193,10 +193,18 @@ public final class BufferFastAggregation {
      * @return aggregated bitmap
      */
     public static MutableRoaringBitmap naive_and(ImmutableRoaringBitmap... bitmaps) {
-       MutableRoaringBitmap answer = new MutableRoaringBitmap();
-       for(int k = 0; k < bitmaps.length; ++k)
-          answer.and(bitmaps[k]);
-       return answer;
+        MutableRoaringBitmap answer;
+
+        if (bitmaps.length > 0) {
+            answer = (bitmaps[0]).toMutableRoaringBitmap();
+            for (int k = 1; k < bitmaps.length; ++k) {
+                answer = MutableRoaringBitmap.and(answer, bitmaps[k]);
+            }
+        } else {
+            answer = new MutableRoaringBitmap();
+        }
+
+        return answer;
     }
 
 
