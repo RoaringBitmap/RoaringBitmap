@@ -5,7 +5,6 @@
 
 package org.roaringbitmap.buffer;
 
-import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.ImmutableBitmapDataProvider;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.RoaringBitmap;
@@ -852,6 +851,10 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
         }
         return c;
     }
+    
+    public RoaringBitmap toRoaringBitmap() {
+        return new RoaringBitmap(this);
+    }
 
     /**
      * A string describing the bitmap.
@@ -1022,6 +1025,16 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
         throw new IllegalArgumentException("select "+j+" when the cardinality is "+this.getCardinality());
     }
     
+    
+    /**
+     * Return a low-level container pointer that can be used to access
+     * the underlying data structure. 
+     * 
+     * @return container pointer
+     */
+    public MappeableContainerPointer getContainerPointer() {
+        return this.highLowContainer.getContainerPointer();
+    }
 
 
     /**

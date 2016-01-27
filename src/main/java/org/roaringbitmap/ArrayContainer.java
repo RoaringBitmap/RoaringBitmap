@@ -10,6 +10,9 @@ import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import org.roaringbitmap.buffer.MappeableArrayContainer;
+import org.roaringbitmap.buffer.MappeableContainer;
+
 
 /**
  * Simple container made of an array of 16-bit integers
@@ -69,9 +72,27 @@ public final class ArrayContainer extends Container implements Cloneable {
         cardinality = valuesInRange;
     }
 
-    private ArrayContainer(int newCard, short[] newContent) {
+    /**
+     * Create a new container, no copy is made
+     * @param newCard desired cardinality
+     * @param newContent actual values (length should equal or exceed cardinality)
+     */
+    public ArrayContainer(int newCard, short[] newContent) {
+        if(newContent.length <newCard) throw new IllegalArgumentException("insufficient capacity");
         this.cardinality = newCard;
         this.content = Arrays.copyOf(newContent, newCard);
+    }
+    
+    /**
+     * Creates a new non-mappeable container from a mappeable one. This copies
+     * the data.
+     * 
+     * @param bc
+     *            the original container
+     */
+    public ArrayContainer(MappeableArrayContainer bc) {
+        this.cardinality = bc.getCardinality();
+        this.content = bc.toShortArray();
     }
 
     protected ArrayContainer(short[] newContent) {
@@ -1015,6 +1036,12 @@ public final class ArrayContainer extends Container implements Cloneable {
         } else {
             return this;
         }
+    }
+
+
+    @Override
+    public MappeableContainer toMappeableContainer() {
+        return new MappeableArrayContainer(this);
     }
    
 

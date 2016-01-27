@@ -10,7 +10,7 @@ package org.roaringbitmap.buffer;
  * This interface allows you to iterate over the containers in a roaring bitmap.
  * 
  */
-interface MappeableContainerPointer extends
+public interface MappeableContainerPointer extends
         Comparable<MappeableContainerPointer>, Cloneable {
     /**
      * Move to the next container

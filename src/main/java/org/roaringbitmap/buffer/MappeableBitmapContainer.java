@@ -6,6 +6,7 @@
 package org.roaringbitmap.buffer;
 
 import org.roaringbitmap.BitmapContainer;
+import org.roaringbitmap.Container;
 import org.roaringbitmap.ShortIterator;
 import org.roaringbitmap.Util;
 
@@ -36,7 +37,17 @@ public final class MappeableBitmapContainer extends MappeableContainer
         this.cardinality = 0;
         this.bitmap = LongBuffer.allocate(MAX_CAPACITY / 64);
     }
-
+    
+    /**
+     * Create a copy of the content of this container as a long array.
+     * This creates a copy.
+     */
+    public long[] toLongArray() {
+        long[] answer = new long[bitmap.limit()];
+        bitmap.rewind();
+        bitmap.get(answer);
+        return answer;
+    }
     /**
      * Create a bitmap container with a run of ones from firstOfRun to
      * lastOfRun, inclusive caller must ensure that the range isn't so small
@@ -94,6 +105,16 @@ public final class MappeableBitmapContainer extends MappeableContainer
                             + array.limit() + " vs. " + MAX_CAPACITY / 64);
         this.cardinality = initCardinality;
         this.bitmap = array;
+    }
+    
+    /**
+     * Creates a new bitmap container from a non-mappeable one.
+     * This copies the data.
+     * @param bc the original container
+     */
+    public MappeableBitmapContainer(BitmapContainer bc) {
+        this.cardinality = bc.getCardinality();
+        this.bitmap = bc.toLongBuffer();
     }
 
     @Override
@@ -1800,6 +1821,11 @@ public final class MappeableBitmapContainer extends MappeableContainer
     
     // optimization flag: whether the cardinality of the bitmaps is maintained through branchless operations
     public static final boolean USE_BRANCHLESS = true;
+
+    @Override
+    public Container toContainer() {
+        return new BitmapContainer(this);
+    }
 
 }
 

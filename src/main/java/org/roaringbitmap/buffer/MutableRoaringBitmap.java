@@ -6,7 +6,9 @@
 package org.roaringbitmap.buffer;
 
 import org.roaringbitmap.BitmapDataProvider;
+import org.roaringbitmap.ContainerPointer;
 import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.ShortIterator;
 import org.roaringbitmap.Util;
 
@@ -156,6 +158,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
             ans.add(i);
         return ans;
     }
+    
 
     /**
      * Complements the bits in the given range, from rangeStart (inclusive)
@@ -362,6 +365,24 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     public MutableRoaringBitmap() {
         highLowContainer = new MutableRoaringArray();
     }
+    
+    /**
+     * Create a MutableRoaringBitmap from a RoaringBitmap. The RoaringBitmap is
+     * not modified.
+     * 
+     * @param rb
+     *            the original bitmap
+     */
+    public MutableRoaringBitmap(RoaringBitmap rb) {
+        highLowContainer = new MutableRoaringArray();
+        ContainerPointer cp = rb.getContainerPointer();
+        while (cp.getContainer() != null) {
+            ((MutableRoaringArray) highLowContainer).append(cp.key(), cp
+                    .getContainer().toMappeableContainer());
+            cp.advance();
+        }
+    }
+
     /**
      * Add the value to the container (set the value to "true"), whether it already appears or not.
      *
@@ -905,6 +926,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
             ((MutableRoaringArray)highLowContainer).setContainerAtIndex(k,c.repairAfterLazy());
         }
     }
+    
+
     
     // important: inputs should not have been computed lazily
     protected static MutableRoaringBitmap lazyorfromlazyinputs(final MutableRoaringBitmap x1,

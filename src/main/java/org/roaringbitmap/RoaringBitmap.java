@@ -8,6 +8,10 @@ package org.roaringbitmap;
 import java.io.*;
 import java.util.Iterator;
 
+import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+import org.roaringbitmap.buffer.MappeableContainerPointer;
+import org.roaringbitmap.buffer.MutableRoaringBitmap;
+
 
 /**
  * RoaringBitmap, a compressed alternative to the BitSet.
@@ -576,6 +580,24 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     public RoaringBitmap() {
         highLowContainer = new RoaringArray();
     }
+    
+    /**
+     * Create a RoaringBitmap from a MutableRoaringBitmap or ImmutableRoaringBitmap. The  source is
+     * not modified.
+     * 
+     * @param rb
+     *            the original bitmap
+     */
+    public RoaringBitmap(ImmutableRoaringBitmap rb) {
+        highLowContainer = new RoaringArray();
+        MappeableContainerPointer cp = rb.getContainerPointer();
+        while (cp.getContainer() != null) {
+            highLowContainer.append(cp.key(), cp
+                    .getContainer().toContainer());
+            cp.advance();
+        }
+    }
+
     
     /**
      * Add the value to the container (set the value to "true"), whether it already appears or not.
@@ -1435,6 +1457,16 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         return answer;
     }
     
+    
+    /**
+     * Return a low-level container pointer that can be used to access
+     * the underlying data structure. 
+     * 
+     * @return container pointer
+     */
+    public ContainerPointer getContainerPointer() {
+        return this.highLowContainer.getContainerPointer();
+    }
 
     /**
      *  Remove run-length encoding even when it is more space efficient
@@ -1483,6 +1515,14 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
             }
         }
         return false;
+    }
+    
+    
+    /**
+     * Convert to a mutable roaring bitmap.
+     */
+    public MutableRoaringBitmap toMutableRoaringBitmap() {
+        return new MutableRoaringBitmap(this);
     }
 
     

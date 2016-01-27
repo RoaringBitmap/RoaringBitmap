@@ -5,7 +5,9 @@
 package org.roaringbitmap.buffer;
 
 
+import org.roaringbitmap.Container;
 import org.roaringbitmap.PeekableShortIterator;
+import org.roaringbitmap.RunContainer;
 import org.roaringbitmap.ShortIterator;
 
 import java.io.*;
@@ -58,6 +60,26 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         this.valueslength = array;
     }
 
+
+    /**
+     * Creates a new  container from a non-mappeable one.
+     * This copies the data.
+     * @param bc the original container
+     */
+    public MappeableRunContainer(RunContainer bc) {
+        this.nbrruns = bc.numberOfRuns();
+        this.valueslength = bc.toShortBuffer();
+    }
+    /**
+     * Create a copy of the content of this container as a short array.
+     * This creates a copy.
+     */
+    public short[] toShortArray() {
+        short[] answer = new short[2*nbrruns];
+        valueslength.rewind();
+        valueslength.get(answer);
+        return answer;
+    }
 
 
     // unused method, can be used as part of unit testing
@@ -237,7 +259,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
 
     @Override
-    int numberOfRuns() {
+    public int numberOfRuns() {
         return this.nbrruns;
     }
 
@@ -2210,6 +2232,11 @@ public final class MappeableRunContainer extends MappeableContainer implements C
             }
         }
         return false;
+    }
+
+    @Override
+    public Container toContainer() {
+        return new RunContainer(this);
     }
 
 }

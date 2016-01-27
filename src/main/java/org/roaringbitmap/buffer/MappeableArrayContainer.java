@@ -5,6 +5,8 @@
 
 package org.roaringbitmap.buffer;
 
+import org.roaringbitmap.ArrayContainer;
+import org.roaringbitmap.Container;
 import org.roaringbitmap.PeekableShortIterator;
 import org.roaringbitmap.ShortIterator;
 import org.roaringbitmap.Util;
@@ -37,6 +39,20 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     public MappeableArrayContainer() {
         this(DEFAULT_INIT_SIZE);
     }
+    
+    
+    /**
+     * Create a copy of the content of this container as a short array.
+     * This creates a copy.
+     */
+    public short[] toShortArray() {
+        short[] answer = new short[cardinality];
+        content.rewind();
+        content.get(answer);
+        return answer;
+    }
+    
+    
 
     /**
      * Create an array container with specified capacity
@@ -95,6 +111,15 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         this.content = array;
     }
 
+    /**
+     * Creates a new  container from a non-mappeable one.
+     * This copies the data.
+     * @param bc the original container
+     */
+    public MappeableArrayContainer(ArrayContainer bc) {
+        this.cardinality = bc.getCardinality();
+        this.content = bc.toShortBuffer();
+    }
     @Override
     int numberOfRuns() {
         if(cardinality == 0)
@@ -1277,6 +1302,12 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         } else {
             return this;
         }
+    }
+
+
+    @Override
+    public Container toContainer() {
+        return new ArrayContainer(this);
     }
 
 
