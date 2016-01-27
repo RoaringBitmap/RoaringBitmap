@@ -6,6 +6,7 @@
 package org.roaringbitmap;
 
 import java.io.*;
+import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -31,7 +32,18 @@ public final class BitmapContainer extends Container implements Cloneable {
         this.cardinality = 0;
         this.bitmap = new long[MAX_CAPACITY / 64];
     }
-
+    
+    /**
+     * Return the content of this container as a LongBuffer.
+     * This creates a copy and might be relatively slow.
+     * @return the LongBuffer
+     */
+    public LongBuffer toLongBuffer() {
+        LongBuffer lb = LongBuffer.allocate(bitmap.length);
+        lb.put(bitmap);
+        return lb;
+    }
+    
     /**
      * Create a bitmap container with a run of ones from firstOfRun to
      * lastOfRun.  Caller must ensure that the range isn't so small

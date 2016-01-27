@@ -9,6 +9,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -39,6 +40,16 @@ public final class RunContainer extends Container implements Cloneable {
         this.valueslength = Arrays.copyOf(valueslength, valueslength.length);
     }
 
+    /**
+     * Return the content of this container as a ShortBuffer.
+     * This creates a copy and might be relatively slow.
+     * @return the ShortBuffer
+     */
+    public ShortBuffer toShortBuffer() {
+        ShortBuffer sb = ShortBuffer.allocate(this.nbrruns*2);
+        sb.put(this.valueslength, 0, this.nbrruns*2);
+        return sb;
+    }
     @Override
     public String toString() {
         StringBuffer sb = new StringBuffer();

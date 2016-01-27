@@ -6,6 +6,7 @@
 package org.roaringbitmap;
 
 import java.io.*;
+import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -29,6 +30,18 @@ public final class ArrayContainer extends Container implements Cloneable {
      */
     public ArrayContainer() {
         this(DEFAULT_INIT_SIZE);
+    }
+    
+    
+    /**
+     * Return the content of this container as a ShortBuffer.
+     * This creates a copy and might be relatively slow.
+     * @return the ShortBuffer
+     */
+    public ShortBuffer toShortBuffer() {
+        ShortBuffer sb = ShortBuffer.allocate(this.cardinality);
+        sb.put(this.content, 0, this.cardinality);
+        return sb;
     }
 
     /**
