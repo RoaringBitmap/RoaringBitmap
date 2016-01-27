@@ -78,7 +78,6 @@ public final class ArrayContainer extends Container implements Cloneable {
      * @param newContent actual values (length should equal or exceed cardinality)
      */
     public ArrayContainer(int newCard, short[] newContent) {
-        if(newContent.length <newCard) throw new IllegalArgumentException("insufficient capacity");
         this.cardinality = newCard;
         this.content = Arrays.copyOf(newContent, newCard);
     }
