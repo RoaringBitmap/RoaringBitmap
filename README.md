@@ -115,7 +115,7 @@ formats like WAH, EWAH, Concise... Maybe surprisingly, Roaring also generally of
 API docs
 ---------
 
-http://lemire.me/docs/RoaringBitmap/
+http://www.javadoc.io/doc/org.roaringbitmap/RoaringBitmap/
 
 Scientific Documentation
 --------------------------
@@ -193,7 +193,7 @@ You can download releases from the Maven repository:
 http://central.maven.org/maven2/org/roaringbitmap/RoaringBitmap/
 
 or from github:
-https://github.com/lemire/RoaringBitmap/releases
+https://github.com/RoaringBitmap/RoaringBitmap/releases
 
 Maven repository
 ----------------
@@ -271,4 +271,4 @@ This work was supported by NSERC grant number 26143.
 [license img]:https://img.shields.io/badge/License-Apache%202-blue.svg
 
 [docs-badge]:https://img.shields.io/badge/API-docs-blue.svg?style=flat-square
-[docs]:http://lemire.me/docs/RoaringBitmap/
+[docs]:http://www.javadoc.io/doc/org.roaringbitmap/RoaringBitmap/
