@@ -1,5 +1,6 @@
-upcoming
- - ability to convert directly and efficiently from and to RoaringBitmap and MutableRoaringBitmap/ImmutableRoaringBitmap:wq
+version 0.5.19
+ - ability to convert directly and efficiently from and to RoaringBitmap and MutableRoaringBitmap/ImmutableRoaringBitmap
+ - Fix for issue #71 fixed bug on hashCode() method. It entered an infinite loop
 
 version 0.5.18
  - Fix for issue #67 Range removal fails with specific bits, when runlength encoding was applied/removed
