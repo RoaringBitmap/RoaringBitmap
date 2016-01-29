@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.roaringbitmap</groupId>
   <artifactId>RoaringBitmap</artifactId>
-  <version>0.5.20-SNAPSHOT</version>
+  <version>0.5.20</version>
   <name>RoaringBitmap</name>
   <url>https://github.com/lemire/RoaringBitmap</url>
   <description>Roaring bitmaps are compressed bitmaps (also called bitsets) which tend to outperform
