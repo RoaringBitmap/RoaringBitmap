@@ -5,6 +5,7 @@ RoaringBitmap
 [![][maven img]][maven]
 [![][license img]][license]
 [![docs-badge][]][docs]
+[![Coverage Status](https://coveralls.io/repos/github/RoaringBitmap/RoaringBitmap/badge.svg?branch=master)](https://coveralls.io/github/RoaringBitmap/RoaringBitmap?branch=master)
 
 Bitsets, also called bitmaps, are commonly used as fast data structures.
 Unfortunately, they can use too much memory. To compensate, we often use
