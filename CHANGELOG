@@ -1,3 +1,6 @@
+version 0.5.20
+ - Fix for ClassCastException when cloning ImmutableRoaringBitmap
+
 version 0.5.19
  - ability to convert directly and efficiently from and to RoaringBitmap and MutableRoaringBitmap/ImmutableRoaringBitmap
  - Fix for issue #71 fixed bug on hashCode() method. It entered an infinite loop

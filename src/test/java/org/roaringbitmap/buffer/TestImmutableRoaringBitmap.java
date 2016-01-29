@@ -245,6 +245,7 @@ public class TestImmutableRoaringBitmap {
             b.flip();
             ImmutableRoaringBitmap irb = new ImmutableRoaringBitmap(b);
             Assert.assertTrue(irb.equals(r));
+            Assert.assertTrue(irb.hashCode() == r.hashCode());
             Assert.assertTrue(irb.getCardinality() == r.getCardinality());
         }
     }
@@ -298,7 +299,7 @@ public class TestImmutableRoaringBitmap {
             }.init(b)));
             b.flip();
             ImmutableRoaringBitmap irb = new ImmutableRoaringBitmap(b);
-            Assert.assertTrue(irb.equals(r));
+            Assert.assertTrue(irb.hashCode() == r.hashCode());
             Assert.assertTrue(irb.getCardinality() == r.getCardinality());
         }
     }
@@ -417,6 +418,8 @@ public class TestImmutableRoaringBitmap {
         final MutableRoaringBitmap correct = MutableRoaringBitmap.andNot(rr, rr2);
         rr.andNot(rr2);
         Assert.assertTrue(correct.equals(rr));
+        Assert.assertTrue(correct.hashCode() == rr.hashCode());
+
     }
 
 
@@ -464,6 +467,8 @@ public class TestImmutableRoaringBitmap {
         final MutableRoaringBitmap correct = MutableRoaringBitmap.andNot(rr, rr2);
         rr.andNot(rr2);
         Assert.assertTrue(correct.equals(rr));
+        Assert.assertTrue(correct.hashCode() == rr.hashCode());
+
     }
 
     @Test
@@ -509,6 +514,8 @@ public class TestImmutableRoaringBitmap {
         final MutableRoaringBitmap correct = MutableRoaringBitmap.andNot(rr, rr2);
         rr.andNot(rr2);
         Assert.assertTrue(correct.equals(rr));
+        Assert.assertTrue(correct.hashCode() == rr.hashCode());
+
     }
 
 
@@ -555,6 +562,7 @@ public class TestImmutableRoaringBitmap {
         final MutableRoaringBitmap correct = MutableRoaringBitmap.andNot(rr, rr2);
         rr.andNot(rr2);
         Assert.assertTrue(correct.equals(rr));
+        Assert.assertTrue(correct.hashCode() == rr.hashCode());
     }
 
 

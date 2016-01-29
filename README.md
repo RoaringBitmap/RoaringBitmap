@@ -5,6 +5,7 @@ RoaringBitmap
 [![][maven img]][maven]
 [![][license img]][license]
 [![docs-badge][]][docs]
+[![Coverage Status](https://coveralls.io/repos/github/RoaringBitmap/RoaringBitmap/badge.svg?branch=master)](https://coveralls.io/github/RoaringBitmap/RoaringBitmap?branch=master)
 
 Bitsets, also called bitmaps, are commonly used as fast data structures.
 Unfortunately, they can use too much memory. To compensate, we often use
@@ -115,7 +116,7 @@ formats like WAH, EWAH, Concise... Maybe surprisingly, Roaring also generally of
 API docs
 ---------
 
-http://lemire.me/docs/RoaringBitmap/
+http://www.javadoc.io/doc/org.roaringbitmap/RoaringBitmap/
 
 Scientific Documentation
 --------------------------
@@ -193,7 +194,7 @@ You can download releases from the Maven repository:
 http://central.maven.org/maven2/org/roaringbitmap/RoaringBitmap/
 
 or from github:
-https://github.com/lemire/RoaringBitmap/releases
+https://github.com/RoaringBitmap/RoaringBitmap/releases
 
 Maven repository
 ----------------
@@ -271,4 +272,4 @@ This work was supported by NSERC grant number 26143.
 [license img]:https://img.shields.io/badge/License-Apache%202-blue.svg
 
 [docs-badge]:https://img.shields.io/badge/API-docs-blue.svg?style=flat-square
-[docs]:http://lemire.me/docs/RoaringBitmap/
+[docs]:http://www.javadoc.io/doc/org.roaringbitmap/RoaringBitmap/
