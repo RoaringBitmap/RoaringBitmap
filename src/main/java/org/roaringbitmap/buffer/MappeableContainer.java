@@ -5,7 +5,10 @@
 
 package org.roaringbitmap.buffer;
 
+import org.roaringbitmap.Container;
 import org.roaringbitmap.ShortIterator;
+
+
 
 import java.io.DataOutput;
 import java.io.Externalizable;
@@ -31,6 +34,13 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable,
             return "mappeablerun";
         }
     }
+    
+    /**
+     * Convert to a non-mappeable container.
+     * @return the non-mappeable container
+     */
+     public abstract Container toContainer();
+
     
     /**
      * Create a container initialized with a range of consecutive values

@@ -6,8 +6,12 @@
 package org.roaringbitmap;
 
 import java.io.*;
+import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
+
+import org.roaringbitmap.buffer.MappeableArrayContainer;
+import org.roaringbitmap.buffer.MappeableContainer;
 
 
 /**
@@ -29,6 +33,18 @@ public final class ArrayContainer extends Container implements Cloneable {
      */
     public ArrayContainer() {
         this(DEFAULT_INIT_SIZE);
+    }
+    
+    
+    /**
+     * Return the content of this container as a ShortBuffer.
+     * This creates a copy and might be relatively slow.
+     * @return the ShortBuffer
+     */
+    public ShortBuffer toShortBuffer() {
+        ShortBuffer sb = ShortBuffer.allocate(this.cardinality);
+        sb.put(this.content, 0, this.cardinality);
+        return sb;
     }
 
     /**
@@ -56,9 +72,26 @@ public final class ArrayContainer extends Container implements Cloneable {
         cardinality = valuesInRange;
     }
 
-    private ArrayContainer(int newCard, short[] newContent) {
+    /**
+     * Create a new container, no copy is made
+     * @param newCard desired cardinality
+     * @param newContent actual values (length should equal or exceed cardinality)
+     */
+    public ArrayContainer(int newCard, short[] newContent) {
         this.cardinality = newCard;
         this.content = Arrays.copyOf(newContent, newCard);
+    }
+    
+    /**
+     * Creates a new non-mappeable container from a mappeable one. This copies
+     * the data.
+     * 
+     * @param bc
+     *            the original container
+     */
+    public ArrayContainer(MappeableArrayContainer bc) {
+        this.cardinality = bc.getCardinality();
+        this.content = bc.toShortArray();
     }
 
     protected ArrayContainer(short[] newContent) {
@@ -1002,6 +1035,12 @@ public final class ArrayContainer extends Container implements Cloneable {
         } else {
             return this;
         }
+    }
+
+
+    @Override
+    public MappeableContainer toMappeableContainer() {
+        return new MappeableArrayContainer(this);
     }
    
 

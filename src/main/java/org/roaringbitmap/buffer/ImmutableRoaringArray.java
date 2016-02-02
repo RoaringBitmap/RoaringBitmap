@@ -412,6 +412,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         while (cp.hasContainer()) {
             int th = cp.key() * 0xF0F0F0 + cp.getContainer().hashCode();
             hashvalue = 31 * hashvalue + th;
+            cp.advance();
         }
         return hashvalue;
     }

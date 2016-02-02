@@ -132,6 +132,17 @@ public class TestMemoryMapping {
         ImmutableRoaringBitmap rrback2 = new ImmutableRoaringBitmap(bb);
         Assert.assertTrue(rr1.equals(rrback1));
         Assert.assertTrue(rr2.equals(rrback2));
+        ImmutableRoaringBitmap rrback1c = rrback1.clone();
+        ImmutableRoaringBitmap rrback2c = rrback2.clone();
+        Assert.assertTrue(rr1.equals(rrback1c));
+        Assert.assertTrue(rr2.equals(rrback2c));
+        Assert.assertTrue(rrback1.equals(rrback1c));
+        Assert.assertTrue(rrback2.equals(rrback2c));
+        Assert.assertEquals(rr1.hashCode(), rrback1.hashCode());
+        Assert.assertEquals(rr1.hashCode(), rrback1c.hashCode());
+        Assert.assertEquals(rr2.hashCode(), rrback2.hashCode());
+        Assert.assertEquals(rr2.hashCode(), rrback2c.hashCode());
+
     }
 
     @Test

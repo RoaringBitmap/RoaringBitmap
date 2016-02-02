@@ -9,8 +9,12 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
+
+import org.roaringbitmap.buffer.MappeableContainer;
+import org.roaringbitmap.buffer.MappeableRunContainer;
 
 
 
@@ -39,6 +43,16 @@ public final class RunContainer extends Container implements Cloneable {
         this.valueslength = Arrays.copyOf(valueslength, valueslength.length);
     }
 
+    /**
+     * Return the content of this container as a ShortBuffer.
+     * This creates a copy and might be relatively slow.
+     * @return the ShortBuffer
+     */
+    public ShortBuffer toShortBuffer() {
+        ShortBuffer sb = ShortBuffer.allocate(this.nbrruns*2);
+        sb.put(this.valueslength, 0, this.nbrruns*2);
+        return sb;
+    }
     @Override
     public String toString() {
         StringBuffer sb = new StringBuffer();
@@ -72,6 +86,16 @@ public final class RunContainer extends Container implements Cloneable {
         this.valueslength = array;
     }
 
+    
+    /**
+     * Creates a new non-mappeable container from a mappeable one.
+     * This copies the data.
+     * @param bc the original container
+     */
+    public RunContainer(MappeableRunContainer bc) {
+        this.nbrruns = bc.numberOfRuns();
+        this.valueslength = bc.toShortArray();
+    }
 
 
     // lower-level specialized implementations might be faster
@@ -173,7 +197,7 @@ public final class RunContainer extends Container implements Cloneable {
 
 
     @Override
-    int numberOfRuns() {
+    public int numberOfRuns() {
         return nbrruns;
     }
 
@@ -2217,6 +2241,11 @@ public final class RunContainer extends Container implements Cloneable {
             }
         }
         return false;
+    }
+
+    @Override
+    public MappeableContainer toMappeableContainer() {
+        return new MappeableRunContainer(this);
     }
 
 }

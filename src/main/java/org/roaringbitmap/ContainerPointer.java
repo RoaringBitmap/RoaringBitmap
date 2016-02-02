@@ -11,7 +11,7 @@ package org.roaringbitmap;
  * iterate over the containers in a roaring bitmap.
  *
  */
-interface ContainerPointer extends Comparable<ContainerPointer>{
+public interface ContainerPointer extends Comparable<ContainerPointer>{
     /**
      * This method can be used to check whether there is current a valid
      * container as it returns null when there is not.

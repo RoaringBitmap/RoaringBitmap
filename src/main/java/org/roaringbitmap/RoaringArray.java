@@ -28,6 +28,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
         this.values = new Container[INITIAL_CAPACITY];
     }
 
+
     protected void append(short key, Container value) {
         extendArray(1);
         this.keys[this.size] = key;
@@ -474,7 +475,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
         }
     }
 
-    protected ContainerPointer getContainerPointer() {
+    public ContainerPointer getContainerPointer() {
         return new ContainerPointer() {
             int k = 0;
             @Override

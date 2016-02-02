@@ -24,6 +24,23 @@ import java.util.*;
 @SuppressWarnings({"static-method"})
 public class TestRoaringBitmap {
     
+    @Test
+    public void conversionTest() {
+        RoaringBitmap rb = new RoaringBitmap();
+        for(int i = 0; i < 100; i++) {
+            rb.add(i);
+        }
+        for(int i = 0; i < 100; i++) {
+            rb.add(i*2 + (1<<16));
+        }
+        for(int i = 0; i < (1<<16); i++) {
+            rb.add(i*2 + 2*(1<<16));
+        }
+        rb.runOptimize();
+        MutableRoaringBitmap mrb = rb.toMutableRoaringBitmap();
+        RoaringBitmap rb2 = mrb.toRoaringBitmap();
+        Assert.assertEquals(rb, rb2);
+    }
     
     @Test
     public void testFlipOnEmpty() {

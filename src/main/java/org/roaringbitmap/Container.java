@@ -10,6 +10,8 @@ import java.io.DataOutput;
 import java.io.Externalizable;
 import java.io.IOException;
 
+import org.roaringbitmap.buffer.MappeableContainer;
+
 /**
  * Base container class.
  */
@@ -454,6 +456,12 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
             return ior((BitmapContainer) x);
         return ior((RunContainer) x);
     }
+    
+    /**
+     * Convert to a mappeable container.
+     * @return the mappeable container
+     */
+    public abstract MappeableContainer toMappeableContainer();
 
     /**
      * Computes the in-place bitwise XOR of this container with another

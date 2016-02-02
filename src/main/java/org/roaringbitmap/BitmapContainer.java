@@ -6,8 +6,12 @@
 package org.roaringbitmap;
 
 import java.io.*;
+import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
+
+import org.roaringbitmap.buffer.MappeableBitmapContainer;
+import org.roaringbitmap.buffer.MappeableContainer;
 
 
 /**
@@ -31,7 +35,18 @@ public final class BitmapContainer extends Container implements Cloneable {
         this.cardinality = 0;
         this.bitmap = new long[MAX_CAPACITY / 64];
     }
-
+    
+    /**
+     * Return the content of this container as a LongBuffer.
+     * This creates a copy and might be relatively slow.
+     * @return the LongBuffer
+     */
+    public LongBuffer toLongBuffer() {
+        LongBuffer lb = LongBuffer.allocate(bitmap.length);
+        lb.put(bitmap);
+        return lb;
+    }
+    
     /**
      * Create a bitmap container with a run of ones from firstOfRun to
      * lastOfRun.  Caller must ensure that the range isn't so small
@@ -64,9 +79,26 @@ public final class BitmapContainer extends Container implements Cloneable {
         this.bitmap = Arrays.copyOf(newBitmap, newBitmap.length);
     }
 
-    protected BitmapContainer(long[] newBitmap, int newCardinality) {
+    /**
+     * Create a new container, no copy is made.
+     * @param newBitmap content
+     * @param newCardinality desired cardinality.
+     */
+    public BitmapContainer(long[] newBitmap, int newCardinality) {
         this.cardinality = newCardinality;
         this.bitmap = newBitmap;
+    }
+
+    /**
+     * Creates a new non-mappeable container from a mappeable one. This copies
+     * the data.
+     * 
+     * @param bc
+     *            the original container
+     */
+    public BitmapContainer(MappeableBitmapContainer bc) {
+        this.cardinality = bc.getCardinality();
+        this.bitmap = bc.toLongArray();
     }
 
 
@@ -1210,6 +1242,11 @@ public final class BitmapContainer extends Container implements Cloneable {
     
     // optimization flag: whether the cardinality of the bitmaps is maintained through branchless operations
     public static final boolean USE_BRANCHLESS = true;
+
+    @Override
+    public MappeableContainer toMappeableContainer() {
+        return new MappeableBitmapContainer(this);
+    }
 
 }
 
