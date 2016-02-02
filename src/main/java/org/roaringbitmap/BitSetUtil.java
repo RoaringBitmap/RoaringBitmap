@@ -23,9 +23,23 @@ public class BitSetUtil {
 			bitmap.highLowContainer.append((short)0, arrayContainerOf(cardinality, bitSet));
 			return bitmap;
 		} else {
-			return bitmapOf(cardinality, bitSet.toLongArray());
+			// before jdk 1.7
+			return bitmapOf(cardinality, toLongArray(cardinality, bitSet));
+			// starting with jdk.17
+			//return bitmapOf(cardinality, bitSet.toLongArray());
 		}
 	}
+	
+	private static long[] toLongArray(final int cardinality, final BitSet bitSet) {		
+		final long[] words = new long[(bitSet.length() + 63) / 64];
+	    for (int i = bitSet.nextSetBit(0); i >= 0; i = bitSet.nextSetBit(i+1)) {
+            if (i == Integer.MAX_VALUE) {
+                break;
+            }
+            words[i / 64] |= (1L << i % 64); 
+	    }
+	    return words;
+   }
 
 	/**
 	 * Generate RoaringBitmap out of a long[], each long using little-endian representation of its bits 
