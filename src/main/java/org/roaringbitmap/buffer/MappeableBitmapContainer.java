@@ -538,24 +538,28 @@ public final class MappeableBitmapContainer extends MappeableContainer
         int pos = 0;
         if (BufferUtil.isBackedBySimpleArray(bitmap)) {
             long[] b = bitmap.array();
+            int base = 0;
             for (int k = 0; k < b.length; ++k) {
                 long bitset = b[k];
                 while (bitset != 0) {
                     final long t = bitset & -bitset;
-                    array[pos++] = (short) (k * 64 + Long.bitCount(t - 1));
+                    array[pos++] = (short) (base + Long.bitCount(t - 1));
                     bitset ^= t;
                 }
+                base += 64;
             }
 
         } else {
             int len = this.bitmap.limit();
+            int base = 0;
             for (int k = 0; k < len; ++k) {
                 long bitset = bitmap.get(k);
                 while (bitset != 0) {
                     final long t = bitset & -bitset;
-                    array[pos++] = (short) (k * 64 + Long.bitCount(t - 1));
+                    array[pos++] = (short) (base + Long.bitCount(t - 1));
                     bitset ^= t;
                 }
+                base += 64;
             }
         }
     }
@@ -563,6 +567,7 @@ public final class MappeableBitmapContainer extends MappeableContainer
     @Override
     public void fillLeastSignificant16bits(int[] x, int i, int mask) {
         int pos = i;
+        int base = mask;
         if (BufferUtil.isBackedBySimpleArray(bitmap)) {
             long[] b = bitmap.array();
             int len = this.bitmap.limit();
@@ -570,9 +575,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
                 long bitset = b[k];
                 while (bitset != 0) {
                     final long t = bitset & -bitset;
-                    x[pos++] = (k * 64 + Long.bitCount(t - 1)) | mask;
+                    x[pos++] = base + Long.bitCount(t - 1);
                     bitset ^= t;
                 }
+                base += 64;
             }
 
         } else {
@@ -581,9 +587,10 @@ public final class MappeableBitmapContainer extends MappeableContainer
                 long bitset = bitmap.get(k);
                 while (bitset != 0) {
                     final long t = bitset & -bitset;
-                    x[pos++] = (k * 64 + Long.bitCount(t - 1)) | mask;
+                    x[pos++] = base + Long.bitCount(t - 1);
                     bitset ^= t;
                 }
+                base += 64;
             }
         }
     }
