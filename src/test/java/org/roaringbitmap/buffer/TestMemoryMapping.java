@@ -169,18 +169,29 @@ public class TestMemoryMapping {
             System.out.println("[TestMemoryMapping] testing copy via iterators "+k+" out of "+ms);
             MutableRoaringBitmap copy0 = mappedbitmaps.get(k).toMutableRoaringBitmap();
             Assert.assertTrue(copy0.equals(mappedbitmaps.get(k)));
+            copy0 = null;
+            System.gc();// possibly useless hack to get around travis troubles
+            System.out.println("[TestMemoryMapping] ... part 1 ok");
+
             MutableRoaringBitmap copy1 = new MutableRoaringBitmap();
             for (int x : mappedbitmaps.get(k)) {
                 copy1.add(x);
             }
             Assert.assertTrue(copy1.equals(mappedbitmaps.get(k)));
             copy1 = null;
+            System.gc();// possibly useless hack to get around travis troubles
+            System.out.println("[TestMemoryMapping] ... part 2 ok");
+
             MutableRoaringBitmap copy2 = new MutableRoaringBitmap();
             IntIterator i = mappedbitmaps.get(k).getIntIterator();
             while (i.hasNext()) {
                 copy2.add(i.next());
             }
             Assert.assertTrue(copy2.equals(mappedbitmaps.get(k)));
+            copy2 = null;
+            System.gc();// possibly useless hack to get around travis troubles
+            System.out.println("[TestMemoryMapping] ... part 3 ok");
+
             System.out.println("[TestMemoryMapping] testing copy via iterators "+k+" out of "+ms+" ok");
         }
         System.out.println("[TestMemoryMapping] testing a custom iterator copy  ");
