@@ -160,21 +160,26 @@ public class TestMemoryMapping {
     public void testIterator() {
         System.out.println("[TestMemoryMapping] test iterators");
         final int ms = mappedbitmaps.size();
+        System.out.println("We first test in-memory (RoaringBitmap) iterators.");
         for (int k = 0; k < ms; ++k) {
             System.out
-                    .println("[TestMemoryMapping] testing copy via iterators "
+                    .println("[TestMemoryMapping] testing copy via iterators using RoaringBitmap copy "
                             + k + " out of " + ms);
-            final ImmutableRoaringBitmap target = mappedbitmaps.get(k);
-            Assert.assertEquals(target, target.toMutableRoaringBitmap());
+            final RoaringBitmap target = mappedbitmaps.get(k).toRoaringBitmap();
             final int truecard = target.getCardinality();
+            System.out.println("Cardinality = "+truecard);
             int card1 = 0;
             int oldvalue = -1;
+            long t1 = System.nanoTime();
             for (int x : target) {
                 Assert.assertTrue(target.contains(x));
                 if(x > oldvalue) ++card1;
                 oldvalue = x;
             }
+            long t2 = System.nanoTime();
+            System.out.println(" iterator one ns/ops = "+(t2-t1) * 1.0 /truecard);
             Assert.assertEquals(truecard, card1);
+            long t3 = System.nanoTime();
             IntIterator i = target.getIntIterator();
             oldvalue = -1;
             int card2 = 0;
@@ -184,6 +189,47 @@ public class TestMemoryMapping {
                 if(x > oldvalue) ++card2;
                 oldvalue = x;
             }
+            long t4 = System.nanoTime();
+            System.out.println(" iterator two ns/ops = "+(t4-t3) * 1.0 /truecard);
+            Assert.assertEquals(truecard, card2);
+            System.out
+                    .println("[TestMemoryMapping] testing copy via iterators using RoaringBitmap copy "
+                            + k + " out of " + ms + " ok");
+        }
+
+        System.out.println("Next, we test mapped (ImmutableRoaringBitmap) iterators.");
+        for (int k = 0; k < ms; ++k) {
+            System.out
+                    .println("[TestMemoryMapping] testing copy via iterators "
+                            + k + " out of " + ms);
+            final ImmutableRoaringBitmap target = mappedbitmaps.get(k);
+            final ImmutableRoaringBitmap ramtarget = rambitmaps.get(k);
+            Assert.assertEquals(target, ramtarget);
+            final int truecard = target.getCardinality();
+            System.out.println("Cardinality = "+truecard);
+            int card1 = 0;
+            int oldvalue = -1;
+            long t1 = System.nanoTime();
+            for (int x : target) {
+                Assert.assertTrue(ramtarget.contains(x));
+                if(x > oldvalue) ++card1;
+                oldvalue = x;
+            }
+            long t2 = System.nanoTime();
+            System.out.println(" iterator one ns/ops = "+(t2-t1) * 1.0 /truecard);
+            Assert.assertEquals(truecard, card1);
+            long t3 = System.nanoTime();
+            IntIterator i = target.getIntIterator();
+            oldvalue = -1;
+            int card2 = 0;
+            while (i.hasNext()) {
+                final int x = i.next();
+                Assert.assertTrue(ramtarget.contains(x));
+                if(x > oldvalue) ++card2;
+                oldvalue = x;
+            }
+            long t4 = System.nanoTime();
+            System.out.println(" iterator two ns/ops = "+(t4-t3) * 1.0 /truecard);
             Assert.assertEquals(truecard, card2);
             System.out
                     .println("[TestMemoryMapping] testing copy via iterators "
