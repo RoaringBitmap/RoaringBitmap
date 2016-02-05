@@ -41,6 +41,8 @@ public class TestMemoryMapping {
 
     @Test
     public void multithreadingTest() throws InterruptedException, IOException {
+        System.out.println("[TestMemoryMapping] multithreading test");
+        displayMemory();
         final MutableRoaringBitmap rr1 = new MutableRoaringBitmap();
 
         final int numThreads = Runtime.getRuntime().availableProcessors();
@@ -98,6 +100,8 @@ public class TestMemoryMapping {
 
     @Test
     public void standardTest() throws IOException {
+        System.out.println("[TestMemoryMapping] standard test");
+        displayMemory();
         MutableRoaringBitmap rr1 = MutableRoaringBitmap.bitmapOf(1, 2, 3, 1000);
         MutableRoaringBitmap rr2 = MutableRoaringBitmap.bitmapOf(2, 3, 1010);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -116,6 +120,8 @@ public class TestMemoryMapping {
 
     @Test
     public void standardTest1() throws IOException {
+        System.out.println("[TestMemoryMapping] standard test 1");
+        displayMemory();
         // use some run containers
         MutableRoaringBitmap rr1 = MutableRoaringBitmap.bitmapOf(1, 2, 3, 4, 5, 6, 1000);
         rr1.runOptimize();
@@ -147,6 +153,8 @@ public class TestMemoryMapping {
 
     @Test
     public void basic() {
+        System.out.println("[TestMemoryMapping] basic tests");
+        displayMemory();
         for (int k = 0; k < mappedbitmaps.size(); ++k) {
             Assert.assertTrue(mappedbitmaps.get(k).equals(rambitmaps.get(k)));
         }
@@ -154,6 +162,8 @@ public class TestMemoryMapping {
 
     @Test
     public void testIterator() {
+        System.out.println("[TestMemoryMapping] test iterators");
+        displayMemory();
         for (int k = 0; k < mappedbitmaps.size(); ++k) {
             MutableRoaringBitmap copy0 = mappedbitmaps.get(k).toMutableRoaringBitmap();
             Assert.assertTrue(copy0.equals(mappedbitmaps.get(k)));
@@ -190,7 +200,8 @@ public class TestMemoryMapping {
 
     @Test
     public void complements() {
-        System.out.println("testing complements");
+        System.out.println("[TestMemoryMapping] testing complements");
+        displayMemory();
         for (int k = 0; k < mappedbitmaps.size() - 1; k += 4) {
             final MutableRoaringBitmap rb = ImmutableRoaringBitmap.andNot(mappedbitmaps.get(k), mappedbitmaps.get(k + 1));
             final MutableRoaringBitmap rbram = ImmutableRoaringBitmap.andNot(rambitmaps.get(k), rambitmaps.get(k + 1));
@@ -200,7 +211,8 @@ public class TestMemoryMapping {
 
     @Test
     public void intersections() {
-        System.out.println("testing intersections");
+        System.out.println("[TestMemoryMapping] testing intersections");
+        displayMemory();
         for (int k = 0; k + 1 < mappedbitmaps.size(); k += 2) {
             final MutableRoaringBitmap rb = ImmutableRoaringBitmap.and(mappedbitmaps.get(k), mappedbitmaps.get(k + 1));
             final MutableRoaringBitmap rbram = ImmutableRoaringBitmap.and(rambitmaps.get(k), rambitmaps.get(k + 1));
@@ -218,7 +230,8 @@ public class TestMemoryMapping {
 
     @Test
     public void unions() {
-        System.out.println("testing Unions");
+        System.out.println("[TestMemoryMapping] testing Unions");
+        displayMemory();
         for (int k = 0; k < mappedbitmaps.size() - 4; k += 4) {
             final MutableRoaringBitmap rb = BufferFastAggregation.or(mappedbitmaps.get(k), mappedbitmaps.get(k + 1), mappedbitmaps.get(k + 3),
                     mappedbitmaps.get(k + 4));
@@ -229,7 +242,8 @@ public class TestMemoryMapping {
 
     @Test
     public void XORs() {
-        System.out.println("testing XORs");
+        System.out.println("[TestMemoryMapping] testing XORs");
+        displayMemory();
         for (int k = 0; k < mappedbitmaps.size() - 4; k += 4) {
             final MutableRoaringBitmap rb = BufferFastAggregation.xor(mappedbitmaps.get(k), mappedbitmaps.get(k + 1), mappedbitmaps.get(k + 3),
                     mappedbitmaps.get(k + 4));
@@ -241,7 +255,8 @@ public class TestMemoryMapping {
 
     @Test
     public void reserialize() throws IOException {
-        System.out.println("testing reserialization");
+        System.out.println("[TestMemoryMapping] testing reserialization");
+        displayMemory();
         for (int k = 0; k < mappedbitmaps.size(); ++k) {
             ImmutableRoaringBitmap rr = mappedbitmaps.get(k);
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -256,27 +271,42 @@ public class TestMemoryMapping {
             Assert.assertTrue(rr.toMutableRoaringBitmap().equals(rambitmaps.get(k)));
         }
     }
+    
+    public static void displayMemory() {
+        System.out.println("[TestMemoryMapping] free memory: "+ Runtime.getRuntime().freeMemory()+" bytes");
+        System.out.println("[TestMemoryMapping] total memory: "+ Runtime.getRuntime().totalMemory()+" bytes");
+        System.out.println("[TestMemoryMapping] max memory: "+ Runtime.getRuntime().maxMemory()+" bytes");
+    }
 
     @Test
     public void oneFormat() throws IOException {
-        System.out.println("testing format compatibility");
-        for (int k = 0; k < mappedbitmaps.size(); ++k) {
+        System.out.println("[TestMemoryMapping] testing format compatibility");
+        final int ms = mappedbitmaps.size();
+        displayMemory();
+        for (int k = 0; k < ms; ++k) {
+            System.out.println("[TestMemoryMapping] testing compat. bitmap "+k+" out of "+ms);
             ImmutableRoaringBitmap rr = mappedbitmaps.get(k);
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ByteArrayOutputStream bos = new ByteArrayOutputStream(rr.serializedSizeInBytes());
             DataOutputStream dos = new DataOutputStream(bos);
             rr.serialize(dos);
             dos.close();
-            ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
+            byte[] arr = bos.toByteArray();
+            bos = null;
+            ByteArrayInputStream bis = new ByteArrayInputStream(arr);
             RoaringBitmap newr = new RoaringBitmap();
             newr.deserialize(new DataInputStream(bis));
+            arr = null;
             RoaringBitmap rrasroaring = rr.toRoaringBitmap();
             Assert.assertEquals(newr,rrasroaring);
+            System.out.println("[TestMemoryMapping] testing compat. bitmap "+k+" out of "+ms+". ok.");
         }
+        System.out.println("[TestMemoryMapping] Format compatibility ok");
+
     }
 
     @AfterClass
     public static void clearFiles() {
-        System.out.println("Cleaning memory-mapped file.");
+        System.out.println("[TestMemoryMapping] Cleaning memory-mapped file.");
         out = null;
         rambitmaps = null;
         mappedbitmaps = null;
@@ -343,7 +373,8 @@ public class TestMemoryMapping {
 
     @BeforeClass
     public static void initFiles() throws IOException {
-        System.out.println("Setting up memory-mapped file. (Can take some time.)");
+        System.out.println("[TestMemoryMapping] Setting up memory-mapped file. (Can take some time.)");
+        displayMemory();
         final ArrayList<Long> offsets = new ArrayList<Long>();
         tmpfile = File.createTempFile("roaring", "bin");
         tmpfile.deleteOnExit();
@@ -439,7 +470,7 @@ public class TestMemoryMapping {
             }
         }
         final long totalcount = fos.getChannel().position();
-        System.out.println("Wrote " + totalcount / 1024 + " KB");
+        System.out.println("[TestMemoryMapping] Wrote " + totalcount / 1024 + " KB");
         offsets.add(totalcount);
         dos.close();
         final RandomAccessFile memoryMappedFile = new RandomAccessFile(tmpfile, "r");
@@ -464,7 +495,7 @@ public class TestMemoryMapping {
                     throw new RuntimeException("faulty serialization");
             }
             final long aft = System.currentTimeMillis();
-            System.out.println("Mapped " + (offsets.size() - 1) + " bitmaps in " + (aft - bef) + "ms");
+            System.out.println("[TestMemoryMapping] Mapped " + (offsets.size() - 1) + " bitmaps in " + (aft - bef) + "ms");
         } finally {
             memoryMappedFile.close();
         }
