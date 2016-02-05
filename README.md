@@ -187,6 +187,12 @@ One can find a complete working example in the test file TestMemoryMapping.java.
 Note that you should not mix the classes from the org.roaringbitmap package with the classes
 from the org.roaringbitmap.buffer package. They are incompatible. They serialize to the same output however.
 
+Prerequisites
+-------------
+
+ - Version 0.6.x requires JDK 7 or better
+ - Version 0.5.x requires JDK 6 or better
+
 Download
 ---------
 

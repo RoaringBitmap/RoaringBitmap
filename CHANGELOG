@@ -1,3 +1,9 @@
+version 0.6.0
+ - The 0.6 version will aim for JDK 7 compatibility, eventually dropping JDK 6 support. See https://github.com/RoaringBitmap/RoaringBitmap/issues/74
+
+
+
+
 version 0.5.20
  - Fix for ClassCastException when cloning ImmutableRoaringBitmap
 
