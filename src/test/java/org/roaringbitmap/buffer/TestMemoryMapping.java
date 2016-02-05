@@ -349,7 +349,7 @@ public class TestMemoryMapping {
         tmpfile.deleteOnExit();
         final FileOutputStream fos = new FileOutputStream(tmpfile);
         final DataOutputStream dos = new DataOutputStream(fos);
-        for (int N = 65536 * 16; N <= 65536 * 128; N *= 2) {
+        for (int N = 65536 * 16; N <= 65536 * 128; N *= 8) {
             for (int gap = 1; gap <= 65536; gap *= 4) {
                 final MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
                 for (int x = 0; x < N; x += gap) {
