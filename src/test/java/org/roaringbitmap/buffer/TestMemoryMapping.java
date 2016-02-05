@@ -164,12 +164,12 @@ public class TestMemoryMapping {
             System.out
                     .println("[TestMemoryMapping] testing copy via iterators "
                             + k + " out of " + ms);
-            ImmutableRoaringBitmap target = mappedbitmaps.get(k);
+            final ImmutableRoaringBitmap target = mappedbitmaps.get(k);
             Assert.assertEquals(target, target.toMutableRoaringBitmap());
             final int truecard = target.getCardinality();
             int card1 = 0;
             int oldvalue = -1;
-            for (int x : mappedbitmaps.get(k)) {
+            for (int x : target) {
                 Assert.assertTrue(target.contains(x));
                 if(x > oldvalue) ++card1;
                 oldvalue = x;
