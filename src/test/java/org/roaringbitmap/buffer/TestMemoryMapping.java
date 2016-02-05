@@ -269,9 +269,8 @@ public class TestMemoryMapping {
             ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
             RoaringBitmap newr = new RoaringBitmap();
             newr.deserialize(new DataInputStream(bis));
-            int[] content = newr.toArray();
-            int[] oldcontent = rr.toArray();
-            Assert.assertTrue(Arrays.equals(content, oldcontent));
+            RoaringBitmap rrasroaring = rr.toRoaringBitmap();
+            Assert.assertEquals(newr,rrasroaring);
         }
     }
 
@@ -475,7 +474,7 @@ public class TestMemoryMapping {
 
     static MappedByteBuffer out;
 
-    static ArrayList<MutableRoaringBitmap> rambitmaps = new ArrayList<MutableRoaringBitmap>();
+//    static ArrayList<MutableRoaringBitmap> rambitmaps = new ArrayList<MutableRoaringBitmap>();
 
     static File tmpfile;
 }
