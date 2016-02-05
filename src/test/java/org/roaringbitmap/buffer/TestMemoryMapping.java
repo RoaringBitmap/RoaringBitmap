@@ -42,7 +42,6 @@ public class TestMemoryMapping {
     @Test
     public void multithreadingTest() throws InterruptedException, IOException {
         System.out.println("[TestMemoryMapping] multithreading test");
-        displayMemory();
         final MutableRoaringBitmap rr1 = new MutableRoaringBitmap();
 
         final int numThreads = Runtime.getRuntime().availableProcessors();
@@ -101,7 +100,6 @@ public class TestMemoryMapping {
     @Test
     public void standardTest() throws IOException {
         System.out.println("[TestMemoryMapping] standard test");
-        displayMemory();
         MutableRoaringBitmap rr1 = MutableRoaringBitmap.bitmapOf(1, 2, 3, 1000);
         MutableRoaringBitmap rr2 = MutableRoaringBitmap.bitmapOf(2, 3, 1010);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -121,7 +119,6 @@ public class TestMemoryMapping {
     @Test
     public void standardTest1() throws IOException {
         System.out.println("[TestMemoryMapping] standard test 1");
-        displayMemory();
         // use some run containers
         MutableRoaringBitmap rr1 = MutableRoaringBitmap.bitmapOf(1, 2, 3, 4, 5, 6, 1000);
         rr1.runOptimize();
@@ -154,7 +151,6 @@ public class TestMemoryMapping {
     @Test
     public void basic() {
         System.out.println("[TestMemoryMapping] basic tests");
-        displayMemory(); 
         for (int k = 0; k < mappedbitmaps.size(); ++k) {
             Assert.assertTrue(mappedbitmaps.get(k).equals(rambitmaps.get(k)));
         }
@@ -163,41 +159,38 @@ public class TestMemoryMapping {
     @Test
     public void testIterator() {
         System.out.println("[TestMemoryMapping] test iterators");
-        displayMemory();
         final int ms = mappedbitmaps.size();
         for (int k = 0; k < ms; ++k) {
-            System.out.println("[TestMemoryMapping] testing copy via iterators "+k+" out of "+ms);
-            MutableRoaringBitmap copy0 = mappedbitmaps.get(k).toMutableRoaringBitmap();
-            Assert.assertTrue(copy0.equals(mappedbitmaps.get(k)));
-            copy0 = null;
-            System.gc();// possibly useless hack to get around travis troubles
-            System.out.println("[TestMemoryMapping] ... part 1 ok");
-            if (false) { // this test makes travis crash
-                MutableRoaringBitmap copy1 = new MutableRoaringBitmap();
-                for (int x : mappedbitmaps.get(k)) {
-                    copy1.add(x);
-                }
-                Assert.assertTrue(copy1.equals(mappedbitmaps.get(k)));
-                copy1 = null;
-                System.gc();// possibly useless hack to get around travis
-                            // troubles
-                System.out.println("[TestMemoryMapping] ... part 2 ok");
-            } else {
-                System.out.println("[TestMemoryMapping] ... part 2 skipped");
+            System.out
+                    .println("[TestMemoryMapping] testing copy via iterators "
+                            + k + " out of " + ms);
+            ImmutableRoaringBitmap target = mappedbitmaps.get(k);
+            Assert.assertEquals(target, target.toMutableRoaringBitmap());
+            final int truecard = target.getCardinality();
+            int card1 = 0;
+            int oldvalue = -1;
+            for (int x : mappedbitmaps.get(k)) {
+                Assert.assertTrue(target.contains(x));
+                if(x > oldvalue) ++card1;
+                oldvalue = x;
             }
-            MutableRoaringBitmap copy2 = new MutableRoaringBitmap();
-            IntIterator i = mappedbitmaps.get(k).getIntIterator();
+            Assert.assertEquals(truecard, card1);
+            IntIterator i = target.getIntIterator();
+            oldvalue = -1;
+            int card2 = 0;
             while (i.hasNext()) {
-                copy2.add(i.next());
+                final int x = i.next();
+                Assert.assertTrue(target.contains(x));
+                if(x > oldvalue) ++card2;
+                oldvalue = x;
             }
-            Assert.assertTrue(copy2.equals(mappedbitmaps.get(k)));
-            copy2 = null;
-            System.gc();// possibly useless hack to get around travis troubles
-            System.out.println("[TestMemoryMapping] ... part 3 ok");
-
-            System.out.println("[TestMemoryMapping] testing copy via iterators "+k+" out of "+ms+" ok");
+            Assert.assertEquals(truecard, card2);
+            System.out
+                    .println("[TestMemoryMapping] testing copy via iterators "
+                            + k + " out of " + ms + " ok");
         }
-        System.out.println("[TestMemoryMapping] testing a custom iterator copy  ");
+        System.out
+                .println("[TestMemoryMapping] testing a custom iterator copy  ");
 
         MutableRoaringBitmap rb = new MutableRoaringBitmap();
         for (int k = 0; k < 4000; ++k)
@@ -221,7 +214,6 @@ public class TestMemoryMapping {
     @Test
     public void complements() {
         System.out.println("[TestMemoryMapping] testing complements");
-        displayMemory();
         for (int k = 0; k < mappedbitmaps.size() - 1; k += 4) {
             final MutableRoaringBitmap rb = ImmutableRoaringBitmap.andNot(mappedbitmaps.get(k), mappedbitmaps.get(k + 1));
             final MutableRoaringBitmap rbram = ImmutableRoaringBitmap.andNot(rambitmaps.get(k), rambitmaps.get(k + 1));
@@ -232,7 +224,6 @@ public class TestMemoryMapping {
     @Test
     public void intersections() {
         System.out.println("[TestMemoryMapping] testing intersections");
-        displayMemory();
         for (int k = 0; k + 1 < mappedbitmaps.size(); k += 2) {
             final MutableRoaringBitmap rb = ImmutableRoaringBitmap.and(mappedbitmaps.get(k), mappedbitmaps.get(k + 1));
             final MutableRoaringBitmap rbram = ImmutableRoaringBitmap.and(rambitmaps.get(k), rambitmaps.get(k + 1));
@@ -251,7 +242,6 @@ public class TestMemoryMapping {
     @Test
     public void unions() {
         System.out.println("[TestMemoryMapping] testing Unions");
-        displayMemory();
         for (int k = 0; k < mappedbitmaps.size() - 4; k += 4) {
             final MutableRoaringBitmap rb = BufferFastAggregation.or(mappedbitmaps.get(k), mappedbitmaps.get(k + 1), mappedbitmaps.get(k + 3),
                     mappedbitmaps.get(k + 4));
@@ -263,7 +253,6 @@ public class TestMemoryMapping {
     @Test
     public void XORs() {
         System.out.println("[TestMemoryMapping] testing XORs");
-        displayMemory();
         for (int k = 0; k < mappedbitmaps.size() - 4; k += 4) {
             final MutableRoaringBitmap rb = BufferFastAggregation.xor(mappedbitmaps.get(k), mappedbitmaps.get(k + 1), mappedbitmaps.get(k + 3),
                     mappedbitmaps.get(k + 4));
@@ -276,7 +265,6 @@ public class TestMemoryMapping {
     @Test
     public void reserialize() throws IOException {
         System.out.println("[TestMemoryMapping] testing reserialization");
-        displayMemory();
         for (int k = 0; k < mappedbitmaps.size(); ++k) {
             ImmutableRoaringBitmap rr = mappedbitmaps.get(k);
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -292,17 +280,10 @@ public class TestMemoryMapping {
         }
     }
     
-    public static void displayMemory() {
-        System.out.println("[TestMemoryMapping] free memory: "+ Runtime.getRuntime().freeMemory()+" bytes");
-        System.out.println("[TestMemoryMapping] total memory: "+ Runtime.getRuntime().totalMemory()+" bytes");
-        System.out.println("[TestMemoryMapping] max memory: "+ Runtime.getRuntime().maxMemory()+" bytes");
-    }
-
     @Test
     public void oneFormat() throws IOException {
         System.out.println("[TestMemoryMapping] testing format compatibility");
         final int ms = mappedbitmaps.size();
-        displayMemory();
         for (int k = 0; k < ms; ++k) {
             System.out.println("[TestMemoryMapping] testing compat. bitmap "+k+" out of "+ms);
             ImmutableRoaringBitmap rr = mappedbitmaps.get(k);
@@ -394,7 +375,6 @@ public class TestMemoryMapping {
     @BeforeClass
     public static void initFiles() throws IOException {
         System.out.println("[TestMemoryMapping] Setting up memory-mapped file. (Can take some time.)");
-        displayMemory();
         final ArrayList<Long> offsets = new ArrayList<Long>();
         tmpfile = File.createTempFile("roaring", "bin");
         tmpfile.deleteOnExit();
@@ -407,15 +387,12 @@ public class TestMemoryMapping {
                     rb1.add(x);
                 }
                 // make containers 8 and 10 be run encoded
-
                 for (int x = 8 * 65536; x < 8 * 65536 + 1000; ++x)
                     rb1.add(x);
-
                 for (int x = 10 * 65536; x < 10 * 65536 + 1000; ++x) {
                     rb1.add(x);
                     rb1.add(10000 + x);
                 }
-
                 {
                     RoaringBitmap rr = RoaringBitmap.bitmapOf(rb1.toArray());
                     ByteBuffer bb = toByteBuffer(rb1);
