@@ -85,6 +85,7 @@
         <configuration>
           <forkCount>1</forkCount>
           <reuseForks>false</reuseForks>
+          <argLine>-Xmx1g</argLine>
         </configuration>
       </plugin>
 
