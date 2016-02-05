@@ -12,4 +12,7 @@ branches:
   only:
     - master
 
-script: mvn clean test
+script: mvn clean test jacoco:report
+
+after_success:
+  - mvn coveralls:report
