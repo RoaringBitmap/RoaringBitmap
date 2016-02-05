@@ -154,7 +154,7 @@ public class TestMemoryMapping {
     @Test
     public void basic() {
         System.out.println("[TestMemoryMapping] basic tests");
-        displayMemory();
+        displayMemory(); 
         for (int k = 0; k < mappedbitmaps.size(); ++k) {
             Assert.assertTrue(mappedbitmaps.get(k).equals(rambitmaps.get(k)));
         }
@@ -164,7 +164,9 @@ public class TestMemoryMapping {
     public void testIterator() {
         System.out.println("[TestMemoryMapping] test iterators");
         displayMemory();
-        for (int k = 0; k < mappedbitmaps.size(); ++k) {
+        final int ms = mappedbitmaps.size();
+        for (int k = 0; k < ms; ++k) {
+            System.out.println("[TestMemoryMapping] testing copy via iterators "+k+" out of "+ms);
             MutableRoaringBitmap copy0 = mappedbitmaps.get(k).toMutableRoaringBitmap();
             Assert.assertTrue(copy0.equals(mappedbitmaps.get(k)));
             MutableRoaringBitmap copy1 = new MutableRoaringBitmap();
@@ -172,13 +174,16 @@ public class TestMemoryMapping {
                 copy1.add(x);
             }
             Assert.assertTrue(copy1.equals(mappedbitmaps.get(k)));
+            copy1 = null;
             MutableRoaringBitmap copy2 = new MutableRoaringBitmap();
             IntIterator i = mappedbitmaps.get(k).getIntIterator();
             while (i.hasNext()) {
                 copy2.add(i.next());
             }
             Assert.assertTrue(copy2.equals(mappedbitmaps.get(k)));
+            System.out.println("[TestMemoryMapping] testing copy via iterators "+k+" out of "+ms+" ok");
         }
+        System.out.println("[TestMemoryMapping] testing a custom iterator copy  ");
 
         MutableRoaringBitmap rb = new MutableRoaringBitmap();
         for (int k = 0; k < 4000; ++k)
@@ -196,6 +201,7 @@ public class TestMemoryMapping {
             copy2.add(i.next());
         }
         Assert.assertTrue(copy2.equals(rb));
+        System.out.println("[TestMemoryMapping] testing a custom iterator copy  ok");
     }
 
     @Test
