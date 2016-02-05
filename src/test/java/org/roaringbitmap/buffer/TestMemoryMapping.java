@@ -474,7 +474,7 @@ public class TestMemoryMapping {
 
     static MappedByteBuffer out;
 
-//    static ArrayList<MutableRoaringBitmap> rambitmaps = new ArrayList<MutableRoaringBitmap>();
+    static ArrayList<MutableRoaringBitmap> rambitmaps = new ArrayList<MutableRoaringBitmap>();
 
     static File tmpfile;
 }
