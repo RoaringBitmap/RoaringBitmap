@@ -12,6 +12,8 @@ import java.util.BitSet;
  *
  */
 public class BitSetUtil {
+    // todo: add a method to convert a RoaringBitmap to a BitSet using BitSet.valueOf
+    
     // a block consists has a maximum of 1024 words, each representing 64 bits,
     // thus representing at maximum 65536 bits
     static final private int BLOCK_LENGTH = BitmapContainer.MAX_CAPACITY / Long.SIZE; //
