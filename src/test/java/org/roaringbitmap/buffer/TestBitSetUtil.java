@@ -1,4 +1,4 @@
-package org.roaringbitmap;
+package org.roaringbitmap.buffer;
 
 import static org.junit.Assert.*;
 
@@ -11,7 +11,7 @@ public class TestBitSetUtil {
     @Test
     public void testEmptyBitSet() {
         final BitSet bitset = new BitSet();
-        final RoaringBitmap bitmap = BitSetUtil.bitmapOf(bitset);
+        final MutableRoaringBitmap bitmap = BufferBitSetUtil.bitmapOf(bitset);
         assertEqualBitsets(bitset, bitmap);
     }
     
@@ -19,7 +19,7 @@ public class TestBitSetUtil {
     public void testSmallBitSet1() {
         final BitSet bitset = new BitSet();
         bitset.set(1);
-        final RoaringBitmap bitmap = BitSetUtil.bitmapOf(bitset);
+        final MutableRoaringBitmap bitmap = BufferBitSetUtil.bitmapOf(bitset);
         assertEqualBitsets(bitset, bitmap);
     }
 
@@ -28,7 +28,7 @@ public class TestBitSetUtil {
     public void testSmallBitSet10000000() {
         final BitSet bitset = new BitSet();
         bitset.set(10000000);
-        final RoaringBitmap bitmap = BitSetUtil.bitmapOf(bitset);
+        final MutableRoaringBitmap bitmap = BufferBitSetUtil.bitmapOf(bitset);
         assertEqualBitsets(bitset, bitmap);
     }
     
@@ -37,7 +37,7 @@ public class TestBitSetUtil {
         final BitSet bitset = new BitSet();
         bitset.set(1);
         bitset.set(10000000);
-        final RoaringBitmap bitmap = BitSetUtil.bitmapOf(bitset);
+        final MutableRoaringBitmap bitmap = BufferBitSetUtil.bitmapOf(bitset);
         assertEqualBitsets(bitset, bitmap);
     }
     
@@ -46,7 +46,7 @@ public class TestBitSetUtil {
         final BitSet bitset = new BitSet();
         final int nbits = 1024 * Long.SIZE * 50;
         bitset.set(0, nbits);
-        final RoaringBitmap bitmap = BitSetUtil.bitmapOf(bitset);
+        final MutableRoaringBitmap bitmap = BufferBitSetUtil.bitmapOf(bitset);
         assertEqualBitsets(bitset, bitmap);
     }
 
@@ -74,7 +74,7 @@ public class TestBitSetUtil {
                 break;
             }
         }
-        final RoaringBitmap bitmap = BitSetUtil.bitmapOf(bitset);
+        final MutableRoaringBitmap bitmap = BufferBitSetUtil.bitmapOf(bitset);
         assertEqualBitsets(bitset, bitmap);
     }
 
@@ -85,7 +85,7 @@ public class TestBitSetUtil {
         final int maxNbits = 500000;
         for (int i = 0; i < runs; i++) {
             final BitSet bitset = randomBitset(random, 0, random.nextInt(maxNbits));
-            final RoaringBitmap bitmap = BitSetUtil.bitmapOf(bitset);
+            final MutableRoaringBitmap bitmap = BufferBitSetUtil.bitmapOf(bitset);
             assertEqualBitsets(bitset, bitmap);
         }
     }
@@ -96,7 +96,7 @@ public class TestBitSetUtil {
             for(int offset = 300; offset<3000; offset+=10) {
                 BitSet bitset = new BitSet();
                 for(int k = 0; k < 100000; k += gap) bitset.set(k + offset);
-                final RoaringBitmap bitmap = BitSetUtil.bitmapOf(bitset);
+                final MutableRoaringBitmap bitmap = BufferBitSetUtil.bitmapOf(bitset);
                 assertEqualBitsets(bitset, bitmap);
             }
         }
@@ -109,14 +109,14 @@ public class TestBitSetUtil {
         final int maxNbits = 500000;
         for (int i = 0; i < runs; i++) {
             final BitSet bitset = randomBitset(random, 100000, random.nextInt(maxNbits));
-            final RoaringBitmap bitmap = BitSetUtil.bitmapOf(bitset);
+            final MutableRoaringBitmap bitmap = BufferBitSetUtil.bitmapOf(bitset);
             assertEqualBitsets(bitset, bitmap);
         }
     }
 
     private void assertEqualBitsets(final BitSet bitset,
-            final RoaringBitmap bitmap) {
-        assertTrue(BitSetUtil.equals(bitset,bitmap));
+            final MutableRoaringBitmap bitmap) {
+        assertTrue(BufferBitSetUtil.equals(bitset,bitmap));
     }
 
     private static BitSet appendRandomBitset(final Random random,
