@@ -1,5 +1,5 @@
 
-upcoming 
+version 0.6.1 
  - functionality to transform BitSet to RoaringBitmap efficiently
 
 version 0.6.0
