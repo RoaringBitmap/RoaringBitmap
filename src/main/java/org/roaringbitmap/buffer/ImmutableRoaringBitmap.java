@@ -852,8 +852,34 @@ public class ImmutableRoaringBitmap implements Iterable<Integer>, Cloneable, Imm
         return c;
     }
     
+    /**
+     * Copies this bitmap to a mutable RoaringBitmap.
+     * 
+     * @return a copy of this bitmap as a RoaringBitmap.
+     */
     public RoaringBitmap toRoaringBitmap() {
         return new RoaringBitmap(this);
+    }
+   
+    /**
+     * Generate a bitmap with the specified values set to true. The provided
+     * integers values don't have to be in sorted order, but it may be
+     * preferable to sort them from a performance point of view.
+     * 
+     * This function is equivalent to :
+     * 
+     * <pre>
+     * {@code
+     *       (ImmutableRoaringBitmap) MutableRoaringBitmap.bitmapOf(data)
+     * }
+     * </pre>
+     * 
+     * @param data
+     *            set values
+     * @return a new bitmap
+     */
+   public static ImmutableRoaringBitmap bitmapOf(final int... data) {
+        return (ImmutableRoaringBitmap) MutableRoaringBitmap.bitmapOf(data);
     }
 
     /**

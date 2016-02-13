@@ -1517,9 +1517,11 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         return false;
     }
     
-    
     /**
-     * Convert to a mutable roaring bitmap.
+     * 
+     * Convert (copies) to a mutable roaring bitmap.
+     *
+     * @return a copy of this bitmap as a MutableRoaringBitmap
      */
     public MutableRoaringBitmap toMutableRoaringBitmap() {
         return new MutableRoaringBitmap(this);

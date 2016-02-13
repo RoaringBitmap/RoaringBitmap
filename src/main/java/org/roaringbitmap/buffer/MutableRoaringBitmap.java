@@ -367,6 +367,27 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     }
     
     /**
+     *  Convenience method, effectively casts the 
+     *  object to an object of class ImmutableRoaringBitmap.
+     *  
+     *  
+     * This function is equivalent to :
+     * 
+     * <pre>
+     * {@code
+     *       (ImmutableRoaringBitmap) bitmap
+     * }
+     * </pre>
+     * 
+     *  
+     * @return a cast of this object
+     */
+    public ImmutableRoaringBitmap toImmutableRoaringBitmap() {
+        return (ImmutableRoaringBitmap) this;
+        
+    }
+    
+    /**
      * Create a MutableRoaringBitmap from a RoaringBitmap. The RoaringBitmap is
      * not modified.
      * 
@@ -1158,6 +1179,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         }
         return answer;
     }    
+    
     
 
 
