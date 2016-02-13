@@ -1,3 +1,5 @@
+version 0.6.2
+ - added convenience methods as per https://github.com/RoaringBitmap/RoaringBitmap/issues/65
 
 version 0.6.1 
  - functionality to transform BitSet to RoaringBitmap efficiently
