@@ -1,3 +1,6 @@
+version 0.6.3
+ - Fix for Issue #77 "Memory usage issues" https://github.com/RoaringBitmap/RoaringBitmap/issues/77
+
 version 0.6.2
  - added convenience methods as per https://github.com/RoaringBitmap/RoaringBitmap/issues/65
 

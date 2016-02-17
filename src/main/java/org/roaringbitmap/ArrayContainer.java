@@ -334,7 +334,7 @@ public final class ArrayContainer extends Container implements Cloneable {
         if (newCapacity > ArrayContainer.DEFAULT_MAX_SIZE  && ! allowIllegalSize)
             newCapacity = ArrayContainer.DEFAULT_MAX_SIZE;
         // if we are within 1/16th of the max, go to max 
-        if( newCapacity < ArrayContainer.DEFAULT_MAX_SIZE - ArrayContainer.DEFAULT_MAX_SIZE/16)
+        if( newCapacity > ArrayContainer.DEFAULT_MAX_SIZE - ArrayContainer.DEFAULT_MAX_SIZE/16)
             newCapacity = ArrayContainer.DEFAULT_MAX_SIZE;
         this.content = Arrays.copyOf(this.content, newCapacity);
     }
