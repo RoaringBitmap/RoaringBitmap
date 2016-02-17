@@ -12,6 +12,8 @@ version 0.6.0
 
 
 
+version 0.5.21
+ - Fix for Issue #77 "Memory usage issues" https://github.com/RoaringBitmap/RoaringBitmap/issues/77
 
 version 0.5.20
  - Fix for ClassCastException when cloning ImmutableRoaringBitmap
