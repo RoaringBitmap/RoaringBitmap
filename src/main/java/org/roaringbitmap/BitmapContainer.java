@@ -805,15 +805,13 @@ public final class BitmapContainer extends Container implements Cloneable {
         int index = x / 64;
         long bef = bitmap[index];
         long mask = (1l << x);
-        if (cardinality == ArrayContainer.DEFAULT_MAX_SIZE + 1) {// this is
-            // the
-            // uncommon
-            // path
-            if ((bef & mask) != 0) {
-                --cardinality;
-                bitmap[x / 64] = bef &( ~mask);
-                return this.toArrayContainer();
-            }
+        // the
+        // uncommon
+        // path
+        if (cardinality == ArrayContainer.DEFAULT_MAX_SIZE + 1 && (bef & mask) != 0) {// this is
+            --cardinality;
+            bitmap[x / 64] = bef &( ~mask);
+            return this.toArrayContainer();
         }
         long aft = bef & (~mask);
         cardinality -= (aft - bef) >>> 63;
@@ -1050,15 +1048,13 @@ public final class BitmapContainer extends Container implements Cloneable {
         int index = x / 64;
         long bef = bitmap[index];
         long mask = 1l << x;
-        if (cardinality == ArrayContainer.DEFAULT_MAX_SIZE + 1) {// this is
-            // the
-            // uncommon
-            // path
-            if ((bef & mask) != 0) {
-                --cardinality;
-                bitmap[index] &= ~mask;
-                return this.toArrayContainer();
-            }
+        // the
+        // uncommon
+        // path
+        if (cardinality == ArrayContainer.DEFAULT_MAX_SIZE + 1 && (bef & mask) != 0) {// this is
+            --cardinality;
+            bitmap[index] &= ~mask;
+            return this.toArrayContainer();
         }
         // TODO: check whether a branchy version could be faster
         cardinality += 1 - 2 * ((bef & mask) >>> x);
