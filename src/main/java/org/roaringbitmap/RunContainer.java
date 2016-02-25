@@ -414,36 +414,28 @@ public final class RunContainer extends Container implements Cloneable {
             if(offset <= le) return this;
             if(offset == le + 1) {
                 // we may need to fuse
-                if(index + 1 < nbrruns) {
-                    if(Util.toIntUnsigned(getValue(index + 1))  == Util.toIntUnsigned(k) + 1) {
-                        // indeed fusion is needed
-                        setLength(index, (short) (getValue(index + 1) + getLength(index + 1) - getValue(index)));
-                        recoverRoomAtIndex(index + 1);
-                        return this;
-                    }
+                if(index + 1 < nbrruns && Util.toIntUnsigned(getValue(index + 1)) == Util.toIntUnsigned(k) + 1) {
+                    // indeed fusion is needed
+                    setLength(index, (short) (getValue(index + 1) + getLength(index + 1) - getValue(index)));
+                    recoverRoomAtIndex(index + 1);
+                    return this;
                 }
                 incrementLength(index);
                 return this;
             }
-            if(index + 1 < nbrruns) {
-                // we may need to fuse
-                if(Util.toIntUnsigned(getValue(index + 1))  == Util.toIntUnsigned(k) + 1) {
-                    // indeed fusion is needed
-                    setValue(index+1, k);
-                    setLength(index+1, (short) (getLength(index + 1) + 1));
-                    return this;
-                }
+         // we may need to fuse
+            if(index + 1 < nbrruns && Util.toIntUnsigned(getValue(index + 1)) == Util.toIntUnsigned(k) + 1) {
+                // indeed fusion is needed
+                setValue(index+1, k);
+                setLength(index+1, (short) (getLength(index + 1) + 1));
+                return this;
             }
         }
-        if(index == -1) {
-            // we may need to extend the first run
-            if(0 < nbrruns) {
-                if(getValue(0)  == k + 1) {
-                    incrementLength(0);
-                    decrementValue(0);
-                    return this;
-                }
-            }
+        // we may need to extend the first run
+        if(index == -1 && (0 < nbrruns && getValue(0) == k + 1)) {
+            incrementLength(0);
+            decrementValue(0);
+            return this;
         }
         makeRoomAtIndex(index + 1); 
         setValue(index + 1, k);
@@ -1216,11 +1208,9 @@ public final class RunContainer extends Container implements Cloneable {
         } else if(bIndex<0 && eIndex>=0) {
             bIndex = -bIndex - 2;
 
-            if(bIndex>=0) {
-                if(valueLengthContains(begin-1, bIndex)) {
-                    mergeValuesLength(bIndex, eIndex);
-                    return this;
-                }
+            if(bIndex>=0 && valueLengthContains(begin-1, bIndex)) {
+                mergeValuesLength(bIndex, eIndex);
+                return this;
             }
             prependValueLength(begin, bIndex+1);
             mergeValuesLength(bIndex+1, eIndex);
@@ -1311,10 +1301,8 @@ public final class RunContainer extends Container implements Cloneable {
             // start does not coincide to a run start, but end does.
             bIndex = -bIndex - 2;
             
-            if(bIndex >= 0) {
-                if (valueLengthContains(begin, bIndex)) {
-                    closeValueLength(begin - 1, bIndex);
-                }
+            if(bIndex >= 0 && valueLengthContains(begin, bIndex)) {
+                closeValueLength(begin - 1, bIndex);
             }
 
             // last run is one shorter
