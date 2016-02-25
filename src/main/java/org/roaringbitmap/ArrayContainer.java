@@ -546,12 +546,12 @@ public final class ArrayContainer extends Container implements Cloneable {
             for (int k = 0; k < value2.cardinality; ++k) {
                 short v = value2.content[k];
                 final int i = Util.toIntUnsigned(v) >>> 6;
-                bc.bitmap[i] |= (1l << v);
+                bc.bitmap[i] |= (1L << v);
             }
             for (int k = 0; k < this.cardinality; ++k) {
                 short v = this.content[k];
                 final int i = Util.toIntUnsigned(v) >>> 6;
-                bc.bitmap[i] |= (1l << v);
+                bc.bitmap[i] |= (1L << v);
             }
             bc.cardinality = 0;
             for (long k : bc.bitmap) {
@@ -734,12 +734,12 @@ public final class ArrayContainer extends Container implements Cloneable {
             for (int k = 0; k < value2.cardinality; ++k) {
                 short v = value2.content[k];
                 final int i = Util.toIntUnsigned(v) >>> 6;
-                bc.bitmap[i] ^= (1l << v);
+                bc.bitmap[i] ^= (1L << v);
             }
             for (int k = 0; k < this.cardinality; ++k) {
                 short v = this.content[k];
                 final int i = Util.toIntUnsigned(v) >>> 6;
-                bc.bitmap[i] ^= (1l << v);
+                bc.bitmap[i] ^= (1L << v);
             }
             bc.cardinality = 0;
             for (long k : bc.bitmap) {
