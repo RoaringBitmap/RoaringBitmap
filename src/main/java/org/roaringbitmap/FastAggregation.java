@@ -227,7 +227,7 @@ public final class FastAggregation {
         final boolean[] istmp = new boolean[buffer.length];
         for(int k = 0 ; k < sizes.length; ++k)
             sizes[k] = buffer[k].getSizeInBytes();
-        PriorityQueue<Integer> pq = new PriorityQueue<Integer>(128, new Comparator<Integer>() {
+        PriorityQueue<Integer> pq = new PriorityQueue<>(128, new Comparator<Integer>() {
             @Override
             public int compare(Integer a,
                     Integer b) {
@@ -277,14 +277,14 @@ public final class FastAggregation {
         if (!bitmaps.hasNext())
             return new RoaringBitmap();
         // we buffer the call to getSizeInBytes(), hence the code complexity
-        ArrayList<RoaringBitmap> buffer = new ArrayList<RoaringBitmap>();
+        ArrayList<RoaringBitmap> buffer = new ArrayList<>();
         while(bitmaps.hasNext())
             buffer.add(bitmaps.next());
         final int[] sizes = new int[buffer.size()];
         final boolean[] istmp = new boolean[buffer.size()];
         for(int k = 0 ; k < sizes.length; ++k)
             sizes[k] = buffer.get(k).getSizeInBytes();
-        PriorityQueue<Integer> pq = new PriorityQueue<Integer>(128, new Comparator<Integer>() {
+        PriorityQueue<Integer> pq = new PriorityQueue<>(128, new Comparator<Integer>() {
             @Override
             public int compare(Integer a,
                     Integer b) {
@@ -336,7 +336,7 @@ public final class FastAggregation {
         RoaringBitmap answer = new RoaringBitmap();
         if (bitmaps.length == 0)
             return answer;
-        PriorityQueue<ContainerPointer> pq = new PriorityQueue<ContainerPointer>(bitmaps.length);
+        PriorityQueue<ContainerPointer> pq = new PriorityQueue<>(bitmaps.length);
         for(int k = 0; k < bitmaps.length; ++k) {
             ContainerPointer x = bitmaps[k].highLowContainer.getContainerPointer();
             if(x.getContainer() != null)
@@ -388,7 +388,7 @@ public final class FastAggregation {
         RoaringBitmap answer = new RoaringBitmap();
         if (bitmaps.isEmpty())
             return answer;
-        PriorityQueue<ContainerPointer> pq = new PriorityQueue<ContainerPointer>(bitmaps.size());
+        PriorityQueue<ContainerPointer> pq = new PriorityQueue<>(bitmaps.size());
         for(int k = 0; k < bitmaps.size(); ++k) {
             ContainerPointer x = bitmaps.get(k).highLowContainer.getContainerPointer();
             if(x.getContainer() != null)
@@ -441,7 +441,7 @@ public final class FastAggregation {
         if (bitmaps.length == 0)
             return new RoaringBitmap();
 
-        PriorityQueue<RoaringBitmap> pq = new PriorityQueue<RoaringBitmap>(bitmaps.length, new Comparator<RoaringBitmap>() {
+        PriorityQueue<RoaringBitmap> pq = new PriorityQueue<>(bitmaps.length, new Comparator<RoaringBitmap>() {
             @Override
             public int compare(RoaringBitmap a,
                                RoaringBitmap b) {
@@ -470,7 +470,7 @@ public final class FastAggregation {
         RoaringBitmap answer = new RoaringBitmap();
         if (bitmaps.length == 0)
             return answer;
-        PriorityQueue<ContainerPointer> pq = new PriorityQueue<ContainerPointer>(bitmaps.length);
+        PriorityQueue<ContainerPointer> pq = new PriorityQueue<>(bitmaps.length);
         for(int k = 0; k < bitmaps.length; ++k) {
             ContainerPointer x = bitmaps[k].highLowContainer.getContainerPointer();
             if(x.getContainer() != null)

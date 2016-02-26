@@ -359,7 +359,7 @@ public final class BufferFastAggregation {
         MutableRoaringBitmap answer = new MutableRoaringBitmap();
         if (bitmaps.length == 0)
             return answer;
-        PriorityQueue<MappeableContainerPointer> pq = new PriorityQueue<MappeableContainerPointer>(
+        PriorityQueue<MappeableContainerPointer> pq = new PriorityQueue<>(
                 bitmaps.length);
         for (int k = 0; k < bitmaps.length; ++k) {
             MappeableContainerPointer x = bitmaps[k].highLowContainer
@@ -432,7 +432,7 @@ public final class BufferFastAggregation {
         MutableRoaringBitmap answer = new MutableRoaringBitmap();
         if (bitmaps.length == 0)
             return answer;
-        PriorityQueue<MappeableContainerPointer> pq = new PriorityQueue<MappeableContainerPointer>(
+        PriorityQueue<MappeableContainerPointer> pq = new PriorityQueue<>(
                 bitmaps.length);
         for (int k = 0; k < bitmaps.length; ++k) {
             MappeableContainerPointer x = bitmaps[k].highLowContainer
@@ -496,7 +496,7 @@ public final class BufferFastAggregation {
         final boolean[] istmp = new boolean[buffer.length];
         for(int k = 0 ; k < sizes.length; ++k)
             sizes[k] = buffer[k].serializedSizeInBytes();
-        PriorityQueue<Integer> pq = new PriorityQueue<Integer>(128, new Comparator<Integer>() {
+        PriorityQueue<Integer> pq = new PriorityQueue<>(128, new Comparator<Integer>() {
             @Override
             public int compare(Integer a,
                     Integer b) {
@@ -547,14 +547,14 @@ public final class BufferFastAggregation {
         if (!bitmaps.hasNext())
             return new MutableRoaringBitmap();
         // we buffer the call to getSizeInBytes(), hence the code complexity
-        ArrayList<ImmutableRoaringBitmap> buffer = new ArrayList<ImmutableRoaringBitmap>();
+        ArrayList<ImmutableRoaringBitmap> buffer = new ArrayList<>();
         while(bitmaps.hasNext())
             buffer.add((ImmutableRoaringBitmap) bitmaps.next());
         final int[] sizes = new int[buffer.size()];
         final boolean[] istmp = new boolean[buffer.size()];
         for(int k = 0 ; k < sizes.length; ++k)
             sizes[k] = buffer.get(k).getSizeInBytes();
-        PriorityQueue<Integer> pq = new PriorityQueue<Integer>(128, new Comparator<Integer>() {
+        PriorityQueue<Integer> pq = new PriorityQueue<>(128, new Comparator<Integer>() {
             @Override
             public int compare(Integer a,
                     Integer b) {
@@ -607,7 +607,7 @@ public final class BufferFastAggregation {
         // code could be faster, see priorityqueue_or
         if (bitmaps.length < 2)
             throw new IllegalArgumentException("Expecting at least 2 bitmaps");
-        final PriorityQueue<ImmutableRoaringBitmap> pq = new PriorityQueue<ImmutableRoaringBitmap>(
+        final PriorityQueue<ImmutableRoaringBitmap> pq = new PriorityQueue<>(
                 bitmaps.length, new Comparator<ImmutableRoaringBitmap>() {
                     @Override
                     public int compare(ImmutableRoaringBitmap a,
