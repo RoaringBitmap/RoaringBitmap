@@ -804,7 +804,7 @@ public final class BitmapContainer extends Container implements Cloneable {
         final int x = Util.toIntUnsigned(i);
         int index = x / 64;
         long bef = bitmap[index];
-        long mask = (1L << x);
+        long mask = 1L << x;
         if (cardinality == ArrayContainer.DEFAULT_MAX_SIZE + 1) {// this is
             // the
             // uncommon
@@ -887,7 +887,7 @@ public final class BitmapContainer extends Container implements Cloneable {
         for (int k = 0; k < c; ++k) {
             short vc =  value2.content[k];
             final int index = Util.toIntUnsigned(vc) >>> 6;
-            final long mask = (1L << vc);
+            final long mask = 1L << vc;
             final long val = answer.bitmap[index];
             // TODO: check whether a branchy version could be faster
             answer.cardinality += 1 - 2 * ((val & mask) >>> vc);

@@ -787,7 +787,7 @@ public final class RunContainer extends Container implements Cloneable {
         //could try using unsignedInterleavedBinarySearch(valueslength, 0, nbrruns, rangeStart) instead of sequential scan
         //to find the starting location
 
-        for(; (k < myNbrRuns) && ((Util.toIntUnsigned(this.getValue(k)) < rangeStart)) ; ++k) {
+        for(; (k < myNbrRuns) && (Util.toIntUnsigned(this.getValue(k)) < rangeStart) ; ++k) {
             // since it is atop self, there is no copying needed
             //ans.valueslength[2 * k] = this.valueslength[2 * k];
             //ans.valueslength[2 * k + 1] = this.valueslength[2 * k + 1];
@@ -880,7 +880,7 @@ public final class RunContainer extends Container implements Cloneable {
         if (rangeEnd <= rangeStart) return this.clone();
         RunContainer ans = new RunContainer(nbrruns+1);
         int k = 0;
-        for(; (k < this.nbrruns) && ((Util.toIntUnsigned(this.getValue(k)) < rangeStart)) ; ++k) {
+        for(; (k < this.nbrruns) && (Util.toIntUnsigned(this.getValue(k)) < rangeStart) ; ++k) {
                 ans.valueslength[2 * k] = this.valueslength[2 * k];
                 ans.valueslength[2 * k + 1] = this.valueslength[2 * k + 1];
                 ans.nbrruns++;
@@ -1941,7 +1941,7 @@ public final class RunContainer extends Container implements Cloneable {
         }
 
         while (rlepos < nbrruns) {
-            this.smartAppend(this.getValue(offset + rlepos), this.getLength((offset + rlepos)));
+            this.smartAppend(this.getValue(offset + rlepos), this.getLength(offset + rlepos));
             ++rlepos;
         }
 
