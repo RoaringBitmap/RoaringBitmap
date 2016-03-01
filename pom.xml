@@ -103,10 +103,12 @@
           </dependency>
         </dependencies>
         <configuration>
-          <configLocation>google_checks.xml</configLocation>
-          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <configLocation>${basedir}/style/roaring_google_checks.xml</configLocation>
+          <!--<configLocation>google_checks.xml</configLocation>-->
+          <includeTestSourceDirectory>false</includeTestSourceDirectory>
           <consoleOutput>true</consoleOutput>
           <logViolationsToConsole>true</logViolationsToConsole>
+          <failOnViolation>true</failOnViolation>
           <failsOnError>true</failsOnError>
         </configuration>
         <executions>

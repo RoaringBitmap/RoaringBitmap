@@ -265,9 +265,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
           shortArray.put(l, Short.reverseBytes(in.readShort()));
         }
         val = new MappeableRunContainer(shortArray, nbrruns);
-      }
-
-      else {
+      } else {
         final ShortBuffer shortArray = ShortBuffer.allocate(cardinalities[k]);
         for (int l = 0; l < shortArray.limit(); ++l) {
           shortArray.put(l, Short.reverseBytes(in.readShort()));

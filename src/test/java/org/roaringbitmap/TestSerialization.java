@@ -114,7 +114,7 @@ public class TestSerialization {
 
   @BeforeClass
   public static void init() throws IOException {
-    final int[] data = takeSortedAndDistinct(new Random(0xcb000a2b9b5bdfb6l), 100000);
+    final int[] data = takeSortedAndDistinct(new Random(0xcb000a2b9b5bdfb6L), 100000);
     bitmap_a = RoaringBitmap.bitmapOf(data);
     bitmap_ar = MutableRoaringBitmap.bitmapOf(data);
     bitmap_a1 = RoaringBitmap.bitmapOf(data);

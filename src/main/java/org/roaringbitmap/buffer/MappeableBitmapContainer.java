@@ -139,7 +139,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   public MappeableContainer add(final short i) {
     final int x = BufferUtil.toIntUnsigned(i);
     final long previous = bitmap.get(x / 64);
-    final long newv = previous | (1l << x);
+    final long newv = previous | (1L << x);
     bitmap.put(x / 64, newv);
     if (USE_BRANCHLESS) {
       cardinality += (previous ^ newv) >>> x;
@@ -253,7 +253,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         short v = v2[k];
         final int i = BufferUtil.toIntUnsigned(v) >>> 6;
         long w = bitArray[i];
-        long aft = w & (~(1l << v));
+        long aft = w & (~(1L << v));
         bitArray[i] = aft;
         answer.cardinality -= (w ^ aft) >>> v;
       }
@@ -263,7 +263,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         short v2 = value2.content.get(k);
         final int i = BufferUtil.toIntUnsigned(v2) >>> 6;
         long w = bitArray[i];
-        long aft = bitArray[i] & (~(1l << v2));
+        long aft = bitArray[i] & (~(1L << v2));
         bitArray[i] = aft;
         answer.cardinality -= (w ^ aft) >>> v2;
       }
@@ -396,7 +396,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   @Override
   public boolean contains(final short i) {
     final int x = BufferUtil.toIntUnsigned(i);
-    return (bitmap.get(x / 64) & (1l << x)) != 0;
+    return (bitmap.get(x / 64) & (1L << x)) != 0;
   }
 
   @Override
@@ -503,7 +503,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   public MappeableContainer flip(short i) {
     final int x = BufferUtil.toIntUnsigned(i);
     final long bef = bitmap.get(x / 64);
-    final long mask = (1l << x);
+    final long mask = (1L << x);
     if (cardinality == MappeableArrayContainer.DEFAULT_MAX_SIZE + 1) {// this
                                                                       // is
       // the
@@ -752,7 +752,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     for (int k = 0; k < c; ++k) {
       short v2 = value2.content.get(k);
       final int i = BufferUtil.toIntUnsigned(v2) >>> 6;
-      b[i] |= (1l << v2);
+      b[i] |= (1L << v2);
     }
     return this;
   }
@@ -856,7 +856,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       for (int k = 0; k < c; ++k) {
         final int i = BufferUtil.toIntUnsigned(v2[k]) >>> 6;
         long bef = b[i];
-        long aft = bef | (1l << v2[k]);
+        long aft = bef | (1L << v2[k]);
         b[i] = aft;
         if (USE_BRANCHLESS) {
           cardinality += (bef - aft) >>> 63;
@@ -873,7 +873,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       short v2 = value2.content.get(k);
       final int i = BufferUtil.toIntUnsigned(v2) >>> 6;
       long bef = b[i];
-      long aft = bef | (1l << v2);
+      long aft = bef | (1L << v2);
       b[i] = aft;
       if (USE_BRANCHLESS) {
         cardinality += (bef - aft) >>> 63;
@@ -981,7 +981,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       int c = value2.cardinality;
       for (int k = 0; k < c; ++k) {
         short vc = v2[k];
-        long mask = (1l << v2[k]);
+        long mask = (1L << v2[k]);
         final int index = BufferUtil.toIntUnsigned(vc) >>> 6;
         long ba = b[index];
         // TODO: check whether a branchy version could be faster
@@ -993,7 +993,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       int c = value2.cardinality;
       for (int k = 0; k < c; ++k) {
         short v2 = value2.content.get(k);
-        long mask = (1l << v2);
+        long mask = (1L << v2);
         final int index = BufferUtil.toIntUnsigned(v2) >>> 6;
         long ba = b[index];
         // TODO: check whether a branchy version could be faster
@@ -1089,7 +1089,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     for (int k = 0; k < c; ++k) {
       short v2 = value2.content.get(k);
       final int i = BufferUtil.toIntUnsigned(v2) >>> 6;
-      b[i] |= 1l << v2;
+      b[i] |= 1L << v2;
     }
     return answer;
   }
@@ -1180,14 +1180,14 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       for (int k = 0; k < arrayContainer.cardinality; ++k) {
         final short x = ac[k];
         bitArray[BufferUtil.toIntUnsigned(x) / 64] =
-            b[BufferUtil.toIntUnsigned(x) / 64] | (1l << x);
+            b[BufferUtil.toIntUnsigned(x) / 64] | (1L << x);
       }
 
     } else {
       for (int k = 0; k < arrayContainer.cardinality; ++k) {
         final short x = arrayContainer.content.get(k);
         bitArray[BufferUtil.toIntUnsigned(x) / 64] =
-            bitmap.get(BufferUtil.toIntUnsigned(x) / 64) | (1l << x);
+            bitmap.get(BufferUtil.toIntUnsigned(x) / 64) | (1L << x);
       }
     }
   }
@@ -1473,7 +1473,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         short v = v2[k];
         final int i = BufferUtil.toIntUnsigned(v) >>> 6;
         long w = ab[i];
-        long aft = w | (1l << v);
+        long aft = w | (1L << v);
         bitArray[i] = aft;
         if (USE_BRANCHLESS) {
           answer.cardinality += (w - aft) >>> 63;
@@ -1489,7 +1489,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         short v2 = value2.content.get(k);
         final int i = BufferUtil.toIntUnsigned(v2) >>> 6;
         long w = answer.bitmap.get(i);
-        long aft = w | (1l << v2);
+        long aft = w | (1L << v2);
         bitArray[i] = aft;
         if (USE_BRANCHLESS) {
           answer.cardinality += (w - aft) >>> 63;
@@ -1630,7 +1630,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   public MappeableContainer remove(final short i) {
     final int x = BufferUtil.toIntUnsigned(i);
     long X = bitmap.get(x / 64);
-    long mask = 1l << x;
+    long mask = 1L << x;
 
     if (cardinality == MappeableArrayContainer.DEFAULT_MAX_SIZE + 1) {// this is
       // the
@@ -1789,7 +1789,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       int c = value2.cardinality;
       for (int k = 0; k < c; ++k) {
         short vc = v2[k];
-        long mask = 1l << vc;
+        long mask = 1L << vc;
         final int index = BufferUtil.toIntUnsigned(vc) >>> 6;
         long ba = bitArray[index];
         // TODO: check whether a branchy version could be faster
@@ -1800,7 +1800,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       int c = value2.cardinality;
       for (int k = 0; k < c; ++k) {
         short v2 = value2.content.get(k);
-        long mask = 1l << v2;
+        long mask = 1L << v2;
         final int index = BufferUtil.toIntUnsigned(v2) >>> 6;
         long ba = bitArray[index];
         // TODO: check whether a branchy version could be faster

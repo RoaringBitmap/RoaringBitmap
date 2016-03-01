@@ -320,6 +320,10 @@ public final class RoaringArray implements Cloneable, Externalizable {
     return this.values[i];
   }
 
+  /**
+  * Create a ContainerPointer for this RoaringArray
+  * @return a ContainerPointer
+  */
   public ContainerPointer getContainerPointer() {
     return new ContainerPointer() {
       int k = 0;

@@ -6,7 +6,7 @@ import java.util.BitSet;
 
 
 /***
- * 
+ *
  * This class provides convenience functions to manipulate BitSet and RoaringBitmap objects.
  *
  */
@@ -39,7 +39,7 @@ public class BitSetUtil {
 
   /**
    * Generate a RoaringBitmap out of a BitSet
-   * 
+   *
    * @param bitSet original bitset (will not be modified)
    * @return roaring bitmap equivalent to BitSet
    */
@@ -50,7 +50,7 @@ public class BitSetUtil {
   /**
    * Generate a RoaringBitmap out of a long[], each long using little-endian representation of its
    * bits
-   * 
+   *
    * @see BitSet#toLongArray() for an equivalent
    * @param words array of longs (will not be modified)
    * @return roaring bitmap
@@ -98,10 +98,10 @@ public class BitSetUtil {
   /**
    * Compares a RoaringBitmap and a BitSet. They are equal if and only if they contain the same set
    * of integers.
-   * 
+   *
    * @param bitset first object to be compared
    * @param bitmap second object to be compared
-   * @return
+   * @return whether they are equals
    */
   public static boolean equals(final BitSet bitset, final RoaringBitmap bitmap) {
     if (bitset.cardinality() != bitmap.getCardinality()) {

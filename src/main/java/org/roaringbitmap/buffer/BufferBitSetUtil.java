@@ -10,7 +10,7 @@ import org.roaringbitmap.IntIterator;
 
 
 /***
- * 
+ *
  * This class provides convenience functions to manipulate BitSet and MutableRoaringBitmap objects.
  *
  */
@@ -43,7 +43,7 @@ public class BufferBitSetUtil {
 
   /**
    * Generate a MutableRoaringBitmap out of a BitSet
-   * 
+   *
    * @param bitSet original bitset (will not be modified)
    * @return roaring bitmap equivalent to BitSet
    */
@@ -54,7 +54,7 @@ public class BufferBitSetUtil {
   /**
    * Generate a MutableRoaringBitmap out of a long[], each long using little-endian representation
    * of its bits
-   * 
+   *
    * @see BitSet#toLongArray() for an equivalent
    * @param words array of longs (will not be modified)
    * @return roaring bitmap
@@ -103,10 +103,10 @@ public class BufferBitSetUtil {
   /**
    * Compares a RoaringBitmap and a BitSet. They are equal if and only if they contain the same set
    * of integers.
-   * 
+   *
    * @param bitset first object to be compared
    * @param bitmap second object to be compared
-   * @return
+   * @return whether they are equal
    */
   public static boolean equals(final BitSet bitset, final ImmutableRoaringBitmap bitmap) {
     if (bitset.cardinality() != bitmap.getCardinality()) {

@@ -19,7 +19,7 @@ import java.nio.channels.WritableByteChannel;
 /**
  * This is the underlying data structure for an ImmutableRoaringBitmap. This class is not meant for
  * end-users.
- * 
+ *
  */
 public final class ImmutableRoaringArray implements PointableRoaringArray {
 
@@ -35,7 +35,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
    * Create an array based on a previously serialized ByteBuffer. The input ByteBuffer is
    * effectively copied (with the slice operation) so you should expect the provided ByteBuffer to
    * remain unchanged.
-   * 
+   *
    * @param bbf The source ByteBuffer
    */
   protected ImmutableRoaringArray(ByteBuffer bbf) {
@@ -169,7 +169,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
   @Override
   public MappeableContainer getContainerAtIndex(int i) {
     int cardinality = getCardinality(i);
-    boolean isBitmap = cardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE; // if not a
+    final boolean isBitmap = cardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE; // if not a
                                                                                // runcontainer
     ByteBuffer tmp = buffer.duplicate();// sad but ByteBuffer is not thread-safe so it is either a
                                         // duplicate or a lock
@@ -410,7 +410,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
   /**
    * Returns true if this bitmap is empty.
-   * 
+   *
    * @return true if empty
    */
   public boolean isEmpty() {
@@ -430,9 +430,9 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
   /**
    * Serialize.
-   * 
+   *
    * The current bitmap is not modified.
-   * 
+   *
    * @param out the DataOutput stream
    * @throws IOException Signals that an I/O exception has occurred.
    */
