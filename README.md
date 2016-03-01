@@ -253,6 +253,20 @@ This problem will occur to all users who serialized Roaring bitmaps
 using versions prior to 0.4.x as they upgrade to version 0.4.x or better.
 These users need to refresh their serialized bitmaps. 
 
+
+
+2. How big can a Roaring bitmap get?
+
+
+Given N integers in [0,x), then the serialized size in bytes of 
+a Roaring bitmap should never exceed this bound:
+
+`` 4 + 8 * ((long)x+65535)/65536 + 2 * N ``
+
+That is, given a fixed overhead for the universe size (x), Roaring
+bitmaps never use more than 2 bytes per integer.
+
+
 Benchmark
 -----------
 
