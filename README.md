@@ -232,6 +232,11 @@ A convenient command to build the code is :
 
              mvn clean install -DskipTests -Dgpg.skip=true
 
+Contributing
+------------
+
+Contributions are invited. We enforce the Google Java style.
+
 FAQ
 ----
 

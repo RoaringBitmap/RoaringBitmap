@@ -105,7 +105,6 @@
         <configuration>
           <configLocation>google_checks.xml</configLocation>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
-          <logViolationsToConsole>true</logViolationsToConsole>
           <consoleOutput>true</consoleOutput>
           <logViolationsToConsole>true</logViolationsToConsole>
           <failsOnError>true</failsOnError>
