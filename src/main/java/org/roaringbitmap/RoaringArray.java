@@ -418,6 +418,8 @@ public final class RoaringArray implements Cloneable, Externalizable {
       return 4 + 4 + 8 * size;
     }
   }
+
+  
   // insert a new key, it is assumed that it does not exist
   protected void insertNewKeyValueAt(int i, short key, Container value) {
     extendArray(1);
@@ -521,8 +523,6 @@ public final class RoaringArray implements Cloneable, Externalizable {
    */
   public int serializedSizeInBytes() {
     int count = headerSize();
-    // for each container, we store cardinality (16 bits), key (16 bits) and location offset (32
-    // bits).
     for (int k = 0; k < size; ++k) {
       count += values[k].getArraySizeInBytes();
     }

@@ -1546,6 +1546,24 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
 
   /**
+   * Assume that one wants to store "cardinality" integers in [0, universe_size),
+   * this function returns an upper bound on the serialized size in bytes.
+   * 
+   * @param cardinality maximal cardinality
+   * @param universe_size maximal value
+   * @return upper bound on the serialized size in bytes of the bitmap
+   */
+  public static long maximumSerializedSize(long cardinality, long universe_size) {
+    final long contnbr = (universe_size+65535)/65536;
+    final long headermax = Math.max(8, 4 + (contnbr + 7) / 8) + 8 * contnbr;
+    final long valsarray = 2 * cardinality;
+    final long valsbitmap = contnbr * 8192;
+    final long valsbest = Math.min(valsarray,valsbitmap);
+    return valsbest + headermax;
+    
+  }
+  
+  /**
    * Report the number of bytes required to serialize this bitmap. This is the number of bytes
    * written out when using the serialize method. When using the writeExternal method, the count
    * will be higher due to the overhead of Java serialization.

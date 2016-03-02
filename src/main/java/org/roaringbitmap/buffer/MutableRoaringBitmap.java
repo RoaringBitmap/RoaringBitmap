@@ -1197,5 +1197,19 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
       getMappeableRoaringArray().appendCopy(x2.highLowContainer, pos2, length2);
     }
   }
+  
+  /**
+   * Assume that one wants to store "cardinality" integers in [0, universe_size),
+   * this function returns an upper bound on the serialized size in bytes.
+   * 
+   * This function is identical to RoaringBitmap.maximumSerializedSize.
+   * 
+   * @param cardinality maximal cardinality
+   * @param universe_size maximal value
+   * @return upper bound on the serialized size in bytes of the bitmap
+   */
+  public static long maximumSerializedSize(int cardinality, int universe_size) {
+    return RoaringBitmap.maximumSerializedSize(cardinality, universe_size);
+  }
 
 }
