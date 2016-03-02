@@ -24,7 +24,9 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    * @return a new container initialized with the specified values
    */
   public static Container rangeOfOnes(final int start, final int last) {
-    Container answer = new RunContainer();
+    final int sizeAsArrayContainer = ArrayContainer.serializedSizeInBytes(last-start);
+    final int sizeAsRunContainer = RunContainer.serializedSizeInBytes(1);
+    Container answer = sizeAsRunContainer < sizeAsArrayContainer ? new RunContainer() : new ArrayContainer();
     answer = answer.iadd(start, last);
     return answer;
   }
