@@ -109,7 +109,8 @@
           <consoleOutput>true</consoleOutput>
           <logViolationsToConsole>true</logViolationsToConsole>
           <failOnViolation>true</failOnViolation>
-          <failsOnError>true</failsOnError>
+          <maxAllowedViolations>0</maxAllowedViolations>
+          <violationSeverity>warning</violationSeverity>
         </configuration>
         <executions>
           <execution>
