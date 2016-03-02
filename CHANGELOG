@@ -1,6 +1,7 @@
-upcoming 
+version 0.6.4
  - improving code style
  - avoiding small and inefficient run containers in some cases
+ - implemented maximumSerializedSize
 
 version 0.6.3
  - Fix for Issue #77 "Memory usage issues" https://github.com/RoaringBitmap/RoaringBitmap/issues/77
