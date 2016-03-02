@@ -1193,6 +1193,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
   /**
    * Create a copy of the content of this container as a short array. This creates a copy.
+   * 
+   * @return copy of the content as a short array
    */
   public short[] toShortArray() {
     short[] answer = new short[cardinality];

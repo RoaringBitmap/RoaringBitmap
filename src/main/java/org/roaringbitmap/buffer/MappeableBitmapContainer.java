@@ -1729,6 +1729,8 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   /**
    * Create a copy of the content of this container as a long array. This creates a copy.
+   *
+   * @return copy of the content as a long array
    */
   public long[] toLongArray() {
     long[] answer = new long[bitmap.limit()];

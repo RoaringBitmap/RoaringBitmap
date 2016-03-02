@@ -2219,6 +2219,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   /**
    * Create a copy of the content of this container as a short array. This creates a copy.
+   *
+   * @return copy of the content as a short array
    */
   public short[] toShortArray() {
     short[] answer = new short[2 * nbrruns];
