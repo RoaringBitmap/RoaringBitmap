@@ -45,7 +45,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     if ((cookie & 0xFFFF) != SERIAL_COOKIE && cookie != SERIAL_COOKIE_NO_RUNCONTAINER) {
       throw new RuntimeException("I failed to find one of the right cookies. " + cookie);
     }
-    boolean hasRunContainers = ((cookie & 0xFFFF) == SERIAL_COOKIE);
+    boolean hasRunContainers = (cookie & 0xFFFF) == SERIAL_COOKIE;
     this.size = hasRunContainers ? (cookie >>> 16) + 1 : buffer.getInt(4);
     int theLimit = size > 0 ? computeSerializedSizeInBytes() : headerSize(hasRunContainers);
     buffer.limit(theLimit);
