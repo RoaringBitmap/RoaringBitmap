@@ -1205,7 +1205,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     // of sequential scan
     // to find the starting location
 
-    for (; (k < myNbrRuns) && ((BufferUtil.toIntUnsigned(this.getValue(k)) < rangeStart)); ++k) {
+    for (; k < myNbrRuns && BufferUtil.toIntUnsigned(this.getValue(k)) < rangeStart; ++k) {
       // since it is atop self, there is no copying needed
       // ans.valueslength[2 * k] = this.valueslength[2 * k];
       // ans.valueslength[2 * k + 1] = this.valueslength[2 * k + 1];
@@ -1761,8 +1761,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     if (isArrayBacked()) {
       short[] myVl = valueslength.array();
-      for (; (k < this.nbrruns)
-          && ((BufferUtil.toIntUnsigned(getValue(myVl, k)) < rangeStart)); ++k) {
+      for (; k < this.nbrruns
+          && BufferUtil.toIntUnsigned(getValue(myVl, k)) < rangeStart; ++k) {
         vl[2 * k] = myVl[2 * k];
         vl[2 * k + 1] = myVl[2 * k + 1];
         ans.nbrruns++;
@@ -1773,8 +1773,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       }
     } else { // not array backed
 
-      for (; (k < this.nbrruns)
-          && ((BufferUtil.toIntUnsigned(this.getValue(k)) < rangeStart)); ++k) {
+      for (; k < this.nbrruns
+          && BufferUtil.toIntUnsigned(this.getValue(k)) < rangeStart; ++k) {
         vl[2 * k] = getValue(k);
         vl[2 * k + 1] = getLength(k);
         ans.nbrruns++;

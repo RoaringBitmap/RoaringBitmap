@@ -522,7 +522,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
     }
     for (int k = 0; k < size; ++k) {
       out.writeShort(Short.reverseBytes(this.keys[k]));
-      out.writeShort(Short.reverseBytes((short) ((this.values[k].getCardinality() - 1))));
+      out.writeShort(Short.reverseBytes((short) (this.values[k].getCardinality() - 1)));
     }
     if ((!hasrun) || (this.size >= NO_OFFSET_THRESHOLD)) {
       for (int k = 0; k < this.size; k++) {
