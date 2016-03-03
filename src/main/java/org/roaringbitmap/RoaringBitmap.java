@@ -1555,7 +1555,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   public static long maximumSerializedSize(long cardinality, long universe_size) {
     long contnbr = (universe_size+65535)/65536;
-    if(contnbr > cardinality) contnbr = cardinality; // we can't have more containers than we have values
+    if(contnbr > cardinality) {
+        contnbr = cardinality; 
+        // we can't have more containers than we have values
+    }
     final long headermax = Math.max(8, 4 + (contnbr + 7) / 8) + 8 * contnbr;
     final long valsarray = 2 * cardinality;
     final long valsbitmap = contnbr * 8192;
