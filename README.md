@@ -261,11 +261,11 @@ These users need to refresh their serialized bitmaps.
 Given N integers in [0,x), then the serialized size in bytes of 
 a Roaring bitmap should never exceed this bound:
 
-`` 4 + 8 * ((long)x+65535)/65536 + 2 * N ``
+`` 8 + 9 * ((long)x+65535)/65536 + 2 * N ``
 
 That is, given a fixed overhead for the universe size (x), Roaring
-bitmaps never use more than 2 bytes per integer.
-
+bitmaps never use more than 2 bytes per integer. You can call
+``RoaringBitmap.maximumSerializedSize`` for a more precise estimate.
 
 Benchmark
 -----------

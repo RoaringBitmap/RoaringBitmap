@@ -1,3 +1,6 @@
+version 0.6.5
+ - improved bound in maximumSerializedSize
+
 version 0.6.4
  - improving code style
  - avoiding small and inefficient run containers in some cases
