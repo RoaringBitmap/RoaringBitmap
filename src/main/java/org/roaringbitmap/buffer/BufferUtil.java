@@ -327,6 +327,19 @@ public final class BufferUtil {
     return -(x + 1);
   }
 
+  /**
+  * Checks whether the Buffer is backed by a simple array.
+  * In java, a Buffer is an abstraction that can represent
+  * various data, from data on disk all the way to native
+  * Java arrays.  Like all abstractions,
+  * a Buffer might carry a performance penalty. 
+  * Thus, we sometimes check whether the Buffer is simply 
+  * a wrapper around a Java array. In these instances, it
+  * might be best, from a performance point of view, to 
+  * access the underlying array (using the array()) method.
+  *
+  * @return whether the Buffer is backed by a simple array
+  */
   protected static boolean isBackedBySimpleArray(Buffer b) {
     return b.hasArray() && (b.arrayOffset() == 0);
   }

@@ -224,9 +224,10 @@ Usage
 * Get java
 * Get maven 2
 
-* mvn compile will compile
-* mvn test will run the unit tests
-* mvn package will package in a jar (found in target)
+* ``mvn compile`` will compile
+* ``mvn test`` will run the unit tests
+* ``mvn package`` will package in a jar (found in target)
+* ``mvn checkstyle:check`` will check that you abide by the code style
 
 A convenient command to build the code is :
 
@@ -236,6 +237,8 @@ Contributing
 ------------
 
 Contributions are invited. We enforce the Google Java style.
+Please run  ``mvn checkstyle:check`` on your code before submitting
+a patch.
 
 FAQ
 ----
