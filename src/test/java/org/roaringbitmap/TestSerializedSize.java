@@ -5,6 +5,16 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class TestSerializedSize {
+  
+  @Test
+  public void testLucaSize() {
+    System.out.println("testLucaSize");
+    RoaringBitmap rb =
+        RoaringBitmap.bitmapOf( 2946000, 2997491, 10478289, 10490227, 10502444, 19866827);
+    System.out.println("cardinality = " + rb.getCardinality());
+    System.out.println("total size in bytes = " + rb.getSizeInBytes());
+    assertTrue(rb.getSizeInBytes() <= 50);
+  }
 
 
   @Test
