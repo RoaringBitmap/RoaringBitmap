@@ -34,3 +34,7 @@ We can analyze the result with JMC.
 
      $ java -jar target/benchmarks.jar needwork.SlowORaggregate3 -wi 5 -i 5 -f 1 -jvmArgs="-XX:+UnlockCommercialFeatures -XX:+FlightRecorder -XX:StartFlightRecording=duration=60s,filename=SlowORaggregate.jfr"
      $ jmc SlowORaggregate.jfr
+
+# spe150271
+
+For the manuscript Consistently faster and smaller compressed bitmaps with Roaring, we used a script (spe150271.sh) to record performance data.
