@@ -234,13 +234,18 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    */
   public String getContainerName() {
     if (this instanceof BitmapContainer) {
-      return "bitmap ";
+      return ContainerNames[0];
     } else if (this instanceof ArrayContainer) {
-      return "array";
+      return ContainerNames[1];
     } else {
-      return "run";
+      return ContainerNames[2];
     }
   }
+  
+  /**
+   * Name of the various possible containers
+   */
+  public static String ContainerNames[] = {"bitmap","array","run"};
 
 
   /**

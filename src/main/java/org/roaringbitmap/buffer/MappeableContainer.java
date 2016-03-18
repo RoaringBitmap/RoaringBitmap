@@ -188,13 +188,17 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
    */
   public String getContainerName() {
     if (this instanceof MappeableBitmapContainer) {
-      return "mappeablebitmap ";
+      return ContainerNames[0];
     } else if (this instanceof MappeableArrayContainer) {
-      return "mappeablearray";
+      return ContainerNames[1];
     } else {
-      return "mappeablerun";
+      return ContainerNames[2];
     }
   }
+  /**
+   * Name of the various possible containers
+   */
+  public static String ContainerNames[] = {"mappeablebitmap","mappeablearray","mappeablerun"};
 
   /**
    * Iterator to visit the short values in the container in descending order.
