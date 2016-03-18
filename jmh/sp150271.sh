@@ -28,7 +28,7 @@ for t in ${TESTS[@]}; do
 for m in ${MODELS[@]}; do
  myfiles+=" "$m.$t.jfr
  rm -f $m.$t.jfr
- java -jar target/benchmarks.jar spe150271.$m.$t -wi 5 -i 5 -f 1 -jvmArgs="-XX:+UnlockCommercialFeatures -XX:+FlightRecorder -XX:StartFlightRecording=compress=true,filename=$m.$t.jfr"
+ java -jar target/benchmarks.jar spe150271.$m.$t -wi 20 -i 20 -f 1 -jvmArgs="-XX:+UnlockCommercialFeatures -XX:+FlightRecorder -XX:StartFlightRecording=dumponexit=true,filename=$m.$t.jfr"
 done
 done
 echo "the flight recorder files are " $myfiles
