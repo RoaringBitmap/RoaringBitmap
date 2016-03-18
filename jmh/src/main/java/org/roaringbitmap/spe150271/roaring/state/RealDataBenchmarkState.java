@@ -12,10 +12,7 @@ import static org.roaringbitmap.realdata.wrapper.BitmapFactory.*;
 public class RealDataBenchmarkState extends org.roaringbitmap.AbstractBenchmarkState {
 
    @Param({// putting the data sets in alpha. order
-           CENSUS_INCOME, CENSUS1881, USCENSUS2000,
-           WEATHER_SEPT_85, WIKILEAKS_NOQUOTES,
-           CENSUS_INCOME_SRT, CENSUS1881_SRT,
-           WEATHER_SEPT_85_SRT, WIKILEAKS_NOQUOTES_SRT
+           CENSUS_INCOME
    })
    public String dataset;
 
