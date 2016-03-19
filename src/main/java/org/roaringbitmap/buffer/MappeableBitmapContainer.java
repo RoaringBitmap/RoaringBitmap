@@ -6,6 +6,7 @@ package org.roaringbitmap.buffer;
 
 import org.roaringbitmap.BitmapContainer;
 import org.roaringbitmap.Container;
+import org.roaringbitmap.PeekableShortIterator;
 import org.roaringbitmap.ShortIterator;
 import org.roaringbitmap.Util;
 
@@ -544,7 +545,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   }
 
   @Override
-  public ShortIterator getShortIterator() {
+  public PeekableShortIterator getShortIterator() {
     if (this.isArrayBacked()) {
       return BitmapContainer.getShortIterator(bitmap.array());
     }
@@ -1873,7 +1874,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 }
 
 
-final class MappeableBitmapContainerShortIterator implements ShortIterator {
+final class MappeableBitmapContainerShortIterator implements PeekableShortIterator {
   final static int len = MappeableBitmapContainer.MAX_CAPACITY / 64;// hard coded for speed
   long w;
   int x;
@@ -1888,9 +1889,9 @@ final class MappeableBitmapContainerShortIterator implements ShortIterator {
   }
 
   @Override
-  public ShortIterator clone() {
+  public PeekableShortIterator clone() {
     try {
-      return (ShortIterator) super.clone();
+      return (PeekableShortIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null;// will not happen
     }
@@ -1944,6 +1945,31 @@ final class MappeableBitmapContainerShortIterator implements ShortIterator {
         break;
       }
     }
+  }
+
+  @Override
+  public void advanceIfNeeded(short minval) {
+    if(BufferUtil.toIntUnsigned(minval) >= (x+1) * 64 ) {
+      x = BufferUtil.toIntUnsigned(minval) / 64;
+      w = parent.bitmap.get(x);
+      while (w == 0) {
+        ++x;
+        if (x == len) {
+          return;
+        }
+        w = parent.bitmap.get(x);
+      }
+    }
+    while (hasNext() && (BufferUtil.toIntUnsigned(peekNext()) < BufferUtil.toIntUnsigned(minval))) {
+      next(); // could be optimized
+    }
+    
+  }
+
+  @Override
+  public short peekNext() {
+    long t = w & -w;
+    return (short) (x * 64 + Long.bitCount(t - 1));
   }
 }
 

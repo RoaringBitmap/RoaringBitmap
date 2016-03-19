@@ -475,7 +475,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
   @Override
-  public ShortIterator getShortIterator() {
+  public PeekableShortIterator getShortIterator() {
     if (this.isArrayBacked()) {
       return new RawArrayContainerShortIterator(this);
     }
@@ -1366,9 +1366,9 @@ final class MappeableArrayContainerShortIterator implements PeekableShortIterato
   }
 
   @Override
-  public ShortIterator clone() {
+  public PeekableShortIterator clone() {
     try {
-      return (ShortIterator) super.clone();
+      return (PeekableShortIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null;// will not happen
     }
@@ -1434,9 +1434,9 @@ final class RawArrayContainerShortIterator implements PeekableShortIterator {
   }
 
   @Override
-  public ShortIterator clone() {
+  public PeekableShortIterator clone() {
     try {
-      return (ShortIterator) super.clone();
+      return (PeekableShortIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null;// will not happen
     }

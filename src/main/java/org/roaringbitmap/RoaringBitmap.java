@@ -43,10 +43,10 @@ import org.roaringbitmap.buffer.MutableRoaringBitmap;
 public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>, Externalizable,
     ImmutableBitmapDataProvider {
 
-  private final class RoaringIntIterator implements IntIterator {
+  private final class RoaringIntIterator implements PeekableIntIterator {
     private int hs = 0;
 
-    private ShortIterator iter;
+    private PeekableShortIterator iter;
 
     private int pos = 0;
 
@@ -55,7 +55,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     }
 
     @Override
-    public IntIterator clone() {
+    public PeekableIntIterator clone() {
       try {
         RoaringIntIterator x = (RoaringIntIterator) super.clone();
         x.iter = this.iter.clone();
@@ -86,6 +86,25 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         hs = RoaringBitmap.this.highLowContainer.getKeyAtIndex(pos) << 16;
       }
     }
+
+    @Override
+    public void advanceIfNeeded(int minval) {
+      while ((hs >>> 16) < (minval >>> 16)) {
+        ++pos;
+        if (pos < RoaringBitmap.this.highLowContainer.size()) {
+          nextContainer();
+        } else {
+          return;
+        }
+      }
+      iter.advanceIfNeeded(Util.lowbits(minval));
+    }
+
+    @Override
+    public int peekNext() {
+      return Util.toIntUnsigned(iter.peekNext()) | hs;
+    }
+
 
   }
 
@@ -1095,7 +1114,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
    */
   @Override
-  public IntIterator getIntIterator() {
+  public PeekableIntIterator getIntIterator() {
     return new RoaringIntIterator();
   }
 
@@ -1546,26 +1565,26 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
 
   /**
-   * Assume that one wants to store "cardinality" integers in [0, universe_size),
-   * this function returns an upper bound on the serialized size in bytes.
+   * Assume that one wants to store "cardinality" integers in [0, universe_size), this function
+   * returns an upper bound on the serialized size in bytes.
    * 
    * @param cardinality maximal cardinality
    * @param universe_size maximal value
    * @return upper bound on the serialized size in bytes of the bitmap
    */
   public static long maximumSerializedSize(long cardinality, long universe_size) {
-    long contnbr = (universe_size+65535)/65536;
-    if(contnbr > cardinality) {
-      contnbr = cardinality; 
+    long contnbr = (universe_size + 65535) / 65536;
+    if (contnbr > cardinality) {
+      contnbr = cardinality;
       // we can't have more containers than we have values
     }
     final long headermax = Math.max(8, 4 + (contnbr + 7) / 8) + 8 * contnbr;
     final long valsarray = 2 * cardinality;
     final long valsbitmap = contnbr * 8192;
-    final long valsbest = Math.min(valsarray,valsbitmap);
+    final long valsbest = Math.min(valsarray, valsbitmap);
     return valsbest + headermax;
   }
-  
+
   /**
    * Report the number of bytes required to serialize this bitmap. This is the number of bytes
    * written out when using the serialize method. When using the writeExternal method, the count

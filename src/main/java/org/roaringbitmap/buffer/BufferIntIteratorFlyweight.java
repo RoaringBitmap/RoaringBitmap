@@ -4,8 +4,8 @@
 
 package org.roaringbitmap.buffer;
 
-import org.roaringbitmap.IntIterator;
-import org.roaringbitmap.ShortIterator;
+import org.roaringbitmap.PeekableIntIterator;
+import org.roaringbitmap.PeekableShortIterator;
 
 /**
  * Fast iterator minimizing the stress on the garbage collector. You can create one reusable
@@ -13,11 +13,11 @@ import org.roaringbitmap.ShortIterator;
  * 
  * @author Borislav Ivanov
  **/
-public class BufferIntIteratorFlyweight implements IntIterator {
+public class BufferIntIteratorFlyweight implements PeekableIntIterator {
 
   private int hs;
 
-  private ShortIterator iter;
+  private PeekableShortIterator iter;
 
   private MappeableArrayContainerShortIterator arrIter = new MappeableArrayContainerShortIterator();
 
@@ -49,7 +49,7 @@ public class BufferIntIteratorFlyweight implements IntIterator {
   }
 
   @Override
-  public IntIterator clone() {
+  public PeekableIntIterator clone() {
     try {
       BufferIntIteratorFlyweight x = (BufferIntIteratorFlyweight) super.clone();
       x.iter = this.iter.clone();
@@ -105,5 +105,23 @@ public class BufferIntIteratorFlyweight implements IntIterator {
     this.roaringBitmap = r;
     this.nextContainer();
   }
+
+  @Override
+  public void advanceIfNeeded(int minval) {
+    while ((hs >>> 16) < (minval >>> 16)) {
+      pos++;
+      if (pos < this.roaringBitmap.highLowContainer.size()) {
+        nextContainer();
+      } else {
+        return;
+      }
+    }
+  }
+
+  @Override
+  public int peekNext() {
+    return BufferUtil.toIntUnsigned(iter.peekNext()) | hs;
+  }
+
 
 }

@@ -17,6 +17,7 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
 import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.PeekableIntIterator;
 import org.roaringbitmap.ShortIterator;
 
 public class TestIterators {
@@ -170,4 +171,29 @@ public class TestIterators {
     Assert.assertEquals(ImmutableList.of(1, 2, 3), intIteratorCopy);
     Assert.assertEquals(ImmutableList.of(3, 2, 1), reverseIntIteratorCopy);
   }
+  
+  
+  @Test
+  public void testSkips() {
+    final Random source = new Random(0xcb000a2b9b5bdfb6l);
+    final int[] data = takeSortedAndDistinct(source, 45);
+    MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(data);
+    PeekableIntIterator pii = bitmap.getIntIterator();
+    for(int i = 0; i < data.length; ++i) {
+      pii.advanceIfNeeded(data[i]);
+      Assert.assertEquals(data[i], pii.peekNext());
+    }
+    pii = bitmap.getIntIterator();
+    for(int i = 0; i < data.length; ++i) {
+      pii.advanceIfNeeded(data[i]);
+      Assert.assertEquals(data[i], pii.next());
+    }
+    pii = bitmap.getIntIterator();
+    for(int i = 1; i < data.length; ++i) {
+      pii.advanceIfNeeded(data[i-1]);
+      pii.next();
+      Assert.assertEquals(data[i],pii.peekNext() );
+    }
+  }
 }
+

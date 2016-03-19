@@ -260,7 +260,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    *
    * @return iterator
    */
-  public abstract ShortIterator getShortIterator();
+  public abstract PeekableShortIterator getShortIterator();
 
   /**
    * Computes an estimate of the memory usage of this container. The estimate is not meant to be

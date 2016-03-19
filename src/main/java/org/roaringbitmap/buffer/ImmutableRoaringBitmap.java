@@ -6,6 +6,8 @@ package org.roaringbitmap.buffer;
 
 import org.roaringbitmap.ImmutableBitmapDataProvider;
 import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.PeekableIntIterator;
+import org.roaringbitmap.PeekableShortIterator;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.ShortIterator;
 import org.roaringbitmap.Util;
@@ -51,13 +53,13 @@ import java.util.Iterator;
 public class ImmutableRoaringBitmap
     implements Iterable<Integer>, Cloneable, ImmutableBitmapDataProvider {
 
-  private final class ImmutableRoaringIntIterator implements IntIterator {
+  private final class ImmutableRoaringIntIterator implements PeekableIntIterator {
     private MappeableContainerPointer cp =
         ImmutableRoaringBitmap.this.highLowContainer.getContainerPointer();
 
     private int hs = 0;
 
-    private ShortIterator iter;
+    private PeekableShortIterator iter;
 
     private boolean ok;
 
@@ -66,7 +68,7 @@ public class ImmutableRoaringBitmap
     }
 
     @Override
-    public IntIterator clone() {
+    public PeekableIntIterator clone() {
       try {
         ImmutableRoaringIntIterator x = (ImmutableRoaringIntIterator) super.clone();
         x.iter = this.iter.clone();
@@ -99,6 +101,24 @@ public class ImmutableRoaringBitmap
         iter = cp.getContainer().getShortIterator();
         hs = BufferUtil.toIntUnsigned(cp.key()) << 16;
       }
+    }
+
+    @Override
+    public void advanceIfNeeded(int minval) {
+      while ((hs >>> 16) < (minval >>> 16)) {
+        cp.advance();
+        if (cp.hasContainer()) {
+          nextContainer();
+        } else {
+          return;
+        }
+      }
+      iter.advanceIfNeeded(BufferUtil.lowbits(minval));
+    }
+
+    @Override
+    public int peekNext() {
+      return BufferUtil.toIntUnsigned(iter.peekNext()) | hs;
     }
 
 
@@ -730,7 +750,7 @@ public class ImmutableRoaringBitmap
    * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
    */
   @Override
-  public IntIterator getIntIterator() {
+  public PeekableIntIterator getIntIterator() {
     return new ImmutableRoaringIntIterator();
   }
 

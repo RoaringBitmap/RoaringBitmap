@@ -10,11 +10,11 @@ package org.roaringbitmap;
  * 
  * @author Borislav Ivanov
  **/
-public class IntIteratorFlyweight implements IntIterator {
+public class IntIteratorFlyweight implements PeekableIntIterator {
 
   private int hs;
 
-  private ShortIterator iter;
+  private PeekableShortIterator iter;
 
   private ArrayContainerShortIterator arrIter = new ArrayContainerShortIterator();
 
@@ -44,7 +44,7 @@ public class IntIteratorFlyweight implements IntIterator {
   }
 
   @Override
-  public IntIterator clone() {
+  public PeekableIntIterator clone() {
     try {
       IntIteratorFlyweight x = (IntIteratorFlyweight) super.clone();
       x.iter = this.iter.clone();
@@ -100,4 +100,21 @@ public class IntIteratorFlyweight implements IntIterator {
     this.nextContainer();
   }
 
+  @Override
+  public void advanceIfNeeded(int minval) {
+    while ((hs >>> 16) < (minval >>> 16)) {
+      ++pos;
+      if (pos < this.roaringBitmap.highLowContainer.size()) {
+        nextContainer();
+      } else {
+        return;
+      }
+    }
+    iter.advanceIfNeeded(Util.lowbits(minval));
+  }
+
+  @Override
+  public int peekNext() {
+    return Util.toIntUnsigned(iter.peekNext()) | hs;
+  }
 }

@@ -364,7 +364,7 @@ public final class ArrayContainer extends Container implements Cloneable {
   }
 
   @Override
-  public ShortIterator getShortIterator() {
+  public PeekableShortIterator getShortIterator() {
     return new ArrayContainerShortIterator(this);
   }
 
@@ -1087,9 +1087,9 @@ final class ArrayContainerShortIterator implements PeekableShortIterator {
 
 
   @Override
-  public ShortIterator clone() {
+  public PeekableShortIterator clone() {
     try {
-      return (ShortIterator) super.clone();
+      return (PeekableShortIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null;// will not happen
     }

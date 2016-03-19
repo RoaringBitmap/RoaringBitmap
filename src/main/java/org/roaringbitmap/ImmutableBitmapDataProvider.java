@@ -31,7 +31,7 @@ public interface ImmutableBitmapDataProvider {
   /**
    * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
    */
-  public IntIterator getIntIterator();
+  public PeekableIntIterator getIntIterator();
 
   /**
    * @return a custom iterator over set bits, the bits are traversed in descending sorted order

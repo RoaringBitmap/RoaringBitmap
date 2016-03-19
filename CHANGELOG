@@ -1,3 +1,6 @@
+version 0.6.6 
+ - Implemented https://github.com/RoaringBitmap/RoaringBitmap/issues/82
+
 version 0.6.5
  - improved bound in maximumSerializedSize
 

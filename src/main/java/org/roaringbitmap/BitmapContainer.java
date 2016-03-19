@@ -48,7 +48,7 @@ public final class BitmapContainer extends Container implements Cloneable {
    * @param bitmap array to be iterated over
    * @return an iterator
    */
-  public static ShortIterator getShortIterator(long[] bitmap) {
+  public static PeekableShortIterator getShortIterator(long[] bitmap) {
     return new BitmapContainerShortIterator(bitmap);
   }
 
@@ -420,7 +420,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
-  public ShortIterator getShortIterator() {
+  public PeekableShortIterator getShortIterator() {
     return new BitmapContainerShortIterator(this.bitmap);
   }
 
@@ -1281,7 +1281,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 }
 
 
-final class BitmapContainerShortIterator implements ShortIterator {
+final class BitmapContainerShortIterator implements PeekableShortIterator {
 
   long w;
   int x;
@@ -1295,9 +1295,9 @@ final class BitmapContainerShortIterator implements ShortIterator {
   }
 
   @Override
-  public ShortIterator clone() {
+  public PeekableShortIterator clone() {
     try {
-      return (ShortIterator) super.clone();
+      return (PeekableShortIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null;// will not happen
     }
@@ -1322,6 +1322,7 @@ final class BitmapContainerShortIterator implements ShortIterator {
     }
     return answer;
   }
+  
 
 
   @Override
@@ -1353,6 +1354,30 @@ final class BitmapContainerShortIterator implements ShortIterator {
         break;
       }
     }
+  }
+
+  @Override
+  public void advanceIfNeeded(short minval) {
+    if(Util.toIntUnsigned(minval) >= (x+1) * 64 ) {
+      x = Util.toIntUnsigned(minval) / 64;
+      w = bitmap[x];
+      while (w == 0) {
+        ++x;
+        if (x == bitmap.length) {
+          return;
+        }
+        w = bitmap[x];
+      }
+    }
+    while (hasNext() && (Util.toIntUnsigned(peekNext()) < Util.toIntUnsigned(minval))) {
+      next(); // could be optimized
+    }
+  }
+
+  @Override
+  public short peekNext() {
+    long t = w & -w;
+    return (short) (x * 64 + Long.bitCount(t - 1));
   }
 }
 

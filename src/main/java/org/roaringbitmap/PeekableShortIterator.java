@@ -11,7 +11,7 @@ package org.roaringbitmap;
  */
 public interface PeekableShortIterator extends ShortIterator {
   /**
-   * If needed, advance as long as the next value is greater or equal to minval (as an unsigned
+   * If needed, advance as long as the next value is smaller than minval (as an unsigned
    * short)
    * 
    * @param minval threshold
@@ -25,5 +25,13 @@ public interface PeekableShortIterator extends ShortIterator {
    * @return next value
    */
   public short peekNext();
+  
+  /**
+   * Creates a copy of the iterator.
+   * 
+   * @return a clone of the current iterator
+   */
+  @Override
+  PeekableShortIterator clone();
 }
 

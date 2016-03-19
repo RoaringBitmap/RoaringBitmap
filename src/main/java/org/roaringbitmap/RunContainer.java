@@ -1002,7 +1002,7 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   @Override
-  public ShortIterator getShortIterator() {
+  public PeekableShortIterator getShortIterator() {
     return new RunContainerShortIterator(this);
   }
 
@@ -2442,7 +2442,7 @@ public final class RunContainer extends Container implements Cloneable {
 };
 
 
-final class RunContainerShortIterator implements ShortIterator {
+final class RunContainerShortIterator implements PeekableShortIterator {
   int pos;
   int le = 0;
   int maxlength;
@@ -2457,9 +2457,9 @@ final class RunContainerShortIterator implements ShortIterator {
   }
 
   @Override
-  public ShortIterator clone() {
+  public PeekableShortIterator clone() {
     try {
-      return (ShortIterator) super.clone();
+      return (PeekableShortIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null;// will not happen
     }
@@ -2513,6 +2513,31 @@ final class RunContainerShortIterator implements ShortIterator {
       maxlength = Util.toIntUnsigned(parent.getLength(pos));
       base = Util.toIntUnsigned(parent.getValue(pos));
     }
+  }
+
+  @Override
+  public void advanceIfNeeded(short minval) {
+    while (base + maxlength < Util.toIntUnsigned(minval)) {
+      pos++;
+      le = 0;
+      if (pos < parent.nbrruns) {
+        maxlength = Util.toIntUnsigned(parent.getLength(pos));
+        base = Util.toIntUnsigned(parent.getValue(pos));
+      } else {
+        return;
+      }
+    }
+    if (base > Util.toIntUnsigned(minval)) {
+      return;
+    }
+    le = Util.toIntUnsigned(minval) - base;
+  }
+
+
+
+  @Override
+  public short peekNext() {
+    return (short) (base + le);
   }
 
 }

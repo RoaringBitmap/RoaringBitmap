@@ -911,7 +911,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   }
 
   @Override
-  public ShortIterator getShortIterator() {
+  public PeekableShortIterator getShortIterator() {
     if (isArrayBacked()) {
       return new RawMappeableRunContainerShortIterator(this);
     }
@@ -1761,8 +1761,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     if (isArrayBacked()) {
       short[] myVl = valueslength.array();
-      for (; k < this.nbrruns
-          && BufferUtil.toIntUnsigned(getValue(myVl, k)) < rangeStart; ++k) {
+      for (; k < this.nbrruns && BufferUtil.toIntUnsigned(getValue(myVl, k)) < rangeStart; ++k) {
         vl[2 * k] = myVl[2 * k];
         vl[2 * k + 1] = myVl[2 * k + 1];
         ans.nbrruns++;
@@ -1773,8 +1772,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       }
     } else { // not array backed
 
-      for (; k < this.nbrruns
-          && BufferUtil.toIntUnsigned(this.getValue(k)) < rangeStart; ++k) {
+      for (; k < this.nbrruns && BufferUtil.toIntUnsigned(this.getValue(k)) < rangeStart; ++k) {
         vl[2 * k] = getValue(k);
         vl[2 * k + 1] = getLength(k);
         ans.nbrruns++;
@@ -2364,7 +2362,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 }
 
 
-final class MappeableRunContainerShortIterator implements ShortIterator {
+final class MappeableRunContainerShortIterator implements PeekableShortIterator {
   int pos;
   int le = 0;
   int maxlength;
@@ -2379,9 +2377,9 @@ final class MappeableRunContainerShortIterator implements ShortIterator {
   }
 
   @Override
-  public ShortIterator clone() {
+  public PeekableShortIterator clone() {
     try {
-      return (ShortIterator) super.clone();
+      return (PeekableShortIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null;// will not happen
     }
@@ -2437,10 +2435,33 @@ final class MappeableRunContainerShortIterator implements ShortIterator {
     }
   }
 
+  @Override
+  public void advanceIfNeeded(short minval) {
+    while (base + maxlength < BufferUtil.toIntUnsigned(minval)) {
+      pos++;
+      le = 0;
+      if (pos < parent.nbrruns) {
+        maxlength = BufferUtil.toIntUnsigned(parent.getLength(pos));
+        base = BufferUtil.toIntUnsigned(parent.getValue(pos));
+      } else {
+        return;
+      }
+    }
+    if (base > BufferUtil.toIntUnsigned(minval)) {
+      return;
+    }
+    le = BufferUtil.toIntUnsigned(minval) - base;
+  }
+
+  @Override
+  public short peekNext() {
+    return (short) (base + le);
+  }
+
 };
 
 
-final class RawMappeableRunContainerShortIterator implements ShortIterator {
+final class RawMappeableRunContainerShortIterator implements PeekableShortIterator {
   int pos;
   int le = 0;
   int maxlength;
@@ -2455,9 +2476,9 @@ final class RawMappeableRunContainerShortIterator implements ShortIterator {
   }
 
   @Override
-  public ShortIterator clone() {
+  public PeekableShortIterator clone() {
     try {
-      return (ShortIterator) super.clone();
+      return (PeekableShortIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null;// will not happen
     }
@@ -2524,6 +2545,29 @@ final class RawMappeableRunContainerShortIterator implements ShortIterator {
       maxlength = BufferUtil.toIntUnsigned(getLength(pos));
       base = BufferUtil.toIntUnsigned(getValue(pos));
     }
+  }
+
+  @Override
+  public void advanceIfNeeded(short minval) {
+    while (base + maxlength < BufferUtil.toIntUnsigned(minval)) {
+      pos++;
+      le = 0;
+      if (pos < parent.nbrruns) {
+        maxlength = BufferUtil.toIntUnsigned(parent.getLength(pos));
+        base = BufferUtil.toIntUnsigned(parent.getValue(pos));
+      } else {
+        return;
+      }
+    }
+    if (base > BufferUtil.toIntUnsigned(minval)) {
+      return;
+    }
+    le = BufferUtil.toIntUnsigned(minval) - base;
+  }
+
+  @Override
+  public short peekNext() {
+    return (short) (base + le);
   }
 
 }
