@@ -1,4 +1,4 @@
-upcoming
+version 0.6.7
  - Making peekable iterators safer: https://github.com/RoaringBitmap/RoaringBitmap/issues/93
 
 version 0.6.6 

@@ -110,7 +110,7 @@ public class TestIterators {
   @Test
   public void testSkips() {
     final Random source = new Random(0xcb000a2b9b5bdfb6l);
-    final int[] data = takeSortedAndDistinct(source, 45);
+    final int[] data = takeSortedAndDistinct(source, 45000);
     RoaringBitmap bitmap = RoaringBitmap.bitmapOf(data);
     PeekableIntIterator pii = bitmap.getIntIterator();
     for(int i = 0; i < data.length; ++i) {
@@ -127,6 +127,35 @@ public class TestIterators {
       pii.advanceIfNeeded(data[i-1]);
       pii.next();
       Assert.assertEquals(data[i],pii.peekNext() );
+    }
+  }
+  
+  @Test
+  public void testSkipsDense() {
+    RoaringBitmap bitmap = new RoaringBitmap();
+    int N = 100000;
+    for(int i = 0; i < N; ++i) {
+      bitmap.add(2 * i);
+    }
+    for(int i = 0; i < N; ++i) {
+      PeekableIntIterator pii = bitmap.getIntIterator();
+      pii.advanceIfNeeded(2 * i);
+      Assert.assertEquals(pii.peekNext(), 2 * i);
+      Assert.assertEquals(pii.next(), 2 * i);
+    }
+  }
+  
+
+  @Test
+  public void testSkipsRun() {
+    RoaringBitmap bitmap = new RoaringBitmap();
+    bitmap.add(4, 100000);
+    bitmap.runOptimize();
+    for(int i = 4; i < 100000; ++i) {
+      PeekableIntIterator pii = bitmap.getIntIterator();
+      pii.advanceIfNeeded(i);
+      Assert.assertEquals(pii.peekNext(), i);
+      Assert.assertEquals(pii.next(), i);
     }
   }
 
