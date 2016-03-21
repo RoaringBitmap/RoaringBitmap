@@ -211,6 +211,19 @@ public class TestIterators {
     }
   }
 
+  @Test
+  public void testIndexIterator4() throws Exception {
+    MutableRoaringBitmap b = new MutableRoaringBitmap();
+    for (int i = 0; i < 4096; i++) {
+      b.add(i);
+    }
+    PeekableIntIterator it = b.getIntIterator();
+    it.advanceIfNeeded(4096);
+    while (it.hasNext()) {
+      it.next();
+    }
+  }
+
 
   @Test
   public void testSkipsRun() {

@@ -107,14 +107,14 @@ public class ImmutableRoaringBitmap
     public void advanceIfNeeded(int minval) {
       while ((hs >>> 16) < (minval >>> 16)) {
         cp.advance();
-        if (cp.hasContainer()) {
-          nextContainer();
-        } else {
-          return;
-        }
+        nextContainer();
       }
       if(ok) {
         iter.advanceIfNeeded(BufferUtil.lowbits(minval));
+        if (!iter.hasNext()) {
+          cp.advance();
+          nextContainer();
+        }
       }
     }
 

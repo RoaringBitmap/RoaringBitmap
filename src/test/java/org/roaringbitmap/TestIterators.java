@@ -158,6 +158,19 @@ public class TestIterators {
       Assert.assertEquals(pii.next(), i);
     }
   }
+  
+  @Test
+  public void testIndexIterator4() throws Exception {
+      RoaringBitmap b = new RoaringBitmap();
+      for (int i = 0; i < 4096; i++) {
+          b.add(i);
+      }
+      PeekableIntIterator it = b.getIntIterator();
+      it.advanceIfNeeded(4096);
+      while (it.hasNext()) {
+          it.next();
+      }
+  }
 
   @Test
   public void testEmptySkips() {

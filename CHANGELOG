@@ -1,3 +1,6 @@
+version 0.6.8
+ - Fix for ArrayOutOfBoundgException in PeekingShortIterator from BitmapContainer #94
+
 version 0.6.7
  - Making peekable iterators safer: https://github.com/RoaringBitmap/RoaringBitmap/issues/93
 
