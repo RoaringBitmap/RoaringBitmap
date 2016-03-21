@@ -113,7 +113,9 @@ public class ImmutableRoaringBitmap
           return;
         }
       }
-      iter.advanceIfNeeded(BufferUtil.lowbits(minval));
+      if(ok) {
+        iter.advanceIfNeeded(BufferUtil.lowbits(minval));
+      }
     }
 
     @Override

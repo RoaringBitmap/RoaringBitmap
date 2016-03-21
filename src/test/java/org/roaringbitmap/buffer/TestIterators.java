@@ -195,5 +195,12 @@ public class TestIterators {
       Assert.assertEquals(data[i],pii.peekNext() );
     }
   }
+  
+  @Test
+  public void testEmptySkips() {
+    MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+    PeekableIntIterator it = bitmap.getIntIterator();
+    it.advanceIfNeeded(0);
+  }
 }
 

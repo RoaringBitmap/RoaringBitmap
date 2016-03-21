@@ -97,7 +97,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
           return;
         }
       }
-      iter.advanceIfNeeded(Util.lowbits(minval));
+      if(hasNext()) {
+        iter.advanceIfNeeded(Util.lowbits(minval));
+      }
     }
 
     @Override

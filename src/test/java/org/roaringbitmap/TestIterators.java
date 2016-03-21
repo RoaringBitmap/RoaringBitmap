@@ -129,4 +129,11 @@ public class TestIterators {
       Assert.assertEquals(data[i],pii.peekNext() );
     }
   }
+
+  @Test
+  public void testEmptySkips() {
+    RoaringBitmap bitmap = new RoaringBitmap();
+    PeekableIntIterator it = bitmap.getIntIterator();
+    it.advanceIfNeeded(0);
+  }
 }
