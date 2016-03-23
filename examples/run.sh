@@ -1,4 +1,4 @@
-cd .. && mvn -Dmaven.test.skip=true package && cd examples
+#cd .. && mvn -Dmaven.test.skip=true package && cd examples
 echo "Running CompressionResults"
 javac -cp "../target/*" CompressionResults.java && java -cp ../target/*:. CompressionResults
 echo
@@ -13,5 +13,7 @@ javac -cp "../target/*" MemoryMappingExample.java && java -cp ../target/*:. Memo
 echo
 echo "Serializing to byte array"
 javac -cp "../target/*":. SerializeToByteArrayExample.java && java -cp ../target/*:. SerializeToByteArrayExample
-
+echo "Serializing to file "
+javac -cp "../target/*" SerializeToDiskExample.java &&  java -cp ../target/*:. SerializeToDiskExample
+rm bitmapwithoutruns.bin  bitmapwithruns.bin
 rm *.class

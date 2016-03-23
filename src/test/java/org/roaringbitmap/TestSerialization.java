@@ -323,36 +323,64 @@ public class TestSerialization {
   public void testMutableRunSerializationBasicDeserialization() throws java.io.IOException {
     final int[] data = takeSortedAndDistinct(new Random(07734), 100000);
     RoaringBitmap bitmap_a = RoaringBitmap.bitmapOf(data);
-    MutableRoaringBitmap bitmap_ar = MutableRoaringBitmap.bitmapOf(data);
+    RoaringBitmap bitmap_ar = RoaringBitmap.bitmapOf(data);
+
+    MutableRoaringBitmap bitmap_am = MutableRoaringBitmap.bitmapOf(data);
+    MutableRoaringBitmap bitmap_amr = MutableRoaringBitmap.bitmapOf(data);
 
     for (int k = 100000; k < 200000; ++k) {
       bitmap_a.add(3 * k); // bitmap density and too many little runs
       bitmap_ar.add(3 * k);
+      bitmap_am.add(3 * k);
+      bitmap_amr.add(3 * k);
     }
 
     for (int k = 700000; k < 800000; ++k) { // will choose a runcontainer on this
-      bitmap_a.add(k);
+      bitmap_a.add(k); // bitmap density and too many little runs
       bitmap_ar.add(k);
+      bitmap_am.add(k);
+      bitmap_amr.add(k);    
     }
 
-    bitmap_a.runOptimize(); // mix of all 3 container kinds
     bitmap_ar.runOptimize();
+    bitmap_amr.runOptimize();
+    assertEquals(bitmap_a, bitmap_ar);
+    assertEquals(bitmap_am, bitmap_amr);
+    assertEquals(bitmap_am.serializedSizeInBytes(), bitmap_a.serializedSizeInBytes());
+    assertEquals(bitmap_amr.serializedSizeInBytes(), bitmap_ar.serializedSizeInBytes());
 
-    ByteBuffer outbuf = ByteBuffer.allocate(bitmap_a.serializedSizeInBytes());
-    ByteBufferBackedOutputStream out = new ByteBufferBackedOutputStream(outbuf);
+    ByteBuffer outbuf = ByteBuffer.allocate(2*(bitmap_a.serializedSizeInBytes() + bitmap_ar.serializedSizeInBytes()));
+    DataOutputStream out = new DataOutputStream(new ByteBufferBackedOutputStream(outbuf));
     try {
-      bitmap_a.serialize(new DataOutputStream(out));
+      bitmap_a.serialize(out);
+      bitmap_ar.serialize(out);
+      bitmap_am.serialize(out);
+      bitmap_amr.serialize(out);
     } catch (Exception e) {
       e.printStackTrace();
     }
     outbuf.flip();
 
-    RoaringBitmap bitmap_c = new RoaringBitmap();
+    RoaringBitmap bitmap_c1 = new RoaringBitmap();
+    RoaringBitmap bitmap_c2 = new RoaringBitmap();
+    RoaringBitmap bitmap_c3 = new RoaringBitmap();
+    RoaringBitmap bitmap_c4 = new RoaringBitmap();
 
-    ByteBufferBackedInputStream in = new ByteBufferBackedInputStream(outbuf);
-    bitmap_c.deserialize(new DataInputStream(in));
+    DataInputStream in = new DataInputStream(new ByteBufferBackedInputStream(outbuf));
+    bitmap_c1.deserialize(in);
+    bitmap_c2.deserialize(in);
+    bitmap_c3.deserialize(in);
+    bitmap_c4.deserialize(in);
 
-    assertEquals(bitmap_a, bitmap_c);
+    assertEquals(bitmap_a, bitmap_c1);
+    assertEquals(bitmap_a, bitmap_c2);
+    assertEquals(bitmap_a, bitmap_c3);
+    assertEquals(bitmap_a, bitmap_c4);
+    assertEquals(bitmap_ar, bitmap_c1);
+    assertEquals(bitmap_ar, bitmap_c2);
+    assertEquals(bitmap_ar, bitmap_c3);
+    assertEquals(bitmap_ar, bitmap_c4);
+
   }
 
   @Test
