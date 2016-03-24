@@ -1,6 +1,7 @@
 package org.roaringbitmap.realdata.wrapper;
 
 import org.roaringbitmap.FastAggregation;
+import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.RoaringBitmap;
 
 import java.io.DataOutputStream;
@@ -122,6 +123,11 @@ final class RoaringBitmapWrapper implements Bitmap {
             return ((RoaringBitmapWrapper) i.next()).bitmap;
          }
       };
+   }
+
+   @Override
+   public void forEach(IntConsumer ic) {
+      bitmap.forEach(ic);
    }
 
    @Override

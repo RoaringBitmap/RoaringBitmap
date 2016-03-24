@@ -1,5 +1,6 @@
 package org.roaringbitmap.realdata.wrapper;
 
+import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.buffer.BufferFastAggregation;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 
@@ -118,6 +119,11 @@ final class ImmutableRoaringBitmapWrapper implements Bitmap {
              throw new UnsupportedOperationException();
          }
       };
+   }
+
+   @Override
+   public void forEach(IntConsumer ic) {
+      bitmap.forEach(ic);
    }
 
    @Override

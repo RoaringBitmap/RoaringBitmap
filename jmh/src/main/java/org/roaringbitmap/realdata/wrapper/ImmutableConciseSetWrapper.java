@@ -2,6 +2,7 @@ package org.roaringbitmap.realdata.wrapper;
 
 
 import it.uniroma3.mat.extendedset.intset.ImmutableConciseSet;
+import org.roaringbitmap.IntConsumer;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -147,6 +148,11 @@ final class ImmutableConciseSetWrapper implements Bitmap {
             return new ImmutableConciseSetWrapper(bitmap);
          }
       };
+   }
+
+   @Override
+   public void forEach(IntConsumer ic) {
+      throw new UnsupportedOperationException("Not implemented in ImmutableConciseSet");
    }
 
    @Override
