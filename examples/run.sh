@@ -1,4 +1,4 @@
-#cd .. && mvn -Dmaven.test.skip=true package && cd examples
+cd .. && mvn -Dmaven.test.skip=true package && cd examples
 echo "Running CompressionResults"
 javac -cp "../target/*" CompressionResults.java && java -cp ../target/*:. CompressionResults
 echo
