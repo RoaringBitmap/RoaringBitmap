@@ -25,5 +25,5 @@ public interface IntConsumer {
    * 
    * @param value the integer value
    */
-  public void accept(int value);
+  void accept(int value);
 }
