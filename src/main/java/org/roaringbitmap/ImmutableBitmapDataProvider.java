@@ -36,7 +36,7 @@ public interface ImmutableBitmapDataProvider {
    * {@code
    *  bitmap.forEach(new IntConsumer() {
    *
-   *    @Override
+   *    {@literal @}Override
    *    public void accept(int value) {
    *      // do something here
    *      
