@@ -6,6 +6,7 @@ package org.roaringbitmap.buffer;
 
 import org.roaringbitmap.BitmapContainer;
 import org.roaringbitmap.Container;
+import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.PeekableShortIterator;
 import org.roaringbitmap.ShortIterator;
 import org.roaringbitmap.Util;
@@ -1869,6 +1870,32 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   @Override
   public MappeableContainer xor(final MappeableRunContainer value2) {
     return value2.xor(this);
+  }
+
+  @Override
+  public void forEach(short msb, IntConsumer ic) {
+    int high = ((int) msb) << 16;
+    if (BufferUtil.isBackedBySimpleArray(bitmap)) {
+      long[] b = bitmap.array();
+      for (int x = 0; x < b.length; ++x) {
+        long w = b[x];
+        while (w != 0) {
+          long t = w & -w;
+          ic.accept((x * 64 + Long.bitCount(t - 1)) | high);
+          w ^= t;
+        }
+      }
+    } else {
+      int l = bitmap.limit();
+      for (int x = 0; x < l; ++x) {
+        long w = bitmap.get(x);
+        while (w != 0) {
+          long t = w & -w;
+          ic.accept((x * 64 + Long.bitCount(t - 1)) | high);
+          w ^= t;
+        }
+      }
+    }
   }
 
 }

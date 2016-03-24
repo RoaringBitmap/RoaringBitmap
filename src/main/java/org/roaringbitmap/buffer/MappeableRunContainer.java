@@ -5,6 +5,7 @@ package org.roaringbitmap.buffer;
 
 
 import org.roaringbitmap.Container;
+import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.PeekableShortIterator;
 import org.roaringbitmap.RunContainer;
 import org.roaringbitmap.ShortIterator;
@@ -2357,6 +2358,19 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       }
     }
     return answer.toEfficientContainer();
+  }
+
+
+  @Override
+  public void forEach(short msb, IntConsumer ic) {
+    int high = ((int)msb) << 16;
+    for(int k = 0; k < this.nbrruns; ++k) {
+      int base = (this.getValue(k) & 0xFFFF) | high;
+      int le = this.getLength(k) & 0xFFFF;
+      for(int l = base; l <= base + le; ++l ) {
+        ic.accept(l);
+      }
+    }    
   }
 
 }

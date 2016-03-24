@@ -1,10 +1,13 @@
+version 0.6.9
+ - Added forEach methods
+
 version 0.6.8
  - Fix for ArrayOutOfBoundgException in PeekingShortIterator from BitmapContainer #94
 
 version 0.6.7
  - Making peekable iterators safer: https://github.com/RoaringBitmap/RoaringBitmap/issues/93
 
-version 0.6.6 
+version 0.6.6
  - Implemented https://github.com/RoaringBitmap/RoaringBitmap/issues/82
 
 version 0.6.5
@@ -21,7 +24,7 @@ version 0.6.3
 version 0.6.2
  - added convenience methods as per https://github.com/RoaringBitmap/RoaringBitmap/issues/65
 
-version 0.6.1 
+version 0.6.1
  - functionality to transform BitSet to RoaringBitmap efficiently
 
 version 0.6.0
@@ -52,7 +55,7 @@ version 0.5.15
  - Fix container sharing between bitmaps aggregated with xor
 
 version 0.5.14
- - Fix for issue #60:  RoaringBitmap.or(RoaringBitmap) has side effect on argument 
+ - Fix for issue #60:  RoaringBitmap.or(RoaringBitmap) has side effect on argument
 
 version 0.5.13
  - Fix for issue #53 by Navis Ryu: ClassCastException on cloning ImmutableRoaringReverseIntI…
@@ -86,10 +89,10 @@ version 0.5.5
  - RunContainers should implement hashCode : https://github.com/lemire/RoaringBitmap/issues/46
 
 version 0.5.4
- - Improvement to thread-safety 
+ - Improvement to thread-safety
 
 version 0.5.3
- - Improving the performance of Priority-Queue OR aggregation 
+ - Improving the performance of Priority-Queue OR aggregation
 
 version 0.5.2
  - Various performance enhancements regarding run containers
@@ -127,7 +130,7 @@ version 0.4.8
 version 0.4.7
  - Fixed silly bug in ImmutableRoaringBitmap.xor
 
-version 0.4.6 
+version 0.4.6
  - Optimized binary search for some common insertion cases
  - Reverse iterators
 
@@ -169,7 +172,7 @@ version 0.3.3 (May 23rd, 2014)
   - optimized horizontal_or
 
 version 0.3.2 (May 21st, 2014)
-  - Enabled and fixed iterators. 
+  - Enabled and fixed iterators.
 
 version 0.3.1 (May 21st,  2014)
   - Minor correction to JavaDocs
@@ -209,9 +212,9 @@ version 0.1.2 (April 15th, 2014)
 
 version 0.1.1 (March 28th, 2014)
   - made serialized format slightly more concise:
-    added the serialize/deserialize methods throughout 
+    added the serialize/deserialize methods throughout
     to bypass Java serialization overhead
-  - added the serializedSizeInBytes() method for users who 
+  - added the serializedSizeInBytes() method for users who
     wish to query the memory usage
 
 version 0.1.0 (March 21th, 2014)
@@ -224,4 +227,3 @@ version 0.0.2 (March 12th, 2014)
 
 version 0.0.1 (March 3rd, 2014)
   - First public release
-

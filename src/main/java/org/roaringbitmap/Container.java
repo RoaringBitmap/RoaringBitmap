@@ -247,6 +247,14 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    */
   public static String ContainerNames[] = {"bitmap","array","run"};
 
+  
+  /**
+   * Iterate through the values of this container and pass them
+   * along to the IntConsumer, using msb as the 16 most significant bits.
+   * @param msb 16 most significant bits
+   * @param ic consumer
+   */
+  public abstract void forEach(short msb, IntConsumer ic);
 
   /**
    * Iterator to visit the short values in the container in descending order.

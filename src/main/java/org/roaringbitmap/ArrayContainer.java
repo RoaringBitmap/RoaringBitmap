@@ -1066,6 +1066,14 @@ public final class ArrayContainer extends Container implements Cloneable {
     return or(it, true);
   }
 
+  @Override
+  public void forEach(short msb, IntConsumer ic) {
+    int high = ((int)msb) << 16;
+    for(int k = 0; k < cardinality; ++k) {
+      ic.accept((content[k] & 0xFFFF) | high);
+    }
+  }
+
 
 }
 

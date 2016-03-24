@@ -5,6 +5,7 @@
 package org.roaringbitmap.buffer;
 
 import org.roaringbitmap.ImmutableBitmapDataProvider;
+import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.PeekableIntIterator;
 import org.roaringbitmap.PeekableShortIterator;
@@ -737,6 +738,15 @@ public class ImmutableRoaringBitmap
     }
     return size;
   }
+  
+  @Override
+  public void forEach(IntConsumer ic) {
+    for (int i = 0; i < this.highLowContainer.size(); i++) {
+      highLowContainer.getContainerAtIndex(i).forEach(highLowContainer.getKeyAtIndex(i),
+          ic);
+    }
+  }
+
 
 
   /**

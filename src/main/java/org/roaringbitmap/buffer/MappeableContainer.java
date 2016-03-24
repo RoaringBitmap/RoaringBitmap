@@ -5,6 +5,7 @@
 package org.roaringbitmap.buffer;
 
 import org.roaringbitmap.Container;
+import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.PeekableShortIterator;
 import org.roaringbitmap.ShortIterator;
 
@@ -215,6 +216,15 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
    * @return iterator
    */
   public abstract PeekableShortIterator getShortIterator();
+
+  
+  /**
+   * Iterate through the values of this container and pass them
+   * along to the IntConsumer, using msb as the 16 most significant bits.
+   * @param msb 16 most significant bits
+   * @param ic consumer
+   */
+  public abstract void forEach(short msb, IntConsumer ic);
 
   /**
    * Computes an estimate of the memory usage of this container. The estimate is not meant to be

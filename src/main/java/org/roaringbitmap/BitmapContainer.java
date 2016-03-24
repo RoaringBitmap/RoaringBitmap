@@ -1278,6 +1278,19 @@ public final class BitmapContainer extends Container implements Cloneable {
     return x.xor(this);
   }
 
+  @Override
+  public void forEach(short msb, IntConsumer ic) {
+    int high = ((int)msb) << 16;
+    for(int x = 0; x < bitmap.length; ++x) {
+      long w = bitmap[x];
+      while(w != 0) {
+        long t = w & -w;
+        ic.accept( (x * 64 + Long.bitCount(t - 1)) | high );
+        w ^= t;
+      }
+    }
+  }
+
 }
 
 

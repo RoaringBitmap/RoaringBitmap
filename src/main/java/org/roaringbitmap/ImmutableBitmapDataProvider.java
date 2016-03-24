@@ -29,6 +29,26 @@ public interface ImmutableBitmapDataProvider {
   public int getCardinality();
 
   /**
+   * Visit all values in the bitmap and pass them to the consumer.
+   * 
+   * * Usage: 
+   * <pre>
+   * {@code
+   *  bitmap.forEach(new IntConsumer() {
+   *
+   *    @Override
+   *    public void accept(int value) {
+   *      // do something here
+   *      
+   *    }});
+   *   }
+   * }
+   * </pre>
+   * @param ic the consumer
+   */
+  public void forEach(IntConsumer ic);
+
+  /**
    * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
    */
   public PeekableIntIterator getIntIterator();

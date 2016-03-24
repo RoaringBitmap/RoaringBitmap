@@ -17,81 +17,6 @@ import org.roaringbitmap.buffer.MappeableRunContainer;
 
 
 
-final class ReverseRunContainerShortIterator implements ShortIterator {
-  int pos;
-  int le;
-  RunContainer parent;
-  int maxlength;
-  int base;
-
-
-  ReverseRunContainerShortIterator() {}
-
-  ReverseRunContainerShortIterator(RunContainer p) {
-    wrap(p);
-  }
-
-  @Override
-  public ShortIterator clone() {
-    try {
-      return (ShortIterator) super.clone();
-    } catch (CloneNotSupportedException e) {
-      return null;// will not happen
-    }
-  }
-
-  @Override
-  public boolean hasNext() {
-    return pos >= 0;
-  }
-
-  @Override
-  public short next() {
-    short ans = (short) (base + maxlength - le);
-    le++;
-    if (le > maxlength) {
-      pos--;
-      le = 0;
-      if (pos >= 0) {
-        maxlength = Util.toIntUnsigned(parent.getLength(pos));
-        base = Util.toIntUnsigned(parent.getValue(pos));
-      }
-    }
-    return ans;
-  }
-
-  @Override
-  public int nextAsInt() {
-    int ans = base + maxlength - le;
-    le++;
-    if (le > maxlength) {
-      pos--;
-      le = 0;
-      if (pos >= 0) {
-        maxlength = Util.toIntUnsigned(parent.getLength(pos));
-        base = Util.toIntUnsigned(parent.getValue(pos));
-      }
-    }
-    return ans;
-  }
-
-  @Override
-  public void remove() {
-    throw new RuntimeException("Not implemented");// TODO
-  }
-
-  void wrap(RunContainer p) {
-    parent = p;
-    pos = parent.nbrruns - 1;
-    le = 0;
-    if (pos >= 0) {
-      maxlength = Util.toIntUnsigned(parent.getLength(pos));
-      base = Util.toIntUnsigned(parent.getValue(pos));
-    }
-  }
-
-}
-
 
 /**
  * This container takes the form of runs of consecutive values (effectively, run-length encoding).
@@ -2439,6 +2364,18 @@ public final class RunContainer extends Container implements Cloneable {
     return answer.toEfficientContainer();
   }
 
+  @Override
+  public void forEach(short msb, IntConsumer ic) {
+    int high = ((int)msb) << 16;
+    for(int k = 0; k < this.nbrruns; ++k) {
+      int base = (this.getValue(k) & 0xFFFF) | high;
+      int le = this.getLength(k) & 0xFFFF;
+      for(int l = base; l <= base + le; ++l ) {
+        ic.accept(l);
+      }
+    }
+  }
+
 };
 
 
@@ -2538,6 +2475,83 @@ final class RunContainerShortIterator implements PeekableShortIterator {
   @Override
   public short peekNext() {
     return (short) (base + le);
+  }
+
+}
+
+
+
+final class ReverseRunContainerShortIterator implements ShortIterator {
+  int pos;
+  int le;
+  RunContainer parent;
+  int maxlength;
+  int base;
+
+
+  ReverseRunContainerShortIterator() {}
+
+  ReverseRunContainerShortIterator(RunContainer p) {
+    wrap(p);
+  }
+
+  @Override
+  public ShortIterator clone() {
+    try {
+      return (ShortIterator) super.clone();
+    } catch (CloneNotSupportedException e) {
+      return null;// will not happen
+    }
+  }
+
+  @Override
+  public boolean hasNext() {
+    return pos >= 0;
+  }
+
+  @Override
+  public short next() {
+    short ans = (short) (base + maxlength - le);
+    le++;
+    if (le > maxlength) {
+      pos--;
+      le = 0;
+      if (pos >= 0) {
+        maxlength = Util.toIntUnsigned(parent.getLength(pos));
+        base = Util.toIntUnsigned(parent.getValue(pos));
+      }
+    }
+    return ans;
+  }
+
+  @Override
+  public int nextAsInt() {
+    int ans = base + maxlength - le;
+    le++;
+    if (le > maxlength) {
+      pos--;
+      le = 0;
+      if (pos >= 0) {
+        maxlength = Util.toIntUnsigned(parent.getLength(pos));
+        base = Util.toIntUnsigned(parent.getValue(pos));
+      }
+    }
+    return ans;
+  }
+
+  @Override
+  public void remove() {
+    throw new RuntimeException("Not implemented");// TODO
+  }
+
+  void wrap(RunContainer p) {
+    parent = p;
+    pos = parent.nbrruns - 1;
+    le = 0;
+    if (pos >= 0) {
+      maxlength = Util.toIntUnsigned(parent.getLength(pos));
+      base = Util.toIntUnsigned(parent.getValue(pos));
+    }
   }
 
 }

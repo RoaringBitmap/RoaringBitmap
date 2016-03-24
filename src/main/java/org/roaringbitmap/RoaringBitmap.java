@@ -1087,6 +1087,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       }
     }
   }
+  
 
   /**
    * Returns the number of distinct integers added to the bitmap (e.g., number of bits set).
@@ -1102,6 +1103,14 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     return size;
   }
 
+  @Override
+  public void forEach(IntConsumer ic) {
+    for (int i = 0; i < this.highLowContainer.size(); i++) {
+      this.highLowContainer.getContainerAtIndex(i).forEach(this.highLowContainer.keys[i],ic);
+    }
+  }
+
+  
   /**
    * Return a low-level container pointer that can be used to access the underlying data structure.
    * 
