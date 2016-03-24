@@ -22,7 +22,7 @@ This library is used by
 * Druid (http://druid.io/).
 
 
-Apache Lucene (http://lucene.apache.org/) uses  Roaring bitmaps, though they have their own [independent implementation](https://svn.apache.org/viewvc/lucene/dev/branches/branch_5x/lucene/core/src/java/org/apache/lucene/util/RoaringDocIdSet.java?view=markup&pathrev=1629606). Derivatives of Lucene such as Solr and Elastic also use Roaring bitmaps. 
+Apache Lucene (http://lucene.apache.org/) uses  Roaring bitmaps, though they have their own [independent implementation](https://svn.apache.org/viewvc/lucene/dev/branches/branch_5x/lucene/core/src/java/org/apache/lucene/util/RoaringDocIdSet.java?view=markup&pathrev=1629606). Derivatives of Lucene such as Solr and Elastic also use Roaring bitmaps.
 Other platforms such as Whoosh (https://pypi.python.org/pypi/Whoosh/) also use Roaring bitmaps with
 their own implementations.
 
@@ -121,12 +121,11 @@ http://www.javadoc.io/doc/org.roaringbitmap/RoaringBitmap/
 Scientific Documentation
 --------------------------
 
-Samy Chambi, Daniel Lemire, Owen Kaser, Robert Godin,
+-  Samy Chambi, Daniel Lemire, Owen Kaser, Robert Godin,
 Better bitmap performance with Roaring bitmaps,
-Software: Practice and Experience (to appear)
-http://arxiv.org/abs/1402.6407
-
-This paper used data from http://lemire.me/data/realroaring2014.html
+Software: Practice and Experience (accepted in 2015, to appear)
+http://arxiv.org/abs/1402.6407 This paper used data from http://lemire.me/data/realroaring2014.html
+- Daniel Lemire, Gregory Ssi-Yan-Kai, Owen Kaser, Consistently faster and smaller compressed bitmaps with Roaring, Software: Practice and Experience (accepted in 2016, to appear) http://arxiv.org/abs/1603.06549
 
 
 Code sample
@@ -254,14 +253,14 @@ an error.
 
 This problem will occur to all users who serialized Roaring bitmaps
 using versions prior to 0.4.x as they upgrade to version 0.4.x or better.
-These users need to refresh their serialized bitmaps. 
+These users need to refresh their serialized bitmaps.
 
 
 
 2. How big can a Roaring bitmap get?
 
 
-Given N integers in [0,x), then the serialized size in bytes of 
+Given N integers in [0,x), then the serialized size in bytes of
 a Roaring bitmap should never exceed this bound:
 
 `` 8 + 9 * ((long)x+65535)/65536 + 2 * N ``
