@@ -1,8 +1,8 @@
 package org.roaringbitmap;
 
 /**
- * An IntConsumer receives the int values contained in a data structure. Values can be expected to
- * be visited in sequence, each value is visited once.
+ * An IntConsumer receives the int values contained in a data structure.
+ * Each value is visited once.
  * 
  * Usage:
  * 
