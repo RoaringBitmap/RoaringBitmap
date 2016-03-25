@@ -759,6 +759,7 @@ public class ImmutableRoaringBitmap
   }
 
   /**
+   * For better performance, consider the Use the {@link #forEach forEach} method.
    * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
    */
   @Override

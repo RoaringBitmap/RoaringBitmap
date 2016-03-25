@@ -1,5 +1,5 @@
 version 0.6.9
- - Added forEach methods
+ - Added forEach methods, see https://github.com/RoaringBitmap/RoaringBitmap/issues/44
 
 version 0.6.8
  - Fix for ArrayOutOfBoundgException in PeekingShortIterator from BitmapContainer #94

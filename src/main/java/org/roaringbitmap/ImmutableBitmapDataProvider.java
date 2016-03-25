@@ -49,6 +49,7 @@ public interface ImmutableBitmapDataProvider {
   public void forEach(IntConsumer ic);
 
   /**
+   * For better performance, consider the Use the {@link #forEach forEach} method.
    * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
    */
   public PeekableIntIterator getIntIterator();
