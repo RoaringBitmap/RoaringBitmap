@@ -114,7 +114,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   @Override
   public MappeableContainer add(int begin, int end) {
     // TODO: may need to convert to a RunContainer
-    if(end == begin) {
+    if (end == begin) {
       return clone();
     }
     if ((begin > end) || (end > (1 << 16))) {
@@ -507,7 +507,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   // not thread-safe
   public MappeableContainer iadd(int begin, int end) {
     // TODO: may need to convert to a RunContainer
-    if(end == begin) {
+    if (end == begin) {
       return this;
     }
     if ((begin > end) || (end > (1 << 16))) {
@@ -753,7 +753,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
   @Override
   public MappeableContainer iremove(int begin, int end) {
-    if(end == begin) {
+    if (end == begin) {
       return this;
     }
     if ((begin > end) || (end > (1 << 16))) {
@@ -1120,7 +1120,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
   @Override
   public MappeableContainer remove(int begin, int end) {
-    if(end == begin) {
+    if (end == begin) {
       return clone();
     }
     if ((begin > end) || (end > (1 << 16))) {
@@ -1387,12 +1387,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
   @Override
   public int andCardinality(MappeableArrayContainer value2) {
-    if(BufferUtil.isBackedBySimpleArray(content) && BufferUtil.isBackedBySimpleArray(value2.content)) {
-      return Util.unsignedLocalIntersect2by2Cardinality(content.array(), cardinality, value2.content.array(),
-          value2.getCardinality());
+    if (BufferUtil.isBackedBySimpleArray(content)
+        && BufferUtil.isBackedBySimpleArray(value2.content)) {
+      return Util.unsignedLocalIntersect2by2Cardinality(content.array(), cardinality,
+          value2.content.array(), value2.getCardinality());
     }
-    return BufferUtil.unsignedLocalIntersect2by2Cardinality(content, cardinality, value2.content,
-        value2.getCardinality());
+    return BufferUtil.unsignedLocalIntersect2by2Cardinality(content, cardinality, 
+        value2.content, value2.getCardinality());
   }
 
   @Override
