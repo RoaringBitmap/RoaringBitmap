@@ -17,7 +17,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -1116,74 +1115,6 @@ public class TestImmutableRoaringBitmap {
           actualResultSet.add(intIterator.next());
         }
         Assert.assertEquals(expectedResultSet, actualResultSet);
-      }
-    }
-  }
-
-  /**
-   * If testSelectRangeWithoutCopy fails, it prints the input and the rangeStart and rangeStart.
-   * This method helps in debugging that failure in isolation
-   */
-  @Test
-  public void testSelectRangeWithoutCopyHardCodedInput() {
-    int[] input = new int[] {12, 37, 38, 44, 47, 50, 54, 57, 68, 70, 72, 73, 76, 89, 90, 103, 120,
-        129, 133, 161, 167, 178, 195, 199, 210, 218, 220, 226, 240, 256, 262, 286, 297, 303, 328,
-        363, 364, 382, 384, 393, 410, 414, 430, 445, 449, 450, 456, 466, 478, 523, 529, 553, 559,
-        578, 584, 618, 623, 628, 633, 643, 668, 673, 676, 690, 691, 696, 697, 706, 720, 741, 759,
-        760, 793, 806, 873, 875, 876, 879, 889, 896, 897, 900, 907, 927, 928, 934, 943, 944, 946,
-        951, 954, 964, 974, 989, 997};
-    MutableRoaringBitmap rb = new MutableRoaringBitmap();
-    for (int val : input) {
-      rb.add(val);
-    }
-    int rangeStart = 902;
-    int rangeEnd = 924;
-
-    MutableRoaringBitmap out =
-        ImmutableRoaringBitmap.selectRangeWithoutCopy(rb, rangeStart, rangeEnd);
-    Assert.assertArrayEquals(new int[]{907}, out.toArray());
-  }
-
-  @Test
-  public void testSelectRangeWithoutCopy() {
-    int length = 1000;
-    int NUM_ITER = 10;
-    Random random = new Random(1234);// please use deterministic tests
-    for (int test = 0; test < 50; ++test) {
-      final MutableRoaringBitmap rb = new MutableRoaringBitmap();
-      Set<Integer> set = new TreeSet<>();
-      int numBitsToSet = 100;
-      for (int i = 0; i < numBitsToSet; i++) {
-        int val1 = random.nextInt(length);
-        rb.add(val1);
-        set.add(val1);
-      }
-      for (int iter = 0; iter < NUM_ITER; iter++) {
-        int rangeStart = random.nextInt(length - 1);
-        // +1 to ensure rangeEnd >rangeStart, may
-        int rangeLength = random.nextInt(length - rangeStart) + 1;
-        int rangeEnd = rangeStart + rangeLength;
-        MutableRoaringBitmap bitmap =
-            ImmutableRoaringBitmap.selectRangeWithoutCopy(rb, rangeStart, rangeEnd);
-        Set<Integer> expectedSet = new TreeSet<>();
-        for (int value : set) {
-          if (value >= rangeStart && value < rangeEnd) {
-            expectedSet.add(value);
-          }
-        }
-        int[] actualArray = bitmap.toArray();
-        int[] expectedArray = new int[expectedSet.size()];
-        int index = 0;
-        for (int val : expectedSet) {
-          expectedArray[index++] = val;
-        }
-        if (!Arrays.equals(expectedArray, actualArray)) {
-          System.err.println("ERROR for rangeStart:" + rangeStart + " rangeEnd:" + rangeEnd);
-          System.err.println("Input:" + set);
-          System.err.println("Expected:" + Arrays.toString(expectedArray));
-          System.err.println("Actual  :" + Arrays.toString(actualArray));
-        }
-        Assert.assertArrayEquals(expectedArray, actualArray);
       }
     }
   }
