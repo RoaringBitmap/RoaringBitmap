@@ -1,3 +1,6 @@
+version 0.6.10
+ - ranged or/and/xor/andnot operations (@kishoreg), see  https://github.com/RoaringBitmap/RoaringBitmap/issues/78
+
 version 0.6.9
  - Added forEach methods, see https://github.com/RoaringBitmap/RoaringBitmap/issues/44
 
