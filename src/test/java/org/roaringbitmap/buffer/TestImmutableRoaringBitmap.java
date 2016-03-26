@@ -962,8 +962,6 @@ public class TestImmutableRoaringBitmap {
       while (intIterator.hasNext()) {
         actualResultSet.add(intIterator.next());
       }
-      // System.out.println(expectedResultSet.size());
-      // System.out.println(actualResultSet.size());
       Assert.assertEquals(expectedResultSet, actualResultSet);
     }
   }
@@ -1012,8 +1010,6 @@ public class TestImmutableRoaringBitmap {
       while (intIterator.hasNext()) {
         actualResultSet.add(intIterator.next());
       }
-      // System.out.println(expectedResultSet.size());
-      // System.out.println(actualResultSet.size());
       Assert.assertEquals(expectedResultSet, actualResultSet);
     }
   }
@@ -1067,8 +1063,6 @@ public class TestImmutableRoaringBitmap {
       while (intIterator.hasNext()) {
         actualResultSet.add(intIterator.next());
       }
-      // System.out.println(expectedResultSet.size());
-      // System.out.println(actualResultSet.size());
       Assert.assertEquals(expectedResultSet, actualResultSet);
     }
   }
@@ -1117,8 +1111,6 @@ public class TestImmutableRoaringBitmap {
       while (intIterator.hasNext()) {
         actualResultSet.add(intIterator.next());
       }
-      // System.out.println(expectedResultSet.size());
-      // System.out.println(actualResultSet.size());
       Assert.assertEquals(expectedResultSet, actualResultSet);
     }
   }
