@@ -1922,6 +1922,45 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     }
   }
 
+
+  @Override
+  public int andCardinality(final MappeableArrayContainer value2) {
+    int answer = 0;
+    int c = value2.cardinality;
+    for (int k = 0; k < c; ++k) {
+      short v = value2.content.get(k);
+      if (this.contains(v)) {
+        answer++;
+      }
+    }
+    return answer;
+  }
+
+  @Override
+  public int andCardinality(final MappeableBitmapContainer value2) {
+    int newCardinality = 0;
+    if (BufferUtil.isBackedBySimpleArray(this.bitmap)
+        && BufferUtil.isBackedBySimpleArray(value2.bitmap)) {
+      long[] b1 = this.bitmap.array();
+      long[] b2 = value2.bitmap.array();
+      for (int k = 0; k < b1.length; ++k) {
+        newCardinality += Long.bitCount(b1[k] & b2[k]);
+      }
+    } else {
+      final int size = this.bitmap.limit();
+      for (int k = 0; k < size; ++k) {
+        newCardinality += Long.bitCount(this.bitmap.get(k) & value2.bitmap.get(k));
+      }
+    }
+    return newCardinality;
+  }
+
+  @Override
+  public int andCardinality(MappeableRunContainer x) {
+    return x.andCardinality(this);
+  }
+
+
 }
 
 

@@ -680,7 +680,16 @@ public final class Util {
     return pos;
   }
 
-  protected static int unsignedLocalIntersect2by2Cardinality(final short[] set1, final int length1,
+  
+  /**
+   * Compute the cardinality of the intersection
+   * @param set1 first set
+   * @param length1 how many values to consider in the first set
+   * @param set2 second set
+   * @param length2 how many values to consider in the second set
+   * @return cardinality of the intersection
+   */
+  public static int unsignedLocalIntersect2by2Cardinality(final short[] set1, final int length1,
       final short[] set2, final int length2) {
     if ((0 == length1) || (0 == length2)) {
       return 0;

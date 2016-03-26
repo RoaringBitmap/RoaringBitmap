@@ -1385,6 +1385,27 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
   }
 
+  @Override
+  public int andCardinality(MappeableArrayContainer value2) {
+    if(BufferUtil.isBackedBySimpleArray(content) && BufferUtil.isBackedBySimpleArray(value2.content)) {
+      return Util.unsignedLocalIntersect2by2Cardinality(content.array(), cardinality, value2.content.array(),
+          value2.getCardinality());
+    }
+    return BufferUtil.unsignedLocalIntersect2by2Cardinality(content, cardinality, value2.content,
+        value2.getCardinality());
+  }
+
+  @Override
+  public int andCardinality(MappeableBitmapContainer x) {
+    return x.andCardinality(this);
+  }
+
+  @Override
+  // see andNot for an approach that might be better.
+  public int andCardinality(MappeableRunContainer x) {
+    return x.andCardinality(this);
+  }
+
 
 }
 

@@ -258,9 +258,7 @@ public class ImmutableRoaringBitmap
       if (s1 == s2) {
         final MappeableContainer c1 = x1.highLowContainer.getContainerAtIndex(pos1);
         final MappeableContainer c2 = x2.highLowContainer.getContainerAtIndex(pos2);
-        // TODO: could be made faster if we did not have to materialize container
-        final MappeableContainer c = c1.and(c2);
-        answer += c.getCardinality();
+        answer += c1.andCardinality(c2);
         ++pos1;
         ++pos2;
       } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2

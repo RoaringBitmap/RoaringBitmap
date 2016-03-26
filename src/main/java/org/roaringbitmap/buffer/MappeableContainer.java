@@ -80,6 +80,36 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
 
   }
 
+  
+  protected abstract int andCardinality(MappeableArrayContainer x);
+
+  protected abstract int andCardinality(MappeableBitmapContainer x);
+
+  protected abstract int andCardinality(MappeableRunContainer x);
+
+  /**
+   * Computes the bitwise AND of this container with another (intersection). This container as well
+   * as the provided container are left unaffected.
+   *
+   * @param x other container
+   * @return aggregated container
+   */
+  public int andCardinality(MappeableContainer x) {
+    if (this.getCardinality() == 0) {
+      return 0;
+    } else if (x.getCardinality() == 0) {
+      return 0;
+    } else {
+      if (x instanceof MappeableArrayContainer) {
+        return andCardinality((MappeableArrayContainer) x);
+      } else if (x instanceof MappeableBitmapContainer) {
+        return andCardinality((MappeableBitmapContainer) x);
+      }
+      return andCardinality((MappeableRunContainer) x);
+    }
+  }
+
+  
   /**
    * Computes the bitwise AND of this container with another (intersection). This container as well
    * as the provided container are left unaffected.

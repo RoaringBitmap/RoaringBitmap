@@ -687,6 +687,56 @@ public final class BufferUtil {
     return pos;
   }
 
+  protected static int unsignedLocalIntersect2by2Cardinality(final ShortBuffer set1, final int length1,
+      final ShortBuffer set2, final int length2) {
+    if ((0 == length1) || (0 == length2)) {
+      return 0;
+    }
+    int k1 = 0;
+    int k2 = 0;
+    int pos = 0;
+    short s1 = set1.get(k1);
+    short s2 = set2.get(k2);
+
+    mainwhile: while (true) {
+      if (toIntUnsigned(s2) < toIntUnsigned(s1)) {
+        do {
+          ++k2;
+          if (k2 == length2) {
+            break mainwhile;
+          }
+          s2 = set2.get(k2);
+
+        } while (toIntUnsigned(s2) < toIntUnsigned(s1));
+      }
+      if (toIntUnsigned(s1) < toIntUnsigned(s2)) {
+        do {
+          ++k1;
+          if (k1 == length1) {
+            break mainwhile;
+          }
+          s1 = set1.get(k1);
+
+        } while (toIntUnsigned(s1) < toIntUnsigned(s2));
+      } else {
+        // (set2.get(k2) == set1.get(k1))
+        ++k1;
+        if (k1 == length1) {
+          break;
+        }
+        s1 = set1.get(k1);
+        ++k2;
+        if (k2 == length2) {
+          break;
+        }
+        s2 = set2.get(k2);
+
+      }
+    }
+    return pos;
+  }
+
+  
   protected static int unsignedOneSidedGallopingIntersect2by2(final ShortBuffer smallSet,
       final int smallLength, final ShortBuffer largeSet, final int largeLength,
       final short[] buffer) {
