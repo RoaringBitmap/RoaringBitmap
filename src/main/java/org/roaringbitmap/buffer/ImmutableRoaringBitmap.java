@@ -110,7 +110,7 @@ public class ImmutableRoaringBitmap
         cp.advance();
         nextContainer();
       }
-      if(ok) {
+      if (ok) {
         iter.advanceIfNeeded(BufferUtil.lowbits(minval));
         if (!iter.hasNext()) {
           cp.advance();
@@ -179,6 +179,22 @@ public class ImmutableRoaringBitmap
     }
 
 
+  }
+
+  /**
+   * Computes AND between input bitmaps in the given range, from rangeStart (inclusive) to rangeEnd
+   * (exclusive)
+   *
+   * @param bitmaps input bitmaps, these are not modified
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
+   * @return new result bitmap
+   */
+  public static MutableRoaringBitmap and(@SuppressWarnings("rawtypes") final Iterator bitmaps,
+      final int rangeStart, final int rangeEnd) {
+    Iterator<ImmutableRoaringBitmap> bitmapsIterator;
+    bitmapsIterator = selectRangeWithoutCopy(bitmaps, rangeStart, rangeEnd);
+    return BufferFastAggregation.and(bitmapsIterator);
   }
 
   /**
@@ -254,6 +270,22 @@ public class ImmutableRoaringBitmap
       }
     }
     return answer;
+  }
+
+  /**
+   * Bitwise ANDNOT (difference) operation for the given range, rangeStart (inclusive) and rangeEnd
+   * (exclusive). The provided bitmaps are *not* modified. This operation is thread-safe as long as
+   * the provided bitmaps remain unchanged.
+   * 
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @return result of the operation
+   */
+  public static MutableRoaringBitmap andNot(final ImmutableRoaringBitmap x1,
+      final ImmutableRoaringBitmap x2, int rangeStart, int rangeEnd) {
+    MutableRoaringBitmap rb1 = selectRangeWithoutCopy(x1, rangeStart, rangeEnd);
+    MutableRoaringBitmap rb2 = selectRangeWithoutCopy(x2, rangeStart, rangeEnd);
+    return andNot(rb1, rb2);
   }
 
   /**
@@ -367,6 +399,99 @@ public class ImmutableRoaringBitmap
     answer.getMappeableRoaringArray().appendCopiesAfter(bm.highLowContainer, hbLast);
 
     return answer;
+  }
+
+  /**
+   * Return new iterator with only values from rangeStart (inclusive) to rangeEnd (exclusive)
+   * 
+   * @param input bitmaps iterator
+   * @param rangeStart inclusive
+   * @param rangeEnd exclusive
+   * @return new iterator of bitmaps
+   */
+  private static Iterator<ImmutableRoaringBitmap> selectRangeWithoutCopy(final Iterator bitmaps,
+      final int rangeStart, final int rangeEnd) {
+    Iterator<ImmutableRoaringBitmap> bitmapsIterator;
+    bitmapsIterator = new Iterator<ImmutableRoaringBitmap>() {
+      @Override
+      public boolean hasNext() {
+        return bitmaps.hasNext();
+      }
+
+      @Override
+      public ImmutableRoaringBitmap next() {
+        ImmutableRoaringBitmap next = (ImmutableRoaringBitmap) bitmaps.next();
+        return selectRangeWithoutCopy(next, rangeStart, rangeEnd);
+      }
+
+      @Override
+      public void remove() {
+        throw new UnsupportedOperationException("Remove not supported");
+      }
+    };
+    return bitmapsIterator;
+  }
+
+  /**
+   * 
+   * Extracts the values in the specified range, rangeStart (inclusive) and rangeEnd (exclusive)
+   * while avoiding copies as much as possible.
+   * 
+   * @param rb input bitmap
+   * @param rangeStart inclusive
+   * @param rangeEnd exclusive
+   * @return new bitmap
+   */
+
+  private static MutableRoaringBitmap selectRangeWithoutCopy(ImmutableRoaringBitmap rb,
+      final int rangeStart, final int rangeEnd) {
+    final int hbStart = BufferUtil.toIntUnsigned(BufferUtil.highbits(rangeStart));
+    final int lbStart = BufferUtil.toIntUnsigned(BufferUtil.lowbits(rangeStart));
+    final int hbLast = BufferUtil.toIntUnsigned(BufferUtil.highbits(rangeEnd - 1));
+    final int lbLast = BufferUtil.toIntUnsigned(BufferUtil.lowbits(rangeEnd - 1));
+    MutableRoaringBitmap answer = new MutableRoaringBitmap();
+
+    if (hbStart == hbLast) {
+      final int i = rb.highLowContainer.getIndex((short) hbStart);
+      if (i >= 0) {
+        final MappeableContainer c = rb.highLowContainer.getContainerAtIndex(i).remove(0, lbStart)
+            .remove(lbLast + 1, BufferUtil.maxLowBitAsInteger() + 1);
+        if (c.getCardinality() > 0) {
+          ((MutableRoaringArray) answer.highLowContainer).append((short) hbStart, c);
+        }
+      }
+      return answer;
+    }
+    int ifirst = rb.highLowContainer.getIndex((short) hbStart);
+    int ilast = rb.highLowContainer.getIndex((short) hbLast);
+    if (ifirst >= 0) {
+      final MappeableContainer c =
+          rb.highLowContainer.getContainerAtIndex(ifirst).remove(0, lbStart);
+      if (c.getCardinality() > 0) {
+        ((MutableRoaringArray) answer.highLowContainer).append((short) hbStart, c);
+      }
+    }
+
+    for (short hb = (short) (hbStart + 1); hb <= hbLast - 1; ++hb) {
+      final int i = rb.highLowContainer.getIndex(hb);
+      final int j = answer.getMappeableRoaringArray().getIndex(hb);
+      assert j < 0;
+
+      if (i >= 0) {
+        final MappeableContainer c = rb.highLowContainer.getContainerAtIndex(i);
+        answer.getMappeableRoaringArray().insertNewKeyValueAt(-j - 1, hb, c);
+      }
+    }
+
+    if (ilast >= 0) {
+      final MappeableContainer c = rb.highLowContainer.getContainerAtIndex(ilast).remove(lbLast + 1,
+          BufferUtil.maxLowBitAsInteger() + 1);
+      if (c.getCardinality() > 0) {
+        ((MutableRoaringArray) answer.highLowContainer).append((short) hbLast, c);
+      }
+    }
+    return answer;
+
   }
 
   /**
@@ -518,7 +643,7 @@ public class ImmutableRoaringBitmap
   }
 
   /**
-   * Compute overall AND between bitmaps.
+   * Compute overall OR between bitmaps.
    *
    * (Effectively calls {@link BufferFastAggregation#or})
    *
@@ -528,6 +653,24 @@ public class ImmutableRoaringBitmap
   public static MutableRoaringBitmap or(@SuppressWarnings("rawtypes") Iterator bitmaps) {
     return BufferFastAggregation.or(bitmaps);
   }
+
+  /**
+   * Computes OR between input bitmaps in the given range, from rangeStart (inclusive) to rangeEnd
+   * (exclusive)
+   *
+   * @param bitmaps input bitmaps, these are not modified
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
+   * @return new result bitmap
+   */
+  public static MutableRoaringBitmap or(@SuppressWarnings("rawtypes") final Iterator bitmaps,
+      final int rangeStart, final int rangeEnd) {
+    Iterator<ImmutableRoaringBitmap> bitmapsIterator;
+    bitmapsIterator = selectRangeWithoutCopy(bitmaps, rangeStart, rangeEnd);
+    return or(bitmapsIterator);
+  }
+
+
 
   /**
    * Cardinality of the bitwise OR (union) operation. The provided bitmaps are *not* modified. This
@@ -583,6 +726,22 @@ public class ImmutableRoaringBitmap
       }
     }
     return answer;
+  }
+
+  /**
+   * Computes XOR between input bitmaps in the given range, from rangeStart (inclusive) to rangeEnd
+   * (exclusive)
+   *
+   * @param bitmaps input bitmaps, these are not modified
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
+   * @return new result bitmap
+   */
+  public static MutableRoaringBitmap xor(@SuppressWarnings("rawtypes") final Iterator bitmaps,
+      final int rangeStart, final int rangeEnd) {
+    Iterator<ImmutableRoaringBitmap> bitmapsIterator;
+    bitmapsIterator = selectRangeWithoutCopy(bitmaps, rangeStart, rangeEnd);
+    return BufferFastAggregation.xor(bitmapsIterator);
   }
 
   /**
@@ -738,12 +897,11 @@ public class ImmutableRoaringBitmap
     }
     return size;
   }
-  
+
   @Override
   public void forEach(IntConsumer ic) {
     for (int i = 0; i < this.highLowContainer.size(); i++) {
-      highLowContainer.getContainerAtIndex(i).forEach(highLowContainer.getKeyAtIndex(i),
-          ic);
+      highLowContainer.getContainerAtIndex(i).forEach(highLowContainer.getKeyAtIndex(i), ic);
     }
   }
 
@@ -760,6 +918,7 @@ public class ImmutableRoaringBitmap
 
   /**
    * For better performance, consider the Use the {@link #forEach forEach} method.
+   * 
    * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
    */
   @Override
