@@ -134,6 +134,12 @@ public final class BitmapContainer extends Container implements Cloneable {
   @Override
   public Container add(int begin, int end) {
     // TODO: may need to convert to a RunContainer
+    if(end == begin) {
+      return clone();
+    }
+    if ((begin > end) || (end > (1 << 16))) {
+      throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
+    }
     BitmapContainer answer = clone();
     Util.setBitmapRange(answer.bitmap, begin, end);
     answer.computeCardinality();
@@ -437,6 +443,12 @@ public final class BitmapContainer extends Container implements Cloneable {
   @Override
   public Container iadd(int begin, int end) {
     // TODO: may need to convert to a RunContainer
+    if(end == begin) {
+      return this;
+    }
+    if ((begin > end) || (end > (1 << 16))) {
+      throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
+    }
     Util.setBitmapRange(bitmap, begin, end);
     computeCardinality();
     return this;
@@ -653,6 +665,12 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public Container iremove(int begin, int end) {
+    if(end == begin) {
+      return this;
+    }
+    if ((begin > end) || (end > (1 << 16))) {
+      throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
+    }
     Util.resetBitmapRange(bitmap, begin, end);
     computeCardinality();
     if (getCardinality() <= ArrayContainer.DEFAULT_MAX_SIZE) {
@@ -1091,6 +1109,12 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public Container remove(int begin, int end) {
+    if(end == begin) {
+      return clone();
+    }
+    if ((begin > end) || (end > (1 << 16))) {
+      throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
+    }
     BitmapContainer answer = clone();
     Util.resetBitmapRange(answer.bitmap, begin, end);
     answer.computeCardinality();

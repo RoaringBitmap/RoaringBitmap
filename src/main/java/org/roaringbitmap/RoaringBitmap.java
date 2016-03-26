@@ -1719,7 +1719,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       final int i = rb.highLowContainer.getIndex((short) hbStart);
       if (i >= 0) {
         final Container c = rb.highLowContainer.getContainerAtIndex(i).remove(0, lbStart)
-            .remove(lbLast + 1, Util.maxLowBitAsInteger() + 1);
+            .iremove(lbLast + 1, Util.maxLowBitAsInteger() + 1);
         if (c.getCardinality() > 0) {
           answer.highLowContainer.append((short) hbStart, c);
         }

@@ -942,10 +942,12 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   public MappeableContainer iadd(int begin, int end) {
     // TODO: it might be better and simpler to do return
     // toBitmapOrArrayContainer(getCardinality()).iadd(begin,end)
-    if ((begin >= end) || (end > (1 << 16))) {
+    if(end == begin) {
+      return this;
+    }
+    if ((begin > end) || (end > (1 << 16))) {
       throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
     }
-
     if (begin == end - 1) {
       add((short) begin);
       return this;
@@ -1416,10 +1418,12 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   public MappeableContainer iremove(int begin, int end) {
     // TODO: it might be better and simpler to do return
     // toBitmapOrArrayContainer(getCardinality()).iremove(begin,end)
-    if ((begin >= end) || (end > (1 << 16))) {
+    if(end == begin) {
+      return this;
+    }
+    if ((begin > end) || (end > (1 << 16))) {
       throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
     }
-
     if (begin == end - 1) {
       remove((short) begin);
       return this;

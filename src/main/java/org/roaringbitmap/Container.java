@@ -93,9 +93,11 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    */
   public abstract Container and(RunContainer x);
 
-  public abstract int andCardinality(ArrayContainer x);
+  protected abstract int andCardinality(ArrayContainer x);
 
-  public abstract int andCardinality(BitmapContainer x);
+  protected abstract int andCardinality(BitmapContainer x);
+
+  protected abstract int andCardinality(RunContainer x);
 
   /**
    * Computes the bitwise AND of this container with another (intersection). This container as well
@@ -119,7 +121,6 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     }
   }
 
-  public abstract int andCardinality(RunContainer x);
 
   /**
    * Computes the bitwise ANDNOT of this container with another (difference). This container as well

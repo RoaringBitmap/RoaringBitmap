@@ -953,7 +953,10 @@ public final class RunContainer extends Container implements Cloneable {
   public Container iadd(int begin, int end) {
     // TODO: it might be better and simpler to do return
     // toBitmapOrArrayContainer(getCardinality()).iadd(begin,end)
-    if ((begin >= end) || (end > (1 << 16))) {
+    if(end == begin) {
+      return this;
+    }
+    if ((begin > end) || (end > (1 << 16))) {
       throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
     }
 
@@ -1427,7 +1430,10 @@ public final class RunContainer extends Container implements Cloneable {
   public Container iremove(int begin, int end) {
     // TODO: it might be better and simpler to do return
     // toBitmapOrArrayContainer(getCardinality()).iremove(begin,end)
-    if ((begin >= end) || (end > (1 << 16))) {
+    if(end == begin) {
+      return this;
+    }
+    if ((begin > end) || (end > (1 << 16))) {
       throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
     }
     if (begin == end - 1) {

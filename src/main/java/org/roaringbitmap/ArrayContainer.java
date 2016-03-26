@@ -93,6 +93,12 @@ public final class ArrayContainer extends Container implements Cloneable {
 
   @Override
   public Container add(int begin, int end) {
+    if(end == begin) {
+      return clone();
+    }
+    if ((begin > end) || (end > (1 << 16))) {
+      throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
+    }
     // TODO: may need to convert to a RunContainer
     int indexstart = Util.unsignedBinarySearch(content, 0, cardinality, (short) begin);
     if (indexstart < 0) {
@@ -386,6 +392,12 @@ public final class ArrayContainer extends Container implements Cloneable {
   @Override
   public Container iadd(int begin, int end) {
     // TODO: may need to convert to a RunContainer
+    if(end == begin) {
+      return this;
+    }
+    if ((begin > end) || (end > (1 << 16))) {
+      throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
+    }
     int indexstart = Util.unsignedBinarySearch(content, 0, cardinality, (short) begin);
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
@@ -593,6 +605,12 @@ public final class ArrayContainer extends Container implements Cloneable {
 
   @Override
   public Container iremove(int begin, int end) {
+    if(end == begin) {
+      return this;
+    }
+    if ((begin > end) || (end > (1 << 16))) {
+      throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
+    }
     int indexstart = Util.unsignedBinarySearch(content, 0, cardinality, (short) begin);
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
@@ -882,6 +900,12 @@ public final class ArrayContainer extends Container implements Cloneable {
 
   @Override
   public Container remove(int begin, int end) {
+    if(end == begin) {
+      return clone();
+    }
+    if ((begin > end) || (end > (1 << 16))) {
+      throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
+    }
     int indexstart = Util.unsignedBinarySearch(content, 0, cardinality, (short) begin);
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
