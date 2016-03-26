@@ -921,48 +921,49 @@ public class TestImmutableRoaringBitmap {
   public void testRangedOr() {
     int length = 1000;
     int NUM_ITER = 10;
-    Random random = new Random();
+    Random random = new Random(1234);// please use deterministic tests
+    for (int test = 0; test < 50; ++test) {
+      final MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
+      final MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
+      Set<Integer> set1 = new HashSet<>();
+      Set<Integer> set2 = new HashSet<>();
+      int numBitsToSet = length / 2;
+      for (int i = 0; i < numBitsToSet; i++) {
+        int val1 = random.nextInt(length);
+        int val2 = random.nextInt(length);
 
-    final MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
-    final MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
-    Set<Integer> set1 = new HashSet<>();
-    Set<Integer> set2 = new HashSet<>();
-    int numBitsToSet = length / 2;
-    for (int i = 0; i < numBitsToSet; i++) {
-      int val1 = random.nextInt(length);
-      int val2 = random.nextInt(length);
+        rb1.add(val1);
+        set1.add(val1);
 
-      rb1.add(val1);
-      set1.add(val1);
-
-      rb2.add(val2);
-      set2.add(val2);
-    }
-    Set<Integer> unionSet = new TreeSet<>();
-    unionSet.addAll(set1);
-    unionSet.addAll(set2);
-    for (int iter = 0; iter < NUM_ITER; iter++) {
-      int rangeStart = random.nextInt(length - 1);
-      // +1 to ensure rangeEnd >rangeStart, may
-      int rangeLength = random.nextInt(length - rangeStart) + 1;
-      int rangeEnd = rangeStart + rangeLength;
-      Set<Integer> expectedResultSet = new TreeSet<>();
-      for (int i = rangeStart; i < rangeEnd; i++) {
-        if (unionSet.contains(i)) {
-          expectedResultSet.add(i);
+        rb2.add(val2);
+        set2.add(val2);
+      }
+      Set<Integer> unionSet = new TreeSet<>();
+      unionSet.addAll(set1);
+      unionSet.addAll(set2);
+      for (int iter = 0; iter < NUM_ITER; iter++) {
+        int rangeStart = random.nextInt(length - 1);
+        // +1 to ensure rangeEnd >rangeStart, may
+        int rangeLength = random.nextInt(length - rangeStart) + 1;
+        int rangeEnd = rangeStart + rangeLength;
+        Set<Integer> expectedResultSet = new TreeSet<>();
+        for (int i = rangeStart; i < rangeEnd; i++) {
+          if (unionSet.contains(i)) {
+            expectedResultSet.add(i);
+          }
         }
+        List<ImmutableRoaringBitmap> list = new ArrayList<>();
+        list.add(rb1);
+        list.add(rb2);
+        MutableRoaringBitmap result =
+            ImmutableRoaringBitmap.or(list.iterator(), rangeStart, rangeEnd);
+        Set<Integer> actualResultSet = new TreeSet<>();
+        IntIterator intIterator = result.getIntIterator();
+        while (intIterator.hasNext()) {
+          actualResultSet.add(intIterator.next());
+        }
+        Assert.assertEquals(expectedResultSet, actualResultSet);
       }
-      List<ImmutableRoaringBitmap> list = new ArrayList<>();
-      list.add(rb1);
-      list.add(rb2);
-      MutableRoaringBitmap result =
-          ImmutableRoaringBitmap.or(list.iterator(), rangeStart, rangeEnd);
-      Set<Integer> actualResultSet = new TreeSet<>();
-      IntIterator intIterator = result.getIntIterator();
-      while (intIterator.hasNext()) {
-        actualResultSet.add(intIterator.next());
-      }
-      Assert.assertEquals(expectedResultSet, actualResultSet);
     }
   }
 
@@ -970,47 +971,48 @@ public class TestImmutableRoaringBitmap {
   public void testRangedAnd() {
     int length = 1000;
     int NUM_ITER = 10;
-    Random random = new Random();
+    Random random = new Random(1234);// please use deterministic tests
+    for (int test = 0; test < 50; ++test) {
+      final MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
+      final MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
+      Set<Integer> set1 = new HashSet<>();
+      Set<Integer> set2 = new HashSet<>();
+      int numBitsToSet = length / 2;
+      for (int i = 0; i < numBitsToSet; i++) {
+        int val1 = random.nextInt(length);
+        int val2 = random.nextInt(length);
 
-    final MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
-    final MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
-    Set<Integer> set1 = new HashSet<>();
-    Set<Integer> set2 = new HashSet<>();
-    int numBitsToSet = length / 2;
-    for (int i = 0; i < numBitsToSet; i++) {
-      int val1 = random.nextInt(length);
-      int val2 = random.nextInt(length);
+        rb1.add(val1);
+        set1.add(val1);
 
-      rb1.add(val1);
-      set1.add(val1);
-
-      rb2.add(val2);
-      set2.add(val2);
-    }
-    Set<Integer> intersectionSet = new TreeSet<>(set1);
-    intersectionSet.retainAll(set2);
-    for (int iter = 0; iter < NUM_ITER; iter++) {
-      int rangeStart = random.nextInt(length - 1);
-      // +1 to ensure rangeEnd >rangeStart, may
-      int rangeLength = random.nextInt(length - rangeStart) + 1;
-      int rangeEnd = rangeStart + rangeLength;
-      Set<Integer> expectedResultSet = new TreeSet<>();
-      for (int i = rangeStart; i < rangeEnd; i++) {
-        if (intersectionSet.contains(i)) {
-          expectedResultSet.add(i);
+        rb2.add(val2);
+        set2.add(val2);
+      }
+      Set<Integer> intersectionSet = new TreeSet<>(set1);
+      intersectionSet.retainAll(set2);
+      for (int iter = 0; iter < NUM_ITER; iter++) {
+        int rangeStart = random.nextInt(length - 1);
+        // +1 to ensure rangeEnd >rangeStart, may
+        int rangeLength = random.nextInt(length - rangeStart) + 1;
+        int rangeEnd = rangeStart + rangeLength;
+        Set<Integer> expectedResultSet = new TreeSet<>();
+        for (int i = rangeStart; i < rangeEnd; i++) {
+          if (intersectionSet.contains(i)) {
+            expectedResultSet.add(i);
+          }
         }
+        List<ImmutableRoaringBitmap> list = new ArrayList<>();
+        list.add(rb1);
+        list.add(rb2);
+        MutableRoaringBitmap result =
+            ImmutableRoaringBitmap.and(list.iterator(), rangeStart, rangeEnd);
+        Set<Integer> actualResultSet = new TreeSet<>();
+        IntIterator intIterator = result.getIntIterator();
+        while (intIterator.hasNext()) {
+          actualResultSet.add(intIterator.next());
+        }
+        Assert.assertEquals(expectedResultSet, actualResultSet);
       }
-      List<ImmutableRoaringBitmap> list = new ArrayList<>();
-      list.add(rb1);
-      list.add(rb2);
-      MutableRoaringBitmap result =
-          ImmutableRoaringBitmap.and(list.iterator(), rangeStart, rangeEnd);
-      Set<Integer> actualResultSet = new TreeSet<>();
-      IntIterator intIterator = result.getIntIterator();
-      while (intIterator.hasNext()) {
-        actualResultSet.add(intIterator.next());
-      }
-      Assert.assertEquals(expectedResultSet, actualResultSet);
     }
   }
 
@@ -1018,52 +1020,53 @@ public class TestImmutableRoaringBitmap {
   public void testRangedXor() {
     int length = 1000;
     int NUM_ITER = 10;
-    Random random = new Random();
+    Random random = new Random(1234);// please use deterministic tests
+    for (int test = 0; test < 50; ++test) {
+      final MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
+      final MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
+      Set<Integer> set1 = new HashSet<>();
+      Set<Integer> set2 = new HashSet<>();
+      int numBitsToSet = length / 2;
+      for (int i = 0; i < numBitsToSet; i++) {
+        int val1 = random.nextInt(length);
+        int val2 = random.nextInt(length);
 
-    final MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
-    final MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
-    Set<Integer> set1 = new HashSet<>();
-    Set<Integer> set2 = new HashSet<>();
-    int numBitsToSet = length / 2;
-    for (int i = 0; i < numBitsToSet; i++) {
-      int val1 = random.nextInt(length);
-      int val2 = random.nextInt(length);
+        rb1.add(val1);
+        set1.add(val1);
 
-      rb1.add(val1);
-      set1.add(val1);
+        rb2.add(val2);
+        set2.add(val2);
+      }
+      Set<Integer> xorSet = new TreeSet<>();
+      xorSet.addAll(set1);
+      xorSet.addAll(set2);
+      Set<Integer> andSet = new TreeSet<>(set1);
+      andSet.retainAll(set2);
 
-      rb2.add(val2);
-      set2.add(val2);
-    }
-    Set<Integer> xorSet = new TreeSet<>();
-    xorSet.addAll(set1);
-    xorSet.addAll(set2);
-    Set<Integer> andSet = new TreeSet<>(set1);
-    andSet.retainAll(set2);
-
-    xorSet.removeAll(andSet);
-    for (int iter = 0; iter < NUM_ITER; iter++) {
-      int rangeStart = random.nextInt(length - 1);
-      // +1 to ensure rangeEnd >rangeStart, may
-      int rangeLength = random.nextInt(length - rangeStart) + 1;
-      int rangeEnd = rangeStart + rangeLength;
-      Set<Integer> expectedResultSet = new TreeSet<>();
-      for (int i = rangeStart; i < rangeEnd; i++) {
-        if (xorSet.contains(i)) {
-          expectedResultSet.add(i);
+      xorSet.removeAll(andSet);
+      for (int iter = 0; iter < NUM_ITER; iter++) {
+        int rangeStart = random.nextInt(length - 1);
+        // +1 to ensure rangeEnd >rangeStart, may
+        int rangeLength = random.nextInt(length - rangeStart) + 1;
+        int rangeEnd = rangeStart + rangeLength;
+        Set<Integer> expectedResultSet = new TreeSet<>();
+        for (int i = rangeStart; i < rangeEnd; i++) {
+          if (xorSet.contains(i)) {
+            expectedResultSet.add(i);
+          }
         }
+        List<ImmutableRoaringBitmap> list = new ArrayList<>();
+        list.add(rb1);
+        list.add(rb2);
+        MutableRoaringBitmap result =
+            ImmutableRoaringBitmap.xor(list.iterator(), rangeStart, rangeEnd);
+        Set<Integer> actualResultSet = new TreeSet<>();
+        IntIterator intIterator = result.getIntIterator();
+        while (intIterator.hasNext()) {
+          actualResultSet.add(intIterator.next());
+        }
+        Assert.assertEquals(expectedResultSet, actualResultSet);
       }
-      List<ImmutableRoaringBitmap> list = new ArrayList<>();
-      list.add(rb1);
-      list.add(rb2);
-      MutableRoaringBitmap result =
-          ImmutableRoaringBitmap.xor(list.iterator(), rangeStart, rangeEnd);
-      Set<Integer> actualResultSet = new TreeSet<>();
-      IntIterator intIterator = result.getIntIterator();
-      while (intIterator.hasNext()) {
-        actualResultSet.add(intIterator.next());
-      }
-      Assert.assertEquals(expectedResultSet, actualResultSet);
     }
   }
 
@@ -1071,47 +1074,48 @@ public class TestImmutableRoaringBitmap {
   public void testRangedAndNot() {
     int length = 1000;
     int NUM_ITER = 10;
-    Random random = new Random();
+    Random random = new Random(1234);// please use deterministic tests
+    for (int test = 0; test < 50; ++test) {
+      final MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
+      final MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
+      Set<Integer> set1 = new HashSet<>();
+      Set<Integer> set2 = new HashSet<>();
+      int numBitsToSet = length / 2;
+      for (int i = 0; i < numBitsToSet; i++) {
+        int val1 = random.nextInt(length);
+        int val2 = random.nextInt(length);
 
-    final MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
-    final MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
-    Set<Integer> set1 = new HashSet<>();
-    Set<Integer> set2 = new HashSet<>();
-    int numBitsToSet = length / 2;
-    for (int i = 0; i < numBitsToSet; i++) {
-      int val1 = random.nextInt(length);
-      int val2 = random.nextInt(length);
+        rb1.add(val1);
+        set1.add(val1);
 
-      rb1.add(val1);
-      set1.add(val1);
-
-      rb2.add(val2);
-      set2.add(val2);
-    }
-    Set<Integer> andNotSet = new TreeSet<>();
-    for (int i : set1) {
-      if (!set2.contains(i)) {
-        andNotSet.add(i);
+        rb2.add(val2);
+        set2.add(val2);
       }
-    }
-    for (int iter = 0; iter < NUM_ITER; iter++) {
-      int rangeStart = random.nextInt(length - 1);
-      // +1 to ensure rangeEnd >rangeStart, may
-      int rangeLength = random.nextInt(length - rangeStart) + 1;
-      int rangeEnd = rangeStart + rangeLength;
-      Set<Integer> expectedResultSet = new TreeSet<>();
-      for (int i = rangeStart; i < rangeEnd; i++) {
-        if (andNotSet.contains(i)) {
-          expectedResultSet.add(i);
+      Set<Integer> andNotSet = new TreeSet<>();
+      for (int i : set1) {
+        if (!set2.contains(i)) {
+          andNotSet.add(i);
         }
       }
-      MutableRoaringBitmap result = ImmutableRoaringBitmap.andNot(rb1, rb2, rangeStart, rangeEnd);
-      Set<Integer> actualResultSet = new TreeSet<>();
-      IntIterator intIterator = result.getIntIterator();
-      while (intIterator.hasNext()) {
-        actualResultSet.add(intIterator.next());
+      for (int iter = 0; iter < NUM_ITER; iter++) {
+        int rangeStart = random.nextInt(length - 1);
+        // +1 to ensure rangeEnd >rangeStart, may
+        int rangeLength = random.nextInt(length - rangeStart) + 1;
+        int rangeEnd = rangeStart + rangeLength;
+        Set<Integer> expectedResultSet = new TreeSet<>();
+        for (int i = rangeStart; i < rangeEnd; i++) {
+          if (andNotSet.contains(i)) {
+            expectedResultSet.add(i);
+          }
+        }
+        MutableRoaringBitmap result = ImmutableRoaringBitmap.andNot(rb1, rb2, rangeStart, rangeEnd);
+        Set<Integer> actualResultSet = new TreeSet<>();
+        IntIterator intIterator = result.getIntIterator();
+        while (intIterator.hasNext()) {
+          actualResultSet.add(intIterator.next());
+        }
+        Assert.assertEquals(expectedResultSet, actualResultSet);
       }
-      Assert.assertEquals(expectedResultSet, actualResultSet);
     }
   }
 }
