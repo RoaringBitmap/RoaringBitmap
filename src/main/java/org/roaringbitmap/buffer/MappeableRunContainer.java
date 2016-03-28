@@ -440,7 +440,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       }
       if (rleval > arrayval) {
         arraypos =
-            BufferUtil.advanceUntil(x.content, arraypos, x.cardinality, this.getValue(rlepos));
+            BufferUtil.advanceUntil(x.content, arraypos, x.cardinality, (short)rleval);
       } else {
         ac.content.put(ac.cardinality, (short) arrayval);
         ac.cardinality++;

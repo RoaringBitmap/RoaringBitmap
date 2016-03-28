@@ -350,7 +350,7 @@ public final class RunContainer extends Container implements Cloneable {
         rlelength = Util.toIntUnsigned(this.getLength(rlepos));
       }
       if (rleval > arrayval) {
-        arraypos = Util.advanceUntil(x.content, arraypos, x.cardinality, this.getValue(rlepos));
+        arraypos = Util.advanceUntil(x.content, arraypos, x.cardinality, (short)rleval);
       } else {
         ac.content[ac.cardinality] = (short) arrayval;
         ac.cardinality++;
