@@ -3151,6 +3151,20 @@ public class TestRoaringBitmap {
   }
 
   @Test
+  public void testUtilUnsignedIntersection() {
+    short data1[] = {-19, -17, -15, -13, -11, -9, -7, -5, -3, -1};
+    short data2[] = {-18, -16, -14, -12, -10, -8, -1};
+    Assert.assertTrue(Util.unsignedIntersects(data1, data1.length, data2, data2.length));
+    short data3[] = {-19, -17, -15, -13, -11, -9, -7};
+    short data4[] = {-18, -16, -14, -12, -10, -8, -6, -4, -2, 0};
+    Assert.assertFalse(Util.unsignedIntersects(data3, data3.length, data4, data4.length));
+    short data5[] = {};
+    short data6[] = {};
+    Assert.assertFalse(Util.unsignedIntersects(data5, data5.length, data6, data6.length));
+
+  }
+
+  @Test
   public void testSetUtilIntersection() {
     short data1[] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18};
     short data2[] = {0, 3, 6, 9, 12, 15, 18};
