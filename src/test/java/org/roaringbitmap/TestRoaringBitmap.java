@@ -2509,18 +2509,32 @@ public class TestRoaringBitmap {
       for (int k = 1; k < ewah.length; ++k) {
         answer = RoaringBitmap.or(answer, ewah[k]);
       }
+      RoaringBitmap rb1 = RoaringBitmap.bitmapOf(randomlists[0]);
+      RoaringBitmap rb2 = RoaringBitmap.bitmapOf(randomlists[1]);
+      List<RoaringBitmap> rbl = new ArrayList<>();
+      rbl.add(rb1);
+      rbl.add(rb2);
+
+      ArrayList<RoaringBitmap> arrayList= new ArrayList<>();
+      arrayList.add(rb1);
+      arrayList.add(rb2);
+      Iterator<RoaringBitmap> rbi = arrayList.iterator();
+
+      RoaringBitmap rbor = RoaringBitmap.or(rb1, rb2);
       RoaringBitmap answer2 = FastAggregation.or(ewah);
       RoaringBitmap answer3 = FastAggregation.horizontal_or(ewah);
       RoaringBitmap answer3b = FastAggregation.or(toIterator(ewah));
       Assert.assertTrue(answer.equals(answer2));
       Assert.assertTrue(answer.equals(answer3));
       Assert.assertTrue(answer.equals(answer3b));
-
+      Assert.assertTrue(rbor.equals(FastAggregation.horizontal_or(rbl)));
+      Assert.assertTrue(rbor.equals(FastAggregation.priorityqueue_or(rb1, rb2)));
+      Assert.assertTrue(rbor.equals(FastAggregation.priorityqueue_or(rbi)));
     }
   }
 
   /**
-   * Test massive or.
+   * Test massive xor.
    */
   @Test
   public void testMassiveXOr() {
@@ -2542,10 +2556,14 @@ public class TestRoaringBitmap {
       for (int k = 1; k < ewah.length; ++k) {
         answer = RoaringBitmap.xor(answer, ewah[k]);
       }
+      RoaringBitmap rb1 = RoaringBitmap.bitmapOf(randomlists[0]);
+      RoaringBitmap rb2 = RoaringBitmap.bitmapOf(randomlists[1]);
+      RoaringBitmap rxor = FastAggregation.xor(rb1, rb2);
       RoaringBitmap answer2 = FastAggregation.xor(ewah);
       RoaringBitmap answer3 = FastAggregation.horizontal_xor(ewah);
       Assert.assertTrue(answer.equals(answer2));
       Assert.assertTrue(answer.equals(answer3));
+      Assert.assertTrue(rxor.equals(FastAggregation.priorityqueue_xor(rb1, rb2)));
     }
   }
 
@@ -3150,18 +3168,6 @@ public class TestRoaringBitmap {
     Assert.assertTrue(rr.equals(rrback));
   }
 
-  @Test
-  public void testUtilUnsignedIntersection() {
-    short data1[] = {-19, -17, -15, -13, -11, -9, -7, -5, -3, -1};
-    short data2[] = {-18, -16, -14, -12, -10, -8, -1};
-    Assert.assertTrue(Util.unsignedIntersects(data1, data1.length, data2, data2.length));
-    short data3[] = {-19, -17, -15, -13, -11, -9, -7};
-    short data4[] = {-18, -16, -14, -12, -10, -8, -6, -4, -2, 0};
-    Assert.assertFalse(Util.unsignedIntersects(data3, data3.length, data4, data4.length));
-    short data5[] = {};
-    short data6[] = {};
-    Assert.assertFalse(Util.unsignedIntersects(data5, data5.length, data6, data6.length));
-  }
 
   @Test
   public void testSetUtilIntersection() {
