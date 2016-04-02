@@ -1637,7 +1637,7 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   protected Container lazyor(ArrayContainer x) {
-    return lazyorToRun(x);// lazyorToRun(x);
+    return lazyorToRun(x);
   }
 
   private Container lazyorToRun(ArrayContainer x) {
