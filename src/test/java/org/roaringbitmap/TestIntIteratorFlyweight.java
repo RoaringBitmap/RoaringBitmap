@@ -42,8 +42,6 @@ public class TestIntIteratorFlyweight {
     return unboxed;
   }
 
-
-
   @Test
   public void testEmptyIteration() {
     IntIteratorFlyweight iter = new IntIteratorFlyweight();
@@ -130,4 +128,13 @@ public class TestIntIteratorFlyweight {
     Assert.assertEquals(ImmutableList.of(3, 2, 1), reverseIntIteratorCopy);
   }
 
+  @Test
+  public void testClone() {
+    RoaringBitmap bitmap = RoaringBitmap.bitmapOf(1, 2, 3, 4, 5);
+    IntIteratorFlyweight iter = new IntIteratorFlyweight(bitmap);
+    PeekableIntIterator iterClone = iter.clone();
+    final List<Integer> iterList = asList(iter);
+    final List<Integer> iterCloneList = asList(iterClone);
+    Assert.assertEquals(iterList.toString(), iterCloneList.toString());
+  }
 }
