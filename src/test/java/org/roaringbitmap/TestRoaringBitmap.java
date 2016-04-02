@@ -3161,7 +3161,6 @@ public class TestRoaringBitmap {
     short data5[] = {};
     short data6[] = {};
     Assert.assertFalse(Util.unsignedIntersects(data5, data5.length, data6, data6.length));
-
   }
 
   @Test
