@@ -200,7 +200,7 @@ public final class Util {
     }
     int firstword = start / 64;
     int endword = (end - 1) / 64;
-    bitmap[firstword] ^= ~(~0L << start);;
+    bitmap[firstword] ^= ~(~0L << start);
     for (int i = firstword; i < endword; i++) {
       bitmap[i] = ~bitmap[i];
     }
