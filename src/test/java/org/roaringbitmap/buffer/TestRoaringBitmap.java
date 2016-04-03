@@ -22,6 +22,20 @@ import java.util.*;
  */
 @SuppressWarnings({"static-method"})
 public class TestRoaringBitmap {
+  
+  public static ImmutableRoaringBitmap toMapped(MutableRoaringBitmap r) {
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    DataOutputStream dos = new DataOutputStream(bos);
+    try {
+      r.serialize(dos);
+      dos.close();
+    } catch (IOException e) {
+      throw new RuntimeException(e.toString());
+    }
+    ByteBuffer bb = ByteBuffer.wrap(bos.toByteArray());
+    return new ImmutableRoaringBitmap(bb);
+}
+
 
   @Test
   public void conversionTest() {
@@ -39,6 +53,9 @@ public class TestRoaringBitmap {
     MutableRoaringBitmap mrb = rb.toMutableRoaringBitmap();
     RoaringBitmap rb2 = mrb.toRoaringBitmap();
     Assert.assertEquals(rb, rb2);
+    ImmutableRoaringBitmap irb = toMapped(mrb);
+    Assert.assertEquals(irb.toRoaringBitmap(), rb2);
+    
   }
 
   @Test
@@ -2338,7 +2355,40 @@ public class TestRoaringBitmap {
     }
     Assert.assertTrue(copy2.equals(rb));
   }
-
+  
+  @Test
+  public void testIteratorMapped() {
+    MutableRoaringBitmap orb = new MutableRoaringBitmap();
+    for (int k = 0; k < 4000; ++k) {
+      orb.add(k);
+    }
+    for (int k = 0; k < 1000; ++k) {
+      orb.add(k * 100);
+    }
+    MutableRoaringBitmap ocopy1 = new MutableRoaringBitmap();
+    for (int x : orb) {
+      ocopy1.add(x);
+    }
+    Assert.assertTrue(ocopy1.equals(orb));
+    MutableRoaringBitmap copy2 = new MutableRoaringBitmap();
+    IntIterator i = toMapped(orb).getIntIterator();
+    Iterator<Integer> is = toMapped(orb).iterator();
+    while (i.hasNext()) {
+      if (!is.hasNext()) {
+        throw new RuntimeException("bug");
+      }
+      int x = i.next();
+      copy2.add(x);
+      int xs = is.next();
+      if (x != xs) {
+        throw new RuntimeException("values differ " + x + " " + xs);
+      }
+    }
+    if (is.hasNext()) {
+      throw new RuntimeException("bug: more data available");
+    }
+    Assert.assertTrue(copy2.equals(toMapped(orb)));
+  }
   @Test
   public void xortest1() {
     final HashSet<Integer> V1 = new HashSet<Integer>();
@@ -2763,6 +2813,9 @@ public class TestRoaringBitmap {
     final int rrandCount = ImmutableRoaringBitmap.andCardinality(rr, rr2);
 
     Assert.assertEquals(rrand.getCardinality(), rrandCount);
+    final int rrandCountm = ImmutableRoaringBitmap.andCardinality(toMapped(rr), toMapped(rr2));
+    Assert.assertEquals(rrand.getCardinality(), rrandCountm);
+
   }
 
   @Test
@@ -2777,10 +2830,16 @@ public class TestRoaringBitmap {
     final MutableRoaringBitmap rr2 = new MutableRoaringBitmap();
     rr2.add(13);
     final MutableRoaringBitmap rrand = ImmutableRoaringBitmap.and(rr, rr2);
+    ImmutableRoaringBitmap rrm = toMapped(rr);
     assertEquals(rrand.getCardinality(), ImmutableRoaringBitmap.andCardinality(rr, rr2));
     assertEquals(rrand.getCardinality(), ImmutableRoaringBitmap.andCardinality(rr2, rr));
+    assertEquals(rrand.getCardinality(), ImmutableRoaringBitmap.andCardinality(rrm, rr2));
+    assertEquals(rrand.getCardinality(), ImmutableRoaringBitmap.andCardinality(rr2, rrm));
+
     rr.and(rr2);
+    rrm = toMapped(rr);
     assertEquals(rrand.getCardinality(), ImmutableRoaringBitmap.andCardinality(rr2, rr));
+    assertEquals(rrand.getCardinality(), ImmutableRoaringBitmap.andCardinality(rr2, rrm));
   }
 
   @Test
