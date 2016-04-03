@@ -13,17 +13,22 @@ import java.util.Arrays;
 
 public class TestUtil {
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testFillArrayANDNOT() {
         LongBuffer data1 = LongBuffer.wrap(new long[]{1, 2, 4, 8, 16});
         LongBuffer data2 = LongBuffer.wrap(new long[]{2, 1, 3, 7, 15});
-        LongBuffer data3 = LongBuffer.wrap(new long[]{2, 1, 3, 7});
         short[] content = new short[5];
-        short[] content2 = new short[5];
         short[] result = {0, 65, 130, 195, 260};
         BufferUtil.fillArrayANDNOT(content, data1, data2);
         Assert.assertTrue(Arrays.equals(content, result));
-        BufferUtil.fillArrayANDNOT(content2, data1, data3);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testFillArrayANDNOTException() {
+        LongBuffer data1 = LongBuffer.wrap(new long[]{1, 2, 4, 8, 16});
+        LongBuffer data2 = LongBuffer.wrap(new long[]{2, 1, 3, 7});
+        short[] content = new short[5];
+        BufferUtil.fillArrayANDNOT(content, data1, data2);
     }
 
     @Test
@@ -41,11 +46,11 @@ public class TestUtil {
 
     @Test
     public void testUnsignedIntersects() {
-        ShortBuffer data1 = ShortBuffer.wrap(new short[] {-100, -98, -96, -94, -92, -90, -88, -86, -84, -82, -80});
-        ShortBuffer data2 = ShortBuffer.wrap(new short[] {-99, -97, -95, -93, -91, -89, -87, -85, -83, -81, -79});
-        ShortBuffer data3 = ShortBuffer.wrap(new short[] {-99, -97, -95, -93, -91, -89, -87, -85, -83, -81, -80});
-        ShortBuffer data4 = ShortBuffer.wrap(new short[] {});
-        ShortBuffer data5 = ShortBuffer.wrap(new short[] {});
+        ShortBuffer data1 = ShortBuffer.wrap(new short[]{-100, -98, -96, -94, -92, -90, -88, -86, -84, -82, -80});
+        ShortBuffer data2 = ShortBuffer.wrap(new short[]{-99, -97, -95, -93, -91, -89, -87, -85, -83, -81, -79});
+        ShortBuffer data3 = ShortBuffer.wrap(new short[]{-99, -97, -95, -93, -91, -89, -87, -85, -83, -81, -80});
+        ShortBuffer data4 = ShortBuffer.wrap(new short[]{});
+        ShortBuffer data5 = ShortBuffer.wrap(new short[]{});
         Assert.assertFalse(BufferUtil.unsignedIntersects(data1, data1.limit(), data2, data2.limit()));
         Assert.assertTrue(BufferUtil.unsignedIntersects(data1, data1.limit(), data3, data3.limit()));
         Assert.assertFalse(BufferUtil.unsignedIntersects(data4, data4.limit(), data5, data5.limit()));
