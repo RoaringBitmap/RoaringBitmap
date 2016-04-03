@@ -715,7 +715,7 @@ public final class BufferUtil {
 
         } while (toIntUnsigned(s1) < toIntUnsigned(s2));
       } else {
-        // (set2.get(k2) == set1.get(k1))
+        ++pos;
         ++k1;
         if (k1 == length1) {
           break;

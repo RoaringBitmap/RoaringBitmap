@@ -51,15 +51,4 @@ public class TestUtil {
         Assert.assertFalse(BufferUtil.unsignedIntersects(data4, data4.limit(), data5, data5.limit()));
     }
 
-    @Test
-    public void testUnsignedLocalIntersect2by2Cardinality() {
-        ShortBuffer data1 = ShortBuffer.wrap(new short[] {-100, -98, -96, -94, -92, -90, -88, -86, -84, -82, -80});
-        ShortBuffer data2 = ShortBuffer.wrap(new short[] {-99, -97, -95, -93, -91, -89, -87, -85, -83, -81, -79});
-        ShortBuffer data3 = ShortBuffer.wrap(new short[] {-99, -97, -95, -93, -91, -89, -87, -85, -83, -81, -80});
-        ShortBuffer data4 = ShortBuffer.wrap(new short[] {});
-        ShortBuffer data5 = ShortBuffer.wrap(new short[] {});
-        Assert.assertEquals(0, BufferUtil.unsignedLocalIntersect2by2Cardinality(data1, data1.limit(), data2, data2.limit()));
-        Assert.assertEquals(0, BufferUtil.unsignedLocalIntersect2by2Cardinality(data1, data1.limit(), data3, data3.limit()));
-        Assert.assertEquals(0, BufferUtil.unsignedLocalIntersect2by2Cardinality(data4, data4.limit(), data5, data5.limit()));
-    }
 }

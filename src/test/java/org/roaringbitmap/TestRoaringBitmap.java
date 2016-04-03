@@ -5,6 +5,7 @@ package org.roaringbitmap;
 
 import static org.junit.Assert.assertEquals;
 
+import com.google.common.primitives.Ints;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -3660,5 +3661,16 @@ public class TestRoaringBitmap {
         Assert.assertEquals(expectedResultSet, actualResultSet);
       }
     }
+  }
+
+  @Test
+  public void testOr() {
+    RoaringBitmap rb1 = RoaringBitmap.bitmapOf(1, 2, 3, 4, 5);
+    RoaringBitmap rb2 = RoaringBitmap.bitmapOf(4, 7, 8, 9);
+    RoaringBitmap rb3 = RoaringBitmap.bitmapOf(12, 13, 15, 19, 21);
+    RoaringBitmap rb4 = RoaringBitmap.bitmapOf(1, 2, 3, 4, 5, 7, 8, 9);
+    RoaringBitmap rb5 = RoaringBitmap.bitmapOf(1, 2, 3, 4, 5, 7, 8, 9, 12, 13, 15, 19, 21);
+    Assert.assertEquals(rb4, RoaringBitmap.lazyorfromlazyinputs(rb1, rb2));
+    Assert.assertEquals(rb5, RoaringBitmap.or(rb1, rb2, rb3));
   }
 }
