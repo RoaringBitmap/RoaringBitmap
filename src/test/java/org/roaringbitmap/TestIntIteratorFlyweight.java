@@ -37,6 +37,11 @@ public class TestIntIteratorFlyweight {
         next = Math.abs(source.nextInt());
       } while (!ints.add(next));
     }
+    // we add a range of continuous values
+    for(int k = 1000; k < 10000; ++k) {
+      if(!ints.contains(k))
+        ints.add(k);
+    }
     int[] unboxed = Ints.toArray(ints);
     Arrays.sort(unboxed);
     return unboxed;
@@ -87,6 +92,62 @@ public class TestIntIteratorFlyweight {
     Assert.assertEquals(Lists.reverse(Ints.asList(data)), reverseIntIteratorCopy);
   }
 
+  @Test
+  public void testIterationFromBitmap() {
+    final Random source = new Random(0xcb000a2b9b5bdfb6l);
+    final int[] data = takeSortedAndDistinct(source, 450000);
+
+    // make at least one long run
+    for (int i = 0; i < 25000; ++i) {
+      data[70000 + i] = data[70000] + i;
+    }
+
+    RoaringBitmap bitmap = RoaringBitmap.bitmapOf(data);
+    bitmap.runOptimize();
+
+    IntIteratorFlyweight iter = new IntIteratorFlyweight(bitmap);
+    Assert.assertEquals(iter.peekNext(),data[0]);
+
+    ReverseIntIteratorFlyweight reverseIter = new ReverseIntIteratorFlyweight(bitmap);
+
+    final List<Integer> intIteratorCopy = asList(iter);
+    final List<Integer> reverseIntIteratorCopy = asList(reverseIter);
+
+
+    Assert.assertEquals(bitmap.getCardinality(), intIteratorCopy.size());
+    Assert.assertEquals(bitmap.getCardinality(), reverseIntIteratorCopy.size());
+
+    Assert.assertEquals(Ints.asList(data), intIteratorCopy);
+    Assert.assertEquals(Lists.reverse(Ints.asList(data)), reverseIntIteratorCopy);
+  }
+
+  @Test
+  public void testIterationFromBitmapClone() {
+    final Random source = new Random(0xcb000a2b9b5bdfb6l);
+    final int[] data = takeSortedAndDistinct(source, 450000);
+
+    // make at least one long run
+    for (int i = 0; i < 25000; ++i) {
+      data[70000 + i] = data[70000] + i;
+    }
+
+    RoaringBitmap bitmap = RoaringBitmap.bitmapOf(data);
+    bitmap.runOptimize();
+
+    IntIteratorFlyweight iter = (IntIteratorFlyweight) new IntIteratorFlyweight(bitmap).clone();
+
+    ReverseIntIteratorFlyweight reverseIter = (ReverseIntIteratorFlyweight) new ReverseIntIteratorFlyweight(bitmap).clone();
+
+    final List<Integer> intIteratorCopy = asList(iter);
+    final List<Integer> reverseIntIteratorCopy = asList(reverseIter);
+
+
+    Assert.assertEquals(bitmap.getCardinality(), intIteratorCopy.size());
+    Assert.assertEquals(bitmap.getCardinality(), reverseIntIteratorCopy.size());
+
+    Assert.assertEquals(Ints.asList(data), intIteratorCopy);
+    Assert.assertEquals(Lists.reverse(Ints.asList(data)), reverseIntIteratorCopy);
+  }  
   @Test
   public void testIterationSmall() {
 

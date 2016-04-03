@@ -44,7 +44,7 @@ public class ReverseIntIteratorFlyweight implements IntIterator {
    * @param r bitmap to be iterated over
    */
   public ReverseIntIteratorFlyweight(RoaringBitmap r) {
-
+    wrap(r);
   }
 
   @Override

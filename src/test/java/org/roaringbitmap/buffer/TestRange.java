@@ -2,6 +2,10 @@ package org.roaringbitmap.buffer;
 
 import static org.junit.Assert.*;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.BitSet;
 import java.util.Random;
 
@@ -9,7 +13,8 @@ import org.junit.Test;
 
 
 public class TestRange {
-
+  
+  
   private static int fillWithRandomBits(final MutableRoaringBitmap bitmap, final BitSet bitset,
       final int bits) {
     int added = 0;

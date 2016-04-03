@@ -23,7 +23,7 @@ import java.util.*;
 @SuppressWarnings({"static-method"})
 public class TestRoaringBitmap {
   
-  public static ImmutableRoaringBitmap toMapped(MutableRoaringBitmap r) {
+  private static ImmutableRoaringBitmap toMapped(MutableRoaringBitmap r) {
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     DataOutputStream dos = new DataOutputStream(bos);
     try {
@@ -34,7 +34,7 @@ public class TestRoaringBitmap {
     }
     ByteBuffer bb = ByteBuffer.wrap(bos.toByteArray());
     return new ImmutableRoaringBitmap(bb);
-}
+  }
 
 
   @Test
