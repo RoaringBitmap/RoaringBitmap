@@ -1,3 +1,12 @@
+version 0.6.12
+ - improve coverage for unit tests (>80% coverage now)
+ - fix for bug https://github.com/RoaringBitmap/RoaringBitmap/issues/101 (BufferUtil/unsignedLocalIntersect2by2Cardinality() method always return 0)
+ - fix reversed lightweight constructor with bitmaps: would not initialize properly and lead to null pointer exceptions.
+
+version 0.6.11 
+ - fix for ranged  or/and/xor/andnot operations (@kishoreg), safer addRange
+ - better andCardinality implementation
+
 version 0.6.10
  - ranged or/and/xor/andnot operations (@kishoreg), see  https://github.com/RoaringBitmap/RoaringBitmap/issues/78
 
