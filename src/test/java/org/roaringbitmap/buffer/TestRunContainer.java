@@ -1222,7 +1222,7 @@ public class TestRunContainer {
         assertTrue(set.get(l).equals(setb.get(l)));
         MappeableContainer thisContainer = setb.get(k);
         if (thisContainer instanceof MappeableBitmapContainer) {
-          ; // continue;
+          // continue;
         } else {
           atLeastOneArray = true;
         }
@@ -1274,7 +1274,7 @@ public class TestRunContainer {
         MappeableContainer thisContainer = setb.get(k);
         // MappeableBitmapContainers are tested separately, but why not test some more?
         if (thisContainer instanceof MappeableBitmapContainer) {
-          ; // continue;
+          // continue;
         } else {
           atLeastOneArray = true;
         }
@@ -1299,7 +1299,7 @@ public class TestRunContainer {
         assertTrue(set.get(l).equals(setb.get(l)));
         MappeableContainer thisContainer = setb.get(k);
         if (thisContainer instanceof MappeableBitmapContainer) {
-          ; // continue;
+          // continue;
         } else {
           atLeastOneArray = true;
         }
@@ -2028,5 +2028,4 @@ public class TestRunContainer {
     MappeableContainer result = rc.xor(bc);
     assertEquals(answer, result);
   }
-
 }

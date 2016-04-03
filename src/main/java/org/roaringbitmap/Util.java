@@ -20,7 +20,7 @@ public final class Util {
    * return length. Based on code by O. Kaser.
    *
    * @param array array to search within
-   * @param pos starting position of the search
+   * @param pos starting position of th search
    * @param length length of the array to search
    * @param min minimum value
    * @return x greater than pos such that array[pos] is at least as large as min, pos is is equal to
@@ -200,7 +200,7 @@ public final class Util {
     }
     int firstword = start / 64;
     int endword = (end - 1) / 64;
-    bitmap[firstword] ^= ~(~0L << start);;
+    bitmap[firstword] ^= ~(~0L << start);
     for (int i = firstword; i < endword; i++) {
       bitmap[i] = ~bitmap[i];
     }
