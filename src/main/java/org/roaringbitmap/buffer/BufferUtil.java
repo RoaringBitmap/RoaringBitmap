@@ -257,7 +257,85 @@ public final class BufferUtil {
     }
     bitmap.put(endword, bitmap.get(endword) ^ (~0L >>> -end));
   }
+  
 
+  /**
+   * Hamming weight of the 64-bit words involved in the range
+   *  start, start+1,..., end-1
+   * 
+   * @param bitmap array of words to be modified
+   * @param start first index to be modified (inclusive)
+   * @param end last index to be modified (exclusive)
+   */
+  private static int cardinalityInBitmapWordRange(LongBuffer bitmap, int start, int end) {
+    if (isBackedBySimpleArray(bitmap)) {
+      return Util.cardinalityInBitmapWordRange(bitmap.array(), start, end);
+    }
+    if (start == end) {
+      return 0;
+    }
+    int firstword = start / 64;
+    int endword = (end - 1) / 64;
+    int answer = 0;
+    for (int i = firstword; i <= endword; i++) {
+      answer += Long.bitCount(bitmap.get(i));
+    }
+    return answer;
+  }
+
+  /**
+   * set bits at start, start+1,..., end-1 and report the
+   * cardinality change
+   * 
+   * @param bitmap array of words to be modified
+   * @param start first index to be modified (inclusive)
+   * @param end last index to be modified (exclusive)
+   */
+  public static int setBitmapRangeAndCardinalityChange(LongBuffer bitmap, int start, int end) {
+    if(BufferUtil.isBackedBySimpleArray(bitmap))
+      return Util.setBitmapRangeAndCardinalityChange(bitmap.array(),start,end);
+    int cardbefore = cardinalityInBitmapWordRange(bitmap, start, end);
+    setBitmapRange(bitmap, start,end);
+    int cardafter = cardinalityInBitmapWordRange(bitmap, start, end);
+    return cardafter - cardbefore;
+  }
+
+
+  /**
+   * flip  bits at start, start+1,..., end-1 and report the
+   * cardinality change
+   * 
+   * @param bitmap array of words to be modified
+   * @param start first index to be modified (inclusive)
+   * @param end last index to be modified (exclusive)
+   */
+  public static int flipBitmapRangeAndCardinalityChange(LongBuffer bitmap, int start, int end) {
+    if(BufferUtil.isBackedBySimpleArray(bitmap))
+      return Util.flipBitmapRangeAndCardinalityChange(bitmap.array(),start,end);
+    int cardbefore = cardinalityInBitmapWordRange(bitmap, start, end);
+    flipBitmapRange(bitmap, start,end);
+    int cardafter = cardinalityInBitmapWordRange(bitmap, start, end);
+    return cardafter - cardbefore;
+  }
+  
+
+  /**
+   * reset  bits at start, start+1,..., end-1 and report the
+   * cardinality change
+   * 
+   * @param bitmap array of words to be modified
+   * @param start first index to be modified (inclusive)
+   * @param end last index to be modified (exclusive)
+   */
+  public static int resetBitmapRangeAndCardinalityChange(LongBuffer bitmap, int start, int end) {
+    if(BufferUtil.isBackedBySimpleArray(bitmap))
+      return Util.resetBitmapRangeAndCardinalityChange(bitmap.array(),start,end);
+    int cardbefore = cardinalityInBitmapWordRange(bitmap, start, end);
+    resetBitmapRange(bitmap, start,end);
+    int cardafter = cardinalityInBitmapWordRange(bitmap, start, end);
+    return cardafter - cardbefore;
+  }
+  
   /**
    * From the cardinality of a container, compute the corresponding size in bytes of the container.
    * Additional information is required if the container is run encoded.
@@ -268,10 +346,6 @@ public final class BufferUtil {
    *
    * @return the size in bytes
    */
-
-
-  // this is ugly now.
-
   protected static int getSizeInBytesFromCardinalityEtc(int card, int numRuns,
       boolean isRunEncoded) {
     if (isRunEncoded) {
