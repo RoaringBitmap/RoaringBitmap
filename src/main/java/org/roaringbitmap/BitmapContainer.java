@@ -9,6 +9,7 @@ import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import org.roaringbitmap.buffer.BufferUtil;
 import org.roaringbitmap.buffer.MappeableBitmapContainer;
 import org.roaringbitmap.buffer.MappeableContainer;
 
@@ -578,7 +579,15 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public Container inot(final int firstOfRange, final int lastOfRange) {
-    cardinality += Util.flipBitmapRangeAndCardinalityChange(bitmap, firstOfRange, lastOfRange);
+    if (lastOfRange - firstOfRange == MAX_CAPACITY) {
+      Util.flipBitmapRange(bitmap, firstOfRange, lastOfRange);
+      cardinality = MAX_CAPACITY - cardinality;
+    } else if (lastOfRange - firstOfRange > MAX_CAPACITY / 2) {
+      Util.flipBitmapRange(bitmap, firstOfRange, lastOfRange);
+      computeCardinality();
+    } else {
+      cardinality += Util.flipBitmapRangeAndCardinalityChange(bitmap, firstOfRange, lastOfRange);
+    }
     if (cardinality <= ArrayContainer.DEFAULT_MAX_SIZE) {
       return toArrayContainer();
     }
@@ -869,12 +878,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   @Override
   public Container not(final int firstOfRange, final int lastOfRange) {
     BitmapContainer answer = clone();
-    answer.cardinality +=
-        Util.flipBitmapRangeAndCardinalityChange(answer.bitmap, firstOfRange, lastOfRange);
-    if (answer.cardinality <= ArrayContainer.DEFAULT_MAX_SIZE) {
-      return answer.toArrayContainer();
-    }
-    return answer;
+    return answer.inot(firstOfRange, lastOfRange);
   }
 
   @Override

@@ -785,8 +785,16 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   @Override
   public MappeableContainer inot(final int firstOfRange, final int lastOfRange) {
-    cardinality +=
-        BufferUtil.flipBitmapRangeAndCardinalityChange(bitmap, firstOfRange, lastOfRange);
+    if (lastOfRange - firstOfRange == MAX_CAPACITY) {
+      BufferUtil.flipBitmapRange(bitmap, firstOfRange, lastOfRange);
+      cardinality = MAX_CAPACITY - cardinality;
+    } else if (lastOfRange - firstOfRange > MAX_CAPACITY / 2) {
+      BufferUtil.flipBitmapRange(bitmap, firstOfRange, lastOfRange);
+      computeCardinality();
+    } else {
+      cardinality +=
+          BufferUtil.flipBitmapRangeAndCardinalityChange(bitmap, firstOfRange, lastOfRange);
+    }
     if (cardinality <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
       return toArrayContainer();
     }
@@ -1251,12 +1259,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   @Override
   public MappeableContainer not(final int firstOfRange, final int lastOfRange) {
     MappeableBitmapContainer answer = clone();
-    answer.cardinality +=
-        BufferUtil.flipBitmapRangeAndCardinalityChange(answer.bitmap, firstOfRange, lastOfRange);
-    if (answer.cardinality <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
-      return answer.toArrayContainer();
-    }
-    return answer;
+    return answer.inot(firstOfRange, lastOfRange);
   }
 
 
