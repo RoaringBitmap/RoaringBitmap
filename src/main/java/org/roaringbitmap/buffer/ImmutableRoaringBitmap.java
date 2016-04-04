@@ -106,7 +106,7 @@ public class ImmutableRoaringBitmap
 
     @Override
     public void advanceIfNeeded(int minval) {
-      while ((hs >>> 16) < (minval >>> 16)) {
+      while ((0xFFFF & (hs >>> 16)) < (0xFFFF & (minval >>> 16))) {
         cp.advance();
         nextContainer();
       }

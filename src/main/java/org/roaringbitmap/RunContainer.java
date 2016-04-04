@@ -2472,7 +2472,7 @@ final class RunContainerShortIterator implements PeekableShortIterator {
     }
     if (base > Util.toIntUnsigned(minval)) {
       return;
-    }
+    }    
     le = Util.toIntUnsigned(minval) - base;
   }
 

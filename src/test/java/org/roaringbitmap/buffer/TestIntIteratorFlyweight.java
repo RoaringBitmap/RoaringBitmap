@@ -12,6 +12,7 @@ import com.google.common.primitives.Ints;
 import org.junit.Assert;
 import org.junit.Test;
 import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.PeekableIntIterator;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -74,6 +75,17 @@ public class TestIntIteratorFlyweight {
     BufferIntIteratorFlyweight iter = new BufferIntIteratorFlyweight();
     iter.wrap(bitmap);
 
+    BufferIntIteratorFlyweight iter2 = new BufferIntIteratorFlyweight(bitmap);
+    PeekableIntIterator j = bitmap.getIntIterator();
+    for(int k = 0; k < data.length; k+=3) {
+      iter2.advanceIfNeeded(data[k]);
+      iter2.advanceIfNeeded(data[k]);
+      j.advanceIfNeeded(data[k]);
+      j.advanceIfNeeded(data[k]);
+      Assert.assertEquals(j.peekNext(),data[k]);            
+      Assert.assertEquals(iter2.peekNext(),data[k]);
+    }
+
     BufferReverseIntIteratorFlyweight reverseIter = new BufferReverseIntIteratorFlyweight();
     reverseIter.wrap(bitmap);
 
@@ -96,6 +108,20 @@ public class TestIntIteratorFlyweight {
 
     BufferIntIteratorFlyweight iter = new BufferIntIteratorFlyweight(bitmap);
     Assert.assertEquals(iter.peekNext(),data[0]);
+    Assert.assertEquals(iter.peekNext(),data[0]);
+
+    BufferIntIteratorFlyweight iter2 = new BufferIntIteratorFlyweight(bitmap);
+    PeekableIntIterator j = bitmap.getIntIterator();
+    for(int k = 0; k < data.length; k+=3) {
+      iter2.advanceIfNeeded(data[k]);
+      iter2.advanceIfNeeded(data[k]);
+      j.advanceIfNeeded(data[k]);
+      j.advanceIfNeeded(data[k]);
+      Assert.assertEquals(j.peekNext(),data[k]);            
+      Assert.assertEquals(iter2.peekNext(),data[k]);
+    }
+
+
 
     BufferReverseIntIteratorFlyweight reverseIter = new BufferReverseIntIteratorFlyweight(bitmap);
 

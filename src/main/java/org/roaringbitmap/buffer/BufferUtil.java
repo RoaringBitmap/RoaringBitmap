@@ -352,46 +352,6 @@ public final class BufferUtil {
     return 0xFFFF;
   }
 
-  protected static int oldunsignedOneSidedGallopingIntersect2by2(final ShortBuffer smallSet,
-      final int smallLength, final ShortBuffer largeSet, final int largeLength,
-      final short[] buffer) {
-    if (0 == smallLength) {
-      return 0;
-    }
-    int k1 = 0;
-    int k2 = 0;
-    int pos = 0;
-    while (true) {
-      if (toIntUnsigned(largeSet.get(k1)) < toIntUnsigned(smallSet.get(k2))) {
-        k1 = advanceUntil(largeSet, k1, largeLength, smallSet.get(k2));
-        if (k1 == largeLength) {
-          break;
-        }
-      }
-      if (toIntUnsigned(smallSet.get(k2)) < toIntUnsigned(largeSet.get(k1))) {
-        ++k2;
-        if (k2 == smallLength) {
-          break;
-        }
-      } else {
-        // (set2.get(k2) == set1.get(k1))
-        buffer[pos++] = smallSet.get(k2);
-        ++k2;
-        if (k2 == smallLength) {
-          break;
-        }
-        k1 = advanceUntil(largeSet, k1, largeLength, smallSet.get(k2));
-        if (k1 == largeLength) {
-          break;
-        }
-      }
-
-    }
-    return pos;
-
-  }
-
-
   /**
    * clear bits at start, start+1,..., end-1
    * 

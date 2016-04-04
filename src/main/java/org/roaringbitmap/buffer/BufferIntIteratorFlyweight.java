@@ -6,7 +6,6 @@ package org.roaringbitmap.buffer;
 
 import org.roaringbitmap.PeekableIntIterator;
 import org.roaringbitmap.PeekableShortIterator;
-import org.roaringbitmap.RoaringBitmap;
 
 /**
  * Fast iterator minimizing the stress on the garbage collector. You can create one reusable
@@ -111,7 +110,7 @@ public class BufferIntIteratorFlyweight implements PeekableIntIterator {
 
   @Override
   public void advanceIfNeeded(int minval) {
-    while ((hs >>> 16) < (minval >>> 16)) {
+    while ((0xFFFF & (hs >>> 16)) < (0xFFFF & (minval >>> 16))) {
       pos++;
       if (pos < this.roaringBitmap.highLowContainer.size()) {
         nextContainer();
@@ -119,6 +118,7 @@ public class BufferIntIteratorFlyweight implements PeekableIntIterator {
         return;
       }
     }
+    iter.advanceIfNeeded(BufferUtil.lowbits(minval));
   }
 
   @Override

@@ -77,6 +77,17 @@ public class TestIntIteratorFlyweight {
 
     IntIteratorFlyweight iter = new IntIteratorFlyweight();
     iter.wrap(bitmap);
+    
+    IntIteratorFlyweight iter2 = new IntIteratorFlyweight(bitmap);
+    PeekableIntIterator j = bitmap.getIntIterator();
+    for(int k = 0; k < data.length; k+=3) {
+      iter2.advanceIfNeeded(data[k]);
+      iter2.advanceIfNeeded(data[k]);
+      j.advanceIfNeeded(data[k]);
+      j.advanceIfNeeded(data[k]);
+      Assert.assertEquals(j.peekNext(),data[k]);            
+      Assert.assertEquals(iter2.peekNext(),data[k]);
+    }
 
     ReverseIntIteratorFlyweight reverseIter = new ReverseIntIteratorFlyweight();
     reverseIter.wrap(bitmap);
@@ -107,7 +118,19 @@ public class TestIntIteratorFlyweight {
 
     IntIteratorFlyweight iter = new IntIteratorFlyweight(bitmap);
     Assert.assertEquals(iter.peekNext(),data[0]);
-
+    Assert.assertEquals(iter.peekNext(),data[0]);
+    
+    IntIteratorFlyweight iter2 = new IntIteratorFlyweight(bitmap);
+    PeekableIntIterator j = bitmap.getIntIterator();
+    for(int k = 0; k < data.length; k+=3) {
+      iter2.advanceIfNeeded(data[k]);
+      iter2.advanceIfNeeded(data[k]);
+      j.advanceIfNeeded(data[k]);
+      j.advanceIfNeeded(data[k]);
+      Assert.assertEquals(j.peekNext(),data[k]);
+      Assert.assertEquals(iter2.peekNext(),data[k]);
+    }
+    
     ReverseIntIteratorFlyweight reverseIter = new ReverseIntIteratorFlyweight(bitmap);
 
     final List<Integer> intIteratorCopy = asList(iter);

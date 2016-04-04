@@ -82,24 +82,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     // TODO: this can be optimized for performance
     this.cardinality = lastOfRun - firstOfRun;
     this.bitmap = LongBuffer.allocate(MAX_CAPACITY / 64);
-    if (this.cardinality == MAX_CAPACITY) {// perhaps a common case
-      int len = bitmap.limit();
-      for (int k = 0; k < len; ++k) {
-        bitmap.put(k, -1L);
-      }
-    } else {
-      final int firstWord = firstOfRun / 64;
-      final int lastWord = (lastOfRun - 1) / 64;
-      final int zeroPrefixLength = firstOfRun & 63;
-      final int zeroSuffixLength = 63 - ((lastOfRun - 1) & 63);
-      for (int k = firstWord; k < lastWord + 1; ++k) {
-        bitmap.put(k, -1L);
-      }
-      bitmap.put(firstWord, bitmap.get(firstWord) ^ ((1L << zeroPrefixLength) - 1));
-      final long blockOfOnes = (1L << zeroSuffixLength) - 1;
-      final long maskOnLeft = blockOfOnes << (64 - zeroSuffixLength);
-      bitmap.put(lastWord, bitmap.get(lastWord) ^ maskOnLeft);
-    }
+    Util.setBitmapRange(bitmap.array(), firstOfRun, lastOfRun);
   }
 
 
@@ -1745,6 +1728,8 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   public MappeableArrayContainer toArrayContainer() {
     final MappeableArrayContainer ac = new MappeableArrayContainer(cardinality);
     ac.loadData(this);
+    if(ac.getCardinality() != cardinality)
+      throw new RuntimeException("Internal error.");
     return ac;
   }
 

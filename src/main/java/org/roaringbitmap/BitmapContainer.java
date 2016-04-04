@@ -86,20 +86,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   public BitmapContainer(final int firstOfRun, final int lastOfRun) {
     this.cardinality = lastOfRun - firstOfRun;
     this.bitmap = new long[MAX_CAPACITY / 64];
-    if (this.cardinality == MAX_CAPACITY) {
-      Arrays.fill(bitmap, -1L);
-    } else {
-      final int firstWord = firstOfRun / 64;
-      final int lastWord = (lastOfRun - 1) / 64;
-      final int zeroPrefixLength = firstOfRun & 63;
-      final int zeroSuffixLength = 63 - ((lastOfRun - 1) & 63);
-
-      Arrays.fill(bitmap, firstWord, lastWord + 1, -1L);
-      bitmap[firstWord] ^= ((1L << zeroPrefixLength) - 1);
-      final long blockOfOnes = (1L << zeroSuffixLength) - 1;
-      final long maskOnLeft = blockOfOnes << (64 - zeroSuffixLength);
-      bitmap[lastWord] ^= maskOnLeft;
-    }
+    Util.setBitmapRange(bitmap, firstOfRun, lastOfRun);
   }
 
   private BitmapContainer(int newCardinality, long[] newBitmap) {
@@ -873,6 +860,8 @@ public final class BitmapContainer extends Container implements Cloneable {
     return -1;
   }
 
+
+
   // answer could be a new BitmapContainer, or (for inplace) it can be
   // "this"
   private Container not(BitmapContainer answer, final int firstOfRange, final int lastOfRange) {
@@ -954,6 +943,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     }
     return answer;
   }
+
 
   @Override
   public Container not(final int firstOfRange, final int lastOfRange) {
@@ -1210,6 +1200,8 @@ public final class BitmapContainer extends Container implements Cloneable {
   public ArrayContainer toArrayContainer() {
     ArrayContainer ac = new ArrayContainer(cardinality);
     ac.loadData(this);
+    if(ac.getCardinality() != cardinality)
+      throw new RuntimeException("Internal error.");
     return ac;
   }
 
