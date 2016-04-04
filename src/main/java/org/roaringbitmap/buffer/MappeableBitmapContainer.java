@@ -114,7 +114,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   @Override
   public MappeableContainer add(int begin, int end) {
     // TODO: may need to convert to a RunContainer
-    if(end == begin) {
+    if (end == begin) {
       return clone();
     }
     if ((begin > end) || (end > (1 << 16))) {
@@ -561,7 +561,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   @Override
   public MappeableContainer iadd(int begin, int end) {
     // TODO: may need to convert to a RunContainer
-    if(end == begin) {
+    if (end == begin) {
       return this;
     }
     if ((begin > end) || (end > (1 << 16))) {
@@ -785,10 +785,12 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   @Override
   public MappeableContainer inot(final int firstOfRange, final int lastOfRange) {
-    cardinality += BufferUtil.flipBitmapRangeAndCardinalityChange(bitmap,firstOfRange,lastOfRange );
-    if(cardinality <= MappeableArrayContainer.DEFAULT_MAX_SIZE)
+    cardinality +=
+        BufferUtil.flipBitmapRangeAndCardinalityChange(bitmap, firstOfRange, lastOfRange);
+    if (cardinality <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
       return toArrayContainer();
-    return this;    
+    }
+    return this;
   }
 
 
@@ -935,7 +937,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   @Override
   public MappeableContainer iremove(int begin, int end) {
-    if(end == begin) {
+    if (end == begin) {
       return this;
     }
     if ((begin > end) || (end > (1 << 16))) {
@@ -1249,9 +1251,11 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   @Override
   public MappeableContainer not(final int firstOfRange, final int lastOfRange) {
     MappeableBitmapContainer answer = clone();
-    answer.cardinality += BufferUtil.flipBitmapRangeAndCardinalityChange(answer.bitmap,firstOfRange,lastOfRange );
-    if(answer.cardinality <= MappeableArrayContainer.DEFAULT_MAX_SIZE)
+    answer.cardinality +=
+        BufferUtil.flipBitmapRangeAndCardinalityChange(answer.bitmap, firstOfRange, lastOfRange);
+    if (answer.cardinality <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
       return answer.toArrayContainer();
+    }
     return answer;
   }
 
@@ -1537,7 +1541,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   @Override
   public MappeableContainer remove(int begin, int end) {
-    if(end == begin) {
+    if (end == begin) {
       return clone();
     }
     if ((begin > end) || (end > (1 << 16))) {
@@ -1647,8 +1651,9 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   public MappeableArrayContainer toArrayContainer() {
     final MappeableArrayContainer ac = new MappeableArrayContainer(cardinality);
     ac.loadData(this);
-    if(ac.getCardinality() != cardinality)
+    if (ac.getCardinality() != cardinality) {
       throw new RuntimeException("Internal error.");
+    }
     return ac;
   }
 
@@ -1943,7 +1948,7 @@ final class MappeableBitmapContainerShortIterator implements PeekableShortIterat
 
   @Override
   public void advanceIfNeeded(short minval) {
-    if(BufferUtil.toIntUnsigned(minval) >= (x+1) * 64 ) {
+    if (BufferUtil.toIntUnsigned(minval) >= (x + 1) * 64) {
       x = BufferUtil.toIntUnsigned(minval) / 64;
       w = parent.bitmap.get(x);
       while (w == 0) {
@@ -1957,7 +1962,7 @@ final class MappeableBitmapContainerShortIterator implements PeekableShortIterat
     while (hasNext() && (BufferUtil.toIntUnsigned(peekNext()) < BufferUtil.toIntUnsigned(minval))) {
       next(); // could be optimized
     }
-    
+
   }
 
   @Override

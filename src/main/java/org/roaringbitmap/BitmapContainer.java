@@ -121,7 +121,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   @Override
   public Container add(int begin, int end) {
     // TODO: may need to convert to a RunContainer
-    if(end == begin) {
+    if (end == begin) {
       return clone();
     }
     if ((begin > end) || (end > (1 << 16))) {
@@ -430,7 +430,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   @Override
   public Container iadd(int begin, int end) {
     // TODO: may need to convert to a RunContainer
-    if(end == begin) {
+    if (end == begin) {
       return this;
     }
     if ((begin > end) || (end > (1 << 16))) {
@@ -578,10 +578,11 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public Container inot(final int firstOfRange, final int lastOfRange) {
-    cardinality += Util.flipBitmapRangeAndCardinalityChange(bitmap,firstOfRange,lastOfRange );
-    if(cardinality <= ArrayContainer.DEFAULT_MAX_SIZE)
+    cardinality += Util.flipBitmapRangeAndCardinalityChange(bitmap, firstOfRange, lastOfRange);
+    if (cardinality <= ArrayContainer.DEFAULT_MAX_SIZE) {
       return toArrayContainer();
-    return this;  
+    }
+    return this;
   }
 
   @Override
@@ -655,7 +656,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public Container iremove(int begin, int end) {
-    if(end == begin) {
+    if (end == begin) {
       return this;
     }
     if ((begin > end) || (end > (1 << 16))) {
@@ -868,9 +869,11 @@ public final class BitmapContainer extends Container implements Cloneable {
   @Override
   public Container not(final int firstOfRange, final int lastOfRange) {
     BitmapContainer answer = clone();
-    answer.cardinality += Util.flipBitmapRangeAndCardinalityChange(answer.bitmap,firstOfRange,lastOfRange );
-    if(answer.cardinality <= ArrayContainer.DEFAULT_MAX_SIZE)
+    answer.cardinality +=
+        Util.flipBitmapRangeAndCardinalityChange(answer.bitmap, firstOfRange, lastOfRange);
+    if (answer.cardinality <= ArrayContainer.DEFAULT_MAX_SIZE) {
       return answer.toArrayContainer();
+    }
     return answer;
   }
 
@@ -1023,7 +1026,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public Container remove(int begin, int end) {
-    if(end == begin) {
+    if (end == begin) {
       return clone();
     }
     if ((begin > end) || (end > (1 << 16))) {
@@ -1124,8 +1127,9 @@ public final class BitmapContainer extends Container implements Cloneable {
   public ArrayContainer toArrayContainer() {
     ArrayContainer ac = new ArrayContainer(cardinality);
     ac.loadData(this);
-    if(ac.getCardinality() != cardinality)
+    if (ac.getCardinality() != cardinality) {
       throw new RuntimeException("Internal error.");
+    }
     return ac;
   }
 
@@ -1220,12 +1224,12 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public void forEach(short msb, IntConsumer ic) {
-    int high = ((int)msb) << 16;
-    for(int x = 0; x < bitmap.length; ++x) {
+    int high = ((int) msb) << 16;
+    for (int x = 0; x < bitmap.length; ++x) {
       long w = bitmap[x];
-      while(w != 0) {
+      while (w != 0) {
         long t = w & -w;
-        ic.accept( (x * 64 + Long.bitCount(t - 1)) | high );
+        ic.accept((x * 64 + Long.bitCount(t - 1)) | high);
         w ^= t;
       }
     }
@@ -1275,7 +1279,7 @@ final class BitmapContainerShortIterator implements PeekableShortIterator {
     }
     return answer;
   }
-  
+
 
 
   @Override
@@ -1311,7 +1315,7 @@ final class BitmapContainerShortIterator implements PeekableShortIterator {
 
   @Override
   public void advanceIfNeeded(short minval) {
-    if(Util.toIntUnsigned(minval) >= (x+1) * 64 ) {
+    if (Util.toIntUnsigned(minval) >= (x + 1) * 64) {
       x = Util.toIntUnsigned(minval) / 64;
       w = bitmap[x];
       while (w == 0) {
