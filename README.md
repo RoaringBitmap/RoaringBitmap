@@ -224,12 +224,13 @@ Usage
 ------
 
 * Get java
-* Get maven 2
+* Get maven 3
 
 * ``mvn compile`` will compile
-* ``mvn test`` will run the unit tests
+* ``mvn test`` will run the basic unit tests
 * ``mvn package`` will package in a jar (found in target)
 * ``mvn checkstyle:check`` will check that you abide by the code style
+*  To run our complete testing routine (it takes a long time), execute ``mvn clean test && mvn clean install -DskipTests -Dgpg.skip=true && mvn -f real-roaring-dataset/pom.xml clean install && mvn -f ./jmh/pom.xml test``. Be warned that our testing is very thorough.
 
 A convenient command to build the code is :
 
