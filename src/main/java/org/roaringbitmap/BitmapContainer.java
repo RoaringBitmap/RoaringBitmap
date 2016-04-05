@@ -324,22 +324,6 @@ public final class BitmapContainer extends Container implements Cloneable {
     return false;
   }
 
-  /**
-   * Fill the array with set bits
-   *
-   * @param array container (should be sufficiently large)
-   */
-  protected void fillArray(final int[] array) {
-    int pos = 0;
-    for (int k = 0; k < bitmap.length; ++k) {
-      long bitset = bitmap[k];
-      while (bitset != 0) {
-        long t = bitset & -bitset;
-        array[pos++] = k * 64 + Long.bitCount(t - 1);
-        bitset ^= t;
-      }
-    }
-  }
 
   /**
    * Fill the array with set bits

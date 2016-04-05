@@ -1683,7 +1683,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     final ShortIterator i = this.getShortIterator();
     sb.append("{");
     while (i.hasNext()) {
-      sb.append(i);
+      sb.append(i.next());
       if (i.hasNext()) {
         sb.append(",");
       }

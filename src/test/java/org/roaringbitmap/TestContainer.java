@@ -23,7 +23,13 @@ public class TestContainer {
   private final static Class<?>[] CONTAINER_TYPES =
       new Class[] {ArrayContainer.class, BitmapContainer.class, RunContainer.class};
 
-
+  @Test
+  public void testNames() {
+    assertTrue(new BitmapContainer().getContainerName().equals(Container.ContainerNames[0]));
+    assertTrue(new ArrayContainer().getContainerName().equals(Container.ContainerNames[1]));
+    assertTrue(new RunContainer().getContainerName().equals(Container.ContainerNames[2]));
+  }
+  
   public static boolean checkContent(Container c, short[] s) {
     ShortIterator si = c.getShortIterator();
     int ctr = 0;

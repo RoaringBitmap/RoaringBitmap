@@ -6,13 +6,20 @@ package org.roaringbitmap;
 
 import org.junit.Test;
 
-
 import java.util.*;
 import static org.junit.Assert.*;
 
 public class TestBitmapContainer {
   private static BitmapContainer emptyContainer() {
     return new BitmapContainer(new long[1], 0);
+  }
+  
+  @Test
+  public void testToString() {
+    BitmapContainer bc2 = new BitmapContainer();
+    bc2.add((short)1);
+    String s = bc2.toString();
+    assertTrue(s.equals("{1}"));
   }
   
   @Test  
@@ -41,8 +48,15 @@ public class TestBitmapContainer {
         bc2 = (BitmapContainer) bc2.add((short) i);
         else bc3 = (BitmapContainer) bc3.add((short) i);
     }
+    RunContainer rc = new RunContainer();
+    rc.iadd(0, 1<<16);
+    bc = (BitmapContainer) bc.iand(rc);
     bc = (BitmapContainer) bc.iandNot(bc2);
     assertTrue(bc.equals(bc3));
+    assertTrue(bc.hashCode() == bc3.hashCode());
+    assertTrue(bc.iandNot(bc3).getCardinality() == 0);
+    bc3.clear();
+    assertTrue(bc3.getCardinality() == 0);
   }
   
 
@@ -79,6 +93,9 @@ public class TestBitmapContainer {
     assertTrue(bc.equals(bc2));        
     bc2 = (BitmapContainer) bc2.ior(bc);
     assertTrue(bc.equals(bc2));       
+    RunContainer rc = new RunContainer();
+    rc.iadd(0, 1<<16);
+    assertTrue(bc.iandNot(rc).getCardinality() == 0);      
   }
   
   @Test

@@ -19,6 +19,14 @@ import static org.junit.Assert.assertTrue;
 @SuppressWarnings({"static-method"})
 public class TestContainer {
 
+
+  @Test
+  public void testNames() {
+    assertTrue(new MappeableBitmapContainer().getContainerName().equals(MappeableContainer.ContainerNames[0]));
+    assertTrue(new MappeableArrayContainer().getContainerName().equals(MappeableContainer.ContainerNames[1]));
+    assertTrue(new MappeableRunContainer().getContainerName().equals(MappeableContainer.ContainerNames[2]));
+  }
+  
   public static boolean checkContent(MappeableContainer c, short[] s) {
     ShortIterator si = c.getShortIterator();
     int ctr = 0;

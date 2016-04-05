@@ -11,10 +11,19 @@ import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import org.junit.Test;
 
+
 public class TestMappeableBitmapContainer {
 
   private static MappeableBitmapContainer emptyContainer() {
     return new MappeableBitmapContainer(0, LongBuffer.allocate(1));
+  }
+  
+  @Test
+  public void testToString() {
+    MappeableBitmapContainer bc2 = new MappeableBitmapContainer();
+    bc2.add((short)1);
+    String s = bc2.toString();
+    assertTrue(s.equals("{1}"));
   }
   
   @Test  
@@ -45,6 +54,10 @@ public class TestMappeableBitmapContainer {
     }
     bc = (MappeableBitmapContainer) bc.iandNot(bc2);
     assertTrue(bc.equals(bc3));
+    assertTrue(bc.hashCode() == bc3.hashCode());
+    assertTrue(bc.iandNot(bc3).getCardinality() == 0);
+    bc3.clear();
+    assertTrue(bc3.getCardinality() == 0);
   }
   
 
@@ -53,12 +66,16 @@ public class TestMappeableBitmapContainer {
     MappeableBitmapContainer bc = new MappeableBitmapContainer(100,10000);
     MappeableBitmapContainer bc2 = new MappeableBitmapContainer();
     MappeableBitmapContainer bc3 = new MappeableBitmapContainer();
+    
 
     for(int i = 100; i < 10000; ++i) {
       if((i%2 ) == 0)
         bc2 = (MappeableBitmapContainer) bc2.add((short) i);
         else bc3 = (MappeableBitmapContainer) bc3.add((short) i);
     }
+    MappeableRunContainer rc = new MappeableRunContainer();
+    rc.iadd(0, 1<<16);
+    bc = (MappeableBitmapContainer) bc.iand(rc);
     bc = (MappeableBitmapContainer) bc.iand(bc2);
     assertTrue(bc.equals(bc2));    
     assertTrue(bc.iand(bc3).getCardinality() == 0);    
@@ -81,6 +98,9 @@ public class TestMappeableBitmapContainer {
     assertTrue(bc.equals(bc2));        
     bc2 = (MappeableBitmapContainer) bc2.ior(bc);
     assertTrue(bc.equals(bc2));       
+    MappeableRunContainer rc = new MappeableRunContainer();
+    rc.iadd(0, 1<<16);
+    assertTrue(bc.iandNot(rc).getCardinality() == 0);      
   }
 
   private static void removeArray(MappeableBitmapContainer bc) {
