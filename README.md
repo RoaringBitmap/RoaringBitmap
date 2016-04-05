@@ -192,6 +192,9 @@ Prerequisites
  - Version 0.6.x requires JDK 7 or better
  - Version 0.5.x requires JDK 6 or better
 
+To build the project you need maven (version 3).
+
+
 Download
 ---------
 
