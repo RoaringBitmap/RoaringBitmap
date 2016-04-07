@@ -43,7 +43,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <javac.target>1.6</javac.target>
+        <javac.target>1.7</javac.target>
     </properties>
 
     <build>
