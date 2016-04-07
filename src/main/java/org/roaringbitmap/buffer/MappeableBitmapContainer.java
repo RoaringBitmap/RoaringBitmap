@@ -4,7 +4,6 @@
 
 package org.roaringbitmap.buffer;
 
-import org.roaringbitmap.ArrayContainer;
 import org.roaringbitmap.BitmapContainer;
 import org.roaringbitmap.Container;
 import org.roaringbitmap.IntConsumer;
@@ -36,9 +35,6 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   // operations
   public static final boolean USE_BRANCHLESS = true;
 
-  protected static int getArraySizeInBytes(int unusedCardinality) {
-    return MAX_CAPACITY / 8;
-  }
 
   // the parameter is for overloading and symmetry with ArrayContainer
   protected static int serializedSizeInBytes(int unusedCardinality) {
