@@ -3,6 +3,10 @@ package org.roaringbitmap.buffer;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -11,12 +15,52 @@ import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
 
+import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.ShortIterator;
 
 import static org.junit.Assert.*;
 import static org.roaringbitmap.buffer.MappeableArrayContainer.DEFAULT_MAX_SIZE;
 
 public class TestRunContainer {
+  private static ImmutableRoaringBitmap toMapped(MutableRoaringBitmap r) {
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    DataOutputStream dos = new DataOutputStream(bos);
+    try {
+      r.serialize(dos);
+      dos.close();
+    } catch (IOException e) {
+      throw new RuntimeException(e.toString());
+    }
+    ByteBuffer bb = ByteBuffer.wrap(bos.toByteArray());
+    return new ImmutableRoaringBitmap(bb);
+  }
+
+  @Test
+  public void testRunOpti() {
+    MutableRoaringBitmap mrb = new MutableRoaringBitmap();
+    for(int r = 0; r< 100000; r+=3 ) {
+      mrb.add(r);
+    }
+    mrb.add(1000000);
+    for(int r = 2000000; r < 3000000; ++r) {
+      mrb.add(r);
+    }
+    MutableRoaringBitmap m2 = mrb.clone();
+    m2.runOptimize();
+    IntIterator x = m2.getReverseIntIterator();
+    int count = 0;
+    while(x.hasNext()) {
+      x.next();
+      count++;
+    }
+    Assert.assertTrue(m2.getCardinality() == count);
+    Assert.assertTrue(mrb.getCardinality() == count);
+    Assert.assertTrue(m2.serializedSizeInBytes() < mrb.serializedSizeInBytes());
+    Assert.assertEquals(m2, mrb);
+    Assert.assertEquals(toMapped(m2), mrb);
+    Assert.assertEquals(toMapped(m2), toMapped(mrb));
+    Assert.assertEquals(m2, toMapped(mrb));
+  }
 
   public static MappeableContainer fillMeUp(MappeableContainer c, int[] values) {
     if (values.length == 0) {

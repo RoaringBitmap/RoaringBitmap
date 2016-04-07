@@ -16,7 +16,29 @@ import static org.junit.Assert.*;
 import static org.roaringbitmap.ArrayContainer.DEFAULT_MAX_SIZE;
 
 public class TestRunContainer {
-
+  @Test
+  public void testRunOpti() {
+    RoaringBitmap mrb = new RoaringBitmap();
+    for(int r = 0; r< 100000; r+=3 ) {
+      mrb.add(r);
+    }
+    mrb.add(1000000);
+    for(int r = 2000000; r < 3000000; ++r) {
+      mrb.add(r);
+    }
+    RoaringBitmap m2 = mrb.clone();
+    m2.runOptimize();
+    IntIterator x = m2.getReverseIntIterator();
+    int count = 0;
+    while(x.hasNext()) {
+      x.next();
+      count++;
+    }
+    Assert.assertTrue(m2.getCardinality() == count);
+    Assert.assertTrue(mrb.getCardinality() == count);
+    Assert.assertTrue(m2.serializedSizeInBytes() < mrb.serializedSizeInBytes());
+    Assert.assertEquals(m2, mrb);
+  }
 
   public static Container fillMeUp(Container c, int[] values) {
     if (values.length == 0) {

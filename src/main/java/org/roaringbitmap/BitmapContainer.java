@@ -20,7 +20,6 @@ import org.roaringbitmap.buffer.MappeableContainer;
 public final class BitmapContainer extends Container implements Cloneable {
   protected static final int MAX_CAPACITY = 1 << 16;
 
-  private static boolean USE_IN_PLACE = true; // optimization flag
 
   private static final long serialVersionUID = 2L;
 
@@ -952,18 +951,8 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public Container or(final BitmapContainer value2) {
-    if (USE_IN_PLACE) {
-      BitmapContainer value1 = this.clone();
-      return value1.ior(value2);
-    }
-    final BitmapContainer answer = new BitmapContainer();
-    answer.cardinality = 0;
-    for (int k = 0; k < answer.bitmap.length; ++k) {
-      long w = this.bitmap[k] | value2.bitmap[k];
-      answer.bitmap[k] = w;
-      answer.cardinality += Long.bitCount(w);
-    }
-    return answer;
+    BitmapContainer value1 = this.clone();
+    return value1.ior(value2);
   }
 
   @Override

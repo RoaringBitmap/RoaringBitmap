@@ -22,8 +22,7 @@ import java.util.Iterator;
 public final class MappeableBitmapContainer extends MappeableContainer implements Cloneable {
   protected static final int MAX_CAPACITY = 1 << 16;
 
-  private static boolean USE_IN_PLACE = true; // optimization flag
-
+  
   private static final long serialVersionUID = 2L;
 
   // bail out early when the number of runs is excessive, without
@@ -1432,35 +1431,8 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   @Override
   public MappeableContainer or(final MappeableBitmapContainer value2) {
-    if (USE_IN_PLACE) {
-      final MappeableBitmapContainer value1 = this.clone();
-      return value1.ior(value2);
-    }
-    final MappeableBitmapContainer answer = new MappeableBitmapContainer();
-    if (!BufferUtil.isBackedBySimpleArray(answer.bitmap)) {
-      throw new RuntimeException("Should not happen. Internal bug.");
-    }
-    long[] bitArray = answer.bitmap.array();
-    answer.cardinality = 0;
-    if (BufferUtil.isBackedBySimpleArray(this.bitmap)
-        && BufferUtil.isBackedBySimpleArray(value2.bitmap)) {
-      long[] b = this.bitmap.array();
-      long[] v2 = value2.bitmap.array();
-      int len = this.bitmap.limit();
-      for (int k = 0; k < len; ++k) {
-        long w = b[k] | v2[k];
-        bitArray[k] = w;
-        answer.cardinality += Long.bitCount(w);
-      }
-    } else {
-      int len = this.bitmap.limit();
-      for (int k = 0; k < len; ++k) {
-        long w = this.bitmap.get(k) | value2.bitmap.get(k);
-        bitArray[k] = w;
-        answer.cardinality += Long.bitCount(w);
-      }
-    }
-    return answer;
+    final MappeableBitmapContainer value1 = this.clone();
+    return value1.ior(value2);
   }
 
   @Override
