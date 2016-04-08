@@ -12,7 +12,10 @@ branches:
   only:
     - master
 
-script: mvn clean test jacoco:report && mvn clean install -DskipTests -Dgpg.skip=true && mvn -f real-roaring-dataset/pom.xml clean install && mvn -f ./jmh/pom.xml test 
+script:
+ - mvn clean test jacoco:report install -Dgpg.skip=true
+ - mvn -f real-roaring-dataset/pom.xml clean install
+ - mvn -f ./jmh/pom.xml test
 
 after_success:
   - mvn coveralls:report
