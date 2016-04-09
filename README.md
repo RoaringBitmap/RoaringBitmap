@@ -123,7 +123,7 @@ Scientific Documentation
 
 -  Samy Chambi, Daniel Lemire, Owen Kaser, Robert Godin,
 Better bitmap performance with Roaring bitmaps,
-Software: Practice and Experience (accepted in 2015, to appear)
+Software: Practice and Experience Volume 46, Issue 5, pages 709–719, May 2016
 http://arxiv.org/abs/1402.6407 This paper used data from http://lemire.me/data/realroaring2014.html
 - Daniel Lemire, Gregory Ssi-Yan-Kai, Owen Kaser, Consistently faster and smaller compressed bitmaps with Roaring, Software: Practice and Experience (accepted in 2016, to appear) http://arxiv.org/abs/1603.06549
 
