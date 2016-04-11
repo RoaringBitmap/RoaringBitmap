@@ -4,7 +4,13 @@
 
 package org.roaringbitmap;
 
-import java.io.*;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.io.Serializable;
 import java.util.Iterator;
 
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
@@ -84,6 +90,47 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       if (pos < RoaringBitmap.this.highLowContainer.size()) {
         iter = RoaringBitmap.this.highLowContainer.getContainerAtIndex(pos).getShortIterator();
         hs = RoaringBitmap.this.highLowContainer.getKeyAtIndex(pos) << 16;
+      }
+    }
+
+    private void advanceIfNeededProposal(int minval) {
+      // (can actually be called many times)
+      
+      if (minval == 0) {
+        // as if the noargs constructor was called
+        hs = 0;
+        pos = 0;
+        nextContainer();
+        return;
+      }
+
+      // find the first container, that is supposed to have minval
+      final int i = highLowContainer.getIndex(Util.highbits(minval));
+      if (i < 0) {
+        // no container available.
+        // negative index indicates, where one would add a new container.
+        // use this information to get the current container at this position.
+        // a) if there is one, it is not empty (invariant)
+        // b) if there is none, we are the end of this iterator
+        pos = -i - 1;
+        nextContainer();
+      } else {
+        // container is available
+        // ask the container to return an iterator, that is advanced to minval
+        pos = i;
+        iter = RoaringBitmap.this.highLowContainer.getContainerAtIndex(pos).getShortIterator();
+        hs = RoaringBitmap.this.highLowContainer.getKeyAtIndex(pos) << 16;
+        if (iter.hasNext()) {
+          iter.advanceIfNeeded(Util.lowbits(minval));
+        }
+
+        // if iterator is already exhausted after advancing, then jump to the next container.
+        // a) if there is one, it is not empty (invariant)
+        // b) if there is none, we are the end of this iterator
+        if (!iter.hasNext()) {
+          ++pos;
+          nextContainer();
+        }
       }
     }
 
