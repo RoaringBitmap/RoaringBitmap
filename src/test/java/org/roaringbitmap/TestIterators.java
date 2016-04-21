@@ -149,7 +149,7 @@ public class TestIterators {
   @Test
   public void testSkipsRun() {
     RoaringBitmap bitmap = new RoaringBitmap();
-    bitmap.add(4, 100000);
+    bitmap.add(4L, 100000L);
     bitmap.runOptimize();
     for(int i = 4; i < 100000; ++i) {
       PeekableIntIterator pii = bitmap.getIntIterator();

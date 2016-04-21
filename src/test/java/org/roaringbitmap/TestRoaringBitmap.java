@@ -1252,7 +1252,7 @@ public class TestRoaringBitmap {
   @Test
   public void containerSharingWithXor() {
     RoaringBitmap r1 = new RoaringBitmap();
-    r1.flip(131000, 131001);
+    r1.flip(131000L, 131001L);
     RoaringBitmap r2 = new RoaringBitmap();
     r2.add(220000);
     RoaringBitmap r3 = new RoaringBitmap();
@@ -1272,7 +1272,7 @@ public class TestRoaringBitmap {
   // this had created an array out of bounds error
   @Test
   public void fliptest_Karpenske() {
-    int[] array = new int[] {343798, 343799, 343800, 343801, 343803, 343804, 343805, 343807, 343809,
+    long[] array = new long[] {343798, 343799, 343800, 343801, 343803, 343804, 343805, 343807, 343809,
         343811, 343812, 343815, 343816, 343817, 343818, 343819, 343821, 343825, 343827, 343828,
         343830, 343831, 343832, 343833, 343835, 343836, 343837, 343838, 343839, 343840, 343841,
         343842, 343843, 343844, 343845, 343847, 343848, 343849, 343850, 343851, 343853, 343854,
@@ -1290,12 +1290,12 @@ public class TestRoaringBitmap {
         344023, 344025, 344026, 344027, 344028, 344029, 344030, 344031, 344034, 344035, 344036,
         344037, 344038, 344039, 344040, 344042, 344043, 344046, 344047};
     RoaringBitmap bitmap = new RoaringBitmap();
-    int[] indexes = array;
-    int rangeStart = 0;
+    long[] indexes = array;
+    int  rangeStart = 0;
     for (int rangeEnd = 1; rangeEnd < indexes.length; rangeEnd++) {
       if (indexes[rangeEnd - 1] + 1 != indexes[rangeEnd]) {
         if (rangeStart == rangeEnd - 1) {
-          bitmap.add(indexes[rangeStart]);
+          bitmap.add((int)indexes[rangeStart]);
         } else {
           bitmap.flip(indexes[rangeStart], indexes[rangeEnd - 1] + 1);
         }
@@ -1303,9 +1303,9 @@ public class TestRoaringBitmap {
       }
     }
     if (rangeStart == indexes.length - 1) {
-      bitmap.add(indexes[rangeStart]);
+      bitmap.add((int)indexes[rangeStart]);
     } else {
-      bitmap.flip(indexes[rangeStart], indexes[indexes.length - 1] + 1);
+        bitmap.flip(indexes[rangeStart], indexes[indexes.length - 1] + 1);
     }
     assertEquals(182, bitmap.getCardinality());
   }
@@ -1314,7 +1314,7 @@ public class TestRoaringBitmap {
   public void flipTest1() {
     final RoaringBitmap rb = new RoaringBitmap();
 
-    rb.flip(100000, 200000); // in-place on empty bitmap
+    rb.flip(100000L, 200000L); // in-place on empty bitmap
     final int rbcard = rb.getCardinality();
     Assert.assertEquals(100000, rbcard);
 
@@ -1329,7 +1329,7 @@ public class TestRoaringBitmap {
   public void flipTest1A() {
     final RoaringBitmap rb = new RoaringBitmap();
 
-    final RoaringBitmap rb1 = RoaringBitmap.flip(rb, 100000, 200000);
+    final RoaringBitmap rb1 = RoaringBitmap.flip(rb, 100000L, 200000L);
     final int rbcard = rb1.getCardinality();
     Assert.assertEquals(100000, rbcard);
     Assert.assertEquals(0, rb.getCardinality());
@@ -1346,7 +1346,7 @@ public class TestRoaringBitmap {
   public void flipTest2() {
     final RoaringBitmap rb = new RoaringBitmap();
 
-    rb.flip(100000, 100000);
+    rb.flip(100000L, 100000L);
     final int rbcard = rb.getCardinality();
     Assert.assertEquals(0, rbcard);
 
@@ -1358,7 +1358,7 @@ public class TestRoaringBitmap {
   public void flipTest2A() {
     final RoaringBitmap rb = new RoaringBitmap();
 
-    final RoaringBitmap rb1 = RoaringBitmap.flip(rb, 100000, 100000);
+    final RoaringBitmap rb1 = RoaringBitmap.flip(rb, 100000L, 100000L);
     rb.add(1); // will not affect rb1 (no shared container)
     final int rbcard = rb1.getCardinality();
     Assert.assertEquals(0, rbcard);
@@ -1374,8 +1374,8 @@ public class TestRoaringBitmap {
   public void flipTest3() {
     final RoaringBitmap rb = new RoaringBitmap();
 
-    rb.flip(100000, 200000); // got 100k-199999
-    rb.flip(100000, 199991); // give back 100k-199990
+    rb.flip(100000L, 200000L); // got 100k-199999
+    rb.flip(100000L, 199991L); // give back 100k-199990
     final int rbcard = rb.getCardinality();
 
     Assert.assertEquals(9, rbcard);
@@ -1392,8 +1392,8 @@ public class TestRoaringBitmap {
   public void flipTest3A() {
     System.out.println("FlipTest3A");
     final RoaringBitmap rb = new RoaringBitmap();
-    final RoaringBitmap rb1 = RoaringBitmap.flip(rb, 100000, 200000);
-    final RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 100000, 199991);
+    final RoaringBitmap rb1 = RoaringBitmap.flip(rb, 100000L, 200000L);
+    final RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 100000L, 199991L);
     final int rbcard = rb2.getCardinality();
 
     Assert.assertEquals(9, rbcard);
@@ -1410,8 +1410,8 @@ public class TestRoaringBitmap {
   public void flipTest4() { // fits evenly on both ends
     System.out.println("FlipTest4");
     final RoaringBitmap rb = new RoaringBitmap();
-    rb.flip(100000, 200000); // got 100k-199999
-    rb.flip(65536, 4 * 65536);
+    rb.flip(100000L, 200000L); // got 100k-199999
+    rb.flip(65536L, 4 * 65536L);
     final int rbcard = rb.getCardinality();
 
     // 65536 to 99999 are 1s
@@ -1434,8 +1434,8 @@ public class TestRoaringBitmap {
   public void flipTest4A() {
     System.out.println("FlipTest4A");
     final RoaringBitmap rb = new RoaringBitmap();
-    final RoaringBitmap rb1 = RoaringBitmap.flip(rb, 100000, 200000);
-    final RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 65536, 4 * 65536);
+    final RoaringBitmap rb1 = RoaringBitmap.flip(rb, 100000L, 200000L);
+    final RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 65536L, 4 * 65536L);
     final int rbcard = rb2.getCardinality();
 
     Assert.assertEquals(96608, rbcard);
@@ -1456,8 +1456,8 @@ public class TestRoaringBitmap {
     // containers
     System.out.println("FlipTest5");
     final RoaringBitmap rb = new RoaringBitmap();
-    rb.flip(100000, 132000);
-    rb.flip(65536, 120000);
+    rb.flip(100000L, 132000L);
+    rb.flip(65536L, 120000L);
     final int rbcard = rb.getCardinality();
 
     // 65536 to 99999 are 1s
@@ -1479,8 +1479,8 @@ public class TestRoaringBitmap {
   public void flipTest5A() {
     System.out.println("FlipTest5A");
     final RoaringBitmap rb = new RoaringBitmap();
-    final RoaringBitmap rb1 = RoaringBitmap.flip(rb, 100000, 132000);
-    final RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 65536, 120000);
+    final RoaringBitmap rb1 = RoaringBitmap.flip(rb, 100000L, 132000L);
+    final RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 65536L, 120000L);
     final int rbcard = rb2.getCardinality();
 
     Assert.assertEquals(46464, rbcard);
@@ -1499,8 +1499,8 @@ public class TestRoaringBitmap {
   public void flipTest6() { // fits evenly on big end, multiple containers
     System.out.println("FlipTest6");
     final RoaringBitmap rb = new RoaringBitmap();
-    rb.flip(100000, 132000);
-    rb.flip(99000, 2 * 65536);
+    rb.flip(100000L, 132000L);
+    rb.flip(99000L, 2 * 65536L);
     final int rbcard = rb.getCardinality();
 
     // 99000 to 99999 are 1000 1s
@@ -1522,8 +1522,8 @@ public class TestRoaringBitmap {
   public void flipTest6A() {
     System.out.println("FlipTest6A");
     final RoaringBitmap rb = new RoaringBitmap();
-    final RoaringBitmap rb1 = RoaringBitmap.flip(rb, 100000, 132000);
-    final RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 99000, 2 * 65536);
+    final RoaringBitmap rb1 = RoaringBitmap.flip(rb, 100000L, 132000L);
+    final RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 99000L, 2 * 65536L);
     final int rbcard = rb2.getCardinality();
 
     Assert.assertEquals(1928, rbcard);
@@ -1542,8 +1542,8 @@ public class TestRoaringBitmap {
   public void flipTest7() { // within 1 word, first container
     System.out.println("FlipTest7");
     final RoaringBitmap rb = new RoaringBitmap();
-    rb.flip(650, 132000);
-    rb.flip(648, 651);
+    rb.flip(650L, 132000L);
+    rb.flip(648L, 651L);
     final int rbcard = rb.getCardinality();
 
     // 648, 649, 651-131999
@@ -1563,8 +1563,8 @@ public class TestRoaringBitmap {
   public void flipTest7A() { // within 1 word, first container
     System.out.println("FlipTest7A");
     final RoaringBitmap rb = new RoaringBitmap();
-    final RoaringBitmap rb1 = RoaringBitmap.flip(rb, 650, 132000);
-    final RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 648, 651);
+    final RoaringBitmap rb1 = RoaringBitmap.flip(rb, 650L, 132000L);
+    final RoaringBitmap rb2 = RoaringBitmap.flip(rb1, 648L, 651L);
     final int rbcard = rb2.getCardinality();
 
     // 648, 649, 651-131999
@@ -1585,12 +1585,28 @@ public class TestRoaringBitmap {
     final RoaringBitmap rb = new RoaringBitmap();
     rb.add(0);
     rb.add(2);
-    final RoaringBitmap rb2 = RoaringBitmap.flip(rb, 0, 3);
+    final RoaringBitmap rb2 = RoaringBitmap.flip(rb, 0L, 3L);
 
     final BitSet bs = new BitSet();
     bs.set(1);
     Assert.assertTrue(equals(bs, rb2));
   }
+
+
+
+  @Test
+  public void flipTestBigInt() {
+    final RoaringBitmap rb = new RoaringBitmap();
+    rb.add( Integer.MAX_VALUE + 100000);
+    rb.add( Integer.MAX_VALUE + 100002);
+    final RoaringBitmap rb2 = RoaringBitmap.flip(rb, Integer.MAX_VALUE+100001L , 
+                                                 Integer.MAX_VALUE+200000L);
+    Assert.assertEquals(99999, rb2.getCardinality());
+    Assert.assertTrue(rb2.contains(Integer.MAX_VALUE+100000));
+    Assert.assertFalse(rb2.contains(Integer.MAX_VALUE+100002));
+    Assert.assertTrue(rb2.contains(Integer.MAX_VALUE+199999));
+  }
+
 
   @Test
   public void flipTestBig() {
@@ -1602,34 +1618,34 @@ public class TestRoaringBitmap {
     int checkTime = 2;
 
     for (int i = 0; i < numCases; ++i) {
-      final int start = r.nextInt(65536 * 20);
-      int end = r.nextInt(65536 * 20);
+      final long start = r.nextInt(65536 * 20);
+      long end = r.nextInt(65536 * 20);
       if (r.nextDouble() < 0.1) {
         end = start + r.nextInt(100);
       }
       rb.flip(start, end);
       if (start < end) {
-        bs.flip(start, end); // throws exception
+          bs.flip((int)start, (int)end); // throws exception
       }
       // otherwise
       // insert some more ANDs to keep things sparser
       if (r.nextDouble() < 0.2) {
         final RoaringBitmap mask = new RoaringBitmap();
         final BitSet mask1 = new BitSet();
-        final int startM = r.nextInt(65536 * 20);
-        final int endM = startM + 100000;
+        final long startM = r.nextInt(65536 * 20);
+        final long endM = startM + 100000;
         mask.flip(startM, endM);
-        mask1.flip(startM, endM);
-        mask.flip(0, 65536 * 20 + 100000);
+        mask1.flip((int)startM, (int)endM);
+        mask.flip(0L, 65536L * 20 + 100000);
         mask1.flip(0, 65536 * 20 + 100000);
         rb.and(mask);
         bs.and(mask1);
       }
       // see if we can detect incorrectly shared containers
       if (r.nextDouble() < 0.1) {
-        final RoaringBitmap irrelevant = RoaringBitmap.flip(rb, 10, 100000);
-        irrelevant.flip(5, 200000);
-        irrelevant.flip(190000, 260000);
+        final RoaringBitmap irrelevant = RoaringBitmap.flip(rb, 10L, 100000L);
+        irrelevant.flip(5L, 200000L);
+        irrelevant.flip(190000L, 260000L);
       }
       if (i > checkTime) {
         Assert.assertTrue(equals(bs, rb));
@@ -1655,15 +1671,15 @@ public class TestRoaringBitmap {
       }
 
       if ((i & 1) == 0) {
-        rb2 = RoaringBitmap.flip(rb1, start, end);
+        rb2 = RoaringBitmap.flip(rb1, (long) start, (long) end);
         // tweak the other, catch bad sharing
-        int r1 = r.nextInt(65536 * 20);
-        int r2 = r.nextInt(65536 * 20);
+        long r1 = r.nextInt(65536 * 20);
+        long r2 = r.nextInt(65536 * 20);
         rb1.flip(r1, r2);
       } else {
-        rb1 = RoaringBitmap.flip(rb2, start, end);
-        int r1 = r.nextInt(65536 * 20);
-        int r2 = r.nextInt(65536 * 20);
+        rb1 = RoaringBitmap.flip(rb2, (long) start, (long) end);
+        long r1 = r.nextInt(65536 * 20);
+        long r2 = r.nextInt(65536 * 20);
         rb2.flip(r1, r2);
       }
 
@@ -1677,9 +1693,9 @@ public class TestRoaringBitmap {
         final BitSet mask1 = new BitSet();
         final int startM = r.nextInt(65536 * 20);
         final int endM = startM + 100000;
-        mask.flip(startM, endM);
+        mask.flip((long)startM, (long)endM);
         mask1.flip(startM, endM);
-        mask.flip(0, 65536 * 20 + 100000);
+        mask.flip(0L, 65536L * 20 + 100000);
         mask1.flip(0, 65536 * 20 + 100000);
         rb2.and(mask);
         bs.and(mask1);
@@ -2261,7 +2277,7 @@ public class TestRoaringBitmap {
   public void testAstesana() {
     RoaringBitmap r1 = new RoaringBitmap();
     // Strange thing: Replace this line by r1.add(131000) and the bug vanishes!
-    r1.flip(131000, 131001);
+    r1.flip(131000L, 131001L);
     RoaringBitmap r2 = new RoaringBitmap();
     r2.add(220000);
     RoaringBitmap r3 = new RoaringBitmap();
@@ -2355,9 +2371,24 @@ public class TestRoaringBitmap {
   }
 
   @Test
+  public void testFlipBigInts() {
+    RoaringBitmap rb = new RoaringBitmap();
+    for (int i = 0; i < 1 << 20; ++i) {
+        rb.flip((1<<31)+i);
+      assertEquals(rb.getCardinality(), i + 1);
+    }
+    for (int i = (1 << 20) - 1; i >= 0; --i) {
+        rb.flip((1<<31)+i);
+      assertEquals(rb.getCardinality(), i);
+    }
+  }
+
+
+
+  @Test
   public void testFlipOnEmpty() {
     RoaringBitmap r1 = new RoaringBitmap();
-    r1.flip(0, 10);
+    r1.flip(0L, 10L);
     Assert.assertTrue(r1.getCardinality() == 10);
   }
 
@@ -2417,6 +2448,35 @@ public class TestRoaringBitmap {
     Assert.assertEquals(8, a.getCardinality());
   }
 
+
+  @Test
+  public void testHorizontalOrCardinalityBigInts() {
+      int[] vals = {(1<<31)+65535, (1<<31)+131071, (1<<31)+196607, (1<<31)+262143, (1<<31)+327679, (1<<31)+393215, (1<<31)+458751, (1<<31)+524287};
+    final RoaringBitmap[] b = new RoaringBitmap[2];
+    b[0] = RoaringBitmap.bitmapOf(vals);
+    b[1] = RoaringBitmap.bitmapOf(vals);
+    RoaringBitmap a = FastAggregation.or(new Iterator<RoaringBitmap>() {
+      int k = 0;
+
+      @Override
+      public boolean hasNext() {
+        return k < b.length;
+      }
+
+      @Override
+      public RoaringBitmap next() {
+        return b[k++];
+      }
+
+      @Override
+      public void remove() {}
+    });
+    Assert.assertEquals(8, a.getCardinality());
+  }
+
+
+
+
   @Test
   public void testIterator() {
     RoaringBitmap rb = new RoaringBitmap();
@@ -2439,6 +2499,33 @@ public class TestRoaringBitmap {
     Assert.assertTrue(copy2.equals(rb));
   }
 
+
+
+  @Test
+  public void testIteratorBigInts() {
+    RoaringBitmap rb = new RoaringBitmap();
+    for (int k = 0; k < 4000; ++k) {
+        rb.add((1<<31)+k);
+    }
+    for (int k = 0; k < 1000; ++k) {
+        rb.add((1<<31)+k * 100);
+    }
+    RoaringBitmap copy1 = new RoaringBitmap();
+    for (int x : rb) {
+      copy1.add(x);
+    }
+    Assert.assertTrue(copy1.equals(rb));
+    RoaringBitmap copy2 = new RoaringBitmap();
+    IntIterator i = rb.getIntIterator();
+    while (i.hasNext()) {
+      copy2.add(i.next());
+    }
+    Assert.assertTrue(copy2.equals(rb));
+  }
+
+
+
+
   @Test
   public void testLimit() {
     for (int gap = 1; gap <= 1024; gap *= 2) {
@@ -2456,6 +2543,27 @@ public class TestRoaringBitmap {
     }
   }
 
+
+
+  @Test
+  public void testLimitBigInts() {
+    for (int gap = 1; gap <= 1024; gap *= 2) {
+      RoaringBitmap rb = new RoaringBitmap();
+      for (int k = 0; k < 100000; k += gap) {
+        rb.add((1<<31)+k);
+      }
+      int thiscard = rb.getCardinality();
+      for (int k = 0; k < thiscard; k += 100) {
+        RoaringBitmap limited = rb.limit(k);
+        Assert.assertEquals(limited.getCardinality(), k);
+      }
+      Assert.assertEquals(rb.limit(thiscard).getCardinality(), thiscard);
+      Assert.assertEquals(rb.limit(thiscard + 1).getCardinality(), thiscard);
+    }
+  }
+
+
+
   /**
    * Test massive and.
    */
@@ -2471,7 +2579,36 @@ public class TestRoaringBitmap {
       ewah[Math.abs(k + 2 * k * k) % ewah.length].add(k);
     }
     for (int k = 3; k < ewah.length; k += 3) {
-      ewah[k].flip(13, howmany / 2);
+      ewah[k].flip(13L, (long) howmany / 2);
+    }
+    for (int N = 2; N < ewah.length; ++N) {
+      RoaringBitmap answer = ewah[0];
+      for (int k = 1; k < N; ++k) {
+        RoaringBitmap oldAnswer = answer;
+        answer = RoaringBitmap.and(oldAnswer, ewah[k]);
+        Assert.assertEquals(answer.getCardinality(),
+            RoaringBitmap.andCardinality(oldAnswer, ewah[k]));
+      }
+      RoaringBitmap answer2 = FastAggregation.and(Arrays.copyOf(ewah, N));
+      Assert.assertTrue(answer.equals(answer2));
+      RoaringBitmap answer2b = FastAggregation.and(toIterator(Arrays.copyOf(ewah, N)));
+      Assert.assertTrue(answer.equals(answer2b));
+    }
+  }
+
+  @Test
+  public void testMassiveAndBigInts() {
+    System.out.println("testing massive logical and with big ints");
+    RoaringBitmap[] ewah = new RoaringBitmap[1024];
+    for (int k = 0; k < ewah.length; ++k) {
+      ewah[k] = new RoaringBitmap();
+    }
+    int howmany = 1000000;
+    for (int k = 0; k < howmany; ++k) {
+        ewah[Math.abs(k + 2 * k * k) % ewah.length].add( (1<<31)+k);
+    }
+    for (int k = 3; k < ewah.length; k += 3) {
+        ewah[k].flip((1L<<31)+13L, (1L<<31)+(long) howmany / 2);
     }
     for (int N = 2; N < ewah.length; ++N) {
       RoaringBitmap answer = ewah[0];
@@ -2504,7 +2641,7 @@ public class TestRoaringBitmap {
         ewah[Math.abs(k + 2 * k * k) % ewah.length].add(k);
       }
       for (int k = 3; k < ewah.length; k += 3) {
-        ewah[k].flip(13, howmany / 2);
+        ewah[k].flip(13L, (long) howmany / 2);
       }
       RoaringBitmap answer = ewah[0];
       for (int k = 1; k < ewah.length; ++k) {
@@ -2534,6 +2671,51 @@ public class TestRoaringBitmap {
     }
   }
 
+  @Test
+  public void testMassiveOrBigInts() {
+    System.out.println("testing massive logical or on big values (can take a couple of minutes)");
+    final int N = 128;
+    for (int howmany = 512; howmany <= 1000000; howmany *= 2) {
+      RoaringBitmap[] ewah = new RoaringBitmap[N];
+      for (int k = 0; k < ewah.length; ++k) {
+        ewah[k] = new RoaringBitmap();
+      }
+      for (int k = 0; k < howmany; ++k) {
+          ewah[Math.abs(k + 2 * k * k) % ewah.length].add((1<<31)+k);
+      }
+      for (int k = 3; k < ewah.length; k += 3) {
+        ewah[k].flip((1L<<31)+13L, (1L<<31)+(long) howmany / 2);
+      }
+      RoaringBitmap answer = ewah[0];
+      for (int k = 1; k < ewah.length; ++k) {
+        answer = RoaringBitmap.or(answer, ewah[k]);
+      }
+      RoaringBitmap rb1 = RoaringBitmap.bitmapOf(randomlists[0]);
+      RoaringBitmap rb2 = RoaringBitmap.bitmapOf(randomlists[1]);
+      List<RoaringBitmap> rbl = new ArrayList<>();
+      rbl.add(rb1);
+      rbl.add(rb2);
+
+      ArrayList<RoaringBitmap> arrayList= new ArrayList<>();
+      arrayList.add(rb1);
+      arrayList.add(rb2);
+      Iterator<RoaringBitmap> rbi = arrayList.iterator();
+
+      RoaringBitmap rbor = RoaringBitmap.or(rb1, rb2);
+      RoaringBitmap answer2 = FastAggregation.or(ewah);
+      RoaringBitmap answer3 = FastAggregation.horizontal_or(ewah);
+      RoaringBitmap answer3b = FastAggregation.or(toIterator(ewah));
+      Assert.assertTrue(answer.equals(answer2));
+      Assert.assertTrue(answer.equals(answer3));
+      Assert.assertTrue(answer.equals(answer3b));
+      Assert.assertTrue(rbor.equals(FastAggregation.horizontal_or(rbl)));
+      Assert.assertTrue(rbor.equals(FastAggregation.priorityqueue_or(rb1, rb2)));
+      Assert.assertTrue(rbor.equals(FastAggregation.priorityqueue_or(rbi)));
+    }
+  }
+
+
+
   /**
    * Test massive xor.
    */
@@ -2550,7 +2732,39 @@ public class TestRoaringBitmap {
         ewah[Math.abs(k + 2 * k * k) % ewah.length].add(k);
       }
       for (int k = 3; k < ewah.length; k += 3) {
-        ewah[k].flip(13, howmany / 2);
+        ewah[k].flip(13L, (long) howmany / 2);
+      }
+
+      RoaringBitmap answer = ewah[0];
+      for (int k = 1; k < ewah.length; ++k) {
+        answer = RoaringBitmap.xor(answer, ewah[k]);
+      }
+      RoaringBitmap rb1 = RoaringBitmap.bitmapOf(randomlists[0]);
+      RoaringBitmap rb2 = RoaringBitmap.bitmapOf(randomlists[1]);
+      RoaringBitmap rxor = FastAggregation.xor(rb1, rb2);
+      RoaringBitmap answer2 = FastAggregation.xor(ewah);
+      RoaringBitmap answer3 = FastAggregation.horizontal_xor(ewah);
+      Assert.assertTrue(answer.equals(answer2));
+      Assert.assertTrue(answer.equals(answer3));
+      Assert.assertTrue(rxor.equals(FastAggregation.priorityqueue_xor(rb1, rb2)));
+    }
+  }
+
+
+  @Test
+  public void testMassiveXOrBigInts() {
+    System.out.println("testing massive logical xor on big ints(can take a couple of minutes)");
+    final int N = 128;
+    for (int howmany = 512; howmany <= 1000000; howmany *= 2) {
+      RoaringBitmap[] ewah = new RoaringBitmap[N];
+      for (int k = 0; k < ewah.length; ++k) {
+        ewah[k] = new RoaringBitmap();
+      }
+      for (int k = 0; k < howmany; ++k) {
+          ewah[Math.abs(k + 2 * k * k) % ewah.length].add((1<<31)+k);
+      }
+      for (int k = 3; k < ewah.length; k += 3) {
+        ewah[k].flip((1L<<31)+13L, (1L<<31)+(long) howmany / 2);
       }
 
       RoaringBitmap answer = ewah[0];
@@ -3063,6 +3277,25 @@ public class TestRoaringBitmap {
   }
 
   @Test
+  public void testRankBigInts() {
+    RoaringBitmap rb = new RoaringBitmap();
+    for (int k = 0; k < 100000; k += 7) {
+      rb.add((1<<31)+k);
+    }
+    for (int k = 100000; k < 200000; k += 1000) {
+      rb.add((1<<31)+k);
+    }
+    for (int k = 0; k < 100000; ++k) {
+      Assert.assertEquals(1 + k / 7, rb.rank((1<<31)+k));
+    }
+    for (int k = 100000; k < 200000; ++k) {
+      Assert.assertEquals(1 + 100000 / 7 + 1 + (k - 100000) / 1000, rb.rank((1<<31)+k));
+    }
+  }
+
+
+
+  @Test
   public void testSelect() {
     long w = ~0l;
     for (int k = 0; k < 64; ++k) {
@@ -3088,6 +3321,23 @@ public class TestRoaringBitmap {
     }
   }
 
+
+  @Test
+  public void testSelectBigInts() {
+    for (int gap = 1; gap <= 1024; gap *= 2) {
+      RoaringBitmap rb = new RoaringBitmap();
+      for (int k = 0; k < 100000; k += gap) {
+          rb.add((1<<31)+k);
+      }
+      for (int k = 0; k < 100000 / gap; ++k) {
+          Assert.assertEquals((1<<31)+k * gap, rb.select(k));
+      }
+    }
+  }
+
+
+
+
   @Test
   public void testSerialization() throws IOException, ClassNotFoundException {
     final RoaringBitmap rr = new RoaringBitmap();
@@ -3106,6 +3356,31 @@ public class TestRoaringBitmap {
     Assert.assertEquals(rr.getCardinality(), rrback.getCardinality());
     Assert.assertTrue(rr.equals(rrback));
   }
+
+
+
+  @Test
+  public void testSerializationBigInts() throws IOException, ClassNotFoundException {
+    final RoaringBitmap rr = new RoaringBitmap();
+    for (int k = 65000; k < 2 * 65000; ++k) {
+        rr.add((1<<31)+k);
+    }
+    final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    // Note: you could use a file output steam instead of
+    // ByteArrayOutputStream
+    final ObjectOutputStream oo = new ObjectOutputStream(bos);
+    rr.writeExternal(oo);
+    oo.close();
+    final RoaringBitmap rrback = new RoaringBitmap();
+    final ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
+    rrback.readExternal(new ObjectInputStream(bis));
+    Assert.assertEquals(rr.getCardinality(), rrback.getCardinality());
+    Assert.assertTrue(rr.equals(rrback));
+  }
+
+
+
+
 
   @Test
   public void testSerialization2() throws IOException, ClassNotFoundException {
@@ -3463,6 +3738,7 @@ public class TestRoaringBitmap {
 
 
 
+    // is this better in testRange?
   @Test
   public void testRangedOr() {
     int length = 1000;
@@ -3502,6 +3778,56 @@ public class TestRoaringBitmap {
         List<RoaringBitmap> list = new ArrayList<>();
         list.add(rb1);
         list.add(rb2);
+        RoaringBitmap result = RoaringBitmap.or(list.iterator(), (long)rangeStart, (long)rangeEnd);
+        Set<Integer> actualResultSet = new TreeSet<>();
+        IntIterator intIterator = result.getIntIterator();
+        while (intIterator.hasNext()) {
+          actualResultSet.add(intIterator.next());
+        }
+        Assert.assertEquals(expectedResultSet, actualResultSet);
+      }
+    }
+  }
+
+  @Test
+  public void testRangedOrBigInts() {
+    int length = 1000;
+    int NUM_ITER = 10;
+    Random random = new Random(1234);// please use deterministic tests
+    for (int test = 0; test < 50; ++test) {
+
+      final RoaringBitmap rb1 = new RoaringBitmap();
+      final RoaringBitmap rb2 = new RoaringBitmap();
+      Set<Integer> set1 = new HashSet<>();
+      Set<Integer> set2 = new HashSet<>();
+      int numBitsToSet = length / 2;
+      for (int i = 0; i < numBitsToSet; i++) {
+        int val1 = random.nextInt(length);
+        int val2 = random.nextInt(length);
+
+        rb1.add((1<<31)+val1);
+        set1.add((1<<31)+val1);
+
+        rb2.add((1<<31)+val2);
+        set2.add((1<<31)+val2);
+      }
+      Set<Integer> unionSet = new TreeSet<>();
+      unionSet.addAll(set1);
+      unionSet.addAll(set2);
+      for (int iter = 0; iter < NUM_ITER; iter++) {
+        long rangeStart1 = random.nextInt(length - 1);
+        long rangeStart = (1L<<31)+rangeStart1;
+        long rangeLength = random.nextInt((int) (length - rangeStart1)) + 1;
+        long rangeEnd = rangeStart + rangeLength;
+        Set<Integer> expectedResultSet = new TreeSet<>();
+        for (int i = (int) rangeStart; i < (int) rangeEnd; i++) {
+          if (unionSet.contains(i)) {
+            expectedResultSet.add(i);
+          }
+        }
+        List<RoaringBitmap> list = new ArrayList<>();
+        list.add(rb1);
+        list.add(rb2);
         RoaringBitmap result = RoaringBitmap.or(list.iterator(), rangeStart, rangeEnd);
         Set<Integer> actualResultSet = new TreeSet<>();
         IntIterator intIterator = result.getIntIterator();
@@ -3512,6 +3838,10 @@ public class TestRoaringBitmap {
       }
     }
   }
+
+
+
+
 
   @Test
   public void testRangedAnd() {
@@ -3550,6 +3880,54 @@ public class TestRoaringBitmap {
         List<RoaringBitmap> list = new ArrayList<>();
         list.add(rb1);
         list.add(rb2);
+        RoaringBitmap result = RoaringBitmap.and(list.iterator(), (long)rangeStart, (long)rangeEnd);
+        Set<Integer> actualResultSet = new TreeSet<>();
+        IntIterator intIterator = result.getIntIterator();
+        while (intIterator.hasNext()) {
+          actualResultSet.add(intIterator.next());
+        }
+        Assert.assertEquals(expectedResultSet, actualResultSet);
+      }
+    }
+  }
+
+  @Test
+  public void testRangedAndBigInts() {
+    int length = 1000;
+    int NUM_ITER = 10;
+    Random random = new Random(1234);// please use deterministic tests
+    for (int test = 0; test < 50; ++test) {
+      final RoaringBitmap rb1 = new RoaringBitmap();
+      final RoaringBitmap rb2 = new RoaringBitmap();
+      Set<Integer> set1 = new HashSet<>();
+      Set<Integer> set2 = new HashSet<>();
+      int numBitsToSet = length / 2;
+      for (int i = 0; i < numBitsToSet; i++) {
+        int val1 = random.nextInt(length);
+        int val2 = random.nextInt(length);
+
+        rb1.add((1<<31)+val1);
+        set1.add((1<<31)+val1);
+
+        rb2.add((1<<31)+val2);
+        set2.add((1<<31)+val2);
+      }
+      Set<Integer> intersectionSet = new TreeSet<>(set1);
+      intersectionSet.retainAll(set2);
+      for (int iter = 0; iter < NUM_ITER; iter++) {
+        long rangeStart1 = random.nextInt(length - 1);
+        long rangeStart = (1L<<31)+rangeStart1;
+        long rangeLength = random.nextInt((int) (length - rangeStart1)) + 1;
+        long rangeEnd = rangeStart + rangeLength;
+        Set<Integer> expectedResultSet = new TreeSet<>();
+        for (int i = (int) rangeStart; i < (int) rangeEnd; i++) {
+          if (intersectionSet.contains(i)) {
+            expectedResultSet.add(i);
+          }
+        }
+        List<RoaringBitmap> list = new ArrayList<>();
+        list.add(rb1);
+        list.add(rb2);
         RoaringBitmap result = RoaringBitmap.and(list.iterator(), rangeStart, rangeEnd);
         Set<Integer> actualResultSet = new TreeSet<>();
         IntIterator intIterator = result.getIntIterator();
@@ -3560,6 +3938,8 @@ public class TestRoaringBitmap {
       }
     }
   }
+
+
 
   @Test
   public void testRangedXor() {
@@ -3603,6 +3983,60 @@ public class TestRoaringBitmap {
         List<RoaringBitmap> list = new ArrayList<>();
         list.add(rb1);
         list.add(rb2);
+        RoaringBitmap result = RoaringBitmap.xor(list.iterator(), (long)rangeStart, (long)rangeEnd);
+        Set<Integer> actualResultSet = new TreeSet<>();
+        IntIterator intIterator = result.getIntIterator();
+        while (intIterator.hasNext()) {
+          actualResultSet.add(intIterator.next());
+        }
+        Assert.assertEquals(expectedResultSet, actualResultSet);
+      }
+    }
+  }
+
+
+  @Test
+  public void testRangedXorBigInts() {
+    int length = 1000;
+    int NUM_ITER = 10;
+    Random random = new Random(1234);// please use deterministic tests
+    for (int test = 0; test < 50; ++test) {
+      final RoaringBitmap rb1 = new RoaringBitmap();
+      final RoaringBitmap rb2 = new RoaringBitmap();
+      Set<Integer> set1 = new HashSet<>();
+      Set<Integer> set2 = new HashSet<>();
+      int numBitsToSet = length / 2;
+      for (int i = 0; i < numBitsToSet; i++) {
+        int val1 = random.nextInt(length);
+        int val2 = random.nextInt(length);
+
+        rb1.add((1<<31)+val1);
+        set1.add((1<<31)+val1);
+
+        rb2.add((1<<31)+val2);
+        set2.add((1<<31)+val2);
+      }
+      Set<Integer> xorSet = new TreeSet<>();
+      xorSet.addAll(set1);
+      xorSet.addAll(set2);
+      Set<Integer> andSet = new TreeSet<>(set1);
+      andSet.retainAll(set2);
+
+      xorSet.removeAll(andSet);
+      for (int iter = 0; iter < NUM_ITER; iter++) {
+        long rangeStart1 = random.nextInt(length - 1);
+        long rangeStart = (1L<<31)+rangeStart1;
+        long rangeLength = random.nextInt((int) (length - rangeStart1)) + 1;
+        long rangeEnd = rangeStart + rangeLength;
+        Set<Integer> expectedResultSet = new TreeSet<>();
+        for (int i = (int) rangeStart; i < (int) rangeEnd; i++) {
+          if (xorSet.contains(i)) {
+            expectedResultSet.add(i);
+          }
+        }
+        List<RoaringBitmap> list = new ArrayList<>();
+        list.add(rb1);
+        list.add(rb2);
         RoaringBitmap result = RoaringBitmap.xor(list.iterator(), rangeStart, rangeEnd);
         Set<Integer> actualResultSet = new TreeSet<>();
         IntIterator intIterator = result.getIntIterator();
@@ -3613,6 +4047,9 @@ public class TestRoaringBitmap {
       }
     }
   }
+
+
+
 
   @Test
   public void testRangedAndNot() {
@@ -3652,6 +4089,56 @@ public class TestRoaringBitmap {
             expectedResultSet.add(i);
           }
         }
+        RoaringBitmap result = RoaringBitmap.andNot(rb1, rb2, (long)rangeStart, (long)rangeEnd);
+        Set<Integer> actualResultSet = new TreeSet<>();
+        IntIterator intIterator = result.getIntIterator();
+        while (intIterator.hasNext()) {
+          actualResultSet.add(intIterator.next());
+        }
+        Assert.assertEquals(expectedResultSet, actualResultSet);
+      }
+    }
+  }
+
+
+ @Test
+  public void testRangedAndNotBigInts() {
+    int length = 1000;
+    int NUM_ITER = 10;
+    Random random = new Random(1234);// please use deterministic tests
+    for (int test = 0; test < 50; ++test) {
+      final RoaringBitmap rb1 = new RoaringBitmap();
+      final RoaringBitmap rb2 = new RoaringBitmap();
+      Set<Integer> set1 = new HashSet<>();
+      Set<Integer> set2 = new HashSet<>();
+      int numBitsToSet = length / 2;
+      for (int i = 0; i < numBitsToSet; i++) {
+        int val1 = random.nextInt(length);
+        int val2 = random.nextInt(length);
+
+        rb1.add((1<<31)+val1);
+        set1.add((1<<31)+val1);
+
+        rb2.add((1<<31)+val2);
+        set2.add((1<<31)+val2);
+      }
+      Set<Integer> andNotSet = new TreeSet<>();
+      for (int i : set1) {
+        if (!set2.contains(i)) {
+          andNotSet.add(i);
+        }
+      }
+      for (int iter = 0; iter < NUM_ITER; iter++) {
+        long rangeStart1 = random.nextInt(length - 1);
+        long rangeStart = (1L<<31)+rangeStart1;
+        long rangeLength = random.nextInt((int) (length - rangeStart1)) + 1;
+        long rangeEnd = rangeStart + rangeLength;
+        Set<Integer> expectedResultSet = new TreeSet<>();
+        for (int i = (int) rangeStart; i < (int) rangeEnd; i++) {
+          if (andNotSet.contains(i)) {
+            expectedResultSet.add(i);
+          }
+        }
         RoaringBitmap result = RoaringBitmap.andNot(rb1, rb2, rangeStart, rangeEnd);
         Set<Integer> actualResultSet = new TreeSet<>();
         IntIterator intIterator = result.getIntIterator();
@@ -3662,6 +4149,8 @@ public class TestRoaringBitmap {
       }
     }
   }
+
+
 
   @Test
   public void testOr() {

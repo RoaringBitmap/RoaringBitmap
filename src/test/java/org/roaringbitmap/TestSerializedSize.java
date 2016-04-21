@@ -49,7 +49,7 @@ public class TestSerializedSize {
   public void testRange() {
     for (int k = 0; k < 100000; k += 100) {
       RoaringBitmap rb = new RoaringBitmap();
-      rb.add(0, k + 1);
+      rb.add(0L, (long) (k + 1));
       long c = RoaringBitmap.maximumSerializedSize(rb.getCardinality(), k + 1);
       long ac = rb.serializedSizeInBytes();
       assertTrue(ac <= c);
@@ -91,7 +91,7 @@ public class TestSerializedSize {
         
         for (int i = 0; i < step; ++i) {
           final int maxv = i * (1 << 16) + stepsize;
-          rb.add(i * (1 << 16), i * (1 << 16) + stepsize);
+          rb.add(i * (1L << 16), i * (1L << 16) + stepsize);
           if (maxv > universe_size)
             universe_size = maxv;
         }

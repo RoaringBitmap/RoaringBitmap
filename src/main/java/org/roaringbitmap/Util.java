@@ -234,6 +234,10 @@ public final class Util {
     return (short) (x >>> 16);
   }
 
+  protected static short highbits(long x) {
+    return (short) (x >>> 16);
+  }
+
   // starts with binary search and finishes with a sequential search
   protected static int hybridUnsignedBinarySearch(final short[] array, final int begin,
       final int end, final short k) {
@@ -273,6 +277,10 @@ public final class Util {
   }
 
   protected static short lowbits(int x) {
+    return (short) (x & 0xFFFF);
+  }
+
+  protected static short lowbits(long x) {
     return (short) (x & 0xFFFF);
   }
 

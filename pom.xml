@@ -245,6 +245,7 @@
         <configuration>
           <source>${maven.compiler.target}</source>
           <target>${maven.compiler.target}</target>
+          <showDeprecation> true </showDeprecation>
         </configuration>
       </plugin>
       <plugin>

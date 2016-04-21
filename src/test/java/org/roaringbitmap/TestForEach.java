@@ -8,7 +8,7 @@ public class TestForEach {
   @Test
   public void testContinuous() {
     RoaringBitmap bitmap = new RoaringBitmap();
-    bitmap.add(100, 10000);
+    bitmap.add(100L, 10000L);
 
     final MutableInteger cardinality = new MutableInteger();
     bitmap.forEach(new IntConsumer() {
