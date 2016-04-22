@@ -66,8 +66,9 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @param rangeEnd exclusive ending of range
    * @return new bitmap
    */
-  public static MutableRoaringBitmap add(MutableRoaringBitmap rb, final int rangeStart,
-      final int rangeEnd) {
+  public static MutableRoaringBitmap add(MutableRoaringBitmap rb, final long rangeStart,
+      final long rangeEnd) {
+    rangeSanityCheck(rangeStart,rangeEnd);
     if (rangeStart >= rangeEnd) {
       return rb.clone(); // empty range
     }
@@ -115,6 +116,30 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         (short) hbLast);
     return answer;
   }
+
+  /** 
+   *
+   * Generate a new bitmap with all integers in [rangeStart,rangeEnd) added.
+   * 
+   * @param rb initial bitmap (will not be modified)
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
+   * @return new bitmap
+   * @deprecated use the version where longs specify the range
+   */
+  @Deprecated
+    public static MutableRoaringBitmap add(MutableRoaringBitmap rb, 
+                                           final int rangeStart, final int rangeEnd) {
+    if (rangeStart >= 0) {
+      return add(rb, (long) rangeStart, (long) rangeEnd);
+    }
+    // rangeStart being -ve and rangeEnd being positive is not expected)
+    // so assume both -ve
+    return add(rb, rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL); 
+  }
+  
+  
+
 
   /**
    * Bitwise AND (intersection) operation. The provided bitmaps are *not* modified. This operation
@@ -210,6 +235,17 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   }
 
 
+  protected static void rangeSanityCheck(final long rangeStart, final long rangeEnd) {
+    if (rangeStart < 0 || rangeStart > (1L << 32)-1) {
+      throw new IllegalArgumentException("rangeStart="+ rangeStart 
+                                         +" should be in [0, 0xffffffff]");
+    }
+    if (rangeEnd > (1L << 32) || rangeEnd < 0) {
+      throw new IllegalArgumentException("rangeEnd="+ rangeEnd
+                                         +" should be in [0, 0xffffffff + 1]");
+    }
+  }
+
   /**
    * Complements the bits in the given range, from rangeStart (inclusive) rangeEnd (exclusive). The
    * given bitmap is unchanged.
@@ -219,8 +255,9 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @param rangeEnd exclusive ending of range
    * @return a new Bitmap
    */
-  public static MutableRoaringBitmap flip(MutableRoaringBitmap bm, final int rangeStart,
-      final int rangeEnd) {
+  public static MutableRoaringBitmap flip(MutableRoaringBitmap bm, final long rangeStart,
+      final long rangeEnd) {
+    rangeSanityCheck(rangeStart, rangeEnd);
     if (rangeStart >= rangeEnd) {
       return bm.clone();
     }
@@ -263,6 +300,19 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   }
 
 
+  /**
+   * @deprecated use the version where longs specify the range
+   */
+  @Deprecated
+    public static MutableRoaringBitmap flip(MutableRoaringBitmap rb, 
+                                            final int rangeStart, final int rangeEnd) {
+    if (rangeStart >= 0) {
+      return flip(rb, (long) rangeStart, (long) rangeEnd);
+    }
+    // rangeStart being -ve and rangeEnd being positive is not expected)
+    // so assume both -ve
+    return flip(rb, rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL); 
+  }
 
   // important: inputs should not have been computed lazily
   protected static MutableRoaringBitmap lazyorfromlazyinputs(final MutableRoaringBitmap x1,
@@ -396,8 +446,9 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @param rangeEnd exclusive ending of range
    * @return new bitmap
    */
-  public static MutableRoaringBitmap remove(MutableRoaringBitmap rb, final int rangeStart,
-      final int rangeEnd) {
+  public static MutableRoaringBitmap remove(MutableRoaringBitmap rb, final long rangeStart,
+      final long rangeEnd) {
+    rangeSanityCheck(rangeStart, rangeEnd);
     if (rangeStart >= rangeEnd) {
       return rb.clone(); // empty range
     }
@@ -442,6 +493,31 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         (short) hbLast);
     return answer;
   }
+
+  /**
+   * @deprecated use the version where longs specify the range
+   */
+  @Deprecated
+    public static MutableRoaringBitmap remove(MutableRoaringBitmap rb, 
+                                              final int rangeStart, final int rangeEnd) {
+    if (rangeStart >= 0) {
+      return remove(rb, (long) rangeStart, (long) rangeEnd);
+    }
+    // rangeStart being -ve and rangeEnd being positive is not expected)
+    // so assume both -ve
+    return remove(rb, rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL); 
+  }
+
+
+
+
+
+
+
+
+
+
+
 
   /**
    * Bitwise XOR (symmetric difference) operation. The provided bitmaps are *not* modified. This
@@ -550,7 +626,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @param rangeStart inclusive beginning of range
    * @param rangeEnd exclusive ending of range
    */
-  public void add(final int rangeStart, final int rangeEnd) {
+  public void add(final long rangeStart, final long rangeEnd) {
+    rangeSanityCheck(rangeStart, rangeEnd);
     if (rangeStart >= rangeEnd) {
       return; // empty range
     }
@@ -577,6 +654,22 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
       }
     }
   }
+
+ /**
+   * @deprecated use the version where longs specify the range
+   */
+  @Deprecated
+    public void add(final int rangeStart, final int rangeEnd) {
+    if (rangeStart >= 0) {
+      add((long) rangeStart, (long) rangeEnd);
+    }
+    // rangeStart being -ve and rangeEnd being positive is not expected)
+    // so assume both -ve
+    add(rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL); 
+  }
+
+
+
 
   /**
    * In-place bitwise AND (intersection) operation. The current bitmap is modified.
@@ -755,7 +848,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @param rangeStart inclusive beginning of range
    * @param rangeEnd exclusive ending of range
    */
-  public void flip(final int rangeStart, final int rangeEnd) {
+  public void flip(final long rangeStart, final long  rangeEnd) {
+    rangeSanityCheck(rangeStart, rangeEnd);
     if (rangeStart >= rangeEnd) {
       return; // empty range
     }
@@ -786,6 +880,23 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
       }
     }
   }
+
+
+ /**
+   * @deprecated use the version where longs specify the range
+   */
+  @Deprecated
+    public void flip(final int rangeStart, final int rangeEnd) {
+    if (rangeStart >= 0) {
+      flip((long) rangeStart, (long) rangeEnd);
+    }
+    // rangeStart being -ve and rangeEnd being positive is not expected)
+    // so assume both -ve
+    flip(rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL); 
+  }
+
+
+
 
   /**
    * @return a mutable copy of this bitmap
@@ -983,7 +1094,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @param rangeStart inclusive beginning of range
    * @param rangeEnd exclusive ending of range
    */
-  public void remove(final int rangeStart, final int rangeEnd) {
+  public void remove(final long rangeStart, final long rangeEnd) {
+    rangeSanityCheck(rangeStart, rangeEnd);
     if (rangeStart >= rangeEnd) {
       return; // empty range
     }
@@ -1035,6 +1147,20 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
       ilast = -ilast - 1;
     }
     ((MutableRoaringArray) highLowContainer).removeIndexRange(ifirst, ilast);
+  }
+
+
+  /**
+   * @deprecated use the version where longs specify the range
+   */
+  @Deprecated
+    public void remove(final int rangeStart, final int rangeEnd) {
+    if (rangeStart >= 0) {
+      remove((long) rangeStart, (long) rangeEnd);
+    }
+    // rangeStart being -ve and rangeEnd being positive is not expected)
+    // so assume both -ve
+    remove(rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL); 
   }
 
 

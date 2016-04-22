@@ -363,6 +363,11 @@ public final class BufferUtil {
     return (short) (x >>> 16);
   }
 
+
+  protected static short highbits(long x) {
+    return (short) (x >>> 16);
+  }
+
   // starts with binary search and finishes with a sequential search
   protected static int hybridUnsignedBinarySearch(final ShortBuffer array, final int begin,
       final int end, final short k) {
@@ -416,6 +421,11 @@ public final class BufferUtil {
   protected static short lowbits(int x) {
     return (short) (x & 0xFFFF);
   }
+
+  protected static short lowbits(long x) {
+    return (short) (x & 0xFFFF);
+  }
+
 
   protected static short maxLowBit() {
     return (short) 0xFFFF;

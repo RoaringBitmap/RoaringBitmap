@@ -1245,6 +1245,23 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   }
 
 
+ /**
+   * @deprecated use the version where longs specify the range
+   */
+  @Deprecated
+    public void flip(final int rangeStart, final int rangeEnd) {
+    if (rangeStart >= 0) {
+      flip((long) rangeStart, (long) rangeEnd);
+    }
+    // rangeStart being -ve and rangeEnd being positive is not expected)
+    // so assume both -ve
+    flip(rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL); 
+  }
+
+
+
+
+
   /**
    * Returns the number of distinct integers added to the bitmap (e.g., number of bits set).
    * 

@@ -936,16 +936,16 @@ public class TestRange {
       rb1.add(200000L, 400000L);  // two normal positive ranges
       rb2.add(300000L, 500000L);  // full XOR is 200000 to 299999, 400000-4999999
 
-      RoaringBitmap result = RoaringBitmap.and(list.iterator(), 250000L,  450000L); 
-      RoaringBitmap resultInt = RoaringBitmap.and(list.iterator(), 250000,  450000);
+      RoaringBitmap result = RoaringBitmap.xor(list.iterator(), 250000L,  450000L); 
+      RoaringBitmap resultInt = RoaringBitmap.xor(list.iterator(), 250000,  450000);
 
       assertTrue(result.equals(resultInt));
       assertEquals(100000, result.getCardinality());
 
       
       // empty ranges get empty result
-      resultInt = RoaringBitmap.and(list.iterator(), 300000, 200000);
-      result = RoaringBitmap.and(list.iterator(), 300000L, 200000L);
+      resultInt = RoaringBitmap.xor(list.iterator(), 300000, 200000);
+      result = RoaringBitmap.xor(list.iterator(), 300000L, 200000L);
       assertTrue(result.equals(resultInt));
       assertEquals(0, resultInt.getCardinality());
   }
