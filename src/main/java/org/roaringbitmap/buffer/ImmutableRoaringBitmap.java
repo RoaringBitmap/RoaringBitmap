@@ -964,12 +964,17 @@ public class ImmutableRoaringBitmap
    * @return the cardinality
    */
   @Override
-  public int getCardinality() {
-    int size = 0;
+  public long getLongCardinality() {
+    long size = 0;
     for (int i = 0; i < this.highLowContainer.size(); ++i) {
       size += this.highLowContainer.getCardinality(i);
     }
     return size;
+  }
+  
+  @Override
+  public int getCardinality() {
+    return (int) getLongCardinality();
   }
 
   @Override
@@ -1020,8 +1025,8 @@ public class ImmutableRoaringBitmap
    * @return estimated memory usage.
    */
   @Override
-  public int getSizeInBytes() {
-    int size = 4;
+  public long getLongSizeInBytes() {
+    long size = 4;
     for (int i = 0; i < this.highLowContainer.size(); ++i) {
       if (this.highLowContainer.getContainerAtIndex(i) instanceof MappeableRunContainer) {
         MappeableRunContainer thisRunContainer =
@@ -1035,6 +1040,12 @@ public class ImmutableRoaringBitmap
     return size;
   }
 
+  @Override
+  public int getSizeInBytes() {
+    return (int) getLongSizeInBytes() ;
+  }
+
+  
   @Override
   public int hashCode() {
     return highLowContainer.hashCode();
@@ -1146,8 +1157,8 @@ public class ImmutableRoaringBitmap
    * @return the rank
    */
   @Override
-  public int rank(int x) {
-    int size = 0;
+  public long rankLong(int x) {
+    long size = 0;
     short xhigh = BufferUtil.highbits(x);
     for (int i = 0; i < this.highLowContainer.size(); i++) {
       short key = this.highLowContainer.getKeyAtIndex(i);
@@ -1160,6 +1171,11 @@ public class ImmutableRoaringBitmap
     return size;
   }
 
+  @Override
+  public int rank(int x) {
+    return (int) rankLong(x);
+  }
+  
   /**
    * Return the jth value stored in this bitmap.
    * 
@@ -1260,13 +1276,14 @@ public class ImmutableRoaringBitmap
 
 
   /**
-   * Return the set values as an array. The integer values are in sorted order.
+   * Return the set values as an array if the cardinality is less 
+   * than 1<<31. The integer values are in sorted order.
    * 
    * @return array representing the set values.
    */
   @Override
   public int[] toArray() {
-    final int[] array = new int[this.getCardinality()];
+    final int[] array = new int[(int)this.getCardinality()];
     int pos = 0, pos2 = 0;
     while (pos < this.highLowContainer.size()) {
       final int hs = BufferUtil.toIntUnsigned(this.highLowContainer.getKeyAtIndex(pos)) << 16;
@@ -1318,6 +1335,11 @@ public class ImmutableRoaringBitmap
     }
     while (i.hasNext()) {
       answer.append(",");
+      // to avoid using too much memory, we limit the size
+      if(answer.length() > 0x80000) {
+        answer.append("...");
+        break;
+      }
       answer.append(i.next());
     }
     answer.append("}");

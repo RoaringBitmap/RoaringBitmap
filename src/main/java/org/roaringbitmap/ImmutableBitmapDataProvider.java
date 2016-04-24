@@ -23,10 +23,19 @@ public interface ImmutableBitmapDataProvider {
 
   /**
    * Returns the number of distinct integers added to the bitmap (e.g., number of bits set).
+   * Internally, this is computed as a 64-bit number.
    *
    * @return the cardinality
    */
   public int getCardinality();
+  
+  /**
+   * Returns the number of distinct integers added to the bitmap (e.g., number of bits set).
+   * This returns a full 64-bit result.
+   *
+   * @return the cardinality
+   */
+  public long getLongCardinality();
 
   /**
    * Visit all values in the bitmap and pass them to the consumer.
@@ -61,10 +70,20 @@ public interface ImmutableBitmapDataProvider {
 
   /**
    * Estimate of the memory usage of this data structure.
+   * 
+   * Internally, this is computed as a 64-bit counter.
    *
    * @return estimated memory usage.
    */
   public int getSizeInBytes();
+  
+  /**
+   * Estimate of the memory usage of this data structure. Provides
+   * full 64-bit number.
+   *
+   * @return estimated memory usage.
+   */
+  public long getLongSizeInBytes();
 
   /**
    * Checks whether the bitmap is empty.
@@ -85,11 +104,22 @@ public interface ImmutableBitmapDataProvider {
    * Rank returns the number of integers that are smaller or equal to x (Rank(infinity) would be
    * GetCardinality()).
    * 
+   * The value is internally computed as a 64-bit number.
+   * 
    * @param x upper limit
    *
    * @return the rank
    */
   public int rank(int x);
+  
+  /**
+   * Same as "rank" but produces a full 64-bit value.
+   * 
+   * @param x upper limit
+   *
+   * @return the rank
+   */
+  public long rankLong(int x);
 
   /**
    * Return the jth value stored in this bitmap.

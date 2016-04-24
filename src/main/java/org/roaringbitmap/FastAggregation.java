@@ -383,15 +383,15 @@ public final class FastAggregation {
     while (bitmaps.hasNext()) {
       buffer.add(bitmaps.next());
     }
-    final int[] sizes = new int[buffer.size()];
+    final long[] sizes = new long[buffer.size()];
     final boolean[] istmp = new boolean[buffer.size()];
     for (int k = 0; k < sizes.length; ++k) {
-      sizes[k] = buffer.get(k).getSizeInBytes();
+      sizes[k] = buffer.get(k).getLongSizeInBytes();
     }
     PriorityQueue<Integer> pq = new PriorityQueue<>(128, new Comparator<Integer>() {
       @Override
       public int compare(Integer a, Integer b) {
-        return sizes[a] - sizes[b];
+        return (int) (sizes[a] - sizes[b]);
       }
     });
     for (int k = 0; k < sizes.length; ++k) {
@@ -402,22 +402,22 @@ public final class FastAggregation {
       Integer x2 = pq.poll();
       if (istmp[x2] && istmp[x1]) {
         buffer.set(x1, RoaringBitmap.lazyorfromlazyinputs(buffer.get(x1), buffer.get(x2)));
-        sizes[x1] = buffer.get(x1).getSizeInBytes();
+        sizes[x1] = buffer.get(x1).getLongSizeInBytes();
         istmp[x1] = true;
         pq.add(x1);
       } else if (istmp[x2]) {
         buffer.get(x2).lazyor(buffer.get(x1));
         RoaringBitmap c = buffer.get(x2).clone();
         c.repairAfterLazy();
-        sizes[x2] = buffer.get(x2).getSizeInBytes();
+        sizes[x2] = buffer.get(x2).getLongSizeInBytes();
         pq.add(x2);
       } else if (istmp[x1]) {
         buffer.get(x1).lazyor(buffer.get(x2));
-        sizes[x1] = buffer.get(x1).getSizeInBytes();
+        sizes[x1] = buffer.get(x1).getLongSizeInBytes();
         pq.add(x1);
       } else {
         buffer.set(x1, RoaringBitmap.lazyor(buffer.get(x1), buffer.get(x2)));
-        sizes[x1] = buffer.get(x1).getSizeInBytes();
+        sizes[x1] = buffer.get(x1).getLongSizeInBytes();
         istmp[x1] = true;
         pq.add(x1);
       }
@@ -442,15 +442,15 @@ public final class FastAggregation {
     }
     // we buffer the call to getSizeInBytes(), hence the code complexity
     final RoaringBitmap[] buffer = Arrays.copyOf(bitmaps, bitmaps.length);
-    final int[] sizes = new int[buffer.length];
+    final long[] sizes = new long[buffer.length];
     final boolean[] istmp = new boolean[buffer.length];
     for (int k = 0; k < sizes.length; ++k) {
-      sizes[k] = buffer[k].getSizeInBytes();
+      sizes[k] = buffer[k].getLongSizeInBytes();
     }
     PriorityQueue<Integer> pq = new PriorityQueue<>(128, new Comparator<Integer>() {
       @Override
       public int compare(Integer a, Integer b) {
-        return sizes[a] - sizes[b];
+        return (int) (sizes[a] - sizes[b]);
       }
     });
     for (int k = 0; k < sizes.length; ++k) {
@@ -461,20 +461,20 @@ public final class FastAggregation {
       Integer x2 = pq.poll();
       if (istmp[x2] && istmp[x1]) {
         buffer[x1] = RoaringBitmap.lazyorfromlazyinputs(buffer[x1], buffer[x2]);
-        sizes[x1] = buffer[x1].getSizeInBytes();
+        sizes[x1] = buffer[x1].getLongSizeInBytes();
         istmp[x1] = true;
         pq.add(x1);
       } else if (istmp[x2]) {
         buffer[x2].lazyor(buffer[x1]);
-        sizes[x2] = buffer[x2].getSizeInBytes();
+        sizes[x2] = buffer[x2].getLongSizeInBytes();
         pq.add(x2);
       } else if (istmp[x1]) {
         buffer[x1].lazyor(buffer[x2]);
-        sizes[x1] = buffer[x1].getSizeInBytes();
+        sizes[x1] = buffer[x1].getLongSizeInBytes();
         pq.add(x1);
       } else {
         buffer[x1] = RoaringBitmap.lazyor(buffer[x1], buffer[x2]);
-        sizes[x1] = buffer[x1].getSizeInBytes();
+        sizes[x1] = buffer[x1].getLongSizeInBytes();
         istmp[x1] = true;
         pq.add(x1);
       }
@@ -503,7 +503,7 @@ public final class FastAggregation {
         new PriorityQueue<>(bitmaps.length, new Comparator<RoaringBitmap>() {
           @Override
           public int compare(RoaringBitmap a, RoaringBitmap b) {
-            return a.getSizeInBytes() - b.getSizeInBytes();
+            return (int)(a.getLongSizeInBytes() - b.getLongSizeInBytes());
           }
         });
     Collections.addAll(pq, bitmaps);

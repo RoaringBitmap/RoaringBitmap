@@ -464,7 +464,7 @@ public final class BufferFastAggregation {
     } else if (bitmaps.length == 1) {
       return bitmaps[0].toMutableRoaringBitmap();
     }
-    // we buffer the call to getSizeInBytes(), hence the code complexity
+    // we buffer the call to getLongSizeInBytes(), hence the code complexity
     final ImmutableRoaringBitmap[] buffer = Arrays.copyOf(bitmaps, bitmaps.length);
     final int[] sizes = new int[buffer.length];
     final boolean[] istmp = new boolean[buffer.length];
@@ -522,20 +522,20 @@ public final class BufferFastAggregation {
     if (!bitmaps.hasNext()) {
       return new MutableRoaringBitmap();
     }
-    // we buffer the call to getSizeInBytes(), hence the code complexity
+    // we buffer the call to getLongSizeInBytes(), hence the code complexity
     ArrayList<ImmutableRoaringBitmap> buffer = new ArrayList<>();
     while (bitmaps.hasNext()) {
       buffer.add((ImmutableRoaringBitmap) bitmaps.next());
     }
-    final int[] sizes = new int[buffer.size()];
+    final long[] sizes = new long[buffer.size()];
     final boolean[] istmp = new boolean[buffer.size()];
     for (int k = 0; k < sizes.length; ++k) {
-      sizes[k] = buffer.get(k).getSizeInBytes();
+      sizes[k] = buffer.get(k).getLongSizeInBytes();
     }
     PriorityQueue<Integer> pq = new PriorityQueue<>(128, new Comparator<Integer>() {
       @Override
       public int compare(Integer a, Integer b) {
-        return sizes[a] - sizes[b];
+        return (int)(sizes[a] - sizes[b]);
       }
     });
     for (int k = 0; k < sizes.length; ++k) {
@@ -550,19 +550,19 @@ public final class BufferFastAggregation {
       if (istmp[x1] && istmp[x2]) {
         buffer.set(x1, MutableRoaringBitmap.lazyorfromlazyinputs(
             (MutableRoaringBitmap) buffer.get(x1), (MutableRoaringBitmap) buffer.get(x2)));
-        sizes[x1] = buffer.get(x1).getSizeInBytes();
+        sizes[x1] = buffer.get(x1).getLongSizeInBytes();
         pq.add(x1);
       } else if (istmp[x2]) {
         ((MutableRoaringBitmap) buffer.get(x2)).lazyor(buffer.get(x1));
-        sizes[x2] = buffer.get(x2).getSizeInBytes();
+        sizes[x2] = buffer.get(x2).getLongSizeInBytes();
         pq.add(x2);
       } else if (istmp[x1]) {
         ((MutableRoaringBitmap) buffer.get(x1)).lazyor(buffer.get(x2));
-        sizes[x1] = buffer.get(x1).getSizeInBytes();
+        sizes[x1] = buffer.get(x1).getLongSizeInBytes();
         pq.add(x1);
       } else {
         buffer.set(x1, ImmutableRoaringBitmap.lazyor(buffer.get(x1), buffer.get(x2)));
-        sizes[x1] = buffer.get(x1).getSizeInBytes();
+        sizes[x1] = buffer.get(x1).getLongSizeInBytes();
         istmp[x1] = true;
         pq.add(x1);
       }
@@ -590,7 +590,7 @@ public final class BufferFastAggregation {
         new PriorityQueue<>(bitmaps.length, new Comparator<ImmutableRoaringBitmap>() {
           @Override
           public int compare(ImmutableRoaringBitmap a, ImmutableRoaringBitmap b) {
-            return a.getSizeInBytes() - b.getSizeInBytes();
+            return (int)(a.getLongSizeInBytes() - b.getLongSizeInBytes());
           }
         });
     Collections.addAll(pq, bitmaps);
