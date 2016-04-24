@@ -30,8 +30,10 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   private static final int BLOCKSIZE = 128;
   // 64 words can have max 32 runs per word, max 2k runs
 
-  // optimization flag: whether the cardinality of the bitmaps is maintained through branchless
-  // operations
+  /**
+   * optimization flag: whether the cardinality of the bitmaps is maintained through branchless
+   * operation
+   */
   public static final boolean USE_BRANCHLESS = true;
 
 

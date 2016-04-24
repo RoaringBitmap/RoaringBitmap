@@ -9,8 +9,10 @@ package org.roaringbitmap;
  */
 public final class Util {
 
-  // optimization flag: whether to use hybrid binary search: hybrid formats
-  // combine a binary search with a sequential search
+  /**
+   * optimization flag: whether to use hybrid binary search: hybrid formats
+   * combine a binary search with a sequential search
+   */
   public static boolean USE_HYBRID_BINSEARCH = true;
 
 
@@ -215,6 +217,7 @@ public final class Util {
    * @param bitmap array of words to be modified
    * @param start first index to be modified (inclusive)
    * @param end last index to be modified (exclusive)
+   * @return the hamming weight
    */
   public static int cardinalityInBitmapWordRange(long[] bitmap, int start, int end) {
     if (start == end) {
@@ -401,6 +404,7 @@ public final class Util {
    * @param bitmap array of words to be modified
    * @param start first index to be modified (inclusive)
    * @param end last index to be modified (exclusive)
+   * @return cardinality change
    */
   public static int setBitmapRangeAndCardinalityChange(long[] bitmap, int start, int end) {  
     int cardbefore = cardinalityInBitmapWordRange(bitmap, start, end);
@@ -417,6 +421,7 @@ public final class Util {
    * @param bitmap array of words to be modified
    * @param start first index to be modified (inclusive)
    * @param end last index to be modified (exclusive)
+   * @return cardinality change
    */
   public static int flipBitmapRangeAndCardinalityChange(long[] bitmap, int start, int end) {
     int cardbefore = cardinalityInBitmapWordRange(bitmap, start, end);
@@ -433,6 +438,7 @@ public final class Util {
    * @param bitmap array of words to be modified
    * @param start first index to be modified (inclusive)
    * @param end last index to be modified (exclusive)
+   * @return cardinality change
    */
   public static int resetBitmapRangeAndCardinalityChange(long[] bitmap, int start, int end) {
     int cardbefore = cardinalityInBitmapWordRange(bitmap, start, end);

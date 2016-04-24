@@ -9,7 +9,6 @@ import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import org.roaringbitmap.buffer.BufferUtil;
 import org.roaringbitmap.buffer.MappeableBitmapContainer;
 import org.roaringbitmap.buffer.MappeableContainer;
 
@@ -28,8 +27,10 @@ public final class BitmapContainer extends Container implements Cloneable {
   private static final int BLOCKSIZE = 128;
   // 64 words can have max 32 runs per word, max 2k runs
 
-  // optimization flag: whether the cardinality of the bitmaps is maintained through branchless
-  // operations
+  /**
+   * optimization flag: whether the cardinality of the bitmaps is maintained through branchless
+   * operations
+   */
   public static final boolean USE_BRANCHLESS = true;
 
   /**

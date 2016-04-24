@@ -301,6 +301,13 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
 
   /**
+   * Complements the bits in the given range, from rangeStart (inclusive) rangeEnd (exclusive). The
+   * given bitmap is unchanged.
+   * 
+   * @param rb bitmap being negated
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
+   * @return a new Bitmap
    * @deprecated use the version where longs specify the range
    */
   @Deprecated
@@ -495,6 +502,12 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   }
 
   /**
+   * Generate a new bitmap with all integers in [rangeStart,rangeEnd) removed.
+   * 
+   * @param rb initial bitmap (will not be modified)
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
+   * @return new bitmap
    * @deprecated use the version where longs specify the range
    */
   @Deprecated
@@ -656,6 +669,11 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   }
 
  /**
+   * 
+   * Add to the current bitmap all integers in [rangeStart,rangeEnd).
+   *
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
    * @deprecated use the version where longs specify the range
    */
   @Deprecated
@@ -883,6 +901,11 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
 
  /**
+   * Modifies the current bitmap by complementing the bits in the given range, from rangeStart
+   * (inclusive) rangeEnd (exclusive).
+   * 
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
    * @deprecated use the version where longs specify the range
    */
   @Deprecated
@@ -1151,6 +1174,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
 
   /**
+   * Remove from the current bitmap all integers in [rangeStart,rangeEnd).
+   *
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
    * @deprecated use the version where longs specify the range
    */
   @Deprecated

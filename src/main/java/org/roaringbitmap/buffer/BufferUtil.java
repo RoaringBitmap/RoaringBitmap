@@ -288,6 +288,7 @@ public final class BufferUtil {
    * @param bitmap array of words to be modified
    * @param start first index to be modified (inclusive)
    * @param end last index to be modified (exclusive)
+   * @return cardinality change
    */
   public static int setBitmapRangeAndCardinalityChange(LongBuffer bitmap, int start, int end) {
     if (BufferUtil.isBackedBySimpleArray(bitmap)) {
@@ -306,6 +307,7 @@ public final class BufferUtil {
    * @param bitmap array of words to be modified
    * @param start first index to be modified (inclusive)
    * @param end last index to be modified (exclusive)
+   * @return cardinality change
    */
   public static int flipBitmapRangeAndCardinalityChange(LongBuffer bitmap, int start, int end) {
     if (BufferUtil.isBackedBySimpleArray(bitmap)) {
@@ -324,6 +326,7 @@ public final class BufferUtil {
    * @param bitmap array of words to be modified
    * @param start first index to be modified (inclusive)
    * @param end last index to be modified (exclusive)
+   * @return cardinality change
    */
   public static int resetBitmapRangeAndCardinalityChange(LongBuffer bitmap, int start, int end) {
     if (BufferUtil.isBackedBySimpleArray(bitmap)) {

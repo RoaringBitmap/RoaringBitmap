@@ -199,6 +199,14 @@ public class ImmutableRoaringBitmap
   }
 
   /**
+   * 
+   * Computes AND between input bitmaps in the given range, from rangeStart (inclusive) to rangeEnd
+   * (exclusive)
+   *
+   * @param bitmaps input bitmaps, these are not modified
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
+   * @return new result bitmap
    * @deprecated use the version where longs specify the range. Negative range end are illegal.
    */
   @Deprecated
@@ -289,6 +297,8 @@ public class ImmutableRoaringBitmap
    * 
    * @param x1 first bitmap
    * @param x2 other bitmap
+   * @param rangeStart beginning of the range (inclusive)
+   * @param rangeEnd end of range (exclusive)
    * @return result of the operation
    */
   public static MutableRoaringBitmap andNot(final ImmutableRoaringBitmap x1,
@@ -301,6 +311,15 @@ public class ImmutableRoaringBitmap
 
 
   /**
+   * Bitwise ANDNOT (difference) operation for the given range, rangeStart (inclusive) and rangeEnd
+   * (exclusive). The provided bitmaps are *not* modified. This operation is thread-safe as long as
+   * the provided bitmaps remain unchanged.
+   * 
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @param rangeStart beginning of the range (inclusive)
+   * @param rangeEnd end of range (exclusive)
+   * @return result of the operation
    * @deprecated use the version where longs specify the range. Negative values for range
    *     endpoints are not allowed.
    */
@@ -431,6 +450,13 @@ public class ImmutableRoaringBitmap
 
 
  /**
+   * Complements the bits in the given range, from rangeStart (inclusive) rangeEnd (exclusive). The
+   * given bitmap is unchanged.
+   * 
+   * @param bm bitmap being negated
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
+   * @return a new Bitmap
    * @deprecated use the version where longs specify the range
    */
   @Deprecated
@@ -721,6 +747,13 @@ public class ImmutableRoaringBitmap
   }
 
   /**
+   * Computes OR between input bitmaps in the given range, from rangeStart (inclusive) to rangeEnd
+   * (exclusive)
+   *
+   * @param bitmaps input bitmaps, these are not modified
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
+   * @return new result bitmap
    * @deprecated use the version where longs specify the range. 
    *     Negative range points are forbidden.
    */
@@ -807,6 +840,13 @@ public class ImmutableRoaringBitmap
 
 
   /**
+   * Computes XOR between input bitmaps in the given range, from rangeStart (inclusive) to rangeEnd
+   * (exclusive)
+   *
+   * @param bitmaps input bitmaps, these are not modified
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
+   * @return new result bitmap
    * @deprecated use the version where longs specify the range. 
    *     Negative values not allowed for rangeStart and rangeEnd
    */

@@ -428,6 +428,13 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   }
 
   /**
+   * Complements the bits in the given range, from rangeStart (inclusive) rangeEnd (exclusive). The
+   * given bitmap is unchanged.
+   *
+   * @param rb bitmap being negated
+   * @param rangeStart inclusive beginning of range, in [0, 0xffffffff]
+   * @param rangeEnd exclusive ending of range, in [0, 0xffffffff + 1]
+   * @return a new Bitmap
    * @deprecated use the version where longs specify the range
    */
   @Deprecated
@@ -770,6 +777,12 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   }
 
   /**
+   * Generate a new bitmap with all integers in [rangeStart,rangeEnd) removed.
+   * 
+   * @param rb initial bitmap (will not be modified)
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
+   * @return new bitmap
    * @deprecated use the version where longs specify the range
    */
   @Deprecated
@@ -922,6 +935,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   }
 
   /**
+   * Add to the current bitmap all integers in [rangeStart,rangeEnd).
+   *
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
    * @deprecated use the version where longs specify the range
    */
   @Deprecated
@@ -990,6 +1007,13 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
 
   /**
+   * Computes AND between input bitmaps in the given range, from rangeStart (inclusive) to rangeEnd
+   * (exclusive)
+   *
+   * @param bitmaps input bitmaps, these are not modified
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
+   * @return new result bitmap
    * @deprecated use the version where longs specify the range. Negative range end are illegal.
    */
   @Deprecated
@@ -1048,6 +1072,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * 
    * @param x1 first bitmap
    * @param x2 other bitmap
+   * @param rangeStart starting point of the range (inclusive)
+   * @param rangeEnd end point of the range (exclusive)
    * @return result of the operation
    */
   public static RoaringBitmap andNot(final RoaringBitmap x1, final RoaringBitmap x2, 
@@ -1060,6 +1086,16 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   }
 
   /**
+   * Bitwise ANDNOT (difference) operation for the given range, rangeStart (inclusive) and rangeEnd
+   * (exclusive). The provided bitmaps are *not* modified. This operation is thread-safe as long as
+   * the provided bitmaps remain unchanged.
+   * 
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @param rangeStart starting point of the range (inclusive)
+   * @param rangeEnd end point of the range (exclusive)
+   * @return result of the operation
+   * 
    * @deprecated use the version where longs specify the range. Negative values for range
    *     endpoints are not allowed.
    */
@@ -1246,6 +1282,11 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
 
  /**
+   * Modifies the current bitmap by complementing the bits in the given range, from rangeStart
+   * (inclusive) rangeEnd (exclusive).
+   *
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
    * @deprecated use the version where longs specify the range
    */
   @Deprecated
@@ -1564,6 +1605,12 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
 
   /**
+   * Computes OR between input bitmaps in the given range, from rangeStart (inclusive) to rangeEnd
+   * (exclusive)
+   * @param bitmaps input bitmaps, these are not modified
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
+   * @return new result bitmap 
    * @deprecated use the version where longs specify the range. 
    *     Negative range points are forbidden.
    */
@@ -1692,6 +1739,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
 
   /**
+   * Remove from the current bitmap all integers in [rangeStart,rangeEnd).
+   *
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
    * @deprecated use the version where longs specify the range
    */
   @Deprecated
@@ -2098,6 +2149,13 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   }
 
   /**
+   * Computes XOR between input bitmaps in the given range, from rangeStart (inclusive) to rangeEnd
+   * (exclusive)
+   *
+   * @param bitmaps input bitmaps, these are not modified
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
+   * @return new result bi
    * @deprecated use the version where longs specify the range. 
    *     Negative values not allowed for rangeStart and rangeEnd
    */
