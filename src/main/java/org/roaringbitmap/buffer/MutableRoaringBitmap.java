@@ -6,7 +6,6 @@ package org.roaringbitmap.buffer;
 
 import org.roaringbitmap.BitmapDataProvider;
 import org.roaringbitmap.ContainerPointer;
-import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.ShortIterator;
 import org.roaringbitmap.Util;
@@ -1254,27 +1253,6 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   public ImmutableRoaringBitmap toImmutableRoaringBitmap() {
     return this;
 
-  }
-
-  /**
-   * A string describing the bitmap.
-   * 
-   * @return the string
-   */
-  @Override
-  public String toString() {
-    final StringBuilder answer = new StringBuilder();
-    final IntIterator i = this.getIntIterator();
-    answer.append("{");
-    if (i.hasNext()) {
-      answer.append(i.next());
-    }
-    while (i.hasNext()) {
-      answer.append(",");
-      answer.append(i.next());
-    }
-    answer.append("}");
-    return answer.toString();
   }
 
 
