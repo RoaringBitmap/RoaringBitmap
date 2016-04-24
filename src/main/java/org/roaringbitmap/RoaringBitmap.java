@@ -2005,7 +2005,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
 
   /**
-   * Return the set values as an array, if the cardinality is smaller than 1<<31. 
+   * Return the set values as an array, if the cardinality is smaller than 2147483648. 
    * The integer values are in sorted order.
    * 
    * @return array representing the set values.

@@ -1317,7 +1317,7 @@ public class ImmutableRoaringBitmap
 
   /**
    * Return the set values as an array if the cardinality is less 
-   * than 1<<31. The integer values are in sorted order.
+   * than 2147483648. The integer values are in sorted order.
    * 
    * @return array representing the set values.
    */
