@@ -5,7 +5,7 @@ import org.junit.Test;
 
 public class TestVeryLargeBitmap {
 
-  @Test
+  //@Test // this should run fine given enough memory
   public void stupidlyLarge() {
     MutableRoaringBitmap rb = new MutableRoaringBitmap();
     rb.add(0, 1L << 32);
