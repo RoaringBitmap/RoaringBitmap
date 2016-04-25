@@ -20,7 +20,7 @@ public class TestVeryLargeBitmap {
       // next line should not make things crash
       System.out.println(rb.toString());
     } catch (OutOfMemoryError ome) {
-      System.out.println("This is an acceptable OutOfMemoryError.");
+      System.out.println("This is an acceptable OutOfMemoryError:");
       ome.printStackTrace();
     }
   }

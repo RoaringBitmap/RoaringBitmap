@@ -1,4 +1,7 @@
 cd .. && mvn -Dcheckstyle.skip=true -Dmaven.test.skip=true -Dmaven.javadoc.skip=true package && cd examples
+echo "Basic"
+javac -cp "../target/*" Basic.java && java -cp ../target/*:. Basic
+echo
 echo "Running CompressionResults"
 javac -cp "../target/*" CompressionResults.java && java -cp ../target/*:. CompressionResults
 echo
@@ -16,6 +19,9 @@ javac -cp "../target/*":. SerializeToByteArrayExample.java && java -cp ../target
 echo
 echo "ForEach example"
 javac -cp "../target/*":. ForEachExample.java && java -cp ../target/*:. ForEachExample
+echo
+echo "Very large example"
+javac -cp "../target/*":. VeryLargeBitmap.java && java -cp ../target/*:. VeryLargeBitmap
 echo
 echo "Serializing to file "
 javac -cp "../target/*" SerializeToDiskExample.java &&  java -cp ../target/*:. SerializeToDiskExample
