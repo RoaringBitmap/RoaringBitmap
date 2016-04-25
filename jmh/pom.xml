@@ -89,7 +89,7 @@
                 <configuration>
                     <forkCount>1</forkCount>
                     <reuseForks>false</reuseForks>
-                    <argLine>-Xmx2g</argLine>
+                    <argLine>-Xms2g -Xmx4g</argLine>
                 </configuration>
             </plugin>
             <plugin>
