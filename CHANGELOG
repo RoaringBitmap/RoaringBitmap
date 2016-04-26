@@ -1,3 +1,6 @@
+upcoming
+ - faster orCardinality function
+
 version 0.6.15
  - Fix for https://github.com/RoaringBitmap/RoaringBitmap/issues/79
  - Fix for https://github.com/RoaringBitmap/RoaringBitmap/issues/80
