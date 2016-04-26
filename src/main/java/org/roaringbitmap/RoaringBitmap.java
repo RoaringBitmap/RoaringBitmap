@@ -678,49 +678,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @see FastAggregation#horizontal_or(RoaringBitmap...)
    */
   public static int orCardinality(final RoaringBitmap x1, final RoaringBitmap x2) {
-    int answer = 0;
-    int pos1 = 0, pos2 = 0;
-    final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
-    main: if (pos1 < length1 && pos2 < length2) {
-      short s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-      short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-
-      while (true) {
-        if (s1 == s2) {
-          // TODO: could be faster if we did not have to materialize the container
-          answer += x1.highLowContainer.getContainerAtIndex(pos1)
-              .or(x2.highLowContainer.getContainerAtIndex(pos2)).getCardinality();
-          pos1++;
-          pos2++;
-          if ((pos1 == length1) || (pos2 == length2)) {
-            break main;
-          }
-          s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-          s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-        } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
-          answer += x1.highLowContainer.getContainerAtIndex(pos1).getCardinality();
-          pos1++;
-          if (pos1 == length1) {
-            break main;
-          }
-          s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-        } else { // s1 > s2
-          answer += x2.highLowContainer.getContainerAtIndex(pos2).getCardinality();
-          pos2++;
-          if (pos2 == length2) {
-            break main;
-          }
-          s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-        }
-      }
-    }
-    for (; pos2 < length2; pos2++) {
-      answer += x2.highLowContainer.getContainerAtIndex(pos2).getCardinality();
-    }
-    for (; pos1 < length1; pos1++) {
-      answer += x1.highLowContainer.getContainerAtIndex(pos1).getCardinality();
-    }
-    return answer;
+    // we use the fact that the cardinality of the bitmaps is known so that
+    // the union is just the total cardinality minus the intersection
+    return x1.getCardinality() + x2.getCardinality() - andCardinality(x1, x2);
   }
 
 
