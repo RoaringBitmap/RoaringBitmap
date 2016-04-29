@@ -344,17 +344,13 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
             break main;
           }
         } else if (Util.compareUnsigned(i1.key(), i2.key()) < 0) { // i1.key() < i2.key()
-          answer.getMappeableRoaringArray().appendCopy(i1.key(), i1.getContainer());// TODO: would
-                                                                                    // not need to
-                                                                                    // make a copy
+          answer.getMappeableRoaringArray().append(i1.key(), i1.getContainer());
           i1.advance();
           if (!i1.hasContainer()) {
             break main;
           }
         } else { // i1.key() > i2.key()
-          answer.getMappeableRoaringArray().appendCopy(i2.key(), i2.getContainer());// TODO: would
-                                                                                    // not need to
-                                                                                    // make a copy
+          answer.getMappeableRoaringArray().append(i2.key(), i2.getContainer());
           i2.advance();
           if (!i2.hasContainer()) {
             break main;
@@ -364,12 +360,12 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     }
     if (!i1.hasContainer()) {
       while (i2.hasContainer()) {
-        answer.getMappeableRoaringArray().appendCopy(i2.key(), i2.getContainer());
+        answer.getMappeableRoaringArray().append(i2.key(), i2.getContainer());
         i2.advance();
       }
     } else if (!i2.hasContainer()) {
       while (i1.hasContainer()) {
-        answer.getMappeableRoaringArray().appendCopy(i1.key(), i1.getContainer());
+        answer.getMappeableRoaringArray().append(i1.key(), i1.getContainer());
         i1.advance();
       }
     }

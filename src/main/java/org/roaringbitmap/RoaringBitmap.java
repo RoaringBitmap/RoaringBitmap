@@ -529,7 +529,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     return answer;
   }
 
-
+  // important: inputs should not be reused
   protected static RoaringBitmap lazyorfromlazyinputs(final RoaringBitmap x1,
       final RoaringBitmap x2) {
     final RoaringBitmap answer = new RoaringBitmap();
@@ -557,16 +557,16 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
           s1 = x1.highLowContainer.getKeyAtIndex(pos1);
           s2 = x2.highLowContainer.getKeyAtIndex(pos2);
         } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
-          answer.highLowContainer.appendCopy(x1.highLowContainer, pos1);// TODO: would not need to
-                                                                        // copy
+          Container c1 = x1.highLowContainer.getContainerAtIndex(pos1);
+          answer.highLowContainer.append(s1, c1);
           pos1++;
           if (pos1 == length1) {
             break main;
           }
           s1 = x1.highLowContainer.getKeyAtIndex(pos1);
         } else { // s1 > s2
-          answer.highLowContainer.appendCopy(x2.highLowContainer, pos2);// TODO: would not need to
-                                                                        // copy
+          Container c2 = x1.highLowContainer.getContainerAtIndex(pos2);
+          answer.highLowContainer.append(s2,c2);
           pos2++;
           if (pos2 == length2) {
             break main;
@@ -576,9 +576,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       }
     }
     if (pos1 == length1) {
-      answer.highLowContainer.appendCopy(x2.highLowContainer, pos2, length2);
+      answer.highLowContainer.append(x2.highLowContainer, pos2, length2);
     } else if (pos2 == length2) {
-      answer.highLowContainer.appendCopy(x1.highLowContainer, pos1, length1);
+      answer.highLowContainer.append(x1.highLowContainer, pos1, length1);
     }
     return answer;
   }

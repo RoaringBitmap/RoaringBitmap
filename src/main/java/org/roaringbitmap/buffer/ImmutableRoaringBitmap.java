@@ -603,7 +603,7 @@ public class ImmutableRoaringBitmap
     return false;
   }
 
-  // important: inputs should not have been computed lazily
+  // important: inputs should not be reused
   protected static MutableRoaringBitmap lazyor(final ImmutableRoaringBitmap x1,
       final ImmutableRoaringBitmap x2) {
     final MutableRoaringBitmap answer = new MutableRoaringBitmap();
