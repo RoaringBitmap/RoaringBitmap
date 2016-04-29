@@ -407,8 +407,6 @@ public final class FastAggregation {
         pq.add(x1);
       } else if (istmp[x2]) {
         buffer.get(x2).lazyor(buffer.get(x1));
-        RoaringBitmap c = buffer.get(x2).clone();
-        c.repairAfterLazy();
         sizes[x2] = buffer.get(x2).getLongSizeInBytes();
         pq.add(x2);
       } else if (istmp[x1]) {
