@@ -15,7 +15,7 @@ branches:
 script:
  - mvn clean test jacoco:report install -Dgpg.skip=true
  - mvn -f real-roaring-dataset/pom.xml clean install
- - mvn -f ./jmh/pom.xml test
+# - mvn -f ./jmh/pom.xml test # does not run reliably!!!
 
 after_success:
   - mvn coveralls:report
