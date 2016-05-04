@@ -28,10 +28,10 @@ public abstract class RealDataBenchmarkSanityTest {
 
     public static final String[] BITMAP_TYPES = 
         "ROARING_ONLY".equals(System.getProperty("BITMAP_TYPES")) 
-            ? { ROARING, ROARING_WITH_RUN }
-            : { CONCISE, WAH,
-                EWAH, EWAH32,
-                ROARING, ROARING_WITH_RUN };
+            ? new String[] { ROARING, ROARING_WITH_RUN }
+            : new String[] { CONCISE, WAH,
+                             EWAH, EWAH32,
+                             ROARING, ROARING_WITH_RUN };
 
     public static final Boolean[] BITMAP_IMMUTABILITY = { false, true };
 
