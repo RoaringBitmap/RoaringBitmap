@@ -12,6 +12,26 @@ import java.nio.ShortBuffer;
 import java.util.Arrays;
 
 public class TestUtil {
+  
+    @Test
+    public void testCopy() {
+      ShortBuffer sb = ShortBuffer.allocate(64);
+      sb.position(32);
+      ShortBuffer slice = sb.slice();
+      ShortBuffer dest = ShortBuffer.allocate(64);
+      for(int k = 0; k < 32; ++k)
+        slice.put(k, (short) k);
+      BufferUtil.arraycopy(slice, 16, dest, 16, 16);
+      for(int k = 16; k < 32; ++k)
+        Assert.assertEquals((short)k,dest.get(k));
+      BufferUtil.arraycopy(slice, 0, dest, 16, 16);
+      for(int k = 16; k < 32; ++k)
+        Assert.assertEquals((short)(k-16),dest.get(k));
+      BufferUtil.arraycopy(slice, 16, dest, 0, 16);
+      for(int k = 0; k < 16; ++k)
+        Assert.assertEquals((short)(k+16),dest.get(k));
+
+    }
 
     @Test
     public void testFillArrayANDNOT() {
