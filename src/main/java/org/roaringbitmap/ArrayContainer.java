@@ -18,6 +18,7 @@ import org.roaringbitmap.buffer.MappeableContainer;
  */
 public final class ArrayContainer extends Container implements Cloneable {
   private static final int DEFAULT_INIT_SIZE = 4;
+  private static final int ARRAY_LAZY_LOWERBOUND = 1024;
 
   static final int DEFAULT_MAX_SIZE = 4096;// containers with DEFAULT_MAX_SZE or less integers
                                            // should be ArrayContainers
@@ -1101,7 +1102,7 @@ public final class ArrayContainer extends Container implements Cloneable {
   protected Container lazyor(ArrayContainer value2) {
     final ArrayContainer value1 = this;
     int totalCardinality = value1.getCardinality() + value2.getCardinality();
-    if (totalCardinality > DEFAULT_MAX_SIZE) {// it could be a bitmap!
+    if (totalCardinality > ARRAY_LAZY_LOWERBOUND) {// it could be a bitmap!
       BitmapContainer bc = new BitmapContainer();
       for (int k = 0; k < value2.cardinality; ++k) {
         short v = value2.content[k];
