@@ -551,7 +551,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
   public Container lazyIOR(Container x) {
     if (this instanceof ArrayContainer) {
       if (x instanceof ArrayContainer) {
-        return ior((ArrayContainer) x);
+        return ((ArrayContainer)this).lazyor((ArrayContainer) x);
       } else if (x instanceof BitmapContainer) {
         return ior((BitmapContainer) x);
       }
@@ -585,7 +585,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
   public Container lazyOR(Container x) {
     if (this instanceof ArrayContainer) {
       if (x instanceof ArrayContainer) {
-        return or((ArrayContainer) x);
+        return ((ArrayContainer)this).lazyor((ArrayContainer) x);
       } else if (x instanceof BitmapContainer) {
         return ((BitmapContainer) x).lazyor((ArrayContainer) this);
       }

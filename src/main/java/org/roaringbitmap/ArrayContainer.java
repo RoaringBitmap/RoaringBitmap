@@ -1098,6 +1098,33 @@ public final class ArrayContainer extends Container implements Cloneable {
     }
   }
 
+  protected Container lazyor(ArrayContainer value2) {
+    final ArrayContainer value1 = this;
+    int totalCardinality = value1.getCardinality() + value2.getCardinality();
+    if (totalCardinality > DEFAULT_MAX_SIZE) {// it could be a bitmap!
+      BitmapContainer bc = new BitmapContainer();
+      for (int k = 0; k < value2.cardinality; ++k) {
+        short v = value2.content[k];
+        final int i = Util.toIntUnsigned(v) >>> 6;
+        bc.bitmap[i] |= (1L << v);
+      }
+      for (int k = 0; k < this.cardinality; ++k) {
+        short v = this.content[k];
+        final int i = Util.toIntUnsigned(v) >>> 6;
+        bc.bitmap[i] |= (1L << v);
+      }
+      bc.cardinality = -1;
+      return bc;
+    }
+    final int desiredCapacity = totalCardinality; // Math.min(BitmapContainer.MAX_CAPACITY,
+    // totalCardinality);
+    ArrayContainer answer = new ArrayContainer(desiredCapacity);
+    answer.cardinality = Util.unsignedUnion2by2(value1.content, value1.getCardinality(),
+        value2.content, value2.getCardinality(), answer.content);
+    return answer;
+
+  }
+
 
 }
 
