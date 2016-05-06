@@ -1,3 +1,6 @@
+version 0.6.17
+ - faster lazy array-array unions (https://github.com/RoaringBitmap/RoaringBitmap/issues/107)
+
 version 0.6.16
  - performance enhancement in fast heap-based aggregations 
  - faster orCardinality function
