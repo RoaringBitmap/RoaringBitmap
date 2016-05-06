@@ -2719,7 +2719,6 @@ public class TestRunContainer {
     assertEquals(bcSize, bc.getCardinality());
 
     assertEquals(rcSize - 3, result.getCardinality());
-    assertTrue(result instanceof RunContainer);
     assertTrue(result.contains((short) 5));
     assertTrue(result.contains((short) 0));
 

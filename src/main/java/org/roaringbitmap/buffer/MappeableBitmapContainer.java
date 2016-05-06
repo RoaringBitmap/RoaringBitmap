@@ -1558,6 +1558,9 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   public MappeableContainer repairAfterLazy() {
     if (getCardinality() < 0) {
       computeCardinality();
+      if(getCardinality() <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
+        return this.toArrayContainer();
+      }
     }
     return this;
   }

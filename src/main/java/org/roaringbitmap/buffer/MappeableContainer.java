@@ -520,7 +520,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
   public MappeableContainer lazyIOR(MappeableContainer x) {
     if (this instanceof MappeableArrayContainer) {
       if (x instanceof MappeableArrayContainer) {
-        return ior((MappeableArrayContainer) x);
+        return ((MappeableArrayContainer) this).lazyor((MappeableArrayContainer) x);
       } else if (x instanceof MappeableBitmapContainer) {
         return ((MappeableBitmapContainer) x).lazyor((MappeableArrayContainer) this);
       }
@@ -554,7 +554,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
   public MappeableContainer lazyOR(MappeableContainer x) {
     if (this instanceof MappeableArrayContainer) {
       if (x instanceof MappeableArrayContainer) {
-        return or((MappeableArrayContainer) x);
+        return ((MappeableArrayContainer) this).lazyor((MappeableArrayContainer) x);
       } else if (x instanceof MappeableBitmapContainer) {
         return ((MappeableBitmapContainer) x).lazyor((MappeableArrayContainer) this);
       }

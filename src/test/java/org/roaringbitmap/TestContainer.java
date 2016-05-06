@@ -841,7 +841,7 @@ public class TestContainer {
   @Test
   public void testRunOptimize1() {
     ArrayContainer ac = new ArrayContainer();
-    for (short s : new short[] {1, 3, 4, 5, 6, 7, 8, 9, (short) 50000, (short) 50001}) {
+    for (short s : new short[] {1, 2, 3, 4, 5, 6, 7, 8, 9, (short) 50000, (short) 50001}) {
       ac.add(s);
     }
     Container c = ac.runOptimize();
@@ -853,7 +853,7 @@ public class TestContainer {
 
   public void testRunOptimize1A() {
     ArrayContainer ac = new ArrayContainer();
-    for (short s : new short[] {1, 3, 4, 6, 8, 9, (short) 50000, (short) 50003}) {
+    for (short s : new short[] {1, 2, 3, 4, 6, 8, 9, (short) 50000, (short) 50003}) {
       ac.add(s);
     }
     Container c = ac.runOptimize();
@@ -889,7 +889,7 @@ public class TestContainer {
   @Test
   public void testRunOptimize3() {
     RunContainer rc = new RunContainer();
-    for (short s : new short[] {1, 3, 4, 5, 6, 7, 8, 9, (short) 50000, (short) 50001}) {
+    for (short s : new short[] {1, 2,3, 4, 5, 6, 7, 8, 9, (short) 50000, (short) 50001}) {
       rc.add(s);
     }
     Container c = rc.runOptimize();
