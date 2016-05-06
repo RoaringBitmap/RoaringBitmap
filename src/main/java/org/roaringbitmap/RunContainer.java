@@ -26,6 +26,8 @@ import org.roaringbitmap.buffer.MappeableRunContainer;
  */
 public final class RunContainer extends Container implements Cloneable {
   private static final int DEFAULT_INIT_SIZE = 4;
+  static final int RUN_OPTI_MINIMAL_GAIN = 2;
+
   private static final boolean ENABLE_GALLOPING_AND = false;
 
   private static final long serialVersionUID = 1L;
@@ -2154,7 +2156,7 @@ public final class RunContainer extends Container implements Cloneable {
   private Container toBitmapIfNeeded() {
     int sizeAsRunContainer = RunContainer.serializedSizeInBytes(this.nbrruns);
     int sizeAsBitmapContainer = BitmapContainer.serializedSizeInBytes(0);
-    if (sizeAsBitmapContainer > sizeAsRunContainer) {
+    if (sizeAsBitmapContainer > RUN_OPTI_MINIMAL_GAIN * sizeAsRunContainer) {
       return this;
     }
     int card = this.getCardinality();
@@ -2205,7 +2207,7 @@ public final class RunContainer extends Container implements Cloneable {
     int sizeAsBitmapContainer = BitmapContainer.serializedSizeInBytes(0);
     int card = this.getCardinality();
     int sizeAsArrayContainer = ArrayContainer.serializedSizeInBytes(card);
-    if (sizeAsRunContainer <= Math.min(sizeAsBitmapContainer, sizeAsArrayContainer)) {
+    if (RUN_OPTI_MINIMAL_GAIN * sizeAsRunContainer <= Math.min(sizeAsBitmapContainer, sizeAsArrayContainer)) {
       return this;
     }
     if (card <= ArrayContainer.DEFAULT_MAX_SIZE) {
