@@ -949,7 +949,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     // passes some threshold based on the cardinality.
     int numRuns = numberOfRuns();
     int sizeAsRunContainer = RunContainer.serializedSizeInBytes(numRuns);
-    if (getArraySizeInBytes() > RunContainer.RUN_OPTI_MINIMAL_GAIN * sizeAsRunContainer) {
+    if (getArraySizeInBytes() > sizeAsRunContainer) {
       return new RunContainer(this, numRuns); // this could be maybe
                                               // faster if initial
                                               // container is a bitmap

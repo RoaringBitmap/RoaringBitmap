@@ -1058,7 +1058,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
     int sizeAsRunContainerLowerBound = RunContainer.serializedSizeInBytes(numRuns);
 
-    if (RunContainer.RUN_OPTI_MINIMAL_GAIN * sizeAsRunContainerLowerBound >= getArraySizeInBytes()) {
+    if (sizeAsRunContainerLowerBound >= getArraySizeInBytes()) {
       return this;
     }
     // else numRuns is a relatively tight bound that needs to be exact
@@ -1067,7 +1067,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     numRuns += numberOfRunsAdjustment();
     int sizeAsRunContainer = RunContainer.serializedSizeInBytes(numRuns);
 
-    if (getArraySizeInBytes() > RunContainer.RUN_OPTI_MINIMAL_GAIN *sizeAsRunContainer) {
+    if (getArraySizeInBytes() > sizeAsRunContainer) {
       return new RunContainer(this, numRuns);
     } else {
       return this;
