@@ -85,6 +85,9 @@ public class TestIntIteratorFlyweight {
       Assert.assertEquals(j.peekNext(),data[k]);            
       Assert.assertEquals(iter2.peekNext(),data[k]);
     }
+    new BufferIntIteratorFlyweight(bitmap).advanceIfNeeded(-1);
+    bitmap.getIntIterator().advanceIfNeeded(-1);// should not crash
+
 
     BufferReverseIntIteratorFlyweight reverseIter = new BufferReverseIntIteratorFlyweight();
     reverseIter.wrap(bitmap);

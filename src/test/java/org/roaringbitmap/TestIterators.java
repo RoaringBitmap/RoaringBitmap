@@ -128,6 +128,7 @@ public class TestIterators {
       pii.next();
       Assert.assertEquals(data[i],pii.peekNext() );
     }
+    bitmap.getIntIterator().advanceIfNeeded(-1);// should not crash
   }
   
   @Test

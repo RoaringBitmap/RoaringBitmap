@@ -92,7 +92,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
     @Override
     public void advanceIfNeeded(int minval) {
-      while ((0xFFFF & (hs >>> 16)) < (0xFFFF & (minval >>> 16))) {
+      while (hasNext() && ((0xFFFF & (hs >>> 16)) < (0xFFFF & (minval >>> 16)))) {
         ++pos;
         nextContainer();
       }
