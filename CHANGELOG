@@ -1,3 +1,6 @@
+version 0.6.18
+ - fix for #110 overflow in RoaringIntIterator:advanceIfNeeded
+ 
 version 0.6.17
  - faster lazy array-array unions (https://github.com/RoaringBitmap/RoaringBitmap/issues/107)
 
