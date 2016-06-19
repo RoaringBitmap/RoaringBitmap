@@ -3,14 +3,11 @@ package org.roaringbitmap;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Random;
-import java.util.Set;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.roaringbitmap.ArrayContainer.DEFAULT_MAX_SIZE;
@@ -2811,6 +2808,30 @@ public class TestRunContainer {
     }
     Container result = rc.xor(bc);
     assertEquals(answer, result);
+  }
+
+  @Test
+  public void intersects1() {
+    Container ac = new ArrayContainer();
+    ac = ac.add((short) 1);
+    ac = ac.add((short) 7);
+    ac = ac.add((short) 13);
+    ac = ac.add((short) 666);
+
+    Container rc = new RunContainer();
+
+    assertFalse(rc.intersects(ac));
+
+    rc = rc.add((short) 1000);
+    assertFalse(rc.intersects(ac));
+
+    rc = rc.remove((short) 1000);
+    rc = rc.add(100,200);
+    rc = rc.add(300,500);
+    assertFalse(rc.intersects(ac));
+
+    rc = rc.add(500,1000);
+    assertTrue(rc.intersects(ac));
   }
 
 }
