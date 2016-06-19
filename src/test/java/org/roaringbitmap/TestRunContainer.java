@@ -2838,4 +2838,19 @@ public class TestRunContainer {
     assertTrue(ac.intersects(rc));
   }
 
+  @Test(expected = RuntimeException.class)
+  public void constructor1() {
+    new RunContainer(new short[] { 1, 2, 10, 3 }, 5);
+  }
+
+  @Test
+  public void ensureCapacity() {
+    RunContainer rc = new RunContainer();
+    rc.add((short) 13);
+    assertTrue(rc.contains((short) 13));
+
+    rc.ensureCapacity(10);
+    assertTrue(rc.contains((short) 13));
+  }
+
 }
