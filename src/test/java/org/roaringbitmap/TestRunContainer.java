@@ -2821,17 +2821,21 @@ public class TestRunContainer {
     Container rc = new RunContainer();
 
     assertFalse(rc.intersects(ac));
+    assertFalse(ac.intersects(rc));
 
     rc = rc.add((short) 1000);
     assertFalse(rc.intersects(ac));
+    assertFalse(ac.intersects(rc));
 
     rc = rc.remove((short) 1000);
     rc = rc.add(100,200);
     rc = rc.add(300,500);
     assertFalse(rc.intersects(ac));
+    assertFalse(ac.intersects(rc));
 
     rc = rc.add(500,1000);
     assertTrue(rc.intersects(ac));
+    assertTrue(ac.intersects(rc));
   }
 
 }
