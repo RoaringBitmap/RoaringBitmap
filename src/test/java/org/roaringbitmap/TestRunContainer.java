@@ -2838,6 +2838,28 @@ public class TestRunContainer {
     assertTrue(ac.intersects(rc));
   }
 
+  @Test
+  public void intersects2() {
+    Container rc1 = new RunContainer();
+    Container rc2 = new RunContainer();
+
+    assertFalse(rc1.intersects(rc2));
+
+    rc1 = rc1.add(10, 50);
+    rc2 = rc2.add(100, 500);
+    assertFalse(rc1.intersects(rc2));
+
+    rc1 = rc1.add(60, 70);
+    assertFalse(rc1.intersects(rc2));
+
+    rc1 = rc1.add(600, 700);
+    rc2 = rc2.add(800, 900);
+    assertFalse(rc1.intersects(rc2));
+
+    rc2 = rc2.add(30, 40);
+    assertTrue(rc1.intersects(rc2));
+  }
+
   @Test(expected = RuntimeException.class)
   public void constructor1() {
     new RunContainer(new short[] { 1, 2, 10, 3 }, 5);
