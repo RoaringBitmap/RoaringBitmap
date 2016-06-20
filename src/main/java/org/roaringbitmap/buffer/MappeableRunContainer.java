@@ -49,12 +49,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   private static int bufferedUnsignedInterleavedBinarySearch(final ShortBuffer sb, final int begin,
       final int end, final short k) {
-    if (BufferUtil.USE_HYBRID_BINSEARCH) {
-      return hybridBufferedUnsignedInterleavedBinarySearch(sb, begin, end, k);
-    } else {
-      return branchyBufferedUnsignedInterleavedBinarySearch(sb, begin, end, k);
-    }
-
+    return branchyBufferedUnsignedInterleavedBinarySearch(sb, begin, end, k);
   }
 
   protected static int getArraySizeInBytes(int nbrruns) {
@@ -69,40 +64,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   static short getValue(short[] vl, int index) {
     return vl[2 * index];
   }
-
-  // starts with binary search and finishes with a sequential search
-  private static int hybridBufferedUnsignedInterleavedBinarySearch(final ShortBuffer sb,
-      final int begin, final int end, final short k) {
-    int ikey = BufferUtil.toIntUnsigned(k);
-    int low = begin;
-    int high = end - 1;
-    // 16 in the next line matches the size of a cache line
-    while (low + 16 <= high) {
-      final int middleIndex = (low + high) >>> 1;
-      final int middleValue = BufferUtil.toIntUnsigned(sb.get(2 * middleIndex));
-      if (middleValue < ikey) {
-        low = middleIndex + 1;
-      } else if (middleValue > ikey) {
-        high = middleIndex - 1;
-      } else {
-        return middleIndex;
-      }
-    }
-
-    // we finish the job with a sequential search
-    int x = low;
-    for (; x <= high; ++x) {
-      final int val = BufferUtil.toIntUnsigned(sb.get(2 * x));
-      if (val >= ikey) {
-        if (val == ikey) {
-          return x;
-        }
-        break;
-      }
-    }
-    return -(x + 1);
-  }
-
 
   protected static int serializedSizeInBytes(int numberOfRuns) {
     return 2 + 2 * 2 * numberOfRuns; // each run requires 2 2-byte entries.

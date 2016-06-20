@@ -378,7 +378,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
   }
 
   // starts with binary search and finishes with a sequential search
-  private int hybridUnsignedBinarySearch(final short k) {
+  /*private int hybridUnsignedBinarySearch(final short k) {
     int low = 0;
     int high = this.size - 1;
     final int ikey = BufferUtil.toIntUnsigned(k);
@@ -406,7 +406,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
       }
     }
     return -(x + 1);
-  }
+  }*/
 
   /**
    * Returns true if this bitmap is empty.
@@ -462,10 +462,6 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
   }
 
   private int unsignedBinarySearch(short k) {
-    if (BufferUtil.USE_HYBRID_BINSEARCH) {
-      return hybridUnsignedBinarySearch(k);
-    } else {
-      return branchyUnsignedBinarySearch(k);
-    }
+    return branchyUnsignedBinarySearch(k);
   }
 }

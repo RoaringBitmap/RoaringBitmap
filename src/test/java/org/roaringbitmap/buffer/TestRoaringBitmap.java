@@ -69,6 +69,56 @@ public class TestRoaringBitmap {
     cp.advance();
 
     Assert.assertEquals(cp.getContainer(), null);
+    
+  }
+  @Test
+  public void pointerImmutableContainerTest() {
+    MutableRoaringBitmap rb = new MutableRoaringBitmap();
+    for (int i = 0; i < (1 << 16); i+=2) {
+      rb.add(i);
+    }
+    for (int i = (1 << 16); i < 2*((1 << 16)); i+= 512) {
+      rb.add(i);
+    }
+    for (int i = 2*(1 << 16); i < 3*((1 << 16)); i++) {
+      rb.add(i);
+    }    
+    rb.runOptimize();
+    ImmutableRoaringBitmap irb =toMapped(rb);
+    MappeableContainerPointer cp = irb.getContainerPointer();
+    MappeableContainerPointer cpo =  (MappeableContainerPointer) cp.clone();
+    Assert.assertNotEquals(cp.getContainer(), null);
+    Assert.assertNotEquals(cpo.getContainer(), null);
+
+    Assert.assertEquals(cp.compareTo(cpo),0);
+    
+    Assert.assertEquals(cp.getCardinality(), (1<<16)/2);
+    Assert.assertTrue(cp.isBitmapContainer());
+    Assert.assertFalse(cp.isRunContainer());
+
+    cp.advance();
+    Assert.assertTrue(cp.compareTo(cpo)>0);
+    Assert.assertNotEquals(cp.getContainer(), null);
+    Assert.assertEquals(cp.getCardinality(), (1<<16)/512);
+    Assert.assertFalse(cp.isBitmapContainer());
+    Assert.assertFalse(cp.isRunContainer());
+
+    cp.advance();
+    Assert.assertTrue(cp.compareTo(cpo)>0);
+    Assert.assertNotEquals(cp.getContainer(), null);
+    Assert.assertEquals(cp.getCardinality(), (1<<16));
+    Assert.assertFalse(cp.isBitmapContainer());
+    Assert.assertTrue(cp.isRunContainer());
+
+    cpo.advance();
+    Assert.assertTrue(cp.compareTo(cpo)>0);
+    cpo.advance();
+    Assert.assertTrue(cp.compareTo(cpo)==0);
+
+    cp.advance();
+
+    Assert.assertEquals(cp.getContainer(), null);
+    
   }
   
   private static ImmutableRoaringBitmap toMapped(MutableRoaringBitmap r) {

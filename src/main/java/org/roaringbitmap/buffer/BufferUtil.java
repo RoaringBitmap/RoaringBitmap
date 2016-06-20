@@ -18,9 +18,6 @@ import org.roaringbitmap.Util;
 public final class BufferUtil {
 
 
-  // optimization flag: whether to use hybrid binary search: hybrid formats
-  // combine a binary search with a sequential search
-  protected static boolean USE_HYBRID_BINSEARCH = false;
 
   /**
    * Find the smallest integer larger than pos such that array[pos]&gt;= min. If none can be found,
@@ -371,43 +368,6 @@ public final class BufferUtil {
     return (short) (x >>> 16);
   }
 
-  // starts with binary search and finishes with a sequential search
-  protected static int hybridUnsignedBinarySearch(final ShortBuffer array, final int begin,
-      final int end, final short k) {
-    final int ikey = toIntUnsigned(k);
-    // next line accelerates the possibly common case where the value would be inserted at the end
-    if ((end > 0) && (toIntUnsigned(array.get(end - 1)) < ikey)) {
-      return -end - 1;
-    }
-    int low = begin;
-    int high = end - 1;
-    // 32 in the next line matches the size of a cache line
-    while (low + 32 <= high) {
-      final int middleIndex = (low + high) >>> 1;
-      final int middleValue = toIntUnsigned(array.get(middleIndex));
-
-      if (middleValue < ikey) {
-        low = middleIndex + 1;
-      } else if (middleValue > ikey) {
-        high = middleIndex - 1;
-      } else {
-        return middleIndex;
-      }
-    }
-    // we finish the job with a sequential search
-    int x = low;
-    for (; x <= high; ++x) {
-      final int val = toIntUnsigned(array.get(x));
-      if (val >= ikey) {
-        if (val == ikey) {
-          return x;
-        }
-        break;
-      }
-    }
-    return -(x + 1);
-  }
-
   /**
    * Checks whether the Buffer is backed by a simple array. In java, a Buffer is an abstraction that
    * can represent various data, from data on disk all the way to native Java arrays. Like all
@@ -514,11 +474,7 @@ public final class BufferUtil {
    */
   public static int unsignedBinarySearch(final ShortBuffer array, final int begin, final int end,
       final short k) {
-    if (BufferUtil.USE_HYBRID_BINSEARCH) {
-      return hybridUnsignedBinarySearch(array, begin, end, k);
-    } else {
-      return branchyUnsignedBinarySearch(array, begin, end, k);
-    }
+    return branchyUnsignedBinarySearch(array, begin, end, k);
   }
 
   protected static int unsignedDifference(final ShortBuffer set1, final int length1,
