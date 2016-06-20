@@ -352,7 +352,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
   * @param startIndex starting index in the container list
   * @return a ContainerPointer
   */
-  public ContainerPointer getContainerPointer(int startIndex) {
+  public ContainerPointer getContainerPointer(final int startIndex) {
     return new ContainerPointer() {
       int k = startIndex;
 
