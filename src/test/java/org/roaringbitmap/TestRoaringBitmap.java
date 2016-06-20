@@ -18,6 +18,54 @@ import java.util.*;
  */
 @SuppressWarnings({"static-method"})
 public class TestRoaringBitmap {
+  @Test
+  public void pointerContainerTest() {
+    RoaringBitmap rb = new RoaringBitmap();
+    for (int i = 0; i < (1 << 16); i+=2) {
+      rb.add(i);
+    }
+    for (int i = (1 << 16); i < 2*((1 << 16)); i+= 512) {
+      rb.add(i);
+    }
+    for (int i = 2*(1 << 16); i < 3*((1 << 16)); i++) {
+      rb.add(i);
+    }    
+    rb.runOptimize();
+    ContainerPointer cp = rb.getContainerPointer();
+    ContainerPointer cpo = (ContainerPointer) cp.clone();
+    Assert.assertNotEquals(cp.getContainer(), null);
+    Assert.assertNotEquals(cpo.getContainer(), null);
+
+    Assert.assertEquals(cp.compareTo(cpo),0);
+    
+    Assert.assertEquals(cp.getCardinality(), (1<<16)/2);
+    Assert.assertTrue(cp.isBitmapContainer());
+    Assert.assertFalse(cp.isRunContainer());
+
+    cp.advance();
+    Assert.assertTrue(cp.compareTo(cpo)>0);
+    Assert.assertNotEquals(cp.getContainer(), null);
+    Assert.assertEquals(cp.getCardinality(), (1<<16)/512);
+    Assert.assertFalse(cp.isBitmapContainer());
+    Assert.assertFalse(cp.isRunContainer());
+
+    cp.advance();
+    Assert.assertTrue(cp.compareTo(cpo)>0);
+    Assert.assertNotEquals(cp.getContainer(), null);
+    Assert.assertEquals(cp.getCardinality(), (1<<16));
+    Assert.assertFalse(cp.isBitmapContainer());
+    Assert.assertTrue(cp.isRunContainer());
+
+    cpo.advance();
+    Assert.assertTrue(cp.compareTo(cpo)>0);
+    cpo.advance();
+    Assert.assertTrue(cp.compareTo(cpo)==0);
+
+    cp.advance();
+
+    Assert.assertEquals(cp.getContainer(), null);
+  }
+
 
   public static int[][] randomlists = {{127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138,
       139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157,

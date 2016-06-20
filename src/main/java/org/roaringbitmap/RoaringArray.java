@@ -340,12 +340,21 @@ public final class RoaringArray implements Cloneable, Externalizable {
   }
 
   /**
-  * Create a ContainerPointer for this RoaringArray
+   * Create a ContainerPointer for this RoaringArray
+   * @return a ContainerPointer
+   */
+  public ContainerPointer getContainerPointer() {
+    return getContainerPointer(0);
+  }
+  
+  /**
+  * Create a ContainerPointer for this RoaringArray 
+  * @param startIndex starting index in the container list
   * @return a ContainerPointer
   */
-  public ContainerPointer getContainerPointer() {
+  public ContainerPointer getContainerPointer(int startIndex) {
     return new ContainerPointer() {
-      int k = 0;
+      int k = startIndex;
 
       @Override
       public void advance() {
@@ -353,6 +362,15 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
       }
 
+      @Override
+      public ContainerPointer clone() {
+        try {
+          return (ContainerPointer) super.clone();
+        } catch (CloneNotSupportedException e) {
+          return null;// will not happen
+        }
+      }
+      
       @Override
       public int compareTo(ContainerPointer o) {
         if (key() != o.key()) {
