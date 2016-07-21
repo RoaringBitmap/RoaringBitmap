@@ -1,3 +1,6 @@
+version 0.6.20
+ - fix for #113 Bug in RoaringBitmap.limit() produces incorrect result
+
 version 0.6.18
  - fix for #110 overflow in RoaringIntIterator:advanceIfNeeded
  
