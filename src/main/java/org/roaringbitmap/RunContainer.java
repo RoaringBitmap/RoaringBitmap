@@ -1731,15 +1731,16 @@ public final class RunContainer extends Container implements Cloneable {
 
     int r;
     int cardinality = 0;
-    for (r = 1; r <= this.nbrruns; ++r) {
+    for (r = 0; r < this.nbrruns; ++r) {
       cardinality += Util.toIntUnsigned(getLength(r)) + 1;
       if (maxcardinality <= cardinality) {
         break;
       }
     }
-    RunContainer rc = new RunContainer(Arrays.copyOf(valueslength, 2 * r), r);
-    rc.setLength(r - 1,
-        (short) (Util.toIntUnsigned(rc.getLength(r - 1)) - cardinality + maxcardinality));
+
+    RunContainer rc = new RunContainer(Arrays.copyOf(valueslength, 2 * (r+1)), r+1);
+    rc.setLength(r ,
+        (short) (Util.toIntUnsigned(rc.getLength(r)) - cardinality + maxcardinality));
     return rc;
   }
 

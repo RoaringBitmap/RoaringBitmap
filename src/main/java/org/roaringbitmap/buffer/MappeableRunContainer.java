@@ -1674,21 +1674,21 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     int r;
     int cardinality = 0;
-    for (r = 1; r <= this.nbrruns; ++r) {
+    for (r = 0; r < this.nbrruns; ++r) {
       cardinality += BufferUtil.toIntUnsigned(getLength(r)) + 1;
       if (maxcardinality <= cardinality) {
         break;
       }
     }
 
-    ShortBuffer newBuf = ShortBuffer.allocate(2 * maxcardinality);
-    for (int i = 0; i < 2 * r; ++i) {
+    ShortBuffer newBuf = ShortBuffer.allocate(2 * (r + 1));
+    for (int i = 0; i < 2 * (r + 1); ++i) {
       newBuf.put(valueslength.get(i)); // could be optimized
     }
-    MappeableRunContainer rc = new MappeableRunContainer(newBuf, r);
+    MappeableRunContainer rc = new MappeableRunContainer(newBuf, r + 1);
 
-    rc.setLength(r - 1,
-        (short) (BufferUtil.toIntUnsigned(rc.getLength(r - 1)) - cardinality + maxcardinality));
+    rc.setLength(r,
+        (short) (BufferUtil.toIntUnsigned(rc.getLength(r)) - cardinality + maxcardinality));
     return rc;
   }
 

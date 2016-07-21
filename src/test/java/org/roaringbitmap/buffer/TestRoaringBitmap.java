@@ -23,6 +23,21 @@ import java.util.*;
 @SuppressWarnings({"static-method"})
 public class TestRoaringBitmap {
   
+  
+  @Test
+  public void limitTest() {
+    MutableRoaringBitmap r = new MutableRoaringBitmap();
+    r.add(0l, 10000000l);
+    System.out.println(r.getCardinality());
+    Assert.assertEquals(1,r.limit(1).getCardinality());
+    Assert.assertEquals(10,r.limit(10).getCardinality());
+    Assert.assertEquals(100,r.limit(100).getCardinality());
+    Assert.assertEquals(1000,r.limit(1000).getCardinality());
+    Assert.assertEquals(10000,r.limit(10000).getCardinality());
+    Assert.assertEquals(100000,r.limit(100000).getCardinality());
+    Assert.assertEquals(1000000,r.limit(1000000).getCardinality());
+  }
+  
   @Test
   public void pointerContainerTest() {
     MutableRoaringBitmap rb = new MutableRoaringBitmap();
