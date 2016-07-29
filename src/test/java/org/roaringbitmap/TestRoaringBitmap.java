@@ -18,7 +18,30 @@ import java.util.*;
  */
 @SuppressWarnings({"static-method"})
 public class TestRoaringBitmap {
-  
+
+	@Test
+	public  void limitBug2() {
+		class MyConsumer implements IntConsumer {
+			public int count = 0;
+			@Override public void accept(int value) { count++; }
+		}
+
+		RoaringBitmap r = new RoaringBitmap();
+		int count = 0;
+		for (int i = 0; i < 500; i++) {
+			for (int j = 0; j < 9943; j++) {
+				if (i % 2 == 0) r.add(count); count++;
+			}
+		}
+		RoaringBitmap limited = r.limit(1000000);
+		Assert.assertEquals(1000000,limited.getCardinality());
+		MyConsumer c = new MyConsumer();
+		limited.forEach(c);
+		Assert.assertEquals(1000000,c.count);
+		Assert.assertEquals(1000000,limited.toArray().length);
+
+	}
+
   @Test
   public void limitTest() {
     RoaringBitmap r = new RoaringBitmap();

@@ -801,7 +801,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     }
     int lastword = s % 64;
     if (lastword != 0) {
-      bc.bitmap[s / 64] = (bc.bitmap[s / 64] << (64 - lastword)) >> (64 - lastword);
+      bc.bitmap[s / 64] &= (0xFFFFFFFFFFFFFFFFL >>> (64 - lastword));
     }
     return bc;
   }

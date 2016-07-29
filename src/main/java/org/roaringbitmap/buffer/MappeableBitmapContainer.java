@@ -1176,7 +1176,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     }
     int lastword = s % 64;
     if (lastword != 0) {
-      bc.bitmap.put(s / 64, (bc.bitmap.get(s / 64) << (64 - lastword)) >> (64 - lastword));
+      bc.bitmap.put(s / 64, (bc.bitmap.get(s / 64) & (0xFFFFFFFFFFFFFFFFL >>> (64 - lastword))));
     }
     return bc;
   }
