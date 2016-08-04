@@ -159,9 +159,17 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
   // involves a binary search
   @Override
   public MappeableContainer getContainer(short x) {
-    final int i = unsignedBinarySearch(x);
-    if (i < 0) {
-      return null;
+    int i;
+    // the rationale here is that we can often get lucky and
+    // avoid a binary search:
+    if((BufferUtil.toIntUnsigned(x) < size) 
+        && (this.getKey(BufferUtil.toIntUnsigned(x)) == x)) {
+      i = BufferUtil.toIntUnsigned(x);
+    } else {
+      i = unsignedBinarySearch(x);
+      if (i < 0) {
+        return null;
+      }
     }
     return getContainerAtIndex(i);
   }

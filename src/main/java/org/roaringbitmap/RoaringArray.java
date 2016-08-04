@@ -328,9 +328,17 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
   // involves a binary search
   protected Container getContainer(short x) {
-    int i = this.binarySearch(0, size, x);
-    if (i < 0) {
-      return null;
+    int i;
+    // the rationale here is that we can often get lucky and
+    // avoid a binary search:
+    if((Util.toIntUnsigned(x) < size) 
+        && (this.keys[Util.toIntUnsigned(x)] == x)) {
+      i = Util.toIntUnsigned(x);
+    } else {
+      i = this.binarySearch(0, size, x);
+      if (i < 0) {
+        return null;
+      }
     }
     return this.values[i];
   }

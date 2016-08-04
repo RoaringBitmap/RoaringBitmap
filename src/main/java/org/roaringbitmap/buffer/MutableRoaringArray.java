@@ -300,9 +300,17 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
   // involves a binary search
   @Override
   public MappeableContainer getContainer(short x) {
-    final int i = this.binarySearch(0, size, x);
-    if (i < 0) {
-      return null;
+    int i;
+    // the rationale here is that we can often get lucky and
+    // avoid a binary search:
+    if((BufferUtil.toIntUnsigned(x) < size) 
+        && (this.keys[BufferUtil.toIntUnsigned(x)] == x)) {
+      i = BufferUtil.toIntUnsigned(x);
+    } else {
+      i = this.binarySearch(0, size, x);
+      if (i < 0) {
+        return null;
+      }
     }
     return this.values[i];
   }
