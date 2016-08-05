@@ -2158,15 +2158,7 @@ public final class RunContainer extends Container implements Cloneable {
     if (sizeAsBitmapContainer > sizeAsRunContainer) {
       return this;
     }
-    int card = this.getCardinality();
-    BitmapContainer answer = new BitmapContainer();
-    for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
-      int start = Util.toIntUnsigned(this.getValue(rlepos));
-      int end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
-      Util.setBitmapRange(answer.bitmap, start, end);
-    }
-    answer.cardinality = card;
-    return answer;
+    return toBitmapContainer();
   }
 
   /**
@@ -2381,6 +2373,19 @@ public final class RunContainer extends Container implements Cloneable {
         ic.accept(l);
       }
     }
+  }
+
+  @Override
+  public BitmapContainer toBitmapContainer() {
+    int card = this.getCardinality();
+    BitmapContainer answer = new BitmapContainer();
+    for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
+      int start = Util.toIntUnsigned(this.getValue(rlepos));
+      int end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+      Util.setBitmapRange(answer.bitmap, start, end);
+    }
+    answer.cardinality = card;
+    return answer;
   }
 
 };

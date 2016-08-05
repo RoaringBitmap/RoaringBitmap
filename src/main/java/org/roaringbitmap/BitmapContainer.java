@@ -1216,6 +1216,11 @@ public final class BitmapContainer extends Container implements Cloneable {
     }
   }
 
+  @Override
+  public BitmapContainer toBitmapContainer() {
+    return this;
+  }
+
 }
 
 

@@ -756,7 +756,13 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
    * @param x other parameter
    * @return aggregated container
    */
-
   public abstract MappeableContainer xor(MappeableRunContainer x);
+
+  /**
+   * Convert the current container to a BitmapContainer, if a conversion is needed.
+   * If the container is already a bitmap, the container is returned unchanged.
+   * @return a bitmap container
+   */
+  public abstract MappeableBitmapContainer toBitmapContainer() ;
 
 }
