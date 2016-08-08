@@ -3298,5 +3298,44 @@ public class TestRoaringBitmap {
 
   }
 
+  @Test
+  public void testLazyOr() {
+    MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
+    rb1.add(1<<16);
+    rb1.add(1<<18);
+    rb1.add(1<<19);
+    MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
+    rb2.add(4);
+    rb2.add(7);
+    rb2.add(8);
+    rb2.add(9);
+    MutableRoaringBitmap rb3 = new MutableRoaringBitmap();
+    rb3.add(1);
+    rb3.add(2);
+    rb3.add(3);
+    rb3.add(4);
+    rb3.add(5);
+    rb3.add(1<<16);
+    rb3.add(1<<17);
+    rb3.add(1<<20);
+    rb1.lazyor(rb2);
+    rb1.lazyor(rb3);
+    MutableRoaringBitmap rb4 = new MutableRoaringBitmap();
+    rb4.add(1);
+    rb4.add(2);
+    rb4.add(3);
+    rb4.add(4);
+    rb4.add(5);
+    rb4.add(7);
+    rb4.add(8);
+    rb4.add(9);
+    rb4.add(1<<16);
+    rb4.add(1<<17);
+    rb4.add(1<<18);
+    rb4.add(1<<19);
+    rb4.add(1<<20);
+    Assert.assertEquals(rb4, rb1);
+  }
+
 
 }

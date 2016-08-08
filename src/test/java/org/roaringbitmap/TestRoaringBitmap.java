@@ -4248,4 +4248,14 @@ public class TestRoaringBitmap {
     Assert.assertEquals(rb4, RoaringBitmap.lazyorfromlazyinputs(rb1, rb2));
     Assert.assertEquals(rb5, RoaringBitmap.or(rb1, rb2, rb3));
   }
+
+  @Test
+  public void testLazyOr() {
+    RoaringBitmap rb1 = RoaringBitmap.bitmapOf(1<<16, 1<<18, 1<<19);
+    rb1.lazyor(RoaringBitmap.bitmapOf(4, 7, 8, 9));
+    rb1.lazyor(RoaringBitmap.bitmapOf(1, 2, 3, 4, 5, 1<<16, 1<<17, 1<<20));
+    RoaringBitmap rb2 = RoaringBitmap.bitmapOf(1, 2, 3, 4, 5, 7, 8, 9, 1<<16, 1<<17, 1<<18, 1<<19, 1<<20);
+    Assert.assertEquals(rb2, rb1);
+  }
+
 }
