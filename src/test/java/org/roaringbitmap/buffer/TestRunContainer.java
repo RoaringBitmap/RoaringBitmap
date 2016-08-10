@@ -2072,4 +2072,60 @@ public class TestRunContainer {
     MappeableContainer result = rc.xor(bc);
     assertEquals(answer, result);
   }
+
+  @Test
+  public void iorArray() {
+    MappeableContainer rc = new MappeableRunContainer();
+    MappeableContainer ac = new MappeableArrayContainer();
+
+    ac = ac.add(0, 1);
+    rc = rc.ior(ac);
+    assertEquals(1, rc.getCardinality());
+
+    rc = new MappeableRunContainer();
+    rc = rc.add(0, 13);
+    rc = rc.ior(ac);
+    assertEquals(13, rc.getCardinality());
+
+    rc = new MappeableRunContainer();
+    rc = rc.add(0, 1<<16);
+    rc = rc.ior(ac);
+    assertEquals(1<<16, rc.getCardinality());
+  }
+
+  @Test
+  public void iorBitmap() {
+    MappeableContainer rc = new MappeableRunContainer();
+    MappeableContainer bc = new MappeableBitmapContainer();
+
+    bc = bc.add(0, 1);
+    rc = rc.ior(bc);
+    assertEquals(1, rc.getCardinality());
+
+    rc = new MappeableRunContainer();
+    rc = rc.add(0, 1<<16);
+    rc = rc.ior(bc);
+    assertEquals(1<<16, rc.getCardinality());
+  }
+
+  @Test
+  public void iorRun() {
+    MappeableContainer rc1 = new MappeableRunContainer();
+    MappeableContainer rc2 = new MappeableRunContainer();
+
+    rc2 = rc2.add(0, 1);
+    rc1 = rc1.ior(rc2);
+    assertEquals(1, rc1.getCardinality());
+
+    rc1 = new MappeableRunContainer();
+    rc1 = rc1.add(0, 13);
+    rc1 = rc1.ior(rc2);
+    assertEquals(13, rc1.getCardinality());
+
+    rc1 = new MappeableRunContainer();
+    rc1 = rc1.add(0, 1<<16);
+    rc1 = rc1.ior(rc2);
+    assertEquals(1<<16, rc1.getCardinality());
+  }
+
 }
