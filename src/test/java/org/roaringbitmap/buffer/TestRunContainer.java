@@ -2128,4 +2128,32 @@ public class TestRunContainer {
     assertEquals(1<<16, rc1.getCardinality());
   }
 
+
+  @Test
+  public void intersectsRun() {
+    MappeableContainer rc1 = new MappeableRunContainer();
+    MappeableContainer rc2 = new MappeableRunContainer();
+    rc1 = rc1.add(1, 13);
+    rc2 = rc2.add(19, 54);
+    assertFalse(rc1.intersects(rc2));
+    rc1 = rc1.add(15, 17);
+    assertFalse(rc1.intersects(rc2));
+    assertFalse(rc2.intersects(rc1));
+    rc1 = rc1.add(25, 27);
+    assertTrue(rc1.intersects(rc2));
+  }
+
+  @Test
+  public void intersectsArray() {
+    MappeableContainer rc = new MappeableRunContainer();
+    MappeableContainer ac = new MappeableArrayContainer();
+    rc = rc.add(1, 13);
+    ac = ac.add(19, 54);
+    assertFalse(rc.intersects(ac));
+    rc = rc.add(15, 17);
+    assertFalse(rc.intersects(ac));
+    rc = rc.add(25, 27);
+    assertTrue(rc.intersects(ac));
+  }
+
 }
