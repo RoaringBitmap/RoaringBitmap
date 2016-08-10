@@ -286,7 +286,7 @@ public final class FastAggregation {
   public static RoaringBitmap naive_or(Iterator<RoaringBitmap> bitmaps) {
     RoaringBitmap answer = new RoaringBitmap();
     while (bitmaps.hasNext()) {
-      answer.lazyor(bitmaps.next());
+      answer.naivelazyor(bitmaps.next());
     }
     answer.repairAfterLazy();
     return answer;
@@ -303,7 +303,7 @@ public final class FastAggregation {
   public static RoaringBitmap naive_or(RoaringBitmap... bitmaps) {
     RoaringBitmap answer = new RoaringBitmap();
     for (int k = 0; k < bitmaps.length; ++k) {
-      answer.lazyor(bitmaps[k]);
+      answer.naivelazyor(bitmaps[k]);
     }
     answer.repairAfterLazy();
     return answer;

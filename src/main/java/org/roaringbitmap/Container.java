@@ -804,4 +804,11 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    * @return aggregated container
    */
   public abstract Container xor(RunContainer x);
+
+  /**
+   * Convert the current container to a BitmapContainer, if a conversion is needed.
+   * If the container is already a bitmap, the container is returned unchanged.
+   * @return a bitmap container
+   */
+  public abstract BitmapContainer toBitmapContainer();
 }

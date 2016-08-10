@@ -327,8 +327,9 @@ public final class BufferFastAggregation {
   public static MutableRoaringBitmap naive_or(ImmutableRoaringBitmap... bitmaps) {
     MutableRoaringBitmap answer = new MutableRoaringBitmap();
     for (int k = 0; k < bitmaps.length; ++k) {
-      answer.or(bitmaps[k]);
+      answer.naivelazyor(bitmaps[k]);
     }
+    answer.repairAfterLazy();
     return answer;
   }
 
@@ -343,7 +344,7 @@ public final class BufferFastAggregation {
   public static MutableRoaringBitmap naive_or(@SuppressWarnings("rawtypes") Iterator bitmaps) {
     MutableRoaringBitmap answer = new MutableRoaringBitmap();
     while (bitmaps.hasNext()) {
-      answer.lazyor((ImmutableRoaringBitmap) bitmaps.next());
+      answer.naivelazyor((ImmutableRoaringBitmap) bitmaps.next());
     }
     answer.repairAfterLazy();
     return answer;

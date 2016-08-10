@@ -2094,15 +2094,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     if (sizeAsBitmapContainer > sizeAsRunContainer) {
       return this;
     }
-    int card = this.getCardinality();
-    MappeableBitmapContainer answer = new MappeableBitmapContainer();
-    for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
-      int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-      int end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
-      BufferUtil.setBitmapRange(answer.bitmap, start, end);
-    }
-    answer.cardinality = card;
-    return answer;
+    return toBitmapContainer();
   }
 
   /**
@@ -2448,6 +2440,20 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       }
     }
     return cardinality;
+  }
+
+
+  @Override
+  public MappeableBitmapContainer toBitmapContainer() {
+    int card = this.getCardinality();
+    MappeableBitmapContainer answer = new MappeableBitmapContainer();
+    for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
+      int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
+      int end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
+      BufferUtil.setBitmapRange(answer.bitmap, start, end);
+    }
+    answer.cardinality = card;
+    return answer;
   }
 
 

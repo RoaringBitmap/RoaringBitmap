@@ -1845,6 +1845,11 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     return x.andCardinality(this);
   }
 
+  @Override
+  public MappeableBitmapContainer toBitmapContainer() {
+    return this;
+  }
+
 
 }
 

@@ -1027,6 +1027,57 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
       getMappeableRoaringArray().appendCopy(x2.highLowContainer, pos2, length2);
     }
   }
+  
+  // call repairAfterLazy on result, eventually
+  // important: x2 should not have been computed lazily  
+  // this method is like lazyor except that it will convert
+  // the current container to a bitset
+  protected void naivelazyor(final ImmutableRoaringBitmap x2) {
+    int pos1 = 0, pos2 = 0;
+    int length1 = highLowContainer.size();
+    final int length2 = x2.highLowContainer.size();
+    main: if (pos1 < length1 && pos2 < length2) {
+      short s1 = highLowContainer.getKeyAtIndex(pos1);
+      short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+
+      while (true) {
+        if (s1 == s2) {
+          MappeableContainer c1 = highLowContainer
+              .getContainerAtIndex(pos1);
+          c1 = c1.toBitmapContainer();
+          getMappeableRoaringArray().setContainerAtIndex(pos1, 
+              c1.lazyIOR(x2.highLowContainer.getContainerAtIndex(pos2)));
+          pos1++;
+          pos2++;
+          if ((pos1 == length1) || (pos2 == length2)) {
+            break main;
+          }
+          s1 = highLowContainer.getKeyAtIndex(pos1);
+          s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+        } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
+          pos1++;
+          if (pos1 == length1) {
+            break main;
+          }
+          s1 = highLowContainer.getKeyAtIndex(pos1);
+        } else { // s1 > s2
+          getMappeableRoaringArray().insertNewKeyValueAt(pos1, s2,
+              x2.highLowContainer.getContainerAtIndex(pos2).clone());
+          pos1++;
+          length1++;
+          pos2++;
+          if (pos2 == length2) {
+            break main;
+          }
+          s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+        }
+      }
+    }
+    if (pos1 == length1) {
+      getMappeableRoaringArray().appendCopy(x2.highLowContainer, pos2, length2);
+    }
+  }
+
 
 
 
@@ -1338,5 +1389,6 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   public static long maximumSerializedSize(int cardinality, int universe_size) {
     return RoaringBitmap.maximumSerializedSize(cardinality, universe_size);
   }
+
 
 }

@@ -1468,6 +1468,55 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       highLowContainer.appendCopy(x2.highLowContainer, pos2, length2);
     }
   }
+  
+  // don't forget to call repairAfterLazy() afterward
+  // important: x2 should not have been computed lazily
+  // this method is like lazyor except that it will convert
+  // the current container to a bitset
+  protected void naivelazyor(RoaringBitmap  x2) {
+    int pos1 = 0, pos2 = 0;
+    int length1 = highLowContainer.size();
+    final int length2 = x2.highLowContainer.size();
+    main: if (pos1 < length1 && pos2 < length2) {
+      short s1 = highLowContainer.getKeyAtIndex(pos1);
+      short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+
+      while (true) {
+        if (s1 == s2) {
+          Container c1 = highLowContainer.getContainerAtIndex(pos1);
+          c1 = c1.toBitmapContainer();
+          this.highLowContainer.setContainerAtIndex(pos1, 
+              c1.lazyIOR(x2.highLowContainer.getContainerAtIndex(pos2)));
+          pos1++;
+          pos2++;
+          if ((pos1 == length1) || (pos2 == length2)) {
+            break main;
+          }
+          s1 = highLowContainer.getKeyAtIndex(pos1);
+          s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+        } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
+          pos1++;
+          if (pos1 == length1) {
+            break main;
+          }
+          s1 = highLowContainer.getKeyAtIndex(pos1);
+        } else { // s1 > s2
+          highLowContainer.insertNewKeyValueAt(pos1, s2,
+              x2.highLowContainer.getContainerAtIndex(pos2).clone());
+          pos1++;
+          length1++;
+          pos2++;
+          if (pos2 == length2) {
+            break main;
+          }
+          s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+        }
+      }
+    }
+    if (pos1 == length1) {
+      highLowContainer.appendCopy(x2.highLowContainer, pos2, length2);
+    }
+  }
 
   /**
    * Create a new Roaring bitmap containing at most maxcardinality integers.
@@ -2124,5 +2173,6 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
           final int rangeStart, final int rangeEnd) {
     return xor(bitmaps, (long) rangeStart, (long) rangeEnd);
   }
+
 
 }
