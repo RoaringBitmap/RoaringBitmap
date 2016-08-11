@@ -1,7 +1,7 @@
-version 0.6.12
+version 0.6.23
 - fix for #120 PeekableIntIterator.advanceIfNeeded does not work properly for certain numbers 
 
-version 0.6.11
+version 0.6.22
 - performance optimization when ORing many bitmaps
 
 version 0.6.21
