@@ -110,15 +110,17 @@ public class BufferIntIteratorFlyweight implements PeekableIntIterator {
 
   @Override
   public void advanceIfNeeded(int minval) {
-    while ((0xFFFF & (hs >>> 16)) < (0xFFFF & (minval >>> 16))) {
-      pos++;
-      if (pos < this.roaringBitmap.highLowContainer.size()) {
+    while (hasNext() && ((hs >>> 16) < (minval >>> 16))) {
+      ++pos;
+      nextContainer();
+    }
+    if (hasNext() && ((hs >>> 16) == (minval >>> 16))) {
+      iter.advanceIfNeeded(BufferUtil.lowbits(minval));
+      if (!iter.hasNext()) {
+        ++pos;
         nextContainer();
-      } else {
-        return;
       }
     }
-    iter.advanceIfNeeded(BufferUtil.lowbits(minval));
   }
 
   @Override

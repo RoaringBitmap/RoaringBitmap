@@ -18,6 +18,34 @@ import java.util.*;
  */
 @SuppressWarnings({"static-method"})
 public class TestRoaringBitmap {
+	@Test
+	public  void report128() {
+	    RoaringBitmap bitmap = new RoaringBitmap();
+        bitmap.add(59798854);
+        bitmap.add(91274955);
+        bitmap.add(97569495);
+        bitmap.add(101993170);
+        PeekableIntIterator it = bitmap.getIntIterator();
+        it.advanceIfNeeded(100620278);
+        Assert.assertTrue(it.hasNext());
+        Assert.assertEquals(101993170, it.next());
+        Assert.assertFalse(it.hasNext());
+	}
+	
+	@Test
+	public  void report128_fly() {
+	    RoaringBitmap bitmap = new RoaringBitmap();
+        bitmap.add(59798854);
+        bitmap.add(91274955);
+        bitmap.add(97569495);
+        bitmap.add(101993170);
+        IntIteratorFlyweight it = new IntIteratorFlyweight();
+        it.wrap(bitmap);
+        it.advanceIfNeeded(100620278);
+        Assert.assertTrue(it.hasNext());
+        Assert.assertEquals(101993170, it.next());
+        Assert.assertFalse(it.hasNext());
+	}
 
 	@Test
 	public  void limitBug2() {

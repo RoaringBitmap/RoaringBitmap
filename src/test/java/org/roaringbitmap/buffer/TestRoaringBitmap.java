@@ -11,6 +11,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.PeekableIntIterator;
 import org.roaringbitmap.RoaringBitmap;
 
 import java.io.*;
@@ -23,7 +24,34 @@ import java.util.*;
  */
 @SuppressWarnings({"static-method"})
 public class TestRoaringBitmap {
-
+	@Test
+	public  void report128() {
+	    MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+        bitmap.add(59798854);
+        bitmap.add(91274955);
+        bitmap.add(97569495);
+        bitmap.add(101993170);
+        PeekableIntIterator it = bitmap.getIntIterator();
+        it.advanceIfNeeded(100620278);
+        Assert.assertTrue(it.hasNext());
+        Assert.assertEquals(101993170, it.next());
+        Assert.assertFalse(it.hasNext());
+	}
+	
+	@Test
+	public  void report128_fly() {
+	    MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+        bitmap.add(59798854);
+        bitmap.add(91274955);
+        bitmap.add(97569495);
+        bitmap.add(101993170);
+        BufferIntIteratorFlyweight it = new BufferIntIteratorFlyweight();
+        it.wrap(bitmap);
+        it.advanceIfNeeded(100620278);
+        Assert.assertTrue(it.hasNext());
+        Assert.assertEquals(101993170, it.next());
+        Assert.assertFalse(it.hasNext());
+	}
 	@Test
 	public  void limitBug2() {
 		class MyConsumer implements IntConsumer {
