@@ -8,6 +8,7 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.roaringbitmap.realdata.state.RealDataBenchmarkState;
+import org.roaringbitmap.realdata.wrapper.BitmapFactory;
 
 import java.util.Collection;
 import java.util.List;
@@ -26,8 +27,8 @@ public abstract class RealDataBenchmarkSanityTest {
                                                     CENSUS_INCOME_SRT, CENSUS1881_SRT,
                                                     WEATHER_SEPT_85_SRT, WIKILEAKS_NOQUOTES_SRT };
 
-    public static final String[] BITMAP_TYPES = 
-        "ROARING_ONLY".equals(System.getProperty("BITMAP_TYPES")) 
+    public static final String[] BITMAP_TYPES =
+        ROARING_ONLY.equals(System.getProperty(BitmapFactory.BITMAP_TYPES))
             ? new String[] { ROARING, ROARING_WITH_RUN }
             : new String[] { CONCISE, WAH,
                              EWAH, EWAH32,

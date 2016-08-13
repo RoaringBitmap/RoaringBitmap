@@ -19,6 +19,11 @@ public abstract class AbstractBenchmarkState {
     }
 
     public void setup(String dataset, String type, boolean immutable) throws Exception {
+        if(ROARING_ONLY.equals(System.getProperty(BITMAP_TYPES))
+                && !ROARING.equals(type) && !ROARING_WITH_RUN.equals(type)) {
+            throw new RuntimeException(String.format("Skipping non Roaring type %s", type));
+        }
+
         bitmaps = new ArrayList<Bitmap>();
 
         ZipRealDataRetriever dataRetriever = new ZipRealDataRetriever(dataset);

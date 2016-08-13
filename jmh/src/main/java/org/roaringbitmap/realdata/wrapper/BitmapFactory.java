@@ -25,6 +25,8 @@ public final class BitmapFactory {
    public static final String EWAH32 = "ewah32";
    public static final String ROARING = "roaring";
    public static final String ROARING_WITH_RUN = "roaring_with_run";
+   public static final String ROARING_ONLY = "ROARING_ONLY";
+   public static final String BITMAP_TYPES = "BITMAP_TYPES";
 
    private static final List<File> TEMP_FILES = new ArrayList<File>();
 
