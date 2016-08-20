@@ -757,14 +757,12 @@ public class TestRange {
   @Test
   @SuppressWarnings( "deprecation" )
   public void testDeprecatedStaticAdd() {
-      RoaringBitmap rb1 = new RoaringBitmap();
-      RoaringBitmap.add(rb1, 300000, 500000);
-      RoaringBitmap rb2 = new RoaringBitmap();
-      RoaringBitmap.add(rb2,300000L, 500000L);
-      assertTrue(rb1.equals(rb2));
-      RoaringBitmap.add( rb1, Integer.MAX_VALUE+300000, Integer.MAX_VALUE+500000);
-      RoaringBitmap.add( rb2, Integer.MAX_VALUE+300000L, Integer.MAX_VALUE+500000L);
-      assertTrue(rb1.equals(rb2));
+    RoaringBitmap rb1 = RoaringBitmap.add(new RoaringBitmap(), 300000, 500000);
+    RoaringBitmap rb2 = RoaringBitmap.add(new RoaringBitmap(), 300000L, 500000L);
+    assertTrue(rb1.equals(rb2));
+    rb1 = RoaringBitmap.add( rb1, Integer.MAX_VALUE+300000, Integer.MAX_VALUE+500000);
+    rb2 = RoaringBitmap.add( rb2, Integer.MAX_VALUE+300000L, Integer.MAX_VALUE+500000L);
+    assertTrue(rb1.equals(rb2));
   }
 
   @Test
@@ -794,18 +792,16 @@ public class TestRange {
   @Test
   @SuppressWarnings( "deprecation" )
   public void testDeprecatedStaticRemove() {
-      RoaringBitmap rb1 = new RoaringBitmap();
-      RoaringBitmap.add(rb1,200000L, 400000L);
-      RoaringBitmap.remove(rb1, 300000, 500000);
-      RoaringBitmap rb2 = new RoaringBitmap();
-      RoaringBitmap.add(rb2,200000L, 400000L);
-      RoaringBitmap.remove(rb2,300000L, 500000L);
+      RoaringBitmap rb1 = RoaringBitmap.add(new RoaringBitmap(), 200000L, 400000L);
+      rb1 = RoaringBitmap.remove(rb1, 300000, 500000);
+      RoaringBitmap rb2 = RoaringBitmap.add(new RoaringBitmap(), 200000L, 400000L);
+      rb2 = RoaringBitmap.remove(rb2,300000L, 500000L);
       assertTrue(rb1.equals(rb2));
 
-      RoaringBitmap.add( rb1, Integer.MAX_VALUE+200000L, Integer.MAX_VALUE+400000L);
-      RoaringBitmap.add( rb2, Integer.MAX_VALUE+200000L, Integer.MAX_VALUE+400000L);
-      RoaringBitmap.remove( rb1, Integer.MAX_VALUE+300000, Integer.MAX_VALUE+500000);
-      RoaringBitmap.remove( rb2, Integer.MAX_VALUE+300000L, Integer.MAX_VALUE+500000L);
+      rb1 = RoaringBitmap.add(rb1, Integer.MAX_VALUE+200000L, Integer.MAX_VALUE+400000L);
+      rb2 = RoaringBitmap.add(rb2, Integer.MAX_VALUE+200000L, Integer.MAX_VALUE+400000L);
+      rb1 = RoaringBitmap.remove(rb1, Integer.MAX_VALUE+300000, Integer.MAX_VALUE+500000);
+      rb2 = RoaringBitmap.remove(rb2, Integer.MAX_VALUE+300000L, Integer.MAX_VALUE+500000L);
       assertTrue(rb1.equals(rb2));
   }
 
