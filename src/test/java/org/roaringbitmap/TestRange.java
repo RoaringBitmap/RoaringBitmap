@@ -770,16 +770,26 @@ public class TestRange {
   @Test
   @SuppressWarnings( "deprecation" )
   public void testDeprecatedStaticFlip() {
-      RoaringBitmap rb1 = new RoaringBitmap();
-      RoaringBitmap.flip(rb1, 300000, 500000);
-      RoaringBitmap rb2 = new RoaringBitmap();
-      RoaringBitmap.flip(rb2,300000L, 500000L);
-      assertTrue(rb1.equals(rb2));
-      RoaringBitmap.flip( rb1, Integer.MAX_VALUE+300000, Integer.MAX_VALUE+500000);
-      RoaringBitmap.flip( rb2, Integer.MAX_VALUE+300000L, Integer.MAX_VALUE+500000L);
-      assertTrue(rb1.equals(rb2));
+    RoaringBitmap rb1 = RoaringBitmap.flip(new RoaringBitmap(), 300000, 500000);
+    RoaringBitmap rb2 = RoaringBitmap.flip(new RoaringBitmap(), 300000L, 500000L);
+    assertTrue(rb1.equals(rb2));
+    rb1 = RoaringBitmap.flip(rb1, Integer.MAX_VALUE+300000, Integer.MAX_VALUE+500000);
+    rb2 = RoaringBitmap.flip(rb2, Integer.MAX_VALUE+300000L, Integer.MAX_VALUE+500000L);
+    assertTrue(rb1.equals(rb2));
   }
 
+  @Test
+  @SuppressWarnings( "deprecation" )
+  public void testDeprecatedMemberFlip() {
+    RoaringBitmap rb1 = new RoaringBitmap();
+    rb1.flip(300000, 500000);
+    RoaringBitmap rb2 = new RoaringBitmap();
+    rb2.flip(300000L, 500000L);
+    assertTrue(rb1.equals(rb2));
+    rb1.flip(Integer.MAX_VALUE+300000, Integer.MAX_VALUE+500000);
+    rb2.flip(Integer.MAX_VALUE+300000L, Integer.MAX_VALUE+500000L);
+    assertTrue(rb1.equals(rb2));
+  }
 
   @Test
   @SuppressWarnings( "deprecation" )
