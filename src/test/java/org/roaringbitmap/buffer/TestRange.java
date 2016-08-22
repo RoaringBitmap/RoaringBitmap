@@ -15,8 +15,20 @@ import org.junit.Test;
 
 
 public class TestRange {
-  
-  
+
+  @Test
+  @SuppressWarnings( "deprecation" )
+  public void testDeprecatedMemberFlip() {
+    MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
+    rb1.flip(300000, 500000);
+    MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
+    rb2.flip(300000L, 500000L);
+    assertTrue(rb1.equals(rb2));
+    rb1.flip(Integer.MAX_VALUE+300000, Integer.MAX_VALUE+500000);
+    rb2.flip(Integer.MAX_VALUE+300000L, Integer.MAX_VALUE+500000L);
+    assertTrue(rb1.equals(rb2));
+  }
+
   private static int fillWithRandomBits(final MutableRoaringBitmap bitmap, final BitSet bitset,
       final int bits) {
     int added = 0;

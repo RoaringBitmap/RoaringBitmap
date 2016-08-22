@@ -17,38 +17,38 @@ import java.util.Iterator;
  * MutableRoaringBitmap, a compressed alternative to the BitSet. It is similar to
  * org.roaringbitmap.RoaringBitmap, but it differs in that it can interact with
  * ImmutableRoaringBitmap objects.
- * 
+ *
  * A MutableRoaringBitmap is an instance of an ImmutableRoaringBitmap (where methods like
  * "serialize" are implemented). That is, they both share the same core (immutable) methods, but a
  * MutableRoaringBitmap adds methods that allow you to modify the object. This design allows us to
  * use MutableRoaringBitmap as ImmutableRoaringBitmap instances when needed.
- * 
+ *
  * A MutableRoaringBitmap can be used much like an org.roaringbitmap.RoaringBitmap instance, and
  * they serialize to the same output. The RoaringBitmap instance will be faster since it does not
  * carry the overhead of a ByteBuffer back-end, but the MutableRoaringBitmap can be used as an
  * ImmutableRoaringBitmap instance. Thus, if you use ImmutableRoaringBitmap, you probably need to
  * use MutableRoaringBitmap instances as well; if you do not use ImmutableRoaringBitmap, you
  * probably want to use only RoaringBitmap instances.
- * 
+ *
  * <pre>
  * {@code
  *      import org.roaringbitmap.buffer.*;
- *       
+ *
  *      //...
- *      
+ *
  *      MutableRoaringBitmap rr = MutableRoaringBitmap.bitmapOf(1,2,3,1000);
  *      MutableRoaringBitmap rr2 = new MutableRoaringBitmap();
  *      for(int k = 4000; k<4255;++k) rr2.add(k);
- *      
+ *
  *      RoaringBitmap rror = RoaringBitmap.or(rr, rr2);
- *      
+ *
  *      //...
  *      DataOutputStream wheretoserialize = ...
- *      rr.runOptimize(); // can help compression 
+ *      rr.runOptimize(); // can help compression
  *      rr.serialize(wheretoserialize);
  * }
  * </pre>
- * 
+ *
  * @see ImmutableRoaringBitmap
  * @see org.roaringbitmap.RoaringBitmap
  */
@@ -59,7 +59,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
   /**
    * Generate a new bitmap with all integers in [rangeStart,rangeEnd) added.
-   * 
+   *
    * @param rb initial bitmap (will not be modified)
    * @param rangeStart inclusive beginning of range
    * @param rangeEnd exclusive ending of range
@@ -116,10 +116,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     return answer;
   }
 
-  /** 
+  /**
    *
    * Generate a new bitmap with all integers in [rangeStart,rangeEnd) added.
-   * 
+   *
    * @param rb initial bitmap (will not be modified)
    * @param rangeStart inclusive beginning of range
    * @param rangeEnd exclusive ending of range
@@ -127,23 +127,23 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @deprecated use the version where longs specify the range
    */
   @Deprecated
-    public static MutableRoaringBitmap add(MutableRoaringBitmap rb, 
+    public static MutableRoaringBitmap add(MutableRoaringBitmap rb,
                                            final int rangeStart, final int rangeEnd) {
     if (rangeStart >= 0) {
       return add(rb, (long) rangeStart, (long) rangeEnd);
     }
     // rangeStart being -ve and rangeEnd being positive is not expected)
     // so assume both -ve
-    return add(rb, rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL); 
+    return add(rb, rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL);
   }
-  
-  
+
+
 
 
   /**
    * Bitwise AND (intersection) operation. The provided bitmaps are *not* modified. This operation
    * is thread-safe as long as the provided bitmaps remain unchanged.
-   * 
+   *
    * @param x1 first bitmap
    * @param x2 other bitmap
    * @return result of the operation
@@ -179,7 +179,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   /**
    * Bitwise ANDNOT (difference) operation. The provided bitmaps are *not* modified. This operation
    * is thread-safe as long as the provided bitmaps remain unchanged.
-   * 
+   *
    * @param x1 first bitmap
    * @param x2 other bitmap
    * @return result of the operation
@@ -221,7 +221,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * Generate a bitmap with the specified values set to true. The provided integers values don't
    * have to be in sorted order, but it may be preferable to sort them from a performance point of
    * view.
-   * 
+   *
    * @param dat set values
    * @return a new bitmap
    */
@@ -236,7 +236,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
   protected static void rangeSanityCheck(final long rangeStart, final long rangeEnd) {
     if (rangeStart < 0 || rangeStart > (1L << 32)-1) {
-      throw new IllegalArgumentException("rangeStart="+ rangeStart 
+      throw new IllegalArgumentException("rangeStart="+ rangeStart
                                          +" should be in [0, 0xffffffff]");
     }
     if (rangeEnd > (1L << 32) || rangeEnd < 0) {
@@ -248,7 +248,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   /**
    * Complements the bits in the given range, from rangeStart (inclusive) rangeEnd (exclusive). The
    * given bitmap is unchanged.
-   * 
+   *
    * @param bm bitmap being negated
    * @param rangeStart inclusive beginning of range
    * @param rangeEnd exclusive ending of range
@@ -302,7 +302,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   /**
    * Complements the bits in the given range, from rangeStart (inclusive) rangeEnd (exclusive). The
    * given bitmap is unchanged.
-   * 
+   *
    * @param rb bitmap being negated
    * @param rangeStart inclusive beginning of range
    * @param rangeEnd exclusive ending of range
@@ -310,14 +310,14 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @deprecated use the version where longs specify the range
    */
   @Deprecated
-    public static MutableRoaringBitmap flip(MutableRoaringBitmap rb, 
+    public static MutableRoaringBitmap flip(MutableRoaringBitmap rb,
                                             final int rangeStart, final int rangeEnd) {
     if (rangeStart >= 0) {
       return flip(rb, (long) rangeStart, (long) rangeEnd);
     }
     // rangeStart being -ve and rangeEnd being positive is not expected)
     // so assume both -ve
-    return flip(rb, rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL); 
+    return flip(rb, rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL);
   }
 
   // important: inputs should not have been computed lazily
@@ -374,9 +374,9 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
   /**
    * Compute overall OR between bitmaps.
-   * 
+   *
    * (Effectively calls {@link BufferFastAggregation#or})
-   * 
+   *
    *
    * @param bitmaps input bitmaps
    * @return aggregated bitmap
@@ -388,7 +388,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   /**
    * Bitwise OR (union) operation. The provided bitmaps are *not* modified. This operation is
    * thread-safe as long as the provided bitmaps remain unchanged.
-   * 
+   *
    * @param x1 first bitmap
    * @param x2 other bitmap
    * @return result of the operation
@@ -442,7 +442,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
   /**
    * Generate a new bitmap with all integers in [rangeStart,rangeEnd) removed.
-   * 
+   *
    * @param rb initial bitmap (will not be modified)
    * @param rangeStart inclusive beginning of range
    * @param rangeEnd exclusive ending of range
@@ -498,7 +498,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
   /**
    * Generate a new bitmap with all integers in [rangeStart,rangeEnd) removed.
-   * 
+   *
    * @param rb initial bitmap (will not be modified)
    * @param rangeStart inclusive beginning of range
    * @param rangeEnd exclusive ending of range
@@ -506,14 +506,14 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @deprecated use the version where longs specify the range
    */
   @Deprecated
-    public static MutableRoaringBitmap remove(MutableRoaringBitmap rb, 
+    public static MutableRoaringBitmap remove(MutableRoaringBitmap rb,
                                               final int rangeStart, final int rangeEnd) {
     if (rangeStart >= 0) {
       return remove(rb, (long) rangeStart, (long) rangeEnd);
     }
     // rangeStart being -ve and rangeEnd being positive is not expected)
     // so assume both -ve
-    return remove(rb, rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL); 
+    return remove(rb, rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL);
   }
 
 
@@ -530,7 +530,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   /**
    * Bitwise XOR (symmetric difference) operation. The provided bitmaps are *not* modified. This
    * operation is thread-safe as long as the provided bitmaps remain unchanged.
-   * 
+   *
    * @param x1 first bitmap
    * @param x2 other bitmap
    * @return result of the operation
@@ -597,7 +597,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
   /**
    * Create a MutableRoaringBitmap from a RoaringBitmap. The RoaringBitmap is not modified.
-   * 
+   *
    * @param rb the original bitmap
    */
   public MutableRoaringBitmap(RoaringBitmap rb) {
@@ -612,7 +612,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
   /**
    * Add the value to the container (set the value to "true"), whether it already appears or not.
-   * 
+   *
    * @param x integer value
    */
   @Override
@@ -664,7 +664,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   }
 
  /**
-   * 
+   *
    * Add to the current bitmap all integers in [rangeStart,rangeEnd).
    *
    * @param rangeStart inclusive beginning of range
@@ -678,7 +678,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     }
     // rangeStart being -ve and rangeEnd being positive is not expected)
     // so assume both -ve
-    add(rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL); 
+    add(rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL);
   }
 
 
@@ -686,7 +686,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
   /**
    * In-place bitwise AND (intersection) operation. The current bitmap is modified.
-   * 
+   *
    * @param array other bitmap
    */
   public void and(final ImmutableRoaringBitmap array) {
@@ -717,7 +717,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
   /**
    * In-place bitwise ANDNOT (difference) operation. The current bitmap is modified.
-   * 
+   *
    * @param x2 other bitmap
    */
   public void andNot(final ImmutableRoaringBitmap x2) {
@@ -821,7 +821,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
   /**
    * Deserialize the bitmap (retrieve from the input stream). The current bitmap is overwritten.
-   * 
+   *
    * @param in the DataInput stream
    * @throws IOException Signals that an I/O exception has occurred.
    */
@@ -831,7 +831,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
   /**
    * Add the value if it is not already present, otherwise remove it.
-   * 
+   *
    * @param x integer value
    */
   public void flip(final int x) {
@@ -857,7 +857,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   /**
    * Modifies the current bitmap by complementing the bits in the given range, from rangeStart
    * (inclusive) rangeEnd (exclusive).
-   * 
+   *
    * @param rangeStart inclusive beginning of range
    * @param rangeEnd exclusive ending of range
    */
@@ -898,7 +898,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
  /**
    * Modifies the current bitmap by complementing the bits in the given range, from rangeStart
    * (inclusive) rangeEnd (exclusive).
-   * 
+   *
    * @param rangeStart inclusive beginning of range
    * @param rangeEnd exclusive ending of range
    * @deprecated use the version where longs specify the range
@@ -907,10 +907,11 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     public void flip(final int rangeStart, final int rangeEnd) {
     if (rangeStart >= 0) {
       flip((long) rangeStart, (long) rangeEnd);
+    } else {
+      // rangeStart being -ve and rangeEnd being positive is not expected)
+      // so assume both -ve
+      flip(rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL); 
     }
-    // rangeStart being -ve and rangeEnd being positive is not expected)
-    // so assume both -ve
-    flip(rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL); 
   }
 
 
@@ -932,7 +933,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
   /**
    * iterate over the positions of the true values.
-   * 
+   *
    * @return the iterator
    */
   @Override
@@ -1027,9 +1028,9 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
       getMappeableRoaringArray().appendCopy(x2.highLowContainer, pos2, length2);
     }
   }
-  
+
   // call repairAfterLazy on result, eventually
-  // important: x2 should not have been computed lazily  
+  // important: x2 should not have been computed lazily
   // this method is like lazyor except that it will convert
   // the current container to a bitset
   protected void naivelazyor(final ImmutableRoaringBitmap x2) {
@@ -1045,7 +1046,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
           MappeableContainer c1 = highLowContainer
               .getContainerAtIndex(pos1);
           c1 = c1.toBitmapContainer();
-          getMappeableRoaringArray().setContainerAtIndex(pos1, 
+          getMappeableRoaringArray().setContainerAtIndex(pos1,
               c1.lazyIOR(x2.highLowContainer.getContainerAtIndex(pos2)));
           pos1++;
           pos2++;
@@ -1083,7 +1084,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
   /**
    * In-place bitwise OR (union) operation. The current bitmap is modified.
-   * 
+   *
    * @param x2 other bitmap
    */
   public void or(final ImmutableRoaringBitmap x2) {
@@ -1140,7 +1141,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
   /**
    * If present remove the specified integers (effectively, sets its bit value to false)
-   * 
+   *
    * @param x integer value representing the index in a bitmap
    */
   @Override
@@ -1233,13 +1234,13 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     }
     // rangeStart being -ve and rangeEnd being positive is not expected)
     // so assume both -ve
-    remove(rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL); 
+    remove(rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL);
   }
 
 
   /**
    * Remove run-length encoding even when it is more space efficient
-   * 
+   *
    * @return whether a change was applied
    */
   public boolean removeRunCompression() {
@@ -1267,7 +1268,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
   /**
    * Use a run-length encoding where it is estimated as more space efficient
-   * 
+   *
    * @return whether a change was applied
    */
   public boolean runOptimize() {
@@ -1284,17 +1285,17 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
   /**
    * Convenience method, effectively casts the object to an object of class ImmutableRoaringBitmap.
-   * 
-   * 
+   *
+   *
    * This function is equivalent to :
-   * 
+   *
    * <pre>
    * {@code
    *       (ImmutableRoaringBitmap) bitmap
    * }
    * </pre>
-   * 
-   * 
+   *
+   *
    * @return a cast of this object
    */
   public ImmutableRoaringBitmap toImmutableRoaringBitmap() {
@@ -1323,7 +1324,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
   /**
    * In-place bitwise XOR (symmetric difference) operation. The current bitmap is modified.
-   * 
+   *
    * @param x2 other bitmap
    */
   public void xor(final ImmutableRoaringBitmap x2) {
@@ -1375,13 +1376,13 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
       getMappeableRoaringArray().appendCopy(x2.highLowContainer, pos2, length2);
     }
   }
-  
+
   /**
    * Assume that one wants to store "cardinality" integers in [0, universe_size),
    * this function returns an upper bound on the serialized size in bytes.
-   * 
+   *
    * This function is identical to RoaringBitmap.maximumSerializedSize.
-   * 
+   *
    * @param cardinality maximal cardinality
    * @param universe_size maximal value
    * @return upper bound on the serialized size in bytes of the bitmap

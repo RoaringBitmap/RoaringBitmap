@@ -24,6 +24,17 @@ import java.util.*;
  */
 @SuppressWarnings({"static-method"})
 public class TestRoaringBitmap {
+	
+	@Test
+	public void testStringer() {
+	    MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+	    bitmap.add(1);
+	    bitmap.add(2);
+	    bitmap.add(3);
+	    bitmap.add(0xFFFFFFFF);
+	    Assert.assertEquals("{1,2,3,4294967295}",bitmap.toString());		
+	}
+	
 	@Test
 	public  void report128() {
 	    MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
