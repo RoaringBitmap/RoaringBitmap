@@ -1253,10 +1253,11 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     public void flip(final int rangeStart, final int rangeEnd) {
     if (rangeStart >= 0) {
       flip((long) rangeStart, (long) rangeEnd);
+    } else {
+      // rangeStart being -ve and rangeEnd being positive is not expected)
+      // so assume both -ve
+      flip(rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL);
     }
-    // rangeStart being -ve and rangeEnd being positive is not expected)
-    // so assume both -ve
-    flip(rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL); 
   }
 
 
@@ -1915,7 +1916,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   /**
    * Return new iterator with only values from rangeStart (inclusive) to rangeEnd (exclusive)
    * 
-   * @param input bitmaps iterator
+   * @param bitmaps bitmaps iterator
    * @param rangeStart inclusive
    * @param rangeEnd exclusive
    * @return new iterator of bitmaps
