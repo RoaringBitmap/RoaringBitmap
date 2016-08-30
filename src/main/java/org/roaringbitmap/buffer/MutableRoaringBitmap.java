@@ -227,8 +227,57 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    */
   public static MutableRoaringBitmap bitmapOf(final int... dat) {
     final MutableRoaringBitmap ans = new MutableRoaringBitmap();
-    for (final int i : dat) {
-      ans.add(i);
+    MutableRoaringArray mra = (MutableRoaringArray) ans.highLowContainer;
+    MappeableContainer currentcont = null;
+    short currenthb = 0;
+    int currentcontainerindex = 0;
+    int j = 0;
+    if(j < dat.length) {
+      int val = dat[j];
+      currenthb = BufferUtil.highbits(val);
+      currentcontainerindex = ans.highLowContainer.getIndex(currenthb);
+      if (currentcontainerindex >= 0) {
+        currentcont = ans.highLowContainer.getContainerAtIndex(currentcontainerindex);
+        MappeableContainer newcont = currentcont.add(BufferUtil.lowbits(val));
+        if(newcont != currentcont) {
+          mra.setContainerAtIndex(currentcontainerindex, newcont);
+          currentcont = newcont;
+        }
+      } else {
+        currentcontainerindex = - currentcontainerindex - 1;
+        final MappeableArrayContainer newac = new MappeableArrayContainer();
+        currentcont = newac.add(BufferUtil.lowbits(val));
+        mra.insertNewKeyValueAt(currentcontainerindex, currenthb, currentcont);
+      }
+      j++;
+    }
+    for( ; j < dat.length; ++j) {
+      int val = dat[j];
+      short newhb = BufferUtil.highbits(val);
+      if(currenthb == newhb) {// easy case
+        // this could be quite frequent
+        MappeableContainer newcont = currentcont.add(BufferUtil.lowbits(val));
+        if(newcont != currentcont) {
+          mra.setContainerAtIndex(currentcontainerindex, newcont);
+          currentcont = newcont;
+        }     
+      } else {
+        currenthb = newhb;
+        currentcontainerindex = ans.highLowContainer.getIndex(currenthb);
+        if (currentcontainerindex >= 0) {
+          currentcont = ans.highLowContainer.getContainerAtIndex(currentcontainerindex);
+          MappeableContainer newcont = currentcont.add(BufferUtil.lowbits(val));
+          if(newcont != currentcont) {
+            mra.setContainerAtIndex(currentcontainerindex, newcont);
+            currentcont = newcont;
+          }
+        } else {
+          currentcontainerindex = - currentcontainerindex - 1;
+          final MappeableArrayContainer newac = new MappeableArrayContainer();
+          currentcont = newac.add(BufferUtil.lowbits(val));
+          mra.insertNewKeyValueAt(currentcontainerindex, currenthb, currentcont);
+        } 
+      }      
     }
     return ans;
   }

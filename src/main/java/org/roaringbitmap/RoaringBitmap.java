@@ -372,8 +372,56 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   public static RoaringBitmap bitmapOf(final int... dat) {
     final RoaringBitmap ans = new RoaringBitmap();
-    for (final int i : dat) {
-      ans.add(i);
+    Container currentcont = null;
+    short currenthb = 0;
+    int currentcontainerindex = 0;
+    int j = 0;
+    if(j < dat.length) {
+      int val = dat[j];
+      currenthb = Util.highbits(val);
+      currentcontainerindex = ans.highLowContainer.getIndex(currenthb);
+      if (currentcontainerindex >= 0) {
+        currentcont = ans.highLowContainer.getContainerAtIndex(currentcontainerindex);
+        Container newcont = currentcont.add(Util.lowbits(val));
+        if(newcont != currentcont) {
+          ans.highLowContainer.setContainerAtIndex(currentcontainerindex, newcont);
+          currentcont = newcont;
+        }
+      } else {
+        currentcontainerindex = - currentcontainerindex - 1;
+        final ArrayContainer newac = new ArrayContainer();
+        currentcont = newac.add(Util.lowbits(val));
+        ans.highLowContainer.insertNewKeyValueAt(currentcontainerindex, currenthb, currentcont);
+      }
+      j++;
+    }
+    for( ; j < dat.length; ++j) {
+      int val = dat[j];
+      short newhb = Util.highbits(val);
+      if(currenthb == newhb) {// easy case
+        // this could be quite frequent
+        Container newcont = currentcont.add(Util.lowbits(val));
+        if(newcont != currentcont) {
+          ans.highLowContainer.setContainerAtIndex(currentcontainerindex, newcont);
+          currentcont = newcont;
+        }     
+      } else {
+        currenthb = newhb;
+        currentcontainerindex = ans.highLowContainer.getIndex(currenthb);
+        if (currentcontainerindex >= 0) {
+          currentcont = ans.highLowContainer.getContainerAtIndex(currentcontainerindex);
+          Container newcont = currentcont.add(Util.lowbits(val));
+          if(newcont != currentcont) {
+            ans.highLowContainer.setContainerAtIndex(currentcontainerindex, newcont);
+            currentcont = newcont;
+          }
+        } else {
+          currentcontainerindex = - currentcontainerindex - 1;
+          final ArrayContainer newac = new ArrayContainer();
+          currentcont = newac.add(Util.lowbits(val));
+          ans.highLowContainer.insertNewKeyValueAt(currentcontainerindex, currenthb, currentcont);
+        } 
+      }      
     }
     return ans;
   }
