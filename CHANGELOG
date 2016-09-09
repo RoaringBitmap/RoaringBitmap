@@ -1,3 +1,6 @@
+version 0.6.25
+- adding a new "add" function that can be used to more quicly add several values at once
+
 version 0.6.24
 - optimizing bitmapOf
 

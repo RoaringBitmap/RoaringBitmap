@@ -215,19 +215,16 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     }
     return answer;
   }
-
-
   /**
-   * Generate a bitmap with the specified values set to true. The provided integers values don't
+   * Set all the specified values  to true. This can be expected to be slightly
+   * faster than calling "add" repeatedly. The provided integers values don't
    * have to be in sorted order, but it may be preferable to sort them from a performance point of
    * view.
    *
    * @param dat set values
-   * @return a new bitmap
    */
-  public static MutableRoaringBitmap bitmapOf(final int... dat) {
-    final MutableRoaringBitmap ans = new MutableRoaringBitmap();
-    MutableRoaringArray mra = (MutableRoaringArray) ans.highLowContainer;
+  public void add(final int... dat) {
+    MutableRoaringArray mra = (MutableRoaringArray) highLowContainer;
     MappeableContainer currentcont = null;
     short currenthb = 0;
     int currentcontainerindex = 0;
@@ -235,9 +232,9 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     if(j < dat.length) {
       int val = dat[j];
       currenthb = BufferUtil.highbits(val);
-      currentcontainerindex = ans.highLowContainer.getIndex(currenthb);
+      currentcontainerindex = highLowContainer.getIndex(currenthb);
       if (currentcontainerindex >= 0) {
-        currentcont = ans.highLowContainer.getContainerAtIndex(currentcontainerindex);
+        currentcont = highLowContainer.getContainerAtIndex(currentcontainerindex);
         MappeableContainer newcont = currentcont.add(BufferUtil.lowbits(val));
         if(newcont != currentcont) {
           mra.setContainerAtIndex(currentcontainerindex, newcont);
@@ -263,9 +260,9 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         }     
       } else {
         currenthb = newhb;
-        currentcontainerindex = ans.highLowContainer.getIndex(currenthb);
+        currentcontainerindex = highLowContainer.getIndex(currenthb);
         if (currentcontainerindex >= 0) {
-          currentcont = ans.highLowContainer.getContainerAtIndex(currentcontainerindex);
+          currentcont = highLowContainer.getContainerAtIndex(currentcontainerindex);
           MappeableContainer newcont = currentcont.add(BufferUtil.lowbits(val));
           if(newcont != currentcont) {
             mra.setContainerAtIndex(currentcontainerindex, newcont);
@@ -279,8 +276,22 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         } 
       }      
     }
+  }
+
+  /**
+   * Generate a bitmap with the specified values set to true. The provided integers values don't
+   * have to be in sorted order, but it may be preferable to sort them from a performance point of
+   * view.
+   *
+   * @param dat set values
+   * @return a new bitmap
+   */
+  public static MutableRoaringBitmap bitmapOf(final int... dat) {
+    final MutableRoaringBitmap ans = new MutableRoaringBitmap();
+    ans.add(dat);
     return ans;
   }
+
 
 
   protected static void rangeSanityCheck(final long rangeStart, final long rangeEnd) {
