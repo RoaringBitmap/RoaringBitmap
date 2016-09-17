@@ -12,6 +12,16 @@ import org.junit.Test;
 
 
 public class TestRange {
+  @Test
+  public void flip64() {
+    RoaringBitmap rb = new RoaringBitmap();
+    rb.add(0);
+    rb.flip(1L, 2L);
+    IntIterator i = rb.getIntIterator();
+    assertTrue(i.next() == 0);
+    assertTrue(i.next() == 1);
+    assertFalse(i.hasNext());
+  }
 
   private static int fillWithRandomBits(final RoaringBitmap bitmap, final BitSet bitset,
       final int bits) {

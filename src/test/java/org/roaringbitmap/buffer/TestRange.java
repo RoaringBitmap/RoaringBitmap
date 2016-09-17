@@ -12,10 +12,21 @@ import java.util.List;
 import java.util.ArrayList;
 
 import org.junit.Test;
+import org.roaringbitmap.IntIterator;
 
 
 public class TestRange {
-
+  @Test
+  public void flip64() {
+    MutableRoaringBitmap rb = new MutableRoaringBitmap();
+    rb.add(0);
+    rb.flip(1L, 2L);
+    IntIterator i = rb.getIntIterator();
+    assertTrue(i.next() == 0);
+    assertTrue(i.next() == 1);
+    assertFalse(i.hasNext());
+  }
+  
   @Test
   @SuppressWarnings( "deprecation" )
   public void testDeprecatedMemberFlip() {
