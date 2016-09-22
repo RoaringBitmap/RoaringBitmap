@@ -1316,6 +1316,17 @@ public class TestRunContainer {
   }
 
   @Test
+  public void ior2() {
+    Container rc = new RunContainer();
+    Container ac = new ArrayContainer();
+    rc.iadd(0, 128);
+    rc.iadd(256, 512);
+    ac.iadd(128, 256);
+    rc.ior(ac);
+    assertEquals(512, rc.getCardinality());
+  }
+
+  @Test
   public void iremove1() {
     Container rc = new RunContainer();
     rc.add((short) 1);
@@ -2435,6 +2446,15 @@ public class TestRunContainer {
     assertEquals(256, container.select(4));
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void select2() {
+    RunContainer container = new RunContainer();
+    container.add((short) 0);
+    container.add((short) 3);
+    container.add((short) 118);
+    container.select(666);
+  }
+
   @Test
   public void simpleIterator() {
     RunContainer x = new RunContainer();
@@ -2858,6 +2878,16 @@ public class TestRunContainer {
 
     rc2 = rc2.add(30, 40);
     assertTrue(rc1.intersects(rc2));
+  }
+
+  @Test
+  public void intersects3() {
+    Container rc = new RunContainer();
+    Container bc = new BitmapContainer();
+
+    rc = rc.add(10, 50);
+    bc = bc.add(100, 500);
+    assertFalse(rc.intersects(bc));
   }
 
   @Test(expected = RuntimeException.class)
