@@ -2929,5 +2929,45 @@ public class TestRunContainer {
     assertEquals("[1,1]", rc.toString());
   }
 
+  @Test
+  public void lazyIOR() {
+    Container rc = new RunContainer();
+    Container ac = new ArrayContainer();
+
+    ac = ac.add(0, 1);
+    rc = rc.lazyIOR(ac);
+    assertEquals(1, rc.getCardinality());
+
+    rc = new RunContainer();
+    rc = rc.add(0, 13);
+    rc = rc.lazyIOR(ac);
+    assertEquals(13, rc.getCardinality());
+
+    rc = new RunContainer();
+    rc = rc.add(0, 1<<16);
+    rc = rc.lazyIOR(ac);
+    assertEquals(1<<16, rc.getCardinality());
+  }
+
+  @Test
+  public void lazyOR() {
+    Container rc = new RunContainer();
+    Container ac = new ArrayContainer();
+
+    ac = ac.add(0, 1);
+    rc = rc.lazyOR(ac);
+    assertEquals(1, rc.getCardinality());
+
+    rc = new RunContainer();
+    rc = rc.add(0, 13);
+    rc = rc.lazyOR(ac);
+    assertEquals(13, rc.getCardinality());
+
+    rc = new RunContainer();
+    rc = rc.add(0, 1<<16);
+    rc = rc.lazyOR(ac);
+    assertEquals(1<<16, rc.getCardinality());
+  }
+
 
 }
