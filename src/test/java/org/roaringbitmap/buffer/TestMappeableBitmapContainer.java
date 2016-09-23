@@ -5,11 +5,13 @@
 package org.roaringbitmap.buffer;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import org.junit.Test;
+import org.roaringbitmap.ShortIterator;
 
 
 public class TestMappeableBitmapContainer {
@@ -250,4 +252,95 @@ public class TestMappeableBitmapContainer {
   public void testPreviousTooSmall() {
     emptyContainer().prevSetBit(-1);
   }
+
+  @Test(expected = RuntimeException.class)
+  public void addInvalidRange() {
+    MappeableBitmapContainer bc = new MappeableBitmapContainer();
+    bc.add(10,1);
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void iaddInvalidRange() {
+    MappeableBitmapContainer bc = new MappeableBitmapContainer();
+    bc.iadd(10,1);
+  }
+
+  @Test
+  public void iand() {
+    MappeableBitmapContainer bc = new MappeableBitmapContainer();
+    MappeableRunContainer rc = new MappeableRunContainer();
+    bc.iadd(1,13);
+    rc.iadd(5,27);
+    MappeableContainer result = bc.iand(rc);
+    assertEquals(8, result.getCardinality());
+    for (short i = 5; i < 13; i++) {
+      assertTrue(result.contains(i));
+    }
+  }
+
+  @Test
+  public void ior() {
+    MappeableBitmapContainer bc = new MappeableBitmapContainer();
+    MappeableRunContainer rc = new MappeableRunContainer();
+    bc.iadd(1,13);
+    rc.iadd(5,27);
+    MappeableContainer result = bc.ior(rc);
+    assertEquals(26, result.getCardinality());
+    for (short i = 1; i < 27; i++) {
+      assertTrue(result.contains(i));
+    }
+  }
+
+  @Test
+  public void iremoveEmptyRange() {
+    MappeableBitmapContainer bc = new MappeableBitmapContainer();
+    bc.iremove(1,1);
+    assertEquals(0, bc.getCardinality());
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void iremoveInvalidRange() {
+    MappeableBitmapContainer bc = new MappeableBitmapContainer();
+    bc.iremove(13,1);
+  }
+
+  @Test
+  public void iremove() {
+    MappeableBitmapContainer bc = new MappeableBitmapContainer();
+    bc.iremove(1,13);
+    assertEquals(0, bc.getCardinality());
+  }
+
+  @Test
+  public void numberOfRuns() {
+    MappeableContainer bc = new MappeableBitmapContainer();
+    bc = bc.add(1,13);
+    bc = bc.add(19,27);
+    assertEquals(2, bc.numberOfRuns());
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void selectInvalidPosition() {
+    MappeableContainer bc = new MappeableBitmapContainer();
+    bc = bc.add(1,13);
+    bc.select(100);
+  }
+
+  @Test
+  public void reverseShortIterator() {
+    MappeableBitmapContainer bc = new MappeableBitmapContainer();
+    bc = (MappeableBitmapContainer) bc.iadd(1,13);
+    bc = (MappeableBitmapContainer) bc.iadd(10017,10029);
+    ShortIterator iterator = new ReverseMappeableBitmapContainerShortIterator(bc);
+    for (int i = 10028; i >= 10017; i--) {
+      assertTrue(iterator.hasNext());
+      assertEquals(i, iterator.next());
+    }
+    for (int i = 12; i >= 1; i--) {
+      assertTrue(iterator.hasNext());
+      assertEquals(i, iterator.next());
+    }
+    assertFalse(iterator.hasNext());
+  }
+
 }

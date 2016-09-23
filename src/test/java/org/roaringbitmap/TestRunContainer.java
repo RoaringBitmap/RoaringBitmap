@@ -1614,6 +1614,14 @@ public class TestRunContainer {
   }
 
   @Test
+  public void iremoveEmptyRange() {
+    RunContainer container = new RunContainer();
+    assertEquals(0, container.getCardinality());
+    container.iremove(0,0);
+    assertEquals(0, container.getCardinality());
+  }
+
+  @Test
   public void iterator() {
     RunContainer x = new RunContainer();
     for (int k = 0; k < 100; ++k) {
@@ -2831,6 +2839,15 @@ public class TestRunContainer {
   }
 
   @Test
+  public void xor5() {
+    Container rc1 = new RunContainer();
+    Container rc2 = new RunContainer();
+    rc2.iadd(1, 13);
+    assertEquals(rc2, rc1.xor(rc2));
+    assertEquals(rc2, rc2.xor(rc1));
+  }
+
+  @Test
   public void intersects1() {
     Container ac = new ArrayContainer();
     ac = ac.add((short) 1);
@@ -2904,5 +2921,13 @@ public class TestRunContainer {
     rc.ensureCapacity(10);
     assertTrue(rc.contains((short) 13));
   }
+
+  @Test
+  public void testToString() {
+    Container rc = new RunContainer();
+    rc.add((short)1);
+    assertEquals("[1,1]", rc.toString());
+  }
+
 
 }
