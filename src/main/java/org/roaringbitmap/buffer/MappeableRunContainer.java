@@ -2335,7 +2335,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   @Override
   public int andCardinality(MappeableArrayContainer x) {
     if (this.nbrruns == 0) {
-      return x.cardinality;
+      return 0;
     }
     int rlepos = 0;
     int arraypos = 0;

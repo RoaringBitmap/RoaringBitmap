@@ -2,6 +2,10 @@ package org.roaringbitmap.buffer;
 
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.ShortBuffer;
 
 import static org.junit.Assert.assertEquals;
@@ -162,5 +166,24 @@ public class TestMappeableArrayContainer {
     MappeableContainer ac = newArrayContainer(1, 13);
     assertEquals(1, ac.numberOfRuns());
   }
+
+  @Test
+  public void roundtrip() throws Exception {
+    MappeableContainer ac = new MappeableArrayContainer();
+    ac = ac.add(1, 5);
+    final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    try (ObjectOutputStream oo = new ObjectOutputStream(bos)) {
+      ac.writeExternal(oo);
+    }
+    MappeableContainer ac2 = new MappeableArrayContainer();
+    final ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
+    ac2.readExternal(new ObjectInputStream(bis));
+
+    assertEquals(4, ac2.getCardinality());
+    for (int i = 1; i < 5; i++) {
+      assertTrue(ac2.contains((short) i));
+    }
+  }
+
 
 }
