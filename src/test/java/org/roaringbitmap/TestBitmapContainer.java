@@ -6,8 +6,15 @@ package org.roaringbitmap;
 
 import org.junit.Test;
 
-import java.util.*;
-import static org.junit.Assert.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.Random;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TestBitmapContainer {
   private static BitmapContainer emptyContainer() {
@@ -203,4 +210,137 @@ public class TestBitmapContainer {
   public void testPreviousTooSmall() {
     emptyContainer().prevSetBit(-1);
   }
+
+
+  @Test(expected = IllegalArgumentException.class)
+  public void addInvalidRange() {
+    Container bc = new BitmapContainer();
+    bc.add(13,1);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void iaddInvalidRange() {
+    Container bc = new BitmapContainer();
+    bc.iadd(13,1);
+  }
+
+  @Test
+  public void roundtrip() throws Exception {
+    Container bc = new BitmapContainer();
+    bc = bc.add(1, 5);
+    final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    try (ObjectOutputStream oo = new ObjectOutputStream(bos)) {
+      bc.writeExternal(oo);
+    }
+    Container bc2 = new BitmapContainer();
+    final ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
+    bc2.readExternal(new ObjectInputStream(bis));
+
+    assertEquals(4, bc2.getCardinality());
+    for (int i = 1; i < 5; i++) {
+      assertTrue(bc2.contains((short) i));
+    }
+  }
+
+  @Test
+  public void iorRun() {
+    Container bc = new BitmapContainer();
+    bc = bc.add(1, 5);
+    Container rc = new RunContainer();
+    rc = rc.add(4, 10);
+    bc.ior(rc);
+    assertEquals(9, bc.getCardinality());
+    for (int i = 1; i < 10; i++) {
+      assertTrue(bc.contains((short) i));
+    }
+  }
+
+  @Test
+  public void iremoveEmptyRange() {
+    Container bc = new BitmapContainer();
+    bc = bc.iremove(1,1);
+    assertEquals(0, bc.getCardinality());
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void iremoveInvalidRange() {
+    Container ac = new BitmapContainer();
+    ac.iremove(13,1);
+  }
+
+  @Test
+  public void iremove() {
+    Container bc = new BitmapContainer();
+    bc = bc.add(1,10);
+    bc = bc.iremove(5,10);
+    assertEquals(4, bc.getCardinality());
+    for (int i = 1; i < 5; i++) {
+      assertTrue(bc.contains((short) i));
+    }
+  }
+
+  @Test
+  public void iremove2() {
+    Container bc = new BitmapContainer();
+    bc = bc.add(1,8092);
+    bc = bc.iremove(1,10);
+    assertEquals(8082, bc.getCardinality());
+    for (int i = 10; i < 8092; i++) {
+      assertTrue(bc.contains((short) i));
+    }
+  }
+
+  @Test
+  public void ixorRun() {
+    Container bc = new BitmapContainer();
+    bc = bc.add(1,10);
+    Container rc = new RunContainer();
+    rc = rc.add(5, 15);
+    bc = bc.ixor(rc);
+    assertEquals(9, bc.getCardinality());
+    for (int i = 1; i < 5; i++) {
+      assertTrue(bc.contains((short) i));
+    }
+    for (int i = 10; i < 15; i++) {
+      assertTrue(bc.contains((short) i));
+    }
+  }
+
+  @Test
+  public void ixorRun2() {
+    Container bc = new BitmapContainer();
+    bc = bc.add(1,8092);
+    Container rc = new RunContainer();
+    rc = rc.add(1, 10);
+    bc = bc.ixor(rc);
+    assertEquals(8082, bc.getCardinality());
+    for (int i = 10; i < 8092; i++) {
+      assertTrue(bc.contains((short) i));
+    }
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void selectInvalidPosition() {
+    Container bc = new BitmapContainer();
+    bc = bc.add(1,13);
+    bc.select(100);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void removeInvalidRange() {
+    Container ac = new BitmapContainer();
+    ac.remove(13,1);
+  }
+
+  @Test
+  public void remove() {
+    Container bc = new BitmapContainer();
+    bc = bc.add(1,8092);
+    bc = bc.remove(1,10);
+    assertEquals(8082, bc.getCardinality());
+    for (int i = 10; i < 8092; i++) {
+      assertTrue(bc.contains((short) i));
+    }
+  }
+
 }

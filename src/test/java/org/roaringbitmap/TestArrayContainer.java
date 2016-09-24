@@ -4,8 +4,15 @@ import com.google.common.primitives.Ints;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TestArrayContainer {
 
@@ -59,6 +66,93 @@ public class TestArrayContainer {
             values[size++] = ints.next();
         }
         return Ints.asList(Arrays.copyOf(values, size));
+    }
+
+    @Test
+    public void roundtrip() throws Exception {
+        Container ac = new ArrayContainer();
+        ac = ac.add(1, 5);
+        final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        try (ObjectOutputStream oo = new ObjectOutputStream(bos)) {
+            ac.writeExternal(oo);
+        }
+        Container ac2 = new ArrayContainer();
+        final ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
+        ac2.readExternal(new ObjectInputStream(bis));
+
+        assertEquals(4, ac2.getCardinality());
+        for (int i = 1; i < 5; i++) {
+            assertTrue(ac2.contains((short) i));
+        }
+    }
+
+    @Test
+    public void intersectsArray() throws Exception {
+        Container ac = new ArrayContainer();
+        ac = ac.add(1, 10);
+        Container ac2 = new ArrayContainer();
+        ac2 = ac2.add(5, 25);
+        assertTrue(ac.intersects(ac2));
+    }
+
+    @Test
+    public void iandBitmap() throws Exception {
+        Container ac = new ArrayContainer();
+        ac = ac.add(1, 10);
+        Container bc = new BitmapContainer();
+        bc = bc.add(5, 25);
+        ac.iand(bc);
+        assertEquals(5, ac.getCardinality());
+        for (int i = 5; i < 10; i++) {
+            assertTrue(ac.contains((short) i));
+        }
+    }
+
+    @Test
+    public void iandRun() throws Exception {
+        Container ac = new ArrayContainer();
+        ac = ac.add(1, 10);
+        Container rc = new RunContainer();
+        rc = rc.add(5, 25);
+        ac = ac.iand(rc);
+        assertEquals(5, ac.getCardinality());
+        for (int i = 5; i < 10; i++) {
+            assertTrue(ac.contains((short) i));
+        }
+    }
+
+    @Test
+    public void addEmptyRange() {
+        Container ac = new ArrayContainer();
+        ac = ac.add(1,1);
+        assertEquals(0, ac.getCardinality());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void addInvalidRange() {
+        Container ac = new ArrayContainer();
+        ac.add(13,1);
+    }
+
+    @Test
+    public void iaddEmptyRange() {
+        Container ac = new ArrayContainer();
+        ac = ac.iadd(1,1);
+        assertEquals(0, ac.getCardinality());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void iaddInvalidRange() {
+        Container ac = new ArrayContainer();
+        ac.iadd(13,1);
+    }
+
+    @Test
+    public void clear() throws Exception {
+        Container ac = new ArrayContainer();
+        ac = ac.add(1, 10);
+        ac.clear();
+        assertEquals(0, ac.getCardinality());
     }
 
 }
