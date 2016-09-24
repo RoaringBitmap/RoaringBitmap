@@ -10,6 +10,10 @@ import static org.junit.Assert.assertTrue;
 import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
 import static org.roaringbitmap.buffer.TestMappeableArrayContainer.newArrayContainer;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import org.junit.Test;
@@ -476,6 +480,22 @@ public class TestMappeableBitmapContainer {
   }
 
   @Test
+  public void xorBitmap2() {
+    LongBuffer buffer = LongBuffer.allocate(MAX_CAPACITY / 64);
+    for (int i = 0; i < 128; i++) {
+      buffer.put(~0L);
+    }
+    MappeableContainer bc = new MappeableBitmapContainer(buffer.asReadOnlyBuffer(), 8192);
+    MappeableContainer bc2 = new MappeableBitmapContainer();
+    bc2 = bc2.add(5000, 8192);
+    bc = bc.xor(bc2);
+    assertEquals(5000, bc.getCardinality());
+    for (short i = 0; i < 5000; i++) {
+      assertTrue(bc.contains(i));
+    }
+  }
+
+  @Test
   public void foreach() {
     LongBuffer buffer = LongBuffer.allocate(MAX_CAPACITY / 64);
     buffer.put(~0L);
@@ -488,6 +508,25 @@ public class TestMappeableBitmapContainer {
         assertEquals(value, expected++);
       }
     });
+  }
+
+  @Test
+  public void roundtrip() throws Exception {
+    LongBuffer buffer = LongBuffer.allocate(MAX_CAPACITY / 64);
+    buffer.put(~0L);
+    MappeableContainer bc = new MappeableBitmapContainer(buffer.asReadOnlyBuffer(), 64);
+    final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    try (ObjectOutputStream oo = new ObjectOutputStream(bos)) {
+      bc.writeExternal(oo);
+    }
+    MappeableContainer bc2 = new MappeableBitmapContainer();
+    final ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
+    bc2.readExternal(new ObjectInputStream(bis));
+
+    assertEquals(64, bc2.getCardinality());
+    for (int i = 0; i < 64; i++) {
+      assertTrue(bc2.contains((short) i));
+    }
   }
 
 }
