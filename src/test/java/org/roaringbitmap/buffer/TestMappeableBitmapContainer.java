@@ -13,6 +13,7 @@ import static org.roaringbitmap.buffer.TestMappeableArrayContainer.newArrayConta
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import org.junit.Test;
+import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.ShortIterator;
 
 
@@ -348,6 +349,15 @@ public class TestMappeableBitmapContainer {
   }
 
   @Test
+  public void select() {
+    LongBuffer buffer = LongBuffer.allocate(MAX_CAPACITY / 64);
+    buffer.put(~0L);
+    buffer.put(~0L);
+    MappeableContainer bc = new MappeableBitmapContainer(buffer.asReadOnlyBuffer(), 64);
+    assertEquals(100, bc.select(100));
+  }
+
+  @Test
   public void reverseShortIterator() {
     MappeableBitmapContainer bc = new MappeableBitmapContainer();
     bc = (MappeableBitmapContainer) bc.iadd(1,13);
@@ -433,6 +443,51 @@ public class TestMappeableBitmapContainer {
     for (short i = 1; i < 15; i++) {
       assertTrue(bc.contains(i));
     }
+  }
+
+  @Test
+  public void xorArray() {
+    LongBuffer buffer = LongBuffer.allocate(MAX_CAPACITY / 64);
+    buffer.put(~0L);
+    MappeableContainer bc = new MappeableBitmapContainer(buffer.asReadOnlyBuffer(), 64);
+    MappeableContainer ac = newArrayContainer(5, 15);
+    bc = bc.xor(ac);
+    assertEquals(54, bc.getCardinality());
+    for (short i = 0; i < 5; i++) {
+      assertTrue(bc.contains(i));
+    }
+    for (short i = 15; i < 64; i++) {
+      assertTrue(bc.contains(i));
+    }
+  }
+
+  @Test
+  public void xorBitmap() {
+    LongBuffer buffer = LongBuffer.allocate(MAX_CAPACITY / 64);
+    buffer.put(~0L);
+    MappeableContainer bc = new MappeableBitmapContainer(buffer.asReadOnlyBuffer(), 64);
+    MappeableContainer bc2 = new MappeableBitmapContainer();
+    bc2 = bc2.add(10, 64);
+    bc = bc.xor(bc2);
+    assertEquals(10, bc.getCardinality());
+    for (short i = 0; i < 10; i++) {
+      assertTrue(bc.contains(i));
+    }
+  }
+
+  @Test
+  public void foreach() {
+    LongBuffer buffer = LongBuffer.allocate(MAX_CAPACITY / 64);
+    buffer.put(~0L);
+    MappeableContainer bc = new MappeableBitmapContainer(buffer.asReadOnlyBuffer(), 64);
+    bc.forEach((short) 0, new IntConsumer() {
+      int expected = 0;
+
+      @Override
+      public void accept(int value) {
+        assertEquals(value, expected++);
+      }
+    });
   }
 
 }
