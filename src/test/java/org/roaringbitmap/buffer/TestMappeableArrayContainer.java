@@ -106,7 +106,7 @@ public class TestMappeableArrayContainer {
     assertTrue(ac.contains((short) 7000));
   }
 
-  private MappeableContainer newArrayContainer(int... values) {
+  static MappeableArrayContainer newArrayContainer(int... values) {
     ShortBuffer buffer = ShortBuffer.allocate(values.length);
     for (int value : values) {
       buffer.put((short) value);
@@ -114,7 +114,7 @@ public class TestMappeableArrayContainer {
     return new MappeableArrayContainer(buffer.asReadOnlyBuffer(), values.length);
   }
 
-  private MappeableContainer newArrayContainer(int firstOfRun, final int lastOfRun) {
+  static MappeableArrayContainer newArrayContainer(int firstOfRun, final int lastOfRun) {
     ShortBuffer buffer = ShortBuffer.allocate(lastOfRun - firstOfRun);
     for (int i = firstOfRun; i < lastOfRun; i++) {
       buffer.put((short) i);
