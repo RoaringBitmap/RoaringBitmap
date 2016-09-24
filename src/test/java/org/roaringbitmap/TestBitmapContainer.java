@@ -343,4 +343,17 @@ public class TestBitmapContainer {
     }
   }
 
+  @Test
+  public void iandRun() {
+    Container bc = new BitmapContainer();
+    bc = bc.add(0,8092);
+    Container rc = new RunContainer();
+    rc = rc.add(1, 10);
+    bc = bc.iand(rc);
+    assertEquals(9, bc.getCardinality());
+    for (int i = 1; i < 10; i++) {
+      assertTrue(bc.contains((short) i));
+    }
+  }
+
 }
