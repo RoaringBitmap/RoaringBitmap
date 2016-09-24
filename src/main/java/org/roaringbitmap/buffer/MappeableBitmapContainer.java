@@ -1229,6 +1229,30 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     return -1;
   }
 
+  /**
+   * Find the index of the next unset bit greater or equal to i, returns -1 if none found.
+   *
+   * @param i starting index
+   * @return index of the next unset bit
+   */
+  public short nextUnsetBit(final int i) {
+    int x = i / 64;
+    long w = ~bitmap.get(x);
+    w >>>= i;
+    if (w != 0) {
+      return (short) (i + Long.numberOfTrailingZeros(w));
+    }
+    ++x;
+    // for speed, replaced bitmap.limit() with hardcoded MAX_CAPACITY / 64
+    for (; x < MAX_CAPACITY / 64; ++x) {
+      long X = bitmap.get(x);
+      if (X != ~0L) {
+        return (short) (x * 64 + Long.numberOfTrailingZeros(~X));
+      }
+    }
+    return -1;
+  }
+
   @Override
   public MappeableContainer not(final int firstOfRange, final int lastOfRange) {
     MappeableBitmapContainer answer = clone();
