@@ -7,6 +7,8 @@ package org.roaringbitmap.buffer;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
+import static org.roaringbitmap.buffer.TestMappeableArrayContainer.newArrayContainer;
 
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
@@ -312,10 +314,29 @@ public class TestMappeableBitmapContainer {
   }
 
   @Test
+  public void iremove2() {
+    MappeableContainer bc = new MappeableBitmapContainer();
+    bc = bc.add(1, 8192);
+    bc.iremove(1, 10);
+    assertEquals(8182, bc.getCardinality());
+    for (short i = 10; i < 8192; i++) {
+      assertTrue(bc.contains(i));
+    }
+  }
+
+  @Test
   public void numberOfRuns() {
     MappeableContainer bc = new MappeableBitmapContainer();
     bc = bc.add(1,13);
     bc = bc.add(19,27);
+    assertEquals(2, bc.numberOfRuns());
+  }
+
+  @Test
+  public void numberOfRuns2() {
+    LongBuffer buffer = LongBuffer.allocate(MAX_CAPACITY / 64);
+    buffer.put(~8L);
+    MappeableContainer bc = new MappeableBitmapContainer(buffer.asReadOnlyBuffer(), 64);
     assertEquals(2, bc.numberOfRuns());
   }
 
@@ -341,6 +362,77 @@ public class TestMappeableBitmapContainer {
       assertEquals(i, iterator.next());
     }
     assertFalse(iterator.hasNext());
+  }
+
+  @Test
+  public void andNotArray() {
+    LongBuffer buffer = LongBuffer.allocate(MAX_CAPACITY / 64);
+    buffer.put(~0L);
+    MappeableContainer bc = new MappeableBitmapContainer(buffer.asReadOnlyBuffer(), 64);
+    MappeableContainer ac = new MappeableArrayContainer();
+    ac = ac.add(32, 64);
+    bc = bc.andNot(ac);
+    assertEquals(32, bc.getCardinality());
+    for (short i = 0; i < 32; i++) {
+      assertTrue(bc.contains(i));
+    }
+  }
+
+  @Test
+  public void andNotBitmap() {
+    LongBuffer buffer = LongBuffer.allocate(MAX_CAPACITY / 64);
+    buffer.put(~0L);
+    MappeableContainer bc = new MappeableBitmapContainer(buffer.asReadOnlyBuffer(), 64);
+    MappeableContainer bc2 = new MappeableBitmapContainer();
+    bc2 = bc2.add(32, 64);
+    bc = bc.andNot(bc2);
+    assertEquals(32, bc.getCardinality());
+    for (short i = 0; i < 32; i++) {
+      assertTrue(bc.contains(i));
+    }
+  }
+
+  @Test
+  public void intersectsArray() {
+    MappeableContainer bc = new MappeableBitmapContainer();
+    bc = bc.add(1, 13);
+    MappeableContainer ac = newArrayContainer(5, 10);
+    assertTrue(bc.intersects(ac));
+  }
+
+  @Test
+  public void intersectsBitmap() {
+    LongBuffer buffer = LongBuffer.allocate(MAX_CAPACITY / 64);
+    buffer.put(~0L);
+    LongBuffer buffer2 = LongBuffer.allocate(MAX_CAPACITY / 64);
+    buffer2.put(~1L);
+    MappeableContainer bc = new MappeableBitmapContainer(buffer.asReadOnlyBuffer(), 64);
+    MappeableContainer bc2 = new MappeableBitmapContainer(buffer2.asReadOnlyBuffer(), 64);
+    assertTrue(bc.intersects(bc2));
+  }
+
+  @Test
+  public void iorArray() {
+    MappeableContainer bc = new MappeableBitmapContainer();
+    bc = bc.add(1, 13);
+    MappeableContainer ac = newArrayContainer(5, 15);
+    bc = bc.ior(ac);
+    assertEquals(14, bc.getCardinality());
+    for (short i = 1; i < 15; i++) {
+      assertTrue(bc.contains(i));
+    }
+  }
+
+  @Test
+  public void orArray() {
+    MappeableContainer bc = new MappeableBitmapContainer();
+    bc = bc.add(1, 13);
+    MappeableContainer ac = newArrayContainer(5, 15);
+    bc = bc.or(ac);
+    assertEquals(14, bc.getCardinality());
+    for (short i = 1; i < 15; i++) {
+      assertTrue(bc.contains(i));
+    }
   }
 
 }

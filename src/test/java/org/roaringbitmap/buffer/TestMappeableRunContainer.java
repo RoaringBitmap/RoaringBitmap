@@ -28,7 +28,7 @@ public class TestMappeableRunContainer {
   public void constructorBitmap() {
     LongBuffer buffer = LongBuffer.allocate(MAX_CAPACITY / 64);
     buffer.put(~0L);
-    MappeableBitmapContainer bc = new MappeableBitmapContainer(buffer.asReadOnlyBuffer(), 1);
+    MappeableBitmapContainer bc = new MappeableBitmapContainer(buffer.asReadOnlyBuffer(), 64);
     MappeableRunContainer rc = new MappeableRunContainer(bc, 1);
     assertEquals(64, rc.getCardinality());
     for (int i = 0; i < 64; i++) {
