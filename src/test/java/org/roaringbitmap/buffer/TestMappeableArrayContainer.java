@@ -1,6 +1,7 @@
 package org.roaringbitmap.buffer;
 
 import org.junit.Test;
+import org.roaringbitmap.IntConsumer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -27,6 +28,12 @@ public class TestMappeableArrayContainer {
     ac.add(13,1);
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void iaddInvalidRange() {
+    MappeableContainer ac = new MappeableArrayContainer();
+    ac.iadd(13,1);
+  }
+
   @Test
   public void remove() {
     MappeableContainer ac = new MappeableArrayContainer();
@@ -34,6 +41,12 @@ public class TestMappeableArrayContainer {
     ac = ac.remove((short) 2);
     assertEquals(1, ac.getCardinality());
     assertTrue(ac.contains((short) 1));
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void removeInvalidRange() {
+    MappeableContainer ac = new MappeableArrayContainer();
+    ac.remove(13,1);
   }
 
   @Test
@@ -140,7 +153,19 @@ public class TestMappeableArrayContainer {
   }
 
   @Test
-  public void iandNot() {
+  public void iandNotArray() {
+    MappeableContainer ac = new MappeableArrayContainer();
+    ac = ac.add(10,20);
+    MappeableContainer ac2 = newArrayContainer(15,25);
+    ac.iandNot(ac2);
+    assertEquals(5, ac.getCardinality());
+    for (int i = 10; i < 15; i++) {
+      assertTrue(ac.contains((short) i));
+    }
+  }
+
+  @Test
+  public void iandNotBitmap() {
     MappeableContainer ac = new MappeableArrayContainer();
     ac = ac.add(10,20);
     MappeableContainer bc = new MappeableBitmapContainer();
@@ -183,6 +208,44 @@ public class TestMappeableArrayContainer {
     for (int i = 1; i < 5; i++) {
       assertTrue(ac2.contains((short) i));
     }
+  }
+
+  @Test
+  public void orArray() {
+    MappeableContainer ac = newArrayContainer(0,8192);
+    MappeableContainer ac2 = newArrayContainer(15,25);
+    ac = ac.or(ac2);
+    assertEquals(8192, ac.getCardinality());
+    for (int i = 0; i < 8192; i++) {
+      assertTrue(ac.contains((short) i));
+    }
+  }
+
+  @Test
+  public void xorArray() {
+    MappeableContainer ac = newArrayContainer(0,8192);
+    MappeableContainer ac2 = newArrayContainer(15,25);
+    ac = ac.xor(ac2);
+    assertEquals(8182, ac.getCardinality());
+    for (int i = 0; i < 15; i++) {
+      assertTrue(ac.contains((short) i));
+    }
+    for (int i = 25; i < 8192; i++) {
+      assertTrue(ac.contains((short) i));
+    }
+  }
+
+  @Test
+  public void foreach() {
+    MappeableContainer ac = newArrayContainer(0, 64);
+    ac.forEach((short) 0, new IntConsumer() {
+      int expected = 0;
+
+      @Override
+      public void accept(int value) {
+        assertEquals(value, expected++);
+      }
+    });
   }
 
 
