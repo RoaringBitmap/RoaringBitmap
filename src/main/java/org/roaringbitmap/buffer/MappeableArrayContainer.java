@@ -962,7 +962,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       }
       return numRuns;
     } else {
-      int numRuns = 0;
+      int numRuns = 1;
       int previous = BufferUtil.toIntUnsigned(content.get(0));
       // we do not proceed like above for fear that calling "get" twice per loop would be too much
       for (int i = 1; i < cardinality; i++) {

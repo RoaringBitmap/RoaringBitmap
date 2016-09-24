@@ -157,4 +157,10 @@ public class TestMappeableArrayContainer {
     assertTrue(ac1.intersects(ac2));
   }
 
+  @Test
+  public void numberOfRuns() {
+    MappeableContainer ac = newArrayContainer(1, 13);
+    assertEquals(1, ac.numberOfRuns());
+  }
+
 }
