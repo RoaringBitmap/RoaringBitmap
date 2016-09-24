@@ -30,4 +30,13 @@ public class TestMappeableArrayContainer {
     ac.iremove(13,1);
   }
 
+  @Test
+  public void constructorWithRun() {
+    MappeableContainer ac = new MappeableArrayContainer(1, 13);
+    assertEquals(12, ac.getCardinality());
+    for (int i = 1; i <= 12 ; i++) {
+      assertTrue(ac.contains((short) i));
+    }
+  }
+
 }

@@ -71,7 +71,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
   /**
-   * Create an array container with a run of ones from firstOfRun to lastOfRun, inclusive. Caller is
+   * Create an array container with a run of ones from firstOfRun to lastOfRun, exclusive. Caller is
    * responsible for making sure the range is small enough that ArrayContainer is appropriate.
    *
    * @param firstOfRun first index
