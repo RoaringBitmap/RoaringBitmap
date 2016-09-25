@@ -435,7 +435,6 @@ public class TestRunContainer {
     for (int k = a; k < b; ++k) {
       x = x.add((short) k);
     }
-    x = new MappeableRunContainer(x.getShortIterator(), x.numberOfRuns());
 
     for (int k = 0; k < (1 << 16); ++k) {
       if (x.contains((short) k)) {
@@ -1178,7 +1177,6 @@ public class TestRunContainer {
         x = x.add((short) (k * 100 + j));
       }
     }
-    x = new MappeableRunContainer(x.getShortIterator(), x.numberOfRuns());
     ShortIterator i = x.getShortIterator();
     for (int k = 0; k < 100; ++k) {
       for (int j = 0; j < k; ++j) {
@@ -1214,7 +1212,6 @@ public class TestRunContainer {
     for (int k = 0; k < (1 << 16); ++k) {
       x = x.add((short) k);
     }
-    x = new MappeableRunContainer(x.getShortIterator(), x.numberOfRuns());
 
     ShortIterator i = x.getReverseShortIterator();
     for (int k = (1 << 16) - 1; k >= 0; --k) {
@@ -1230,7 +1227,6 @@ public class TestRunContainer {
     for (int k = 0; k < (1 << 16); ++k) {
       x = x.add((short) k);
     }
-    x = new MappeableRunContainer(x.getShortIterator(), x.numberOfRuns());
     Iterator<Short> i = x.iterator();
     for (int k = 0; k < (1 << 16); ++k) {
       assertTrue(i.hasNext());
@@ -1245,7 +1241,6 @@ public class TestRunContainer {
     for (int k = 0; k < (1 << 16); ++k) {
       x = x.add((short) (k));
     }
-    x = new MappeableRunContainer(x.getShortIterator(), x.numberOfRuns());
     ShortIterator i = x.getShortIterator();
     for (int k = 0; k < (1 << 16); ++k) {
       assertTrue(i.hasNext());
@@ -1829,7 +1824,6 @@ public class TestRunContainer {
     for (int k = 0; k < 100; ++k) {
       x = x.add((short) (k));
     }
-    x = new MappeableRunContainer(x.getShortIterator(), x.numberOfRuns());
     ShortIterator i = x.getShortIterator();
     for (int k = 0; k < 100; ++k) {
       assertTrue(i.hasNext());

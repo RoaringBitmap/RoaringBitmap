@@ -287,34 +287,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     this.valueslength = array;
   }
 
-  // unused method, can be used as part of unit testing
-  protected MappeableRunContainer(ShortIterator sIt, int nbrRuns) {
-    this.nbrruns = nbrRuns;
-    valueslength = ShortBuffer.allocate(2 * nbrRuns);
-    if (nbrRuns == 0) {
-      return;
-    }
-
-    int prevVal = -2;
-    int runLen = 0;
-    int runCount = 0;
-    while (sIt.hasNext()) {
-      int curVal = BufferUtil.toIntUnsigned(sIt.next());
-      if (curVal == prevVal + 1) {
-        ++runLen;
-      } else {
-        if (runCount > 0) {
-          setLength(runCount - 1, (short) runLen);
-        }
-        setValue(runCount, (short) curVal);
-        runLen = 0;
-        ++runCount;
-      }
-      prevVal = curVal;
-    }
-    setLength(runCount - 1, (short) runLen);
-  }
-
   @Override
   public MappeableContainer add(int begin, int end) {
     MappeableRunContainer rc = (MappeableRunContainer) clone();
