@@ -205,18 +205,7 @@ public final class BufferUtil {
       throw new IllegalArgumentException("not supported");
     }
     if (BufferUtil.isBackedBySimpleArray(bitmap1) && BufferUtil.isBackedBySimpleArray(bitmap2)) {
-      int len = bitmap1.limit();
-      long[] b1 = bitmap1.array();
-      long[] b2 = bitmap2.array();
-      for (int k = 0; k < len; ++k) {
-        long bitset = b1[k] ^ b2[k];
-        while (bitset != 0) {
-          final long t = bitset & -bitset;
-          container[pos++] = (short) (k * 64 + Long.bitCount(t - 1));
-          bitset ^= t;
-        }
-      }
-
+      org.roaringbitmap.Util.fillArrayXOR(container, bitmap1.array(),  bitmap2.array());
     } else {
       int len = bitmap1.limit();
       for (int k = 0; k < len; ++k) {

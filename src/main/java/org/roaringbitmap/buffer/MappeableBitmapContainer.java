@@ -1765,13 +1765,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       return answer;
     }
     final MappeableArrayContainer ac = new MappeableArrayContainer(newCardinality);
-    if (BufferUtil.isBackedBySimpleArray(this.bitmap)
-        && BufferUtil.isBackedBySimpleArray(value2.bitmap)) {
-      org.roaringbitmap.Util.fillArrayXOR(ac.content.array(), this.bitmap.array(),
-          value2.bitmap.array());
-    } else {
-      BufferUtil.fillArrayXOR(ac.content.array(), this.bitmap, value2.bitmap);
-    }
+    BufferUtil.fillArrayXOR(ac.content.array(), this.bitmap, value2.bitmap);
     ac.cardinality = newCardinality;
     return ac;
   }
