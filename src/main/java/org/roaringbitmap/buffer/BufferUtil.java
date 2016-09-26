@@ -363,7 +363,7 @@ public final class BufferUtil {
    * abstractions, a Buffer might carry a performance penalty. Thus, we sometimes check whether the
    * Buffer is simply a wrapper around a Java array. In these instances, it might be best, from a
    * performance point of view, to access the underlying array (using the array()) method.
-   *
+   * @param b the provided Buffer
    * @return whether the Buffer is backed by a simple array
    */
   protected static boolean isBackedBySimpleArray(Buffer b) {
