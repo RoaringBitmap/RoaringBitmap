@@ -1,3 +1,7 @@
+version 0.6.26
+- issue with MappeableRunContainer.andCardinality(MappeableArrayContainer): the returned cardinality is wrong when the run container is empty
+- issue with MappeableArrayContainer.numberOfRuns: the returned value is wrong when the array container is backed by a read-only buffer
+
 version 0.6.25
 - adding a new "add" function that can be used to more quicly add several values at once
 
