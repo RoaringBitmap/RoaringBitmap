@@ -13,7 +13,9 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Random;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class TestBitmapContainer {
@@ -253,6 +255,24 @@ public class TestBitmapContainer {
     for (int i = 1; i < 10; i++) {
       assertTrue(bc.contains((short) i));
     }
+  }
+
+  @Test
+  public void orFullToRunContainer() {
+    BitmapContainer bc = new BitmapContainer(0, 1 << 15);
+    BitmapContainer half = new BitmapContainer(1 << 15, 1 << 16);
+    Container result = bc.or(half);
+    assertEquals(1 << 16, result.getCardinality());
+    assertThat(result, instanceOf(RunContainer.class));
+  }
+
+  @Test
+  public void orFullToRunContainer2() {
+    BitmapContainer bc = new BitmapContainer(0, 1 << 15);
+    ArrayContainer half = new ArrayContainer(1 << 15, 1 << 16);
+    Container result = bc.or(half);
+    assertEquals(1 << 16, result.getCardinality());
+    assertThat(result, instanceOf(RunContainer.class));
   }
 
   @Test

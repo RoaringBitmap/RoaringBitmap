@@ -1057,7 +1057,7 @@ public final class RunContainer extends Container implements Cloneable {
 
   private Container ilazyorToRun(ArrayContainer x) {
     if (isFull()) {
-      return this.clone();
+      return full();
     }
     final int nbrruns = this.nbrruns;
     final int offset = Math.max(nbrruns, x.getCardinality());
@@ -1506,6 +1506,10 @@ public final class RunContainer extends Container implements Cloneable {
     return (this.nbrruns == 1) && (this.getValue(0) == 0) && (this.getLength(0) == -1);
   }
 
+  public static Container full() {
+    return new RunContainer(1, new short[]{0, -1, 0, 0, 0, 0, 0, 0});
+  }
+
   @Override
   public Iterator<Short> iterator() {
     final ShortIterator i = getShortIterator();
@@ -1610,7 +1614,7 @@ public final class RunContainer extends Container implements Cloneable {
 
   private Container lazyorToRun(ArrayContainer x) {
     if (isFull()) {
-      return this.clone();
+      return full();
     }
     // TODO: should optimize for the frequent case where we have a single run
     RunContainer answer = new RunContainer(new short[2 * (this.nbrruns + x.getCardinality())], 0);
@@ -1767,7 +1771,7 @@ public final class RunContainer extends Container implements Cloneable {
   @Override
   public Container or(BitmapContainer x) {
     if (isFull()) {
-      return clone();
+      return full();
     }
     // could be implemented as return toTemporaryBitmap().ior(x);
     BitmapContainer answer = x.clone();
@@ -1777,16 +1781,19 @@ public final class RunContainer extends Container implements Cloneable {
       Util.setBitmapRange(answer.bitmap, start, end);
     }
     answer.computeCardinality();
+    if (answer.cardinality == BitmapContainer.MAX_CAPACITY) {
+      return full();
+    }
     return answer;
   }
 
   @Override
   public Container or(RunContainer x) {
     if (isFull()) {
-      return clone();
+      return full();
     }
     if (x.isFull()) {
-      return x.clone(); // cheap case that can save a lot of computation
+      return full(); // cheap case that can save a lot of computation
     }
     // we really ought to optimize the rest of the code for the frequent case where there is a
     // single run

@@ -11,7 +11,9 @@ import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class TestArrayContainer {
@@ -93,6 +95,24 @@ public class TestArrayContainer {
         Container ac2 = new ArrayContainer();
         ac2 = ac2.add(5, 25);
         assertTrue(ac.intersects(ac2));
+    }
+
+    @Test
+    public void orFullToRunContainer() {
+        ArrayContainer ac = new ArrayContainer(0, 1 << 12);
+        BitmapContainer half = new BitmapContainer(1 << 12, 1 << 16);
+        Container result = ac.or(half);
+        assertEquals(1 << 16, result.getCardinality());
+        assertThat(result, instanceOf(RunContainer.class));
+    }
+
+    @Test
+    public void orFullToRunContainer2() {
+        ArrayContainer ac = new ArrayContainer(0, 1 << 15);
+        ArrayContainer half = new ArrayContainer(1 << 15, 1 << 16);
+        Container result = ac.or(half);
+        assertEquals(1 << 16, result.getCardinality());
+        assertThat(result, instanceOf(RunContainer.class));
     }
 
     @Test

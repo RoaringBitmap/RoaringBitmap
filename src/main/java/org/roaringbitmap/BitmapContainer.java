@@ -632,6 +632,9 @@ public final class BitmapContainer extends Container implements Cloneable {
       this.bitmap[k] = w;
       this.cardinality += Long.bitCount(w);
     }
+    if (this.cardinality == MAX_CAPACITY) {
+      return RunContainer.full();
+    }
     return this;
   }
 
@@ -930,7 +933,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
-  public BitmapContainer or(final ArrayContainer value2) {
+  public Container or(final ArrayContainer value2) {
     final BitmapContainer answer = clone();
     int c = value2.cardinality;
     for (int k = 0; k < c; ++k) {
@@ -946,6 +949,9 @@ public final class BitmapContainer extends Container implements Cloneable {
           answer.cardinality++;
         }
       }
+    }
+    if (answer.cardinality == MAX_CAPACITY) {
+      return RunContainer.full();
     }
     return answer;
   }
