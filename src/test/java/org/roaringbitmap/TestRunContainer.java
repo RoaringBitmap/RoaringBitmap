@@ -2428,8 +2428,8 @@ public class TestRunContainer {
 
   @Test
   public void orFullToRunContainer2() {
-    Container rc = Container.rangeOfOnes(0, 1 << 15);
-    Container half = new ArrayContainer(1 << 15, 1 << 16);
+    Container rc = Container.rangeOfOnes((1 << 10) - 200, 1 << 16);
+    Container half = new ArrayContainer(0, 1 << 10);
     assertThat(rc, instanceOf(RunContainer.class));
     Container result = rc.or(half);
     assertEquals(1 << 16, result.getCardinality());
@@ -3001,8 +3001,8 @@ public class TestRunContainer {
 
   @Test
   public void testLazyORFull2() {
-    Container rc = Container.rangeOfOnes(0, 1 << 15);
-    ArrayContainer ac = new ArrayContainer((1 << 15) - 200, 1 << 16);
+    Container rc = Container.rangeOfOnes((1 << 10) - 200, 1 << 16);
+    ArrayContainer ac = new ArrayContainer(0, 1 << 10);
     Container rbc = rc.lazyOR(ac);
     assertEquals(1 << 16, rbc.getCardinality());
     assertThat(rbc, instanceOf(RunContainer.class));

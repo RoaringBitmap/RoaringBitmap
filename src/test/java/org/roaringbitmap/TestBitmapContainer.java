@@ -125,8 +125,8 @@ public class TestBitmapContainer {
 
   @Test
   public void testLazyORFull2() {
-    BitmapContainer bc = new BitmapContainer(0, 1 << 15);
-    ArrayContainer ac = new ArrayContainer((1 << 15) - 200, 1 << 16);
+    BitmapContainer bc = new BitmapContainer((1 << 10) - 200, 1 << 16);
+    ArrayContainer ac = new ArrayContainer(0, 1 << 10);
     Container result = bc.lazyor(ac);
     Container iresult = bc.ilazyor(ac);
     assertEquals(-1, result.getCardinality());
