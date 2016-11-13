@@ -909,6 +909,9 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         b[k] = w;
         this.cardinality += Long.bitCount(w);
       }
+      if (this.cardinality == MAX_CAPACITY) {
+        return MappeableRunContainer.full();
+      }
       return this;
     }
     int len = this.bitmap.limit();
@@ -916,6 +919,9 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       long w = b[k] | b2.bitmap.get(k);
       b[k] = w;
       this.cardinality += Long.bitCount(w);
+    }
+    if (this.cardinality == MAX_CAPACITY) {
+      return MappeableRunContainer.full();
     }
     return this;
   }
@@ -1384,7 +1390,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
 
   @Override
-  public MappeableBitmapContainer or(final MappeableArrayContainer value2) {
+  public MappeableContainer or(final MappeableArrayContainer value2) {
     final MappeableBitmapContainer answer = clone();
     if (!BufferUtil.isBackedBySimpleArray(answer.bitmap)) {
       throw new RuntimeException("Should not happen. Internal bug.");
@@ -1425,6 +1431,9 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
           }
         }
       }
+    }
+    if (answer.cardinality == MAX_CAPACITY) {
+      return MappeableRunContainer.full();
     }
     return answer;
   }

@@ -1507,7 +1507,7 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   public static Container full() {
-    return new RunContainer(1, new short[]{0, -1, 0, 0, 0, 0, 0, 0});
+    return new RunContainer(1, new short[]{0, -1});
   }
 
   @Override

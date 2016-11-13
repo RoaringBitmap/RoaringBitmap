@@ -7,7 +7,9 @@ import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
 import static org.roaringbitmap.buffer.TestMappeableArrayContainer.newArrayContainer;
 
@@ -138,6 +140,26 @@ public class TestMappeableRunContainer {
     rc2.iadd(130, 140);
     assertEquals(16, rc1.andCardinality(rc2));
     assertEquals(16, rc2.andCardinality(rc1));
+  }
+
+  @Test
+  public void orFullToRunContainer() {
+    MappeableContainer rc = MappeableContainer.rangeOfOnes(0, 1 << 15);
+    MappeableBitmapContainer half = new MappeableBitmapContainer(1 << 15, 1 << 16);
+    assertThat(rc, instanceOf(MappeableRunContainer.class));
+    MappeableContainer result = rc.or(half);
+    assertEquals(1 << 16, result.getCardinality());
+    assertThat(result, instanceOf(MappeableRunContainer.class));
+  }
+
+  @Test
+  public void orFullToRunContainer2() {
+    MappeableContainer rc = MappeableContainer.rangeOfOnes(0, 1 << 15);
+    MappeableArrayContainer half = new MappeableArrayContainer(1 << 15, 1 << 16);
+    assertThat(rc, instanceOf(MappeableRunContainer.class));
+    MappeableContainer result = rc.or(half);
+    assertEquals(1 << 16, result.getCardinality());
+    assertThat(result, instanceOf(MappeableRunContainer.class));
   }
 
 }
