@@ -175,4 +175,15 @@ public class TestArrayContainer {
         assertEquals(0, ac.getCardinality());
     }
 
+    @Test
+    public void testLazyORFull() {
+        ArrayContainer ac = new ArrayContainer(0, 1 << 15);
+        ArrayContainer ac2 = new ArrayContainer(1 << 15, 1 << 16);
+        Container rbc = ac.lazyor(ac2);
+        assertEquals(-1, rbc.getCardinality());
+        Container repaired = rbc.repairAfterLazy();
+        assertEquals(1 << 16, repaired.getCardinality());
+        assertThat(repaired, instanceOf(RunContainer.class));
+    }
+
 }

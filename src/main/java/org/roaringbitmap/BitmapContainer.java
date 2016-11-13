@@ -1053,6 +1053,8 @@ public final class BitmapContainer extends Container implements Cloneable {
       computeCardinality();
       if(getCardinality() <= ArrayContainer.DEFAULT_MAX_SIZE) {
         return this.toArrayContainer();
+      } else if (getCardinality() == MAX_CAPACITY) {
+        return RunContainer.full();
       }
     }
     return this;

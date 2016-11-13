@@ -2988,5 +2988,36 @@ public class TestRunContainer {
     assertEquals(1<<16, rc.getCardinality());
   }
 
+  @Test
+  public void testLazyORFull() {
+    Container rc = Container.rangeOfOnes(0, 1 << 15);
+    BitmapContainer bc2 = new BitmapContainer(3210, 1 << 16);
+    Container rbc = rc.lazyOR(bc2);
+    assertEquals(-1, rbc.getCardinality());
+    Container repaired = rbc.repairAfterLazy();
+    assertEquals(1 << 16, repaired.getCardinality());
+    assertThat(repaired, instanceOf(RunContainer.class));
+  }
+
+  @Test
+  public void testLazyORFull2() {
+    Container rc = Container.rangeOfOnes(0, 1 << 15);
+    ArrayContainer ac = new ArrayContainer((1 << 15) - 200, 1 << 16);
+    Container rbc = rc.lazyOR(ac);
+    assertEquals(1 << 16, rbc.getCardinality());
+    assertThat(rbc, instanceOf(RunContainer.class));
+  }
+
+  @Test
+  public void testLazyORFull3() {
+    Container rc = Container.rangeOfOnes(0, 1 << 15);
+    Container rc2 = Container.rangeOfOnes(1 << 15, 1 << 16);
+    Container result = rc.lazyOR(rc2);
+    Container iresult = rc.lazyIOR(rc2);
+    assertEquals(1 << 16, result.getCardinality());
+    assertEquals(1 << 16, iresult.getCardinality());
+    assertThat(result, instanceOf(RunContainer.class));
+    assertThat(iresult, instanceOf(RunContainer.class));
+  }
 
 }
