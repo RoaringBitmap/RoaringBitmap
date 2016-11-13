@@ -1569,6 +1569,8 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       computeCardinality();
       if(getCardinality() <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
         return this.toArrayContainer();
+      } else if (getCardinality() == MAX_CAPACITY) {
+        return MappeableRunContainer.full();
       }
     }
     return this;

@@ -549,4 +549,53 @@ public class TestMappeableBitmapContainer {
     assertEquals(1 << 16, result.getCardinality());
     assertThat(result, instanceOf(MappeableRunContainer.class));
   }
+
+  @Test
+  public void testLazyORFull() {
+    MappeableBitmapContainer bc = new MappeableBitmapContainer(0, 1 << 15);
+    MappeableBitmapContainer bc2 = new MappeableBitmapContainer(3210, 1 << 16);
+    MappeableContainer result = bc.lazyor(bc2);
+    MappeableContainer iresult = bc.ilazyor(bc2);
+    assertEquals(-1, result.getCardinality());
+    assertEquals(-1, iresult.getCardinality());
+    MappeableContainer repaired = result.repairAfterLazy();
+    MappeableContainer irepaired = iresult.repairAfterLazy();
+    assertEquals(1 << 16, repaired.getCardinality());
+    assertEquals(1 << 16, irepaired.getCardinality());
+    assertThat(repaired, instanceOf(MappeableRunContainer.class));
+    assertThat(irepaired, instanceOf(MappeableRunContainer.class));
+  }
+
+  @Test
+  public void testLazyORFull2() {
+    MappeableBitmapContainer bc = new MappeableBitmapContainer((1 << 10) - 200, 1 << 16);
+    MappeableArrayContainer ac = new MappeableArrayContainer(0, 1 << 10);
+    MappeableContainer result = bc.lazyor(ac);
+    MappeableContainer iresult = bc.ilazyor(ac);
+    assertEquals(-1, result.getCardinality());
+    assertEquals(-1, iresult.getCardinality());
+    MappeableContainer repaired = result.repairAfterLazy();
+    MappeableContainer irepaired = iresult.repairAfterLazy();
+    assertEquals(1 << 16, repaired.getCardinality());
+    assertEquals(1 << 16, irepaired.getCardinality());
+    assertThat(repaired, instanceOf(MappeableRunContainer.class));
+    assertThat(irepaired, instanceOf(MappeableRunContainer.class));
+  }
+
+  @Test
+  public void testLazyORFull3() {
+    MappeableBitmapContainer bc = new MappeableBitmapContainer(0, 1 << 15);
+    MappeableContainer rc = MappeableContainer.rangeOfOnes(1 << 15, 1 << 16);
+    MappeableContainer result = bc.lazyor((MappeableRunContainer) rc);
+    MappeableContainer iresult = bc.ilazyor((MappeableRunContainer) rc);
+    assertEquals(-1, result.getCardinality());
+    assertEquals(-1, iresult.getCardinality());
+    MappeableContainer repaired = result.repairAfterLazy();
+    MappeableContainer irepaired = iresult.repairAfterLazy();
+    assertEquals(1 << 16, repaired.getCardinality());
+    assertEquals(1 << 16, irepaired.getCardinality());
+    assertThat(repaired, instanceOf(MappeableRunContainer.class));
+    assertThat(irepaired, instanceOf(MappeableRunContainer.class));
+  }
+
 }

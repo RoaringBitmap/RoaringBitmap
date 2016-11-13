@@ -268,4 +268,15 @@ public class TestMappeableArrayContainer {
     assertThat(result, instanceOf(MappeableRunContainer.class));
   }
 
+  @Test
+  public void testLazyORFull() {
+    MappeableArrayContainer ac = new MappeableArrayContainer(0, 1 << 15);
+    MappeableArrayContainer ac2 = new MappeableArrayContainer(1 << 15, 1 << 16);
+    MappeableContainer rbc = ac.lazyor(ac2);
+    assertEquals(-1, rbc.getCardinality());
+    MappeableContainer repaired = rbc.repairAfterLazy();
+    assertEquals(1 << 16, repaired.getCardinality());
+    assertThat(repaired, instanceOf(MappeableRunContainer.class));
+  }
+
 }
