@@ -909,7 +909,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         b[k] = w;
         this.cardinality += Long.bitCount(w);
       }
-      if (this.cardinality == MAX_CAPACITY) {
+      if (isFull()) {
         return MappeableRunContainer.full();
       }
       return this;
@@ -920,10 +920,14 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       b[k] = w;
       this.cardinality += Long.bitCount(w);
     }
-    if (this.cardinality == MAX_CAPACITY) {
+    if (isFull()) {
       return MappeableRunContainer.full();
     }
     return this;
+  }
+
+  protected boolean isFull() {
+    return this.cardinality == MAX_CAPACITY;
   }
 
   @Override
@@ -1432,7 +1436,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         }
       }
     }
-    if (answer.cardinality == MAX_CAPACITY) {
+    if (answer.isFull()) {
       return MappeableRunContainer.full();
     }
     return answer;
@@ -1569,7 +1573,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       computeCardinality();
       if(getCardinality() <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
         return this.toArrayContainer();
-      } else if (getCardinality() == MAX_CAPACITY) {
+      } else if (isFull()) {
         return MappeableRunContainer.full();
       }
     }

@@ -1784,7 +1784,7 @@ public final class RunContainer extends Container implements Cloneable {
       Util.setBitmapRange(answer.bitmap, start, end);
     }
     answer.computeCardinality();
-    if (answer.cardinality == BitmapContainer.MAX_CAPACITY) {
+    if (answer.isFull()) {
       return full();
     }
     return answer;

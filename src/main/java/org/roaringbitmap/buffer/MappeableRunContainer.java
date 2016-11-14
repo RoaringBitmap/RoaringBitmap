@@ -1754,7 +1754,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       BufferUtil.setBitmapRange(answer.bitmap, start, end);
     }
     answer.computeCardinality();
-    if (answer.cardinality == MappeableBitmapContainer.MAX_CAPACITY) {
+    if (answer.isFull()) {
       return full();
     }
     return answer;
