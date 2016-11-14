@@ -163,6 +163,16 @@ public class TestMappeableRunContainer {
   }
 
   @Test
+  public void orFullToRunContainer3() {
+    MappeableContainer rc = MappeableContainer.rangeOfOnes(0, 1 << 15);
+    MappeableContainer half = MappeableContainer.rangeOfOnes(1 << 15, 1 << 16);
+    assertThat(rc, instanceOf(MappeableRunContainer.class));
+    MappeableContainer result = rc.or(half);
+    assertEquals(1 << 16, result.getCardinality());
+    assertThat(result, instanceOf(MappeableRunContainer.class));
+  }
+
+  @Test
   public void testLazyORFull() {
     MappeableContainer rc = MappeableContainer.rangeOfOnes(0, 1 << 15);
     MappeableBitmapContainer bc2 = new MappeableBitmapContainer(3210, 1 << 16);

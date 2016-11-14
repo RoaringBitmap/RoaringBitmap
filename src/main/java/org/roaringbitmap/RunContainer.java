@@ -1652,6 +1652,9 @@ public final class RunContainer extends Container implements Cloneable {
         rlepos++;
       }
     }
+    if (answer.isFull()) {
+      return full();
+    }
     return answer.convertToLazyBitmapIfNeeded();
   }
 
@@ -1818,7 +1821,9 @@ public final class RunContainer extends Container implements Cloneable {
       answer.smartAppend(getValue(rlepos), getLength(rlepos));
       rlepos++;
     }
-
+    if (answer.isFull()) {
+      return full();
+    }
     return answer.toBitmapIfNeeded();
   }
 

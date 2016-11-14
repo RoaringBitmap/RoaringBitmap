@@ -2437,6 +2437,16 @@ public class TestRunContainer {
   }
 
   @Test
+  public void orFullToRunContainer3() {
+    Container rc = Container.rangeOfOnes(0, 1 << 15);
+    Container half = Container.rangeOfOnes((1 << 15) - 200, 1 << 16);
+    assertThat(rc, instanceOf(RunContainer.class));
+    Container result = rc.or(half);
+    assertEquals(1 << 16, result.getCardinality());
+    assertThat(result, instanceOf(RunContainer.class));
+  }
+
+  @Test
   public void safeSerialization() throws Exception {
     RunContainer container = new RunContainer();
     container.add((short) 0);

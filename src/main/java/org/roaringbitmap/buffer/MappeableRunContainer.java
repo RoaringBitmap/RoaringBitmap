@@ -1600,6 +1600,9 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         rlepos++;
       }
     }
+    if (answer.isFull()) {
+      return full();
+    }
     return answer.convertToLazyBitmapIfNeeded();
   }
 
@@ -1786,6 +1789,9 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     while (rlepos < this.nbrruns) {
       answer.smartAppend(vl, getValue(rlepos), getLength(rlepos));
       rlepos++;
+    }
+    if (answer.isFull()) {
+      return full();
     }
     return answer.toBitmapIfNeeded();
   }
