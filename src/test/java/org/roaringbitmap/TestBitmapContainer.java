@@ -320,6 +320,15 @@ public class TestBitmapContainer {
   }
 
   @Test
+  public void orFullToRunContainer4() {
+    BitmapContainer bc = new BitmapContainer(0, 1 << 15);
+    Container bc2 = Container.rangeOfOnes(3210, 1 << 16);
+    Container iresult = bc.ior(bc2);
+    assertEquals(1 << 16, iresult.getCardinality());
+    assertThat(iresult, instanceOf(RunContainer.class));
+  }
+
+  @Test
   public void iremoveEmptyRange() {
     Container bc = new BitmapContainer();
     bc = bc.iremove(1,1);

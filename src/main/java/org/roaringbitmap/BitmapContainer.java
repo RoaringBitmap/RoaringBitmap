@@ -639,6 +639,9 @@ public final class BitmapContainer extends Container implements Cloneable {
       Util.setBitmapRange(this.bitmap, start, end);
     }
     computeCardinality();
+    if (isFull()) {
+      return RunContainer.full();
+    }
     return this;
   }
 

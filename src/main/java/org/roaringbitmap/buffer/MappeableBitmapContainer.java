@@ -929,6 +929,9 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       }
     }
     computeCardinality();
+    if (isFull()) {
+      return MappeableRunContainer.full();
+    }
     return this;
   }
 
