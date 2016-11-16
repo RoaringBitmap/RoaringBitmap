@@ -1,4 +1,11 @@
-## Usage
+
+## Focusing on just roaring bitmaps
+
+
+You can simply execute the appropriate script (Mac/Linux) : 
+    $ ./roaringbenchmark.sh
+
+## Generic  Usage
 
 Try:
 
@@ -16,11 +23,6 @@ See samplescript.sh for a more elaborate example.
 You can then parse files with the grabresults.sh script if you want:
 
      $ ./grabresults.sh horizontallog.txt
-
-
-## Focusing on just roaring bitmaps
-
-Adding the system property  ``BITMAP_TYPES=ROARING_ONLY`` (through the flag ``-DBITMAP_TYPES=ROARING_ONLY``) allows you to test only roaring bitmaps and skip the competitive alternatives.
 
 ## Need work
 
