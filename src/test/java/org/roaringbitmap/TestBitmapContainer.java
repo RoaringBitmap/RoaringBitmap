@@ -108,22 +108,6 @@ public class TestBitmapContainer {
   }
 
   @Test
-  public void testLazyORFull() {
-    BitmapContainer bc = new BitmapContainer(0, 1 << 15);
-    BitmapContainer bc2 = new BitmapContainer(3210, 1 << 16);
-    Container result = bc.lazyor(bc2);
-    Container iresult = bc.ilazyor(bc2);
-    assertEquals(-1, result.getCardinality());
-    assertEquals(-1, iresult.getCardinality());
-    Container repaired = result.repairAfterLazy();
-    Container irepaired = iresult.repairAfterLazy();
-    assertEquals(1 << 16, repaired.getCardinality());
-    assertEquals(1 << 16, irepaired.getCardinality());
-    assertThat(repaired, instanceOf(RunContainer.class));
-    assertThat(irepaired, instanceOf(RunContainer.class));
-  }
-
-  @Test
   public void testLazyORFull2() {
     BitmapContainer bc = new BitmapContainer((1 << 10) - 200, 1 << 16);
     ArrayContainer ac = new ArrayContainer(0, 1 << 10);
@@ -321,6 +305,18 @@ public class TestBitmapContainer {
     Container result = bc.or(half);
     assertEquals(1 << 16, result.getCardinality());
     assertThat(result, instanceOf(RunContainer.class));
+  }
+
+  @Test
+  public void orFullToRunContainer3() {
+    BitmapContainer bc = new BitmapContainer(0, 1 << 15);
+    BitmapContainer bc2 = new BitmapContainer(3210, 1 << 16);
+    Container result = bc.or(bc2);
+    Container iresult = bc.ior(bc2);
+    assertEquals(1 << 16, result.getCardinality());
+    assertEquals(1 << 16, iresult.getCardinality());
+    assertThat(result, instanceOf(RunContainer.class));
+    assertThat(iresult, instanceOf(RunContainer.class));
   }
 
   @Test

@@ -542,14 +542,6 @@ public final class BitmapContainer extends Container implements Cloneable {
     return this;
   }
 
-  protected Container ilazyor(BitmapContainer x) {
-    this.cardinality = -1;// invalid
-    for (int k = 0; k < this.bitmap.length; k++) {
-      this.bitmap[k] |= x.bitmap[k];
-    }
-    return this;
-  }
-
   protected Container ilazyor(RunContainer x) {
     // could be implemented as return ilazyor(x.toTemporaryBitmap());
     cardinality = -1; // invalid
@@ -754,16 +746,6 @@ public final class BitmapContainer extends Container implements Cloneable {
     }
     return answer;
   }
-
-  protected Container lazyor(BitmapContainer x) {
-    BitmapContainer answer = new BitmapContainer();
-    answer.cardinality = -1;// invalid
-    for (int k = 0; k < this.bitmap.length; k++) {
-      answer.bitmap[k] = this.bitmap[k] | x.bitmap[k];
-    }
-    return answer;
-  }
-
 
   protected Container lazyor(RunContainer x) {
     BitmapContainer bc = clone();
