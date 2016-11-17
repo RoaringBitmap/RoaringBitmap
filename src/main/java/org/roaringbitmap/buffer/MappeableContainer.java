@@ -536,7 +536,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
       if (x instanceof MappeableArrayContainer) {
         return ((MappeableBitmapContainer) this).ilazyor((MappeableArrayContainer) x);
       } else if (x instanceof MappeableBitmapContainer) {
-        return ior((MappeableBitmapContainer) x);
+        return ((MappeableBitmapContainer) this).ilazyor((MappeableBitmapContainer) x);
       }
       return ((MappeableBitmapContainer) this).ilazyor((MappeableRunContainer) x);
     }
@@ -570,7 +570,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
       if (x instanceof MappeableArrayContainer) {
         return ((MappeableBitmapContainer) this).lazyor((MappeableArrayContainer) x);
       } else if (x instanceof MappeableBitmapContainer) {
-        return or((MappeableBitmapContainer) x);
+        return ((MappeableBitmapContainer) this).lazyor((MappeableBitmapContainer) x);
       }
       return ((MappeableBitmapContainer) this).lazyor((MappeableRunContainer) x);
     }

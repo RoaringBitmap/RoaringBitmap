@@ -567,7 +567,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
       if (x instanceof ArrayContainer) {
         return ((BitmapContainer) this).ilazyor((ArrayContainer) x);
       } else if (x instanceof BitmapContainer) {
-        return ior((BitmapContainer) x);
+        return ((BitmapContainer) this).ilazyor((BitmapContainer) x);
       }
       return ((BitmapContainer) this).ilazyor((RunContainer) x);
     }
@@ -601,7 +601,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
       if (x instanceof ArrayContainer) {
         return ((BitmapContainer) this).lazyor((ArrayContainer) x);
       } else if (x instanceof BitmapContainer) {
-        return or((BitmapContainer) x);
+        return ((BitmapContainer) this).lazyor((BitmapContainer) x);
       }
       return ((BitmapContainer) this).lazyor((RunContainer) x);
     }

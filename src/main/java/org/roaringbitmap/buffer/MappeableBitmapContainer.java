@@ -752,6 +752,24 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     return this;
   }
 
+  protected MappeableContainer ilazyor(MappeableBitmapContainer x) {
+    if (BufferUtil.isBackedBySimpleArray(x.bitmap)) {
+      long[] b = this.bitmap.array();
+      long[] b2 = x.bitmap.array();
+      for (int k = 0; k < b.length; k++) {
+        b[k] |= b2[k];
+      }
+    } else {
+      final int m = this.bitmap.limit();
+      for (int k = 0; k < m; k++) {
+        this.bitmap.put(k, this.bitmap.get(k) | x.bitmap.get(k));
+      }
+    }
+    this.cardinality = -1;// invalid
+    return this;
+  }
+
+
   protected MappeableContainer ilazyor(MappeableRunContainer x) {
     for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
       int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
@@ -1099,6 +1117,19 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       short v2 = value2.content.get(k);
       final int i = BufferUtil.toIntUnsigned(v2) >>> 6;
       b[i] |= 1L << v2;
+    }
+    return answer;
+  }
+
+  protected MappeableContainer lazyor(MappeableBitmapContainer x) {
+    MappeableBitmapContainer answer = new MappeableBitmapContainer();
+    answer.cardinality = -1;// invalid
+    if (!BufferUtil.isBackedBySimpleArray(answer.bitmap)) {
+      throw new RuntimeException("Should not happen. Internal bug.");
+    }
+    long[] b = answer.bitmap.array();
+    for (int k = 0; k < b.length; k++) {
+      b[k] = this.bitmap.get(k) | x.bitmap.get(k);
     }
     return answer;
   }
