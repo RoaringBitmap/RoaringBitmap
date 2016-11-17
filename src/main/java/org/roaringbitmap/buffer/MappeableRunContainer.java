@@ -1012,7 +1012,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   private MappeableContainer ilazyorToRun(MappeableArrayContainer x) {
     if (isFull()) {
-      return this.clone();
+      return full();
     }
     final int nbrruns = this.nbrruns;
     final int offset = Math.max(nbrruns, x.getCardinality());
@@ -1447,6 +1447,11 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     return (this.nbrruns == 1) && (this.getValue(0) == 0) && (this.getLength(0) == -1);
   }
 
+  public static MappeableContainer full() {
+    ShortBuffer sb = ShortBuffer.wrap(new short[]{0, -1});
+    return new MappeableRunContainer(sb, 1);
+  }
+
   @Override
   public Iterator<Short> iterator() {
     final ShortIterator i = getShortIterator();
@@ -1560,7 +1565,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   private MappeableContainer lazyorToRun(MappeableArrayContainer x) {
     if (isFull()) {
-      return this.clone();
+      return full();
     }
     // TODO: should optimize for the frequent case where we have a single run
     MappeableRunContainer answer =
@@ -1594,6 +1599,9 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         answer.smartAppend(vl, getValue(rlepos), getLength(rlepos));
         rlepos++;
       }
+    }
+    if (answer.isFull()) {
+      return full();
     }
     return answer.convertToLazyBitmapIfNeeded();
   }
@@ -1737,7 +1745,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   @Override
   public MappeableContainer or(MappeableBitmapContainer x) {
     if (isFull()) {
-      return clone();
+      return full();
     }
     MappeableBitmapContainer answer = x.clone();
     for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
@@ -1746,16 +1754,16 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       BufferUtil.setBitmapRange(answer.bitmap, start, end);
     }
     answer.computeCardinality();
+    if (answer.isFull()) {
+      return full();
+    }
     return answer;
   }
 
   @Override
   public MappeableContainer or(MappeableRunContainer x) {
-    if (isFull()) {
-      return clone();
-    }
-    if (x.isFull()) {
-      return x.clone(); // cheap case that can save a lot of computation
+    if (isFull() || x.isFull()) {
+      return full(); // cheap case that can save a lot of computation
     }
     // we really ought to optimize the rest of the code for the frequent case where there is a
     // single run
@@ -1781,6 +1789,9 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     while (rlepos < this.nbrruns) {
       answer.smartAppend(vl, getValue(rlepos), getLength(rlepos));
       rlepos++;
+    }
+    if (answer.isFull()) {
+      return full();
     }
     return answer.toBitmapIfNeeded();
   }

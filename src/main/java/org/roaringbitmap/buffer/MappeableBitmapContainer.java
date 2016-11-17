@@ -909,6 +909,9 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         b[k] = w;
         this.cardinality += Long.bitCount(w);
       }
+      if (isFull()) {
+        return MappeableRunContainer.full();
+      }
       return this;
     }
     int len = this.bitmap.limit();
@@ -917,7 +920,14 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       b[k] = w;
       this.cardinality += Long.bitCount(w);
     }
+    if (isFull()) {
+      return MappeableRunContainer.full();
+    }
     return this;
+  }
+
+  protected boolean isFull() {
+    return this.cardinality == MAX_CAPACITY;
   }
 
   @Override
@@ -937,6 +947,9 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       }
     }
     computeCardinality();
+    if (isFull()) {
+      return MappeableRunContainer.full();
+    }
     return this;
   }
 
@@ -1384,7 +1397,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
 
   @Override
-  public MappeableBitmapContainer or(final MappeableArrayContainer value2) {
+  public MappeableContainer or(final MappeableArrayContainer value2) {
     final MappeableBitmapContainer answer = clone();
     if (!BufferUtil.isBackedBySimpleArray(answer.bitmap)) {
       throw new RuntimeException("Should not happen. Internal bug.");
@@ -1425,6 +1438,9 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
           }
         }
       }
+    }
+    if (answer.isFull()) {
+      return MappeableRunContainer.full();
     }
     return answer;
   }
@@ -1560,6 +1576,8 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       computeCardinality();
       if(getCardinality() <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
         return this.toArrayContainer();
+      } else if (isFull()) {
+        return MappeableRunContainer.full();
       }
     }
     return this;

@@ -9,6 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.*;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.*;
 import static org.roaringbitmap.ArrayContainer.DEFAULT_MAX_SIZE;
 
@@ -2415,7 +2416,35 @@ public class TestRunContainer {
     }
   }
 
+  @Test
+  public void orFullToRunContainer() {
+    Container rc = Container.rangeOfOnes(0, 1 << 15);
+    Container half = new BitmapContainer(1 << 15, 1 << 16);
+    assertThat(rc, instanceOf(RunContainer.class));
+    Container result = rc.or(half);
+    assertEquals(1 << 16, result.getCardinality());
+    assertThat(result, instanceOf(RunContainer.class));
+  }
 
+  @Test
+  public void orFullToRunContainer2() {
+    Container rc = Container.rangeOfOnes((1 << 10) - 200, 1 << 16);
+    Container half = new ArrayContainer(0, 1 << 10);
+    assertThat(rc, instanceOf(RunContainer.class));
+    Container result = rc.or(half);
+    assertEquals(1 << 16, result.getCardinality());
+    assertThat(result, instanceOf(RunContainer.class));
+  }
+
+  @Test
+  public void orFullToRunContainer3() {
+    Container rc = Container.rangeOfOnes(0, 1 << 15);
+    Container half = Container.rangeOfOnes((1 << 15) - 200, 1 << 16);
+    assertThat(rc, instanceOf(RunContainer.class));
+    Container result = rc.or(half);
+    assertEquals(1 << 16, result.getCardinality());
+    assertThat(result, instanceOf(RunContainer.class));
+  }
 
   @Test
   public void safeSerialization() throws Exception {
@@ -2969,5 +2998,36 @@ public class TestRunContainer {
     assertEquals(1<<16, rc.getCardinality());
   }
 
+  @Test
+  public void testLazyORFull() {
+    Container rc = Container.rangeOfOnes(0, 1 << 15);
+    BitmapContainer bc2 = new BitmapContainer(3210, 1 << 16);
+    Container rbc = rc.lazyOR(bc2);
+    assertEquals(-1, rbc.getCardinality());
+    Container repaired = rbc.repairAfterLazy();
+    assertEquals(1 << 16, repaired.getCardinality());
+    assertThat(repaired, instanceOf(RunContainer.class));
+  }
+
+  @Test
+  public void testLazyORFull2() {
+    Container rc = Container.rangeOfOnes((1 << 10) - 200, 1 << 16);
+    ArrayContainer ac = new ArrayContainer(0, 1 << 10);
+    Container rbc = rc.lazyOR(ac);
+    assertEquals(1 << 16, rbc.getCardinality());
+    assertThat(rbc, instanceOf(RunContainer.class));
+  }
+
+  @Test
+  public void testLazyORFull3() {
+    Container rc = Container.rangeOfOnes(0, 1 << 15);
+    Container rc2 = Container.rangeOfOnes(1 << 15, 1 << 16);
+    Container result = rc.lazyOR(rc2);
+    Container iresult = rc.lazyIOR(rc2);
+    assertEquals(1 << 16, result.getCardinality());
+    assertEquals(1 << 16, iresult.getCardinality());
+    assertThat(result, instanceOf(RunContainer.class));
+    assertThat(iresult, instanceOf(RunContainer.class));
+  }
 
 }

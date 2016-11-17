@@ -7,7 +7,9 @@ import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
 import static org.roaringbitmap.buffer.TestMappeableArrayContainer.newArrayContainer;
 
@@ -140,4 +142,65 @@ public class TestMappeableRunContainer {
     assertEquals(16, rc2.andCardinality(rc1));
   }
 
+  @Test
+  public void orFullToRunContainer() {
+    MappeableContainer rc = MappeableContainer.rangeOfOnes(0, 1 << 15);
+    MappeableBitmapContainer half = new MappeableBitmapContainer(1 << 15, 1 << 16);
+    assertThat(rc, instanceOf(MappeableRunContainer.class));
+    MappeableContainer result = rc.or(half);
+    assertEquals(1 << 16, result.getCardinality());
+    assertThat(result, instanceOf(MappeableRunContainer.class));
+  }
+
+  @Test
+  public void orFullToRunContainer2() {
+    MappeableContainer rc = MappeableContainer.rangeOfOnes(0, 1 << 15);
+    MappeableArrayContainer half = new MappeableArrayContainer(1 << 15, 1 << 16);
+    assertThat(rc, instanceOf(MappeableRunContainer.class));
+    MappeableContainer result = rc.or(half);
+    assertEquals(1 << 16, result.getCardinality());
+    assertThat(result, instanceOf(MappeableRunContainer.class));
+  }
+
+  @Test
+  public void orFullToRunContainer3() {
+    MappeableContainer rc = MappeableContainer.rangeOfOnes(0, 1 << 15);
+    MappeableContainer half = MappeableContainer.rangeOfOnes(1 << 15, 1 << 16);
+    assertThat(rc, instanceOf(MappeableRunContainer.class));
+    MappeableContainer result = rc.or(half);
+    assertEquals(1 << 16, result.getCardinality());
+    assertThat(result, instanceOf(MappeableRunContainer.class));
+  }
+
+  @Test
+  public void testLazyORFull() {
+    MappeableContainer rc = MappeableContainer.rangeOfOnes(0, 1 << 15);
+    MappeableBitmapContainer bc2 = new MappeableBitmapContainer(3210, 1 << 16);
+    MappeableContainer rbc = rc.lazyOR(bc2);
+    assertEquals(-1, rbc.getCardinality());
+    MappeableContainer repaired = rbc.repairAfterLazy();
+    assertEquals(1 << 16, repaired.getCardinality());
+    assertThat(repaired, instanceOf(MappeableRunContainer.class));
+  }
+
+  @Test
+  public void testLazyORFull2() {
+    MappeableContainer rc = MappeableContainer.rangeOfOnes((1 << 10) - 200, 1 << 16);
+    MappeableArrayContainer ac = new MappeableArrayContainer(0, 1 << 10);
+    MappeableContainer rbc = rc.lazyOR(ac);
+    assertEquals(1 << 16, rbc.getCardinality());
+    assertThat(rbc, instanceOf(MappeableRunContainer.class));
+  }
+
+  @Test
+  public void testLazyORFull3() {
+    MappeableContainer rc = MappeableContainer.rangeOfOnes(0, 1 << 15);
+    MappeableContainer rc2 = MappeableContainer.rangeOfOnes(1 << 15, 1 << 16);
+    MappeableContainer result = rc.lazyOR(rc2);
+    MappeableContainer iresult = rc.lazyIOR(rc2);
+    assertEquals(1 << 16, result.getCardinality());
+    assertEquals(1 << 16, iresult.getCardinality());
+    assertThat(result, instanceOf(MappeableRunContainer.class));
+    assertThat(iresult, instanceOf(MappeableRunContainer.class));
+  }
 }

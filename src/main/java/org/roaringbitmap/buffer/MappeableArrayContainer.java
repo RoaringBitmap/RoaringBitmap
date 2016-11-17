@@ -1022,6 +1022,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       }
       if (bc.cardinality <= DEFAULT_MAX_SIZE) {
         return bc.toArrayContainer();
+      } else if (bc.isFull()) {
+        return MappeableRunContainer.full();
       }
       return bc;
     }

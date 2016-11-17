@@ -815,6 +815,8 @@ public final class ArrayContainer extends Container implements Cloneable {
       }
       if (bc.cardinality <= DEFAULT_MAX_SIZE) {
         return bc.toArrayContainer();
+      } else if (bc.isFull()) {
+        return RunContainer.full();
       }
       return bc;
     }

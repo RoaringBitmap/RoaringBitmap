@@ -11,7 +11,9 @@ import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class TestArrayContainer {
@@ -96,6 +98,24 @@ public class TestArrayContainer {
     }
 
     @Test
+    public void orFullToRunContainer() {
+        ArrayContainer ac = new ArrayContainer(0, 1 << 12);
+        BitmapContainer half = new BitmapContainer(1 << 12, 1 << 16);
+        Container result = ac.or(half);
+        assertEquals(1 << 16, result.getCardinality());
+        assertThat(result, instanceOf(RunContainer.class));
+    }
+
+    @Test
+    public void orFullToRunContainer2() {
+        ArrayContainer ac = new ArrayContainer(0, 1 << 15);
+        ArrayContainer half = new ArrayContainer(1 << 15, 1 << 16);
+        Container result = ac.or(half);
+        assertEquals(1 << 16, result.getCardinality());
+        assertThat(result, instanceOf(RunContainer.class));
+    }
+
+    @Test
     public void iandBitmap() throws Exception {
         Container ac = new ArrayContainer();
         ac = ac.add(1, 10);
@@ -153,6 +173,17 @@ public class TestArrayContainer {
         ac = ac.add(1, 10);
         ac.clear();
         assertEquals(0, ac.getCardinality());
+    }
+
+    @Test
+    public void testLazyORFull() {
+        ArrayContainer ac = new ArrayContainer(0, 1 << 15);
+        ArrayContainer ac2 = new ArrayContainer(1 << 15, 1 << 16);
+        Container rbc = ac.lazyor(ac2);
+        assertEquals(-1, rbc.getCardinality());
+        Container repaired = rbc.repairAfterLazy();
+        assertEquals(1 << 16, repaired.getCardinality());
+        assertThat(repaired, instanceOf(RunContainer.class));
     }
 
 }

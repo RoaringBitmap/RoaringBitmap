@@ -9,7 +9,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.ShortBuffer;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 
@@ -248,5 +250,33 @@ public class TestMappeableArrayContainer {
     });
   }
 
+  @Test
+  public void orFullToRunContainer() {
+    MappeableArrayContainer ac = new MappeableArrayContainer(0, 1 << 12);
+    MappeableBitmapContainer half = new MappeableBitmapContainer(1 << 12, 1 << 16);
+    MappeableContainer result = ac.or(half);
+    assertEquals(1 << 16, result.getCardinality());
+    assertThat(result, instanceOf(MappeableRunContainer.class));
+  }
+
+  @Test
+  public void orFullToRunContainer2() {
+    MappeableArrayContainer ac = new MappeableArrayContainer(0, 1 << 15);
+    MappeableArrayContainer half = new MappeableArrayContainer(1 << 15, 1 << 16);
+    MappeableContainer result = ac.or(half);
+    assertEquals(1 << 16, result.getCardinality());
+    assertThat(result, instanceOf(MappeableRunContainer.class));
+  }
+
+  @Test
+  public void testLazyORFull() {
+    MappeableArrayContainer ac = new MappeableArrayContainer(0, 1 << 15);
+    MappeableArrayContainer ac2 = new MappeableArrayContainer(1 << 15, 1 << 16);
+    MappeableContainer rbc = ac.lazyor(ac2);
+    assertEquals(-1, rbc.getCardinality());
+    MappeableContainer repaired = rbc.repairAfterLazy();
+    assertEquals(1 << 16, repaired.getCardinality());
+    assertThat(repaired, instanceOf(MappeableRunContainer.class));
+  }
 
 }
