@@ -85,7 +85,7 @@ public class simplebenchmark {
         System.out.print(String.format("%1$-10s",dfbitsperval.format(totalbytes * 8.0 / totalcard)));
         System.out.flush();
         for(long time : timings) {
-            System.out.print(String.format("%1$8s",time));
+            System.out.print(String.format("%1$10s",time));
         }
 
     }
@@ -108,7 +108,7 @@ public class simplebenchmark {
         }
 
         for(long time : timings) {
-            System.out.print(String.format("%1$8s",time));
+            System.out.print(String.format("%1$10s",time));
         }
 
     }
