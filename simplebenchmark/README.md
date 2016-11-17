@@ -12,6 +12,8 @@ In effect, the tools need to empower the programmer, not weight him down.
 
 This little program is an attempt to do this. In under a minute, we get usable benchmark
 numbers... Under Linux or macOS type:
-     mvn -f ../pom.xml package -DskipTests -Dgpg.skip=true
-     ./run.sh
 
+```bash
+mvn -f ../pom.xml package -DskipTests -Dgpg.skip=true
+./run.sh
+```
