@@ -38,7 +38,12 @@
         <dependency>
             <groupId>org.roaringbitmap</groupId>
             <artifactId>RoaringBitmap</artifactId>
-            <version>[0.5.6-SNAPSHOT,)</version><!-- we use an open interval, hoping that we pick up the last version --> 
+            <version>[0.6.28-SNAPSHOT,)</version><!-- we use an open interval, hoping that we pick up the last version -->
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math3</artifactId>
+            <version>3.6.1</version>
         </dependency>
         <dependency>
             <groupId>com.zaxxer</groupId>
@@ -65,7 +70,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <jmh.version>[1.10.1,)</jmh.version>
+        <jmh.version>1.16</jmh.version>
         <javac.target>1.7</javac.target>
         <uberjar.name>benchmarks</uberjar.name>
     </properties>
