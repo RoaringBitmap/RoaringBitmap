@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @State(Scope.Benchmark)
-public class UtilBechmark {
+public class UtilBenchmark {
 
     @Param({"0", "1", "2", "3", "4"})
     public int index;
@@ -52,7 +52,7 @@ public class UtilBechmark {
 
     public static void main(String[] arg) throws RunnerException {
         Options opt = new OptionsBuilder()
-                .include(".*" + UtilBechmark.class.getSimpleName() + ".*")
+                .include(".*" + UtilBenchmark.class.getSimpleName() + ".*")
                 .warmupIterations(12)
                 .measurementIterations(7)
                 .forks(1)
