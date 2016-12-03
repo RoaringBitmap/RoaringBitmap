@@ -1,5 +1,6 @@
 package org.roaringbitmap;
 
+import me.lemire.integercompression.synth.ClusteredDataGenerator;
 import org.apache.commons.math3.distribution.IntegerDistribution;
 import org.apache.commons.math3.distribution.UniformIntegerDistribution;
 import org.apache.commons.math3.random.Well19937c;
@@ -24,16 +25,21 @@ import java.util.concurrent.TimeUnit;
 @State(Scope.Benchmark)
 public class UtilBenchmark {
 
-    @Param({"0", "1", "2", "3", "4"})
+    @Param({"0", "1"})
+    public int smallType; // 0 - uniform, 1 - clustered
+    @Param({"0", "1"})
+    public int bigType;   // 0 - uniform, 1 - clustered
+    @Param({"0", "1", "2", "3", "4"})  // update GENERATE_EXAMPLES if changing this
     public int index;
-    @Param({"10","15","20","25","30","35", "40", "50","60", "90"})
+    @Param({"15", "25", "30", "35", "45", "60"})
     public int param;
 
+    private static final int GENERATE_EXAMPLES = 5;
     public static BenchmarkData data;
 
     @Setup
     public void setup() {
-        data = BenchmarkDataGenerator.generate(param, 5);
+        data = BenchmarkDataGenerator.generate(param, GENERATE_EXAMPLES, smallType, bigType);
     }
 
     @Benchmark
@@ -67,6 +73,7 @@ class BenchmarkData {
         this.big = big;
         this.dest = new short[Short.MAX_VALUE];
     }
+
     final BenchmarkContainer[] small;
     final BenchmarkContainer[] big;
     final short[] dest;
@@ -77,6 +84,7 @@ class BenchmarkContainer {
         this.content = content;
         this.length = content.length;
     }
+
     final short[] content;
     final int length;
 }
@@ -86,16 +94,17 @@ class BenchmarkContainer {
  * For given *param* it generates *howmany* entries
  */
 class BenchmarkDataGenerator {
-    static BenchmarkData generate(int param, int howMany) {
+    static BenchmarkData generate(int param, int howMany, int smallType, int bigType) {
         IntegerDistribution ud = new UniformIntegerDistribution(new Well19937c(param + 17), Short.MIN_VALUE, Short.MAX_VALUE);
+        ClusteredDataGenerator cd = new ClusteredDataGenerator();
         IntegerDistribution p = new UniformIntegerDistribution(new Well19937c(param + 123), SMALLEST_ARRAY, BIGGEST_ARRAY / param);
         BenchmarkContainer[] smalls = new BenchmarkContainer[howMany];
-        BenchmarkContainer[] bigs =  new BenchmarkContainer[howMany];
+        BenchmarkContainer[] bigs = new BenchmarkContainer[howMany];
         for (int i = 0; i < howMany; i++) {
             int smallSize = p.sample();
             int bigSize = smallSize * param;
-            short[] small = intArrayToShortArraySorted(ud.sample(smallSize));
-            short[] big = intArrayToShortArraySorted(ud.sample(bigSize));
+            short[] small = smallType == 0 ? generateUniform(ud, smallSize) : generateClustered(cd, smallSize);
+            short[] big = bigType == 0 ? generateUniform(ud, bigSize) : generateClustered(cd, bigSize);
             smalls[i] = new BenchmarkContainer(small);
             bigs[i] = new BenchmarkContainer(big);
         }
@@ -111,8 +120,25 @@ class BenchmarkDataGenerator {
         return result;
     }
 
-    private final static int SMALLEST_ARRAY = 50;
-    private final static int BIGGEST_ARRAY = 2 * Short.MAX_VALUE;
+    private static short[] generateClustered(ClusteredDataGenerator cd, int howMany) {
+        int[] half1raw = cd.generateClustered(howMany / 2, Short.MAX_VALUE);
+        for (int i = 0; i < half1raw.length; i++) {
+            half1raw[i] = -half1raw[i];
+        }
+        short[] half1 = intArrayToShortArraySorted(half1raw);
+        short[] half2 = intArrayToShortArraySorted(cd.generateClustered(howMany / 2, Short.MAX_VALUE));
+        short[] result = new short[half1.length + half2.length];
+        System.arraycopy(half1, 0, result, 0, half1.length);
+        System.arraycopy(half2, 0, result, half1.length, half2.length);
+        return result;
+    }
+
+    private static short[] generateUniform(IntegerDistribution ud, int howMany) {
+        return intArrayToShortArraySorted(ud.sample(howMany));
+    }
+
+    private final static int SMALLEST_ARRAY = 2;
+    private final static int BIGGEST_ARRAY = 4096;
 }
 
 
