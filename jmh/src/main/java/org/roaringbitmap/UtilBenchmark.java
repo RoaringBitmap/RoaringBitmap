@@ -12,29 +12,31 @@ import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
-import org.openjdk.jmh.runner.Runner;
-import org.openjdk.jmh.runner.RunnerException;
-import org.openjdk.jmh.runner.options.Options;
-import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * The experiment to test the threshold when it is worth to use galloping strategy of intersecting sorted lists.
+ * It allows to generate sample lists where first is *param* times bigger than other one.
+ * Both lists can be generated used uniform or clustered distribution.
+ * The methodology and results are presented in the issue #63 on Github.
+ */
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @State(Scope.Benchmark)
 public class UtilBenchmark {
 
-    @Param({"0", "1"})
-    public int smallType; // 0 - uniform, 1 - clustered
-    @Param({"0", "1"})
-    public int bigType;   // 0 - uniform, 1 - clustered
-    @Param({"0", "1", "2", "3", "4"})  // update GENERATE_EXAMPLES if changing this
+    @Param({"0"})           // use {"0", "1"} to test both uniform and clustered combinations
+    public int smallType;   // 0 - uniform, 1 - clustered
+    @Param({"0"})           // use {"0", "1"} to test both uniform and clustered combinations
+    public int bigType;     // 0 - uniform, 1 - clustered
+    @Param({"0"})           // use {"0", "1", "2"} for three experiments. Update GENERATE_EXAMPLES if changing this
     public int index;
-    @Param({"15", "25", "30", "35", "45", "60"})
+    @Param({"25"})          // use {"20", "25", "30"} to check different thresholds
     public int param;
 
-    private static final int GENERATE_EXAMPLES = 5;
+    private static final int GENERATE_EXAMPLES = 1;
     public static BenchmarkData data;
 
     @Setup
@@ -54,16 +56,6 @@ public class UtilBenchmark {
         BenchmarkContainer small = data.small[index];
         BenchmarkContainer big = data.big[index];
         Util.unsignedLocalIntersect2by2(small.content, small.length, big.content, big.length, data.dest);
-    }
-
-    public static void main(String[] arg) throws RunnerException {
-        Options opt = new OptionsBuilder()
-                .include(".*" + UtilBenchmark.class.getSimpleName() + ".*")
-                .warmupIterations(12)
-                .measurementIterations(7)
-                .forks(1)
-                .build();
-        new Runner(opt).run();
     }
 }
 
