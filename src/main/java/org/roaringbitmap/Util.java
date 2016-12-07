@@ -657,9 +657,10 @@ public final class Util {
    */
   public static int unsignedIntersect2by2(final short[] set1, final int length1, final short[] set2,
       final int length2, final short[] buffer) {
-    if (set1.length * 64 < set2.length) {
+    final int THRESHOLD = 25;
+    if (set1.length * THRESHOLD < set2.length) {
       return unsignedOneSidedGallopingIntersect2by2(set1, length1, set2, length2, buffer);
-    } else if (set2.length * 64 < set1.length) {
+    } else if (set2.length * THRESHOLD < set1.length) {
       return unsignedOneSidedGallopingIntersect2by2(set2, length2, set1, length1, buffer);
     } else {
       return unsignedLocalIntersect2by2(set1, length1, set2, length2, buffer);
