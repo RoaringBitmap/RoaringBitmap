@@ -302,6 +302,11 @@ To run memory benchmarks, use the following command:
          $ ./memory/run.sh
 
 
+Mailing list/discussion group
+-----------------------------
+
+https://groups.google.com/forum/#!forum/roaring-bitmaps
+
 Funding
 ----------
 
