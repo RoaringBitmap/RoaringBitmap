@@ -27,6 +27,9 @@ Other platforms such as Whoosh (https://pypi.python.org/pypi/Whoosh/) also use R
 their own implementations.
 
 
+There is a serialized format specification for interoperability between implementations: https://github.com/RoaringBitmap/RoaringFormatSpec/
+
+
 (c) 2013-2016 the RoaringBitmap authors
 
 
