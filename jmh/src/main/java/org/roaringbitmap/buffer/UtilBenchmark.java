@@ -32,12 +32,12 @@ public class UtilBenchmark {
     public int smallType;   // 0 - uniform, 1 - clustered
     @Param({"0", "1"})           // use {"0", "1"} to test both uniform and clustered combinations
     public int bigType;     // 0 - uniform, 1 - clustered
-    @Param({"0", "1", "2", "3", "4"})           // use {"0", "1", "2"} for three experiments. Update GENERATE_EXAMPLES if changing this
+    @Param({"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"})           // use {"0", "1", "2"} for three experiments. Update GENERATE_EXAMPLES if changing this
     public int index;
-    @Param({"10" ,"15", "21", "23", "25", "26", "28", "30", "35", "40", "60", "90"})          // use {"20", "25", "30"} to check different thresholds
+    @Param({"25", "26", "28", "30", "31", "32", "33", "34", "35", "38", "40", "44", "49", "55", "60"})          // use {"20", "25", "30"} to check different thresholds
     public int param;
 
-    private static final int GENERATE_EXAMPLES = 5;
+    private static final int GENERATE_EXAMPLES = 10;
     public static BenchmarkData data;
 
     @Setup
