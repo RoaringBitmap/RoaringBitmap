@@ -889,7 +889,8 @@ public class ImmutableRoaringBitmap
 
   /**
    * Constructs a new ImmutableRoaringBitmap starting at this ByteBuffer's position(). Only
-   * meta-data is loaded to RAM. The rest is mapped to the ByteBuffer.
+   * meta-data is loaded to RAM. The rest is mapped to the ByteBuffer. The byte stream should
+   * abide by the format specification https://github.com/RoaringBitmap/RoaringFormatSpec
    * 
    * It is not necessary that limit() on the input ByteBuffer indicates the end of the serialized
    * data.
@@ -1205,6 +1206,8 @@ public class ImmutableRoaringBitmap
 
   /**
    * Serialize this bitmap.
+   *
+   *  See format specification at https://github.com/RoaringBitmap/RoaringFormatSpec 
    * 
    * Consider calling {@link MutableRoaringBitmap#runOptimize} before serialization to improve
    * compression if this is a MutableRoaringBitmap instance.

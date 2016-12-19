@@ -1218,6 +1218,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
   /**
    * Deserialize (retrieve) this bitmap.
+   * See format specification at https://github.com/RoaringBitmap/RoaringFormatSpec
    *
    * The current bitmap is overwritten.
    *
@@ -1895,7 +1896,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
   /**
    * Serialize this bitmap.
-   * 
+   *
+   *  See format specification at https://github.com/RoaringBitmap/RoaringFormatSpec
+   *  
    * Consider calling {@link #runOptimize} before serialization to improve compression.
    *
    * The current bitmap is not modified.

@@ -881,6 +881,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
   /**
    * Deserialize the bitmap (retrieve from the input stream). The current bitmap is overwritten.
+   * 
+   *  See format specification at https://github.com/RoaringBitmap/RoaringFormatSpec
    *
    * @param in the DataInput stream
    * @throws IOException Signals that an I/O exception has occurred.
