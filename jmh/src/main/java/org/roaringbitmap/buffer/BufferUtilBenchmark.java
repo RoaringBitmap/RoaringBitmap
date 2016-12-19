@@ -21,23 +21,23 @@ import java.util.concurrent.TimeUnit;
  * The experiment to test the threshold when it is worth to use galloping strategy of intersecting sorted lists.
  * It allows to generate sample lists where first is *param* times bigger than other one.
  * Both lists can be generated used uniform or clustered distribution.
- * The methodology and results are presented in the issue #63 on Github.
+ * The methodology and results are presented in the issue #130 on Github.
  */
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @State(Scope.Benchmark)
-public class UtilBenchmark {
+public class BufferUtilBenchmark {
 
-    @Param({"0", "1"})           // use {"0", "1"} to test both uniform and clustered combinations
+    @Param({"0"})           // use {"0", "1"} to test both uniform and clustered combinations
     public int smallType;   // 0 - uniform, 1 - clustered
-    @Param({"0", "1"})           // use {"0", "1"} to test both uniform and clustered combinations
+    @Param({"0"})           // use {"0", "1"} to test both uniform and clustered combinations
     public int bigType;     // 0 - uniform, 1 - clustered
-    @Param({"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"})           // use {"0", "1", "2"} for three experiments. Update GENERATE_EXAMPLES if changing this
+    @Param({"0"})           // use {"0", "1", "2"} for three experiments. Update GENERATE_EXAMPLES if changing this
     public int index;
-    @Param({"25", "26", "28", "30", "31", "32", "33", "34", "35", "38", "40", "44", "49", "55", "60"})          // use {"20", "25", "30"} to check different thresholds
+    @Param({"35"})          // use {"20", "25", "30"} to check different thresholds
     public int param;
 
-    private static final int GENERATE_EXAMPLES = 10;
+    private static final int GENERATE_EXAMPLES = 1;
     public static BenchmarkData data;
 
     @Setup

@@ -569,9 +569,10 @@ public final class BufferUtil {
 
   protected static int unsignedIntersect2by2(final ShortBuffer set1, final int length1,
       final ShortBuffer set2, final int length2, final short[] buffer) {
-    if (length1 * 64 < length2) {
+    final int THRESHOLD = 34;
+    if (length1 * THRESHOLD < length2) {
       return unsignedOneSidedGallopingIntersect2by2(set1, length1, set2, length2, buffer);
-    } else if (length2 * 64 < length1) {
+    } else if (length2 * THRESHOLD < length1) {
       return unsignedOneSidedGallopingIntersect2by2(set2, length2, set1, length1, buffer);
     } else {
       return unsignedLocalIntersect2by2(set1, length1, set2, length2, buffer);
