@@ -12,7 +12,7 @@ import org.roaringbitmap.Util;
 
 /**
  * Various useful methods for roaring bitmaps.
- * 
+ *
  * This class is similar to org.roaringbitmap.Util but meant to be used with memory mapping.
  */
 public final class BufferUtil {
@@ -22,7 +22,7 @@ public final class BufferUtil {
   /**
    * Find the smallest integer larger than pos such that array[pos]&gt;= min. If none can be found,
    * return length. Based on code by O. Kaser.
-   * 
+   *
    * @param array container where we search
    * @param pos initial position
    * @param min minimal threshold
@@ -222,7 +222,7 @@ public final class BufferUtil {
 
   /**
    * flip bits at start, start+1,..., end-1
-   * 
+   *
    * @param bitmap array of words to be modified
    * @param start first index to be modified (inclusive)
    * @param end last index to be modified (exclusive)
@@ -247,16 +247,19 @@ public final class BufferUtil {
 
   /**
    * Hamming weight of the 64-bit words involved in the range start, start+1,..., end-1
-   * 
-   * @param bitmap array of words to be modified
-   * @param start first index to be modified (inclusive)
-   * @param end last index to be modified (exclusive)
+   * that is, it will compute the cardinality of the bitset from index (floor(start/64) to floor((end-1)/64))
+   * inclusively.
+   *
+   * @param bitmap array of words representing a bitset
+   * @param start first index (inclusive)
+   * @param end last index (exclusive)
+   * @return the hamming weight of the corresponding words
    */
   private static int cardinalityInBitmapWordRange(LongBuffer bitmap, int start, int end) {
     if (isBackedBySimpleArray(bitmap)) {
       return Util.cardinalityInBitmapWordRange(bitmap.array(), start, end);
     }
-    if (start == end) {
+    if (start >= end) {
       return 0;
     }
     int firstword = start / 64;
@@ -269,8 +272,38 @@ public final class BufferUtil {
   }
 
   /**
+   * Hamming weight of the bitset in the range
+   *  start, start+1,..., end-1
+   *
+   * @param bitmap array of words representing a bitset
+   * @param start first index  (inclusive)
+   * @param end last index  (exclusive)
+   * @return the hamming weight of the corresponding range
+   */
+  public static int cardinalityInBitmapRange(LongBuffer bitmap, int start, int end) {
+    if (isBackedBySimpleArray(bitmap)) {
+      return Util.cardinalityInBitmapRange(bitmap.array(), start, end);
+    }
+    if (start >= end) {
+      return 0;
+    }
+    int firstword = start / 64;
+    int endword = (end - 1) / 64;
+    if (firstword == endword) {
+      return Long.bitCount (bitmap.get(firstword) & ((~0L << start) & (~0L >>> -end)));
+    }
+    int answer = Long.bitCount (bitmap.get(firstword) & (~0L << start));
+    for (int i = firstword + 1; i < endword; i++) {
+      answer += Long.bitCount (bitmap.get(i));
+    }
+    answer += Long.bitCount (bitmap.get(endword) & (~0L >>> -end));
+    return answer;
+  }
+
+
+  /**
    * set bits at start, start+1,..., end-1 and report the cardinality change
-   * 
+   *
    * @param bitmap array of words to be modified
    * @param start first index to be modified (inclusive)
    * @param end last index to be modified (exclusive)
@@ -289,7 +322,7 @@ public final class BufferUtil {
 
   /**
    * flip bits at start, start+1,..., end-1 and report the cardinality change
-   * 
+   *
    * @param bitmap array of words to be modified
    * @param start first index to be modified (inclusive)
    * @param end last index to be modified (exclusive)
@@ -308,7 +341,7 @@ public final class BufferUtil {
 
   /**
    * reset bits at start, start+1,..., end-1 and report the cardinality change
-   * 
+   *
    * @param bitmap array of words to be modified
    * @param start first index to be modified (inclusive)
    * @param end last index to be modified (exclusive)
@@ -327,7 +360,7 @@ public final class BufferUtil {
   /**
    * From the cardinality of a container, compute the corresponding size in bytes of the container.
    * Additional information is required if the container is run encoded.
-   * 
+   *
    * @param card the cardinality if this is not run encoded, otherwise ignored
    * @param numRuns number of runs if run encoded, othewise ignored
    * @param isRunEncoded boolean
@@ -389,7 +422,7 @@ public final class BufferUtil {
 
   /**
    * clear bits at start, start+1,..., end-1
-   * 
+   *
    * @param bitmap array of words to be modified
    * @param start first index to be modified (inclusive)
    * @param end last index to be modified (exclusive)
@@ -418,7 +451,7 @@ public final class BufferUtil {
 
   /**
    * set bits at start, start+1,..., end-1
-   * 
+   *
    * @param bitmap array of words to be modified
    * @param start first index to be modified (inclusive)
    * @param end last index to be modified (exclusive)
@@ -454,7 +487,7 @@ public final class BufferUtil {
    * Look for value k in buffer in the range [begin,end). If the value is found, return its index.
    * If not, return -(i+1) where i is the index where the value would be inserted. The buffer is
    * assumed to contain sorted values where shorts are interpreted as unsigned integers.
-   * 
+   *
    * @param array buffer where we search
    * @param begin first index (inclusive)
    * @param end last index (exclusive)

@@ -191,7 +191,7 @@ public final class Util {
 
   /**
    * flip bits at start, start+1,..., end-1
-   * 
+   *
    * @param bitmap array of words to be modified
    * @param start first index to be modified (inclusive)
    * @param end last index to be modified (exclusive)
@@ -208,19 +208,21 @@ public final class Util {
     }
     bitmap[endword] ^= ~0L >>> -end;
   }
-  
+
 
   /**
    * Hamming weight of the 64-bit words involved in the range
-   *  start, start+1,..., end-1
-   * 
-   * @param bitmap array of words to be modified
-   * @param start first index to be modified (inclusive)
-   * @param end last index to be modified (exclusive)
-   * @return the hamming weight
+   *  start, start+1,..., end-1, that is, it will compute the
+   * cardinality of the bitset from index (floor(start/64) to floor((end-1)/64))
+   * inclusively.
+   *
+   * @param bitmap array of words representing a bitset
+   * @param start first index  (inclusive)
+   * @param end last index (exclusive)
+   * @return the hamming weight of the corresponding words
    */
   public static int cardinalityInBitmapWordRange(long[] bitmap, int start, int end) {
-    if (start == end) {
+    if (start >= end) {
       return 0;
     }
     int firstword = start / 64;
@@ -232,6 +234,32 @@ public final class Util {
     return answer;
   }
 
+
+  /**
+   * Hamming weight of the bitset in the range
+   *  start, start+1,..., end-1
+   *
+   * @param bitmap array of words representing a bitset
+   * @param start first index  (inclusive)
+   * @param end last index  (exclusive)
+   * @return the hamming weight of the corresponding range
+   */
+  public static int cardinalityInBitmapRange(long[] bitmap, int start, int end) {
+    if (start >= end) {
+      return 0;
+    }
+    int firstword = start / 64;
+    int endword = (end - 1) / 64;
+    if (firstword == endword) {
+      return Long.bitCount(bitmap[firstword] & ( (~0L << start) & (~0L >>> -end) ));
+    }
+    int answer = Long.bitCount(bitmap[firstword] & (~0L << start));
+    for (int i = firstword + 1; i < endword; i++) {
+      answer += Long.bitCount(bitmap[i]);
+    }
+    answer += Long.bitCount(bitmap[endword] & (~0L >>> -end));
+    return answer;
+  }
 
   protected static short highbits(int x) {
     return (short) (x >>> 16);
@@ -297,7 +325,7 @@ public final class Util {
 
   /**
    * clear bits at start, start+1,..., end-1
-   * 
+   *
    * @param bitmap array of words to be modified
    * @param start first index to be modified (inclusive)
    * @param end last index to be modified (exclusive)
@@ -323,7 +351,7 @@ public final class Util {
 
   /**
    * Given a word w, return the position of the jth true bit.
-   * 
+   *
    * @param w word
    * @param j index
    * @return position of jth true bit in w
@@ -375,7 +403,7 @@ public final class Util {
 
   /**
    * set bits at start, start+1,..., end-1
-   * 
+   *
    * @param bitmap array of words to be modified
    * @param start first index to be modified (inclusive)
    * @param end last index to be modified (exclusive)
@@ -396,17 +424,17 @@ public final class Util {
     }
     bitmap[endword] |= ~0L >>> -end;
   }
-  
+
   /**
    * set bits at start, start+1,..., end-1 and report the
    * cardinality change
-   * 
+   *
    * @param bitmap array of words to be modified
    * @param start first index to be modified (inclusive)
    * @param end last index to be modified (exclusive)
    * @return cardinality change
    */
-  public static int setBitmapRangeAndCardinalityChange(long[] bitmap, int start, int end) {  
+  public static int setBitmapRangeAndCardinalityChange(long[] bitmap, int start, int end) {
     int cardbefore = cardinalityInBitmapWordRange(bitmap, start, end);
     setBitmapRange(bitmap, start,end);
     int cardafter = cardinalityInBitmapWordRange(bitmap, start, end);
@@ -417,7 +445,7 @@ public final class Util {
   /**
    * flip  bits at start, start+1,..., end-1 and report the
    * cardinality change
-   * 
+   *
    * @param bitmap array of words to be modified
    * @param start first index to be modified (inclusive)
    * @param end last index to be modified (exclusive)
@@ -429,12 +457,12 @@ public final class Util {
     int cardafter = cardinalityInBitmapWordRange(bitmap, start, end);
     return cardafter - cardbefore;
   }
-  
+
 
   /**
    * reset  bits at start, start+1,..., end-1 and report the
    * cardinality change
-   * 
+   *
    * @param bitmap array of words to be modified
    * @param start first index to be modified (inclusive)
    * @param end last index to be modified (exclusive)
@@ -446,7 +474,7 @@ public final class Util {
     int cardafter = cardinalityInBitmapWordRange(bitmap, start, end);
     return cardafter - cardbefore;
   }
-  
+
   protected static int toIntUnsigned(short x) {
     return x & 0xFFFF;
   }
@@ -455,7 +483,7 @@ public final class Util {
    * Look for value k in array in the range [begin,end). If the value is found, return its index. If
    * not, return -(i+1) where i is the index where the value would be inserted. The array is assumed
    * to contain sorted values where shorts are interpreted as unsigned integers.
-   * 
+   *
    * @param array array where we search
    * @param begin first index (inclusive)
    * @param end last index (exclusive)
@@ -764,7 +792,7 @@ public final class Util {
     return pos;
   }
 
-  
+
   /**
    * Compute the cardinality of the intersection
    * @param set1 first set
