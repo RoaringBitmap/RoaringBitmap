@@ -38,7 +38,7 @@
         <dependency>
             <groupId>org.roaringbitmap</groupId>
             <artifactId>RoaringBitmap</artifactId>
-            <version>[0.6.28-SNAPSHOT,)</version><!-- we use an open interval, hoping that we pick up the last version -->
+            <version>[0.6.30-SNAPSHOT,)</version><!-- we use an open interval, hoping that we pick up the last version -->
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -53,7 +53,7 @@
         <dependency>
             <groupId>org.roaringbitmap</groupId>
             <artifactId>real-roaring-dataset</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <version>0.6.30-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>me.lemire.integercompression</groupId>
