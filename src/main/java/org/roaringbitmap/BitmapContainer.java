@@ -129,8 +129,9 @@ public final class BitmapContainer extends Container implements Cloneable {
       throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
     }
     BitmapContainer answer = clone();
+    int prevOnesInRange = Util.cardinalityInBitmapRange(answer.bitmap, begin, end);
     Util.setBitmapRange(answer.bitmap, begin, end);
-    answer.computeCardinality();
+    answer.computeCardinality(prevOnesInRange, begin, end);
     return answer;
   }
 
@@ -291,6 +292,11 @@ public final class BitmapContainer extends Container implements Cloneable {
     for (int k = 0; k < this.bitmap.length; k++) {
       this.cardinality += Long.bitCount(this.bitmap[k]);
     }
+  }
+
+  protected void computeCardinality(int prevOnesInRange, int firstOfRange, int lastOfRange) {
+    int oldCardinality = this.cardinality;
+    this.cardinality = oldCardinality - prevOnesInRange + lastOfRange - firstOfRange;
   }
 
   @Override

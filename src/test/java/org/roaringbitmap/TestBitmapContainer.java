@@ -194,7 +194,17 @@ public class TestBitmapContainer {
       }  
     }
   }
-  
+
+  @Test
+  public void testRangeCardinality() {
+    BitmapContainer bc = new BitmapContainer();
+    for (int i = 100; i < 10000; i++) {
+      if (i % 5 != 0) bc.add((short) i);
+    }
+    bc = (BitmapContainer) bc.add(200, 2000);
+    assertEquals(8280, bc.cardinality);
+  }
+
   @Test
   public void numberOfRunsLowerBound1() {
     System.out.println("numberOfRunsLowerBound1");
