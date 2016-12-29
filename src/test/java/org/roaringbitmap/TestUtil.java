@@ -27,4 +27,16 @@ public class TestUtil {
         Assert.assertEquals(-1, Util.branchyUnsignedBinarySearch(data1, 0, 0, (short)0));
         Assert.assertEquals(-10, Util.branchyUnsignedBinarySearch(data1, 0, data1.length, (short) -1));
     }
+
+    @Test
+    public void testCardinalityInBitmapWordRange() {
+        BitmapContainer bc = new BitmapContainer();
+        bc.add((short) 1);
+        bc.add((short) 2);
+        bc.add((short) 31);
+
+        int result = Util.cardinalityInBitmapWordRange(bc.bitmap, 7, 37);
+
+        Assert.assertEquals(1, result);
+    }
 }
