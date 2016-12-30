@@ -261,9 +261,10 @@ public final class BitmapContainer extends Container implements Cloneable {
     for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
       int start = Util.toIntUnsigned(x.getValue(rlepos));
       int end = start + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
+      int prevOnesInRange = Util.cardinalityInBitmapRange(answer.bitmap, start, end);
       Util.resetBitmapRange(answer.bitmap, start, end);
+      answer.updateCardinality(prevOnesInRange, 0);
     }
-    answer.computeCardinality();
     if (answer.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE) {
       return answer;
     } else {
@@ -528,9 +529,10 @@ public final class BitmapContainer extends Container implements Cloneable {
     for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
       int start = Util.toIntUnsigned(x.getValue(rlepos));
       int end = start + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
+      int prevOnesInRange = Util.cardinalityInBitmapRange(this.bitmap, start, end);
       Util.resetBitmapRange(this.bitmap, start, end);
+      updateCardinality(prevOnesInRange, 0);
     }
-    computeCardinality();
     if (getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE) {
       return this;
     } else {
