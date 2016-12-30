@@ -427,8 +427,9 @@ public final class BitmapContainer extends Container implements Cloneable {
     if ((begin > end) || (end > (1 << 16))) {
       throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
     }
+    int prevOnesInRange = Util.cardinalityInBitmapRange(bitmap, begin, end);
     Util.setBitmapRange(bitmap, begin, end);
-    computeCardinality();
+    computeCardinality(prevOnesInRange, begin, end);
     return this;
   }
 
