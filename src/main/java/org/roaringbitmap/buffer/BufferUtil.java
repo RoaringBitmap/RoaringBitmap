@@ -247,8 +247,8 @@ public final class BufferUtil {
 
   /**
    * Hamming weight of the 64-bit words involved in the range start, start+1,..., end-1
-   * that is, it will compute the cardinality of the bitset from index (floor(start/64) to floor((end-1)/64))
-   * inclusively.
+   * that is, it will compute the cardinality of the bitset from index
+   * (floor(start/64) to floor((end-1)/64)) inclusively.
    *
    * @param bitmap array of words representing a bitset
    * @param start first index (inclusive)
@@ -290,13 +290,13 @@ public final class BufferUtil {
     int firstword = start / 64;
     int endword = (end - 1) / 64;
     if (firstword == endword) {
-      return Long.bitCount (bitmap.get(firstword) & ((~0L << start) & (~0L >>> -end)));
+      return Long.bitCount(bitmap.get(firstword) & ((~0L << start) & (~0L >>> -end)));
     }
-    int answer = Long.bitCount (bitmap.get(firstword) & (~0L << start));
+    int answer = Long.bitCount(bitmap.get(firstword) & (~0L << start));
     for (int i = firstword + 1; i < endword; i++) {
-      answer += Long.bitCount (bitmap.get(i));
+      answer += Long.bitCount(bitmap.get(i));
     }
-    answer += Long.bitCount (bitmap.get(endword) & (~0L >>> -end));
+    answer += Long.bitCount(bitmap.get(endword) & (~0L >>> -end));
     return answer;
   }
 
