@@ -3030,4 +3030,15 @@ public class TestRunContainer {
     assertThat(iresult, instanceOf(RunContainer.class));
   }
 
+  @Test
+  public void testRangeCardinality() {
+    BitmapContainer bc = new BitmapContainer();
+    for (int i = 100; i < 10000; i++) {
+      if (i % 5 != 0) bc.add((short) i);
+    }
+    RunContainer rc = new RunContainer(new short[]{7, 300, 400, 900, 1400, 2200}, 3);
+    Container result = rc.or(bc);
+    assertEquals(8677, result.getCardinality());
+  }
+
 }
