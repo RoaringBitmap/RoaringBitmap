@@ -131,7 +131,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     BitmapContainer answer = clone();
     int prevOnesInRange = Util.cardinalityInBitmapRange(answer.bitmap, begin, end);
     Util.setBitmapRange(answer.bitmap, begin, end);
-    answer.computeCardinality(prevOnesInRange, begin, end);
+    answer.updateCardinality(prevOnesInRange, end - begin);
     return answer;
   }
 
@@ -294,9 +294,9 @@ public final class BitmapContainer extends Container implements Cloneable {
     }
   }
 
-  protected void computeCardinality(int prevOnesInRange, int firstOfRange, int lastOfRange) {
+  protected void updateCardinality(int prevOnes, int newOnes) {
     int oldCardinality = this.cardinality;
-    this.cardinality = oldCardinality - prevOnesInRange + lastOfRange - firstOfRange;
+    this.cardinality = oldCardinality - prevOnes + newOnes;
   }
 
   @Override
@@ -429,7 +429,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     }
     int prevOnesInRange = Util.cardinalityInBitmapRange(bitmap, begin, end);
     Util.setBitmapRange(bitmap, begin, end);
-    computeCardinality(prevOnesInRange, begin, end);
+    updateCardinality(prevOnesInRange, end - begin);
     return this;
   }
 
@@ -653,7 +653,7 @@ public final class BitmapContainer extends Container implements Cloneable {
       int end = start + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
       int prevOnesInRange = Util.cardinalityInBitmapRange(this.bitmap, start, end);
       Util.setBitmapRange(this.bitmap, start, end);
-      computeCardinality(prevOnesInRange, start, end);
+      updateCardinality(prevOnesInRange, end - start);
     }
     if (isFull()) {
       return RunContainer.full();
@@ -669,8 +669,9 @@ public final class BitmapContainer extends Container implements Cloneable {
     if ((begin > end) || (end > (1 << 16))) {
       throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
     }
+    int prevOnesInRange = Util.cardinalityInBitmapRange(bitmap, begin, end);
     Util.resetBitmapRange(bitmap, begin, end);
-    computeCardinality();
+    updateCardinality(prevOnesInRange, 0);
     if (getCardinality() <= ArrayContainer.DEFAULT_MAX_SIZE) {
       return toArrayContainer();
     }
@@ -1032,8 +1033,9 @@ public final class BitmapContainer extends Container implements Cloneable {
       throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
     }
     BitmapContainer answer = clone();
+    int prevOnesInRange = Util.cardinalityInBitmapRange(answer.bitmap, begin, end);
     Util.resetBitmapRange(answer.bitmap, begin, end);
-    answer.computeCardinality();
+    answer.updateCardinality(prevOnesInRange, 0);
     if (answer.getCardinality() <= ArrayContainer.DEFAULT_MAX_SIZE) {
       return answer.toArrayContainer();
     }

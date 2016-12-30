@@ -1783,7 +1783,7 @@ public final class RunContainer extends Container implements Cloneable {
       int end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
       int prevOnesInRange = Util.cardinalityInBitmapRange(answer.bitmap, start, end);
       Util.setBitmapRange(answer.bitmap, start, end);
-      answer.computeCardinality(prevOnesInRange, start, end);
+      answer.updateCardinality(prevOnesInRange, end - start);
     }
     if (answer.isFull()) {
       return full();
