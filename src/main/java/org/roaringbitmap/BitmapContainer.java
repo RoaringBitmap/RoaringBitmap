@@ -481,11 +481,14 @@ public final class BitmapContainer extends Container implements Cloneable {
     int start = 0;
     for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
       int end = Util.toIntUnsigned(x.getValue(rlepos));
+      int prevOnes = Util.cardinalityInBitmapRange(this.bitmap, start, end);
       Util.resetBitmapRange(this.bitmap, start, end);
+      updateCardinality(prevOnes, 0);
       start = end + Util.toIntUnsigned(x.getLength(rlepos)) + 1;
     }
-    Util.resetBitmapRange(this.bitmap, start, Util.maxLowBitAsInteger() + 1);
-    computeCardinality();
+    int ones = Util.cardinalityInBitmapRange(this.bitmap, start, BitmapContainer.MAX_CAPACITY);
+    Util.resetBitmapRange(this.bitmap, start, BitmapContainer.MAX_CAPACITY);
+    updateCardinality(ones, 0);
     if (getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE) {
       return this;
     } else {

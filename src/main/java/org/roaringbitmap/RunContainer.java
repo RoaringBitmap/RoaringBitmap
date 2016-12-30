@@ -357,11 +357,14 @@ public final class RunContainer extends Container implements Cloneable {
     int start = 0;
     for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
       int end = Util.toIntUnsigned(this.getValue(rlepos));
+      int prevOnes = Util.cardinalityInBitmapRange(answer.bitmap, start, end);
       Util.resetBitmapRange(answer.bitmap, start, end); // had been x.bitmap
+      answer.updateCardinality(prevOnes, 0);
       start = end + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
     }
-    Util.resetBitmapRange(answer.bitmap, start, Util.maxLowBitAsInteger() + 1); // had been x.bitmap
-    answer.computeCardinality();
+    int ones = Util.cardinalityInBitmapRange(answer.bitmap, start, BitmapContainer.MAX_CAPACITY);
+    Util.resetBitmapRange(answer.bitmap, start, BitmapContainer.MAX_CAPACITY); // had been x.bitmap
+    answer.updateCardinality(ones, 0);
     if (answer.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE) {
       return answer;
     } else {
@@ -616,9 +619,9 @@ public final class RunContainer extends Container implements Cloneable {
       answer.updateCardinality(prevOnes + flippedOnes, end - start - flippedOnes);
       lastPos = end;
     }
-    int prevOnes = Util.cardinalityInBitmapRange(answer.bitmap, lastPos, BitmapContainer.MAX_CAPACITY);
+    int ones = Util.cardinalityInBitmapRange(answer.bitmap, lastPos, BitmapContainer.MAX_CAPACITY);
     Util.resetBitmapRange(answer.bitmap, lastPos, BitmapContainer.MAX_CAPACITY);
-    answer.updateCardinality(prevOnes, 0);
+    answer.updateCardinality(ones, 0);
     if (answer.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE) {
       return answer;
     } else {

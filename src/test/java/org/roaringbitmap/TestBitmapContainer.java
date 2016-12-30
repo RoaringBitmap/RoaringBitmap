@@ -241,6 +241,13 @@ public class TestBitmapContainer {
     assertEquals(5274, bc.cardinality);
   }
 
+  @Test
+  public void testRangeCardinality6() {
+    BitmapContainer bc = generateContainer((short)100, (short)10000, 5);
+    RunContainer rc = new RunContainer(new short[]{7, 300, 400, 900, 1400, 5200}, 3);
+    bc = (BitmapContainer) bc.iand(rc);
+    assertEquals(5046, bc.cardinality);
+  }
 
   @Test
   public void numberOfRunsLowerBound1() {

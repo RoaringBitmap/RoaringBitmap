@@ -3051,4 +3051,11 @@ public class TestRunContainer {
     assertEquals(11437, result.getCardinality());
   }
 
+  @Test
+  public void testRangeCardinality3() {
+    BitmapContainer bc = TestBitmapContainer.generateContainer((short) 100, (short) 10000, 5);
+    RunContainer rc = new RunContainer(new short[]{7, 300, 400, 900, 1400, 5200}, 3);
+    BitmapContainer result = (BitmapContainer) rc.and(bc);
+    assertEquals(5046, result.getCardinality());
+  }
 }
