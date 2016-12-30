@@ -23,7 +23,7 @@ public class TestBitmapContainer {
     return new BitmapContainer(new long[1], 0);
   }
 
-  private BitmapContainer generateContainer(short min, short max, int sample) {
+  static BitmapContainer generateContainer(short min, short max, int sample) {
     BitmapContainer bc = new BitmapContainer();
     for (int i = min; i < max; i++) {
       if (i % sample != 0) bc.add((short) i);
