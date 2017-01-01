@@ -250,6 +250,14 @@ public class TestBitmapContainer {
   }
 
   @Test
+  public void testRangeCardinality7() {
+    BitmapContainer bc = generateContainer((short)100, (short)10000, 5);
+    RunContainer rc = new RunContainer(new short[]{7, 300, 400, 900, 1400, 2200}, 3);
+    bc.ixor(rc);
+    assertEquals(6031, bc.cardinality);
+  }
+
+  @Test
   public void numberOfRunsLowerBound1() {
     System.out.println("numberOfRunsLowerBound1");
     Random r = new Random(12345);

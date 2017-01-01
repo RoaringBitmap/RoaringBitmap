@@ -2301,9 +2301,10 @@ public final class RunContainer extends Container implements Cloneable {
     for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
       int start = Util.toIntUnsigned(this.getValue(rlepos));
       int end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
+      int prevOnes = Util.cardinalityInBitmapRange(answer.bitmap, start, end);
       Util.flipBitmapRange(answer.bitmap, start, end);
+      answer.updateCardinality(prevOnes, end - start - prevOnes);
     }
-    answer.computeCardinality();
     if (answer.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE) {
       return answer;
     } else {
