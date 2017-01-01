@@ -575,15 +575,9 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public Container inot(final int firstOfRange, final int lastOfRange) {
-    if (lastOfRange - firstOfRange == MAX_CAPACITY) {
-      Util.flipBitmapRange(bitmap, firstOfRange, lastOfRange);
-      cardinality = MAX_CAPACITY - cardinality;
-    } else if (lastOfRange - firstOfRange > MAX_CAPACITY / 2) {
-      Util.flipBitmapRange(bitmap, firstOfRange, lastOfRange);
-      computeCardinality();
-    } else {
-      cardinality += Util.flipBitmapRangeAndCardinalityChange(bitmap, firstOfRange, lastOfRange);
-    }
+    int prevOnes = Util.cardinalityInBitmapRange(bitmap, firstOfRange, lastOfRange);
+    Util.flipBitmapRange(bitmap, firstOfRange, lastOfRange);
+    updateCardinality(prevOnes, lastOfRange - firstOfRange - prevOnes);
     if (cardinality <= ArrayContainer.DEFAULT_MAX_SIZE) {
       return toArrayContainer();
     }
