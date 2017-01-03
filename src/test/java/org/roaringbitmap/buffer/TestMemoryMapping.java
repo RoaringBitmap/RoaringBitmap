@@ -426,6 +426,31 @@ public class TestMemoryMapping {
   }
 
   @Test
+  public void containsTest() throws IOException  {
+    System.out.println("[containsTest]");
+    for(int z = 0; z < 100; ++z) {
+      final MutableRoaringBitmap rr1 = new MutableRoaringBitmap();
+      for(int k = 0; k < 100; k+=10)
+        rr1.add(k + z);
+      for(int k = 100000; k < 200000; k+=2)
+        rr1.add(k + z);
+      for(int k = 400000; k < 500000; k++)
+        rr1.add(k + z);    
+      rr1.runOptimize();
+      ByteArrayOutputStream bos = new ByteArrayOutputStream();
+      DataOutputStream dos = new DataOutputStream(bos);
+      rr1.serialize(dos);
+      dos.close();
+      ByteBuffer bb = ByteBuffer.wrap(bos.toByteArray());
+      final ImmutableRoaringBitmap rrback1 = new ImmutableRoaringBitmap(bb);
+      for(int k = 0; k < 1000000; k += 100) {
+        Assert.assertEquals(rrback1.contains(k), rr1.contains(k));
+      }
+    }
+  }
+  
+
+  @Test
   public void oneFormat() throws IOException {
     System.out.println("[TestMemoryMapping] testing format compatibility");
     final int ms = mappedbitmaps.size();

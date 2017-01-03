@@ -11,6 +11,7 @@ import org.roaringbitmap.RunContainer;
 import org.roaringbitmap.ShortIterator;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -46,10 +47,34 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     return -(low + 1);
   }
 
+  private static int branchyBufferedUnsignedInterleavedBinarySearch(final ByteBuffer sb,
+      int position, final int begin, final int end, final short k) {
+    int ikey = BufferUtil.toIntUnsigned(k);
+    int low = begin;
+    int high = end - 1;
+    while (low <= high) {
+      final int middleIndex = (low + high) >>> 1;
+      final int middleValue = BufferUtil.toIntUnsigned(sb.getShort(position + 2 * middleIndex * 2));
+      if (middleValue < ikey) {
+        low = middleIndex + 1;
+      } else if (middleValue > ikey) {
+        high = middleIndex - 1;
+      } else {
+        return middleIndex;
+      }
+    }
+    return -(low + 1);
+  }
 
   private static int bufferedUnsignedInterleavedBinarySearch(final ShortBuffer sb, final int begin,
       final int end, final short k) {
     return branchyBufferedUnsignedInterleavedBinarySearch(sb, begin, end, k);
+  }
+  
+  
+  private static int bufferedUnsignedInterleavedBinarySearch(final ByteBuffer sb, int position,
+      final int begin, final int end, final short k) {
+    return branchyBufferedUnsignedInterleavedBinarySearch(sb, position, begin, end, k);
   }
 
   protected static int getArraySizeInBytes(int nbrruns) {
@@ -669,6 +694,33 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       }
     }
     return false;
+  }
+  
+  /**
+   * Checks whether the run container contains x.
+   * 
+   * @param buf underlying ByteBuffer
+   * @param position starting position of the container in the ByteBuffer
+   * @param x target 16-bit value
+   * @param numRuns number of runs
+   * @return whether the run container contains x
+   */
+  public static boolean contains(ByteBuffer buf, int position, short x, final int numRuns) {
+    int index = bufferedUnsignedInterleavedBinarySearch(buf, position, 0, numRuns, x);
+    if (index >= 0) {
+      return true;
+    }
+    index = -index - 2; // points to preceding value, possibly -1
+    if (index != -1) {// possible match
+      int offset = BufferUtil.toIntUnsigned(x) 
+          - BufferUtil.toIntUnsigned(buf.getShort(position + index * 2 * 2));
+      int le = BufferUtil.toIntUnsigned(buf.getShort(position + index * 2 * 2 + 2));
+      if (offset <= le) {
+        return true;
+      }
+    }
+    return false;
+    
   }
 
   // a very cheap check... if you have more than 4096, then you should use a bitmap container.

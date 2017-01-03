@@ -306,6 +306,12 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
     }
     return this.values[i];
   }
+  
+  @Override
+  public int getContainerIndex(short x) {
+    return this.binarySearch(0, size, x);
+  }  
+  
 
   @Override
   public MappeableContainer getContainerAtIndex(int i) {
@@ -565,4 +571,11 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
   public void writeExternal(ObjectOutput out) throws IOException {
     serialize(out);
   }
+
+
+  @Override
+  public boolean containsForContainerAtIndex(int i, short x) {
+    return getContainerAtIndex(i).contains(x);// no faster way
+  }
+
 }

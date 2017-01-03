@@ -5,6 +5,7 @@
 package org.roaringbitmap.buffer;
 
 import java.nio.Buffer;
+import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 
@@ -114,6 +115,31 @@ public final class BufferUtil {
     while (low <= high) {
       final int middleIndex = (low + high) >>> 1;
       final int middleValue = toIntUnsigned(array.get(middleIndex));
+
+      if (middleValue < ikey) {
+        low = middleIndex + 1;
+      } else if (middleValue > ikey) {
+        high = middleIndex - 1;
+      } else {
+        return middleIndex;
+      }
+    }
+    return -(low + 1);
+  }
+
+
+  protected static int branchyUnsignedBinarySearch(final ByteBuffer array, int position, 
+        final int begin, final int end, final short k) {
+    final int ikey = toIntUnsigned(k);
+    // next line accelerates the possibly common case where the value would be inserted at the end
+    if ((end > 0) && (toIntUnsigned(array.getShort(position + (end - 1)*2)) < ikey)) {
+      return -end - 1;
+    }
+    int low = begin;
+    int high = end - 1;
+    while (low <= high) {
+      final int middleIndex = (low + high) >>> 1;
+      final int middleValue = toIntUnsigned(array.getShort(position + 2* middleIndex));
 
       if (middleValue < ikey) {
         low = middleIndex + 1;
@@ -497,6 +523,22 @@ public final class BufferUtil {
   public static int unsignedBinarySearch(final ShortBuffer array, final int begin, final int end,
       final short k) {
     return branchyUnsignedBinarySearch(array, begin, end, k);
+  }
+  /**
+   * Look for value k in buffer in the range [begin,end). If the value is found, return its index.
+   * If not, return -(i+1) where i is the index where the value would be inserted. The buffer is
+   * assumed to contain sorted values where shorts are interpreted as unsigned integers.
+   *
+   * @param array buffer where we search
+   * @param position starting position of the container in the ByteBuffer
+   * @param begin first index (inclusive)
+   * @param end last index (exclusive)
+   * @param k value we search for
+   * @return count
+   */
+  public static int unsignedBinarySearch(final ByteBuffer array, int position, 
+      final int begin, final int end, final short k) {
+    return branchyUnsignedBinarySearch(array, position, begin, end, k);
   }
 
   protected static int unsignedDifference(final ShortBuffer set1, final int length1,

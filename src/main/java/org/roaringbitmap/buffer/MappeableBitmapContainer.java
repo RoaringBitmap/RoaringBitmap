@@ -12,6 +12,7 @@ import org.roaringbitmap.ShortIterator;
 import org.roaringbitmap.Util;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.util.Iterator;
 
@@ -386,6 +387,19 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   public boolean contains(final short i) {
     final int x = BufferUtil.toIntUnsigned(i);
     return (bitmap.get(x / 64) & (1L << x)) != 0;
+  }
+  
+  /**
+   * Checks whether the container contains the value i.
+   * 
+   * @param buf underlying buffer
+   * @param position position of the container in the buffer
+   * @param i index
+   * @return whether the container contains the value i
+   */
+  public static boolean contains(ByteBuffer buf, int position, final short i) {
+    final int x = BufferUtil.toIntUnsigned(i);
+    return (buf.getLong(x / 64 * 8 + position) & (1L << x)) != 0;
   }
 
   @Override

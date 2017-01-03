@@ -31,6 +31,18 @@ public interface PointableRoaringArray extends Cloneable {
   PointableRoaringArray clone();
 
   /**
+   * This checks whether the container at index i has the value x.
+   * This can be faster than calling "getContainerAtIndex" and then calling
+   * contains.
+   * 
+   * @param i container index (assumed to be >=0)
+   * @param x 16-bit value to check
+   * @return whether the container contains at index i contains x
+   */
+  boolean containsForContainerAtIndex(int i, short x);
+
+  
+  /**
    * Returns the cardinality of the container at the given index. This method is expected to be
    * fast.
    * 
@@ -46,6 +58,14 @@ public interface PointableRoaringArray extends Cloneable {
    * @return matching container
    */
   MappeableContainer getContainer(short x);
+
+  
+   /**
+   * Returns either the index of the container corresponding to key x, or a negative value.
+   * @param x 16-bit key
+   * @return index of container (negative value if no container found)
+   */
+  int getContainerIndex(short x);
 
   /**
    * @param i index
@@ -103,4 +123,6 @@ public interface PointableRoaringArray extends Cloneable {
    * @return number of keys
    */
   int size();
+
+  
 }

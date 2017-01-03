@@ -166,11 +166,13 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     return getContainerAtIndex(i);
   }
 
+  @Override 
+  public int getContainerIndex(short x) {
+    return unsignedBinarySearch(x);
+  }
+
   @Override
   public MappeableContainer getContainerAtIndex(int i) {
-    int cardinality = getCardinality(i);
-    final boolean isBitmap = cardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE; // if not a
-                                                                               // runcontainer
     ByteBuffer tmp = buffer.duplicate();// sad but ByteBuffer is not thread-safe so it is either a
                                         // duplicate or a lock
     // note that tmp will indeed be garbage-collected some time after the end of this function
@@ -184,6 +186,9 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
       shortArray.limit(2 * nbrruns);
       return new MappeableRunContainer(shortArray, nbrruns);
     }
+    int cardinality = getCardinality(i);
+    final boolean isBitmap = cardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE; // if not a
+                                                                               // runcontainer
     if (isBitmap) {
       final LongBuffer bitmapArray = tmp.asLongBuffer();
       bitmapArray.limit(MappeableBitmapContainer.MAX_CAPACITY / 64);
@@ -192,6 +197,25 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
       final ShortBuffer shortArray = tmp.asShortBuffer();
       shortArray.limit(cardinality);
       return new MappeableArrayContainer(shortArray, cardinality);
+    }
+  }
+
+  @Override
+  public boolean containsForContainerAtIndex(int i, short x) {
+    int containerpos = getOffsetContainer(i);
+    boolean hasrun = hasRunCompression();
+    if (isRunContainer(i, hasrun)) {
+      // first, we have a short giving the number of runs
+      int nbrruns = BufferUtil.toIntUnsigned(buffer.getShort(containerpos));
+      return MappeableRunContainer.contains(buffer, containerpos + 2, x, nbrruns);
+    }
+    int cardinality = getCardinality(i);
+    final boolean isBitmap = cardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE; // if not a
+                                                                               // runcontainer
+    if (isBitmap) {
+      return MappeableBitmapContainer.contains(buffer, containerpos, x);
+    } else {
+      return MappeableArrayContainer.contains(buffer, containerpos, x, cardinality);
     }
   }
 

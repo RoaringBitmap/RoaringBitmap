@@ -930,8 +930,9 @@ public class ImmutableRoaringBitmap
   @Override
   public boolean contains(final int x) {
     final short hb = BufferUtil.highbits(x);
-    final MappeableContainer c = highLowContainer.getContainer(hb);
-    return c != null && c.contains(BufferUtil.lowbits(x));
+    int index = highLowContainer.getContainerIndex(hb);
+    return index >= 0 
+        && highLowContainer.containsForContainerAtIndex(index, BufferUtil.lowbits(x));
   }
 
   @Override
