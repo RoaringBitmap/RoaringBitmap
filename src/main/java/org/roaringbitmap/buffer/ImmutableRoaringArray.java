@@ -13,9 +13,6 @@ import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 
 
 /**
@@ -30,8 +27,8 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
       MutableRoaringArray.SERIAL_COOKIE_NO_RUNCONTAINER;
   private final static int startofrunbitmap = 4; // if there is a runcontainer bitmap
 
-  private final Map<Integer, MappeableContainer> containerCache = new ConcurrentHashMap<>();
-
+  MappeableContainer[] values = null;
+  
   ByteBuffer buffer;
   int size;
 
@@ -53,6 +50,14 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     this.size = hasRunContainers ? (cookie >>> 16) + 1 : buffer.getInt(4);
     int theLimit = size > 0 ? computeSerializedSizeInBytes() : headerSize(hasRunContainers);
     buffer.limit(theLimit);
+    
+    
+    this.values = new MappeableContainer[this.size];
+
+    for (int i=0;i<this.size;i++) {
+        values[i] = createContainerAtIndex(i);
+    }
+    
   }
 
   @Override
@@ -204,22 +209,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
   @Override
   public MappeableContainer getContainerAtIndex(int i) {
-
-      MappeableContainer result = null;
-
-      result = containerCache.get(i);
-
-      if (result == null) {
-          result = createContainerAtIndex(i);
-          if (result != null) {
-              MappeableContainer existing = containerCache.putIfAbsent(i, result);
-              if (existing != null) {
-                  result = existing;
-              }
-          }
-      }
-
-      return result;
+      return values[i];
   }
 
 
