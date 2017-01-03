@@ -35,7 +35,7 @@ public interface PointableRoaringArray extends Cloneable {
    * This can be faster than calling "getContainerAtIndex" and then calling
    * contains.
    * 
-   * @param i container index (assumed to be >=0)
+   * @param i container index (assumed to be non-negative)
    * @param x 16-bit value to check
    * @return whether the container contains at index i contains x
    */
