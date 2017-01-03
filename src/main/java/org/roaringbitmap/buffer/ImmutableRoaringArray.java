@@ -15,7 +15,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 
 
-
 /**
  * This is the underlying data structure for an ImmutableRoaringBitmap. This class is not meant for
  * end-users.
@@ -28,6 +27,8 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
       MutableRoaringArray.SERIAL_COOKIE_NO_RUNCONTAINER;
   private final static int startofrunbitmap = 4; // if there is a runcontainer bitmap
 
+  MappeableContainer[] values = null;
+  
   ByteBuffer buffer;
   int size;
 
@@ -49,6 +50,14 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     this.size = hasRunContainers ? (cookie >>> 16) + 1 : buffer.getInt(4);
     int theLimit = size > 0 ? computeSerializedSizeInBytes() : headerSize(hasRunContainers);
     buffer.limit(theLimit);
+    
+    
+    this.values = new MappeableContainer[this.size];
+
+    for (int i=0;i<this.size;i++) {
+        values[i] = createContainerAtIndex(i);
+    }
+    
   }
 
   @Override
@@ -166,33 +175,41 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     return getContainerAtIndex(i);
   }
 
+  private MappeableContainer createContainerAtIndex(int i) {
+      int cardinality = getCardinality(i);
+      final boolean isBitmap = cardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE; // if
+                                                                                       // not
+                                                                                       // a
+      // runcontainer
+      ByteBuffer tmp = buffer.duplicate();// sad but ByteBuffer is not
+                                          // thread-safe so it is either a
+                                          // duplicate or a lock
+      // note that tmp will indeed be garbage-collected some time after the
+      // end of this function
+      tmp.order(buffer.order());
+      tmp.position(getOffsetContainer(i));
+      boolean hasrun = hasRunCompression();
+      if (isRunContainer(i, hasrun)) {
+          // first, we have a short giving the number of runs
+          int nbrruns = BufferUtil.toIntUnsigned(tmp.getShort());
+          final ShortBuffer shortArray = tmp.asShortBuffer();
+          shortArray.limit(2 * nbrruns);
+          return new MappeableRunContainer(shortArray, nbrruns);
+      }
+      if (isBitmap) {
+          final LongBuffer bitmapArray = tmp.asLongBuffer();
+          bitmapArray.limit(MappeableBitmapContainer.MAX_CAPACITY / 64);
+          return new MappeableBitmapContainer(bitmapArray, cardinality);
+      } else {
+          final ShortBuffer shortArray = tmp.asShortBuffer();
+          shortArray.limit(cardinality);
+          return new MappeableArrayContainer(shortArray, cardinality);
+      }
+  }
+
   @Override
   public MappeableContainer getContainerAtIndex(int i) {
-    int cardinality = getCardinality(i);
-    final boolean isBitmap = cardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE; // if not a
-                                                                               // runcontainer
-    ByteBuffer tmp = buffer.duplicate();// sad but ByteBuffer is not thread-safe so it is either a
-                                        // duplicate or a lock
-    // note that tmp will indeed be garbage-collected some time after the end of this function
-    tmp.order(buffer.order());
-    tmp.position(getOffsetContainer(i));
-    boolean hasrun = hasRunCompression();
-    if (isRunContainer(i, hasrun)) {
-      // first, we have a short giving the number of runs
-      int nbrruns = BufferUtil.toIntUnsigned(tmp.getShort());
-      final ShortBuffer shortArray = tmp.asShortBuffer();
-      shortArray.limit(2 * nbrruns);
-      return new MappeableRunContainer(shortArray, nbrruns);
-    }
-    if (isBitmap) {
-      final LongBuffer bitmapArray = tmp.asLongBuffer();
-      bitmapArray.limit(MappeableBitmapContainer.MAX_CAPACITY / 64);
-      return new MappeableBitmapContainer(bitmapArray, cardinality);
-    } else {
-      final ShortBuffer shortArray = tmp.asShortBuffer();
-      shortArray.limit(cardinality);
-      return new MappeableArrayContainer(shortArray, cardinality);
-    }
+      return values[i];
   }
 
 
