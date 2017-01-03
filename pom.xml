@@ -230,13 +230,14 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-deploy-plugin</artifactId>
         <version>2.8.2</version>
-        <dependencies>
+        <!-- why can't maven-deploy-plugin figure out its own dependencies? -->
+        <!--<dependencies>
           <dependency>
             <groupId>com.google.code.maven-svn-wagon</groupId>
             <artifactId>maven-svn-wagon</artifactId>
             <version>2.10</version>
           </dependency>
-        </dependencies>
+        </dependencies>-->
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
