@@ -627,7 +627,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
             break main;
           }
           s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-        } else if (s1 > s2) {
+        } else if (Util.compareUnsigned(s1, s2) > 0) {
           answer.getMappeableRoaringArray().appendCopy(x2.highLowContainer.getKeyAtIndex(pos2),
               x2.highLowContainer.getContainerAtIndex(pos2));
           pos2++;
@@ -643,7 +643,6 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     } else if (pos2 == length2) {
       answer.getMappeableRoaringArray().appendCopy(x1.highLowContainer, pos1, length1);
     }
-
     return answer;
   }
 

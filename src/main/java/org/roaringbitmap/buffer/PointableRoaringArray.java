@@ -52,12 +52,12 @@ public interface PointableRoaringArray extends Cloneable {
   public int getCardinality(int i);
 
   /**
-   * 
+   * Obsolete method (retired because it forces us to create a new container).
    * 
    * @param x 16-bit key
    * @return matching container
    */
-  MappeableContainer getContainer(short x);
+  //MappeableContainer getContainer(short x);
 
   
    /**

@@ -156,15 +156,16 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
   }
 
 
+  // retired method (inefficient)
   // involves a binary search
-  @Override
+  /*@Override
   public MappeableContainer getContainer(short x) {
     final int i = unsignedBinarySearch(x);
     if (i < 0) {
       return null;
     }
     return getContainerAtIndex(i);
-  }
+  }*/
 
   @Override 
   public int getContainerIndex(short x) {

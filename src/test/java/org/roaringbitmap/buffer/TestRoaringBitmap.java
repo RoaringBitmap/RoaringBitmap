@@ -25,6 +25,51 @@ import java.util.*;
 @SuppressWarnings({"static-method"})
 public class TestRoaringBitmap {
 	
+    
+  @Test 
+  public void binaryTest() throws IOException {
+    System.out.println("[binaryTest]");
+    Random rand = new Random();
+    rand.setSeed(11111);
+    for(int z = 0; z < 1000; ++z) {
+    System.out.println("[binaryTest] "+z);
+      final MutableRoaringBitmap rr1 = new MutableRoaringBitmap();
+      for(int k = 0; k < 100; k++)
+        rr1.add((rand.nextInt() & 0xFFFF) << 16);
+      final MutableRoaringBitmap rr2 = new MutableRoaringBitmap();
+      for(int k = 0; k < 100; k++)
+        rr2.add((rand.nextInt() & 0xFFFF) << 16);
+      ByteArrayOutputStream bos1 = new ByteArrayOutputStream();
+      DataOutputStream dos1 = new DataOutputStream(bos1);
+      rr1.serialize(dos1);
+      dos1.close();
+      ByteBuffer bb1 = ByteBuffer.wrap(bos1.toByteArray());
+      final ImmutableRoaringBitmap rrback1 = new ImmutableRoaringBitmap(bb1);
+      ByteArrayOutputStream bos2 = new ByteArrayOutputStream();
+      DataOutputStream dos2 = new DataOutputStream(bos2);
+      rr2.serialize(dos2);
+      dos2.close();
+      ByteBuffer bb2 = ByteBuffer.wrap(bos2.toByteArray());
+      final ImmutableRoaringBitmap rrback2 = new ImmutableRoaringBitmap(bb2);
+      Assert.assertEquals(ImmutableRoaringBitmap.and(rrback1, rrback2), 
+          MutableRoaringBitmap.and(rr1, rr2));
+      Assert.assertEquals(ImmutableRoaringBitmap.and(rrback2, rrback1), 
+          MutableRoaringBitmap.and(rr2, rr1));
+      Assert.assertEquals(ImmutableRoaringBitmap.andNot(rrback1, rrback2), 
+          MutableRoaringBitmap.andNot(rr1, rr2));
+      Assert.assertEquals(ImmutableRoaringBitmap.andNot(rrback2, rrback1), 
+          MutableRoaringBitmap.andNot(rr2, rr1));
+      Assert.assertEquals(ImmutableRoaringBitmap.xor(rrback1, rrback2), 
+          MutableRoaringBitmap.xor(rr1, rr2));
+      Assert.assertEquals(ImmutableRoaringBitmap.xor(rrback2, rrback1), 
+          MutableRoaringBitmap.xor(rr2, rr1));
+      Assert.assertEquals(ImmutableRoaringBitmap.or(rrback1, rrback2), 
+          MutableRoaringBitmap.or(rr1, rr2));
+      Assert.assertEquals(ImmutableRoaringBitmap.or(rrback2, rrback1), 
+          MutableRoaringBitmap.or(rr2, rr1));      
+    }
+  }
+
 	@Test
 	public void testStringer() {
 	    MutableRoaringBitmap bitmap = new MutableRoaringBitmap();

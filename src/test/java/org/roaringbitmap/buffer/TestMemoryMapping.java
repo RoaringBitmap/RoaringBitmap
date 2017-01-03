@@ -22,6 +22,7 @@ import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -424,6 +425,7 @@ public class TestMemoryMapping {
       }
     }
   }
+  
 
   @Test
   public void containsTest() throws IOException  {
@@ -443,6 +445,8 @@ public class TestMemoryMapping {
       dos.close();
       ByteBuffer bb = ByteBuffer.wrap(bos.toByteArray());
       final ImmutableRoaringBitmap rrback1 = new ImmutableRoaringBitmap(bb);
+      Assert.assertEquals(rrback1.getLongSizeInBytes(), rr1.getLongSizeInBytes());
+      Assert.assertEquals(rrback1.serializedSizeInBytes(), rr1.serializedSizeInBytes());
       for(int k = 0; k < 1000000; k += 100) {
         Assert.assertEquals(rrback1.contains(k), rr1.contains(k));
       }

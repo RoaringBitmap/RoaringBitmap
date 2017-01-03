@@ -297,15 +297,16 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
     return getContainerAtIndex(i).getCardinality();
   }
 
+  // retired method (inefficient)
   // involves a binary search
-  @Override
+  /*@Override
   public MappeableContainer getContainer(short x) {
     final int i = this.binarySearch(0, size, x);
     if (i < 0) {
       return null;
     }
     return this.values[i];
-  }
+  }*/
   
   @Override
   public int getContainerIndex(short x) {
