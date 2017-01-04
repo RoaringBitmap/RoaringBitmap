@@ -12,11 +12,13 @@ branches:
   only:
     - master
 
-script:
- - mvn clean test jacoco:report install -Dgpg.skip=true
- - mvn -f real-roaring-dataset/pom.xml clean install
-# Repeatedly fails for no discernable reason:
-# - mvn -f ./jmh/pom.xml test -DBITMAP_TYPES=ROARING_ONLY
+################
+## Note the "&&". We want the script to fail fast if there is a technical error (javadoc, style)
+## which saves time both for travis but also for developers looking at the error logs.
+## Moreover,  if the script makes it to  mvn -f ./jmh/pom.xm, then **all** previous
+## tests must be green.
+#################
+script:mvn javadoc:test-javadoc && mvn animal-sniffer:check && mvn checkstyle:check  &&  mvn clean test jacoco:report install -Dgpg.skip=true && mvn -f real-roaring-dataset/pom.xml clean install &&  mvn -f ./jmh/pom.xml test -DBITMAP_TYPES=ROARING_ONLY
 
 after_success:
   - mvn coveralls:report

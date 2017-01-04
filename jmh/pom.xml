@@ -4,7 +4,7 @@
 
     <groupId>org.roaringbitmap</groupId>
     <artifactId>jmh</artifactId>
-    <version>0.6.30-SNAPSHOT</version>
+    <version>0.6.32-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>JMH benchmark : RoaringBitmap</name>
@@ -38,7 +38,7 @@
         <dependency>
             <groupId>org.roaringbitmap</groupId>
             <artifactId>RoaringBitmap</artifactId>
-            <version>[0.6.29,)</version><!-- we use an open interval, hoping that we pick up the last version -->
+            <version>[0.6.32-SNAPSHOT,)</version><!-- we use an open interval, hoping that we pick up the last version -->
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
