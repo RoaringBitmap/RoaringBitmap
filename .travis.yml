@@ -18,7 +18,7 @@ branches:
 ## Moreover,  if the script makes it to  mvn -f ./jmh/pom.xm, then **all** previous
 ## tests must be green.
 #################
-script:mvn javadoc:test-javadoc && mvn animal-sniffer:check && mvn checkstyle:check  &&  mvn clean test jacoco:report install -Dgpg.skip=true && mvn -f real-roaring-dataset/pom.xml clean install &&  mvn -f ./jmh/pom.xml test -DBITMAP_TYPES=ROARING_ONLY
+script: mvn javadoc:test-javadoc && mvn animal-sniffer:check && mvn checkstyle:check  &&  mvn clean test jacoco:report install -Dgpg.skip=true && mvn -f real-roaring-dataset/pom.xml clean install &&  mvn -f ./jmh/pom.xml test -DBITMAP_TYPES=ROARING_ONLY
 
 after_success:
   - mvn coveralls:report
