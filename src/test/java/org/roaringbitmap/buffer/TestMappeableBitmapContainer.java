@@ -29,7 +29,14 @@ public class TestMappeableBitmapContainer {
   private static MappeableBitmapContainer emptyContainer() {
     return new MappeableBitmapContainer(0, LongBuffer.allocate(1));
   }
-  
+  static MappeableBitmapContainer generateContainer(short min, short max, int sample) {
+    LongBuffer array = ByteBuffer.allocateDirect(MappeableBitmapContainer.MAX_CAPACITY / 8).asLongBuffer();
+    MappeableBitmapContainer bc = new MappeableBitmapContainer(array, 0);
+    for (int i = min; i < max; i++) {
+      if (i % sample != 0) bc.add((short) i);
+    }
+    return bc;
+  }
   @Test
   public void testToString() {
     MappeableBitmapContainer bc2 = new MappeableBitmapContainer();
@@ -204,9 +211,9 @@ public class TestMappeableBitmapContainer {
     for(int start = 0; start <= (1<<16); start += 4096 ) {
       for(int end = start; end <= (1<<16); end += 4096 ) {
         LongBuffer array = ByteBuffer.allocateDirect((1<<16)/8).asLongBuffer();
-        if(array.hasArray()) throw new RuntimeException("unexpected.");
         MappeableBitmapContainer bc = new MappeableBitmapContainer(start,end);
         MappeableBitmapContainer bc2 = new MappeableBitmapContainer(array,0);
+        assertEquals(false, bc2.isArrayBacked());
         MappeableBitmapContainer bc3 = (MappeableBitmapContainer) bc2.add(start,end);
         bc2.iadd(start,end);
         assertEquals(bc.getCardinality(), end-start);
@@ -229,6 +236,7 @@ public class TestMappeableBitmapContainer {
         LongBuffer array = ByteBuffer.allocateDirect((1<<16)/8).asLongBuffer();
         MappeableBitmapContainer bc = new MappeableBitmapContainer(start,end);
         MappeableBitmapContainer bc2 = new MappeableBitmapContainer(array,0);
+        assertEquals(false, bc2.isArrayBacked());
         MappeableBitmapContainer bc3 = (MappeableBitmapContainer) bc2.add(start,end);
         bc2.iadd(start,end);
         assertEquals(bc.getCardinality(), end-start);
@@ -242,7 +250,61 @@ public class TestMappeableBitmapContainer {
     }
   }
 
- 
+
+  @Test
+  public void testRangeCardinality() {
+    MappeableBitmapContainer bc = generateContainer((short)100, (short)10000, 5);
+    bc = (MappeableBitmapContainer) bc.add(200, 2000);
+    assertEquals(8280, bc.cardinality);
+  }
+
+  @Test
+  public void testRangeCardinality2() {
+    MappeableBitmapContainer bc = generateContainer((short)100, (short)10000, 5);
+    bc.iadd(200, 2000);
+    assertEquals(8280, bc.cardinality);
+  }
+
+  @Test
+  public void testRangeCardinality3() {
+    MappeableBitmapContainer bc = generateContainer((short)100, (short)10000, 5);
+    MappeableRunContainer rc = TestMappeableRunContainer.generateContainer(new short[]{7, 300, 400, 900, 1400, 2200}, 3);
+    bc.ior(rc);
+    assertEquals(8677, bc.cardinality);
+  }
+
+  @Test
+  public void testRangeCardinality4() {
+    MappeableBitmapContainer bc = generateContainer((short)100, (short)10000, 5);
+    MappeableRunContainer rc = TestMappeableRunContainer.generateContainer(new short[]{7, 300, 400, 900, 1400, 2200}, 3);
+    bc = (MappeableBitmapContainer) bc.andNot(rc);
+    assertEquals(5274, bc.cardinality);
+  }
+
+  @Test
+  public void testRangeCardinality5() {
+    MappeableBitmapContainer bc = generateContainer((short)100, (short)10000, 5);
+    MappeableRunContainer rc = TestMappeableRunContainer.generateContainer(new short[]{7, 300, 400, 900, 1400, 2200}, 3);
+    bc.iandNot(rc);
+    assertEquals(5274, bc.cardinality);
+  }
+
+  @Test
+  public void testRangeCardinality6() {
+    MappeableBitmapContainer bc = generateContainer((short)100, (short)10000, 5);
+    MappeableRunContainer rc = TestMappeableRunContainer.generateContainer(new short[]{7, 300, 400, 900, 1400, 5200}, 3);
+    bc = (MappeableBitmapContainer) bc.iand(rc);
+    assertEquals(5046, bc.cardinality);
+  }
+
+  @Test
+  public void testRangeCardinality7() {
+    MappeableBitmapContainer bc = generateContainer((short)100, (short)10000, 5);
+    MappeableRunContainer rc = TestMappeableRunContainer.generateContainer(new short[]{7, 300, 400, 900, 1400, 2200}, 3);
+    bc.ixor(rc);
+    assertEquals(6031, bc.cardinality);
+  }
+
   @Test(expected = IndexOutOfBoundsException.class)
   public void testNextTooLarge() {
     emptyContainer().nextSetBit(Short.MAX_VALUE + 1);
