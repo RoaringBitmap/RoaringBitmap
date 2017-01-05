@@ -244,9 +244,14 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.6.0</version>
         <configuration>
-          <source>${maven.compiler.target}</source>
+          <verbose>true</verbose>
+          <fork>true</fork>
+          <source>${maven.compiler.source}</source>
           <target>${maven.compiler.target}</target>
-          <showDeprecation> true </showDeprecation>
+          <showDeprecation>true</showDeprecation>
+          <failOnError>true</failOnError>
+          <showWarnings>true</showWarnings>
+          <showDeprecation>true</showDeprecation>
         </configuration>
       </plugin>
       <plugin>
