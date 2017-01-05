@@ -25,6 +25,15 @@ import java.util.*;
 @SuppressWarnings({"static-method"})
 public class TestRoaringBitmap {
 	
+  @Test
+  public void testMultipleAdd() {
+    MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+    bitmap.add(1);
+    bitmap.add(1, 2, 3);
+    bitmap.add(0xFFFFFFFF);
+    bitmap.add(0xFFFFFFFE,0xFFFFFFFF );
+    Assert.assertEquals("{1,2,3,4294967294,4294967295}",bitmap.toString());   
+  }
     
   @Test 
   public void binaryTest() throws IOException {
