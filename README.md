@@ -262,7 +262,7 @@ a patch.
 FAQ
 ----
 
-1. I am getting an error about a bad cookie. What is this about?
+* I am getting an error about a bad cookie. What is this about?
 
 In the serialized files, part of the first 4 bytes are dedicated to a "cookie"
 which serves to indicate the file format.
@@ -277,7 +277,7 @@ These users need to refresh their serialized bitmaps.
 
 
 
-2. How big can a Roaring bitmap get?
+* How big can a Roaring bitmap get?
 
 
 Given N integers in [0,x), then the serialized size in bytes of
