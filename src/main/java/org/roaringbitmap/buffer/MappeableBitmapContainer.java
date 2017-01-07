@@ -118,8 +118,9 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
     }
     MappeableBitmapContainer answer = clone();
+    int prevOnesInRange = BufferUtil.cardinalityInBitmapRange(answer.bitmap, begin, end);
     BufferUtil.setBitmapRange(answer.bitmap, begin, end);
-    answer.computeCardinality();
+    answer.updateCardinality(prevOnesInRange, end - begin);
     return answer;
   }
 
@@ -328,17 +329,20 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         int start = BufferUtil.toIntUnsigned(value2.getValue(rlepos));
         int end = BufferUtil.toIntUnsigned(value2.getValue(rlepos))
             + BufferUtil.toIntUnsigned(value2.getLength(rlepos)) + 1;
+        int prevOnesInRange = Util.cardinalityInBitmapRange(b, start, end);
         Util.resetBitmapRange(b, start, end);
+        answer.updateCardinality(prevOnesInRange, 0);
       }
     } else {
       for (int rlepos = 0; rlepos < value2.nbrruns; ++rlepos) {
         int start = BufferUtil.toIntUnsigned(value2.getValue(rlepos));
         int end = BufferUtil.toIntUnsigned(value2.getValue(rlepos))
             + BufferUtil.toIntUnsigned(value2.getLength(rlepos)) + 1;
+        int prevOnesInRange = BufferUtil.cardinalityInBitmapRange(answer.bitmap, start, end);
         BufferUtil.resetBitmapRange(answer.bitmap, start, end);
+        answer.updateCardinality(prevOnesInRange, 0);
       }
     }
-    answer.computeCardinality();
     if (answer.getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
       return answer;
     } else {
@@ -380,6 +384,11 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         this.cardinality += Long.bitCount(this.bitmap.get(k));
       }
     }
+  }
+
+  protected void updateCardinality(int prevOnes, int newOnes) {
+    int oldCardinality = this.cardinality;
+    this.cardinality = oldCardinality - prevOnes + newOnes;
   }
 
   @Override
@@ -564,8 +573,9 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     if ((begin > end) || (end > (1 << 16))) {
       throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
     }
+    int prevOnesInRange = BufferUtil.cardinalityInBitmapRange(bitmap, begin, end);
     BufferUtil.setBitmapRange(bitmap, begin, end);
-    computeCardinality();
+    updateCardinality(prevOnesInRange, end - begin);
     return this;
   }
 
@@ -638,11 +648,14 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     int start = 0;
     for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
       int end = BufferUtil.toIntUnsigned(x.getValue(rlepos));
+      int prevOnes = BufferUtil.cardinalityInBitmapRange(this.bitmap, start, end);
       BufferUtil.resetBitmapRange(this.bitmap, start, end);
+      updateCardinality(prevOnes, 0);
       start = end + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
     }
-    BufferUtil.resetBitmapRange(this.bitmap, start, BufferUtil.maxLowBitAsInteger() + 1);
-    computeCardinality();
+    int ones = BufferUtil.cardinalityInBitmapRange(this.bitmap, start, MAX_CAPACITY);
+    BufferUtil.resetBitmapRange(this.bitmap, start, MAX_CAPACITY);
+    updateCardinality(ones, 0);
     if (getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
       return this;
     } else {
@@ -714,9 +727,10 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
         int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
         int end = start + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
+        int prevOnesInRange = Util.cardinalityInBitmapRange(b, start, end);
         Util.resetBitmapRange(b, start, end);
+        updateCardinality(prevOnesInRange, 0);
       }
-      computeCardinality();
       if (getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
         return this;
       } else {
@@ -726,9 +740,10 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
       int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
       int end = start + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
+      int prevOnesInRange = BufferUtil.cardinalityInBitmapRange(this.bitmap, start, end);
       BufferUtil.resetBitmapRange(this.bitmap, start, end);
+      updateCardinality(prevOnesInRange, 0);
     }
-    computeCardinality();
     if (getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
       return this;
     } else {
@@ -782,16 +797,9 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   @Override
   public MappeableContainer inot(final int firstOfRange, final int lastOfRange) {
-    if (lastOfRange - firstOfRange == MAX_CAPACITY) {
-      BufferUtil.flipBitmapRange(bitmap, firstOfRange, lastOfRange);
-      cardinality = MAX_CAPACITY - cardinality;
-    } else if (lastOfRange - firstOfRange > MAX_CAPACITY / 2) {
-      BufferUtil.flipBitmapRange(bitmap, firstOfRange, lastOfRange);
-      computeCardinality();
-    } else {
-      cardinality +=
-          BufferUtil.flipBitmapRangeAndCardinalityChange(bitmap, firstOfRange, lastOfRange);
-    }
+    int prevOnes = BufferUtil.cardinalityInBitmapRange(bitmap, firstOfRange, lastOfRange);
+    BufferUtil.flipBitmapRange(bitmap, firstOfRange, lastOfRange);
+    updateCardinality(prevOnes, lastOfRange - firstOfRange - prevOnes);
     if (cardinality <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
       return toArrayContainer();
     }
@@ -937,16 +945,19 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
         int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
         int end = start + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
+        int prevOnesInRange = Util.cardinalityInBitmapRange(b, start, end);
         Util.setBitmapRange(b, start, end);
+        updateCardinality(prevOnesInRange, end - start);
       }
     } else {
       for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
         int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
         int end = start + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
+        int prevOnesInRange = BufferUtil.cardinalityInBitmapRange(this.bitmap, start, end);
         BufferUtil.setBitmapRange(this.bitmap, start, end);
+        updateCardinality(prevOnesInRange, end - start);
       }
     }
-    computeCardinality();
     if (isFull()) {
       return MappeableRunContainer.full();
     }
@@ -961,8 +972,9 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     if ((begin > end) || (end > (1 << 16))) {
       throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
     }
+    int prevOnesInRange = BufferUtil.cardinalityInBitmapRange(bitmap, begin, end);
     BufferUtil.resetBitmapRange(bitmap, begin, end);
-    computeCardinality();
+    updateCardinality(prevOnesInRange, 0);
     if (getCardinality() < MappeableArrayContainer.DEFAULT_MAX_SIZE) {
       return toArrayContainer();
     }
@@ -1088,16 +1100,19 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
         int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
         int end = start + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
+        int prevOnes = Util.cardinalityInBitmapRange(b, start, end);
         Util.flipBitmapRange(b, start, end);
+        updateCardinality(prevOnes, end - start - prevOnes);
       }
     } else {
       for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
         int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
         int end = start + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
+        int prevOnes = BufferUtil.cardinalityInBitmapRange(this.bitmap, start, end);
         BufferUtil.flipBitmapRange(this.bitmap, start, end);
+        updateCardinality(prevOnes, end - start - prevOnes);
       }
     }
-    computeCardinality();
     if (this.getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
       return this;
     } else {
@@ -1537,8 +1552,9 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
     }
     MappeableBitmapContainer answer = clone();
+    int prevOnesInRange = BufferUtil.cardinalityInBitmapRange(answer.bitmap, begin, end);
     BufferUtil.resetBitmapRange(answer.bitmap, begin, end);
-    answer.computeCardinality();
+    answer.updateCardinality(prevOnesInRange, 0);
     if (answer.getCardinality() < MappeableArrayContainer.DEFAULT_MAX_SIZE) {
       return answer.toArrayContainer();
     }

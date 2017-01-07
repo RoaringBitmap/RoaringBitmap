@@ -19,7 +19,7 @@ import static org.roaringbitmap.buffer.TestMappeableArrayContainer.newArrayConta
 public class TestMappeableRunContainer {
 
   protected static MappeableRunContainer generateContainer(short[] values, int numOfRuns) {
-    ShortBuffer array = ByteBuffer.allocateDirect(values.length * Short.BYTES).asShortBuffer();
+    ShortBuffer array = ByteBuffer.allocateDirect(values.length * 2).asShortBuffer();
     for (short v : values) {
       array.put(v);
     }
