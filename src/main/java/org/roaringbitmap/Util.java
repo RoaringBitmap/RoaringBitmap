@@ -221,6 +221,7 @@ public final class Util {
    * @param end last index (exclusive)
    * @return the hamming weight of the corresponding words
    */
+  @Deprecated
   public static int cardinalityInBitmapWordRange(long[] bitmap, int start, int end) {
     if (start >= end) {
       return 0;
@@ -434,6 +435,7 @@ public final class Util {
    * @param end last index to be modified (exclusive)
    * @return cardinality change
    */
+  @Deprecated
   public static int setBitmapRangeAndCardinalityChange(long[] bitmap, int start, int end) {
     int cardbefore = cardinalityInBitmapWordRange(bitmap, start, end);
     setBitmapRange(bitmap, start,end);
@@ -451,6 +453,7 @@ public final class Util {
    * @param end last index to be modified (exclusive)
    * @return cardinality change
    */
+  @Deprecated
   public static int flipBitmapRangeAndCardinalityChange(long[] bitmap, int start, int end) {
     int cardbefore = cardinalityInBitmapWordRange(bitmap, start, end);
     flipBitmapRange(bitmap, start,end);
@@ -468,6 +471,7 @@ public final class Util {
    * @param end last index to be modified (exclusive)
    * @return cardinality change
    */
+  @Deprecated
   public static int resetBitmapRangeAndCardinalityChange(long[] bitmap, int start, int end) {
     int cardbefore = cardinalityInBitmapWordRange(bitmap, start, end);
     resetBitmapRange(bitmap, start,end);

@@ -3,18 +3,28 @@ package org.roaringbitmap.buffer;
 import org.junit.Test;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
 import static org.roaringbitmap.buffer.TestMappeableArrayContainer.newArrayContainer;
 
 
 public class TestMappeableRunContainer {
+
+  protected static MappeableRunContainer generateContainer(short[] values, int numOfRuns) {
+    ShortBuffer array = ByteBuffer.allocateDirect(values.length * 2).asShortBuffer();
+    for (short v : values) {
+      array.put(v);
+    }
+    return new MappeableRunContainer(array, numOfRuns);
+  }
 
   @Test
   public void constructorArray() {
@@ -202,5 +212,41 @@ public class TestMappeableRunContainer {
     assertEquals(1 << 16, iresult.getCardinality());
     assertThat(result, instanceOf(MappeableRunContainer.class));
     assertThat(iresult, instanceOf(MappeableRunContainer.class));
+  }
+
+  @Test
+  public void testRangeCardinality() {
+    MappeableBitmapContainer bc = TestMappeableBitmapContainer.generateContainer((short) 100, (short) 10000, 5);
+    MappeableRunContainer rc = generateContainer(new short[]{7, 300, 400, 900, 1400, 2200}, 3);
+    MappeableContainer result = rc.or(bc);
+    assertEquals(8677, result.getCardinality());
+  }
+
+  @Test
+  public void testRangeCardinality2() {
+    MappeableBitmapContainer bc = TestMappeableBitmapContainer.generateContainer((short) 100, (short) 10000, 5);
+    bc.add((short)22345); //important case to have greater element than run container
+    bc.add(Short.MAX_VALUE);
+    MappeableRunContainer rc = generateContainer(new short[]{7, 300, 400, 900, 1400, 18000}, 3);
+    assertThat("RC cardinality must be greater than ArrayContainer default max size",
+            rc.getCardinality(), greaterThan(MappeableArrayContainer.DEFAULT_MAX_SIZE));
+    MappeableContainer result = rc.andNot(bc);
+    assertEquals(11437, result.getCardinality());
+  }
+
+  @Test
+  public void testRangeCardinality3() {
+    MappeableBitmapContainer bc = TestMappeableBitmapContainer.generateContainer((short) 100, (short) 10000, 5);
+    MappeableRunContainer rc = generateContainer(new short[]{7, 300, 400, 900, 1400, 5200}, 3);
+    MappeableBitmapContainer result = (MappeableBitmapContainer) rc.and(bc);
+    assertEquals(5046, result.getCardinality());
+  }
+
+  @Test
+  public void testRangeCardinality4() {
+    MappeableBitmapContainer bc = TestMappeableBitmapContainer.generateContainer((short) 100, (short) 10000, 5);
+    MappeableRunContainer rc = generateContainer(new short[]{7, 300, 400, 900, 1400, 2200}, 3);
+    MappeableBitmapContainer result = (MappeableBitmapContainer) rc.xor(bc);
+    assertEquals(6031, result.getCardinality());
   }
 }

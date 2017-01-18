@@ -2,6 +2,7 @@ package org.roaringbitmap;
 
 import org.junit.Assert;
 import org.junit.Test;
+import static org.hamcrest.Matchers.greaterThan;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -3030,4 +3031,39 @@ public class TestRunContainer {
     assertThat(iresult, instanceOf(RunContainer.class));
   }
 
+  @Test
+  public void testRangeCardinality() {
+    BitmapContainer bc = TestBitmapContainer.generateContainer((short) 100, (short) 10000, 5);
+    RunContainer rc = new RunContainer(new short[]{7, 300, 400, 900, 1400, 2200}, 3);
+    Container result = rc.or(bc);
+    assertEquals(8677, result.getCardinality());
+  }
+
+  @Test
+  public void testRangeCardinality2() {
+    BitmapContainer bc = TestBitmapContainer.generateContainer((short) 100, (short) 10000, 5);
+    bc.add((short)22345); //important case to have greater element than run container
+    bc.add(Short.MAX_VALUE);
+    RunContainer rc = new RunContainer(new short[]{7, 300, 400, 900, 1400, 18000}, 3);
+    Assert.assertThat("RC cardinality must be greater than ArrayContainer default max size",
+            rc.getCardinality(), greaterThan(ArrayContainer.DEFAULT_MAX_SIZE));
+    Container result = rc.andNot(bc);
+    assertEquals(11437, result.getCardinality());
+  }
+
+  @Test
+  public void testRangeCardinality3() {
+    BitmapContainer bc = TestBitmapContainer.generateContainer((short) 100, (short) 10000, 5);
+    RunContainer rc = new RunContainer(new short[]{7, 300, 400, 900, 1400, 5200}, 3);
+    BitmapContainer result = (BitmapContainer) rc.and(bc);
+    assertEquals(5046, result.getCardinality());
+  }
+
+  @Test
+  public void testRangeCardinality4() {
+    BitmapContainer bc = TestBitmapContainer.generateContainer((short) 100, (short) 10000, 5);
+    RunContainer rc = new RunContainer(new short[]{7, 300, 400, 900, 1400, 2200}, 3);
+    BitmapContainer result = (BitmapContainer) rc.xor(bc);
+    assertEquals(6031, result.getCardinality());
+  }
 }

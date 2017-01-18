@@ -22,7 +22,15 @@ public class TestBitmapContainer {
   private static BitmapContainer emptyContainer() {
     return new BitmapContainer(new long[1], 0);
   }
-  
+
+  static BitmapContainer generateContainer(short min, short max, int sample) {
+    BitmapContainer bc = new BitmapContainer();
+    for (int i = min; i < max; i++) {
+      if (i % sample != 0) bc.add((short) i);
+    }
+    return bc;
+  }
+
   @Test
   public void testToString() {
     BitmapContainer bc2 = new BitmapContainer();
@@ -104,7 +112,7 @@ public class TestBitmapContainer {
     assertTrue(bc.equals(bc2));       
     RunContainer rc = new RunContainer();
     rc.iadd(0, 1<<16);
-    assertTrue(bc.iandNot(rc).getCardinality() == 0);      
+    assertEquals(0, bc.iandNot(rc).getCardinality());
   }
 
   @Test
@@ -194,7 +202,61 @@ public class TestBitmapContainer {
       }  
     }
   }
-  
+
+  @Test
+  public void testRangeCardinality() {
+    BitmapContainer bc = generateContainer((short)100, (short)10000, 5);
+    bc = (BitmapContainer) bc.add(200, 2000);
+    assertEquals(8280, bc.cardinality);
+  }
+
+  @Test
+  public void testRangeCardinality2() {
+    BitmapContainer bc = generateContainer((short)100, (short)10000, 5);
+    bc.iadd(200, 2000);
+    assertEquals(8280, bc.cardinality);
+  }
+
+  @Test
+  public void testRangeCardinality3() {
+    BitmapContainer bc = generateContainer((short)100, (short)10000, 5);
+    RunContainer rc = new RunContainer(new short[]{7, 300, 400, 900, 1400, 2200}, 3);
+    bc.ior(rc);
+    assertEquals(8677, bc.cardinality);
+  }
+
+  @Test
+  public void testRangeCardinality4() {
+    BitmapContainer bc = generateContainer((short)100, (short)10000, 5);
+    RunContainer rc = new RunContainer(new short[]{7, 300, 400, 900, 1400, 2200}, 3);
+    bc = (BitmapContainer) bc.andNot(rc);
+    assertEquals(5274, bc.cardinality);
+  }
+
+  @Test
+  public void testRangeCardinality5() {
+    BitmapContainer bc = generateContainer((short)100, (short)10000, 5);
+    RunContainer rc = new RunContainer(new short[]{7, 300, 400, 900, 1400, 2200}, 3);
+    bc.iandNot(rc);
+    assertEquals(5274, bc.cardinality);
+  }
+
+  @Test
+  public void testRangeCardinality6() {
+    BitmapContainer bc = generateContainer((short)100, (short)10000, 5);
+    RunContainer rc = new RunContainer(new short[]{7, 300, 400, 900, 1400, 5200}, 3);
+    bc = (BitmapContainer) bc.iand(rc);
+    assertEquals(5046, bc.cardinality);
+  }
+
+  @Test
+  public void testRangeCardinality7() {
+    BitmapContainer bc = generateContainer((short)100, (short)10000, 5);
+    RunContainer rc = new RunContainer(new short[]{7, 300, 400, 900, 1400, 2200}, 3);
+    bc.ixor(rc);
+    assertEquals(6031, bc.cardinality);
+  }
+
   @Test
   public void numberOfRunsLowerBound1() {
     System.out.println("numberOfRunsLowerBound1");

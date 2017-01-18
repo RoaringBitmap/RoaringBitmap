@@ -281,6 +281,7 @@ public final class BufferUtil {
    * @param end last index (exclusive)
    * @return the hamming weight of the corresponding words
    */
+  @Deprecated
   private static int cardinalityInBitmapWordRange(LongBuffer bitmap, int start, int end) {
     if (isBackedBySimpleArray(bitmap)) {
       return Util.cardinalityInBitmapWordRange(bitmap.array(), start, end);
@@ -335,6 +336,7 @@ public final class BufferUtil {
    * @param end last index to be modified (exclusive)
    * @return cardinality change
    */
+  @Deprecated
   public static int setBitmapRangeAndCardinalityChange(LongBuffer bitmap, int start, int end) {
     if (BufferUtil.isBackedBySimpleArray(bitmap)) {
       return Util.setBitmapRangeAndCardinalityChange(bitmap.array(), start, end);
@@ -354,6 +356,7 @@ public final class BufferUtil {
    * @param end last index to be modified (exclusive)
    * @return cardinality change
    */
+  @Deprecated
   public static int flipBitmapRangeAndCardinalityChange(LongBuffer bitmap, int start, int end) {
     if (BufferUtil.isBackedBySimpleArray(bitmap)) {
       return Util.flipBitmapRangeAndCardinalityChange(bitmap.array(), start, end);
@@ -373,6 +376,7 @@ public final class BufferUtil {
    * @param end last index to be modified (exclusive)
    * @return cardinality change
    */
+  @Deprecated
   public static int resetBitmapRangeAndCardinalityChange(LongBuffer bitmap, int start, int end) {
     if (BufferUtil.isBackedBySimpleArray(bitmap)) {
       return Util.resetBitmapRangeAndCardinalityChange(bitmap.array(), start, end);
