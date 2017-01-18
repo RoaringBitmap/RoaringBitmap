@@ -357,12 +357,12 @@ public final class RunContainer extends Container implements Cloneable {
     int start = 0;
     for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
       int end = Util.toIntUnsigned(this.getValue(rlepos));
-      int prevOnes = Util.cardinalityInBitmapRange(answer.bitmap, start, end);
+      int prevOnes = answer.cardinalityInRange(start, end);
       Util.resetBitmapRange(answer.bitmap, start, end); // had been x.bitmap
       answer.updateCardinality(prevOnes, 0);
       start = end + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
     }
-    int ones = Util.cardinalityInBitmapRange(answer.bitmap, start, BitmapContainer.MAX_CAPACITY);
+    int ones = answer.cardinalityInRange(start, BitmapContainer.MAX_CAPACITY);
     Util.resetBitmapRange(answer.bitmap, start, BitmapContainer.MAX_CAPACITY); // had been x.bitmap
     answer.updateCardinality(ones, 0);
     if (answer.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE) {
@@ -612,14 +612,14 @@ public final class RunContainer extends Container implements Cloneable {
     for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
       int start = Util.toIntUnsigned(this.getValue(rlepos));
       int end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
-      int prevOnes = Util.cardinalityInBitmapRange(answer.bitmap, lastPos, start);
-      int flippedOnes = Util.cardinalityInBitmapRange(answer.bitmap, start, end);
+      int prevOnes = answer.cardinalityInRange(lastPos, start);
+      int flippedOnes = answer.cardinalityInRange(start, end);
       Util.resetBitmapRange(answer.bitmap, lastPos, start);
       Util.flipBitmapRange(answer.bitmap, start, end);
       answer.updateCardinality(prevOnes + flippedOnes, end - start - flippedOnes);
       lastPos = end;
     }
-    int ones = Util.cardinalityInBitmapRange(answer.bitmap, lastPos, BitmapContainer.MAX_CAPACITY);
+    int ones = answer.cardinalityInRange(lastPos, BitmapContainer.MAX_CAPACITY);
     Util.resetBitmapRange(answer.bitmap, lastPos, BitmapContainer.MAX_CAPACITY);
     answer.updateCardinality(ones, 0);
     if (answer.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE) {
@@ -1788,7 +1788,7 @@ public final class RunContainer extends Container implements Cloneable {
     for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
       int start = Util.toIntUnsigned(this.getValue(rlepos));
       int end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
-      int prevOnesInRange = Util.cardinalityInBitmapRange(answer.bitmap, start, end);
+      int prevOnesInRange = answer.cardinalityInRange(start, end);
       Util.setBitmapRange(answer.bitmap, start, end);
       answer.updateCardinality(prevOnesInRange, end - start);
     }
@@ -2301,7 +2301,7 @@ public final class RunContainer extends Container implements Cloneable {
     for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
       int start = Util.toIntUnsigned(this.getValue(rlepos));
       int end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
-      int prevOnes = Util.cardinalityInBitmapRange(answer.bitmap, start, end);
+      int prevOnes = answer.cardinalityInRange(start, end);
       Util.flipBitmapRange(answer.bitmap, start, end);
       answer.updateCardinality(prevOnes, end - start - prevOnes);
     }

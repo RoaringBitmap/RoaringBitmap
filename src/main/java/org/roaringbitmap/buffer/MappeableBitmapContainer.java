@@ -118,7 +118,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
     }
     MappeableBitmapContainer answer = clone();
-    int prevOnesInRange = BufferUtil.cardinalityInBitmapRange(answer.bitmap, begin, end);
+    int prevOnesInRange = answer.cardinalityInRange(begin, end);
     BufferUtil.setBitmapRange(answer.bitmap, begin, end);
     answer.updateCardinality(prevOnesInRange, end - begin);
     return answer;
@@ -338,7 +338,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         int start = BufferUtil.toIntUnsigned(value2.getValue(rlepos));
         int end = BufferUtil.toIntUnsigned(value2.getValue(rlepos))
             + BufferUtil.toIntUnsigned(value2.getLength(rlepos)) + 1;
-        int prevOnesInRange = BufferUtil.cardinalityInBitmapRange(answer.bitmap, start, end);
+        int prevOnesInRange = answer.cardinalityInRange(start, end);
         BufferUtil.resetBitmapRange(answer.bitmap, start, end);
         answer.updateCardinality(prevOnesInRange, 0);
       }
@@ -384,6 +384,16 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         this.cardinality += Long.bitCount(this.bitmap.get(k));
       }
     }
+  }
+
+  protected int cardinalityInRange(int start, int end) {
+    assert (cardinality != -1);
+    if (end - start > MAX_CAPACITY / 2) {
+      int before = BufferUtil.cardinalityInBitmapRange(bitmap, 0, start);
+      int after = BufferUtil.cardinalityInBitmapRange(bitmap, end, MAX_CAPACITY);
+      return cardinality - before - after;
+    }
+    return BufferUtil.cardinalityInBitmapRange(bitmap, start, end);
   }
 
   protected void updateCardinality(int prevOnes, int newOnes) {
@@ -573,7 +583,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     if ((begin > end) || (end > (1 << 16))) {
       throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
     }
-    int prevOnesInRange = BufferUtil.cardinalityInBitmapRange(bitmap, begin, end);
+    int prevOnesInRange = cardinalityInRange(begin, end);
     BufferUtil.setBitmapRange(bitmap, begin, end);
     updateCardinality(prevOnesInRange, end - begin);
     return this;
@@ -648,12 +658,12 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     int start = 0;
     for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
       int end = BufferUtil.toIntUnsigned(x.getValue(rlepos));
-      int prevOnes = BufferUtil.cardinalityInBitmapRange(this.bitmap, start, end);
+      int prevOnes = cardinalityInRange(start, end);
       BufferUtil.resetBitmapRange(this.bitmap, start, end);
       updateCardinality(prevOnes, 0);
       start = end + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
     }
-    int ones = BufferUtil.cardinalityInBitmapRange(this.bitmap, start, MAX_CAPACITY);
+    int ones = cardinalityInRange(start, MAX_CAPACITY);
     BufferUtil.resetBitmapRange(this.bitmap, start, MAX_CAPACITY);
     updateCardinality(ones, 0);
     if (getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
@@ -740,7 +750,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
       int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
       int end = start + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
-      int prevOnesInRange = BufferUtil.cardinalityInBitmapRange(this.bitmap, start, end);
+      int prevOnesInRange = cardinalityInRange(start, end);
       BufferUtil.resetBitmapRange(this.bitmap, start, end);
       updateCardinality(prevOnesInRange, 0);
     }
@@ -797,7 +807,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   @Override
   public MappeableContainer inot(final int firstOfRange, final int lastOfRange) {
-    int prevOnes = BufferUtil.cardinalityInBitmapRange(bitmap, firstOfRange, lastOfRange);
+    int prevOnes = cardinalityInRange(firstOfRange, lastOfRange);
     BufferUtil.flipBitmapRange(bitmap, firstOfRange, lastOfRange);
     updateCardinality(prevOnes, lastOfRange - firstOfRange - prevOnes);
     if (cardinality <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
@@ -953,7 +963,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
         int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
         int end = start + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
-        int prevOnesInRange = BufferUtil.cardinalityInBitmapRange(this.bitmap, start, end);
+        int prevOnesInRange = cardinalityInRange(start, end);
         BufferUtil.setBitmapRange(this.bitmap, start, end);
         updateCardinality(prevOnesInRange, end - start);
       }
@@ -972,7 +982,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     if ((begin > end) || (end > (1 << 16))) {
       throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
     }
-    int prevOnesInRange = BufferUtil.cardinalityInBitmapRange(bitmap, begin, end);
+    int prevOnesInRange = cardinalityInRange(begin, end);
     BufferUtil.resetBitmapRange(bitmap, begin, end);
     updateCardinality(prevOnesInRange, 0);
     if (getCardinality() < MappeableArrayContainer.DEFAULT_MAX_SIZE) {
@@ -1108,7 +1118,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
         int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
         int end = start + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
-        int prevOnes = BufferUtil.cardinalityInBitmapRange(this.bitmap, start, end);
+        int prevOnes = cardinalityInRange(start, end);
         BufferUtil.flipBitmapRange(this.bitmap, start, end);
         updateCardinality(prevOnes, end - start - prevOnes);
       }
@@ -1552,7 +1562,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
     }
     MappeableBitmapContainer answer = clone();
-    int prevOnesInRange = BufferUtil.cardinalityInBitmapRange(answer.bitmap, begin, end);
+    int prevOnesInRange = answer.cardinalityInRange(begin, end);
     BufferUtil.resetBitmapRange(answer.bitmap, begin, end);
     answer.updateCardinality(prevOnesInRange, 0);
     if (answer.getCardinality() < MappeableArrayContainer.DEFAULT_MAX_SIZE) {

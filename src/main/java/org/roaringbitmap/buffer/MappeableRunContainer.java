@@ -412,12 +412,12 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     int start = 0;
     for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
       int end = BufferUtil.toIntUnsigned(this.getValue(rlepos));
-      int prevOnes = BufferUtil.cardinalityInBitmapRange(answer.bitmap, start, end);
+      int prevOnes = answer.cardinalityInRange(start, end);
       BufferUtil.resetBitmapRange(answer.bitmap, start, end);
       answer.updateCardinality(prevOnes, 0);
       start = end + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
     }
-    int ones = BufferUtil.cardinalityInBitmapRange(answer.bitmap, start, MAX_CAPACITY);
+    int ones = answer.cardinalityInRange(start, MAX_CAPACITY);
     BufferUtil.resetBitmapRange(answer.bitmap, start, MAX_CAPACITY);
     answer.updateCardinality(ones, 0);
     if (answer.getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
@@ -537,14 +537,14 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
       int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
       int end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
-      int prevOnes = BufferUtil.cardinalityInBitmapRange(answer.bitmap, lastPos, start);
-      int flippedOnes = BufferUtil.cardinalityInBitmapRange(answer.bitmap, start, end);
+      int prevOnes = answer.cardinalityInRange(lastPos, start);
+      int flippedOnes = answer.cardinalityInRange(start, end);
       BufferUtil.resetBitmapRange(answer.bitmap, lastPos, start);
       BufferUtil.flipBitmapRange(answer.bitmap, start, end);
       answer.updateCardinality(prevOnes + flippedOnes, end - start - flippedOnes);
       lastPos = end;
     }
-    int ones = BufferUtil.cardinalityInBitmapRange(answer.bitmap, lastPos, MAX_CAPACITY);
+    int ones = answer.cardinalityInRange(lastPos, MAX_CAPACITY);
     BufferUtil.resetBitmapRange(answer.bitmap, lastPos, answer.bitmap.capacity() * 64);
     answer.updateCardinality(ones, 0);
     if (answer.getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
@@ -1760,7 +1760,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
       int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
       int end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
-      int prevOnesInRange = BufferUtil.cardinalityInBitmapRange(answer.bitmap, start, end);
+      int prevOnesInRange = answer.cardinalityInRange(start, end);
       BufferUtil.setBitmapRange(answer.bitmap, start, end);
       answer.updateCardinality(prevOnesInRange, end - start);
     }
@@ -2260,7 +2260,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
       int start = BufferUtil.toIntUnsigned(this.getValue(rlepos));
       int end = start + BufferUtil.toIntUnsigned(this.getLength(rlepos)) + 1;
-      int prevOnes = BufferUtil.cardinalityInBitmapRange(answer.bitmap, start, end);
+      int prevOnes = answer.cardinalityInRange(start, end);
       BufferUtil.flipBitmapRange(answer.bitmap, start, end);
       answer.updateCardinality(prevOnes, end - start - prevOnes);
     }
