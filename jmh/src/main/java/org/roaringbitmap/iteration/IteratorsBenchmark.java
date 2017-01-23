@@ -10,13 +10,24 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-
+import java.util.Iterator;
 /**
  * Created by Borislav Ivanov on 4/2/15.
  */
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 public class IteratorsBenchmark {
+
+   @Benchmark
+   public int testBoxed_a(BenchmarkState benchmarkState) {
+      Iterator<Integer> intIterator = benchmarkState.bitmap_a.iterator();
+      int result = 0;
+      while (intIterator.hasNext()) {
+         result = intIterator.next();
+
+      }
+      return result;
+   }
 
    @Benchmark
    public int testStandard_a(BenchmarkState benchmarkState) {
@@ -48,6 +59,18 @@ public class IteratorsBenchmark {
    }
 
    @Benchmark
+   public int testBoxed_b(BenchmarkState benchmarkState) {
+      Iterator<Integer> intIterator = benchmarkState.bitmap_b.iterator();
+      int result = 0;
+      while (intIterator.hasNext()) {
+         result = intIterator.next();
+
+      }
+      return result;
+   }
+
+
+   @Benchmark
    public int testStandard_b(BenchmarkState benchmarkState) {
 
       IntIterator intIterator = benchmarkState.bitmap_b.getIntIterator();
@@ -75,6 +98,18 @@ public class IteratorsBenchmark {
       return result;
 
    }
+
+   @Benchmark
+   public int testBoxed_c(BenchmarkState benchmarkState) {
+      Iterator<Integer> intIterator = benchmarkState.bitmap_c.iterator();
+      int result = 0;
+      while (intIterator.hasNext()) {
+         result = intIterator.next();
+
+      }
+      return result;
+   }
+
 
    @Benchmark
    public int testStandard_c(BenchmarkState benchmarkState) {

@@ -1,3 +1,10 @@
+## Running just one test without script
+
+        mvn -f ../pom.xml clean install -DskipTests -Dgpg.skip=true
+        mvn -f ../real-roaring-dataset/pom.xml clean install
+        mvn  clean install  -DskipTests
+        java -jar ./target/benchmarks.jar true -wi 5 -i 5 -f1 IteratorsBenchmark
+
 
 ## Focusing on just roaring bitmaps
 
