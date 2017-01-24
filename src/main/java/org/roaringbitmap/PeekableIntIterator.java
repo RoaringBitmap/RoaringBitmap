@@ -32,7 +32,7 @@ public interface PeekableIntIterator extends IntIterator {
    *       }
    *       j.advanceIfNeeded(val);
    *     }
-   *     </pre></code>
+   *     </code></pre>
    *  
    *  The benefit of calling advanceIfNeeded is that each such call 
    *  can be much faster than repeated calls to "next". The underlying
@@ -69,7 +69,7 @@ public interface PeekableIntIterator extends IntIterator {
    *      // do something with x
    *      if(pi.hasNext()) pq.add(pi)
    *    }
-   *    </pre></code>
+   *    </code></pre>
    * 
    * Notice how the peek method allows you to compare iterators in a way
    * that the next method could not do.
