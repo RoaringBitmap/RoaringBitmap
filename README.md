@@ -17,9 +17,11 @@ be hundreds of times faster and they often offer significantly better compressio
 They can even be faster than uncompressed bitmaps.
 
 This library is used by
-* Apache Spark (http://spark.apache.org/),
-* Apache Kylin (http://kylin.io) and
-* Druid (http://druid.io/).
+*   [Apache Spark](http://spark.apache.org/),
+*   [Apache Kylin](http://kylin.io),
+*   [Netflix Atlas](https://github.com/Netflix/atlas),
+*   [LinkedIn Pinot](https://github.com/linkedin/pinot/wiki) and
+*   [Druid](http://druid.io/).
 
 
 Apache Lucene (http://lucene.apache.org/) uses  Roaring bitmaps, though they have their own [independent implementation](https://svn.apache.org/viewvc/lucene/dev/branches/branch_5x/lucene/core/src/java/org/apache/lucene/util/RoaringDocIdSet.java?view=markup&pathrev=1629606). Derivatives of Lucene such as Solr and Elastic also use Roaring bitmaps.
