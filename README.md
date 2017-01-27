@@ -163,6 +163,13 @@ public class Basic {
 
 Please see the examples folder for more examples.
 
+
+Unsigned integers
+------------------
+
+Java lacks native unsigned integers, but integers are still considered to be unsigned within Roaring, and ordered  according to  ``Integer.compareUnsigned``. This means that Java will order the numbers like so 0, 1, ..., 2147483647, -2147483648, -2147483647,..., -1. To intepret correctly, you can use ``Integer.toUnsignedLong`` and ``Integer.toUnsignedString``.
+
+
 Working with memory-mapped bitmaps
 ---------------------------------------
 
@@ -203,6 +210,9 @@ One can find a complete working example in the test file TestMemoryMapping.java.
 
 Note that you should not mix the classes from the org.roaringbitmap package with the classes
 from the org.roaringbitmap.buffer package. They are incompatible. They serialize to the same output however.
+
+
+
 
 Prerequisites
 -------------
@@ -263,6 +273,7 @@ a patch.
 
 FAQ
 ----
+
 
 * I am getting an error about a bad cookie. What is this about?
 
