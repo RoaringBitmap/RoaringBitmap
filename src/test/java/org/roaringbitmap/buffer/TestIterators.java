@@ -8,6 +8,11 @@ package org.roaringbitmap.buffer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
+
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -244,6 +249,32 @@ public class TestIterators {
     MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
     PeekableIntIterator it = bitmap.getIntIterator();
     it.advanceIfNeeded(0);
+  }
+  
+  @Test
+  public void testIteratorsOnLargeBitmap() throws IOException {
+      MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+
+      int inc = Short.MAX_VALUE;
+
+      for (long i = -Integer.MIN_VALUE; i < Integer.MAX_VALUE; i += inc) {
+          bitmap.add((int) i);
+      }
+
+      ByteArrayOutputStream bos = new ByteArrayOutputStream();
+      DataOutputStream dos = new DataOutputStream(bos);
+      bitmap.serialize(dos);
+      dos.close();
+      ByteBuffer bb = ByteBuffer.wrap(bos.toByteArray());
+      ImmutableRoaringBitmap rrback1 = new ImmutableRoaringBitmap(bb);
+
+      // we can iterate over the mutable bitmap
+      for (int i : bitmap) {
+      }
+
+      // we can iterate over the immutable bitmap
+      for (int i : rrback1) {
+      }
   }
 }
 

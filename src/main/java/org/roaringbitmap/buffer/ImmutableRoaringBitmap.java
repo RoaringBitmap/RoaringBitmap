@@ -1088,7 +1088,7 @@ public class ImmutableRoaringBitmap
 
       ShortIterator iter;
 
-      short pos = 0;
+      int pos = 0;
 
       int x;
 
