@@ -2761,6 +2761,40 @@ public class TestRoaringBitmap {
     }
   }
 
+  private static class ExtendedRoaringBitmap extends RoaringBitmap {}
+
+  /**
+   * Tests that the static #or operation works correctly with an iterator of
+   * RoaringBitmap extended classes.
+   */
+  @Test
+  public void testOrWithIterator() {
+    final RoaringBitmap b1 = new RoaringBitmap();
+    b1.add(13);
+    final RoaringBitmap b2 = new RoaringBitmap();
+    b2.add(42);
+
+    final RoaringBitmap result = RoaringBitmap.or(Arrays.asList(b1, b2).iterator());
+    Assert.assertTrue(result.contains(13));
+    Assert.assertTrue(result.contains(42));
+  }
+
+  /**
+   * Tests that the static #or operation works correctly with an iterator of
+   * RoaringBitmap extended classes.
+   */
+  @Test
+  public void testOrWithIteratorOfExtendedRoaringBitmaps() {
+    final ExtendedRoaringBitmap b1 = new ExtendedRoaringBitmap();
+    b1.add(1);
+    final ExtendedRoaringBitmap b2 = new ExtendedRoaringBitmap();
+    b2.add(2);
+
+    final RoaringBitmap result = RoaringBitmap.or(Arrays.<ExtendedRoaringBitmap>asList(b1, b2).iterator());
+    Assert.assertTrue(result.contains(1));
+    Assert.assertTrue(result.contains(2));
+  }
+
   /**
    * Test massive or.
    */

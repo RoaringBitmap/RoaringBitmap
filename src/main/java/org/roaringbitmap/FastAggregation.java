@@ -30,7 +30,7 @@ public final class FastAggregation {
    * @param bitmaps input bitmaps
    * @return aggregated bitmap
    */
-  public static RoaringBitmap and(Iterator<RoaringBitmap> bitmaps) {
+  public static RoaringBitmap and(Iterator<? extends RoaringBitmap> bitmaps) {
     return naive_and(bitmaps);
   }
 
@@ -53,7 +53,7 @@ public final class FastAggregation {
    * @return aggregated bitmap
    */
   @Deprecated
-  public static RoaringBitmap horizontal_or(Iterator<RoaringBitmap> bitmaps) {
+  public static RoaringBitmap horizontal_or(Iterator<? extends RoaringBitmap> bitmaps) {
     return naive_or(bitmaps);
   }
 
@@ -67,7 +67,7 @@ public final class FastAggregation {
    * @return aggregated bitmap
    * @see #or(RoaringBitmap...)
    */
-  public static RoaringBitmap horizontal_or(List<RoaringBitmap> bitmaps) {
+  public static RoaringBitmap horizontal_or(List<? extends RoaringBitmap> bitmaps) {
     RoaringBitmap answer = new RoaringBitmap();
     if (bitmaps.isEmpty()) {
       return answer;
@@ -243,7 +243,7 @@ public final class FastAggregation {
    * @param bitmaps input bitmaps
    * @return aggregated bitmap
    */
-  public static RoaringBitmap naive_and(Iterator<RoaringBitmap> bitmaps) {
+  public static RoaringBitmap naive_and(Iterator<? extends RoaringBitmap> bitmaps) {
     if (!bitmaps.hasNext()) {
       return new RoaringBitmap();
     }
@@ -283,7 +283,7 @@ public final class FastAggregation {
    * @param bitmaps input bitmaps
    * @return aggregated bitmap
    */
-  public static RoaringBitmap naive_or(Iterator<RoaringBitmap> bitmaps) {
+  public static RoaringBitmap naive_or(Iterator<? extends RoaringBitmap> bitmaps) {
     RoaringBitmap answer = new RoaringBitmap();
     while (bitmaps.hasNext()) {
       answer.naivelazyor(bitmaps.next());
@@ -318,7 +318,7 @@ public final class FastAggregation {
    * @param bitmaps input bitmaps
    * @return aggregated bitmap
    */
-  public static RoaringBitmap naive_xor(Iterator<RoaringBitmap> bitmaps) {
+  public static RoaringBitmap naive_xor(Iterator<? extends RoaringBitmap> bitmaps) {
     RoaringBitmap answer = new RoaringBitmap();
     while (bitmaps.hasNext()) {
       answer.xor(bitmaps.next());
@@ -350,7 +350,7 @@ public final class FastAggregation {
    * @param bitmaps input bitmaps
    * @return aggregated bitmap
    */
-  public static RoaringBitmap or(Iterator<RoaringBitmap> bitmaps) {
+  public static RoaringBitmap or(Iterator<? extends RoaringBitmap> bitmaps) {
     return naive_or(bitmaps);
   }
 
@@ -374,7 +374,7 @@ public final class FastAggregation {
    * @return aggregated bitmap
    * @see #horizontal_or(RoaringBitmap...)
    */
-  public static RoaringBitmap priorityqueue_or(Iterator<RoaringBitmap> bitmaps) {
+  public static RoaringBitmap priorityqueue_or(Iterator<? extends RoaringBitmap> bitmaps) {
     if (!bitmaps.hasNext()) {
       return new RoaringBitmap();
     }
@@ -520,7 +520,7 @@ public final class FastAggregation {
    * @param bitmaps input bitmaps
    * @return aggregated bitmap
    */
-  public static RoaringBitmap xor(Iterator<RoaringBitmap> bitmaps) {
+  public static RoaringBitmap xor(Iterator<? extends RoaringBitmap> bitmaps) {
     return naive_xor(bitmaps);
   }
 

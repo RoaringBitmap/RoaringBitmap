@@ -651,7 +651,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @param bitmaps input bitmaps
    * @return aggregated bitmap
    */
-  public static RoaringBitmap or(Iterator<RoaringBitmap> bitmaps) {
+  public static RoaringBitmap or(Iterator<? extends RoaringBitmap> bitmaps) {
     return FastAggregation.or(bitmaps);
   }
 
