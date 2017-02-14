@@ -2,7 +2,6 @@ package org.roaringbitmap;
 
 import org.junit.Assert;
 import org.junit.Test;
-import static org.hamcrest.Matchers.greaterThan;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -10,7 +9,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.*;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.*;
 import static org.roaringbitmap.ArrayContainer.DEFAULT_MAX_SIZE;
 
@@ -2421,30 +2419,30 @@ public class TestRunContainer {
   public void orFullToRunContainer() {
     Container rc = Container.rangeOfOnes(0, 1 << 15);
     Container half = new BitmapContainer(1 << 15, 1 << 16);
-    assertThat(rc, instanceOf(RunContainer.class));
+    Assert.assertTrue(rc instanceof RunContainer);
     Container result = rc.or(half);
     assertEquals(1 << 16, result.getCardinality());
-    assertThat(result, instanceOf(RunContainer.class));
+    Assert.assertTrue(result instanceof RunContainer);
   }
 
   @Test
   public void orFullToRunContainer2() {
     Container rc = Container.rangeOfOnes((1 << 10) - 200, 1 << 16);
     Container half = new ArrayContainer(0, 1 << 10);
-    assertThat(rc, instanceOf(RunContainer.class));
+    Assert.assertTrue(rc instanceof RunContainer);
     Container result = rc.or(half);
     assertEquals(1 << 16, result.getCardinality());
-    assertThat(result, instanceOf(RunContainer.class));
+    Assert.assertTrue(result instanceof RunContainer);
   }
 
   @Test
   public void orFullToRunContainer3() {
     Container rc = Container.rangeOfOnes(0, 1 << 15);
     Container half = Container.rangeOfOnes((1 << 15) - 200, 1 << 16);
-    assertThat(rc, instanceOf(RunContainer.class));
+    Assert.assertTrue(rc instanceof RunContainer);
     Container result = rc.or(half);
     assertEquals(1 << 16, result.getCardinality());
-    assertThat(result, instanceOf(RunContainer.class));
+    Assert.assertTrue(result instanceof RunContainer);
   }
 
   @Test
@@ -3007,7 +3005,7 @@ public class TestRunContainer {
     assertEquals(-1, rbc.getCardinality());
     Container repaired = rbc.repairAfterLazy();
     assertEquals(1 << 16, repaired.getCardinality());
-    assertThat(repaired, instanceOf(RunContainer.class));
+    Assert.assertTrue(repaired instanceof RunContainer);
   }
 
   @Test
@@ -3016,7 +3014,7 @@ public class TestRunContainer {
     ArrayContainer ac = new ArrayContainer(0, 1 << 10);
     Container rbc = rc.lazyOR(ac);
     assertEquals(1 << 16, rbc.getCardinality());
-    assertThat(rbc, instanceOf(RunContainer.class));
+    Assert.assertTrue(rbc instanceof RunContainer);
   }
 
   @Test
@@ -3027,8 +3025,8 @@ public class TestRunContainer {
     Container iresult = rc.lazyIOR(rc2);
     assertEquals(1 << 16, result.getCardinality());
     assertEquals(1 << 16, iresult.getCardinality());
-    assertThat(result, instanceOf(RunContainer.class));
-    assertThat(iresult, instanceOf(RunContainer.class));
+    Assert.assertTrue(result instanceof RunContainer);
+    Assert.assertTrue(iresult instanceof RunContainer);
   }
 
   @Test
@@ -3045,8 +3043,7 @@ public class TestRunContainer {
     bc.add((short)22345); //important case to have greater element than run container
     bc.add(Short.MAX_VALUE);
     RunContainer rc = new RunContainer(new short[]{7, 300, 400, 900, 1400, 18000}, 3);
-    Assert.assertThat("RC cardinality must be greater than ArrayContainer default max size",
-            rc.getCardinality(), greaterThan(ArrayContainer.DEFAULT_MAX_SIZE));
+    Assert.assertTrue(rc.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE);
     Container result = rc.andNot(bc);
     assertEquals(11437, result.getCardinality());
   }

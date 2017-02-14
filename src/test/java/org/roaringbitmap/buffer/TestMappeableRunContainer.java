@@ -1,5 +1,6 @@
 package org.roaringbitmap.buffer;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.*;
@@ -7,8 +8,6 @@ import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -156,30 +155,30 @@ public class TestMappeableRunContainer {
   public void orFullToRunContainer() {
     MappeableContainer rc = MappeableContainer.rangeOfOnes(0, 1 << 15);
     MappeableBitmapContainer half = new MappeableBitmapContainer(1 << 15, 1 << 16);
-    assertThat(rc, instanceOf(MappeableRunContainer.class));
+    Assert.assertTrue(rc instanceof MappeableRunContainer);
     MappeableContainer result = rc.or(half);
     assertEquals(1 << 16, result.getCardinality());
-    assertThat(result, instanceOf(MappeableRunContainer.class));
+    Assert.assertTrue(result instanceof MappeableRunContainer);
   }
 
   @Test
   public void orFullToRunContainer2() {
     MappeableContainer rc = MappeableContainer.rangeOfOnes(0, 1 << 15);
     MappeableArrayContainer half = new MappeableArrayContainer(1 << 15, 1 << 16);
-    assertThat(rc, instanceOf(MappeableRunContainer.class));
+    Assert.assertTrue(rc instanceof MappeableRunContainer);
     MappeableContainer result = rc.or(half);
     assertEquals(1 << 16, result.getCardinality());
-    assertThat(result, instanceOf(MappeableRunContainer.class));
+    Assert.assertTrue(result instanceof MappeableRunContainer);
   }
 
   @Test
   public void orFullToRunContainer3() {
     MappeableContainer rc = MappeableContainer.rangeOfOnes(0, 1 << 15);
     MappeableContainer half = MappeableContainer.rangeOfOnes(1 << 15, 1 << 16);
-    assertThat(rc, instanceOf(MappeableRunContainer.class));
+    Assert.assertTrue(rc instanceof MappeableRunContainer);
     MappeableContainer result = rc.or(half);
     assertEquals(1 << 16, result.getCardinality());
-    assertThat(result, instanceOf(MappeableRunContainer.class));
+    Assert.assertTrue(result instanceof MappeableRunContainer);
   }
 
   @Test
@@ -190,7 +189,7 @@ public class TestMappeableRunContainer {
     assertEquals(-1, rbc.getCardinality());
     MappeableContainer repaired = rbc.repairAfterLazy();
     assertEquals(1 << 16, repaired.getCardinality());
-    assertThat(repaired, instanceOf(MappeableRunContainer.class));
+    assertTrue(repaired instanceof MappeableRunContainer);
   }
 
   @Test
@@ -199,7 +198,7 @@ public class TestMappeableRunContainer {
     MappeableArrayContainer ac = new MappeableArrayContainer(0, 1 << 10);
     MappeableContainer rbc = rc.lazyOR(ac);
     assertEquals(1 << 16, rbc.getCardinality());
-    assertThat(rbc, instanceOf(MappeableRunContainer.class));
+    Assert.assertTrue(rbc instanceof MappeableRunContainer);
   }
 
   @Test
@@ -210,8 +209,8 @@ public class TestMappeableRunContainer {
     MappeableContainer iresult = rc.lazyIOR(rc2);
     assertEquals(1 << 16, result.getCardinality());
     assertEquals(1 << 16, iresult.getCardinality());
-    assertThat(result, instanceOf(MappeableRunContainer.class));
-    assertThat(iresult, instanceOf(MappeableRunContainer.class));
+    Assert.assertTrue(result instanceof MappeableRunContainer);
+    Assert.assertTrue(iresult instanceof MappeableRunContainer);
   }
 
   @Test
@@ -228,8 +227,7 @@ public class TestMappeableRunContainer {
     bc.add((short)22345); //important case to have greater element than run container
     bc.add(Short.MAX_VALUE);
     MappeableRunContainer rc = generateContainer(new short[]{7, 300, 400, 900, 1400, 18000}, 3);
-    assertThat("RC cardinality must be greater than ArrayContainer default max size",
-            rc.getCardinality(), greaterThan(MappeableArrayContainer.DEFAULT_MAX_SIZE));
+    Assert.assertTrue(rc.getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE);
     MappeableContainer result = rc.andNot(bc);
     assertEquals(11437, result.getCardinality());
   }
