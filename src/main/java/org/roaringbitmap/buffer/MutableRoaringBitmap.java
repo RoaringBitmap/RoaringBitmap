@@ -49,6 +49,12 @@ import java.util.Iterator;
  * }
  * </pre>
  *
+ *
+ * Integers are added in unsigned sorted order. That is, they 
+ * are treated as unsigned integers (see
+ * Java 8's Integer.toUnsignedLong function). Up to 1<<32 integers
+ * can be stored.
+ *
  * @see ImmutableRoaringBitmap
  * @see org.roaringbitmap.RoaringBitmap
  */
