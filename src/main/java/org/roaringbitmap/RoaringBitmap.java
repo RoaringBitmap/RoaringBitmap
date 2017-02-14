@@ -35,7 +35,7 @@ import org.roaringbitmap.buffer.MutableRoaringBitmap;
  *
  * Integers are added in unsigned sorted order. That is, they are treated as unsigned integers (see
  * Java 8's Integer.toUnsignedLong function).
- * Up to 1<<32 integers
+ * Up to 4294967296 integers
  * can be stored.
  *
  *
