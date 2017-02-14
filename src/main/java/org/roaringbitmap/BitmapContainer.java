@@ -157,9 +157,8 @@ public final class BitmapContainer extends Container implements Cloneable {
     int c = value2.cardinality;
     for (int k = 0; k < c; ++k) {
       short v = value2.content[k];
-      if (this.contains(v)) {
-        answer.content[answer.cardinality++] = v;
-      }
+      answer.content[answer.cardinality] = v;
+      answer.cardinality += this.bitValue(v);
     }
     return answer;
   }
@@ -195,9 +194,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     int c = value2.cardinality;
     for (int k = 0; k < c; ++k) {
       short v = value2.content[k];
-      if (this.contains(v)) {
-        answer++;
-      }
+      answer += this.bitValue(v);
     }
     return answer;
   }
@@ -316,6 +313,12 @@ public final class BitmapContainer extends Container implements Cloneable {
     return (bitmap[x / 64] & (1L << x)) != 0;
   }
 
+  protected long bitValue(final short i) {
+    final int x = Util.toIntUnsigned(i);
+    return (bitmap[x / 64] >>> x ) & 1;
+  }
+
+  
   @Override
   public void deserialize(DataInput in) throws IOException {
     // little endian
@@ -480,10 +483,8 @@ public final class BitmapContainer extends Container implements Cloneable {
         int runStart = Util.toIntUnsigned(x.getValue(rlepos));
         int runEnd = runStart + Util.toIntUnsigned(x.getLength(rlepos));
         for (int runValue = runStart; runValue <= runEnd; ++runValue) {
-          if (this.contains((short) runValue)) {// it looks like contains() should be cheap enough
-                                                // if accessed sequentially
-            answer.content[answer.cardinality++] = (short) runValue;
-          }
+          answer.content[answer.cardinality] = (short) runValue;
+          answer.cardinality += this.bitValue((short) runValue);
         }
       }
       return answer;

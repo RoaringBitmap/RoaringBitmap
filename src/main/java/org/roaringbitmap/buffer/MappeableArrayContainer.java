@@ -275,16 +275,14 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       short[] c = content.array();
       for (int k = 0; k < cardinality; ++k) {
         short v = c[k];
-        if (!value2.contains(v)) {
-          sarray[pos++] = v;
-        }
+        sarray[pos] = v;
+        pos += 1 - value2.bitValue(v);
       }
     } else {
       for (int k = 0; k < cardinality; ++k) {
         short v = this.content.get(k);
-        if (!value2.contains(v)) {
-          sarray[pos++] = v;
-        }
+        sarray[pos] = v;
+        pos += 1 - value2.bitValue(v);
       }
     }
     answer.cardinality = pos;
@@ -580,9 +578,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     int pos = 0;
     for (int k = 0; k < cardinality; ++k) {
       short v = this.content.get(k);
-      if (value2.contains(v)) {
-        this.content.put(pos++, v);
-      }
+      this.content.put(pos, v);
+      pos += value2.bitValue(v);
     }
     cardinality = pos;
     return this;
@@ -621,9 +618,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     int pos = 0;
     for (int k = 0; k < cardinality; ++k) {
       short v = c[k];
-      if (!value2.contains(v)) {
-        c[pos++] = v;
-      }
+      c[pos] = v;
+      pos += 1 - value2.bitValue(v);
     }
     this.cardinality = pos;
     return this;

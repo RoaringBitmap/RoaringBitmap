@@ -153,18 +153,16 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       int ca = value2.cardinality;
       for (int k = 0; k < ca; ++k) {
         short v = c[k];
-        if (this.contains(v)) {
-          sarray[answer.cardinality++] = v;
-        }
+        sarray[answer.cardinality] = v;
+        answer.cardinality += this.bitValue(v);
       }
 
     } else {
       int ca = value2.cardinality;
       for (int k = 0; k < ca; ++k) {
         short v = value2.content.get(k);
-        if (this.contains(v)) {
-          sarray[answer.cardinality++] = v;
-        }
+        sarray[answer.cardinality] = v;
+        answer.cardinality += this.bitValue(v);
       }
     }
     return answer;
@@ -407,6 +405,12 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     final int x = BufferUtil.toIntUnsigned(i);
     return (bitmap.get(x / 64) & (1L << x)) != 0;
   }
+
+  protected long bitValue(final short i) {
+    final int x = BufferUtil.toIntUnsigned(i);
+    return (bitmap.get(x / 64) >>> x ) & 1;
+  }
+  
   
   /**
    * Checks whether the container contains the value i.
@@ -662,9 +666,8 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         int runStart = BufferUtil.toIntUnsigned(x.getValue(rlepos));
         int runEnd = runStart + BufferUtil.toIntUnsigned(x.getLength(rlepos));
         for (int runValue = runStart; runValue <= runEnd; ++runValue) {
-          if (this.contains((short) runValue)) {
-            answer.content.put(answer.cardinality++, (short) runValue);
-          }
+          answer.content.put(answer.cardinality, (short) runValue);
+          answer.cardinality += this.bitValue((short) runValue);
         }
       }
       return answer;
@@ -1866,9 +1869,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     int c = value2.cardinality;
     for (int k = 0; k < c; ++k) {
       short v = value2.content.get(k);
-      if (this.contains(v)) {
-        answer++;
-      }
+      answer += this.bitValue(v);
     }
     return answer;
   }

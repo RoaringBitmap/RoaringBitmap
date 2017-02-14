@@ -218,9 +218,8 @@ public final class ArrayContainer extends Container implements Cloneable {
     int pos = 0;
     for (int k = 0; k < cardinality; ++k) {
       short val = this.content[k];
-      if (!value2.contains(val)) {
-        answer.content[pos++] = val;
-      }
+      answer.content[pos] = val;
+      pos += 1 - value2.bitValue(val);
     }
     answer.cardinality = pos;
     return answer;
@@ -440,9 +439,8 @@ public final class ArrayContainer extends Container implements Cloneable {
     int pos = 0;
     for (int k = 0; k < cardinality; ++k) {
       short v = this.content[k];
-      if (value2.contains(v)) {
-        this.content[pos++] = v;
-      }
+      this.content[pos] = v;
+      pos += value2.bitValue(v);
     }
     cardinality = pos;
     return this;
@@ -467,9 +465,8 @@ public final class ArrayContainer extends Container implements Cloneable {
     int pos = 0;
     for (int k = 0; k < cardinality; ++k) {
       short v = this.content[k];
-      if (!value2.contains(v)) {
-        this.content[pos++] = v;
-      }
+      this.content[pos] = v;
+      pos += 1 - value2.bitValue(v);
     }
     this.cardinality = pos;
     return this;
