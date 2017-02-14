@@ -18,7 +18,7 @@ import java.util.*;
  */
 @SuppressWarnings({"static-method"})
 public class TestRoaringBitmap {
-	
+
 	@Test
 	public void testMultipleAdd() {
 	    RoaringBitmap bitmap = new RoaringBitmap();
@@ -26,10 +26,10 @@ public class TestRoaringBitmap {
             bitmap.add(1, 2, 3);
 	    bitmap.add(0xFFFFFFFF);
 	    bitmap.add(0xFFFFFFFE,0xFFFFFFFF );
-            Assert.assertEquals("{1,2,3,4294967294,4294967295}",bitmap.toString());		
+            Assert.assertEquals("{1,2,3,4294967294,4294967295}",bitmap.toString());
 	}
 
-	
+
 	@Test
 	public void testStringer() {
 	    RoaringBitmap bitmap = new RoaringBitmap();
@@ -37,7 +37,7 @@ public class TestRoaringBitmap {
 	    bitmap.add(2);
 	    bitmap.add(3);
 	    bitmap.add(0xFFFFFFFF);
-	    Assert.assertEquals("{1,2,3,4294967295}",bitmap.toString());		
+	    Assert.assertEquals("{1,2,3,4294967295}",bitmap.toString());
 	}
 
 	@Test
@@ -53,7 +53,7 @@ public class TestRoaringBitmap {
         Assert.assertEquals(101993170, it.next());
         Assert.assertFalse(it.hasNext());
 	}
-	
+
 	@Test
 	public  void report128_fly() {
 	    RoaringBitmap bitmap = new RoaringBitmap();
@@ -105,7 +105,7 @@ public class TestRoaringBitmap {
     Assert.assertEquals(100000,r.limit(100000).getCardinality());
     Assert.assertEquals(1000000,r.limit(1000000).getCardinality());
   }
-  
+
   @Test
   public void pointerContainerTest() {
     RoaringBitmap rb = new RoaringBitmap();
@@ -117,7 +117,7 @@ public class TestRoaringBitmap {
     }
     for (int i = 2*(1 << 16); i < 3*((1 << 16)); i++) {
       rb.add(i);
-    }    
+    }
     rb.runOptimize();
     ContainerPointer cp = rb.getContainerPointer();
     ContainerPointer cpo = (ContainerPointer) cp.clone();
@@ -125,7 +125,7 @@ public class TestRoaringBitmap {
     Assert.assertNotEquals(cpo.getContainer(), null);
 
     Assert.assertEquals(cp.compareTo(cpo),0);
-    
+
     Assert.assertEquals(cp.getCardinality(), (1<<16)/2);
     Assert.assertTrue(cp.isBitmapContainer());
     Assert.assertFalse(cp.isRunContainer());
@@ -1735,7 +1735,7 @@ public class TestRoaringBitmap {
     final RoaringBitmap rb = new RoaringBitmap();
     rb.add( Integer.MAX_VALUE + 100000);
     rb.add( Integer.MAX_VALUE + 100002);
-    final RoaringBitmap rb2 = RoaringBitmap.flip(rb, Integer.MAX_VALUE+100001L , 
+    final RoaringBitmap rb2 = RoaringBitmap.flip(rb, Integer.MAX_VALUE+100001L ,
                                                  Integer.MAX_VALUE+200000L);
     Assert.assertEquals(99999, rb2.getCardinality());
     Assert.assertTrue(rb2.contains(Integer.MAX_VALUE+100000));
@@ -2759,6 +2759,40 @@ public class TestRoaringBitmap {
       RoaringBitmap answer2b = FastAggregation.and(toIterator(Arrays.copyOf(ewah, N)));
       Assert.assertTrue(answer.equals(answer2b));
     }
+  }
+
+  private static class ExtendedRoaringBitmap extends RoaringBitmap {}
+
+  /**
+   * Tests that the static #or operation works correctly with an iterator of
+   * RoaringBitmap extended classes.
+   */
+  @Test
+  public void testOrWithIterator() {
+    final RoaringBitmap b1 = new RoaringBitmap();
+    b1.add(13);
+    final RoaringBitmap b2 = new RoaringBitmap();
+    b2.add(42);
+
+    final RoaringBitmap result = RoaringBitmap.or(Arrays.asList(b1, b2).iterator());
+    Assert.assertTrue(result.contains(13));
+    Assert.assertTrue(result.contains(42));
+  }
+
+  /**
+   * Tests that the static #or operation works correctly with an iterator of
+   * RoaringBitmap extended classes.
+   */
+  @Test
+  public void testOrWithIteratorOfExtendedRoaringBitmaps() {
+    final ExtendedRoaringBitmap b1 = new ExtendedRoaringBitmap();
+    b1.add(1);
+    final ExtendedRoaringBitmap b2 = new ExtendedRoaringBitmap();
+    b2.add(2);
+
+    final RoaringBitmap result = RoaringBitmap.or(Arrays.<ExtendedRoaringBitmap>asList(b1, b2).iterator());
+    Assert.assertTrue(result.contains(1));
+    Assert.assertTrue(result.contains(2));
   }
 
   /**
