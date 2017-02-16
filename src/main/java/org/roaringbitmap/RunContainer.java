@@ -749,7 +749,7 @@ public final class RunContainer extends Container implements Cloneable {
       int start1 = getValue(i1);
       int stop1 = start1 + Util.toIntUnsigned(getLength(i1));
       int start2 = runContainer.getValue(i2);
-      int stop2 = start2 + runContainer.getLength(i2);
+      int stop2 = start2 + Util.toIntUnsigned(runContainer.getLength(i2));
       if(start1 > start2) {
         return false;
       } else {

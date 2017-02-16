@@ -1875,6 +1875,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @return true if the parameter is a subset of this RoaringBitmap
    */
   public boolean contains(RoaringBitmap subset) {
+    if(subset.getCardinality() > getCardinality()) {
+      return false;
+    }
     final int length1 = this.highLowContainer.size;
     final int length2 = subset.highLowContainer.size;
     int pos1 = 0, pos2 = 0;
@@ -1895,7 +1898,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         pos2 = subset.highLowContainer.advanceUntil(s1, pos2);
       }
     }
-    return pos1 <= length1;
+    return pos2 == length2;
   }
 
 

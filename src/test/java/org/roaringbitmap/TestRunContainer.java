@@ -3109,6 +3109,14 @@ public class TestRunContainer {
   }
 
   @Test
+  public void testContainsBitmapContainer_ExcludeDisJointSet() {
+    Container rc = new RunContainer().add(0,10);
+    Container disjoint = new BitmapContainer().add(20, 40);
+    assertFalse(rc.contains(disjoint));
+    assertFalse(disjoint.contains(rc));
+  }
+
+  @Test
   public void testContainsRunContainer_EmptyContainsEmpty() {
     Container rc = new RunContainer();
     Container subset = new RunContainer();
@@ -3151,6 +3159,14 @@ public class TestRunContainer {
   }
 
   @Test
+  public void testContainsRunContainer_ExcludeDisJointSet() {
+    Container rc = new RunContainer().add(0,10);
+    Container disjoint = new RunContainer().add(20, 40);
+    assertFalse(rc.contains(disjoint));
+    assertFalse(disjoint.contains(rc));
+  }
+
+  @Test
   public void testContainsArrayContainer_EmptyContainsEmpty() {
     Container rc = new RunContainer();
     Container subset = new ArrayContainer();
@@ -3190,5 +3206,13 @@ public class TestRunContainer {
     Container rc = new RunContainer().add(0,10);
     Container superset = new ArrayContainer().add(0,20);
     assertFalse(rc.contains(superset));
+  }
+
+  @Test
+  public void testContainsArrayContainer_ExcludeDisJointSet() {
+    Container rc = new RunContainer().add(0,10);
+    Container disjoint = new ArrayContainer().add(20, 40);
+    assertFalse(rc.contains(disjoint));
+    assertFalse(disjoint.contains(rc));
   }
 }
