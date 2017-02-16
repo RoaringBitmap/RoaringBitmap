@@ -12,9 +12,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
 
 public class TestArrayContainer {
 
@@ -184,6 +183,134 @@ public class TestArrayContainer {
         Container repaired = rbc.repairAfterLazy();
         assertEquals(1 << 16, repaired.getCardinality());
         assertThat(repaired, instanceOf(RunContainer.class));
+    }
+
+
+    @Test
+    public void testContainsBitmapContainer_EmptyContainsEmpty() {
+        Container ac = new ArrayContainer();
+        Container subset = new BitmapContainer();
+        assertTrue(ac.contains(subset));
+    }
+
+    @Test
+    public void testContainsBitmapContainer_IncludeProperSubset() {
+        Container ac = new ArrayContainer().add(0,10);
+        Container subset = new BitmapContainer().add(0,9);
+        assertTrue(ac.contains(subset));
+    }
+
+
+    @Test
+    public void testContainsBitmapContainer_IncludeProperSubsetDifferentStart() {
+        Container ac = new ArrayContainer().add(0,10);
+        Container subset = new BitmapContainer().add(1,9);
+        assertTrue(ac.contains(subset));
+    }
+
+    @Test
+    public void testContainsBitmapContainer_ExcludeShiftedSet() {
+        Container ac = new ArrayContainer().add(0,10);
+        Container subset = new BitmapContainer().add(2,12);
+        assertFalse(ac.contains(subset));
+    }
+
+    @Test
+    public void testContainsBitmapContainer_IncludeSelf() {
+        Container ac = new ArrayContainer().add(0,10);
+        Container subset = new BitmapContainer().add(0,10);
+        assertTrue(ac.contains(subset));
+    }
+
+    @Test
+    public void testContainsBitmapContainer_ExcludeSuperSet() {
+        Container ac = new ArrayContainer().add(0,10);
+        Container superset = new BitmapContainer().add(0,20);
+        assertFalse(ac.contains(superset));
+    }
+
+    @Test
+    public void testContainsRunContainer_EmptyContainsEmpty() {
+        Container ac = new ArrayContainer();
+        Container subset = new RunContainer();
+        assertTrue(ac.contains(subset));
+    }
+
+    @Test
+    public void testContainsRunContainer_IncludeProperSubset() {
+        Container ac = new ArrayContainer().add(0,10);
+        Container subset = new RunContainer().add(0,9);
+        assertTrue(ac.contains(subset));
+    }
+
+    @Test
+    public void testContainsRunContainer_IncludeSelf() {
+        Container ac = new ArrayContainer().add(0,10);
+        Container subset = new RunContainer().add(0,10);
+        assertTrue(ac.contains(subset));
+    }
+
+    @Test
+    public void testContainsRunContainer_ExcludeSuperSet() {
+        Container ac = new ArrayContainer().add(0,10);
+        Container superset = new RunContainer().add(0,20);
+        assertFalse(ac.contains(superset));
+    }
+
+    @Test
+    public void testContainsRunContainer_IncludeProperSubsetDifferentStart() {
+        Container ac = new ArrayContainer().add(0,10);
+        Container subset = new RunContainer().add(1,9);
+        assertTrue(ac.contains(subset));
+    }
+
+    @Test
+    public void testContainsRunContainer_ExcludeShiftedSet() {
+        Container ac = new ArrayContainer().add(0,10);
+        Container subset = new RunContainer().add(2,12);
+        assertFalse(ac.contains(subset));
+    }
+
+    @Test
+    public void testContainsArrayContainer_EmptyContainsEmpty() {
+        Container ac = new ArrayContainer();
+        Container subset = new ArrayContainer();
+        assertTrue(ac.contains(subset));
+    }
+
+    @Test
+    public void testContainsArrayContainer_IncludeProperSubset() {
+        Container ac = new ArrayContainer().add(0,10);
+        Container subset = new ArrayContainer().add(0,9);
+        assertTrue(ac.contains(subset));
+    }
+
+    @Test
+    public void testContainsArrayContainer_IncludeProperSubsetDifferentStart() {
+        Container ac = new ArrayContainer().add(0,10);
+        Container subset = new ArrayContainer().add(2,9);
+        assertTrue(ac.contains(subset));
+    }
+
+    @Test
+    public void testContainsArrayContainer_ExcludeShiftedSet() {
+        Container ac = new ArrayContainer().add(0,10);
+        Container shifted = new ArrayContainer().add(2,12);
+        assertFalse(ac.contains(shifted));
+    }
+
+    @Test
+    public void testContainsArrayContainer_IncludeSelf() {
+        Container ac = new ArrayContainer().add(0,10);
+        Container subset = new ArrayContainer().add(0,10);
+        assertTrue(ac.contains(subset));
+    }
+
+    @Test
+    public void testContainsArrayContainer_ExcludeSuperSet() {
+        Container ac = new ArrayContainer().add(0,10);
+        Container superset = new ArrayContainer().add(0,20);
+        assertFalse(ac.contains(superset));
     }
 
 }

@@ -280,6 +280,69 @@ public final class ArrayContainer extends Container implements Cloneable {
     return Util.unsignedBinarySearch(content, 0, cardinality, x) >= 0;
   }
 
+
+  @Override
+  protected boolean contains(RunContainer runContainer) {
+    if (runContainer.getCardinality() > cardinality) {
+      return false;
+    }
+    int startPos, stopPos = -1;
+    for (int i = 0; i < runContainer.numberOfRuns(); ++i) {
+      short start = runContainer.getValue(i);
+      int stop = start + Util.toIntUnsigned(runContainer.getLength(i));
+      startPos = Util.advanceUntil(content, stopPos, cardinality, start);
+      stopPos = Util.advanceUntil(content, stopPos, cardinality, (short)stop);
+      if(startPos == cardinality) {
+        return false;
+      } else if(stopPos - startPos != stop - start
+                || content[startPos] != start
+                || content[stopPos] != stop) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @Override
+  protected boolean contains(ArrayContainer arrayContainer) {
+    if (cardinality < arrayContainer.cardinality) {
+      return false;
+    }
+    int i1 = 0, i2 = 0;
+    while(i1 < cardinality && i2 < arrayContainer.cardinality) {
+      if(content[i1] == arrayContainer.content[i2]) {
+        ++i1;
+        ++i2;
+      } else if(content[i1] <= arrayContainer.content[i2]) {
+        ++i1;
+      } else {
+        return false;
+      }
+    }
+    return i2 == arrayContainer.cardinality && i2 <= cardinality;
+  }
+
+  @Override
+  protected boolean contains(BitmapContainer bitmapContainer) {
+    // this is unlikely to be called, but is sub-optimal
+    if (bitmapContainer.cardinality != -1 && cardinality < bitmapContainer.cardinality) {
+      return false;
+    }
+    int ia = 0, ib = 0;
+    while(ia < cardinality && ib < bitmapContainer.cardinality) {
+      short selection = bitmapContainer.select(ib);
+      if(content[ia] == selection) {
+        ++ia;
+        ++ib;
+      } else if(content[ia] <= selection) {
+        ++ia;
+      } else {
+        return false;
+      }
+    }
+    return ib == bitmapContainer.cardinality && ib <= cardinality;
+  }
+
   @Override
   public void deserialize(DataInput in) throws IOException {
     this.cardinality = 0xFFFF & Short.reverseBytes(in.readShort());

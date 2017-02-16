@@ -313,6 +313,62 @@ public final class BitmapContainer extends Container implements Cloneable {
     return (bitmap[x / 64] & (1L << x)) != 0;
   }
 
+  @Override
+  protected boolean contains(BitmapContainer bitmapContainer) {
+    if((cardinality != -1) && (bitmapContainer.cardinality != -1)) {
+      if(cardinality < bitmapContainer.cardinality) {
+        return false;
+      }
+    }
+    for(int i = 0; i < bitmapContainer.bitmap.length; ++i ) {
+      if((this.bitmap[i] & bitmapContainer.bitmap[i]) != bitmapContainer.bitmap[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @Override
+  protected boolean contains(RunContainer runContainer) {
+    final int runCardinality = runContainer.getCardinality();
+    if (cardinality != -1) {
+      if (cardinality < runCardinality) {
+        return false;
+      }
+    } else {
+      int card = cardinality;
+      if (card < runCardinality) {
+        return false;
+      }
+    }
+    for (int i = 0; i < runContainer.numberOfRuns(); ++i) {
+      short runStart = runContainer.getValue(i);
+      int le = Util.toIntUnsigned(runContainer.getLength(i));
+      for (short j = runStart; j <= runStart + le; ++j) {
+        if (!contains(j)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  @Override
+  protected boolean contains(ArrayContainer arrayContainer) {
+    if (arrayContainer.cardinality != -1) {
+      if (cardinality < arrayContainer.cardinality) {
+        return false;
+      }
+    }
+    for (int i = 0; i < arrayContainer.cardinality; ++i) {
+      if(!contains(arrayContainer.content[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+
   protected long bitValue(final short i) {
     final int x = Util.toIntUnsigned(i);
     return (bitmap[x / 64] >>> x ) & 1;
