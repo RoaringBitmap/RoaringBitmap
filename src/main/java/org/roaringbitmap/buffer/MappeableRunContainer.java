@@ -2503,6 +2503,94 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   }
 
 
+  @Override
+  protected boolean contains(MappeableRunContainer runContainer) {
+    int i1 = 0, i2 = 0;
+    final int runCount = numberOfRuns();
+    while(i1 < runCount && i2 < runContainer.numberOfRuns()) {
+      int start1 = getValue(i1);
+      int stop1 = start1 + BufferUtil.toIntUnsigned(getLength(i1));
+      int start2 = runContainer.getValue(i2);
+      int stop2 = start2 + BufferUtil.toIntUnsigned(runContainer.getLength(i2));
+      if(start1 > start2) {
+        return false;
+      } else {
+        if(stop1 > stop2) {
+          i1++;
+        } else if(stop1 == stop2) {
+          i1++;
+          i2++;
+        } else {
+          i2++;
+        }
+      }
+    }
+    return i1 == runCount;
+  }
+
+  @Override
+  protected boolean contains(MappeableArrayContainer arrayContainer) {
+    final int cardinality = getCardinality();
+    final int runCount = numberOfRuns();
+    if (arrayContainer.getCardinality() > cardinality) {
+      return false;
+    }
+    int ia = 0, ir = 0;
+    while(ia < arrayContainer.getCardinality() && ir <= runCount) {
+      int start = getValue(ir);
+      int stop = start + BufferUtil.toIntUnsigned(getLength(ir));
+      if(arrayContainer.content.get(ia) < start) {
+        return false;
+      } else if (arrayContainer.content.get(ia) > stop) {
+        ++ir;
+      } else {
+        ++ia;
+      }
+    }
+    return ia <= cardinality && ir <= runCount;
+  }
+
+  @Override
+  protected boolean contains(MappeableBitmapContainer bitmapContainer) {
+    final int cardinality = getCardinality();
+    if (bitmapContainer.getCardinality() != -1 && bitmapContainer.getCardinality() > cardinality) {
+      return false;
+    }
+    final int runCount = numberOfRuns();
+    short ib = 0, ir = 0;
+    while(ib < MappeableBitmapContainer.MAX_CAPACITY / 64 && ir < runCount) {
+      long w = bitmapContainer.bitmap.get(ib);
+      while (w != 0 && ir < runCount) {
+        short start = getValue(ir);
+        int stop = start+ BufferUtil.toIntUnsigned(getLength(ir));
+        long t = w & -w;
+        long r = ib * 64 + Long.numberOfTrailingZeros(w);
+        if (r < start) {
+          return false;
+        } else if(r > stop) {
+          ++ir;
+        } else {
+          w ^= t;
+        }
+      }
+      if(w == 0) {
+        ++ib;
+      } else {
+        return false;
+      }
+    }
+    if(ib < MappeableBitmapContainer.MAX_CAPACITY / 64) {
+      for(; ib < MappeableBitmapContainer.MAX_CAPACITY / 64 ; ib++) {
+        if(bitmapContainer.bitmap.get(ib) != 0) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+
+
 }
 
 

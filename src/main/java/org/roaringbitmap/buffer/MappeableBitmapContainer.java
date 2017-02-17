@@ -1903,6 +1903,61 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     return this;
   }
 
+  @Override
+  protected boolean contains(MappeableBitmapContainer bitmapContainer) {
+    if((cardinality != -1) && (bitmapContainer.cardinality != -1)) {
+      if(cardinality < bitmapContainer.cardinality) {
+        return false;
+      }
+    }
+    for(int i = 0; i < MAX_CAPACITY / 64; ++i ) {
+      if((this.bitmap.get(i) & bitmapContainer.bitmap.get(i)) != bitmapContainer.bitmap.get(i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @Override
+  protected boolean contains(MappeableRunContainer runContainer) {
+    final int runCardinality = runContainer.getCardinality();
+    if (cardinality != -1) {
+      if (cardinality < runCardinality) {
+        return false;
+      }
+    } else {
+      int card = cardinality;
+      if (card < runCardinality) {
+        return false;
+      }
+    }
+    for (int i = 0; i < runContainer.numberOfRuns(); ++i) {
+      short runStart = runContainer.getValue(i);
+      int le = BufferUtil.toIntUnsigned(runContainer.getLength(i));
+      for (short j = runStart; j <= runStart + le; ++j) {
+        if (!contains(j)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  @Override
+  protected boolean contains(MappeableArrayContainer arrayContainer) {
+    if (arrayContainer.cardinality != -1) {
+      if (cardinality < arrayContainer.cardinality) {
+        return false;
+      }
+    }
+    for (int i = 0; i < arrayContainer.cardinality; ++i) {
+      if(!contains(arrayContainer.content.get(i))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
 
 }
 

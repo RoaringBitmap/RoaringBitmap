@@ -1474,6 +1474,68 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     return x.andCardinality(this);
   }
 
+  @Override
+  protected boolean contains(MappeableRunContainer runContainer) {
+    if (runContainer.getCardinality() > cardinality) {
+      return false;
+    }
+    int startPos, stopPos = -1;
+    for (int i = 0; i < runContainer.numberOfRuns(); ++i) {
+      short start = runContainer.getValue(i);
+      int stop = start + BufferUtil.toIntUnsigned(runContainer.getLength(i));
+      startPos = BufferUtil.advanceUntil(content, stopPos, cardinality, start);
+      stopPos = BufferUtil.advanceUntil(content, stopPos, cardinality, (short)stop);
+      if(startPos == cardinality) {
+        return false;
+      } else if(stopPos - startPos != stop - start
+                || content.get(startPos) != start
+                || content.get(stopPos) != stop) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @Override
+  protected boolean contains(MappeableArrayContainer arrayContainer) {
+    if (cardinality < arrayContainer.cardinality) {
+      return false;
+    }
+    int i1 = 0, i2 = 0;
+    while(i1 < cardinality && i2 < arrayContainer.cardinality) {
+      if(content.get(i1) == arrayContainer.content.get(i2)) {
+        ++i1;
+        ++i2;
+      } else if(content.get(i1) <= arrayContainer.content.get(i2)) {
+        ++i1;
+      } else {
+        return false;
+      }
+    }
+    return i2 == arrayContainer.cardinality && i2 <= cardinality;
+  }
+
+  @Override
+  protected boolean contains(MappeableBitmapContainer bitmapContainer) {
+    // this is unlikely to be called, but is sub-optimal
+    if (bitmapContainer.cardinality != -1 && cardinality < bitmapContainer.cardinality) {
+      return false;
+    }
+    int ia = 0, ib = 0;
+    while(ia < cardinality && ib < bitmapContainer.cardinality) {
+      short selection = bitmapContainer.select(ib);
+      if(content.get(ia) == selection) {
+        ++ia;
+        ++ib;
+      } else if(content.get(ia) <= selection) {
+        ++ia;
+      } else {
+        return false;
+      }
+    }
+    return ib == bitmapContainer.cardinality && ib <= cardinality;
+  }
+
 
 }
 

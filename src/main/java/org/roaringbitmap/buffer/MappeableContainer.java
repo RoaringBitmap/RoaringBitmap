@@ -175,6 +175,29 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
    */
   public abstract boolean contains(short x);
 
+    /**
+   * Checks whether the container is a subset of this container or not
+   * @param subset the container to be tested
+   * @return true if the parameter is a subset of this container
+   */
+  public boolean contains(MappeableContainer subset) {
+    if(subset instanceof MappeableRunContainer) {
+      return contains((MappeableRunContainer)subset);
+    } else if(subset instanceof MappeableArrayContainer) {
+      return contains((MappeableArrayContainer) subset);
+    } else if(subset instanceof MappeableBitmapContainer){
+      return contains((MappeableBitmapContainer)subset);
+    }
+    return false;
+  }
+
+
+  protected abstract boolean contains(MappeableRunContainer runContainer);
+
+  protected abstract boolean contains(MappeableArrayContainer arrayContainer);
+
+  protected abstract boolean contains(MappeableBitmapContainer bitmapContainer);
+  
   /**
    * Fill the least significant 16 bits of the integer array, starting at index index, with the
    * short values from this container. The caller is responsible to allocate enough room. The most

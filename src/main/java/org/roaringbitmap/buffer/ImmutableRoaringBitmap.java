@@ -935,6 +935,39 @@ public class ImmutableRoaringBitmap
         && highLowContainer.containsForContainerAtIndex(index, BufferUtil.lowbits(x));
   }
 
+  /**
+   * Checks whether the parameter is a subset of this RoaringBitmap or not
+   * @param subset the potential subset
+   * @return true if the parameter is a subset of this RoaringBitmap
+   */
+  public boolean contains(ImmutableRoaringBitmap subset) {
+    if(subset.getCardinality() > getCardinality()) {
+      return false;
+    }
+    final int length1 = this.highLowContainer.size();
+    final int length2 = subset.highLowContainer.size();
+    int pos1 = 0, pos2 = 0;
+    while (pos1 < length1 && pos2 < length2) {
+      final short s1 = this.highLowContainer.getKeyAtIndex(pos1);
+      final short s2 = subset.highLowContainer.getKeyAtIndex(pos2);
+      if (s1 == s2) {
+        MappeableContainer c1 = this.highLowContainer.getContainerAtIndex(pos1);
+        MappeableContainer c2 = subset.highLowContainer.getContainerAtIndex(pos2);
+        if(!c1.contains(c2)) {
+          return false;
+        }
+        ++pos1;
+        ++pos2;
+      } else if (s1 < s2) {
+        return false;
+      } else {
+        pos2 = subset.highLowContainer.advanceUntil(s1, pos2);
+      }
+    }
+    return pos2 == length2;
+  }
+
+  
   @Override
   public boolean equals(Object o) {
     if (o instanceof ImmutableRoaringBitmap) {
