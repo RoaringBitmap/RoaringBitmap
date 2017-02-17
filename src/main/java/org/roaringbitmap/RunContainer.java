@@ -741,6 +741,92 @@ public final class RunContainer extends Container implements Cloneable {
     return false;
   }
 
+  @Override
+  protected boolean contains(RunContainer runContainer) {
+    int i1 = 0, i2 = 0;
+    final int runCount = numberOfRuns();
+    while(i1 < runCount && i2 < runContainer.numberOfRuns()) {
+      int start1 = getValue(i1);
+      int stop1 = start1 + Util.toIntUnsigned(getLength(i1));
+      int start2 = runContainer.getValue(i2);
+      int stop2 = start2 + Util.toIntUnsigned(runContainer.getLength(i2));
+      if(start1 > start2) {
+        return false;
+      } else {
+        if(stop1 > stop2) {
+          i1++;
+        } else if(stop1 == stop2) {
+          i1++;
+          i2++;
+        } else {
+          i2++;
+        }
+      }
+    }
+    return i1 == runCount;
+  }
+
+  @Override
+  protected boolean contains(ArrayContainer arrayContainer) {
+    final int cardinality = getCardinality();
+    final int runCount = numberOfRuns();
+    if (arrayContainer.getCardinality() > cardinality) {
+      return false;
+    }
+    int ia = 0, ir = 0;
+    while(ia < arrayContainer.getCardinality() && ir <= runCount) {
+      int start = getValue(ir);
+      int stop = start + Util.toIntUnsigned(getLength(ir));
+      if(arrayContainer.content[ia] < start) {
+        return false;
+      } else if (arrayContainer.content[ia] > stop) {
+        ++ir;
+      } else {
+        ++ia;
+      }
+    }
+    return ia <= cardinality && ir <= runCount;
+  }
+
+  @Override
+  protected boolean contains(BitmapContainer bitmapContainer) {
+    final int cardinality = getCardinality();
+    if (bitmapContainer.getCardinality() != -1 && bitmapContainer.getCardinality() > cardinality) {
+      return false;
+    }
+    final int runCount = numberOfRuns();
+    short ib = 0, ir = 0;
+    while(ib < bitmapContainer.bitmap.length && ir < runCount) {
+      long w = bitmapContainer.bitmap[ib];
+      while (w != 0 && ir < runCount) {
+        short start = getValue(ir);
+        int stop = start+ Util.toIntUnsigned(getLength(ir));
+        long t = w & -w;
+        long r = ib * 64 + Long.numberOfTrailingZeros(w);
+        if (r < start) {
+          return false;
+        } else if(r > stop) {
+          ++ir;
+        } else {
+          w ^= t;
+        }
+      }
+      if(w == 0) {
+        ++ib;
+      } else {
+        return false;
+      }
+    }
+    if(ib < bitmapContainer.bitmap.length) {
+      for(; ib < bitmapContainer.bitmap.length ; ib++) {
+        if(bitmapContainer.bitmap[ib] != 0) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
 
   // a very cheap check... if you have more than 4096, then you should use a bitmap container.
   // this function avoids computing the cardinality
