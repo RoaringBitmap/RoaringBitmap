@@ -508,6 +508,21 @@ public class TestBitmapContainer {
     }
   }
 
+  @Test
+  public void testFirstLast() {
+    Container bc = new BitmapContainer();
+    assertEquals(0, bc.first());
+    assertEquals(0, bc.last());
+    final int firstInclusive = 1;
+    int lastExclusive = firstInclusive;
+    for (int i = 0; i < BitmapContainer.MAX_CAPACITY / 10; ++i) {
+      int newLastExclusive = lastExclusive + 10;
+      bc = bc.add(lastExclusive, newLastExclusive);
+      assertEquals(firstInclusive, bc.first());
+      assertEquals(newLastExclusive - 1, bc.last());
+      lastExclusive = newLastExclusive;
+    }
+  }
 
   @Test
   public void testContainsBitmapContainer_EmptyContainsEmpty() {
@@ -653,10 +668,9 @@ public class TestBitmapContainer {
 
   @Test
   public void testContainsArrayContainer_ExcludeDisJointSet() {
-    Container bc = new BitmapContainer().add(0,10);
+    Container bc = new BitmapContainer().add(0, 10);
     Container disjoint = new ArrayContainer().add(20, 40);
     assertFalse(bc.contains(disjoint));
     assertFalse(disjoint.contains(bc));
   }
-
 }

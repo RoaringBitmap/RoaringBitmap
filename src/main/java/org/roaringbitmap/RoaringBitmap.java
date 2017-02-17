@@ -1927,6 +1927,22 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   }
 
   /**
+   * Get the first integer in this RoaringBitmap, or 0 if this is empty
+   * @return the first integer
+   */
+  public int first() {
+    return highLowContainer.first();
+  }
+
+  /**
+   * Get the last integer in this RoaringBitmap, or 0 if this is empty
+   * @return the last integer
+   */
+  public int last() {
+    return highLowContainer.last();
+  }
+
+  /**
    * Serialize this bitmap.
    *
    *  See format specification at https://github.com/RoaringBitmap/RoaringFormatSpec

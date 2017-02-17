@@ -1051,6 +1051,16 @@ public final class ArrayContainer extends Container implements Cloneable {
   }
 
   @Override
+  public int first() {
+    return cardinality == 0 ? 0 : Util.toIntUnsigned(content[0]);
+  }
+
+  @Override
+  public int last() {
+    return cardinality == 0 ? 0 : Util.toIntUnsigned(content[cardinality - 1]);
+  }
+
+  @Override
   public MappeableContainer toMappeableContainer() {
     return new MappeableArrayContainer(this);
   }

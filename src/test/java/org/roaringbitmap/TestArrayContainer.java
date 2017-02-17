@@ -185,6 +185,21 @@ public class TestArrayContainer {
         assertThat(repaired, instanceOf(RunContainer.class));
     }
 
+    @Test
+    public void testFirstLast() {
+        Container ac = new ArrayContainer();
+        assertEquals(0, ac.first());
+        assertEquals(0, ac.last());
+        final int firstInclusive = 1;
+        int lastExclusive = firstInclusive;
+        for (int i = 0; i < ArrayContainer.DEFAULT_MAX_SIZE / 10; ++i) {
+            int newLastExclusive = lastExclusive + 10;
+            ac = ac.add(lastExclusive, newLastExclusive);
+            assertEquals(firstInclusive, ac.first());
+            assertEquals(newLastExclusive - 1, ac.last());
+            lastExclusive = newLastExclusive;
+        }
+    }
 
     @Test
     public void testContainsBitmapContainer_EmptyContainsEmpty() {
@@ -331,10 +346,9 @@ public class TestArrayContainer {
 
     @Test
     public void testContainsArrayContainer_ExcludeDisJointSet() {
-        Container ac = new ArrayContainer().add(0,10);
+        Container ac = new ArrayContainer().add(0, 10);
         Container disjoint = new ArrayContainer().add(20, 40);
         assertFalse(ac.contains(disjoint));
         assertFalse(disjoint.contains(ac));
     }
-
 }

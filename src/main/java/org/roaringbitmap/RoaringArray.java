@@ -578,4 +578,30 @@ public final class RoaringArray implements Cloneable, Externalizable {
   public void writeExternal(ObjectOutput out) throws IOException {
     serialize(out);
   }
+
+  /**
+   * Gets the first value in the array
+   * @return te first value in the array
+   */
+  public int first() {
+    if(size == 0) {
+      return 0;
+    }
+    short firstKey = keys[0];
+    Container container = values[0];
+    return firstKey << 16 | container.first();
+  }
+
+  /**
+   * Gets the last value in the array
+   * @return te last value in the array
+   */
+  public int last() {
+    if(size == 0) {
+      return 0;
+    }
+    short lastKey = keys[size - 1];
+    Container container = values[size - 1];
+    return lastKey << 16 | container.last();
+  }
 }

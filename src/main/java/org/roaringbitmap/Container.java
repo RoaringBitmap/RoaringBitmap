@@ -836,4 +836,15 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    */
   public abstract BitmapContainer toBitmapContainer();
 
+  /**
+   * Get the first integer held in the container
+   * @return the first integer in the container
+   */
+  public abstract int first();
+
+  /**
+   * Get the last integer held in the container
+   * @return the last integer in the container
+   */
+  public abstract int last();
 }

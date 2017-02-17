@@ -1313,6 +1313,32 @@ public final class BitmapContainer extends Container implements Cloneable {
     return this;
   }
 
+  @Override
+  public int first() {
+    if(cardinality == 0) {
+      return 0;
+    }
+    int i = 0;
+    while(bitmap[i] == 0) {
+      ++i; // seek forward
+    }
+    // sizeof(long) * #empty words at start + number of bits preceding the first bit set
+    return i * 64 + Long.numberOfTrailingZeros(bitmap[i]);
+  }
+
+  @Override
+  public int last() {
+    if(cardinality == 0) {
+      return 0;
+    }
+    int i = bitmap.length - 1;
+    while(bitmap[i] == 0) {
+      --i; // seek backward
+    }
+    // sizeof(long) * #words from start - number of bits after the last bit set
+    return (i + 1) * 64 - Long.numberOfLeadingZeros(bitmap[i]) - 1;
+  }
+
 }
 
 

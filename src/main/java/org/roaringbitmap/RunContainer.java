@@ -2463,7 +2463,26 @@ public final class RunContainer extends Container implements Cloneable {
     return answer;
   }
 
-};
+  @Override
+  public int first() {
+    if(numberOfRuns() == 0) {
+      return 0;
+    }
+    return valueslength[0];
+  }
+
+  @Override
+  public int last() {
+    int index = numberOfRuns() - 1;
+    if(index < 0) {
+      return 0;
+    }
+    int start = Util.toIntUnsigned(getValue(index));
+    int length = Util.toIntUnsigned(getLength(index));
+    return start + length;
+  }
+
+}
 
 
 final class RunContainerShortIterator implements PeekableShortIterator {
