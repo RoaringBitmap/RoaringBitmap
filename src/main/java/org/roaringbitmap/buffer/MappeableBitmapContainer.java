@@ -1911,14 +1911,17 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     long firstNonZeroWord;
     int i = 0;
     if(BufferUtil.isBackedBySimpleArray(bitmap)) {
-      long[] array = this.bitmap.array();
-      while((firstNonZeroWord = array[i]) == 0) {
+      long[] array = bitmap.array();
+      while(array[i] == 0) {
         ++i;
       }
+      firstNonZeroWord = array[i];
     } else {
-      while((firstNonZeroWord = bitmap.get(i)) == 0) {
+      i = bitmap.position();
+      while(bitmap.get(i) == 0) {
         ++i;
       }
+      firstNonZeroWord = bitmap.get(i);
     }
     return i * 64 + Long.numberOfTrailingZeros(firstNonZeroWord);
   }
@@ -1932,13 +1935,15 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     int i = bitmap.limit() - 1;
     if(BufferUtil.isBackedBySimpleArray(bitmap)) {
       long[] array = this.bitmap.array();
-      while((lastNonZeroWord = array[i]) == 0) {
+      while(array[i] == 0) {
         --i;
       }
+      lastNonZeroWord = array[i];
     } else {
-      while((lastNonZeroWord = bitmap.get(i)) == 0) {
+      while(bitmap.get(i) == 0) {
         --i;
       }
+      lastNonZeroWord = bitmap.get(i);
     }
     return (i + 1) * 64 - Long.numberOfLeadingZeros(lastNonZeroWord) - 1;
   }

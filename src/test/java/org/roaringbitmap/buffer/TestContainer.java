@@ -6,12 +6,9 @@ package org.roaringbitmap.buffer;
 
 
 import org.junit.Test;
-import org.roaringbitmap.ArrayContainer;
-import org.roaringbitmap.Container;
 import org.roaringbitmap.ShortIterator;
 
 import java.util.Arrays;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -753,7 +750,6 @@ public class TestContainer {
   public void testFirstLast_Bitmap() {
     testFirstLast(new MappeableBitmapContainer());
   }
-
 
   private void testFirstLast(MappeableContainer container) {
     assertEquals(0, container.first());
