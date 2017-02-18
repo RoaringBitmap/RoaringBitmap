@@ -1238,7 +1238,39 @@ public class TestImmutableRoaringBitmap {
       Assert.assertEquals(0, resultInt.getCardinality());
   }
 
+  @Test
+  public void testFirstLast_CreateSparseContainersAfterRun() {
+    MutableRoaringBitmap rb = new MutableRoaringBitmap();
+    rb.add(1L, 1 << 14);
+    for(int i = 18; i < 31; ++i) {
+      int x = 1 << i;
+      rb.add(x);
+      Assert.assertEquals(1, rb.toImmutableRoaringBitmap().first());
+      rb.last();
+      Assert.assertEquals(x, rb.toImmutableRoaringBitmap().last());
+    }
+  }
 
+  @Test
+  public void testFirstLast() {
+    MutableRoaringBitmap rb = new MutableRoaringBitmap();
+    Assert.assertEquals(0, rb.toImmutableRoaringBitmap().first());
+    Assert.assertEquals(0, rb.toImmutableRoaringBitmap().last());
+
+    rb.add(2);
+    rb.add(4);
+    rb.add(8);
+    Assert.assertEquals(2, rb.toImmutableRoaringBitmap().first());
+    Assert.assertEquals(8, rb.toImmutableRoaringBitmap().last());
+
+    rb.add(1L << 5, 1L << 14);
+    Assert.assertEquals(2, rb.toImmutableRoaringBitmap().first());
+    Assert.assertEquals((1 << 14) - 1, rb.toImmutableRoaringBitmap().last());
+
+    rb.add(1L<< 15, 1L << 30);
+    Assert.assertEquals(2, rb.toImmutableRoaringBitmap().first());
+    Assert.assertEquals((1L << 30) - 1, rb.toImmutableRoaringBitmap().last());
+  }
 
 
 

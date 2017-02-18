@@ -2502,6 +2502,25 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     return answer;
   }
 
+  @Override
+  public int first() {
+    if(numberOfRuns() == 0) {
+      return 0;
+    }
+    return getValue(0);
+  }
+
+  @Override
+  public int last() {
+    int index = numberOfRuns() - 1;
+    if(index < 0) {
+      return 0;
+    }
+    int start = BufferUtil.toIntUnsigned(getValue(index));
+    int length = BufferUtil.toIntUnsigned(getLength(index));
+    return start + length;
+  }
+
 
   @Override
   protected boolean contains(MappeableRunContainer runContainer) {

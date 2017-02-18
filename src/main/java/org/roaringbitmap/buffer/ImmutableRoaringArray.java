@@ -489,4 +489,24 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
   private int unsignedBinarySearch(short k) {
     return branchyUnsignedBinarySearch(k);
   }
+
+  @Override
+  public int first() {
+    if(size == 0) {
+      return 0;
+    }
+    short firstKey = getKeyAtIndex(0);
+    MappeableContainer container = getContainerAtIndex(0);
+    return firstKey << 16 | container.first();
+  }
+
+  @Override
+  public int last() {
+    if(size == 0) {
+      return 0;
+    }
+    short lastKey = getKeyAtIndex(size - 1);
+    MappeableContainer container = getContainerAtIndex(size - 1);
+    return lastKey << 16 | container.last();
+  }
 }

@@ -124,5 +124,15 @@ public interface PointableRoaringArray extends Cloneable {
    */
   int size();
 
-  
+  /**
+   * Gets the first value in the array
+   * @return te first value in the array
+   */
+  int first();
+
+  /**
+   * Gets the last value in the array
+   * @return te last value in the array
+   */
+  int last();
 }
