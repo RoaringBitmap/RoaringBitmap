@@ -3064,11 +3064,19 @@ public class TestRunContainer {
     assertEquals(6031, result.getCardinality());
   }
 
+  @Test(expected = NoSuchElementException.class)
+  public void testFirst_Empty() {
+    new RunContainer().first();
+  }
+
+  @Test(expected = NoSuchElementException.class)
+  public void testLast_Empty() {
+    new RunContainer().last();
+  }
+
   @Test
   public void testFirstLast() {
     Container rc = new RunContainer();
-    assertEquals(0, rc.first());
-    assertEquals(0, rc.last());
     final int firstInclusive = 1;
     int lastExclusive = firstInclusive;
     for (int i = 0; i < 1 << 16 - 10; ++i) {

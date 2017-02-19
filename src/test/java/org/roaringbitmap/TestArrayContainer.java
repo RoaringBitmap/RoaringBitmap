@@ -10,6 +10,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.*;
@@ -185,18 +186,26 @@ public class TestArrayContainer {
         assertThat(repaired, instanceOf(RunContainer.class));
     }
 
+    @Test(expected = NoSuchElementException.class)
+    public void testFirst_Empty() {
+        new ArrayContainer().first();
+    }
+
+    @Test(expected = NoSuchElementException.class)
+    public void testLast_Empty() {
+        new ArrayContainer().last();
+    }
+
     @Test
     public void testFirstLast() {
-        Container ac = new ArrayContainer();
-        assertEquals(0, ac.first());
-        assertEquals(0, ac.last());
+        Container rc = new ArrayContainer();
         final int firstInclusive = 1;
         int lastExclusive = firstInclusive;
-        for (int i = 0; i < ArrayContainer.DEFAULT_MAX_SIZE / 10; ++i) {
+        for (int i = 0; i < 1 << 16 - 10; ++i) {
             int newLastExclusive = lastExclusive + 10;
-            ac = ac.add(lastExclusive, newLastExclusive);
-            assertEquals(firstInclusive, ac.first());
-            assertEquals(newLastExclusive - 1, ac.last());
+            rc = rc.add(lastExclusive, newLastExclusive);
+            assertEquals(firstInclusive, rc.first());
+            assertEquals(newLastExclusive - 1, rc.last());
             lastExclusive = newLastExclusive;
         }
     }

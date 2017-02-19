@@ -9,6 +9,7 @@ import java.io.*;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 
 import org.roaringbitmap.Util;
 
@@ -581,9 +582,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
 
   @Override
   public int first() {
-    if(size == 0) {
-      return 0;
-    }
+    assertNonEmpty();
     short firstKey = getKeyAtIndex(0);
     MappeableContainer container = getContainerAtIndex(0);
     return firstKey << 16 | container.first();
@@ -591,12 +590,16 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
 
   @Override
   public int last() {
-    if(size == 0) {
-      return 0;
-    }
+    assertNonEmpty();
     short lastKey = getKeyAtIndex(size - 1);
     MappeableContainer container = getContainerAtIndex(size - 1);
     return lastKey << 16 | container.last();
+  }
+
+  private void assertNonEmpty() {
+    if(size == 0) {
+      throw new NoSuchElementException("Empty MutableRoaringArray");
+    }
   }
 
 }

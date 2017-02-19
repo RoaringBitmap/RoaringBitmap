@@ -8,6 +8,7 @@ import java.io.*;
 import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import org.roaringbitmap.buffer.MappeableBitmapContainer;
 import org.roaringbitmap.buffer.MappeableContainer;
@@ -1315,9 +1316,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public int first() {
-    if(cardinality == 0) {
-      return 0;
-    }
+    assertNonEmpty();
     int i = 0;
     while(bitmap[i] == 0) {
       ++i; // seek forward
@@ -1328,9 +1327,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public int last() {
-    if(cardinality == 0) {
-      return 0;
-    }
+    assertNonEmpty();
     int i = bitmap.length - 1;
     while(bitmap[i] == 0) {
       --i; // seek backward

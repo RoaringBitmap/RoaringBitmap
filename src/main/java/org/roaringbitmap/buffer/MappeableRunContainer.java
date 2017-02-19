@@ -2504,18 +2504,14 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   @Override
   public int first() {
-    if(numberOfRuns() == 0) {
-      return 0;
-    }
+    assertNonEmpty();
     return getValue(0);
   }
 
   @Override
   public int last() {
+    assertNonEmpty();
     int index = numberOfRuns() - 1;
-    if(index < 0) {
-      return 0;
-    }
     int start = BufferUtil.toIntUnsigned(getValue(index));
     int length = BufferUtil.toIntUnsigned(getLength(index));
     return start + length;

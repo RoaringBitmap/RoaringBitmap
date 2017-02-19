@@ -8,6 +8,7 @@ import java.io.*;
 import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import org.roaringbitmap.buffer.MappeableArrayContainer;
 import org.roaringbitmap.buffer.MappeableContainer;
@@ -1052,12 +1053,14 @@ public final class ArrayContainer extends Container implements Cloneable {
 
   @Override
   public int first() {
-    return cardinality == 0 ? 0 : Util.toIntUnsigned(content[0]);
+    assertNonEmpty();
+    return Util.toIntUnsigned(content[0]);
   }
 
   @Override
   public int last() {
-    return cardinality == 0 ? 0 : Util.toIntUnsigned(content[cardinality - 1]);
+    assertNonEmpty();
+    return Util.toIntUnsigned(content[cardinality - 1]);
   }
 
   @Override
@@ -1197,7 +1200,6 @@ public final class ArrayContainer extends Container implements Cloneable {
     return answer;
 
   }
-
 
 }
 

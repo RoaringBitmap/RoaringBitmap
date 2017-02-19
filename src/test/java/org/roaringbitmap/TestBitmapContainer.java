@@ -11,13 +11,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 import java.util.Random;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 public class TestBitmapContainer {
   private static BitmapContainer emptyContainer() {
@@ -508,18 +506,26 @@ public class TestBitmapContainer {
     }
   }
 
+  @Test(expected = NoSuchElementException.class)
+  public void testFirst_Empty() {
+    new BitmapContainer().first();
+  }
+
+  @Test(expected = NoSuchElementException.class)
+  public void testLast_Empty() {
+    new BitmapContainer().last();
+  }
+
   @Test
   public void testFirstLast() {
-    Container bc = new BitmapContainer();
-    assertEquals(0, bc.first());
-    assertEquals(0, bc.last());
+    Container rc = new ArrayContainer();
     final int firstInclusive = 1;
     int lastExclusive = firstInclusive;
-    for (int i = 0; i < BitmapContainer.MAX_CAPACITY / 10; ++i) {
+    for (int i = 0; i < 1 << 16 - 10; ++i) {
       int newLastExclusive = lastExclusive + 10;
-      bc = bc.add(lastExclusive, newLastExclusive);
-      assertEquals(firstInclusive, bc.first());
-      assertEquals(newLastExclusive - 1, bc.last());
+      rc = rc.add(lastExclusive, newLastExclusive);
+      assertEquals(firstInclusive, rc.first());
+      assertEquals(newLastExclusive - 1, rc.last());
       lastExclusive = newLastExclusive;
     }
   }

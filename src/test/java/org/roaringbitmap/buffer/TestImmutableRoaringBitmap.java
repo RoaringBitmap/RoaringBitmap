@@ -14,13 +14,7 @@ import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * Generic testing of the roaring bitmaps
@@ -1251,11 +1245,19 @@ public class TestImmutableRoaringBitmap {
     }
   }
 
+  @Test(expected = NoSuchElementException.class)
+  public void testEmptyFirst() {
+    new MutableRoaringBitmap().toImmutableRoaringBitmap().first();
+  }
+
+  @Test(expected = NoSuchElementException.class)
+  public void testEmptyLast() {
+    new MutableRoaringBitmap().toImmutableRoaringBitmap().last();
+  }
+
   @Test
   public void testFirstLast() {
     MutableRoaringBitmap rb = new MutableRoaringBitmap();
-    Assert.assertEquals(0, rb.toImmutableRoaringBitmap().first());
-    Assert.assertEquals(0, rb.toImmutableRoaringBitmap().last());
 
     rb.add(2);
     rb.add(4);

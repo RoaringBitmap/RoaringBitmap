@@ -7,6 +7,7 @@ package org.roaringbitmap;
 
 import java.io.*;
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 
 
 /**
@@ -581,12 +582,11 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
   /**
    * Gets the first value in the array
-   * @return te first value in the array
+   * @return the first value in the array
+   * @throws NoSuchElementException if empty
    */
   public int first() {
-    if(size == 0) {
-      return 0;
-    }
+    assertNonEmpty();
     short firstKey = keys[0];
     Container container = values[0];
     return firstKey << 16 | container.first();
@@ -594,14 +594,19 @@ public final class RoaringArray implements Cloneable, Externalizable {
 
   /**
    * Gets the last value in the array
-   * @return te last value in the array
+   * @return the last value in the array
+   * @throws NoSuchElementException if empty
    */
   public int last() {
-    if(size == 0) {
-      return 0;
-    }
+    assertNonEmpty();
     short lastKey = keys[size - 1];
     Container container = values[size - 1];
     return lastKey << 16 | container.last();
+  }
+
+  private void assertNonEmpty() {
+    if(size == 0) {
+      throw new NoSuchElementException("Empty RoaringArray");
+    }
   }
 }

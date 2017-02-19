@@ -6,6 +6,7 @@ package org.roaringbitmap;
 
 import java.io.*;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MappeableContainerPointer;
@@ -1927,8 +1928,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   }
 
   /**
-   * Get the first integer in this RoaringBitmap, or 0 if this is empty
+   * Get the first integer in this RoaringBitmap
    * @return the first integer
+   * @throws NoSuchElementException if empty
    */
   public int first() {
     return highLowContainer.first();
@@ -1937,6 +1939,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   /**
    * Get the last integer in this RoaringBitmap, or 0 if this is empty
    * @return the last integer
+   * @throws NoSuchElementException if empty
    */
   public int last() {
     return highLowContainer.last();

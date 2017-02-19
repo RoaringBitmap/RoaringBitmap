@@ -1457,22 +1457,4 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   public static long maximumSerializedSize(int cardinality, int universe_size) {
     return RoaringBitmap.maximumSerializedSize(cardinality, universe_size);
   }
-
-  /**
-   * Get the first integer in this RoaringBitmap, or 0 if this is empty
-   * @return the first integer
-   */
-  public int first() {
-    return highLowContainer.first();
-  }
-
-  /**
-   * Get the last integer in this RoaringBitmap, or 0 if this is empty
-   * @return the last integer
-   */
-  public int last() {
-    return highLowContainer.last();
-  }
-
-
 }

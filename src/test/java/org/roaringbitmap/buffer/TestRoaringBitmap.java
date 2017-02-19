@@ -3438,16 +3438,23 @@ public class TestRoaringBitmap {
       int x = 1 << i;
       rb.add(x);
       Assert.assertEquals(1, rb.first());
-      rb.last();
       Assert.assertEquals(x, rb.last());
     }
+  }
+
+  @Test(expected = NoSuchElementException.class)
+  public void testEmptyFirst() {
+    new MutableRoaringBitmap().first();
+  }
+
+  @Test(expected = NoSuchElementException.class)
+  public void testEmptyLast() {
+    new MutableRoaringBitmap().last();
   }
 
   @Test
   public void testFirstLast() {
     MutableRoaringBitmap rb = new MutableRoaringBitmap();
-    Assert.assertEquals(0, rb.first());
-    Assert.assertEquals(0, rb.last());
 
     rb.add(2);
     rb.add(4);
