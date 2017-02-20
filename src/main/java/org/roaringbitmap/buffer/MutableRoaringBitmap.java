@@ -1457,6 +1457,4 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   public static long maximumSerializedSize(int cardinality, int universe_size) {
     return RoaringBitmap.maximumSerializedSize(cardinality, universe_size);
   }
-
-
 }

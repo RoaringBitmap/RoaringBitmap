@@ -3064,6 +3064,29 @@ public class TestRunContainer {
     assertEquals(6031, result.getCardinality());
   }
 
+  @Test(expected = NoSuchElementException.class)
+  public void testFirst_Empty() {
+    new RunContainer().first();
+  }
+
+  @Test(expected = NoSuchElementException.class)
+  public void testLast_Empty() {
+    new RunContainer().last();
+  }
+
+  @Test
+  public void testFirstLast() {
+    Container rc = new RunContainer();
+    final int firstInclusive = 1;
+    int lastExclusive = firstInclusive;
+    for (int i = 0; i < 1 << 16 - 10; ++i) {
+      int newLastExclusive = lastExclusive + 10;
+      rc = rc.add(lastExclusive, newLastExclusive);
+      assertEquals(firstInclusive, rc.first());
+      assertEquals(newLastExclusive - 1, rc.last());
+      lastExclusive = newLastExclusive;
+    }
+  }
 
   @Test
   public void testContainsBitmapContainer_EmptyContainsEmpty() {
@@ -3210,7 +3233,7 @@ public class TestRunContainer {
 
   @Test
   public void testContainsArrayContainer_ExcludeDisJointSet() {
-    Container rc = new RunContainer().add(0,10);
+    Container rc = new RunContainer().add(0, 10);
     Container disjoint = new ArrayContainer().add(20, 40);
     assertFalse(rc.contains(disjoint));
     assertFalse(disjoint.contains(rc));

@@ -17,6 +17,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * ImmutableRoaringBitmap provides a compressed immutable (cannot be modified) bitmap. It is meant
@@ -1236,6 +1237,24 @@ public class ImmutableRoaringBitmap
     }
     throw new IllegalArgumentException(
         "select " + j + " when the cardinality is " + this.getCardinality());
+  }
+
+  /**
+   * Get the first integer
+   * @return the first integer
+   * @throws NoSuchElementException if empty
+   */
+  public int first() {
+    return highLowContainer.first();
+  }
+
+  /**
+   * Get the last integer
+   * @return the last integer
+   * @throws NoSuchElementException if empty
+   */
+  public int last() {
+    return highLowContainer.last();
   }
 
   /**

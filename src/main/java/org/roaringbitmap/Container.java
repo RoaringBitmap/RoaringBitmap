@@ -8,6 +8,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.Externalizable;
 import java.io.IOException;
+import java.util.NoSuchElementException;
 
 import org.roaringbitmap.buffer.MappeableContainer;
 
@@ -836,4 +837,28 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    */
   public abstract BitmapContainer toBitmapContainer();
 
+  /**
+   * Get the first integer held in the container
+   * @return the first integer in the container
+   * @throws NoSuchElementException if empty
+   */
+  public abstract int first();
+
+  /**
+   * Get the last integer held in the container
+   * @return the last integer in the container
+   * @throws NoSuchElementException if empty
+   */
+  public abstract int last();
+
+  /**
+   * Throw if the container is empty
+   * @param condition a boolean expression
+   * @throws NoSuchElementException if empty
+   */
+  protected void assertNonEmpty(boolean condition) {
+    if(condition) {
+      throw new NoSuchElementException("Empty " + getContainerName());
+    }
+  }
 }

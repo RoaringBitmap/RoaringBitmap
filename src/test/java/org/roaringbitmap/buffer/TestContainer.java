@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.roaringbitmap.ShortIterator;
 
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -734,6 +735,63 @@ public class TestContainer {
     assertEquals(c.getCardinality(), 1);
     assertTrue(c instanceof MappeableArrayContainer);
 
+  }
+
+  @Test(expected = NoSuchElementException.class)
+  public void testFirst_Array() {
+    new MappeableArrayContainer().first();
+  }
+
+  @Test(expected = NoSuchElementException.class)
+  public void testLast_Array() {
+    new MappeableArrayContainer().last();
+  }
+
+  @Test(expected = NoSuchElementException.class)
+  public void testFirst_Run() {
+    new MappeableRunContainer().first();
+  }
+
+  @Test(expected = NoSuchElementException.class)
+  public void testLast_Run() {
+    new MappeableRunContainer().last();
+  }
+
+  @Test(expected = NoSuchElementException.class)
+  public void testFirst_Bitmap() {
+    new MappeableBitmapContainer().first();
+  }
+
+  @Test(expected = NoSuchElementException.class)
+  public void testLast_Bitmap() {
+    new MappeableBitmapContainer().last();
+  }
+
+  @Test
+  public void testFirstLast_Array() {
+    testFirstLast(new MappeableArrayContainer());
+  }
+
+  @Test
+  public void testFirstLast_Run() {
+    testFirstLast(new MappeableRunContainer());
+  }
+
+  @Test
+  public void testFirstLast_Bitmap() {
+    testFirstLast(new MappeableBitmapContainer());
+  }
+
+  private void testFirstLast(MappeableContainer container) {
+    final int firstInclusive = 1;
+    int lastExclusive = firstInclusive;
+    for (int i = 0; i < 1 << 15 / 10; ++i) {
+      int newLastExclusive = lastExclusive + 10;
+      container = container.add(lastExclusive, newLastExclusive);
+      assertEquals(firstInclusive, container.first());
+      assertEquals(newLastExclusive - 1, container.last());
+      lastExclusive = newLastExclusive;
+    }
   }
 
 }

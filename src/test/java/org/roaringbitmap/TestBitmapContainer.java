@@ -11,13 +11,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 import java.util.Random;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 public class TestBitmapContainer {
   private static BitmapContainer emptyContainer() {
@@ -508,6 +506,29 @@ public class TestBitmapContainer {
     }
   }
 
+  @Test(expected = NoSuchElementException.class)
+  public void testFirst_Empty() {
+    new BitmapContainer().first();
+  }
+
+  @Test(expected = NoSuchElementException.class)
+  public void testLast_Empty() {
+    new BitmapContainer().last();
+  }
+
+  @Test
+  public void testFirstLast() {
+    Container rc = new ArrayContainer();
+    final int firstInclusive = 1;
+    int lastExclusive = firstInclusive;
+    for (int i = 0; i < 1 << 16 - 10; ++i) {
+      int newLastExclusive = lastExclusive + 10;
+      rc = rc.add(lastExclusive, newLastExclusive);
+      assertEquals(firstInclusive, rc.first());
+      assertEquals(newLastExclusive - 1, rc.last());
+      lastExclusive = newLastExclusive;
+    }
+  }
 
   @Test
   public void testContainsBitmapContainer_EmptyContainsEmpty() {
@@ -653,10 +674,9 @@ public class TestBitmapContainer {
 
   @Test
   public void testContainsArrayContainer_ExcludeDisJointSet() {
-    Container bc = new BitmapContainer().add(0,10);
+    Container bc = new BitmapContainer().add(0, 10);
     Container disjoint = new ArrayContainer().add(20, 40);
     assertFalse(bc.contains(disjoint));
     assertFalse(disjoint.contains(bc));
   }
-
 }

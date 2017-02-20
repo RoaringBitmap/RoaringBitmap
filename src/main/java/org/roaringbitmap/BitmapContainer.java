@@ -4,13 +4,13 @@
 
 package org.roaringbitmap;
 
+import org.roaringbitmap.buffer.MappeableBitmapContainer;
+import org.roaringbitmap.buffer.MappeableContainer;
+
 import java.io.*;
 import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
-
-import org.roaringbitmap.buffer.MappeableBitmapContainer;
-import org.roaringbitmap.buffer.MappeableContainer;
 
 
 /**
@@ -1311,6 +1311,28 @@ public final class BitmapContainer extends Container implements Cloneable {
   @Override
   public BitmapContainer toBitmapContainer() {
     return this;
+  }
+
+  @Override
+  public int first() {
+    assertNonEmpty(cardinality == 0);
+    int i = 0;
+    while(i < bitmap.length - 1 && bitmap[i] == 0) {
+      ++i; // seek forward
+    }
+    // sizeof(long) * #empty words at start + number of bits preceding the first bit set
+    return i * 64 + Long.numberOfTrailingZeros(bitmap[i]);
+  }
+
+  @Override
+  public int last() {
+    assertNonEmpty(cardinality == 0);
+    int i = bitmap.length - 1;
+    while(i > 0 && bitmap[i] == 0) {
+      --i; // seek backward
+    }
+    // sizeof(long) * #words from start - number of bits after the last bit set
+    return (i + 1) * 64 - Long.numberOfLeadingZeros(bitmap[i]) - 1;
   }
 
 }

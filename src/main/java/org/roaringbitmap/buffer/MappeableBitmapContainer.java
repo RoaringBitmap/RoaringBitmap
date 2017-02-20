@@ -1904,6 +1904,47 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   }
 
   @Override
+  public int first() {
+    assertNonEmpty(cardinality == 0);
+    long firstNonZeroWord;
+    int i = 0;
+    if(BufferUtil.isBackedBySimpleArray(bitmap)) {
+      long[] array = bitmap.array();
+      while(array[i] == 0) {
+        ++i;
+      }
+      firstNonZeroWord = array[i];
+    } else {
+      i = bitmap.position();
+      while(bitmap.get(i) == 0) {
+        ++i;
+      }
+      firstNonZeroWord = bitmap.get(i);
+    }
+    return i * 64 + Long.numberOfTrailingZeros(firstNonZeroWord);
+  }
+
+  @Override
+  public int last() {
+    assertNonEmpty(cardinality == 0);
+    long lastNonZeroWord;
+    int i = bitmap.limit() - 1;
+    if(BufferUtil.isBackedBySimpleArray(bitmap)) {
+      long[] array = this.bitmap.array();
+      while(i > 0 && array[i] == 0) {
+        --i;
+      }
+      lastNonZeroWord = array[i];
+    } else {
+      while(i > 0 && bitmap.get(i) == 0) {
+        --i;
+      }
+      lastNonZeroWord = bitmap.get(i);
+    }
+    return (i + 1) * 64 - Long.numberOfLeadingZeros(lastNonZeroWord) - 1;
+  }
+
+  @Override
   protected boolean contains(MappeableBitmapContainer bitmapContainer) {
     if((cardinality != -1) && (bitmapContainer.cardinality != -1)) {
       if(cardinality < bitmapContainer.cardinality) {

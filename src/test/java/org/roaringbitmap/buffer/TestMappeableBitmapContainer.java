@@ -15,8 +15,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
+
+import org.junit.Assert;
 import org.junit.Test;
 import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.ShortIterator;
@@ -667,6 +670,19 @@ public class TestMappeableBitmapContainer {
     assertEquals(1 << 16, irepaired.getCardinality());
     assertThat(repaired, instanceOf(MappeableRunContainer.class));
     assertThat(irepaired, instanceOf(MappeableRunContainer.class));
+  }
+
+  @Test
+  public void testFirstLast_SlicedBuffer() {
+    LongBuffer buffer = LongBuffer.allocate(MAX_CAPACITY / 64)
+                                  .put(0, 1L << 62)
+                                  .put(1, 1L << 2 | 1L << 32)
+                                  .slice()
+                                  .asReadOnlyBuffer();
+    Assert.assertFalse("Sanity check - aiming to test non array backed branch", BufferUtil.isBackedBySimpleArray(buffer));
+    MappeableBitmapContainer mbc = new MappeableBitmapContainer(buffer, 3);
+    Assert.assertEquals(62, mbc.first());
+    Assert.assertEquals(96, mbc.last());
   }
 
 }

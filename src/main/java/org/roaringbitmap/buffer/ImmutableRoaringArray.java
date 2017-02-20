@@ -13,7 +13,7 @@ import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
-
+import java.util.NoSuchElementException;
 
 
 /**
@@ -488,5 +488,27 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
   private int unsignedBinarySearch(short k) {
     return branchyUnsignedBinarySearch(k);
+  }
+
+  @Override
+  public int first() {
+    assertNonEmpty();
+    short firstKey = getKeyAtIndex(0);
+    MappeableContainer container = getContainerAtIndex(0);
+    return firstKey << 16 | container.first();
+  }
+
+  @Override
+  public int last() {
+    assertNonEmpty();
+    short lastKey = getKeyAtIndex(size - 1);
+    MappeableContainer container = getContainerAtIndex(size - 1);
+    return lastKey << 16 | container.last();
+  }
+
+  private void assertNonEmpty() {
+    if(size == 0) {
+      throw new NoSuchElementException("Empty ImmutableRoaringArray");
+    }
   }
 }
