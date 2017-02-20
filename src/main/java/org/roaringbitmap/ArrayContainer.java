@@ -1053,13 +1053,13 @@ public final class ArrayContainer extends Container implements Cloneable {
 
   @Override
   public int first() {
-    assertNonEmpty();
+    assertNonEmpty(cardinality == 0);
     return Util.toIntUnsigned(content[0]);
   }
 
   @Override
   public int last() {
-    assertNonEmpty();
+    assertNonEmpty(cardinality == 0);
     return Util.toIntUnsigned(content[cardinality - 1]);
   }
 

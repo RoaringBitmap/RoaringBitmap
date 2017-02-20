@@ -5,6 +5,11 @@ package org.roaringbitmap;
 
 import static org.junit.Assert.assertEquals;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.ContiguousSet;
+import com.google.common.collect.DiscreteDomain;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Assert;
@@ -4363,6 +4368,46 @@ public class TestRoaringBitmap {
       Assert.assertEquals(1, rb.first());
       Assert.assertEquals(x, rb.last());
     }
+  }
+
+  @Test
+  public void testFirstLast_AfterLazyMutation1() {
+    RoaringBitmap rb = new RoaringBitmap();
+    rb.add(1, 3, 5, 7);
+    Assert.assertEquals(1, rb.first());
+    Assert.assertEquals(7, rb.last());
+    RoaringBitmap mutator = new RoaringBitmap();
+    mutator.add(0, 2, 4, 6, 8);
+    rb.lazyor(mutator);
+    Assert.assertEquals(0, rb.first());
+    Assert.assertEquals(8, rb.last());
+  }
+
+
+  @Test
+  public void testFirstLast_AfterLazyMutation2() {
+    RoaringBitmap rb = new RoaringBitmap();
+    Iterable<Integer> willForceUseOfBitmapContainer = Iterables.filter(
+            ContiguousSet.create(Range.openClosed(0, 1 << 16), DiscreteDomain.integers()),
+            new Predicate<Integer>() {
+              @Override
+              public boolean apply(Integer input) {
+                return input % 3 == 0;
+              }
+            }
+            );
+    int max = 0;
+    for(Integer i : willForceUseOfBitmapContainer) {
+      rb.add(i);
+      max = i;
+    }
+    Assert.assertEquals(3, rb.first());
+    Assert.assertEquals(max, rb.last());
+    RoaringBitmap mutator = new RoaringBitmap();
+    mutator.add(0, 2, 4, 6, 8);
+    rb.lazyor(mutator);
+    Assert.assertEquals(0, rb.first());
+    Assert.assertEquals(max, rb.last());
   }
 
 

@@ -853,10 +853,11 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
 
   /**
    * Throw if the container is empty
+   * @param condition a boolean expression
    * @throws NoSuchElementException if empty
    */
-  protected void assertNonEmpty() {
-    if(getCardinality() == 0) {
+  protected void assertNonEmpty(boolean condition) {
+    if(condition) {
       throw new NoSuchElementException("Empty " + getContainerName());
     }
   }

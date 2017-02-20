@@ -1905,7 +1905,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   @Override
   public int first() {
-    assertNonEmpty();
+    assertNonEmpty(cardinality == 0);
     long firstNonZeroWord;
     int i = 0;
     if(BufferUtil.isBackedBySimpleArray(bitmap)) {
@@ -1926,17 +1926,17 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   @Override
   public int last() {
-    assertNonEmpty();
+    assertNonEmpty(cardinality == 0);
     long lastNonZeroWord;
     int i = bitmap.limit() - 1;
     if(BufferUtil.isBackedBySimpleArray(bitmap)) {
       long[] array = this.bitmap.array();
-      while(array[i] == 0) {
+      while(i > 0 && array[i] == 0) {
         --i;
       }
       lastNonZeroWord = array[i];
     } else {
-      while(bitmap.get(i) == 0) {
+      while(i > 0 && bitmap.get(i) == 0) {
         --i;
       }
       lastNonZeroWord = bitmap.get(i);

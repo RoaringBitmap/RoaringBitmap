@@ -4,9 +4,15 @@
 
 package org.roaringbitmap.buffer;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.ContiguousSet;
+import com.google.common.collect.DiscreteDomain;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Range;
 import org.junit.Assert;
 import org.junit.Test;
 import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MappeableArrayContainer;
 import org.roaringbitmap.buffer.MappeableBitmapContainer;
@@ -1273,12 +1279,4 @@ public class TestImmutableRoaringBitmap {
     Assert.assertEquals(2, rb.toImmutableRoaringBitmap().first());
     Assert.assertEquals((1L << 30) - 1, rb.toImmutableRoaringBitmap().last());
   }
-
-
-
-
-
-
-
-
 }

@@ -2465,20 +2465,18 @@ public final class RunContainer extends Container implements Cloneable {
 
   @Override
   public int first() {
-    assertNonEmpty();
+    assertNonEmpty(numberOfRuns() == 0);
     return valueslength[0];
   }
 
   @Override
   public int last() {
-    assertNonEmpty();
+    assertNonEmpty(numberOfRuns() == 0);
     int index = numberOfRuns() - 1;
     int start = Util.toIntUnsigned(getValue(index));
     int length = Util.toIntUnsigned(getLength(index));
     return start + length;
   }
-
-
 
 }
 

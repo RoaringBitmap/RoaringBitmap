@@ -1280,13 +1280,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
   @Override
   public int first() {
-    assertNonEmpty();
+    assertNonEmpty(cardinality == 0);
     return BufferUtil.toIntUnsigned(this.select(0));
   }
 
   @Override
   public int last() {
-    assertNonEmpty();
+    assertNonEmpty(cardinality == 0);
     return BufferUtil.toIntUnsigned(select(cardinality - 1));
   }
 
