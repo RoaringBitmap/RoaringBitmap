@@ -200,8 +200,10 @@ public class TestIterators {
       for (int e : sample) {
         expected.add(e);
       }
-      Set<Integer> result = new HashSet<>(ImmutableList.copyOf(tested.iterator()));
-      Assert.assertEquals(result, expected);
+      Set<Integer> result1 = new HashSet<>(ImmutableList.copyOf(tested.iterator()));
+      Set<Integer> result2 = new HashSet<>( asList(tested.getIntIterator()));
+      Assert.assertEquals(result1, expected);
+      Assert.assertEquals(result2, expected);
     }
   }
 }

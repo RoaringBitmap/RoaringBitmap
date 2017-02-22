@@ -1370,7 +1370,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   @Override
   public PeekableIntIterator getIntIterator() {
-    return new RoaringIntIterator();
+    return new RoaringIterator(RoaringBitmap.this);
   }
 
   /**

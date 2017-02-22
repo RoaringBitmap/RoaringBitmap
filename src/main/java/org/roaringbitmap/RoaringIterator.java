@@ -2,7 +2,7 @@ package org.roaringbitmap;
 
 import java.util.NoSuchElementException;
 
-class RoaringIterator implements IntIterator {
+class RoaringIterator implements PeekableIntIterator {
   final private RoaringBitmap parent;
   private ArrayContainer ac;
   private RunContainer rc;
@@ -112,7 +112,17 @@ class RoaringIterator implements IntIterator {
   }
 
   @Override
-  public IntIterator clone() {
+  public void advanceIfNeeded(int minval) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public int peekNext() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public PeekableIntIterator clone() {
     throw new UnsupportedOperationException();
   }
 }
