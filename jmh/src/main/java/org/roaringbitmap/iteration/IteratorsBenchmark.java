@@ -108,7 +108,6 @@ public class IteratorsBenchmark {
       return result;
    }
 
-
    @Benchmark
    public int testStandard_c(BenchmarkState benchmarkState) {
       IntIterator intIterator = benchmarkState.bitmap_c.getIntIterator();
@@ -130,6 +129,44 @@ public class IteratorsBenchmark {
    public int testFlyweight_c(BenchmarkState benchmarkState) {
       IntIteratorFlyweight intIterator = benchmarkState.flyweightIterator;
       intIterator.wrap(benchmarkState.bitmap_c);
+      int result = 0;
+      while (intIterator.hasNext()) {
+         result = intIterator.next();
+      }
+      return result;
+   }
+
+   @Benchmark
+   public int testBoxed_run(BenchmarkState benchmarkState) {
+      Iterator<Integer> intIterator = benchmarkState.bitmap_run.iterator();
+      int result = 0;
+      while (intIterator.hasNext()) {
+         result = intIterator.next();
+      }
+      return result;
+   }
+
+   @Benchmark
+   public int testStandard_run(BenchmarkState benchmarkState) {
+      IntIterator intIterator = benchmarkState.bitmap_run.getIntIterator();
+      int result = 0;
+      while (intIterator.hasNext()) {
+         result = intIterator.next();
+      }
+      return result;
+   }
+
+   @Benchmark
+   public int testForeach_run(BenchmarkState benchmarkState) {
+      LastConsumer c = new LastConsumer();
+      benchmarkState.bitmap_run.forEach(c);
+      return c.last;
+   }
+
+   @Benchmark
+   public int testFlyweight_run(BenchmarkState benchmarkState) {
+      IntIteratorFlyweight intIterator = benchmarkState.flyweightIterator;
+      intIterator.wrap(benchmarkState.bitmap_run);
       int result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
@@ -210,6 +247,8 @@ public class IteratorsBenchmark {
 
       final RoaringBitmap bitmap_c;
 
+      final RoaringBitmap bitmap_run;
+
       final IntIteratorFlyweight flyweightIterator = new IntIteratorFlyweight();
 
       final ReverseIntIteratorFlyweight flyweightReverseIterator = new ReverseIntIteratorFlyweight();
@@ -226,6 +265,10 @@ public class IteratorsBenchmark {
          bitmap_c = new RoaringBitmap();
          for (int k = 0; k < (1 << 30); k += 3)
             bitmap_c.add(k);
+         bitmap_run = new RoaringBitmap();
+         for (long k = 0; k < (1 << 28); k += 2000)
+            bitmap_run.add(k, k + 500);
+         bitmap_run.runOptimize();
 
       }
 
@@ -255,8 +298,8 @@ public class IteratorsBenchmark {
       }
    }
 
-   class LastConsumer implements IntConsumer {
-      int last = -1;
+   private static class LastConsumer implements IntConsumer {
+      int last = 0;
       @Override
       public void accept(int value) {
          last = value;
