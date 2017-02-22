@@ -1,6 +1,7 @@
 package org.roaringbitmap.iteration;
 
 import org.openjdk.jmh.annotations.*;
+import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.IntIteratorFlyweight;
 import org.roaringbitmap.ReverseIntIteratorFlyweight;
@@ -31,31 +32,30 @@ public class IteratorsBenchmark {
 
    @Benchmark
    public int testStandard_a(BenchmarkState benchmarkState) {
-
       IntIterator intIterator = benchmarkState.bitmap_a.getIntIterator();
       int result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
-
       }
       return result;
+   }
 
+   @Benchmark
+   public int testForeach_a(BenchmarkState benchmarkState) {
+      LastConsumer c = new LastConsumer();
+      benchmarkState.bitmap_a.forEach(c);
+      return c.last;
    }
 
    @Benchmark
    public int testFlyweight_a(BenchmarkState benchmarkState) {
-
       IntIteratorFlyweight intIterator = benchmarkState.flyweightIterator;
-
       intIterator.wrap(benchmarkState.bitmap_a);
-
       int result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
-
       }
       return result;
-
    }
 
    @Benchmark
@@ -64,7 +64,6 @@ public class IteratorsBenchmark {
       int result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
-
       }
       return result;
    }
@@ -72,7 +71,6 @@ public class IteratorsBenchmark {
 
    @Benchmark
    public int testStandard_b(BenchmarkState benchmarkState) {
-
       IntIterator intIterator = benchmarkState.bitmap_b.getIntIterator();
       int result = 0;
       while (intIterator.hasNext()) {
@@ -80,23 +78,24 @@ public class IteratorsBenchmark {
 
       }
       return result;
+   }
 
+   @Benchmark
+   public int testForeach_b(BenchmarkState benchmarkState) {
+      LastConsumer c = new LastConsumer();
+      benchmarkState.bitmap_b.forEach(c);
+      return c.last;
    }
 
    @Benchmark
    public int testFlyweight_b(BenchmarkState benchmarkState) {
-
       IntIteratorFlyweight intIterator = benchmarkState.flyweightIterator;
-
       intIterator.wrap(benchmarkState.bitmap_b);
-
       int result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
-
       }
       return result;
-
    }
 
    @Benchmark
@@ -105,7 +104,6 @@ public class IteratorsBenchmark {
       int result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
-
       }
       return result;
    }
@@ -113,121 +111,96 @@ public class IteratorsBenchmark {
 
    @Benchmark
    public int testStandard_c(BenchmarkState benchmarkState) {
-
       IntIterator intIterator = benchmarkState.bitmap_c.getIntIterator();
       int result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
-
       }
       return result;
+   }
 
+   @Benchmark
+   public int testForeach_c(BenchmarkState benchmarkState) {
+      LastConsumer c = new LastConsumer();
+      benchmarkState.bitmap_c.forEach(c);
+      return c.last;
    }
 
    @Benchmark
    public int testFlyweight_c(BenchmarkState benchmarkState) {
-
       IntIteratorFlyweight intIterator = benchmarkState.flyweightIterator;
-
       intIterator.wrap(benchmarkState.bitmap_c);
-
       int result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
-
       }
       return result;
-
    }
 
    @Benchmark
    public int testReverseStandard_a(BenchmarkState benchmarkState) {
-
       IntIterator intIterator = benchmarkState.bitmap_a.getReverseIntIterator();
       int result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
-
       }
       return result;
-
    }
 
    @Benchmark
    public int testReverseFlyweight_a(BenchmarkState benchmarkState) {
-
       ReverseIntIteratorFlyweight intIterator = benchmarkState.flyweightReverseIterator;
-
       intIterator.wrap(benchmarkState.bitmap_a);
-
       int result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
-
       }
       return result;
-
    }
 
    @Benchmark
    public int testReverseStandard_b(BenchmarkState benchmarkState) {
-
       IntIterator intIterator = benchmarkState.bitmap_b.getReverseIntIterator();
       int result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
-
       }
       return result;
-
    }
 
    @Benchmark
    public int testReverseFlyweight_b(BenchmarkState benchmarkState) {
-
       ReverseIntIteratorFlyweight intIterator = benchmarkState.flyweightReverseIterator;
-
       intIterator.wrap(benchmarkState.bitmap_b);
-
       int result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
-
       }
       return result;
-
    }
 
    @Benchmark
    public int testReverseStandard_c(BenchmarkState benchmarkState) {
-
       IntIterator intIterator = benchmarkState.bitmap_c.getReverseIntIterator();
       int result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
-
       }
       return result;
-
    }
 
    @Benchmark
    public int testReverseFlyweight_c(BenchmarkState benchmarkState) {
-
       ReverseIntIteratorFlyweight intIterator = benchmarkState.flyweightReverseIterator;
-
       intIterator.wrap(benchmarkState.bitmap_c);
-
       int result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
-
       }
       return result;
-
    }
 
-   
+
    @State(Scope.Benchmark)
    public static class BenchmarkState {
 
@@ -249,11 +222,11 @@ public class IteratorsBenchmark {
          bitmap_b = new RoaringBitmap();
          for (int k = 0; k < (1 << 30); k += 32)
             bitmap_b.add(k);
-         
+
          bitmap_c = new RoaringBitmap();
          for (int k = 0; k < (1 << 30); k += 3)
             bitmap_c.add(k);
-         
+
       }
 
       private int[] takeSortedAndDistinct(Random source, int count) {
@@ -279,6 +252,14 @@ public class IteratorsBenchmark {
             ints[i++] = n;
          }
          return ints;
+      }
+   }
+
+   class LastConsumer implements IntConsumer {
+      int last = -1;
+      @Override
+      public void accept(int value) {
+         last = value;
       }
    }
 
