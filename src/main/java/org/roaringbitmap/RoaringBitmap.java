@@ -1453,6 +1453,11 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       public Integer next() {
         return it.next();
       }
+
+      @Override
+      public void remove() {
+        it.remove();
+      }
     };
   }
 
