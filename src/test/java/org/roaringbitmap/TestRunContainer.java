@@ -2084,6 +2084,7 @@ public class TestRunContainer {
     assertEquals(5, container.rank((short) 1024));
   }
   
+  @Test
   public void shortRangeRank() {
     Container container = new RunContainer();
     container = container.add(16, 32);
