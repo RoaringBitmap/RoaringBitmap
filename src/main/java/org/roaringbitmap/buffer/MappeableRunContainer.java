@@ -1875,7 +1875,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       int length = BufferUtil.toIntUnsigned(getLength(k));
       if (x < value) {
         return answer;
-      } else if (value + length + 1 >= x) {
+      } else if (value + length + 1 > x) {
         return answer + x - value + 1;
       }
       answer += length + 1;

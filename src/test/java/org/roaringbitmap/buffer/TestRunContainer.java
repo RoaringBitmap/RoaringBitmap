@@ -2,22 +2,16 @@ package org.roaringbitmap.buffer;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.ShortIterator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
-import org.roaringbitmap.IntIterator;
-import org.roaringbitmap.ShortIterator;
-
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.*;
 import static org.roaringbitmap.buffer.MappeableArrayContainer.DEFAULT_MAX_SIZE;
 
@@ -1769,6 +1763,15 @@ public class TestRunContainer {
     assertEquals(5, container.rank((short) 1024));
   }
 
+  @Test
+  public void shortRangeRank() {
+    MappeableContainer container = new MappeableRunContainer();
+    container = container.add(16, 32);
+    assertThat(container, instanceOf(MappeableRunContainer.class));
+    // results in correct value: 16
+    // assertEquals(16, container.toBitmapContainer().rank((short) 32));
+    assertEquals(16, container.rank((short) 32));
+  }
 
   @Test
   public void remove() {
