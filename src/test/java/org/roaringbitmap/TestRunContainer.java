@@ -2083,6 +2083,15 @@ public class TestRunContainer {
     assertEquals(4, container.rank((short) 128));
     assertEquals(5, container.rank((short) 1024));
   }
+  
+  public void shortRangeRank() {
+    Container container = new RunContainer();
+    container = container.add(16, 32);
+    assertTrue(container instanceof RunContainer);
+    // results in correct value: 16
+    // assertEquals(16, container.toBitmapContainer().rank((short) 32));
+    assertEquals(16, container.rank((short) 32));
+  }
 
 
   @Test
