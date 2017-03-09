@@ -21,6 +21,7 @@ This library is used by
 *   [Apache Kylin](http://kylin.io),
 *   [Netflix Atlas](https://github.com/Netflix/atlas),
 *   [OpenSearchServer](http://www.opensearchserver.com),
+*   [zenvisage](http://zenvisage.github.io/),
 *   [LinkedIn Pinot](https://github.com/linkedin/pinot/wiki) and
 *   [Druid](http://druid.io/).
 
