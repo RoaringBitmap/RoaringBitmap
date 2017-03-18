@@ -1941,35 +1941,39 @@ public class TestRoaringBitmap {
 
   @Test
   public void testXorCardinality() {
-      final RoaringBitmap rb = new RoaringBitmap();
-      for (int k = 0; k < 4000; ++k) {
-          rb.add(k);
-      }
-      rb.add(100000);
-      rb.add(110000);
-      final RoaringBitmap rb2 = new RoaringBitmap();
-      for (int k = 0; k < 4000; ++k) {
-          rb2.add(k);
-      }
-      RoaringBitmap xor = RoaringBitmap.xor(rb, rb2);
-      assertEquals(xor.getCardinality(), RoaringBitmap.xorCardinality(rb, rb2));
+    final RoaringBitmap rb = new RoaringBitmap();
+    for (int k = 0; k < 4000; ++k) {
+      rb.add(k);
+    }
+    rb.add(100000);
+    rb.add(110000);
+    rb.add(1L << 20, 1L << 21);
+    rb.flip((1 << 20) | (1 << 19));
+    final RoaringBitmap rb2 = new RoaringBitmap();
+    for (int k = 0; k < 4000; ++k) {
+      rb2.add(k);
+    }
+    RoaringBitmap xor = RoaringBitmap.xor(rb, rb2);
+    assertEquals(xor.getCardinality(), RoaringBitmap.xorCardinality(rb, rb2));
   }
 
-    @Test
-    public void testAndNotCardinality() {
-        final RoaringBitmap rb = new RoaringBitmap();
-        for (int k = 0; k < 4000; ++k) {
-            rb.add(k);
-        }
-        rb.add(100000);
-        rb.add(110000);
-        final RoaringBitmap rb2 = new RoaringBitmap();
-        for (int k = 0; k < 4000; ++k) {
-            rb2.add(k);
-        }
-        RoaringBitmap andNot = RoaringBitmap.andNot(rb, rb2);
-        assertEquals(andNot.getCardinality(), RoaringBitmap.andNotCardinality(rb, rb2));
+  @Test
+  public void testAndNotCardinality() {
+    final RoaringBitmap rb = new RoaringBitmap();
+    for (int k = 0; k < 4000; ++k) {
+      rb.add(k);
     }
+    rb.add(100000);
+    rb.add(110000);
+    rb.add(1L << 20, 1L << 21);
+    rb.flip((1 << 20) | (1 << 19));
+    final RoaringBitmap rb2 = new RoaringBitmap();
+    for (int k = 0; k < 4000; ++k) {
+      rb2.add(k);
+    }
+    RoaringBitmap andNot = RoaringBitmap.andNot(rb, rb2);
+    assertEquals(andNot.getCardinality(), RoaringBitmap.andNotCardinality(rb, rb2));
+  }
 
   @Test
   public void ortest() {
