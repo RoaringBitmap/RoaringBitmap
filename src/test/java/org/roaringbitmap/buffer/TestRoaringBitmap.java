@@ -3471,5 +3471,17 @@ public class TestRoaringBitmap {
     Assert.assertEquals((1L << 30) - 1, rb.last());
   }
 
+  @Test
+  public void testAndCardinality() {
+    MutableRoaringBitmap baseline = new MutableRoaringBitmap();
+    baseline.add((1L << 16) + 1, 1L << 18);
+    baseline.add((1L << 19) + 1, 1L << 20);
+    baseline.add((1 << 21) + 1);
+    baseline.add((1 << 21) + 3);
+    baseline.add((1 << 21) + 5);
+    assertEquals(baseline, MutableRoaringBitmap.and(baseline, baseline));
+    assertEquals(baseline.getCardinality(), MutableRoaringBitmap.andCardinality(baseline, baseline));
+  }
+
 
 }
