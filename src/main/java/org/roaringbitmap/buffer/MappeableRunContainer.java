@@ -2482,7 +2482,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
           }
         }
         // earliestend - lateststart are all values that are true.
-        cardinality += (short) (earliestend - lateststart);
+        cardinality += earliestend - lateststart;
       }
     }
     return cardinality;
