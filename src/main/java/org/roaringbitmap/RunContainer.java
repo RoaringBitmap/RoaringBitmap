@@ -560,7 +560,7 @@ public final class RunContainer extends Container implements Cloneable {
           }
         }
         // earliestend - lateststart are all values that are true.
-        cardinality += (short) (earliestend - lateststart);
+        cardinality += earliestend - lateststart;
       }
     }
     return cardinality;
