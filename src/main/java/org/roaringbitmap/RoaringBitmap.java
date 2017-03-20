@@ -743,6 +743,31 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     return x1.getCardinality() + x2.getCardinality() - andCardinality(x1, x2);
   }
 
+  /**
+   * Cardinality of the bitwise XOR (symmetric difference) operation.
+   * The provided bitmaps are *not* modified. This operation is thread-safe
+   * as long as the provided bitmaps remain unchanged.
+   *
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @return cardinality of the symmetric difference
+   */
+  public static int xorCardinality(final RoaringBitmap x1, final RoaringBitmap x2) {
+    return x1.getCardinality() + x2.getCardinality() - 2 * andCardinality(x1, x2);
+  }
+
+  /**
+   * Cardinality of the bitwise ANDNOT (left difference) operation.
+   * The provided bitmaps are *not* modified. This operation is thread-safe
+   * as long as the provided bitmaps remain unchanged.
+   *
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @return cardinality of the left difference
+   */
+  public static int andNotCardinality(final RoaringBitmap x1, final RoaringBitmap x2) {
+    return x1.getCardinality() - andCardinality(x1, x2);
+  }
 
   /**
    * Generate a new bitmap with all integers in [rangeStart,rangeEnd) removed.

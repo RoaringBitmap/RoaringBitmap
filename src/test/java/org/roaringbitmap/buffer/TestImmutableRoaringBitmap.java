@@ -22,6 +22,8 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.*;
 
+import static org.junit.Assert.assertEquals;
+
 /**
  * Generic testing of the roaring bitmaps
  */
@@ -1278,5 +1280,41 @@ public class TestImmutableRoaringBitmap {
     rb.add(1L<< 15, 1L << 30);
     Assert.assertEquals(2, rb.toImmutableRoaringBitmap().first());
     Assert.assertEquals((1L << 30) - 1, rb.toImmutableRoaringBitmap().last());
+  }
+
+  @Test
+  public void testXorCardinality() {
+    final MutableRoaringBitmap rb = new MutableRoaringBitmap();
+    for (int k = 0; k < 4000; ++k) {
+      rb.add(k);
+    }
+    rb.add(100000);
+    rb.add(110000);
+    rb.add(1L << 20, 1L << 21);
+    rb.flip((1 << 20) | (1 << 19));
+    final MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
+    for (int k = 0; k < 4000; ++k) {
+      rb2.add(k);
+    }
+    MutableRoaringBitmap xor = ImmutableRoaringBitmap.xor(rb, rb2);
+    assertEquals(xor.getCardinality(), ImmutableRoaringBitmap.xorCardinality(rb, rb2));
+  }
+
+  @Test
+  public void testAndNotCardinality() {
+    final MutableRoaringBitmap rb = new MutableRoaringBitmap();
+    for (int k = 0; k < 4000; ++k) {
+      rb.add(k);
+    }
+    rb.add(100000);
+    rb.add(110000);
+    rb.add(1L << 20, 1L << 21);
+    rb.flip((1 << 20) | (1 << 19));
+    final MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
+    for (int k = 0; k < 4000; ++k) {
+      rb2.add(k);
+    }
+    ImmutableRoaringBitmap andNot = ImmutableRoaringBitmap.andNot(rb, rb2);
+    assertEquals(andNot.getCardinality(), ImmutableRoaringBitmap.andNotCardinality(rb, rb2));
   }
 }

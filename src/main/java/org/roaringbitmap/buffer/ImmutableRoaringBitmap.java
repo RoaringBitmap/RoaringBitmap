@@ -291,6 +291,36 @@ public class ImmutableRoaringBitmap
     return answer;
   }
 
+
+
+  /**
+   * Cardinality of the bitwise XOR (symmetric difference) operation.
+   * The provided bitmaps are *not* modified. This operation is thread-safe
+   * as long as the provided bitmaps remain unchanged.
+   *
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @return cardinality of the symmetric difference
+   */
+  public static int xorCardinality(final ImmutableRoaringBitmap x1,
+                                   final ImmutableRoaringBitmap x2) {
+    return x1.getCardinality() + x2.getCardinality() - 2 * andCardinality(x1, x2);
+  }
+
+  /**
+   * Cardinality of the bitwise ANDNOT (left difference) operation.
+   * The provided bitmaps are *not* modified. This operation is thread-safe
+   * as long as the provided bitmaps remain unchanged.
+   *
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @return cardinality of the left difference
+   */
+  public static int andNotCardinality(final ImmutableRoaringBitmap x1,
+                                      final ImmutableRoaringBitmap x2) {
+    return x1.getCardinality() - andCardinality(x1, x2);
+  }
+
   /**
    * Bitwise ANDNOT (difference) operation for the given range, rangeStart (inclusive) and rangeEnd
    * (exclusive). The provided bitmaps are *not* modified. This operation is thread-safe as long as
