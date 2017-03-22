@@ -743,6 +743,31 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     return x1.getCardinality() + x2.getCardinality() - andCardinality(x1, x2);
   }
 
+  /**
+   * Cardinality of the bitwise XOR (symmetric difference) operation.
+   * The provided bitmaps are *not* modified. This operation is thread-safe
+   * as long as the provided bitmaps remain unchanged.
+   *
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @return cardinality of the symmetric difference
+   */
+  public static int xorCardinality(final RoaringBitmap x1, final RoaringBitmap x2) {
+    return x1.getCardinality() + x2.getCardinality() - 2 * andCardinality(x1, x2);
+  }
+
+  /**
+   * Cardinality of the bitwise ANDNOT (left difference) operation.
+   * The provided bitmaps are *not* modified. This operation is thread-safe
+   * as long as the provided bitmaps remain unchanged.
+   *
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @return cardinality of the left difference
+   */
+  public static int andNotCardinality(final RoaringBitmap x1, final RoaringBitmap x2) {
+    return x1.getCardinality() - andCardinality(x1, x2);
+  }
 
   /**
    * Generate a new bitmap with all integers in [rangeStart,rangeEnd) removed.
@@ -1237,6 +1262,49 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       return srb.highLowContainer.equals(this.highLowContainer);
     }
     return false;
+  }
+
+  /**
+   * Returns true if the other bitmap has no more than tolerance bits
+   * differing from this bitmap. The other may be transformed into a bitmap equal
+   * to this bitmap in no more than tolerance bit flips if this method returns true.
+   *
+   * @param other the bitmap to compare to
+   * @param tolerance the maximum number of bits that may differ
+   * @return true if the number of differing bits is smaller than tolerance
+   */
+  public boolean isHammingSimilar(RoaringBitmap other, int tolerance) {
+    final int size1 = highLowContainer.size();
+    final int size2 = other.highLowContainer.size();
+    int pos1 = 0;
+    int pos2 = 0;
+    int budget = tolerance;
+    while(budget >= 0 && pos1 < size1 && pos2 < size2) {
+      final short key1 = this.highLowContainer.getKeyAtIndex(pos1);
+      final short key2 = other.highLowContainer.getKeyAtIndex(pos2);
+      Container left = highLowContainer.getContainerAtIndex(pos1);
+      Container right = other.highLowContainer.getContainerAtIndex(pos2);
+      if(key1 == key2) {
+        budget -= left.xorCardinality(right);
+        ++pos1;
+        ++pos2;
+      } else if(key1 < key2) {
+        budget -= left.getCardinality();
+        ++pos1;
+      } else {
+        budget -= right.getCardinality();
+        ++pos2;
+      }
+    }
+    while(budget >= 0 && pos1 < size1) {
+      Container container = highLowContainer.getContainerAtIndex(pos1++);
+      budget -= container.getCardinality();
+    }
+    while(budget >= 0 && pos2 < size2) {
+      Container container = other.highLowContainer.getContainerAtIndex(pos2++);
+      budget -= container.getCardinality();
+    }
+    return budget >= 0;
   }
 
   /**

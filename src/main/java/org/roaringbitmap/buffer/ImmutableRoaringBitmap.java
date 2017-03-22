@@ -4,14 +4,7 @@
 
 package org.roaringbitmap.buffer;
 
-import org.roaringbitmap.ImmutableBitmapDataProvider;
-import org.roaringbitmap.IntConsumer;
-import org.roaringbitmap.IntIterator;
-import org.roaringbitmap.PeekableIntIterator;
-import org.roaringbitmap.PeekableShortIterator;
-import org.roaringbitmap.RoaringBitmap;
-import org.roaringbitmap.ShortIterator;
-import org.roaringbitmap.Util;
+import org.roaringbitmap.*;
 
 import java.io.DataOutput;
 import java.io.IOException;
@@ -29,7 +22,7 @@ import java.util.NoSuchElementException;
  *       import org.roaringbitmap.buffer.*;
  *       
  *       //...
- *       
+ *
  *       MutableRoaringBitmap rr1 = MutableRoaringBitmap.bitmapOf(1, 2, 3, 1000);
  *       MutableRoaringBitmap rr2 = MutableRoaringBitmap.bitmapOf( 2, 3, 1010);
  *       ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -289,6 +282,36 @@ public class ImmutableRoaringBitmap
       }
     }
     return answer;
+  }
+
+
+
+  /**
+   * Cardinality of the bitwise XOR (symmetric difference) operation.
+   * The provided bitmaps are *not* modified. This operation is thread-safe
+   * as long as the provided bitmaps remain unchanged.
+   *
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @return cardinality of the symmetric difference
+   */
+  public static int xorCardinality(final ImmutableRoaringBitmap x1,
+                                   final ImmutableRoaringBitmap x2) {
+    return x1.getCardinality() + x2.getCardinality() - 2 * andCardinality(x1, x2);
+  }
+
+  /**
+   * Cardinality of the bitwise ANDNOT (left difference) operation.
+   * The provided bitmaps are *not* modified. This operation is thread-safe
+   * as long as the provided bitmaps remain unchanged.
+   *
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @return cardinality of the left difference
+   */
+  public static int andNotCardinality(final ImmutableRoaringBitmap x1,
+                                      final ImmutableRoaringBitmap x2) {
+    return x1.getCardinality() - andCardinality(x1, x2);
   }
 
   /**
@@ -994,6 +1017,49 @@ public class ImmutableRoaringBitmap
       return true;
     }
     return false;
+  }
+
+  /**
+   * Returns true if the other bitmap has no more than tolerance bits
+   * differing from this bitmap. The other may be transformed into a bitmap equal
+   * to this bitmap in no more than tolerance bit flips if this method returns true.
+   *
+   * @param other the bitmap to compare to
+   * @param tolerance the maximum number of bits that may differ
+   * @return true if the number of differing bits is smaller than tolerance
+   */
+  public boolean isHammingSimilar(ImmutableRoaringBitmap other, int tolerance) {
+    final int size1 = highLowContainer.size();
+    final int size2 = other.highLowContainer.size();
+    int pos1 = 0;
+    int pos2 = 0;
+    int budget = tolerance;
+    while(budget >= 0 && pos1 < size1 && pos2 < size2) {
+      final short key1 = highLowContainer.getKeyAtIndex(pos1);
+      final short key2 = other.highLowContainer.getKeyAtIndex(pos2);
+      MappeableContainer left = highLowContainer.getContainerAtIndex(pos1);
+      MappeableContainer right = other.highLowContainer.getContainerAtIndex(pos2);
+      if(key1 == key2) {
+        budget -= left.xorCardinality(right);
+        ++pos1;
+        ++pos2;
+      } else if(key1 < key2) {
+        budget -= left.getCardinality();
+        ++pos1;
+      } else {
+        budget -= right.getCardinality();
+        ++pos2;
+      }
+    }
+    while(budget >= 0 && pos1 < size1) {
+      MappeableContainer container = highLowContainer.getContainerAtIndex(pos1++);
+      budget -= container.getCardinality();
+    }
+    while(budget >= 0 && pos2 < size2) {
+      MappeableContainer container = other.highLowContainer.getContainerAtIndex(pos2++);
+      budget -= container.getCardinality();
+    }
+    return budget >= 0;
   }
 
 

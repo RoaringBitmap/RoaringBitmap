@@ -122,6 +122,16 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     }
   }
 
+  /**
+   * Returns the cardinality of the XOR between the passed container and this
+   * container without materialising a temporary container.
+   * @param other other container
+   * @return the cardinality of the symmetric difference of the two containers
+   */
+  public int xorCardinality(Container other) {
+    return getCardinality() + other.getCardinality() - 2 * andCardinality(other);
+  }
+
 
   /**
    * Computes the bitwise ANDNOT of this container with another (difference). This container as well
