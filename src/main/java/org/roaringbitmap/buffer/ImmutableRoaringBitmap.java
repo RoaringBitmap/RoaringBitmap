@@ -499,7 +499,7 @@ public class ImmutableRoaringBitmap
   /**
    * Return new iterator with only values from rangeStart (inclusive) to rangeEnd (exclusive)
    * 
-   * @param input bitmaps iterator
+   * @param bitmaps bitmaps iterator
    * @param rangeStart inclusive
    * @param rangeEnd exclusive
    * @return new iterator of bitmaps
@@ -1043,7 +1043,7 @@ public class ImmutableRoaringBitmap
         budget -= left.xorCardinality(right);
         ++pos1;
         ++pos2;
-      } else if(key1 < key2) {
+      } else if(Util.compareUnsigned(key1, key2) < 0) {
         budget -= left.getCardinality();
         ++pos1;
       } else {

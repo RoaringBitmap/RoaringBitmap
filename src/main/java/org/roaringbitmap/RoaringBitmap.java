@@ -1288,7 +1288,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         budget -= left.xorCardinality(right);
         ++pos1;
         ++pos2;
-      } else if(key1 < key2) {
+      } else if(Util.compareUnsigned(key1, key2) < 0) {
         budget -= left.getCardinality();
         ++pos1;
       } else {
