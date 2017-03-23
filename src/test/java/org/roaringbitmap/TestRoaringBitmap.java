@@ -4,6 +4,8 @@
 package org.roaringbitmap;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ContiguousSet;
@@ -4474,6 +4476,76 @@ public class TestRoaringBitmap {
     rb.add(1L<< 15, 1L << 30);
     Assert.assertEquals(2, rb.first());
     Assert.assertEquals((1L << 30) - 1, rb.last());
+  }
+
+  @Test
+  public void testIsHammingSimilar_AtStart() {
+    // similar bitmaps in the first container
+    RoaringBitmap baseline = RoaringBitmap.bitmapOf(2, 4, 8, 1 << 17, 1 << 22);
+    assertTrue(baseline.isHammingSimilar(baseline, 0));
+    RoaringBitmap other = baseline.clone();
+    other.flip(0L, 9);
+    for (int i = 0; i < 9; ++i) {
+      assertFalse(baseline.isHammingSimilar(other, i));
+    }
+    assertTrue(baseline.isHammingSimilar(other, 9));
+    other.add(0L, 9L);
+    for (int i = 0; i < 6; ++i) {
+      assertFalse(baseline.isHammingSimilar(other, i));
+    }
+    assertTrue(baseline.isHammingSimilar(other, 6));
+  }
+
+  @Test
+  public void testHammingSimilarity_BigVsSmall() {
+      RoaringBitmap big = new RoaringBitmap();
+      big.add(1, 2, 3, 4);
+      big.add(1L << 17, 1L << 30);
+      big.flip((1 << 17) | (1 << 16));
+      for(int i = 1 << 18; i < 1 << 19; ++i) {
+          if(i % 3 == 0) {
+              big.flip(i);
+          }
+      }
+      RoaringBitmap small = RoaringBitmap.bitmapOf(1, 2, 3, 4);
+      assertFalse(small.isHammingSimilar(big, 1));
+      assertFalse(big.isHammingSimilar(small, 1));
+  }
+
+  @Test
+  public void testHammingSimilarity_Shifted() {
+      RoaringBitmap baseline = RoaringBitmap.bitmapOf(1, 2, 3, 4);
+      RoaringBitmap shifted = RoaringBitmap.bitmapOf((1 << 17) + 1, (1 << 17) + 2, (1 << 17) + 3,
+              (1 << 17) + 4);
+      assertFalse(baseline.isHammingSimilar(shifted, 0));
+  }
+
+   @Test
+   public void testIsHammingSimilar_AtEnd() {
+     // reject bitmaps that are identical for many chunks but differ at the end
+     RoaringBitmap baseline = new RoaringBitmap();
+     for(int i = 0; i < 1 << 15; ++i) {
+       if (i % 3 == 0) {
+           baseline.add(i);
+       }
+     }
+     baseline.add((1L << 16) + 1, 1L << 18);
+     baseline.add((1L << 19) + 1, 1L << 20);
+     baseline.add((1 << 21) + 1);
+     baseline.add((1 << 21) + 3);
+     baseline.add((1 << 21) + 5);
+     assertEquals(baseline.getCardinality(), RoaringBitmap.andCardinality(baseline, baseline));
+     assertTrue(baseline.isHammingSimilar(baseline, 0));
+     RoaringBitmap other = baseline.clone();
+     other.flip((1 << 21) + 1);
+     assertTrue(baseline.isHammingSimilar(other, 1));
+     assertFalse(baseline.isHammingSimilar(other, 0));
+     other.add((1 << 21) + 2);
+     assertTrue(baseline.isHammingSimilar(other, 2));
+     assertFalse(baseline.isHammingSimilar(other, 1));
+     other.flip((1 << 21) + 3);
+     assertTrue(baseline.isHammingSimilar(other, 3));
+     assertFalse(baseline.isHammingSimilar(other, 2));
   }
 
   @Test

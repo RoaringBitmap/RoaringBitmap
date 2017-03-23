@@ -8,10 +8,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Random;
+import java.util.*;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.junit.Test;
 
 /**
@@ -792,6 +792,29 @@ public class TestContainer {
 
     Container result = ac.or(ac1.getShortIterator());
     assertTrue(checkContent(result, new short[] {1, 3, 4, 5, (short) 50000, (short) 50001}));
+  }
+
+  @Test
+  public void testXorContainer() throws Exception {
+    Container rc1 = new RunContainer(new short[] {10, 12, 90, 10}, 2);
+    Container rc2 = new RunContainer(new short[]{1, 10, 40, 400, 900, 10}, 3);
+    Container bc1 = new BitmapContainer().add(10, 20);
+    Container bc2 = new BitmapContainer().add(21, 30);
+    Container ac1 = new ArrayContainer(4, new short[] {10, 12, 90, 104});
+    Container ac2 = new ArrayContainer(2, new short[]{1, 10, 40, 400, 900, 1910});
+    for(Set<Container> test : Sets.powerSet(ImmutableSet.of(rc1, rc2, bc1, bc2, ac1, ac2))) {
+      Iterator<Container> it = test.iterator();
+      if(test.size() == 1) { // compare with self
+        Container x = it.next();
+        assertEquals(x.getContainerName() + ": " + x, x.xor(x).getCardinality(), x.xorCardinality(x));
+      } else if(test.size() == 2) {
+        Container x = it.next();
+        Container y = it.next();
+        assertEquals(x.getContainerName() + " " + x + " " + y.getContainerName() + " " + y,
+                x.xor(y).getCardinality(), x.xorCardinality(y));
+        assertEquals(y.getContainerName() + " " + y + " " + x.getContainerName() + " " + x, y.xor(x).getCardinality(), y.xorCardinality(x));
+      }
+    }
   }
 
 

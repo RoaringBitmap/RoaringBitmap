@@ -5,11 +5,15 @@
 package org.roaringbitmap.buffer;
 
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.junit.Test;
 import org.roaringbitmap.ShortIterator;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -27,7 +31,7 @@ public class TestContainer {
     assertTrue(new MappeableArrayContainer().getContainerName().equals(MappeableContainer.ContainerNames[1]));
     assertTrue(new MappeableRunContainer().getContainerName().equals(MappeableContainer.ContainerNames[2]));
   }
-  
+
   public static boolean checkContent(MappeableContainer c, short[] s) {
     ShortIterator si = c.getShortIterator();
     int ctr = 0;
@@ -735,6 +739,28 @@ public class TestContainer {
     assertEquals(c.getCardinality(), 1);
     assertTrue(c instanceof MappeableArrayContainer);
 
+  }
+
+  @Test
+  public void testXorContainer() throws Exception {
+    MappeableContainer rc1 = new MappeableRunContainer().add(2, 10).add(20, 40);
+    MappeableContainer rc2 = new MappeableRunContainer().add(5, 11).add(13, 25);
+    MappeableContainer bc1 = new MappeableBitmapContainer().add(10, 20);
+    MappeableContainer bc2 = new MappeableBitmapContainer().add(21, 30);
+    MappeableContainer ac1 = new MappeableArrayContainer().add((short) 3).add((short) 79);
+    MappeableContainer ac2 = new MappeableArrayContainer().add((short) 45).add((short) 56).add((short) 109);
+    for (Set<MappeableContainer> test : Sets.powerSet(ImmutableSet.of(rc1, rc2, bc1, bc2, ac1, ac2))) {
+      Iterator<MappeableContainer> it = test.iterator();
+      if (test.size() == 1) { // compare with self
+        MappeableContainer x = it.next();
+        assertEquals(x.xor(x).getCardinality(), x.xorCardinality(x));
+      } else if (test.size() == 2) {
+        MappeableContainer x = it.next();
+        MappeableContainer y = it.next();
+        assertEquals(x.xor(y).getCardinality(), x.xorCardinality(y));
+        assertEquals(y.xor(x).getCardinality(), y.xorCardinality(x));
+      }
+    }
   }
 
   @Test(expected = NoSuchElementException.class)

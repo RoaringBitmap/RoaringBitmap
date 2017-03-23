@@ -23,6 +23,8 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Generic testing of the roaring bitmaps
@@ -1283,6 +1285,75 @@ public class TestImmutableRoaringBitmap {
   }
 
   @Test
+  public void testIsHammingSimilar_AtStart() {
+    // similar bitmaps in the first container
+    ImmutableRoaringBitmap baseline = ImmutableRoaringBitmap.bitmapOf(2, 4, 8, 1 << 17, 1 << 22);
+    assertTrue(baseline.isHammingSimilar(baseline, 0));
+    MutableRoaringBitmap other = baseline.clone().toMutableRoaringBitmap();
+    other.flip(0L, 9);
+    for (int i = 0; i < 9; ++i) {
+      assertFalse(baseline.isHammingSimilar(other, i));
+    }
+    assertTrue(baseline.isHammingSimilar(other, 9));
+    other.add(0L, 9L);
+    for (int i = 0; i < 6; ++i) {
+      assertFalse(baseline.isHammingSimilar(other, i));
+    }
+    assertTrue(baseline.isHammingSimilar(other, 6));
+  }
+
+  @Test
+  public void testHammingSimilarity_BigVsSmall() {
+    MutableRoaringBitmap big = new MutableRoaringBitmap();
+    big.add(1, 2, 3, 4);
+    big.add(1L << 17, 1L << 30);
+    big.flip((1 << 17) | (1 << 16));
+    for(int i = 1 << 18; i < 1 << 19; ++i) {
+      if(i % 3 == 0) {
+        big.flip(i);
+      }
+    }
+    MutableRoaringBitmap small = MutableRoaringBitmap.bitmapOf(1, 2, 3, 4);
+    assertFalse(small.isHammingSimilar(big, 1));
+    assertFalse(big.isHammingSimilar(small, 1));
+  }
+
+  @Test
+  public void testHammingSimilarity_Shifted() {
+    ImmutableRoaringBitmap baseline = ImmutableRoaringBitmap.bitmapOf(1, 2, 3, 4);
+    ImmutableRoaringBitmap shifted = ImmutableRoaringBitmap.bitmapOf((1 << 17) + 1, (1 << 17) + 2,
+            (1 << 17) + 3, (1 << 17) + 4);
+    assertFalse(baseline.isHammingSimilar(shifted, 0));
+  }
+
+  @Test
+  public void testIsHammingSimilar_AtEnd() {
+    // reject bitmaps that are identical for many chunks but differ at the end
+    MutableRoaringBitmap mutable = new MutableRoaringBitmap();
+    for (int i = 0; i < 1 << 15; ++i) {
+      if (i % 3 == 0) {
+        mutable.add(i);
+      }
+    }
+    mutable.add((1L << 16) + 1, 1L << 18);
+    mutable.add((1L << 19) + 1, 1L << 20);
+    mutable.add((1 << 21) + 1);
+    mutable.add((1 << 21) + 3);
+    mutable.add((1 << 21) + 5);
+    ImmutableRoaringBitmap baseline = mutable.toImmutableRoaringBitmap();
+    assertTrue(baseline.isHammingSimilar(baseline, 0));
+    MutableRoaringBitmap other = baseline.clone().toMutableRoaringBitmap();
+    other.flip((1 << 21) + 1);
+    assertTrue(baseline.isHammingSimilar(other, 1));
+    assertFalse(baseline.isHammingSimilar(other, 0));
+    other.add((1 << 21) + 2);
+    assertTrue(baseline.isHammingSimilar(other, 2));
+    assertFalse(baseline.isHammingSimilar(other, 1));
+    other.flip((1 << 21) + 3);
+    assertTrue(baseline.isHammingSimilar(other, 3));
+    assertFalse(baseline.isHammingSimilar(other, 2));
+  }
+
   public void testXorCardinality() {
     final MutableRoaringBitmap rb = new MutableRoaringBitmap();
     for (int k = 0; k < 4000; ++k) {

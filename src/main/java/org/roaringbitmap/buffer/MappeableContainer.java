@@ -89,6 +89,16 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
   protected abstract int andCardinality(MappeableRunContainer x);
 
   /**
+   * Returns the cardinality of the XOR between the passed container and this
+   * container without materialising a temporary container.
+   * @param other other container
+   * @return the cardinality of the symmetric difference of the two containers
+   */
+  public int xorCardinality(MappeableContainer other) {
+    return getCardinality() + other.getCardinality() - 2 * andCardinality(other);
+  }
+
+  /**
    * Computes the bitwise AND of this container with another (intersection). This container as well
    * as the provided container are left unaffected.
    *
