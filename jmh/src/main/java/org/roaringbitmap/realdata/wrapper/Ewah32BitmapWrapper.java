@@ -52,6 +52,11 @@ final class Ewah32BitmapWrapper implements Bitmap {
    }
 
    @Override
+   public Bitmap ior(Bitmap other) {
+      throw new UnsupportedOperationException("Not implemented in Ewah32");
+   }
+
+   @Override
    public Bitmap xor(Bitmap other) {
       return new Ewah32BitmapWrapper(bitmap.xor(((Ewah32BitmapWrapper) other).bitmap));
    }
@@ -152,6 +157,15 @@ final class Ewah32BitmapWrapper implements Bitmap {
    @Override
    public void serialize(DataOutputStream dos) throws IOException {
       bitmap.serialize(dos);
+   }
+
+   @Override
+   public Bitmap clone() {
+      try {
+         return new Ewah32BitmapWrapper(bitmap.clone());
+      } catch (CloneNotSupportedException e) {
+         throw new RuntimeException(e);
+      }
    }
 
 }

@@ -905,24 +905,28 @@ public final class Util {
    * Unite two sorted lists and write the result to the provided output array
    *
    * @param set1 first array
+   * @param offset1 offset of first array
    * @param length1 length of first array
    * @param set2 second array
+   * @param offset2 offset of second array
    * @param length2 length of second array
    * @param buffer output array
    * @return cardinality of the union
    */
-  public static int unsignedUnion2by2(final short[] set1, final int length1, final short[] set2,
-      final int length2, final short[] buffer) {
-    int pos = 0;
-    int k1 = 0, k2 = 0;
+  public static int unsignedUnion2by2(
+          final short[] set1, final int offset1, final int length1,
+          final short[] set2, final int offset2, final int length2,
+          final short[] buffer) {
     if (0 == length2) {
-      System.arraycopy(set1, 0, buffer, 0, length1);
+      System.arraycopy(set1, offset1, buffer, 0, length1);
       return length1;
     }
     if (0 == length1) {
-      System.arraycopy(set2, 0, buffer, 0, length2);
+      System.arraycopy(set2, offset2, buffer, 0, length2);
       return length2;
     }
+    int pos = 0;
+    int k1 = offset1, k2 = offset2;
     short s1 = set1[k1];
     short s2 = set2[k2];
     while (true) {
@@ -931,31 +935,31 @@ public final class Util {
       if (v1 < v2) {
         buffer[pos++] = s1;
         ++k1;
-        if (k1 >= length1) {
-          System.arraycopy(set2, k2, buffer, pos, length2 - k2);
-          return pos + length2 - k2;
+        if (k1 >= length1 + offset1) {
+          System.arraycopy(set2, k2, buffer, pos, length2 - k2 + offset2);
+          return pos + length2 - k2 + offset2;
         }
         s1 = set1[k1];
       } else if (v1 == v2) {
         buffer[pos++] = s1;
         ++k1;
         ++k2;
-        if (k1 >= length1) {
-          System.arraycopy(set2, k2, buffer, pos, length2 - k2);
-          return pos + length2 - k2;
+        if (k1 >= length1 + offset1) {
+          System.arraycopy(set2, k2, buffer, pos, length2 - k2 + offset2);
+          return pos + length2 - k2 + offset2;
         }
-        if (k2 >= length2) {
-          System.arraycopy(set1, k1, buffer, pos, length1 - k1);
-          return pos + length1 - k1;
+        if (k2 >= length2 + offset2) {
+          System.arraycopy(set1, k1, buffer, pos, length1 - k1 + offset1);
+          return pos + length1 - k1 + offset1;
         }
         s1 = set1[k1];
         s2 = set2[k2];
       } else {// if (set1[k1]>set2[k2])
         buffer[pos++] = s2;
         ++k2;
-        if (k2 >= length2) {
-          System.arraycopy(set1, k1, buffer, pos, length1 - k1);
-          return pos + length1 - k1;
+        if (k2 >= length2 + offset2) {
+          System.arraycopy(set1, k1, buffer, pos, length1 - k1 + offset1);
+          return pos + length1 - k1 + offset1;
         }
         s2 = set2[k2];
       }
