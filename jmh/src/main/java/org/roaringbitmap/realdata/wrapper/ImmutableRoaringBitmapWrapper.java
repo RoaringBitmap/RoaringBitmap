@@ -52,6 +52,11 @@ final class ImmutableRoaringBitmapWrapper implements Bitmap {
    }
 
    @Override
+   public Bitmap ior(Bitmap other) {
+      throw new UnsupportedOperationException("Not implemented in ImmutableRoaringBitmap");
+   }
+
+   @Override
    public Bitmap xor(Bitmap other) {
       return new ImmutableRoaringBitmapWrapper(ImmutableRoaringBitmap.xor(bitmap, ((ImmutableRoaringBitmapWrapper) other).bitmap));
    }
@@ -129,6 +134,11 @@ final class ImmutableRoaringBitmapWrapper implements Bitmap {
    @Override
    public void serialize(DataOutputStream dos) throws IOException {
       bitmap.serialize(dos);
+   }
+
+   @Override
+   public Bitmap clone() {
+      return new ImmutableRoaringBitmapWrapper(bitmap.clone());
    }
 
 }

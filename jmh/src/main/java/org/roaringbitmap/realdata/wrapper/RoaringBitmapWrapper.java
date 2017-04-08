@@ -51,6 +51,11 @@ final class RoaringBitmapWrapper implements Bitmap {
       return new RoaringBitmapWrapper(RoaringBitmap.or(bitmap, ((RoaringBitmapWrapper) other).bitmap));
    }
 
+   @Override
+   public Bitmap ior(Bitmap other) {
+      bitmap.or(((RoaringBitmapWrapper) other).bitmap);
+      return this;
+   }
 
    @Override
    public Bitmap flip(int rangeStart, int rangeEnd) {
@@ -133,6 +138,11 @@ final class RoaringBitmapWrapper implements Bitmap {
    @Override
    public void serialize(DataOutputStream dos) throws IOException {
       bitmap.serialize(dos);
+   }
+
+   @Override
+   public Bitmap clone() {
+      return new RoaringBitmapWrapper(bitmap.clone());
    }
 
 }

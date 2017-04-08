@@ -651,7 +651,43 @@ public final class ArrayContainer extends Container implements Cloneable {
 
   @Override
   public Container ior(final ArrayContainer value2) {
-    return this.or(value2);
+    int totalCardinality = this.getCardinality() + value2.getCardinality();
+    if (totalCardinality > DEFAULT_MAX_SIZE) {// it could be a bitmap!
+      BitmapContainer bc = new BitmapContainer();
+      for (int k = 0; k < value2.cardinality; ++k) {
+        short v = value2.content[k];
+        final int i = Util.toIntUnsigned(v) >>> 6;
+        bc.bitmap[i] |= (1L << v);
+      }
+      for (int k = 0; k < this.cardinality; ++k) {
+        short v = this.content[k];
+        final int i = Util.toIntUnsigned(v) >>> 6;
+        bc.bitmap[i] |= (1L << v);
+      }
+      bc.cardinality = 0;
+      for (long k : bc.bitmap) {
+        bc.cardinality += Long.bitCount(k);
+      }
+      if (bc.cardinality <= DEFAULT_MAX_SIZE) {
+        return bc.toArrayContainer();
+      } else if (bc.isFull()) {
+        return RunContainer.full();
+      }
+      return bc;
+    }
+    final int desiredCapacity = totalCardinality; // Math.min(BitmapContainer.MAX_CAPACITY,
+    // totalCardinality);
+    if(desiredCapacity >= content.length) {
+      increaseCapacity(desiredCapacity);
+    }
+    System.arraycopy(content, 0, content, value2.cardinality, cardinality);
+    cardinality =
+            Util.unsignedUnion2by2(
+                    content, value2.cardinality, cardinality,
+                    value2.content, 0, value2.cardinality,
+                    content
+            );
+    return this;
   }
 
   @Override
@@ -884,8 +920,12 @@ public final class ArrayContainer extends Container implements Cloneable {
     final int desiredCapacity = totalCardinality; // Math.min(BitmapContainer.MAX_CAPACITY,
     // totalCardinality);
     ArrayContainer answer = new ArrayContainer(desiredCapacity);
-    answer.cardinality = Util.unsignedUnion2by2(value1.content, value1.getCardinality(),
-        value2.content, value2.getCardinality(), answer.content);
+    answer.cardinality =
+            Util.unsignedUnion2by2(
+                    value1.content, 0, value1.getCardinality(),
+                    value2.content, 0, value2.getCardinality(),
+                    answer.content
+            );
     return answer;
   }
 
@@ -1071,7 +1111,7 @@ public final class ArrayContainer extends Container implements Cloneable {
   /**
    * Return the content of this container as a ShortBuffer. This creates a copy and might be
    * relatively slow.
-   * 
+   *
    * @return the ShortBuffer
    */
   public ShortBuffer toShortBuffer() {
@@ -1195,8 +1235,12 @@ public final class ArrayContainer extends Container implements Cloneable {
     final int desiredCapacity = totalCardinality; // Math.min(BitmapContainer.MAX_CAPACITY,
     // totalCardinality);
     ArrayContainer answer = new ArrayContainer(desiredCapacity);
-    answer.cardinality = Util.unsignedUnion2by2(value1.content, value1.getCardinality(),
-        value2.content, value2.getCardinality(), answer.content);
+    answer.cardinality =
+            Util.unsignedUnion2by2(
+                    value1.content, 0, value1.getCardinality(),
+                    value2.content, 0, value2.getCardinality(),
+                    answer.content
+            );
     return answer;
 
   }

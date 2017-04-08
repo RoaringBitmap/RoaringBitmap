@@ -850,18 +850,22 @@ public final class BufferUtil {
 
   }
 
-  protected static int unsignedUnion2by2(final ShortBuffer set1, final int length1,
-      final ShortBuffer set2, final int length2, final short[] buffer) {
-    int pos = 0;
-    int k1 = 0, k2 = 0;
+  protected static int unsignedUnion2by2(
+          final ShortBuffer set1, final int offset1, final int length1,
+          final ShortBuffer set2, final int offset2, final int length2,
+          final short[] buffer) {
     if (0 == length2) {
+      set1.position(offset1);
       set1.get(buffer, 0, length1);
       return length1;
     }
     if (0 == length1) {
+      set2.position(offset2);
       set2.get(buffer, 0, length2);
       return length2;
     }
+    int pos = 0;
+    int k1 = offset1, k2 = offset2;
     short s1 = set1.get(k1);
     short s2 = set2.get(k2);
     while (true) {
@@ -870,35 +874,35 @@ public final class BufferUtil {
       if (v1 < v2) {
         buffer[pos++] = s1;
         ++k1;
-        if (k1 >= length1) {
+        if (k1 >= length1 + offset1) {
           set2.position(k2);
-          set2.get(buffer, pos, length2 - k2);
-          return pos + length2 - k2;
+          set2.get(buffer, pos, length2 - k2 + offset2);
+          return pos + length2 - k2 + offset2;
         }
         s1 = set1.get(k1);
       } else if (v1 == v2) {
         buffer[pos++] = s1;
         ++k1;
         ++k2;
-        if (k1 >= length1) {
+        if (k1 >= length1 + offset1) {
           set2.position(k2);
-          set2.get(buffer, pos, length2 - k2);
-          return pos + length2 - k2;
+          set2.get(buffer, pos, length2 - k2 + offset2);
+          return pos + length2 - k2 + offset2;
         }
-        if (k2 >= length2) {
+        if (k2 >= length2 + offset2) {
           set1.position(k1);
-          set1.get(buffer, pos, length1 - k1);
-          return pos + length1 - k1;
+          set1.get(buffer, pos, length1 - k1 + offset1);
+          return pos + length1 - k1 + offset1;
         }
         s1 = set1.get(k1);
         s2 = set2.get(k2);
       } else {// if (set1.get(k1)>set2.get(k2))
         buffer[pos++] = s2;
         ++k2;
-        if (k2 >= length2) {
+        if (k2 >= length2 + offset2) {
           set1.position(k1);
-          set1.get(buffer, pos, length1 - k1);
-          return pos + length1 - k1;
+          set1.get(buffer, pos, length1 - k1 + offset1);
+          return pos + length1 - k1 + offset1;
         }
         s2 = set2.get(k2);
       }

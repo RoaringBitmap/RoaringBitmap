@@ -21,6 +21,8 @@ public interface Bitmap {
 
    Bitmap or(Bitmap other);
 
+   Bitmap ior(Bitmap other);
+
    Bitmap xor(Bitmap other);
 
    Bitmap flip( int rangeStart, int rangeEnd);
@@ -36,5 +38,7 @@ public interface Bitmap {
    void forEach(IntConsumer ic);
 
    void serialize(DataOutputStream dos) throws IOException;
+
+   Bitmap clone();
 
 }
