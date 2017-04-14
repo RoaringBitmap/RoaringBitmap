@@ -1267,9 +1267,10 @@ public class ImmutableRoaringBitmap
     short xhigh = BufferUtil.highbits(x);
     for (int i = 0; i < this.highLowContainer.size(); i++) {
       short key = this.highLowContainer.getKeyAtIndex(i);
-      if (Util.compareUnsigned(key, xhigh) < 0) {
+      int comparison = Util.compareUnsigned(key, xhigh);
+      if (comparison < 0) {
         size += this.highLowContainer.getCardinality(i);
-      } else {
+      } else if(comparison == 0) {
         return size + this.highLowContainer.getContainerAtIndex(i).rank(BufferUtil.lowbits(x));
       }
     }
