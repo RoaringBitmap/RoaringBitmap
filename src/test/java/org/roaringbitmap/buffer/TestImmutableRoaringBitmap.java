@@ -1388,4 +1388,11 @@ public class TestImmutableRoaringBitmap {
     ImmutableRoaringBitmap andNot = ImmutableRoaringBitmap.andNot(rb, rb2);
     assertEquals(andNot.getCardinality(), ImmutableRoaringBitmap.andNotCardinality(rb, rb2));
   }
+
+  @Test
+  public void testRankOverflow() {
+    Assert.assertEquals(0, ImmutableRoaringBitmap.bitmapOf(65537).rank(1));
+    Assert.assertEquals(1, ImmutableRoaringBitmap.bitmapOf(65537).rank(65537));
+    Assert.assertEquals(1, ImmutableRoaringBitmap.bitmapOf(65537).rank(65538));
+  }
 }

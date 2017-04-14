@@ -4560,4 +4560,12 @@ public class TestRoaringBitmap {
     assertEquals(baseline.getCardinality(), RoaringBitmap.andCardinality(baseline, baseline));
   }
 
+
+  @Test
+  public void testRankOverflow() {
+    Assert.assertEquals(0, RoaringBitmap.bitmapOf(65537).rank(1));
+    Assert.assertEquals(1, RoaringBitmap.bitmapOf(65537).rank(65537));
+    Assert.assertEquals(1, RoaringBitmap.bitmapOf(65537).rank(65538));
+  }
+
 }
