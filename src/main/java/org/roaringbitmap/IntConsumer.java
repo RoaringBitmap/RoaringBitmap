@@ -10,7 +10,6 @@ package org.roaringbitmap;
  * {@code
  *  bitmap.forEach(new IntConsumer() {
  *
- *    &#64;Override
  *    public void accept(int value) {
  *      // do something here
  *      
