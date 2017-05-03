@@ -63,12 +63,12 @@ public final class Util {
     }
 
     // we know that the next-smallest span was too small
-    lower += (spansize >> 1);
+    lower += (spansize >>> 1);
 
     // else begin binary search
     // invariant: array[lower]<min && array[upper]>min
     while (lower + 1 != upper) {
-      int mid = (lower + upper) >> 1;
+      int mid = (lower + upper) >>> 1;
       short arraymid = array[mid];
       if (arraymid == min) {
         return mid;
