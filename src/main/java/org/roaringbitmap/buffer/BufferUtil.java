@@ -66,12 +66,12 @@ public final class BufferUtil {
     }
 
     // we know that the next-smallest span was too small
-    lower += (spansize / 2);
+    lower += (spansize >> 1);
 
     // else begin binary search
     // invariant: array[lower]<min && array[upper]>min
     while (lower + 1 != upper) {
-      int mid = (lower + upper) / 2;
+      int mid = (lower + upper) >> 1;
       short arraymid = array.get(mid);
       if (arraymid == min) {
         return mid;
@@ -128,7 +128,7 @@ public final class BufferUtil {
   }
 
 
-  protected static int branchyUnsignedBinarySearch(final ByteBuffer array, int position, 
+  protected static int branchyUnsignedBinarySearch(final ByteBuffer array, int position,
         final int begin, final int end, final short k) {
     final int ikey = toIntUnsigned(k);
     // next line accelerates the possibly common case where the value would be inserted at the end
@@ -540,7 +540,7 @@ public final class BufferUtil {
    * @param k value we search for
    * @return count
    */
-  public static int unsignedBinarySearch(final ByteBuffer array, int position, 
+  public static int unsignedBinarySearch(final ByteBuffer array, int position,
       final int begin, final int end, final short k) {
     return branchyUnsignedBinarySearch(array, position, begin, end, k);
   }
