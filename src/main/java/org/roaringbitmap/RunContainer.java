@@ -948,13 +948,13 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   private boolean equals(ArrayContainer arrayContainer) {
-    if (getCardinality() != arrayContainer.getCardinality()) {
-      return false;
-    }
     int pos = 0;
     for (short i = 0; i < nbrruns; ++i) {
       short runStart = getValue(i);
       short length = getLength(i);
+      if (pos + length >= arrayContainer.getCardinality()) {
+        return false;
+      }
       if (arrayContainer.content[pos] != runStart) {
         return false;
       }
@@ -963,7 +963,7 @@ public final class RunContainer extends Container implements Cloneable {
       }
       pos += length + 1;
     }
-    return pos == arrayContainer.getCardinality();
+    return true;
   }
 
   @Override
