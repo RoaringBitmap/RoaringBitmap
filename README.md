@@ -26,14 +26,12 @@ This library is used by
 *   [Netflix Atlas](https://github.com/Netflix/atlas),
 *   [OpenSearchServer](http://www.opensearchserver.com),
 *   [zenvisage](http://zenvisage.github.io/),
-*   [Pilosa](https://github.com/pilosa/pilosa),
 *   [LinkedIn Pinot](https://github.com/linkedin/pinot/wiki) and
 *   [Druid](http://druid.io/).
 
 
-[Apache Lucene|(http://lucene.apache.org/) uses  Roaring bitmaps, though they have their own [independent implementation](https://svn.apache.org/viewvc/lucene/dev/branches/branch_5x/lucene/core/src/java/org/apache/lucene/util/RoaringDocIdSet.java?view=markup&pathrev=1629606). Derivatives of Lucene such as Solr and Elastic also use Roaring bitmaps.
-Other platforms such as [Whoosh](https://pypi.python.org/pypi/Whoosh/) also use Roaring bitmaps with
-their own implementations.
+[Apache Lucene](http://lucene.apache.org/) uses  Roaring bitmaps, though they have their own [independent implementation](https://svn.apache.org/viewvc/lucene/dev/branches/branch_5x/lucene/core/src/java/org/apache/lucene/util/RoaringDocIdSet.java?view=markup&pathrev=1629606). Derivatives of Lucene such as Solr and Elastic also use Roaring bitmaps.
+Other platforms such as [Whoosh](https://pypi.python.org/pypi/Whoosh/) and [Pilosa](https://github.com/pilosa/pilosa) also use Roaring bitmaps with their own implementations.
 
 
 There is a serialized format specification for interoperability between implementations: https://github.com/RoaringBitmap/RoaringFormatSpec/
