@@ -26,6 +26,7 @@ This library is used by
 *   [Netflix Atlas](https://github.com/Netflix/atlas),
 *   [OpenSearchServer](http://www.opensearchserver.com),
 *   [zenvisage](http://zenvisage.github.io/),
+*   [Pilosa](https://github.com/pilosa/pilosa),
 *   [LinkedIn Pinot](https://github.com/linkedin/pinot/wiki) and
 *   [Druid](http://druid.io/).
 
