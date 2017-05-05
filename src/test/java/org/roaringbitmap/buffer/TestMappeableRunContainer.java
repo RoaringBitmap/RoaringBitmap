@@ -3,14 +3,15 @@ package org.roaringbitmap.buffer;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
 import static org.roaringbitmap.buffer.TestMappeableArrayContainer.newArrayContainer;
 
@@ -246,5 +247,46 @@ public class TestMappeableRunContainer {
     MappeableRunContainer rc = generateContainer(new short[]{7, 300, 400, 900, 1400, 2200}, 3);
     MappeableBitmapContainer result = (MappeableBitmapContainer) rc.xor(bc);
     assertEquals(6031, result.getCardinality());
+  }
+
+  @Test
+  public void testEqualsArrayContainer_Equal() {
+    MappeableContainer rc = new MappeableRunContainer().add(0, 10);
+    MappeableContainer ac = new MappeableArrayContainer().add(0, 10);
+    assertTrue(rc.equals(ac));
+    assertTrue(ac.equals(rc));
+  }
+
+  @Test
+  public void testEqualsArrayContainer_NotEqual_ArrayLarger() {
+    MappeableContainer rc = new MappeableRunContainer().add(0, 10);
+    MappeableContainer ac = new MappeableArrayContainer().add(0, 11);
+    assertFalse(rc.equals(ac));
+    assertFalse(ac.equals(rc));
+  }
+
+  @Test
+  public void testEqualsArrayContainer_NotEqual_ArraySmaller() {
+    MappeableContainer rc = new MappeableRunContainer().add(0, 10);
+    MappeableContainer ac = new MappeableArrayContainer().add(0, 9);
+    assertFalse(rc.equals(ac));
+    assertFalse(ac.equals(rc));
+  }
+
+  @Test
+  public void testEqualsArrayContainer_NotEqual_ArrayShifted() {
+    MappeableContainer rc = new MappeableRunContainer().add(0, 10);
+    MappeableContainer ac = new MappeableArrayContainer().add(1, 11);
+    assertFalse(rc.equals(ac));
+    assertFalse(ac.equals(rc));
+  }
+
+  @Test
+  public void testEqualsArrayContainer_NotEqual_ArrayDiscontiguous() {
+    MappeableContainer rc = new MappeableRunContainer().add(0, 10);
+    MappeableContainer ac = new MappeableArrayContainer().add(0, 11);
+    ac.flip((short)9);
+    assertFalse(rc.equals(ac));
+    assertFalse(ac.equals(rc));
   }
 }

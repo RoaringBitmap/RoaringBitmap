@@ -963,7 +963,7 @@ public final class RunContainer extends Container implements Cloneable {
       }
       pos += length + 1;
     }
-    return true;
+    return pos == arrayContainer.getCardinality();
   }
 
   @Override

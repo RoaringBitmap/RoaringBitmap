@@ -3248,4 +3248,45 @@ public class TestRunContainer {
     assertFalse(rc.contains(disjoint));
     assertFalse(disjoint.contains(rc));
   }
+
+  @Test
+  public void testEqualsArrayContainer_Equal() {
+    Container rc = new RunContainer().add(0, 10);
+    Container ac = new ArrayContainer().add(0, 10);
+    assertTrue(rc.equals(ac));
+    assertTrue(ac.equals(rc));
+  }
+
+  @Test
+  public void testEqualsArrayContainer_NotEqual_ArrayLarger() {
+    Container rc = new RunContainer().add(0, 10);
+    Container ac = new ArrayContainer().add(0, 11);
+    assertFalse(rc.equals(ac));
+    assertFalse(ac.equals(rc));
+  }
+
+  @Test
+  public void testEqualsArrayContainer_NotEqual_ArraySmaller() {
+    Container rc = new RunContainer().add(0, 10);
+    Container ac = new ArrayContainer().add(0, 9);
+    assertFalse(rc.equals(ac));
+    assertFalse(ac.equals(rc));
+  }
+
+  @Test
+  public void testEqualsArrayContainer_NotEqual_ArrayShifted() {
+    Container rc = new RunContainer().add(0, 10);
+    Container ac = new ArrayContainer().add(1, 11);
+    assertFalse(rc.equals(ac));
+    assertFalse(ac.equals(rc));
+  }
+
+  @Test
+  public void testEqualsArrayContainer_NotEqual_ArrayDiscontiguous() {
+    Container rc = new RunContainer().add(0, 10);
+    Container ac = new ArrayContainer().add(0, 11);
+    ac.flip((short)9);
+    assertFalse(rc.equals(ac));
+    assertFalse(ac.equals(rc));
+  }
 }
