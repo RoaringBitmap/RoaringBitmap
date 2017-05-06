@@ -912,19 +912,9 @@ public final class RunContainer extends Container implements Cloneable {
   @Override
   public boolean equals(Object o) {
     if (o instanceof RunContainer) {
-      RunContainer srb = (RunContainer) o;
-      if (srb.nbrruns != this.nbrruns) {
-        return false;
-      }
-      for (int i = 0; i < nbrruns; ++i) {
-        if (this.getValue(i) != srb.getValue(i)) {
-          return false;
-        }
-        if (this.getLength(i) != srb.getLength(i)) {
-          return false;
-        }
-      }
-      return true;
+      return equals((RunContainer) o);
+    } else if (o instanceof ArrayContainer) {
+      return equals((ArrayContainer) o);
     } else if (o instanceof Container) {
       if (((Container) o).getCardinality() != this.getCardinality()) {
         return false; // should be a frequent branch if they differ
@@ -940,6 +930,40 @@ public final class RunContainer extends Container implements Cloneable {
       return true;
     }
     return false;
+  }
+
+  private boolean equals(RunContainer runContainer) {
+    if (runContainer.nbrruns != this.nbrruns) {
+      return false;
+    }
+    for (int i = 0; i < nbrruns; ++i) {
+      if (getValue(i) != runContainer.getValue(i)) {
+        return false;
+      }
+      if (getLength(i) != runContainer.getLength(i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private boolean equals(ArrayContainer arrayContainer) {
+    int pos = 0;
+    for (short i = 0; i < nbrruns; ++i) {
+      short runStart = getValue(i);
+      short length = getLength(i);
+      if (pos + length >= arrayContainer.getCardinality()) {
+        return false;
+      }
+      if (arrayContainer.content[pos] != runStart) {
+        return false;
+      }
+      if (arrayContainer.content[pos + length] != runStart + length) {
+        return false;
+      }
+      pos += length + 1;
+    }
+    return pos == arrayContainer.getCardinality();
   }
 
   @Override

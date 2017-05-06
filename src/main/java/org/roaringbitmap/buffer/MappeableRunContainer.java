@@ -820,19 +820,9 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   @Override
   public boolean equals(Object o) {
     if (o instanceof MappeableRunContainer) {
-      MappeableRunContainer srb = (MappeableRunContainer) o;
-      if (srb.nbrruns != this.nbrruns) {
-        return false;
-      }
-      for (int i = 0; i < nbrruns; ++i) {
-        if (this.getValue(i) != srb.getValue(i)) {
-          return false;
-        }
-        if (this.getLength(i) != srb.getLength(i)) {
-          return false;
-        }
-      }
-      return true;
+      return equals((MappeableRunContainer) o);
+    } else if (o instanceof MappeableArrayContainer) {
+      return equals((MappeableArrayContainer) o);
     } else if (o instanceof MappeableContainer) {
       if (((MappeableContainer) o).getCardinality() != this.getCardinality()) {
         return false; // should be a frequent branch if they differ
@@ -848,6 +838,40 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       return true;
     }
     return false;
+  }
+
+  private boolean equals(MappeableRunContainer runContainer) {
+    if (runContainer.nbrruns != this.nbrruns) {
+      return false;
+    }
+    for (int i = 0; i < nbrruns; ++i) {
+      if (this.getValue(i) != runContainer.getValue(i)) {
+        return false;
+      }
+      if (this.getLength(i) != runContainer.getLength(i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private boolean equals(MappeableArrayContainer arrayContainer) {
+    int pos = 0;
+    for (short i = 0; i < nbrruns; ++i) {
+      short runStart = getValue(i);
+      short length = getLength(i);
+      if (pos + length >= arrayContainer.getCardinality()) {
+        return false;
+      }
+      if (arrayContainer.select(pos) != runStart) {
+        return false;
+      }
+      if (arrayContainer.select(pos + length) != runStart + length) {
+        return false;
+      }
+      pos += length + 1;
+    }
+    return pos == arrayContainer.getCardinality();
   }
 
   @Override
