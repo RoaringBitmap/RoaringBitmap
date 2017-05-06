@@ -14,8 +14,8 @@ import java.util.Iterator;
 /**
  * Created by Borislav Ivanov on 4/2/15.
  */
-@BenchmarkMode(Mode.AverageTime)
-@OutputTimeUnit(TimeUnit.MICROSECONDS)
+@BenchmarkMode({Mode.SampleTime, Mode.Throughput, Mode.AverageTime})
+@OutputTimeUnit(TimeUnit.MILLISECONDS)
 public class IteratorsBenchmark {
 
    @Benchmark
