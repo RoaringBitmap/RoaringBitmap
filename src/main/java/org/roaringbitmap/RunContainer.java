@@ -1157,7 +1157,7 @@ public final class RunContainer extends Container implements Cloneable {
     copyToOffset(offset);
     int rlepos = 0;
     this.nbrruns = 0;
-    PeekableShortIterator i = (PeekableShortIterator) x.getShortIterator();
+    PeekableShortIterator i = x.getShortIterator();
     while (i.hasNext() && (rlepos < nbrruns)) {
       if (Util.compareUnsigned(getValue(rlepos + offset), i.peekNext()) <= 0) {
         smartAppend(getValue(rlepos + offset), getLength(rlepos + offset));
@@ -1406,7 +1406,7 @@ public final class RunContainer extends Container implements Cloneable {
     copyToOffset(offset);
     int rlepos = 0;
     this.nbrruns = 0;
-    PeekableShortIterator i = (PeekableShortIterator) x.getShortIterator();
+    PeekableShortIterator i = x.getShortIterator();
     while (i.hasNext() && (rlepos < nbrruns)) {
       if (Util.compareUnsigned(getValue(rlepos + offset), i.peekNext()) <= 0) {
         smartAppend(getValue(rlepos + offset), getLength(rlepos + offset));
@@ -1712,7 +1712,7 @@ public final class RunContainer extends Container implements Cloneable {
     // TODO: should optimize for the frequent case where we have a single run
     RunContainer answer = new RunContainer(new short[2 * (this.nbrruns + x.getCardinality())], 0);
     int rlepos = 0;
-    PeekableShortIterator i = (PeekableShortIterator) x.getShortIterator();
+    PeekableShortIterator i = x.getShortIterator();
 
     while (i.hasNext() && (rlepos < this.nbrruns)) {
       if (Util.compareUnsigned(getValue(rlepos), i.peekNext()) <= 0) {
@@ -2297,7 +2297,7 @@ public final class RunContainer extends Container implements Cloneable {
 
   @Override
   public String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     for (int k = 0; k < this.nbrruns; ++k) {
       sb.append("[");
       sb.append(Util.toIntUnsigned(this.getValue(k)));
@@ -2323,10 +2323,7 @@ public final class RunContainer extends Container implements Cloneable {
     int initialValue = Util.toIntUnsigned(getValue(index));
     int length = Util.toIntUnsigned(getLength(index));
 
-    if (value <= initialValue + length) {
-      return true;
-    }
-    return false;
+    return value <= initialValue + length;
   }
 
   @Override

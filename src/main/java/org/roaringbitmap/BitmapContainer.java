@@ -58,7 +58,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     return MAX_CAPACITY / 8;
   }
 
-  long[] bitmap;
+  final long[] bitmap;
 
   int cardinality;
 

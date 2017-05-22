@@ -2205,7 +2205,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   @Override
   public int[] toArray() {
-    final int[] array = new int[(int)this.getCardinality()];
+    final int[] array = new int[this.getCardinality()];
     int pos = 0, pos2 = 0;
     while (pos < this.highLowContainer.size()) {
       final int hs = this.highLowContainer.getKeyAtIndex(pos) << 16;
