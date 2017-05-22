@@ -2275,27 +2275,7 @@ public final class RunContainer extends Container implements Cloneable {
     if (sizeAsRunContainer <= Math.min(sizeAsBitmapContainer, sizeAsArrayContainer)) {
       return this;
     }
-    if (card <= ArrayContainer.DEFAULT_MAX_SIZE) {
-      ArrayContainer answer = new ArrayContainer(card);
-      answer.cardinality = 0;
-      for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
-        int runStart = Util.toIntUnsigned(this.getValue(rlepos));
-        int runEnd = runStart + Util.toIntUnsigned(this.getLength(rlepos));
-
-        for (int runValue = runStart; runValue <= runEnd; ++runValue) {
-          answer.content[answer.cardinality++] = (short) runValue;
-        }
-      }
-      return answer;
-    }
-    BitmapContainer answer = new BitmapContainer();
-    for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
-      int start = Util.toIntUnsigned(this.getValue(rlepos));
-      int end = start + Util.toIntUnsigned(this.getLength(rlepos)) + 1;
-      Util.setBitmapRange(answer.bitmap, start, end);
-    }
-    answer.cardinality = card;
-    return answer;
+    return toBitmapOrArrayContainer(card);
   }
 
   @Override
