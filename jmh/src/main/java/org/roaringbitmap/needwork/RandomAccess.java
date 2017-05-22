@@ -26,11 +26,6 @@ public class RandomAccess {
     @State(Scope.Benchmark)
     public static class BenchmarkState extends NeedWorkBenchmarkState {
 
-        @Param({
-                "false",
-                "true"
-        })
-        public boolean hybrid;
 
 
         int[] queries = new int[1024];
@@ -51,7 +46,6 @@ public class RandomAccess {
             for(int k = 0; k < queries.length; ++k)
                 queries[k] = rand.nextInt(universe+1);
 
-            Util.USE_HYBRID_BINSEARCH = hybrid;// this will not affect the buffer package
         }
 
     }
