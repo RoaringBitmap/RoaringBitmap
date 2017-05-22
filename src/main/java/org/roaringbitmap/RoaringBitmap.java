@@ -1613,8 +1613,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
       while (true) {
         if (s1 == s2) {
-          Container c1 = highLowContainer.getContainerAtIndex(pos1);
-          c1 = c1.toBitmapContainer();
+          BitmapContainer c1 = highLowContainer.getContainerAtIndex(pos1).toBitmapContainer();
           this.highLowContainer.setContainerAtIndex(pos1,
               c1.lazyIOR(x2.highLowContainer.getContainerAtIndex(pos2)));
           pos1++;
