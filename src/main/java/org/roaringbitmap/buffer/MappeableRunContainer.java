@@ -1105,7 +1105,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     short[] vl = valueslength.array();
     int rlepos = 0;
     this.nbrruns = 0;
-    PeekableShortIterator i = (PeekableShortIterator) x.getShortIterator();
+    PeekableShortIterator i = x.getShortIterator();
     while (i.hasNext() && (rlepos < nbrruns)) {
       if (BufferUtil.compareUnsigned(getValue(vl, rlepos + offset), i.peekNext()) <= 0) {
         smartAppend(vl, getValue(vl, rlepos + offset), getLength(vl, rlepos + offset));
@@ -1350,7 +1350,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     short[] vl = this.valueslength.array();
     int rlepos = 0;
     this.nbrruns = 0;
-    PeekableShortIterator i = (PeekableShortIterator) x.getShortIterator();
+    PeekableShortIterator i = x.getShortIterator();
     while (i.hasNext() && (rlepos < nbrruns)) {
       if (BufferUtil.compareUnsigned(getValue(vl, rlepos + offset), i.peekNext()) <= 0) {
         smartAppend(vl, getValue(vl, rlepos + offset), getLength(vl, rlepos + offset));
@@ -1657,7 +1657,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         new MappeableRunContainer(ShortBuffer.allocate(2 * (this.nbrruns + x.getCardinality())), 0);
     short[] vl = answer.valueslength.array();
     int rlepos = 0;
-    PeekableShortIterator i = (PeekableShortIterator) x.getShortIterator();
+    PeekableShortIterator i = x.getShortIterator();
 
     while ((rlepos < this.nbrruns) && i.hasNext()) {
       if (BufferUtil.compareUnsigned(getValue(rlepos), i.peekNext()) <= 0) {
@@ -2256,7 +2256,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   @Override
   public String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     for (int k = 0; k < this.nbrruns; ++k) {
       sb.append("[");
       sb.append(BufferUtil.toIntUnsigned(this.getValue(k)));
@@ -2291,10 +2291,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     int initialValue = BufferUtil.toIntUnsigned(getValue(index));
     int length = BufferUtil.toIntUnsigned(getLength(index));
 
-    if (value <= initialValue + length) {
-      return true;
-    }
-    return false;
+    return value <= initialValue + length;
   }
 
   @Override

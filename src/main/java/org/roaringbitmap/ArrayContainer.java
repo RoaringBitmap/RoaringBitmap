@@ -8,7 +8,6 @@ import java.io.*;
 import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 import org.roaringbitmap.buffer.MappeableArrayContainer;
 import org.roaringbitmap.buffer.MappeableContainer;
@@ -675,10 +674,8 @@ public final class ArrayContainer extends Container implements Cloneable {
       }
       return bc;
     }
-    final int desiredCapacity = totalCardinality; // Math.min(BitmapContainer.MAX_CAPACITY,
-    // totalCardinality);
-    if(desiredCapacity >= content.length) {
-      increaseCapacity(desiredCapacity);
+    if(totalCardinality >= content.length) {
+      increaseCapacity(totalCardinality);
     }
     System.arraycopy(content, 0, content, value2.cardinality, cardinality);
     cardinality =
@@ -917,9 +914,7 @@ public final class ArrayContainer extends Container implements Cloneable {
       }
       return bc;
     }
-    final int desiredCapacity = totalCardinality; // Math.min(BitmapContainer.MAX_CAPACITY,
-    // totalCardinality);
-    ArrayContainer answer = new ArrayContainer(desiredCapacity);
+    ArrayContainer answer = new ArrayContainer(totalCardinality);
     answer.cardinality =
             Util.unsignedUnion2by2(
                     value1.content, 0, value1.getCardinality(),
@@ -1184,8 +1179,7 @@ public final class ArrayContainer extends Container implements Cloneable {
       }
       return bc;
     }
-    final int desiredCapacity = totalCardinality;
-    ArrayContainer answer = new ArrayContainer(desiredCapacity);
+    ArrayContainer answer = new ArrayContainer(totalCardinality);
     answer.cardinality = Util.unsignedExclusiveUnion2by2(value1.content, value1.getCardinality(),
         value2.content, value2.getCardinality(), answer.content);
     return answer;
@@ -1232,9 +1226,7 @@ public final class ArrayContainer extends Container implements Cloneable {
       bc.cardinality = -1;
       return bc;
     }
-    final int desiredCapacity = totalCardinality; // Math.min(BitmapContainer.MAX_CAPACITY,
-    // totalCardinality);
-    ArrayContainer answer = new ArrayContainer(desiredCapacity);
+    ArrayContainer answer = new ArrayContainer(totalCardinality);
     answer.cardinality =
             Util.unsignedUnion2by2(
                     value1.content, 0, value1.getCardinality(),

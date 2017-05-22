@@ -88,9 +88,7 @@ public final class BufferFastAggregation {
 
   private static ImmutableRoaringBitmap[] convertToImmutable(MutableRoaringBitmap[] array) {
     ImmutableRoaringBitmap[] answer = new ImmutableRoaringBitmap[array.length];
-    for (int k = 0; k < answer.length; ++k) {
-      answer[k] = array[k];
-    }
+    System.arraycopy(array, 0, answer, 0, answer.length);
     return answer;
   }
 

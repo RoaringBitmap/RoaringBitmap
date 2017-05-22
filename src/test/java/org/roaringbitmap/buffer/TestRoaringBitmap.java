@@ -1172,11 +1172,6 @@ public class TestRoaringBitmap {
   }
 
   @Test
-  public void andNotBigIntsTest() {
-
-  }
-
-  @Test
   public void ANDNOTtest() {
     final MutableRoaringBitmap rr = new MutableRoaringBitmap();
     for (int k = 4000; k < 4256; ++k) {

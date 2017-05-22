@@ -27,4 +27,13 @@ public class TestUtil {
         Assert.assertEquals(-1, Util.branchyUnsignedBinarySearch(data1, 0, 0, (short)0));
         Assert.assertEquals(-10, Util.branchyUnsignedBinarySearch(data1, 0, data1.length, (short) -1));
     }
+
+    @Test
+    public void testCompare() {
+        Assert.assertTrue(Util.compareUnsigned((short)1,(short)2) < 0);
+        Assert.assertTrue(Util.compareUnsigned((short)-32333,(short)2) > 0);
+        Assert.assertTrue(Util.compareUnsigned((short)2, (short)-32333) < 0);
+        Assert.assertTrue(Util.compareUnsigned((short)0,(short)0) ==0);
+
+    }
 }

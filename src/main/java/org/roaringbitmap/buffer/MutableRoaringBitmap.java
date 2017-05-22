@@ -1110,9 +1110,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
       while (true) {
         if (s1 == s2) {
-          MappeableContainer c1 = highLowContainer
-              .getContainerAtIndex(pos1);
-          c1 = c1.toBitmapContainer();
+          MappeableBitmapContainer c1 = highLowContainer.getContainerAtIndex(pos1)
+              .toBitmapContainer();
           getMappeableRoaringArray().setContainerAtIndex(pos1,
               c1.lazyIOR(x2.highLowContainer.getContainerAtIndex(pos2)));
           pos1++;

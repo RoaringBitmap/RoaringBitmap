@@ -281,7 +281,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
   /**
    * Name of the various possible containers
    */
-  public static String ContainerNames[] = {"bitmap","array","run"};
+  public static final String[] ContainerNames = {"bitmap","array","run"};
 
   
   /**

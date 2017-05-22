@@ -13,7 +13,7 @@ public final class Util {
    * optimization flag: whether to use hybrid binary search: hybrid formats
    * combine a binary search with a sequential search
    */
-  public static boolean USE_HYBRID_BINSEARCH = true;
+  public static final boolean USE_HYBRID_BINSEARCH = true;
 
 
 

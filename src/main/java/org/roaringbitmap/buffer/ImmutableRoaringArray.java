@@ -229,7 +229,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
   @Override
   public MappeableContainerPointer getContainerPointer(final int startIndex) {
-    final boolean hasrun = isEmpty() ? false : hasRunCompression();
+    final boolean hasrun = !isEmpty() && hasRunCompression();
     return new MappeableContainerPointer() {
       int k = startIndex;
 
