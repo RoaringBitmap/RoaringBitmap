@@ -1441,15 +1441,15 @@ final class BitmapContainerShortIterator implements PeekableShortIterator {
 
 final class ReverseBitmapContainerShortIterator implements ShortIterator {
 
-  long w;
-  int x;
+  long word;
+  int position;
 
   long[] bitmap;
 
   ReverseBitmapContainerShortIterator() {}
 
-  ReverseBitmapContainerShortIterator(long[] b) {
-    wrap(b);
+  ReverseBitmapContainerShortIterator(long[] bitmap) {
+    wrap(bitmap);
   }
 
   @Override
@@ -1463,37 +1463,27 @@ final class ReverseBitmapContainerShortIterator implements ShortIterator {
 
   @Override
   public boolean hasNext() {
-    return x >= 0;
+    return position >= 0;
   }
 
   @Override
   public short next() {
-    long t = w & -w;
-    short answer = (short) ((x + 1) * 64 - 1 - Long.bitCount(t - 1));
-    w ^= t;
-    while (w == 0) {
-      --x;
-      if (x < 0) {
+    int shift = Long.numberOfLeadingZeros(word) + 1;
+    short answer = (short)((position + 1) * 64 - shift);
+    word &= ~(1L << (64 - shift));
+    while (word == 0) {
+      --position;
+      if (position < 0) {
         break;
       }
-      w = Long.reverse(bitmap[x]);
+      word = bitmap[position];
     }
     return answer;
   }
 
   @Override
   public int nextAsInt() {
-    long t = w & -w;
-    int answer = (x + 1) * 64 - 1 - Long.bitCount(t - 1);
-    w ^= t;
-    while (w == 0) {
-      --x;
-      if (x < 0) {
-        break;
-      }
-      w = Long.reverse(bitmap[x]);
-    }
-    return answer;
+    return Util.toIntUnsigned(next());
   }
 
   @Override
@@ -1504,8 +1494,8 @@ final class ReverseBitmapContainerShortIterator implements ShortIterator {
 
   void wrap(long[] b) {
     bitmap = b;
-    for (x = bitmap.length - 1; x >= 0; --x) {
-      if ((w = Long.reverse(bitmap[x])) != 0) {
+    for (position = bitmap.length - 1; position >= 0; --position) {
+      if ((word = bitmap[position]) != 0) {
         break;
       }
     }
