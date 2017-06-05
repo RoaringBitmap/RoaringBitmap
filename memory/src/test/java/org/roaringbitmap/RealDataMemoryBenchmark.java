@@ -67,7 +67,7 @@ public class RealDataMemoryBenchmark {
         System.out.println("==============");
         System.out.println(dataset + " / bitset size = "+ SizeOf.humanReadable(bitsetSize)
                                    + " / Roaring size = " + SizeOf.humanReadable(optiSize)
-                                   + " / consize size = " + SizeOf.humanReadable(conciseSize)
+                                   + " / concise size = " + SizeOf.humanReadable(conciseSize)
                                    + " / WAH size = " + SizeOf.humanReadable(wahSize)
                                    + " / SparseBitSet size = " + SizeOf.humanReadable(sparseSize));
         System.out.println("==============");
