@@ -1395,4 +1395,22 @@ public class TestImmutableRoaringBitmap {
     Assert.assertEquals(1, ImmutableRoaringBitmap.bitmapOf(65537).rank(65537));
     Assert.assertEquals(1, ImmutableRoaringBitmap.bitmapOf(65537).rank(65538));
   }
+
+
+  @Test
+  public void testNegativeAdd() {
+    MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+    bitmap.add(-7);
+
+    Assert.assertEquals("{4294967289}", bitmap.toString());
+  }
+
+  @Test
+  public void testNegative_last() {
+    MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+    bitmap.add(-7);
+    bitmap.add(777);
+
+    Assert.assertEquals(-7, bitmap.last());
+  }
 }
