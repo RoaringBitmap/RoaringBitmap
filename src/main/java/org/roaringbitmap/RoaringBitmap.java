@@ -1442,7 +1442,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   @Override
   public PeekableIntIterator getIntIterator() {
-    return new RoaringIntIterator();
+    return new RoaringIterator(RoaringBitmap.this);
   }
 
   /**
@@ -1514,47 +1514,23 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   @Override
   public Iterator<Integer> iterator() {
     return new Iterator<Integer>() {
-      private int hs = 0;
-
-      private ShortIterator iter;
-
-      private int pos = 0;
-
-      private int x;
+      private final RoaringIterator it = new RoaringIterator(RoaringBitmap.this);
 
       @Override
       public boolean hasNext() {
-        return pos < RoaringBitmap.this.highLowContainer.size();
-      }
-
-      private Iterator<Integer> init() {
-        if (pos < RoaringBitmap.this.highLowContainer.size()) {
-          iter = RoaringBitmap.this.highLowContainer.getContainerAtIndex(pos).getShortIterator();
-          hs = RoaringBitmap.this.highLowContainer.getKeyAtIndex(pos) << 16;
-        }
-        return this;
+        return it.hasNext();
       }
 
       @Override
       public Integer next() {
-        x = iter.nextAsInt() | hs;
-        if (!iter.hasNext()) {
-          ++pos;
-          init();
-        }
-        return x;
+        return it.next();
       }
 
       @Override
       public void remove() {
-        if ((x & hs) == hs) {// still in same container
-          iter.remove();
-        } else {
-          RoaringBitmap.this.remove(x);
-        }
+        it.remove();
       }
-
-    }.init();
+    };
   }
 
 

@@ -9,10 +9,17 @@ package org.roaringbitmap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
+
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
+import me.lemire.integercompression.synth.ClusteredDataGenerator;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -179,4 +186,25 @@ public class TestIterators {
     PeekableIntIterator it = bitmap.getIntIterator();
     it.advanceIfNeeded(0);
   }
+
+  @Test
+  public void testRandomIteration() {
+    int NUMBER_OF_TRIES = 500;
+    ClusteredDataGenerator generator = new ClusteredDataGenerator();
+    Set<Integer> expected = new HashSet<>(100000);
+    for (int i = 0; i < NUMBER_OF_TRIES; i++) {
+      expected.clear();
+      int[] sample = generator.generateClustered(100000, Integer.MAX_VALUE/32);
+      RoaringBitmap tested = RoaringBitmap.bitmapOf(sample);
+      tested.runOptimize();
+      for (int e : sample) {
+        expected.add(e);
+      }
+      Set<Integer> result1 = new HashSet<>(ImmutableList.copyOf(tested.iterator()));
+      Set<Integer> result2 = new HashSet<>( asList(tested.getIntIterator()));
+      Assert.assertEquals(result1, expected);
+      Assert.assertEquals(result2, expected);
+    }
+  }
 }
+
