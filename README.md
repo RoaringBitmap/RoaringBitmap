@@ -172,7 +172,7 @@ Please see the examples folder for more examples.
 Unsigned integers
 ------------------
 
-JVM lacks native unsigned integers but integers are still considered to be unsigned within Roaring and ordered according to ``Integer.compareUnsigned``. This means that JVM will order the numbers like so 0, 1, ..., 2147483647, -2147483648, -2147483647,..., -1. To interpret correctly, you can use ``Integer.toUnsignedLong`` and ``Integer.toUnsignedString``.
+Java lacks native unsigned integers but integers are still considered to be unsigned within Roaring and ordered according to ``Integer.compareUnsigned``. This means that Java will order the numbers like so 0, 1, ..., 2147483647, -2147483648, -2147483647,..., -1. To interpret correctly, you can use ``Integer.toUnsignedLong`` and ``Integer.toUnsignedString``.
 
 
 Working with memory-mapped bitmaps
