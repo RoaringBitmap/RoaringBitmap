@@ -4568,4 +4568,22 @@ public class TestRoaringBitmap {
     Assert.assertEquals(1, RoaringBitmap.bitmapOf(65537).rank(65538));
   }
 
+
+  @Test
+  public void testNegativeAdd() {
+    RoaringBitmap bitmap = new RoaringBitmap();
+    bitmap.add(-7);
+
+    Assert.assertEquals("{4294967289}", bitmap.toString());
+  }
+
+  @Test
+  public void testNegative_last() {
+    RoaringBitmap bitmap = new RoaringBitmap();
+    bitmap.add(-7);
+    bitmap.add(777);
+
+    Assert.assertEquals(-7, bitmap.last());
+  }
+
 }
