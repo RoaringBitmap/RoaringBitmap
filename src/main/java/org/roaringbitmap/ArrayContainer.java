@@ -740,7 +740,7 @@ public final class ArrayContainer extends Container implements Cloneable {
 
       @Override
       public void remove() {
-        ArrayContainer.this.remove((short) (pos - 1));
+        ArrayContainer.this.removeAtIndex(pos - 1);
         pos--;
       }
     };
@@ -1022,14 +1022,18 @@ public final class ArrayContainer extends Container implements Cloneable {
     answer.cardinality = cardinality - rangelength;
     return answer;
   }
+  
+  protected void removeAtIndex(final int loc) {
+    System.arraycopy(content, loc + 1, content, loc, cardinality - loc - 1);
+    --cardinality;    
+  }
+
 
   @Override
   public Container remove(final short x) {
     final int loc = Util.unsignedBinarySearch(content, 0, cardinality, x);
     if (loc >= 0) {
-      // insertion
-      System.arraycopy(content, loc + 1, content, loc, cardinality - loc - 1);
-      --cardinality;
+      removeAtIndex(loc);
     }
     return this;
   }
@@ -1288,7 +1292,7 @@ final class ArrayContainerShortIterator implements PeekableShortIterator {
 
   @Override
   public void remove() {
-    parent.remove((short) (pos - 1));
+    parent.removeAtIndex(pos - 1);
     pos--;
   }
 
@@ -1337,7 +1341,7 @@ final class ReverseArrayContainerShortIterator implements ShortIterator {
 
   @Override
   public void remove() {
-    parent.remove((short) (pos + 1));
+    parent.removeAtIndex(pos + 1);
     pos++;
   }
 

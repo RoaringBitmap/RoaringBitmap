@@ -1547,11 +1547,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
       @Override
       public void remove() {
-        if ((x & hs) == hs) {// still in same container
-          iter.remove();
-        } else {
-          RoaringBitmap.this.remove(x);
-        }
+        // todo: implement
+        throw new UnsupportedOperationException();
       }
 
     }.init();

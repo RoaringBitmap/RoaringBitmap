@@ -878,7 +878,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
       @Override
       public void remove() {
-        MappeableArrayContainer.this.remove((short) (pos - 1));
+        MappeableArrayContainer.this.removeAtIndex(pos - 1);
         pos--;
       }
     };
@@ -1291,6 +1291,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     answer.cardinality = cardinality - rangelength;
     return answer;
   }
+  
+  protected void removeAtIndex(final int loc) {
+    System.arraycopy(content.array(), loc + 1, content.array(), loc, cardinality - loc - 1);
+    --cardinality;    
+  }
 
 
   @Override
@@ -1298,9 +1303,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (BufferUtil.isBackedBySimpleArray(this.content)) {
       final int loc = Util.unsignedBinarySearch(content.array(), 0, cardinality, x);
       if (loc >= 0) {
-        // insertion
-        System.arraycopy(content.array(), loc + 1, content.array(), loc, cardinality - loc - 1);
-        --cardinality;
+        removeAtIndex(loc);
       }
       return this;
     } else {
@@ -1682,7 +1685,7 @@ final class MappeableArrayContainerShortIterator implements PeekableShortIterato
 
   @Override
   public void remove() {
-    parent.remove((short) (pos - 1));
+    parent.removeAtIndex(pos - 1);
     pos--;
   }
 
@@ -1748,7 +1751,7 @@ final class RawArrayContainerShortIterator implements PeekableShortIterator {
 
   @Override
   public void remove() {
-    parent.remove((short) (pos - 1));
+    parent.removeAtIndex(pos - 1);
     pos--;
   }
 
@@ -1797,7 +1800,7 @@ final class RawReverseArrayContainerShortIterator implements ShortIterator {
 
   @Override
   public void remove() {
-    parent.remove((short) (pos + 1));
+    parent.removeAtIndex(pos + 1);
     pos++;
   }
 
@@ -1844,7 +1847,7 @@ final class ReverseMappeableArrayContainerShortIterator implements ShortIterator
 
   @Override
   public void remove() {
-    parent.remove((short) (pos + 1));
+    parent.removeAtIndex(pos + 1);
     pos++;
   }
 

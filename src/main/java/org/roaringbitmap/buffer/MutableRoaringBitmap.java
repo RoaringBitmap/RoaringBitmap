@@ -1045,11 +1045,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
       @Override
       public void remove() {
-        if ((x & hs) == hs) {// still in same container
-          iter.remove();
-        } else {
-          MutableRoaringBitmap.this.remove(x);
-        }
+         // todo: implement
+        throw new UnsupportedOperationException();      
       }
 
     }.init();
