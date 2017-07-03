@@ -1365,7 +1365,43 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * }
    * </pre>
    *
+   * Some users would prefer to generate a hard copy of the data. The following
+   * code illustrates how to proceed, but note that the resulting copy can be
+   * expected to perform significantly worse than the original: the toImmutableRoaringBitmap
+   * method is almost free, it uses less memory and it produces a much faster bitmap. 
+   * <pre>
+   * {@code
+   *      /////////////
+   *      // Code to create a hard copy of MutableRoaringBitmap to an 
+   *      // ImmutableRoaringBitmap.
+   *      // Usage of this code is discouraged because it is expensive 
+   *      // and it creates a copy that
+   *      // suffers from more performance overhead than the original.
+   *      /////////////
+   *      import org.roaringbitmap.buffer.*;
    *
+   *      //...
+   *
+   *      MutableRoaringBitmap rr = ... // some bitmap  
+   *      rr.runOptimize(); // can help compression
+   *
+   *      // we are going to create an immutable copy of rr
+   *      ByteBuffer outbb = ByteBuffer.allocate(mrb.serializedSizeInBytes());
+   *      mrb.serialize(new DataOutputStream(new OutputStream(){
+   *            ByteBuffer mBB;
+   *            OutputStream init(ByteBuffer mbb) {mBB=mbb; return this;}
+   *            public void close() {}
+   *            public void flush() {}
+   *            public void write(int b) {
+   *                mBB.put((byte) b);}
+   *            public void write(byte[] b) {mBB.put(b);}
+   *            public void write(byte[] b, int off, int l) {mBB.put(b,off,l);}
+   *      }.init(outbb)));
+   *      outbb.flip();
+   *      ImmutableRoaringBitmap irb = new ImmutableRoaringBitmap(outbb);
+   * }
+   * </pre>
+   * 
    * @return a cast of this object
    */
   public ImmutableRoaringBitmap toImmutableRoaringBitmap() {
