@@ -15,19 +15,43 @@ import java.util.NoSuchElementException;
 /**
  * ImmutableRoaringBitmap provides a compressed immutable (cannot be modified) bitmap. It is meant
  * to be used with org.roaringbitmap.buffer.MutableRoaringBitmap, a derived class that adds methods
- * to modify the bitmap.
- * 
+ * to modify the bitmap. Because the class ImmutableRoaringBitmap is not final and
+ * because there exists one derived class (org.roaringbitmap.buffer.MutableRoaringBitmap), then
+ * it is possible for the programmer to modify some ImmutableRoaringBitmap instances,
+ * but this invariably involves casting to other classes: if your code is written in terms
+ * of ImmutableRoaringBitmap instances, then your objects
+ * will be truly immutable, and thus easy to reason about.
+ *
+ * Pure (non-derived) instances of ImmutableRoaringBitmap have their data backed by a ByteBuffer.
+ * This has the benefit that they may be constructed from a ByteBuffer (useful for memory mapping).
+ *
+ * Objects of this class may reside almost entirely in memory-map files. That is the primary reason
+ * for them to be considered immutable, since no reallocation is possible when using
+ * memory-mapped files.
+ *
+ * From a language design point of view, instances of this class are immutable only when used as per
+ * the interface of the ImmutableRoaringBitmap class. Given that the class is not final,
+ * it is possible to modify instances, through other interfaces. Thus we do not take the term
+ * "immutable" in a purist manner,
+ * but rather in a practical one.
+ *
+ * One of our motivations for this design where MutableRoaringBitmap instances can be casted
+ * down to ImmutableRoaringBitmap instances is that bitmaps are often large,
+ * or used in a context where memory allocations are to be avoided, so we avoid forcing copies.
+ * Copies could be expected if one needs to mix and match ImmutableRoaringBitmap and
+ * MutableRoaringBitmap instances.
+ *
  * <pre>
  * {@code
  *       import org.roaringbitmap.buffer.*;
- *       
+ *
  *       //...
  *
  *       MutableRoaringBitmap rr1 = MutableRoaringBitmap.bitmapOf(1, 2, 3, 1000);
  *       MutableRoaringBitmap rr2 = MutableRoaringBitmap.bitmapOf( 2, 3, 1010);
  *       ByteArrayOutputStream bos = new ByteArrayOutputStream();
  *       DataOutputStream dos = new DataOutputStream(bos);
- *       // could call "rr1.runOptimize()" and "rr2.runOptimize" if there 
+ *       // could call "rr1.runOptimize()" and "rr2.runOptimize" if there
  *       // there were runs to compress
  *       rr1.serialize(dos);
  *       rr2.serialize(dos);
@@ -38,11 +62,8 @@ import java.util.NoSuchElementException;
  *       ImmutableRoaringBitmap rrback2 = new ImmutableRoaringBitmap(bb);
  * }
  * </pre>
- * 
- * It can also be constructed from a ByteBuffer (useful for memory mapping).
- * 
- * Objects of this class may reside almost entirely in memory-map files.
- * 
+ *
+ *
  * @see MutableRoaringBitmap
  */
 public class ImmutableRoaringBitmap
@@ -193,7 +214,7 @@ public class ImmutableRoaringBitmap
   }
 
   /**
-   * 
+   *
    * Computes AND between input bitmaps in the given range, from rangeStart (inclusive) to rangeEnd
    * (exclusive)
    *
@@ -204,7 +225,7 @@ public class ImmutableRoaringBitmap
    * @deprecated use the version where longs specify the range. Negative range end are illegal.
    */
   @Deprecated
-    public static MutableRoaringBitmap and(@SuppressWarnings("rawtypes") final Iterator bitmaps, 
+    public static MutableRoaringBitmap and(@SuppressWarnings("rawtypes") final Iterator bitmaps,
       final int rangeStart, final int rangeEnd) {
     return and(bitmaps, (long) rangeStart, (long) rangeEnd);
   }
@@ -214,9 +235,9 @@ public class ImmutableRoaringBitmap
   /**
    * Bitwise AND (intersection) operation. The provided bitmaps are *not* modified. This operation
    * is thread-safe as long as the provided bitmaps remain unchanged.
-   * 
+   *
    * If you have more than 2 bitmaps, consider using the FastAggregation class.
-   * 
+   *
    * @param x1 first bitmap
    * @param x2 other bitmap
    * @return result of the operation
@@ -318,7 +339,7 @@ public class ImmutableRoaringBitmap
    * Bitwise ANDNOT (difference) operation for the given range, rangeStart (inclusive) and rangeEnd
    * (exclusive). The provided bitmaps are *not* modified. This operation is thread-safe as long as
    * the provided bitmaps remain unchanged.
-   * 
+   *
    * @param x1 first bitmap
    * @param x2 other bitmap
    * @param rangeStart beginning of the range (inclusive)
@@ -338,7 +359,7 @@ public class ImmutableRoaringBitmap
    * Bitwise ANDNOT (difference) operation for the given range, rangeStart (inclusive) and rangeEnd
    * (exclusive). The provided bitmaps are *not* modified. This operation is thread-safe as long as
    * the provided bitmaps remain unchanged.
-   * 
+   *
    * @param x1 first bitmap
    * @param x2 other bitmap
    * @param rangeStart beginning of the range (inclusive)
@@ -348,8 +369,8 @@ public class ImmutableRoaringBitmap
    *     endpoints are not allowed.
    */
   @Deprecated
-    public static MutableRoaringBitmap andNot(final ImmutableRoaringBitmap x1, 
-                                              final ImmutableRoaringBitmap x2, 
+    public static MutableRoaringBitmap andNot(final ImmutableRoaringBitmap x1,
+                                              final ImmutableRoaringBitmap x2,
                                               final int rangeStart, final int rangeEnd) {
     return andNot(x1, x2, (long) rangeStart, (long) rangeEnd);
   }
@@ -359,7 +380,7 @@ public class ImmutableRoaringBitmap
   /**
    * Bitwise ANDNOT (difference) operation. The provided bitmaps are *not* modified. This operation
    * is thread-safe as long as the provided bitmaps remain unchanged.
-   * 
+   *
    * @param x1 first bitmap
    * @param x2 other bitmap
    * @return result of the operation
@@ -400,15 +421,15 @@ public class ImmutableRoaringBitmap
    * Generate a bitmap with the specified values set to true. The provided integers values don't
    * have to be in sorted order, but it may be preferable to sort them from a performance point of
    * view.
-   * 
+   *
    * This function is equivalent to :
-   * 
+   *
    * <pre>
    * {@code
    *       (ImmutableRoaringBitmap) MutableRoaringBitmap.bitmapOf(data)
    * }
    * </pre>
-   * 
+   *
    * @param data set values
    * @return a new bitmap
    */
@@ -421,7 +442,7 @@ public class ImmutableRoaringBitmap
   /**
    * Complements the bits in the given range, from rangeStart (inclusive) rangeEnd (exclusive). The
    * given bitmap is unchanged.
-   * 
+   *
    * @param bm bitmap being negated
    * @param rangeStart inclusive beginning of range
    * @param rangeEnd exclusive ending of range
@@ -476,7 +497,7 @@ public class ImmutableRoaringBitmap
  /**
    * Complements the bits in the given range, from rangeStart (inclusive) rangeEnd (exclusive). The
    * given bitmap is unchanged.
-   * 
+   *
    * @param bm bitmap being negated
    * @param rangeStart inclusive beginning of range
    * @param rangeEnd exclusive ending of range
@@ -491,14 +512,14 @@ public class ImmutableRoaringBitmap
     }
     // rangeStart being -ve and rangeEnd being positive is not expected)
     // so assume both -ve
-    return flip(bm, rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL); 
+    return flip(bm, rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL);
   }
 
 
 
   /**
    * Return new iterator with only values from rangeStart (inclusive) to rangeEnd (exclusive)
-   * 
+   *
    * @param bitmaps bitmaps iterator
    * @param rangeStart inclusive
    * @param rangeEnd exclusive
@@ -528,10 +549,10 @@ public class ImmutableRoaringBitmap
   }
 
   /**
-   * 
+   *
    * Extracts the values in the specified range, rangeStart (inclusive) and rangeEnd (exclusive)
    * while avoiding copies as much as possible.
-   * 
+   *
    * @param rb input bitmap
    * @param rangeStart inclusive
    * @param rangeEnd exclusive
@@ -674,9 +695,9 @@ public class ImmutableRoaringBitmap
 
   /**
    * Compute overall OR between bitmaps.
-   * 
+   *
    * (Effectively calls {@link BufferFastAggregation#or})
-   * 
+   *
    *
    * @param bitmaps input bitmaps
    * @return aggregated bitmap
@@ -688,9 +709,9 @@ public class ImmutableRoaringBitmap
   /**
    * Bitwise OR (union) operation. The provided bitmaps are *not* modified. This operation is
    * thread-safe as long as the provided bitmaps remain unchanged.
-   * 
+   *
    * If you have more than 2 bitmaps, consider using the FastAggregation class.
-   * 
+   *
    * @param x1 first bitmap
    * @param x2 other bitmap
    * @return result of the operation
@@ -778,11 +799,11 @@ public class ImmutableRoaringBitmap
    * @param rangeStart inclusive beginning of range
    * @param rangeEnd exclusive ending of range
    * @return new result bitmap
-   * @deprecated use the version where longs specify the range. 
+   * @deprecated use the version where longs specify the range.
    *     Negative range points are forbidden.
    */
   @Deprecated
-    public static MutableRoaringBitmap or(@SuppressWarnings("rawtypes") final Iterator bitmaps, 
+    public static MutableRoaringBitmap or(@SuppressWarnings("rawtypes") final Iterator bitmaps,
           final int rangeStart, final int rangeEnd) {
     return or(bitmaps, (long) rangeStart, (long) rangeEnd);
   }
@@ -793,9 +814,9 @@ public class ImmutableRoaringBitmap
   /**
    * Cardinality of the bitwise OR (union) operation. The provided bitmaps are *not* modified. This
    * operation is thread-safe as long as the provided bitmaps remain unchanged.
-   * 
+   *
    * If you have more than 2 bitmaps, consider using the FastAggregation class.
-   * 
+   *
    * @param x1 first bitmap
    * @param x2 other bitmap
    * @return cardinality of the union
@@ -834,11 +855,11 @@ public class ImmutableRoaringBitmap
    * @param rangeStart inclusive beginning of range
    * @param rangeEnd exclusive ending of range
    * @return new result bitmap
-   * @deprecated use the version where longs specify the range. 
+   * @deprecated use the version where longs specify the range.
    *     Negative values not allowed for rangeStart and rangeEnd
    */
   @Deprecated
-    public static MutableRoaringBitmap xor(@SuppressWarnings("rawtypes") final Iterator bitmaps, 
+    public static MutableRoaringBitmap xor(@SuppressWarnings("rawtypes") final Iterator bitmaps,
           final int rangeStart, final int rangeEnd) {
     return xor(bitmaps, (long) rangeStart, (long) rangeEnd);
   }
@@ -848,9 +869,9 @@ public class ImmutableRoaringBitmap
   /**
    * Bitwise XOR (symmetric difference) operation. The provided bitmaps are *not* modified. This
    * operation is thread-safe as long as the provided bitmaps remain unchanged.
-   * 
+   *
    * If you have more than 2 bitmaps, consider using the FastAggregation class.
-   * 
+   *
    * @param x1 first bitmap
    * @param x2 other bitmap
    * @return result of the operation
@@ -915,18 +936,18 @@ public class ImmutableRoaringBitmap
    * Constructs a new ImmutableRoaringBitmap starting at this ByteBuffer's position(). Only
    * meta-data is loaded to RAM. The rest is mapped to the ByteBuffer. The byte stream should
    * abide by the format specification https://github.com/RoaringBitmap/RoaringFormatSpec
-   * 
+   *
    * It is not necessary that limit() on the input ByteBuffer indicates the end of the serialized
    * data.
-   * 
+   *
    * After creating this ImmutableRoaringBitmap, you can advance to the rest of the data (if there
    * is more) by setting b.position(b.position() + bitmap.serializedSizeInBytes());
-   * 
+   *
    * Note that the input ByteBuffer is effectively copied (with the slice operation) so you should
    * expect the provided ByteBuffer to remain unchanged.
-   * 
-   * 
-   * 
+   *
+   *
+   *
    * @param b data source
    */
   public ImmutableRoaringBitmap(final ByteBuffer b) {
@@ -947,7 +968,7 @@ public class ImmutableRoaringBitmap
   /**
    * Checks whether the value in included, which is equivalent to checking if the corresponding bit
    * is set (get in BitSet class).
-   * 
+   *
    * @param x integer value
    * @return whether the integer value is included.
    */
@@ -955,7 +976,7 @@ public class ImmutableRoaringBitmap
   public boolean contains(final int x) {
     final short hb = BufferUtil.highbits(x);
     int index = highLowContainer.getContainerIndex(hb);
-    return index >= 0 
+    return index >= 0
         && highLowContainer.containsForContainerAtIndex(index, BufferUtil.lowbits(x));
   }
 
@@ -991,7 +1012,7 @@ public class ImmutableRoaringBitmap
     return pos2 == length2;
   }
 
-  
+
   @Override
   public boolean equals(Object o) {
     if (o instanceof ImmutableRoaringBitmap) {
@@ -1065,7 +1086,7 @@ public class ImmutableRoaringBitmap
 
   /**
    * Returns the number of distinct integers added to the bitmap (e.g., number of bits set).
-   * 
+   *
    * @return the cardinality
    */
   @Override
@@ -1076,7 +1097,7 @@ public class ImmutableRoaringBitmap
     }
     return size;
   }
-  
+
   @Override
   public int getCardinality() {
     return (int) getLongCardinality();
@@ -1093,7 +1114,7 @@ public class ImmutableRoaringBitmap
 
   /**
    * Return a low-level container pointer that can be used to access the underlying data structure.
-   * 
+   *
    * @return container pointer
    */
   public MappeableContainerPointer getContainerPointer() {
@@ -1102,7 +1123,7 @@ public class ImmutableRoaringBitmap
 
   /**
    * For better performance, consider the Use the {@link #forEach forEach} method.
-   * 
+   *
    * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
    */
   @Override
@@ -1123,10 +1144,10 @@ public class ImmutableRoaringBitmap
    * Estimate of the memory usage of this data structure. This can be expected to be within 1% of
    * the true memory usage. If exact measures are needed, we recommend using dedicated libraries
    * such as SizeOf.
-   * 
+   *
    * When the bitmap is constructed from a ByteBuffer from a memory-mapped file, this estimate is
    * invalid: we can expect the actual memory usage to be significantly (e.g., 10x) less.
-   * 
+   *
    * @return estimated memory usage.
    */
   @Override
@@ -1150,7 +1171,7 @@ public class ImmutableRoaringBitmap
     return (int) getLongSizeInBytes() ;
   }
 
-  
+
   @Override
   public int hashCode() {
     return highLowContainer.hashCode();
@@ -1159,7 +1180,7 @@ public class ImmutableRoaringBitmap
 
   /**
    * Check whether this bitmap has had its runs compressed.
-   * 
+   *
    * @return whether this bitmap has run compression
    */
   public boolean hasRunCompression() {
@@ -1168,7 +1189,7 @@ public class ImmutableRoaringBitmap
 
   /**
    * Checks whether the bitmap is empty.
-   * 
+   *
    * @return true if this bitmap contains no set bit
    */
   @Override
@@ -1178,7 +1199,7 @@ public class ImmutableRoaringBitmap
 
   /**
    * iterate over the positions of the true values.
-   * 
+   *
    * @return the iterator
    */
   @Override
@@ -1227,7 +1248,7 @@ public class ImmutableRoaringBitmap
 
   /**
    * Create a new Roaring bitmap containing at most maxcardinality integers.
-   * 
+   *
    * @param maxcardinality maximal cardinality
    * @return a new bitmap with cardinality no more than maxcardinality
    */
@@ -1256,7 +1277,7 @@ public class ImmutableRoaringBitmap
   /**
    * Rank returns the number of integers that are smaller or equal to x (Rank(infinity) would be
    * GetCardinality()).
-   * 
+   *
    * @param x upper limit
    *
    * @return the rank
@@ -1281,10 +1302,10 @@ public class ImmutableRoaringBitmap
   public int rank(int x) {
     return (int) rankLong(x);
   }
-  
+
   /**
    * Return the jth value stored in this bitmap.
-   * 
+   *
    * @param j index of the value
    *
    * @return the value
@@ -1310,7 +1331,7 @@ public class ImmutableRoaringBitmap
   /**
    * Get the first (smallest) integer in this RoaringBitmap,
    * that is, returns the minimum of the set.
-   * @return the first (smallest) integer 
+   * @return the first (smallest) integer
    * @throws NoSuchElementException if empty
    */
   public int first() {
@@ -1330,15 +1351,15 @@ public class ImmutableRoaringBitmap
   /**
    * Serialize this bitmap.
    *
-   *  See format specification at https://github.com/RoaringBitmap/RoaringFormatSpec 
-   * 
+   *  See format specification at https://github.com/RoaringBitmap/RoaringFormatSpec
+   *
    * Consider calling {@link MutableRoaringBitmap#runOptimize} before serialization to improve
    * compression if this is a MutableRoaringBitmap instance.
-   * 
+   *
    * The current bitmap is not modified.
-   * 
+   *
    * Advanced example: To serialize your bitmap to a ByteBuffer, you can do the following.
-   * 
+   *
    * <pre>
    * {
    *   &#64;code
@@ -1351,24 +1372,24 @@ public class ImmutableRoaringBitmap
    *   // then we can serialize on a custom OutputStream
    *   mrb.serialize(new DataOutputStream(new OutputStream() {
    *     ByteBuffer mBB;
-   * 
+   *
    *     OutputStream init(ByteBuffer mbb) {
    *       mBB = mbb;
    *       return this;
    *     }
-   * 
+   *
    *     public void close() {}
-   * 
+   *
    *     public void flush() {}
-   * 
+   *
    *     public void write(int b) {
    *       mBB.put((byte) b);
    *     }
-   * 
+   *
    *     public void write(byte[] b) {
    *       mBB.put(b);
    *     }
-   * 
+   *
    *     public void write(byte[] b, int off, int l) {
    *       mBB.put(b, off, l);
    *     }
@@ -1376,14 +1397,14 @@ public class ImmutableRoaringBitmap
    *   // outbuff will now contain a serialized version of your bitmap
    * }
    * </pre>
-   * 
+   *
    * Note: Java's data structures are in big endian format. Roaring serializes to a little endian
    * format, so the bytes are flipped by the library during serialization to ensure that what is
    * stored is in little endian---despite Java's big endianness. You can defeat this process by
    * reflipping the bytes again in a custom DataOutput which could lead to serialized Roaring
    * objects with an incorrect byte order.
    *
-   * 
+   *
    * @param out the DataOutput stream
    * @throws IOException Signals that an I/O exception has occurred.
    */
@@ -1395,7 +1416,7 @@ public class ImmutableRoaringBitmap
   /**
    * Report the number of bytes required for serialization. This count will match the bytes written
    * when calling the serialize method.
-   * 
+   *
    * @return the size in bytes
    */
   @Override
@@ -1405,9 +1426,9 @@ public class ImmutableRoaringBitmap
 
 
   /**
-   * Return the set values as an array if the cardinality is less 
+   * Return the set values as an array if the cardinality is less
    * than 2147483648. The integer values are in sorted order.
-   * 
+   *
    * @return array representing the set values.
    */
   @Override
@@ -1425,7 +1446,7 @@ public class ImmutableRoaringBitmap
 
   /**
    * Copies the content of this bitmap to a bitmap that can be modified.
-   * 
+   *
    * @return a mutable bitmap.
    */
   public MutableRoaringBitmap toMutableRoaringBitmap() {
@@ -1441,7 +1462,7 @@ public class ImmutableRoaringBitmap
 
   /**
    * Copies this bitmap to a mutable RoaringBitmap.
-   * 
+   *
    * @return a copy of this bitmap as a RoaringBitmap.
    */
   public RoaringBitmap toRoaringBitmap() {
@@ -1451,7 +1472,7 @@ public class ImmutableRoaringBitmap
 
   /**
    * A string describing the bitmap.
-   * 
+   *
    * @return the string
    */
   @Override

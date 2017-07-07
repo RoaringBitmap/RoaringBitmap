@@ -16,12 +16,17 @@ import java.util.Iterator;
 /**
  * MutableRoaringBitmap, a compressed alternative to the BitSet. It is similar to
  * org.roaringbitmap.RoaringBitmap, but it differs in that it can interact with
- * ImmutableRoaringBitmap objects.
+ * ImmutableRoaringBitmap objects in the sense that MutableRoaringBitmap is
+ * derived from MutableRoaringBitmap.
  *
  * A MutableRoaringBitmap is an instance of an ImmutableRoaringBitmap (where methods like
  * "serialize" are implemented). That is, they both share the same core (immutable) methods, but a
  * MutableRoaringBitmap adds methods that allow you to modify the object. This design allows us to
  * use MutableRoaringBitmap as ImmutableRoaringBitmap instances when needed.
+ * MutableRoaringBitmap instances can be casted to an ImmutableRoaringBitmap instance
+ * in constant time which means that code written for ImmutableRoaringBitmap instances
+ * run at full speed (without copies) on MutableRoaringBitmap
+ * instances.
  *
  * A MutableRoaringBitmap can be used much like an org.roaringbitmap.RoaringBitmap instance, and
  * they serialize to the same output. The RoaringBitmap instance will be faster since it does not
@@ -50,7 +55,7 @@ import java.util.Iterator;
  * </pre>
  *
  *
- * Integers are added in unsigned sorted order. That is, they 
+ * Integers are added in unsigned sorted order. That is, they
  * are treated as unsigned integers (see
  * Java 8's Integer.toUnsignedLong function). Up to 4294967296 integers
  * can be stored.
@@ -263,7 +268,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         if(newcont != currentcont) {
           mra.setContainerAtIndex(currentcontainerindex, newcont);
           currentcont = newcont;
-        }     
+        }
       } else {
         currenthb = newhb;
         currentcontainerindex = highLowContainer.getIndex(currenthb);
@@ -279,8 +284,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
           final MappeableArrayContainer newac = new MappeableArrayContainer();
           currentcont = newac.add(BufferUtil.lowbits(val));
           mra.insertNewKeyValueAt(currentcontainerindex, currenthb, currentcont);
-        } 
-      }      
+        }
+      }
     }
   }
 
@@ -890,7 +895,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
   /**
    * Deserialize the bitmap (retrieve from the input stream). The current bitmap is overwritten.
-   * 
+   *
    *  See format specification at https://github.com/RoaringBitmap/RoaringFormatSpec
    *
    * @param in the DataInput stream
@@ -981,7 +986,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     } else {
       // rangeStart being -ve and rangeEnd being positive is not expected)
       // so assume both -ve
-      flip(rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL); 
+      flip(rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL);
     }
   }
 
@@ -1046,7 +1051,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
       @Override
       public void remove() {
          // todo: implement
-        throw new UnsupportedOperationException();      
+        throw new UnsupportedOperationException();
       }
 
     }.init();
@@ -1365,13 +1370,13 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * Some users would prefer to generate a hard copy of the data. The following
    * code illustrates how to proceed, but note that the resulting copy can be
    * expected to perform significantly worse than the original: the toImmutableRoaringBitmap
-   * method is almost free, it uses less memory and it produces a much faster bitmap. 
+   * method is almost free, it uses less memory and it produces a much faster bitmap.
    * <pre>
    * {@code
    *      /////////////
-   *      // Code to create a hard copy of MutableRoaringBitmap to an 
+   *      // Code to create a hard copy of MutableRoaringBitmap to an
    *      // ImmutableRoaringBitmap.
-   *      // Usage of this code is discouraged because it is expensive 
+   *      // Usage of this code is discouraged because it is expensive
    *      // and it creates a copy that
    *      // suffers from more performance overhead than the original.
    *      /////////////
@@ -1379,7 +1384,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    *
    *      //...
    *
-   *      MutableRoaringBitmap rr = ... // some bitmap  
+   *      MutableRoaringBitmap rr = ... // some bitmap
    *      rr.runOptimize(); // can help compression
    *
    *      // we are going to create an immutable copy of rr
@@ -1398,7 +1403,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    *      ImmutableRoaringBitmap irb = new ImmutableRoaringBitmap(outbb);
    * }
    * </pre>
-   * 
+   *
    * @return a cast of this object
    */
   public ImmutableRoaringBitmap toImmutableRoaringBitmap() {

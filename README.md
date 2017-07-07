@@ -179,7 +179,38 @@ Working with memory-mapped bitmaps
 ---------------------------------------
 
 If you want to have your bitmaps lie in memory-mapped files, you can
-use the org.roaringbitmap.buffer package instead.
+use the org.roaringbitmap.buffer package instead. It contains two
+important classes, ImmutableRoaringBitmap and MutableRoaringBitmap.
+MutableRoaringBitmaps are derived from ImmutableRoaringBitmap, so that
+you can convert (cast) a MutableRoaringBitmap to an ImmutableRoaringBitmap
+in constant time.
+
+An ImmutableRoaringBitmap that is not an instance of a MutableRoaringBitmap
+is backed by a ByteBuffer which comes with some performance overhead, but
+with the added flexibility that the data can reside anywhere (including outside
+of the Java heap).
+
+At times you may need to work with bitmaps that reside on disk (instances
+of ImmutableRoaringBitmap) and bitmaps that reside in Java memory. If you
+know that the bitmaps will reside in Java memory, it is best to use
+MutableRoaringBitmap instances, not only can they be modified, but they
+will also be faster. Moreover, because MutableRoaringBitmap instances are
+also ImmutableRoaringBitmap instances, you can write much of your code
+expecting ImmutableRoaringBitmap.
+
+If you write your code expecting ImmutableRoaringBitmap instances, without
+attempting to cast the instances, then your objects will be truly immutable.
+The MutableRoaringBitmap has a convenience method (toImmutableRoaringBitmap)
+which is a simple cast back to an ImmutableRoaringBitmap instance.
+From a language design point of view, instances of the ImmutableRoaringBitmap class are immutable only when used as per
+the interface of the ImmutableRoaringBitmap class. Given that the class is not final, it is possible
+to modify instances, through other interfaces. Thus we do not take the term "immutable" in a purist manner,
+but rather in a practical one.
+
+One of our motivations for this design where MutableRoaringBitmap instances can be casted
+down to ImmutableRoaringBitmap instances is that bitmaps are often large,
+or used in a context where memory allocations are to be avoided, so we avoid forcing copies.
+Copies could be expected if one needs to mix and match ImmutableRoaringBitmap and MutableRoaringBitmap instances.
 
 The following code sample illustrates how to create an ImmutableRoaringBitmap
 from a ByteBuffer. In such instances, the constructor only loads the meta-data
@@ -209,12 +240,15 @@ Operations on an ImmutableRoaringBitmap such as and, or, xor, flip, will
 generate a RoaringBitmap which lies in RAM. As the name suggest, the
 ImmutableRoaringBitmap itself cannot be modified.
 
+
 This design was inspired by Druid.
 
 One can find a complete working example in the test file TestMemoryMapping.java.
 
 Note that you should not mix the classes from the org.roaringbitmap package with the classes
-from the org.roaringbitmap.buffer package. They are incompatible. They serialize to the same output however.
+from the org.roaringbitmap.buffer package. They are incompatible. They serialize
+to the same output however. The performance of the code in org.roaringbitmap package is
+generally superior because there is no overhead due to the use of ByteBuffer instances.
 
 
 
