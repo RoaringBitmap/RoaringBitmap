@@ -313,7 +313,6 @@ a patch.
 FAQ
 ----
 
-
 * I am getting an error about a bad cookie. What is this about?
 
 In the serialized files, part of the first 4 bytes are dedicated to a "cookie"
@@ -327,10 +326,7 @@ This problem will occur to all users who serialized Roaring bitmaps
 using versions prior to 0.4.x as they upgrade to version 0.4.x or better.
 These users need to refresh their serialized bitmaps.
 
-
-
 * How big can a Roaring bitmap get?
-
 
 Given N integers in [0,x), then the serialized size in bytes of
 a Roaring bitmap should never exceed this bound:
@@ -340,6 +336,26 @@ a Roaring bitmap should never exceed this bound:
 That is, given a fixed overhead for the universe size (x), Roaring
 bitmaps never use more than 2 bytes per integer. You can call
 ``RoaringBitmap.maximumSerializedSize`` for a more precise estimate.
+
+* What is the worst case scenario for Roaring bitmaps?
+
+There is no such thing as a data structure that is always ideal. You should
+make sure that Roaring bitmaps fit your application profile.
+There are at least two cases where Roaring bitmaps can be easily replaced
+by superior alternatives compression-wise:
+
+1. You have few random values spanning in a large interval (i.e., you have
+a very sparse set). For example, take the set 0, 65536, 131072, 196608, 262144 ...
+If this is typical of your application, you might consider using a HashSet or
+a simple sorted array.
+
+2. You have dense set of small random values that never form runs of continuous
+values. For example, consider the set 0,2,4,...,10000. If this is typical of your 
+application, you might be better served with a conventional bitset (e.g., Java's BitSet class).
+
+
+
+
 
 Benchmark
 -----------
