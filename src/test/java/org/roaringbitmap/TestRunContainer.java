@@ -3099,6 +3099,13 @@ public class TestRunContainer {
   }
 
   @Test
+  public void testFirstUnsigned() {
+    RoaringBitmap roaringWithRun = new RoaringBitmap();
+    roaringWithRun.add(32768L, 65536); // (1 << 15) to (1 << 16).
+    assertEquals(roaringWithRun.first(), 32768);
+  }
+
+  @Test
   public void testContainsBitmapContainer_EmptyContainsEmpty() {
     Container rc = new RunContainer();
     Container subset = new BitmapContainer();
