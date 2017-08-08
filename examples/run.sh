@@ -23,6 +23,10 @@ echo
 echo "Very large example"
 javac -cp "../target/*":. VeryLargeBitmap.java && java -cp ../target/*:. VeryLargeBitmap
 echo
+echo
+echo "paging"
+javac -cp "../target/*":. PagedIterator.java && java -cp ../target/*:. PagedIterator
+echo
 echo "Serializing to file "
 javac -cp "../target/*" SerializeToDiskExample.java &&  java -cp ../target/*:. SerializeToDiskExample
 rm bitmapwithoutruns.bin  bitmapwithruns.bin
