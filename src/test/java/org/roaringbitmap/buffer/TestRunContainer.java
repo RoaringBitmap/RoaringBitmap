@@ -2153,4 +2153,217 @@ public class TestRunContainer {
     assertTrue(rc.intersects(ac));
   }
 
+  @Test
+  public void testFirstLast() {
+    MappeableContainer rc = new MappeableRunContainer();
+    final int firstInclusive = 1;
+    int lastExclusive = firstInclusive;
+    for (int i = 0; i < 1 << 16 - 10; ++i) {
+      int newLastExclusive = lastExclusive + 10;
+      rc = rc.add(lastExclusive, newLastExclusive);
+      assertEquals(firstInclusive, rc.first());
+      assertEquals(newLastExclusive - 1, rc.last());
+      lastExclusive = newLastExclusive;
+    }
+  }
+
+  @Test
+  public void testFirstUnsigned() {
+    MutableRoaringBitmap roaringWithRun = new MutableRoaringBitmap();
+    roaringWithRun.add(32768L, 65536); // (1 << 15) to (1 << 16).
+    assertEquals(roaringWithRun.first(), 32768);
+  }
+
+  @Test
+  public void testContainsMappeableBitmapContainer_EmptyContainsEmpty() {
+    MappeableContainer rc = new MappeableRunContainer();
+    MappeableContainer subset = new MappeableBitmapContainer();
+    assertTrue(rc.contains(subset));
+  }
+
+  @Test
+  public void testContainsMappeableBitmapContainer_IncludeProperSubset() {
+    MappeableContainer rc = new MappeableRunContainer().add(0,10);
+    MappeableContainer subset = new MappeableBitmapContainer().add(0,9);
+    assertTrue(rc.contains(subset));
+  }
+
+
+  @Test
+  public void testContainsMappeableBitmapContainer_IncludeProperSubsetDifferentStart() {
+    MappeableContainer rc = new MappeableRunContainer().add(0,10);
+    MappeableContainer subset = new MappeableBitmapContainer().add(1,9);
+    assertTrue(rc.contains(subset));
+  }
+
+  @Test
+  public void testContainsMappeableBitmapContainer_ExcludeShiftedSet() {
+    MappeableContainer rc = new MappeableRunContainer().add(0,10);
+    MappeableContainer subset = new MappeableBitmapContainer().add(2,12);
+    assertFalse(rc.contains(subset));
+  }
+
+  @Test
+  public void testContainsMappeableBitmapContainer_IncludeSelf() {
+    MappeableContainer rc = new MappeableRunContainer().add(0,10);
+    MappeableContainer subset = new MappeableBitmapContainer().add(0,10);
+    assertTrue(rc.contains(subset));
+  }
+
+  @Test
+  public void testContainsMappeableBitmapContainer_ExcludeSuperSet() {
+    MappeableContainer rc = new MappeableRunContainer().add(0,10);
+    MappeableContainer superset = new MappeableBitmapContainer().add(0,20);
+    assertFalse(rc.contains(superset));
+  }
+
+  @Test
+  public void testContainsMappeableBitmapContainer_ExcludeDisJointSet() {
+    MappeableContainer rc = new MappeableRunContainer().add(0,10);
+    MappeableContainer disjoint = new MappeableBitmapContainer().add(20, 40);
+    assertFalse(rc.contains(disjoint));
+    assertFalse(disjoint.contains(rc));
+  }
+
+  @Test
+  public void testContainsMappeableRunContainer_EmptyContainsEmpty() {
+    MappeableContainer rc = new MappeableRunContainer();
+    MappeableContainer subset = new MappeableRunContainer();
+    assertTrue(rc.contains(subset));
+  }
+
+  @Test
+  public void testContainsMappeableRunContainer_IncludeProperSubset() {
+    MappeableContainer rc = new MappeableRunContainer().add(0,10);
+    MappeableContainer subset = new MappeableRunContainer().add(0,9);
+    assertTrue(rc.contains(subset));
+  }
+
+  @Test
+  public void testContainsMappeableRunContainer_IncludeSelf() {
+    MappeableContainer rc = new MappeableRunContainer().add(0,10);
+    MappeableContainer subset = new MappeableRunContainer().add(0,10);
+    assertTrue(rc.contains(subset));
+  }
+
+  @Test
+  public void testContainsMappeableRunContainer_ExcludeSuperSet() {
+    MappeableContainer rc = new MappeableRunContainer().add(0,10);
+    MappeableContainer superset = new MappeableRunContainer().add(0,20);
+    assertFalse(rc.contains(superset));
+  }
+
+  @Test
+  public void testContainsMappeableRunContainer_IncludeProperSubsetDifferentStart() {
+    MappeableContainer rc = new MappeableRunContainer().add(0,10);
+    MappeableContainer subset = new MappeableRunContainer().add(1,9);
+    assertTrue(rc.contains(subset));
+  }
+
+  @Test
+  public void testContainsMappeableRunContainer_ExcludeShiftedSet() {
+    MappeableContainer rc = new MappeableRunContainer().add(0,10);
+    MappeableContainer subset = new MappeableRunContainer().add(2,12);
+    assertFalse(rc.contains(subset));
+  }
+
+  @Test
+  public void testContainsMappeableRunContainer_ExcludeDisJointSet() {
+    MappeableContainer rc = new MappeableRunContainer().add(0,10);
+    MappeableContainer disjoint = new MappeableRunContainer().add(20, 40);
+    assertFalse(rc.contains(disjoint));
+    assertFalse(disjoint.contains(rc));
+  }
+
+  @Test
+  public void testContainsMappeableArrayContainer_EmptyContainsEmpty() {
+    MappeableContainer rc = new MappeableRunContainer();
+    MappeableContainer subset = new MappeableArrayContainer();
+    assertTrue(rc.contains(subset));
+  }
+
+  @Test
+  public void testContainsMappeableArrayContainer_IncludeProperSubset() {
+    MappeableContainer rc = new MappeableRunContainer().add(0,10);
+    MappeableContainer subset = new MappeableArrayContainer().add(0,9);
+    assertTrue(rc.contains(subset));
+  }
+
+  @Test
+  public void testContainsMappeableArrayContainer_IncludeProperSubsetDifferentStart() {
+    MappeableContainer rc = new MappeableRunContainer().add(0,10);
+    MappeableContainer subset = new MappeableArrayContainer().add(2,9);
+    assertTrue(rc.contains(subset));
+  }
+
+  @Test
+  public void testContainsMappeableArrayContainer_ExcludeShiftedSet() {
+    MappeableContainer rc = new MappeableRunContainer().add(0,10);
+    MappeableContainer shifted = new MappeableArrayContainer().add(2,12);
+    assertFalse(rc.contains(shifted));
+  }
+
+  @Test
+  public void testContainsMappeableArrayContainer_IncludeSelf() {
+    MappeableContainer rc = new MappeableRunContainer().add(0,10);
+    MappeableContainer subset = new MappeableArrayContainer().add(0,10);
+    assertTrue(rc.contains(subset));
+  }
+
+  @Test
+  public void testContainsMappeableArrayContainer_ExcludeSuperSet() {
+    MappeableContainer rc = new MappeableRunContainer().add(0,10);
+    MappeableContainer superset = new MappeableArrayContainer().add(0,20);
+    assertFalse(rc.contains(superset));
+  }
+
+  @Test
+  public void testContainsMappeableArrayContainer_ExcludeDisJointSet() {
+    MappeableContainer rc = new MappeableRunContainer().add(0, 10);
+    MappeableContainer disjoint = new MappeableArrayContainer().add(20, 40);
+    assertFalse(rc.contains(disjoint));
+    assertFalse(disjoint.contains(rc));
+  }
+
+  @Test
+  public void testEqualsMappeableArrayContainer_Equal() {
+    MappeableContainer rc = new MappeableRunContainer().add(0, 10);
+    MappeableContainer ac = new MappeableArrayContainer().add(0, 10);
+    assertTrue(rc.equals(ac));
+    assertTrue(ac.equals(rc));
+  }
+
+  @Test
+  public void testEqualsMappeableArrayContainer_NotEqual_ArrayLarger() {
+    MappeableContainer rc = new MappeableRunContainer().add(0, 10);
+    MappeableContainer ac = new MappeableArrayContainer().add(0, 11);
+    assertFalse(rc.equals(ac));
+    assertFalse(ac.equals(rc));
+  }
+
+  @Test
+  public void testEqualsMappeableArrayContainer_NotEqual_ArraySmaller() {
+    MappeableContainer rc = new MappeableRunContainer().add(0, 10);
+    MappeableContainer ac = new MappeableArrayContainer().add(0, 9);
+    assertFalse(rc.equals(ac));
+    assertFalse(ac.equals(rc));
+  }
+
+  @Test
+  public void testEqualsMappeableArrayContainer_NotEqual_ArrayShifted() {
+    MappeableContainer rc = new MappeableRunContainer().add(0, 10);
+    MappeableContainer ac = new MappeableArrayContainer().add(1, 11);
+    assertFalse(rc.equals(ac));
+    assertFalse(ac.equals(rc));
+  }
+
+  @Test
+  public void testEqualsMappeableArrayContainer_NotEqual_ArrayDiscontiguous() {
+    MappeableContainer rc = new MappeableRunContainer().add(0, 10);
+    MappeableContainer ac = new MappeableArrayContainer().add(0, 11);
+    ac.flip((short)9);
+    assertFalse(rc.equals(ac));
+    assertFalse(ac.equals(rc));
+  }
+
 }

@@ -138,7 +138,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @deprecated use the version where longs specify the range
    */
   @Deprecated
-    public static MutableRoaringBitmap add(MutableRoaringBitmap rb,
+  public static MutableRoaringBitmap add(MutableRoaringBitmap rb,
                                            final int rangeStart, final int rangeEnd) {
     if (rangeStart >= 0) {
       return add(rb, (long) rangeStart, (long) rangeEnd);
@@ -381,7 +381,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @deprecated use the version where longs specify the range
    */
   @Deprecated
-    public static MutableRoaringBitmap flip(MutableRoaringBitmap rb,
+  public static MutableRoaringBitmap flip(MutableRoaringBitmap rb,
                                             final int rangeStart, final int rangeEnd) {
     if (rangeStart >= 0) {
       return flip(rb, (long) rangeStart, (long) rangeEnd);
@@ -577,7 +577,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @deprecated use the version where longs specify the range
    */
   @Deprecated
-    public static MutableRoaringBitmap remove(MutableRoaringBitmap rb,
+  public static MutableRoaringBitmap remove(MutableRoaringBitmap rb,
                                               final int rangeStart, final int rangeEnd) {
     if (rangeStart >= 0) {
       return remove(rb, (long) rangeStart, (long) rangeEnd);
@@ -586,16 +586,6 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     // so assume both -ve
     return remove(rb, rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL);
   }
-
-
-
-
-
-
-
-
-
-
 
 
   /**
@@ -746,7 +736,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @deprecated use the version where longs specify the range
    */
   @Deprecated
-    public void add(final int rangeStart, final int rangeEnd) {
+  public void add(final int rangeStart, final int rangeEnd) {
     if (rangeStart >= 0) {
       add((long) rangeStart, (long) rangeEnd);
     }
@@ -980,7 +970,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @deprecated use the version where longs specify the range
    */
   @Deprecated
-    public void flip(final int rangeStart, final int rangeEnd) {
+  public void flip(final int rangeStart, final int rangeEnd) {
     if (rangeStart >= 0) {
       flip((long) rangeStart, (long) rangeEnd);
     } else {
@@ -1300,7 +1290,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @deprecated use the version where longs specify the range
    */
   @Deprecated
-    public void remove(final int rangeStart, final int rangeEnd) {
+  public void remove(final int rangeStart, final int rangeEnd) {
     if (rangeStart >= 0) {
       remove((long) rangeStart, (long) rangeEnd);
     }

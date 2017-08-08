@@ -225,7 +225,7 @@ public class ImmutableRoaringBitmap
    * @deprecated use the version where longs specify the range. Negative range end are illegal.
    */
   @Deprecated
-    public static MutableRoaringBitmap and(@SuppressWarnings("rawtypes") final Iterator bitmaps,
+  public static MutableRoaringBitmap and(@SuppressWarnings("rawtypes") final Iterator bitmaps,
       final int rangeStart, final int rangeEnd) {
     return and(bitmaps, (long) rangeStart, (long) rangeEnd);
   }
@@ -369,7 +369,7 @@ public class ImmutableRoaringBitmap
    *     endpoints are not allowed.
    */
   @Deprecated
-    public static MutableRoaringBitmap andNot(final ImmutableRoaringBitmap x1,
+  public static MutableRoaringBitmap andNot(final ImmutableRoaringBitmap x1,
                                               final ImmutableRoaringBitmap x2,
                                               final int rangeStart, final int rangeEnd) {
     return andNot(x1, x2, (long) rangeStart, (long) rangeEnd);
@@ -505,7 +505,7 @@ public class ImmutableRoaringBitmap
    * @deprecated use the version where longs specify the range
    */
   @Deprecated
-    public static MutableRoaringBitmap flip(ImmutableRoaringBitmap bm,
+  public static MutableRoaringBitmap flip(ImmutableRoaringBitmap bm,
                                             final int rangeStart, final int rangeEnd) {
     if (rangeStart >= 0) {
       return flip(bm, (long) rangeStart, (long) rangeEnd);
@@ -803,7 +803,7 @@ public class ImmutableRoaringBitmap
    *     Negative range points are forbidden.
    */
   @Deprecated
-    public static MutableRoaringBitmap or(@SuppressWarnings("rawtypes") final Iterator bitmaps,
+  public static MutableRoaringBitmap or(@SuppressWarnings("rawtypes") final Iterator bitmaps,
           final int rangeStart, final int rangeEnd) {
     return or(bitmaps, (long) rangeStart, (long) rangeEnd);
   }
@@ -859,7 +859,7 @@ public class ImmutableRoaringBitmap
    *     Negative values not allowed for rangeStart and rangeEnd
    */
   @Deprecated
-    public static MutableRoaringBitmap xor(@SuppressWarnings("rawtypes") final Iterator bitmaps,
+  public static MutableRoaringBitmap xor(@SuppressWarnings("rawtypes") final Iterator bitmaps,
           final int rangeStart, final int rangeEnd) {
     return xor(bitmaps, (long) rangeStart, (long) rangeEnd);
   }
