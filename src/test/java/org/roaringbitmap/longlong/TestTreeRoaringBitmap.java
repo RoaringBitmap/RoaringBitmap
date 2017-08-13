@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Comparator;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -181,40 +182,104 @@ public class TestTreeRoaringBitmap {
   }
 
   @Test
-  public void testLargeSelectLong() {
-    long small = 1;
-    long large = 1L << 63 | 1;
-    RoaringTreeMap map = new RoaringTreeMap();
-    map.addLong(small);
-    map.addLong(large);
+  public void testComparator() {
+    Comparator<Integer> natural = new Comparator<Integer>() {
+
+      @Override
+      public int compare(Integer o1, Integer o2) {
+        return Integer.compare(o1, o2);
+      }
+    };
+    Comparator<Integer> unsigned = RoaringIntPacking.unsignedComparator();
+
+    // Comparator a negative and a positive differs from natural comparison
+    Assert.assertTrue(natural.compare(-1, 1) < 0);
+    Assert.assertFalse(unsigned.compare(-1, 1) < 0);
+
+    // Comparator Long.MAX_VALUE and Long.MAX_VALUE + 1 differs
+    Assert.assertTrue(natural.compare(Integer.MAX_VALUE, Integer.MAX_VALUE + 1) > 0);
+    Assert.assertFalse(unsigned.compare(Integer.MAX_VALUE, Integer.MAX_VALUE + 1) > 0);
+
+    // 'Integer.MAX_VALUE+1' is lower than 'Integer.MAX_VALUE+2'
+    Assert.assertTrue(unsigned.compare(Integer.MAX_VALUE + 1, Integer.MAX_VALUE + 2) < 0);
+  }
+
+  @Test
+  public void testLargeSelectLong_signed() {
+    long positive = 1;
+    long negative = -1;
+    RoaringTreeMap map = new RoaringTreeMap(true);
+    map.addLong(positive);
+    map.addLong(negative);
     long first = map.select(0);
     long last = map.select(1);
-    Assert.assertEquals(small, first);
-    Assert.assertEquals(large, last);
+
+    // signed: positive is after negative
+    Assert.assertEquals(negative, first);
+    Assert.assertEquals(positive, last);
   }
 
   @Test
-  public void testLargeRankLong() {
-    long small = 1;
-    long large = 1L << 63 | 1;
-    RoaringTreeMap map = new RoaringTreeMap();
-    map.addLong(small);
-    map.addLong(large);
-    Assert.assertEquals(2, map.rankLong(large));
+  public void testLargeSelectLong_unsigned() {
+    long positive = 1;
+    long negative = -1;
+    RoaringTreeMap map = new RoaringTreeMap(false);
+    map.addLong(positive);
+    map.addLong(negative);
+    long first = map.select(0);
+    long last = map.select(1);
+
+    // unsigned: negative means bigger than Long.MAX_VALUE
+    Assert.assertEquals(positive, first);
+    Assert.assertEquals(negative, last);
   }
 
   @Test
-  public void testIterationOrder() {
-    long small = 1;
-    long large = 1L << 63 | 1;
-    RoaringTreeMap map = new RoaringTreeMap();
-    map.addLong(small);
-    map.addLong(large);
+  public void testLargeRankLong_signed() {
+    long positive = 1;
+    long negative = -1;
+    RoaringTreeMap map = new RoaringTreeMap(true);
+    map.addLong(positive);
+    map.addLong(negative);
+    Assert.assertEquals(1, map.rankLong(negative));
+  }
+
+  @Test
+  public void testLargeRankLong_unsigned() {
+    long positive = 1;
+    long negative = -1;
+    RoaringTreeMap map = new RoaringTreeMap(false);
+    map.addLong(positive);
+    map.addLong(negative);
+    Assert.assertEquals(2, map.rankLong(negative));
+  }
+
+  @Test
+  public void testIterationOrder_signed() {
+    long positive = 1;
+    long negative = -1;
+    RoaringTreeMap map = new RoaringTreeMap(true);
+    map.addLong(positive);
+    map.addLong(negative);
     LongIterator it = map.iterator();
     long first = it.next();
     long last = it.next();
-    Assert.assertEquals(small, first);
-    Assert.assertEquals(large, last);
+    Assert.assertEquals(negative, first);
+    Assert.assertEquals(positive, last);
+  }
+
+  @Test
+  public void testIterationOrder_unsigned() {
+    long positive = 1;
+    long negative = -1;
+    RoaringTreeMap map = new RoaringTreeMap(false);
+    map.addLong(positive);
+    map.addLong(negative);
+    LongIterator it = map.iterator();
+    long first = it.next();
+    long last = it.next();
+    Assert.assertEquals(positive, first);
+    Assert.assertEquals(negative, last);
   }
 
   @Test
@@ -267,5 +332,80 @@ public class TestTreeRoaringBitmap {
     Assert.assertNotSame(map, clone);
     Assert.assertEquals(1, clone.getCardinality());
     Assert.assertEquals(123, clone.select(0));
+  }
+
+  @Test
+  public void testOr_SameBucket() {
+    RoaringTreeMap left = new RoaringTreeMap();
+    RoaringTreeMap right = new RoaringTreeMap();
+
+    left.addLong(123);
+    right.addLong(234);
+
+    left.or(right);
+
+    Assert.assertEquals(2, left.getCardinality());
+
+    Assert.assertEquals(123, left.select(0));
+    Assert.assertEquals(234, left.select(1));
+  }
+
+  @Test
+  public void testOr_DifferentBucket() {
+    RoaringTreeMap left = new RoaringTreeMap();
+    RoaringTreeMap right = new RoaringTreeMap();
+
+    left.addLong(123);
+    right.addLong(Long.MAX_VALUE / 2);
+
+    left.or(right);
+
+    Assert.assertEquals(2, left.getCardinality());
+
+    Assert.assertEquals(123, left.select(0));
+    Assert.assertEquals(Long.MAX_VALUE / 2, left.select(1));
+  }
+
+  @Test
+  public void testOr_CloneInput() {
+    RoaringTreeMap left = new RoaringTreeMap();
+    RoaringTreeMap right = new RoaringTreeMap();
+
+    right.addLong(123);
+
+    // We push in left a bucket which does not exist
+    left.or(right);
+
+    // Then we mutate left: ensure it does not impact right as it should remain unchanged
+    left.addLong(234);
+
+    Assert.assertEquals(2, left.getCardinality());
+    Assert.assertEquals(123, left.select(0));
+    Assert.assertEquals(234, left.select(1));
+
+    Assert.assertEquals(1, right.getCardinality());
+    Assert.assertEquals(123, right.select(0));
+  }
+
+  @Test
+  public void testToString_signed() {
+    RoaringTreeMap map = new RoaringTreeMap(true);
+
+    map.addLong(123);
+    map.addLong(Long.MAX_VALUE);
+    map.addLong(Long.MAX_VALUE + 1L);
+
+    Assert.assertEquals("{-9223372036854775808,123,9223372036854775807}", map.toString());
+  }
+
+  @Test
+  public void testToString_unsigned() {
+    RoaringTreeMap map = new RoaringTreeMap(false);
+
+    map.addLong(123);
+    map.addLong(Long.MAX_VALUE);
+    map.addLong(Long.MAX_VALUE + 1L);
+
+    Assert.assertEquals("{123,9223372036854775807,9223372036854775808}", map.toString());
   }
 }

@@ -280,7 +280,7 @@
 				<version>2.0.1</version>
 				<configuration>
 					<configFile>${basedir}/style/eclipse-java-google-style.xml</configFile>
-					<includes>**/longlong/**/*.java</includes>
+					<includes><include>**/longlong/**/*.java</include></includes>
 				</configuration>
 				<executions>
 					<execution>
