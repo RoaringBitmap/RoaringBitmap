@@ -21,11 +21,15 @@ import org.roaringbitmap.buffer.MutableRoaringBitmap;
 // @Beta
 public class RoaringTreeMap implements Externalizable {
   // Not final to enable initialization in Externalizable.readObject
-  protected NavigableMap<Integer, MutableRoaringBitmap> hiToBitmap = new TreeMap<>();
+  protected NavigableMap<Integer, MutableRoaringBitmap> highToBitmap = new TreeMap<>();
 
   // Prevent recomputing all cardinalities when requesting consecutive ranks
-  private transient boolean allValid = false;
   private transient int firstHighNotValid = Integer.MIN_VALUE;
+
+  // This boolean needs firstHighNotValid == Integer.MAX_VALUE to be allowed to be true
+  // If false, it means nearly all cumulated cardinalities are valid, except high = Integer.MAX_VALUE
+  // If true, it means all cumulated cardinalities are valid, even high = Integer.MAX_VALUE
+  private transient boolean allValid = false;
 
   // TODO: I would prefer not managing arrays myself
   private transient long[] sortedCumulatedCardinality = new long[0];
@@ -39,32 +43,33 @@ public class RoaringTreeMap implements Externalizable {
 
   // https://stackoverflow.com/questions/12772939/java-storing-two-ints-in-a-long
   public void addLong(long id) {
-    int x = (int) (id >> 32);
-    int y = (int) id;
+    int high = (int) (id >> 32);
+    int low = (int) id;
 
     Map.Entry<Integer, MutableRoaringBitmap> local = latest;
-    if (local != null && local.getKey().intValue() == x) {
-      local.getValue().add(y);
+    if (local != null && local.getKey().intValue() == high) {
+      local.getValue().add(low);
     } else {
-      MutableRoaringBitmap bitmap = hiToBitmap.get(x);
+      MutableRoaringBitmap bitmap = highToBitmap.get(high);
       if (bitmap == null) {
         bitmap = new MutableRoaringBitmap();
-        hiToBitmap.put(x, bitmap);
+        highToBitmap.put(high, bitmap);
       }
-      bitmap.add(y);
-      latest = new AbstractMap.SimpleImmutableEntry<>(x, bitmap);
+      bitmap.add(low);
+      latest = new AbstractMap.SimpleImmutableEntry<>(high, bitmap);
     }
 
     // The cardinalities after this bucket may not be valid anymore
-    firstHighNotValid = Math.min(firstHighNotValid, x);
+    firstHighNotValid = Math.min(firstHighNotValid, high);
+    allValid = false;
   }
 
-  private long pack(int x, int y) {
-    return (((long) x) << 32) | (y & 0xffffffffL);
+  private long pack(int high, int low) {
+    return (((long) high) << 32) | (low & 0xffffffffL);
   }
 
   public long getCardinality() {
-    if (hiToBitmap.isEmpty()) {
+    if (highToBitmap.isEmpty()) {
       return 0L;
     }
 
@@ -127,7 +132,8 @@ public class RoaringTreeMap implements Externalizable {
   }
 
   public LongIterator iterator() {
-    final Iterator<Map.Entry<Integer, MutableRoaringBitmap>> it = hiToBitmap.entrySet().iterator();
+    final Iterator<Map.Entry<Integer, MutableRoaringBitmap>> it =
+        highToBitmap.entrySet().iterator();
 
     return new LongIterator() {
 
@@ -190,12 +196,12 @@ public class RoaringTreeMap implements Externalizable {
   }
 
   public long rankLong(long id) {
-    int x = (int) (id >> 32);
-    int y = (int) id;
+    int high = (int) (id >> 32);
+    int low = (int) id;
 
-    ensureCumulatives(x);
+    ensureCumulatives(high);
 
-    int bitmapPosition = Arrays.binarySearch(sortedHighs, 0, sortedHighs.length, x);
+    int bitmapPosition = Arrays.binarySearch(sortedHighs, 0, sortedHighs.length, high);
 
     if (bitmapPosition >= 0) {
       // There is a bucket holding this item
@@ -210,7 +216,7 @@ public class RoaringTreeMap implements Externalizable {
       MutableRoaringBitmap bitmap = linkedBitmaps.get(bitmapPosition);
 
       // Rank is previous cardinality plus rank in current bitmap
-      return previousBucketCardinality + bitmap.rankLong(y);
+      return previousBucketCardinality + bitmap.rankLong(low);
     } else {
       // There is no bucket holding this item: insertionPoint is previous bitmap
       int insertionPoint = -bitmapPosition - 1;
@@ -225,16 +231,16 @@ public class RoaringTreeMap implements Externalizable {
     }
   }
 
-  protected void ensureCumulatives(int x) {
+  protected void ensureCumulatives(int high) {
     // Check if missing data to handle this rank
-    if (!allValid && firstHighNotValid <= x) {
+    if (!allValid && firstHighNotValid <= high) {
       // For each deprecated buckets
-      SortedMap<Integer, MutableRoaringBitmap> tailMap = hiToBitmap.tailMap(firstHighNotValid);
+      SortedMap<Integer, MutableRoaringBitmap> tailMap = highToBitmap.tailMap(firstHighNotValid);
 
       for (Map.Entry<Integer, MutableRoaringBitmap> e : tailMap.entrySet()) {
         int currentHigh = e.getKey();
 
-        if (currentHigh > x) {
+        if (currentHigh > high) {
           break;
         }
 
@@ -243,11 +249,11 @@ public class RoaringTreeMap implements Externalizable {
         if (index >= 0) {
           // This bitmap has already been registered
           MutableRoaringBitmap bitmap = e.getValue();
-          assert bitmap == hiToBitmap.get(index);
+          assert bitmap == highToBitmap.get(sortedHighs[index]);
 
           final long previousCardinality;
           if (currentHigh >= 1) {
-            previousCardinality = sortedCumulatedCardinality[currentHigh - 1];
+            previousCardinality = sortedCumulatedCardinality[index - 1];
           } else {
             previousCardinality = 0;
           }
@@ -259,7 +265,7 @@ public class RoaringTreeMap implements Externalizable {
           } else {
             firstHighNotValid = currentHigh + 1;
           }
-          if (currentHigh > x) {
+          if (currentHigh > high) {
             // No need to compute more than needed
             break;
           }
@@ -274,10 +280,11 @@ public class RoaringTreeMap implements Externalizable {
                 Arrays.copyOf(sortedCumulatedCardinality, sortedCumulatedCardinality.length + 1);
           } else {
             // Insertion in the middle
-            sortedHighs = Arrays.copyOf(sortedHighs, sortedHighs.length + 1);
+            int previousLength = sortedHighs.length;
+            sortedHighs = Arrays.copyOf(sortedHighs, previousLength + 1);
             // Ensure the new 0 is in the middle
             System.arraycopy(sortedHighs, insertionPosition, sortedHighs, insertionPosition + 1,
-                sortedHighs.length - insertionPosition);
+                previousLength - insertionPosition);
 
             sortedCumulatedCardinality =
                 Arrays.copyOf(sortedCumulatedCardinality, sortedCumulatedCardinality.length + 1);
@@ -310,11 +317,11 @@ public class RoaringTreeMap implements Externalizable {
 
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
-    out.writeObject(hiToBitmap);
+    out.writeObject(highToBitmap);
   }
 
   @Override
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-    hiToBitmap = (NavigableMap<Integer, MutableRoaringBitmap>) in.readObject();
+    highToBitmap = (NavigableMap<Integer, MutableRoaringBitmap>) in.readObject();
   }
 }

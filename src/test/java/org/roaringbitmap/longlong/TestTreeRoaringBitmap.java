@@ -224,7 +224,7 @@ public class TestTreeRoaringBitmap {
     Assert.assertEquals(Long.MAX_VALUE, map.select(0));
     map.addLong(666);
     Assert.assertEquals(666, map.select(0));
-    Assert.assertEquals(Long.MAX_VALUE, map.select(0));
+    Assert.assertEquals(Long.MAX_VALUE, map.select(1));
   }
 
   @Test
