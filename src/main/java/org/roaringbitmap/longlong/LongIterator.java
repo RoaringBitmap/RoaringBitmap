@@ -7,21 +7,21 @@ package org.roaringbitmap.longlong;
  * LongIterator is nearly twice as fast as Iterator&lt;Long&gt;.
  */
 public interface LongIterator extends Cloneable {
-	/**
-	 * Creates a copy of the iterator.
-	 * 
-	 * @return a clone of the current iterator
-	 */
-	LongIterator clone();
+  /**
+   * Creates a copy of the iterator.
+   * 
+   * @return a clone of the current iterator
+   */
+  LongIterator clone();
 
-	/**
-	 * @return whether there is another value
-	 */
-	boolean hasNext();
+  /**
+   * @return whether there is another value
+   */
+  boolean hasNext();
 
-	/**
-	 * @return next long value
-	 */
-	long next();
+  /**
+   * @return next long value
+   */
+  long next();
 
 }
