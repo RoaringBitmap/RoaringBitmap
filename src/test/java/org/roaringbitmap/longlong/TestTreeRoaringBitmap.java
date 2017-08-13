@@ -47,6 +47,15 @@ public class TestTreeRoaringBitmap {
 	}
 
 	@Test
+	public void testAddOneSelect2() {
+		RoaringTreeMap map = new RoaringTreeMap();
+
+		map.addLong(123);
+
+		Assert.assertEquals(123, map.select(1));
+	}
+
+	@Test
 	public void testIterator_NextWithoutHasNext_Filled() {
 		RoaringTreeMap map = new RoaringTreeMap();
 
@@ -163,5 +172,52 @@ public class TestTreeRoaringBitmap {
 		long last = map.select(cardinality - 1);
 		Assert.assertEquals(problemSize * Integer.MAX_VALUE + 1L, last);
 		Assert.assertEquals(cardinality, map.rankLong(last));
+	}
+
+	@Test
+	public void testLargeSelectLong() {
+		long small = 1;
+		long large = 1L << 63 | 1;
+		RoaringTreeMap map = new RoaringTreeMap();
+		map.addLong(small);
+		map.addLong(large);
+		long first = map.select(0);
+		long last = map.select(1);
+		Assert.assertEquals(small, first);
+		Assert.assertEquals(large, last);
+	}
+
+	@Test
+	public void testLargeRankLong() {
+		long small = 1;
+		long large = 1L << 63 | 1;
+		RoaringTreeMap map = new RoaringTreeMap();
+		map.addLong(small);
+		map.addLong(large);
+		Assert.assertEquals(2, map.rankLong(large));
+	}
+
+	@Test
+	public void testIterationOrder() {
+		long small = 1;
+		long large = 1L << 63 | 1;
+		RoaringTreeMap map = new RoaringTreeMap();
+		map.addLong(small);
+		map.addLong(large);
+		LongIterator it = map.iterator();
+		long first = it.next();
+		long last = it.next();
+		Assert.assertEquals(small, first);
+		Assert.assertEquals(large, last);
+	}
+
+	@Test
+	public void test() {
+		RoaringTreeMap map = new RoaringTreeMap();
+		map.addLong(Long.MAX_VALUE);
+		Assert.assertEquals(Long.MAX_VALUE, map.select(0));
+		map.addLong(666);
+		Assert.assertEquals(666, map.select(0));
+		Assert.assertEquals(Long.MAX_VALUE, map.select(0));
 	}
 }

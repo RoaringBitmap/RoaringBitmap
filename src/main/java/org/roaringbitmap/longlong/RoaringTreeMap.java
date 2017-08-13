@@ -1,5 +1,9 @@
 package org.roaringbitmap.longlong;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,18 +19,20 @@ import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 //  this class is not thread-safe
 //@Beta
-public class RoaringTreeMap {
-	protected final NavigableMap<Integer, MutableRoaringBitmap> hiToBitmap = new TreeMap<>();
+public class RoaringTreeMap implements Externalizable {
+	// Not final to enable initialization in Externalizable.readObject
+	protected NavigableMap<Integer, MutableRoaringBitmap> hiToBitmap = new TreeMap<>();
 
 	// Prevent recomputing all cardinalities when requesting consecutive ranks
-	protected boolean allValid = false;
-	protected int firstHiNotValid = Integer.MIN_VALUE;
+	private transient boolean allValid = false;
+	private transient int firstHighNotValid = Integer.MIN_VALUE;
 
 	// TODO: I would prefer not managing arrays myself
-	protected long[] sortedCumulatedCardinality = new long[0];
-	protected int[] sortedHighs = new int[0];
+	private transient long[] sortedCumulatedCardinality = new long[0];
+	private transient int[] sortedHighs = new int[0];
 
-	protected final List<MutableRoaringBitmap> linkedBitmaps = new ArrayList<>();
+	// Enable random-access to any bitmap, without requiring a new Iterator instance
+	private transient final List<MutableRoaringBitmap> linkedBitmaps = new ArrayList<>();
 
 	// Prevent indirection when writing consecutive Integers
 	private transient Map.Entry<Integer, MutableRoaringBitmap> latest = null;
@@ -50,7 +56,7 @@ public class RoaringTreeMap {
 		}
 
 		// The cardinalities after this bucket may not be valid anymore
-		firstHiNotValid = Math.min(firstHiNotValid, x);
+		firstHighNotValid = Math.min(firstHighNotValid, x);
 	}
 
 	private long pack(int x, int y) {
@@ -67,18 +73,31 @@ public class RoaringTreeMap {
 		return sortedCumulatedCardinality[sortedCumulatedCardinality.length - 1];
 	}
 
+	/**
+	 * Return the jth value stored in this bitmap.
+	 *
+	 * @param j
+	 *            index of the value
+	 *
+	 * @return the value
+	 */
 	public long select(final long j) {
 		ensureCumulatives(Integer.MAX_VALUE);
 
 		int position = Arrays.binarySearch(sortedCumulatedCardinality, 0, sortedCumulatedCardinality.length, j);
 
-		if (position >= 0) {
+		if (position <= -1) {
+			throwSelectInvalidIndex(j);
+		} else if (position >= 0) {
+			if (position == sortedCumulatedCardinality.length) {
+				// .select has been called on this.getCardinality
+				throwSelectInvalidIndex(j);
+			}
+
 			// There is a bucket leading to this cardinality: the j-th element is the first element of next bucket
 			MutableRoaringBitmap nextBitmap = linkedBitmaps.get(position + 1);
 			return pack(sortedHighs[position + 1], nextBitmap.first());
 		} else {
-			// // see org.roaringbitmap.buffer.ImmutableRoaringBitmap.select(int)
-			// throw new IllegalArgumentException("select " + j + " when the cardinality is " + this.getCardinality());
 			// There is no bucket with this cardinality
 			int insertionPoint = -position - 1;
 
@@ -100,6 +119,11 @@ public class RoaringTreeMap {
 
 			return pack(high, low);
 		}
+	}
+
+	private void throwSelectInvalidIndex(long j) {
+		// see org.roaringbitmap.buffer.ImmutableRoaringBitmap.select(int)
+		throw new IllegalArgumentException("select " + j + " when the cardinality is " + this.getCardinality());
 	}
 
 	public LongIterator iterator() {
@@ -203,9 +227,9 @@ public class RoaringTreeMap {
 
 	protected void ensureCumulatives(int x) {
 		// Check if missing data to handle this rank
-		if (!allValid && firstHiNotValid <= x) {
+		if (!allValid && firstHighNotValid <= x) {
 			// For each deprecated buckets
-			SortedMap<Integer, MutableRoaringBitmap> tailMap = hiToBitmap.tailMap(firstHiNotValid);
+			SortedMap<Integer, MutableRoaringBitmap> tailMap = hiToBitmap.tailMap(firstHighNotValid);
 
 			for (Map.Entry<Integer, MutableRoaringBitmap> e : tailMap.entrySet()) {
 				int currentHigh = e.getKey();
@@ -226,9 +250,9 @@ public class RoaringTreeMap {
 
 					if (currentHigh == Integer.MAX_VALUE) {
 						allValid = true;
-						firstHiNotValid = currentHigh;
+						firstHighNotValid = currentHigh;
 					} else {
-						firstHiNotValid = currentHigh + 1;
+						firstHighNotValid = currentHigh + 1;
 					}
 					if (e.getKey() > x) {
 						// No need to compute more than needed
@@ -273,12 +297,22 @@ public class RoaringTreeMap {
 
 					if (currentHigh == Integer.MAX_VALUE) {
 						allValid = true;
-						firstHiNotValid = currentHigh;
+						firstHighNotValid = currentHigh;
 					} else {
-						firstHiNotValid = currentHigh + 1;
+						firstHighNotValid = currentHigh + 1;
 					}
 				}
 			}
 		}
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		out.writeObject(hiToBitmap);
+	}
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		hiToBitmap = (NavigableMap<Integer, MutableRoaringBitmap>) in.readObject();
 	}
 }
