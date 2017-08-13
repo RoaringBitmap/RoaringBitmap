@@ -88,11 +88,11 @@ public class RoaringTreeMap implements Externalizable {
         Arrays.binarySearch(sortedCumulatedCardinality, 0, sortedCumulatedCardinality.length, j);
 
     if (position <= -1) {
-      throwSelectInvalidIndex(j);
+      return throwSelectInvalidIndex(j);
     } else if (position >= 0) {
       if (position == sortedCumulatedCardinality.length) {
         // .select has been called on this.getCardinality
-        throwSelectInvalidIndex(j);
+        return throwSelectInvalidIndex(j);
       }
 
       // There is a bucket leading to this cardinality: the j-th element is the first element of next bucket
@@ -122,7 +122,7 @@ public class RoaringTreeMap implements Externalizable {
     }
   }
 
-  private void throwSelectInvalidIndex(long j) {
+  private long throwSelectInvalidIndex(long j) {
     // see org.roaringbitmap.buffer.ImmutableRoaringBitmap.select(int)
     throw new IllegalArgumentException(
         "select " + j + " when the cardinality is " + this.getCardinality());
