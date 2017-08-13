@@ -87,10 +87,8 @@ public class RoaringTreeMap implements Externalizable {
     int position =
         Arrays.binarySearch(sortedCumulatedCardinality, 0, sortedCumulatedCardinality.length, j);
 
-    if (position <= -1) {
-      return throwSelectInvalidIndex(j);
-    } else if (position >= 0) {
-      if (position == sortedCumulatedCardinality.length) {
+    if (position >= 0) {
+      if (position == sortedCumulatedCardinality.length - 1) {
         // .select has been called on this.getCardinality
         return throwSelectInvalidIndex(j);
       }
@@ -235,6 +233,11 @@ public class RoaringTreeMap implements Externalizable {
 
       for (Map.Entry<Integer, MutableRoaringBitmap> e : tailMap.entrySet()) {
         int currentHigh = e.getKey();
+
+        if (currentHigh > x) {
+          break;
+        }
+
         int index = Arrays.binarySearch(sortedHighs, 0, sortedHighs.length, currentHigh);
 
         if (index >= 0) {
@@ -256,7 +259,7 @@ public class RoaringTreeMap implements Externalizable {
           } else {
             firstHighNotValid = currentHigh + 1;
           }
-          if (e.getKey() > x) {
+          if (currentHigh > x) {
             // No need to compute more than needed
             break;
           }

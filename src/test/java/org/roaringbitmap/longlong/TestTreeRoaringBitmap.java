@@ -1,5 +1,11 @@
 package org.roaringbitmap.longlong;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -46,7 +52,7 @@ public class TestTreeRoaringBitmap {
     Assert.assertEquals(1, map.rankLong(Long.MAX_VALUE));
   }
 
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void testAddOneSelect2() {
     RoaringTreeMap map = new RoaringTreeMap();
 
@@ -212,12 +218,54 @@ public class TestTreeRoaringBitmap {
   }
 
   @Test
-  public void test() {
+  public void testAddingLowValueAfterHighValue() {
     RoaringTreeMap map = new RoaringTreeMap();
     map.addLong(Long.MAX_VALUE);
     Assert.assertEquals(Long.MAX_VALUE, map.select(0));
     map.addLong(666);
     Assert.assertEquals(666, map.select(0));
     Assert.assertEquals(Long.MAX_VALUE, map.select(0));
+  }
+
+  @Test
+  public void testSerialization_Empty() throws IOException, ClassNotFoundException {
+    final RoaringTreeMap map = new RoaringTreeMap();
+
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+      oos.writeObject(map);
+    }
+
+    final RoaringTreeMap clone;
+    try (ObjectInputStream ois =
+        new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
+      clone = (RoaringTreeMap) ois.readObject();
+    }
+
+    // Check the test has not simply copied the ref
+    Assert.assertNotSame(map, clone);
+    Assert.assertEquals(0, clone.getCardinality());
+  }
+
+  @Test
+  public void testSerialization_OneValue() throws IOException, ClassNotFoundException {
+    final RoaringTreeMap map = new RoaringTreeMap();
+    map.addLong(123);
+
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+      oos.writeObject(map);
+    }
+
+    final RoaringTreeMap clone;
+    try (ObjectInputStream ois =
+        new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
+      clone = (RoaringTreeMap) ois.readObject();
+    }
+
+    // Check the test has not simply copied the ref
+    Assert.assertNotSame(map, clone);
+    Assert.assertEquals(1, clone.getCardinality());
+    Assert.assertEquals(123, clone.select(0));
   }
 }
