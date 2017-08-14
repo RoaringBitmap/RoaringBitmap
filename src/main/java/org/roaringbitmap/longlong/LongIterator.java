@@ -1,10 +1,9 @@
 package org.roaringbitmap.longlong;
 
 /**
- * A simple iterator over long values.
- * Using an IntIterator instead of Java's Iterator&lt;Long&gt;
- * avoids the overhead of the Long class: on some tests,
- * LongIterator is nearly twice as fast as Iterator&lt;Long&gt;.
+ * A simple iterator over long values. Using an IntIterator instead of Java's Iterator&lt;Long&gt;
+ * avoids the overhead of the Long class: on some tests, LongIterator is nearly twice as fast as
+ * Iterator&lt;Long&gt;.
  */
 public interface LongIterator extends Cloneable {
   /**

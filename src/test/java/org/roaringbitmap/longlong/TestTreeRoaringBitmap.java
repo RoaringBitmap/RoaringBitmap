@@ -17,7 +17,7 @@ public class TestTreeRoaringBitmap {
 
     Assert.assertFalse(map.iterator().hasNext());
 
-    Assert.assertEquals(0, map.getCardinality());
+    Assert.assertEquals(0, map.getLongCardinality());
 
     Assert.assertEquals(0, map.rankLong(Long.MIN_VALUE));
     Assert.assertEquals(0, map.rankLong(Long.MIN_VALUE + 1));
@@ -42,7 +42,7 @@ public class TestTreeRoaringBitmap {
       Assert.assertFalse(iterator.hasNext());
     }
 
-    Assert.assertEquals(1, map.getCardinality());
+    Assert.assertEquals(1, map.getLongCardinality());
 
     Assert.assertEquals(0, map.rankLong(Long.MIN_VALUE));
     Assert.assertEquals(0, map.rankLong(Integer.MIN_VALUE - 1L));
@@ -93,7 +93,7 @@ public class TestTreeRoaringBitmap {
       Assert.assertFalse(iterator.hasNext());
     }
 
-    Assert.assertEquals(1, map.getCardinality());
+    Assert.assertEquals(1, map.getLongCardinality());
 
     Assert.assertEquals(0, map.rankLong(Long.MIN_VALUE));
     Assert.assertEquals(0, map.rankLong(Long.MIN_VALUE + 1));
@@ -118,7 +118,7 @@ public class TestTreeRoaringBitmap {
       Assert.assertFalse(iterator.hasNext());
     }
 
-    Assert.assertEquals(1, map.getCardinality());
+    Assert.assertEquals(1, map.getLongCardinality());
 
     Assert.assertEquals(1, map.rankLong(Long.MIN_VALUE));
     Assert.assertEquals(1, map.rankLong(Long.MIN_VALUE + 1));
@@ -152,7 +152,7 @@ public class TestTreeRoaringBitmap {
       Assert.assertFalse(iterator.hasNext());
     }
 
-    Assert.assertEquals(4, map.getCardinality());
+    Assert.assertEquals(4, map.getLongCardinality());
 
     Assert.assertEquals(1, map.rankLong(Long.MIN_VALUE));
     Assert.assertEquals(1, map.rankLong(Long.MIN_VALUE + 1));
@@ -173,7 +173,7 @@ public class TestTreeRoaringBitmap {
       map.addLong(i * Integer.MAX_VALUE + 1L);
     }
 
-    long cardinality = map.getCardinality();
+    long cardinality = map.getLongCardinality();
     Assert.assertEquals(problemSize, cardinality);
 
     long last = map.select(cardinality - 1);
@@ -309,7 +309,7 @@ public class TestTreeRoaringBitmap {
 
     // Check the test has not simply copied the ref
     Assert.assertNotSame(map, clone);
-    Assert.assertEquals(0, clone.getCardinality());
+    Assert.assertEquals(0, clone.getLongCardinality());
   }
 
   @Test
@@ -330,7 +330,7 @@ public class TestTreeRoaringBitmap {
 
     // Check the test has not simply copied the ref
     Assert.assertNotSame(map, clone);
-    Assert.assertEquals(1, clone.getCardinality());
+    Assert.assertEquals(1, clone.getLongCardinality());
     Assert.assertEquals(123, clone.select(0));
   }
 
@@ -344,7 +344,7 @@ public class TestTreeRoaringBitmap {
 
     left.or(right);
 
-    Assert.assertEquals(2, left.getCardinality());
+    Assert.assertEquals(2, left.getLongCardinality());
 
     Assert.assertEquals(123, left.select(0));
     Assert.assertEquals(234, left.select(1));
@@ -360,7 +360,7 @@ public class TestTreeRoaringBitmap {
 
     left.or(right);
 
-    Assert.assertEquals(2, left.getCardinality());
+    Assert.assertEquals(2, left.getLongCardinality());
 
     Assert.assertEquals(123, left.select(0));
     Assert.assertEquals(Long.MAX_VALUE / 2, left.select(1));
@@ -379,11 +379,11 @@ public class TestTreeRoaringBitmap {
     // Then we mutate left: ensure it does not impact right as it should remain unchanged
     left.addLong(234);
 
-    Assert.assertEquals(2, left.getCardinality());
+    Assert.assertEquals(2, left.getLongCardinality());
     Assert.assertEquals(123, left.select(0));
     Assert.assertEquals(234, left.select(1));
 
-    Assert.assertEquals(1, right.getCardinality());
+    Assert.assertEquals(1, right.getLongCardinality());
     Assert.assertEquals(123, right.select(0));
   }
 

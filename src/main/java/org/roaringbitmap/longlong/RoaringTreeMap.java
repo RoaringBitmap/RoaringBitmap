@@ -1,5 +1,6 @@
 package org.roaringbitmap.longlong;
 
+import java.io.DataOutput;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -15,18 +16,20 @@ import java.util.NavigableMap;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 // this class is not thread-safe
 // @Beta
-public class RoaringTreeMap implements Externalizable {
+public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataProvider {
 
   // Not final to enable initialization in Externalizable.readObject
   protected NavigableMap<Integer, MutableRoaringBitmap> highToBitmap;
 
   // If true, we handle longs a plain java longs: -1 if right before 0
-  // If false, we handle longs as unsigned longs: 0 has no predecessor and Long.MAX_VALUE + 1L is expressed as a
+  // If false, we handle longs as unsigned longs: 0 has no predecessor and Long.MAX_VALUE + 1L is
+  // expressed as a
   // negative long
   private boolean signedLongs = false;
 
@@ -45,19 +48,26 @@ public class RoaringTreeMap implements Externalizable {
   // Enable random-access to any bitmap, without requiring a new Iterator instance
   private transient final List<MutableRoaringBitmap> lowBitmaps = new ArrayList<>();
 
-  // We guess consecutive .addLong will be on proximate longs: we remember the bitmap attached to this bucket in order
+  // We guess consecutive .addLong will be on proximate longs: we remember the bitmap attached to
+  // this bucket in order
   // to skip the indirection
   private transient Map.Entry<Integer, MutableRoaringBitmap> latestAddedHigh = null;
 
   /**
-   * TMP By default, we consider longs are signed longs: normal longs: 0 is preceded by -1 and Long.MAX_VALUE has no
-   * successor
+   * TMP By default, we consider longs are signed longs: normal longs: 0 is preceded by -1 and
+   * Long.MAX_VALUE has no successor
    */
-  // TODO: Should be 'By default, we consider longs are unsigned 64bits longlong' to comply with RoaringBitmap
+  // TODO: Should be 'By default, we consider longs are unsigned 64bits longlong' to comply with
+  // RoaringBitmap
   public RoaringTreeMap() {
     this(true);
   }
 
+  /**
+   * 
+   * @param signedLongs should long be ordered as plain java longs (signedLongs == true) or as
+   *        unsigned 64bits long (signedLongs == false)
+   */
   public RoaringTreeMap(boolean signedLongs) {
     this.signedLongs = signedLongs;
 
@@ -92,30 +102,31 @@ public class RoaringTreeMap implements Externalizable {
   /**
    * Add the value to the container (set the value to "true"), whether it already appears or not.
    *
-   * Java lacks native unsigned integers but the x argument is considered to be unsigned. Within bitmaps, numbers are
-   * ordered according to {@link Integer#compareUnsigned}. We order the numbers like 0, 1, ..., 2147483647,
-   * -2147483648, -2147483647,..., -1.
+   * Java lacks native unsigned integers but the x argument is considered to be unsigned. Within
+   * bitmaps, numbers are ordered according to {@link Integer#compareUnsigned}. We order the numbers
+   * like 0, 1, ..., 2147483647, -2147483648, -2147483647,..., -1.
    *
-   * @param x
-   *            integer value
+   * @param x integer value
    */
-  public void addLong(long id) {
-    int high = high(id);
-    int low = low(id);
+  public void addLong(long x) {
+    int high = high(x);
+    int low = low(x);
 
     // Copy the reference to prevent race-condition
     Map.Entry<Integer, MutableRoaringBitmap> local = latestAddedHigh;
+
+    MutableRoaringBitmap bitmap;
     if (local != null && local.getKey().intValue() == high) {
-      local.getValue().add(low);
+      bitmap = local.getValue();
     } else {
-      MutableRoaringBitmap bitmap = highToBitmap.get(high);
+      bitmap = highToBitmap.get(high);
       if (bitmap == null) {
         bitmap = new MutableRoaringBitmap();
         pushBitmapForHigh(high, bitmap);
       }
-      bitmap.add(low);
       latestAddedHigh = new AbstractMap.SimpleImmutableEntry<>(high, bitmap);
     }
+    bitmap.add(low);
 
     // The cardinalities after this bucket may not be valid anymore
     firstHighNotValid = Math.min(firstHighNotValid, high);
@@ -144,7 +155,12 @@ public class RoaringTreeMap implements Externalizable {
     return RoaringIntPacking.high(id);
   }
 
-  public long getCardinality() {
+  /**
+   * Returns the number of distinct integers added to the bitmap (e.g., number of bits set).
+   *
+   * @return the cardinality
+   */
+  public long getLongCardinality() {
     if (highToBitmap.isEmpty()) {
       return 0L;
     }
@@ -157,13 +173,13 @@ public class RoaringTreeMap implements Externalizable {
   /**
    * Return the jth value stored in this bitmap.
    *
-   * @param j
-   *            index of the value
+   * @param j index of the value
    *
    * @return the value
    */
   public long select(final long j) {
-    // Ensure all cumulatives as we we have straightforward way to know inadvance the high of the j-th value
+    // Ensure all cumulatives as we we have straightforward way to know inadvance the high of the
+    // j-th value
     ensureCumulatives(Integer.MAX_VALUE);
 
     int position =
@@ -175,7 +191,8 @@ public class RoaringTreeMap implements Externalizable {
         return throwSelectInvalidIndex(j);
       }
 
-      // There is a bucket leading to this cardinality: the j-th element is the first element of next bucket
+      // There is a bucket leading to this cardinality: the j-th element is the first element of
+      // next bucket
       MutableRoaringBitmap nextBitmap = lowBitmaps.get(position + 1);
       return RoaringIntPacking.pack(sortedHighs[position + 1], nextBitmap.first());
     } else {
@@ -205,9 +222,14 @@ public class RoaringTreeMap implements Externalizable {
   private long throwSelectInvalidIndex(long j) {
     // see org.roaringbitmap.buffer.ImmutableRoaringBitmap.select(int)
     throw new IllegalArgumentException(
-        "select " + j + " when the cardinality is " + this.getCardinality());
+        "select " + j + " when the cardinality is " + this.getLongCardinality());
   }
 
+  /**
+   * For better performance, consider the Use the {@link #forEach forEach} method.
+   *
+   * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
+   */
   public LongIterator iterator() {
     final Iterator<Map.Entry<Integer, MutableRoaringBitmap>> it =
         highToBitmap.entrySet().iterator();
@@ -239,7 +261,7 @@ public class RoaringTreeMap implements Externalizable {
 
       /**
        *
-       * @param it
+       * @param it the underlying iterator which has to be moved to next long
        * @return true if we MAY have more entries. false if there is definitely nothing more
        */
       private boolean moveToNextEntry(Iterator<Map.Entry<Integer, MutableRoaringBitmap>> it) {
@@ -272,6 +294,20 @@ public class RoaringTreeMap implements Externalizable {
     };
   }
 
+  @Override
+  public void forEach(final LongConsumer lc) {
+    for (final Entry<Integer, MutableRoaringBitmap> highEntry : highToBitmap.entrySet()) {
+      highEntry.getValue().forEach(new IntConsumer() {
+
+        @Override
+        public void accept(int low) {
+          lc.accept(RoaringIntPacking.pack(highEntry.getKey(), low));
+        }
+      });
+    }
+  }
+
+  @Override
   public long rankLong(long id) {
     int high = RoaringIntPacking.high(id);
     int low = RoaringIntPacking.low(id);
@@ -366,7 +402,8 @@ public class RoaringTreeMap implements Externalizable {
             sortedCumulatedCardinality =
                 Arrays.copyOf(sortedCumulatedCardinality, sortedCumulatedCardinality.length + 1);
 
-            // No need to copy higher cardinalities as anyway, the cardinalities may not be valid anymore
+            // No need to copy higher cardinalities as anyway, the cardinalities may not be valid
+            // anymore
           }
           sortedHighs[insertionPosition] = currentHigh;
           lowBitmaps.add(insertionPosition, e.getValue());
@@ -395,8 +432,7 @@ public class RoaringTreeMap implements Externalizable {
   /**
    * In-place bitwise OR (union) operation. The current bitmap is modified.
    *
-   * @param x2
-   *            other bitmap
+   * @param x2 other bitmap
    */
   public void or(final RoaringTreeMap x2) {
     boolean firstBucket = true;
@@ -476,5 +512,60 @@ public class RoaringTreeMap implements Externalizable {
 
   public LongIterator getLongIterator() {
     return iterator();
+  }
+
+  @Override
+  public boolean contains(int x) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public boolean contains(long x) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public PeekableLongIterator getIntIterator() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public LongIterator getReverseIntIterator() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public int getSizeInBytes() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public long getLongSizeInBytes() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public boolean isEmpty() {
+    return getLongCardinality() >= 1;
+  }
+
+  @Override
+  public ImmutableLongBitmapDataProvider limit(long x) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void serialize(DataOutput out) throws IOException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public int serializedSizeInBytes() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public long[] toArray() {
+    throw new UnsupportedOperationException("TODO");
   }
 }

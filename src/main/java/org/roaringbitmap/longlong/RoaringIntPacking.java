@@ -4,33 +4,36 @@ import java.math.BigInteger;
 import java.util.Comparator;
 
 /**
- * Used to hold the logic packing 2 integers in a long, and separating a long in two integers. It is useful in
- * {@link RoaringTreeMap} as the implementation split the input long in two integers, one used as key of a NavigableMap
- * while the other is added in a Bitmap
+ * Used to hold the logic packing 2 integers in a long, and separating a long in two integers. It is
+ * useful in {@link RoaringTreeMap} as the implementation split the input long in two integers, one
+ * used as key of a NavigableMap while the other is added in a Bitmap
  * 
  * @author Benoit Lacelle
  *
  */
-// Hidden as it holds implementation details for RoaringTreeMap. We may decide to change the logic here, hence it should
+// Hidden as it holds implementation details for RoaringTreeMap. We may decide to change the logic
+// here, hence it should
 // not be used elsewhere
 class RoaringIntPacking {
 
   /**
    * 
-   * @param id
+   * @param id a long to decompose into two integers
    * @return an int holding 32 bits of information of a long. Typically the highest order bits.
    */
-  // TODO: enable an int with the expected qualities while considering the input long as a 64bits unsigned long
+  // TODO: enable an int with the expected qualities while considering the input long as a 64bits
+  // unsigned long
   public static int high(long id) {
     return (int) (id >> 32);
   }
 
   /**
    * 
-   * @param id
+   * @param id a long to decompose into two integers
    * @return an int holding 32 bits of information of a long. Typically the lowest order bits.
    */
-  // TODO: enable an int with the expected qualities while considering the input long as a 64bits unsigned long
+  // TODO: enable an int with the expected qualities while considering the input long as a 64bits
+  // unsigned long
   public static int low(long id) {
     return (int) id;
   }
@@ -56,12 +59,10 @@ class RoaringIntPacking {
   /**
    * Compares two {@code int} values numerically treating the values as unsigned.
    *
-   * @param x
-   *            the first {@code int} to compare
-   * @param y
-   *            the second {@code int} to compare
-   * @return the value {@code 0} if {@code x == y}; a value less than {@code 0} if {@code x < y} as unsigned values;
-   *         and a value greater than {@code 0} if {@code x > y} as unsigned values
+   * @param x the first {@code int} to compare
+   * @param y the second {@code int} to compare
+   * @return the value {@code 0} if {@code x == y}; a value less than {@code 0} if {@code x < y} as
+   *         unsigned values; and a value greater than {@code 0} if {@code x > y} as unsigned values
    * @since 1.8
    */
   // Duplicated from jdk8 Integer.compareUnsigned
@@ -73,7 +74,8 @@ class RoaringIntPacking {
   private static final BigInteger TWO_64 = BigInteger.ONE.shiftLeft(64);
 
   /**
-   * JDK8 Long.toUnsignedString was too complex to backport. Go for a slow version relying on BigInteger
+   * JDK8 Long.toUnsignedString was too complex to backport. Go for a slow version relying on
+   * BigInteger
    */
   // https://stackoverflow.com/questions/7031198/java-signed-long-to-unsigned-long-string
   static String toUnsignedString(long l) {
