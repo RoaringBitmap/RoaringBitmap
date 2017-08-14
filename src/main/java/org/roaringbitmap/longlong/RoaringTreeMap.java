@@ -335,7 +335,7 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
 
   /**
    * 
-   * @param high
+   * @param high for which high bucket should we compute the cardinality
    * @return the highest validatedIndex
    */
   protected int ensureCumulatives(int high) {
@@ -413,12 +413,13 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
       int mid = (low + high) >>> 1;
       int midVal = a[mid];
       int cmp = c.compare(midVal, key);
-      if (cmp < 0)
+      if (cmp < 0) {
         low = mid + 1;
-      else if (cmp > 0)
+      } else if (cmp > 0) {
         high = mid - 1;
-      else
+      } else {
         return mid; // key found
+      }
     }
     return -(low + 1); // key not found.
   }
