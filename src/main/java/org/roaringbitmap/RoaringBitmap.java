@@ -45,7 +45,7 @@ import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 
 public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>, Externalizable,
-    ImmutableBitmapDataProvider {
+    ImmutableBitmapDataProvider, BitmapDataProvider {
 
   private final class RoaringIntIterator implements PeekableIntIterator {
     private int hs = 0;
