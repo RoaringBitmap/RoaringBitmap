@@ -7,7 +7,7 @@ package org.roaringbitmap.longlong;
  * method, and to look at the value without advancing (peekNext).
  *
  * This richer interface enables efficient algorithms over
- * iterators of integers.
+ * iterators of longs.
  */
 public interface PeekableLongIterator extends LongIterator {
   /**
@@ -17,12 +17,12 @@ public interface PeekableLongIterator extends LongIterator {
    *  over unnecessary repeated calls to next.
    *  
    *  Suppose for example that you wish to compute the intersection between
-   *  an ordered list of integers (e.g., int[] x = {1,4,5}) and a 
+   *  an ordered list of longs (e.g., longs[] x = {1,4,5}) and a 
    *  PeekableIntIterator.
    *  You might do it as follows...
    *     <pre><code>
-   *     PeekableIntIterator j = // get an iterator
-   *     int val = // first value from my other data structure
+   *     PeekableLongIterator j = // get an iterator
+   *     long val = // first value from my other data structure
    *     j.advanceIfNeeded(val);
    *     while ( j.hasNext() ) {
    *       if(j.next() == val) {
@@ -41,7 +41,7 @@ public interface PeekableLongIterator extends LongIterator {
    * 
    * @param minval threshold
    */
-  public void advanceIfNeeded(int minval);
+  public void advanceIfNeeded(long minval);
 
   /**
    * 
@@ -64,8 +64,8 @@ public interface PeekableLongIterator extends LongIterator {
    *    
    *    while(! pq.isEmpty() ) {
    *      // get iterator with a smallest value
-   *      PeekableIntIterator pi = pq.poll();
-   *      int x = pi.next(); // advance
+   *      PeekableLongIterator pi = pq.poll();
+   *      long x = pi.next(); // advance
    *      // do something with x
    *      if(pi.hasNext()) pq.add(pi)
    *    }
