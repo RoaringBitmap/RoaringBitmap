@@ -16,6 +16,7 @@ import java.util.NavigableMap;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.roaringbitmap.BitmapDataProvider;
 import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
@@ -25,7 +26,7 @@ import org.roaringbitmap.buffer.MutableRoaringBitmap;
 public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataProvider {
 
   // Not final to enable initialization in Externalizable.readObject
-  protected NavigableMap<Integer, MutableRoaringBitmap> highToBitmap;
+  protected NavigableMap<Integer, BitmapDataProvider> highToBitmap;
 
   // If true, we handle longs a plain java longs: -1 if right before 0
   // If false, we handle longs as unsigned longs: 0 has no predecessor and Long.MAX_VALUE + 1L is
@@ -46,12 +47,12 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
   private transient int[] sortedHighs = new int[0];
 
   // Enable random-access to any bitmap, without requiring a new Iterator instance
-  private transient final List<MutableRoaringBitmap> lowBitmaps = new ArrayList<>();
+  private transient final List<BitmapDataProvider> lowBitmaps = new ArrayList<>();
 
   // We guess consecutive .addLong will be on proximate longs: we remember the bitmap attached to
   // this bucket in order
   // to skip the indirection
-  private transient Map.Entry<Integer, MutableRoaringBitmap> latestAddedHigh = null;
+  private transient Map.Entry<Integer, BitmapDataProvider> latestAddedHigh = null;
 
   /**
    * TMP By default, we consider longs are signed longs: normal longs: 0 is preceded by -1 and
@@ -74,8 +75,7 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
     if (signedLongs) {
       highToBitmap = new TreeMap<>();
     } else {
-      highToBitmap =
-          new TreeMap<Integer, MutableRoaringBitmap>(RoaringIntPacking.unsignedComparator());
+      highToBitmap = new TreeMap<>(RoaringIntPacking.unsignedComparator());
     }
 
     resetPerfHelpers();
@@ -113,9 +113,9 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
     int low = low(x);
 
     // Copy the reference to prevent race-condition
-    Map.Entry<Integer, MutableRoaringBitmap> local = latestAddedHigh;
+    Map.Entry<Integer, BitmapDataProvider> local = latestAddedHigh;
 
-    MutableRoaringBitmap bitmap;
+    BitmapDataProvider bitmap;
     if (local != null && local.getKey().intValue() == high) {
       bitmap = local.getValue();
     } else {
@@ -133,11 +133,11 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
     allValid = false;
   }
 
-  private void pushBitmapForHigh(int high, MutableRoaringBitmap bitmap) {
+  private void pushBitmapForHigh(int high, BitmapDataProvider bitmap) {
     // TODO .size is too slow
     // int nbHighBefore = highToBitmap.headMap(high).size();
 
-    MutableRoaringBitmap previous = highToBitmap.put(high, bitmap);
+    BitmapDataProvider previous = highToBitmap.put(high, bitmap);
     if (previous != null) {
       throw new IllegalStateException("Should push only not-existing high");
     }
@@ -193,8 +193,8 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
 
       // There is a bucket leading to this cardinality: the j-th element is the first element of
       // next bucket
-      MutableRoaringBitmap nextBitmap = lowBitmaps.get(position + 1);
-      return RoaringIntPacking.pack(sortedHighs[position + 1], nextBitmap.first());
+      BitmapDataProvider nextBitmap = lowBitmaps.get(position + 1);
+      return RoaringIntPacking.pack(sortedHighs[position + 1], nextBitmap.select(0));
     } else {
       // There is no bucket with this cardinality
       int insertionPoint = -position - 1;
@@ -209,7 +209,7 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
       // We get a 'select' query for a single bitmap: should fit in an int
       final int givenBitmapSelect = (int) (j - previousBucketCardinality);
 
-      MutableRoaringBitmap bitmaps = lowBitmaps.get(insertionPoint);
+      BitmapDataProvider bitmaps = lowBitmaps.get(insertionPoint);
 
       int low = bitmaps.select(givenBitmapSelect);
 
@@ -231,8 +231,7 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
    * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
    */
   public LongIterator iterator() {
-    final Iterator<Map.Entry<Integer, MutableRoaringBitmap>> it =
-        highToBitmap.entrySet().iterator();
+    final Iterator<Map.Entry<Integer, BitmapDataProvider>> it = highToBitmap.entrySet().iterator();
 
     return new LongIterator() {
 
@@ -264,9 +263,9 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
        * @param it the underlying iterator which has to be moved to next long
        * @return true if we MAY have more entries. false if there is definitely nothing more
        */
-      private boolean moveToNextEntry(Iterator<Map.Entry<Integer, MutableRoaringBitmap>> it) {
+      private boolean moveToNextEntry(Iterator<Map.Entry<Integer, BitmapDataProvider>> it) {
         if (it.hasNext()) {
-          Map.Entry<Integer, MutableRoaringBitmap> next = it.next();
+          Map.Entry<Integer, BitmapDataProvider> next = it.next();
           currentKey = next.getKey();
           currentIt = next.getValue().getIntIterator();
 
@@ -296,7 +295,7 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
 
   @Override
   public void forEach(final LongConsumer lc) {
-    for (final Entry<Integer, MutableRoaringBitmap> highEntry : highToBitmap.entrySet()) {
+    for (final Entry<Integer, BitmapDataProvider> highEntry : highToBitmap.entrySet()) {
       highEntry.getValue().forEach(new IntConsumer() {
 
         @Override
@@ -326,7 +325,7 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
         previousBucketCardinality = sortedCumulatedCardinality[bitmapPosition - 1];
       }
 
-      MutableRoaringBitmap lowBitmap = lowBitmaps.get(bitmapPosition);
+      BitmapDataProvider lowBitmap = lowBitmaps.get(bitmapPosition);
 
       // Rank is previous cardinality plus rank in current bitmap
       return previousBucketCardinality + lowBitmap.rankLong(low);
@@ -348,9 +347,9 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
     // Check if missing data to handle this rank
     if (!allValid && firstHighNotValid <= high) {
       // For each deprecated buckets
-      SortedMap<Integer, MutableRoaringBitmap> tailMap = highToBitmap.tailMap(firstHighNotValid);
+      SortedMap<Integer, BitmapDataProvider> tailMap = highToBitmap.tailMap(firstHighNotValid);
 
-      for (Map.Entry<Integer, MutableRoaringBitmap> e : tailMap.entrySet()) {
+      for (Map.Entry<Integer, BitmapDataProvider> e : tailMap.entrySet()) {
         int currentHigh = e.getKey();
 
         if (currentHigh > high) {
@@ -361,7 +360,7 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
 
         if (index >= 0) {
           // This bitmap has already been registered
-          MutableRoaringBitmap bitmap = e.getValue();
+          BitmapDataProvider bitmap = e.getValue();
           assert bitmap == highToBitmap.get(sortedHighs[index]);
 
           final long previousCardinality;
@@ -437,18 +436,30 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
   public void or(final RoaringTreeMap x2) {
     boolean firstBucket = true;
 
-    for (Entry<Integer, MutableRoaringBitmap> e : x2.highToBitmap.entrySet()) {
+    for (Entry<Integer, BitmapDataProvider> e : x2.highToBitmap.entrySet()) {
       // Keep object to prevent auto-boxing
       Integer high = e.getKey();
 
-      MutableRoaringBitmap currentBitmap = this.highToBitmap.get(high);
+      BitmapDataProvider currentBitmap = this.highToBitmap.get(high);
 
-      MutableRoaringBitmap lowBitmap2 = e.getValue();
-      if (currentBitmap == null) {
-        // Clone to prevent future modification of this modifying the input Bitmap
-        pushBitmapForHigh(high, lowBitmap2.clone());
+      BitmapDataProvider lowBitmap2 = e.getValue();
+      // TODO Reviewers: is it a good idea to rely on BitmapDataProvider except in methods
+      // expecting an actual MutableRoaringBitmap?
+      if ((currentBitmap == null || currentBitmap instanceof MutableRoaringBitmap)
+          && lowBitmap2 instanceof MutableRoaringBitmap) {
+
+        if (currentBitmap == null) {
+          // Clone to prevent future modification of this modifying the input Bitmap
+          BitmapDataProvider lowBitmap2Clone = ((MutableRoaringBitmap) lowBitmap2).clone();
+
+
+          pushBitmapForHigh(high, lowBitmap2Clone);
+        } else {
+          ((MutableRoaringBitmap) currentBitmap).or((MutableRoaringBitmap) lowBitmap2);
+        }
       } else {
-        currentBitmap.or(lowBitmap2);
+        throw new UnsupportedOperationException(
+            ".or is not between " + this.getClass() + " and " + lowBitmap2.getClass());
       }
 
       if (firstBucket) {
@@ -470,7 +481,7 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
   @Override
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
     signedLongs = in.readBoolean();
-    highToBitmap = (NavigableMap<Integer, MutableRoaringBitmap>) in.readObject();
+    highToBitmap = (NavigableMap<Integer, BitmapDataProvider>) in.readObject();
 
     resetPerfHelpers();
   }
@@ -512,11 +523,6 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
 
   public LongIterator getLongIterator() {
     return iterator();
-  }
-
-  @Override
-  public boolean contains(int x) {
-    throw new UnsupportedOperationException("TODO");
   }
 
   @Override

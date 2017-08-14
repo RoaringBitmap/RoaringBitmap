@@ -16,11 +16,9 @@ public interface ImmutableLongBitmapDataProvider {
    * Checks whether the value in included, which is equivalent to checking if the corresponding bit
    * is set (get in BitSet class).
    *
-   * @param x integer value
-   * @return whether the integer value is included.
+   * @param x long value
+   * @return whether the long value is included.
    */
-  public boolean contains(int x);
-
   public boolean contains(long x);
 
   /**
@@ -38,10 +36,10 @@ public interface ImmutableLongBitmapDataProvider {
    * 
    * <pre>
    * {@code
-   *  bitmap.forEach(new IntConsumer() {
+   *  bitmap.forEach(new LongConsumer() {
    *
    *    {@literal @}Override
-   *    public void accept(int value) {
+   *    public void accept(long value) {
    *      // do something here
    *      
    *    }});
@@ -49,9 +47,9 @@ public interface ImmutableLongBitmapDataProvider {
    * }
    * </pre>
    * 
-   * @param ic the consumer
+   * @param lc the consumer
    */
-  public void forEach(LongConsumer ic);
+  public void forEach(LongConsumer lc);
 
   /**
    * For better performance, consider the Use the {@link #forEach forEach} method.
