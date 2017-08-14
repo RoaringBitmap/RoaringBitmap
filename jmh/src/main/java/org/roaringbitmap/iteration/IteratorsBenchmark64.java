@@ -1,16 +1,21 @@
 package org.roaringbitmap.iteration;
 
-import org.openjdk.jmh.annotations.*;
-import org.roaringbitmap.IntIterator;
-import org.roaringbitmap.IntIteratorFlyweight;
-import org.roaringbitmap.ReverseIntIteratorFlyweight;
-import org.roaringbitmap.RoaringBitmap;
-
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import java.util.Iterator;
+
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.State;
+import org.roaringbitmap.longlong.LongIterator;
+import org.roaringbitmap.longlong.LongIteratorFlyweight;
+import org.roaringbitmap.longlong.ReverseLongIteratorFlyweight;
+import org.roaringbitmap.longlong.RoaringTreeMap;
 /**
  * Created by Borislav Ivanov on 4/2/15.
  */
@@ -19,9 +24,9 @@ import java.util.Iterator;
 public class IteratorsBenchmark64 {
 
    @Benchmark
-   public int testBoxed_a(BenchmarkState benchmarkState) {
-      Iterator<Integer> intIterator = benchmarkState.bitmap_a.iterator();
-      int result = 0;
+   public long testBoxed_a(BenchmarkState benchmarkState) {
+      Iterator<Long> intIterator = benchmarkState.bitmap_a.iterator();
+      long result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
 
@@ -30,10 +35,10 @@ public class IteratorsBenchmark64 {
    }
 
    @Benchmark
-   public int testStandard_a(BenchmarkState benchmarkState) {
+   public long testStandard_a(BenchmarkState benchmarkState) {
 
-      IntIterator intIterator = benchmarkState.bitmap_a.getIntIterator();
-      int result = 0;
+      LongIterator intIterator = benchmarkState.bitmap_a.getLongIterator();
+      long result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
 
@@ -43,13 +48,13 @@ public class IteratorsBenchmark64 {
    }
 
    @Benchmark
-   public int testFlyweight_a(BenchmarkState benchmarkState) {
+   public long testFlyweight_a(BenchmarkState benchmarkState) {
 
-      IntIteratorFlyweight intIterator = benchmarkState.flyweightIterator;
+      LongIteratorFlyweight intIterator = benchmarkState.flyweightIterator;
 
       intIterator.wrap(benchmarkState.bitmap_a);
 
-      int result = 0;
+      long result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
 
@@ -59,9 +64,9 @@ public class IteratorsBenchmark64 {
    }
 
    @Benchmark
-   public int testBoxed_b(BenchmarkState benchmarkState) {
-      Iterator<Integer> intIterator = benchmarkState.bitmap_b.iterator();
-      int result = 0;
+   public long testBoxed_b(BenchmarkState benchmarkState) {
+      Iterator<Long> intIterator = benchmarkState.bitmap_b.iterator();
+      long result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
 
@@ -71,10 +76,10 @@ public class IteratorsBenchmark64 {
 
 
    @Benchmark
-   public int testStandard_b(BenchmarkState benchmarkState) {
+   public long testStandard_b(BenchmarkState benchmarkState) {
 
-      IntIterator intIterator = benchmarkState.bitmap_b.getIntIterator();
-      int result = 0;
+      LongIterator intIterator = benchmarkState.bitmap_b.getLongIterator();
+      long result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
 
@@ -84,13 +89,13 @@ public class IteratorsBenchmark64 {
    }
 
    @Benchmark
-   public int testFlyweight_b(BenchmarkState benchmarkState) {
+   public long testFlyweight_b(BenchmarkState benchmarkState) {
 
-      IntIteratorFlyweight intIterator = benchmarkState.flyweightIterator;
+      LongIteratorFlyweight intIterator = benchmarkState.flyweightIterator;
 
       intIterator.wrap(benchmarkState.bitmap_b);
 
-      int result = 0;
+      long result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
 
@@ -100,9 +105,9 @@ public class IteratorsBenchmark64 {
    }
 
    @Benchmark
-   public int testBoxed_c(BenchmarkState benchmarkState) {
-      Iterator<Integer> intIterator = benchmarkState.bitmap_c.iterator();
-      int result = 0;
+   public long testBoxed_c(BenchmarkState benchmarkState) {
+      Iterator<Long> intIterator = benchmarkState.bitmap_c.iterator();
+      long result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
 
@@ -112,10 +117,10 @@ public class IteratorsBenchmark64 {
 
 
    @Benchmark
-   public int testStandard_c(BenchmarkState benchmarkState) {
+   public long testStandard_c(BenchmarkState benchmarkState) {
 
-      IntIterator intIterator = benchmarkState.bitmap_c.getIntIterator();
-      int result = 0;
+      LongIterator intIterator = benchmarkState.bitmap_c.getLongIterator();
+      long result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
 
@@ -125,13 +130,13 @@ public class IteratorsBenchmark64 {
    }
 
    @Benchmark
-   public int testFlyweight_c(BenchmarkState benchmarkState) {
+   public long testFlyweight_c(BenchmarkState benchmarkState) {
 
-      IntIteratorFlyweight intIterator = benchmarkState.flyweightIterator;
+      LongIteratorFlyweight intIterator = benchmarkState.flyweightIterator;
 
       intIterator.wrap(benchmarkState.bitmap_c);
 
-      int result = 0;
+      long result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
 
@@ -141,10 +146,10 @@ public class IteratorsBenchmark64 {
    }
 
    @Benchmark
-   public int testReverseStandard_a(BenchmarkState benchmarkState) {
+   public long testReverseStandard_a(BenchmarkState benchmarkState) {
 
-      IntIterator intIterator = benchmarkState.bitmap_a.getReverseIntIterator();
-      int result = 0;
+      LongIterator intIterator = benchmarkState.bitmap_a.getReverseLongIterator();
+      long result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
 
@@ -154,13 +159,13 @@ public class IteratorsBenchmark64 {
    }
 
    @Benchmark
-   public int testReverseFlyweight_a(BenchmarkState benchmarkState) {
+   public long testReverseFlyweight_a(BenchmarkState benchmarkState) {
 
-      ReverseIntIteratorFlyweight intIterator = benchmarkState.flyweightReverseIterator;
+      ReverseLongIteratorFlyweight intIterator = benchmarkState.flyweightReverseIterator;
 
       intIterator.wrap(benchmarkState.bitmap_a);
 
-      int result = 0;
+      long result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
 
@@ -170,10 +175,10 @@ public class IteratorsBenchmark64 {
    }
 
    @Benchmark
-   public int testReverseStandard_b(BenchmarkState benchmarkState) {
+   public long testReverseStandard_b(BenchmarkState benchmarkState) {
 
-      IntIterator intIterator = benchmarkState.bitmap_b.getReverseIntIterator();
-      int result = 0;
+      LongIterator intIterator = benchmarkState.bitmap_b.getReverseLongIterator();
+      long result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
 
@@ -183,13 +188,13 @@ public class IteratorsBenchmark64 {
    }
 
    @Benchmark
-   public int testReverseFlyweight_b(BenchmarkState benchmarkState) {
+   public long testReverseFlyweight_b(BenchmarkState benchmarkState) {
 
-      ReverseIntIteratorFlyweight intIterator = benchmarkState.flyweightReverseIterator;
+      ReverseLongIteratorFlyweight intIterator = benchmarkState.flyweightReverseIterator;
 
       intIterator.wrap(benchmarkState.bitmap_b);
 
-      int result = 0;
+      long result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
 
@@ -199,10 +204,10 @@ public class IteratorsBenchmark64 {
    }
 
    @Benchmark
-   public int testReverseStandard_c(BenchmarkState benchmarkState) {
+   public long testReverseStandard_c(BenchmarkState benchmarkState) {
 
-      IntIterator intIterator = benchmarkState.bitmap_c.getReverseIntIterator();
-      int result = 0;
+      LongIterator intIterator = benchmarkState.bitmap_c.getReverseLongIterator();
+      long result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
 
@@ -212,13 +217,13 @@ public class IteratorsBenchmark64 {
    }
 
    @Benchmark
-   public int testReverseFlyweight_c(BenchmarkState benchmarkState) {
+   public long testReverseFlyweight_c(BenchmarkState benchmarkState) {
 
-      ReverseIntIteratorFlyweight intIterator = benchmarkState.flyweightReverseIterator;
+      ReverseLongIteratorFlyweight intIterator = benchmarkState.flyweightReverseIterator;
 
       intIterator.wrap(benchmarkState.bitmap_c);
 
-      int result = 0;
+      long result = 0;
       while (intIterator.hasNext()) {
          result = intIterator.next();
 
@@ -231,54 +236,54 @@ public class IteratorsBenchmark64 {
    @State(Scope.Benchmark)
    public static class BenchmarkState {
 
-      final RoaringBitmap bitmap_a;
+      final RoaringTreeMap bitmap_a;
 
-      final RoaringBitmap bitmap_b;
+      final RoaringTreeMap bitmap_b;
 
-      final RoaringBitmap bitmap_c;
+      final RoaringTreeMap bitmap_c;
 
-      final IntIteratorFlyweight flyweightIterator = new IntIteratorFlyweight();
+      final LongIteratorFlyweight flyweightIterator = new LongIteratorFlyweight();
 
-      final ReverseIntIteratorFlyweight flyweightReverseIterator = new ReverseIntIteratorFlyweight();
+      final ReverseLongIteratorFlyweight flyweightReverseIterator = new ReverseLongIteratorFlyweight();
 
       public BenchmarkState() {
 
          final long[] data = takeSortedAndDistinct(new Random(0xcb000a2b9b5bdfb6l), 100000);
-         bitmap_a = RoaringBitmap.bitmapOf(data);
+         bitmap_a = RoaringTreeMap.bitmapOf(data);
 
-         bitmap_b = new RoaringBitmap();
+         bitmap_b = new RoaringTreeMap();
          for (int k = 0; k < (1 << 30); k += 32)
             bitmap_b.add(k);
          
-         bitmap_c = new RoaringBitmap();
+         bitmap_c = new RoaringTreeMap();
          for (int k = 0; k < (1 << 30); k += 3)
             bitmap_c.add(k);
          
       }
 
-      private int[] takeSortedAndDistinct(Random source, int count) {
+      private long[] takeSortedAndDistinct(Random source, int count) {
 
-         LinkedHashSet<Integer> ints = new LinkedHashSet<Integer>(count);
+         LinkedHashSet<Long> longs = new LinkedHashSet<>(count);
 
          for (int size = 0; size < count; size++) {
-            int next;
+            long next;
             do {
-               next = Math.abs(source.nextInt());
-            } while (!ints.add(next));
+               next = Math.abs(source.nextLong());
+            } while (!longs.add(next));
          }
 
-         int[] unboxed = toArray(ints);
+         long[] unboxed = toArray(longs);
          Arrays.sort(unboxed);
          return unboxed;
       }
 
-      private int[] toArray(LinkedHashSet<Integer> integers) {
-         int[] ints = new int[integers.size()];
+      private long[] toArray(LinkedHashSet<? extends Number> boxedLongs) {
+    	  	long[] longs = new long[boxedLongs.size()];
          int i = 0;
-         for (Integer n : integers) {
-            ints[i++] = n;
+         for (Number n : boxedLongs) {
+            longs[i++] = n.longValue();
          }
-         return ints;
+         return longs;
       }
    }
 

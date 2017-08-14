@@ -15,7 +15,7 @@ public class TestTreeRoaringBitmap {
   public void testEmpty() {
     RoaringTreeMap map = new RoaringTreeMap();
 
-    Assert.assertFalse(map.iterator().hasNext());
+    Assert.assertFalse(map.getLongIterator().hasNext());
 
     Assert.assertEquals(0, map.getLongCardinality());
 
@@ -35,7 +35,7 @@ public class TestTreeRoaringBitmap {
     map.addLong(0);
 
     {
-      LongIterator iterator = map.iterator();
+      LongIterator iterator = map.getLongIterator();
       Assert.assertTrue(iterator.hasNext());
       Assert.assertEquals(0, iterator.next());
       Assert.assertEquals(0, map.select(0));
@@ -68,15 +68,15 @@ public class TestTreeRoaringBitmap {
 
     map.addLong(0);
 
-    Assert.assertTrue(map.iterator().hasNext());
-    Assert.assertEquals(0, map.iterator().next());
+    Assert.assertTrue(map.getLongIterator().hasNext());
+    Assert.assertEquals(0, map.getLongIterator().next());
   }
 
   @Test(expected = IllegalStateException.class)
   public void testIterator_NextWithoutHasNext_Empty() {
     RoaringTreeMap map = new RoaringTreeMap();
 
-    map.iterator().next();
+    map.getLongIterator().next();
   }
 
   @Test
@@ -86,7 +86,7 @@ public class TestTreeRoaringBitmap {
     map.addLong(Long.MAX_VALUE);
 
     {
-      LongIterator iterator = map.iterator();
+      LongIterator iterator = map.getLongIterator();
       Assert.assertTrue(iterator.hasNext());
       Assert.assertEquals(Long.MAX_VALUE, iterator.next());
       Assert.assertEquals(Long.MAX_VALUE, map.select(0));
@@ -111,7 +111,7 @@ public class TestTreeRoaringBitmap {
     map.addLong(Long.MIN_VALUE);
 
     {
-      LongIterator iterator = map.iterator();
+      LongIterator iterator = map.getLongIterator();
       Assert.assertTrue(iterator.hasNext());
       Assert.assertEquals(Long.MIN_VALUE, iterator.next());
       Assert.assertEquals(Long.MIN_VALUE, map.select(0));
@@ -139,7 +139,7 @@ public class TestTreeRoaringBitmap {
     map.addLong(Long.MAX_VALUE);
 
     {
-      LongIterator iterator = map.iterator();
+      LongIterator iterator = map.getLongIterator();
       Assert.assertTrue(iterator.hasNext());
       Assert.assertEquals(Long.MIN_VALUE, iterator.next());
       Assert.assertEquals(Long.MIN_VALUE, map.select(0));
@@ -261,7 +261,7 @@ public class TestTreeRoaringBitmap {
     RoaringTreeMap map = new RoaringTreeMap(true);
     map.addLong(positive);
     map.addLong(negative);
-    LongIterator it = map.iterator();
+    LongIterator it = map.getLongIterator();
     long first = it.next();
     long last = it.next();
     Assert.assertEquals(negative, first);
@@ -275,7 +275,7 @@ public class TestTreeRoaringBitmap {
     RoaringTreeMap map = new RoaringTreeMap(false);
     map.addLong(positive);
     map.addLong(negative);
-    LongIterator it = map.iterator();
+    LongIterator it = map.getLongIterator();
     long first = it.next();
     long last = it.next();
     Assert.assertEquals(positive, first);

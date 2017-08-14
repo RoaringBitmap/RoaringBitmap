@@ -230,65 +230,25 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
    *
    * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
    */
-  public LongIterator iterator() {
-    final Iterator<Map.Entry<Integer, BitmapDataProvider>> it = highToBitmap.entrySet().iterator();
+  public Iterator<Long> iterator() {
+    final LongIterator it = getLongIterator();
 
-    return new LongIterator() {
-
-      protected int currentKey;
-      protected IntIterator currentIt;
+    return new Iterator<Long>() {
 
       @Override
       public boolean hasNext() {
-        if (currentIt == null) {
-          // Were initially empty
-          if (!moveToNextEntry(it)) {
-            return false;
-          }
-        }
-
-        while (true) {
-          if (currentIt.hasNext()) {
-            return true;
-          } else {
-            if (!moveToNextEntry(it)) {
-              return false;
-            }
-          }
-        }
-      }
-
-      /**
-       *
-       * @param it the underlying iterator which has to be moved to next long
-       * @return true if we MAY have more entries. false if there is definitely nothing more
-       */
-      private boolean moveToNextEntry(Iterator<Map.Entry<Integer, BitmapDataProvider>> it) {
-        if (it.hasNext()) {
-          Map.Entry<Integer, BitmapDataProvider> next = it.next();
-          currentKey = next.getKey();
-          currentIt = next.getValue().getIntIterator();
-
-          // We may have more long
-          return true;
-        } else {
-          // We know there is nothing more
-          return false;
-        }
+        return it.hasNext();
       }
 
       @Override
-      public long next() {
-        if (hasNext()) {
-          return RoaringIntPacking.pack(currentKey, currentIt.next());
-        } else {
-          throw new IllegalStateException("empty");
-        }
+      public Long next() {
+        return it.next();
       }
 
       @Override
-      public LongIterator clone() {
-        throw new UnsupportedOperationException("TODO");
+      public void remove() {
+        // TODO?
+        throw new UnsupportedOperationException();
       }
     };
   }
@@ -521,8 +481,74 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
     return answer.toString();
   }
 
+
+  /**
+   *
+   * For better performance, consider the Use the {@link #forEach forEach} method.
+   *
+   * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
+   */
   public LongIterator getLongIterator() {
-    return iterator();
+    final Iterator<Map.Entry<Integer, BitmapDataProvider>> it = highToBitmap.entrySet().iterator();
+
+    return new LongIterator() {
+
+      protected int currentKey;
+      protected IntIterator currentIt;
+
+      @Override
+      public boolean hasNext() {
+        if (currentIt == null) {
+          // Were initially empty
+          if (!moveToNextEntry(it)) {
+            return false;
+          }
+        }
+
+        while (true) {
+          if (currentIt.hasNext()) {
+            return true;
+          } else {
+            if (!moveToNextEntry(it)) {
+              return false;
+            }
+          }
+        }
+      }
+
+      /**
+       *
+       * @param it the underlying iterator which has to be moved to next long
+       * @return true if we MAY have more entries. false if there is definitely nothing more
+       */
+      private boolean moveToNextEntry(Iterator<Map.Entry<Integer, BitmapDataProvider>> it) {
+        if (it.hasNext()) {
+          Map.Entry<Integer, BitmapDataProvider> next = it.next();
+          currentKey = next.getKey();
+          currentIt = next.getValue().getIntIterator();
+
+          // We may have more long
+          return true;
+        } else {
+          // We know there is nothing more
+          return false;
+        }
+      }
+
+      @Override
+      public long next() {
+        if (hasNext()) {
+          return RoaringIntPacking.pack(currentKey, currentIt.next());
+        } else {
+          throw new IllegalStateException("empty");
+        }
+      }
+
+      @Override
+      public LongIterator clone() {
+        throw new UnsupportedOperationException("TODO");
+      }
+    };
   }
 
   @Override
@@ -573,5 +599,36 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
   @Override
   public long[] toArray() {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  /**
+   * Generate a bitmap with the specified values set to true. The provided longs values don't have
+   * to be in sorted order, but it may be preferable to sort them from a performance point of view.
+   *
+   * @param dat set values
+   * @return a new bitmap
+   */
+  public static RoaringTreeMap bitmapOf(final long... dat) {
+    final RoaringTreeMap ans = new RoaringTreeMap();
+    ans.add(dat);
+    return ans;
+  }
+
+  /**
+   * Set all the specified values to true. This can be expected to be slightly faster than calling
+   * "add" repeatedly. The provided integers values don't have to be in sorted order, but it may be
+   * preferable to sort them from a performance point of view.
+   *
+   * @param dat set values
+   */
+  public void add(long... dat) {
+    for (long oneLong : dat) {
+      addLong(oneLong);
+    }
+  }
+
+  public LongIterator getReverseLongIterator() {
+    // TODO Auto-generated method stub
+    return null;
   }
 }
