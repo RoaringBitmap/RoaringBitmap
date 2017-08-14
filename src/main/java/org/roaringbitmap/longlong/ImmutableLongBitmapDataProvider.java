@@ -56,12 +56,14 @@ public interface ImmutableLongBitmapDataProvider {
    * 
    * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
    */
-  public PeekableLongIterator getIntIterator();
+  // RoaringBitmap proposes a PeekableLongIterator
+  public LongIterator getLongIterator();
 
   /**
    * @return a custom iterator over set bits, the bits are traversed in descending sorted order
    */
-  public LongIterator getReverseIntIterator();
+  // RoaringBitmap proposes a PeekableLongIterator
+  public LongIterator getReverseLongIterator();
 
   /**
    * Estimate of the memory usage of this data structure.

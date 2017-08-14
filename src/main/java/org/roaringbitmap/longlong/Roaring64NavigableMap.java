@@ -18,6 +18,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.roaringbitmap.BitmapDataProvider;
+import org.roaringbitmap.Container;
 import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.RoaringBitmap;
@@ -25,7 +26,7 @@ import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 // this class is not thread-safe
 // @Beta
-public class Roaring64NavigableMap implements Externalizable, ImmutableLongBitmapDataProvider {
+public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProvider {
 
   // Not final to enable initialization in Externalizable.readObject
   protected NavigableMap<Integer, BitmapDataProvider> highToBitmap;
@@ -233,7 +234,7 @@ public class Roaring64NavigableMap implements Externalizable, ImmutableLongBitma
   @Override
   public long select(final long j) {
     if (!doCacheCardinalities) {
-      return rawSelect(j);
+      return selectNoCache(j);
     }
 
     // Ensure all cumulatives as we we have straightforward way to know inadvance the high of the
@@ -282,7 +283,7 @@ public class Roaring64NavigableMap implements Externalizable, ImmutableLongBitma
 
   // For benchmarks: compute without using cardinalities cache
   // https://github.com/RoaringBitmap/CRoaring/blob/master/cpp/roaring64map.hh
-  private long rawSelect(long j) {
+  private long selectNoCache(long j) {
     long left = j;
 
     for (Entry<Integer, BitmapDataProvider> entry : highToBitmap.entrySet()) {
@@ -353,7 +354,7 @@ public class Roaring64NavigableMap implements Externalizable, ImmutableLongBitma
     int low = RoaringIntPacking.low(id);
 
     if (!doCacheCardinalities) {
-      return rankLong(high, low);
+      return rankLongNoCache(high, low);
     }
 
     int indexOk = ensureCumulatives(high);
@@ -392,7 +393,7 @@ public class Roaring64NavigableMap implements Externalizable, ImmutableLongBitma
   }
 
   // https://github.com/RoaringBitmap/CRoaring/blob/master/cpp/roaring64map.hh
-  private long rankLong(int high, int low) {
+  private long rankLongNoCache(int high, int low) {
     long result = 0L;
 
     BitmapDataProvider lastBitmap = highToBitmap.get(high);
@@ -591,13 +592,6 @@ public class Roaring64NavigableMap implements Externalizable, ImmutableLongBitma
   }
 
 
-  private long highestHighAsLong() {
-    if (signedLongs) {
-      return Integer.MAX_VALUE;
-    } else {
-      return RoaringIntPacking.toUnsignedLong(highestHigh());
-    }
-  }
 
   /**
    * In-place bitwise OR (union) operation. The current bitmap is modified.
@@ -712,9 +706,15 @@ public class Roaring64NavigableMap implements Externalizable, ImmutableLongBitma
    *
    * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
    */
+  @Override
   public LongIterator getLongIterator() {
     final Iterator<Map.Entry<Integer, BitmapDataProvider>> it = highToBitmap.entrySet().iterator();
 
+    return toIterator(it, false);
+  }
+
+  protected LongIterator toIterator(final Iterator<Map.Entry<Integer, BitmapDataProvider>> it,
+      final boolean reversed) {
     return new LongIterator() {
 
       protected int currentKey;
@@ -749,7 +749,11 @@ public class Roaring64NavigableMap implements Externalizable, ImmutableLongBitma
         if (it.hasNext()) {
           Map.Entry<Integer, BitmapDataProvider> next = it.next();
           currentKey = next.getKey();
-          currentIt = next.getValue().getIntIterator();
+          if (reversed) {
+            currentIt = next.getValue().getReverseIntIterator();
+          } else {
+            currentIt = next.getValue().getIntIterator();
+          }
 
           // We may have more long
           return true;
@@ -780,15 +784,6 @@ public class Roaring64NavigableMap implements Externalizable, ImmutableLongBitma
     throw new UnsupportedOperationException("TODO");
   }
 
-  @Override
-  public PeekableLongIterator getIntIterator() {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
-  public LongIterator getReverseIntIterator() {
-    throw new UnsupportedOperationException("TODO");
-  }
 
   @Override
   public int getSizeInBytes() {
@@ -820,9 +815,28 @@ public class Roaring64NavigableMap implements Externalizable, ImmutableLongBitma
     throw new UnsupportedOperationException("TODO");
   }
 
+  /**
+   * Return the set values as an array, if the cardinality is smaller than 2147483648. The integer
+   * values are in sorted order.
+   *
+   * @return array representing the set values.
+   */
   @Override
   public long[] toArray() {
-    throw new UnsupportedOperationException("TODO");
+    long cardinality = this.getLongCardinality();
+    if (cardinality > Integer.MAX_VALUE) {
+      throw new IllegalStateException("The cardinality does not fit in an array");
+    }
+
+    final long[] array = new long[(int) cardinality];
+
+    int pos = 0;
+    LongIterator it = getLongIterator();
+
+    while (it.hasNext()) {
+      array[pos++] = it.next();
+    }
+    return array;
   }
 
   /**
@@ -904,7 +918,30 @@ public class Roaring64NavigableMap implements Externalizable, ImmutableLongBitma
   }
 
   public LongIterator getReverseLongIterator() {
-    // TODO Auto-generated method stub
-    return null;
+    return toIterator(highToBitmap.descendingMap().entrySet().iterator(), true);
+  }
+
+  @Override
+  public void add(long x) {
+    add(x);
+  }
+
+  @Override
+  public void remove(long x) {
+    int high = high(x);
+
+    BitmapDataProvider bitmap = highToBitmap.get(high);
+
+    if (bitmap != null) {
+      int low = low(x);
+      bitmap.remove(low);
+    }
+  }
+
+  @Override
+  public void trim() {
+    for (BitmapDataProvider bitmap : highToBitmap.values()) {
+      bitmap.trim();
+    }
   }
 }
