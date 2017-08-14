@@ -8,6 +8,7 @@ import java.io.ObjectOutput;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -129,8 +130,31 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
     bitmap.add(low);
 
     // The cardinalities after this bucket may not be valid anymore
-    firstHighNotValid = Math.min(firstHighNotValid, high);
+    if (compare(firstHighNotValid, high) > 0) {
+      firstHighNotValid = high;
+
+      int indexNotValid = binarySearch(sortedHighs, firstHighNotValid);
+
+      final int indexAfterWhichToReset;
+      if (indexNotValid >= 0) {
+        indexAfterWhichToReset = indexNotValid;
+      } else {
+        // We have added a value for a branch new high
+        indexAfterWhichToReset = -indexNotValid - 1;
+      }
+
+      // This way, sortedHighs remains sorted
+      Arrays.fill(sortedHighs, indexAfterWhichToReset, sortedHighs.length, highestHigh());
+    }
     allValid = false;
+  }
+
+  private int compare(int x, int y) {
+    if (signedLongs) {
+      return Integer.compare(x, y);
+    } else {
+      return RoaringIntPacking.compareUnsigned(x, y);
+    }
   }
 
   private void pushBitmapForHigh(int high, BitmapDataProvider bitmap) {
@@ -165,7 +189,7 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
       return 0L;
     }
 
-    ensureCumulatives(Integer.MAX_VALUE);
+    ensureCumulatives(highestHigh());
 
     return sortedCumulatedCardinality[sortedCumulatedCardinality.length - 1];
   }
@@ -180,8 +204,11 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
   public long select(final long j) {
     // Ensure all cumulatives as we we have straightforward way to know inadvance the high of the
     // j-th value
-    ensureCumulatives(Integer.MAX_VALUE);
+    ensureCumulatives(highestHigh());
 
+    // Search the whole array as ensureCumulatives has been fully computed
+    // Use normal binarySearch as cardinality does not depends on considering longs signed or
+    // unsigned
     int position =
         Arrays.binarySearch(sortedCumulatedCardinality, 0, sortedCumulatedCardinality.length, j);
 
@@ -271,9 +298,12 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
     int high = RoaringIntPacking.high(id);
     int low = RoaringIntPacking.low(id);
 
-    ensureCumulatives(high);
+    int indexOk = ensureCumulatives(high);
 
-    int bitmapPosition = Arrays.binarySearch(sortedHighs, 0, sortedHighs.length, high);
+    // the position is maxes by high, and the values at the end of sortedHighs may be compromised
+    // (depending on firstHighNotValid)
+    // TODO: binarySearch is NOT ok if unsigned
+    int bitmapPosition = binarySearch(sortedHighs, 0, indexOk, high);
 
     if (bitmapPosition >= 0) {
       // There is a bucket holding this item
@@ -303,88 +333,173 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
     }
   }
 
-  protected void ensureCumulatives(int high) {
-    // Check if missing data to handle this rank
-    if (!allValid && firstHighNotValid <= high) {
-      // For each deprecated buckets
-      SortedMap<Integer, BitmapDataProvider> tailMap = highToBitmap.tailMap(firstHighNotValid);
+  /**
+   * 
+   * @param high
+   * @return the highest validatedIndex
+   */
+  protected int ensureCumulatives(int high) {
+    if (allValid) {
+      return sortedHighs.length;
+    } else if (compare(high, firstHighNotValid) < 0) {
+      // The high cardinality is strictly below the first not valid: it is valid
 
+      // TODO: this is invalid: sortedHighs may have only a subset of valid values
+      int position = binarySearch(sortedHighs, high);
+
+      if (position >= 0) {
+        // This high has a bitmap: +1 as this index will be used as right (excluded) bound in a
+        // binary-search
+        return position + 1;
+      } else {
+        // This high has no bitmap: it could be between 2 highs with bitmaps
+        int insertionPosition = -position - 1;
+        return insertionPosition;
+      }
+    } else {
+      // For each deprecated buckets
+      SortedMap<Integer, BitmapDataProvider> tailMap =
+          highToBitmap.tailMap(firstHighNotValid, true);
+
+      int indexOk = highToBitmap.size() - tailMap.size();
       for (Map.Entry<Integer, BitmapDataProvider> e : tailMap.entrySet()) {
+
         int currentHigh = e.getKey();
 
-        if (currentHigh > high) {
+        if (compare(currentHigh, high) > 0) {
+          // No need to compute more than needed
           break;
         }
 
-        int index = Arrays.binarySearch(sortedHighs, 0, sortedHighs.length, currentHigh);
+        ensureOne(e, currentHigh, indexOk);
 
-        if (index >= 0) {
-          // This bitmap has already been registered
-          BitmapDataProvider bitmap = e.getValue();
-          assert bitmap == highToBitmap.get(sortedHighs[index]);
-
-          final long previousCardinality;
-          if (currentHigh >= 1) {
-            previousCardinality = sortedCumulatedCardinality[index - 1];
-          } else {
-            previousCardinality = 0;
-          }
-          sortedCumulatedCardinality[index] = previousCardinality + bitmap.getCardinality();
-
-          if (currentHigh == Integer.MAX_VALUE) {
-            allValid = true;
-            firstHighNotValid = currentHigh;
-          } else {
-            firstHighNotValid = currentHigh + 1;
-          }
-          if (currentHigh > high) {
-            // No need to compute more than needed
-            break;
-          }
-        } else {
-          int insertionPosition = -index - 1;
-
-          // This is a new key
-          if (insertionPosition >= sortedHighs.length) {
-            // Insertion at the end
-            sortedHighs = Arrays.copyOf(sortedHighs, sortedHighs.length + 1);
-            sortedCumulatedCardinality =
-                Arrays.copyOf(sortedCumulatedCardinality, sortedCumulatedCardinality.length + 1);
-          } else {
-            // Insertion in the middle
-            int previousLength = sortedHighs.length;
-            sortedHighs = Arrays.copyOf(sortedHighs, previousLength + 1);
-            // Ensure the new 0 is in the middle
-            System.arraycopy(sortedHighs, insertionPosition, sortedHighs, insertionPosition + 1,
-                previousLength - insertionPosition);
-
-            sortedCumulatedCardinality =
-                Arrays.copyOf(sortedCumulatedCardinality, sortedCumulatedCardinality.length + 1);
-
-            // No need to copy higher cardinalities as anyway, the cardinalities may not be valid
-            // anymore
-          }
-          sortedHighs[insertionPosition] = currentHigh;
-          lowBitmaps.add(insertionPosition, e.getValue());
-
-          final long previousCardinality;
-          if (insertionPosition >= 1) {
-            previousCardinality = sortedCumulatedCardinality[insertionPosition - 1];
-          } else {
-            previousCardinality = 0;
-          }
-
-          sortedCumulatedCardinality[insertionPosition] =
-              previousCardinality + e.getValue().getLongCardinality();
-
-          if (currentHigh == Integer.MAX_VALUE) {
-            allValid = true;
-            firstHighNotValid = currentHigh;
-          } else {
-            firstHighNotValid = currentHigh + 1;
-          }
-        }
+        // We have added one valid cardinality
+        indexOk++;
       }
+
+      if (highToBitmap.isEmpty() || high == highToBitmap.lastKey().intValue()) {
+        // We have compute all cardinalities
+        allValid = true;
+      }
+
+      return indexOk;
+    }
+  }
+
+  private int binarySearch(int[] array, int key) {
+    if (signedLongs) {
+      return Arrays.binarySearch(array, key);
+    } else {
+      return unsignedBinarySearch(array, 0, array.length, key,
+          RoaringIntPacking.unsignedComparator());
+    }
+  }
+
+  private int binarySearch(int[] array, int from, int to, int key) {
+    if (signedLongs) {
+      return Arrays.binarySearch(array, from, to, key);
+    } else {
+      return unsignedBinarySearch(array, from, to, key, RoaringIntPacking.unsignedComparator());
+    }
+  }
+
+  // From Arrays.binarySearch (Comparator). Check with ROaring Util.unsignedBinarySearch
+  private static int unsignedBinarySearch(int[] a, int fromIndex, int toIndex, int key,
+      Comparator<? super Integer> c) {
+    int low = fromIndex;
+    int high = toIndex - 1;
+
+    while (low <= high) {
+      int mid = (low + high) >>> 1;
+      int midVal = a[mid];
+      int cmp = c.compare(midVal, key);
+      if (cmp < 0)
+        low = mid + 1;
+      else if (cmp > 0)
+        high = mid - 1;
+      else
+        return mid; // key found
+    }
+    return -(low + 1); // key not found.
+  }
+
+  private void ensureOne(Map.Entry<Integer, BitmapDataProvider> e, int currentHigh, int indexOk) {
+
+    // sortedHighs are valid only up to some index
+    assert indexOk <= sortedHighs.length;
+    int index = binarySearch(sortedHighs, 0, indexOk, currentHigh);
+
+    if (index >= 0) {
+      // This bitmap has already been registered
+      BitmapDataProvider bitmap = e.getValue();
+      assert bitmap == highToBitmap.get(sortedHighs[index]);
+
+      final long previousCardinality;
+      if (currentHigh >= 1) {
+        previousCardinality = sortedCumulatedCardinality[index - 1];
+      } else {
+        previousCardinality = 0;
+      }
+      sortedCumulatedCardinality[index] = previousCardinality + bitmap.getCardinality();
+
+      if (currentHigh == Integer.MAX_VALUE) {
+        allValid = true;
+        firstHighNotValid = currentHigh;
+      } else {
+        firstHighNotValid = currentHigh + 1;
+      }
+    } else {
+      int insertionPosition = -index - 1;
+
+      // This is a new key
+      if (insertionPosition >= sortedHighs.length) {
+        // Insertion at the end
+        sortedHighs = Arrays.copyOf(sortedHighs, sortedHighs.length + 1);
+        sortedCumulatedCardinality =
+            Arrays.copyOf(sortedCumulatedCardinality, sortedCumulatedCardinality.length + 1);
+      } else {
+        // Insertion in the middle
+        int previousLength = sortedHighs.length;
+        sortedHighs = Arrays.copyOf(sortedHighs, previousLength + 1);
+        // Ensure the new 0 is in the middle
+        System.arraycopy(sortedHighs, insertionPosition, sortedHighs, insertionPosition + 1,
+            previousLength - insertionPosition);
+
+        sortedCumulatedCardinality =
+            Arrays.copyOf(sortedCumulatedCardinality, sortedCumulatedCardinality.length + 1);
+
+        // No need to copy higher cardinalities as anyway, the cardinalities may not be valid
+        // anymore
+      }
+      sortedHighs[insertionPosition] = currentHigh;
+      lowBitmaps.add(insertionPosition, e.getValue());
+
+      final long previousCardinality;
+      if (insertionPosition >= 1) {
+        previousCardinality = sortedCumulatedCardinality[insertionPosition - 1];
+      } else {
+        previousCardinality = 0;
+      }
+
+      sortedCumulatedCardinality[insertionPosition] =
+          previousCardinality + e.getValue().getLongCardinality();
+
+      if (currentHigh == highestHigh()) {
+        // We are already on the highest high. Do not set allValid as it is set anyway out of the
+        // loop
+        firstHighNotValid = currentHigh;
+      } else {
+        // The first not valid is the next high
+        firstHighNotValid = currentHigh + 1;
+      }
+    }
+  }
+
+  private int highestHigh() {
+    if (signedLongs) {
+      return Integer.MAX_VALUE;
+    } else {
+      return -1;
     }
   }
 
