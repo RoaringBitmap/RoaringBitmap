@@ -5,6 +5,8 @@ jdk:
   - oraclejdk8
   - openjdk7
 
+# we removed oraclejdk7 as per https://github.com/RoaringBitmap/RoaringBitmap/pull/176#issuecomment-322257170
+
 install: true
 
 branches:
