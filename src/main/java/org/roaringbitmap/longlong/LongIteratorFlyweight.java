@@ -6,9 +6,9 @@ package org.roaringbitmap.longlong;
 
 /**
  * Fast iterator minimizing the stress on the garbage collector. You can create one reusable
- * instance of this class and then {@link #wrap(RoaringTreeMap)}
+ * instance of this class and then {@link #wrap(Roaring64NavigableMap)}
  * 
- * For better performance, consider the {@link RoaringTreeMap#forEach} method.
+ * For better performance, consider the {@link Roaring64NavigableMap#forEach} method.
  * 
  * @author Borislav Ivanov
  **/
@@ -44,7 +44,7 @@ public class LongIteratorFlyweight implements PeekableLongIterator {
     return null;
   }
 
-  public void wrap(RoaringTreeMap bitmap_c) {
+  public void wrap(Roaring64NavigableMap bitmap_c) {
     // TODO Auto-generated method stub
     
   }

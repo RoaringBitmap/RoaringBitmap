@@ -5,8 +5,8 @@ import java.util.Comparator;
 
 /**
  * Used to hold the logic packing 2 integers in a long, and separating a long in two integers. It is
- * useful in {@link RoaringTreeMap} as the implementation split the input long in two integers, one
- * used as key of a NavigableMap while the other is added in a Bitmap
+ * useful in {@link Roaring64NavigableMap} as the implementation split the input long in two
+ * integers, one used as key of a NavigableMap while the other is added in a Bitmap
  * 
  * @author Benoit Lacelle
  *
@@ -84,5 +84,10 @@ class RoaringIntPacking {
       b = b.add(TWO_64);
     }
     return b.toString();
+  }
+
+  // Duplicated from jdk8 Integer.toUnsignedLong
+  static long toUnsignedLong(int x) {
+    return ((long) x) & 0xffffffffL;
   }
 }

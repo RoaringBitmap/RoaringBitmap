@@ -20,11 +20,12 @@ import java.util.TreeMap;
 import org.roaringbitmap.BitmapDataProvider;
 import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 // this class is not thread-safe
 // @Beta
-public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataProvider {
+public class Roaring64NavigableMap implements Externalizable, ImmutableLongBitmapDataProvider {
 
   // Not final to enable initialization in Externalizable.readObject
   protected NavigableMap<Integer, BitmapDataProvider> highToBitmap;
@@ -35,8 +36,11 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
   // negative long
   private boolean signedLongs = false;
 
+  // By default, we cache cardinalities
+  private transient boolean doCacheCardinalities = true;
+
   // Prevent recomputing all cardinalities when requesting consecutive ranks
-  private transient int firstHighNotValid = Integer.MIN_VALUE;
+  private transient int firstHighNotValid = highestHigh() + 1;
 
   // This boolean needs firstHighNotValid == Integer.MAX_VALUE to be allowed to be true
   // If false, it means nearly all cumulated cardinalities are valid, except high=Integer.MAX_VALUE
@@ -61,16 +65,27 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
    */
   // TODO: Should be 'By default, we consider longs are unsigned 64bits longlong' to comply with
   // RoaringBitmap
-  public RoaringTreeMap() {
+  public Roaring64NavigableMap() {
     this(true);
   }
 
   /**
    * 
-   * @param signedLongs should long be ordered as plain java longs (signedLongs == true) or as
-   *        unsigned 64bits long (signedLongs == false)
+   * @param signedLongs true if longs has to be ordered as plain java longs. False to handle them as
+   *        unsigned 64bits long (as RoaringBitmap with unsigned integers)
    */
-  public RoaringTreeMap(boolean signedLongs) {
+  public Roaring64NavigableMap(boolean signedLongs) {
+    this(signedLongs, true);
+  }
+
+  /**
+   * 
+   * @param signedLongs true if longs has to be ordered as plain java longs. False to handle them as
+   *        unsigned 64bits long (as RoaringBitmap with unsigned integers)
+   * @param cacheCardinalities true if cardinalities have to be cached. It will prevent many
+   *        iteration along the NavigableMap
+   */
+  public Roaring64NavigableMap(boolean signedLongs, boolean cacheCardinalities) {
     this.signedLongs = signedLongs;
 
     if (signedLongs) {
@@ -79,6 +94,7 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
       highToBitmap = new TreeMap<>(RoaringIntPacking.unsignedComparator());
     }
 
+    this.doCacheCardinalities = cacheCardinalities;
     resetPerfHelpers();
   }
 
@@ -103,9 +119,9 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
   /**
    * Add the value to the container (set the value to "true"), whether it already appears or not.
    *
-   * Java lacks native unsigned integers but the x argument is considered to be unsigned. Within
-   * bitmaps, numbers are ordered according to {@link Integer#compareUnsigned}. We order the numbers
-   * like 0, 1, ..., 2147483647, -2147483648, -2147483647,..., -1.
+   * Java lacks native unsigned longs but the x argument is considered to be unsigned. Within
+   * bitmaps, numbers are ordered according to {@link Long#compareUnsigned}. We order the numbers
+   * like 0, 1, ..., 9223372036854775807, -9223372036854775808, -9223372036854775807,..., -1.
    *
    * @param x integer value
    */
@@ -129,8 +145,13 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
     }
     bitmap.add(low);
 
+    invalidateAboveHigh(high);
+  }
+
+  private void invalidateAboveHigh(int high) {
     // The cardinalities after this bucket may not be valid anymore
     if (compare(firstHighNotValid, high) > 0) {
+      // High was valid up to now
       firstHighNotValid = high;
 
       int indexNotValid = binarySearch(sortedHighs, firstHighNotValid);
@@ -184,14 +205,22 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
    *
    * @return the cardinality
    */
+  @Override
   public long getLongCardinality() {
-    if (highToBitmap.isEmpty()) {
-      return 0L;
+    if (doCacheCardinalities) {
+      if (highToBitmap.isEmpty()) {
+        return 0L;
+      }
+      ensureCumulatives(highestHigh());
+
+      return sortedCumulatedCardinality[sortedCumulatedCardinality.length - 1];
+    } else {
+      long cardinality = 0L;
+      for (BitmapDataProvider bitmap : highToBitmap.values()) {
+        cardinality += bitmap.getLongCardinality();
+      }
+      return cardinality;
     }
-
-    ensureCumulatives(highestHigh());
-
-    return sortedCumulatedCardinality[sortedCumulatedCardinality.length - 1];
   }
 
   /**
@@ -201,7 +230,12 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
    *
    * @return the value
    */
+  @Override
   public long select(final long j) {
+    if (!doCacheCardinalities) {
+      return rawSelect(j);
+    }
+
     // Ensure all cumulatives as we we have straightforward way to know inadvance the high of the
     // j-th value
     ensureCumulatives(highestHigh());
@@ -244,6 +278,26 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
 
       return RoaringIntPacking.pack(high, low);
     }
+  }
+
+  // For benchmarks: compute without using cardinalities cache
+  // https://github.com/RoaringBitmap/CRoaring/blob/master/cpp/roaring64map.hh
+  private long rawSelect(long j) {
+    long left = j;
+
+    for (Entry<Integer, BitmapDataProvider> entry : highToBitmap.entrySet()) {
+      long lowCardinality = entry.getValue().getCardinality();
+
+      if (left >= lowCardinality) {
+        left -= lowCardinality;
+      } else {
+        // It is legit for left to be negative
+        int leftAsUnsignedInt = (int) left;
+        return RoaringIntPacking.pack(entry.getKey(), entry.getValue().select(leftAsUnsignedInt));
+      }
+    }
+
+    return throwSelectInvalidIndex(j);
   }
 
   private long throwSelectInvalidIndex(long j) {
@@ -298,6 +352,10 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
     int high = RoaringIntPacking.high(id);
     int low = RoaringIntPacking.low(id);
 
+    if (!doCacheCardinalities) {
+      return rankLong(high, low);
+    }
+
     int indexOk = ensureCumulatives(high);
 
     // the position is maxes by high, and the values at the end of sortedHighs may be compromised
@@ -331,6 +389,34 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
         return sortedCumulatedCardinality[insertionPoint - 1];
       }
     }
+  }
+
+  // https://github.com/RoaringBitmap/CRoaring/blob/master/cpp/roaring64map.hh
+  private long rankLong(int high, int low) {
+    long result = 0L;
+
+    BitmapDataProvider lastBitmap = highToBitmap.get(high);
+    if (lastBitmap == null) {
+      // There is no value with same high: the rank is a sum of cardinalities
+      for (Entry<Integer, BitmapDataProvider> bitmap : highToBitmap.entrySet()) {
+        if (bitmap.getKey().intValue() > high) {
+          break;
+        } else {
+          result += bitmap.getValue().getLongCardinality();
+        }
+      }
+    } else {
+      for (BitmapDataProvider bitmap : highToBitmap.values()) {
+        if (bitmap == lastBitmap) {
+          result += bitmap.rankLong(low);
+          break;
+        } else {
+          result += bitmap.getLongCardinality();
+        }
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -403,7 +489,7 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
     }
   }
 
-  // From Arrays.binarySearch (Comparator). Check with ROaring Util.unsignedBinarySearch
+  // From Arrays.binarySearch (Comparator). Check with org.roaringbitmap.Util.unsignedBinarySearch
   private static int unsignedBinarySearch(int[] a, int fromIndex, int toIndex, int key,
       Comparator<? super Integer> c) {
     int low = fromIndex;
@@ -504,12 +590,21 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
     }
   }
 
+
+  private long highestHighAsLong() {
+    if (signedLongs) {
+      return Integer.MAX_VALUE;
+    } else {
+      return RoaringIntPacking.toUnsignedLong(highestHigh());
+    }
+  }
+
   /**
    * In-place bitwise OR (union) operation. The current bitmap is modified.
    *
    * @param x2 other bitmap
    */
-  public void or(final RoaringTreeMap x2) {
+  public void or(final Roaring64NavigableMap x2) {
     boolean firstBucket = true;
 
     for (Entry<Integer, BitmapDataProvider> e : x2.highToBitmap.entrySet()) {
@@ -521,9 +616,20 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
       BitmapDataProvider lowBitmap2 = e.getValue();
       // TODO Reviewers: is it a good idea to rely on BitmapDataProvider except in methods
       // expecting an actual MutableRoaringBitmap?
-      if ((currentBitmap == null || currentBitmap instanceof MutableRoaringBitmap)
-          && lowBitmap2 instanceof MutableRoaringBitmap) {
+      if ((currentBitmap == null || currentBitmap instanceof RoaringBitmap)
+          && lowBitmap2 instanceof RoaringBitmap) {
+        if (currentBitmap == null) {
+          // Clone to prevent future modification of this modifying the input Bitmap
+          // RoaringBitmap lowBitmap2Clone = ((RoaringBitmap) lowBitmap2).clone();
 
+          // pushBitmapForHigh(high, lowBitmap2Clone);
+          throw new UnsupportedOperationException(
+              "Should RoaringBitmap implement BitmapDataProvider?");
+        } else {
+          ((MutableRoaringBitmap) currentBitmap).or((MutableRoaringBitmap) lowBitmap2);
+        }
+      } else if ((currentBitmap == null || currentBitmap instanceof MutableRoaringBitmap)
+          && lowBitmap2 instanceof MutableRoaringBitmap) {
         if (currentBitmap == null) {
           // Clone to prevent future modification of this modifying the input Bitmap
           BitmapDataProvider lowBitmap2Clone = ((MutableRoaringBitmap) lowBitmap2).clone();
@@ -550,6 +656,8 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
 
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
+    // TODO: Should we transport the performance tweak 'doCacheCardinalities'?
+
     out.writeBoolean(signedLongs);
     out.writeObject(highToBitmap);
   }
@@ -724,8 +832,8 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
    * @param dat set values
    * @return a new bitmap
    */
-  public static RoaringTreeMap bitmapOf(final long... dat) {
-    final RoaringTreeMap ans = new RoaringTreeMap();
+  public static Roaring64NavigableMap bitmapOf(final long... dat) {
+    final Roaring64NavigableMap ans = new Roaring64NavigableMap();
     ans.add(dat);
     return ans;
   }
@@ -741,6 +849,58 @@ public class RoaringTreeMap implements Externalizable, ImmutableLongBitmapDataPr
     for (long oneLong : dat) {
       addLong(oneLong);
     }
+  }
+
+  /**
+   * Add to the current bitmap all longs in [rangeStart,rangeEnd).
+   *
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
+   */
+  public void add(final long rangeStart, final long rangeEnd) {
+    int startHigh = high(rangeStart);
+    int startLow = low(rangeStart);
+
+    int endHigh = high(rangeEnd);
+    int endLow = low(rangeEnd);
+
+    for (int high = startHigh; high <= endHigh; high++) {
+      BitmapDataProvider bitmap = highToBitmap.get(high);
+      if (bitmap == null) {
+        bitmap = new MutableRoaringBitmap();
+        pushBitmapForHigh(high, bitmap);
+      }
+
+      final long currentStartLow;
+      if (startHigh == high) {
+        // The whole range starts in this bucket
+        currentStartLow = startLow;
+      } else {
+        // Add the bucket from the beginning
+        currentStartLow = 0L;
+      }
+
+
+      final int currentEndLow;
+      if (endHigh == high) {
+        // The whole range ends in this bucket
+        currentEndLow = endLow;
+      } else {
+        // Add the bucket until the end
+        currentEndLow = -1;
+      }
+
+      if (bitmap instanceof RoaringBitmap) {
+        ((RoaringBitmap) bitmap).add(currentStartLow, currentEndLow);
+      } else if (bitmap instanceof MutableRoaringBitmap) {
+        ((MutableRoaringBitmap) bitmap).add(currentStartLow,
+            RoaringIntPacking.toUnsignedLong(currentEndLow));
+      } else {
+        throw new UnsupportedOperationException("TODO. Not for " + bitmap.getClass());
+      }
+    }
+
+    invalidateAboveHigh(startHigh);
   }
 
   public LongIterator getReverseLongIterator() {

@@ -6,7 +6,7 @@ package org.roaringbitmap.longlong;
 
 /**
  * Fast iterator minimizing the stress on the garbage collector. You can create one reusable
- * instance of this class and then {@link #wrap(RoaringTreeMap)}
+ * instance of this class and then {@link #wrap(Roaring64NavigableMap)}
  * 
  * This iterator enumerates the stored values in reverse (starting from the end).
  * 
@@ -32,7 +32,7 @@ public class ReverseLongIteratorFlyweight implements LongIterator {
     return 0;
   }
 
-  public void wrap(RoaringTreeMap bitmap_b) {
+  public void wrap(Roaring64NavigableMap bitmap_b) {
     // TODO Auto-generated method stub
     
   }

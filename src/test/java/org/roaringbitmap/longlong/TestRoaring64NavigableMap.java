@@ -8,12 +8,14 @@ import java.io.ObjectOutputStream;
 import java.util.Comparator;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.roaringbitmap.RoaringBitmap;
 
-public class TestTreeRoaringBitmap {
+public class TestRoaring64NavigableMap {
   @Test
   public void testEmpty() {
-    RoaringTreeMap map = new RoaringTreeMap();
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
 
     Assert.assertFalse(map.getLongIterator().hasNext());
 
@@ -30,7 +32,7 @@ public class TestTreeRoaringBitmap {
 
   @Test
   public void testZero() {
-    RoaringTreeMap map = new RoaringTreeMap();
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
 
     map.addLong(0);
 
@@ -55,7 +57,7 @@ public class TestTreeRoaringBitmap {
 
   @Test(expected = IllegalArgumentException.class)
   public void testAddOneSelect2() {
-    RoaringTreeMap map = new RoaringTreeMap();
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
 
     map.addLong(123);
 
@@ -64,7 +66,7 @@ public class TestTreeRoaringBitmap {
 
   @Test
   public void testIterator_NextWithoutHasNext_Filled() {
-    RoaringTreeMap map = new RoaringTreeMap();
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
 
     map.addLong(0);
 
@@ -74,14 +76,14 @@ public class TestTreeRoaringBitmap {
 
   @Test(expected = IllegalStateException.class)
   public void testIterator_NextWithoutHasNext_Empty() {
-    RoaringTreeMap map = new RoaringTreeMap();
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
 
     map.getLongIterator().next();
   }
 
   @Test
   public void testLongMaxValue() {
-    RoaringTreeMap map = new RoaringTreeMap();
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
 
     map.addLong(Long.MAX_VALUE);
 
@@ -106,7 +108,7 @@ public class TestTreeRoaringBitmap {
 
   @Test
   public void testLongMinValue() {
-    RoaringTreeMap map = new RoaringTreeMap();
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
 
     map.addLong(Long.MIN_VALUE);
 
@@ -131,7 +133,7 @@ public class TestTreeRoaringBitmap {
 
   @Test
   public void testLongMinValueZeroOneMaxValue() {
-    RoaringTreeMap map = new RoaringTreeMap();
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
 
     map.addLong(Long.MIN_VALUE);
     map.addLong(0);
@@ -166,7 +168,24 @@ public class TestTreeRoaringBitmap {
 
   @Test
   public void testPerfManyDifferentBuckets() {
-    RoaringTreeMap map = new RoaringTreeMap();
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
+
+    long problemSize = 100 * 1000L;
+    for (long i = 1; i <= problemSize; i++) {
+      map.addLong(i * Integer.MAX_VALUE + 1L);
+    }
+
+    long cardinality = map.getLongCardinality();
+    Assert.assertEquals(problemSize, cardinality);
+
+    long last = map.select(cardinality - 1);
+    Assert.assertEquals(problemSize * Integer.MAX_VALUE + 1L, last);
+    Assert.assertEquals(cardinality, map.rankLong(last));
+  }
+
+  @Test
+  public void testPerfManyDifferentBuckets_NoCache() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap(true, false);
 
     long problemSize = 100 * 1000L;
     for (long i = 1; i <= problemSize; i++) {
@@ -208,7 +227,7 @@ public class TestTreeRoaringBitmap {
   public void testLargeSelectLong_signed() {
     long positive = 1;
     long negative = -1;
-    RoaringTreeMap map = new RoaringTreeMap(true);
+    Roaring64NavigableMap map = new Roaring64NavigableMap(true);
     map.addLong(positive);
     map.addLong(negative);
     long first = map.select(0);
@@ -223,7 +242,7 @@ public class TestTreeRoaringBitmap {
   public void testLargeSelectLong_unsigned() {
     long positive = 1;
     long negative = -1;
-    RoaringTreeMap map = new RoaringTreeMap(false);
+    Roaring64NavigableMap map = new Roaring64NavigableMap(false);
     map.addLong(positive);
     map.addLong(negative);
     long first = map.select(0);
@@ -238,7 +257,7 @@ public class TestTreeRoaringBitmap {
   public void testLargeRankLong_signed() {
     long positive = 1;
     long negative = -1;
-    RoaringTreeMap map = new RoaringTreeMap(true);
+    Roaring64NavigableMap map = new Roaring64NavigableMap(true);
     map.addLong(positive);
     map.addLong(negative);
     Assert.assertEquals(1, map.rankLong(negative));
@@ -248,7 +267,7 @@ public class TestTreeRoaringBitmap {
   public void testLargeRankLong_unsigned() {
     long positive = 1;
     long negative = -1;
-    RoaringTreeMap map = new RoaringTreeMap(false);
+    Roaring64NavigableMap map = new Roaring64NavigableMap(false);
     map.addLong(positive);
     map.addLong(negative);
     Assert.assertEquals(2, map.rankLong(negative));
@@ -258,7 +277,7 @@ public class TestTreeRoaringBitmap {
   public void testIterationOrder_signed() {
     long positive = 1;
     long negative = -1;
-    RoaringTreeMap map = new RoaringTreeMap(true);
+    Roaring64NavigableMap map = new Roaring64NavigableMap(true);
     map.addLong(positive);
     map.addLong(negative);
     LongIterator it = map.getLongIterator();
@@ -272,7 +291,7 @@ public class TestTreeRoaringBitmap {
   public void testIterationOrder_unsigned() {
     long positive = 1;
     long negative = -1;
-    RoaringTreeMap map = new RoaringTreeMap(false);
+    Roaring64NavigableMap map = new Roaring64NavigableMap(false);
     map.addLong(positive);
     map.addLong(negative);
     LongIterator it = map.getLongIterator();
@@ -284,7 +303,7 @@ public class TestTreeRoaringBitmap {
 
   @Test
   public void testAddingLowValueAfterHighValue() {
-    RoaringTreeMap map = new RoaringTreeMap();
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
     map.addLong(Long.MAX_VALUE);
     Assert.assertEquals(Long.MAX_VALUE, map.select(0));
     map.addLong(666);
@@ -294,17 +313,17 @@ public class TestTreeRoaringBitmap {
 
   @Test
   public void testSerialization_Empty() throws IOException, ClassNotFoundException {
-    final RoaringTreeMap map = new RoaringTreeMap();
+    final Roaring64NavigableMap map = new Roaring64NavigableMap();
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
       oos.writeObject(map);
     }
 
-    final RoaringTreeMap clone;
+    final Roaring64NavigableMap clone;
     try (ObjectInputStream ois =
         new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
-      clone = (RoaringTreeMap) ois.readObject();
+      clone = (Roaring64NavigableMap) ois.readObject();
     }
 
     // Check the test has not simply copied the ref
@@ -314,7 +333,7 @@ public class TestTreeRoaringBitmap {
 
   @Test
   public void testSerialization_OneValue() throws IOException, ClassNotFoundException {
-    final RoaringTreeMap map = new RoaringTreeMap();
+    final Roaring64NavigableMap map = new Roaring64NavigableMap();
     map.addLong(123);
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -322,10 +341,10 @@ public class TestTreeRoaringBitmap {
       oos.writeObject(map);
     }
 
-    final RoaringTreeMap clone;
+    final Roaring64NavigableMap clone;
     try (ObjectInputStream ois =
         new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
-      clone = (RoaringTreeMap) ois.readObject();
+      clone = (Roaring64NavigableMap) ois.readObject();
     }
 
     // Check the test has not simply copied the ref
@@ -336,8 +355,8 @@ public class TestTreeRoaringBitmap {
 
   @Test
   public void testOr_SameBucket() {
-    RoaringTreeMap left = new RoaringTreeMap();
-    RoaringTreeMap right = new RoaringTreeMap();
+    Roaring64NavigableMap left = new Roaring64NavigableMap();
+    Roaring64NavigableMap right = new Roaring64NavigableMap();
 
     left.addLong(123);
     right.addLong(234);
@@ -352,8 +371,8 @@ public class TestTreeRoaringBitmap {
 
   @Test
   public void testOr_DifferentBucket() {
-    RoaringTreeMap left = new RoaringTreeMap();
-    RoaringTreeMap right = new RoaringTreeMap();
+    Roaring64NavigableMap left = new Roaring64NavigableMap();
+    Roaring64NavigableMap right = new Roaring64NavigableMap();
 
     left.addLong(123);
     right.addLong(Long.MAX_VALUE / 2);
@@ -368,8 +387,8 @@ public class TestTreeRoaringBitmap {
 
   @Test
   public void testOr_CloneInput() {
-    RoaringTreeMap left = new RoaringTreeMap();
-    RoaringTreeMap right = new RoaringTreeMap();
+    Roaring64NavigableMap left = new Roaring64NavigableMap();
+    Roaring64NavigableMap right = new Roaring64NavigableMap();
 
     right.addLong(123);
 
@@ -389,7 +408,7 @@ public class TestTreeRoaringBitmap {
 
   @Test
   public void testToString_signed() {
-    RoaringTreeMap map = new RoaringTreeMap(true);
+    Roaring64NavigableMap map = new Roaring64NavigableMap(true);
 
     map.addLong(123);
     map.addLong(Long.MAX_VALUE);
@@ -400,7 +419,7 @@ public class TestTreeRoaringBitmap {
 
   @Test
   public void testToString_unsigned() {
-    RoaringTreeMap map = new RoaringTreeMap(false);
+    Roaring64NavigableMap map = new Roaring64NavigableMap(false);
 
     map.addLong(123);
     map.addLong(Long.MAX_VALUE);
@@ -408,4 +427,31 @@ public class TestTreeRoaringBitmap {
 
     Assert.assertEquals("{123,9223372036854775807,9223372036854775808}", map.toString());
   }
+
+  public static final long outOfRoaringBitmapRange = 2L * Integer.MAX_VALUE + 3L;
+
+  // TODO
+  // FIXME
+  @Ignore("TODO FIXME")
+  @Test
+  public void testCardinalityAboveIntegerMaxValue() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
+
+    // This should fill entirely one bitmap,and add one in the next bitmap
+    map.add(0, outOfRoaringBitmapRange);
+
+    Assert.assertEquals(0, map.select(0));
+    Assert.assertEquals(outOfRoaringBitmapRange, map.select(outOfRoaringBitmapRange - 1));
+
+    Assert.assertEquals(outOfRoaringBitmapRange, map.getLongCardinality());
+
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testCardinalityAboveIntegerMaxValue_RoaringBitmap() {
+    RoaringBitmap map = new RoaringBitmap();
+
+    map.add(0L, outOfRoaringBitmapRange);
+  }
+
 }
