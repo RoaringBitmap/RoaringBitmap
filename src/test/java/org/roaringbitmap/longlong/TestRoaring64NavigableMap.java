@@ -5,7 +5,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -61,7 +64,7 @@ public class TestRoaring64NavigableMap {
 
     map.addLong(123);
 
-    Assert.assertEquals(123, map.select(1));
+    map.select(1);
   }
 
   @Test
@@ -164,6 +167,37 @@ public class TestRoaring64NavigableMap {
     Assert.assertEquals(3, map.rankLong(2));
     Assert.assertEquals(3, map.rankLong(Long.MAX_VALUE - 1));
     Assert.assertEquals(4, map.rankLong(Long.MAX_VALUE));
+
+    final List<Long> foreach = new ArrayList<>();
+    map.forEach(new LongConsumer() {
+
+      @Override
+      public void accept(long value) {
+        foreach.add(value);
+      }
+    });
+    Assert.assertEquals(Arrays.asList(Long.MIN_VALUE, 0L, 1L, Long.MAX_VALUE), foreach);
+  }
+
+
+  // TODO
+  // FIXME
+  @Ignore("TODO FIXME")
+  @Test
+  public void testRemove() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
+
+    // Add a value
+    map.addLong(123);
+    Assert.assertEquals(1L, map.getLongCardinality());
+
+    // Remove it
+    map.remove(123L);
+    Assert.assertEquals(0L, map.getLongCardinality());
+
+    // Add it back
+    map.addLong(123);
+    Assert.assertEquals(1L, map.getLongCardinality());
   }
 
   @Test
@@ -370,8 +404,25 @@ public class TestRoaring64NavigableMap {
   }
 
   @Test
-  public void testOr_DifferentBucket() {
-    Roaring64NavigableMap left = new Roaring64NavigableMap();
+  public void testOr_DifferentBucket_NotBuffer() {
+    Roaring64NavigableMap left = new Roaring64NavigableMap(true, true, new RoaringBitmapSupplier());
+    Roaring64NavigableMap right = new Roaring64NavigableMap();
+
+    left.addLong(123);
+    right.addLong(Long.MAX_VALUE / 2);
+
+    left.or(right);
+
+    Assert.assertEquals(2, left.getLongCardinality());
+
+    Assert.assertEquals(123, left.select(0));
+    Assert.assertEquals(Long.MAX_VALUE / 2, left.select(1));
+  }
+
+  @Test
+  public void testOr_DifferentBucket_Buffer() {
+    Roaring64NavigableMap left =
+        new Roaring64NavigableMap(true, true, new MutableRoaringBitmapSupplier());
     Roaring64NavigableMap right = new Roaring64NavigableMap();
 
     left.addLong(123);
