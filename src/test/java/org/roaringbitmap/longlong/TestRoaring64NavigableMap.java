@@ -182,7 +182,7 @@ public class TestRoaring64NavigableMap {
 
   // TODO
   // FIXME
-  @Ignore("TODO FIXME")
+  // @Ignore("TODO FIXME")
   @Test
   public void testRemove() {
     Roaring64NavigableMap map = new Roaring64NavigableMap();
@@ -198,6 +198,22 @@ public class TestRoaring64NavigableMap {
     // Add it back
     map.addLong(123);
     Assert.assertEquals(1L, map.getLongCardinality());
+  }
+
+  @Test
+  public void testRemoveDifferentBuckets() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
+
+    // Add two values
+    map.addLong(123);
+    map.addLong(Long.MAX_VALUE);
+    Assert.assertEquals(2L, map.getLongCardinality());
+
+    // Remove biggest
+    map.remove(Long.MAX_VALUE);
+    Assert.assertEquals(1L, map.getLongCardinality());
+
+    Assert.assertEquals(123L, map.select(0));
   }
 
   @Test
@@ -483,7 +499,7 @@ public class TestRoaring64NavigableMap {
 
   // TODO
   // FIXME
-  @Ignore("TODO FIXME")
+  // @Ignore("TODO FIXME")
   @Test
   public void testCardinalityAboveIntegerMaxValue() {
     Roaring64NavigableMap map = new Roaring64NavigableMap();

@@ -256,6 +256,8 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     // Search the whole array as ensureCumulatives has been fully computed
     // Use normal binarySearch as cardinality does not depends on considering longs signed or
     // unsigned
+    // We need sortedCumulatedCardinality not to contain duplicated, else binarySearch may return
+    // any of the duplicates: we need to ensure it holds no high assocuated to an empty bitmap
     int position =
         Arrays.binarySearch(sortedCumulatedCardinality, 0, sortedCumulatedCardinality.length, j);
 
@@ -460,23 +462,44 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
       SortedMap<Integer, BitmapDataProvider> tailMap =
           highToBitmap.tailMap(firstHighNotValid, true);
 
-      int indexOk = highToBitmap.size() - tailMap.size();
-      for (Map.Entry<Integer, BitmapDataProvider> e : tailMap.entrySet()) {
+      boolean earlyBreak = true;
 
+      int indexOk = highToBitmap.size() - tailMap.size();
+
+      Iterator<Entry<Integer, BitmapDataProvider>> it = tailMap.entrySet().iterator();
+      while (it.hasNext()) {
+        Entry<Integer, BitmapDataProvider> e = it.next();
         int currentHigh = e.getKey();
 
         if (compare(currentHigh, high) > 0) {
           // No need to compute more than needed
+          earlyBreak = true;
           break;
+        } else if (e.getValue().isEmpty()) {
+          // We need to remove this array. Else, later binary searches will fails (e.g. in
+          // ensureOne)
+
+          int sizeBefore = highToBitmap.size();
+
+          // highToBitmap can not be modified as we iterate over it
+          it.remove();
+          // highToBitmap.remove(currentHigh);
+
+          System.arraycopy(sortedCumulatedCardinality, indexOk + 1, sortedCumulatedCardinality,
+              indexOk, sizeBefore - indexOk);
+          System.arraycopy(sortedHighs, indexOk + 1, sortedHighs, indexOk, sizeBefore = indexOk);
+          //
+          lowBitmaps.remove(indexOk);
+        } else {
+          ensureOne(e, currentHigh, indexOk);
+
+          // We have added one valid cardinality
+          indexOk++;
         }
 
-        ensureOne(e, currentHigh, indexOk);
-
-        // We have added one valid cardinality
-        indexOk++;
       }
 
-      if (highToBitmap.isEmpty() || high == highToBitmap.lastKey().intValue()) {
+      if (highToBitmap.isEmpty() || !earlyBreak) {
         // We have compute all cardinalities
         allValid = true;
       }
@@ -560,16 +583,26 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
       } else {
         // Insertion in the middle
         int previousLength = sortedHighs.length;
-        sortedHighs = Arrays.copyOf(sortedHighs, previousLength + 1);
-        // Ensure the new 0 is in the middle
-        System.arraycopy(sortedHighs, insertionPosition, sortedHighs, insertionPosition + 1,
-            previousLength - insertionPosition);
 
-        sortedCumulatedCardinality =
-            Arrays.copyOf(sortedCumulatedCardinality, sortedCumulatedCardinality.length + 1);
+        if (indexOk < previousLength) {
+          // We are updating a bucket previously added
 
-        // No need to copy higher cardinalities as anyway, the cardinalities may not be valid
-        // anymore
+          // Ensure the new 0 is in the middle
+          System.arraycopy(sortedHighs, insertionPosition, sortedHighs, insertionPosition + 1,
+              indexOk - insertionPosition);
+        } else {
+          // There is a new bucket
+          sortedHighs = Arrays.copyOf(sortedHighs, previousLength + 1);
+          // Ensure the new 0 is in the middle
+          System.arraycopy(sortedHighs, insertionPosition, sortedHighs, insertionPosition + 1,
+              previousLength - insertionPosition);
+
+          sortedCumulatedCardinality =
+              Arrays.copyOf(sortedCumulatedCardinality, sortedCumulatedCardinality.length + 1);
+
+          // No need to copy higher cardinalities as anyway, the cardinalities may not be valid
+          // anymore
+        }
       }
       sortedHighs[insertionPosition] = currentHigh;
       lowBitmaps.add(insertionPosition, e.getValue());
