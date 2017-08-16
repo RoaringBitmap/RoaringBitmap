@@ -11,7 +11,6 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.roaringbitmap.RoaringBitmap;
 
@@ -56,6 +55,37 @@ public class TestRoaring64NavigableMap {
     Assert.assertEquals(1, map.rankLong(1));
     Assert.assertEquals(1, map.rankLong(Integer.MAX_VALUE + 1L));
     Assert.assertEquals(1, map.rankLong(Long.MAX_VALUE));
+  }
+
+  @Test
+  public void testSimpleIntegers() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
+
+    map.addLong(123);
+    map.addLong(234);
+
+    {
+      LongIterator iterator = map.getLongIterator();
+      Assert.assertTrue(iterator.hasNext());
+      Assert.assertEquals(123, iterator.next());
+      Assert.assertEquals(123, map.select(0));
+      Assert.assertTrue(iterator.hasNext());
+      Assert.assertEquals(234, iterator.next());
+      Assert.assertEquals(234, map.select(0));
+      Assert.assertFalse(iterator.hasNext());
+    }
+
+    Assert.assertEquals(2, map.getLongCardinality());
+
+    Assert.assertEquals(0, map.rankLong(0));
+    Assert.assertEquals(1, map.rankLong(123));
+    Assert.assertEquals(1, map.rankLong(233));
+    Assert.assertEquals(2, map.rankLong(234));
+    Assert.assertEquals(2, map.rankLong(235));
+    Assert.assertEquals(1, map.rankLong(Integer.MAX_VALUE + 1L));
+    Assert.assertEquals(1, map.rankLong(Long.MAX_VALUE));
+
+    Assert.assertArrayEquals(new long[] {123L, 234L}, map.toArray());
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -422,7 +452,44 @@ public class TestRoaring64NavigableMap {
   @Test
   public void testOr_DifferentBucket_NotBuffer() {
     Roaring64NavigableMap left = new Roaring64NavigableMap(true, true, new RoaringBitmapSupplier());
-    Roaring64NavigableMap right = new Roaring64NavigableMap();
+    Roaring64NavigableMap right =
+        new Roaring64NavigableMap(true, true, new RoaringBitmapSupplier());
+
+    left.addLong(123);
+    right.addLong(Long.MAX_VALUE / 2);
+
+    left.or(right);
+
+    Assert.assertEquals(2, left.getLongCardinality());
+
+    Assert.assertEquals(123, left.select(0));
+    Assert.assertEquals(Long.MAX_VALUE / 2, left.select(1));
+  }
+
+
+  @Test
+  public void testOr_SameBucket_NotBuffer() {
+    Roaring64NavigableMap left = new Roaring64NavigableMap(true, true, new RoaringBitmapSupplier());
+    Roaring64NavigableMap right =
+        new Roaring64NavigableMap(true, true, new RoaringBitmapSupplier());
+
+    left.addLong(123);
+    right.addLong(234);
+
+    left.or(right);
+
+    Assert.assertEquals(2, left.getLongCardinality());
+
+    Assert.assertEquals(123, left.select(0));
+    Assert.assertEquals(234, left.select(1));
+  }
+
+  @Test
+  public void testOr_DifferentBucket_Buffer() {
+    Roaring64NavigableMap left =
+        new Roaring64NavigableMap(true, true, new MutableRoaringBitmapSupplier());
+    Roaring64NavigableMap right =
+        new Roaring64NavigableMap(true, true, new MutableRoaringBitmapSupplier());
 
     left.addLong(123);
     right.addLong(Long.MAX_VALUE / 2);
@@ -436,20 +503,21 @@ public class TestRoaring64NavigableMap {
   }
 
   @Test
-  public void testOr_DifferentBucket_Buffer() {
+  public void testOr_SameBucket_Buffer() {
     Roaring64NavigableMap left =
         new Roaring64NavigableMap(true, true, new MutableRoaringBitmapSupplier());
-    Roaring64NavigableMap right = new Roaring64NavigableMap();
+    Roaring64NavigableMap right =
+        new Roaring64NavigableMap(true, true, new MutableRoaringBitmapSupplier());
 
     left.addLong(123);
-    right.addLong(Long.MAX_VALUE / 2);
+    right.addLong(234);
 
     left.or(right);
 
     Assert.assertEquals(2, left.getLongCardinality());
 
     Assert.assertEquals(123, left.select(0));
-    Assert.assertEquals(Long.MAX_VALUE / 2, left.select(1));
+    Assert.assertEquals(234, left.select(1));
   }
 
   @Test

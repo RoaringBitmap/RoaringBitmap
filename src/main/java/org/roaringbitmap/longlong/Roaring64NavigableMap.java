@@ -175,11 +175,11 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
       if (indexNotValid >= 0) {
         indexAfterWhichToReset = indexNotValid;
       } else {
-        // We have added a value for a branch new high
+        // We have invalidate a high not already present: added a value for a brand new high
         indexAfterWhichToReset = -indexNotValid - 1;
       }
 
-      // This way, sortedHighs remains sorted
+      // This way, sortedHighs remains sorted, without making a new/shorter array
       Arrays.fill(sortedHighs, indexAfterWhichToReset, sortedHighs.length, highestHigh());
     }
     allValid = false;
@@ -224,9 +224,15 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
       if (highToBitmap.isEmpty()) {
         return 0L;
       }
-      ensureCumulatives(highestHigh());
+      int indexOk = ensureCumulatives(highestHigh());
 
-      return sortedCumulatedCardinality[sortedCumulatedCardinality.length - 1];
+      // ensureCumulatives may have removed empty bitmaps
+      if (highToBitmap.isEmpty()) {
+        return 0L;
+      }
+
+
+      return sortedCumulatedCardinality[indexOk - 1];
     } else {
       long cardinality = 0L;
       for (BitmapDataProvider bitmap : highToBitmap.values()) {
@@ -249,7 +255,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
       return selectNoCache(j);
     }
 
-    // Ensure all cumulatives as we we have straightforward way to know inadvance the high of the
+    // Ensure all cumulatives as we we have straightforward way to know in advance the high of the
     // j-th value
     ensureCumulatives(highestHigh());
 
@@ -257,7 +263,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     // Use normal binarySearch as cardinality does not depends on considering longs signed or
     // unsigned
     // We need sortedCumulatedCardinality not to contain duplicated, else binarySearch may return
-    // any of the duplicates: we need to ensure it holds no high assocuated to an empty bitmap
+    // any of the duplicates: we need to ensure it holds no high associated to an empty bitmap
     int position =
         Arrays.binarySearch(sortedCumulatedCardinality, 0, sortedCumulatedCardinality.length, j);
 
@@ -373,9 +379,6 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
     int indexOk = ensureCumulatives(high);
 
-    // the position is maxes by high, and the values at the end of sortedHighs may be compromised
-    // (depending on firstHighNotValid)
-    // TODO: binarySearch is NOT ok if unsigned
     int bitmapPosition = binarySearch(sortedHighs, 0, indexOk, high);
 
     if (bitmapPosition >= 0) {
@@ -441,11 +444,14 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    */
   protected int ensureCumulatives(int high) {
     if (allValid) {
+      // the whole array is valid
       return sortedHighs.length;
     } else if (compare(high, firstHighNotValid) < 0) {
-      // The high cardinality is strictly below the first not valid: it is valid
+      // The high is strictly below the first not valid: it is valid
 
-      // TODO: this is invalid: sortedHighs may have only a subset of valid values
+      // sortedHighs may have only a subset of valid values on the right. However, these invalid
+      // values have been set to maxValue, and we are here as high < firstHighNotValid ==> high <
+      // maxHigh()
       int position = binarySearch(sortedHighs, high);
 
       if (position >= 0) {
@@ -461,6 +467,31 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
       // For each deprecated buckets
       SortedMap<Integer, BitmapDataProvider> tailMap =
           highToBitmap.tailMap(firstHighNotValid, true);
+
+      // // high is above the first not valid
+      // if (firstHighNotValid < highestHigh()) {
+      // int position = binarySearch(sortedHighs, firstHighNotValid);
+      //
+      // if (position >= 0) {
+      // // We already have
+      // } else {
+      // int insertionPosition = -position - 1;
+      // }
+      // } else {
+      // // It is unclear if the values on the right of sortedHighs are actual high values (and
+      // // anyway, there would be only one), or if they are invalidated value
+      //
+      // // Search for the last valid high
+      // int position = binarySearch(sortedHighs, firstHighNotValid - 1);
+      //
+      // if (position >= 0) {
+      // // We have an actual bucket for high() - 1
+      // throw new UnsupportedOperationException("TODO");
+      // } else {
+      // int insertionPosition = -position - 1;
+      // }
+      // }
+
 
       boolean earlyBreak = true;
 
@@ -482,12 +513,18 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
           int sizeBefore = highToBitmap.size();
 
           // highToBitmap can not be modified as we iterate over it
+          if (latestAddedHigh != null && latestAddedHigh.getKey().intValue() == currentHigh) {
+            latestAddedHigh = null;
+          }
           it.remove();
           // highToBitmap.remove(currentHigh);
 
-          System.arraycopy(sortedCumulatedCardinality, indexOk + 1, sortedCumulatedCardinality,
-              indexOk, sizeBefore - indexOk);
-          System.arraycopy(sortedHighs, indexOk + 1, sortedHighs, indexOk, sizeBefore = indexOk);
+          int nbToCopy = sizeBefore - indexOk - 1;
+          if (nbToCopy > 0) {
+            System.arraycopy(sortedCumulatedCardinality, indexOk + 1, sortedCumulatedCardinality,
+                indexOk, nbToCopy);
+            System.arraycopy(sortedHighs, indexOk + 1, sortedHighs, indexOk, nbToCopy);
+          }
           //
           lowBitmaps.remove(indexOk);
         } else {
@@ -947,12 +984,11 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         currentEndLow = -1;
       }
 
+      long endLowAsLong = RoaringIntPacking.toUnsignedLong(currentEndLow);
       if (bitmap instanceof RoaringBitmap) {
-        ((RoaringBitmap) bitmap).add(currentStartLow,
-            RoaringIntPacking.toUnsignedLong(currentEndLow));
+        ((RoaringBitmap) bitmap).add(currentStartLow, endLowAsLong);
       } else if (bitmap instanceof MutableRoaringBitmap) {
-        ((MutableRoaringBitmap) bitmap).add(currentStartLow,
-            RoaringIntPacking.toUnsignedLong(currentEndLow));
+        ((MutableRoaringBitmap) bitmap).add(currentStartLow, endLowAsLong);
       } else {
         throw new UnsupportedOperationException("TODO. Not for " + bitmap.getClass());
       }
