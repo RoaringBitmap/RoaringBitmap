@@ -93,6 +93,15 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     this(signedLongs, cacheCardinalities, new RoaringBitmapSupplier());
   }
 
+  /**
+   * 
+   * @param signedLongs true if longs has to be ordered as plain java longs. False to handle them as
+   *        unsigned 64bits long (as RoaringBitmap with unsigned integers)
+   * @param cacheCardinalities true if cardinalities have to be cached. It will prevent many
+   *        iteration along the NavigableMap
+   * @param supplier provide the logic to instantiate new {@link BitmapDataProvider}, typically
+   *        instantiated once per high.
+   */
   public Roaring64NavigableMap(boolean signedLongs, boolean cacheCardinalities,
       BitmapDataProviderSupplier supplier) {
     this.signedLongs = signedLongs;
@@ -589,8 +598,8 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     if (indexOk == 0) {
       if (sortedHighs.length == 0) {
         index = -1;
-//      } else if (sortedHighs[0] == currentHigh) {
-//        index = 0;
+        // } else if (sortedHighs[0] == currentHigh) {
+        // index = 0;
       } else {
         index = -1;
       }
