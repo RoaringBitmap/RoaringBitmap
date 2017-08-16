@@ -251,7 +251,7 @@ public class TestRoaring64NavigableMap {
   public void testPerfManyDifferentBuckets() {
     Roaring64NavigableMap map = new Roaring64NavigableMap();
 
-    long problemSize = 100 * 1000L;
+    long problemSize = 1000 * 1000L;
     for (long i = 1; i <= problemSize; i++) {
       map.addLong(i * Integer.MAX_VALUE + 1L);
     }

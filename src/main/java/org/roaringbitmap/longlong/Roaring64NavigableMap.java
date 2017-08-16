@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
@@ -54,7 +53,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   private transient int[] sortedHighs = new int[0];
 
   // Enable random-access to any bitmap, without requiring a new Iterator instance
-  private transient final List<BitmapDataProvider> lowBitmaps = new ArrayList<>();
+  private transient final ArrayList<BitmapDataProvider> lowBitmaps = new ArrayList<>();
 
   // We guess consecutive .addLong will be on proximate longs: we remember the bitmap attached to
   // this bucket in order
@@ -257,15 +256,13 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
     // Ensure all cumulatives as we we have straightforward way to know in advance the high of the
     // j-th value
-    ensureCumulatives(highestHigh());
+    int indexOk = ensureCumulatives(highestHigh());
 
-    // Search the whole array as ensureCumulatives has been fully computed
     // Use normal binarySearch as cardinality does not depends on considering longs signed or
     // unsigned
     // We need sortedCumulatedCardinality not to contain duplicated, else binarySearch may return
     // any of the duplicates: we need to ensure it holds no high associated to an empty bitmap
-    int position =
-        Arrays.binarySearch(sortedCumulatedCardinality, 0, sortedCumulatedCardinality.length, j);
+    int position = Arrays.binarySearch(sortedCumulatedCardinality, 0, indexOk, j);
 
     if (position >= 0) {
       if (position == sortedCumulatedCardinality.length - 1) {
@@ -587,7 +584,26 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
     // sortedHighs are valid only up to some index
     assert indexOk <= sortedHighs.length;
-    int index = binarySearch(sortedHighs, 0, indexOk, currentHigh);
+
+    final int index;
+    if (indexOk == 0) {
+      if (sortedHighs.length == 0) {
+        index = -1;
+//      } else if (sortedHighs[0] == currentHigh) {
+//        index = 0;
+      } else {
+        index = -1;
+      }
+    } else if (indexOk < sortedHighs.length) {
+      if (sortedHighs[indexOk - 1] == currentHigh) {
+        index = indexOk;
+      } else {
+        index = -indexOk - 1;
+      }
+    } else {
+      index = -sortedHighs.length - 1;
+    }
+    assert index == binarySearch(sortedHighs, 0, indexOk, currentHigh);
 
     if (index >= 0) {
       // This bitmap has already been registered
@@ -613,10 +629,18 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
       // This is a new key
       if (insertionPosition >= sortedHighs.length) {
+        int previousSize = sortedHighs.length;
+
+        // TODO softer growing factor
+        int newSize = Math.min(Integer.MAX_VALUE, sortedHighs.length * 2 + 1);
+
         // Insertion at the end
-        sortedHighs = Arrays.copyOf(sortedHighs, sortedHighs.length + 1);
-        sortedCumulatedCardinality =
-            Arrays.copyOf(sortedCumulatedCardinality, sortedCumulatedCardinality.length + 1);
+        sortedHighs = Arrays.copyOf(sortedHighs, newSize);
+        sortedCumulatedCardinality = Arrays.copyOf(sortedCumulatedCardinality, newSize);
+
+        Arrays.fill(sortedHighs, previousSize, sortedHighs.length, highestHigh());
+        Arrays.fill(sortedCumulatedCardinality, previousSize, sortedHighs.length, Long.MAX_VALUE);
+        lowBitmaps.ensureCapacity(newSize);
       } else {
         // Insertion in the middle
         int previousLength = sortedHighs.length;
