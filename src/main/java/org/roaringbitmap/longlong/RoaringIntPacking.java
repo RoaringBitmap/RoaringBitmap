@@ -43,6 +43,16 @@ class RoaringIntPacking {
     return (((long) high) << 32) | (low & 0xffffffffL);
   }
 
+
+
+  public static int highestHigh(boolean signedLongs) {
+    if (signedLongs) {
+      return Integer.MAX_VALUE;
+    } else {
+      return -1;
+    }
+  }
+
   /**
    * @return A comparator for unsigned longs: a negative long is a long greater than Long.MAX_VALUE
    */

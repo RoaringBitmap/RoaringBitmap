@@ -94,6 +94,18 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   }
 
   /**
+   * By default, we activating cardinalities caching.
+   * 
+   * @param signedLongs true if longs has to be ordered as plain java longs. False to handle them as
+   *        unsigned 64bits long (as RoaringBitmap with unsigned integers)
+   * @param supplier provide the logic to instantiate new {@link BitmapDataProvider}, typically
+   *        instantiated once per high.
+   */
+  public Roaring64NavigableMap(boolean signedLongs, BitmapDataProviderSupplier supplier) {
+    this(signedLongs, true, supplier);
+  }
+
+  /**
    * 
    * @param signedLongs true if longs has to be ordered as plain java longs. False to handle them as
    *        unsigned 64bits long (as RoaringBitmap with unsigned integers)
@@ -698,15 +710,11 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     }
   }
 
+
+
   private int highestHigh() {
-    if (signedLongs) {
-      return Integer.MAX_VALUE;
-    } else {
-      return -1;
-    }
+    return RoaringIntPacking.highestHigh(signedLongs);
   }
-
-
 
   /**
    * In-place bitwise OR (union) operation. The current bitmap is modified.
@@ -910,7 +918,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
   @Override
   public boolean isEmpty() {
-    return getLongCardinality() >= 1;
+    return getLongCardinality() == 0L;
   }
 
   @Override
@@ -1062,4 +1070,37 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
       bitmap.trim();
     }
   }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((highToBitmap == null) ? 0 : highToBitmap.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    Roaring64NavigableMap other = (Roaring64NavigableMap) obj;
+    if (highToBitmap == null) {
+      if (other.highToBitmap != null) {
+        return false;
+      }
+    } else if (!highToBitmap.equals(other.highToBitmap)) {
+      return false;
+    }
+    return true;
+  }
+
+
+
 }

@@ -8,6 +8,7 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 
 import org.junit.Assert;
@@ -23,6 +24,7 @@ public class TestRoaring64NavigableMap {
     Assert.assertFalse(map.getLongIterator().hasNext());
 
     Assert.assertEquals(0, map.getLongCardinality());
+    Assert.assertTrue(map.isEmpty());
 
     Assert.assertEquals(0, map.rankLong(Long.MIN_VALUE));
     Assert.assertEquals(0, map.rankLong(Long.MIN_VALUE + 1));
@@ -48,6 +50,7 @@ public class TestRoaring64NavigableMap {
     }
 
     Assert.assertEquals(1, map.getLongCardinality());
+    Assert.assertFalse(map.isEmpty());
 
     Assert.assertEquals(0, map.rankLong(Long.MIN_VALUE));
     Assert.assertEquals(0, map.rankLong(Integer.MIN_VALUE - 1L));
@@ -87,6 +90,20 @@ public class TestRoaring64NavigableMap {
     Assert.assertEquals(2, map.rankLong(Long.MAX_VALUE));
 
     Assert.assertArrayEquals(new long[] {123L, 234L}, map.toArray());
+  }
+
+  @Test
+  public void testHashCodeEquals() {
+    Roaring64NavigableMap left = new Roaring64NavigableMap();
+
+    left.addLong(123);
+    left.addLong(Long.MAX_VALUE);
+
+    Roaring64NavigableMap right = Roaring64NavigableMap.bitmapOf(123, Long.MAX_VALUE);
+
+    Assert.assertEquals(left.hashCode(), right.hashCode());
+    Assert.assertEquals(left, right);
+    Assert.assertEquals(right, left);
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -211,12 +228,9 @@ public class TestRoaring64NavigableMap {
   }
 
 
-  // TODO
-  // FIXME
-  // @Ignore("TODO FIXME")
   @Test
-  public void testRemove() {
-    Roaring64NavigableMap map = new Roaring64NavigableMap();
+  public void testRemove_Signed() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap(true);
 
     // Add a value
     map.addLong(123);
@@ -225,6 +239,25 @@ public class TestRoaring64NavigableMap {
     // Remove it
     map.remove(123L);
     Assert.assertEquals(0L, map.getLongCardinality());
+    Assert.assertTrue(map.isEmpty());
+
+    // Add it back
+    map.addLong(123);
+    Assert.assertEquals(1L, map.getLongCardinality());
+  }
+
+  @Test
+  public void testRemove_Unsigned() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap(false);
+
+    // Add a value
+    map.addLong(123);
+    Assert.assertEquals(1L, map.getLongCardinality());
+
+    // Remove it
+    map.remove(123L);
+    Assert.assertEquals(0L, map.getLongCardinality());
+    Assert.assertTrue(map.isEmpty());
 
     // Add it back
     map.addLong(123);
@@ -248,8 +281,8 @@ public class TestRoaring64NavigableMap {
   }
 
   @Test
-  public void testPerfManyDifferentBuckets() {
-    Roaring64NavigableMap map = new Roaring64NavigableMap();
+  public void testPerfManyDifferentBuckets_WithCache() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap(true, true);
 
     long problemSize = 1000 * 1000L;
     for (long i = 1; i <= problemSize; i++) {
@@ -452,9 +485,8 @@ public class TestRoaring64NavigableMap {
 
   @Test
   public void testOr_DifferentBucket_NotBuffer() {
-    Roaring64NavigableMap left = new Roaring64NavigableMap(true, true, new RoaringBitmapSupplier());
-    Roaring64NavigableMap right =
-        new Roaring64NavigableMap(true, true, new RoaringBitmapSupplier());
+    Roaring64NavigableMap left = new Roaring64NavigableMap(true, new RoaringBitmapSupplier());
+    Roaring64NavigableMap right = new Roaring64NavigableMap(true, new RoaringBitmapSupplier());
 
     left.addLong(123);
     right.addLong(Long.MAX_VALUE / 2);
@@ -470,9 +502,8 @@ public class TestRoaring64NavigableMap {
 
   @Test
   public void testOr_SameBucket_NotBuffer() {
-    Roaring64NavigableMap left = new Roaring64NavigableMap(true, true, new RoaringBitmapSupplier());
-    Roaring64NavigableMap right =
-        new Roaring64NavigableMap(true, true, new RoaringBitmapSupplier());
+    Roaring64NavigableMap left = new Roaring64NavigableMap(true, new RoaringBitmapSupplier());
+    Roaring64NavigableMap right = new Roaring64NavigableMap(true, new RoaringBitmapSupplier());
 
     left.addLong(123);
     right.addLong(234);
@@ -488,9 +519,9 @@ public class TestRoaring64NavigableMap {
   @Test
   public void testOr_DifferentBucket_Buffer() {
     Roaring64NavigableMap left =
-        new Roaring64NavigableMap(true, true, new MutableRoaringBitmapSupplier());
+        new Roaring64NavigableMap(true, new MutableRoaringBitmapSupplier());
     Roaring64NavigableMap right =
-        new Roaring64NavigableMap(true, true, new MutableRoaringBitmapSupplier());
+        new Roaring64NavigableMap(true, new MutableRoaringBitmapSupplier());
 
     left.addLong(123);
     right.addLong(Long.MAX_VALUE / 2);
@@ -506,9 +537,9 @@ public class TestRoaring64NavigableMap {
   @Test
   public void testOr_SameBucket_Buffer() {
     Roaring64NavigableMap left =
-        new Roaring64NavigableMap(true, true, new MutableRoaringBitmapSupplier());
+        new Roaring64NavigableMap(true, new MutableRoaringBitmapSupplier());
     Roaring64NavigableMap right =
-        new Roaring64NavigableMap(true, true, new MutableRoaringBitmapSupplier());
+        new Roaring64NavigableMap(true, new MutableRoaringBitmapSupplier());
 
     left.addLong(123);
     right.addLong(234);
@@ -588,6 +619,58 @@ public class TestRoaring64NavigableMap {
     RoaringBitmap map = new RoaringBitmap();
 
     map.add(0L, outOfRoaringBitmapRange);
+  }
+
+  @Test
+  public void testTrim() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap(true);
+
+    // How many contiguous values do we have to set to enable .trim?
+    int enableTrim = 100;
+
+    long from = RoaringIntPacking.pack(0, -1 - enableTrim);
+    long to = from + 2 * enableTrim;
+
+    // Check we cover different buckets
+    Assert.assertNotEquals(RoaringIntPacking.high(to), RoaringIntPacking.high(from));
+
+    for (long i = from; i <= to; i++) {
+      map.addLong(i);
+    }
+
+    map.trim();
+  }
+
+  @Test
+  public void testAutoboxedIterator() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
+
+    map.addLong(123);
+    map.addLong(234);
+
+    Iterator<Long> it = map.iterator();
+
+    Assert.assertTrue(it.hasNext());
+    Assert.assertEquals(123L, it.next().longValue());
+    Assert.assertTrue(it.hasNext());
+    Assert.assertEquals(234, it.next().longValue());
+    Assert.assertFalse(it.hasNext());
+  }
+
+  @Test(expected = UnsupportedOperationException.class)
+  public void testAutoboxedIterator_CanNotRemove() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
+
+    map.addLong(123);
+    map.addLong(234);
+
+    Iterator<Long> it = map.iterator();
+
+    Assert.assertTrue(it.hasNext());
+    Assert.assertEquals(123L, it.next().longValue());
+
+    // Should throw a UnsupportedOperationException
+    it.remove();
   }
 
 }
