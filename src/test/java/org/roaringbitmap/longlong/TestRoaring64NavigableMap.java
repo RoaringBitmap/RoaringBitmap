@@ -61,6 +61,35 @@ public class TestRoaring64NavigableMap {
     Assert.assertEquals(1, map.rankLong(Long.MAX_VALUE));
   }
 
+
+
+  @Test
+  public void testAddNotAddLong() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
+
+    // Use BitmapProvider.add instead of .addLong
+    map.add(0);
+
+    {
+      LongIterator iterator = map.getLongIterator();
+      Assert.assertTrue(iterator.hasNext());
+      Assert.assertEquals(0, iterator.next());
+      Assert.assertEquals(0, map.select(0));
+      Assert.assertFalse(iterator.hasNext());
+    }
+
+    Assert.assertEquals(1, map.getLongCardinality());
+    Assert.assertFalse(map.isEmpty());
+
+    Assert.assertEquals(0, map.rankLong(Long.MIN_VALUE));
+    Assert.assertEquals(0, map.rankLong(Integer.MIN_VALUE - 1L));
+    Assert.assertEquals(0, map.rankLong(-1));
+    Assert.assertEquals(1, map.rankLong(0));
+    Assert.assertEquals(1, map.rankLong(1));
+    Assert.assertEquals(1, map.rankLong(Integer.MAX_VALUE + 1L));
+    Assert.assertEquals(1, map.rankLong(Long.MAX_VALUE));
+  }
+
   @Test
   public void testSimpleIntegers() {
     Roaring64NavigableMap map = new Roaring64NavigableMap();
@@ -91,6 +120,8 @@ public class TestRoaring64NavigableMap {
 
     Assert.assertArrayEquals(new long[] {123L, 234L}, map.toArray());
   }
+
+
 
   @Test
   public void testHashCodeEquals() {
@@ -227,6 +258,39 @@ public class TestRoaring64NavigableMap {
     Assert.assertEquals(Arrays.asList(Long.MIN_VALUE, 0L, 1L, Long.MAX_VALUE), foreach);
   }
 
+  @Test
+  public void testReverseIterator_SingleBuket() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
+
+    map.addLong(123);
+    map.addLong(234);
+
+    {
+      LongIterator iterator = map.getReverseLongIterator();
+      Assert.assertTrue(iterator.hasNext());
+      Assert.assertEquals(234, iterator.next());
+      Assert.assertTrue(iterator.hasNext());
+      Assert.assertEquals(123, iterator.next());
+      Assert.assertFalse(iterator.hasNext());
+    }
+  }
+
+  @Test
+  public void testReverseIterator_MultipleBuket() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
+
+    map.addLong(123);
+    map.addLong(Long.MAX_VALUE);
+
+    {
+      LongIterator iterator = map.getReverseLongIterator();
+      Assert.assertTrue(iterator.hasNext());
+      Assert.assertEquals(Long.MAX_VALUE, iterator.next());
+      Assert.assertTrue(iterator.hasNext());
+      Assert.assertEquals(123, iterator.next());
+      Assert.assertFalse(iterator.hasNext());
+    }
+  }
 
   @Test
   public void testRemove_Signed() {

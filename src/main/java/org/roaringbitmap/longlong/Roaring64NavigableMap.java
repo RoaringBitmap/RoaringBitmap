@@ -1045,7 +1045,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
   @Override
   public void add(long x) {
-    add(x);
+    addLong(x);
   }
 
   @Override
