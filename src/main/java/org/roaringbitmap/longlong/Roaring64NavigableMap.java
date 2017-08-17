@@ -495,6 +495,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
       boolean earlyBreak = true;
 
+      // .size on tailMap make an iterator: arg
       int indexOk = highToBitmap.size() - tailMap.size();
 
       Iterator<Entry<Integer, BitmapDataProvider>> it = tailMap.entrySet().iterator();
