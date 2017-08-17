@@ -659,7 +659,44 @@ public class TestRoaring64NavigableMap {
     Assert.assertEquals("{123,9223372036854775807,9223372036854775808}", map.toString());
   }
 
+  @Test
+  public void testAddRange() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
+
+    map.add(5L, 12L);
+    Assert.assertEquals(7L, map.getLongCardinality());
+
+    Assert.assertEquals(5L, map.select(0));
+    Assert.assertEquals(11L, map.select(6L));
+  }
+
+
+  @Test
+  public void testAddRange_MultipleBuckets() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
+
+    int enableTrim = 5;
+
+    long from = RoaringIntPacking.pack(0, -1 - enableTrim);
+    long to = from + 2 * enableTrim;
+    map.add(from, to);
+    int nbItems = 2 * enableTrim - 1;
+    Assert.assertEquals(nbItems, map.getLongCardinality());
+
+    Assert.assertEquals(from, map.select(0));
+    Assert.assertEquals(to - 1, map.select(nbItems - 1));
+  }
+
+
   public static final long outOfRoaringBitmapRange = 2L * Integer.MAX_VALUE + 3L;
+
+  // Check this range is not handled by RoaringBitmap
+  @Test(expected = IllegalArgumentException.class)
+  public void testCardinalityAboveIntegerMaxValue_RoaringBitmap() {
+    RoaringBitmap map = new RoaringBitmap();
+
+    map.add(0L, outOfRoaringBitmapRange);
+  }
 
   // TODO
   // FIXME
@@ -668,21 +705,30 @@ public class TestRoaring64NavigableMap {
   public void testCardinalityAboveIntegerMaxValue() {
     Roaring64NavigableMap map = new Roaring64NavigableMap();
 
+    long outOfSingleRoaring = outOfRoaringBitmapRange - 3;
+
     // This should fill entirely one bitmap,and add one in the next bitmap
-    map.add(0, outOfRoaringBitmapRange);
+    map.add(0, outOfSingleRoaring);
+    Assert.assertEquals(outOfSingleRoaring, map.getLongCardinality());
+
 
     Assert.assertEquals(0, map.select(0));
-    Assert.assertEquals(outOfRoaringBitmapRange, map.select(outOfRoaringBitmapRange - 1));
+    Assert.assertEquals(outOfSingleRoaring, map.select(outOfSingleRoaring - 1));
 
-    Assert.assertEquals(outOfRoaringBitmapRange, map.getLongCardinality());
-
+    Assert.assertEquals(outOfSingleRoaring, map.getLongCardinality());
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testCardinalityAboveIntegerMaxValue_RoaringBitmap() {
+  // TODO
+  // FIXME
+  @Ignore("TODO FIXME")
+  @Test
+  public void testRoaringBitmap_SelectAboveIntegerMaxValue() {
     RoaringBitmap map = new RoaringBitmap();
 
-    map.add(0L, outOfRoaringBitmapRange);
+    long maxForRoaringBitmap = RoaringIntPacking.toUnsignedLong(-1);
+    map.add(0L, maxForRoaringBitmap);
+
+    Assert.assertEquals(-1, map.select(-1));
   }
 
   @Test
