@@ -777,10 +777,45 @@ public class TestRoaring64NavigableMap {
     Iterator<Long> it = map.iterator();
 
     Assert.assertTrue(it.hasNext());
-    Assert.assertEquals(123L, it.next().longValue());
 
     // Should throw a UnsupportedOperationException
     it.remove();
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testSelect_Empty() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
+
+    map.select(0);
+  }
+
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testSelect_OutOfBounds_MatchCardinality() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
+
+    map.addLong(123);
+
+    map.select(1);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testSelect_OutOfBounds_OtherCardinality() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
+
+    map.addLong(123);
+
+    map.select(2);
+  }
+
+  @Test
+  public void testRank_NoCache_HighNotPresent() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap(true, false);
+
+    map.addLong(123);
+    map.addLong(Long.MAX_VALUE);
+
+    Assert.assertEquals(1, map.rankLong(Long.MAX_VALUE / 2L));
   }
 
 }

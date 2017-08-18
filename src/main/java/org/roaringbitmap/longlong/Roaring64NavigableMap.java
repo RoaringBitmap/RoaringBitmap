@@ -1034,10 +1034,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((highToBitmap == null) ? 0 : highToBitmap.hashCode());
-    return result;
+    return highToBitmap.hashCode();
   }
 
   @Override
