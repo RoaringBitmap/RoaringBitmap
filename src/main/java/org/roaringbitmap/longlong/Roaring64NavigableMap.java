@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -51,9 +50,6 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   // TODO: I would prefer not managing arrays myself
   private transient long[] sortedCumulatedCardinality = new long[0];
   private transient int[] sortedHighs = new int[0];
-
-  // Enable random-access to any bitmap, without requiring a new Iterator instance
-  private transient final ArrayList<BitmapDataProvider> lowBitmaps = new ArrayList<>();
 
   // We guess consecutive .addLong will be on proximate longs: we remember the bitmap attached to
   // this bucket in order
@@ -140,10 +136,6 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     sortedCumulatedCardinality = new long[0];
     sortedHighs = new int[0];
 
-    // In case of de-serialization, we need to add back all bitmaps
-    lowBitmaps.clear();
-    // lowBitmaps.addAll(highToBitmap.values());
-
     latestAddedHigh = null;
   }
 
@@ -219,10 +211,6 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
     BitmapDataProvider previous = highToBitmap.put(high, bitmap);
     assert previous == null : "Should push only not-existing high";
-
-    // If there is 1 bucket before, we need to add at index 1
-    // TODO .size were too slow
-    // lowBitmaps.add(nbHighBefore, bitmap);
   }
 
   private int low(long id) {
@@ -297,8 +285,9 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
       // There is a bucket leading to this cardinality: the j-th element is the first element of
       // next bucket
-      BitmapDataProvider nextBitmap = lowBitmaps.get(position + 1);
-      return RoaringIntPacking.pack(sortedHighs[position + 1], nextBitmap.select(0));
+      int high = sortedHighs[position + 1];
+      BitmapDataProvider nextBitmap = highToBitmap.get(high);
+      return RoaringIntPacking.pack(high, nextBitmap.select(0));
     } else {
       // There is no bucket with this cardinality
       int insertionPoint = -position - 1;
@@ -315,11 +304,9 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
       // We get a 'select' query for a single bitmap: should fit in an int
       final int givenBitmapSelect = (int) (j - previousBucketCardinality);
 
-      BitmapDataProvider bitmaps = lowBitmaps.get(insertionPoint);
-
-      int low = bitmaps.select(givenBitmapSelect);
-
       int high = sortedHighs[insertionPoint];
+      BitmapDataProvider lowBitmap = highToBitmap.get(high);
+      int low = lowBitmap.select(givenBitmapSelect);
 
       return RoaringIntPacking.pack(high, low);
     }
@@ -403,25 +390,25 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
     int indexOk = ensureCumulatives(high);
 
-    int bitmapPosition = binarySearch(sortedHighs, 0, indexOk, high);
+    int highPosition = binarySearch(sortedHighs, 0, indexOk, high);
 
-    if (bitmapPosition >= 0) {
+    if (highPosition >= 0) {
       // There is a bucket holding this item
 
       final long previousBucketCardinality;
-      if (bitmapPosition == 0) {
+      if (highPosition == 0) {
         previousBucketCardinality = 0;
       } else {
-        previousBucketCardinality = sortedCumulatedCardinality[bitmapPosition - 1];
+        previousBucketCardinality = sortedCumulatedCardinality[highPosition - 1];
       }
 
-      BitmapDataProvider lowBitmap = lowBitmaps.get(bitmapPosition);
+      BitmapDataProvider lowBitmap = highToBitmap.get(sortedHighs[highPosition]);
 
       // Rank is previous cardinality plus rank in current bitmap
       return previousBucketCardinality + lowBitmap.rankLong(low);
     } else {
       // There is no bucket holding this item: insertionPoint is previous bitmap
-      int insertionPoint = -bitmapPosition - 1;
+      int insertionPoint = -highPosition - 1;
 
       if (insertionPoint == 0) {
         // this key is before all inserted keys
@@ -511,23 +498,11 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
           // We need to remove this array. Else, later binary searches will fails (e.g. in
           // ensureOne)
 
-          // int sizeBefore = highToBitmap.size();
-
           // highToBitmap can not be modified as we iterate over it
           if (latestAddedHigh != null && latestAddedHigh.getKey().intValue() == currentHigh) {
             latestAddedHigh = null;
           }
           it.remove();
-          // highToBitmap.remove(currentHigh);
-
-          // int nbToCopy = sizeBefore - indexOk - 1;
-          // if (nbToCopy > 0) {
-          // System.arraycopy(sortedCumulatedCardinality, indexOk + 1, sortedCumulatedCardinality,
-          // indexOk, nbToCopy);
-          // System.arraycopy(sortedHighs, indexOk + 1, sortedHighs, indexOk, nbToCopy);
-          // }
-          //
-          lowBitmaps.remove(indexOk);
         } else {
           ensureOne(e, currentHigh, indexOk);
 
@@ -644,7 +619,6 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
         Arrays.fill(sortedHighs, previousSize, sortedHighs.length, highestHigh());
         Arrays.fill(sortedCumulatedCardinality, previousSize, sortedHighs.length, Long.MAX_VALUE);
-        lowBitmaps.ensureCapacity(newSize);
       } else {
         // Insertion in the middle
         int previousLength = sortedHighs.length;
@@ -670,7 +644,6 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         }
       }
       sortedHighs[insertionPosition] = currentHigh;
-      lowBitmaps.add(insertionPosition, e.getValue());
 
       final long previousCardinality;
       if (insertionPosition >= 1) {
