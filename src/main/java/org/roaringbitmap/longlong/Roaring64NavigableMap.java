@@ -1,5 +1,6 @@
 package org.roaringbitmap.longlong;
 
+import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.Externalizable;
 import java.io.IOException;
@@ -128,11 +129,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   }
 
   private void resetPerfHelpers() {
-    if (signedLongs) {
-      firstHighNotValid = Integer.MIN_VALUE;
-    } else {
-      firstHighNotValid = 0;
-    }
+    firstHighNotValid = RoaringIntPacking.highestHigh(signedLongs) + 1;
     allValid = false;
 
     sortedCumulatedCardinality = new long[0];
@@ -686,20 +683,21 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
   }
 
+  /**
+   * {@link Roaring64NavigableMap} are serializable. However, contrary to RoaringBitmap, the
+   * serialization format is not well-defined: for now, it is strongly coupled with Java standard
+   * serialization. Just like the serialization may be incompatible between various Java versions,
+   * {@link Roaring64NavigableMap} are subject to incompatibilities. Moreover, even on a given Java
+   * versions, the serialization format may change from one RoaringBitmap version to another
+   */
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
-    // TODO: Should we transport the performance tweak 'doCacheCardinalities'?
-
-    out.writeBoolean(signedLongs);
-    out.writeObject(highToBitmap);
+    serialize(out);
   }
 
   @Override
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-    signedLongs = in.readBoolean();
-    highToBitmap = (NavigableMap<Integer, BitmapDataProvider>) in.readObject();
-
-    resetPerfHelpers();
+    deserialize(in);
   }
 
   /**
@@ -825,7 +823,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
   @Override
   public int getSizeInBytes() {
-    throw new UnsupportedOperationException("TODO");
+    return (int) getLongSizeInBytes();
   }
 
   @Override
@@ -843,14 +841,113 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     throw new UnsupportedOperationException("TODO");
   }
 
-  @Override
-  public void serialize(DataOutput out) throws IOException {
-    throw new UnsupportedOperationException("TODO");
+  /**
+   * Use a run-length encoding where it is estimated as more space efficient
+   * 
+   * @return
+   *
+   * @return whether a change was applied
+   */
+  public boolean runOptimize() {
+    boolean hasChanged = false;
+    for (BitmapDataProvider lowBitmap : highToBitmap.values()) {
+      if (lowBitmap instanceof RoaringBitmap) {
+        hasChanged |= ((RoaringBitmap) lowBitmap).runOptimize();
+      } else if (lowBitmap instanceof MutableRoaringBitmap) {
+        hasChanged |= ((MutableRoaringBitmap) lowBitmap).runOptimize();
+      }
+    }
+    return hasChanged;
   }
 
+
+  /**
+   * Serialize this bitmap.
+   *
+   * Unlike RoaringBitmap, there is no specification for now: it may change from onve java version
+   * to another, and from one RoaringBitmap version to another.
+   *
+   * Consider calling {@link #runOptimize} before serialization to improve compression.
+   *
+   * The current bitmap is not modified.
+   *
+   * @param out the DataOutput stream
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Override
-  public int serializedSizeInBytes() {
-    throw new UnsupportedOperationException("TODO");
+  public void serialize(DataOutput out) throws IOException {
+    // TODO: Should we transport the performance tweak 'doCacheCardinalities'?
+    out.writeBoolean(signedLongs);
+
+    out.writeInt(highToBitmap.size());
+
+    for (Entry<Integer, BitmapDataProvider> entry : highToBitmap.entrySet()) {
+      out.writeInt(entry.getKey().intValue());
+      entry.getValue().serialize(out);
+    }
+  }
+
+
+  /**
+   * Deserialize (retrieve) this bitmap.
+   * 
+   * Unlike RoaringBitmap, there is no specification for now: it may change from one java version to
+   * another, and from one RoaringBitmap version to another.
+   *
+   * The current bitmap is overwritten.
+   *
+   * @param in the DataInput stream
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public void deserialize(DataInput in) throws IOException {
+    this.clear();
+
+    signedLongs = in.readBoolean();
+
+    int nbHighs = in.readInt();
+
+    // Other NavigableMap may accept a target capacity
+    highToBitmap = new TreeMap<>();
+
+    for (int i = 0; i < nbHighs; i++) {
+      int high = in.readInt();
+      RoaringBitmap provider = new RoaringBitmap();
+      provider.deserialize(in);
+
+      highToBitmap.put(high, provider);
+    }
+
+    resetPerfHelpers();
+  }
+
+
+  @Override
+  public long serializedSizeInBytes() {
+    long nbBytes = 0L;
+
+    // .writeBoolean for signedLongs boolean
+    nbBytes += 1;
+
+    // .writeInt for number of different high values
+    nbBytes += 4;
+
+    for (Entry<Integer, BitmapDataProvider> entry : highToBitmap.entrySet()) {
+      // .writeInt for high
+      nbBytes += 4;
+
+      // The low bitmap size in bytes
+      nbBytes += entry.getValue().serializedSizeInBytes();
+    }
+
+    return nbBytes;
+  }
+
+  /**
+   * reset to an empty bitmap; result occupies as much space a newly created bitmap.
+   */
+  public void clear() {
+    this.highToBitmap.clear();
+    resetPerfHelpers();
   }
 
   /**

@@ -134,7 +134,7 @@ public interface ImmutableLongBitmapDataProvider {
    *
    * @return the size in bytes
    */
-  public int serializedSizeInBytes();
+  public long serializedSizeInBytes();
 
   /**
    * Return the set values as an array. The integer values are in sorted order.

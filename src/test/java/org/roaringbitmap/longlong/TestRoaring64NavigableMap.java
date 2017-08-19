@@ -2,6 +2,7 @@ package org.roaringbitmap.longlong;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -584,6 +585,45 @@ public class TestRoaring64NavigableMap {
     Assert.assertEquals(123, clone.select(0));
   }
 
+
+  @Test
+  public void testSerialization_MultipleBuckets() throws IOException, ClassNotFoundException {
+    final Roaring64NavigableMap map = new Roaring64NavigableMap();
+    map.addLong(123);
+    map.addLong(Long.MAX_VALUE);
+
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+      oos.writeObject(map);
+    }
+
+    final Roaring64NavigableMap clone;
+    try (ObjectInputStream ois =
+        new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
+      clone = (Roaring64NavigableMap) ois.readObject();
+    }
+
+    // Check the test has not simply copied the ref
+    Assert.assertNotSame(map, clone);
+    Assert.assertEquals(2, clone.getLongCardinality());
+    Assert.assertEquals(123, clone.select(0));
+    Assert.assertEquals(Long.MAX_VALUE, clone.select(1));
+  }
+
+  @Test
+  public void testSerializationSizeInBytes() throws IOException, ClassNotFoundException {
+    final Roaring64NavigableMap map = new Roaring64NavigableMap();
+    map.addLong(123);
+    // map.addLong(Long.MAX_VALUE);
+
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (DataOutputStream oos = new DataOutputStream(baos)) {
+      map.serialize(oos);
+    }
+
+    Assert.assertEquals(baos.toByteArray().length, map.serializedSizeInBytes());
+  }
+
   @Test
   public void testOr_SameBucket() {
     Roaring64NavigableMap left = new Roaring64NavigableMap();
@@ -904,4 +944,23 @@ public class TestRoaring64NavigableMap {
     Assert.assertEquals(1, map.rankLong(Long.MAX_VALUE / 2L));
   }
 
+  @Test
+  public void testRunOptimize_NotBuffer() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap(true, new RoaringBitmapSupplier());
+
+    map.addLong(123);
+    map.addLong(234);
+
+    map.runOptimize();
+  }
+
+  @Test
+  public void testRunOptimize_Buffer() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap(true, new MutableRoaringBitmapSupplier());
+
+    map.addLong(123);
+    map.addLong(234);
+
+    map.runOptimize();
+  }
 }
