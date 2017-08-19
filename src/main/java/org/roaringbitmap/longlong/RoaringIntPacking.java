@@ -45,7 +45,13 @@ public class RoaringIntPacking {
   }
 
 
-
+  /**
+   * 
+   * @param signedLongs true if long put in a {@link Roaring64NavigableMap} should be considered as
+   *        signed long.
+   * @return the int representing the highest value which can be set as high value in a
+   *         {@link Roaring64NavigableMap}
+   */
   public static int highestHigh(boolean signedLongs) {
     if (signedLongs) {
       return Integer.MAX_VALUE;
