@@ -20,6 +20,7 @@ import org.roaringbitmap.BitmapDataProvider;
 import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.Util;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 // this class is not thread-safe
@@ -925,16 +926,16 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         currentStartLow = 0;
       }
 
-      long startLowAsLong = RoaringIntPacking.toUnsignedLong(currentStartLow);
+      long startLowAsLong = Util.toUnsignedLong(currentStartLow);
 
       final long endLowAsLong;
       if (endHigh == high) {
         // The whole range ends in this bucket
-        endLowAsLong = RoaringIntPacking.toUnsignedLong(endLow);
+        endLowAsLong = Util.toUnsignedLong(endLow);
       } else {
         // Add the bucket until the end: we have a +1 as, in RoaringBitmap.add(long,long), the end
         // is excluded
-        endLowAsLong = RoaringIntPacking.toUnsignedLong(-1) + 1;
+        endLowAsLong = Util.toUnsignedLong(-1) + 1;
       }
 
       if (endLowAsLong > startLowAsLong) {

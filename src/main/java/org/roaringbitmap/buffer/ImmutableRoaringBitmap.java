@@ -18,7 +18,6 @@ import org.roaringbitmap.PeekableShortIterator;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.ShortIterator;
 import org.roaringbitmap.Util;
-import org.roaringbitmap.longlong.RoaringIntPacking;
 
 /**
  * ImmutableRoaringBitmap provides a compressed immutable (cannot be modified) bitmap. It is meant
@@ -1320,7 +1319,7 @@ public class ImmutableRoaringBitmap
    */
   @Override
   public int select(int j) {
-    long leftover = RoaringIntPacking.toUnsignedLong(j);
+    long leftover = Util.toUnsignedLong(j);
     for (int i = 0; i < this.highLowContainer.size(); i++) {
       int thiscard = this.highLowContainer.getCardinality(i);
       if (thiscard > leftover) {

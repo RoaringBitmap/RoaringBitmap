@@ -4,14 +4,19 @@
 
 package org.roaringbitmap;
 
-import java.io.*;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MappeableContainerPointer;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
-import org.roaringbitmap.longlong.RoaringIntPacking;
 
 
 /**
@@ -1984,7 +1989,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   @Override
   public int select(int j) {
-    long leftover = RoaringIntPacking.toUnsignedLong(j);
+    long leftover = Util.toUnsignedLong(j);
     for (int i = 0; i < this.highLowContainer.size(); i++) {
       Container c = this.highLowContainer.getContainerAtIndex(i);
       int thiscard = c.getCardinality();

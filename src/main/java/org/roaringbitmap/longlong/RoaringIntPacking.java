@@ -102,9 +102,4 @@ public class RoaringIntPacking {
     }
     return b.toString();
   }
-
-  // Duplicated from jdk8 Integer.toUnsignedLong
-  public static long toUnsignedLong(int x) {
-    return ((long) x) & 0xffffffffL;
-  }
 }

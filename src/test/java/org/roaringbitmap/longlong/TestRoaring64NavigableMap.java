@@ -14,6 +14,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.Util;
 
 public class TestRoaring64NavigableMap {
   @Test
@@ -740,7 +741,7 @@ public class TestRoaring64NavigableMap {
   public void testAddRange_EndExcludingNextBitmapFirstLow() {
     Roaring64NavigableMap map = new Roaring64NavigableMap();
 
-    long end = RoaringIntPacking.toUnsignedLong(-1) + 1;
+    long end = Util.toUnsignedLong(-1) + 1;
 
     map.add(end - 2, end);
     Assert.assertEquals(2, map.getLongCardinality());
@@ -798,7 +799,7 @@ public class TestRoaring64NavigableMap {
   public void testRoaringBitmap_SelectAboveIntegerMaxValue() {
     RoaringBitmap map = new RoaringBitmap();
 
-    long maxForRoaringBitmap = RoaringIntPacking.toUnsignedLong(-1) + 1;
+    long maxForRoaringBitmap = Util.toUnsignedLong(-1) + 1;
     map.add(0L, maxForRoaringBitmap);
 
     Assert.assertEquals(maxForRoaringBitmap, map.getLongCardinality());
@@ -809,7 +810,7 @@ public class TestRoaring64NavigableMap {
   public void testRoaringBitmap_SelectAboveIntegerMaxValuePlusOne() {
     RoaringBitmap map = new RoaringBitmap();
 
-    long maxForRoaringBitmap = RoaringIntPacking.toUnsignedLong(-1) + 1;
+    long maxForRoaringBitmap = Util.toUnsignedLong(-1) + 1;
     map.add(0L, maxForRoaringBitmap);
 
     Assert.assertEquals(maxForRoaringBitmap, map.getLongCardinality());
