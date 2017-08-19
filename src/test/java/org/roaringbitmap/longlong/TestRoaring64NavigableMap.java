@@ -26,6 +26,7 @@ public class TestRoaring64NavigableMap {
 
     Assert.assertEquals(0, map.getLongCardinality());
     Assert.assertTrue(map.isEmpty());
+    Assert.assertFalse(map.contains(0));
 
     Assert.assertEquals(0, map.rankLong(Long.MIN_VALUE));
     Assert.assertEquals(0, map.rankLong(Long.MIN_VALUE + 1));
@@ -44,9 +45,12 @@ public class TestRoaring64NavigableMap {
 
     {
       LongIterator iterator = map.getLongIterator();
+
       Assert.assertTrue(iterator.hasNext());
       Assert.assertEquals(0, iterator.next());
       Assert.assertEquals(0, map.select(0));
+      Assert.assertTrue(map.contains(0));
+
       Assert.assertFalse(iterator.hasNext());
     }
 
@@ -73,9 +77,12 @@ public class TestRoaring64NavigableMap {
 
     {
       LongIterator iterator = map.getLongIterator();
+
       Assert.assertTrue(iterator.hasNext());
       Assert.assertEquals(0, iterator.next());
       Assert.assertEquals(0, map.select(0));
+      Assert.assertTrue(map.contains(0));
+
       Assert.assertFalse(iterator.hasNext());
     }
 
@@ -100,14 +107,21 @@ public class TestRoaring64NavigableMap {
 
     {
       LongIterator iterator = map.getLongIterator();
+
       Assert.assertTrue(iterator.hasNext());
       Assert.assertEquals(123, iterator.next());
       Assert.assertEquals(123, map.select(0));
+      Assert.assertTrue(map.contains(123));
+
       Assert.assertTrue(iterator.hasNext());
       Assert.assertEquals(234, iterator.next());
       Assert.assertEquals(234, map.select(1));
+      Assert.assertTrue(map.contains(234));
+
       Assert.assertFalse(iterator.hasNext());
     }
+
+    Assert.assertFalse(map.contains(345));
 
     Assert.assertEquals(2, map.getLongCardinality());
 

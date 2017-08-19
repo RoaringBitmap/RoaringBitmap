@@ -817,7 +817,14 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
   @Override
   public boolean contains(long x) {
-    throw new UnsupportedOperationException("TODO");
+    int high = RoaringIntPacking.high(x);
+    BitmapDataProvider lowBitmap = highToBitmap.get(high);
+    if (lowBitmap == null) {
+      return false;
+    }
+
+    int low = RoaringIntPacking.low(x);
+    return lowBitmap.contains(low);
   }
 
 
