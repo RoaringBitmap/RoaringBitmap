@@ -1312,13 +1312,13 @@ public class ImmutableRoaringBitmap
    */
   @Override
   public int select(int j) {
-    int leftover = j;
+    long leftover = Integer.toUnsignedLong(j);
     for (int i = 0; i < this.highLowContainer.size(); i++) {
       int thiscard = this.highLowContainer.getCardinality(i);
       if (thiscard > leftover) {
         int keycontrib = this.highLowContainer.getKeyAtIndex(i) << 16;
         MappeableContainer c = this.highLowContainer.getContainerAtIndex(i);
-        int lowcontrib = BufferUtil.toIntUnsigned(c.select(leftover));
+        int lowcontrib = BufferUtil.toIntUnsigned(c.select((int)leftover));
         return lowcontrib + keycontrib;
       }
       leftover -= thiscard;

@@ -4,7 +4,14 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class TestVeryLargeBitmap {
-
+  @Test
+  public void testSelect() {
+    MutableRoaringBitmap map = new MutableRoaringBitmap();
+    map.add(0L, (1L << 32));
+    Assert.assertEquals(-2, map.select(-2));
+    Assert.assertEquals(-1, map.select(-1));
+  }
+  
   @Test // this should run fine given enough memory
   public void stupidlyLarge() {
     try {
