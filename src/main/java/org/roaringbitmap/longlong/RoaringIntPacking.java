@@ -14,7 +14,8 @@ import java.util.Comparator;
 // Hidden as it holds implementation details for RoaringTreeMap. We may decide to change the logic
 // here, hence it should
 // not be used elsewhere
-class RoaringIntPacking {
+// TODO Public as RoaringBitmap rely on it (temporarily)
+public class RoaringIntPacking {
 
   /**
    * 
@@ -97,7 +98,7 @@ class RoaringIntPacking {
   }
 
   // Duplicated from jdk8 Integer.toUnsignedLong
-  static long toUnsignedLong(int x) {
+  public static long toUnsignedLong(int x) {
     return ((long) x) & 0xffffffffL;
   }
 }

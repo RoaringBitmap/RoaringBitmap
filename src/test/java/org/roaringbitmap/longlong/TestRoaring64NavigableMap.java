@@ -12,7 +12,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.roaringbitmap.RoaringBitmap;
 
@@ -766,9 +765,6 @@ public class TestRoaring64NavigableMap {
     map.add(0L, outOfRoaringBitmapRange);
   }
 
-  // TODO
-  // FIXME
-  @Ignore("TODO FIXME")
   @Test
   public void testCardinalityAboveIntegerMaxValue() {
     Roaring64NavigableMap map = new Roaring64NavigableMap();
@@ -779,16 +775,13 @@ public class TestRoaring64NavigableMap {
     map.add(0, outOfSingleRoaring);
     Assert.assertEquals(outOfSingleRoaring, map.getLongCardinality());
 
+    Assert.assertEquals(outOfSingleRoaring, map.getLongCardinality());
 
     Assert.assertEquals(0, map.select(0));
-    Assert.assertEquals(outOfSingleRoaring, map.select(outOfSingleRoaring - 1));
+    Assert.assertEquals(outOfSingleRoaring - 1, map.select(outOfSingleRoaring - 1));
 
-    Assert.assertEquals(outOfSingleRoaring, map.getLongCardinality());
   }
 
-  // TODO
-  // FIXME
-  @Ignore("TODO FIXME")
   @Test
   public void testRoaringBitmap_SelectAboveIntegerMaxValue() {
     RoaringBitmap map = new RoaringBitmap();
@@ -800,9 +793,6 @@ public class TestRoaring64NavigableMap {
     Assert.assertEquals(-1, map.select(-1));
   }
 
-  // TODO
-  // FIXME
-  @Ignore("TODO FIXME")
   @Test
   public void testRoaringBitmap_SelectAboveIntegerMaxValuePlusOne() {
     RoaringBitmap map = new RoaringBitmap();

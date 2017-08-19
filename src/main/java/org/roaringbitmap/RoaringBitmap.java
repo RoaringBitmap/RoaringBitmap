@@ -11,6 +11,7 @@ import java.util.NoSuchElementException;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MappeableContainerPointer;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
+import org.roaringbitmap.longlong.RoaringIntPacking;
 
 
 /**
@@ -1983,7 +1984,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   @Override
   public int select(int j) {
-    long leftover = Integer.toUnsignedLong(j);
+    long leftover = RoaringIntPacking.toUnsignedLong(j);
     for (int i = 0; i < this.highLowContainer.size(); i++) {
       Container c = this.highLowContainer.getContainerAtIndex(i);
       int thiscard = c.getCardinality();
