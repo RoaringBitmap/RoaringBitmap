@@ -1983,13 +1983,13 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   @Override
   public int select(int j) {
-    int leftover = j;
+    long leftover = Integer.toUnsignedLong(j);
     for (int i = 0; i < this.highLowContainer.size(); i++) {
       Container c = this.highLowContainer.getContainerAtIndex(i);
       int thiscard = c.getCardinality();
       if (thiscard > leftover) {
         int keycontrib = this.highLowContainer.getKeyAtIndex(i) << 16;
-        int lowcontrib = Util.toIntUnsigned(c.select(leftover));
+        int lowcontrib = Util.toIntUnsigned(c.select((int)leftover));
         return lowcontrib + keycontrib;
       }
       leftover -= thiscard;
