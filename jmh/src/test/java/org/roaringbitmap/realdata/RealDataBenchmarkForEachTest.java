@@ -30,7 +30,8 @@ public class RealDataBenchmarkForEachTest extends RealDataBenchmarkSanityTest {
                     .put(WIKILEAKS_NOQUOTES_SRT, 1921022163)
             .build();
 
-    @Before
+    @Override
+	@Before
     public void setup() throws Exception {
         Assume.assumeFalse(type.equals(CONCISE));
         Assume.assumeFalse(type.equals(WAH));

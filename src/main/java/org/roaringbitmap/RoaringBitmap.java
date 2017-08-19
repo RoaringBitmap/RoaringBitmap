@@ -935,6 +935,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    *
    * @param x integer value
    */
+  @Override
   public void add(final int x) {
     final short hb = Util.highbits(x);
     final int i = highLowContainer.getIndex(hb);
@@ -1800,6 +1801,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    *
    * @param x integer value representing the index in a bitmap
    */
+  @Override
   public void remove(final int x) {
     final short hb = Util.highbits(x);
     final int i = highLowContainer.getIndex(hb);
@@ -2258,6 +2260,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   /**
    * Recover allocated but unused memory.
    */
+  @Override
   public void trim() {
     for (int i = 0; i < this.highLowContainer.size(); i++) {
       this.highLowContainer.getContainerAtIndex(i).trim();

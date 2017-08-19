@@ -1084,6 +1084,7 @@ public final class ArrayContainer extends Container implements Cloneable {
    *
    * @return the bitmap container
    */
+  @Override
   public BitmapContainer toBitmapContainer() {
     BitmapContainer bc = new BitmapContainer();
     bc.loadData(this);

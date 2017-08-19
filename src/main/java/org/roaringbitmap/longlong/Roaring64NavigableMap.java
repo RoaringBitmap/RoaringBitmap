@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
+import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -574,35 +575,16 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         index = -1;
       }
     } else if (indexOk < sortedHighs.length) {
-      if (sortedHighs[indexOk - 1] == currentHigh) {
-        index = indexOk;
-      } else {
-        index = -indexOk - 1;
-      }
+      index = -indexOk - 1;
     } else {
       index = -sortedHighs.length - 1;
     }
     assert index == binarySearch(sortedHighs, 0, indexOk, currentHigh);
 
     if (index >= 0) {
-      // This bitmap has already been registered
-      BitmapDataProvider bitmap = e.getValue();
-      assert bitmap == highToBitmap.get(sortedHighs[index]);
-
-      final long previousCardinality;
-      if (currentHigh >= 1) {
-        previousCardinality = sortedCumulatedCardinality[index - 1];
-      } else {
-        previousCardinality = 0;
-      }
-      sortedCumulatedCardinality[index] = previousCardinality + bitmap.getCardinality();
-
-      if (currentHigh == Integer.MAX_VALUE) {
-        allValid = true;
-        firstHighNotValid = currentHigh;
-      } else {
-        firstHighNotValid = currentHigh + 1;
-      }
+      // This would mean calling .ensureOne is useless: should never got here at the first time
+      throw new IllegalStateException("Unexpectely found " + currentHigh + " in "
+          + Arrays.toString(sortedHighs) + " strictly before index" + indexOk);
     } else {
       int insertionPosition = -index - 1;
 
@@ -617,31 +599,9 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         sortedHighs = Arrays.copyOf(sortedHighs, newSize);
         sortedCumulatedCardinality = Arrays.copyOf(sortedCumulatedCardinality, newSize);
 
+        // Not actually needed. But simplify the reading of array content
         Arrays.fill(sortedHighs, previousSize, sortedHighs.length, highestHigh());
         Arrays.fill(sortedCumulatedCardinality, previousSize, sortedHighs.length, Long.MAX_VALUE);
-      } else {
-        // Insertion in the middle
-        int previousLength = sortedHighs.length;
-
-        if (indexOk < previousLength) {
-          // We are updating a bucket previously added
-
-          // Ensure the new 0 is in the middle
-          System.arraycopy(sortedHighs, insertionPosition, sortedHighs, insertionPosition + 1,
-              indexOk - insertionPosition);
-        } else {
-          // There is a new bucket
-          sortedHighs = Arrays.copyOf(sortedHighs, previousLength + 1);
-          // Ensure the new 0 is in the middle
-          System.arraycopy(sortedHighs, insertionPosition, sortedHighs, insertionPosition + 1,
-              previousLength - insertionPosition);
-
-          sortedCumulatedCardinality =
-              Arrays.copyOf(sortedCumulatedCardinality, sortedCumulatedCardinality.length + 1);
-
-          // No need to copy higher cardinalities as anyway, the cardinalities may not be valid
-          // anymore
-        }
       }
       sortedHighs[insertionPosition] = currentHigh;
 
@@ -965,18 +925,17 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         currentStartLow = 0;
       }
 
+      long startLowAsLong = RoaringIntPacking.toUnsignedLong(currentStartLow);
 
-      final int currentEndLow;
+      final long endLowAsLong;
       if (endHigh == high) {
         // The whole range ends in this bucket
-        currentEndLow = endLow;
+        endLowAsLong = RoaringIntPacking.toUnsignedLong(endLow);
       } else {
-        // Add the bucket until the end
-        currentEndLow = -1;
+        // Add the bucket until the end: we have a +1 as, in RoaringBitmap.add(long,long), the end
+        // is excluded
+        endLowAsLong = RoaringIntPacking.toUnsignedLong(-1) + 1;
       }
-
-      long startLowAsLong = RoaringIntPacking.toUnsignedLong(currentStartLow);
-      long endLowAsLong = RoaringIntPacking.toUnsignedLong(currentEndLow);
 
       if (endLowAsLong > startLowAsLong) {
         // Initialize the bitmap only if there is access data to write
@@ -1049,14 +1008,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
       return false;
     }
     Roaring64NavigableMap other = (Roaring64NavigableMap) obj;
-    if (highToBitmap == null) {
-      if (other.highToBitmap != null) {
-        return false;
-      }
-    } else if (!highToBitmap.equals(other.highToBitmap)) {
-      return false;
-    }
-    return true;
+    return Objects.equals(highToBitmap, other.highToBitmap);
   }
 
 

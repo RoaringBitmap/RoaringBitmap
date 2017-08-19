@@ -342,6 +342,59 @@ public class TestRoaring64NavigableMap {
     Assert.assertEquals(1L, map.getLongCardinality());
 
     Assert.assertEquals(123L, map.select(0));
+
+    // Add back to different bucket
+    map.add(Long.MAX_VALUE);
+    Assert.assertEquals(2L, map.getLongCardinality());
+
+    Assert.assertEquals(123L, map.select(0));
+    Assert.assertEquals(Long.MAX_VALUE, map.select(1));
+  }
+
+  @Test
+  public void testRemoveDifferentBuckets_RemoveBigAddIntermediate() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
+
+    // Add two values
+    map.addLong(123);
+    map.addLong(Long.MAX_VALUE);
+    Assert.assertEquals(2L, map.getLongCardinality());
+
+    // Remove biggest
+    map.remove(Long.MAX_VALUE);
+    Assert.assertEquals(1L, map.getLongCardinality());
+
+    Assert.assertEquals(123L, map.select(0));
+
+    // Add back to different bucket
+    map.add(Long.MAX_VALUE / 2L);
+    Assert.assertEquals(2L, map.getLongCardinality());
+
+    Assert.assertEquals(123L, map.select(0));
+    Assert.assertEquals(Long.MAX_VALUE / 2L, map.select(1));
+  }
+
+  @Test
+  public void testRemoveDifferentBuckets_RemoveIntermediateAddBug() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
+
+    // Add two values
+    map.addLong(123);
+    map.addLong(Long.MAX_VALUE / 2L);
+    Assert.assertEquals(2L, map.getLongCardinality());
+
+    // Remove biggest
+    map.remove(Long.MAX_VALUE / 2L);
+    Assert.assertEquals(1L, map.getLongCardinality());
+
+    Assert.assertEquals(123L, map.select(0));
+
+    // Add back to different bucket
+    map.add(Long.MAX_VALUE);
+    Assert.assertEquals(2L, map.getLongCardinality());
+
+    Assert.assertEquals(123L, map.select(0));
+    Assert.assertEquals(Long.MAX_VALUE, map.select(1));
   }
 
   @Test
@@ -660,7 +713,7 @@ public class TestRoaring64NavigableMap {
   }
 
   @Test
-  public void testAddRange() {
+  public void testAddRange_SingleBucket() {
     Roaring64NavigableMap map = new Roaring64NavigableMap();
 
     map.add(5L, 12L);
@@ -668,6 +721,21 @@ public class TestRoaring64NavigableMap {
 
     Assert.assertEquals(5L, map.select(0));
     Assert.assertEquals(11L, map.select(6L));
+  }
+
+  // Edge case: the last high is excluded and should not lead to a new bitmap. However, it may be
+  // seen only while trying to add for high=1
+  @Test
+  public void testAddRange_EndExcludingNextBitmapFirstLow() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
+
+    long end = RoaringIntPacking.toUnsignedLong(-1) + 1;
+
+    map.add(end - 2, end);
+    Assert.assertEquals(2, map.getLongCardinality());
+
+    Assert.assertEquals(end - 2, map.select(0));
+    Assert.assertEquals(end - 1, map.select(1));
   }
 
 
@@ -680,7 +748,7 @@ public class TestRoaring64NavigableMap {
     long from = RoaringIntPacking.pack(0, -1 - enableTrim);
     long to = from + 2 * enableTrim;
     map.add(from, to);
-    int nbItems = 2 * enableTrim - 1;
+    int nbItems = (int) (to - from);
     Assert.assertEquals(nbItems, map.getLongCardinality());
 
     Assert.assertEquals(from, map.select(0));
@@ -725,9 +793,24 @@ public class TestRoaring64NavigableMap {
   public void testRoaringBitmap_SelectAboveIntegerMaxValue() {
     RoaringBitmap map = new RoaringBitmap();
 
-    long maxForRoaringBitmap = RoaringIntPacking.toUnsignedLong(-1);
+    long maxForRoaringBitmap = RoaringIntPacking.toUnsignedLong(-1) + 1;
     map.add(0L, maxForRoaringBitmap);
 
+    Assert.assertEquals(maxForRoaringBitmap, map.getLongCardinality());
+    Assert.assertEquals(-1, map.select(-1));
+  }
+
+  // TODO
+  // FIXME
+  @Ignore("TODO FIXME")
+  @Test
+  public void testRoaringBitmap_SelectAboveIntegerMaxValuePlusOne() {
+    RoaringBitmap map = new RoaringBitmap();
+
+    long maxForRoaringBitmap = RoaringIntPacking.toUnsignedLong(-1) + 1;
+    map.add(0L, maxForRoaringBitmap);
+
+    Assert.assertEquals(maxForRoaringBitmap, map.getLongCardinality());
     Assert.assertEquals(-1, map.select(-1));
   }
 

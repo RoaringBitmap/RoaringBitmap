@@ -33,7 +33,8 @@ public class RandomAccess {
         public BenchmarkState() {
         }
 
-        @Setup
+        @Override
+		@Setup
         public void setup() throws Exception {
             super.setup();
 
