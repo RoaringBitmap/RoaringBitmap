@@ -1981,7 +1981,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   @Override
   public int select(int j) {
-    long leftover = Integer.toUnsignedLong(j);
+    long leftover = ((long) j) & 0xffffffffL;
     for (int i = 0; i < this.highLowContainer.size(); i++) {
       Container c = this.highLowContainer.getContainerAtIndex(i);
       int thiscard = c.getCardinality();
