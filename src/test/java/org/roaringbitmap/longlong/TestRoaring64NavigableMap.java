@@ -744,6 +744,24 @@ public class TestRoaring64NavigableMap {
     Assert.assertEquals(123, right.select(0));
   }
 
+
+  @Test
+  public void testAnd_SingleBucket() {
+    Roaring64NavigableMap left = new Roaring64NavigableMap();
+    Roaring64NavigableMap right = new Roaring64NavigableMap();
+
+    left.addLong(123);
+    left.addLong(234);
+    right.addLong(234);
+    right.addLong(345);
+
+    // We have 1 shared value: 234
+    left.and(right);
+
+    Assert.assertEquals(1, left.getLongCardinality());
+    Assert.assertEquals(234, left.select(0));
+  }
+
   @Test
   public void testToString_signed() {
     Roaring64NavigableMap map = new Roaring64NavigableMap(true);
@@ -998,4 +1016,5 @@ public class TestRoaring64NavigableMap {
 
     Assert.assertFalse(map.contains(0));
   }
+
 }
