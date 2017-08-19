@@ -712,8 +712,20 @@ public class TestRoaring64NavigableMap {
   }
 
   @Test
-  public void testAddRange_SingleBucket() {
+  public void testAddRange_SingleBucket_NotBuffer() {
     Roaring64NavigableMap map = new Roaring64NavigableMap();
+
+    map.add(5L, 12L);
+    Assert.assertEquals(7L, map.getLongCardinality());
+
+    Assert.assertEquals(5L, map.select(0));
+    Assert.assertEquals(11L, map.select(6L));
+  }
+
+
+  @Test
+  public void testAddRange_SingleBucket_Buffer() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap(true, new MutableRoaringBitmapSupplier());
 
     map.add(5L, 12L);
     Assert.assertEquals(7L, map.getLongCardinality());
