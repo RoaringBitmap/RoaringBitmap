@@ -1118,4 +1118,34 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
 
 
+  /**
+   * Add the value if it is not already present, otherwise remove it.
+   *
+   * @param x long value
+   */
+  public void flip(final long x) {
+    int high = RoaringIntPacking.high(x);
+    BitmapDataProvider lowBitmap = highToBitmap.get(high);
+    if (lowBitmap == null) {
+      // The value is not added: add it without any flip specific code
+      addLong(x);
+    } else {
+      int low = RoaringIntPacking.low(x);
+
+      // .flip is not in BitmapDataProvider contract
+      // TODO Is it relevant to calling .flip with a cast?
+      if (lowBitmap instanceof RoaringBitmap) {
+        ((RoaringBitmap) lowBitmap).flip(low);
+      } else if (lowBitmap instanceof MutableRoaringBitmap) {
+        ((MutableRoaringBitmap) lowBitmap).flip(low);
+      } else {
+        // Fallback to a manual flip
+        if (lowBitmap.contains(low)) {
+          lowBitmap.remove(low);
+        } else {
+          lowBitmap.add(low);
+        }
+      }
+    }
+  }
 }

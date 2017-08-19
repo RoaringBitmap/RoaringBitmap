@@ -977,4 +977,25 @@ public class TestRoaring64NavigableMap {
 
     map.runOptimize();
   }
+
+
+  @Test
+  public void testFlip_NotBuffer() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
+
+    map.add(0);
+    map.flip(0);
+
+    Assert.assertFalse(map.contains(0));
+  }
+
+  @Test
+  public void testFlip_Buffer() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap(true, new MutableRoaringBitmapSupplier());
+
+    map.add(0);
+    map.flip(0);
+
+    Assert.assertFalse(map.contains(0));
+  }
 }
