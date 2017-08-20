@@ -14,7 +14,6 @@ public interface LongBitmapDataProvider extends ImmutableLongBitmapDataProvider 
    *
    * @param x long value
    */
-  // TODO  interesting to keep the int version, to prevent packing and Map indirection for ints
   public void add(long x);
 
   /**
@@ -24,15 +23,6 @@ public interface LongBitmapDataProvider extends ImmutableLongBitmapDataProvider 
    */
   public void remove(long x);
 
-  /**
-   * Return the jth value stored in this bitmap.
-   *
-   * @param j index of the value
-   *
-   * @return the value
-   */
-  @Override
-  public long select(long j);
 
   /**
    * Recover allocated but unused memory.
