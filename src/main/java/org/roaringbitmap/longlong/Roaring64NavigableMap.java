@@ -23,6 +23,7 @@ import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.Util;
+import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 // this class is not thread-safe
@@ -688,6 +689,61 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   }
 
   /**
+   * In-place bitwise XOR (symmetric difference) operation. The current bitmap is modified.
+   *
+   * @param x2 other bitmap
+   */
+  public void xor(final Roaring64NavigableMap x2) {
+    boolean firstBucket = true;
+
+    for (Entry<Integer, BitmapDataProvider> e2 : x2.highToBitmap.entrySet()) {
+      // Keep object to prevent auto-boxing
+      Integer high = e2.getKey();
+
+      BitmapDataProvider lowBitmap1 = this.highToBitmap.get(high);
+
+      BitmapDataProvider lowBitmap2 = e2.getValue();
+
+      // TODO Reviewers: is it a good idea to rely on BitmapDataProvider except in methods
+      // expecting an actual MutableRoaringBitmap?
+      // TODO This code may lead to closing a buffer Bitmap in current Navigable even if current is
+      // not on buffer
+      if ((lowBitmap1 == null || lowBitmap1 instanceof RoaringBitmap)
+          && lowBitmap2 instanceof RoaringBitmap) {
+        if (lowBitmap1 == null) {
+          // Clone to prevent future modification of this modifying the input Bitmap
+          RoaringBitmap lowBitmap2Clone = ((RoaringBitmap) lowBitmap2).clone();
+
+          pushBitmapForHigh(high, lowBitmap2Clone);
+        } else {
+          ((RoaringBitmap) lowBitmap1).xor((RoaringBitmap) lowBitmap2);
+        }
+      } else if ((lowBitmap1 == null || lowBitmap1 instanceof MutableRoaringBitmap)
+          && lowBitmap2 instanceof MutableRoaringBitmap) {
+        if (lowBitmap1 == null) {
+          // Clone to prevent future modification of this modifying the input Bitmap
+          BitmapDataProvider lowBitmap2Clone = ((MutableRoaringBitmap) lowBitmap2).clone();
+
+          pushBitmapForHigh(high, lowBitmap2Clone);
+        } else {
+          ((MutableRoaringBitmap) lowBitmap1).xor((MutableRoaringBitmap) lowBitmap2);
+        }
+      } else {
+        throw new UnsupportedOperationException(
+            ".or is not between " + this.getClass() + " and " + lowBitmap2.getClass());
+      }
+
+      if (firstBucket) {
+        firstBucket = false;
+
+        // Invalidate the lowest high as lowest not valid
+        firstHighNotValid = Math.min(firstHighNotValid, high);
+        allValid = false;
+      }
+    }
+  }
+
+  /**
    * In-place bitwise AND (intersection) operation. The current bitmap is modified.
    *
    * @param x2 other bitmap
@@ -715,6 +771,48 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         } else if (lowBitmap2 instanceof MutableRoaringBitmap
             && lowBitmap1 instanceof MutableRoaringBitmap) {
           ((MutableRoaringBitmap) lowBitmap1).and((MutableRoaringBitmap) lowBitmap2);
+        } else {
+          throw new UnsupportedOperationException(
+              ".and is not between " + this.getClass() + " and " + lowBitmap1.getClass());
+        }
+      }
+
+      if (firstBucket) {
+        firstBucket = false;
+
+        // Invalidate the lowest high as lowest not valid
+        firstHighNotValid = Math.min(firstHighNotValid, high);
+        allValid = false;
+      }
+    }
+  }
+
+
+  /**
+   * In-place bitwise ANDNOT (difference) operation. The current bitmap is modified.
+   *
+   * @param x2 other bitmap
+   */
+  public void andNot(final Roaring64NavigableMap x2) {
+    boolean firstBucket = true;
+
+    Iterator<Entry<Integer, BitmapDataProvider>> thisIterator = highToBitmap.entrySet().iterator();
+    while (thisIterator.hasNext()) {
+      Entry<Integer, BitmapDataProvider> e1 = thisIterator.next();
+
+      // Keep object to prevent auto-boxing
+      Integer high = e1.getKey();
+
+      BitmapDataProvider lowBitmap2 = x2.highToBitmap.get(high);
+
+      if (lowBitmap2 != null) {
+        BitmapDataProvider lowBitmap1 = e1.getValue();
+
+        if (lowBitmap2 instanceof RoaringBitmap && lowBitmap1 instanceof RoaringBitmap) {
+          ((RoaringBitmap) lowBitmap1).andNot((RoaringBitmap) lowBitmap2);
+        } else if (lowBitmap2 instanceof MutableRoaringBitmap
+            && lowBitmap1 instanceof MutableRoaringBitmap) {
+          ((MutableRoaringBitmap) lowBitmap1).andNot((MutableRoaringBitmap) lowBitmap2);
         } else {
           throw new UnsupportedOperationException(
               ".and is not between " + this.getClass() + " and " + lowBitmap1.getClass());
