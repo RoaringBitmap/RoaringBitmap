@@ -24,16 +24,6 @@ public interface BitmapDataProvider extends ImmutableBitmapDataProvider {
   public void remove(int x);
 
   /**
-   * Return the jth value stored in this bitmap.
-   *
-   * @param j index of the value
-   *
-   * @return the value
-   */
-  @Override
-  public int select(int j);
-
-  /**
    * Recover allocated but unused memory.
    */
   public void trim();
