@@ -54,7 +54,9 @@ public class BufferIntIteratorFlyweight implements PeekableIntIterator {
   public PeekableIntIterator clone() {
     try {
       BufferIntIteratorFlyweight x = (BufferIntIteratorFlyweight) super.clone();
-      if(this.iter != null) x.iter = this.iter.clone();
+      if(this.iter != null) {
+        x.iter = this.iter.clone();
+      }
       return x;
     } catch (CloneNotSupportedException e) {
       return null;// will not happen
