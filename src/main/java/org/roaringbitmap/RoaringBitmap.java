@@ -68,7 +68,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     public PeekableIntIterator clone() {
       try {
         RoaringIntIterator x = (RoaringIntIterator) super.clone();
-        x.iter = this.iter.clone();
+        if(this.iter != null) {
+          x.iter = this.iter.clone();
+        }
         return x;
       } catch (CloneNotSupportedException e) {
         return null;// will not happen
@@ -138,7 +140,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     public IntIterator clone() {
       try {
         RoaringReverseIntIterator clone = (RoaringReverseIntIterator) super.clone();
-        clone.iter = this.iter.clone();
+        if(this.iter != null) {
+          clone.iter = this.iter.clone();
+        }
         return clone;
       } catch (CloneNotSupportedException e) {
         return null;// will not happen

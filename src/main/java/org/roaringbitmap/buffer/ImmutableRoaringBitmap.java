@@ -94,8 +94,12 @@ public class ImmutableRoaringBitmap
     public PeekableIntIterator clone() {
       try {
         ImmutableRoaringIntIterator x = (ImmutableRoaringIntIterator) super.clone();
-        x.iter = this.iter.clone();
-        x.cp = this.cp.clone();
+        if(this.iter != null) {
+          x.iter = this.iter.clone();
+        }
+        if(this.cp != null) {
+          x.cp = this.cp.clone();
+        }
         return x;
       } catch (CloneNotSupportedException e) {
         return null;// will not happen
@@ -168,8 +172,12 @@ public class ImmutableRoaringBitmap
     public IntIterator clone() {
       try {
         ImmutableRoaringReverseIntIterator x = (ImmutableRoaringReverseIntIterator) super.clone();
-        x.iter = this.iter.clone();
-        x.cp = this.cp.clone();
+        if(this.iter != null) {
+          x.iter = this.iter.clone();
+        }
+        if(this.cp != null) {
+          x.cp = this.cp.clone();
+        }
         return x;
       } catch (CloneNotSupportedException e) {
         return null;// will not happen
