@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.Objects;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -23,7 +22,6 @@ import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.Util;
-import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 // this class is not thread-safe
@@ -252,14 +250,33 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   }
 
   /**
+   * 
+   * @return the cardinality as an int
+   * 
+   * @throws UnsupportedOperationException if the cardinality does not fit in an int
+   */
+  public int getIntCardinality() throws UnsupportedOperationException {
+    long cardinality = getLongCardinality();
+
+    if (cardinality > Integer.MAX_VALUE) {
+      // TODO: we should handle cardinality fitting in an unsigned int
+      throw new UnsupportedOperationException(
+          "Can not call .getIntCardinality as the cardinality is bigger than Integer.MAX_VALUE");
+    }
+
+    return (int) cardinality;
+  }
+
+  /**
    * Return the jth value stored in this bitmap.
    *
    * @param j index of the value
    *
    * @return the value
+   * @throws IllegalArgumentException if j is out of the bounds of the bitmap cardinality
    */
   @Override
-  public long select(final long j) {
+  public long select(final long j) throws IllegalArgumentException {
     if (!doCacheCardinalities) {
       return selectNoCache(j);
     }
@@ -456,8 +473,8 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    */
   protected int ensureCumulatives(int high) {
     if (allValid) {
-      // the whole array is valid
-      return sortedHighs.length;
+      // the whole array is valid (up-to its actual length, not its capacity)
+      return highToBitmap.size();
     } else if (compare(high, firstHighNotValid) < 0) {
       // The high is strictly below the first not valid: it is valid
 
@@ -480,10 +497,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
       SortedMap<Integer, BitmapDataProvider> tailMap =
           highToBitmap.tailMap(firstHighNotValid, true);
 
-
-      boolean earlyBreak = true;
-
-      // .size on tailMap make an iterator: arg
+      // TODO .size on tailMap make an iterator: arg
       int indexOk = highToBitmap.size() - tailMap.size();
 
       Iterator<Entry<Integer, BitmapDataProvider>> it = tailMap.entrySet().iterator();
@@ -493,14 +507,11 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
         if (compare(currentHigh, high) > 0) {
           // No need to compute more than needed
-          earlyBreak = true;
           break;
         } else if (e.getValue().isEmpty()) {
-          // We need to remove this array. Else, later binary searches will fails (e.g. in
-          // ensureOne)
-
           // highToBitmap can not be modified as we iterate over it
           if (latestAddedHigh != null && latestAddedHigh.getKey().intValue() == currentHigh) {
+            // Dismiss the cached bitmap as it is removed from the NavigableMap
             latestAddedHigh = null;
           }
           it.remove();
@@ -513,7 +524,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
       }
 
-      if (highToBitmap.isEmpty() || !earlyBreak) {
+      if (highToBitmap.isEmpty() || indexOk == highToBitmap.values().size()) {
         // We have compute all cardinalities
         allValid = true;
       }
@@ -621,6 +632,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         firstHighNotValid = currentHigh;
       } else {
         // The first not valid is the next high
+        // TODO: The entry comes from a NavigableMap: it may be quite cheap to know the next high
         firstHighNotValid = currentHigh + 1;
       }
     }

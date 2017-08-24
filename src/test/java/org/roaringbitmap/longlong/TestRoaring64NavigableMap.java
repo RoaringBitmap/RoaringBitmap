@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -22,6 +23,12 @@ public class TestRoaring64NavigableMap {
 
   private Roaring64NavigableMap newBuffered() {
     return new Roaring64NavigableMap(true, new MutableRoaringBitmapSupplier());
+  }
+
+  @Test
+  public void testHelperCtor() {
+    // RoaringIntPacking is not supposed to be instanciated. Add test for coverage
+    Assert.assertNotNull(new RoaringIntPacking());
   }
 
   @Test
@@ -1137,6 +1144,19 @@ public class TestRoaring64NavigableMap {
     it.remove();
   }
 
+
+
+  @Test
+  public void testSelect_NoCache_MultipleBuckets() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap(true, false);
+
+    map.addLong(123);
+    map.addLong(Long.MAX_VALUE);
+
+    Assert.assertEquals(123L, map.select(0));
+    Assert.assertEquals(Long.MAX_VALUE, map.select(1));
+  }
+
   @Test(expected = IllegalArgumentException.class)
   public void testSelect_Empty() {
     Roaring64NavigableMap map = new Roaring64NavigableMap();
@@ -1161,6 +1181,20 @@ public class TestRoaring64NavigableMap {
     map.addLong(123);
 
     map.select(2);
+  }
+
+
+  @Test
+  public void testRank_NoCache_MultipleBuckets() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap(true, false);
+
+    map.addLong(123);
+    map.addLong(Long.MAX_VALUE);
+
+    Assert.assertEquals(0, map.rankLong(0));
+    Assert.assertEquals(1, map.rankLong(123));
+    Assert.assertEquals(1, map.rankLong(Long.MAX_VALUE - 1));
+    Assert.assertEquals(2, map.rankLong(Long.MAX_VALUE));
   }
 
   @Test
@@ -1214,4 +1248,31 @@ public class TestRoaring64NavigableMap {
     Assert.assertFalse(map.contains(0));
   }
 
+  @Test
+  public void testRandomAddRemove() {
+    Random r = new Random();
+
+    // We need to max the considered range of longs, else each long would be in a different bucket
+    long max = Integer.MAX_VALUE * 20L;
+
+    long targetCardinality = 1000;
+
+    Roaring64NavigableMap map = newBuffered();
+
+    // Add a lot of items
+    while (map.getIntCardinality() < targetCardinality) {
+      map.add(r.nextLong() % max);
+    }
+
+    // Remove them by chunks
+    int chunks = 10;
+    for (int j = 0; j < chunks; j++) {
+      long chunksSize = targetCardinality / chunks;
+      for (int i = 0; i < chunksSize; i++) {
+        map.remove(map.select(r.nextInt(map.getIntCardinality())));
+      }
+      Assert.assertEquals(targetCardinality - chunksSize * (j + 1), map.getIntCardinality());
+    }
+    Assert.assertTrue(map.isEmpty());
+  }
 }
