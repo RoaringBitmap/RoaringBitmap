@@ -1,3 +1,6 @@
+/*
+ * (c) the authors Licensed under the Apache License, Version 2.0.
+ */
 package org.roaringbitmap.longlong;
 
 import java.io.DataInput;
@@ -18,14 +21,29 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.roaringbitmap.BitmapDataProvider;
+import org.roaringbitmap.BitmapDataProviderSupplier;
 import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.RoaringBitmapSupplier;
 import org.roaringbitmap.Util;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
+/**
+ * Roaring64NavigableMap extends RoaringBitmap to the whole range of longs (or unsigned longs). It
+ * enables a cardinality greater up to Long.MAX_VALUE
+ *
+ * Longs are added by default in unsigned sorted order (i.e. -1L is the greater long to be added
+ * while 0 has no previous value). It can be configured to signed sorted order (in which case, 0 is
+ * preceded by 1). That is, they are treated as unsigned integers (see Java 8's
+ * Integer.toUnsignedLong function). Up to 4294967296 integers can be stored.
+ *
+ *
+ *
+ */
 // this class is not thread-safe
-// @Beta
+// @Beta: this class is still in early stage. Its API may change and has not proofed itself as
+// bug-proof
 public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProvider {
 
   // Not final to enable initialization in Externalizable.readObject
@@ -59,14 +77,15 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   // to skip the indirection
   private transient Map.Entry<Integer, BitmapDataProvider> latestAddedHigh = null;
 
+  private static final boolean DEFAULT_ORDER_IS_SIGNED = false;
+  private static final boolean DEFAULT_CARDINALITIES_ARE_CACHED = true;
+
   /**
-   * TMP By default, we consider longs are signed longs: normal longs: 0 is preceded by -1 and
-   * Long.MAX_VALUE has no successor
+   * By default, we consider longs are unsigned longs: normal longs: 0 is the lowest possible long.
+   * Long.MAX_VALUE is followed by Long.MIN_VALUE. -1L is the highest possible value
    */
-  // TODO: Should be 'By default, we consider longs are unsigned 64bits longlong' to comply with
-  // RoaringBitmap
   public Roaring64NavigableMap() {
-    this(true);
+    this(DEFAULT_ORDER_IS_SIGNED);
   }
 
   /**
@@ -77,7 +96,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    *        unsigned 64bits long (as RoaringBitmap with unsigned integers)
    */
   public Roaring64NavigableMap(boolean signedLongs) {
-    this(signedLongs, true);
+    this(signedLongs, DEFAULT_CARDINALITIES_ARE_CACHED);
   }
 
   /**
@@ -93,6 +112,16 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   }
 
   /**
+   * By default, longs are managed as unsigned longs and cardinalities are cached.
+   * 
+   * @param supplier provide the logic to instantiate new {@link BitmapDataProvider}, typically
+   *        instantiated once per high.
+   */
+  public Roaring64NavigableMap(BitmapDataProviderSupplier supplier) {
+    this(DEFAULT_ORDER_IS_SIGNED, DEFAULT_CARDINALITIES_ARE_CACHED, supplier);
+  }
+
+  /**
    * By default, we activating cardinalities caching.
    * 
    * @param signedLongs true if longs has to be ordered as plain java longs. False to handle them as
@@ -101,7 +130,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    *        instantiated once per high.
    */
   public Roaring64NavigableMap(boolean signedLongs, BitmapDataProviderSupplier supplier) {
-    this(signedLongs, true, supplier);
+    this(signedLongs, DEFAULT_CARDINALITIES_ARE_CACHED, supplier);
   }
 
   /**
@@ -145,7 +174,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    * bitmaps, numbers are ordered according to {@link Long#compareUnsigned}. We order the numbers
    * like 0, 1, ..., 9223372036854775807, -9223372036854775808, -9223372036854775807,..., -1.
    *
-   * @param x integer value
+   * @param x long value
    */
   public void addLong(long x) {
     int high = high(x);
@@ -168,6 +197,19 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     bitmap.add(low);
 
     invalidateAboveHigh(high);
+  }
+
+  /**
+   * Add the value to the container (set the value to "true"), whether it already appears or not.
+   *
+   * Javac lacks native unsigned integers but the x argument is considered to be unsigned. Within
+   * bitmaps, numbers are ordered according to {@link Integer#compareUnsigned}. We order the numbers
+   * like 0, 1, ..., 2147483647, -2147483648, -2147483647,..., -1.
+   *
+   * @param x integer value
+   */
+  public void addInt(int x) {
+    addLong(Util.toUnsignedLong(x));
   }
 
   private BitmapDataProvider newRoaringBitmap() {
@@ -1116,7 +1158,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   }
 
   /**
-   * Return the set values as an array, if the cardinality is smaller than 2147483648. The integer
+   * Return the set values as an array, if the cardinality is smaller than 2147483648. The long
    * values are in sorted order.
    *
    * @return array representing the set values.

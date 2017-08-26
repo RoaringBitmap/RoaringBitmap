@@ -16,18 +16,26 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
 import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.RoaringBitmapSupplier;
 import org.roaringbitmap.Util;
+import org.roaringbitmap.buffer.MutableRoaringBitmapSupplier;
+
+import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
 
 public class TestRoaring64NavigableMap {
 
-
-  private Roaring64NavigableMap newBuffered() {
+  private Roaring64NavigableMap newSignedBuffered() {
     return new Roaring64NavigableMap(true, new MutableRoaringBitmapSupplier());
+  }
+
+  private Roaring64NavigableMap newUnsignedHeap() {
+    return new Roaring64NavigableMap(false, new RoaringBitmapSupplier());
   }
 
   @Test
   public void testHelperCtor() {
-    // RoaringIntPacking is not supposed to be instanciated. Add test for coverage
+    // RoaringIntPacking is not supposed to be instantiated. Add test for coverage
     Assert.assertNotNull(new RoaringIntPacking());
   }
 
@@ -52,7 +60,7 @@ public class TestRoaring64NavigableMap {
 
   @Test
   public void testZero() {
-    Roaring64NavigableMap map = new Roaring64NavigableMap();
+    Roaring64NavigableMap map = newSignedBuffered();
 
     map.addLong(0);
 
@@ -80,10 +88,43 @@ public class TestRoaring64NavigableMap {
   }
 
 
+  @Test
+  public void testMinusOne_Unsigned() {
+    Roaring64NavigableMap map = newUnsignedHeap();
+
+    map.addLong(-1);
+
+    {
+      LongIterator iterator = map.getLongIterator();
+
+      Assert.assertTrue(iterator.hasNext());
+      Assert.assertEquals(-1, iterator.next());
+      Assert.assertEquals(-1, map.select(0));
+      Assert.assertTrue(map.contains(-1));
+
+      Assert.assertFalse(iterator.hasNext());
+    }
+
+    Assert.assertEquals(1, map.getLongCardinality());
+    Assert.assertFalse(map.isEmpty());
+
+    Assert.assertEquals(0, map.rankLong(Long.MIN_VALUE));
+    Assert.assertEquals(0, map.rankLong(Integer.MIN_VALUE - 1L));
+    Assert.assertEquals(0, map.rankLong(0));
+    Assert.assertEquals(0, map.rankLong(1));
+    Assert.assertEquals(0, map.rankLong(Integer.MAX_VALUE + 1L));
+    Assert.assertEquals(0, map.rankLong(Long.MAX_VALUE));
+    Assert.assertEquals(0, map.rankLong(-2));
+    Assert.assertEquals(1, map.rankLong(-1));
+
+
+    Assert.assertArrayEquals(new long[] {-1L}, map.toArray());
+  }
+
 
   @Test
   public void testAddNotAddLong() {
-    Roaring64NavigableMap map = new Roaring64NavigableMap();
+    Roaring64NavigableMap map = newSignedBuffered();
 
     // Use BitmapProvider.add instead of .addLong
     map.add(0);
@@ -174,6 +215,16 @@ public class TestRoaring64NavigableMap {
     map.select(1);
   }
 
+
+  @Test
+  public void testAddInt() {
+    Roaring64NavigableMap map = new Roaring64NavigableMap(new RoaringBitmapSupplier());
+
+    map.addInt(-1);
+
+    Assert.assertEquals(Util.toUnsignedLong(-1), map.select(0));
+  }
+
   @Test
   public void testIterator_NextWithoutHasNext_Filled() {
     Roaring64NavigableMap map = new Roaring64NavigableMap();
@@ -193,7 +244,7 @@ public class TestRoaring64NavigableMap {
 
   @Test
   public void testLongMaxValue() {
-    Roaring64NavigableMap map = new Roaring64NavigableMap();
+    Roaring64NavigableMap map = newSignedBuffered();
 
     map.addLong(Long.MAX_VALUE);
 
@@ -214,11 +265,13 @@ public class TestRoaring64NavigableMap {
     Assert.assertEquals(0, map.rankLong(1));
     Assert.assertEquals(0, map.rankLong(Long.MAX_VALUE - 1));
     Assert.assertEquals(1, map.rankLong(Long.MAX_VALUE));
+
+    Assert.assertArrayEquals(new long[] {Long.MAX_VALUE}, map.toArray());
   }
 
   @Test
   public void testLongMinValue() {
-    Roaring64NavigableMap map = new Roaring64NavigableMap();
+    Roaring64NavigableMap map = newSignedBuffered();
 
     map.addLong(Long.MIN_VALUE);
 
@@ -243,7 +296,7 @@ public class TestRoaring64NavigableMap {
 
   @Test
   public void testLongMinValueZeroOneMaxValue() {
-    Roaring64NavigableMap map = new Roaring64NavigableMap();
+    Roaring64NavigableMap map = newSignedBuffered();
 
     map.addLong(Long.MIN_VALUE);
     map.addLong(0);
@@ -614,6 +667,29 @@ public class TestRoaring64NavigableMap {
 
 
   @Test
+  public void testSerialization_Unordered() throws IOException, ClassNotFoundException {
+    final Roaring64NavigableMap map = new Roaring64NavigableMap(false);
+    map.addLong(123);
+
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+      oos.writeObject(map);
+    }
+
+    final Roaring64NavigableMap clone;
+    try (ObjectInputStream ois =
+        new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
+      clone = (Roaring64NavigableMap) ois.readObject();
+    }
+
+    // Check the test has not simply copied the ref
+    Assert.assertNotSame(map, clone);
+    Assert.assertEquals(1, clone.getLongCardinality());
+    Assert.assertEquals(123, clone.select(0));
+  }
+
+
+  @Test
   public void testSerialization_MultipleBuckets() throws IOException, ClassNotFoundException {
     final Roaring64NavigableMap map = new Roaring64NavigableMap();
     map.addLong(123);
@@ -720,8 +796,8 @@ public class TestRoaring64NavigableMap {
 
   @Test
   public void testOr_DifferentBucket_Buffer() {
-    Roaring64NavigableMap left = newBuffered();
-    Roaring64NavigableMap right = newBuffered();
+    Roaring64NavigableMap left = newSignedBuffered();
+    Roaring64NavigableMap right = newSignedBuffered();
 
     left.addLong(123);
     right.addLong(Long.MAX_VALUE);
@@ -736,8 +812,8 @@ public class TestRoaring64NavigableMap {
 
   @Test
   public void testOr_SameBucket_Buffer() {
-    Roaring64NavigableMap left = newBuffered();
-    Roaring64NavigableMap right = newBuffered();
+    Roaring64NavigableMap left = newSignedBuffered();
+    Roaring64NavigableMap right = newSignedBuffered();
 
     left.addLong(123);
     right.addLong(234);
@@ -790,21 +866,21 @@ public class TestRoaring64NavigableMap {
     Assert.assertEquals(345, left.select(1));
   }
 
-
-
   @Test
   public void testXor_Buffer() {
-    Roaring64NavigableMap left = newBuffered();
-    Roaring64NavigableMap right = newBuffered();
+    Roaring64NavigableMap left = newSignedBuffered();
+    Roaring64NavigableMap right = newSignedBuffered();
 
     left.addLong(123);
+    left.addLong(234);
     right.addLong(234);
+    right.addLong(345);
 
     left.xor(right);
 
     Assert.assertEquals(2, left.getLongCardinality());
     Assert.assertEquals(123, left.select(0));
-    Assert.assertEquals(234, left.select(1));
+    Assert.assertEquals(345, left.select(1));
   }
 
   @Test
@@ -859,8 +935,8 @@ public class TestRoaring64NavigableMap {
 
   @Test
   public void testAnd_Buffer() {
-    Roaring64NavigableMap left = newBuffered();
-    Roaring64NavigableMap right = newBuffered();
+    Roaring64NavigableMap left = newSignedBuffered();
+    Roaring64NavigableMap right = newSignedBuffered();
 
     left.addLong(123);
     right.addLong(123);
@@ -922,8 +998,8 @@ public class TestRoaring64NavigableMap {
 
   @Test
   public void testAndNot_Buffer() {
-    Roaring64NavigableMap left = newBuffered();
-    Roaring64NavigableMap right = newBuffered();
+    Roaring64NavigableMap left = newSignedBuffered();
+    Roaring64NavigableMap right = newSignedBuffered();
 
     left.addLong(123);
     right.addLong(234);
@@ -1002,7 +1078,7 @@ public class TestRoaring64NavigableMap {
 
   @Test
   public void testAddRange_SingleBucket_Buffer() {
-    Roaring64NavigableMap map = newBuffered();
+    Roaring64NavigableMap map = newSignedBuffered();
 
     map.add(5L, 12L);
     Assert.assertEquals(7L, map.getLongCardinality());
@@ -1219,7 +1295,7 @@ public class TestRoaring64NavigableMap {
 
   @Test
   public void testRunOptimize_Buffer() {
-    Roaring64NavigableMap map = newBuffered();
+    Roaring64NavigableMap map = newSignedBuffered();
 
     map.addLong(123);
     map.addLong(234);
@@ -1240,12 +1316,43 @@ public class TestRoaring64NavigableMap {
 
   @Test
   public void testFlip_Buffer() {
-    Roaring64NavigableMap map = newBuffered();
+    Roaring64NavigableMap map = newSignedBuffered();
 
     map.add(0);
     map.flip(0);
 
     Assert.assertFalse(map.contains(0));
+  }
+
+  // Ensure the ordering behavior with default constructors is the same between RoaringBitmap and
+  // Roaring64NavigableMap. Typically ensures longs are managed as unsigned longs
+  @Test
+  public void testDefaultBehaviorLikeRoaring() {
+    Roaring64NavigableMap longBitmap = new Roaring64NavigableMap();
+    RoaringBitmap bitmap = new RoaringBitmap();
+
+    longBitmap.add(-1);
+    bitmap.add(-1);
+
+    longBitmap.add(1);
+    bitmap.add(1);
+
+    int[] bitmapAsIntArray = bitmap.toArray();
+
+    long[] longBitmapAsArray = longBitmap.toArray();
+
+    // The array seems equivalent, but beware one represents unsigned integers while the others
+    // holds unsigned longs: -1 have a different meaning
+    Assert.assertArrayEquals(bitmapAsIntArray, Ints.toArray(Longs.asList(longBitmapAsArray)));
+    Assert.assertArrayEquals(Longs.toArray(Ints.asList(bitmapAsIntArray)), longBitmapAsArray);
+
+    long[] bitmapAsLongArray = new long[bitmapAsIntArray.length];
+    for (int i = 0; i < bitmapAsIntArray.length; i++) {
+      bitmapAsLongArray[i] = Util.toUnsignedLong(bitmapAsIntArray[i]);
+    }
+
+    // -1 as unsigned integer and as unsigned longs gives different behavior: OK
+    Assert.assertNotEquals(bitmapAsLongArray[1], longBitmapAsArray[1]);
   }
 
   @Test
@@ -1257,7 +1364,7 @@ public class TestRoaring64NavigableMap {
 
     long targetCardinality = 1000;
 
-    Roaring64NavigableMap map = newBuffered();
+    Roaring64NavigableMap map = newSignedBuffered();
 
     // Add a lot of items
     while (map.getIntCardinality() < targetCardinality) {
