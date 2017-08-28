@@ -29,6 +29,8 @@ import org.roaringbitmap.RoaringBitmapSupplier;
 import org.roaringbitmap.Util;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
+import com.google.common.annotations.VisibleForTesting;
+
 /**
  * Roaring64NavigableMap extends RoaringBitmap to the whole range of longs (or unsigned longs). It
  * enables a cardinality greater up to Long.MAX_VALUE
@@ -47,7 +49,7 @@ import org.roaringbitmap.buffer.MutableRoaringBitmap;
 public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProvider {
 
   // Not final to enable initialization in Externalizable.readObject
-  protected NavigableMap<Integer, BitmapDataProvider> highToBitmap;
+  private NavigableMap<Integer, BitmapDataProvider> highToBitmap;
 
   // If true, we handle longs a plain java longs: -1 if right before 0
   // If false, we handle longs as unsigned longs: 0 has no predecessor and Long.MAX_VALUE + 1L is
@@ -165,6 +167,24 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     sortedHighs = new int[0];
 
     latestAddedHigh = null;
+  }
+
+  // Package-friendly: for the sake of unit-testing
+  // @VisibleForTesting
+  NavigableMap<Integer, BitmapDataProvider> getHighToBitmap() {
+    return highToBitmap;
+  }
+
+  // Package-friendly: for the sake of unit-testing
+  // @VisibleForTesting
+  int getLowestInvalidHigh() {
+    return firstHighNotValid;
+  }
+
+  // Package-friendly: for the sake of unit-testing
+  // @VisibleForTesting
+  long[] getSortedCumulatedCardinality() {
+    return sortedCumulatedCardinality;
   }
 
   /**
@@ -535,12 +555,16 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         return insertionPosition;
       }
     } else {
+
       // For each deprecated buckets
       SortedMap<Integer, BitmapDataProvider> tailMap =
           highToBitmap.tailMap(firstHighNotValid, true);
 
       // TODO .size on tailMap make an iterator: arg
       int indexOk = highToBitmap.size() - tailMap.size();
+
+      // TODO: It should be possible to compute indexOk based on sortedHighs array
+      // assert indexOk == binarySearch(sortedHighs, firstHighNotValid);
 
       Iterator<Entry<Integer, BitmapDataProvider>> it = tailMap.entrySet().iterator();
       while (it.hasNext()) {
@@ -566,7 +590,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
       }
 
-      if (highToBitmap.isEmpty() || indexOk == highToBitmap.values().size()) {
+      if (highToBitmap.isEmpty() || indexOk == highToBitmap.size()) {
         // We have compute all cardinalities
         allValid = true;
       }
@@ -614,9 +638,8 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   }
 
   private void ensureOne(Map.Entry<Integer, BitmapDataProvider> e, int currentHigh, int indexOk) {
-
     // sortedHighs are valid only up to some index
-    assert indexOk <= sortedHighs.length;
+    assert indexOk <= sortedHighs.length : indexOk + " is bigger than " + sortedHighs.length;
 
     final int index;
     if (indexOk == 0) {
@@ -632,11 +655,13 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     } else {
       index = -sortedHighs.length - 1;
     }
-    assert index == binarySearch(sortedHighs, 0, indexOk, currentHigh);
+    assert index == binarySearch(sortedHighs, 0, indexOk, currentHigh) : "Computed " + index
+        + " differs from dummy binary-search index: "
+        + binarySearch(sortedHighs, 0, indexOk, currentHigh);
 
     if (index >= 0) {
       // This would mean calling .ensureOne is useless: should never got here at the first time
-      throw new IllegalStateException("Unexpectely found " + currentHigh + " in "
+      throw new IllegalStateException("Unexpectedly found " + currentHigh + " in "
           + Arrays.toString(sortedHighs) + " strictly before index" + indexOk);
     } else {
       int insertionPosition = -index - 1;
@@ -1347,7 +1372,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         }
       }
     }
-    
+
     invalidateAboveHigh(high);
   }
 }
