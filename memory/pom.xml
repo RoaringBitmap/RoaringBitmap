@@ -14,7 +14,6 @@
 
     <name>Memory benchmark : RoaringBitmap</name>
 
-
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
@@ -42,12 +41,12 @@
         <dependency>
             <groupId>org.roaringbitmap</groupId>
             <artifactId>RoaringBitmap</artifactId>
-            <version>0.6.51-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.roaringbitmap</groupId>
             <artifactId>real-roaring-dataset</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

@@ -13,10 +13,6 @@
 
     <name>JMH benchmark : RoaringBitmap</name>
 
-    <prerequisites>
-        <maven>3.0</maven>
-    </prerequisites>
-
     <dependencies>
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
@@ -24,15 +20,15 @@
             <version>${jmh.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.googlecode.javaewah</groupId>
-            <artifactId>JavaEWAH</artifactId>
-            <version>[1.0.8,)</version>
-        </dependency>
-        <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-generator-annprocess</artifactId>
             <version>${jmh.version}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.javaewah</groupId>
+            <artifactId>JavaEWAH</artifactId>
+            <version>[1.0.8,)</version>
         </dependency>
         <dependency>
             <groupId>it.uniroma3.mat</groupId>
@@ -42,8 +38,12 @@
         <dependency>
             <groupId>org.roaringbitmap</groupId>
             <artifactId>RoaringBitmap</artifactId>
-            <version>0.6.51-SNAPSHOT</version><!-- we use an open interval, 
-                hoping that we pick up the last version -->
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.roaringbitmap</groupId>
+            <artifactId>real-roaring-dataset</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -54,11 +54,6 @@
             <groupId>com.zaxxer</groupId>
             <artifactId>SparseBitSet</artifactId>
             <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.roaringbitmap</groupId>
-            <artifactId>real-roaring-dataset</artifactId>
-            <version>0.6.30-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>me.lemire.integercompression</groupId>
