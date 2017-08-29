@@ -1,10 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.roaringbitmap</groupId>
+    <parent>
+        <groupId>org.roaringbitmap</groupId>
+        <artifactId>RoaringBitmapParent</artifactId>
+        <version>0.6.51-SNAPSHOT</version>
+        <relativePath>../parent</relativePath>
+    </parent>
     <artifactId>jmh</artifactId>
-    <version>0.6.32-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>JMH benchmark : RoaringBitmap</name>
@@ -19,11 +23,11 @@
             <artifactId>jmh-core</artifactId>
             <version>${jmh.version}</version>
         </dependency>
-         <dependency>
-         <groupId>com.googlecode.javaewah</groupId>
-         <artifactId>JavaEWAH</artifactId>
-         <version>[1.0.8,)</version>
-         </dependency>
+        <dependency>
+            <groupId>com.googlecode.javaewah</groupId>
+            <artifactId>JavaEWAH</artifactId>
+            <version>[1.0.8,)</version>
+        </dependency>
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-generator-annprocess</artifactId>
@@ -38,7 +42,8 @@
         <dependency>
             <groupId>org.roaringbitmap</groupId>
             <artifactId>RoaringBitmap</artifactId>
-            <version>[0.6.35-SNAPSHOT,)</version><!-- we use an open interval, hoping that we pick up the last version -->
+            <version>0.6.51-SNAPSHOT</version><!-- we use an open interval, 
+                hoping that we pick up the last version -->
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -116,16 +121,14 @@
                             <finalName>${uberjar.name}</finalName>
                             <transformers>
                                 <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>org.openjdk.jmh.Main</mainClass>
                                 </transformer>
                             </transformers>
                             <filters>
                                 <filter>
-                                    <!--
-                                        Shading signed JARs will fail without this.
-                                        http://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
-                                    -->
+                                    <!-- Shading signed JARs will fail without 
+                                        this. http://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar -->
                                     <artifact>*:*</artifact>
                                     <excludes>
                                         <exclude>META-INF/*.SF</exclude>
