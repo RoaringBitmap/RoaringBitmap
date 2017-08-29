@@ -1,14 +1,17 @@
 // https://github.com/RoaringBitmap/RoaringBitmap/issues/161
 package org.roaringbitmap.equals;
 
-import org.openjdk.jmh.annotations.*;
-import org.roaringbitmap.*;
-import org.roaringbitmap.buffer.*;
-
-import java.io.*;
-import java.nio.*;
-import java.util.*;
 import java.util.concurrent.TimeUnit;
+
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.State;
+import org.roaringbitmap.ArrayContainer;
+import org.roaringbitmap.Container;
+import org.roaringbitmap.RunContainer;
 
 
 @State(Scope.Benchmark)

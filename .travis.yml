@@ -8,7 +8,7 @@ jdk:
 # we removed oraclejdk7 as per https://github.com/RoaringBitmap/RoaringBitmap/pull/176#issuecomment-322257170
 
 # Install silently to ensure all pom are installed and compilation is OK: actual checks will be processed by script:
-install: "mvn clean install --quiet -DskipTests -Dcheckstyle.skip -Dmaven.javadoc.skip=true -Dgpg.skip=true"
+install: "mvn -f parent/pom.xml clean install --quiet -DskipTests -Dcheckstyle.skip -Dmaven.javadoc.skip=true -Dgpg.skip=true"
 
 branches:
   only:

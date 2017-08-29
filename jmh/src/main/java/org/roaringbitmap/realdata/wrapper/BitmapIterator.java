@@ -2,8 +2,8 @@ package org.roaringbitmap.realdata.wrapper;
 
 public interface BitmapIterator {
 
-   boolean hasNext();
+  boolean hasNext();
 
-   int next();
+  int next();
 
 }

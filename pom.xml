@@ -14,11 +14,6 @@
   <description>Roaring bitmaps are compressed bitmaps (also called bitsets) which tend to outperform
      conventional compressed bitmaps such as WAH or Concise. </description>
   <packaging>bundle</packaging>
-  <properties>
-    <maven.compiler.source>1.7</maven.compiler.source>
-    <maven.compiler.target>1.7</maven.compiler.target>
-    <encoding>UTF-8</encoding>
-  </properties>
   <scm>
     <connection>scm:git:git@github.com:lemire/RoaringBitmap.git</connection>
     <url>scm:git:git@github.com:lemire/RoaringBitmap.git</url>
@@ -56,6 +51,9 @@
       <comments>A business-friendly OSS license</comments>
     </license>
   </licenses>
+  <properties>
+    <checkstyle.configLocation>${basedir}/style/roaring_google_checks.xml</checkstyle.configLocation>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -100,45 +98,6 @@
           <workspace>${basedir}</workspace>
           <workspaceCodeStylesURL>${basedir}/style/eclipse-java-google-style.xml</workspaceCodeStylesURL>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>2.17</version>
-        <dependencies>
-          <dependency>
-            <groupId>com.puppycrawl.tools</groupId>
-            <artifactId>checkstyle</artifactId>
-            <version>6.19</version>
-          </dependency>
-          <dependency>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-jxr-plugin</artifactId>
-            <version>2.5</version>
-          </dependency>
-        </dependencies>
-        <configuration>
-          <configLocation>${basedir}/style/roaring_google_checks.xml</configLocation>
-          <!--<configLocation>google_checks.xml</configLocation> -->
-          <includeTestSourceDirectory>false</includeTestSourceDirectory>
-          <consoleOutput>true</consoleOutput>
-          <logViolationsToConsole>true</logViolationsToConsole>
-          <failOnViolation>true</failOnViolation>
-          <maxAllowedViolations>0</maxAllowedViolations>
-          <violationSeverity>warning</violationSeverity>
-        </configuration>
-        <executions>
-          <execution>
-            <id>checkstyle-check</id>
-            <goals>
-              <goal>check</goal>
-            </goals>
-            <phase>test</phase>
-            <configuration>
-              <failOnViolation>true</failOnViolation>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>org.jacoco</groupId>
@@ -242,6 +201,7 @@
         </executions>
       </plugin>
       <plugin>
+        <!-- TODO: is this still relevant since it is overseeded by nexus-staging-maven-plugin? -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-deploy-plugin</artifactId>
         <version>2.8.2</version>
@@ -249,21 +209,6 @@
         <!--<dependencies> <dependency> <groupId>com.google.code.maven-svn-wagon</groupId> 
           <artifactId>maven-svn-wagon</artifactId> <version>2.10</version> </dependency> 
           </dependencies> -->
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.6.0</version>
-        <configuration>
-          <verbose>true</verbose>
-          <fork>true</fork>
-          <source>${maven.compiler.source}</source>
-          <target>${maven.compiler.target}</target>
-          <showDeprecation>true</showDeprecation>
-          <failOnError>true</failOnError>
-          <showWarnings>true</showWarnings>
-          <showDeprecation>true</showDeprecation>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

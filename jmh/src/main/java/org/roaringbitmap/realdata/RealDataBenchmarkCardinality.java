@@ -13,14 +13,14 @@ import org.roaringbitmap.realdata.wrapper.Bitmap;
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 public class RealDataBenchmarkCardinality {
 
-   @Benchmark
-   public long iterate(RealDataBenchmarkState bs) {
-      long total = 0;
-      for (int k = 0; k < bs.bitmaps.size(); ++k) {
-         Bitmap bitmap = bs.bitmaps.get(k);
-         
-         total += bitmap.cardinality();
-      }
-      return total;
-   }
+  @Benchmark
+  public long iterate(RealDataBenchmarkState bs) {
+    long total = 0;
+    for (int k = 0; k < bs.bitmaps.size(); ++k) {
+      Bitmap bitmap = bs.bitmaps.get(k);
+
+      total += bitmap.cardinality();
+    }
+    return total;
+  }
 }
