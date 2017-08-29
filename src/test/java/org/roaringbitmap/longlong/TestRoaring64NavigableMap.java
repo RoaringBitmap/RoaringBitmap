@@ -1303,6 +1303,16 @@ public class TestRoaring64NavigableMap {
     map.runOptimize();
   }
 
+  @Test
+  public void testFlip_LowerCardinality() {
+    final Roaring64NavigableMap r = newUnsignedHeap();
+    final long value = 1L;
+    r.add(value);
+    Assert.assertEquals(1, r.getLongCardinality());
+
+    r.flip(1);
+    Assert.assertEquals(0, r.getLongCardinality());
+  }
 
   @Test
   public void testFlip_NotBuffer() {

@@ -1347,5 +1347,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         }
       }
     }
+    
+    invalidateAboveHigh(high);
   }
 }
