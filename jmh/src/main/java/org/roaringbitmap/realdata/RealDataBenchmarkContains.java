@@ -32,7 +32,8 @@ public class RealDataBenchmarkContains {
       public BenchmarkState() {
       }
 
-      @Setup
+      @Override
+	@Setup
       public void setup() throws Exception {
          super.setup();
 

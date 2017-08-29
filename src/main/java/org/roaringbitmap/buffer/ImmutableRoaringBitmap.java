@@ -4,13 +4,20 @@
 
 package org.roaringbitmap.buffer;
 
-import org.roaringbitmap.*;
-
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+
+import org.roaringbitmap.ImmutableBitmapDataProvider;
+import org.roaringbitmap.IntConsumer;
+import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.PeekableIntIterator;
+import org.roaringbitmap.PeekableShortIterator;
+import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.ShortIterator;
+import org.roaringbitmap.Util;
 
 /**
  * ImmutableRoaringBitmap provides a compressed immutable (cannot be modified) bitmap. It is meant
@@ -1320,7 +1327,7 @@ public class ImmutableRoaringBitmap
    */
   @Override
   public int select(int j) {
-    long leftover = ((long) j) & 0xffffffffL;
+    long leftover = Util.toUnsignedLong(j);
     for (int i = 0; i < this.highLowContainer.size(); i++) {
       int thiscard = this.highLowContainer.getCardinality(i);
       if (thiscard > leftover) {

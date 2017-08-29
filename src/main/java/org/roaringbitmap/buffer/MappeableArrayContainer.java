@@ -1356,6 +1356,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
    *
    * @return the bitmap container
    */
+  @Override
   public MappeableBitmapContainer toBitmapContainer() {
     final MappeableBitmapContainer bc = new MappeableBitmapContainer();
     bc.loadData(this);
