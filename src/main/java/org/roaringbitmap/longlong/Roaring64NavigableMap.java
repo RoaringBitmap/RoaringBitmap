@@ -29,8 +29,6 @@ import org.roaringbitmap.RoaringBitmapSupplier;
 import org.roaringbitmap.Util;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
-import com.google.common.annotations.VisibleForTesting;
-
 /**
  * Roaring64NavigableMap extends RoaringBitmap to the whole range of longs (or unsigned longs). It
  * enables a cardinality greater up to Long.MAX_VALUE
