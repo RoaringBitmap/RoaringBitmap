@@ -251,7 +251,21 @@ to the same output however. The performance of the code in org.roaringbitmap pac
 generally superior because there is no overhead due to the use of ByteBuffer instances.
 
 
+64-bit integers (long)
+-----------------------
 
+Though Roaring Bitmaps were designed with the 32-bit case in mind, we have an extension to 64-bit integers:
+
+```
+      import org.roaringbitmap.longlong.*;
+      
+      LongBitmapDataProvider r = Roaring64NavigableMap.bitmapOf(1,2,100,1000);
+      r.addLong(1234);
+      System.out.println(r.contains(1)); // true
+      System.out.println(r.contains(3)); // false
+      LongIterator i = r.getLongIterator();
+      while(i.hasNext()) System.out.println(i.next());
+```
 
 Prerequisites
 -------------
@@ -350,7 +364,7 @@ If this is typical of your application, you might consider using a HashSet or
 a simple sorted array.
 
 2. You have dense set of small random values that never form runs of continuous
-values. For example, consider the set 0,2,4,...,10000. If this is typical of your 
+values. For example, consider the set 0,2,4,...,10000. If this is typical of your
 application, you might be better served with a conventional bitset (e.g., Java's BitSet class).
 
 

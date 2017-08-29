@@ -2,6 +2,9 @@ cd .. && mvn -Dcheckstyle.skip=true -Dmaven.test.skip=true -Dmaven.javadoc.skip=
 echo "Basic"
 javac -cp "../target/*" Basic.java && java -cp ../target/*:. Basic
 echo
+echo "Bitmap64"
+javac -cp "../target/*" Bitmap64.java && java -cp ../target/*:. Bitmap64
+echo
 echo "Running CompressionResults"
 javac -cp "../target/*" CompressionResults.java && java -cp ../target/*:. CompressionResults
 echo
