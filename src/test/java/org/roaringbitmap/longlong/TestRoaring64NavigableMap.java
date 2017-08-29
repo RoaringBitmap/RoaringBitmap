@@ -166,7 +166,7 @@ public class TestRoaring64NavigableMap {
     Roaring64NavigableMap map = newSignedBuffered();
 
     // Use BitmapProvider.add instead of .addLong
-    map.add(0);
+    map.addLong(0);
 
     {
       LongIterator iterator = map.getLongIterator();
@@ -421,7 +421,7 @@ public class TestRoaring64NavigableMap {
     Assert.assertEquals(1L, map.getLongCardinality());
 
     // Remove it
-    map.remove(123L);
+    map.removeLong(123L);
     Assert.assertEquals(0L, map.getLongCardinality());
     Assert.assertTrue(map.isEmpty());
 
@@ -439,7 +439,7 @@ public class TestRoaring64NavigableMap {
     Assert.assertEquals(1L, map.getLongCardinality());
 
     // Remove it
-    map.remove(123L);
+    map.removeLong(123L);
     Assert.assertEquals(0L, map.getLongCardinality());
     Assert.assertTrue(map.isEmpty());
 
@@ -458,13 +458,13 @@ public class TestRoaring64NavigableMap {
     Assert.assertEquals(2L, map.getLongCardinality());
 
     // Remove biggest
-    map.remove(Long.MAX_VALUE);
+    map.removeLong(Long.MAX_VALUE);
     Assert.assertEquals(1L, map.getLongCardinality());
 
     Assert.assertEquals(123L, map.select(0));
 
     // Add back to different bucket
-    map.add(Long.MAX_VALUE);
+    map.addLong(Long.MAX_VALUE);
     Assert.assertEquals(2L, map.getLongCardinality());
 
     Assert.assertEquals(123L, map.select(0));
@@ -481,13 +481,13 @@ public class TestRoaring64NavigableMap {
     Assert.assertEquals(2L, map.getLongCardinality());
 
     // Remove biggest
-    map.remove(Long.MAX_VALUE);
+    map.removeLong(Long.MAX_VALUE);
     Assert.assertEquals(1L, map.getLongCardinality());
 
     Assert.assertEquals(123L, map.select(0));
 
     // Add back to different bucket
-    map.add(Long.MAX_VALUE / 2L);
+    map.addLong(Long.MAX_VALUE / 2L);
     Assert.assertEquals(2L, map.getLongCardinality());
 
     Assert.assertEquals(123L, map.select(0));
@@ -504,13 +504,13 @@ public class TestRoaring64NavigableMap {
     Assert.assertEquals(2L, map.getLongCardinality());
 
     // Remove biggest
-    map.remove(Long.MAX_VALUE / 2L);
+    map.removeLong(Long.MAX_VALUE / 2L);
     Assert.assertEquals(1L, map.getLongCardinality());
 
     Assert.assertEquals(123L, map.select(0));
 
     // Add back to different bucket
-    map.add(Long.MAX_VALUE);
+    map.addLong(Long.MAX_VALUE);
     Assert.assertEquals(2L, map.getLongCardinality());
 
     Assert.assertEquals(123L, map.select(0));
@@ -1346,7 +1346,7 @@ public class TestRoaring64NavigableMap {
   public void testFlipBackward() {
     final Roaring64NavigableMap r = newUnsignedHeap();
     final long value = 1L;
-    r.add(value);
+    r.addLong(value);
     Assert.assertEquals(1, r.getLongCardinality());
 
     r.flip(1);
@@ -1357,7 +1357,7 @@ public class TestRoaring64NavigableMap {
   public void testFlip_NotBuffer() {
     Roaring64NavigableMap map = newUnsignedHeap();
 
-    map.add(0);
+    map.addLong(0);
     map.flip(0);
 
     Assert.assertFalse(map.contains(0));
@@ -1369,7 +1369,7 @@ public class TestRoaring64NavigableMap {
   public void testFlip_Buffer() {
     Roaring64NavigableMap map = newSignedBuffered();
 
-    map.add(0);
+    map.addLong(0);
     map.flip(0);
 
     Assert.assertFalse(map.contains(0));
@@ -1382,10 +1382,10 @@ public class TestRoaring64NavigableMap {
     Roaring64NavigableMap longBitmap = newDefaultCtor();
     RoaringBitmap bitmap = new RoaringBitmap();
 
-    longBitmap.add(-1);
+    longBitmap.addLong(-1);
     bitmap.add(-1);
 
-    longBitmap.add(1);
+    longBitmap.addLong(1);
     bitmap.add(1);
 
     int[] bitmapAsIntArray = bitmap.toArray();
@@ -1409,7 +1409,7 @@ public class TestRoaring64NavigableMap {
     Roaring64NavigableMap longBitmap = newDefaultCtor();
     RoaringBitmap bitmap = new RoaringBitmap();
 
-    longBitmap.add(-1);
+    longBitmap.addLong(-1);
     bitmap.add(-1);
 
     // Ok as -1 === -1
@@ -1433,7 +1433,7 @@ public class TestRoaring64NavigableMap {
 
     // Add a lot of items
     while (map.getIntCardinality() < targetCardinality) {
-      map.add(r.nextLong() % max);
+      map.addLong(r.nextLong() % max);
     }
 
     // Remove them by chunks
@@ -1441,7 +1441,7 @@ public class TestRoaring64NavigableMap {
     for (int j = 0; j < chunks; j++) {
       long chunksSize = targetCardinality / chunks;
       for (int i = 0; i < chunksSize; i++) {
-        map.remove(map.select(r.nextInt(map.getIntCardinality())));
+        map.removeLong(map.select(r.nextInt(map.getIntCardinality())));
       }
       Assert.assertEquals(targetCardinality - chunksSize * (j + 1), map.getIntCardinality());
     }

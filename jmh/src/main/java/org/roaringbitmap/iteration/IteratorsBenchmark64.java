@@ -149,11 +149,11 @@ public class IteratorsBenchmark64 {
 
 			bitmap_b = new Roaring64NavigableMap();
 			for (int k = 0; k < (1 << 30); k += 32)
-				bitmap_b.add(k);
+				bitmap_b.addLong(k);
 
 			bitmap_c = new Roaring64NavigableMap();
 			for (int k = 0; k < (1 << 30); k += 3)
-				bitmap_c.add(k);
+				bitmap_c.addLong(k);
 
 		}
 

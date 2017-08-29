@@ -194,6 +194,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    *
    * @param x long value
    */
+  @Override
   public void addLong(long x) {
     int high = high(x);
     int low = low(x);
@@ -218,7 +219,8 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   }
 
   /**
-   * Add the value to the container (set the value to "true"), whether it already appears or not.
+   * Add the integer value to the container (set the value to "true"), whether it already appears or
+   * not.
    *
    * Javac lacks native unsigned integers but the x argument is considered to be unsigned. Within
    * bitmaps, numbers are ordered according to {@link Integer#compareUnsigned}. We order the numbers
@@ -1292,12 +1294,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   }
 
   @Override
-  public void add(long x) {
-    addLong(x);
-  }
-
-  @Override
-  public void remove(long x) {
+  public void removeLong(long x) {
     int high = high(x);
 
     BitmapDataProvider bitmap = highToBitmap.get(high);

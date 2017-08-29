@@ -14,14 +14,14 @@ public interface LongBitmapDataProvider extends ImmutableLongBitmapDataProvider 
    *
    * @param x long value
    */
-  public void add(long x);
+  public void addLong(long x);
 
   /**
    * If present remove the specified integers (effectively, sets its bit value to false)
    *
    * @param x long value representing the index in a bitmap
    */
-  public void remove(long x);
+  public void removeLong(long x);
 
 
   /**
