@@ -24,8 +24,8 @@ script: >
           mvn javadoc:test-javadoc && 
           mvn animal-sniffer:check && 
           mvn checkstyle:check && 
-          mvn test jacoco:report -Dcheckstyle.skip=true -Dmaven.javadoc.skip=true -Dgpg.skip=true && 
-          mvn -f real-roaring-dataset/pom.xml -Dcheckstyle.skip=true test && 
+          mvn -f ./roaringbitmap/pom.xml test jacoco:report -Dcheckstyle.skip=true -Dmaven.javadoc.skip=true -Dgpg.skip=true && 
+          mvn -f ./real-roaring-dataset/pom.xml test -Dcheckstyle.skip=true && 
           mvn -f ./jmh/pom.xml test -Dcheckstyle.skip=true -DBITMAP_TYPES=ROARING_ONLY
 
 after_success:
