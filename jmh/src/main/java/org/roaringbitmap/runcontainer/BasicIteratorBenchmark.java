@@ -1,62 +1,70 @@
 package org.roaringbitmap.runcontainer;
 
-import org.openjdk.jmh.annotations.*;
-import org.roaringbitmap.*;
-
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.State;
+import org.roaringbitmap.ArrayContainer;
+import org.roaringbitmap.Container;
+import org.roaringbitmap.RunContainer;
+import org.roaringbitmap.ShortIterator;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 
 public class BasicIteratorBenchmark {
 
-	@Benchmark
-	public int iteratorRunContainer(BenchmarkState benchmarkState) {
-		if(benchmarkState.rc2.serializedSizeInBytes() > benchmarkState.ac2.serializedSizeInBytes())
-			throw new RuntimeException("Can't expect run containers to win if they are larger.");
-		ShortIterator si = benchmarkState.rc2.getShortIterator();
-		int answer = 0;
-		while (si.hasNext())
-			answer += si.next() & 0xFFFF;
-		return answer;
-	}
-	
-	@Benchmark
-	public int iteratorBitmapContainer(BenchmarkState benchmarkState) {
-		ShortIterator si = benchmarkState.ac2.getShortIterator();
-		int answer = 0;
-		while (si.hasNext())
-			answer += si.next() & 0xFFFF;
-		return answer;
-	}
-	   
-    @State(Scope.Benchmark)
-    public static class BenchmarkState {        
-	   public int bitsetperword2 = 63;
+  @Benchmark
+  public int iteratorRunContainer(BenchmarkState benchmarkState) {
+    if (benchmarkState.rc2.serializedSizeInBytes() > benchmarkState.ac2.serializedSizeInBytes())
+      throw new RuntimeException("Can't expect run containers to win if they are larger.");
+    ShortIterator si = benchmarkState.rc2.getShortIterator();
+    int answer = 0;
+    while (si.hasNext())
+      answer += si.next() & 0xFFFF;
+    return answer;
+  }
 
-       Container  rc2, ac2;
-       Random rand = new Random();
+  @Benchmark
+  public int iteratorBitmapContainer(BenchmarkState benchmarkState) {
+    ShortIterator si = benchmarkState.ac2.getShortIterator();
+    int answer = 0;
+    while (si.hasNext())
+      answer += si.next() & 0xFFFF;
+    return answer;
+  }
 
-       public BenchmarkState() {
-      	 final int max = 1<<16;
-      	 final int howmanywords = ( 1 << 16 ) / 64;
-      	 int[] values2 = RandomUtil.generateUniformHash(rand,bitsetperword2 * howmanywords, max);
-      	 
+  @State(Scope.Benchmark)
+  public static class BenchmarkState {
+    public int bitsetperword2 = 63;
 
-    	 
-    	 rc2 = new RunContainer();
-    	 rc2 = RandomUtil.fillMeUp(rc2, values2);
-    	 
-    	 
-    	 ac2 = new ArrayContainer();
-    	 ac2 = RandomUtil.fillMeUp(ac2, values2);
+    Container rc2, ac2;
+    Random rand = new Random();
+
+    public BenchmarkState() {
+      final int max = 1 << 16;
+      final int howmanywords = (1 << 16) / 64;
+      int[] values2 = RandomUtil.generateUniformHash(rand, bitsetperword2 * howmanywords, max);
 
 
-    	 if( !rc2.equals(ac2)) 
-    		 throw new RuntimeException("second containers do not match");
 
-       }
+      rc2 = new RunContainer();
+      rc2 = RandomUtil.fillMeUp(rc2, values2);
+
+
+      ac2 = new ArrayContainer();
+      ac2 = RandomUtil.fillMeUp(ac2, values2);
+
+
+      if (!rc2.equals(ac2))
+        throw new RuntimeException("second containers do not match");
+
     }
+  }
 
 }

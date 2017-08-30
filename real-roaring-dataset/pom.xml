@@ -1,32 +1,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.roaringbitmap</groupId>
+    <parent>
+        <groupId>org.roaringbitmap</groupId>
+        <artifactId>RoaringBitmapParent</artifactId>
+        <version>0.6.52-SNAPSHOT</version>
+        <relativePath>../parent</relativePath>
+    </parent>
+
     <artifactId>real-roaring-dataset</artifactId>
-    <version>0.6.30-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Real Roaring Dataset</name>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <javac.target>1.7</javac.target>
-    </properties>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.6.0</version>
-                <configuration>
-                    <compilerVersion>${javac.target}</compilerVersion>
-                    <source>${javac.target}</source>
-                    <target>${javac.target}</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
 </project>

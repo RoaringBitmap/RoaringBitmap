@@ -1,18 +1,19 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.roaringbitmap</groupId>
+
+  <parent>
+    <groupId>org.roaringbitmap</groupId>
+    <artifactId>RoaringBitmapParent</artifactId>
+    <version>0.6.52-SNAPSHOT</version>
+    <relativePath>parent</relativePath>
+  </parent>
   <artifactId>RoaringBitmap</artifactId>
-  <version>0.6.52-SNAPSHOT</version>
   <name>RoaringBitmap</name>
   <url>https://github.com/lemire/RoaringBitmap</url>
   <description>Roaring bitmaps are compressed bitmaps (also called bitsets) which tend to outperform
      conventional compressed bitmaps such as WAH or Concise. </description>
   <packaging>bundle</packaging>
-  <properties>
-    <maven.compiler.source>1.7</maven.compiler.source>
-    <maven.compiler.target>1.7</maven.compiler.target>
-    <encoding>UTF-8</encoding>
-  </properties>
   <scm>
     <connection>scm:git:git@github.com:lemire/RoaringBitmap.git</connection>
     <url>scm:git:git@github.com:lemire/RoaringBitmap.git</url>
@@ -50,6 +51,9 @@
       <comments>A business-friendly OSS license</comments>
     </license>
   </licenses>
+  <properties>
+    <checkstyle.configLocation>${basedir}/style/roaring_google_checks.xml</checkstyle.configLocation>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -70,13 +74,22 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  <parent>
-    <groupId>org.sonatype.oss</groupId>
-    <artifactId>oss-parent</artifactId>
-    <version>5</version>
-  </parent>
   <build>
     <plugins>
+      <!-- https://github.com/sonatype/nexus-maven-plugins/tree/master/staging/maven-plugin -->
+      <!-- http://www.sonatype.org/nexus/2014/10/08/distribute-project-artifacts-in-maven-central-with-nexus-oss/ -->
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <!-- https://mvnrepository.com/artifact/org.sonatype.plugins/nexus-staging-maven-plugin -->
+        <version>1.6.8</version>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>true</autoReleaseAfterClose>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-eclipse-plugin</artifactId>
@@ -85,45 +98,6 @@
           <workspace>${basedir}</workspace>
           <workspaceCodeStylesURL>${basedir}/style/eclipse-java-google-style.xml</workspaceCodeStylesURL>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>2.17</version>
-        <dependencies>
-          <dependency>
-            <groupId>com.puppycrawl.tools</groupId>
-            <artifactId>checkstyle</artifactId>
-            <version>6.19</version>
-          </dependency>
-          <dependency>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-jxr-plugin</artifactId>
-            <version>2.5</version>
-          </dependency>
-        </dependencies>
-        <configuration>
-          <configLocation>${basedir}/style/roaring_google_checks.xml</configLocation>
-          <!--<configLocation>google_checks.xml</configLocation>-->
-          <includeTestSourceDirectory>false</includeTestSourceDirectory>
-          <consoleOutput>true</consoleOutput>
-          <logViolationsToConsole>true</logViolationsToConsole>
-          <failOnViolation>true</failOnViolation>
-          <maxAllowedViolations>0</maxAllowedViolations>
-          <violationSeverity>warning</violationSeverity>
-        </configuration>
-        <executions>
-          <execution>
-            <id>checkstyle-check</id>
-            <goals>
-              <goal>check</goal>
-            </goals>
-            <phase>test</phase>
-            <configuration>
-              <failOnViolation>true</failOnViolation>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>org.jacoco</groupId>
@@ -227,32 +201,14 @@
         </executions>
       </plugin>
       <plugin>
+        <!-- TODO: is this still relevant since it is overseeded by nexus-staging-maven-plugin? -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-deploy-plugin</artifactId>
         <version>2.8.2</version>
         <!-- why can't maven-deploy-plugin figure out its own dependencies? -->
-        <!--<dependencies>
-          <dependency>
-            <groupId>com.google.code.maven-svn-wagon</groupId>
-            <artifactId>maven-svn-wagon</artifactId>
-            <version>2.10</version>
-          </dependency>
-        </dependencies>-->
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.6.0</version>
-        <configuration>
-          <verbose>true</verbose>
-          <fork>true</fork>
-          <source>${maven.compiler.source}</source>
-          <target>${maven.compiler.target}</target>
-          <showDeprecation>true</showDeprecation>
-          <failOnError>true</failOnError>
-          <showWarnings>true</showWarnings>
-          <showDeprecation>true</showDeprecation>
-        </configuration>
+        <!--<dependencies> <dependency> <groupId>com.google.code.maven-svn-wagon</groupId> 
+          <artifactId>maven-svn-wagon</artifactId> <version>2.10</version> </dependency> 
+          </dependencies> -->
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -286,4 +242,4 @@
       </plugin>
     </plugins>
   </reporting>
-  </project>
+</project>

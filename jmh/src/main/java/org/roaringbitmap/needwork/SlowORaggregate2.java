@@ -19,40 +19,38 @@ import org.roaringbitmap.ZipRealDataRetriever;
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 public class SlowORaggregate2 {
 
-    @Benchmark
-    public RoaringBitmap RoaringWithRun(BenchmarkState benchmarkState) {
-        RoaringBitmap answer = RoaringBitmap.or(benchmarkState.rc.iterator());
-        return answer;
-    }    
+  @Benchmark
+  public RoaringBitmap RoaringWithRun(BenchmarkState benchmarkState) {
+    RoaringBitmap answer = RoaringBitmap.or(benchmarkState.rc.iterator());
+    return answer;
+  }
 
 
-    
-    @State(Scope.Benchmark)
-    public static class BenchmarkState {
-        @Param ({// putting the data sets in alpha. order
-             "census1881_srt",
-        })
-        String dataset;
+
+  @State(Scope.Benchmark)
+  public static class BenchmarkState {
+    @Param({// putting the data sets in alpha. order
+        "census1881_srt",})
+    String dataset;
 
 
-        ArrayList<RoaringBitmap> rc = new ArrayList<RoaringBitmap>();
+    ArrayList<RoaringBitmap> rc = new ArrayList<RoaringBitmap>();
 
-        public BenchmarkState() {
-        }
-                
-        @Setup
-        public void setup() throws Exception {
-            ZipRealDataRetriever dataRetriever = new ZipRealDataRetriever(dataset);
-            System.out.println();
-            System.out.println("Loading files from " + dataRetriever.getName());
+    public BenchmarkState() {}
 
-            for (int[] data : dataRetriever.fetchBitPositions()) {
-                RoaringBitmap basic = RoaringBitmap.bitmapOf(data);
-                basic.runOptimize();
-                rc.add(basic);
-            }
-            System.out.println("loaded "+rc.size()+" bitmaps");
-        }
+    @Setup
+    public void setup() throws Exception {
+      ZipRealDataRetriever dataRetriever = new ZipRealDataRetriever(dataset);
+      System.out.println();
+      System.out.println("Loading files from " + dataRetriever.getName());
 
+      for (int[] data : dataRetriever.fetchBitPositions()) {
+        RoaringBitmap basic = RoaringBitmap.bitmapOf(data);
+        basic.runOptimize();
+        rc.add(basic);
+      }
+      System.out.println("loaded " + rc.size() + " bitmaps");
     }
+
+  }
 }

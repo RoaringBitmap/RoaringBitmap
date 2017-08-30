@@ -1076,8 +1076,6 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   /**
    * Use a run-length encoding where it is estimated as more space efficient
    * 
-   * @return
-   *
    * @return whether a change was applied
    */
   public boolean runOptimize() {

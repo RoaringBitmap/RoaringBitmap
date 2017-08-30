@@ -1,0 +1,89 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.roaringbitmap</groupId>
+    <artifactId>RoaringBitmapParent</artifactId>
+    <version>0.6.52-SNAPSHOT</version>
+
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>..</module>
+        <module>../jmh</module>
+        <module>../memory</module>
+        <module>../real-roaring-dataset</module>
+    </modules>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <javac.target>1.7</javac.target>
+
+        <!-- This location is OK for all sub-modules, but the main/parent 
+            RoaringBitmap main module -->
+        <checkstyle.configLocation>${basedir}/../style/roaring_google_checks.xml</checkstyle.configLocation>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.0</version>
+                <configuration>
+                    <compilerVersion>${javac.target}</compilerVersion>
+                    <source>${javac.target}</source>
+                    <target>${javac.target}</target>
+                    <verbose>true</verbose>
+                    <fork>true</fork>
+                    <showDeprecation>true</showDeprecation>
+                    <failOnError>true</failOnError>
+                    <showWarnings>true</showWarnings>
+                    <showDeprecation>true</showDeprecation>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>2.17</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>6.19</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jxr-plugin</artifactId>
+                        <version>2.5</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <configLocation>${checkstyle.configLocation}</configLocation>
+                    <!--<configLocation>google_checks.xml</configLocation> -->
+                    <includeTestSourceDirectory>false</includeTestSourceDirectory>
+                    <consoleOutput>true</consoleOutput>
+                    <logViolationsToConsole>true</logViolationsToConsole>
+                    <failOnViolation>true</failOnViolation>
+                    <maxAllowedViolations>0</maxAllowedViolations>
+                    <violationSeverity>warning</violationSeverity>
+                    <!-- Exclude JMH generated sources -->
+                    <!-- Seems not-working (https://stackoverflow.com/questions/2362652/excluding-classes-in-maven-checkstyle-plugin-reports) -->
+                    <!-- <excludes>**/generated-sources/**/*</excludes> -->
+                    <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>checkstyle-check</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>test</phase>
+                        <configuration>
+                            <failOnViolation>true</failOnViolation>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
