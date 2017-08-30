@@ -23,6 +23,13 @@
         <checkstyle.configLocation>${basedir}/../style/roaring_google_checks.xml</checkstyle.configLocation>
     </properties>
 
+    <scm>
+        <connection>scm:git:git@github.com:RoaringBitmap/RoaringBitmap.git</connection>
+        <url>scm:git:git@github.com:RoaringBitmap/RoaringBitmap.git</url>
+        <developerConnection>scm:git:git@github.com:RoaringBitmap/RoaringBitmap.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
     <build>
         <plugins>
             <plugin>
