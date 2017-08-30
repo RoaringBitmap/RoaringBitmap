@@ -14,6 +14,10 @@
     <name>Memory benchmark : RoaringBitmap</name>
 
     <properties>
+        <!-- Only RoaringBitmap jar is deployed -->
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
+        
         <checkstyle.configLocation>${basedir}/../roaringbitmap/style/roaring_google_checks.xml</checkstyle.configLocation>
     </properties>
     

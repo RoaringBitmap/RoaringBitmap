@@ -73,6 +73,10 @@
     </dependencies>
 
     <properties>
+        <!-- Only RoaringBitmap jar is deployed -->
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
+    
         <jmh.version>1.17</jmh.version>
         <uberjar.name>benchmarks</uberjar.name>
 
