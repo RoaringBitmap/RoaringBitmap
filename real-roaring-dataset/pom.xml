@@ -6,11 +6,14 @@
         <groupId>org.roaringbitmap</groupId>
         <artifactId>RoaringBitmapParent</artifactId>
         <version>0.6.52-SNAPSHOT</version>
-        <relativePath>../parent</relativePath>
     </parent>
 
     <artifactId>real-roaring-dataset</artifactId>
     <packaging>jar</packaging>
 
     <name>Real Roaring Dataset</name>
+    
+    <properties>
+        <checkstyle.configLocation>${basedir}/../roaringbitmap/style/roaring_google_checks.xml</checkstyle.configLocation>
+    </properties>
 </project>
