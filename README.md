@@ -22,6 +22,8 @@ Roaring bitmaps are found to work well in many important applications:
 
 This library is used by
 *   [Apache Spark](http://spark.apache.org/),
+*   [Apache Hive](http://hive.apache.org),
+*   [Apache Tez](http://tez.apache.org),
 *   [Apache Kylin](http://kylin.io),
 *   [Netflix Atlas](https://github.com/Netflix/atlas),
 *   [OpenSearchServer](http://www.opensearchserver.com),
