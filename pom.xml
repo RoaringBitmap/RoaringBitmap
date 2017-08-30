@@ -14,12 +14,6 @@
   <description>Roaring bitmaps are compressed bitmaps (also called bitsets) which tend to outperform
      conventional compressed bitmaps such as WAH or Concise. </description>
   <packaging>bundle</packaging>
-  <scm>
-    <connection>scm:git:git@github.com:lemire/RoaringBitmap.git</connection>
-    <url>scm:git:git@github.com:lemire/RoaringBitmap.git</url>
-    <developerConnection>scm:git:git@github.com:lemire/RoaringBitmap.git</developerConnection>
-    <tag>RoaringBitmap-0.5.20</tag>
-  </scm>
   <developers>
     <developer>
       <id>lemire</id>
@@ -222,13 +216,6 @@
               <mainClass>theMainClass</mainClass>
             </manifest>
           </archive>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-release-plugin</artifactId>
-        <version>2.5.3</version>
-        <configuration>
-          <goals>deploy</goals>
         </configuration>
       </plugin>
     </plugins>
