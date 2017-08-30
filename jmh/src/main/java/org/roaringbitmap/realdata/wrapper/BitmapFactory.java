@@ -1,6 +1,7 @@
 package org.roaringbitmap.realdata.wrapper;
 
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -29,8 +30,6 @@ public final class BitmapFactory {
   public static final String ROARING_WITH_RUN = "roaring_with_run";
   public static final String ROARING_ONLY = "ROARING_ONLY";
   public static final String BITMAP_TYPES = "BITMAP_TYPES";
-
-  private static final List<File> TEMP_FILES = new ArrayList<File>();
 
   private BitmapFactory() {}
 
@@ -123,24 +122,12 @@ public final class BitmapFactory {
 
 
   private static ByteBuffer toByteBuffer(Bitmap bitmap) throws Exception {
-    File file = File.createTempFile("bitmap", "bin");
-    file.deleteOnExit();
-    TEMP_FILES.add(file);
-    FileOutputStream fos = new FileOutputStream(file);
-    DataOutputStream dos = new DataOutputStream(fos);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    DataOutputStream dos = new DataOutputStream(baos);
     bitmap.serialize(dos);
-    long size = fos.getChannel().position();
-    dos.close();
-    final RandomAccessFile memoryMappedFile = new RandomAccessFile(file, "r");
-    ByteBuffer bb = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, size);
-    memoryMappedFile.close();
-    return bb;
+    return ByteBuffer.wrap(baos.toByteArray());
   }
 
-  public static void cleanup() {
-    for (File tempFile : TEMP_FILES) {
-      tempFile.delete();
-    }
-  }
+  public static void cleanup() {}
 
 }
