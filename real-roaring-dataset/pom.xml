@@ -20,13 +20,4 @@
 
         <checkstyle.configLocation>${basedir}/../roaringbitmap/style/roaring_google_checks.xml</checkstyle.configLocation>
     </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <!-- 21 relies on for Java8 -->
-            <version>20.0</version>
-        </dependency>
-    </dependencies>
 </project>
