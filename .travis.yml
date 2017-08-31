@@ -26,7 +26,8 @@ script: >
           mvn checkstyle:check && 
           mvn -f ./roaringbitmap/pom.xml test jacoco:report -Dcheckstyle.skip=true -Dmaven.javadoc.skip=true -Dgpg.skip=true && 
           mvn -f ./real-roaring-dataset/pom.xml test -Dcheckstyle.skip=true && 
-          mvn -f ./jmh/pom.xml test -Dcheckstyle.skip=true -DBITMAP_TYPES=ROARING_ONLY
+          mvn -f ./jmh/pom.xml test -Dcheckstyle.skip=true -DBITMAP_TYPES=ROARING_ONLY &&
+	  mvn -f ./memory/pom.xml test -Dcheckstyle.skip=true
 
 after_success:
   - mvn coveralls:report

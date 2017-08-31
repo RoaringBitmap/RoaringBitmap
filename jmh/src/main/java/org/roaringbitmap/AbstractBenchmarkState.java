@@ -24,20 +24,30 @@ import static org.roaringbitmap.realdata.wrapper.BitmapFactory.newWahBitmap;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.roaringbitmap.realdata.wrapper.Bitmap;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Lists;
+
 @State(Scope.Benchmark)
 public abstract class AbstractBenchmarkState {
 
   public List<Bitmap> bitmaps;
 
+  // All tests relying on the same dataset should be run consecutively: the cache will maintain in
+  // memory the associated int arrays
+  private static final Cache<String, List<int[]>> DATASET_CACHE =
+      CacheBuilder.newBuilder().maximumSize(1).build();
+
   public AbstractBenchmarkState() {}
 
-  public void setup(String dataset, String type, boolean immutable) throws Exception {
+  public void setup(final String dataset, String type, boolean immutable) throws Exception {
     if (ROARING_ONLY.equals(System.getProperty(BITMAP_TYPES)) && !ROARING.equals(type)
         && !ROARING_WITH_RUN.equals(type)) {
       throw new RuntimeException(String.format("Skipping non Roaring type %s", type));
@@ -45,10 +55,19 @@ public abstract class AbstractBenchmarkState {
 
     bitmaps = new ArrayList<Bitmap>();
 
-    ZipRealDataRetriever dataRetriever = new ZipRealDataRetriever(dataset);
+    List<int[]> ints = DATASET_CACHE.get(dataset, new Callable<List<int[]>>() {
 
-    for (int[] data : dataRetriever.fetchBitPositions()) {
+      @Override
+      public List<int[]> call() throws Exception {
+        System.out.println("Loading" + dataset);
+        ZipRealDataRetriever dataRetriever = new ZipRealDataRetriever(dataset);
 
+        return Lists.newArrayList(dataRetriever.fetchBitPositions());
+      }
+    });
+
+
+    for (int[] data : ints) {
       Bitmap bitmap = null;
 
       if (CONCISE.equals(type)) {

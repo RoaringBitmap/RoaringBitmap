@@ -25,15 +25,6 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.sourceforge.sizeof</groupId>
-            <artifactId>sizeof</artifactId>
-            <version>0.3</version>
-            <scope>system</scope>
-            <systemPath>${basedir}/lib/SizeOf.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>it.uniroma3.mat</groupId>
@@ -55,23 +46,13 @@
             <artifactId>real-roaring-dataset</artifactId>
             <version>${project.version}</version>
         </dependency>
+        
+        <dependency>
+		    <groupId>org.ehcache</groupId>
+		    <artifactId>sizeof</artifactId>
+		    <version>0.3.0</version>
+		</dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.19.1</version>
-                <configuration>
-                    <includes>
-                        <include>**/*Benchmark.java</include>
-                    </includes>
-                    <argLine>-javaagent:${basedir}/lib/SizeOf.jar</argLine>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 
     <repositories>
         <repository>

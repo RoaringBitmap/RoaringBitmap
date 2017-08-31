@@ -50,15 +50,18 @@ public abstract class RealDataBenchmarkSanityTest {
   public static final Boolean[] BITMAP_IMMUTABILITY = {false, true};
 
 
+  // Ensure all tests related to the same dataset are run consecutively in order to take advantage
+  // of any cache
   @SuppressWarnings("unchecked")
   @Parameterized.Parameters(name = "dataset={0}, type={1}, immutable={2}")
   public static Collection<Object[]> params() {
-    Set params = Sets.cartesianProduct(Sets.newLinkedHashSet(FluentIterable.of(REAL_DATA_SETS)),
-        Sets.newLinkedHashSet(FluentIterable.of(BITMAP_TYPES)),
-        Sets.newLinkedHashSet(FluentIterable.of(BITMAP_IMMUTABILITY)));
-    return FluentIterable.from(params).transform(new Function<List, Object[]>() {
+    Set<? extends List<?>> params =
+        Sets.cartesianProduct(Sets.newLinkedHashSet(FluentIterable.of(REAL_DATA_SETS)),
+            Sets.newLinkedHashSet(FluentIterable.of(BITMAP_TYPES)),
+            Sets.newLinkedHashSet(FluentIterable.of(BITMAP_IMMUTABILITY)));
+    return FluentIterable.from(params).transform(new Function<List<?>, Object[]>() {
       @Override
-      public Object[] apply(List list) {
+      public Object[] apply(List<?> list) {
         return list.toArray(new Object[] {list.size()});
       }
     }).toList();
