@@ -369,8 +369,10 @@ a simple sorted array.
 values. For example, consider the set 0,2,4,...,10000. If this is typical of your
 application, you might be better served with a conventional bitset (e.g., Java's BitSet class).
 
+* How do I select an element at random?
 
-
+         Random random = new Random();
+         bitmap.select(random.nextInt(bitmal.getCardinality()));
 
 
 Benchmark
