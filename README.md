@@ -28,6 +28,7 @@ This library is used by
 *   [Netflix Atlas](https://github.com/Netflix/atlas),
 *   [OpenSearchServer](http://www.opensearchserver.com),
 *   [zenvisage](http://zenvisage.github.io/),
+*   [Jive Miru](https://github.com/jivesoftware/miru),
 *   [LinkedIn Pinot](https://github.com/linkedin/pinot/wiki) and
 *   [Druid](http://druid.io/).
 
@@ -39,7 +40,7 @@ Other platforms such as [Whoosh](https://pypi.python.org/pypi/Whoosh/), [Microso
 There is a serialized format specification for interoperability between implementations: https://github.com/RoaringBitmap/RoaringFormatSpec/
 
 
-(c) 2013-2016 the RoaringBitmap authors
+(c) 2013-2017 the RoaringBitmap authors
 
 
 This code is licensed under Apache License, Version 2.0 (ASL2.0).
