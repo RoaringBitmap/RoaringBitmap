@@ -1349,6 +1349,7 @@ public class ImmutableRoaringBitmap
    * @return the first (smallest) integer
    * @throws NoSuchElementException if empty
    */
+  @Override
   public int first() {
     return highLowContainer.first();
   }
@@ -1359,6 +1360,7 @@ public class ImmutableRoaringBitmap
    * @return the last (largest) integer
    * @throws NoSuchElementException if empty
    */
+  @Override
   public int last() {
     return highLowContainer.last();
   }

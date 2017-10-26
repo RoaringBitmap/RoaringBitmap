@@ -6,6 +6,7 @@ package org.roaringbitmap;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.NoSuchElementException;
 
 /**
  * Interface representing an immutable bitmap.
@@ -129,6 +130,22 @@ public interface ImmutableBitmapDataProvider {
    * @return the value
    */
   public int select(int j);
+
+  /**
+   * Get the first (smallest) integer in this RoaringBitmap,
+   * that is, returns the minimum of the set.
+   * @return the first (smallest) integer
+   * @throws NoSuchElementException if empty
+   */
+  public int first();
+
+  /**
+   * Get the last (largest) integer in this RoaringBitmap,
+   * that is, returns the maximum of the set.
+   * @return the last (largest) integer
+   * @throws NoSuchElementException if empty
+   */
+  public int last();
 
   /**
    * Serialize this bitmap.
