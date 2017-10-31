@@ -29,6 +29,7 @@ This library is used by
 *   [OpenSearchServer](http://www.opensearchserver.com),
 *   [zenvisage](http://zenvisage.github.io/),
 *   [Jive Miru](https://github.com/jivesoftware/miru),
+*   [Tablesaw](https://github.com/jtablesaw/tablesaw),
 *   [LinkedIn Pinot](https://github.com/linkedin/pinot/wiki) and
 *   [Druid](http://druid.io/).
 
