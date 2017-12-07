@@ -19,6 +19,10 @@ import java.util.Arrays;
  *
  */
 public class FastRankRoaringBitmap extends RoaringBitmap {
+  // Used to mark highToCumulatedCardinality as being dismissed: its cardinalities have to be
+  // recomputed
+  private static final int DISMISSED_MARKER = -1;
+
   // The cache of cardinalities: it maps the index of the underlying bucket to the cumulated
   // cardinalities (i.e. the sum of current bucket cardinalities plus all previous bucklet
   // cardinalities)
@@ -26,7 +30,15 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
 
   private void resetCache() {
     // Reset the cache on any write operation
-    highToCumulatedCardinality = null;
+    if (highToCumulatedCardinality != null && highToCumulatedCardinality.length >= 1) {
+      // We tag the first bucket to indicate the cache is dismissed
+      highToCumulatedCardinality[0] = DISMISSED_MARKER;
+    }
+  }
+
+  // VisibleForTesting
+  boolean isCacheDismissed() {
+    return highToCumulatedCardinality == null || highToCumulatedCardinality[0] == DISMISSED_MARKER;
   }
 
   @Override
@@ -134,12 +146,38 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
     super.xor(x2);
   }
 
+  /**
+   * On any .rank or .select operation, we pre-compute all cumulated cardinalities. It will enable
+   * using a binary-search to spot the relevant underlying bucket. We may prefer to cache
+   * cardinality only up-to the selected rank, but it would lead to a much more complex
+   * implementation
+   */
+  private void preComputeCardinalities() {
+    int nbBuckets = highLowContainer.size();
+    if (highToCumulatedCardinality == null || highToCumulatedCardinality.length != nbBuckets) {
+      highToCumulatedCardinality = new int[nbBuckets];
+
+      if (highToCumulatedCardinality.length >= 1) {
+        highToCumulatedCardinality[0] = DISMISSED_MARKER;
+      }
+    }
+
+    if (highToCumulatedCardinality.length >= 1
+        && highToCumulatedCardinality[0] == DISMISSED_MARKER) {
+      highToCumulatedCardinality[0] = highLowContainer.getContainerAtIndex(0).getCardinality();
+
+      for (int i = 1; i < highToCumulatedCardinality.length; i++) {
+        highToCumulatedCardinality[i] = highToCumulatedCardinality[i - 1]
+            + highLowContainer.getContainerAtIndex(i).getCardinality();
+      }
+    }
+  }
 
   @Override
   public long rankLong(int x) {
     preComputeCardinalities();
 
-    if (highToCumulatedCardinality.length == 0) {
+    if (highLowContainer.size() == 0) {
       return 0L;
     }
 
@@ -172,31 +210,11 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
     return rank;
   }
 
-  /**
-   * On any .rank or .select operation, we pre-compute all cumulated cardinalities. It will enable
-   * using a binary-search to spot the relevant underlying bucket
-   */
-  private void preComputeCardinalities() {
-    if (highToCumulatedCardinality == null) {
-      highToCumulatedCardinality = new int[highLowContainer.size()];
-
-      if (highToCumulatedCardinality.length == 0) {
-        return;
-      }
-      highToCumulatedCardinality[0] = highLowContainer.getContainerAtIndex(0).getCardinality();
-
-      for (int i = 1; i < highToCumulatedCardinality.length; i++) {
-        highToCumulatedCardinality[i] = highToCumulatedCardinality[i - 1]
-            + highLowContainer.getContainerAtIndex(i).getCardinality();
-      }
-    }
-  }
-
   @Override
   public int select(int j) {
     preComputeCardinalities();
 
-    if (highToCumulatedCardinality.length == 0) {
+    if (highLowContainer.size() == 0) {
       // empty: .select is out-of-bounds
 
       throw new IllegalArgumentException(
