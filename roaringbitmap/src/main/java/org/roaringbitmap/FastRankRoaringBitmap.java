@@ -26,7 +26,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
 
   private void resetCache() {
     // Reset the cache on any write operation
-    // highToCumulatedCardinality = null;
+    highToCumulatedCardinality = null;
   }
 
   @Override
@@ -167,7 +167,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
     }
 
     // TODO Should we keep the assertion?
-    assert rank == super.rankLong(x);
+    // assert rank == super.rankLong(x);
 
     return rank;
   }
@@ -210,8 +210,10 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
     long leftover = Util.toUnsignedLong(j);
 
     if (index == highToCumulatedCardinality.length - 1) {
+      // We select the total cardinality: we are selecting the last element
       return this.last();
     } else if (index >= 0) {
+      // We selected a cumulated cardinality: we are selecting the last element of given bucket
       int keycontrib = this.highLowContainer.getKeyAtIndex(index + 1) << 16;
 
       // If first bucket has cardinality 1 and we select 1: we actual select the first item of
@@ -219,10 +221,12 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
       int output = keycontrib + this.highLowContainer.getContainerAtIndex(index + 1).first();
 
       // TODO Should we keep the assertion?
-      assert output == super.select(j);
+      // assert output == super.select(j);
 
       return output;
     } else {
+      // We selected a cardinality not matching exactly the cumulated cardinalities: we are not
+      // selected the last element of a bucket
       fixedIndex = -1 - index;
       if (fixedIndex > 0) {
         leftover -= highToCumulatedCardinality[fixedIndex - 1];
@@ -235,11 +239,8 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
     int value = lowcontrib + keycontrib;
 
     // TODO Should we keep the assertion?
-    assert value == super.select(j);
+    // assert value == super.select(j);
 
     return value;
-
-    // throw new IllegalArgumentException("select " + j + " when the cardinality is " +
-    // this.getCardinality());
   }
 }
