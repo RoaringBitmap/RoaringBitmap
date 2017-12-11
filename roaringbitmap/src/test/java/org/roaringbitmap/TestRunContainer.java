@@ -3296,4 +3296,10 @@ public class TestRunContainer {
     assertFalse(rc.equals(ac));
     assertFalse(ac.equals(rc));
   }
+
+  @Test
+  public void testEquals_FullRunContainerWithArrayContainer() {
+    Container full = new RunContainer().add(0, 1 << 16);
+    Assert.assertNotEquals(full, new ArrayContainer().add(0, 10));
+  }
 }
