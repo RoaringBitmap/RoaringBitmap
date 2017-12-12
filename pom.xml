@@ -9,10 +9,21 @@
 
     <modules>
         <module>roaringbitmap</module>
-        <module>jmh</module>
+        <!-- <module>jmh</module> --> <!-- jmh testing can take hours and make release fail. -->
         <module>memory</module>
         <module>real-roaring-dataset</module>
     </modules>
+    <profiles>
+        <profile>
+          <id>ci</id>
+          <modules>
+            <module>roaringbitmap</module>
+            <module>jmh</module> 
+            <module>memory</module>
+            <module>real-roaring-dataset</module>
+          </modules>
+        </profile>
+    </profiles>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
