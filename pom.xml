@@ -39,7 +39,12 @@
         <developerConnection>scm:git:git@github.com:RoaringBitmap/RoaringBitmap.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
-
+<distributionManagement>
+  <snapshotRepository>
+    <id>ossrh</id>
+    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+  </snapshotRepository>
+</distributionManagement>
     <build>
         <plugins>
             <plugin>
