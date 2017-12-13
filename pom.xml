@@ -3,14 +3,14 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.roaringbitmap</groupId>
     <artifactId>RoaringBitmapParent</artifactId>
-    <version>0.6.52-SNAPSHOT</version>
+    <version>0.6.53</version>
 
     <packaging>pom</packaging>
 
     <modules>
         <module>roaringbitmap</module>
         <!-- <module>jmh</module> --> <!-- jmh testing can take hours and make release fail. -->
-        <module>memory</module>
+        <!-- <module>memory</module> --> <!-- unnecessary -->
         <module>real-roaring-dataset</module>
     </modules>
     <profiles>
@@ -18,10 +18,57 @@
           <id>ci</id>
           <modules>
             <module>roaringbitmap</module>
-            <module>jmh</module> 
+            <module>jmh</module>
             <module>memory</module>
             <module>real-roaring-dataset</module>
           </modules>
+        </profile>
+        <profile>
+          <id>release</id>
+          <build>
+            <plugins>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-javadoc-plugin</artifactId>
+                  <version>2.10.4</version>
+                  <executions>
+                      <execution>
+                          <id>attach-javadocs</id>
+                          <goals>
+                              <goal>jar</goal>
+                          </goals>
+                      </execution>
+                  </executions>
+              </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+          </plugins>
+          </build>
         </profile>
     </profiles>
 
@@ -44,6 +91,25 @@
     <id>ossrh</id>
     <url>https://oss.sonatype.org/content/repositories/snapshots</url>
   </snapshotRepository>
+  <repository>
+    <id>ossrh</id>
+    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+  </repository>
+<!--
+The settings.xml file should contain:
+
+<settings>
+  <servers>
+    <server>
+      <id>ossrh</id>
+      <username>your-jira-id</username>
+      <password>your-jira-pwd</password>
+    </server>
+  </servers>
+</settings>
+
+
+-->
 </distributionManagement>
     <build>
         <plugins>
@@ -177,46 +243,6 @@
                         <phase>test</phase>
                         <goals>
                             <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.6</version>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.4</version>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>3.0.1</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
                         </goals>
                     </execution>
                 </executions>
