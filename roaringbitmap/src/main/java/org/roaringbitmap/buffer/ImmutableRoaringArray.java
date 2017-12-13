@@ -156,16 +156,6 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
   }
 
 
-  // retired method (inefficient)
-  // involves a binary search
-  /*@Override
-  public MappeableContainer getContainer(short x) {
-    final int i = unsignedBinarySearch(x);
-    if (i < 0) {
-      return null;
-    }
-    return getContainerAtIndex(i);
-  }*/
 
   @Override 
   public int getContainerIndex(short x) {
@@ -402,36 +392,6 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
   }
 
-  // starts with binary search and finishes with a sequential search
-  /*private int hybridUnsignedBinarySearch(final short k) {
-    int low = 0;
-    int high = this.size - 1;
-    final int ikey = BufferUtil.toIntUnsigned(k);
-    // 32 in the next line matches the size of a cache line
-    while (low + 16 <= high) {
-      final int middleIndex = (low + high) >>> 1;
-      final int middleValue = getKey(middleIndex);
-      if (middleValue < ikey) {
-        low = middleIndex + 1;
-      } else if (middleValue > ikey) {
-        high = middleIndex - 1;
-      } else {
-        return middleIndex;
-      }
-    }
-    // we finish the job with a sequential search
-    int x = low;
-    for (; x <= high; ++x) {
-      final int val = getKey(x);
-      if (val >= ikey) {
-        if (val == ikey) {
-          return x;
-        }
-        break;
-      }
-    }
-    return -(x + 1);
-  }*/
 
   /**
    * Returns true if this bitmap is empty.
