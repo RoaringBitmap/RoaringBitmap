@@ -19,26 +19,23 @@ import java.util.Arrays;
  *
  */
 public class FastRankRoaringBitmap extends RoaringBitmap {
-  // Used to mark highToCumulatedCardinality as being dismissed: its cardinalities have to be
-  // recomputed
-  private static final int DISMISSED_MARKER = -1;
-
   // The cache of cardinalities: it maps the index of the underlying bucket to the cumulated
   // cardinalities (i.e. the sum of current bucket cardinalities plus all previous bucklet
   // cardinalities)
+  private boolean cumulatedCardinalitiesCacheIsValid = false;
   private int[] highToCumulatedCardinality = null;
 
   private void resetCache() {
     // Reset the cache on any write operation
     if (highToCumulatedCardinality != null && highToCumulatedCardinality.length >= 1) {
       // We tag the first bucket to indicate the cache is dismissed
-      highToCumulatedCardinality[0] = DISMISSED_MARKER;
+      cumulatedCardinalitiesCacheIsValid = false;
     }
   }
 
   // VisibleForTesting
   boolean isCacheDismissed() {
-    return highToCumulatedCardinality == null || highToCumulatedCardinality[0] == DISMISSED_MARKER;
+    return !cumulatedCardinalitiesCacheIsValid;
   }
 
   @Override
@@ -149,27 +146,29 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
   /**
    * On any .rank or .select operation, we pre-compute all cumulated cardinalities. It will enable
    * using a binary-search to spot the relevant underlying bucket. We may prefer to cache
-   * cardinality only up-to the selected rank, but it would lead to a much more complex
-   * implementation
+   * cardinality only up-to the selected rank, but it would lead to a more complex implementation
    */
   private void preComputeCardinalities() {
-    int nbBuckets = highLowContainer.size();
-    if (highToCumulatedCardinality == null || highToCumulatedCardinality.length != nbBuckets) {
-      highToCumulatedCardinality = new int[nbBuckets];
+    if (!cumulatedCardinalitiesCacheIsValid) {
+      int nbBuckets = highLowContainer.size();
 
+      // Ensure the cache size is the right one
+      if (highToCumulatedCardinality == null || highToCumulatedCardinality.length != nbBuckets) {
+        highToCumulatedCardinality = new int[nbBuckets];
+      }
+
+      // Ensure the cache content is valid
       if (highToCumulatedCardinality.length >= 1) {
-        highToCumulatedCardinality[0] = DISMISSED_MARKER;
-      }
-    }
+        // As we compute the cumulated cardinalities, the first index is an edge case
+        highToCumulatedCardinality[0] = highLowContainer.getContainerAtIndex(0).getCardinality();
 
-    if (highToCumulatedCardinality.length >= 1
-        && highToCumulatedCardinality[0] == DISMISSED_MARKER) {
-      highToCumulatedCardinality[0] = highLowContainer.getContainerAtIndex(0).getCardinality();
-
-      for (int i = 1; i < highToCumulatedCardinality.length; i++) {
-        highToCumulatedCardinality[i] = highToCumulatedCardinality[i - 1]
-            + highLowContainer.getContainerAtIndex(i).getCardinality();
+        for (int i = 1; i < highToCumulatedCardinality.length; i++) {
+          highToCumulatedCardinality[i] = highToCumulatedCardinality[i - 1]
+              + highLowContainer.getContainerAtIndex(i).getCardinality();
+        }
       }
+
+      cumulatedCardinalitiesCacheIsValid = true;
     }
   }
 
