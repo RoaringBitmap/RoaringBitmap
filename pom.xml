@@ -9,9 +9,9 @@
 
     <modules>
         <module>roaringbitmap</module>
+        <module>real-roaring-dataset</module>
         <module>jmh</module>
         <module>memory</module>
-        <module>real-roaring-dataset</module>
     </modules>
     <profiles>
         <profile>
