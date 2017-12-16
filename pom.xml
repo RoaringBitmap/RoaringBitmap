@@ -16,6 +16,12 @@
     <profiles>
         <profile>
             <id>release</id>
+            <activation>
+                <property>
+                    <name>env</name>
+                    <value>${release.activation.value}</value>
+                </property>
+            </activation>
             <build>
                 <plugins>
                     <plugin>
@@ -43,6 +49,7 @@
 
         <!-- This location is OK for main module but not sub-modules -->
         <checkstyle.configLocation>${basedir}/roaringbitmap/style/roaring_google_checks.xml</checkstyle.configLocation>
+        <release.activation.value>release</release.activation.value>
     </properties>
 
     <scm>
@@ -156,7 +163,7 @@ The settings.xml file should contain:
                                 Also using the -P... in args for the prepare phase
                             -->
                             <releaseProfiles>release</releaseProfiles>
-                            <arguments>-Prelease</arguments>
+                            <arguments>-Denv=${release.activation.value}</arguments>
                         </configuration>
                     </execution>
                 </executions>
