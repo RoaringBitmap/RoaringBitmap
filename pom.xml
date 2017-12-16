@@ -9,66 +9,31 @@
 
     <modules>
         <module>roaringbitmap</module>
-        <!-- <module>jmh</module> --> <!-- jmh testing can take hours and make release fail. -->
-        <!-- <module>memory</module> --> <!-- unnecessary -->
+        <module>jmh</module>
+        <module>memory</module>
         <module>real-roaring-dataset</module>
     </modules>
     <profiles>
         <profile>
-          <id>ci</id>
-          <modules>
-            <module>roaringbitmap</module>
-            <module>jmh</module>
-            <module>memory</module>
-            <module>real-roaring-dataset</module>
-          </modules>
-        </profile>
-        <profile>
-          <id>release</id>
-          <build>
-            <plugins>
-              <plugin>
-                  <groupId>org.apache.maven.plugins</groupId>
-                  <artifactId>maven-javadoc-plugin</artifactId>
-                  <version>2.10.4</version>
-                  <executions>
-                      <execution>
-                          <id>attach-javadocs</id>
-                          <goals>
-                              <goal>jar</goal>
-                          </goals>
-                      </execution>
-                  </executions>
-              </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.6</version>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>3.0.1</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-          </plugins>
-          </build>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 
@@ -184,6 +149,12 @@ The settings.xml file should contain:
 
                             <!-- https://stackoverflow.com/questions/10694139/maven-3-0s-mvn-releaseperform-doesnt-like-a-pom-xml-that-isnt-in-its-git-r -->
                             <!-- <pomFileName>parent/pom.xml</pomFileName> -->
+                            <!--
+                                Activate the appropriate profiles during the release phase
+                                See https://maven.apache.org/maven-release/maven-release-plugin/examples/perform-release.html
+                                for details
+                            -->
+                            <releaseProfiles>release</releaseProfiles>
                         </configuration>
                     </execution>
                 </executions>
