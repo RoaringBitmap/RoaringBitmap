@@ -13,6 +13,7 @@
         <module>jmh</module>
         <module>memory</module>
     </modules>
+
     <profiles>
         <profile>
             <id>release</id>
@@ -152,9 +153,11 @@ The settings.xml file should contain:
                             <!--
                                 Activate the appropriate profiles during the release phase
                                 See https://maven.apache.org/maven-release/maven-release-plugin/examples/perform-release.html
-                                for details
+                                for details.
+                                Also using the -P... in args for the prepare phase
                             -->
                             <releaseProfiles>release</releaseProfiles>
+                            <arguments>-P release</arguments>
                         </configuration>
                     </execution>
                 </executions>
