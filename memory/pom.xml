@@ -64,12 +64,6 @@
     <profiles>
         <profile>
             <id>release</id>
-            <activation>
-                <property>
-                    <name>env</name>
-                    <value>${release.activation.value}</value>
-                </property>
-            </activation>
             <properties>
                 <skipTests>true</skipTests>
             </properties>

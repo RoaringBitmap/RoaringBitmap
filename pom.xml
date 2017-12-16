@@ -16,12 +16,6 @@
     <profiles>
         <profile>
             <id>release</id>
-            <activation>
-                <property>
-                    <name>env</name>
-                    <value>${release.activation.value}</value>
-                </property>
-            </activation>
             <build>
                 <plugins>
                     <plugin>
@@ -153,17 +147,6 @@ The settings.xml file should contain:
                         <id>default</id>
                         <configuration>
                             <goals>deploy</goals>
-
-                            <!-- https://stackoverflow.com/questions/10694139/maven-3-0s-mvn-releaseperform-doesnt-like-a-pom-xml-that-isnt-in-its-git-r -->
-                            <!-- <pomFileName>parent/pom.xml</pomFileName> -->
-                            <!--
-                                Activate the appropriate profiles during the release phase
-                                See https://maven.apache.org/maven-release/maven-release-plugin/examples/perform-release.html
-                                for details.
-                                Also using the -P... in args for the prepare phase
-                            -->
-                            <releaseProfiles>release</releaseProfiles>
-                            <arguments>-Denv=${release.activation.value}</arguments>
                         </configuration>
                     </execution>
                 </executions>
