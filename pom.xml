@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.roaringbitmap</groupId>
     <artifactId>RoaringBitmapParent</artifactId>
-    <version>0.6.53</version>
+    <version>0.6.54-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
