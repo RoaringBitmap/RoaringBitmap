@@ -1,9 +1,8 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.roaringbitmap</groupId>
     <artifactId>RoaringBitmapParent</artifactId>
-    <version>0.6.54-SNAPSHOT</version>
+    <version>0.6.54</version>
 
     <packaging>pom</packaging>
 
@@ -50,7 +49,7 @@
         <connection>scm:git:git@github.com:RoaringBitmap/RoaringBitmap.git</connection>
         <url>scm:git:git@github.com:RoaringBitmap/RoaringBitmap.git</url>
         <developerConnection>scm:git:git@github.com:RoaringBitmap/RoaringBitmap.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>RoaringBitmapParent-0.6.54</tag>
     </scm>
 <distributionManagement>
   <snapshotRepository>
@@ -157,7 +156,7 @@ The settings.xml file should contain:
                                 Also using the -P... in args for the prepare phase
                             -->
                             <releaseProfiles>release</releaseProfiles>
-                            <arguments>-P release</arguments>
+                            <arguments>-Prelease</arguments>
                         </configuration>
                     </execution>
                 </executions>
