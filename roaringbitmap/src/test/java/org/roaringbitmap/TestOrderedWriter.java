@@ -33,4 +33,13 @@ public class TestOrderedWriter {
     writer.add(1 << 18);
     Assert.assertTrue(bitmap.contains(1 << 17));
   }
+
+  @Test(expected = IllegalStateException.class)
+  public void shouldThrowIfSameKeyIsWrittenToAfterManualFlush() {
+    OrderedWriter writer = new OrderedWriter(new RoaringBitmap());
+    writer.add(0);
+    writer.flush();
+    writer.add(1);
+    writer.flush();
+  }
 }

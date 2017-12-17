@@ -41,7 +41,15 @@ public class OrderedWriter {
   public void flush() {
     if (dirty) {
       int cardinality = computeCardinality();
-      underlying.highLowContainer.append(currentKey, chooseBestContainer(cardinality));
+      RoaringArray highLowContainer = underlying.highLowContainer;
+      // we check that it's safe to append since RoaringArray.append does no validation
+      if (highLowContainer.size > 0) {
+        short key = highLowContainer.getKeyAtIndex(highLowContainer.size - 1);
+        if (Util.compareUnsigned(currentKey, key) <= 0) {
+          throw new IllegalStateException("Cannot write " + currentKey + " after " + key);
+        }
+      }
+      highLowContainer.append(currentKey, chooseBestContainer(cardinality));
       clearBitmap();
       dirty = false;
     }
