@@ -4,6 +4,8 @@
 
 package org.roaringbitmap;
 
+import java.util.Arrays;
+
 /**
  * Various useful methods for roaring bitmaps.
  */
@@ -984,6 +986,33 @@ public final class Util {
   // Duplicated from jdk8 Integer.toUnsignedLong
   public static long toUnsignedLong(int x) {
     return ((long) x) & 0xffffffffL;
+  }
+
+  /**
+   * Sorts the data by the 16 bit prefix.
+   * @param data - the data
+   */
+  public static void partialRadixSort(int[] data) {
+    final int radix = 8;
+    int shift = 16;
+    int mask = 0xFF0000;
+    int[] copy = new int[data.length];
+    int[] histogram = new int[(1 << radix) + 1];
+    while (shift < 32) {
+      for (int i = 0; i < data.length; ++i) {
+        ++histogram[((data[i] & mask) >>> shift) + 1];
+      }
+      for (int i = 0; i < 1 << radix; ++i) {
+        histogram[i + 1] += histogram[i];
+      }
+      for (int i = 0; i < data.length; ++i) {
+        copy[histogram[(data[i] & mask) >>> shift]++] = data[i];
+      }
+      System.arraycopy(copy, 0, data, 0, data.length);
+      shift += radix;
+      mask <<= radix;
+      Arrays.fill(histogram, 0);
+    }
   }
 
   /**

@@ -3,6 +3,8 @@ package org.roaringbitmap;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
+
 public class TestUtil {
 
     @Test
@@ -35,5 +37,47 @@ public class TestUtil {
         Assert.assertTrue(Util.compareUnsigned((short)2, (short)-32333) < 0);
         Assert.assertTrue(Util.compareUnsigned((short)0,(short)0) ==0);
 
+    }
+
+    @Test
+    public void testPartialRadixSortEmpty() {
+        int[] data = new int[] {};
+        int[] test = Arrays.copyOf(data, data.length);
+        Util.partialRadixSort(test);
+        Assert.assertArrayEquals(data, test);
+    }
+
+    @Test
+    public void testPartialRadixSortIsStableInSameKey() {
+        int[] data = new int[] {25, 1, 0, 10};
+        int[] test = Arrays.copyOf(data, data.length);
+        Util.partialRadixSort(test);
+        Assert.assertArrayEquals(data, test);
+    }
+
+    @Test
+    public void testPartialRadixSortSortsKeysCorrectly() {
+        int key1 = 1 << 16;
+        int key2 = 1 << 17;
+        int[] data = new int[] {key2 | 25, key1 | 1, 0, key2 | 10, 25, key1 | 10, key1, 10};
+        // sort by keys, leave values stable
+        int[] expected = new int[] {0, 25, 10, key1 | 1, key1 | 10, key1, key2 | 25, key2 | 10};
+        int[] test = Arrays.copyOf(data, data.length);
+        Util.partialRadixSort(test);
+        Assert.assertArrayEquals(expected, test);
+    }
+
+    @Test
+    public void testPartialRadixSortSortsKeysCorrectlyWithDuplicates() {
+        int key1 = 1 << 16;
+        int key2 = 1 << 17;
+        int[] data = new int[] {key2 | 25, key1 | 1, 0, key2 | 10, 25, key1 | 10, key1, 10,
+                                key2 | 25, key1 | 1, 0, key2 | 10, 25, key1 | 10, key1, 10};
+        // sort by keys, leave values stable
+        int[] expected = new int[] {0, 25, 10, 0, 25, 10, key1 | 1, key1 | 10,  key1, key1 | 1, key1 | 10,  key1,
+                                    key2 | 25, key2 | 10, key2 | 25, key2 | 10};
+        int[] test = Arrays.copyOf(data, data.length);
+        Util.partialRadixSort(test);
+        Assert.assertArrayEquals(expected, test);
     }
 }
