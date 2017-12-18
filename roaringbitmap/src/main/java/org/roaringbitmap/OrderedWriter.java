@@ -23,10 +23,10 @@ public class OrderedWriter {
   public void add(int value) {
     short key = Util.highbits(value);
     short low = Util.lowbits(value);
-    if (Util.compareUnsigned(key, currentKey) < 0) {
-      throw new IllegalStateException("Must write in ascending key order");
-    }
     if (key != currentKey) {
+      if (Util.compareUnsigned(key, currentKey) < 0) {
+        throw new IllegalStateException("Must write in ascending key order");
+      }
       flush();
     }
     int ulow = low & 0xFFFF;
@@ -72,11 +72,11 @@ public class OrderedWriter {
     int arrIndex = 0;
     for (int i = 0; i < bitmap.length; ++i) {
       long word = bitmap[i];
-      for (int j = Long.numberOfTrailingZeros(word); j < 64; j = Long.numberOfTrailingZeros(word)) {
-        if ((word & (1L << j)) != 0) {
-          word ^= (1L << j);
-          array[arrIndex++] = (short) ((i << 6) + j);
-        }
+      int j = Long.numberOfTrailingZeros(word);
+      while (j < 64) {
+        word ^= (1L << j);
+        array[arrIndex++] = (short) ((i << 6) + j);
+        j = Long.numberOfTrailingZeros(word);
       }
     }
     return new ArrayContainer(cardinality, array);
