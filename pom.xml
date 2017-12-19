@@ -15,6 +15,32 @@
     <profiles>
         <profile>
             <id>release</id>
+            <properties>
+                <!-- Used by surefire: it shall enables faster tests on JMH module -->
+                <argLine>-DBITMAP_TYPES=ROARING_ONLY</argLine>
+            </properties>
+
+            <distributionManagement>
+                <!-- http://central.sonatype.org/pages/apache-maven.html -->
+                <!-- The settings.xml file should contain: -->
+                <!-- <settings> -->
+                <!-- <servers> -->
+                <!-- <server> -->
+                <!-- <id>sonatype-nexus-staging</id> -->
+                <!-- <username>your-jira-id</username> -->
+                <!-- <password>your-jira-pwd</password> -->
+                <!-- </server> -->
+                <!-- </servers> -->
+                <!-- </settings> -->
+                <snapshotRepository>
+                    <id>sonatype-nexus-staging</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                </snapshotRepository>
+                <repository>
+                    <id>sonatype-nexus-staging</id>
+                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                </repository>
+            </distributionManagement>
             <build>
                 <plugins>
                     <plugin>
@@ -50,36 +76,6 @@
         <developerConnection>scm:git:git@github.com:RoaringBitmap/RoaringBitmap.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
-<!--
-The settings.xml file should contain:
-
-<settings>
-  <servers>
-    <server>
-      <id>ossrh</id>
-      <username>your-jira-id</username>
-      <password>your-jira-pwd</password>
-    </server>
-  </servers>
-</settings>
-
-
--->
-<!--<distributionManagement>
-  <snapshotRepository>
-    <id>ossrh</id>
-    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-  </snapshotRepository>
-  <repository>
-    <id>ossrh</id>
-    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-  </repository>
-</distributionManagement>-->
-  <parent>
-    <groupId>org.sonatype.oss</groupId>
-    <artifactId>oss-parent</artifactId>
-    <version>9</version>
-  </parent>
     <build>
         <plugins>
             <plugin>
@@ -146,9 +142,10 @@ The settings.xml file should contain:
                 <artifactId>maven-release-plugin</artifactId>
                 <version>2.5.3</version>
                 <configuration>
-                    <goals>deploy</goals>
-                    <releaseProfiles>release</releaseProfiles>
-                    <arguments>-Prelease</arguments>
+                    <!-- These profiles are used only for release:perform, not release:prepare -->
+                    <releaseProfiles>release,releasePerform</releaseProfiles>
+                    <!-- Force -Prelease also for release:prepare, and keep ${arguments} for user input arguments -->
+                    <arguments>-Prelease ${arguments}</arguments>
                     <tagNameFormat>RoaringBitmap-@{project.version}</tagNameFormat>
                 </configuration>
             </plugin>
@@ -157,18 +154,17 @@ The settings.xml file should contain:
             <!-- http://www.sonatype.org/nexus/2014/10/08/distribute-project-artifacts-in-maven-central-with-nexus-oss/ -->
             <!-- https://mvnrepository.com/artifact/org.sonatype.plugins/nexus-staging-maven-plugin -->
 
-            <!-- <plugin>
+            <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
                 <version>1.6.8</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <serverId>ossrh</serverId>
+                    <serverId>sonatype-nexus-staging</serverId>
                     <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                    <stagingProfileId>3a809bf4297e26</stagingProfileId>
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
-            </plugin>-->
+            </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>

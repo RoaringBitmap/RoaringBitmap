@@ -99,6 +99,14 @@
   </build>
   <profiles>
     <profile>
+      <!-- In mvn release:perform, we want to skip tests even for roaringbitmap -->
+      <id>releasePerform</id>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
+  
+    <profile>
       <id>release</id>
       <build>
         <plugins>
