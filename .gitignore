@@ -14,3 +14,7 @@ target/
 .project
 .classpath
 .settings
+
+# mvn release process
+release.properties
+pom.xml.releaseBackup
