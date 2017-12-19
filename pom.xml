@@ -6,12 +6,6 @@
 
     <packaging>pom</packaging>
 
-    <modules>
-        <module>roaringbitmap</module>
-        <module>real-roaring-dataset</module>
-        <module>jmh</module>
-        <module>memory</module>
-    </modules>
     <profiles>
         <profile>
             <id>release</id>
@@ -19,6 +13,11 @@
                 <!-- Used by surefire: it shall enables faster tests on JMH module -->
                 <argLine>-DBITMAP_TYPES=ROARING_ONLY</argLine>
             </properties>
+
+            <modules>
+                <!-- Releasing only this parent pom and Roaring lib -->
+                <module>roaringbitmap</module>
+            </modules>
 
             <distributionManagement>
                 <!-- http://central.sonatype.org/pages/apache-maven.html -->
@@ -59,6 +58,19 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+
+            <modules>
+                <module>roaringbitmap</module>
+                <module>real-roaring-dataset</module>
+                <module>jmh</module>
+                <module>memory</module>
+            </modules>
         </profile>
     </profiles>
 
