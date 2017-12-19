@@ -65,7 +65,7 @@ The settings.xml file should contain:
 
 
 -->
-<distributionManagement>
+<!--<distributionManagement>
   <snapshotRepository>
     <id>ossrh</id>
     <url>https://oss.sonatype.org/content/repositories/snapshots</url>
@@ -74,7 +74,7 @@ The settings.xml file should contain:
     <id>ossrh</id>
     <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
   </repository>
-</distributionManagement>
+</distributionManagement>-->
   <parent>
     <groupId>org.sonatype.oss</groupId>
     <artifactId>oss-parent</artifactId>
