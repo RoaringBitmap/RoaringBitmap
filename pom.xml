@@ -8,14 +8,20 @@
 
     <profiles>
         <profile>
+            <!-- Activated in both 'mvn release:prepare' and 'mvn release:perform' step -->
             <id>release</id>
             <properties>
-                <!-- Used by surefire: it shall enables faster tests on JMH module -->
+                <!-- Used by surefire: it shall enables faster tests on JMH module by skipping not essential tests -->
                 <argLine>-DBITMAP_TYPES=ROARING_ONLY</argLine>
             </properties>
-
+        </profile>
+        <profile>
+            <!-- Activated only in 'mvn release:perform' step (and not 'mvn release:prepare' step) -->
+            <id>releasePerform</id>
             <modules>
                 <!-- Releasing only this parent pom and Roaring lib -->
+                <!-- skipNexusStagingDeployMojo is not enough because of -->
+                <!-- https://issues.sonatype.org/browse/NEXUS-9138 -->
                 <module>roaringbitmap</module>
             </modules>
 
@@ -65,6 +71,8 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
 
+            <!-- By default we want all modules to be visible, it is not true in 'mvn release:perform' step -->
+            <!-- see https://issues.sonatype.org/browse/NEXUS-9138 -->
             <modules>
                 <module>roaringbitmap</module>
                 <module>real-roaring-dataset</module>
