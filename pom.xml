@@ -15,6 +15,11 @@
     <profiles>
         <profile>
             <id>release</id>
+            <properties>
+                <!-- Used by surefire: it shall enables faster tests on JMH module -->
+                <argLine>-DBITMAP_TYPES=ROARING_ONLY</argLine>
+            </properties>
+
             <distributionManagement>
                 <!-- http://central.sonatype.org/pages/apache-maven.html -->
                 <!-- The settings.xml file should contain: -->
