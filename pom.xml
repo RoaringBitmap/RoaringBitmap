@@ -142,8 +142,10 @@
                 <artifactId>maven-release-plugin</artifactId>
                 <version>2.5.3</version>
                 <configuration>
-                    <goals>deploy</goals>
+                    <!-- These profiles are used only for release:perform, not release:prepare -->
                     <releaseProfiles>release</releaseProfiles>
+                    <!-- Force -Prelease also for release:prepare, and keep ${arguments} for user input arguments -->
+                    <arguments>-Prelease ${arguments}</arguments>
                     <tagNameFormat>RoaringBitmap-@{project.version}</tagNameFormat>
                 </configuration>
             </plugin>
