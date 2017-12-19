@@ -40,7 +40,6 @@ public class OrderedWriter {
    */
   public void flush() {
     if (dirty) {
-      int cardinality = computeCardinality();
       RoaringArray highLowContainer = underlying.highLowContainer;
       // we check that it's safe to append since RoaringArray.append does no validation
       if (highLowContainer.size > 0) {
@@ -49,48 +48,18 @@ public class OrderedWriter {
           throw new IllegalStateException("Cannot write " + currentKey + " after " + key);
         }
       }
-      highLowContainer.append(currentKey, chooseBestContainer(cardinality));
+      highLowContainer.append(currentKey, chooseBestContainer());
       clearBitmap();
       dirty = false;
     }
   }
 
-  private Container chooseBestContainer(int cardinality) {
-    if (cardinality < WORD_COUNT) {
-      return createArrayContainer(cardinality);
-    }
-    Container bitmapContainer = new BitmapContainer(bitmap, cardinality);
-    Container runOptimised = bitmapContainer.runOptimize();
-    if (runOptimised == bitmapContainer) { // don't let our array escape
-      return new BitmapContainer(Arrays.copyOf(bitmap, bitmap.length), cardinality);
-    }
-    return runOptimised;
-  }
-
-  private ArrayContainer createArrayContainer(int cardinality) {
-    short[] array = new short[cardinality];
-    int arrIndex = 0;
-    for (int i = 0; i < bitmap.length; ++i) {
-      long word = bitmap[i];
-      int j = Long.numberOfTrailingZeros(word);
-      while (j < 64) {
-        word ^= (1L << j);
-        array[arrIndex++] = (short) ((i << 6) + j);
-        j = Long.numberOfTrailingZeros(word);
-      }
-    }
-    return new ArrayContainer(cardinality, array);
+  private Container chooseBestContainer() {
+    Container container = new BitmapContainer(bitmap,-1).repairAfterLazy().runOptimize();
+    return container instanceof BitmapContainer ? container.clone() : container;
   }
 
   private void clearBitmap() {
     Arrays.fill(bitmap, 0L);
-  }
-
-  private int computeCardinality() {
-    int cardinality = 0;
-    for (int i = 0; i < bitmap.length; ++i) {
-      cardinality += Long.bitCount(bitmap[i]);
-    }
-    return cardinality;
   }
 }
