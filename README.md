@@ -20,6 +20,8 @@ Roaring bitmaps are found to work well in many important applications:
 
 > Use Roaring for bitmap compression whenever possible. Do not use other bitmap compression methods ([Wang et al., SIGMOD 2017](http://db.ucsd.edu/wp-content/uploads/2017/03/sidm338-wangA.pdf))
 
+> kudos for making something that makes my software run 5x faster (Charles Parker from BigML)
+
 This library is used by
 *   [Apache Spark](http://spark.apache.org/),
 *   [Apache Hive](http://hive.apache.org),
