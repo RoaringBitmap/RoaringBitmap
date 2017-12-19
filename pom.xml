@@ -50,15 +50,6 @@
         <developerConnection>scm:git:git@github.com:RoaringBitmap/RoaringBitmap.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
-<distributionManagement>
-  <snapshotRepository>
-    <id>ossrh</id>
-    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-  </snapshotRepository>
-  <repository>
-    <id>ossrh</id>
-    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-  </repository>
 <!--
 The settings.xml file should contain:
 
@@ -74,7 +65,21 @@ The settings.xml file should contain:
 
 
 -->
+<distributionManagement>
+  <snapshotRepository>
+    <id>ossrh</id>
+    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+  </snapshotRepository>
+  <repository>
+    <id>ossrh</id>
+    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+  </repository>
 </distributionManagement>
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>9</version>
+  </parent>
     <build>
         <plugins>
             <plugin>
@@ -150,10 +155,11 @@ The settings.xml file should contain:
 
             <!-- https://github.com/sonatype/nexus-maven-plugins/tree/master/staging/maven-plugin -->
             <!-- http://www.sonatype.org/nexus/2014/10/08/distribute-project-artifacts-in-maven-central-with-nexus-oss/ -->
-            <plugin>
+            <!-- https://mvnrepository.com/artifact/org.sonatype.plugins/nexus-staging-maven-plugin -->
+
+            <!-- <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
-                <!-- https://mvnrepository.com/artifact/org.sonatype.plugins/nexus-staging-maven-plugin -->
                 <version>1.6.8</version>
                 <extensions>true</extensions>
                 <configuration>
@@ -162,7 +168,7 @@ The settings.xml file should contain:
                     <stagingProfileId>3a809bf4297e26</stagingProfileId>
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
-            </plugin>
+            </plugin>-->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
