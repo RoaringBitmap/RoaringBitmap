@@ -30,6 +30,7 @@ This library is used by
 *   [zenvisage](http://zenvisage.github.io/),
 *   [Jive Miru](https://github.com/jivesoftware/miru),
 *   [Tablesaw](https://github.com/jtablesaw/tablesaw),
+*   [Apache Hivemall](http://hivemall.incubator.apache.org),
 *   [LinkedIn Pinot](https://github.com/linkedin/pinot/wiki) and
 *   [Druid](http://druid.io/).
 
