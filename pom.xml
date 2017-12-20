@@ -6,24 +6,18 @@
 
     <packaging>pom</packaging>
 
+    <modules>
+        <!-- The roaringbitmap module is always visible -->
+        <module>roaringbitmap</module>
+    </modules>
+
     <profiles>
         <profile>
-            <!-- Activated in both 'mvn release:prepare' and 'mvn release:perform' step -->
             <id>release</id>
             <properties>
-                <!-- Used by surefire: it shall enables faster tests on JMH module by skipping not essential tests -->
-                <argLine>-DBITMAP_TYPES=ROARING_ONLY</argLine>
+                <!-- skip all tests in 'mvn release:perform' -->
+                <skipTests>true</skipTests>
             </properties>
-        </profile>
-        <profile>
-            <!-- Activated only in 'mvn release:perform' step (and not 'mvn release:prepare' step) -->
-            <id>releasePerform</id>
-            <modules>
-                <!-- Releasing only this parent pom and Roaring lib -->
-                <!-- skipNexusStagingDeployMojo is not enough because of -->
-                <!-- https://issues.sonatype.org/browse/NEXUS-9138 -->
-                <module>roaringbitmap</module>
-            </modules>
 
             <distributionManagement>
                 <!-- http://central.sonatype.org/pages/apache-maven.html -->
@@ -50,6 +44,19 @@
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.10.4</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
                         <version>1.6</version>
                         <executions>
@@ -62,19 +69,34 @@
                             </execution>
                         </executions>
                     </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>3.0.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
                 </plugins>
             </build>
         </profile>
         <profile>
-            <id>default</id>
+            <!-- Activated only in 'mvn release:perform' step (and not 'mvn release:prepare' step) -->
+            <id>allModules</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
 
             <!-- By default we want all modules to be visible, it is not true in 'mvn release:perform' step -->
+            <!-- Releasing only this parent pom and Roaring lib -->
+            <!-- skipNexusStagingDeployMojo is not enough because of -->
             <!-- see https://issues.sonatype.org/browse/NEXUS-9138 -->
             <modules>
-                <module>roaringbitmap</module>
                 <module>real-roaring-dataset</module>
                 <module>jmh</module>
                 <module>memory</module>
@@ -163,9 +185,10 @@
                 <version>2.5.3</version>
                 <configuration>
                     <!-- These profiles are used only for release:perform, not release:prepare -->
-                    <releaseProfiles>release,releasePerform</releaseProfiles>
+                    <!-- allModules is excluded from perform -->
+                    <releaseProfiles>release</releaseProfiles>
                     <!-- Force -Prelease also for release:prepare, and keep ${arguments} for user input arguments -->
-                    <arguments>-Prelease ${arguments}</arguments>
+                    <arguments>-DBITMAP_TYPES=ROARING_ONLY ${arguments}</arguments>
                     <tagNameFormat>RoaringBitmap-@{project.version}</tagNameFormat>
                 </configuration>
             </plugin>

@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.roaringbitmap</groupId>
         <artifactId>RoaringBitmapParent</artifactId>
-        <version>0.6.61-SNAPSHOT</version>
+        <version>0.6.60-SNAPSHOT</version>
     </parent>
 
     <artifactId>real-roaring-dataset</artifactId>
@@ -19,13 +19,4 @@
 
         <checkstyle.configLocation>${basedir}/../roaringbitmap/style/roaring_google_checks.xml</checkstyle.configLocation>
     </properties>
-
-    <profiles>
-        <profile>
-            <id>release</id>
-            <properties>
-                <skipTests>true</skipTests>
-            </properties>
-        </profile>
-    </profiles>
 </project>
