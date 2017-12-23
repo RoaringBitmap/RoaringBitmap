@@ -2,11 +2,8 @@ package org.roaringbitmap.buffer;
 
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 import java.util.Arrays;

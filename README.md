@@ -315,20 +315,27 @@ Usage
 * Get maven 3
 
 * ``mvn compile`` will compile
-* ``mvn test`` will run the basic unit tests
+* ``mvn test`` will run the  unit tests
 * ``mvn package`` will package in a jar (found in target)
-* ``mvn checkstyle:check`` will check that you abide by the code style
-*  To run our complete testing routine (it takes a long time), execute ``mvn clean test && mvn clean install -DskipTests -Dgpg.skip=true && mvn -f real-roaring-dataset/pom.xml clean install && mvn -f ./jmh/pom.xml test``. Be warned that our testing is very thorough.
+* ``mvn checkstyle:check`` will check that you abide by the code style, run it within the roaringbitmap subdirectory (module). We enforce a strict style so that there is no debate as to the proper way to format the code.
 
 A convenient command to build the code is :
 
              mvn clean install -DskipTests -Dgpg.skip=true
 
+Eclipse
+--------
+
+If you plan to contribute to RoaringBitmap, you can have load
+it up in your favorite IDE. For Eclipse, go to the ``roaringbitmap``
+subdirectory (module) and type ``mvn eclipse:eclipse``. You should
+then be able to open the ``roaringbitmap`` from within the Eclipse IDE.
+
 Contributing
 ------------
 
 Contributions are invited. We enforce the Google Java style.
-Please run  ``mvn checkstyle:check`` on your code before submitting
+Please run  ``mvn checkstyle:check`` on your code in the roaringbitmap subdirectory (module) before submitting
 a patch.
 
 FAQ

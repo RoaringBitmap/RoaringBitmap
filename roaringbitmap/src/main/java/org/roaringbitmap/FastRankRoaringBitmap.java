@@ -203,9 +203,6 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
       rank = size + this.highLowContainer.getContainerAtIndex(index).rank(Util.lowbits(x));
     }
 
-    // TODO Should we keep the assertion?
-    // assert rank == super.rankLong(x);
-
     return rank;
   }
 
@@ -237,9 +234,6 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
       // second bucket
       int output = keycontrib + this.highLowContainer.getContainerAtIndex(index + 1).first();
 
-      // TODO Should we keep the assertion?
-      // assert output == super.select(j);
-
       return output;
     } else {
       // We selected a cardinality not matching exactly the cumulated cardinalities: we are not
@@ -255,8 +249,6 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
         this.highLowContainer.getContainerAtIndex(fixedIndex).select((int) leftover));
     int value = lowcontrib + keycontrib;
 
-    // TODO Should we keep the assertion?
-    // assert value == super.select(j);
 
     return value;
   }
