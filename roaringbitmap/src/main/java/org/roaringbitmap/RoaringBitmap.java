@@ -18,6 +18,8 @@ import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MappeableContainerPointer;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
+import static org.roaringbitmap.Util.partialRadixSort;
+
 
 /**
  * RoaringBitmap, a compressed alternative to the BitSet.
@@ -446,6 +448,22 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     final RoaringBitmap ans = new RoaringBitmap();
     ans.add(dat);
     return ans;
+  }
+
+  /**
+   * Efficiently builds a RoaringBitmap from unordered data
+   * @param data unsorted data
+   * @return a new bitmap
+   */
+  public static RoaringBitmap bitmapOfUnordered(final int... data) {
+    partialRadixSort(data);
+    RoaringBitmap bitmap = new RoaringBitmap();
+    OrderedWriter writer = new OrderedWriter(bitmap);
+    for (int i : data) {
+      writer.add(i);
+    }
+    writer.flush();
+    return bitmap;
   }
 
   /**
