@@ -3,7 +3,6 @@ package org.roaringbitmap.buffer;
 import com.google.common.primitives.Ints;
 import org.junit.Assert;
 import org.junit.Test;
-import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.PeekableShortIterator;
 
 import java.util.Arrays;

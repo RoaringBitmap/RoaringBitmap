@@ -267,14 +267,21 @@ public class TestIterators {
       dos.close();
       ByteBuffer bb = ByteBuffer.wrap(bos.toByteArray());
       ImmutableRoaringBitmap rrback1 = new ImmutableRoaringBitmap(bb);
+      int j = 0;
 
       // we can iterate over the mutable bitmap
       for (int i : bitmap) {
+          j += i;
       }
+      
+      int jj = 0;
 
       // we can iterate over the immutable bitmap
       for (int i : rrback1) {
+          jj+= i;
       }
+      Assert.assertEquals(j, jj);
+
   }
 }
 

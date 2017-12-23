@@ -2,14 +2,8 @@ package org.roaringbitmap.buffer;
 
 import static org.junit.Assert.*;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.BitSet;
 import java.util.Random;
-import java.util.List;
-import java.util.ArrayList;
 
 import org.junit.Test;
 import org.roaringbitmap.IntIterator;

@@ -4,9 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.roaringbitmap.buffer.BufferUtil;
 
-import java.nio.LongBuffer;
 import java.util.Arrays;
 
 @RunWith(Parameterized.class)
