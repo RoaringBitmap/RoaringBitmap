@@ -8,7 +8,7 @@
   </parent>
   <artifactId>RoaringBitmap</artifactId>
   <name>RoaringBitmap</name>
-  <url>https://github.com/lemire/RoaringBitmap</url>
+  <url>https://github.com/RoaringBitmap/RoaringBitmap</url>
   <description>Roaring bitmaps are compressed bitmaps (also called bitsets) which tend to outperform
      conventional compressed bitmaps such as WAH or Concise. </description>
   <packaging>bundle</packaging>
@@ -18,8 +18,6 @@
       <name>Daniel Lemire</name>
       <email>lemire@gmail.com</email>
       <url>http://lemire.me/en/</url>
-      <organization>LICEF Research Center</organization>
-      <organizationUrl>http://licef.ca</organizationUrl>
       <roles>
         <role>architect</role>
         <role>developer</role>
