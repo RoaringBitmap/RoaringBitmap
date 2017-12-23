@@ -60,14 +60,4 @@
             <url>https://metamx.artifactoryonline.com/metamx/pub-libs-releases-local</url>
         </repository>
     </repositories>
-
-    <profiles>
-        <profile>
-            <id>release</id>
-            <properties>
-                <skipTests>true</skipTests>
-            </properties>
-        </profile>
-    </profiles>
-
 </project>
