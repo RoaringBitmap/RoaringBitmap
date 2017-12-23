@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.roaringbitmap</groupId>
     <artifactId>RoaringBitmapParent</artifactId>
-    <version>0.6.61-SNAPSHOT</version>
+    <version>0.6.61</version>
 
     <packaging>pom</packaging>
 
@@ -116,7 +116,7 @@
         <connection>scm:git:git@github.com:RoaringBitmap/RoaringBitmap.git</connection>
         <url>scm:git:git@github.com:RoaringBitmap/RoaringBitmap.git</url>
         <developerConnection>scm:git:git@github.com:RoaringBitmap/RoaringBitmap.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>RoaringBitmap-0.6.61</tag>
     </scm>
     <build>
         <plugins>
