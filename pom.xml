@@ -26,6 +26,18 @@
         </properties>
       </developer>
     </developers>
+    <issueManagement>
+      <system>GitHub Issue Tracking</system>
+      <url>https://github.com/RoaringBitmap/RoaringBitmap/issues</url>
+    </issueManagement>
+    <licenses>
+        <license>
+          <name>Apache 2</name>
+          <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+          <distribution>repo</distribution>
+          <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
     <!-- end of invalid POM fix -->
 
     <packaging>pom</packaging>
