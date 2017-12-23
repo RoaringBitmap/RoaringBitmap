@@ -4,6 +4,30 @@
     <artifactId>RoaringBitmapParent</artifactId>
     <version>0.6.62-SNAPSHOT</version>
 
+    <!-- Trying work around * Invalid POM: /org/roaringbitmap/RoaringBitmapParent/0.6.61/RoaringBitmapParent-0.6.61.pom: Project name missing, Project description missing, Project URL missing, License information missing, Developer information missing-->
+    <name>RoaringBitmap</name>
+    <url>https://github.com/RoaringBitmap/RoaringBitmap</url>
+    <description>Roaring bitmaps are compressed bitmaps (also called bitsets) which tend to outperform
+     conventional compressed bitmaps such as WAH or Concise. </description>
+    <developers>
+      <developer>
+        <id>lemire</id>
+        <name>Daniel Lemire</name>
+        <email>lemire@gmail.com</email>
+        <url>http://lemire.me/en/</url>
+        <roles>
+          <role>architect</role>
+          <role>developer</role>
+          <role>maintainer</role>
+        </roles>
+        <timezone>-5</timezone>
+        <properties>
+          <picUrl>http://lemire.me/fr/images/JPG/profile2011B_152.jpg</picUrl>
+        </properties>
+      </developer>
+    </developers>
+    <!-- end of invalid POM fix -->
+
     <packaging>pom</packaging>
 
     <modules>
