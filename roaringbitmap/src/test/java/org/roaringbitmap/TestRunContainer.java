@@ -2157,6 +2157,26 @@ public class TestRunContainer {
     assertTrue(atLeastOneArray);
   }
 
+  @Test
+  public void RunContainerArg_ArrayANDNOT2() {
+    ArrayContainer ac = new ArrayContainer(10, new short[]{0, 2, 4, 8, 10, 15, 16, 48, 50, 61});
+    RunContainer rc = new RunContainer(new short[]{7, 3, 17, 2, 20, 3, 30, 3, 36, 6, 60, 5}, 6);
+    Assert.assertEquals(new ArrayContainer(7, new short[]{0, 2, 4, 15, 16, 48, 50}), ac.andNot(rc));
+  }
+
+  @Test
+  public void FullRunContainerArg_ArrayANDNOT2() {
+    ArrayContainer ac = new ArrayContainer(1, new short[]{3});
+    Container rc = RunContainer.full();
+    Assert.assertEquals(new ArrayContainer(), ac.andNot(rc));
+  }
+
+  @Test
+  public void RunContainerArg_ArrayANDNOT3() {
+    ArrayContainer ac = new ArrayContainer(1, new short[]{5});
+    Container rc = new RunContainer(new short[]{3, 10}, 1);
+    Assert.assertEquals(new ArrayContainer(), ac.andNot(rc));
+  }
 
   @Test
   public void RunContainerArg_ArrayOR() {
