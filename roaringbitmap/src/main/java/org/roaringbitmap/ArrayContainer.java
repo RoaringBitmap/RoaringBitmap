@@ -40,7 +40,9 @@ public final class ArrayContainer extends Container implements Cloneable {
   public ArrayContainer() {
     this(DEFAULT_INIT_SIZE);
   }
-
+  public static ArrayContainer empty() {
+    return new ArrayContainer();
+  }
   /**
    * Create an array container with specified capacity
    *
@@ -231,6 +233,8 @@ public final class ArrayContainer extends Container implements Cloneable {
     int whichRun;
     if (x.nbrruns == 0) {
       return clone();
+    } else if (x.isFull()) {
+      return ArrayContainer.empty();
     } else {
       runStart = Util.toIntUnsigned(x.getValue(0));
       runEnd = runStart + Util.toIntUnsigned(x.getLength(0));
