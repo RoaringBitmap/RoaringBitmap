@@ -89,4 +89,22 @@ public class TestUtil {
         Assert.assertEquals(5, Util.advanceUntil(data, -1, data.length, (short) 29));
     }
 
+    @Test
+    public void testToUnsigned() {
+        Assert.assertEquals(0, Util.toIntUnsigned((short) 0));
+        Assert.assertEquals(128, Util.toIntUnsigned((short) 128));
+        Assert.assertEquals(32767, Util.toIntUnsigned(Short.MAX_VALUE));
+        Assert.assertEquals(32768, Util.toIntUnsigned(Short.MIN_VALUE));
+        Assert.assertEquals(65535, Util.toIntUnsigned((short) -1));
+    }
+
+    @Test
+    public void testReverseToUnsigned() {
+        Assert.assertEquals((short) 0,  (short) 0);
+        Assert.assertEquals((short) 128,  (short) 128);
+        Assert.assertEquals(Short.MAX_VALUE,  (short) 32767);
+        Assert.assertEquals(Short.MIN_VALUE,  (short) 32768);
+        Assert.assertEquals((short) -1,  (short) 65535);
+    }
+
 }
