@@ -227,10 +227,8 @@ public final class ArrayContainer extends Container implements Cloneable {
 
   @Override
   public Container andNot(RunContainer x) {
-    int writeLocation = 0;
     int runStart, runEnd; // the current or upcoming run.
     int whichRun;
-    short[] buffer = new short[cardinality];
     if (x.nbrruns == 0) {
       return clone();
     } else {
@@ -238,6 +236,8 @@ public final class ArrayContainer extends Container implements Cloneable {
       runEnd = runStart + Util.toIntUnsigned(x.getLength(0));
       whichRun = 0;
     }
+    int writeLocation = 0;
+    short[] buffer = new short[cardinality];
 
     short val;
     for (int i = 0; i < cardinality; ++i) {
