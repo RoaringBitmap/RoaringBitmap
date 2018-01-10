@@ -244,13 +244,14 @@ public final class ArrayContainer extends Container implements Cloneable {
     short[] buffer = new short[cardinality];
 
     short val;
-    for (int i = 0; i < cardinality; ++i) {
+    for (int i = 0; i < cardinality;) {
       val = content[i];
       int valInt = Util.toIntUnsigned(val);
       if (valInt < runStart) {
         buffer[writeLocation++] = val;
+        i++;
       } else if (valInt <= runEnd) {
-        ; // don't want item
+        i++; // don't want item
       } else {
         // greater than this run, need to do an advanceUntil on runs
         // done sequentially for now (no galloping attempts).
@@ -263,7 +264,6 @@ public final class ArrayContainer extends Container implements Cloneable {
             runStart = runEnd = (1 << 16) + 1; // infinity....
           }
         } while (valInt > runEnd);
-        --i; // need to re-process this val
       }
     }
     return new ArrayContainer(writeLocation, buffer);
