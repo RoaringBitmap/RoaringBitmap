@@ -102,32 +102,40 @@ public interface ImmutableBitmapDataProvider {
   public ImmutableBitmapDataProvider limit(int x);
 
   /**
-   * Rank returns the number of integers that are smaller or equal to x (Rank(infinity) would be
-   * GetCardinality()).
+   * Rank returns the number of integers that are smaller or equal to x (rank(infinity) would be
+   * getCardinality()).
    * 
    * The value is internally computed as a 64-bit number.
    * 
    * @param x upper limit
    *
    * @return the rank
+   * @see <a href="https://en.wikipedia.org/wiki/Ranking#Ranking_in_statistics">Ranking in statistics</a> 
    */
   public int rank(int x);
   
   /**
+   * Rank returns the number of integers that are smaller or equal to x (rankLong(infinity) would be
+   * getLongCardinality()).
    * Same as "rank" but produces a full 64-bit value.
    * 
    * @param x upper limit
    *
    * @return the rank
+   * @see <a href="https://en.wikipedia.org/wiki/Ranking#Ranking_in_statistics">Ranking in statistics</a> 
    */
   public long rankLong(int x);
 
   /**
-   * Return the jth value stored in this bitmap.
+   * Return the jth value stored in this bitmap. The provided value 
+   * needs to be smaller than the cardinality otherwise an 
+   * IllegalArgumentException
+   * exception is thrown.
    *
    * @param j index of the value
    *
    * @return the value
+   * @see <a href="https://en.wikipedia.org/wiki/Selection_algorithm">Selection algorithm</a> 
    */
   public int select(int j);
 

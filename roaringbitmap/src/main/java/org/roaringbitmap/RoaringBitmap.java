@@ -1796,6 +1796,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @param x upper limit
    *
    * @return the rank
+   * @see <a href="https://en.wikipedia.org/wiki/Ranking#Ranking_in_statistics">Ranking in statistics</a> 
    */
   @Override
   public long rankLong(int x) {
@@ -2003,11 +2004,15 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
 
   /**
-   * Return the jth value stored in this bitmap.
+   * Return the jth value stored in this bitmap. The provided value 
+   * needs to be smaller than the cardinality otherwise an 
+   * IllegalArgumentException
+   * exception is thrown.
    *
    * @param j index of the value
    *
    * @return the value
+   * @see <a href="https://en.wikipedia.org/wiki/Selection_algorithm">Selection algorithm</a> 
    */
   @Override
   public int select(int j) {
@@ -2022,8 +2027,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       }
       leftover -= thiscard;
     }
-    throw new IllegalArgumentException(
-        "select " + j + " when the cardinality is " + this.getCardinality());
+    throw new IllegalArgumentException("You are trying to select the " 
+                 + j + "th value when the cardinality is "
+                 + this.getCardinality() + ".");
   }
 
   /**
