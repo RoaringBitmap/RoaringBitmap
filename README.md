@@ -137,12 +137,12 @@ http://www.javadoc.io/doc/org.roaringbitmap/RoaringBitmap/
 
 Scientific Documentation
 --------------------------
-- Daniel Lemire, Owen Kaser, Nathan Kurz, Luca Deri, Chris O'Hara, François Saint-Jacques, Gregory Ssi-Yan-Kai, Roaring Bitmaps: Implementation of an Optimized Software Library [arXiv:1709.07821](https://arxiv.org/abs/1709.07821)
+- Daniel Lemire, Owen Kaser, Nathan Kurz, Luca Deri, Chris O'Hara, François Saint-Jacques, Gregory Ssi-Yan-Kai, Roaring Bitmaps: Implementation of an Optimized Software Library, Software: Practice and Experience (to appear) [arXiv:1709.07821](https://arxiv.org/abs/1709.07821)
 -  Samy Chambi, Daniel Lemire, Owen Kaser, Robert Godin,
 Better bitmap performance with Roaring bitmaps,
 Software: Practice and Experience Volume 46, Issue 5, pages 709–719, May 2016
 http://arxiv.org/abs/1402.6407 This paper used data from http://lemire.me/data/realroaring2014.html
-- Daniel Lemire, Gregory Ssi-Yan-Kai, Owen Kaser, Consistently faster and smaller compressed bitmaps with Roaring, Software: Practice and Experience (accepted in 2016, to appear) http://arxiv.org/abs/1603.06549
+- Daniel Lemire, Gregory Ssi-Yan-Kai, Owen Kaser, Consistently faster and smaller compressed bitmaps with Roaring, Software: Practice and Experience 46 (11), 2016. http://arxiv.org/abs/1603.06549
 - Samy Chambi, Daniel Lemire, Robert Godin, Kamel Boukhalfa, Charles Allen, Fangjin Yang, Optimizing Druid with Roaring bitmaps, IDEAS 2016, 2016. http://r-libre.teluq.ca/950/
 
 Code sample
@@ -157,6 +157,8 @@ public class Basic {
         RoaringBitmap rr = RoaringBitmap.bitmapOf(1,2,3,1000);
         RoaringBitmap rr2 = new RoaringBitmap();
         rr2.add(4000L,4255L);
+        rr.select(3); // would return the third value or 1000
+        rr.rank(2); // would return the rank of 2, which is index 1
 
         RoaringBitmap rror = RoaringBitmap.or(rr, rr2);// new bitmap
         rr.or(rr2); //in-place computation
@@ -265,7 +267,7 @@ Though Roaring Bitmaps were designed with the 32-bit case in mind, we have an ex
 
 ```
       import org.roaringbitmap.longlong.*;
-      
+
       LongBitmapDataProvider r = Roaring64NavigableMap.bitmapOf(1,2,100,1000);
       r.addLong(1234);
       System.out.println(r.contains(1)); // true
