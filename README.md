@@ -159,6 +159,8 @@ public class Basic {
         rr2.add(4000L,4255L);
         rr.select(3); // would return the third value or 1000
         rr.rank(2); // would return the rank of 2, which is index 1
+        rr.contains(1000); // will return true
+        rr.contains(7); // will return false
 
         RoaringBitmap rror = RoaringBitmap.or(rr, rr2);// new bitmap
         rr.or(rr2); //in-place computation
