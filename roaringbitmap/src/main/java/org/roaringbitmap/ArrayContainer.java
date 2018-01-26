@@ -1149,7 +1149,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     // little endian
     for (int k = 0; k < this.cardinality; ++k) {
       short v = this.content[k];
-      out.write(Short.reverseBytes(v));
+      out.writeShort(Short.reverseBytes(v));
     }
   }
 
