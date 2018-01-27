@@ -93,10 +93,10 @@ public class TestUtil {
     @Test
     public void testIterateUntil() {
         short data[] = {0, 3, 16, 18, 21, 29, 30, -342};
-        Assert.assertEquals(1, Util.iterateUntil(data, -1, data.length, Util.toIntUnsigned((short) 3)));
-        Assert.assertEquals(5, Util.iterateUntil(data, -1, data.length, Util.toIntUnsigned((short) 28)));
-        Assert.assertEquals(5, Util.iterateUntil(data, -1, data.length, Util.toIntUnsigned((short) 29)));
-        Assert.assertEquals(7, Util.iterateUntil(data, -1, data.length, Util.toIntUnsigned((short) -342)));
+        Assert.assertEquals(1, Util.iterateUntil(data, 0, data.length, Util.toIntUnsigned((short) 3)));
+        Assert.assertEquals(5, Util.iterateUntil(data, 0, data.length, Util.toIntUnsigned((short) 28)));
+        Assert.assertEquals(5, Util.iterateUntil(data, 0, data.length, Util.toIntUnsigned((short) 29)));
+        Assert.assertEquals(7, Util.iterateUntil(data, 0, data.length, Util.toIntUnsigned((short) -342)));
     }
 
     @Test
