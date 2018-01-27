@@ -95,7 +95,6 @@ public abstract class RoaringOnlyBenchmarkState {
 
   @TearDown
   public void tearDown() {
-    System.out.println("card: "+ArrayContainer.totalByCardinality + " runs: "+ArrayContainer.totalByRuns +"ratio: "+ ((double)ArrayContainer.totalByCardinality)/ArrayContainer.totalByRuns+1);
   }
 
 }

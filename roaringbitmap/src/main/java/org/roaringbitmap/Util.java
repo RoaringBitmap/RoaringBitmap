@@ -84,6 +84,24 @@ public final class Util {
 
   }
 
+  /**
+   * Find the smallest integer larger than pos such that array[pos]&gt;= min. If none can be found,
+   * return length.
+   *
+   * @param array array to search within
+   * @param pos starting position of the search
+   * @param length length of the array to search
+   * @param min minimum value
+   * @return x greater than pos such that array[pos] is at least as large as min, pos is is equal to
+   *         length if it is not possible.
+   */
+  public static int iterateUntil(short[] array, int pos, int length, int min) {
+    while (pos < length && toIntUnsigned(array[pos]) < min) {
+      pos++;
+    }
+    return pos;
+  }
+
   protected static int branchyUnsignedBinarySearch(final short[] array, final int begin,
       final int end, final short k) {
     int ikey = toIntUnsigned(k);

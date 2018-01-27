@@ -234,10 +234,6 @@ public final class ArrayContainer extends Container implements Cloneable {
     } else if (x.isFull()) {
       return ArrayContainer.empty();
     }
-    final boolean byCardinality = (cardinality / x.numberOfRuns()) < 100;
-    if (byCardinality) {
-      return byCardinalityAndNot(x);
-    }
     return byRunsAndNot(x);
   }
 
@@ -283,26 +279,21 @@ public final class ArrayContainer extends Container implements Cloneable {
     int read = 0;
     short[] buffer = new short[cardinality];
     for (int i = 0; i < x.numberOfRuns() && read < cardinality; ++i) {
-      short runStart = x.getValue(i);
+      int runStart = Util.toIntUnsigned(x.getValue(i));
       int runEnd = runStart + Util.toIntUnsigned(x.getLength(i));
       if (Util.compareUnsigned(content[read], (short) runEnd) > 0) {
         continue;
       }
-      int firstInRun = Util.advanceUntil(content, read - 1, cardinality, runStart);
+      int firstInRun = Util.iterateUntil(content, read, cardinality, runStart);
       int toWrite = firstInRun - read;
       System.arraycopy(content, read, buffer, write, toWrite);
       write += toWrite;
 
-      int afterRun = Util.advanceUntil(content, firstInRun - 1, cardinality, (short) runEnd);
-      if (afterRun < cardinality && content[afterRun] == runEnd) { //at right boundary
-        afterRun++;
-      }
-      read = afterRun;
+      read = Util.iterateUntil(content, firstInRun, cardinality, runEnd + 1);
     }
-    if (read < cardinality) {
-      System.arraycopy(content, read, buffer, write, cardinality - read);
-      write += cardinality - read;
-    }
+    System.arraycopy(content, read, buffer, write, cardinality - read);
+    write += cardinality - read;
+
     return new ArrayContainer(write, buffer);
   }
 
