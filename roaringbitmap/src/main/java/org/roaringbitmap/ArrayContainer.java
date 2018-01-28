@@ -281,7 +281,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     for (int i = 0; i < x.numberOfRuns() && read < cardinality; ++i) {
       int runStart = Util.toIntUnsigned(x.getValue(i));
       int runEnd = runStart + Util.toIntUnsigned(x.getLength(i));
-      if (Util.compareUnsigned(content[read], (short) runEnd) > 0) {
+      if (Util.toIntUnsigned(content[read]) > runEnd) {
         continue;
       }
       int firstInRun = Util.iterateUntil(content, read, cardinality, runStart);
