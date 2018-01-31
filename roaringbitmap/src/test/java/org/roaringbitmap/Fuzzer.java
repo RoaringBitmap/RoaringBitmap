@@ -91,8 +91,22 @@ public class Fuzzer {
             (l, r) -> RoaringBitmap.xorCardinality(l, r));
   }
 
+  @Test
+  public void orOfDisjunction() {
+    verifyInvariance(100, 1 << 9,
+            (l, r) -> l,
+            (l, r) -> RoaringBitmap.or(l, RoaringBitmap.and(l, r)));
+  }
+
+  @Test
+  public void orCoversXor() {
+    verifyInvariance(100, 1 << 9,
+            (l, r) -> RoaringBitmap.or(l, r),
+            (l, r) -> RoaringBitmap.or(l, RoaringBitmap.xor(l, r)));
+  }
+
   private static RoaringBitmap randomBitmap(int maxKeys) {
-    int[] keys = createSorted16BitInts(ThreadLocalRandom.current().nextInt(0, maxKeys));
+    int[] keys = createSorted16BitInts(ThreadLocalRandom.current().nextInt(1, maxKeys));
     double rleLimit = ThreadLocalRandom.current().nextDouble();
     double denseLimit = ThreadLocalRandom.current().nextDouble(rleLimit, 1D);
     OrderedWriter writer = new OrderedWriter();
