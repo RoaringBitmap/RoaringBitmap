@@ -281,6 +281,8 @@ Though Roaring Bitmaps were designed with the 32-bit case in mind, we have an ex
 Prerequisites
 -------------
 
+
+ - Version 0.7.x requires JDK 8 or better
  - Version 0.6.x requires JDK 7 or better
  - Version 0.5.x requires JDK 6 or better
 
