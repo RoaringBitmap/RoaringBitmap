@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
@@ -20,21 +21,40 @@ public class Fuzzer {
 
   private static final ThreadLocal<long[]> bits = ThreadLocal.withInitial(() -> new long[1 << 10]);
 
-  public static <T> void verifyInvariance(Function<RoaringBitmap[], T> left,
+  public static <T> void verifyInvarianceArray(Function<RoaringBitmap[], T> left,
                                           Function<RoaringBitmap[], T> right) {
-    verifyInvariance(100, 1 << 5, 96, left, right);
+    verifyInvarianceArray(100, 1 << 5, 96, left, right);
   }
 
-  public static <T> void verifyInvariance(int count,
-                                          int maxKeys,
-                                          int setSize,
-                                          Function<RoaringBitmap[], T> left,
-                                          Function<RoaringBitmap[], T> right) {
+  public static <T> void verifyInvarianceArray(int count,
+                                               int maxKeys,
+                                               int setSize,
+                                               Function<RoaringBitmap[], T> left,
+                                               Function<RoaringBitmap[], T> right) {
     IntStream.range(0, count)
             .parallel()
             .mapToObj(i -> IntStream.range(0, setSize)
                                     .mapToObj(j -> randomBitmap(maxKeys))
                                     .toArray(RoaringBitmap[]::new))
+            .forEach(bitmap -> Assert.assertEquals(left.apply(bitmap), right.apply(bitmap)));
+  }
+
+  public static <T> void verifyInvarianceIterator(Function<Iterator<RoaringBitmap>, T> left,
+                                                  Function<Iterator<RoaringBitmap>, T> right) {
+    verifyInvarianceIterator(100, 1 << 5, 96, left, right);
+  }
+
+
+  public static <T> void verifyInvarianceIterator(int count,
+                                          int maxKeys,
+                                          int setSize,
+                                          Function<Iterator<RoaringBitmap>, T> left,
+                                          Function<Iterator<RoaringBitmap>, T> right) {
+    IntStream.range(0, count)
+            .parallel()
+            .mapToObj(i -> IntStream.range(0, setSize)
+                    .mapToObj(j -> randomBitmap(maxKeys))
+                    .iterator())
             .forEach(bitmap -> Assert.assertEquals(left.apply(bitmap), right.apply(bitmap)));
   }
 
@@ -221,7 +241,15 @@ public class Fuzzer {
 
   @Test
   public void naiveOrPriorityQueueOrInvariance() {
-    verifyInvariance(
+    verifyInvarianceArray(
+            bitmaps -> FastAggregation.naive_or(bitmaps),
+            bitmaps -> FastAggregation.priorityqueue_or(bitmaps));
+  }
+
+
+  @Test
+  public void naiveOrPriorityQueueOrInvarianceIterator() {
+    verifyInvarianceIterator(
             bitmaps -> FastAggregation.naive_or(bitmaps),
             bitmaps -> FastAggregation.priorityqueue_or(bitmaps));
   }
@@ -229,7 +257,7 @@ public class Fuzzer {
 
   @Test
   public void naiveXorPriorityQueueXorInvariance() {
-    verifyInvariance(
+    verifyInvarianceArray(
             bitmaps -> FastAggregation.naive_xor(bitmaps),
             bitmaps -> FastAggregation.priorityqueue_xor(bitmaps));
   }
