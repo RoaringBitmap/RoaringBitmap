@@ -20,8 +20,22 @@ public class Fuzzer {
 
   private static final ThreadLocal<long[]> bits = ThreadLocal.withInitial(() -> new long[1 << 10]);
 
-  public static <T> void verifyInvariance(Function<RoaringBitmap, T> left, Function<RoaringBitmap, T> right) {
-    verifyInvariance(1000, 1 << 8, rb -> true, left, right);
+  public static <T> void verifyInvariance(Function<RoaringBitmap[], T> left,
+                                          Function<RoaringBitmap[], T> right) {
+    verifyInvariance(100, 1 << 5, 96, left, right);
+  }
+
+  public static <T> void verifyInvariance(int count,
+                                          int maxKeys,
+                                          int setSize,
+                                          Function<RoaringBitmap[], T> left,
+                                          Function<RoaringBitmap[], T> right) {
+    IntStream.range(0, count)
+            .parallel()
+            .mapToObj(i -> IntStream.range(0, setSize)
+                                    .mapToObj(j -> randomBitmap(maxKeys))
+                                    .toArray(RoaringBitmap[]::new))
+            .forEach(bitmap -> Assert.assertEquals(left.apply(bitmap), right.apply(bitmap)));
   }
 
   public static <T> void verifyInvariance(Predicate<RoaringBitmap> validity,
@@ -203,6 +217,21 @@ public class Fuzzer {
     verifyInvariance(100, 1 << 9,
             (l, r) -> RoaringBitmap.xor(l, r),
             (l, r) -> RoaringBitmap.andNot(RoaringBitmap.or(l, r), RoaringBitmap.and(l, r)));
+  }
+
+  @Test
+  public void naiveOrPriorityQueueOrInvariance() {
+    verifyInvariance(
+            bitmaps -> FastAggregation.naive_or(bitmaps),
+            bitmaps -> FastAggregation.priorityqueue_or(bitmaps));
+  }
+
+
+  @Test
+  public void naiveXorPriorityQueueXorInvariance() {
+    verifyInvariance(
+            bitmaps -> FastAggregation.naive_xor(bitmaps),
+            bitmaps -> FastAggregation.priorityqueue_xor(bitmaps));
   }
 
   private static RoaringBitmap randomBitmap(int maxKeys) {
