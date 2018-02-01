@@ -12,6 +12,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
+import static java.util.stream.Collectors.toList;
+
 public class Fuzzer {
 
   @FunctionalInterface
@@ -54,8 +56,8 @@ public class Fuzzer {
             .parallel()
             .mapToObj(i -> IntStream.range(0, setSize)
                     .mapToObj(j -> randomBitmap(maxKeys))
-                    .iterator())
-            .forEach(bitmap -> Assert.assertEquals(left.apply(bitmap), right.apply(bitmap)));
+                    .collect(toList()))
+            .forEach(bitmaps -> Assert.assertEquals(left.apply(bitmaps.iterator()), right.apply(bitmaps.iterator())));
   }
 
   public static <T> void verifyInvariance(Predicate<RoaringBitmap> validity,
