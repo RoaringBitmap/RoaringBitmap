@@ -289,7 +289,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     int startPos, stopPos = -1;
     for (int i = 0; i < runContainer.numberOfRuns(); ++i) {
       short start = runContainer.getValue(i);
-      int stop = start + Util.toIntUnsigned(runContainer.getLength(i));
+      int stop = Util.toIntUnsigned(start) + Util.toIntUnsigned(runContainer.getLength(i));
       startPos = Util.advanceUntil(content, stopPos, cardinality, start);
       stopPos = Util.advanceUntil(content, stopPos, cardinality, (short)stop);
       if(startPos == cardinality) {
@@ -313,34 +313,18 @@ public final class ArrayContainer extends Container implements Cloneable {
       if(content[i1] == arrayContainer.content[i2]) {
         ++i1;
         ++i2;
-      } else if(content[i1] <= arrayContainer.content[i2]) {
+      } else if(Util.compareUnsigned(content[i1], arrayContainer.content[i2]) < 0) {
         ++i1;
       } else {
         return false;
       }
     }
-    return i2 == arrayContainer.cardinality && i2 <= cardinality;
+    return i2 == arrayContainer.cardinality;
   }
 
   @Override
   protected boolean contains(BitmapContainer bitmapContainer) {
-    // this is unlikely to be called, but is sub-optimal
-    if (bitmapContainer.cardinality != -1 && cardinality < bitmapContainer.cardinality) {
-      return false;
-    }
-    int ia = 0, ib = 0;
-    while(ia < cardinality && ib < bitmapContainer.cardinality) {
-      short selection = bitmapContainer.select(ib);
-      if(content[ia] == selection) {
-        ++ia;
-        ++ib;
-      } else if(content[ia] <= selection) {
-        ++ia;
-      } else {
-        return false;
-      }
-    }
-    return ib == bitmapContainer.cardinality && ib <= cardinality;
+    return false;
   }
 
   @Override
