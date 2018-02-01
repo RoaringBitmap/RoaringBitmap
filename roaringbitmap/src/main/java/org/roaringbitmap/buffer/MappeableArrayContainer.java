@@ -1616,25 +1616,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
   @Override
   protected boolean contains(MappeableBitmapContainer bitmapContainer) {
-    // this is unlikely to be called, but is sub-optimal
-    if (bitmapContainer.cardinality != -1 && cardinality < bitmapContainer.cardinality) {
-      return false;
-    }
-    int ia = 0, ib = 0;
-    while(ia < cardinality && ib < bitmapContainer.cardinality) {
-      short selection = bitmapContainer.select(ib);
-      if(content.get(ia) == selection) {
-        ++ia;
-        ++ib;
-      } else if(BufferUtil.compareUnsigned(content.get(ia), selection) < 0) {
-        ++ia;
-      } else {
-        return false;
-      }
-    }
-    return ib == bitmapContainer.cardinality;
+    return false;
   }
-
 
 }
 

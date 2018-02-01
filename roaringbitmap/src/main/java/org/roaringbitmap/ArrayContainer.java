@@ -324,23 +324,7 @@ public final class ArrayContainer extends Container implements Cloneable {
 
   @Override
   protected boolean contains(BitmapContainer bitmapContainer) {
-    // this is unlikely to be called, but is sub-optimal
-    if (bitmapContainer.cardinality != -1 && cardinality < bitmapContainer.cardinality) {
-      return false;
-    }
-    int ia = 0, ib = 0;
-    while(ia < cardinality && ib < bitmapContainer.cardinality) {
-      short selection = bitmapContainer.select(ib);
-      if(content[ia] == selection) {
-        ++ia;
-        ++ib;
-      } else if(Util.compareUnsigned(content[ia], selection) < 0) {
-        ++ia;
-      } else {
-        return false;
-      }
-    }
-    return ib == bitmapContainer.cardinality;
+    return false;
   }
 
   @Override

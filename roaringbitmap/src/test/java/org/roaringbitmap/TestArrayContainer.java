@@ -211,28 +211,6 @@ public class TestArrayContainer {
     }
 
     @Test
-    public void testContainsBitmapContainer_EmptyContainsEmpty() {
-        Container ac = new ArrayContainer();
-        Container subset = new BitmapContainer();
-        assertTrue(ac.contains(subset));
-    }
-
-    @Test
-    public void testContainsBitmapContainer_IncludeProperSubset() {
-        Container ac = new ArrayContainer().add(0,10);
-        Container subset = new BitmapContainer().add(0,9);
-        assertTrue(ac.contains(subset));
-    }
-
-
-    @Test
-    public void testContainsBitmapContainer_IncludeProperSubsetDifferentStart() {
-        Container ac = new ArrayContainer().add(0,10);
-        Container subset = new BitmapContainer().add(1,9);
-        assertTrue(ac.contains(subset));
-    }
-
-    @Test
     public void testContainsBitmapContainer_ExcludeShiftedSet() {
         Container ac = new ArrayContainer().add(0,10);
         Container subset = new BitmapContainer().add(2,12);
@@ -240,10 +218,10 @@ public class TestArrayContainer {
     }
 
     @Test
-    public void testContainsBitmapContainer_IncludeSelf() {
+    public void testContainsBitmapContainer_AlwaysFalse() {
         Container ac = new ArrayContainer().add(0,10);
         Container subset = new BitmapContainer().add(0,10);
-        assertTrue(ac.contains(subset));
+        assertFalse(ac.contains(subset));
     }
 
     @Test
