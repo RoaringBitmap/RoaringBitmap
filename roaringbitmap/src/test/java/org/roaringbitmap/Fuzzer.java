@@ -60,6 +60,20 @@ public class Fuzzer {
             .forEach(bitmaps -> Assert.assertEquals(left.apply(bitmaps.iterator()), right.apply(bitmaps.iterator())));
   }
 
+  public static <T> void verifyInvariance(T value, Function<RoaringBitmap, T> func) {
+    verifyInvariance(1000, 1 << 9, value, func);
+  }
+
+  public static <T> void verifyInvariance(int count,
+                                          int maxKeys,
+                                          T value,
+                                          Function<RoaringBitmap, T> func) {
+    IntStream.range(0, count)
+            .parallel()
+            .mapToObj(i -> randomBitmap(maxKeys))
+            .forEach(bitmap -> Assert.assertEquals(value, func.apply(bitmap)));
+  }
+
   public static <T> void verifyInvariance(Predicate<RoaringBitmap> validity,
                                           Function<RoaringBitmap, T> left,
                                           Function<RoaringBitmap, T> right) {
@@ -194,6 +208,30 @@ public class Fuzzer {
     verifyInvariance((l, r) -> l.contains(r), (l, r) -> RoaringBitmap.and(l, r).equals(r));
   }
 
+
+  @Test
+  public void limitCardinalityEqualsSelf() {
+    verifyInvariance(true, rb -> rb.equals(rb.limit(rb.getCardinality())));
+  }
+
+  @Test
+  public void limitCardinalityXorCardinalityInvariance() {
+    verifyInvariance(rb -> true,
+                     rb -> rb.getCardinality(),
+                     rb -> rb.getCardinality() / 2
+                             + RoaringBitmap.xorCardinality(rb, rb.limit(rb.getCardinality() / 2)));
+  }
+
+  @Test
+  public void containsSelf() {
+    verifyInvariance(true, rb -> rb.contains(rb.clone()));
+  }
+
+  @Test
+  public void containsSubset() {
+    verifyInvariance(true, rb -> rb.contains(rb.limit(rb.getCardinality() / 2)));
+  }
+
   @Test
   public void andCardinalityContainsInvariance() {
     verifyInvariance((l, r) -> RoaringBitmap.andCardinality(l, r) == 0,
@@ -263,6 +301,7 @@ public class Fuzzer {
             bitmaps -> FastAggregation.naive_xor(bitmaps),
             bitmaps -> FastAggregation.priorityqueue_xor(bitmaps));
   }
+
 
   private static RoaringBitmap randomBitmap(int maxKeys) {
     int[] keys = createSorted16BitInts(ThreadLocalRandom.current().nextInt(1, maxKeys));
