@@ -21,4 +21,4 @@ mvn -f $BASEDIR/pom.xml clean install -Dtest=*$1* -DfailIfNoTests=false -Dchecks
 [[ $? -eq 0 ]] || exit
 
 echo "Running benchmarks"
-java -jar $BASEDIR/target/benchmarks.jar  true -wi 5 -i 5 -f 1 $1
+java -jar $BASEDIR/target/benchmarks.jar  true -wi 5 -i 5 -f 1 $@
