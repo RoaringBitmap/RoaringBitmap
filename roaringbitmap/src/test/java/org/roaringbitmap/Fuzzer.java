@@ -6,6 +6,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
@@ -17,7 +18,6 @@ public class Fuzzer {
   public static <T> void verifyInvariance(Function<RoaringBitmap, T> left, Function<RoaringBitmap, T> right) {
     verifyInvariance(1000, 1 << 8, rb -> true, left, right);
   }
-
 
   public static <T> void verifyInvariance(Predicate<RoaringBitmap> validity,
                                           Function<RoaringBitmap, T> left,
@@ -42,8 +42,22 @@ public class Fuzzer {
     verifyInvariance(1000, 1 << 8, left, right);
   }
 
+  public static <T> void verifyInvariance(BiPredicate<RoaringBitmap, RoaringBitmap> validity,
+                                          BiFunction<RoaringBitmap, RoaringBitmap, T> left,
+                                          BiFunction<RoaringBitmap, RoaringBitmap, T> right) {
+    verifyInvariance(validity,1000, 1 << 8, left, right);
+  }
+
 
   public static <T> void verifyInvariance(int count,
+                                          int maxKeys,
+                                          BiFunction<RoaringBitmap, RoaringBitmap, T> left,
+                                          BiFunction<RoaringBitmap, RoaringBitmap, T> right) {
+    verifyInvariance((l, r) -> true, count, maxKeys, left, right);
+  }
+
+  public static <T> void verifyInvariance(BiPredicate<RoaringBitmap, RoaringBitmap> validity,
+                                          int count,
                                           int maxKeys,
                                           BiFunction<RoaringBitmap, RoaringBitmap, T> left,
                                           BiFunction<RoaringBitmap, RoaringBitmap, T> right) {
@@ -52,7 +66,9 @@ public class Fuzzer {
             .forEach(i -> {
               RoaringBitmap one = randomBitmap(maxKeys);
               RoaringBitmap two = randomBitmap(maxKeys);
-              Assert.assertEquals(left.apply(one, two), right.apply(one, two));
+              if (validity.test(one, two)) {
+                Assert.assertEquals(left.apply(one, two), right.apply(one, two));
+              }
             });
   }
 
@@ -89,6 +105,30 @@ public class Fuzzer {
     verifyInvariance(100, 1 << 9,
             (l, r) -> RoaringBitmap.xor(l, r).getCardinality(),
             (l, r) -> RoaringBitmap.xorCardinality(l, r));
+  }
+
+  @Test
+  public void containsContainsInvariance() {
+    verifyInvariance((l, r) -> l.contains(r) && !r.equals(l),
+            (l, r) -> false,
+            (l, r) -> !r.contains(l));
+  }
+
+  @Test
+  public void containsAndInvariance() {
+    verifyInvariance((l, r) -> l.contains(r), (l, r) -> RoaringBitmap.and(l, r).equals(r));
+  }
+
+  @Test
+  public void andCardinalityContainsInvariance() {
+    verifyInvariance((l, r) -> RoaringBitmap.andCardinality(l, r) == 0,
+            (l, r) -> false,
+            (l, r) -> l.contains(r) || r.contains(l));
+  }
+
+  @Test
+  public void equalsSymmetryInvariance() {
+    verifyInvariance((l, r) -> l.equals(r), (l, r) -> r.equals(l));
   }
 
   @Test
