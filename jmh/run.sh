@@ -4,7 +4,7 @@ BASEDIR=$(dirname $0)
 
 echo "Building RoaringBitmap jar"
 rm -f $BASEDIR/../target/RoaringBitmap*.jar
-mvn -f $BASEDIR/../pom.xml clean install -DskipTests -Dgpg.skip=true
+mvn -f $BASEDIR/../pom.xml clean install -DskipTests -Dgpg.skip=true -Dcheckstyle.skip
 
 [[ $? -eq 0 ]] || exit
 
@@ -16,7 +16,7 @@ mvn -f $BASEDIR/../real-roaring-dataset/pom.xml clean install
 
 echo "Building benchmarks jar"
 rm -f  $BASEDIR/target/benchmarks.jar
-mvn -f $BASEDIR/pom.xml clean install -Dtest=*$1* -DfailIfNoTests=false
+mvn -f $BASEDIR/pom.xml clean install -Dtest=*$1* -DfailIfNoTests=false -Dcheckstyle.skip
 
 [[ $? -eq 0 ]] || exit
 
