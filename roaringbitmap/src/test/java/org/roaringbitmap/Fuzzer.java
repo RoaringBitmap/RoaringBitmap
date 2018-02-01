@@ -13,6 +13,11 @@ import java.util.stream.IntStream;
 
 public class Fuzzer {
 
+  @FunctionalInterface
+  interface IntBitmapPredicate {
+    boolean test(int index, RoaringBitmap bitmap);
+  }
+
   private static final ThreadLocal<long[]> bits = ThreadLocal.withInitial(() -> new long[1 << 10]);
 
   public static <T> void verifyInvariance(Function<RoaringBitmap, T> left, Function<RoaringBitmap, T> right) {
@@ -72,6 +77,40 @@ public class Fuzzer {
             });
   }
 
+  public static void verifyInvariance(IntBitmapPredicate predicate) {
+    verifyInvariance(rb -> true, predicate);
+  }
+
+  public static void verifyInvariance(Predicate<RoaringBitmap> validity,
+                                      IntBitmapPredicate predicate) {
+    verifyInvariance(validity, 100, 1 << 3, predicate);
+  }
+
+  public static void verifyInvariance(Predicate<RoaringBitmap> validity,
+                                      int count,
+                                      int maxKeys,
+                                      IntBitmapPredicate predicate) {
+    IntStream.range(0, count)
+            .parallel()
+            .mapToObj(i -> randomBitmap(maxKeys))
+            .filter(validity)
+            .forEach(bitmap -> {
+              for (int i = 0; i < bitmap.getCardinality(); ++i) {
+                Assert.assertTrue(predicate.test(i, bitmap));
+              }
+            });
+  }
+
+  @Test
+  public void rankSelectInvariance() {
+    verifyInvariance(bitmap -> !bitmap.isEmpty(), (i, rb) -> rb.rank(rb.select(i)) == i + 1);
+  }
+
+  @Test
+  public void selectContainsInvariance() {
+    verifyInvariance(bitmap -> !bitmap.isEmpty(), (i, rb) -> rb.contains(rb.select(i)));
+  }
+
   @Test
   public void firstSelect0Invariance() {
     verifyInvariance(bitmap -> !bitmap.isEmpty(),
@@ -127,22 +166,43 @@ public class Fuzzer {
   }
 
   @Test
+  public void sizeOfUnionOfDisjointSetsEqualsSumOfSizes() {
+    verifyInvariance((l, r) -> RoaringBitmap.andCardinality(l, r) == 0,
+            (l, r) -> l.getCardinality() + r.getCardinality(),
+            (l, r) -> RoaringBitmap.orCardinality(l, r));
+  }
+
+  @Test
+  public void sizeOfDifferenceOfDisjointSetsEqualsSumOfSizes() {
+    verifyInvariance((l, r) -> RoaringBitmap.andCardinality(l, r) == 0,
+            (l, r) -> l.getCardinality() + r.getCardinality(),
+            (l, r) -> RoaringBitmap.xorCardinality(l, r));
+  }
+
+  @Test
   public void equalsSymmetryInvariance() {
     verifyInvariance((l, r) -> l.equals(r), (l, r) -> r.equals(l));
   }
 
   @Test
   public void orOfDisjunction() {
-    verifyInvariance(100, 1 << 9,
+    verifyInvariance(100, 1 << 8,
             (l, r) -> l,
             (l, r) -> RoaringBitmap.or(l, RoaringBitmap.and(l, r)));
   }
 
   @Test
   public void orCoversXor() {
-    verifyInvariance(100, 1 << 9,
+    verifyInvariance(100, 1 << 8,
             (l, r) -> RoaringBitmap.or(l, r),
             (l, r) -> RoaringBitmap.or(l, RoaringBitmap.xor(l, r)));
+  }
+
+  @Test
+  public void xorInvariance() {
+    verifyInvariance(100, 1 << 9,
+            (l, r) -> RoaringBitmap.xor(l, r),
+            (l, r) -> RoaringBitmap.andNot(RoaringBitmap.or(l, r), RoaringBitmap.and(l, r)));
   }
 
   private static RoaringBitmap randomBitmap(int maxKeys) {
