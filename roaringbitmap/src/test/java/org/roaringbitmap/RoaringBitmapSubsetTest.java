@@ -13,19 +13,9 @@ import java.util.Set;
 public class RoaringBitmapSubsetTest {
 
 
-  private static final Predicate<Integer> DIVISIBLE_BY_4 = new Predicate<Integer>() {
-    @Override
-    public boolean apply(Integer i) {
-      return i % 4 == 0;
-    }
-  };
+  private static final Predicate<Integer> DIVISIBLE_BY_4 = i -> i % 4 == 0;
 
-  private static final Predicate<Integer> DIVISIBLE_BY_3 = new Predicate<Integer>() {
-    @Override
-    public boolean apply(Integer i) {
-      return i % 3 == 0;
-    }
-  };
+  private static final Predicate<Integer> DIVISIBLE_BY_3 = i -> i % 3 == 0;
 
   @Parameterized.Parameters(name = "assert that {1} is subset of {0}")
   public static Object[][] params() {
@@ -136,6 +126,10 @@ public class RoaringBitmapSubsetTest {
                       ImmutableSet.copyOf(Iterables.filter(ContiguousSet.create(Range.closed(1, 1 << 15),
                                                                                 DiscreteDomain.integers()),
                                                            DIVISIBLE_BY_4))
+                    },
+                    { // disjoint, large (signed-negative) keys
+                            ImmutableSet.of(0xbf09001d,0xbf090169),
+                            ImmutableSet.of(0x8088000e,0x80880029)
                     }
             };
   }

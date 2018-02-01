@@ -142,7 +142,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <javac.target>1.7</javac.target>
+        <javac.target>1.8</javac.target>
 
         <!-- This location is OK for main module but not sub-modules -->
         <checkstyle.configLocation>${basedir}/roaringbitmap/style/roaring_google_checks.xml</checkstyle.configLocation>
@@ -270,17 +270,17 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>animal-sniffer-maven-plugin</artifactId>
-                <version>1.15</version>
+                <version>1.16</version>
                 <configuration>
                     <signature>
                         <groupId>org.codehaus.mojo.signature</groupId>
-                        <artifactId>java17</artifactId>
+                        <artifactId>java18</artifactId>
                         <version>1.0</version>
                     </signature>
                 </configuration>
                 <executions>
                     <execution>
-                        <id>ensure-java-1.7-class-library</id>
+                        <id>ensure-java-1.8-class-library</id>
                         <phase>test</phase>
                         <goals>
                             <goal>check</goal>

@@ -45,6 +45,13 @@ public class OrderedWriter {
     this.underlying = underlying;
     this.bitmap = new long[WORD_COUNT];
   }
+
+  /**
+   * Initialize an OrderedWriter and construct a new RoaringBitmap
+   */
+  public OrderedWriter() {
+    this(new RoaringBitmap());
+  }
   
   /**
    * Grab a reference to the underlying bitmap

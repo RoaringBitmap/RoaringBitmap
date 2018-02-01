@@ -1018,10 +1018,10 @@ public class ImmutableRoaringBitmap
         }
         ++pos1;
         ++pos2;
-      } else if (s1 < s2) {
+      } else if (BufferUtil.compareUnsigned(s1, s2) > 0) {
         return false;
       } else {
-        pos2 = subset.highLowContainer.advanceUntil(s1, pos2);
+        pos1 = subset.highLowContainer.advanceUntil(s2, pos1);
       }
     }
     return pos2 == length2;

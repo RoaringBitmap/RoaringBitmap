@@ -17,6 +17,8 @@ import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import static org.roaringbitmap.buffer.BufferUtil.toIntUnsigned;
+
 /**
  * Simple container made of an array of 16-bit integers. Unlike org.roaringbitmap.ArrayContainer,
  * this class uses a ShortBuffer to store data.
@@ -212,7 +214,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
   private int advance(ShortIterator it) {
     if (it.hasNext()) {
-      return BufferUtil.toIntUnsigned(it.next());
+      return toIntUnsigned(it.next());
     } else {
       return -1;
     }
@@ -299,14 +301,14 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     ShortBuffer buffer = ShortBuffer.allocate(cardinality);
 
-    runStart = BufferUtil.toIntUnsigned(x.getValue(0));
-    runEnd = runStart + BufferUtil.toIntUnsigned(x.getLength(0));
+    runStart = toIntUnsigned(x.getValue(0));
+    runEnd = runStart + toIntUnsigned(x.getLength(0));
     int whichRun = 0;
 
     short val;
     for (int i = 0; i < cardinality; ++i) {
       val = content.get(i);
-      int valInt = BufferUtil.toIntUnsigned(val);
+      int valInt = toIntUnsigned(val);
       if (valInt < runStart) {
         buffer.put(writeLocation++, val);
       } else if (valInt <= runEnd) {
@@ -317,8 +319,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         do {
           if (whichRun + 1 < x.nbrruns) {
             whichRun++;
-            runStart = BufferUtil.toIntUnsigned(x.getValue(whichRun));
-            runEnd = runStart + BufferUtil.toIntUnsigned(x.getLength(whichRun));
+            runStart = toIntUnsigned(x.getValue(whichRun));
+            runEnd = runStart + toIntUnsigned(x.getLength(whichRun));
           } else {
             runStart = runEnd = (1 << 16) + 1; // infinity....
           }
@@ -405,12 +407,12 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (BufferUtil.isBackedBySimpleArray(this.content)) {
       short[] c = this.content.array();
       for (int k = 0; k < this.cardinality; ++k) {
-        x[k + i] = BufferUtil.toIntUnsigned(c[k]) | mask;
+        x[k + i] = toIntUnsigned(c[k]) | mask;
       }
 
     } else {
       for (int k = 0; k < this.cardinality; ++k) {
-        x[k + i] = BufferUtil.toIntUnsigned(this.content.get(k)) | mask;
+        x[k + i] = toIntUnsigned(this.content.get(k)) | mask;
       }
     }
   }
@@ -759,13 +761,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         short[] sarray = value2.content.array();
         for (int k = 0; k < value2.cardinality; ++k) {
           short v = sarray[k];
-          final int i = BufferUtil.toIntUnsigned(v) >>> 6;
+          final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] |= (1L << v);
         }
       } else {
         for (int k = 0; k < value2.cardinality; ++k) {
           short v2 = value2.content.get(k);
-          final int i = BufferUtil.toIntUnsigned(v2) >>> 6;
+          final int i = toIntUnsigned(v2) >>> 6;
           bitArray[i] |= (1L << v2);
         }
       }
@@ -773,13 +775,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         short[] sarray = content.array();
         for (int k = 0; k < cardinality; ++k) {
           short v = sarray[k];
-          final int i = BufferUtil.toIntUnsigned(v) >>> 6;
+          final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] |= (1L << v);
         }
       } else {
         for (int k = 0; k < cardinality; ++k) {
           short v = content.get(k);
-          final int i = BufferUtil.toIntUnsigned(v) >>> 6;
+          final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] |= (1L << v);
         }
       }
@@ -1030,9 +1032,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (BufferUtil.isBackedBySimpleArray(content)) {
       short[] c = content.array();
       int numRuns = 1;
-      int oldv = BufferUtil.toIntUnsigned(c[0]);
+      int oldv = toIntUnsigned(c[0]);
       for (int i = 1; i < cardinality; i++) {
-        int newv = BufferUtil.toIntUnsigned(c[i]);
+        int newv = toIntUnsigned(c[i]);
         if (oldv + 1 != newv) {
           ++numRuns;
         }
@@ -1041,10 +1043,10 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       return numRuns;
     } else {
       int numRuns = 1;
-      int previous = BufferUtil.toIntUnsigned(content.get(0));
+      int previous = toIntUnsigned(content.get(0));
       // we do not proceed like above for fear that calling "get" twice per loop would be too much
       for (int i = 1; i < cardinality; i++) {
-        int val = BufferUtil.toIntUnsigned(content.get(i));
+        int val = toIntUnsigned(content.get(i));
         if (val != previous + 1) {
           ++numRuns;
         }
@@ -1069,13 +1071,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         short[] sarray = value2.content.array();
         for (int k = 0; k < value2.cardinality; ++k) {
           short v = sarray[k];
-          final int i = BufferUtil.toIntUnsigned(v) >>> 6;
+          final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] |= (1L << v);
         }
       } else {
         for (int k = 0; k < value2.cardinality; ++k) {
           short v2 = value2.content.get(k);
-          final int i = BufferUtil.toIntUnsigned(v2) >>> 6;
+          final int i = toIntUnsigned(v2) >>> 6;
           bitArray[i] |= (1L << v2);
         }
       }
@@ -1083,13 +1085,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         short[] sarray = this.content.array();
         for (int k = 0; k < this.cardinality; ++k) {
           short v = sarray[k];
-          final int i = BufferUtil.toIntUnsigned(v) >>> 6;
+          final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] |= (1L << v);
         }
       } else {
         for (int k = 0; k < this.cardinality; ++k) {
           short v = this.content.get(k);
-          final int i = BufferUtil.toIntUnsigned(v) >>> 6;
+          final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] |= (1L << v);
         }
       }
@@ -1138,13 +1140,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         short[] sarray = value2.content.array();
         for (int k = 0; k < value2.cardinality; ++k) {
           short v = sarray[k];
-          final int i = BufferUtil.toIntUnsigned(v) >>> 6;
+          final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] |= (1L << v);
         }
       } else {
         for (int k = 0; k < value2.cardinality; ++k) {
           short v2 = value2.content.get(k);
-          final int i = BufferUtil.toIntUnsigned(v2) >>> 6;
+          final int i = toIntUnsigned(v2) >>> 6;
           bitArray[i] |= (1L << v2);
         }
       }
@@ -1152,13 +1154,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         short[] sarray = this.content.array();
         for (int k = 0; k < this.cardinality; ++k) {
           short v = sarray[k];
-          final int i = BufferUtil.toIntUnsigned(v) >>> 6;
+          final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] |= (1L << v);
         }
       } else {
         for (int k = 0; k < this.cardinality; ++k) {
           short v = this.content.get(k);
-          final int i = BufferUtil.toIntUnsigned(v) >>> 6;
+          final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] |= (1L << v);
         }
       }
@@ -1208,13 +1210,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     int myItPos = 0;
     ac.cardinality = 0;
     // do a merge. int -1 denotes end of input.
-    int myHead = (myItPos == cardinality) ? -1 : BufferUtil.toIntUnsigned(content.get(myItPos++));
+    int myHead = (myItPos == cardinality) ? -1 : toIntUnsigned(content.get(myItPos++));
     int hisHead = advance(it);
 
     while (myHead != -1 && hisHead != -1) {
       if (myHead < hisHead) {
         ac.emit((short) myHead);
-        myHead = (myItPos == cardinality) ? -1 : BufferUtil.toIntUnsigned(content.get(myItPos++));
+        myHead = (myItPos == cardinality) ? -1 : toIntUnsigned(content.get(myItPos++));
       } else if (myHead > hisHead) {
         ac.emit((short) hisHead);
         hisHead = advance(it);
@@ -1223,13 +1225,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
           ac.emit((short) hisHead);
         }
         hisHead = advance(it);
-        myHead = (myItPos == cardinality) ? -1 : BufferUtil.toIntUnsigned(content.get(myItPos++));
+        myHead = (myItPos == cardinality) ? -1 : toIntUnsigned(content.get(myItPos++));
       }
     }
 
     while (myHead != -1) {
       ac.emit((short) myHead);
-      myHead = (myItPos == cardinality) ? -1 : BufferUtil.toIntUnsigned(content.get(myItPos++));
+      myHead = (myItPos == cardinality) ? -1 : toIntUnsigned(content.get(myItPos++));
     }
 
     while (hisHead != -1) {
@@ -1366,13 +1368,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   @Override
   public int first() {
     assertNonEmpty(cardinality == 0);
-    return BufferUtil.toIntUnsigned(this.select(0));
+    return toIntUnsigned(this.select(0));
   }
 
   @Override
   public int last() {
     assertNonEmpty(cardinality == 0);
-    return BufferUtil.toIntUnsigned(select(cardinality - 1));
+    return toIntUnsigned(select(cardinality - 1));
   }
 
   @Override
@@ -1471,13 +1473,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         short[] sarray = value2.content.array();
         for (int k = 0; k < value2.cardinality; ++k) {
           short v = sarray[k];
-          final int i = BufferUtil.toIntUnsigned(v) >>> 6;
+          final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] ^= (1L << v);
         }
       } else {
         for (int k = 0; k < value2.cardinality; ++k) {
           short v2 = value2.content.get(k);
-          final int i = BufferUtil.toIntUnsigned(v2) >>> 6;
+          final int i = toIntUnsigned(v2) >>> 6;
           bitArray[i] ^= (1L << v2);
         }
       }
@@ -1485,13 +1487,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         short[] sarray = this.content.array();
         for (int k = 0; k < this.cardinality; ++k) {
           short v = sarray[k];
-          final int i = BufferUtil.toIntUnsigned(v) >>> 6;
+          final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] ^= (1L << v);
         }
       } else {
         for (int k = 0; k < this.cardinality; ++k) {
           short v = this.content.get(k);
-          final int i = BufferUtil.toIntUnsigned(v) >>> 6;
+          final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] ^= (1L << v);
         }
       }
@@ -1579,7 +1581,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     int startPos, stopPos = -1;
     for (int i = 0; i < runContainer.numberOfRuns(); ++i) {
       short start = runContainer.getValue(i);
-      int stop = start + BufferUtil.toIntUnsigned(runContainer.getLength(i));
+      int stop = toIntUnsigned(start) + toIntUnsigned(runContainer.getLength(i));
       startPos = BufferUtil.advanceUntil(content, stopPos, cardinality, start);
       stopPos = BufferUtil.advanceUntil(content, stopPos, cardinality, (short)stop);
       if(startPos == cardinality) {
@@ -1603,36 +1605,19 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       if(content.get(i1) == arrayContainer.content.get(i2)) {
         ++i1;
         ++i2;
-      } else if(content.get(i1) <= arrayContainer.content.get(i2)) {
+      } else if(BufferUtil.compareUnsigned(content.get(i1), arrayContainer.content.get(i2)) < 0) {
         ++i1;
       } else {
         return false;
       }
     }
-    return i2 == arrayContainer.cardinality && i2 <= cardinality;
+    return i2 == arrayContainer.cardinality;
   }
 
   @Override
   protected boolean contains(MappeableBitmapContainer bitmapContainer) {
-    // this is unlikely to be called, but is sub-optimal
-    if (bitmapContainer.cardinality != -1 && cardinality < bitmapContainer.cardinality) {
-      return false;
-    }
-    int ia = 0, ib = 0;
-    while(ia < cardinality && ib < bitmapContainer.cardinality) {
-      short selection = bitmapContainer.select(ib);
-      if(content.get(ia) == selection) {
-        ++ia;
-        ++ib;
-      } else if(content.get(ia) <= selection) {
-        ++ia;
-      } else {
-        return false;
-      }
-    }
-    return ib == bitmapContainer.cardinality && ib <= cardinality;
+    return false;
   }
-
 
 }
 
@@ -1675,7 +1660,7 @@ final class MappeableArrayContainerShortIterator implements PeekableShortIterato
 
   @Override
   public int nextAsInt() {
-    return BufferUtil.toIntUnsigned(parent.content.get(pos++));
+    return toIntUnsigned(parent.content.get(pos++));
   }
 
   @Override
@@ -1742,7 +1727,7 @@ final class RawArrayContainerShortIterator implements PeekableShortIterator {
 
   @Override
   public int nextAsInt() {
-    return BufferUtil.toIntUnsigned(content[pos++]);
+    return toIntUnsigned(content[pos++]);
   }
 
   @Override
@@ -1796,7 +1781,7 @@ final class RawReverseArrayContainerShortIterator implements ShortIterator {
 
   @Override
   public int nextAsInt() {
-    return BufferUtil.toIntUnsigned(content[pos--]);
+    return toIntUnsigned(content[pos--]);
   }
 
   @Override
@@ -1843,7 +1828,7 @@ final class ReverseMappeableArrayContainerShortIterator implements ShortIterator
 
   @Override
   public int nextAsInt() {
-    return BufferUtil.toIntUnsigned(parent.content.get(pos--));
+    return toIntUnsigned(parent.content.get(pos--));
   }
 
   @Override
