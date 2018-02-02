@@ -38,7 +38,7 @@ public abstract class RoaringOnlyBenchmarkState {
     onlyArrayContainers = new ArrayList<>();
     onlyRunContainers = new ArrayList<>();
     onlyBitmapContainers = new ArrayList<>();
-    
+
     immutableBitmaps = new ArrayList<>();
     immutableOnlyArrayContainers = new ArrayList<>();
     immutableOnlyRunContainers = new ArrayList<>();

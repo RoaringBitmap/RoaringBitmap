@@ -40,6 +40,7 @@ public final class ArrayContainer extends Container implements Cloneable {
   public ArrayContainer() {
     this(DEFAULT_INIT_SIZE);
   }
+
   public static ArrayContainer empty() {
     return new ArrayContainer();
   }
