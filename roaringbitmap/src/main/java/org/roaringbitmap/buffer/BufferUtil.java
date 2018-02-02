@@ -85,6 +85,24 @@ public final class BufferUtil {
 
   }
 
+  /**
+   * Find the smallest integer larger than pos such that array[pos]&gt;= min. If none can be found,
+   * return length.
+   *
+   * @param array array to search within
+   * @param pos starting position of the search
+   * @param length length of the array to search
+   * @param min minimum value
+   * @return x greater than pos such that array[pos] is at least as large as min, pos is is equal to
+   *         length if it is not possible.
+   */
+  public static int iterateUntil(ShortBuffer array, int pos, int length, int min) {
+    while (pos < length && toIntUnsigned(array.get(pos)) < min) {
+      pos++;
+    }
+    return pos;
+  }
+
 
   protected static void arraycopy(ShortBuffer src, int srcPos, ShortBuffer dest, int destPos,
       int length) {

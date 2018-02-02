@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
+import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +22,11 @@ public abstract class RoaringOnlyBenchmarkState {
   public List<RoaringBitmap> onlyRunContainers;
   public List<RoaringBitmap> onlyBitmapContainers;
 
+  public List<ImmutableRoaringBitmap> immutableBitmaps;
+  public List<ImmutableRoaringBitmap> immutableOnlyArrayContainers;
+  public List<ImmutableRoaringBitmap> immutableOnlyRunContainers;
+  public List<ImmutableRoaringBitmap> immutableOnlyBitmapContainers;
+
   // All tests relying on the same dataset should be run consecutively: the cache will maintain in
   // memory the associated int arrays
   private static final Cache<String, List<int[]>> DATASET_CACHE =
@@ -28,10 +34,15 @@ public abstract class RoaringOnlyBenchmarkState {
 
   public void setup(final String dataset) throws Exception {
 
-    bitmaps = new ArrayList<RoaringBitmap>();
-    onlyArrayContainers = new ArrayList<RoaringBitmap>();
-    onlyRunContainers = new ArrayList<RoaringBitmap>();
-    onlyBitmapContainers = new ArrayList<RoaringBitmap>();
+    bitmaps = new ArrayList<>();
+    onlyArrayContainers = new ArrayList<>();
+    onlyRunContainers = new ArrayList<>();
+    onlyBitmapContainers = new ArrayList<>();
+    
+    immutableBitmaps = new ArrayList<>();
+    immutableOnlyArrayContainers = new ArrayList<>();
+    immutableOnlyRunContainers = new ArrayList<>();
+    immutableOnlyBitmapContainers = new ArrayList<>();
 
     List<int[]> ints = DATASET_CACHE.get(dataset, new Callable<List<int[]>>() {
 
@@ -47,6 +58,7 @@ public abstract class RoaringOnlyBenchmarkState {
       RoaringBitmap roaring = RoaringBitmap.bitmapOf(data);
       roaring.runOptimize();
       bitmaps.add(roaring);
+      immutableBitmaps.add(roaring.toMutableRoaringBitmap());
 
     }
     //Add bitmaps with only RunContainers preserved
@@ -60,6 +72,7 @@ public abstract class RoaringOnlyBenchmarkState {
         cp.advance();
       }
       onlyRunContainers.add(runOnly);
+      immutableOnlyRunContainers.add(runOnly.toMutableRoaringBitmap());
     }
 
     //Add bitmaps with only ArrayContainers preserved
@@ -75,6 +88,7 @@ public abstract class RoaringOnlyBenchmarkState {
         cp.advance();
       }
       onlyArrayContainers.add(arrayOnly);
+      immutableOnlyArrayContainers.add(arrayOnly.toMutableRoaringBitmap());
     }
 
     //Add bitmaps with only BitmapContainers preserved
@@ -90,7 +104,10 @@ public abstract class RoaringOnlyBenchmarkState {
         cp.advance();
       }
       onlyBitmapContainers.add(bitmapOnly);
+      immutableOnlyBitmapContainers.add(bitmapOnly.toMutableRoaringBitmap());
     }
+
+
   }
 
   @TearDown
