@@ -237,7 +237,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     }
     int write = 0;
     int read = 0;
-    short[] buffer = new short[cardinality];
+    ArrayContainer answer = new ArrayContainer(cardinality);
     for (int i = 0; i < x.numberOfRuns() && read < cardinality; ++i) {
       int runStart = Util.toIntUnsigned(x.getValue(i));
       int runEnd = runStart + Util.toIntUnsigned(x.getLength(i));
@@ -246,15 +246,15 @@ public final class ArrayContainer extends Container implements Cloneable {
       }
       int firstInRun = Util.iterateUntil(content, read, cardinality, runStart);
       int toWrite = firstInRun - read;
-      System.arraycopy(content, read, buffer, write, toWrite);
+      System.arraycopy(content, read, answer.content, write, toWrite);
       write += toWrite;
 
       read = Util.iterateUntil(content, firstInRun, cardinality, runEnd + 1);
     }
-    System.arraycopy(content, read, buffer, write, cardinality - read);
+    System.arraycopy(content, read, answer.content, write, cardinality - read);
     write += cardinality - read;
-
-    return new ArrayContainer(write, buffer);
+    answer.cardinality = write;
+    return answer;
   }
 
   @Override

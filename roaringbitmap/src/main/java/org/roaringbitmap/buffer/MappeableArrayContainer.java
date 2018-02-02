@@ -304,7 +304,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
     int write = 0;
     int read = 0;
-    ShortBuffer buffer = ShortBuffer.allocate(cardinality);
+    MappeableArrayContainer answer = new MappeableArrayContainer(cardinality);
     for (int i = 0; i < x.numberOfRuns() && read < cardinality; ++i) {
       int runStart = BufferUtil.toIntUnsigned(x.getValue(i));
       int runEnd = runStart + BufferUtil.toIntUnsigned(x.getLength(i));
@@ -313,15 +313,15 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       }
       int firstInRun = BufferUtil.iterateUntil(content, read, cardinality, runStart);
       int toWrite = firstInRun - read;
-      BufferUtil.arraycopy(content, read, buffer, write, toWrite);
+      BufferUtil.arraycopy(content, read, answer.content, write, toWrite);
       write += toWrite;
 
       read = BufferUtil.iterateUntil(content, firstInRun, cardinality, runEnd + 1);
     }
-    BufferUtil.arraycopy(content, read, buffer, write, cardinality - read);
+    BufferUtil.arraycopy(content, read, answer.content, write, cardinality - read);
     write += cardinality - read;
-
-    return new MappeableArrayContainer(write, buffer);
+    answer.cardinality = write;
+    return answer;
 
   }
 
