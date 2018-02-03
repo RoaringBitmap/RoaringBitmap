@@ -141,6 +141,11 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   }
 
   @Override
+  public boolean isEmpty() {
+    return cardinality == 0;
+  }
+
+  @Override
   public MappeableArrayContainer and(final MappeableArrayContainer value2) {
 
     final MappeableArrayContainer answer = new MappeableArrayContainer(value2.content.limit());

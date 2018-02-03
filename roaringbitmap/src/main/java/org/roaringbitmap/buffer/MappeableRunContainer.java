@@ -377,6 +377,11 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     return this;
   }
 
+  @Override
+  public boolean isEmpty() {
+    return nbrruns == 0;
+  }
+
 
   @Override
   public MappeableContainer and(MappeableArrayContainer x) {

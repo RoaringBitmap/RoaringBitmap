@@ -939,6 +939,14 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     highLowContainer = new RoaringArray();
   }
 
+
+  /**
+   * Wrap an existing high low container
+   */
+  RoaringBitmap(RoaringArray highLowContainer) {
+    this.highLowContainer = highLowContainer;
+  }
+
   /**
    * Create a RoaringBitmap from a MutableRoaringBitmap or ImmutableRoaringBitmap. The source is not
    * modified.

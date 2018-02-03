@@ -186,6 +186,12 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
   public abstract Container clone();
 
   /**
+   * Checks whether the container is empty or not.
+   * @return true if the container is empty.
+   */
+  public abstract boolean isEmpty();
+
+  /**
    * Checks whether the contain contains the provided value
    *
    * @param x value to check

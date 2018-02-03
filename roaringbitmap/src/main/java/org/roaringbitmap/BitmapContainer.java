@@ -282,6 +282,11 @@ public final class BitmapContainer extends Container implements Cloneable {
     return new BitmapContainer(this.cardinality, this.bitmap);
   }
 
+  @Override
+  public boolean isEmpty() {
+    return cardinality == 0;
+  }
+
   /**
    * Recomputes the cardinality of the bitmap.
    */

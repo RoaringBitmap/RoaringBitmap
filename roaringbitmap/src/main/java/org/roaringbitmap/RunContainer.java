@@ -718,6 +718,11 @@ public final class RunContainer extends Container implements Cloneable {
     return new RunContainer(nbrruns, valueslength);
   }
 
+  @Override
+  public boolean isEmpty() {
+    return nbrruns == 0;
+  }
+
   // To set the last value of a value length
   private void closeValueLength(int value, int index) {
     int initialValue = toIntUnsigned(getValue(index));
