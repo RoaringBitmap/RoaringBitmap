@@ -72,9 +72,12 @@ public class BasicAndNotContainerBenchmark {
 
   @Benchmark
   public int part3_andNotArrayContainerVSRunContainerContainer(BenchmarkState benchmarkState) {
-    if (benchmarkState.rc2.serializedSizeInBytes() > benchmarkState.ac2.serializedSizeInBytes())
-      throw new RuntimeException("Can't expect run containers to win if they are larger.");
     return benchmarkState.ac4.andNot(benchmarkState.rc2).getCardinality();
+  }
+
+  @Benchmark
+  public int part4_andNotArrayContainerVSRunContainerContainer(BenchmarkState benchmarkState) {
+    return benchmarkState.ac4.andNot(benchmarkState.rc4).getCardinality();
   }
 
   @Benchmark
@@ -101,7 +104,7 @@ public class BasicAndNotContainerBenchmark {
     public int bitsetperword2 = 63;
     public int bitsetperword3 = 1;
 
-    Container rc1, rc2, rc3, ac1, ac2, ac3, ac4;
+    Container rc1, rc2, rc3, rc4, ac1, ac2, ac3, ac4;
     Random rand = new Random();
 
     public BenchmarkState() {
@@ -120,6 +123,8 @@ public class BasicAndNotContainerBenchmark {
 
       rc3 = new RunContainer();
       rc3 = RandomUtil.fillMeUp(rc3, values3);
+
+      rc4 = new RunContainer(new short[]{4, 500, 2000, 1000, 5000, 3000, 16000, 10000, 32000, 600}, 5);
 
       ac1 = new ArrayContainer();
       ac1 = RandomUtil.fillMeUp(ac1, values1);

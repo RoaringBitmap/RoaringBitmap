@@ -9,6 +9,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ShortBuffer;
 import java.util.*;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -1292,6 +1293,27 @@ public class TestRunContainer {
       }
     }
     assertTrue(atLeastOneArray);
+  }
+
+  @Test
+  public void RunContainerArg_ArrayANDNOT2() {
+    MappeableArrayContainer ac = new MappeableArrayContainer(ShortBuffer.wrap(new short[]{0, 2, 4, 8, 10, 15, 16, 48, 50, 61, 80, -2}), 12);
+    MappeableContainer rc = new MappeableRunContainer(ShortBuffer.wrap(new short[]{7, 3, 17, 2, 20, 3, 30, 3, 36, 6, 60, 5, -3, 2}), 7);
+    Assert.assertEquals(new MappeableArrayContainer(ShortBuffer.wrap(new short[]{0, 2, 4, 15, 16, 48, 50, 80}), 8), ac.andNot(rc));
+  }
+
+  @Test
+  public void FullRunContainerArg_ArrayANDNOT2() {
+    MappeableArrayContainer ac = new MappeableArrayContainer(ShortBuffer.wrap(new short[]{3}), 1);
+    MappeableContainer rc = MappeableRunContainer.full();
+    Assert.assertEquals(new MappeableArrayContainer(), ac.andNot(rc));
+  }
+
+  @Test
+  public void RunContainerArg_ArrayANDNOT3() {
+    MappeableArrayContainer ac = new MappeableArrayContainer(ShortBuffer.wrap(new short[]{5}), 1);
+    MappeableContainer rc = new MappeableRunContainer(ShortBuffer.wrap(new short[]{3, 10}), 1);
+    Assert.assertEquals(new MappeableArrayContainer(), ac.andNot(rc));
   }
 
   @Test
