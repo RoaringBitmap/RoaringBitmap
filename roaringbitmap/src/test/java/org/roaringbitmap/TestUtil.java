@@ -80,4 +80,41 @@ public class TestUtil {
         Util.partialRadixSort(test);
         Assert.assertArrayEquals(expected, test);
     }
+
+    @Test
+    public void testAdvanceUntil() {
+        short data[] = {0, 3, 16, 18, 21, 29, 30,-342};
+        Assert.assertEquals(1, Util.advanceUntil(data, -1, data.length, (short) 3));
+        Assert.assertEquals(5, Util.advanceUntil(data, -1, data.length, (short) 28));
+        Assert.assertEquals(5, Util.advanceUntil(data, -1, data.length, (short) 29));
+        Assert.assertEquals(7, Util.advanceUntil(data, -1, data.length, (short) -342));
+    }
+
+    @Test
+    public void testIterateUntil() {
+        short data[] = {0, 3, 16, 18, 21, 29, 30, -342};
+        Assert.assertEquals(1, Util.iterateUntil(data, 0, data.length, Util.toIntUnsigned((short) 3)));
+        Assert.assertEquals(5, Util.iterateUntil(data, 0, data.length, Util.toIntUnsigned((short) 28)));
+        Assert.assertEquals(5, Util.iterateUntil(data, 0, data.length, Util.toIntUnsigned((short) 29)));
+        Assert.assertEquals(7, Util.iterateUntil(data, 0, data.length, Util.toIntUnsigned((short) -342)));
+    }
+
+    @Test
+    public void testToUnsigned() {
+        Assert.assertEquals(0, Util.toIntUnsigned((short) 0));
+        Assert.assertEquals(128, Util.toIntUnsigned((short) 128));
+        Assert.assertEquals(32767, Util.toIntUnsigned(Short.MAX_VALUE));
+        Assert.assertEquals(32768, Util.toIntUnsigned(Short.MIN_VALUE));
+        Assert.assertEquals(65535, Util.toIntUnsigned((short) -1));
+    }
+
+    @Test
+    public void testReverseToUnsigned() {
+        Assert.assertEquals((short) 0,  (short) 0);
+        Assert.assertEquals((short) 128,  (short) 128);
+        Assert.assertEquals(Short.MAX_VALUE,  (short) 32767);
+        Assert.assertEquals(Short.MIN_VALUE,  (short) 32768);
+        Assert.assertEquals((short) -1,  (short) 65535);
+    }
+
 }

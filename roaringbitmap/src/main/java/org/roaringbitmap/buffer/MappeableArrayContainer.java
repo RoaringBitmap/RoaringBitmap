@@ -53,6 +53,10 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     this(DEFAULT_INIT_SIZE);
   }
 
+  public static MappeableArrayContainer empty() {
+    return new MappeableArrayContainer();
+  }
+
   /**
    * Creates a new container from a non-mappeable one. This copies the data.
    *
@@ -293,42 +297,32 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
   @Override
   public MappeableContainer andNot(final MappeableRunContainer x) {
-    int writeLocation = 0;
-    int runStart, runEnd; // the current or upcoming run.
-    if (x.nbrruns == 0) {
+    if (x.numberOfRuns() == 0) {
       return clone();
+    } else if (x.isFull()) {
+      return MappeableArrayContainer.empty();
     }
-
-    ShortBuffer buffer = ShortBuffer.allocate(cardinality);
-
-    runStart = toIntUnsigned(x.getValue(0));
-    runEnd = runStart + toIntUnsigned(x.getLength(0));
-    int whichRun = 0;
-
-    short val;
-    for (int i = 0; i < cardinality; ++i) {
-      val = content.get(i);
-      int valInt = toIntUnsigned(val);
-      if (valInt < runStart) {
-        buffer.put(writeLocation++, val);
-      } else if (valInt <= runEnd) {
-        ; // don't want item
-      } else {
-        // greater than this run, need to do an advanceUntil on runs
-        // done sequentially for now (no galloping attempts).
-        do {
-          if (whichRun + 1 < x.nbrruns) {
-            whichRun++;
-            runStart = toIntUnsigned(x.getValue(whichRun));
-            runEnd = runStart + toIntUnsigned(x.getLength(whichRun));
-          } else {
-            runStart = runEnd = (1 << 16) + 1; // infinity....
-          }
-        } while (valInt > runEnd);
-        --i; // need to re-process this val
+    int write = 0;
+    int read = 0;
+    MappeableArrayContainer answer = new MappeableArrayContainer(cardinality);
+    for (int i = 0; i < x.numberOfRuns() && read < cardinality; ++i) {
+      int runStart = BufferUtil.toIntUnsigned(x.getValue(i));
+      int runEnd = runStart + BufferUtil.toIntUnsigned(x.getLength(i));
+      if (BufferUtil.toIntUnsigned(content.get(read)) > runEnd) {
+        continue;
       }
+      int firstInRun = BufferUtil.iterateUntil(content, read, cardinality, runStart);
+      int toWrite = firstInRun - read;
+      BufferUtil.arraycopy(content, read, answer.content, write, toWrite);
+      write += toWrite;
+
+      read = BufferUtil.iterateUntil(content, firstInRun, cardinality, runEnd + 1);
     }
-    return new MappeableArrayContainer(writeLocation, buffer);
+    BufferUtil.arraycopy(content, read, answer.content, write, cardinality - read);
+    write += cardinality - read;
+    answer.cardinality = write;
+    return answer;
+
   }
 
   @Override

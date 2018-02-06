@@ -62,4 +62,40 @@ public class TestUtil {
         Assert.assertFalse(BufferUtil.unsignedIntersects(data4, data4.limit(), data5, data5.limit()));
     }
 
+  @Test
+    public void testAdvanceUntil() {
+        ShortBuffer data = ShortBuffer.wrap(new short[] {0, 3, 16, 18, 21, 29, 30, -342});
+        Assert.assertEquals(1, BufferUtil.advanceUntil(data, -1, data.limit(), (short) 3));
+        Assert.assertEquals(5, BufferUtil.advanceUntil(data, -1, data.limit(), (short) 28));
+        Assert.assertEquals(5, BufferUtil.advanceUntil(data, -1, data.limit(), (short) 29));
+        Assert.assertEquals(7, BufferUtil.advanceUntil(data, -1, data.limit(), (short) -342));
+    }
+
+    @Test
+    public void testIterateUntil() {
+        ShortBuffer data = ShortBuffer.wrap(new short[] {0, 3, 16, 18, 21, 29, 30, -342});
+        Assert.assertEquals(1, BufferUtil.iterateUntil(data, 0, data.limit(), BufferUtil.toIntUnsigned((short) 3)));
+        Assert.assertEquals(5, BufferUtil.iterateUntil(data, 0, data.limit(), BufferUtil.toIntUnsigned((short) 28)));
+        Assert.assertEquals(5, BufferUtil.iterateUntil(data, 0, data.limit(), BufferUtil.toIntUnsigned((short) 29)));
+        Assert.assertEquals(7, BufferUtil.iterateUntil(data, 0, data.limit(), BufferUtil.toIntUnsigned((short) -342)));
+    }
+
+    @Test
+    public void testToUnsigned() {
+        Assert.assertEquals(0, BufferUtil.toIntUnsigned((short) 0));
+        Assert.assertEquals(128, BufferUtil.toIntUnsigned((short) 128));
+        Assert.assertEquals(32767, BufferUtil.toIntUnsigned(Short.MAX_VALUE));
+        Assert.assertEquals(32768, BufferUtil.toIntUnsigned(Short.MIN_VALUE));
+        Assert.assertEquals(65535, BufferUtil.toIntUnsigned((short) -1));
+    }
+
+    @Test
+    public void testReverseToUnsigned() {
+        Assert.assertEquals((short) 0, (short) 0);
+        Assert.assertEquals((short) 128, (short) 128);
+        Assert.assertEquals(Short.MAX_VALUE, (short) 32767);
+        Assert.assertEquals(Short.MIN_VALUE, (short) 32768);
+        Assert.assertEquals((short) -1, (short) 65535);
+    }
+
 }

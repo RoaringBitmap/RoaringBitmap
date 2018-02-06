@@ -41,6 +41,9 @@ public final class ArrayContainer extends Container implements Cloneable {
     this(DEFAULT_INIT_SIZE);
   }
 
+  public static ArrayContainer empty() {
+    return new ArrayContainer();
+  }
   /**
    * Create an array container with specified capacity
    *
@@ -226,43 +229,32 @@ public final class ArrayContainer extends Container implements Cloneable {
   }
 
   @Override
-  public Container andNot(RunContainer x) {
-    int writeLocation = 0;
-    int runStart, runEnd; // the current or upcoming run.
-    int whichRun;
-    short[] buffer = new short[cardinality];
-    if (x.nbrruns == 0) {
+  public ArrayContainer andNot(RunContainer x) {
+    if (x.numberOfRuns() == 0) {
       return clone();
-    } else {
-      runStart = Util.toIntUnsigned(x.getValue(0));
-      runEnd = runStart + Util.toIntUnsigned(x.getLength(0));
-      whichRun = 0;
+    } else if (x.isFull()) {
+      return ArrayContainer.empty();
     }
-
-    short val;
-    for (int i = 0; i < cardinality; ++i) {
-      val = content[i];
-      int valInt = Util.toIntUnsigned(val);
-      if (valInt < runStart) {
-        buffer[writeLocation++] = val;
-      } else if (valInt <= runEnd) {
-        ; // don't want item
-      } else {
-        // greater than this run, need to do an advanceUntil on runs
-        // done sequentially for now (no galloping attempts).
-        do {
-          if (whichRun + 1 < x.nbrruns) {
-            whichRun++;
-            runStart = Util.toIntUnsigned(x.getValue(whichRun));
-            runEnd = runStart + Util.toIntUnsigned(x.getLength(whichRun));
-          } else {
-            runStart = runEnd = (1 << 16) + 1; // infinity....
-          }
-        } while (valInt > runEnd);
-        --i; // need to re-process this val
+    int write = 0;
+    int read = 0;
+    ArrayContainer answer = new ArrayContainer(cardinality);
+    for (int i = 0; i < x.numberOfRuns() && read < cardinality; ++i) {
+      int runStart = Util.toIntUnsigned(x.getValue(i));
+      int runEnd = runStart + Util.toIntUnsigned(x.getLength(i));
+      if (Util.toIntUnsigned(content[read]) > runEnd) {
+        continue;
       }
+      int firstInRun = Util.iterateUntil(content, read, cardinality, runStart);
+      int toWrite = firstInRun - read;
+      System.arraycopy(content, read, answer.content, write, toWrite);
+      write += toWrite;
+
+      read = Util.iterateUntil(content, firstInRun, cardinality, runEnd + 1);
     }
-    return new ArrayContainer(writeLocation, buffer);
+    System.arraycopy(content, read, answer.content, write, cardinality - read);
+    write += cardinality - read;
+    answer.cardinality = write;
+    return answer;
   }
 
   @Override
