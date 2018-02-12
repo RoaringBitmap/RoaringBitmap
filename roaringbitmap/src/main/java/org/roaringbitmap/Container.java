@@ -26,7 +26,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    */
   public static Container rangeOfOnes(final int start, final int last) {
     final int arrayContainerOverRunThreshold = 2;
-    int cardinality = last - start;
+    final int cardinality = last - start;
 
     if (cardinality < arrayContainerOverRunThreshold) {
       return new ArrayContainer(start, last);
