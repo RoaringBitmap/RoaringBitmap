@@ -28,7 +28,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     final int arrayContainerOverRunThreshold = 2;
     final int cardinality = last - start;
 
-    if (cardinality < arrayContainerOverRunThreshold) {
+    if (cardinality <= arrayContainerOverRunThreshold) {
       return new ArrayContainer(start, last);
     }
     return new RunContainer(start, last);

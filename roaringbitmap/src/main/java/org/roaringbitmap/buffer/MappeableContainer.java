@@ -30,7 +30,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
     final int arrayContainerOverRunThreshold = 2;
     final int cardinality = last - start;
 
-    if (cardinality < arrayContainerOverRunThreshold) {
+    if (cardinality <= arrayContainerOverRunThreshold) {
       return new MappeableArrayContainer(start, last);
     }
     return new MappeableRunContainer(start, last);
