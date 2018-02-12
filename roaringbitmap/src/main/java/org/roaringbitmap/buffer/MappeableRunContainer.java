@@ -180,6 +180,12 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     vl[2 * (runCount - 1) + 1] = (short) runLen;
   }
 
+  /**
+   * Create an run container with a run of ones from firstOfRun to lastOfRun.
+   *
+   * @param firstOfRun first index
+   * @param lastOfRun last index (range is exclusive)
+   */
   public MappeableRunContainer(final int firstOfRun, final int lastOfRun) {
     this.nbrruns = 1;
     short[] vl = {(short) firstOfRun, (short) (lastOfRun - 1 - firstOfRun)};

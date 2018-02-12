@@ -141,6 +141,12 @@ public final class RunContainer extends Container implements Cloneable {
     setLength(runCount - 1, (short) runLen);
   }
 
+  /**
+   * Create an run container with a run of ones from firstOfRun to lastOfRun.
+   *
+   * @param firstOfRun first index
+   * @param lastOfRun last index (range is exclusive)
+   */
   public RunContainer(final int firstOfRun, final int lastOfRun) {
     this.nbrruns = 1;
     this.valueslength = new short[]{(short) firstOfRun, (short) (lastOfRun - 1 - firstOfRun)};
