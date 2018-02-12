@@ -182,7 +182,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   public MappeableRunContainer(final int firstOfRun, final int lastOfRun) {
     this.nbrruns = 1;
-    this.valueslength = ShortBuffer.wrap(new short[]{(short) firstOfRun, (short) (lastOfRun - 1 - firstOfRun)});
+    short[] vl = {(short) firstOfRun, (short) (lastOfRun - 1 - firstOfRun)};
+    this.valueslength = ShortBuffer.wrap(vl);
   }
 
   // convert a bitmap container to a run container somewhat efficiently.
