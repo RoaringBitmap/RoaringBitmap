@@ -2394,4 +2394,43 @@ public class TestRunContainer {
     Assert.assertNotEquals(full, new MappeableArrayContainer().add(0, 10));
   }
 
+  @Test
+  public void testFullConstructor() {
+    Assert.assertTrue(MappeableRunContainer.full().isFull());
+  }
+
+  @Test
+  public void testRangeConstructor() {
+    MappeableRunContainer full = new MappeableRunContainer(0, 1 << 16);
+    Assert.assertTrue(full.isFull());
+    Assert.assertEquals(65536, full.getCardinality());
+  }
+
+  @Test
+  public void testRangeConstructor2() {
+    MappeableRunContainer c = new MappeableRunContainer(17, 1000);
+    Assert.assertEquals(983, c.getCardinality());
+  }
+
+  @Test
+  public void testRangeConstructor3() {
+    MappeableRunContainer a = new MappeableRunContainer(17, 45679);
+    MappeableRunContainer b = new MappeableRunContainer();
+    b.iadd(17, 45679);
+    Assert.assertEquals(a, b);
+  }
+
+  @Test
+  public void testRangeConstructor4() {
+    MappeableRunContainer c = new MappeableRunContainer(0, 45679);
+    Assert.assertEquals(45679, c.getCardinality());
+  }
+
+  @Test
+  public void testSimpleCardinality() {
+    MappeableRunContainer c = new MappeableRunContainer();
+    c.add((short) 1);
+    c.add((short) 17);
+    Assert.assertEquals(2, c.getCardinality());
+  }
 }

@@ -141,6 +141,17 @@ public final class RunContainer extends Container implements Cloneable {
     setLength(runCount - 1, (short) runLen);
   }
 
+  /**
+   * Create an run container with a run of ones from firstOfRun to lastOfRun.
+   *
+   * @param firstOfRun first index
+   * @param lastOfRun last index (range is exclusive)
+   */
+  public RunContainer(final int firstOfRun, final int lastOfRun) {
+    this.nbrruns = 1;
+    this.valueslength = new short[]{(short) firstOfRun, (short) (lastOfRun - 1 - firstOfRun)};
+  }
+
   // convert a bitmap container to a run container somewhat efficiently.
   protected RunContainer(BitmapContainer bc, int nbrRuns) {
     this.nbrruns = nbrRuns;
@@ -1622,8 +1633,8 @@ public final class RunContainer extends Container implements Cloneable {
     return (this.nbrruns == 1) && (this.getValue(0) == 0) && (this.getLength(0) == -1);
   }
 
-  public static Container full() {
-    return new RunContainer(1, new short[]{0, -1});
+  public static RunContainer full() {
+    return new RunContainer(0, 1 << 16);
   }
 
   @Override

@@ -180,6 +180,18 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     vl[2 * (runCount - 1) + 1] = (short) runLen;
   }
 
+  /**
+   * Create an run container with a run of ones from firstOfRun to lastOfRun.
+   *
+   * @param firstOfRun first index
+   * @param lastOfRun last index (range is exclusive)
+   */
+  public MappeableRunContainer(final int firstOfRun, final int lastOfRun) {
+    this.nbrruns = 1;
+    short[] vl = {(short) firstOfRun, (short) (lastOfRun - 1 - firstOfRun)};
+    this.valueslength = ShortBuffer.wrap(vl);
+  }
+
   // convert a bitmap container to a run container somewhat efficiently.
   protected MappeableRunContainer(MappeableBitmapContainer bc, int nbrRuns) {
     this.nbrruns = nbrRuns;
@@ -1533,9 +1545,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     return (this.nbrruns == 1) && (this.getValue(0) == 0) && (this.getLength(0) == -1);
   }
 
-  public static MappeableContainer full() {
-    ShortBuffer sb = ShortBuffer.wrap(new short[]{0, -1});
-    return new MappeableRunContainer(sb, 1);
+  public static MappeableRunContainer full() {
+    return new MappeableRunContainer(0, 1 << 16);
   }
 
   @Override

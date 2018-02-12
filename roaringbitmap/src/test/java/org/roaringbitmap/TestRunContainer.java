@@ -3322,4 +3322,44 @@ public class TestRunContainer {
     Container full = new RunContainer().add(0, 1 << 16);
     Assert.assertNotEquals(full, new ArrayContainer().add(0, 10));
   }
+
+  @Test
+  public void testFullConstructor() {
+    Assert.assertTrue(RunContainer.full().isFull());
+  }
+
+  @Test
+  public void testRangeConstructor() {
+    RunContainer c = new RunContainer(0, 1 << 16);
+    Assert.assertTrue(c.isFull());
+    Assert.assertEquals(65536, c.getCardinality());
+  }
+
+  @Test
+  public void testRangeConstructor2() {
+    RunContainer c = new RunContainer(17, 1000);
+    Assert.assertEquals(983, c.getCardinality());
+  }
+
+  @Test
+  public void testRangeConstructor3() {
+    RunContainer a = new RunContainer(17, 45679);
+    RunContainer b = new RunContainer();
+    b.iadd(17, 45679);
+    Assert.assertEquals(a, b);
+  }
+
+  @Test
+  public void testRangeConstructor4() {
+    RunContainer c = new RunContainer(0, 45679);
+    Assert.assertEquals(45679, c.getCardinality());
+  }
+
+  @Test
+  public void testSimpleCardinality() {
+    RunContainer c = new RunContainer();
+    c.add((short) 1);
+    c.add((short) 17);
+    Assert.assertEquals(2, c.getCardinality());
+  }
 }
