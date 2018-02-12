@@ -25,11 +25,13 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    * @return a new container initialized with the specified values
    */
   public static Container rangeOfOnes(final int start, final int last) {
-    final int sizeAsArrayContainer = ArrayContainer.serializedSizeInBytes(last - start);
-    final int sizeAsRunContainer = RunContainer.serializedSizeInBytes(1);
-    Container answer =
-        sizeAsRunContainer < sizeAsArrayContainer ? new RunContainer(start, last) : new ArrayContainer(start, last);
-    return answer;
+    final int arrayContainerOverRunThreshold = 2;
+    int cardinality = last - start;
+
+    if (cardinality < arrayContainerOverRunThreshold) {
+      return new ArrayContainer(start, last);
+    }
+    return new RunContainer(start, last);
   }
 
   /**
