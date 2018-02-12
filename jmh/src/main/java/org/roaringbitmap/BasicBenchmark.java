@@ -159,6 +159,13 @@ public class BasicBenchmark {
   }
 
   @Benchmark
+  public RoaringBitmap createBitmapRange() {
+    RoaringBitmap r = new RoaringBitmap();
+    r.add(0L, 300_000_000L);
+    return r;
+  }
+
+  @Benchmark
   public MutableRoaringBitmap createBitmapUnordered_mutable() {
 
     MutableRoaringBitmap r = new MutableRoaringBitmap();
