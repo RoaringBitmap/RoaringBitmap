@@ -28,8 +28,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
     final int sizeAsArrayContainer = ArrayContainer.serializedSizeInBytes(last - start);
     final int sizeAsRunContainer = RunContainer.serializedSizeInBytes(1);
     Container answer =
-        sizeAsRunContainer < sizeAsArrayContainer ? new RunContainer() : new ArrayContainer();
-    answer = answer.iadd(start, last);
+        sizeAsRunContainer < sizeAsArrayContainer ? new RunContainer(start, last) : new ArrayContainer(start, last);
     return answer;
   }
 
