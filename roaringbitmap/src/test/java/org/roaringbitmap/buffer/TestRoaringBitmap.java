@@ -1489,6 +1489,36 @@ public class TestRoaringBitmap {
     }
   }
 
+  @Test
+  public void trimTest() {
+    // with bitmap containing 4k containers
+    MutableRoaringBitmap rb = new MutableRoaringBitmap();
+    for (int i = 0; i < 4000; i++) {
+      rb.add((1 << 16) * i);
+    }
+
+    rb.trim();
+
+    int wastedBytes = 0;
+    final int javaReferenceSize = 4; // or 8 depending on factors
+    MutableRoaringArray ra = rb.getMappeableRoaringArray();
+    wastedBytes += Short.BYTES * (ra.keys.length - ra.size);
+    wastedBytes += javaReferenceSize * (ra.values.length - ra.size);
+    MappeableContainerPointer cp = ra.getContainerPointer();
+    while (cp.getContainer() != null) {
+      if (cp.isBitmapContainer()) {
+        ; //nothing wasted
+      } else if (cp.isRunContainer()) {
+        MappeableRunContainer rc = (MappeableRunContainer) cp.getContainer();
+        wastedBytes += Short.BYTES * (rc.valueslength.limit() - rc.numberOfRuns());
+      } else {
+        MappeableArrayContainer ac = (MappeableArrayContainer) cp.getContainer();
+        wastedBytes += Short.BYTES * (ac.content.limit() - ac.cardinality);
+      }
+      cp.advance();
+    }
+    Assert.assertEquals(0, wastedBytes);
+  }
 
   @Test
   public void arraytest() {

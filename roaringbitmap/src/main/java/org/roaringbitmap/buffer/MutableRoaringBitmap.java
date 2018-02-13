@@ -1401,17 +1401,13 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
   }
 
-
   /**
    * Recover allocated but unused memory.
    */
   @Override
   public void trim() {
-    for (int i = 0; i < this.highLowContainer.size(); i++) {
-      this.highLowContainer.getContainerAtIndex(i).trim();
-    }
+    getMappeableRoaringArray().trim();
   }
-
 
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
