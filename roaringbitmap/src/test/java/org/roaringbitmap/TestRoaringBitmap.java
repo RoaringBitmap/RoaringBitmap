@@ -3722,6 +3722,36 @@ public class TestRoaringBitmap {
   }
 
   @Test
+  public void trimTest() {
+    // with bitmap containing 4k containers
+    RoaringBitmap rb = new RoaringBitmap();
+    for (int i = 0; i < 4000; i++) {
+      rb.add((1 << 16) * i);
+    }
+
+    rb.trim();
+
+    int wastedBytes = 0;
+    final int javaReferenceSize = 4; // or 8 depending on factors
+    RoaringArray ra = rb.highLowContainer;
+    wastedBytes += Short.BYTES * (ra.keys.length - ra.size);
+    wastedBytes += javaReferenceSize * (ra.values.length - ra.size);
+    ContainerPointer cp = ra.getContainerPointer();
+    while (cp.getContainer() != null) {
+      if (cp.isBitmapContainer()) {
+        ; //nothing wasted
+      } else if (cp.isRunContainer()) {
+        ; //not able to access information about wasted bytes
+      } else {
+        ArrayContainer ac = (ArrayContainer) cp.getContainer();
+        wastedBytes += Short.BYTES * (ac.content.length - ac.cardinality);
+      }
+      cp.advance();
+    }
+    Assert.assertEquals(0, wastedBytes);
+  }
+
+  @Test
   public void xorBigIntsTest() {
     RoaringBitmap rb = new RoaringBitmap();
     RoaringBitmap rb2 = new RoaringBitmap();
