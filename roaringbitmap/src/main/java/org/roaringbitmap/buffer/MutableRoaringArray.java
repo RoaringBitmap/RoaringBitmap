@@ -177,6 +177,17 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
     this.size = 0;
   }
 
+  /**
+   * If possible, recover wasted memory.
+   */
+  public void trim() {
+    keys = Arrays.copyOf(keys, size);
+    values = Arrays.copyOf(values, size);
+    for (MappeableContainer c : values) {
+      c.trim();
+    }
+  }
+
   @Override
   public MutableRoaringArray clone() {
     MutableRoaringArray sa;
