@@ -2298,9 +2298,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   @Override
   public void trim() {
-    for (int i = 0; i < this.highLowContainer.size(); i++) {
-      this.highLowContainer.getContainerAtIndex(i).trim();
-    }
+    this.highLowContainer.trim();
   }
 
 

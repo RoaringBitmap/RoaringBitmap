@@ -198,6 +198,17 @@ public final class RoaringArray implements Cloneable, Externalizable {
     this.size = 0;
   }
 
+  /**
+   * If possible, recover wasted memory.
+   */
+  public void trim() {
+    keys = Arrays.copyOf(keys, size);
+    values = Arrays.copyOf(values, size);
+    for (Container c : values) {
+      c.trim();
+    }
+  }
+
   @Override
   public RoaringArray clone() throws CloneNotSupportedException {
     RoaringArray sa;
