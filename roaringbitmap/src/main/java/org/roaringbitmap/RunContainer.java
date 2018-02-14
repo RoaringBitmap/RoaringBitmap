@@ -1001,7 +1001,14 @@ public final class RunContainer extends Container implements Cloneable {
     return sum;
   }
 
-  short getLength(int index) {
+  /**
+   * Gets the length of the run at the index.
+   * @param index the index of the run.
+   * @return the length of the run at the index.
+   * @throws ArrayIndexOutOfBoundsException if index is negative or larger than the index of the
+   *     last run.
+   */
+  public short getLength(int index) {
     return valueslength[2 * index + 1];
   }
 
@@ -1020,7 +1027,14 @@ public final class RunContainer extends Container implements Cloneable {
     return this.nbrruns * 4 + 4;
   }
 
-  short getValue(int index) {
+  /**
+   * Gets the value of the first element of the run at the index.
+   * @param index the index of the run.
+   * @return the value of the first element of the run at the index.
+   * @throws ArrayIndexOutOfBoundsException if index is negative or larger than the index of the
+   *     last run.
+   */
+  public short getValue(int index) {
     return valueslength[2 * index];
   }
 
