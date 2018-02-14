@@ -1027,7 +1027,26 @@ public class TestContainer {
         new short[] {3, 4, (short) 50001, (short) 50002, (short) 50003, (short) 50004}));
   }
 
+  @Test
+  public void testConsistentToString() {
+    ArrayContainer ac = new ArrayContainer();
+    BitmapContainer bc = new BitmapContainer();
+    RunContainer rc = new RunContainer();
+    for (short i : new short[]{0, 1, 17, Short.MAX_VALUE, -3, -1}) {
+      ac.add(i);
+      bc.add(i);
+      rc.add(i);
+    }
+    String expected = "{0,1,17,32767,-3,-1}";
 
+    assertEquals(expected, ac.toString());
+    assertEquals(expected, bc.toString());
+    String normalizedRCstr = rc.toString()
+        .replaceAll("\\d+\\]\\[", "")
+        .replace('[', '{')
+        .replaceFirst(",\\d+\\]", "}");
+    assertEquals(expected, normalizedRCstr.toString());
+  }
 
   @Test
   public void xor4() {
