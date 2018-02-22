@@ -2274,7 +2274,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       sb.append(toIntUnsigned(this.getValue(k)));
       sb.append(",");
       sb.append(toIntUnsigned(this.getValue(k))
-          + toIntUnsigned(this.getLength(k)) + 1);
+          + toIntUnsigned(this.getLength(k)));
       sb.append("]");
     }
     return sb.toString();

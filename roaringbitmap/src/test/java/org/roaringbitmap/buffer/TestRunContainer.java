@@ -31,6 +31,13 @@ public class TestRunContainer {
   }
 
   @Test
+  public void testToString() {
+    MappeableRunContainer rc = new MappeableRunContainer(32200, 35000);
+    rc.add((short)-1);
+    assertEquals("[32200,34999][65535,65535]", rc.toString());
+  }
+
+  @Test
   public void testRunOpti() {
     MutableRoaringBitmap mrb = new MutableRoaringBitmap();
     for(int r = 0; r< 100000; r+=3 ) {
