@@ -1396,10 +1396,10 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     final StringBuilder sb = new StringBuilder();
     sb.append("{");
     for (int i = 0; i < this.cardinality - 1; i++) {
-      sb.append(this.content.get(i));
+      sb.append(toIntUnsigned(this.content.get(i)));
       sb.append(",");
     }
-    sb.append(this.content.get(this.cardinality - 1));
+    sb.append(toIntUnsigned(this.content.get(this.cardinality - 1)));
     sb.append("}");
     return sb.toString();
   }

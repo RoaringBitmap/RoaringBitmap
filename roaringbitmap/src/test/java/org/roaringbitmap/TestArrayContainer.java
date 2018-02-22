@@ -37,7 +37,9 @@ public class TestArrayContainer {
     @Test
     public void testToString() {
         ArrayContainer ac1 = new ArrayContainer(5, 15);
-        Assert.assertEquals("{5,6,7,8,9,10,11,12,13,14}", ac1.toString());
+        ac1.add((short) -3);
+        ac1.add((short) -17);
+        Assert.assertEquals("{5,6,7,8,9,10,11,12,13,14,65519,65533}", ac1.toString());
     }
 
     @Test

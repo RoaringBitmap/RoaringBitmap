@@ -820,4 +820,25 @@ public class TestContainer {
     }
   }
 
+  @Test
+  public void testConsistentToString() {
+    MappeableArrayContainer ac = new MappeableArrayContainer();
+    MappeableBitmapContainer bc = new MappeableBitmapContainer();
+    MappeableRunContainer rc = new MappeableRunContainer();
+    for (short i : new short[]{0, 2, 17, Short.MAX_VALUE, -3, -1}) {
+      ac.add(i);
+      bc.add(i);
+      rc.add(i);
+    }
+    String expected = "{0,2,17,32767,65533,65535}";
+
+    assertEquals(expected, ac.toString());
+    assertEquals(expected, bc.toString());
+    String normalizedRCstr = rc.toString()
+        .replaceAll("\\d+\\]\\[", "")
+        .replace('[', '{')
+        .replaceFirst(",\\d+\\]", "}");
+    assertEquals(expected, normalizedRCstr);
+  }
+
 }
