@@ -39,12 +39,14 @@ public class TestMappeableBitmapContainer {
     }
     return bc;
   }
+
   @Test
   public void testToString() {
-    MappeableBitmapContainer bc2 = new MappeableBitmapContainer();
-    bc2.add((short)1);
+    MappeableBitmapContainer bc2 = new MappeableBitmapContainer(5, 15);
+    bc2.add((short) -19);
+    bc2.add((short) -3);
     String s = bc2.toString();
-    assertTrue(s.equals("{1}"));
+    assertTrue(s.equals("{5,6,7,8,9,10,11,12,13,14,65517,65533}"));
   }
   
   @Test  
