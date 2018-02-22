@@ -1229,7 +1229,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     final ShortIterator i = this.getShortIterator();
     sb.append("{");
     while (i.hasNext()) {
-      sb.append(i.next());
+      sb.append(Util.toIntUnsigned(i.next()));
       if (i.hasNext()) {
         sb.append(",");
       }

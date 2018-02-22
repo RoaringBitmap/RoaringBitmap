@@ -2982,9 +2982,9 @@ public class TestRunContainer {
 
   @Test
   public void testToString() {
-    Container rc = new RunContainer();
-    rc.add((short)1);
-    assertEquals("[1,1]", rc.toString());
+    Container rc = new RunContainer(32200, 35000);
+    rc.add((short)-1);
+    assertEquals("[32200,34999][65535,65535]", rc.toString());
   }
 
   @Test

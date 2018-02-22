@@ -1032,12 +1032,12 @@ public class TestContainer {
     ArrayContainer ac = new ArrayContainer();
     BitmapContainer bc = new BitmapContainer();
     RunContainer rc = new RunContainer();
-    for (short i : new short[]{0, 1, 17, Short.MAX_VALUE, -3, -1}) {
+    for (short i : new short[]{0, 2, 17, Short.MAX_VALUE, -3, -1}) {
       ac.add(i);
       bc.add(i);
       rc.add(i);
     }
-    String expected = "{0,1,17,32767,-3,-1}";
+    String expected = "{0,2,17,32767,65533,65535}";
 
     assertEquals(expected, ac.toString());
     assertEquals(expected, bc.toString());

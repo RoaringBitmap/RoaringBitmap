@@ -32,12 +32,12 @@ public class TestBitmapContainer {
 
   @Test
   public void testToString() {
-    BitmapContainer bc2 = new BitmapContainer();
-    bc2.add((short)1);
-    String s = bc2.toString();
-    assertTrue(s.equals("{1}"));
+    BitmapContainer bc2 = new BitmapContainer(5, 15);
+    bc2.add((short) -19);
+    bc2.add((short) -3);
+    assertEquals("{5,6,7,8,9,10,11,12,13,14,65517,65533}", bc2.toString());
   }
-  
+
   @Test  
   public void testXOR() {
     BitmapContainer bc = new BitmapContainer(100,10000);
