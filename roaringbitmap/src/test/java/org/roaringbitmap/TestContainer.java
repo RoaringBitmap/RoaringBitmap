@@ -1045,7 +1045,7 @@ public class TestContainer {
         .replaceAll("\\d+\\]\\[", "")
         .replace('[', '{')
         .replaceFirst(",\\d+\\]", "}");
-    assertEquals(expected, normalizedRCstr.toString());
+    assertEquals(expected, normalizedRCstr);
   }
 
   @Test
