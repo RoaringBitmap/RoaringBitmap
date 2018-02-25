@@ -17,4 +17,9 @@ public final class RealDataset {
   public static final String WEATHER_SEPT_85_SRT = "weather_sept_85_srt";
   public static final String WIKILEAKS_NOQUOTES_SRT = "wikileaks-noquotes_srt";
 
+  public static final String[] ALL = new String[]{
+      CENSUS_INCOME, CENSUS1881, DIMENSION_008, DIMENSION_003,
+      DIMENSION_033, USCENSUS2000, WEATHER_SEPT_85, WIKILEAKS_NOQUOTES,
+      CENSUS_INCOME_SRT, CENSUS1881_SRT, WEATHER_SEPT_85_SRT, WIKILEAKS_NOQUOTES_SRT
+  };
 }
