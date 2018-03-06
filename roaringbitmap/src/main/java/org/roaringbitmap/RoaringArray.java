@@ -35,8 +35,14 @@ public final class RoaringArray implements Cloneable, Externalizable {
   int size = 0;
 
   protected RoaringArray() {
-    this.keys = new short[INITIAL_CAPACITY];
-    this.values = new Container[INITIAL_CAPACITY];
+    this(new short[INITIAL_CAPACITY], new Container[INITIAL_CAPACITY], 0);
+  }
+
+
+  RoaringArray(short[] keys, Container[] values, int size) {
+    this.keys = keys;
+    this.values = values;
+    this.size = size;
   }
 
   /**

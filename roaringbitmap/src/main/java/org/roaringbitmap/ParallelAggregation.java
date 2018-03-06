@@ -40,9 +40,6 @@ import static org.roaringbitmap.Util.compareUnsigned;
  */
 public class ParallelAggregation {
 
-  private static final Collector<Map.Entry<Short,List<Container>>, RoaringArray, RoaringBitmap> OR
-          = new ContainerCollector(ParallelAggregation::or);
-
   private static final Collector<Map.Entry<Short,List<Container>>, RoaringArray, RoaringBitmap> XOR
           = new ContainerCollector(ParallelAggregation::xor);
 
@@ -156,16 +153,26 @@ public class ParallelAggregation {
     return sorted;
   }
 
+
   /**
    * Computes the bitwise union of the input bitmaps
    * @param bitmaps the input bitmaps
    * @return the union of the bitmaps
    */
   public static RoaringBitmap or(RoaringBitmap... bitmaps) {
-    return groupByKey(bitmaps)
-            .entrySet()
-            .parallelStream()
-            .collect(OR);
+    SortedMap<Short, List<Container>> grouped = groupByKey(bitmaps);
+    short[] keys = new short[grouped.size()];
+    Container[] values = new Container[grouped.size()];
+    List<List<Container>> slices = new ArrayList<>(grouped.size());
+    int i = 0;
+    for (Map.Entry<Short, List<Container>> slice : grouped.entrySet()) {
+      keys[i++] = slice.getKey();
+      slices.add(slice.getValue());
+    }
+    IntStream.range(0, i)
+             .parallel()
+             .forEach(position -> values[position] = or(slices.get(position)));
+    return new RoaringBitmap(new RoaringArray(keys, values, i));
   }
 
   /**
@@ -178,6 +185,14 @@ public class ParallelAggregation {
             .entrySet()
             .parallelStream()
             .collect(XOR);
+  }
+
+  private static Container xor(List<Container> containers) {
+    Container result = containers.get(0).clone();
+    for (int i = 1; i < containers.size(); ++i) {
+      result = result.ixor(containers.get(i));
+    }
+    return result;
   }
 
   private static Container or(List<Container> containers) {
@@ -205,14 +220,6 @@ public class ParallelAggregation {
             .mapToObj(i -> containers.subList(i * partitionSize,
                     Math.min((i + 1) * partitionSize, containers.size())))
             .collect(new OrCollector());
-  }
-
-  private static Container xor(List<Container> containers) {
-    Container result = containers.get(0).clone();
-    for (int i = 1; i < containers.size(); ++i) {
-      result = result.ixor(containers.get(i));
-    }
-    return result;
   }
 
   private static int availableParallelism() {
