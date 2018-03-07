@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.roaringbitmap</groupId>
     <artifactId>RoaringBitmapParent</artifactId>
-    <version>0.7.4</version>
+    <version>0.7.5-SNAPSHOT</version>
   </parent>
   <artifactId>RoaringBitmap</artifactId>
   <name>RoaringBitmap</name>
