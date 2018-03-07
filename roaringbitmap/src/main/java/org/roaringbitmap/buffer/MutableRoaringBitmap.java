@@ -651,9 +651,12 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * Create an empty bitmap
    */
   public MutableRoaringBitmap() {
-    highLowContainer = new MutableRoaringArray();
+    this(new MutableRoaringArray());
   }
 
+  public MutableRoaringBitmap(MutableRoaringArray highLowContainer) {
+    this.highLowContainer = highLowContainer;
+  }
 
   /**
    * Create a MutableRoaringBitmap from a RoaringBitmap. The RoaringBitmap is not modified.
