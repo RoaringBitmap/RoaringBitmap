@@ -216,6 +216,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     return this;
   }
 
+  @Override
+  public boolean isEmpty() {
+    return cardinality == 0;
+  }
+
   private int advance(ShortIterator it) {
     if (it.hasNext()) {
       return toIntUnsigned(it.next());

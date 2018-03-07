@@ -55,6 +55,12 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
   public abstract MappeableContainer add(short x);
 
   /**
+   * Checks whether the container is empty or not.
+   * @return true if the container is empty.
+   */
+  public abstract boolean isEmpty();
+
+  /**
    * Computes the bitwise AND of this container with another (intersection). This container as well
    * as the provided container are left unaffected.
    * 

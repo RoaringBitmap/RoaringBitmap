@@ -2,8 +2,10 @@ package org.roaringbitmap.buffer;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.OrderedWriter;
-import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.ParallelAggregation;
+import org.roaringbitmap.RandomisedTestData;
 
 import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
@@ -20,16 +22,32 @@ public class BufferFuzzer {
     boolean test(int index, MutableRoaringBitmap bitmap);
   }
 
-  private static final ThreadLocal<long[]> bits = ThreadLocal.withInitial(() -> new long[1 << 10]);
+  public static <T> void verifyInvarianceArray(Function<ImmutableRoaringBitmap[], T> left,
+                                               Function<ImmutableRoaringBitmap[], T> right) {
+    verifyInvarianceArray(100, 1 << 5, 96, left, right);
+  }
+
+  public static <T> void verifyInvarianceArray(int count,
+                                               int maxKeys,
+                                               int setSize,
+                                               Function<ImmutableRoaringBitmap[], T> left,
+                                               Function<ImmutableRoaringBitmap[], T> right) {
+    IntStream.range(0, count)
+            .parallel()
+            .mapToObj(i -> IntStream.range(0, setSize)
+                    .mapToObj(j -> randomBitmap(maxKeys))
+                    .toArray(ImmutableRoaringBitmap[]::new))
+            .forEach(bitmap -> Assert.assertEquals(left.apply(bitmap), right.apply(bitmap)));
+  }
 
   public static <T> void verifyInvariance(Function<MutableRoaringBitmap, T> left, Function<MutableRoaringBitmap, T> right) {
-    verifyInvariance(1000, 1 << 8, rb -> true, left, right);
+    verifyInvariance(100, 1 << 8, rb -> true, left, right);
   }
 
   public static <T> void verifyInvariance(Predicate<MutableRoaringBitmap> validity,
                                           Function<MutableRoaringBitmap, T> left,
                                           Function<MutableRoaringBitmap, T> right) {
-    verifyInvariance(1000, 1 << 8, validity, left, right);
+    verifyInvariance(100, 1 << 8, validity, left, right);
   }
 
   public static <T> void verifyInvariance(int count,
@@ -46,13 +64,13 @@ public class BufferFuzzer {
 
   public static <T> void verifyInvariance(BiFunction<MutableRoaringBitmap, MutableRoaringBitmap, T> left,
                                           BiFunction<MutableRoaringBitmap, MutableRoaringBitmap, T> right) {
-    verifyInvariance(1000, 1 << 8, left, right);
+    verifyInvariance(100, 1 << 8, left, right);
   }
 
   public static <T> void verifyInvariance(BiPredicate<MutableRoaringBitmap, MutableRoaringBitmap> validity,
                                           BiFunction<MutableRoaringBitmap, MutableRoaringBitmap, T> left,
                                           BiFunction<MutableRoaringBitmap, MutableRoaringBitmap, T> right) {
-    verifyInvariance(validity,1000, 1 << 8, left, right);
+    verifyInvariance(validity,100, 1 << 8, left, right);
   }
 
 
@@ -207,68 +225,22 @@ public class BufferFuzzer {
             (l, r) -> MutableRoaringBitmap.andNot(MutableRoaringBitmap.or(l, r), MutableRoaringBitmap.and(l, r)));
   }
 
+
+  @Test
+  public void parallelOrVsFastOr() {
+    verifyInvarianceArray(
+            bitmaps -> BufferParallelAggregation.or(bitmaps),
+            bitmaps -> BufferFastAggregation.priorityqueue_or(bitmaps));
+  }
+
+  @Test
+  public void parallelXorVsFastXor() {
+    verifyInvarianceArray(
+            bitmaps -> BufferParallelAggregation.xor(bitmaps),
+            bitmaps -> BufferFastAggregation.priorityqueue_xor(bitmaps));
+  }
+
   private static MutableRoaringBitmap randomBitmap(int maxKeys) {
-    int[] keys = createSorted16BitInts(ThreadLocalRandom.current().nextInt(1, maxKeys));
-    double rleLimit = ThreadLocalRandom.current().nextDouble();
-    double denseLimit = ThreadLocalRandom.current().nextDouble(rleLimit, 1D);
-    OrderedWriter writer = new OrderedWriter();
-    IntStream.of(keys)
-            .forEach(key -> {
-              double choice = ThreadLocalRandom.current().nextDouble();
-              final IntStream stream;
-              if (choice < rleLimit) {
-                stream = rleRegion();
-              } else if (choice < denseLimit) {
-                stream = denseRegion();
-              } else {
-                stream = sparseRegion();
-              }
-              stream.map(i -> (key << 16) | i).forEach(writer::add);
-            });
-    writer.flush();
-    return writer.getUnderlying().toMutableRoaringBitmap();
-  }
-
-  private static IntStream rleRegion() {
-    int numRuns = ThreadLocalRandom.current().nextInt(1,2048);
-    int[] runs = createSorted16BitInts(numRuns * 2);
-    return IntStream.range(0, numRuns)
-            .map(i -> i * 2)
-            .mapToObj(i -> IntStream.range(runs[i], runs[i + 1]))
-            .flatMapToInt(i -> i);
-  }
-
-  private static IntStream sparseRegion() {
-    return IntStream.of(createSorted16BitInts(ThreadLocalRandom.current().nextInt(1, 4096)));
-  }
-
-
-  private static IntStream denseRegion() {
-    return IntStream.of(createSorted16BitInts(ThreadLocalRandom.current().nextInt(4096, 1 << 16)));
-  }
-
-  private static int[] createSorted16BitInts(int howMany) {
-    // we can have at most 65536 keys in a RoaringBitmap
-    long[] bitset = bits.get();
-    Arrays.fill(bitset, 0L);
-    int consumed = 0;
-    while (consumed < howMany) {
-      int value = ThreadLocalRandom.current().nextInt(1 << 16);
-      long bit = (1L << value);
-      consumed += 1 - Long.bitCount(bitset[value >>> 6] & bit);
-      bitset[value >>> 6] |= bit;
-    }
-    int[] keys = new int[howMany];
-    int prefix = 0;
-    int k = 0;
-    for (int i = bitset.length - 1; i >= 0; --i) {
-      long word = bitset[i];
-      while (word != 0) {
-        keys[k++] = prefix + Long.numberOfTrailingZeros(word);
-        word ^= Long.lowestOneBit(word);
-      }
-      prefix += 64;
-    }
-    return keys;
+    return RandomisedTestData.randomBitmap(maxKeys).toMutableRoaringBitmap();
   }
 }
