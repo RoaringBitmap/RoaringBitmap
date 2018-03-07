@@ -1,6 +1,9 @@
 package org.roaringbitmap.buffer;
 
+import java.nio.LongBuffer;
 import java.util.*;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -8,7 +11,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.IntStream;
 
-import static java.util.stream.Collectors.toList;
 import static org.roaringbitmap.Util.compareUnsigned;
 
 /**
@@ -39,11 +41,6 @@ import static org.roaringbitmap.Util.compareUnsigned;
  * </pre>
  */
 public class BufferParallelAggregation {
-
-
-  private static final Collector<
-          Map.Entry<Short,List<MappeableContainer>>, MutableRoaringArray, MutableRoaringBitmap> OR
-          = new ContainerCollector(BufferParallelAggregation::or);
 
   private static final Collector<
           Map.Entry<Short,List<MappeableContainer>>, MutableRoaringArray, MutableRoaringBitmap> XOR
@@ -104,6 +101,38 @@ public class BufferParallelAggregation {
   }
 
   /**
+   * Collects a list of containers into a single container.
+   */
+  public static class OrCollector
+          implements Collector<List<MappeableContainer>, MappeableContainer, MappeableContainer> {
+
+    @Override
+    public Supplier<MappeableContainer> supplier() {
+      return () -> new MappeableBitmapContainer(LongBuffer.allocate(1 << 10), -1);
+    }
+
+    @Override
+    public BiConsumer<MappeableContainer, List<MappeableContainer>> accumulator() {
+      return (l, r) -> l.lazyIOR(or(r));
+    }
+
+    @Override
+    public BinaryOperator<MappeableContainer> combiner() {
+      return MappeableContainer::lazyIOR;
+    }
+
+    @Override
+    public Function<MappeableContainer, MappeableContainer> finisher() {
+      return MappeableContainer::repairAfterLazy;
+    }
+
+    @Override
+    public Set<Characteristics> characteristics() {
+      return EnumSet.of(Characteristics.UNORDERED);
+    }
+  }
+
+  /**
    * Groups the containers by their keys
    * @param bitmaps input bitmaps
    * @return The containers from the bitmaps grouped by key
@@ -136,10 +165,19 @@ public class BufferParallelAggregation {
    * @return the union of the bitmaps
    */
   public static MutableRoaringBitmap or(ImmutableRoaringBitmap... bitmaps) {
-    return groupByKey(bitmaps)
-            .entrySet()
-            .parallelStream()
-            .collect(OR);
+    SortedMap<Short, List<MappeableContainer>> grouped = groupByKey(bitmaps);
+    short[] keys = new short[grouped.size()];
+    MappeableContainer[] values = new MappeableContainer[grouped.size()];
+    List<List<MappeableContainer>> slices = new ArrayList<>(grouped.size());
+    int i = 0;
+    for (Map.Entry<Short, List<MappeableContainer>> slice : grouped.entrySet()) {
+      keys[i++] = slice.getKey();
+      slices.add(slice.getValue());
+    }
+    IntStream.range(0, i)
+            .parallel()
+            .forEach(position -> values[position] = or(slices.get(position)));
+    return new MutableRoaringBitmap(new MutableRoaringArray(keys, values, i));
   }
 
   /**
@@ -154,16 +192,7 @@ public class BufferParallelAggregation {
             .collect(XOR);
   }
 
-  private static MappeableContainer or(List<MappeableContainer> containers) {
-    MappeableContainer result = containers.get(0).clone();
-    if (containers.size() == 1) {
-      return result;
-    }
-    for (int i = 1; i < containers.size(); ++i) {
-      result = result.lazyIOR(containers.get(i));
-    }
-    return result.repairAfterLazy();
-  }
+
 
   private static MappeableContainer xor(List<MappeableContainer> containers) {
     MappeableContainer result = containers.get(0).clone();
@@ -171,6 +200,39 @@ public class BufferParallelAggregation {
       result = result.ixor(containers.get(i));
     }
     return result;
+  }
+
+  private static MappeableContainer or(List<MappeableContainer> containers) {
+    int parallelism;
+    // if there are few enough containers it's possible no bitmaps will be materialised
+    if (containers.size() < 16) {
+      MappeableContainer result = containers.get(0).clone();
+      for (int i = 1; i < containers.size(); ++i) {
+        result = result.lazyIOR(containers.get(i));
+      }
+      return result.repairAfterLazy();
+    }
+    // heuristic to save memory if the union is large and likely to end up as a bitmap
+    if (containers.size() < 512 || (parallelism = availableParallelism()) == 1) {
+      MappeableContainer result = new MappeableBitmapContainer(LongBuffer.allocate(1 << 10), -1);
+      for (MappeableContainer container : containers) {
+        result = result.lazyIOR(container);
+      }
+      return result.repairAfterLazy();
+    }
+    // we have an enormous slice (probably skewed), parallelise it
+    int partitionSize = (containers.size() + parallelism - 1) / parallelism;
+    return IntStream.range(0, parallelism)
+            .parallel()
+            .mapToObj(i -> containers.subList(i * partitionSize,
+                    Math.min((i + 1) * partitionSize, containers.size())))
+            .collect(new OrCollector());
+  }
+
+  private static int availableParallelism() {
+    return ForkJoinTask.inForkJoinPool()
+            ? ForkJoinTask.getPool().getParallelism()
+            : ForkJoinPool.getCommonPoolParallelism();
   }
 
 }
