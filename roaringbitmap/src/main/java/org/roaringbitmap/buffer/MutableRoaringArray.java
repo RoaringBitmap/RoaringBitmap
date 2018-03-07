@@ -41,8 +41,13 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
   int size = 0;
 
   protected MutableRoaringArray() {
-    this.keys = new short[INITIAL_CAPACITY];
-    this.values = new MappeableContainer[INITIAL_CAPACITY];
+    this(new short[INITIAL_CAPACITY], new MappeableContainer[INITIAL_CAPACITY], 0);
+  }
+
+  MutableRoaringArray(short[] keys, MappeableContainer[] values, int size) {
+    this.keys = keys;
+    this.values = values;
+    this.size = size;
   }
 
 
