@@ -43,6 +43,8 @@ public class ParallelAggregation {
   private static final Collector<Map.Entry<Short,List<Container>>, RoaringArray, RoaringBitmap> XOR
           = new ContainerCollector(ParallelAggregation::xor);
 
+  private static final OrCollector OR = new OrCollector();
+
   /**
    * Collects containers grouped by their key into a RoaringBitmap, applying the
    * supplied aggregation function to each group.
@@ -219,7 +221,7 @@ public class ParallelAggregation {
             .parallel()
             .mapToObj(i -> containers.subList(i * partitionSize,
                     Math.min((i + 1) * partitionSize, containers.size())))
-            .collect(new OrCollector());
+            .collect(OR);
   }
 
   private static int availableParallelism() {
