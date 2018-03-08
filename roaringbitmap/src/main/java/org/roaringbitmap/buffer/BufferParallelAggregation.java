@@ -146,8 +146,12 @@ public class BufferParallelAggregation {
       MappeableContainerPointer it = bitmap.highLowContainer.getContainerPointer();
       while (null != it.getContainer()) {
         MappeableContainer container = it.getContainer();
-        short key = it.key();
-        List<MappeableContainer> slice = grouped.computeIfAbsent(key, k -> new ArrayList<>());
+        Short key = it.key();
+        List<MappeableContainer> slice = grouped.get(key);
+        if (null == slice) {
+          slice = new ArrayList<>();
+          grouped.put(key, slice);
+        }
         slice.add(container);
         it.advance();
       }

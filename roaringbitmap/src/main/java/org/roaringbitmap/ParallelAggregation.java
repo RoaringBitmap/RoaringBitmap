@@ -141,8 +141,12 @@ public class ParallelAggregation {
       RoaringArray ra = bitmap.highLowContainer;
       for (int i = 0; i < ra.size; ++i) {
         Container container = ra.values[i];
-        short key = ra.keys[i];
-        List<Container> slice = grouped.computeIfAbsent(key, k -> new ArrayList<>());
+        Short key = ra.keys[i];
+        List<Container> slice = grouped.get(key);
+        if (null == slice) {
+          slice = new ArrayList<>();
+          grouped.put(key, slice);
+        }
         slice.add(container);
       }
     }
