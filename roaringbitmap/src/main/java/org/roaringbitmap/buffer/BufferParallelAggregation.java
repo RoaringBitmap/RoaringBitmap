@@ -46,6 +46,8 @@ public class BufferParallelAggregation {
           Map.Entry<Short,List<MappeableContainer>>, MutableRoaringArray, MutableRoaringBitmap> XOR
           = new ContainerCollector(BufferParallelAggregation::xor);
 
+  private static final OrCollector OR = new OrCollector();
+
   /**
    * Collects containers grouped by their key into a RoaringBitmap, applying the
    * supplied aggregation function to each group.
@@ -144,12 +146,8 @@ public class BufferParallelAggregation {
       MappeableContainerPointer it = bitmap.highLowContainer.getContainerPointer();
       while (null != it.getContainer()) {
         MappeableContainer container = it.getContainer();
-        Short key = it.key();
-        List<MappeableContainer> slice = grouped.get(key);
-        if (null == slice) {
-          slice = new ArrayList<>();
-          grouped.put(key, slice);
-        }
+        short key = it.key();
+        List<MappeableContainer> slice = grouped.computeIfAbsent(key, k -> new ArrayList<>());
         slice.add(container);
         it.advance();
       }
@@ -226,7 +224,7 @@ public class BufferParallelAggregation {
             .parallel()
             .mapToObj(i -> containers.subList(i * partitionSize,
                     Math.min((i + 1) * partitionSize, containers.size())))
-            .collect(new OrCollector());
+            .collect(OR);
   }
 
   private static int availableParallelism() {
