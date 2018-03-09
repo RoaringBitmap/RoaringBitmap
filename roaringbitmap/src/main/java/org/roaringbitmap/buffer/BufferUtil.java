@@ -11,6 +11,8 @@ import java.nio.ShortBuffer;
 
 import org.roaringbitmap.Util;
 
+import static java.lang.Long.numberOfTrailingZeros;
+
 /**
  * Various useful methods for roaring bitmaps.
  *
@@ -195,9 +197,8 @@ public final class BufferUtil {
       for (int k = 0; k < len; ++k) {
         long bitset = b1[k] & b2[k];
         while (bitset != 0) {
-          final long t = bitset & -bitset;
-          container[pos++] = (short) (k * 64 + Long.bitCount(t - 1));
-          bitset ^= t;
+          container[pos++] = (short) (k * 64 + numberOfTrailingZeros(bitset));
+          bitset &= (bitset - 1);
         }
       }
     } else {
@@ -205,9 +206,8 @@ public final class BufferUtil {
       for (int k = 0; k < len; ++k) {
         long bitset = bitmap1.get(k) & bitmap2.get(k);
         while (bitset != 0) {
-          final long t = bitset & -bitset;
-          container[pos++] = (short) (k * 64 + Long.bitCount(t - 1));
-          bitset ^= t;
+          container[pos++] = (short) (k * 64 + numberOfTrailingZeros(bitset));
+          bitset &= (bitset - 1);
         }
       }
     }
@@ -225,9 +225,8 @@ public final class BufferUtil {
       for (int k = 0; k < len; ++k) {
         long bitset = b1[k] & (~b2[k]);
         while (bitset != 0) {
-          final long t = bitset & -bitset;
-          container[pos++] = (short) (k * 64 + Long.bitCount(t - 1));
-          bitset ^= t;
+          container[pos++] = (short) (k * 64 + numberOfTrailingZeros(bitset));
+          bitset &= (bitset - 1);
         }
       }
     } else {
@@ -235,9 +234,8 @@ public final class BufferUtil {
       for (int k = 0; k < len; ++k) {
         long bitset = bitmap1.get(k) & (~bitmap2.get(k));
         while (bitset != 0) {
-          final long t = bitset & -bitset;
-          container[pos++] = (short) (k * 64 + Long.bitCount(t - 1));
-          bitset ^= t;
+          container[pos++] = (short) (k * 64 + numberOfTrailingZeros(bitset));
+          bitset &= (bitset - 1);
         }
       }
     }
@@ -255,9 +253,8 @@ public final class BufferUtil {
       for (int k = 0; k < len; ++k) {
         long bitset = bitmap1.get(k) ^ bitmap2.get(k);
         while (bitset != 0) {
-          final long t = bitset & -bitset;
-          container[pos++] = (short) (k * 64 + Long.bitCount(t - 1));
-          bitset ^= t;
+          container[pos++] = (short) (k * 64 + numberOfTrailingZeros(bitset));
+          bitset &= (bitset - 1);
         }
       }
     }

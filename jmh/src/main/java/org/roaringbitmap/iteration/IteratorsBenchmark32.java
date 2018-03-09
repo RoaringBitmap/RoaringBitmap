@@ -20,9 +20,9 @@ import org.roaringbitmap.RoaringBitmap;
 /**
  * Created by Borislav Ivanov on 4/2/15.
  */
-@BenchmarkMode({Mode.SampleTime, Mode.Throughput, Mode.AverageTime})
+@BenchmarkMode({Mode.AverageTime})
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
-public class IteratorsBenchmark {
+public class IteratorsBenchmark32 {
 
   @Benchmark
   public int testBoxed_a(BenchmarkState benchmarkState) {
