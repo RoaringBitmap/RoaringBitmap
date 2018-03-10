@@ -8,6 +8,8 @@ import java.util.BitSet;
 
 import org.roaringbitmap.IntIterator;
 
+import static java.lang.Long.numberOfTrailingZeros;
+
 
 /***
  *
@@ -32,9 +34,8 @@ public class BufferBitSetUtil {
     for (int i = from, socket = 0; i < to; ++i, socket += Long.SIZE) {
       long word = words[i];
       while (word != 0) {
-        long t = word & -word;
-        content[index++] = (short) (socket + Long.bitCount(t - 1));
-        word ^= t;
+        content[index++] = (short) (socket + numberOfTrailingZeros(word));
+        word &= (word - 1);
       }
     }
     return new MappeableArrayContainer(ShortBuffer.wrap(content), cardinality);
