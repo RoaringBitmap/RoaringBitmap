@@ -518,40 +518,6 @@ public class TestRoaring64NavigableMap {
   }
 
   @Test
-  public void testPerfManyDifferentBuckets_WithCache() {
-    Roaring64NavigableMap map = new Roaring64NavigableMap(true, true);
-
-    long problemSize = 1000 * 1000L;
-    for (long i = 1; i <= problemSize; i++) {
-      map.addLong(i * Integer.MAX_VALUE + 1L);
-    }
-
-    long cardinality = map.getLongCardinality();
-    Assert.assertEquals(problemSize, cardinality);
-
-    long last = map.select(cardinality - 1);
-    Assert.assertEquals(problemSize * Integer.MAX_VALUE + 1L, last);
-    Assert.assertEquals(cardinality, map.rankLong(last));
-  }
-
-  @Test
-  public void testPerfManyDifferentBuckets_NoCache() {
-    Roaring64NavigableMap map = newNoCache();
-
-    long problemSize = 100 * 1000L;
-    for (long i = 1; i <= problemSize; i++) {
-      map.addLong(i * Integer.MAX_VALUE + 1L);
-    }
-
-    long cardinality = map.getLongCardinality();
-    Assert.assertEquals(problemSize, cardinality);
-
-    long last = map.select(cardinality - 1);
-    Assert.assertEquals(problemSize * Integer.MAX_VALUE + 1L, last);
-    Assert.assertEquals(cardinality, map.rankLong(last));
-  }
-
-  @Test
   public void testComparator() {
     Comparator<Integer> natural = new Comparator<Integer>() {
 
