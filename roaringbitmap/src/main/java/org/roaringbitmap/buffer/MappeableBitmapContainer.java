@@ -16,6 +16,9 @@ import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.util.Iterator;
 
+import static java.lang.Long.numberOfLeadingZeros;
+import static java.lang.Long.numberOfTrailingZeros;
+
 /**
  * Simple bitset-like container. Unlike org.roaringbitmap.BitmapContainer, this class uses a
  * LongBuffer to store data.
@@ -138,6 +141,11 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       cardinality++;
     }
     return this;
+  }
+
+  @Override
+  public boolean isEmpty() {
+    return cardinality == 0;
   }
 
   @Override
@@ -472,9 +480,8 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       for (int k = 0; k < b.length; ++k) {
         long bitset = b[k];
         while (bitset != 0) {
-          final long t = bitset & -bitset;
-          array[pos++] = (short) (base + Long.bitCount(t - 1));
-          bitset ^= t;
+          array[pos++] = (short) (base + numberOfTrailingZeros(bitset));
+          bitset &= (bitset - 1);
         }
         base += 64;
       }
@@ -485,9 +492,8 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       for (int k = 0; k < len; ++k) {
         long bitset = bitmap.get(k);
         while (bitset != 0) {
-          final long t = bitset & -bitset;
-          array[pos++] = (short) (base + Long.bitCount(t - 1));
-          bitset ^= t;
+          array[pos++] = (short) (base + numberOfLeadingZeros(bitset));
+          bitset &= (bitset - 1);
         }
         base += 64;
       }
@@ -504,9 +510,8 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       for (int k = 0; k < len; ++k) {
         long bitset = b[k];
         while (bitset != 0) {
-          final long t = bitset & -bitset;
-          x[pos++] = base + Long.bitCount(t - 1);
-          bitset ^= t;
+          x[pos++] = base + numberOfTrailingZeros(bitset);
+          bitset &= (bitset - 1);
         }
         base += 64;
       }
@@ -516,9 +521,8 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       for (int k = 0; k < len; ++k) {
         long bitset = bitmap.get(k);
         while (bitset != 0) {
-          final long t = bitset & -bitset;
-          x[pos++] = base + Long.bitCount(t - 1);
-          bitset ^= t;
+          x[pos++] = base + numberOfTrailingZeros(bitset);
+          bitset &= (bitset - 1);
         }
         base += 64;
       }
@@ -541,7 +545,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         return this.toArrayContainer();
       }
     }
-    long aft = bef ^ mask;;
+    long aft = bef ^ mask;
     // TODO: check whether a branchy version could be faster
     cardinality += 1 - 2 * ((bef & mask) >>> x);
     bitmap.put(x / 64, aft);
@@ -1213,10 +1217,9 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       for (int k = 0; (ac.cardinality < maxcardinality) && (k < len); ++k) {
         long bitset = bitmap.get(k);
         while ((ac.cardinality < maxcardinality) && (bitset != 0)) {
-          long t = bitset & -bitset;
-          cont[pos++] = (short) (k * 64 + Long.bitCount(t - 1));
+          cont[pos++] = (short) (k * 64 + numberOfTrailingZeros(bitset));
           ac.cardinality++;
-          bitset ^= t;
+          bitset &= (bitset - 1);
         }
       }
       return ac;
@@ -1272,13 +1275,13 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     long w = bitmap.get(x);
     w >>>= i;
     if (w != 0) {
-      return i + Long.numberOfTrailingZeros(w);
+      return i + numberOfTrailingZeros(w);
     }
     // for speed, replaced bitmap.limit() with hardcoded MAX_CAPACITY / 64
     for (++x; x < MAX_CAPACITY / 64; ++x) {
       long X = bitmap.get(x);
       if (X != 0) {
-        return x * 64 + Long.numberOfTrailingZeros(X);
+        return x * 64 + numberOfTrailingZeros(X);
       }
     }
     return -1;
@@ -1295,14 +1298,14 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     long w = ~bitmap.get(x);
     w >>>= i;
     if (w != 0) {
-      return (short) (i + Long.numberOfTrailingZeros(w));
+      return (short) (i + numberOfTrailingZeros(w));
     }
     ++x;
     // for speed, replaced bitmap.limit() with hardcoded MAX_CAPACITY / 64
     for (; x < MAX_CAPACITY / 64; ++x) {
       long X = bitmap.get(x);
       if (X != ~0L) {
-        return (short) (x * 64 + Long.numberOfTrailingZeros(~X));
+        return (short) (x * 64 + numberOfTrailingZeros(~X));
       }
     }
     return -1;
@@ -1844,9 +1847,8 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       for (int x = 0; x < b.length; ++x) {
         long w = b[x];
         while (w != 0) {
-          long t = w & -w;
-          ic.accept((x * 64 + Long.bitCount(t - 1)) | high);
-          w ^= t;
+          ic.accept((x * 64 + numberOfTrailingZeros(w)) | high);
+          w &= (w - 1);
         }
       }
     } else {
@@ -1854,9 +1856,8 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       for (int x = 0; x < l; ++x) {
         long w = bitmap.get(x);
         while (w != 0) {
-          long t = w & -w;
-          ic.accept((x * 64 + Long.bitCount(t - 1)) | high);
-          w ^= t;
+          ic.accept((x * 64 + numberOfTrailingZeros(w)) | high);
+          w &= (w - 1);
         }
       }
     }
@@ -1921,7 +1922,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       }
       firstNonZeroWord = bitmap.get(i);
     }
-    return i * 64 + Long.numberOfTrailingZeros(firstNonZeroWord);
+    return i * 64 + numberOfTrailingZeros(firstNonZeroWord);
   }
 
   @Override
@@ -2033,9 +2034,8 @@ final class MappeableBitmapContainerShortIterator implements PeekableShortIterat
 
   @Override
   public short next() {
-    long t = w & -w;
-    short answer = (short) (x * 64 + Long.bitCount(t - 1));
-    w ^= t;
+    short answer = (short) (x * 64 + numberOfTrailingZeros(w));
+    w &= (w - 1);
     while (w == 0) {
       ++x;
       if (x == len) {
@@ -2048,17 +2048,7 @@ final class MappeableBitmapContainerShortIterator implements PeekableShortIterat
 
   @Override
   public int nextAsInt() {
-    long t = w & -w;
-    int answer = x * 64 + Long.bitCount(t - 1);
-    w ^= t;
-    while (w == 0) {
-      ++x;
-      if (x == len) {
-        break;
-      }
-      w = parent.bitmap.get(x);
-    }
-    return answer;
+    return BufferUtil.toIntUnsigned(next());
   }
 
   @Override
@@ -2097,8 +2087,7 @@ final class MappeableBitmapContainerShortIterator implements PeekableShortIterat
 
   @Override
   public short peekNext() {
-    long t = w & -w;
-    return (short) (x * 64 + Long.bitCount(t - 1));
+    return (short) (x * 64 + numberOfTrailingZeros(w));
   }
 }
 
@@ -2133,32 +2122,22 @@ final class ReverseMappeableBitmapContainerShortIterator implements ShortIterato
 
   @Override
   public short next() {
-    long t = w & -w;
-    short answer = (short) ((x + 1) * 64 - 1 - Long.bitCount(t - 1));
-    w ^= t;
+    int shift = Long.numberOfLeadingZeros(w) + 1;
+    short answer = (short)((x + 1) * 64 - shift);
+    w &= ~(1L << (64 - shift));
     while (w == 0) {
       --x;
       if (x < 0) {
         break;
       }
-      w = Long.reverse(parent.bitmap.get(x));
+      w = parent.bitmap.get(x);
     }
     return answer;
   }
 
   @Override
   public int nextAsInt() {
-    long t = w & -w;
-    int answer = (x + 1) * 64 - 1 - Long.bitCount(t - 1);
-    w ^= t;
-    while (w == 0) {
-      --x;
-      if (x < 0) {
-        break;
-      }
-      w = Long.reverse(parent.bitmap.get(x));
-    }
-    return answer;
+    return BufferUtil.toIntUnsigned(next());
   }
 
   @Override
@@ -2170,7 +2149,7 @@ final class ReverseMappeableBitmapContainerShortIterator implements ShortIterato
   public void wrap(MappeableBitmapContainer p) {
     parent = p;
     for (x = len - 1; x >= 0; --x) {
-      if ((w = Long.reverse(parent.bitmap.get(x))) != 0) {
+      if ((w = parent.bitmap.get(x)) != 0) {
         break;
       }
     }

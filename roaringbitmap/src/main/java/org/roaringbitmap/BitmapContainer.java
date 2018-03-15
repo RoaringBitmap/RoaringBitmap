@@ -12,6 +12,9 @@ import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import static java.lang.Long.numberOfLeadingZeros;
+import static java.lang.Long.numberOfTrailingZeros;
+
 
 /**
  * Simple bitset-like container.
@@ -35,7 +38,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   /**
    * Return a bitmap iterator over this array
-   * 
+   *
    * @param bitmap array to be iterated over
    * @return an iterator
    */
@@ -45,7 +48,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   /**
    * Return a bitmap iterator over this array
-   * 
+   *
    * @param bitmap array to be iterated over
    * @return an iterator
    */
@@ -97,7 +100,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   /**
    * Create a new container, no copy is made.
-   * 
+   *
    * @param newBitmap content
    * @param newCardinality desired cardinality.
    */
@@ -110,7 +113,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   /**
    * Creates a new non-mappeable container from a mappeable one. This copies the data.
-   * 
+   *
    * @param bc the original container
    */
   public BitmapContainer(MappeableBitmapContainer bc) {
@@ -282,6 +285,11 @@ public final class BitmapContainer extends Container implements Cloneable {
     return new BitmapContainer(this.cardinality, this.bitmap);
   }
 
+  @Override
+  public boolean isEmpty() {
+    return cardinality == 0;
+  }
+
   /**
    * Recomputes the cardinality of the bitmap.
    */
@@ -374,7 +382,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     return (bitmap[x / 64] >>> x ) & 1;
   }
 
-  
+
   @Override
   public void deserialize(DataInput in) throws IOException {
     // little endian
@@ -412,9 +420,8 @@ public final class BitmapContainer extends Container implements Cloneable {
     for (int k = 0; k < bitmap.length; ++k) {
       long bitset = bitmap[k];
       while (bitset != 0) {
-        long t = bitset & -bitset;
-        array[pos++] = (short) (base + Long.bitCount(t - 1));
-        bitset ^= t;
+        array[pos++] = (short) (base + numberOfTrailingZeros(bitset));
+        bitset &= (bitset - 1);
       }
       base += 64;
     }
@@ -427,9 +434,8 @@ public final class BitmapContainer extends Container implements Cloneable {
     for (int k = 0; k < bitmap.length; ++k) {
       long bitset = bitmap[k];
       while (bitset != 0) {
-        long t = bitset & -bitset;
-        x[pos++] = base + Long.bitCount(t - 1);
-        bitset ^= t;
+        x[pos++] = base + numberOfTrailingZeros(bitset);
+        bitset &= (bitset - 1);
       }
       base += 64;
     }
@@ -866,10 +872,9 @@ public final class BitmapContainer extends Container implements Cloneable {
       for (int k = 0; (ac.cardinality < maxcardinality) && (k < bitmap.length); ++k) {
         long bitset = bitmap[k];
         while ((ac.cardinality < maxcardinality) && (bitset != 0)) {
-          long t = bitset & -bitset;
-          ac.content[pos++] = (short) (k * 64 + Long.bitCount(t - 1));
+          ac.content[pos++] = (short) (k * 64 + numberOfTrailingZeros(bitset));
           ac.cardinality++;
-          bitset ^= t;
+          bitset &= (bitset - 1);
         }
       }
       return ac;
@@ -907,11 +912,11 @@ public final class BitmapContainer extends Container implements Cloneable {
     long w = bitmap[x];
     w >>>= i;
     if (w != 0) {
-      return i + Long.numberOfTrailingZeros(w);
+      return i + numberOfTrailingZeros(w);
     }
     for (++x; x < bitmap.length; ++x) {
       if (bitmap[x] != 0) {
-        return x * 64 + Long.numberOfTrailingZeros(bitmap[x]);
+        return x * 64 + numberOfTrailingZeros(bitmap[x]);
       }
     }
     return -1;
@@ -928,12 +933,12 @@ public final class BitmapContainer extends Container implements Cloneable {
     long w = ~bitmap[x];
     w >>>= i;
     if (w != 0) {
-      return (short) (i + Long.numberOfTrailingZeros(w));
+      return (short) (i + numberOfTrailingZeros(w));
     }
     ++x;
     for (; x < bitmap.length; ++x) {
       if (bitmap[x] != ~0L) {
-        return (short) (x * 64 + Long.numberOfTrailingZeros(~bitmap[x]));
+        return (short) (x * 64 + numberOfTrailingZeros(~bitmap[x]));
       }
     }
     return -1;
@@ -969,7 +974,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   /**
    * Computes the number of runs
-   * 
+   *
    * @return the number of runs
    */
   public int numberOfRunsAdjustment() {
@@ -991,7 +996,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   /**
    * Counts how many runs there is in the bitmap, up to a maximum
-   * 
+   *
    * @param mustNotExceed maximum of runs beyond which counting is pointless
    * @return estimated number of courses
    */
@@ -1209,7 +1214,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   /**
    * Return the content of this container as a LongBuffer. This creates a copy and might be
    * relatively slow.
-   * 
+   *
    * @return the LongBuffer
    */
   public LongBuffer toLongBuffer() {
@@ -1301,9 +1306,8 @@ public final class BitmapContainer extends Container implements Cloneable {
     for (int x = 0; x < bitmap.length; ++x) {
       long w = bitmap[x];
       while (w != 0) {
-        long t = w & -w;
-        ic.accept((x * 64 + Long.bitCount(t - 1)) | high);
-        w ^= t;
+        ic.accept((x * 64 + numberOfTrailingZeros(w)) | high);
+        w &= (w - 1);
       }
     }
   }
@@ -1321,7 +1325,7 @@ public final class BitmapContainer extends Container implements Cloneable {
       ++i; // seek forward
     }
     // sizeof(long) * #empty words at start + number of bits preceding the first bit set
-    return i * 64 + Long.numberOfTrailingZeros(bitmap[i]);
+    return i * 64 + numberOfTrailingZeros(bitmap[i]);
   }
 
   @Override
@@ -1367,9 +1371,8 @@ final class BitmapContainerShortIterator implements PeekableShortIterator {
 
   @Override
   public short next() {
-    long t = w & -w;
-    short answer = (short) (x * 64 + Long.bitCount(t - 1));
-    w ^= t;
+    short answer = (short) (x * 64 + numberOfTrailingZeros(w));
+    w &= (w - 1);
     while (w == 0) {
       ++x;
       if (x == bitmap.length) {
@@ -1384,17 +1387,7 @@ final class BitmapContainerShortIterator implements PeekableShortIterator {
 
   @Override
   public int nextAsInt() {
-    long t = w & -w;
-    int answer = x * 64 + Long.bitCount(t - 1);
-    w ^= t;
-    while (w == 0) {
-      ++x;
-      if (x == bitmap.length) {
-        break;
-      }
-      w = bitmap[x];
-    }
-    return answer;
+    return Util.toIntUnsigned(next());
   }
 
   @Override
@@ -1433,8 +1426,7 @@ final class BitmapContainerShortIterator implements PeekableShortIterator {
 
   @Override
   public short peekNext() {
-    long t = w & -w;
-    return (short) (x * 64 + Long.bitCount(t - 1));
+    return (short) (x * 64 + numberOfTrailingZeros(w));
   }
 }
 

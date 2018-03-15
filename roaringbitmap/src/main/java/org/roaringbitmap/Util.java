@@ -6,6 +6,8 @@ package org.roaringbitmap;
 
 import java.util.Arrays;
 
+import static java.lang.Long.numberOfTrailingZeros;
+
 /**
  * Various useful methods for roaring bitmaps.
  */
@@ -156,9 +158,8 @@ public final class Util {
     for (int k = 0; k < bitmap1.length; ++k) {
       long bitset = bitmap1[k] & bitmap2[k];
       while (bitset != 0) {
-        long t = bitset & -bitset;
-        container[pos++] = (short) (k * 64 + Long.bitCount(t - 1));
-        bitset ^= t;
+        container[pos++] = (short) (k * 64 + numberOfTrailingZeros(bitset));
+        bitset &= (bitset - 1);
       }
     }
   }
@@ -179,9 +180,8 @@ public final class Util {
     for (int k = 0; k < bitmap1.length; ++k) {
       long bitset = bitmap1[k] & (~bitmap2[k]);
       while (bitset != 0) {
-        long t = bitset & -bitset;
-        container[pos++] = (short) (k * 64 + Long.bitCount(t - 1));
-        bitset ^= t;
+        container[pos++] = (short) (k * 64 + numberOfTrailingZeros(bitset));
+        bitset &= (bitset - 1);
       }
     }
   }
@@ -202,9 +202,8 @@ public final class Util {
     for (int k = 0; k < bitmap1.length; ++k) {
       long bitset = bitmap1[k] ^ bitmap2[k];
       while (bitset != 0) {
-        long t = bitset & -bitset;
-        container[pos++] = (short) (k * 64 + Long.bitCount(t - 1));
-        bitset ^= t;
+        container[pos++] = (short) (k * 64 + numberOfTrailingZeros(bitset));
+        bitset &= (bitset - 1);
       }
     }
   }
