@@ -286,4 +286,44 @@ public class TestMappeableArrayContainer {
     ac1.add((short) -17);
     assertEquals("{5,6,7,8,9,10,11,12,13,14,65519,65533}", ac1.toString());
   }
+  
+  @Test
+  public void iorNotIncreaseCapacity() {
+    MappeableArrayContainer ac1 = new MappeableArrayContainer();
+    MappeableArrayContainer ac2 = new MappeableArrayContainer();
+    ac1.add((short) 128);
+    ac1.add((short) 256);
+    ac2.add((short) 1024);
+    
+    ac1.ior(ac2);
+    assertTrue(ac1.contains((short) 128));
+    assertTrue(ac1.contains((short) 256));
+    assertTrue(ac1.contains((short) 1024));
+  }
+  
+  @Test
+  public void iorIncreaseCapacity() {
+    MappeableArrayContainer ac1 = new MappeableArrayContainer();
+    MappeableArrayContainer ac2 = new MappeableArrayContainer();
+    ac1.add((short) 128);
+    ac1.add((short) 256);
+    ac1.add((short) 512);
+    ac1.add((short) 513);
+    ac2.add((short) 1024);
+    
+    ac1.ior(ac2);
+    assertTrue(ac1.contains((short) 128));
+    assertTrue(ac1.contains((short) 256));
+    assertTrue(ac1.contains((short) 512));
+    assertTrue(ac1.contains((short) 513));
+    assertTrue(ac1.contains((short) 1024));
+  }
+  
+  @Test
+  public void iorSanityCheck() {
+    MappeableContainer ac = new MappeableArrayContainer().add(0, 10);
+    MappeableContainer disjoint = new MappeableArrayContainer().add(20, 40);
+    ac.ior(disjoint);
+    assertTrue(ac.contains(disjoint));
+  }
 }

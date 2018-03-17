@@ -660,6 +660,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
   // not thread safe!
   private void increaseCapacity(int min) {
+    final ShortBuffer newContent = ShortBuffer.allocate(calculateCapacity(min));
+    this.content.rewind();
+    newContent.put(this.content);
+    this.content = newContent;
+  }
+  
+  private int calculateCapacity(int min){
     int len = this.content.limit();
     int newCapacity = (len == 0) ? DEFAULT_INIT_SIZE
         : len < 64 ? len * 2 : len < 1024 ? len * 3 / 2 : len * 5 / 4;
@@ -673,10 +680,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         - MappeableArrayContainer.DEFAULT_MAX_SIZE / 16) {
       newCapacity = MappeableArrayContainer.DEFAULT_MAX_SIZE;
     }
-    final ShortBuffer newContent = ShortBuffer.allocate(newCapacity);
-    this.content.rewind();
-    newContent.put(this.content);
-    this.content = newContent;
+    return newCapacity;
   }
 
   @Override
@@ -797,24 +801,33 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       return bc;
     }
     if (totalCardinality >= content.limit()) {
-      increaseCapacity(totalCardinality);
-    }
-    BufferUtil.arraycopy(content, 0, content, value2.cardinality, cardinality);
-    if (BufferUtil.isBackedBySimpleArray(content)
-            && BufferUtil.isBackedBySimpleArray(value2.content)) {
-      cardinality =
-              Util.unsignedUnion2by2(
-                      content.array(), value2.cardinality, cardinality,
-                      value2.content.array(), 0, value2.cardinality,
-                      content.array()
-              );
+      int newCapacity = calculateCapacity(totalCardinality);
+      ShortBuffer destination = ShortBuffer.allocate(newCapacity);
+
+      if (BufferUtil.isBackedBySimpleArray(content)
+          && BufferUtil.isBackedBySimpleArray(value2.content)) {
+        cardinality =
+            Util.unsignedUnion2by2(content.array(), 0, cardinality, value2.content.array(), 0,
+                value2.cardinality, destination.array());
+      } else {
+        cardinality =
+            BufferUtil.unsignedUnion2by2(content, 0, cardinality, value2.content, 0,
+                value2.cardinality, destination.array());
+      }
+      this.content = destination;
     } else {
-      cardinality =
-              BufferUtil.unsignedUnion2by2(
-                      content, value2.cardinality, cardinality,
-                      value2.content, 0, value2.cardinality,
-                      content.array()
-              );
+      BufferUtil.arraycopy(content, 0, content, value2.cardinality, cardinality);
+      
+      if (BufferUtil.isBackedBySimpleArray(content)
+          && BufferUtil.isBackedBySimpleArray(value2.content)) {
+        cardinality =
+            Util.unsignedUnion2by2(content.array(), value2.cardinality, cardinality,
+                value2.content.array(), 0, value2.cardinality, content.array());
+      } else {
+        cardinality =
+            BufferUtil.unsignedUnion2by2(content, value2.cardinality, cardinality, value2.content,
+                0, value2.cardinality, content.array());
+      }
     }
     return this;
   }
