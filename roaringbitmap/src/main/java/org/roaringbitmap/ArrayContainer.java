@@ -548,10 +548,15 @@ public final class ArrayContainer extends Container implements Cloneable {
   }
 
   private void increaseCapacity(int min) {
-    int newCapacity = (this.content.length == 0) ? DEFAULT_INIT_SIZE
-        : this.content.length < 64 ? this.content.length * 2
-            : this.content.length < 1024 ? this.content.length * 3 / 2
-                : this.content.length * 5 / 4;
+    this.content = Arrays.copyOf(this.content, calculateCapacity(min));
+  }
+  
+  private int calculateCapacity(int min) {
+    int newCapacity =
+        (this.content.length == 0) ? DEFAULT_INIT_SIZE
+            : this.content.length < 64 ? this.content.length * 2
+                : this.content.length < 1024 ? this.content.length * 3 / 2
+                    : this.content.length * 5 / 4;
     if (newCapacity < min) {
       newCapacity = min;
     }
@@ -563,7 +568,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     if (newCapacity > ArrayContainer.DEFAULT_MAX_SIZE - ArrayContainer.DEFAULT_MAX_SIZE / 16) {
       newCapacity = ArrayContainer.DEFAULT_MAX_SIZE;
     }
-    this.content = Arrays.copyOf(this.content, newCapacity);
+    return newCapacity;
   }
 
   @Override
@@ -655,16 +660,19 @@ public final class ArrayContainer extends Container implements Cloneable {
       }
       return bc;
     }
-    if(totalCardinality >= content.length) {
-      increaseCapacity(totalCardinality);
+    if (totalCardinality >= content.length) {
+      int newCapacity = calculateCapacity(totalCardinality);
+      short[] destination = new short[newCapacity];
+      cardinality =
+          Util.unsignedUnion2by2(content, 0, cardinality, value2.content, 0, value2.cardinality,
+              destination);
+      this.content = destination;
+    } else {
+      System.arraycopy(content, 0, content, value2.cardinality, cardinality);
+      cardinality =
+          Util.unsignedUnion2by2(content, value2.cardinality, cardinality, value2.content, 0,
+              value2.cardinality, content);
     }
-    System.arraycopy(content, 0, content, value2.cardinality, cardinality);
-    cardinality =
-            Util.unsignedUnion2by2(
-                    content, value2.cardinality, cardinality,
-                    value2.content, 0, value2.cardinality,
-                    content
-            );
     return this;
   }
 
