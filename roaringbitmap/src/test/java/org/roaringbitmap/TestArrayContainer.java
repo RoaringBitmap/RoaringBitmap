@@ -1,6 +1,7 @@
 package org.roaringbitmap;
 
 import com.google.common.primitives.Ints;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -14,7 +15,6 @@ import java.util.NoSuchElementException;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertFalse;
 
 public class TestArrayContainer {
 
@@ -339,5 +339,45 @@ public class TestArrayContainer {
         Container disjoint = new ArrayContainer().add(20, 40);
         assertFalse(ac.contains(disjoint));
         assertFalse(disjoint.contains(ac));
+    }
+  
+    @Test
+    public void iorNotIncreaseCapacity() {
+      Container ac1 = new ArrayContainer();
+      Container ac2 = new ArrayContainer();
+      ac1.add((short) 128);
+      ac1.add((short) 256);
+      ac2.add((short) 1024);
+      
+      ac1.ior(ac2);
+      assertTrue(ac1.contains((short) 128));
+      assertTrue(ac1.contains((short) 256));
+      assertTrue(ac1.contains((short) 1024));
+    }
+    
+    @Test
+    public void iorIncreaseCapacity() {
+      Container ac1 = new ArrayContainer();
+      Container ac2 = new ArrayContainer();
+      ac1.add((short) 128);
+      ac1.add((short) 256);
+      ac1.add((short) 512);
+      ac1.add((short) 513);
+      ac2.add((short) 1024);
+      
+      ac1.ior(ac2);
+      assertTrue(ac1.contains((short) 128));
+      assertTrue(ac1.contains((short) 256));
+      assertTrue(ac1.contains((short) 512));
+      assertTrue(ac1.contains((short) 513));
+      assertTrue(ac1.contains((short) 1024));
+    }
+    
+    @Test
+    public void iorSanityCheck() {
+      Container ac = new ArrayContainer().add(0, 10);
+      Container disjoint = new ArrayContainer().add(20, 40);
+      ac.ior(disjoint);
+      assertTrue(ac.contains(disjoint));
     }
 }
