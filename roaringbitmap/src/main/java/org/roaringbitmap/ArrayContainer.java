@@ -458,7 +458,7 @@ public final class ArrayContainer extends Container implements Cloneable {
       BitmapContainer a = this.toBitmapContainer();
       return a.iadd(begin, end);
     }
-     /*
+    /*
        b - index of begin(indexstart), e - index of end(indexend), |--| -> is current sequential indexes in content
        Total 6 cases are possible, listed as below:
        
@@ -484,8 +484,10 @@ public final class ArrayContainer extends Container implements Cloneable {
            -> 2a is same as 1c, so we can avoid
            -> 2b < (1a+1b), lets prove this assumption. Substitute the values.
                -> (cardinality - (end-begin)) < ( 2*cardinality - indexend)
-               -> lowest possible value of indexend is 0, hence "<" equation holds true always
-     */
+                 -> lowest possible value of indexend is 0 . equation holds true
+                 -> hightest possible value of indexend is cardinality. equation holds true
+                 -> hence "<" equation holds true always
+    */
     if (newcardinality >= this.content.length) {
       short[] destination = new short[calculateCapacity(newcardinality)];
       // if b > 0, we copy from 0 to b. Do nothing otherwise.
@@ -494,10 +496,9 @@ public final class ArrayContainer extends Container implements Cloneable {
       for (int k = 0; k < rangelength; ++k) {
         destination[k + indexstart] = (short) (begin + k);
       }
-       /*
-         so far cases - 1,2 and 6 are done
-         Now, if e < cardinality, we copy from e to cardinality.Otherwise do noting
-         this covers remaining 3,4 and 5 cases
+      /*
+       * so far cases - 1,2 and 6 are done Now, if e < cardinality, we copy from e to
+       * cardinality.Otherwise do noting this covers remaining 3,4 and 5 cases
        */
       System.arraycopy(content, indexend, destination, indexstart + rangelength, cardinality
           - indexend);
