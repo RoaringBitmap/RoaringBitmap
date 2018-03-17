@@ -170,6 +170,25 @@ public class TestArrayContainer {
     }
 
     @Test
+    public void iaddSanityTest() {
+        Container ac = new ArrayContainer();
+        ac = ac.iadd(10,20);
+        //insert disjoint at end
+        ac = ac.iadd(30,70);
+        //insert disjoint between
+        ac = ac.iadd(25,26);
+        //insert disjoint at start
+        ac = ac.iadd(1,2);
+        //insert overlap at end
+        ac = ac.iadd(60,80);
+        //insert overlap between
+        ac = ac.iadd(10,30);
+        //insert overlap at start
+        ac = ac.iadd(1,20);
+        assertEquals(79, ac.getCardinality());
+    }
+    
+    @Test
     public void clear() throws Exception {
         Container ac = new ArrayContainer();
         ac = ac.add(1, 10);
