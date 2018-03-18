@@ -459,35 +459,27 @@ public final class ArrayContainer extends Container implements Cloneable {
       return a.iadd(begin, end);
     }
     /*
-       b - index of begin(indexstart), e - index of end(indexend), |--| -> is current sequential indexes in content
-       Total 6 cases are possible, listed as below:
-       
-         case-1) |--------|b-e
-         case-2) |----b---|e
-         case-3) |---b---e---|
-         case-4) b|----e---|
-         case-5) b-e|------|
-         case-6) b|-----|e
-         
-       In case of old approach, we did
-           1a. Array.copyOf in increaseCapaciy ( # of elements copied -> cardinality)
-           1b. then we moved elements using System.arrayCopy ( # of elements copied -> cardinality -indexend)
-           1c. then we set all elements from begin to end ( # of elements set -> end - begin)
-           
-       With new approach,
-           2a. we set all elements from begin to end ( # of elements set -> end- begin)
-           2b. we only copy elements in current set which are not in range begin-end ( # of elements copied -> cardinality - (end-begin) )
-       
-       why is it faster? 
-           Logically we are doing less # of copies.     
-           Mathematically proof as below:
-           -> 2a is same as 1c, so we can avoid
-           -> 2b < (1a+1b), lets prove this assumption. Substitute the values.
-               -> (cardinality - (end-begin)) < ( 2*cardinality - indexend)
-                 -> lowest possible value of indexend is 0 . equation holds true
-                 -> hightest possible value of indexend is cardinality. equation holds true
-                 -> hence "<" equation holds true always
-    */
+     * b - index of begin(indexstart), e - index of end(indexend), |--| is current sequential
+     * indexes in content. Total 6 cases are possible, listed as below:
+     * 
+     * case-1) |--------|b-e case-2) |----b---|e case-3) |---b---e---| case-4) b|----e---| case-5)
+     * b-e|------| case-6) b|-----|e
+     * 
+     * In case of old approach, we did (1a) Array.copyOf in increaseCapaciy ( # of elements copied
+     * -> cardinality), (1b) then we moved elements using System.arrayCopy ( # of elements copied ->
+     * cardinality -indexend), (1c) then we set all elements from begin to end ( # of elements set
+     * -> end - begin)
+     * 
+     * With new approach, (2a) we set all elements from begin to end ( # of elements set -> end-
+     * begin), (2b) we only copy elements in current set which are not in range begin-end ( # of
+     * elements copied -> cardinality - (end-begin) )
+     * 
+     * why is it faster? Logically we are doing less # of copies. Mathematically proof as below: ->
+     * 2a is same as 1c, so we can avoid. Assume, 2b < (1a+1b), lets prove this assumption.
+     * Substitute the values. (cardinality - (end-begin)) < ( 2*cardinality - indexend) , lowest
+     * possible value of indexend is 0 and equation holds true , hightest possible value of indexend
+     * is cardinality and equation holds true , hence "<" equation holds true always
+     */
     if (newcardinality >= this.content.length) {
       short[] destination = new short[calculateCapacity(newcardinality)];
       // if b > 0, we copy from 0 to b. Do nothing otherwise.
