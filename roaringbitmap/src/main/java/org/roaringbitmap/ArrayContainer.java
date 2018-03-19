@@ -465,7 +465,7 @@ public final class ArrayContainer extends Container implements Cloneable {
      * case-1) |--------|b-e case-2) |----b---|e case-3) |---b---e---| case-4) b|----e---| case-5)
      * b-e|------| case-6) b|-----|e
      * 
-     * In case of old approach, we did (1a) Array.copyOf in increaseCapaciy ( # of elements copied
+     * In case of old approach, we did (1a) Array.copyOf in increaseCapacity ( # of elements copied
      * -> cardinality), (1b) then we moved elements using System.arrayCopy ( # of elements copied ->
      * cardinality -indexend), (1c) then we set all elements from begin to end ( # of elements set
      * -> end - begin)

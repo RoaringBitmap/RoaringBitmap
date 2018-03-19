@@ -13,6 +13,7 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.roaringbitmap.ArrayContainer;
 import org.roaringbitmap.ZipRealDataRangeRetriever;
+import org.roaringbitmap.buffer.MappeableArrayContainer;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
@@ -21,6 +22,7 @@ import com.google.common.collect.Lists;
 public class AddBenchmark {
 
   private ArrayContainer ac1;
+  private MappeableArrayContainer mac1;
   private Cache<String, List<int[][]>> DATASET_CACHE;
   private final String dataset = "random_range";
   private List<int[][]> ints;
@@ -28,6 +30,7 @@ public class AddBenchmark {
   @Setup
   public void setup() throws ExecutionException {
     ac1 = new ArrayContainer();
+    mac1 = new MappeableArrayContainer();
     DATASET_CACHE = CacheBuilder.newBuilder().maximumSize(1).build();
     ints = DATASET_CACHE.get(dataset, new Callable<List<int[][]>>() {
 
@@ -53,5 +56,18 @@ public class AddBenchmark {
       }
     }
     return ac1;
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
+  public MappeableArrayContainer addBuffer() throws ExecutionException {
+
+    for (int[][] i : ints) {
+      for (int[] j : i) {
+        mac1.iadd(j[0], j[1]);
+      }
+    }
+    return mac1;
   }
 }
