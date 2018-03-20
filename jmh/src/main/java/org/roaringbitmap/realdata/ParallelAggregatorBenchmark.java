@@ -36,6 +36,8 @@ public class ParallelAggregatorBenchmark {
 
   RoaringBitmap[] bitmaps;
   ImmutableRoaringBitmap[] immutableRoaringBitmaps;
+  ParallelAggregation.AggregationBuffer buffer;
+  BufferParallelAggregation.AggregationBuffer buffer2;
 
   @Setup(Level.Trial)
   public void setup() throws Exception {
@@ -48,11 +50,18 @@ public class ParallelAggregatorBenchmark {
     });
     immutableRoaringBitmaps = Arrays.stream(bitmaps).map(RoaringBitmap::toMutableRoaringBitmap)
             .toArray(ImmutableRoaringBitmap[]::new);
+    this.buffer = ParallelAggregation.newAggregationBuffer();
+    this.buffer2 = BufferParallelAggregation.newAggregationBuffer();
   }
 
   @Benchmark
   public RoaringBitmap parallelOr() {
     return ParallelAggregation.or(bitmaps);
+  }
+
+  @Benchmark
+  public RoaringBitmap parallelBufferedOr() {
+    return ParallelAggregation.bufferedOr(buffer, bitmaps);
   }
 
   @Benchmark
@@ -79,6 +88,11 @@ public class ParallelAggregatorBenchmark {
   @Benchmark
   public MutableRoaringBitmap bufferParallelOr() {
     return BufferParallelAggregation.or(immutableRoaringBitmaps);
+  }
+
+  @Benchmark
+  public MutableRoaringBitmap bufferParallelBufferedOr() {
+    return BufferParallelAggregation.bufferedOr(buffer2, immutableRoaringBitmaps);
   }
 
   @Benchmark

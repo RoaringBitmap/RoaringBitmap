@@ -234,6 +234,15 @@ public class BufferFuzzer {
   }
 
   @Test
+  public void parallelOrVsBufferedParallelOr() {
+    ThreadLocal<BufferParallelAggregation.AggregationBuffer> buffer =
+            ThreadLocal.withInitial(BufferParallelAggregation::newAggregationBuffer);
+    verifyInvarianceArray(
+            bitmaps -> BufferParallelAggregation.or(bitmaps),
+            bitmaps -> BufferParallelAggregation.bufferedOr(buffer.get(), bitmaps));
+  }
+
+  @Test
   public void parallelXorVsFastXor() {
     verifyInvarianceArray(
             bitmaps -> BufferParallelAggregation.xor(bitmaps),

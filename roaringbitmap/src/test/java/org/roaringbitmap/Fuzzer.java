@@ -308,6 +308,16 @@ public class Fuzzer {
             bitmaps -> FastAggregation.priorityqueue_or(bitmaps));
   }
 
+
+  @Test
+  public void parallelOrVsParallelBufferedOr() {
+    ThreadLocal<ParallelAggregation.AggregationBuffer> buffer =
+            ThreadLocal.withInitial(ParallelAggregation::newAggregationBuffer);
+    verifyInvarianceArray(
+            bitmaps -> ParallelAggregation.or(bitmaps),
+            bitmaps -> ParallelAggregation.bufferedOr(buffer.get(), bitmaps));
+  }
+
   @Test
   public void parallelXorVsFastXor() {
     verifyInvarianceArray(
