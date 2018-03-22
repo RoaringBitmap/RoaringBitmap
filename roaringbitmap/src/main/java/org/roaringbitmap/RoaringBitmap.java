@@ -1039,6 +1039,37 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
 
   /**
+   * Checks if the range intersects with the bitmap.
+   * @param minimum the inclusive unsigned lower bound of the range
+   * @param supremum the exclusive unsigned upper bound of the range
+   * @return whether the bitmap intersects with the range
+   */
+  public boolean intersects(long minimum, long supremum) {
+    rangeSanityCheck(minimum, supremum);
+    short minKey = Util.highbits(minimum);
+    short supKey = Util.highbits(supremum);
+    int len = highLowContainer.size;
+    short[] keys = highLowContainer.keys;
+    // seek to start
+    int index = Util.unsignedBinarySearch(keys, 0, len, minKey);
+    int pos = index >= 0 ? index : -index - 1;
+    short offset = Util.lowbits(minimum);
+    while (pos < len && Util.compareUnsigned(supKey, keys[pos]) > 0) {
+      Container container = highLowContainer.getContainerAtIndex(pos);
+      if (container.intersects(offset, 1 << 16)) {
+        return true;
+      }
+      offset = 0;
+      ++pos;
+    }
+    return pos < len
+            && supKey == keys[pos]
+            && highLowContainer.getContainerAtIndex(pos)
+                               .intersects(0, (int)((supremum - 1) & 0xFFFF) + 1);
+  }
+
+
+  /**
    * In-place bitwise AND (intersection) operation. The current bitmap is modified.
    *
    * @param x2 other bitmap

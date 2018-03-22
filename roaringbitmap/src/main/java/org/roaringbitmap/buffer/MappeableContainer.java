@@ -215,6 +215,14 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
   protected abstract boolean contains(MappeableArrayContainer arrayContainer);
 
   protected abstract boolean contains(MappeableBitmapContainer bitmapContainer);
+
+  /**
+   * Checks if the container intersects with a range
+   * @param minimum the inclusive unsigned lower bound of the range
+   * @param supremum the exclusive unsigned upper bound of the range
+   * @return true if the container intersects the range
+   */
+  public abstract boolean intersects(int minimum, int supremum);
   
   /**
    * Fill the least significant 16 bits of the integer array, starting at index index, with the

@@ -2440,4 +2440,42 @@ public class TestRunContainer {
     c.add((short) 17);
     Assert.assertEquals(2, c.getCardinality());
   }
+
+  @Test
+  public void testIntersectsWithRange() {
+    MappeableContainer container = new MappeableRunContainer().add(0, 10);
+    assertTrue(container.intersects(0, 1));
+    assertTrue(container.intersects(0, 101));
+    assertTrue(container.intersects(0, 1 << 16));
+    assertFalse(container.intersects(11, 1 << 16));
+  }
+
+
+  @Test
+  public void testIntersectsWithRangeUnsigned() {
+    MappeableContainer container = new MappeableRunContainer().add(lower16Bits(-50), lower16Bits(-10));
+    assertFalse(container.intersects(0, 1));
+    assertTrue(container.intersects(0, lower16Bits(-40)));
+    assertFalse(container.intersects(lower16Bits(-100), lower16Bits(-55)));
+    assertFalse(container.intersects(-9, 1 << 16));
+    assertTrue(container.intersects(11, 1 << 16));
+  }
+
+
+  @Test
+  public void testIntersectsWithRangeManyRuns() {
+    MappeableContainer container = new MappeableRunContainer().add(0, 10).add(lower16Bits(-50), lower16Bits(-10));
+    assertTrue(container.intersects(0, 1));
+    assertTrue(container.intersects(0, 101));
+    assertTrue(container.intersects(0, lower16Bits(-1)));
+    assertTrue(container.intersects(11, lower16Bits(-1)));
+    assertTrue(container.intersects(0, lower16Bits(-40)));
+    assertFalse(container.intersects(lower16Bits(-100), lower16Bits(-55)));
+    assertFalse(container.intersects(lower16Bits(-9), lower16Bits(-1)));
+    assertTrue(container.intersects(11, 1 << 16));
+  }
+
+  private static int lower16Bits(int x) {
+    return ((short)x) & 0xFFFF;
+  }
 }

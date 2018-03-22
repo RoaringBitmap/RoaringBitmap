@@ -477,6 +477,14 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
   public abstract boolean intersects(RunContainer x);
 
   /**
+   * Checks if the container intersects with a range
+   * @param minimum the inclusive unsigned lower bound of the range
+   * @param supremum the exclusive unsigned upper bound of the range
+   * @return true if the container intersects the range
+   */
+  public abstract boolean intersects(int minimum, int supremum);
+
+  /**
    * Computes the in-place bitwise OR of this container with another (union). The current container
    * is generally modified, whereas the provided container (x) is unaffected. May generate a new
    * container.
