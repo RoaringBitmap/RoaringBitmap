@@ -686,4 +686,59 @@ public class TestMappeableBitmapContainer {
     Assert.assertEquals(96, mbc.last());
   }
 
+  @Test
+  public void testIntersectsWithRange() {
+    MappeableContainer container = new MappeableBitmapContainer().add(0, 10);
+    assertTrue(container.intersects((short)0, (short)1));
+    assertTrue(container.intersects((short)0, (short)101));
+    assertTrue(container.intersects((short)0, (short)-1));
+    assertFalse(container.intersects((short)11, (short)-1));
+  }
+
+
+  @Test
+  public void testIntersectsWithRangeHitScan() {
+    MappeableContainer container = new MappeableBitmapContainer().add(0, 10)
+            .add(500, 512).add(lower16Bits(-50), lower16Bits(-10));
+    assertTrue(container.intersects((short)0, (short)1));
+    assertTrue(container.intersects((short)0, (short)101));
+    assertTrue(container.intersects((short)0, (short)-1));
+    assertTrue(container.intersects((short)11, (short)-1));
+    assertTrue(container.intersects((short)501, (short)511));
+  }
+
+
+  @Test
+  public void testIntersectsWithRangeUnsigned() {
+    MappeableContainer container = new MappeableBitmapContainer().add(lower16Bits(-50), lower16Bits(-10));
+    assertFalse(container.intersects((short)0, (short)1));
+    assertTrue(container.intersects((short)0, (short)-40));
+    assertFalse(container.intersects((short)-100, (short)-55));
+    assertFalse(container.intersects((short)-9, (short)-1));
+    assertTrue(container.intersects((short)11, (short)-1));
+  }
+
+  @Test
+  public void testIntersectsAtEndWord() {
+    MappeableContainer container = new MappeableBitmapContainer().add(lower16Bits(-500), lower16Bits(-10));
+    assertTrue(container.intersects((short)-50, (short)-10));
+    assertTrue(container.intersects((short)-400, (short)-11));
+    assertTrue(container.intersects((short)-11, (short)-1));
+    assertFalse(container.intersects((short)-10, (short)-1));
+  }
+
+
+  @Test
+  public void testIntersectsAtEndWord2() {
+    MappeableContainer container = new MappeableBitmapContainer().add(lower16Bits(500), lower16Bits(-500));
+    assertTrue(container.intersects((short)-650, (short)-500));
+    assertTrue(container.intersects((short)-501, (short)-1));
+    assertFalse(container.intersects((short)-500, (short)-1));
+    assertFalse(container.intersects((short)-499, (short)-1));
+  }
+
+  private static int lower16Bits(int x) {
+    return ((short)x) & 0xFFFF;
+  }
+
 }

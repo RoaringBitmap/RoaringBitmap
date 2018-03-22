@@ -10,9 +10,7 @@ import java.io.ObjectOutputStream;
 import java.nio.ShortBuffer;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 
 public class TestMappeableArrayContainer {
@@ -344,5 +342,43 @@ public class TestMappeableArrayContainer {
     MappeableContainer disjoint = new MappeableArrayContainer().add(20, 40);
     ac.ior(disjoint);
     assertTrue(ac.contains(disjoint));
+  }
+
+  @Test
+  public void testIntersectsWithRange() {
+    MappeableContainer container = new MappeableArrayContainer().add(0, 10);
+    assertTrue(container.intersects((short)0, (short)1));
+    assertTrue(container.intersects((short)0, (short)101));
+    assertTrue(container.intersects((short)0, (short)-1));
+    assertFalse(container.intersects((short)11, (short)-1));
+  }
+
+
+  @Test
+  public void testIntersectsWithRange2() {
+    MappeableContainer container = new MappeableArrayContainer().add(lower16Bits(-50), lower16Bits(-10));
+    assertFalse(container.intersects((short)0, (short)1));
+    assertTrue(container.intersects((short)0, (short)-40));
+    assertFalse(container.intersects((short)-100, (short)-55));
+    assertFalse(container.intersects((short)-9, (short)-1));
+    assertTrue(container.intersects((short)11, (short)-1));
+  }
+
+  @Test
+  public void testIntersectsWithRange3() {
+    MappeableContainer container = new MappeableArrayContainer()
+            .add((short) 1)
+            .add((short) 300)
+            .add((short) 1024);
+    assertTrue(container.intersects((short)0, (short)300));
+    assertTrue(container.intersects((short)1, (short)300));
+    assertFalse(container.intersects((short)2, (short)300));
+    assertFalse(container.intersects((short)2, (short)299));
+    assertTrue(container.intersects((short)0, (short)-1));
+    assertFalse(container.intersects((short)1025, (short)-1));
+  }
+
+  private static int lower16Bits(int x) {
+    return ((short)x) & 0xFFFF;
   }
 }

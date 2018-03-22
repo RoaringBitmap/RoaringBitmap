@@ -1668,6 +1668,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     return false;
   }
 
+  @Override
+  public boolean intersects(short minimum, short supremum) {
+    int pos = BufferUtil.unsignedBinarySearch(content, 0, cardinality, minimum);
+    int index = pos >= 0 ? pos : -pos - 1;
+    return index < cardinality && Util.compareUnsigned(content.get(index), supremum) < 0;
+  }
+
 }
 
 

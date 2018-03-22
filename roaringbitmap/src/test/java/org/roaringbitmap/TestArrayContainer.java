@@ -399,4 +399,43 @@ public class TestArrayContainer {
       ac.ior(disjoint);
       assertTrue(ac.contains(disjoint));
     }
+
+    @Test
+    public void testIntersectsWithRange() {
+        Container container = new ArrayContainer().add(0, 10);
+        assertTrue(container.intersects((short)0, (short)1));
+        assertTrue(container.intersects((short)0, (short)101));
+        assertTrue(container.intersects((short)0, (short)-1));
+        assertFalse(container.intersects((short)11, (short)-1));
+    }
+
+
+    @Test
+    public void testIntersectsWithRange2() {
+        Container container = new ArrayContainer().add(lower16Bits(-50), lower16Bits(-10));
+        assertFalse(container.intersects((short)0, (short)1));
+        assertTrue(container.intersects((short)0, (short)-40));
+        assertFalse(container.intersects((short)-100, (short)-55));
+        assertFalse(container.intersects((short)-9, (short)-1));
+        assertTrue(container.intersects((short)11, (short)-1));
+    }
+
+
+    @Test
+    public void testIntersectsWithRange3() {
+        Container container = new ArrayContainer()
+                .add((short) 1)
+                .add((short) 300)
+                .add((short) 1024);
+        assertTrue(container.intersects((short)0, (short)300));
+        assertTrue(container.intersects((short)1, (short)300));
+        assertFalse(container.intersects((short)2, (short)300));
+        assertFalse(container.intersects((short)2, (short)299));
+        assertTrue(container.intersects((short)0, (short)-1));
+        assertFalse(container.intersects((short)1025, (short)-1));
+    }
+
+    private static int lower16Bits(int x) {
+        return ((short)x) & 0xFFFF;
+    }
 }

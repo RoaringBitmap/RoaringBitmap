@@ -670,6 +670,13 @@ public final class ArrayContainer extends Container implements Cloneable {
     return x.intersects(this);
   }
 
+  @Override
+  public boolean intersects(short minimum, short supremum) {
+    int pos = Util.unsignedBinarySearch(content, 0, cardinality, minimum);
+    int index = pos >= 0 ? pos : -pos - 1;
+    return index < cardinality && Util.compareUnsigned(content[index], supremum) < 0;
+  }
+
 
   @Override
   public Container ior(final ArrayContainer value2) {
