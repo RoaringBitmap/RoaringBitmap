@@ -222,6 +222,11 @@ public class Fuzzer {
   }
 
   @Test
+  public void intersectsRangeFirstLastInvariance() {
+    verifyInvariance(true, rb -> rb.intersects(rb.first(), rb.last()));
+  }
+
+  @Test
   public void containsSelf() {
     verifyInvariance(true, rb -> rb.contains(rb.clone()));
   }

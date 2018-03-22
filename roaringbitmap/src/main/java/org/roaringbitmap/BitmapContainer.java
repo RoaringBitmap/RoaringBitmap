@@ -684,6 +684,27 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
+  public boolean intersects(int minimum, int supremum) {
+    int start = minimum >>> 6;
+    int end = supremum >>> 6;
+    if (start == end) {
+      return ((bitmap[end] & (~((1L << minimum) - 1) & ((1L << supremum) - 1))) != 0);
+    }
+    if ((bitmap[start] & ~((1L << minimum) - 1)) != 0) {
+      return true;
+    }
+    if (end < bitmap.length && (bitmap[end] & ((1L << supremum) - 1)) != 0) {
+      return true;
+    }
+    for (int i = 1 + start; i < end && i < bitmap.length; ++i) {
+      if (bitmap[i] != 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
   public BitmapContainer ior(final ArrayContainer value2) {
     int c = value2.cardinality;
     for (int k = 0; k < c; ++k) {

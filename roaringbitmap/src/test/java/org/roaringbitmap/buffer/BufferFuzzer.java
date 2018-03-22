@@ -121,6 +121,20 @@ public class BufferFuzzer {
             });
   }
 
+  public static <T> void verifyInvariance(T value, Function<MutableRoaringBitmap, T> func) {
+    verifyInvariance(100, 1 << 9, value, func);
+  }
+
+  public static <T> void verifyInvariance(int count,
+                                          int maxKeys,
+                                          T value,
+                                          Function<MutableRoaringBitmap, T> func) {
+    IntStream.range(0, count)
+            .parallel()
+            .mapToObj(i -> randomBitmap(maxKeys))
+            .forEach(bitmap -> Assert.assertEquals(value, func.apply(bitmap)));
+  }
+
   @Test
   public void rankSelectInvariance() {
     verifyInvariance(bitmap -> !bitmap.isEmpty(), (i, rb) -> rb.rank(rb.select(i)) == i + 1);
@@ -143,6 +157,11 @@ public class BufferFuzzer {
     verifyInvariance(bitmap -> !bitmap.isEmpty(),
                      bitmap -> bitmap.last(),
                      bitmap -> bitmap.select(bitmap.getCardinality() - 1));
+  }
+
+  @Test
+  public void intersectsRangeFirstLastInvariance() {
+    verifyInvariance(true, rb -> rb.intersects(rb.first(), rb.last()));
   }
 
   @Test

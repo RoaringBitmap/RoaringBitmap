@@ -2655,6 +2655,16 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     return true;
   }
 
+  @Override
+  public boolean intersects(int minimum, int supremum) {
+    for (int i = 0; i < numberOfRuns(); ++i) {
+      if (BufferUtil.compareUnsigned(getValue(i), (short)minimum) >= 0
+              && BufferUtil.toIntUnsigned(getValue(i)) < supremum) {
+        return true;
+      }
+    }
+    return false;
+  }
 
 
 }

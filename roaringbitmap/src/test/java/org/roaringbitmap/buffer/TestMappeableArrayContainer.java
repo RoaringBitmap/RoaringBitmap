@@ -10,9 +10,7 @@ import java.io.ObjectOutputStream;
 import java.nio.ShortBuffer;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 
 public class TestMappeableArrayContainer {
@@ -344,5 +342,44 @@ public class TestMappeableArrayContainer {
     MappeableContainer disjoint = new MappeableArrayContainer().add(20, 40);
     ac.ior(disjoint);
     assertTrue(ac.contains(disjoint));
+  }
+
+  @Test
+  public void testIntersectsWithRange() {
+    MappeableContainer container = new MappeableArrayContainer().add(0, 10);
+    assertTrue(container.intersects(0, 1));
+    assertTrue(container.intersects(0, 101));
+    assertTrue(container.intersects(0, lower16Bits(-1)));
+    assertFalse(container.intersects(11, lower16Bits(-1)));
+  }
+
+
+  @Test
+  public void testIntersectsWithRange2() {
+    MappeableContainer container = new MappeableArrayContainer().add(lower16Bits(-50), lower16Bits(-10));
+    assertFalse(container.intersects(0, 1));
+    assertTrue(container.intersects(0, lower16Bits(-40)));
+    assertFalse(container.intersects(lower16Bits(-100), lower16Bits(-55)));
+    assertFalse(container.intersects(lower16Bits(-9), lower16Bits(-1)));
+    assertTrue(container.intersects(11, 1 << 16));
+  }
+
+
+  @Test
+  public void testIntersectsWithRange3() {
+    MappeableContainer container = new MappeableArrayContainer()
+            .add((short) 1)
+            .add((short) 300)
+            .add((short) 1024);
+    assertTrue(container.intersects(0, 300));
+    assertTrue(container.intersects(1, 300));
+    assertFalse(container.intersects(2, 300));
+    assertFalse(container.intersects(2, 299));
+    assertTrue(container.intersects(0, lower16Bits(-1)));
+    assertFalse(container.intersects(1025, 1 << 16));
+  }
+
+  private static int lower16Bits(int x) {
+    return ((short)x) & 0xFFFF;
   }
 }

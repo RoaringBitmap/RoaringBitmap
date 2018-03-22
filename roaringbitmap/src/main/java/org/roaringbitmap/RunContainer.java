@@ -1450,6 +1450,17 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   @Override
+  public boolean intersects(int minimum, int supremum) {
+    for (int i = 0; i < numberOfRuns(); ++i) {
+      if (Util.compareUnsigned(getValue(i), (short)minimum) >= 0
+              && Util.toIntUnsigned(getValue(i)) < supremum) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
   public Container ior(ArrayContainer x) {
     if (isFull()) {
       return this;
