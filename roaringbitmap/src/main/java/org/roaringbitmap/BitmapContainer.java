@@ -696,7 +696,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     if (end < bitmap.length && (bitmap[end] & ((1L << supremum) - 1)) != 0) {
       return true;
     }
-    for (int i = 1 + start; i < end; ++i) {
+    for (int i = 1 + start; i < end && i < bitmap.length; ++i) {
       if (bitmap[i] != 0) {
         return true;
       }

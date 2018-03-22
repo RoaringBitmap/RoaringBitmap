@@ -1973,7 +1973,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     if (end < bitmap.limit() && (bitmap.get(end) & ((1L << supremum) - 1)) != 0) {
       return true;
     }
-    for (int i = 1 + start; i < end; ++i) {
+    for (int i = 1 + start; i < end && i < bitmap.limit(); ++i) {
       if (bitmap.get(i) != 0) {
         return true;
       }
