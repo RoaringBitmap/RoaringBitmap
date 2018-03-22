@@ -1961,18 +1961,16 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   }
 
   @Override
-  public boolean intersects(short minimum, short supremum) {
-    int min = BufferUtil.toIntUnsigned(minimum);
-    int sup = BufferUtil.toIntUnsigned(supremum);
-    int start = min >>> 6;
-    int end = sup >>> 6;
+  public boolean intersects(int minimum, int supremum) {
+    int start = minimum >>> 6;
+    int end = supremum >>> 6;
     if (start == end) {
-      return ((bitmap.get(start) & (~((1L << min) - 1) & ((1L << sup) - 1))) != 0);
+      return ((bitmap.get(start) & (~((1L << minimum) - 1) & ((1L << supremum) - 1))) != 0);
     }
-    if ((bitmap.get(start) & ~((1L << min) - 1)) != 0) {
+    if ((bitmap.get(start) & ~((1L << minimum) - 1)) != 0) {
       return true;
     }
-    if ((bitmap.get(end) & ((1L << sup) - 1)) != 0) {
+    if (end < bitmap.limit() && (bitmap.get(end) & ((1L << supremum) - 1)) != 0) {
       return true;
     }
     for (int i = 1 + start; i < end; ++i) {

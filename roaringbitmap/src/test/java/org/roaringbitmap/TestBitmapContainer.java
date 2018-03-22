@@ -683,10 +683,10 @@ public class TestBitmapContainer {
   @Test
   public void testIntersectsWithRange() {
     Container container = new BitmapContainer().add(0, 10);
-    assertTrue(container.intersects((short)0, (short)1));
-    assertTrue(container.intersects((short)0, (short)101));
-    assertTrue(container.intersects((short)0, (short)-1));
-    assertFalse(container.intersects((short)11, (short)-1));
+    assertTrue(container.intersects(0, 1));
+    assertTrue(container.intersects(0, 101));
+    assertTrue(container.intersects(0, 1 << 16));
+    assertFalse(container.intersects(11, lower16Bits(-1)));
   }
 
 
@@ -694,41 +694,41 @@ public class TestBitmapContainer {
   public void testIntersectsWithRangeHitScan() {
     Container container = new BitmapContainer().add(0, 10)
             .add(500, 512).add(lower16Bits(-50), lower16Bits(-10));
-    assertTrue(container.intersects((short)0, (short)1));
-    assertTrue(container.intersects((short)0, (short)101));
-    assertTrue(container.intersects((short)0, (short)-1));
-    assertTrue(container.intersects((short)11, (short)-1));
-    assertTrue(container.intersects((short)501, (short)511));
+    assertTrue(container.intersects(0, 1));
+    assertTrue(container.intersects(0, 101));
+    assertTrue(container.intersects(0, 1 << 16));
+    assertTrue(container.intersects(11, 1 << 16));
+    assertTrue(container.intersects(501, 511));
   }
 
 
   @Test
   public void testIntersectsWithRangeUnsigned() {
     Container container = new BitmapContainer().add(lower16Bits(-50), lower16Bits(-10));
-    assertFalse(container.intersects((short)0, (short)1));
-    assertTrue(container.intersects((short)0, (short)-40));
-    assertFalse(container.intersects((short)-100, (short)-55));
-    assertFalse(container.intersects((short)-9, (short)-1));
-    assertTrue(container.intersects((short)11, (short)-1));
+    assertFalse(container.intersects(0, 1));
+    assertTrue(container.intersects(0, lower16Bits(-40)));
+    assertFalse(container.intersects(lower16Bits(-100), lower16Bits(-55)));
+    assertFalse(container.intersects(lower16Bits(-9), lower16Bits(-1)));
+    assertTrue(container.intersects(11, (short)-1));
   }
 
   @Test
   public void testIntersectsAtEndWord() {
     Container container = new BitmapContainer().add(lower16Bits(-500), lower16Bits(-10));
-    assertTrue(container.intersects((short)-50, (short)-10));
-    assertTrue(container.intersects((short)-400, (short)-11));
-    assertTrue(container.intersects((short)-11, (short)-1));
-    assertFalse(container.intersects((short)-10, (short)-1));
+    assertTrue(container.intersects(lower16Bits(-50), lower16Bits(-10)));
+    assertTrue(container.intersects(lower16Bits(-400), lower16Bits(-11)));
+    assertTrue(container.intersects(lower16Bits(-11), lower16Bits(-1)));
+    assertFalse(container.intersects(lower16Bits(-10), lower16Bits(-1)));
   }
 
 
   @Test
   public void testIntersectsAtEndWord2() {
     Container container = new BitmapContainer().add(lower16Bits(500), lower16Bits(-500));
-    assertTrue(container.intersects((short)-650, (short)-500));
-    assertTrue(container.intersects((short)-501, (short)-1));
-    assertFalse(container.intersects((short)-500, (short)-1));
-    assertFalse(container.intersects((short)-499, (short)-1));
+    assertTrue(container.intersects(lower16Bits(-650), lower16Bits(-500)));
+    assertTrue(container.intersects(lower16Bits(-501), lower16Bits(-1)));
+    assertFalse(container.intersects(lower16Bits(-500), lower16Bits(-1)));
+    assertFalse(container.intersects(lower16Bits(-499), 1 << 16));
   }
 
 

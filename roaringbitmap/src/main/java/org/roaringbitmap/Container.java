@@ -482,7 +482,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    * @param supremum the exclusive unsigned upper bound of the range
    * @return true if the container intersects the range
    */
-  public abstract boolean intersects(short minimum, short supremum);
+  public abstract boolean intersects(int minimum, int supremum);
 
   /**
    * Computes the in-place bitwise OR of this container with another (union). The current container

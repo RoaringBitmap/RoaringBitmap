@@ -15,10 +15,11 @@ public class RoaringBitmapIntervalIntersectionTest {
   @Parameterized.Parameters
   public static Object[][] params() {
     return new Object[][] {
-            {RoaringBitmap.bitmapOf(1, 2, 3), 0, -1},
-            {RoaringBitmap.bitmapOf(1 << 31 | 1 << 30), 0, -1},
+            {RoaringBitmap.bitmapOf(1, 2, 3), 0, 1 << 16},
+            {RoaringBitmap.bitmapOf(1 << 31 | 1 << 30), 0, 1 << 16},
             {RoaringBitmap.bitmapOf(1 << 31 | 1 << 30), 0, 256},
             {RoaringBitmap.bitmapOf(1, 1 << 31 | 1 << 30), 0, 256},
+            {RoaringBitmap.bitmapOf(1, 1 << 16, 1 << 31 | 1 << 30), 0, 1L << 32},
             {testCase().withArrayAt(0).withBitmapAt(1).withRunAt(20).build(), 67000, 150000},
             {testCase().withBitmapAt(0).withArrayAt(1).withRunAt(20).build(), 67000, 150000},
             {testCase().withBitmapAt(0).withRunAt(1).withArrayAt(20).build(), 67000, 150000},
@@ -32,10 +33,10 @@ public class RoaringBitmapIntervalIntersectionTest {
 
 
   private final MutableRoaringBitmap bitmap;
-  private final int minimum;
-  private final int supremum;
+  private final long minimum;
+  private final long supremum;
 
-  public RoaringBitmapIntervalIntersectionTest(RoaringBitmap bitmap, int minimum, int supremum) {
+  public RoaringBitmapIntervalIntersectionTest(RoaringBitmap bitmap, long minimum, long supremum) {
     this.bitmap = bitmap.toMutableRoaringBitmap();
     this.minimum = minimum;
     this.supremum = supremum;
@@ -45,7 +46,7 @@ public class RoaringBitmapIntervalIntersectionTest {
   @Test
   public void test() {
     MutableRoaringBitmap test = new MutableRoaringBitmap();
-    test.add(Util.toUnsignedLong(minimum), Util.toUnsignedLong(supremum));
+    test.add(minimum, supremum);
     Assert.assertEquals(ImmutableRoaringBitmap.intersects(bitmap, test), bitmap.intersects(minimum, supremum));
   }
 }

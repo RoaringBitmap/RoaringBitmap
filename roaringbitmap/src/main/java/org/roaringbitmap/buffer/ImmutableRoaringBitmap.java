@@ -1102,10 +1102,10 @@ public class ImmutableRoaringBitmap
   /**
    * Checks if the range intersects with the bitmap.
    * @param minimum the inclusive unsigned lower bound of the range
-   * @param supremum the exlusive unsigned upper bound of the range
+   * @param supremum the exclusive unsigned upper bound of the range
    * @return whether the bitmap intersects with the range
    */
-  public boolean intersects(int minimum, int supremum) {
+  public boolean intersects(long minimum, long supremum) {
     short minKey = BufferUtil.highbits(minimum);
     short supKey = BufferUtil.highbits(supremum);
     int len = highLowContainer.size();
@@ -1119,7 +1119,7 @@ public class ImmutableRoaringBitmap
     while (pos < len
             && BufferUtil.compareUnsigned(supKey, highLowContainer.getKeyAtIndex(pos)) > 0) {
       MappeableContainer container = highLowContainer.getContainerAtIndex(pos);
-      if (container.intersects(offset, (short) -1)) {
+      if (container.intersects(offset, 1 << 16)) {
         return true;
       }
       offset = 0;
@@ -1128,7 +1128,7 @@ public class ImmutableRoaringBitmap
     return pos < len
             && supKey == highLowContainer.getKeyAtIndex(pos)
             && highLowContainer.getContainerAtIndex(pos)
-            .intersects((short) 0, BufferUtil.lowbits(supremum));
+            .intersects((short) 0, (int)((supremum - 1) & 0xFFFF) + 1);
   }
 
 
