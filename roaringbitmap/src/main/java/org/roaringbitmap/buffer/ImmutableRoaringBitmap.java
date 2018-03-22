@@ -1106,6 +1106,7 @@ public class ImmutableRoaringBitmap
    * @return whether the bitmap intersects with the range
    */
   public boolean intersects(long minimum, long supremum) {
+    MutableRoaringBitmap.rangeSanityCheck(minimum, supremum);
     short minKey = BufferUtil.highbits(minimum);
     short supKey = BufferUtil.highbits(supremum);
     int len = highLowContainer.size();

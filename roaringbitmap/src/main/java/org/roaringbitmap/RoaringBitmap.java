@@ -1045,6 +1045,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @return whether the bitmap intersects with the range
    */
   public boolean intersects(long minimum, long supremum) {
+    rangeSanityCheck(minimum, supremum);
     short minKey = Util.highbits(minimum);
     short supKey = Util.highbits(supremum);
     int len = highLowContainer.size;
