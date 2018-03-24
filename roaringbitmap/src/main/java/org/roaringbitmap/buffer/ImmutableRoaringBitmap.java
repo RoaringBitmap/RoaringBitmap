@@ -1003,33 +1003,28 @@ public class ImmutableRoaringBitmap
     if (len < span) {
       return false;
     }
-    int min = (short)minimum & 0xFFFF;
-    int sup = (short)supremum & 0xFFFF;
-    int start = highLowContainer.getIndex(firstKey);
-    if (start < 0) {
-      return false;
-    }
-    if (firstKey == lastKey) {
-      return highLowContainer.getContainerAtIndex(start).contains(min, sup);
-    }
-    if (!highLowContainer.getContainerAtIndex(start).contains(min, 1 << 16)) {
-      return false;
-    }
+    int begin = highLowContainer.getIndex(firstKey);
     int end = highLowContainer.getIndex(lastKey);
     end = end < 0 ? -end -1 : end;
+    if (begin < 0 || end - begin != span) {
+      return false;
+    }
+
+    int min = (short)minimum & 0xFFFF;
+    int sup = (short)supremum & 0xFFFF;
+    if (firstKey == lastKey) {
+      return highLowContainer.getContainerAtIndex(begin).contains(min, sup);
+    }
+    if (!highLowContainer.getContainerAtIndex(begin).contains(min, 1 << 16)) {
+      return false;
+    }
     if (end < len && !highLowContainer.getContainerAtIndex(end).contains(0, sup)) {
       return false;
     }
-    short prevKey = firstKey;
-    for (int i = start + 1; i < end; ++i) {
-      short key = highLowContainer.getKeyAtIndex(i);
-      if (BufferUtil.toIntUnsigned(key) - BufferUtil.toIntUnsigned(prevKey) != 1) {
-        return false;
-      }
+    for (int i = begin + 1; i < end; ++i) {
       if (highLowContainer.getContainerAtIndex(i).getCardinality() != 1 << 16) {
         return false;
       }
-      prevKey = key;
     }
     return true;
   }
