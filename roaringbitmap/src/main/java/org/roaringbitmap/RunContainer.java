@@ -758,6 +758,25 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   @Override
+  public boolean contains(int minimum, int supremum) {
+    int count = 0;
+    for (int i = 0; i < numberOfRuns(); ++i) {
+      int start = toIntUnsigned(getValue(i));
+      int length = toIntUnsigned(getLength(i));
+      int stop = start + length;
+      if (start >= supremum) {
+        break;
+      }
+      if (stop >= supremum) {
+        count += Math.max(0, supremum - start);
+        break;
+      }
+      count += Math.min(Math.max(0, stop - minimum), length);
+    }
+    return count >= supremum - minimum - 1;
+  }
+
+  @Override
   protected boolean contains(RunContainer runContainer) {
     int i1 = 0, i2 = 0;
     while(i1 < numberOfRuns() && i2 < runContainer.numberOfRuns()) {

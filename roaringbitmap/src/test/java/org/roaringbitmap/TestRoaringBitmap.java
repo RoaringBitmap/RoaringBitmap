@@ -18,6 +18,7 @@ import org.junit.Test;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.IntStream;
 
 /**
  * Generic testing of the roaring bitmaps
@@ -4613,6 +4614,51 @@ public class TestRoaringBitmap {
     bitmap.add(777);
 
     Assert.assertEquals(-7, bitmap.last());
+  }
+
+  @Test
+  public void testContainsRange_ContiguousBitmap() {
+    RoaringBitmap bitmap = new RoaringBitmap();
+    bitmap.add(0L, 1_000_000L);
+    assertTrue(bitmap.contains(1L, 999_999L));
+    assertFalse(bitmap.contains(1L, 1_000_001L));
+    bitmap.flip(500_000);
+    assertFalse(bitmap.contains(1L, 999_999L));
+    bitmap.flip(500_000);
+    bitmap.flip(500_000L, 600_000L);
+    assertFalse(bitmap.contains(1L, 999_999L));
+    assertTrue(bitmap.contains(0L, 500_000L));
+    assertFalse(bitmap.contains(2_000_001L, 10_000_000L));
+  }
+
+  @Test
+  public void testContainsRange_SmallBitmap() {
+    RoaringBitmap bitmap = RoaringBitmap.bitmapOf(1, 2, 3, 4, 5, 6);
+    assertTrue(bitmap.contains(1, 6));
+    assertTrue(bitmap.contains(1, 5));
+    assertTrue(bitmap.contains(2, 6));
+    assertTrue(bitmap.contains(2, 7));
+    assertFalse(bitmap.contains(2, 8));
+    assertFalse(bitmap.contains(0, 6));
+    assertFalse(bitmap.contains(0, 1));
+    assertFalse(bitmap.contains(6, 10));
+    assertFalse(bitmap.contains(7, 1 << 16));
+    assertFalse(bitmap.contains(1 << 17, 1 << 19));
+  }
+
+  @Test
+  public void testContainsRange_DirtyBitmap() {
+    OrderedWriter writer = new OrderedWriter();
+    IntStream.range(0, 1_000_000)
+            .map(i -> i * 2)
+            .forEach(writer::add);
+    writer.flush();
+    RoaringBitmap bitmap = writer.getUnderlying();
+    assertFalse(bitmap.contains(0L, 2_000_000L));
+    assertFalse(bitmap.contains(0L, 2L));
+    assertTrue(bitmap.contains(0L, 1L));
+    assertTrue(bitmap.contains(1L << 10, 1| (1L << 10)));
+    assertFalse(bitmap.contains(1L << 31, 1L << 32));
   }
 
 }

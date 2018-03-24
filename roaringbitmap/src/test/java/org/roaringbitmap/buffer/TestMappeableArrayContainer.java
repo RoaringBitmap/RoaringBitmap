@@ -379,6 +379,40 @@ public class TestMappeableArrayContainer {
     assertFalse(container.intersects(1025, 1 << 16));
   }
 
+  @Test
+  public void testContainsRange() {
+    MappeableContainer ac = new MappeableArrayContainer().add(20, 100);
+    assertFalse(ac.contains(1, 21));
+    assertFalse(ac.contains(1, 19));
+    assertTrue(ac.contains(20, 100));
+    assertTrue(ac.contains(20, 99));
+    assertTrue(ac.contains(21, 100));
+    assertFalse(ac.contains(21, 101));
+    assertFalse(ac.contains(19, 99));
+    assertFalse(ac.contains(190, 9999));
+  }
+
+  @Test
+  public void testContainsRange2() {
+    MappeableContainer ac = new MappeableArrayContainer()
+            .add((short)1).add((short)10)
+            .add(20, 100);
+    assertFalse(ac.contains(1, 21));
+    assertFalse(ac.contains(1, 20));
+    assertTrue(ac.contains(1, 2));
+  }
+
+  @Test
+  public void testContainsRangeUnsigned() {
+    MappeableContainer ac = new MappeableArrayContainer().add(1 << 15, 1 << 8 | 1 << 15);
+    assertTrue(ac.contains(1 << 15, 1 << 8 | 1 << 15));
+    assertTrue(ac.contains(1 + (1 << 15), (1 << 8 | 1 << 15) - 1));
+    assertFalse(ac.contains(1 + (1 << 15), (1 << 8 | 1 << 15) + 1));
+    assertFalse(ac.contains((1 << 15) - 1, (1 << 8 | 1 << 15) - 1));
+    assertFalse(ac.contains(0, 1 << 15));
+    assertFalse(ac.contains(1 << 8 | 1 << 15 | 1, 1 << 16));
+  }
+
   private static int lower16Bits(int x) {
     return ((short)x) & 0xFFFF;
   }

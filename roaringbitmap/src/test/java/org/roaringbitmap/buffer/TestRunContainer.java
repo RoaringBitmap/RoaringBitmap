@@ -2475,6 +2475,68 @@ public class TestRunContainer {
     assertTrue(container.intersects(11, 1 << 16));
   }
 
+  @Test
+  public void testContainsFull() {
+    assertTrue(MappeableRunContainer.full().contains(0, 1 << 16));
+    assertFalse(MappeableRunContainer.full().flip((short)(1 << 15)).contains(0, 1 << 16));
+  }
+
+  @Test
+  public void testContainsRange() {
+    MappeableContainer rc = new MappeableRunContainer().add(1, 100).add(5000, 10000);
+    assertFalse(rc.contains(0, 100));
+    assertFalse(rc.contains(0, 100000));
+    assertTrue(rc.contains(1, 100));
+    assertTrue(rc.contains(1, 99));
+    assertTrue(rc.contains(2, 100));
+    assertTrue(rc.contains(5000, 10000));
+    assertTrue(rc.contains(5000, 9999));
+    assertTrue(rc.contains(5001, 9999));
+    assertTrue(rc.contains(5001, 10000));
+    assertFalse(rc.contains(100, 5000));
+    assertFalse(rc.contains(50, 5000));
+    assertFalse(rc.contains(4000, 6000));
+    assertFalse(rc.contains(10001, 20000));
+  }
+
+  @Test
+  public void testContainsRange2() {
+    MappeableContainer rc = new MappeableRunContainer().add(1, 100)
+            .add(300, 400)
+            .add(5000, 10000);
+    assertFalse(rc.contains(0, 100));
+    assertFalse(rc.contains(0, 100000));
+    assertTrue(rc.contains(1, 100));
+    assertTrue(rc.contains(1, 99));
+    assertTrue(rc.contains(300, 400));
+    assertTrue(rc.contains(2, 100));
+    assertTrue(rc.contains(5000, 10000));
+    assertTrue(rc.contains(5000, 9999));
+    assertTrue(rc.contains(5001, 9999));
+    assertTrue(rc.contains(5001, 10000));
+    assertFalse(rc.contains(100, 5000));
+    assertFalse(rc.contains(50, 5000));
+    assertFalse(rc.contains(4000, 6000));
+    assertFalse(rc.contains(10001, 20000));
+  }
+
+
+  @Test
+  public void testContainsRange3() {
+    MappeableContainer rc = new MappeableRunContainer().add(1, 100)
+            .add(300, 300)
+            .add(400, 500)
+            .add(502, 600)
+            .add(700, 10000);
+    assertFalse(rc.contains(0, 100));
+    assertFalse(rc.contains(500, 600));
+    assertFalse(rc.contains(501, 600));
+    assertTrue(rc.contains(502, 600));
+    assertFalse(rc.contains(600, 700));
+    assertTrue(rc.contains(9999, 10000));
+    assertFalse(rc.contains(9999, 10001));
+  }
+
   private static int lower16Bits(int x) {
     return ((short)x) & 0xFFFF;
   }
