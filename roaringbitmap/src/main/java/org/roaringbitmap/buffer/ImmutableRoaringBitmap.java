@@ -10,14 +10,7 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.roaringbitmap.ImmutableBitmapDataProvider;
-import org.roaringbitmap.IntConsumer;
-import org.roaringbitmap.IntIterator;
-import org.roaringbitmap.PeekableIntIterator;
-import org.roaringbitmap.PeekableShortIterator;
-import org.roaringbitmap.RoaringBitmap;
-import org.roaringbitmap.ShortIterator;
-import org.roaringbitmap.Util;
+import org.roaringbitmap.*;
 
 /**
  * ImmutableRoaringBitmap provides a compressed immutable (cannot be modified) bitmap. It is meant
@@ -996,6 +989,47 @@ public class ImmutableRoaringBitmap
   }
 
   /**
+   * Checks if the bitmap contains the range.
+   * @param minimum the inclusive lower bound of the range
+   * @param supremum the exclusive upper bound of the range
+   * @return whether the bitmap intersects with the range
+   */
+  public boolean contains(long minimum, long supremum) {
+    MutableRoaringBitmap.rangeSanityCheck(minimum, supremum);
+    short firstKey = BufferUtil.highbits(minimum);
+    short lastKey = BufferUtil.highbits(supremum);
+    int span = BufferUtil.toIntUnsigned(lastKey) - BufferUtil.toIntUnsigned(firstKey);
+    int len = highLowContainer.size();
+    if (len < span) {
+      return false;
+    }
+    int begin = highLowContainer.getIndex(firstKey);
+    int end = highLowContainer.getIndex(lastKey);
+    end = end < 0 ? -end -1 : end;
+    if (begin < 0 || end - begin != span) {
+      return false;
+    }
+
+    int min = (short)minimum & 0xFFFF;
+    int sup = (short)supremum & 0xFFFF;
+    if (firstKey == lastKey) {
+      return highLowContainer.getContainerAtIndex(begin).contains(min, sup);
+    }
+    if (!highLowContainer.getContainerAtIndex(begin).contains(min, 1 << 16)) {
+      return false;
+    }
+    if (end < len && !highLowContainer.getContainerAtIndex(end).contains(0, sup)) {
+      return false;
+    }
+    for (int i = begin + 1; i < end; ++i) {
+      if (highLowContainer.getContainerAtIndex(i).getCardinality() != 1 << 16) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Checks whether the parameter is a subset of this RoaringBitmap or not
    * @param subset the potential subset
    * @return true if the parameter is a subset of this RoaringBitmap
@@ -1131,7 +1165,6 @@ public class ImmutableRoaringBitmap
             && highLowContainer.getContainerAtIndex(pos)
             .intersects((short) 0, (int)((supremum - 1) & 0xFFFF) + 1);
   }
-
 
   /**
    * Returns the number of distinct integers added to the bitmap (e.g., number of bits set).

@@ -1,6 +1,8 @@
 package org.roaringbitmap;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 
@@ -81,6 +83,7 @@ public class RandomisedTestData {
     }
 
     OrderedWriter writer = new OrderedWriter();
+    private List<Long> ranges = new ArrayList<>();
 
     public TestDataSet withRunAt(int key) {
       assert key < 1 << 16;
@@ -100,9 +103,19 @@ public class RandomisedTestData {
       return this;
     }
 
+    public TestDataSet withRange(long minimum, long supremum) {
+      ranges.add(minimum);
+      ranges.add(supremum);
+      return this;
+    }
+
     public RoaringBitmap build() {
       writer.flush();
-      return writer.getUnderlying();
+      RoaringBitmap bitmap = writer.getUnderlying();
+      for (int i = 0; i < ranges.size(); i += 2) {
+        bitmap.add(ranges.get(i), ranges.get(i + 1));
+      }
+      return bitmap;
     }
   }
 }

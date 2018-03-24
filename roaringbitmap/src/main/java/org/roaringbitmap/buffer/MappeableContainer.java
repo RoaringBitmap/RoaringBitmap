@@ -223,6 +223,14 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
    * @return true if the container intersects the range
    */
   public abstract boolean intersects(int minimum, int supremum);
+
+  /**
+   * Checks whether the container contains the entire range
+   * @param minimum the inclusive lower bound of the range
+   * @param supremum the exclusive upper bound of the range
+   * @return true if the container contains the range
+   */
+  public abstract boolean contains(int minimum, int supremum);
   
   /**
    * Fill the least significant 16 bits of the integer array, starting at index index, with the
