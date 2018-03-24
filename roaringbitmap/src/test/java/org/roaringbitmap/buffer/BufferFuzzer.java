@@ -15,6 +15,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
+import static org.roaringbitmap.Util.toUnsignedLong;
+
 public class BufferFuzzer {
 
   @FunctionalInterface
@@ -162,6 +164,13 @@ public class BufferFuzzer {
   @Test
   public void intersectsRangeFirstLastInvariance() {
     verifyInvariance(true, rb -> rb.intersects(rb.first(), rb.last()));
+  }
+
+  @Test
+  public void containsRangeFirstLastInvariance() {
+    verifyInvariance(true,
+            rb -> MutableRoaringBitmap.add(rb.clone(), toUnsignedLong(rb.first()), toUnsignedLong(rb.last()))
+                    .contains(toUnsignedLong(rb.first()), toUnsignedLong(rb.last())));
   }
 
   @Test

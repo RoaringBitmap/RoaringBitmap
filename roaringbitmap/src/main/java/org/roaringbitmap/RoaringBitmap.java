@@ -1313,6 +1313,50 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     return c != null && c.contains(Util.lowbits(x));
   }
 
+  /**
+   * Checks if the bitmap contains the range.
+   * @param minimum the inclusive lower bound of the range
+   * @param supremum the exclusive upper bound of the range
+   * @return whether the bitmap intersects with the range
+   */
+  public boolean contains(long minimum, long supremum) {
+    rangeSanityCheck(minimum, supremum);
+    short firstKey = Util.highbits(minimum);
+    short lastKey = Util.highbits(supremum);
+    int span = Util.toIntUnsigned(lastKey) - Util.toIntUnsigned(firstKey);
+    int len = highLowContainer.size;
+    if (len < span) {
+      return false;
+    }
+    int min = (short)minimum & 0xFFFF;
+    int sup = (short)supremum & 0xFFFF;
+    int start = highLowContainer.getIndex(firstKey);
+    if (start < 0) {
+      return false;
+    }
+    if (firstKey == lastKey) {
+      return highLowContainer.getContainerAtIndex(start).contains(min, sup);
+    }
+    if (!highLowContainer.getContainerAtIndex(start).contains(min, 1 << 16)) {
+      return false;
+    }
+    int end = highLowContainer.getIndex(lastKey);
+    end = end < 0 ? -end -1 : end;
+    if (end < len && !highLowContainer.getContainerAtIndex(end).contains(0, sup)) {
+      return false;
+    }
+    short[] keys = highLowContainer.keys;
+    for (int i = start + 1; i < end; ++i) {
+      if (Util.toIntUnsigned(keys[i]) - Util.toIntUnsigned(keys[i - 1]) != 1) {
+        return false;
+      }
+      if (highLowContainer.getContainerAtIndex(i).getCardinality() != 1 << 16) {
+        return false;
+      }
+    }
+    return true;
+  }
+
 
   /**
    * Deserialize (retrieve) this bitmap.

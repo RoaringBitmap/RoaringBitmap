@@ -17,6 +17,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
+import java.util.Arrays;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -735,6 +736,55 @@ public class TestMappeableBitmapContainer {
     assertTrue(container.intersects(lower16Bits(-501), lower16Bits(-1)));
     assertFalse(container.intersects(lower16Bits(-500), lower16Bits(-1)));
     assertFalse(container.intersects(lower16Bits(-499), 1 << 16));
+  }
+
+  @Test
+  public void testContainsRangeSingleWord() {
+    long[] bitmap = oddBits();
+    bitmap[10] = -1L;
+    int cardinality = 32 + 1 << 15;
+    MappeableBitmapContainer container = new MappeableBitmapContainer(LongBuffer.wrap(bitmap), cardinality);
+    assertTrue(container.contains(0, 1));
+    assertTrue(container.contains(64 * 10, 64 * 11));
+    assertFalse(container.contains(64 * 10, 2 + 64 * 11));
+    assertTrue(container.contains(1 + 64 * 10, (64 * 11) - 1));
+  }
+
+  @Test
+  public void testContainsRangeMultiWord() {
+    long[] bitmap = oddBits();
+    bitmap[10] = -1L;
+    bitmap[11] = -1L;
+    bitmap[12] |= ((1L << 32) - 1);
+    int cardinality = 32 + 32 + 16 + 1 << 15;
+    MappeableBitmapContainer container = new MappeableBitmapContainer(LongBuffer.wrap(bitmap), cardinality);
+    assertTrue(container.contains(0, 1));
+    assertFalse(container.contains(64 * 10, (64 * 13) - 30));
+    assertTrue(container.contains(64 * 10, (64 * 13) - 31));
+    assertTrue(container.contains(1 + 64 * 10, (64 * 13) - 32));
+    assertTrue(container.contains(64 * 10, 64 * 12));
+    assertFalse(container.contains(64 * 10, 2 + 64 * 13));
+  }
+
+
+  @Test
+  public void testContainsRangeSubWord() {
+    long[] bitmap = oddBits();
+    bitmap[bitmap.length - 1] = ~((1L << 63) | 1L);
+    int cardinality = 32 + 32 + 16 + 1 << 15;
+    MappeableBitmapContainer container = new MappeableBitmapContainer(LongBuffer.wrap(bitmap), cardinality);
+    assertFalse(container.contains(64 * 1023, 64 * 1024));
+    assertFalse(container.contains(64 * 1023, 64 * 1024 - 1));
+    assertTrue(container.contains(1 + 64 * 1023, 64 * 1024 - 1));
+    assertTrue(container.contains(1 + 64 * 1023, 64 * 1024 - 2));
+    assertFalse(container.contains(64 * 1023, 64 * 1023 + 2));
+    assertTrue(container.contains(64 * 1023 + 1, 64 * 1023 + 2));
+  }
+
+  private static long[] oddBits() {
+    long[] bitmap = new long[1 << 10];
+    Arrays.fill(bitmap, 0x5555555555555555L);
+    return bitmap;
   }
 
   private static int lower16Bits(int x) {

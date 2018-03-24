@@ -200,6 +200,14 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    */
   public abstract boolean contains(short x);
 
+  /**
+   * Checks whether the container contains the entire range
+   * @param minimum the inclusive lower bound of the range
+   * @param supremum the exclusive upper bound of the range
+   * @return true if the container contains the range
+   */
+  public abstract boolean contains(int minimum, int supremum);
+
 
   /**
    * Checks whether the container is a subset of this container or not

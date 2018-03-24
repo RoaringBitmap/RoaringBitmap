@@ -14,6 +14,7 @@ import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.toList;
 import static org.roaringbitmap.RandomisedTestData.randomBitmap;
+import static org.roaringbitmap.Util.toUnsignedLong;
 
 public class Fuzzer {
 
@@ -219,6 +220,13 @@ public class Fuzzer {
             rb -> rb.getCardinality(),
             rb -> rb.getCardinality() / 2
                     + RoaringBitmap.xorCardinality(rb, rb.limit(rb.getCardinality() / 2)));
+  }
+
+  @Test
+  public void containsRangeFirstLastInvariance() {
+    verifyInvariance(true,
+            rb -> RoaringBitmap.add(rb.clone(), toUnsignedLong(rb.first()), toUnsignedLong(rb.last()))
+                               .contains(toUnsignedLong(rb.first()), toUnsignedLong(rb.last())));
   }
 
   @Test
