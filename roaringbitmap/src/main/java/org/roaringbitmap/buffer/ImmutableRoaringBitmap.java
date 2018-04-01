@@ -265,7 +265,7 @@ public class ImmutableRoaringBitmap
         final MappeableContainer c1 = x1.highLowContainer.getContainerAtIndex(pos1);
         final MappeableContainer c2 = x2.highLowContainer.getContainerAtIndex(pos2);
         final MappeableContainer c = c1.and(c2);
-        if (c.getCardinality() > 0) {
+        if (!c.isEmpty()) {
           answer.getMappeableRoaringArray().append(s1, c);
         }
         ++pos1;
@@ -406,7 +406,7 @@ public class ImmutableRoaringBitmap
         final MappeableContainer c1 = x1.highLowContainer.getContainerAtIndex(pos1);
         final MappeableContainer c2 = x2.highLowContainer.getContainerAtIndex(pos2);
         final MappeableContainer c = c1.andNot(c2);
-        if (c.getCardinality() > 0) {
+        if (!c.isEmpty()) {
           answer.getMappeableRoaringArray().append(s1, c);
         }
         ++pos1;
@@ -484,7 +484,7 @@ public class ImmutableRoaringBitmap
       if (i >= 0) {
         final MappeableContainer c =
             bm.highLowContainer.getContainerAtIndex(i).not(containerStart, containerLast + 1);
-        if (c.getCardinality() > 0) {
+        if (!c.isEmpty()) {
           answer.getMappeableRoaringArray().insertNewKeyValueAt(-j - 1, hb, c);
         }
 
@@ -584,7 +584,7 @@ public class ImmutableRoaringBitmap
       if (i >= 0) {
         final MappeableContainer c = rb.highLowContainer.getContainerAtIndex(i).remove(0, lbStart)
             .iremove(lbLast + 1, BufferUtil.maxLowBitAsInteger() + 1);
-        if (c.getCardinality() > 0) {
+        if (!c.isEmpty()) {
           ((MutableRoaringArray) answer.highLowContainer).append((short) hbStart, c);
         }
       }
@@ -595,7 +595,7 @@ public class ImmutableRoaringBitmap
     if (ifirst >= 0) {
       final MappeableContainer c =
           rb.highLowContainer.getContainerAtIndex(ifirst).remove(0, lbStart);
-      if (c.getCardinality() > 0) {
+      if (!c.isEmpty()) {
         ((MutableRoaringArray) answer.highLowContainer).append((short) hbStart, c);
       }
     }
@@ -614,7 +614,7 @@ public class ImmutableRoaringBitmap
     if (ilast >= 0) {
       final MappeableContainer c = rb.highLowContainer.getContainerAtIndex(ilast).remove(lbLast + 1,
           BufferUtil.maxLowBitAsInteger() + 1);
-      if (c.getCardinality() > 0) {
+      if (!c.isEmpty()) {
         ((MutableRoaringArray) answer.highLowContainer).append((short) hbLast, c);
       }
     }
@@ -895,7 +895,7 @@ public class ImmutableRoaringBitmap
       while (true) {
         if (i1.key() == i2.key()) {
           final MappeableContainer c = i1.getContainer().xor(i2.getContainer());
-          if (c.getCardinality() > 0) {
+          if (!c.isEmpty()) {
             answer.getMappeableRoaringArray().append(i1.key(), c);
           }
           i1.advance();

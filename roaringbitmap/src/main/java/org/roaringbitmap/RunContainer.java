@@ -1727,7 +1727,7 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   private RunContainer lazyandNot(ArrayContainer x) {
-    if (x.getCardinality() == 0) {
+    if (x.isEmpty()) {
       return this;
     }
     RunContainer answer = new RunContainer(new short[2 * (this.nbrruns + x.cardinality)], 0);
@@ -1835,7 +1835,7 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   private Container lazyxor(ArrayContainer x) {
-    if (x.getCardinality() == 0) {
+    if (x.isEmpty()) {
       return this;
     }
     if (this.nbrruns == 0) {
