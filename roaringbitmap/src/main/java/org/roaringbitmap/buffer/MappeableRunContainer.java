@@ -1608,7 +1608,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   }
 
   private MappeableRunContainer lazyandNot(MappeableArrayContainer x) {
-    if (x.getCardinality() == 0) {
+    if (x.isEmpty()) {
       return this;
     }
     MappeableRunContainer answer =
@@ -1723,7 +1723,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   }
 
   private MappeableContainer lazyxor(MappeableArrayContainer x) {
-    if (x.getCardinality() == 0) {
+    if (x.isEmpty()) {
       return this;
     }
     if (this.nbrruns == 0) {

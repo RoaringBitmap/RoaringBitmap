@@ -288,7 +288,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         final Container c1 = x1.highLowContainer.getContainerAtIndex(pos1);
         final Container c2 = x2.highLowContainer.getContainerAtIndex(pos2);
         final Container c = c1.and(c2);
-        if (c.getCardinality() > 0) {
+        if (!c.isEmpty()) {
           answer.highLowContainer.append(s1, c);
         }
         ++pos1;
@@ -356,7 +356,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         final Container c1 = x1.highLowContainer.getContainerAtIndex(pos1);
         final Container c2 = x2.highLowContainer.getContainerAtIndex(pos2);
         final Container c = c1.andNot(c2);
-        if (c.getCardinality() > 0) {
+        if (!c.isEmpty()) {
           answer.highLowContainer.append(s1, c);
         }
         ++pos1;
@@ -500,7 +500,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       if (i >= 0) {
         Container c =
             bm.highLowContainer.getContainerAtIndex(i).not(containerStart, containerLast + 1);
-        if (c.getCardinality() > 0) {
+        if (!c.isEmpty()) {
           answer.highLowContainer.insertNewKeyValueAt(-j - 1, (short) hb, c);
         }
 
@@ -823,7 +823,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       final int i = rb.highLowContainer.getIndex((short) hbStart);
       if (i >= 0) {
         final Container c = rb.highLowContainer.getContainerAtIndex(i).remove(lbStart, lbLast + 1);
-        if (c.getCardinality() > 0) {
+        if (!c.isEmpty()) {
           answer.highLowContainer.append((short) hbStart, c);
         }
       }
@@ -835,13 +835,13 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     if ((ifirst >= 0) && (lbStart != 0)) {
       final Container c = rb.highLowContainer.getContainerAtIndex(ifirst).remove(lbStart,
           Util.maxLowBitAsInteger() + 1);
-      if (c.getCardinality() > 0) {
+      if (!c.isEmpty()) {
         answer.highLowContainer.append((short) hbStart, c);
       }
     }
     if ((ilast >= 0) && (lbLast != Util.maxLowBitAsInteger())) {
       final Container c = rb.highLowContainer.getContainerAtIndex(ilast).remove(0, lbLast + 1);
-      if (c.getCardinality() > 0) {
+      if (!c.isEmpty()) {
         answer.highLowContainer.append((short) hbLast, c);
       }
     }
@@ -894,7 +894,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         if (s1 == s2) {
           final Container c = x1.highLowContainer.getContainerAtIndex(pos1)
               .xor(x2.highLowContainer.getContainerAtIndex(pos2));
-          if (c.getCardinality() > 0) {
+          if (!c.isEmpty()) {
             answer.highLowContainer.append(s1, c);
           }
           pos1++;
@@ -1085,7 +1085,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         final Container c1 = highLowContainer.getContainerAtIndex(pos1);
         final Container c2 = x2.highLowContainer.getContainerAtIndex(pos2);
         final Container c = c1.iand(c2);
-        if (c.getCardinality() > 0) {
+        if (!c.isEmpty()) {
           highLowContainer.replaceKeyAndContainerAtIndex(intersectionSize++, s1, c);
         }
         ++pos1;
@@ -1158,7 +1158,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         final Container c1 = highLowContainer.getContainerAtIndex(pos1);
         final Container c2 = x2.highLowContainer.getContainerAtIndex(pos2);
         final Container c = c1.iandNot(c2);
-        if (c.getCardinality() > 0) {
+        if (!c.isEmpty()) {
           highLowContainer.replaceKeyAndContainerAtIndex(intersectionSize++, s1, c);
         }
         ++pos1;
@@ -1430,7 +1430,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     final int i = highLowContainer.getIndex(hb);
     if (i >= 0) {
       Container c = highLowContainer.getContainerAtIndex(i).flip(Util.lowbits(x));
-      if (c.getCardinality() > 0) {
+      if (!c.isEmpty()) {
         highLowContainer.setContainerAtIndex(i, c);
       } else {
         highLowContainer.removeAtIndex(i);
@@ -1470,7 +1470,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       if (i >= 0) {
         final Container c =
             highLowContainer.getContainerAtIndex(i).inot(containerStart, containerLast + 1);
-        if (c.getCardinality() > 0) {
+        if (!c.isEmpty()) {
           highLowContainer.setContainerAtIndex(i, c);
         } else {
           highLowContainer.removeAtIndex(i);
@@ -1919,7 +1919,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     }
     highLowContainer.setContainerAtIndex(i,
         highLowContainer.getContainerAtIndex(i).remove(Util.lowbits(x)));
-    if (highLowContainer.getContainerAtIndex(i).getCardinality() == 0) {
+    if (highLowContainer.getContainerAtIndex(i).isEmpty()) {
       highLowContainer.removeAtIndex(i);
     }
   }
@@ -1949,7 +1949,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         return;
       }
       final Container c = highLowContainer.getContainerAtIndex(i).iremove(lbStart, lbLast + 1);
-      if (c.getCardinality() > 0) {
+      if (!c.isEmpty()) {
         highLowContainer.setContainerAtIndex(i, c);
       } else {
         highLowContainer.removeAtIndex(i);
@@ -1962,7 +1962,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       if (lbStart != 0) {
         final Container c = highLowContainer.getContainerAtIndex(ifirst).iremove(lbStart,
             Util.maxLowBitAsInteger() + 1);
-        if (c.getCardinality() > 0) {
+        if (!c.isEmpty()) {
           highLowContainer.setContainerAtIndex(ifirst, c);
           ifirst++;
         }
@@ -1973,7 +1973,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     if (ilast >= 0) {
       if (lbLast != Util.maxLowBitAsInteger()) {
         final Container c = highLowContainer.getContainerAtIndex(ilast).iremove(0, lbLast + 1);
-        if (c.getCardinality() > 0) {
+        if (!c.isEmpty()) {
           highLowContainer.setContainerAtIndex(ilast, c);
         } else {
           ilast++;
@@ -2278,7 +2278,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       if (i >= 0) {
         final Container c = rb.highLowContainer.getContainerAtIndex(i).remove(0, lbStart)
             .iremove(lbLast + 1, Util.maxLowBitAsInteger() + 1);
-        if (c.getCardinality() > 0) {
+        if (!c.isEmpty()) {
           answer.highLowContainer.append((short) hbStart, c);
         }
       }
@@ -2288,7 +2288,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     int ilast = rb.highLowContainer.getIndex((short) hbLast);
     if (ifirst >= 0) {
       final Container c = rb.highLowContainer.getContainerAtIndex(ifirst).remove(0, lbStart);
-      if (c.getCardinality() > 0) {
+      if (!c.isEmpty()) {
         answer.highLowContainer.append((short) hbStart, c);
       }
     }
@@ -2308,7 +2308,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     if (ilast >= 0) {
       final Container c = rb.highLowContainer.getContainerAtIndex(ilast).remove(lbLast + 1,
           Util.maxLowBitAsInteger() + 1);
-      if (c.getCardinality() > 0) {
+      if (!c.isEmpty()) {
         answer.highLowContainer.append((short) hbLast, c);
       }
     }
@@ -2405,7 +2405,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         if (s1 == s2) {
           final Container c = highLowContainer.getContainerAtIndex(pos1)
               .ixor(x2.highLowContainer.getContainerAtIndex(pos2));
-          if (c.getCardinality() > 0) {
+          if (!c.isEmpty()) {
             this.highLowContainer.setContainerAtIndex(pos1, c);
             pos1++;
           } else {

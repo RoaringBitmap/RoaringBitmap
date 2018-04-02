@@ -109,9 +109,9 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    * @return aggregated container
    */
   public int andCardinality(Container x) {
-    if (this.getCardinality() == 0) {
+    if (this.isEmpty()) {
       return 0;
-    } else if (x.getCardinality() == 0) {
+    } else if (x.isEmpty()) {
       return 0;
     } else {
       if (x instanceof ArrayContainer) {
