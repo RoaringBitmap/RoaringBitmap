@@ -8,6 +8,7 @@ import org.junit.Test;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.IntStream;
 
+import static org.roaringbitmap.ParallelAggregation.newAggregationBuffer;
 import static org.roaringbitmap.RandomisedTestData.TestDataSet.testCase;
 
 public class ParallelAggregationTest {
@@ -34,6 +35,8 @@ public class ParallelAggregationTest {
     RoaringBitmap two = testCase().withBitmapAt(0).build();
     RoaringBitmap three = testCase().withArrayAt(0).build();
     Assert.assertEquals(FastAggregation.or(one, two, three), ParallelAggregation.or(one, two, three));
+    Assert.assertEquals(ParallelAggregation.or(one, two, three),
+            ParallelAggregation.bufferedOr(newAggregationBuffer(), one, two, three));
   }
 
   @Test
@@ -42,6 +45,8 @@ public class ParallelAggregationTest {
     RoaringBitmap two = testCase().withBitmapAt(1).build();
     RoaringBitmap three = testCase().withArrayAt(1).build();
     Assert.assertEquals(FastAggregation.or(one, two, three), ParallelAggregation.or(one, two, three));
+    Assert.assertEquals(ParallelAggregation.or(one, two, three),
+            ParallelAggregation.bufferedOr(newAggregationBuffer(), one, two, three));
   }
 
   @Test
@@ -50,6 +55,8 @@ public class ParallelAggregationTest {
     RoaringBitmap two = testCase().withBitmapAt(1).build();
     RoaringBitmap three = testCase().withArrayAt(3).build();
     Assert.assertEquals(FastAggregation.or(one, two, three), ParallelAggregation.or(one, two, three));
+    Assert.assertEquals(ParallelAggregation.or(one, two, three),
+            ParallelAggregation.bufferedOr(newAggregationBuffer(), one, two, three));
   }
 
 
@@ -59,6 +66,8 @@ public class ParallelAggregationTest {
             .mapToObj(i -> testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build())
             .toArray(RoaringBitmap[]::new);
     Assert.assertEquals(FastAggregation.or(input), ParallelAggregation.or(input));
+    Assert.assertEquals(ParallelAggregation.or(input),
+            ParallelAggregation.bufferedOr(newAggregationBuffer(), input));
   }
 
   @Test
@@ -67,6 +76,8 @@ public class ParallelAggregationTest {
             .mapToObj(i -> testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build())
             .toArray(RoaringBitmap[]::new);
     Assert.assertEquals(FastAggregation.or(input), ParallelAggregation.or(input));
+    Assert.assertEquals(ParallelAggregation.or(input),
+            ParallelAggregation.bufferedOr(newAggregationBuffer(), input));
   }
 
 
@@ -76,6 +87,8 @@ public class ParallelAggregationTest {
             .mapToObj(i -> testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build())
             .toArray(RoaringBitmap[]::new);
     Assert.assertEquals(FastAggregation.or(input), ParallelAggregation.or(input));
+    Assert.assertEquals(ParallelAggregation.or(input),
+            ParallelAggregation.bufferedOr(newAggregationBuffer(), input));
   }
 
   @Test
@@ -84,6 +97,8 @@ public class ParallelAggregationTest {
             .mapToObj(i -> testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build())
             .toArray(RoaringBitmap[]::new);
     Assert.assertEquals(FastAggregation.or(input), ParallelAggregation.or(input));
+    Assert.assertEquals(ParallelAggregation.or(input),
+            ParallelAggregation.bufferedOr(newAggregationBuffer(), input));
   }
 
   @Test
@@ -93,6 +108,9 @@ public class ParallelAggregationTest {
             .toArray(RoaringBitmap[]::new);
     Assert.assertEquals(FastAggregation.or(input),
             NO_PARALLELISM_AVAILABLE.submit(() -> ParallelAggregation.or(input)).join());
+    Assert.assertEquals(FastAggregation.or(input),
+            NO_PARALLELISM_AVAILABLE.submit(() ->
+                    ParallelAggregation.bufferedOr(newAggregationBuffer(), input)).join());
   }
 
 
@@ -103,6 +121,9 @@ public class ParallelAggregationTest {
             .toArray(RoaringBitmap[]::new);
     Assert.assertEquals(FastAggregation.or(input),
             NO_PARALLELISM_AVAILABLE.submit(() -> ParallelAggregation.or(input)).join());
+    Assert.assertEquals(FastAggregation.or(input),
+            NO_PARALLELISM_AVAILABLE.submit(() ->
+                    ParallelAggregation.bufferedOr(newAggregationBuffer(), input)).join());
   }
 
   @Test
@@ -112,6 +133,9 @@ public class ParallelAggregationTest {
             .toArray(RoaringBitmap[]::new);
     Assert.assertEquals(FastAggregation.or(input),
             NO_PARALLELISM_AVAILABLE.submit(() -> ParallelAggregation.or(input)).join());
+    Assert.assertEquals(FastAggregation.or(input),
+            NO_PARALLELISM_AVAILABLE.submit(() ->
+                    ParallelAggregation.bufferedOr(newAggregationBuffer(), input)).join());
   }
 
 
@@ -122,6 +146,8 @@ public class ParallelAggregationTest {
             .toArray(RoaringBitmap[]::new);
     Assert.assertEquals(FastAggregation.or(input),
                         POOL.submit(() -> ParallelAggregation.or(input)).join());
+    Assert.assertEquals(ParallelAggregation.or(input),
+            POOL.submit(() -> ParallelAggregation.bufferedOr(newAggregationBuffer(), input)).join());
   }
 
 
@@ -132,6 +158,8 @@ public class ParallelAggregationTest {
             .toArray(RoaringBitmap[]::new);
     Assert.assertEquals(FastAggregation.or(input),
             POOL.submit(() -> ParallelAggregation.or(input)).join());
+    Assert.assertEquals(ParallelAggregation.or(input),
+            POOL.submit(() -> ParallelAggregation.bufferedOr(newAggregationBuffer(), input)).join());
   }
 
   @Test
@@ -141,6 +169,8 @@ public class ParallelAggregationTest {
             .toArray(RoaringBitmap[]::new);
     Assert.assertEquals(FastAggregation.or(input),
             POOL.submit(() -> ParallelAggregation.or(input)).join());
+    Assert.assertEquals(ParallelAggregation.or(input),
+            POOL.submit(() -> ParallelAggregation.bufferedOr(newAggregationBuffer(), input)).join());
   }
 
   @Test
@@ -149,6 +179,8 @@ public class ParallelAggregationTest {
     RoaringBitmap two = testCase().withBitmapAt(1).withRunAt((1 << 15) | 2).build();
     RoaringBitmap three = testCase().withArrayAt(3).withRunAt((1 << 15) | 3).build();
     Assert.assertEquals(FastAggregation.or(one, two, three), ParallelAggregation.or(one, two, three));
+    Assert.assertEquals(ParallelAggregation.or(one, two, three),
+            ParallelAggregation.bufferedOr(newAggregationBuffer(), one, two, three));
   }
 
   @Test

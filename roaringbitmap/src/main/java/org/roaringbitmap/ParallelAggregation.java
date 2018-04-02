@@ -10,22 +10,23 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.IntStream;
 
+import static java.lang.ThreadLocal.withInitial;
 import static org.roaringbitmap.Util.compareUnsigned;
+import static org.roaringbitmap.Util.toIntUnsigned;
 
 /**
- *
  * These utility methods provide parallel implementations of
  * logical aggregation operators. AND is not implemented
  * because it is unlikely to be profitable.
- *
+ * <p>
  * There is a temporary memory overhead in using these methods,
  * since a materialisation of the rotated containers grouped by key
  * is created in each case.
- *
+ * <p>
  * Each method executes on the default fork join pool by default.
  * If this is undesirable (it usually is) wrap the call inside
  * a submission of a runnable to your own thread pool.
- *
+ * <p>
  * <pre>
  * {@code
  *
@@ -40,22 +41,57 @@ import static org.roaringbitmap.Util.compareUnsigned;
  */
 public class ParallelAggregation {
 
-  private static final Collector<Map.Entry<Short,List<Container>>, RoaringArray, RoaringBitmap> XOR
+  private static final Collector<Map.Entry<Short, List<Container>>, RoaringArray, RoaringBitmap> XOR
           = new ContainerCollector(ParallelAggregation::xor);
 
   private static final OrCollector OR = new OrCollector();
+
+  /**
+   * Creates a buffer which can safely be reused but is cheaper if limited
+   * to a single calling thread
+   */
+  public static class AggregationBuffer {
+
+    private final long[] keys;
+    private final List<Container>[] buffer;
+
+    private AggregationBuffer() {
+      this.keys = new long[1 << 10];
+      this.buffer = new List[1 << 16];
+      for (int i = 0; i < buffer.length; ++i) {
+        buffer[i] = new ArrayList<>();
+      }
+    }
+    
+    private List<Container>[] getBuffer() {
+      return buffer;
+    }
+    
+    private long[] getKeys() {
+      return keys;
+    }
+  }
+
+  /**
+   * Creates an aggregation buffer for buffered aggregations
+   * @return an aggregation buffer
+   */
+  public static AggregationBuffer newAggregationBuffer() {
+    return new AggregationBuffer();
+  }
 
   /**
    * Collects containers grouped by their key into a RoaringBitmap, applying the
    * supplied aggregation function to each group.
    */
   public static class ContainerCollector implements
-          Collector<Map.Entry<Short,List<Container>>, RoaringArray, RoaringBitmap> {
+          Collector<Map.Entry<Short, List<Container>>, RoaringArray, RoaringBitmap> {
 
     private final Function<List<Container>, Container> reducer;
 
     /**
      * Creates a collector with the reducer function.
+     *
      * @param reducer a function to apply to containers with the same key.
      */
     public ContainerCollector(Function<List<Container>, Container> reducer) {
@@ -132,6 +168,7 @@ public class ParallelAggregation {
 
   /**
    * Groups the containers by their keys
+   *
    * @param bitmaps input bitmaps
    * @return The containers from the bitmaps grouped by key
    */
@@ -155,9 +192,35 @@ public class ParallelAggregation {
     return sorted;
   }
 
+  /**
+   * Computes the bitwise union of the input bitmaps.
+   * Avoids allocating memory by using an aggregation buffer.
+   * It is assumed that the instance of the aggregation buffer is not in use
+   * on any other thread. Ensuring this is the caller's responsibility.
+   * @see ParallelAggregation#newAggregationBuffer()
+   *
+   * @param aggregationBuffer an aggregation buffer for the calling thread
+   * @param bitmaps the input bitmaps
+   * @return the union of the bitmaps
+   */
+  public static RoaringBitmap bufferedOr(AggregationBuffer aggregationBuffer,
+                                         RoaringBitmap... bitmaps) {
+    List<Container>[] buffer = aggregationBuffer.getBuffer();
+    short[] keys = prepareAggregation(aggregationBuffer, bitmaps);
+    Container[] values = new Container[keys.length];
+    IntStream.range(0, keys.length)
+            .parallel()
+            .forEach(position -> {
+              List<Container> slice = buffer[toIntUnsigned(keys[position])];
+              values[position] = or(slice);
+              slice.clear();
+            });
+    return new RoaringBitmap(new RoaringArray(keys, values, keys.length));
+  }
 
   /**
    * Computes the bitwise union of the input bitmaps
+   *
    * @param bitmaps the input bitmaps
    * @return the union of the bitmaps
    */
@@ -172,13 +235,14 @@ public class ParallelAggregation {
       slices.add(slice.getValue());
     }
     IntStream.range(0, i)
-             .parallel()
-             .forEach(position -> values[position] = or(slices.get(position)));
+            .parallel()
+            .forEach(position -> values[position] = or(slices.get(position)));
     return new RoaringBitmap(new RoaringArray(keys, values, i));
   }
 
   /**
    * Computes the bitwise symmetric difference of the input bitmaps
+   *
    * @param bitmaps the input bitmaps
    * @return the symmetric difference of the bitmaps
    */
@@ -230,4 +294,34 @@ public class ParallelAggregation {
             : ForkJoinPool.getCommonPoolParallelism();
   }
 
+  private static short[] prepareAggregation(AggregationBuffer aggregationBuffer,
+                                            RoaringBitmap... bitmaps) {
+    long[] bitset = aggregationBuffer.getKeys();
+    List<Container>[] buffer = aggregationBuffer.getBuffer();
+    int size = 0;
+    for (RoaringBitmap bitmap : bitmaps) {
+      RoaringArray hlc = bitmap.highLowContainer;
+      for (int position = 0; position < hlc.size; ++position) {
+        short key = hlc.keys[position];
+        Container container = hlc.values[position];
+        int bit = key & 0xFFFF;
+        int wordIndex = bit >>> 6;
+        long word = bitset[wordIndex];
+        bitset[wordIndex] |= (1L << bit);
+        size += Long.bitCount(word ^ bitset[wordIndex]);
+        buffer[bit].add(container);
+      }
+    }
+    short[] keys = new short[size];
+    int prefix = 0;
+    int k = 0;
+    for (int i = 0; i < bitset.length; ++i) {
+      while (bitset[i] != 0) {
+        keys[k++] = (short) (prefix + Long.numberOfTrailingZeros(bitset[i]));
+        bitset[i] &= (bitset[i] - 1);
+      }
+      prefix += 64;
+    }
+    return keys;
+  }
 }
