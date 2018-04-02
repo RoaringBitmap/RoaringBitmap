@@ -113,9 +113,9 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
    * @return aggregated container
    */
   public int andCardinality(MappeableContainer x) {
-    if (this.getCardinality() == 0) {
+    if (this.isEmpty()) {
       return 0;
-    } else if (x.getCardinality() == 0) {
+    } else if (x.isEmpty()) {
       return 0;
     } else {
       if (x instanceof MappeableArrayContainer) {

@@ -163,7 +163,7 @@ public class BufferFuzzer {
 
   @Test
   public void intersectsRangeFirstLastInvariance() {
-    verifyInvariance(true, rb -> rb.intersects(rb.first(), rb.last()));
+    verifyInvariance(true, rb -> rb.intersects(toUnsignedLong(rb.first()), toUnsignedLong(rb.last())));
   }
 
   @Test
