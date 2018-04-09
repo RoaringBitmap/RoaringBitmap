@@ -954,11 +954,13 @@ public class ImmutableRoaringBitmap
    * Note that the input ByteBuffer is effectively copied (with the slice operation) so you should
    * expect the provided ByteBuffer to remain unchanged.
    *
-   *
+   * This constructor may throw IndexOutOfBoundsException if the input is invalid/corrupted.
+   * This constructor throws an InvalidRoaringFormat if the provided input
+   * does not have a valid cookie or suffers from similar problems.
    *
    * @param b data source
    */
-  public ImmutableRoaringBitmap(final ByteBuffer b) {
+  public ImmutableRoaringBitmap(final ByteBuffer b)  {
     highLowContainer = new ImmutableRoaringArray(b);
   }
 

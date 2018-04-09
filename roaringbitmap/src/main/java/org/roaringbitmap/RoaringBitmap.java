@@ -1365,7 +1365,11 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @throws IOException Signals that an I/O exception has occurred.
    */
   public void deserialize(DataInput in) throws IOException {
-    this.highLowContainer.deserialize(in);
+    try {
+      this.highLowContainer.deserialize(in);
+    } catch(InvalidRoaringFormat cookie) {
+      throw cookie.toIOException();// we convert it to an IOException
+    }
   }
 
   @Override
@@ -1876,7 +1880,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @param x upper limit
    *
    * @return the rank
-   * @see <a href="https://en.wikipedia.org/wiki/Ranking#Ranking_in_statistics">Ranking in statistics</a> 
+   * @see <a href="https://en.wikipedia.org/wiki/Ranking#Ranking_in_statistics">Ranking in statistics</a>
    */
   @Override
   public long rankLong(int x) {
@@ -2084,15 +2088,15 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
 
   /**
-   * Return the jth value stored in this bitmap. The provided value 
-   * needs to be smaller than the cardinality otherwise an 
+   * Return the jth value stored in this bitmap. The provided value
+   * needs to be smaller than the cardinality otherwise an
    * IllegalArgumentException
    * exception is thrown.
    *
    * @param j index of the value
    *
    * @return the value
-   * @see <a href="https://en.wikipedia.org/wiki/Selection_algorithm">Selection algorithm</a> 
+   * @see <a href="https://en.wikipedia.org/wiki/Selection_algorithm">Selection algorithm</a>
    */
   @Override
   public int select(int j) {
@@ -2107,7 +2111,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       }
       leftover -= thiscard;
     }
-    throw new IllegalArgumentException("You are trying to select the " 
+    throw new IllegalArgumentException("You are trying to select the "
                  + j + "th value when the cardinality is "
                  + this.getCardinality() + ".");
   }
@@ -2115,7 +2119,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   /**
    * Get the first (smallest) integer in this RoaringBitmap,
    * that is, returns the minimum of the set.
-   * @return the first (smallest) integer 
+   * @return the first (smallest) integer
    * @throws NoSuchElementException if empty
    */
   @Override
