@@ -192,7 +192,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
       this.size++;
     }
   }
-  
+
 
 
   /**
@@ -211,7 +211,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
     }
   }
 
-  
+
   private int binarySearch(int begin, int end, short key) {
     return Util.unsignedBinarySearch(keys, begin, end, key);
   }
@@ -258,17 +258,22 @@ public final class RoaringArray implements Cloneable, Externalizable {
    *
    * @param in the DataInput stream
    * @throws IOException Signals that an I/O exception has occurred.
+   * @throws InvalidRoaringFormat if a Roaring Bitmap cookie
+   *             is missing.
    */
   public void deserialize(DataInput in) throws IOException {
     this.clear();
     // little endian
     final int cookie = Integer.reverseBytes(in.readInt());
     if ((cookie & 0xFFFF) != SERIAL_COOKIE && cookie != SERIAL_COOKIE_NO_RUNCONTAINER) {
-      throw new IOException("I failed to find one of the right cookies.");
+      throw new InvalidRoaringFormat("I failed to find a valid cookie.");
     }
     this.size = ((cookie & 0xFFFF) == SERIAL_COOKIE) ? (cookie >>> 16) + 1
         : Integer.reverseBytes(in.readInt());
-
+    // logically we cannot have more than (1<<16) containers.
+    if(this.size > (1<<16)) {
+      throw new InvalidRoaringFormat("Size too large");
+    }
     if ((this.keys == null) || (this.keys.length < this.size)) {
       this.keys = new short[this.size];
       this.values = new Container[this.size];
@@ -382,9 +387,9 @@ public final class RoaringArray implements Cloneable, Externalizable {
   public ContainerPointer getContainerPointer() {
     return getContainerPointer(0);
   }
-  
+
   /**
-  * Create a ContainerPointer for this RoaringArray 
+  * Create a ContainerPointer for this RoaringArray
   * @param startIndex starting index in the container list
   * @return a ContainerPointer
   */
@@ -406,7 +411,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
           return null;// will not happen
         }
       }
-      
+
       @Override
       public int compareTo(ContainerPointer o) {
         if (key() != o.key()) {
@@ -492,7 +497,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
     }
   }
 
-  
+
   // insert a new key, it is assumed that it does not exist
   protected void insertNewKeyValueAt(int i, short key, Container value) {
     extendArray(1);

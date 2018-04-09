@@ -8,6 +8,7 @@ import org.roaringbitmap.BitmapDataProvider;
 import org.roaringbitmap.ContainerPointer;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.ShortIterator;
+import org.roaringbitmap.InvalidRoaringFormat;
 import org.roaringbitmap.Util;
 
 import java.io.*;
@@ -895,7 +896,11 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @throws IOException Signals that an I/O exception has occurred.
    */
   public void deserialize(DataInput in) throws IOException {
-    getMappeableRoaringArray().deserialize(in);
+    try {
+      getMappeableRoaringArray().deserialize(in);
+    } catch(InvalidRoaringFormat cookie) {
+      throw cookie.toIOException();// we convert it to an IOException
+    }
   }
 
   /**

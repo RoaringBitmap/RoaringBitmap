@@ -11,6 +11,7 @@ import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 
+import org.roaringbitmap.InvalidRoaringFormat;
 import org.roaringbitmap.Util;
 
 
@@ -248,10 +249,14 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
     // little endian
     final int cookie = Integer.reverseBytes(in.readInt());
     if ((cookie & 0xFFFF) != SERIAL_COOKIE && cookie != SERIAL_COOKIE_NO_RUNCONTAINER) {
-      throw new IOException("I failed to find the one of the right cookies.");
+      throw new InvalidRoaringFormat("I failed to find a valid cookie.");
     }
     this.size = ((cookie & 0xFFFF) == SERIAL_COOKIE) ? (cookie >>> 16) + 1
         : Integer.reverseBytes(in.readInt());
+    // logically we cannot have more than (1<<16) containers.
+    if(this.size > (1<<16)) {
+      throw new InvalidRoaringFormat("Size too large");
+    }
     if ((this.keys == null) || (this.keys.length < this.size)) {
       this.keys = new short[this.size];
       this.values = new MappeableContainer[this.size];
