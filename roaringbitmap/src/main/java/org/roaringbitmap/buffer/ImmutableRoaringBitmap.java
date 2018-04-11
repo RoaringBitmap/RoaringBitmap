@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.stream.IntStream;
 
 import org.roaringbitmap.*;
 
@@ -1220,6 +1221,11 @@ public class ImmutableRoaringBitmap
   @Override
   public IntIterator getReverseIntIterator() {
     return new ImmutableRoaringReverseIntIterator();
+  }
+
+  @Override
+  public BatchIterator getBatchIterator() {
+    throw new RuntimeException();
   }
 
   /**

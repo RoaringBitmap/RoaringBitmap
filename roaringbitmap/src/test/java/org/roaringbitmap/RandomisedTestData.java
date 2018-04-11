@@ -10,10 +10,8 @@ public class RandomisedTestData {
 
   private static final ThreadLocal<long[]> bits = ThreadLocal.withInitial(() -> new long[1 << 10]);
 
-  public static RoaringBitmap randomBitmap(int maxKeys) {
+  public static RoaringBitmap randomBitmap(int maxKeys, double rleLimit, double denseLimit) {
     int[] keys = createSorted16BitInts(ThreadLocalRandom.current().nextInt(1, maxKeys));
-    double rleLimit = ThreadLocalRandom.current().nextDouble();
-    double denseLimit = ThreadLocalRandom.current().nextDouble(rleLimit, 1D);
     OrderedWriter writer = new OrderedWriter();
     IntStream.of(keys)
             .forEach(key -> {
@@ -30,6 +28,12 @@ public class RandomisedTestData {
             });
     writer.flush();
     return writer.getUnderlying();
+  }
+
+  public static RoaringBitmap randomBitmap(int maxKeys) {
+    double rleLimit = ThreadLocalRandom.current().nextDouble();
+    double denseLimit = ThreadLocalRandom.current().nextDouble(rleLimit, 1D);
+    return randomBitmap(maxKeys, rleLimit, denseLimit);
   }
 
   public static IntStream rleRegion() {

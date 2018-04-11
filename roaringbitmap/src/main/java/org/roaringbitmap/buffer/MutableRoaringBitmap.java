@@ -4,11 +4,7 @@
 
 package org.roaringbitmap.buffer;
 
-import org.roaringbitmap.BitmapDataProvider;
-import org.roaringbitmap.ContainerPointer;
-import org.roaringbitmap.RoaringBitmap;
-import org.roaringbitmap.ShortIterator;
-import org.roaringbitmap.Util;
+import org.roaringbitmap.*;
 
 import java.io.*;
 import java.util.Iterator;
@@ -1486,5 +1482,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    */
   public static long maximumSerializedSize(int cardinality, int universe_size) {
     return RoaringBitmap.maximumSerializedSize(cardinality, universe_size);
+  }
+
+  @Override
+  public BatchIterator getBatchIterator() {
+    throw new RuntimeException();
   }
 }

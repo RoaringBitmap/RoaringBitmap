@@ -1058,6 +1058,11 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   @Override
+  public ContainerBatchIterator getBatchIterator() {
+    return new RunBatchIterator(this);
+  }
+
+  @Override
   public int getSizeInBytes() {
     return this.nbrruns * 4 + 4;
   }

@@ -7,6 +7,7 @@ package org.roaringbitmap;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.NoSuchElementException;
+import java.util.stream.IntStream;
 
 /**
  * Interface representing an immutable bitmap.
@@ -20,7 +21,7 @@ public interface ImmutableBitmapDataProvider {
    * @param x integer value
    * @return whether the integer value is included.
    */
-  public boolean contains(int x);
+  boolean contains(int x);
 
   /**
    * Returns the number of distinct integers added to the bitmap (e.g., number of bits set).
@@ -28,7 +29,7 @@ public interface ImmutableBitmapDataProvider {
    *
    * @return the cardinality
    */
-  public int getCardinality();
+  int getCardinality();
   
   /**
    * Returns the number of distinct integers added to the bitmap (e.g., number of bits set).
@@ -36,7 +37,7 @@ public interface ImmutableBitmapDataProvider {
    *
    * @return the cardinality
    */
-  public long getLongCardinality();
+  long getLongCardinality();
 
   /**
    * Visit all values in the bitmap and pass them to the consumer.
@@ -56,18 +57,24 @@ public interface ImmutableBitmapDataProvider {
    * </pre>
    * @param ic the consumer
    */
-  public void forEach(IntConsumer ic);
+  void forEach(IntConsumer ic);
 
   /**
    * For better performance, consider the Use the {@link #forEach forEach} method.
    * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
    */
-  public PeekableIntIterator getIntIterator();
+  PeekableIntIterator getIntIterator();
 
   /**
    * @return a custom iterator over set bits, the bits are traversed in descending sorted order
    */
-  public IntIterator getReverseIntIterator();
+  IntIterator getReverseIntIterator();
+
+  /**
+   * This iterator may be faster than others
+   * @return iterator which works on batches of data.
+   */
+  BatchIterator getBatchIterator();
 
   /**
    * Estimate of the memory usage of this data structure.
@@ -76,7 +83,7 @@ public interface ImmutableBitmapDataProvider {
    *
    * @return estimated memory usage.
    */
-  public int getSizeInBytes();
+  int getSizeInBytes();
   
   /**
    * Estimate of the memory usage of this data structure. Provides
@@ -84,14 +91,14 @@ public interface ImmutableBitmapDataProvider {
    *
    * @return estimated memory usage.
    */
-  public long getLongSizeInBytes();
+  long getLongSizeInBytes();
 
   /**
    * Checks whether the bitmap is empty.
    *
    * @return true if this bitmap contains no set bit
    */
-  public boolean isEmpty();
+  boolean isEmpty();
 
   /**
    * Create a new bitmap of the same class, containing at most maxcardinality integers.
@@ -99,7 +106,7 @@ public interface ImmutableBitmapDataProvider {
    * @param x maximal cardinality
    * @return a new bitmap with cardinality no more than maxcardinality
    */
-  public ImmutableBitmapDataProvider limit(int x);
+  ImmutableBitmapDataProvider limit(int x);
 
   /**
    * Rank returns the number of integers that are smaller or equal to x (rank(infinity) would be
@@ -112,7 +119,7 @@ public interface ImmutableBitmapDataProvider {
    * @return the rank
    * @see <a href="https://en.wikipedia.org/wiki/Ranking#Ranking_in_statistics">Ranking in statistics</a> 
    */
-  public int rank(int x);
+  int rank(int x);
   
   /**
    * Rank returns the number of integers that are smaller or equal to x (rankLong(infinity) would be
@@ -124,7 +131,7 @@ public interface ImmutableBitmapDataProvider {
    * @return the rank
    * @see <a href="https://en.wikipedia.org/wiki/Ranking#Ranking_in_statistics">Ranking in statistics</a> 
    */
-  public long rankLong(int x);
+  long rankLong(int x);
 
   /**
    * Return the jth value stored in this bitmap. The provided value 
@@ -137,7 +144,7 @@ public interface ImmutableBitmapDataProvider {
    * @return the value
    * @see <a href="https://en.wikipedia.org/wiki/Selection_algorithm">Selection algorithm</a> 
    */
-  public int select(int j);
+  int select(int j);
 
   /**
    * Get the first (smallest) integer in this RoaringBitmap,
@@ -145,7 +152,7 @@ public interface ImmutableBitmapDataProvider {
    * @return the first (smallest) integer
    * @throws NoSuchElementException if empty
    */
-  public int first();
+  int first();
 
   /**
    * Get the last (largest) integer in this RoaringBitmap,
@@ -153,7 +160,7 @@ public interface ImmutableBitmapDataProvider {
    * @return the last (largest) integer
    * @throws NoSuchElementException if empty
    */
-  public int last();
+  int last();
 
   /**
    * Serialize this bitmap.
@@ -163,7 +170,7 @@ public interface ImmutableBitmapDataProvider {
    * @param out the DataOutput stream
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public void serialize(DataOutput out) throws IOException;
+  void serialize(DataOutput out) throws IOException;
 
   /**
    * Report the number of bytes required to serialize this bitmap. This is the number of bytes
@@ -172,13 +179,13 @@ public interface ImmutableBitmapDataProvider {
    *
    * @return the size in bytes
    */
-  public int serializedSizeInBytes();
+  int serializedSizeInBytes();
 
   /**
    * Return the set values as an array. The integer values are in sorted order.
    *
    * @return array representing the set values.
    */
-  public int[] toArray();
+  int[] toArray();
 
 }

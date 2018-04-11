@@ -3,9 +3,7 @@ package org.roaringbitmap;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.Iterator;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
@@ -86,8 +84,8 @@ public class Fuzzer {
                                           Function<RoaringBitmap, T> left,
                                           Function<RoaringBitmap, T> right) {
     IntStream.range(0, count)
-            .parallel()
-            .mapToObj(i -> randomBitmap(maxKeys))
+           // .parallel()
+            .mapToObj(i -> randomBitmap(maxKeys, 1, 0))
             .filter(validity)
             .forEach(bitmap -> Assert.assertEquals(left.apply(bitmap), right.apply(bitmap)));
   }

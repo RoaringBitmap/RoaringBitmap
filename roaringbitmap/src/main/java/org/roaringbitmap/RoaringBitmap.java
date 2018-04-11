@@ -13,6 +13,7 @@ import java.io.ObjectOutput;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.stream.IntStream;
 
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MappeableContainerPointer;
@@ -1560,6 +1561,12 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   @Override
   public IntIterator getReverseIntIterator() {
     return new RoaringReverseIntIterator();
+  }
+
+
+  @Override
+  public RoaringBatchIterator getBatchIterator() {
+    return new RoaringBatchIterator(highLowContainer);
   }
 
   /**
