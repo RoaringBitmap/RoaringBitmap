@@ -1224,6 +1224,11 @@ public class ImmutableRoaringBitmap
     return new ImmutableRoaringReverseIntIterator();
   }
 
+  @Override
+  public BatchIterator getBatchIterator() {
+    return new RoaringBatchIterator(null == highLowContainer ? null : getContainerPointer());
+  }
+
   /**
    * Estimate of the memory usage of this data structure. This can be expected to be within 1% of
    * the true memory usage. If exact measures are needed, we recommend using dedicated libraries

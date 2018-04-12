@@ -12,10 +12,7 @@ import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
-import org.roaringbitmap.IntIterator;
-import org.roaringbitmap.IntIteratorFlyweight;
-import org.roaringbitmap.ReverseIntIteratorFlyweight;
-import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.*;
 
 /**
  * Created by Borislav Ivanov on 4/2/15.
@@ -23,6 +20,42 @@ import org.roaringbitmap.RoaringBitmap;
 @BenchmarkMode({Mode.AverageTime})
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 public class IteratorsBenchmark32 {
+
+
+  @Benchmark
+  public int testBatch_a(BenchmarkState benchmarkState) {
+    BatchIterator it = benchmarkState.bitmap_a.getBatchIterator();
+    int[] buffer = benchmarkState.buffer;
+    int batch = 0;
+    while (it.hasNext()) {
+      batch = it.nextBatch(buffer);
+    }
+    return buffer[batch];
+  }
+
+
+  @Benchmark
+  public int testBatch_b(BenchmarkState benchmarkState) {
+    BatchIterator it = benchmarkState.bitmap_b.getBatchIterator();
+    int[] buffer = benchmarkState.buffer;
+    int batch = 0;
+    while (it.hasNext()) {
+      batch = it.nextBatch(buffer);
+    }
+    return buffer[batch];
+  }
+
+
+  @Benchmark
+  public int testBatch_c(BenchmarkState benchmarkState) {
+    BatchIterator it = benchmarkState.bitmap_c.getBatchIterator();
+    int[] buffer = benchmarkState.buffer;
+    int batch = 0;
+    while (it.hasNext()) {
+      batch = it.nextBatch(buffer);
+    }
+    return buffer[batch];
+  }
 
   @Benchmark
   public int testBoxed_a(BenchmarkState benchmarkState) {
@@ -236,6 +269,9 @@ public class IteratorsBenchmark32 {
 
   @State(Scope.Benchmark)
   public static class BenchmarkState {
+
+
+    int[] buffer = new int[256];
 
     final RoaringBitmap bitmap_a;
 

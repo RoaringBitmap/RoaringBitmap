@@ -4,12 +4,7 @@
 
 package org.roaringbitmap.buffer;
 
-import org.roaringbitmap.BitmapContainer;
-import org.roaringbitmap.Container;
-import org.roaringbitmap.IntConsumer;
-import org.roaringbitmap.PeekableShortIterator;
-import org.roaringbitmap.ShortIterator;
-import org.roaringbitmap.Util;
+import org.roaringbitmap.*;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -579,6 +574,11 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       return BitmapContainer.getShortIterator(bitmap.array());
     }
     return new MappeableBitmapContainerShortIterator(this);
+  }
+
+  @Override
+  public ContainerBatchIterator getBatchIterator() {
+    return new BitmapBatchIterator(this);
   }
 
   @Override

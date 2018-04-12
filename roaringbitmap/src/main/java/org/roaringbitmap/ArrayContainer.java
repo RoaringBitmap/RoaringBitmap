@@ -430,6 +430,11 @@ public final class ArrayContainer extends Container implements Cloneable {
     return new ArrayContainerShortIterator(this);
   }
 
+  @Override
+  public ContainerBatchIterator getBatchIterator() {
+    return new ArrayBatchIterator(this);
+  }
+
 
   @Override
   public int getSizeInBytes() {

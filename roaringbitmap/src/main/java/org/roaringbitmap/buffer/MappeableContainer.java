@@ -4,10 +4,7 @@
 
 package org.roaringbitmap.buffer;
 
-import org.roaringbitmap.Container;
-import org.roaringbitmap.IntConsumer;
-import org.roaringbitmap.PeekableShortIterator;
-import org.roaringbitmap.ShortIterator;
+import org.roaringbitmap.*;
 
 import java.io.DataOutput;
 import java.io.Externalizable;
@@ -304,6 +301,11 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
    */
   public abstract PeekableShortIterator getShortIterator();
 
+  /**
+   * Gets an iterator to visit the contents of the container in batches
+   * @return iterator
+   */
+  public abstract ContainerBatchIterator getBatchIterator();
   
   /**
    * Iterate through the values of this container and pass them

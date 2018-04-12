@@ -1566,6 +1566,12 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     return new RoaringReverseIntIterator();
   }
 
+
+  @Override
+  public RoaringBatchIterator getBatchIterator() {
+    return new RoaringBatchIterator(highLowContainer);
+  }
+
   /**
    * Estimate of the memory usage of this data structure. This can be expected to be within 1% of
    * the true memory usage.
