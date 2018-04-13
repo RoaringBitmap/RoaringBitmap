@@ -51,7 +51,10 @@ public class BatchIteratorBenchmark {
     int blackhole = 0;
     RoaringBatchIterator it = bitmap.getBatchIterator();
     while (it.hasNext()) {
-      blackhole ^= it.nextBatch(buffer);
+      int batch = it.nextBatch(buffer);
+      for (int i = 0; i < batch; ++i) {
+        blackhole ^= buffer[i];
+      }
     }
     return blackhole;
   }
