@@ -21,42 +21,6 @@ import org.roaringbitmap.*;
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 public class IteratorsBenchmark32 {
 
-
-  @Benchmark
-  public int testBatch_a(BenchmarkState benchmarkState) {
-    BatchIterator it = benchmarkState.bitmap_a.getBatchIterator();
-    int[] buffer = benchmarkState.buffer;
-    int batch = 0;
-    while (it.hasNext()) {
-      batch = it.nextBatch(buffer);
-    }
-    return buffer[batch];
-  }
-
-
-  @Benchmark
-  public int testBatch_b(BenchmarkState benchmarkState) {
-    BatchIterator it = benchmarkState.bitmap_b.getBatchIterator();
-    int[] buffer = benchmarkState.buffer;
-    int batch = 0;
-    while (it.hasNext()) {
-      batch = it.nextBatch(buffer);
-    }
-    return buffer[batch];
-  }
-
-
-  @Benchmark
-  public int testBatch_c(BenchmarkState benchmarkState) {
-    BatchIterator it = benchmarkState.bitmap_c.getBatchIterator();
-    int[] buffer = benchmarkState.buffer;
-    int batch = 0;
-    while (it.hasNext()) {
-      batch = it.nextBatch(buffer);
-    }
-    return buffer[batch];
-  }
-
   @Benchmark
   public int testBoxed_a(BenchmarkState benchmarkState) {
     Iterator<Integer> intIterator = benchmarkState.bitmap_a.iterator();
@@ -269,9 +233,6 @@ public class IteratorsBenchmark32 {
 
   @State(Scope.Benchmark)
   public static class BenchmarkState {
-
-
-    int[] buffer = new int[256];
 
     final RoaringBitmap bitmap_a;
 
