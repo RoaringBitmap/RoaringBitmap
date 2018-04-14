@@ -4,11 +4,7 @@
 package org.roaringbitmap.buffer;
 
 
-import org.roaringbitmap.Container;
-import org.roaringbitmap.IntConsumer;
-import org.roaringbitmap.PeekableShortIterator;
-import org.roaringbitmap.RunContainer;
-import org.roaringbitmap.ShortIterator;
+import org.roaringbitmap.*;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -960,6 +956,11 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       return new RawMappeableRunContainerShortIterator(this);
     }
     return new MappeableRunContainerShortIterator(this);
+  }
+
+  @Override
+  public ContainerBatchIterator getBatchIterator() {
+    return new RunBatchIterator(this);
   }
 
   @Override

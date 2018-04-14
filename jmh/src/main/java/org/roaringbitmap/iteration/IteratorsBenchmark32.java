@@ -12,10 +12,7 @@ import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
-import org.roaringbitmap.IntIterator;
-import org.roaringbitmap.IntIteratorFlyweight;
-import org.roaringbitmap.ReverseIntIteratorFlyweight;
-import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.*;
 
 /**
  * Created by Borislav Ivanov on 4/2/15.
