@@ -508,6 +508,11 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
+  public ContainerBatchIterator getBatchIterator() {
+    return new BitmapBatchIterator(this);
+  }
+
+  @Override
   public int getSizeInBytes() {
     return this.bitmap.length * 8;
   }
