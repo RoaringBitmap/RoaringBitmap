@@ -14,7 +14,7 @@ import org.junit.Test;
 
 
 public class TestAdversarialInputs {
-	
+
 	// copy to a temporary file
 	private File copy(String resourceName) throws IOException {
 		// old-school Java, could be improved
@@ -40,13 +40,13 @@ public class TestAdversarialInputs {
         }
         return tmpfile;
     }
-	
+
 	@Test
 	public void testInputGoodFile1() throws IOException {
 		File file = copy("testdata/bitmapwithruns.bin");
 		RoaringBitmap rb = new RoaringBitmap();
 		// should not throw an exception
-		rb.deserialize(new DataInputStream(new FileInputStream(file))); 
+		rb.deserialize(new DataInputStream(new FileInputStream(file)));
 		assertEquals(rb.getCardinality(), 200100);
 		file.delete();
 	}
@@ -56,26 +56,26 @@ public class TestAdversarialInputs {
 		File file = copy("testdata/bitmapwithoutruns.bin");
 		RoaringBitmap rb = new RoaringBitmap();
 		// should not throw an exception
-		rb.deserialize(new DataInputStream(new FileInputStream(file))); 
+		rb.deserialize(new DataInputStream(new FileInputStream(file)));
 		assertEquals(rb.getCardinality(), 200100);
 		file.delete();
 	}
-	
+
 	@Test(expected = IOException.class)
 	public void testInputBadFile1() throws IOException {
 		File file = copy("testdata/crashproneinput1.bin");
 		RoaringBitmap rb = new RoaringBitmap();
 		// should not work
-		rb.deserialize(new DataInputStream(new FileInputStream(file))); 
+		rb.deserialize(new DataInputStream(new FileInputStream(file)));
 		file.delete();
 	}
-	
+
 	@Test(expected = IOException.class)
 	public void testInputBadFile2() throws IOException {
 		File file = copy("testdata/crashproneinput2.bin");
 		RoaringBitmap rb = new RoaringBitmap();
 		// should not work
-		rb.deserialize(new DataInputStream(new FileInputStream(file))); 
+		rb.deserialize(new DataInputStream(new FileInputStream(file)));
 		file.delete();
 	}
 
@@ -84,16 +84,16 @@ public class TestAdversarialInputs {
 		File file = copy("testdata/crashproneinput3.bin");
 		RoaringBitmap rb = new RoaringBitmap();
 		// should not work
-		rb.deserialize(new DataInputStream(new FileInputStream(file))); 
+		rb.deserialize(new DataInputStream(new FileInputStream(file)));
 		file.delete();
 	}
-	
+
 	@Test(expected = IOException.class)
 	public void testInputBadFile4() throws IOException {
 		File file = copy("testdata/crashproneinput4.bin");
 		RoaringBitmap rb = new RoaringBitmap();
 		// should not work
-		rb.deserialize(new DataInputStream(new FileInputStream(file))); 
+		rb.deserialize(new DataInputStream(new FileInputStream(file)));
 		file.delete();
 	}
 
@@ -102,7 +102,7 @@ public class TestAdversarialInputs {
 		File file = copy("testdata/crashproneinput5.bin");
 		RoaringBitmap rb = new RoaringBitmap();
 		// should not work
-		rb.deserialize(new DataInputStream(new FileInputStream(file))); 
+		rb.deserialize(new DataInputStream(new FileInputStream(file)));
 		file.delete();
 	}
 
@@ -112,7 +112,26 @@ public class TestAdversarialInputs {
 		File file = copy("testdata/crashproneinput6.bin");
 		RoaringBitmap rb = new RoaringBitmap();
 		// should not work
-		rb.deserialize(new DataInputStream(new FileInputStream(file))); 
+		rb.deserialize(new DataInputStream(new FileInputStream(file)));
+		file.delete();
+	}
+
+
+	@Test(expected = IOException.class)
+	public void testInputBadFile7() throws IOException {
+		File file = copy("testdata/crashproneinput7.bin");
+		RoaringBitmap rb = new RoaringBitmap();
+		// should not work
+		rb.deserialize(new DataInputStream(new FileInputStream(file)));
+		file.delete();
+	}
+
+	@Test(expected = IOException.class)
+	public void testInputBadFile8() throws IOException {
+		File file = copy("testdata/crashproneinput8.bin");
+		RoaringBitmap rb = new RoaringBitmap();
+		// should not work
+		rb.deserialize(new DataInputStream(new FileInputStream(file)));
 		file.delete();
 	}
 }
