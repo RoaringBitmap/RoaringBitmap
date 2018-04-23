@@ -199,7 +199,7 @@ public class TestAdversarialInputs {
 	}
 
 
-	@Test(expected = IndexOutOfBoundsException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testInputBadFile7Mapped() throws IOException {
 		ByteBuffer bb = memoryMap("testdata/crashproneinput7.bin");
 		ImmutableRoaringBitmap rb = new ImmutableRoaringBitmap(bb);
