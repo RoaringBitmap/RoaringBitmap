@@ -1300,7 +1300,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   }
 
   /**
-   * Checks whether the value in included, which is equivalent to checking if the corresponding bit
+   * Checks whether the value is included, which is equivalent to checking if the corresponding bit
    * is set (get in BitSet class).
    *
    * @param x integer value
