@@ -8,24 +8,17 @@ public class RandomData {
 
   private static final ThreadLocal<long[]> bits = ThreadLocal.withInitial(() -> new long[1 << 10]);
 
+  public static RoaringBitmap randomContiguousBitmap(int startKey, int numKeys, double rleLimit, double denseLimit) {
+    int[] keys = new int[numKeys];
+    for (int i = 0; i < numKeys; ++i) {
+      keys[i] = i + startKey;
+    }
+    return forKeys(keys, rleLimit, denseLimit);
+  }
+
   public static RoaringBitmap randomBitmap(int maxKeys, double rleLimit, double denseLimit) {
     int[] keys = createSorted16BitInts(maxKeys);
-    OrderedWriter writer = new OrderedWriter();
-    IntStream.of(keys)
-            .forEach(key -> {
-              double choice = ThreadLocalRandom.current().nextDouble();
-              final IntStream stream;
-              if (choice < rleLimit) {
-                stream = rleRegion();
-              } else if (choice < denseLimit) {
-                stream = denseRegion();
-              } else {
-                stream = sparseRegion();
-              }
-              stream.map(i -> (key << 16) | i).forEach(writer::add);
-            });
-    writer.flush();
-    return writer.getUnderlying();
+    return forKeys(keys, rleLimit, denseLimit);
   }
 
   public static IntStream rleRegion() {
@@ -67,5 +60,24 @@ public class RandomData {
       prefix += 64;
     }
     return keys;
+  }
+
+  private static RoaringBitmap forKeys(int[] keys, double rleLimit, double denseLimit) {
+    OrderedWriter writer = new OrderedWriter();
+    IntStream.of(keys)
+            .forEach(key -> {
+              double choice = ThreadLocalRandom.current().nextDouble();
+              final IntStream stream;
+              if (choice < rleLimit) {
+                stream = rleRegion();
+              } else if (choice < denseLimit) {
+                stream = denseRegion();
+              } else {
+                stream = sparseRegion();
+              }
+              stream.map(i -> (key << 16) | i).forEach(writer::add);
+            });
+    writer.flush();
+    return writer.getUnderlying();
   }
 }
