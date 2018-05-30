@@ -20,6 +20,79 @@ public final class Util {
   public static final boolean USE_HYBRID_BINSEARCH = true;
 
 
+  /**
+   * Add value "offset" to all values in the container, producing
+   * two new containers. The existing container remains unchanged.
+   * The new container are not converted, so they need to be checked:
+   * e.g., we could produce two bitmap containers having low cardinality.
+   * @param source source container
+   * @param offsets value to add to each value in the container
+   * @return return an array made of two containers
+   */
+  public static  Container[] addOffset(Container source, short offsets) {
+    final int offset = Util.toIntUnsigned(offsets);
+    // could be a whole lot faster, this is a simple implementation
+    if(source instanceof ArrayContainer) {
+      ArrayContainer c = (ArrayContainer) source;
+      ArrayContainer low = new ArrayContainer(c.cardinality);
+      ArrayContainer high = new ArrayContainer(c.cardinality);
+      for(int k = 0; k < c.cardinality; k++) {
+        int val =  Util.toIntUnsigned(c.content[k]);
+        val += offset;
+        if(val < 0xFFFF) {
+          low.content[low.cardinality++] = (short) val;
+        } else {
+          high.content[high.cardinality++] = (short) (val & 0xFFFF);
+        }
+      }
+      return new Container[] {low, high};
+    } else if (source instanceof BitmapContainer) {
+      BitmapContainer c = (BitmapContainer) source;
+      BitmapContainer low = new BitmapContainer();
+      BitmapContainer high = new BitmapContainer();
+      low.cardinality = -1;
+      high.cardinality = -1;
+      final int b = offset / 64;
+      final int i = offset % 64;
+      if(i == 0) {
+        System.arraycopy(c.bitmap, 0, low.bitmap, b, 1024 - b);
+        System.arraycopy(c.bitmap, 1024 - b, high.bitmap, 0, b );
+      } else {
+        low.bitmap[b + 0] = c.bitmap[0] << i;
+        for(int k = 1; k < 1024 - b; k++) {
+          low.bitmap[b + k] = (c.bitmap[k] << i) | (c.bitmap[k - 1] >> (64-i));
+        }
+        for(int k = 1024 - b; k < 1024 ; k++) {
+          high.bitmap[k - (1024 - b)] = 
+             (c.bitmap[k] << i)  
+             | (c.bitmap[k - 1] >> (64-i));
+        }
+        high.bitmap[b] =  (c.bitmap[1024 - 1] >> (64-i));
+      }
+      return new Container[] {low, high};
+    } else if (source instanceof RunContainer) {
+      RunContainer c = (RunContainer) source;
+      RunContainer low = new RunContainer();
+      RunContainer high = new RunContainer();
+      for(int k = 0 ; k < c.nbrruns; k++) {
+        int val =  Util.toIntUnsigned(c.getValue(k));
+        val += offset;
+        int finalval =  val + Util.toIntUnsigned(c.getLength(k));
+        if(val < 0xFFFF) {
+          if(finalval < 0xFFFF) {
+            low.smartAppend((short)val,c.getLength(k));
+          } else {
+            low.smartAppend((short)val,(short)(0xFFFF-val));
+            high.smartAppend((short) 0,(short)(finalval & 0xFFFF));
+          }
+        } else {
+          high.smartAppend((short)(val & 0xFFFF),c.getLength(k));
+        }
+      }
+      return new Container[] {low, high};
+    }
+    throw new RuntimeException("unknown container type"); // never happens
+  }
 
   /**
    * Find the smallest integer larger than pos such that array[pos]&gt;= min. If none can be found,

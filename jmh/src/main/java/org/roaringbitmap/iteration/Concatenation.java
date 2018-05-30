@@ -17,10 +17,21 @@ import java.util.stream.IntStream;
         })
 public class Concatenation {
 
-  @Param({"1", "16", "32"})
+  /**
+  * Using lots and lots of parameter sets is clever, but it takes a long
+  * time to run, produces results that are difficult to interpret.
+  * When we want a ballpark result... a single set of parameters is more than
+  * enough.
+  * Using a long, long time to run each and every benchmark makes you less
+  * likely to run benchmarks which makes you less likely to work with hard
+  * numbers.
+  *
+  */
+
+  @Param({"16"})
   int count;
 
-  @Param({"8", "32", "2048"})
+  @Param({"8"})
   int size;
 
 
@@ -72,6 +83,17 @@ public class Concatenation {
         int currentBit = peekableIter.next();
         result.add(currentBit + bit.offset);
       }
+    }
+    return result;
+  }
+
+  @Benchmark
+  public RoaringBitmap roaringOffset() {
+    RoaringBitmap result = new RoaringBitmap();
+    for(int i = 0; i < bitSets.length; ++i) {
+      BitSetWithOffset bit = bitSets[i];
+      RoaringBitmap shifted = RoaringBitmap.addOffset(bit.bitmap, bit.offset);
+      result.or(shifted);
     }
     return result;
   }

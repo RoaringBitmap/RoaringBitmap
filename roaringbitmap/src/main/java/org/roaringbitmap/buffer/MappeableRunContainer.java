@@ -2080,6 +2080,22 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     }
   }
 
+  void smartAppend(short start, short length) {
+    int oldend;
+    if ((nbrruns == 0) || (toIntUnsigned(start) > (oldend =
+          toIntUnsigned(getValue(nbrruns - 1)) + toIntUnsigned(getLength(nbrruns - 1)))
+          + 1)) { // we add a new one
+      valueslength.put(2 * nbrruns, start);
+      valueslength.put(2 * nbrruns + 1, length);
+      nbrruns++;
+      return;
+    }
+    int newend = toIntUnsigned(start) + toIntUnsigned(length) + 1;
+    if (newend > oldend) { // we merge
+      setLength(nbrruns - 1, (short) (newend - 1 - toIntUnsigned(getValue(nbrruns - 1))));
+    }
+  }
+  
   private void smartAppend(short[] vl, short start, short length) {
     int oldend;
     if ((nbrruns == 0) || (

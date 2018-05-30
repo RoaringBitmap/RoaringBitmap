@@ -68,6 +68,68 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     implements Cloneable, Serializable, Iterable<Integer>, Externalizable, BitmapDataProvider {
   private static final long serialVersionUID = 4L; // 3L; bumped by ofk for runcontainers
 
+  /**
+   * Generate a new bitmap that has the same cardinality as x, but with
+   * all its values incremented by offset.
+   * 
+   * @param x source bitmap
+   * @param offset increment
+   * @return a new bitmap
+   */
+  public static MutableRoaringBitmap addOffset(final ImmutableRoaringBitmap x, int offset) {
+    int container_offset = offset >>> 16;
+    int in_container_offset = offset % (1<<16);
+    if(in_container_offset == 0) {
+      MutableRoaringBitmap answer = x.toMutableRoaringBitmap();
+      for(int pos = 0; pos < answer.highLowContainer.size(); pos++) {
+        int key = BufferUtil.toIntUnsigned(answer.getMappeableRoaringArray()
+            .getKeyAtIndex(pos));
+        key += container_offset;
+        if(key > 0xFFFF) {
+          throw new IllegalArgumentException("Offset too large.");
+        }
+        answer.getMappeableRoaringArray().keys[pos] = (short) key;
+      }
+      return answer;
+    } else {
+      MutableRoaringBitmap answer = new MutableRoaringBitmap();
+      for(int pos = 0; pos < x.highLowContainer.size(); pos++) {
+        int key = BufferUtil.toIntUnsigned(x.highLowContainer.getKeyAtIndex(pos));
+        key += container_offset;
+        if(key > 0xFFFF) {
+          throw new IllegalArgumentException("Offset too large.");
+        }
+        MappeableContainer c = x.highLowContainer.getContainerAtIndex(pos);
+        MappeableContainer[] offsetted = BufferUtil.addOffset(c, 
+          (short)in_container_offset);
+        if( !offsetted[0].isEmpty()) {
+          int current_size = answer.highLowContainer.size();
+          int lastkey = 0;
+          if(current_size > 0) {
+            lastkey = answer.highLowContainer.getKeyAtIndex(
+              current_size - 1);
+          }
+          if((current_size > 0) && (lastkey == key)) {
+            MappeableContainer prev = answer.highLowContainer
+                .getContainerAtIndex(current_size - 1);
+            MappeableContainer orresult = prev.ior(offsetted[0]);
+            answer.getMappeableRoaringArray().setContainerAtIndex(current_size - 1,
+                orresult);
+          } else {
+            answer.getMappeableRoaringArray().append((short)key, offsetted[0]);
+          }
+        }
+        if( !offsetted[1].isEmpty()) {
+          if(key == 0xFFFF) {
+            throw new IllegalArgumentException("Offset too large.");
+          }
+          answer.getMappeableRoaringArray().append((short)(key + 1), offsetted[1]);
+        }
+      }
+      answer.repairAfterLazy();
+      return answer;
+    }
+  }
 
   /**
    * Generate a new bitmap with all integers in [rangeStart,rangeEnd) added.
