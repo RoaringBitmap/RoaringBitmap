@@ -34,6 +34,7 @@ This library is used by
 *   [Jive Miru](https://github.com/jivesoftware/miru),
 *   [Tablesaw](https://github.com/jtablesaw/tablesaw),
 *   [Apache Hivemall](http://hivemall.incubator.apache.org),
+*   [Gaffer](https://github.com/gchq/Gaffer),
 *   [LinkedIn Pinot](https://github.com/linkedin/pinot/wiki) and
 *   [Druid](http://druid.io/).
 
