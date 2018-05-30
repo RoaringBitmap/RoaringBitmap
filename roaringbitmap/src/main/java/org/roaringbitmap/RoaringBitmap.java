@@ -190,6 +190,68 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   }
 
   /**
+   * Generate a new bitmap that has the same cardinality as x, but with
+   * all its values incremented by offset.
+   * 
+   * @param x source bitmap
+   * @param offset increment
+   * @return a new bitmap
+   */
+  public static RoaringBitmap addOffset(final RoaringBitmap x, int offset) {
+    int container_offset = offset >>> 16;
+    int in_container_offset = offset % (1<<16);
+    if(in_container_offset == 0) {
+      RoaringBitmap answer = x.clone();
+      for(int pos = 0; pos < answer.highLowContainer.size(); pos++) {
+        int key = Util.toIntUnsigned(answer.highLowContainer.getKeyAtIndex(pos));
+        key += container_offset;
+        if(key > 0xFFFF) {
+          throw new IllegalArgumentException("Offset too large.");
+        }
+        answer.highLowContainer.keys[pos] = (short) key;
+      }
+      return answer;
+    } else {
+      RoaringBitmap answer = new RoaringBitmap();
+      for(int pos = 0; pos < x.highLowContainer.size(); pos++) {
+        int key = Util.toIntUnsigned(x.highLowContainer.getKeyAtIndex(pos));
+        key += container_offset;
+        if(key > 0xFFFF) {
+          throw new IllegalArgumentException("Offset too large.");
+        }
+        Container c = x.highLowContainer.getContainerAtIndex(pos);
+        Container[] offsetted = Util.addOffset(c, 
+          (short)in_container_offset);
+        if( !offsetted[0].isEmpty()) {
+          int current_size = answer.highLowContainer.size();
+          int lastkey = 0;
+          if(current_size > 0) {
+            lastkey = answer.highLowContainer.getKeyAtIndex(
+              current_size - 1);
+          }
+          if((current_size > 0) && (lastkey == key)) {
+            Container prev = answer.highLowContainer
+                .getContainerAtIndex(current_size - 1);
+            Container orresult = prev.ior(offsetted[0]);
+            answer.highLowContainer.setContainerAtIndex(current_size - 1,
+                orresult);
+          } else {
+            answer.highLowContainer.append((short)key, offsetted[0]);
+          }
+        }
+        if( !offsetted[1].isEmpty()) {
+          if(key == 0xFFFF) {
+            throw new IllegalArgumentException("Offset too large.");
+          }
+          answer.highLowContainer.append((short)(key + 1), offsetted[1]);
+        }
+      }
+      answer.repairAfterLazy();
+      return answer;
+    }
+  }
+
+  /**
    * Generate a new bitmap with all integers in [rangeStart,rangeEnd) added.
    *
    * @param rb initial bitmap (will not be modified)

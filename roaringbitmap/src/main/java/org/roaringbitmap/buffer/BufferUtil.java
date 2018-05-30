@@ -20,7 +20,84 @@ import static java.lang.Long.numberOfTrailingZeros;
  */
 public final class BufferUtil {
 
-
+  /**
+   * Add value "offset" to all values in the container, producing
+   * two new containers. The existing container remains unchanged.
+   * The new container are not converted, so they need to be checked:
+   * e.g., we could produce two bitmap containers having low cardinality.
+   * @param source source container
+   * @param offsets value to add to each value in the container
+   * @return return an array made of two containers
+   */
+  public static  MappeableContainer[] addOffset(MappeableContainer source, short offsets) {
+    final int offset = BufferUtil.toIntUnsigned(offsets);
+    // could be a whole lot faster, this is a simple implementation
+    if(source instanceof MappeableArrayContainer) {
+      MappeableArrayContainer c = (MappeableArrayContainer) source;
+      MappeableArrayContainer low = new MappeableArrayContainer(c.cardinality);
+      MappeableArrayContainer high = new MappeableArrayContainer(c.cardinality);
+      for(int k = 0; k < c.cardinality; k++) {
+        int val = BufferUtil.toIntUnsigned(c.content.get(k));
+        val += offset;
+        if(val < 0xFFFF) {
+          low.content.put(low.cardinality++, (short) val);
+        } else {
+          high.content.put(high.cardinality++, (short) (val & 0xFFFF));
+        }
+      }
+      return new MappeableContainer[] {low, high};
+    } else if (source instanceof MappeableBitmapContainer) {
+      MappeableBitmapContainer c = (MappeableBitmapContainer) source;
+      MappeableBitmapContainer low = new MappeableBitmapContainer();
+      MappeableBitmapContainer high = new MappeableBitmapContainer();
+      low.cardinality = -1;
+      high.cardinality = -1;
+      final int b = offset / 64;
+      final int i = offset % 64;
+      if(i == 0) {
+        for(int k = 0; k < 1024 - b; k++) {
+          low.bitmap.put(b + k, c.bitmap.get(k));
+        }
+        for(int k = 1024 - b; k < 1024 ; k++) {
+          high.bitmap.put(k - (1024 - b),c.bitmap.get(k));
+        }
+      } else {
+        low.bitmap.put(b + 0, c.bitmap.get(0) << i);
+        for(int k = 1; k < 1024 - b; k++) {
+          low.bitmap.put(b + k, (c.bitmap.get(k) << i) 
+              | (c.bitmap.get(k - 1) >> (64-i)));
+        }
+        for(int k = 1024 - b; k < 1024 ; k++) {
+          high.bitmap.put(k - (1024 - b),
+               (c.bitmap.get(k) << i) 
+               | (c.bitmap.get(k - 1) >> (64-i)));
+        }
+        high.bitmap.put(b,  (c.bitmap.get(1024 - 1) >> (64-i)));
+      }
+      return new MappeableContainer[] {low, high};
+    } else if (source instanceof MappeableRunContainer) {
+      MappeableRunContainer c = (MappeableRunContainer) source;
+      MappeableRunContainer low = new MappeableRunContainer();
+      MappeableRunContainer high = new MappeableRunContainer();
+      for(int k = 0 ; k < c.nbrruns; k++) {
+        int val =  BufferUtil.toIntUnsigned(c.getValue(k));
+        val += offset;
+        int finalval =  val + BufferUtil.toIntUnsigned(c.getLength(k));
+        if(val < 0xFFFF) {
+          if(finalval < 0xFFFF) {
+            low.smartAppend((short)val,c.getLength(k));
+          } else {
+            low.smartAppend((short)val,(short)(0xFFFF-val));
+            high.smartAppend((short) 0,(short)(finalval & 0xFFFF));
+          }
+        } else {
+          high.smartAppend((short)(val & 0xFFFF),c.getLength(k));
+        }
+      }
+      return new MappeableContainer[] {low, high};
+    }
+    throw new RuntimeException("unknown container type"); // never happens
+  }
 
   /**
    * Find the smallest integer larger than pos such that array[pos]&gt;= min. If none can be found,

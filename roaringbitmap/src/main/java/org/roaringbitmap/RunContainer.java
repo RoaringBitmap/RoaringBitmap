@@ -2211,7 +2211,7 @@ public final class RunContainer extends Container implements Cloneable {
     }
   }
 
-  private void smartAppend(short start, short length) {
+  void smartAppend(short start, short length) {
     int oldend;
     if ((nbrruns == 0) || (toIntUnsigned(start) > (oldend =
         toIntUnsigned(getValue(nbrruns - 1)) + toIntUnsigned(getLength(nbrruns - 1)))
@@ -2355,7 +2355,7 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   // convert to bitmap or array *if needed*
-  private Container toEfficientContainer() {
+  Container toEfficientContainer() {
     int sizeAsRunContainer = RunContainer.serializedSizeInBytes(this.nbrruns);
     int sizeAsBitmapContainer = BitmapContainer.serializedSizeInBytes(0);
     int card = this.getCardinality();
