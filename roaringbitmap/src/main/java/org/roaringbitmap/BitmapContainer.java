@@ -971,29 +971,6 @@ public final class BitmapContainer extends Container implements Cloneable {
     return -1;
   }
 
-  /**
-   * Find the index of the next unset bit greater or equal to i, returns -1 if none found.
-   *
-   * @param i starting index
-   * @return index of the next unset bit
-   */
-  public short nextUnsetBit(final int i) {
-    int x = i / 64;
-    long w = ~bitmap[x];
-    w >>>= i;
-    if (w != 0) {
-      return (short) (i + numberOfTrailingZeros(w));
-    }
-    ++x;
-    for (; x < bitmap.length; ++x) {
-      if (bitmap[x] != ~0L) {
-        return (short) (x * 64 + numberOfTrailingZeros(~bitmap[x]));
-      }
-    }
-    return -1;
-  }
-
-
 
   @Override
   public Container not(final int firstOfRange, final int lastOfRange) {
@@ -1364,6 +1341,11 @@ public final class BitmapContainer extends Container implements Cloneable {
   @Override
   public BitmapContainer toBitmapContainer() {
     return this;
+  }
+
+  @Override
+  public int nextSetBit(short fromValue) {
+    return nextSetBit(Util.toIntUnsigned(fromValue));
   }
 
   @Override

@@ -775,6 +775,31 @@ public class TestBitmapContainer {
     assertTrue(container.contains(64 * 1023 + 1, 64 * 1023 + 2));
   }
 
+  @Test
+  public void testNextSetBit() {
+    BitmapContainer container = new BitmapContainer(oddBits(), 1 << 15);
+    assertEquals(0, container.nextSetBit(0));
+    assertEquals(2, container.nextSetBit(1));
+    assertEquals(2, container.nextSetBit(2));
+    assertEquals(4, container.nextSetBit(3));
+  }
+
+  @Test
+  public void testNextSetBitAfterEnd() {
+    BitmapContainer container = new BitmapContainer(oddBits(), 1 << 15);
+    container.bitmap[1023] = 0L;
+    container.cardinality -= 32;
+    assertEquals(-1, container.nextSetBit((64 * 1023) + 5));
+  }
+
+  @Test
+  public void testNextSetBitBeforeStart() {
+    BitmapContainer container = new BitmapContainer(oddBits(), 1 << 15);
+    container.bitmap[0] = 0L;
+    container.cardinality -= 32;
+    assertEquals(64, container.nextSetBit(1));
+  }
+
   private static long[] oddBits() {
     long[] bitmap = new long[1 << 10];
     Arrays.fill(bitmap, 0x5555555555555555L);

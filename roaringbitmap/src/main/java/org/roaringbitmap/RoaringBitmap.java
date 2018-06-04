@@ -220,21 +220,21 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
           throw new IllegalArgumentException("Offset too large.");
         }
         Container c = x.highLowContainer.getContainerAtIndex(pos);
-        Container[] offsetted = Util.addOffset(c, 
-          (short)in_container_offset);
+        Container[] offsetted = Util.addOffset(c,
+                (short)in_container_offset);
         if( !offsetted[0].isEmpty()) {
           int current_size = answer.highLowContainer.size();
           int lastkey = 0;
           if(current_size > 0) {
             lastkey = answer.highLowContainer.getKeyAtIndex(
-              current_size - 1);
+                    current_size - 1);
           }
           if((current_size > 0) && (lastkey == key)) {
             Container prev = answer.highLowContainer
-                .getContainerAtIndex(current_size - 1);
+                    .getContainerAtIndex(current_size - 1);
             Container orresult = prev.ior(offsetted[0]);
             answer.highLowContainer.setContainerAtIndex(current_size - 1,
-                orresult);
+                    orresult);
           } else {
             answer.highLowContainer.append((short)key, offsetted[0]);
           }
@@ -2182,6 +2182,31 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     throw new IllegalArgumentException("You are trying to select the "
                  + j + "th value when the cardinality is "
                  + this.getCardinality() + ".");
+  }
+
+  /**
+   * Returns the index of the first bit that is set to {@code true}
+   * that occurs on or after the specified starting index. If no such
+   * bit exists then {@code -1} is returned.
+   *
+   * @param  fromIndex the index to start checking from (inclusive)
+   * @return the index of the next set bit, or {@code -1} if there
+   *         is no such bit
+   */
+  public long nextSetBit(int fromIndex) {
+    short key = Util.highbits(fromIndex);
+    int containerIndex = highLowContainer.advanceUntil(key, -1);
+    long nextSetBit = -1L;
+    while (containerIndex != -1 && containerIndex < highLowContainer.size() && nextSetBit == -1L) {
+      short containerKey = highLowContainer.getKeyAtIndex(containerIndex);
+      Container container = highLowContainer.getContainerAtIndex(containerIndex);
+      int bit = (Util.compareUnsigned(containerKey, key) > 0
+              ? container.first()
+              : container.nextSetBit(Util.lowbits(fromIndex)));
+      nextSetBit = bit == -1 ? -1L : Util.toUnsignedLong((containerKey << 16) | bit);
+      ++containerIndex;
+    }
+    return nextSetBit;
   }
 
   /**

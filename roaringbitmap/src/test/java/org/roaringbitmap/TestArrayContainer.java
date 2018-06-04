@@ -470,6 +470,26 @@ public class TestArrayContainer {
         assertFalse(ac.contains(1 << 8 | 1 << 15 | 1, 1 << 16));
     }
 
+    @Test
+    public void testNextSetBitBeforeStart() {
+        ArrayContainer container = new ArrayContainer(new short[] { 10, 20, 30});
+        assertEquals(10, container.nextSetBit((short)5));
+    }
+
+    @Test
+    public void testNextSetBit() {
+        ArrayContainer container = new ArrayContainer(new short[] { 10, 20, 30});
+        assertEquals(10, container.nextSetBit((short)10));
+        assertEquals(20, container.nextSetBit((short)11));
+        assertEquals(30, container.nextSetBit((short)30));
+    }
+
+    @Test
+    public void testNextSetBitAfterEnd() {
+        ArrayContainer container = new ArrayContainer(new short[] { 10, 20, 30});
+        assertEquals(-1, container.nextSetBit((short)31));
+    }
+
     private static int lower16Bits(int x) {
         return ((short)x) & 0xFFFF;
     }
