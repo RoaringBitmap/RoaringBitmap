@@ -1142,6 +1142,13 @@ public final class ArrayContainer extends Container implements Cloneable {
   }
 
   @Override
+  public int nextSetBit(short fromValue) {
+    int index = Util.advanceUntil(content, -1, cardinality, fromValue);
+    int effectiveIndex = index >= 0 ? index : -index - 1;
+    return effectiveIndex >= cardinality ? -1 : Util.toIntUnsigned(content[effectiveIndex]);
+  }
+
+  @Override
   public int first() {
     assertNonEmpty(cardinality == 0);
     return Util.toIntUnsigned(content[0]);
