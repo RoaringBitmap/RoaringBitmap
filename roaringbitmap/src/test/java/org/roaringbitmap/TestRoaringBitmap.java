@@ -4691,4 +4691,26 @@ public class TestRoaringBitmap {
     }
   }
 
+  @Test
+  public void testNextSetBit() {
+    RoaringBitmap bitmap = RandomisedTestData.TestDataSet.testCase()
+            .withRunAt(0)
+            .withBitmapAt(1)
+            .withArrayAt(2)
+            .withRunAt(3)
+            .withBitmapAt(4)
+            .withArrayAt(5)
+            .build();
+
+    BitSet bitset = new BitSet();
+    bitmap.forEach((IntConsumer) bitset::set);
+    long b1 = 0;
+    int b2 = 0;
+    while (b1 >= 0 && b2 >= 0) {
+      b1 = bitmap.nextSetBit((int)b1 + 1);
+      b2 = bitset.nextSetBit(b2 + 1);
+      assertEquals(b1, b2);
+    }
+  }
+
 }

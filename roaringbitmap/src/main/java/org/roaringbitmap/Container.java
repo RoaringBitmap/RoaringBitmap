@@ -877,6 +877,13 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
   public abstract BitmapContainer toBitmapContainer();
 
   /**
+   * Gets the next set bit after the value, or -1 if no such bit exists.
+   * @param fromValue the value to search after (inclusive)
+   * @return the next set bit after fromValue
+   */
+  public abstract int nextSetBit(short fromValue);
+
+  /**
    * Get the first integer held in the container
    * @return the first integer in the container
    * @throws NoSuchElementException if empty
