@@ -4692,7 +4692,7 @@ public class TestRoaringBitmap {
   }
 
   @Test
-  public void testNextSetBit() {
+  public void testNextValue() {
     RoaringBitmap bitmap = RandomisedTestData.TestDataSet.testCase()
             .withRunAt(0)
             .withBitmapAt(1)
@@ -4707,7 +4707,7 @@ public class TestRoaringBitmap {
     long b1 = 0;
     int b2 = 0;
     while (b1 >= 0 && b2 >= 0) {
-      b1 = bitmap.nextSetBit((int)b1 + 1);
+      b1 = bitmap.nextValue((int)b1 + 1);
       b2 = bitset.nextSetBit(b2 + 1);
       assertEquals(b1, b2);
     }
