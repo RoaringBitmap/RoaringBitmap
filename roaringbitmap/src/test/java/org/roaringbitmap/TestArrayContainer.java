@@ -187,7 +187,7 @@ public class TestArrayContainer {
         ac = ac.iadd(1,20);
         assertEquals(79, ac.getCardinality());
     }
-    
+
     @Test
     public void clear() throws Exception {
         Container ac = new ArrayContainer();
@@ -359,7 +359,7 @@ public class TestArrayContainer {
         assertFalse(ac.contains(disjoint));
         assertFalse(disjoint.contains(ac));
     }
-  
+
     @Test
     public void iorNotIncreaseCapacity() {
       Container ac1 = new ArrayContainer();
@@ -367,13 +367,13 @@ public class TestArrayContainer {
       ac1.add((short) 128);
       ac1.add((short) 256);
       ac2.add((short) 1024);
-      
+
       ac1.ior(ac2);
       assertTrue(ac1.contains((short) 128));
       assertTrue(ac1.contains((short) 256));
       assertTrue(ac1.contains((short) 1024));
     }
-    
+
     @Test
     public void iorIncreaseCapacity() {
       Container ac1 = new ArrayContainer();
@@ -383,7 +383,7 @@ public class TestArrayContainer {
       ac1.add((short) 512);
       ac1.add((short) 513);
       ac2.add((short) 1024);
-      
+
       ac1.ior(ac2);
       assertTrue(ac1.contains((short) 128));
       assertTrue(ac1.contains((short) 256));
@@ -391,7 +391,7 @@ public class TestArrayContainer {
       assertTrue(ac1.contains((short) 513));
       assertTrue(ac1.contains((short) 1024));
     }
-    
+
     @Test
     public void iorSanityCheck() {
       Container ac = new ArrayContainer().add(0, 10);
@@ -471,23 +471,23 @@ public class TestArrayContainer {
     }
 
     @Test
-    public void testNextSetBitBeforeStart() {
+    public void testNextValueBeforeStart() {
         ArrayContainer container = new ArrayContainer(new short[] { 10, 20, 30});
-        assertEquals(10, container.nextSetBit((short)5));
+        assertEquals(10, container.nextValue((short)5));
     }
 
     @Test
-    public void testNextSetBit() {
+    public void testNextValue() {
         ArrayContainer container = new ArrayContainer(new short[] { 10, 20, 30});
-        assertEquals(10, container.nextSetBit((short)10));
-        assertEquals(20, container.nextSetBit((short)11));
-        assertEquals(30, container.nextSetBit((short)30));
+        assertEquals(10, container.nextValue((short)10));
+        assertEquals(20, container.nextValue((short)11));
+        assertEquals(30, container.nextValue((short)30));
     }
 
     @Test
-    public void testNextSetBitAfterEnd() {
+    public void testNextValueAfterEnd() {
         ArrayContainer container = new ArrayContainer(new short[] { 10, 20, 30});
-        assertEquals(-1, container.nextSetBit((short)31));
+        assertEquals(-1, container.nextValue((short)31));
     }
 
     private static int lower16Bits(int x) {
