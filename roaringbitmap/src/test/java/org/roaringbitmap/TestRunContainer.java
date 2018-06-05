@@ -3438,24 +3438,24 @@ public class TestRunContainer {
   }
 
   @Test
-  public void testNextSetBit() {
+  public void testNextValue() {
     RunContainer container = new RunContainer(new short[] { 64, 64 }, 1);
-    assertEquals(64, container.nextSetBit((short)0));
-    assertEquals(64, container.nextSetBit((short)64));
-    assertEquals(65, container.nextSetBit((short)65));
-    assertEquals(128, container.nextSetBit((short)128));
-    assertEquals(-1, container.nextSetBit((short)129));
+    assertEquals(64, container.nextValue((short)0));
+    assertEquals(64, container.nextValue((short)64));
+    assertEquals(65, container.nextValue((short)65));
+    assertEquals(128, container.nextValue((short)128));
+    assertEquals(-1, container.nextValue((short)129));
   }
 
   @Test
   public void testNextSetBitBetweenRuns() {
     RunContainer container = new RunContainer(new short[] { 64, 64, 256, 64 }, 2);
-    assertEquals(64, container.nextSetBit((short)0));
-    assertEquals(64, container.nextSetBit((short)64));
-    assertEquals(65, container.nextSetBit((short)65));
-    assertEquals(128, container.nextSetBit((short)128));
-    assertEquals(256, container.nextSetBit((short)129));
-    assertEquals(-1, container.nextSetBit((short)512));
+    assertEquals(64, container.nextValue((short)0));
+    assertEquals(64, container.nextValue((short)64));
+    assertEquals(65, container.nextValue((short)65));
+    assertEquals(128, container.nextValue((short)128));
+    assertEquals(256, container.nextValue((short)129));
+    assertEquals(-1, container.nextValue((short)512));
   }
 
   private static int lower16Bits(int x) {
