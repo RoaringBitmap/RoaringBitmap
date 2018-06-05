@@ -192,7 +192,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   /**
    * Generate a new bitmap that has the same cardinality as x, but with
    * all its values incremented by offset.
-   * 
+   *
    * @param x source bitmap
    * @param offset increment
    * @return a new bitmap
@@ -2185,24 +2185,25 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   }
 
   /**
-   * Returns the index of the first bit that is set to {@code true}
-   * that occurs on or after the specified starting index. If no such
-   * bit exists then {@code -1} is returned.
+   * Returns the first value equal to or larger than the provided value
+   * (interpreted as an unsigned integer). If no such
+   * bit exists then {@code -1} is returned. It is not necessarily a
+   * computationally effective way to iterate through the values.
    *
-   * @param  fromIndex the index to start checking from (inclusive)
-   * @return the index of the next set bit, or {@code -1} if there
-   *         is no such bit
+   * @param  fromValue the lower bound (inclusive)
+   * @return the smallest value larger than or equal to the specified value,
+   *       or {@code -1} if there is no such value
    */
-  public long nextSetBit(int fromIndex) {
-    short key = Util.highbits(fromIndex);
+  public long nextValue(int fromValue) {
+    short key = Util.highbits(fromValue);
     int containerIndex = highLowContainer.advanceUntil(key, -1);
     long nextSetBit = -1L;
-    while (containerIndex != -1 && containerIndex < highLowContainer.size() && nextSetBit == -1L) {
+    while (containerIndex != -1 && containerIndex < highLowContainer.size() && fromValue == -1L) {
       short containerKey = highLowContainer.getKeyAtIndex(containerIndex);
       Container container = highLowContainer.getContainerAtIndex(containerIndex);
       int bit = (Util.compareUnsigned(containerKey, key) > 0
               ? container.first()
-              : container.nextSetBit(Util.lowbits(fromIndex)));
+              : container.nextValue(Util.lowbits(fromValue)));
       nextSetBit = bit == -1 ? -1L : Util.toUnsignedLong((containerKey << 16) | bit);
       ++containerIndex;
     }
