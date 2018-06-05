@@ -1344,7 +1344,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
-  public int nextSetBit(short fromValue) {
+  public int nextValue(short fromValue) {
     return nextSetBit(Util.toIntUnsigned(fromValue));
   }
 

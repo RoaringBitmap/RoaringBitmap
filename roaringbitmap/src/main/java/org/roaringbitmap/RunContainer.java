@@ -20,7 +20,7 @@ import static org.roaringbitmap.Util.toIntUnsigned;
 
 /**
  * This container takes the form of runs of consecutive values (effectively, run-length encoding).
- * 
+ *
  * Adding and removing content from this container might make it wasteful so regular calls to
  * "runOptimize" might be warranted.
  */
@@ -220,7 +220,7 @@ public final class RunContainer extends Container implements Cloneable {
 
   /**
    * Creates a new non-mappeable container from a mappeable one. This copies the data.
-   * 
+   *
    * @param bc the original container
    */
   public RunContainer(MappeableRunContainer bc) {
@@ -231,10 +231,10 @@ public final class RunContainer extends Container implements Cloneable {
   /**
    * Construct a new RunContainer backed by the provided array. Note that if you modify the
    * RunContainer a new array may be produced.
-   * 
+   *
    * @param array array where the data is stored
    * @param numRuns number of runs (each using 2 shorts in the buffer)
-   * 
+   *
    */
   public RunContainer(final short[] array, final int numRuns) {
     if (array.length < 2 * numRuns) {
@@ -2325,7 +2325,7 @@ public final class RunContainer extends Container implements Cloneable {
 
   /**
    * Convert the container to either a Bitmap or an Array Container, depending on the cardinality.
-   * 
+   *
    * @param card the current cardinality
    * @return new container
    */
@@ -2374,7 +2374,7 @@ public final class RunContainer extends Container implements Cloneable {
   /**
    * Return the content of this container as a ShortBuffer. This creates a copy and might be
    * relatively slow.
-   * 
+   *
    * @return the ShortBuffer
    */
   public ShortBuffer toShortBuffer() {
@@ -2529,7 +2529,7 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   @Override
-  public int nextSetBit(short fromValue) {
+  public int nextValue(short fromValue) {
     int index = unsignedInterleavedBinarySearch(valueslength, 0, nbrruns, fromValue);
     int effectiveIndex = index >= 0 ? index : -index - 2;
     if (effectiveIndex == -1) {
@@ -2653,7 +2653,7 @@ final class RunContainerShortIterator implements PeekableShortIterator {
     }
     if (base > toIntUnsigned(minval)) {
       return;
-    }    
+    }
     le = toIntUnsigned(minval) - base;
   }
 
@@ -2742,4 +2742,3 @@ final class ReverseRunContainerShortIterator implements ShortIterator {
   }
 
 }
-

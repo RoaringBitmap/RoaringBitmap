@@ -280,7 +280,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
 
   /**
    * Get the name of this container.
-   * 
+   *
    * @return name of the container
    */
   public String getContainerName() {
@@ -292,13 +292,13 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
       return ContainerNames[2];
     }
   }
-  
+
   /**
    * Name of the various possible containers
    */
   public static final String[] ContainerNames = {"bitmap","array","run"};
 
-  
+
   /**
    * Iterate through the values of this container and pass them
    * along to the IntConsumer, using msb as the 16 most significant bits.
@@ -642,7 +642,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    * provided container are left unaffected. The resulting container may not track its cardinality
    * correctly. This can be fixed as follows: if(c.getCardinality()&lt;0)
    * ((BitmapContainer)c).computeCardinality();
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -673,7 +673,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
 
   /**
    * Create a new Container containing at most maxcardinality integers.
-   * 
+   *
    * @param maxcardinality maximal cardinality
    * @return a new bitmap with cardinality no more than maxcardinality
    */
@@ -739,7 +739,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
   /**
    * Rank returns the number of integers that are smaller or equal to x (Rank(infinity) would be
    * GetCardinality()).
-   * 
+   *
    * @param lowbits upper limit
    *
    * @return the rank
@@ -765,7 +765,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
 
   /**
    * The output of a lazyOR or lazyIOR might be an invalid container, this should be called on it.
-   * 
+   *
    * @return a new valid container
    */
   public abstract Container repairAfterLazy();
@@ -774,14 +774,14 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    * Convert to RunContainers, when the result is smaller. Overridden by RunContainer to possibility
    * switch from RunContainer to a smaller alternative. Overridden by BitmapContainer with a more
    * efficient approach.
-   * 
+   *
    * @return the new container
    */
   public abstract Container runOptimize();
 
   /**
    * Return the jth value
-   * 
+   *
    * @param j index of the value
    *
    * @return the value
@@ -805,7 +805,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
 
   /**
    * Convert to a mappeable container.
-   * 
+   *
    * @return the mappeable container
    */
   public abstract MappeableContainer toMappeableContainer();
@@ -877,11 +877,11 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
   public abstract BitmapContainer toBitmapContainer();
 
   /**
-   * Gets the next set bit after the value, or -1 if no such bit exists.
-   * @param fromValue the value to search after (inclusive)
-   * @return the next set bit after fromValue
+   * Gets the first value greater than or equal to the lower bound, or -1 if no such value exists.
+   * @param fromValue the lower bound (inclusive)
+   * @return the next value
    */
-  public abstract int nextSetBit(short fromValue);
+  public abstract int nextValue(short fromValue);
 
   /**
    * Get the first integer held in the container
