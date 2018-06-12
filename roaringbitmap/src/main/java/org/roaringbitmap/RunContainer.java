@@ -808,7 +808,7 @@ public final class RunContainer extends Container implements Cloneable {
       return false;
     }
     int ia = 0, ir = 0;
-    while(ia < arrayContainer.getCardinality() && ir <= runCount) {
+    while(ia < arrayContainer.getCardinality() && ir < runCount) {
       int start = getValue(ir);
       int stop = start + toIntUnsigned(getLength(ir));
       if(arrayContainer.content[ia] < start) {
@@ -819,7 +819,7 @@ public final class RunContainer extends Container implements Cloneable {
         ++ia;
       }
     }
-    return ia <= cardinality && ir <= runCount;
+    return ia == arrayContainer.getCardinality();
   }
 
   @Override
