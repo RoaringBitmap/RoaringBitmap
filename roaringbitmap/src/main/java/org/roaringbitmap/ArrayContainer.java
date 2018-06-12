@@ -295,17 +295,11 @@ public final class ArrayContainer extends Container implements Cloneable {
     if (runContainer.getCardinality() > cardinality) {
       return false;
     }
-    int startPos, stopPos = -1;
+
     for (int i = 0; i < runContainer.numberOfRuns(); ++i) {
-      short start = runContainer.getValue(i);
-      int stop = Util.toIntUnsigned(start) + Util.toIntUnsigned(runContainer.getLength(i));
-      startPos = Util.advanceUntil(content, stopPos, cardinality, start);
-      stopPos = Util.advanceUntil(content, stopPos, cardinality, (short)stop);
-      if(startPos == cardinality) {
-        return false;
-      } else if(stopPos - startPos != stop - start
-                || content[startPos] != start
-                || content[stopPos] != stop) {
+      int start = Util.toIntUnsigned(runContainer.getValue(i));
+      int length = Util.toIntUnsigned(runContainer.getLength(i));
+      if (!contains(start, start + length)) {
         return false;
       }
     }

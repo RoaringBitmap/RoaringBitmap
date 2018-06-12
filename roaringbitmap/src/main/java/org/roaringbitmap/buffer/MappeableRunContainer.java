@@ -2619,18 +2619,19 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       return false;
     }
     int ia = 0, ir = 0;
-    while(ia < arrayContainer.getCardinality() && ir <= runCount) {
-      int start = getValue(ir);
+    while(ia < arrayContainer.getCardinality() && ir < runCount) {
+      int start = toIntUnsigned(getValue(ir));
       int stop = start + toIntUnsigned(getLength(ir));
-      if(arrayContainer.content.get(ia) < start) {
+      int value = toIntUnsigned(arrayContainer.content.get(ia));
+      if(value < start) {
         return false;
-      } else if (arrayContainer.content.get(ia) > stop) {
+      } else if (value > stop) {
         ++ir;
       } else {
         ++ia;
       }
     }
-    return ia <= cardinality && ir <= runCount;
+    return ia == arrayContainer.getCardinality();
   }
 
   @Override
@@ -2644,7 +2645,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     while(ib < MappeableBitmapContainer.MAX_CAPACITY / 64 && ir < runCount) {
       long w = bitmapContainer.bitmap.get(ib);
       while (w != 0 && ir < runCount) {
-        short start = getValue(ir);
+        int start = toIntUnsigned(getValue(ir));
         int stop = start+ toIntUnsigned(getLength(ir));
         long t = w & -w;
         long r = ib * 64 + Long.numberOfTrailingZeros(w);

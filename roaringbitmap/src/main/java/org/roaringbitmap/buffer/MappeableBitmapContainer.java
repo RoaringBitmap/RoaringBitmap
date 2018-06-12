@@ -2018,12 +2018,10 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       }
     }
     for (int i = 0; i < runContainer.numberOfRuns(); ++i) {
-      short runStart = runContainer.getValue(i);
-      int le = BufferUtil.toIntUnsigned(runContainer.getLength(i));
-      for (short j = runStart; j <= runStart + le; ++j) {
-        if (!contains(j)) {
-          return false;
-        }
+      int start = BufferUtil.toIntUnsigned(runContainer.getValue(i));
+      int length = BufferUtil.toIntUnsigned(runContainer.getLength(i));
+      if (!contains(start, start + length)) {
+        return false;
       }
     }
     return true;

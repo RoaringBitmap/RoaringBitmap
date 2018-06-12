@@ -833,7 +833,7 @@ public final class RunContainer extends Container implements Cloneable {
     while(ib < bitmapContainer.bitmap.length && ir < runCount) {
       long w = bitmapContainer.bitmap[ib];
       while (w != 0 && ir < runCount) {
-        short start = getValue(ir);
+        int start = Util.toIntUnsigned(getValue(ir));
         int stop = start+ toIntUnsigned(getLength(ir));
         long t = w & -w;
         long r = ib * 64 + Long.numberOfTrailingZeros(w);
