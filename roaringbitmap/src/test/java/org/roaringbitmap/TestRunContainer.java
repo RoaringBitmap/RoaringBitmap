@@ -2083,7 +2083,7 @@ public class TestRunContainer {
     assertEquals(4, container.rank((short) 128));
     assertEquals(5, container.rank((short) 1024));
   }
-  
+
   @Test
   public void shortRangeRank() {
     Container container = new RunContainer();
@@ -3274,6 +3274,21 @@ public class TestRunContainer {
     Container disjoint = new ArrayContainer().add(20, 40);
     assertFalse(rc.contains(disjoint));
     assertFalse(disjoint.contains(rc));
+
+    disjoint = new ArrayContainer().add((short)512);
+    assertFalse(rc.contains(disjoint));
+    assertFalse(disjoint.contains(rc));
+
+    rc = rc.add(12,14).add(16,18).add(20,22);
+    assertFalse(rc.contains(disjoint));
+    assertFalse(disjoint.contains(rc));
+
+    rc.trim();
+    assertFalse(rc.contains(disjoint));
+    assertFalse(disjoint.contains(rc));
+
+
+
   }
 
   @Test
