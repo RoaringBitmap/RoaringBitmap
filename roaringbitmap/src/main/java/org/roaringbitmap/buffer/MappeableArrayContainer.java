@@ -1627,17 +1627,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (runContainer.getCardinality() > cardinality) {
       return false;
     }
-    int startPos, stopPos = -1;
+
     for (int i = 0; i < runContainer.numberOfRuns(); ++i) {
-      short start = runContainer.getValue(i);
-      int stop = toIntUnsigned(start) + toIntUnsigned(runContainer.getLength(i));
-      startPos = BufferUtil.advanceUntil(content, stopPos, cardinality, start);
-      stopPos = BufferUtil.advanceUntil(content, stopPos, cardinality, (short)stop);
-      if(startPos == cardinality) {
-        return false;
-      } else if(stopPos - startPos != stop - start
-                || content.get(startPos) != start
-                || content.get(stopPos) != stop) {
+      int start = toIntUnsigned(runContainer.getValue(i));
+      int length = toIntUnsigned(runContainer.getLength(i));
+      if (!contains(start, start + length)) {
         return false;
       }
     }
