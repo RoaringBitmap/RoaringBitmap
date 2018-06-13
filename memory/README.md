@@ -5,3 +5,11 @@ To measure it the [allocation intrumeter](https://github.com/google/allocation-i
 
 To run memory allocation suites from IDE or console the `-javaagent` parameter must be provided to the VM arguments.
 The [pom.xml](pom.xml) was already configured to pass the parameter according to [instrumenter's wiki](https://github.com/google/allocation-instrumenter/wiki).
+
+
+Usage example:
+
+```
+mvn -f ../pom.xml clean install -DskipTests -Dgpg.skip=true
+mvn -Dtest=AdversarialMemoryUsage test
+```
