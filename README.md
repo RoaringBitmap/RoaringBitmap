@@ -89,7 +89,7 @@ We refer to this case as the "sparse" scenario.
 When should you use compressed bitmaps?
 ===================================
 
-An uncompress BitSet can use a lot of memory. For example, if you take a BitSet
+An uncompressed BitSet can use a lot of memory. For example, if you take a BitSet
 and set the bit at position 1,000,000 to true and you have just over 100kB. That's over 100kB
 to store the position of one bit. This is wasteful  even if you do not care about memory:
 suppose that you need to compute the intersection between this BitSet and another one
