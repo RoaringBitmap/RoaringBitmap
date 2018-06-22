@@ -69,7 +69,7 @@ public final class Util {
         }
         high.bitmap[b] =  (c.bitmap[1024 - 1] >> (64-i));
       }
-      return new Container[] {low, high};
+      return new Container[] {low.repairAfterLazy(), high.repairAfterLazy()};
     } else if (source instanceof RunContainer) {
       RunContainer c = (RunContainer) source;
       RunContainer low = new RunContainer();
