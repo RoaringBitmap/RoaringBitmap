@@ -33,6 +33,12 @@ public class TestConcatenation {
                     {testCase().withRunAt(0).withBitmapAt(2).withBitmapAt(4).build(), 1 << 16},
                     {testCase().withArrayAt(0).withBitmapAt(2).withRunAt(4).build(), 1 << 16},
                     // awkward offsets
+                    {testCase().withBitmapAt(0).withRunAt(1).build(), 20},
+                    {testCase().withRunAt(0).withBitmapAt(1).build(), 20},
+                    {testCase().withArrayAt(0).withBitmapAt(1).build(), 20},
+                    {testCase().withBitmapAt(0).withRunAt(2).build(), 20},
+                    {testCase().withRunAt(0).withBitmapAt(2).build(), 20},
+                    {testCase().withArrayAt(0).withBitmapAt(2).build(), 20},
                     {testCase().withBitmapAt(0).withRunAt(1).withArrayAt(2).build(), 20},
                     {testCase().withRunAt(0).withBitmapAt(1).withBitmapAt(2).build(), 20},
                     {testCase().withArrayAt(0).withBitmapAt(1).withRunAt(2).build(), 20},
