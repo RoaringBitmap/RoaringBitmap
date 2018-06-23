@@ -25,6 +25,9 @@ public class TestConcatenation {
             {
                     // the data set reported in issue #260
                     {read("src/test/resources/testdata/testIssue260.txt"), 5950},
+                    {read("src/test/resources/testdata/offset_failure_case_1.txt"), 20},
+                    {read("src/test/resources/testdata/offset_failure_case_2.txt"), 20},
+                    {read("src/test/resources/testdata/offset_failure_case_3.txt"), 20},
                     // a range of test cases with offsets being divisors of 65536
                     {testCase().withBitmapAt(0).withRunAt(1).withArrayAt(2).build(), 1 << 16},
                     {testCase().withRunAt(0).withBitmapAt(1).withBitmapAt(2).build(), 1 << 16},
@@ -48,6 +51,7 @@ public class TestConcatenation {
                     {testCase().withBitmapAt(0).withRunAt(2).withArrayAt(4).build(), 20},
                     {testCase().withRunAt(0).withBitmapAt(2).withBitmapAt(4).build(), 20},
                     {testCase().withArrayAt(0).withBitmapAt(2).withRunAt(4).build(), 20},
+                    {testCase().withRange(0, 1 << 16).build(), 20}
             };
   }
 
@@ -65,9 +69,10 @@ public class TestConcatenation {
     for (int i = 0; i < array1.length; ++i) {
       array1[i] += offset;
     }
+    String inputBitmapAsString = Arrays.toString(bitmap.toArray());
     RoaringBitmap shifted = RoaringBitmap.addOffset(bitmap, offset);
-    assertEquals(bitmap.getCardinality(), shifted.getCardinality());
-    assertArrayEquals(array1, shifted.toArray());
+    assertEquals(inputBitmapAsString, bitmap.getCardinality(), shifted.getCardinality());
+    assertArrayEquals(inputBitmapAsString, array1, shifted.toArray());
   }
 
 
