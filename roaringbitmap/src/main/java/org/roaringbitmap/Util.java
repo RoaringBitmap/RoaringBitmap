@@ -78,7 +78,7 @@ public final class Util {
         int val =  Util.toIntUnsigned(input.getValue(k));
         val += offset;
         int finalval =  val + Util.toIntUnsigned(input.getLength(k));
-        if(val < 0xFFFF) {
+        if(val <= 0xFFFF) {
           if(finalval <= 0xFFFF) {
             low.smartAppend((short)val,input.getLength(k));
           } else {
