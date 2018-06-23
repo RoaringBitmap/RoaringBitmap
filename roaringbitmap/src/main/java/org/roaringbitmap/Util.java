@@ -52,7 +52,7 @@ public final class Util {
       BitmapContainer high = new BitmapContainer();
       low.cardinality = -1;
       high.cardinality = -1;
-      final int b = offset / 64;
+      final int b = offset >>> 6;
       final int i = offset % 64;
       if(i == 0) {
         System.arraycopy(c.bitmap, 0, low.bitmap, b, 1024 - b);
@@ -60,14 +60,14 @@ public final class Util {
       } else {
         low.bitmap[b + 0] = c.bitmap[0] << i;
         for(int k = 1; k < 1024 - b; k++) {
-          low.bitmap[b + k] = (c.bitmap[k] << i) | (c.bitmap[k - 1] >> (64-i));
+          low.bitmap[b + k] = (c.bitmap[k] << i) | (c.bitmap[k - 1] >>> (64-i));
         }
         for(int k = 1024 - b; k < 1024 ; k++) {
           high.bitmap[k - (1024 - b)] = 
              (c.bitmap[k] << i)  
-             | (c.bitmap[k - 1] >> (64-i));
+             | (c.bitmap[k - 1] >>> (64-i));
         }
-        high.bitmap[b] =  (c.bitmap[1024 - 1] >> (64-i));
+        high.bitmap[b] =  (c.bitmap[1024 - 1] >>> (64-i));
       }
       return new Container[] {low.repairAfterLazy(), high.repairAfterLazy()};
     } else if (source instanceof RunContainer) {

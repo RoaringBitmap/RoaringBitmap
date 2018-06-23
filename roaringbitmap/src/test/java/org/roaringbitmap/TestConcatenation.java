@@ -67,7 +67,7 @@ public class TestConcatenation {
     }
     RoaringBitmap shifted = RoaringBitmap.addOffset(bitmap, offset);
     assertEquals(bitmap.getCardinality(), shifted.getCardinality());
-    assertArrayEquals(array1, RoaringBitmap.addOffset(bitmap, offset).toArray());
+    assertArrayEquals(array1, shifted.toArray());
   }
 
 
