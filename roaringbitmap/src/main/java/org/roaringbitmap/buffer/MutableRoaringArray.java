@@ -100,6 +100,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
   }
 
   protected void append(short key, MappeableContainer value) {
+    assert !value.isEmpty();
     extendArray(1);
     this.keys[this.size] = key;
     this.values[this.size] = value;

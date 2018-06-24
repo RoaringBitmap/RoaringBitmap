@@ -253,21 +253,6 @@ public class BufferFuzzer {
             (l, r) -> MutableRoaringBitmap.andNot(MutableRoaringBitmap.or(l, r), MutableRoaringBitmap.and(l, r)));
   }
 
-
-  @Test
-  public void parallelOrVsFastOr() {
-    verifyInvarianceArray(
-            bitmaps -> BufferParallelAggregation.or(bitmaps),
-            bitmaps -> BufferFastAggregation.priorityqueue_or(bitmaps));
-  }
-
-  @Test
-  public void parallelXorVsFastXor() {
-    verifyInvarianceArray(
-            bitmaps -> BufferParallelAggregation.xor(bitmaps),
-            bitmaps -> BufferFastAggregation.priorityqueue_xor(bitmaps));
-  }
-
   private static MutableRoaringBitmap randomBitmap(int maxKeys) {
     return RandomisedTestData.randomBitmap(maxKeys).toMutableRoaringBitmap();
   }
