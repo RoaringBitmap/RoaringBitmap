@@ -6,6 +6,7 @@ import com.google.common.io.Files;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,29 +65,55 @@ public class TestConcatenation {
   }
 
   @Test
-  public void offsetAppliedCorrectly() {
+  public void testElementwiseOffsetAppliedCorrectly() {
     int[] array1 = bitmap.toArray();
     for (int i = 0; i < array1.length; ++i) {
       array1[i] += offset;
     }
-    String inputBitmapAsString = Arrays.toString(bitmap.toArray());
     RoaringBitmap shifted = RoaringBitmap.addOffset(bitmap, offset);
-    assertEquals(inputBitmapAsString, bitmap.getCardinality(), shifted.getCardinality());
-    assertArrayEquals(inputBitmapAsString, array1, shifted.toArray());
+    assertArrayEquals(failureMessage(bitmap), array1, shifted.toArray());
   }
 
+  @Test
+  public void testElementwiseOffsetAppliedCorrectlyBuffer() {
+    int[] array1 = bitmap.toArray();
+    for (int i = 0; i < array1.length; ++i) {
+      array1[i] += offset;
+    }
+    MutableRoaringBitmap shifted = MutableRoaringBitmap.addOffset(bitmap.toMutableRoaringBitmap(), offset);
+    assertArrayEquals(failureMessage(bitmap), array1, shifted.toArray());
+  }
+
+  @Test
+  public void testCardinalityPreserved() {
+    RoaringBitmap shifted = RoaringBitmap.addOffset(bitmap, offset);
+    assertEquals(failureMessage(bitmap), bitmap.getCardinality(), shifted.getCardinality());
+  }
+
+  @Test
+  public void testCardinalityPreservedBuffer() {
+    MutableRoaringBitmap shifted = MutableRoaringBitmap.addOffset(bitmap.toMutableRoaringBitmap(), offset);
+    assertEquals(failureMessage(bitmap), bitmap.getCardinality(), shifted.getCardinality());
+  }
 
   @Test
   public void canSerializeAndDeserialize() throws IOException {
     RoaringBitmap shifted = RoaringBitmap.addOffset(bitmap, offset);
     ByteArrayDataOutput out = ByteStreams.newDataOutput();
     shifted.serialize(out);
-
     RoaringBitmap deserialized = new RoaringBitmap();
     deserialized.deserialize(ByteStreams.newDataInput(out.toByteArray()));
+    assertEquals(failureMessage(bitmap), shifted, deserialized);
+  }
 
-    assertEquals(shifted, deserialized);
-
+  @Test
+  public void canSerializeAndDeserializeBuffer() throws IOException {
+    MutableRoaringBitmap shifted = MutableRoaringBitmap.addOffset(bitmap.toMutableRoaringBitmap(), offset);
+    ByteArrayDataOutput out = ByteStreams.newDataOutput();
+    shifted.serialize(out);
+    MutableRoaringBitmap deserialized = new MutableRoaringBitmap();
+    deserialized.deserialize(ByteStreams.newDataInput(out.toByteArray()));
+    assertEquals(failureMessage(bitmap), shifted, deserialized);
   }
 
   private static RoaringBitmap read(String classPathResource) {
@@ -100,5 +127,9 @@ public class TestConcatenation {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private static String failureMessage(RoaringBitmap bitmap) {
+    return Arrays.toString(bitmap.toArray());
   }
 }
