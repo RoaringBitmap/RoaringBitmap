@@ -101,6 +101,7 @@ public final class RoaringArray implements Cloneable, Externalizable {
   }
 
   protected void append(short key, Container value) {
+    assert !value.isEmpty();
     extendArray(1);
     this.keys[this.size] = key;
     this.values[this.size] = value;

@@ -39,7 +39,7 @@ public final class BufferUtil {
       for(int k = 0; k < c.cardinality; k++) {
         int val = BufferUtil.toIntUnsigned(c.content.get(k));
         val += offset;
-        if(val < 0xFFFF) {
+        if(val <= 0xFFFF) {
           low.content.put(low.cardinality++, (short) val);
         } else {
           high.content.put(high.cardinality++, (short) (val & 0xFFFF));
@@ -52,7 +52,7 @@ public final class BufferUtil {
       MappeableBitmapContainer high = new MappeableBitmapContainer();
       low.cardinality = -1;
       high.cardinality = -1;
-      final int b = offset / 64;
+      final int b = offset >>> 6;
       final int i = offset % 64;
       if(i == 0) {
         for(int k = 0; k < 1024 - b; k++) {
@@ -65,16 +65,16 @@ public final class BufferUtil {
         low.bitmap.put(b + 0, c.bitmap.get(0) << i);
         for(int k = 1; k < 1024 - b; k++) {
           low.bitmap.put(b + k, (c.bitmap.get(k) << i) 
-              | (c.bitmap.get(k - 1) >> (64-i)));
+              | (c.bitmap.get(k - 1) >>> (64-i)));
         }
         for(int k = 1024 - b; k < 1024 ; k++) {
           high.bitmap.put(k - (1024 - b),
                (c.bitmap.get(k) << i) 
-               | (c.bitmap.get(k - 1) >> (64-i)));
+               | (c.bitmap.get(k - 1) >>> (64-i)));
         }
-        high.bitmap.put(b,  (c.bitmap.get(1024 - 1) >> (64-i)));
+        high.bitmap.put(b,  (c.bitmap.get(1024 - 1) >>> (64-i)));
       }
-      return new MappeableContainer[] {low, high};
+      return new MappeableContainer[] {low.repairAfterLazy(), high.repairAfterLazy()};
     } else if (source instanceof MappeableRunContainer) {
       MappeableRunContainer c = (MappeableRunContainer) source;
       MappeableRunContainer low = new MappeableRunContainer();
@@ -83,8 +83,8 @@ public final class BufferUtil {
         int val =  BufferUtil.toIntUnsigned(c.getValue(k));
         val += offset;
         int finalval =  val + BufferUtil.toIntUnsigned(c.getLength(k));
-        if(val < 0xFFFF) {
-          if(finalval < 0xFFFF) {
+        if(val <= 0xFFFF) {
+          if(finalval <= 0xFFFF) {
             low.smartAppend((short)val,c.getLength(k));
           } else {
             low.smartAppend((short)val,(short)(0xFFFF-val));

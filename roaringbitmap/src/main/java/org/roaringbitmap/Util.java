@@ -39,7 +39,7 @@ public final class Util {
       for(int k = 0; k < c.cardinality; k++) {
         int val =  Util.toIntUnsigned(c.content[k]);
         val += offset;
-        if(val < 0xFFFF) {
+        if(val <= 0xFFFF) {
           low.content[low.cardinality++] = (short) val;
         } else {
           high.content[high.cardinality++] = (short) (val & 0xFFFF);
@@ -52,7 +52,7 @@ public final class Util {
       BitmapContainer high = new BitmapContainer();
       low.cardinality = -1;
       high.cardinality = -1;
-      final int b = offset / 64;
+      final int b = offset >>> 6;
       final int i = offset % 64;
       if(i == 0) {
         System.arraycopy(c.bitmap, 0, low.bitmap, b, 1024 - b);
@@ -60,33 +60,33 @@ public final class Util {
       } else {
         low.bitmap[b + 0] = c.bitmap[0] << i;
         for(int k = 1; k < 1024 - b; k++) {
-          low.bitmap[b + k] = (c.bitmap[k] << i) | (c.bitmap[k - 1] >> (64-i));
+          low.bitmap[b + k] = (c.bitmap[k] << i) | (c.bitmap[k - 1] >>> (64-i));
         }
         for(int k = 1024 - b; k < 1024 ; k++) {
           high.bitmap[k - (1024 - b)] = 
              (c.bitmap[k] << i)  
-             | (c.bitmap[k - 1] >> (64-i));
+             | (c.bitmap[k - 1] >>> (64-i));
         }
-        high.bitmap[b] =  (c.bitmap[1024 - 1] >> (64-i));
+        high.bitmap[b] =  (c.bitmap[1024 - 1] >>> (64-i));
       }
-      return new Container[] {low, high};
+      return new Container[] {low.repairAfterLazy(), high.repairAfterLazy()};
     } else if (source instanceof RunContainer) {
-      RunContainer c = (RunContainer) source;
+      RunContainer input = (RunContainer) source;
       RunContainer low = new RunContainer();
       RunContainer high = new RunContainer();
-      for(int k = 0 ; k < c.nbrruns; k++) {
-        int val =  Util.toIntUnsigned(c.getValue(k));
+      for(int k = 0 ; k < input.nbrruns; k++) {
+        int val =  Util.toIntUnsigned(input.getValue(k));
         val += offset;
-        int finalval =  val + Util.toIntUnsigned(c.getLength(k));
-        if(val < 0xFFFF) {
-          if(finalval < 0xFFFF) {
-            low.smartAppend((short)val,c.getLength(k));
+        int finalval =  val + Util.toIntUnsigned(input.getLength(k));
+        if(val <= 0xFFFF) {
+          if(finalval <= 0xFFFF) {
+            low.smartAppend((short)val,input.getLength(k));
           } else {
             low.smartAppend((short)val,(short)(0xFFFF-val));
             high.smartAppend((short) 0,(short)(finalval & 0xFFFF));
           }
         } else {
-          high.smartAppend((short)(val & 0xFFFF),c.getLength(k));
+          high.smartAppend((short)(val & 0xFFFF),input.getLength(k));
         }
       }
       return new Container[] {low, high};

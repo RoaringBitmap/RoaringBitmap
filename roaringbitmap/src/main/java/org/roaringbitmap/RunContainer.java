@@ -2217,6 +2217,7 @@ public final class RunContainer extends Container implements Cloneable {
     if ((nbrruns == 0) || (toIntUnsigned(start) > (oldend =
         toIntUnsigned(getValue(nbrruns - 1)) + toIntUnsigned(getLength(nbrruns - 1)))
         + 1)) { // we add a new one
+      ensureCapacity(nbrruns + 1);
       valueslength[2 * nbrruns] = start;
       valueslength[2 * nbrruns + 1] = length;
       nbrruns++;

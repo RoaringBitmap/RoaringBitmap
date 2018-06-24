@@ -288,41 +288,4 @@ public class Fuzzer {
             (l, r) -> RoaringBitmap.xor(l, r),
             (l, r) -> RoaringBitmap.andNot(RoaringBitmap.or(l, r), RoaringBitmap.and(l, r)));
   }
-
-  @Test
-  public void naiveOrPriorityQueueOrInvariance() {
-    verifyInvarianceArray(
-            bitmaps -> FastAggregation.naive_or(bitmaps),
-            bitmaps -> FastAggregation.priorityqueue_or(bitmaps));
-  }
-
-
-  @Test
-  public void naiveOrPriorityQueueOrInvarianceIterator() {
-    verifyInvarianceIterator(
-            bitmaps -> FastAggregation.naive_or(bitmaps),
-            bitmaps -> FastAggregation.priorityqueue_or(bitmaps));
-  }
-
-
-  @Test
-  public void naiveXorPriorityQueueXorInvariance() {
-    verifyInvarianceArray(
-            bitmaps -> FastAggregation.naive_xor(bitmaps),
-            bitmaps -> FastAggregation.priorityqueue_xor(bitmaps));
-  }
-
-  @Test
-  public void parallelOrVsFastOr() {
-    verifyInvarianceArray(
-            bitmaps -> ParallelAggregation.or(bitmaps),
-            bitmaps -> FastAggregation.priorityqueue_or(bitmaps));
-  }
-
-  @Test
-  public void parallelXorVsFastXor() {
-    verifyInvarianceArray(
-            bitmaps -> ParallelAggregation.xor(bitmaps),
-            bitmaps -> FastAggregation.priorityqueue_xor(bitmaps));
-  }
 }
