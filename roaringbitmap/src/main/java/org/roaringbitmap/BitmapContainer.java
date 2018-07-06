@@ -12,7 +12,7 @@ import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import static java.lang.Long.numberOfLeadingZeros;
+import static java.lang.Long.bitCount;
 import static java.lang.Long.numberOfTrailingZeros;
 
 
@@ -503,6 +503,11 @@ public final class BitmapContainer extends Container implements Cloneable {
   @Override
   public PeekableShortIterator getShortIterator() {
     return new BitmapContainerShortIterator(this.bitmap);
+  }
+
+  @Override
+  public PeekableShortRankIterator getShortRankIterator() {
+    return new BitmapContainerShortRankIterator(this.bitmap);
   }
 
   @Override
@@ -1371,7 +1376,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 }
 
 
-final class BitmapContainerShortIterator implements PeekableShortIterator {
+class BitmapContainerShortIterator implements PeekableShortIterator {
 
   long w;
   int x;
@@ -1459,6 +1464,57 @@ final class BitmapContainerShortIterator implements PeekableShortIterator {
   }
 }
 
+final class BitmapContainerShortRankIterator extends BitmapContainerShortIterator
+    implements PeekableShortRankIterator {
+  short nextRank = 1;
+
+  public BitmapContainerShortRankIterator(long[] p) {
+    super(p);
+  }
+
+  @Override
+  public short peekNextRank() {
+    return nextRank;
+  }
+
+  @Override
+  public short next() {
+    ++nextRank;
+    return super.next();
+  }
+
+  @Override
+  public void advanceIfNeeded(short minval) {
+    if (Util.toIntUnsigned(minval) >= (x + 1) * 64) {
+
+      int nextX = Util.toIntUnsigned(minval) / 64;
+      nextRank += bitCount(w);
+      for(x = x + 1; x < nextX; ++x) {
+        w = bitmap[x];
+        nextRank += bitCount(w);
+      }
+
+      x = nextX;
+      w = bitmap[x];
+
+      while (w == 0) {
+        ++x;
+        if (x == bitmap.length) {
+          return;
+        }
+        w = bitmap[x];
+      }
+    }
+    while (hasNext() && (Util.toIntUnsigned(peekNext()) < Util.toIntUnsigned(minval))) {
+      next(); // could be optimized
+    }
+  }
+
+  @Override
+  public PeekableShortRankIterator clone() {
+    return (PeekableShortRankIterator) super.clone();
+  }
+}
 
 final class ReverseBitmapContainerShortIterator implements ShortIterator {
 
