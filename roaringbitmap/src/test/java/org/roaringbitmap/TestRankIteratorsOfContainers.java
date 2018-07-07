@@ -12,7 +12,7 @@ public class TestRankIteratorsOfContainers {
       short bit = iterator.peekNext();
       short rank = iterator.peekNextRank();
 
-      Assert.assertEquals(c.rank(bit), rank);
+      Assert.assertEquals((short) c.rank(bit), rank);
 
       iterator.next();
     }
@@ -24,7 +24,7 @@ public class TestRankIteratorsOfContainers {
       short bit = iterator.peekNext();
       short rank = iterator.peekNextRank();
 
-      Assert.assertEquals(c.rank(bit), rank);
+      Assert.assertEquals((short) c.rank(bit), rank);
 
       iterator.nextAsInt();
     }
@@ -37,7 +37,7 @@ public class TestRankIteratorsOfContainers {
       bit = iterator.peekNext();
       short rank = iterator.peekNextRank();
 
-      Assert.assertEquals("" + advance, c.rank(bit), rank);
+      Assert.assertEquals((short) c.rank(bit), rank);
 
       if ((Util.toIntUnsigned(bit) + advance < 65536)) {
         iterator.advanceIfNeeded((short) (bit + advance));
@@ -47,10 +47,10 @@ public class TestRankIteratorsOfContainers {
     }
   }
 
-  private void testContainer(Container container) {
+  private void testContainerIterators(Container container) {
     testContainerRanksOnNext(container);
     testContainerRanksOnNextAsInt(container);
-    for(int j = 1; j <= 8; ++j) {
+    for (int j = 1; j <= 16; ++j) {
       testContainerRanksOnAdvance(container, j);
       testContainerRanksOnAdvance(container, j * 3);
       testContainerRanksOnAdvance(container, j * 5);
@@ -65,6 +65,8 @@ public class TestRankIteratorsOfContainers {
   }
 
   private void fillRandom(Container container, Random rnd) {
+    Container empty = container;
+
     for (int i = 0; i < 1024; ++i) {
       container.add((short) rnd.nextInt(1 << 10));
     }
@@ -76,12 +78,23 @@ public class TestRankIteratorsOfContainers {
     for (int i = 0; i < 1024; ++i) {
       container.add((short) (16384 + rnd.nextInt(1 << 10)));
     }
+
+    Assert.assertSame("bad test -- container was changed", empty, container);
+  }
+
+  private void fillRange(Container container, int begin, int end) {
+    Container empty = container;
+
+    container.iadd(begin, end);
+
+    Assert.assertSame("bad test -- container was changed", empty, container);
   }
 
   @Test
   public void testBitmapContainer1() {
     BitmapContainer container = new BitmapContainer();
     container.add((short) 123);
+    container.add((short) 65535);
 
     testContainerRanksOnNext(container);
   }
@@ -93,7 +106,26 @@ public class TestRankIteratorsOfContainers {
 
     fillRandom(container, rnd);
 
-    testContainer(container);
+    testContainerIterators(container);
+  }
+
+  @Test
+  public void testBitmapContainer3() {
+    BitmapContainer container = new BitmapContainer();
+    fillRange(container, 0, 65535);
+
+    testContainerIterators(container);
+  }
+
+
+  @Test
+  public void testBitmapContainer4() {
+    BitmapContainer container = new BitmapContainer();
+    fillRange(container, 1024, 2048);
+    fillRange(container, 8192 + 7, 24576 - 7);
+    fillRange(container, 65534, 65535);
+
+    testContainerIterators(container);
   }
 
   @Test
@@ -111,14 +143,22 @@ public class TestRankIteratorsOfContainers {
 
     fillRandom(container, rnd);
 
-    testContainer(container);
+    testContainerIterators(container);
+  }
+
+  @Test
+  public void testArrayContainer3() {
+    ArrayContainer container = new ArrayContainer();
+    fillRange(container, 0, 1024);
+    fillRange(container, 2048, 4096);
+    fillRange(container, 65535 - 7, 65535 - 5);
   }
 
   @Test
   public void testRunContainer1() {
     RunContainer container = new RunContainer();
     container.add((short) 123);
-    testContainer(container);
+    testContainerIterators(container);
   }
 
   @Test
@@ -127,6 +167,16 @@ public class TestRankIteratorsOfContainers {
     Random rnd = new Random(0);
 
     fillRandom(container, rnd);
-    testContainer(container);
+    testContainerIterators(container);
+  }
+
+  @Test
+  public void testRunContainer3() {
+    RunContainer container = new RunContainer();
+    fillRange(container, 0, 1024);
+
+    fillRange(container, 1024 + 3, 1024 + 5);
+    fillRange(container, 1024 + 30, 1024 + 37);
+    fillRange(container, 65535 - 7, 65535 - 5);
   }
 }
