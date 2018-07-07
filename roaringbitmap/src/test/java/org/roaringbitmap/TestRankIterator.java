@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -44,10 +45,16 @@ public class TestRankIterator {
 
   @Test
   public void testAdvance() {
+    long start = System.nanoTime();
     if (advance == 0) {
       testBitmapRanksOnNext(bitmap);
+      long ms = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
+      System.out.println("next: " + ms + "ms");
     } else {
       testBitmapRanksOnAdvance(bitmap, advance);
+      long end = System.nanoTime();
+      long ms = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
+      System.out.println("advance by " + advance + ": " + ms + "ms");
     }
   }
 
