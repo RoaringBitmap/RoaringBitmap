@@ -397,7 +397,7 @@ application, you might be better served with a conventional bitset (e.g., Java's
 * How do I select an element at random?
 
          Random random = new Random();
-         bitmap.select(random.nextInt(bitmal.getCardinality()));
+         bitmap.select(random.nextInt(bitmap.getCardinality()));
 
 
 Benchmark
