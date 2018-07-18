@@ -252,4 +252,93 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
 
     return value;
   }
+
+  /**
+   * Get a special iterator that allows .peekNextRank efficiently
+   *
+   * @return iterator with fast rank access
+   */
+  public PeekableIntRankIterator getIntRankIterator() {
+    preComputeCardinalities();
+    return new FastRoaringIntRankIterator();
+  }
+
+  private class FastRoaringIntRankIterator implements PeekableIntRankIterator {
+    private int hs = 0;
+
+    private PeekableShortRankIterator iter;
+
+    private int pos = 0;
+
+    private FastRoaringIntRankIterator() {
+      nextContainer();
+    }
+
+    @Override
+    public int peekNextRank() {
+      int iterRank = Util.toIntUnsigned(iter.peekNextRank());
+      if (pos > 0) {
+        return FastRankRoaringBitmap.this.highToCumulatedCardinality[pos - 1] + iterRank;
+      } else {
+        return iterRank;
+      }
+    }
+
+    @Override
+    public PeekableIntRankIterator clone() {
+      try {
+        FastRoaringIntRankIterator x =
+            (FastRoaringIntRankIterator) super.clone();
+        if (this.iter != null) {
+          x.iter = this.iter.clone();
+        }
+        return x;
+      } catch (CloneNotSupportedException e) {
+        return null;// will not happen
+      }
+    }
+
+    @Override
+    public boolean hasNext() {
+      return pos < FastRankRoaringBitmap.this.highLowContainer.size();
+    }
+
+    @Override
+    public int next() {
+      final int x = iter.nextAsInt() | hs;
+      if (!iter.hasNext()) {
+        ++pos;
+        nextContainer();
+      }
+      return x;
+    }
+
+    private void nextContainer() {
+      if (pos < FastRankRoaringBitmap.this.highLowContainer.size()) {
+        iter = FastRankRoaringBitmap.this.highLowContainer.getContainerAtIndex(pos)
+                                                          .getShortRankIterator();
+        hs = FastRankRoaringBitmap.this.highLowContainer.getKeyAtIndex(pos) << 16;
+      }
+    }
+
+    @Override
+    public void advanceIfNeeded(int minval) {
+      while (hasNext() && ((hs >>> 16) < (minval >>> 16))) {
+        ++pos;
+        nextContainer();
+      }
+      if (hasNext() && ((hs >>> 16) == (minval >>> 16))) {
+        iter.advanceIfNeeded(Util.lowbits(minval));
+        if (!iter.hasNext()) {
+          ++pos;
+          nextContainer();
+        }
+      }
+    }
+
+    @Override
+    public int peekNext() {
+      return Util.toIntUnsigned(iter.peekNext()) | hs;
+    }
+  }
 }
