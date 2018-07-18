@@ -425,6 +425,12 @@ public final class ArrayContainer extends Container implements Cloneable {
   }
 
   @Override
+  public PeekableShortRankIterator getShortRankIterator() {
+    // for ArrayContainer there is no additional work, pos is known in advance
+    return new ArrayContainerShortIterator(this);
+  }
+
+  @Override
   public ContainerBatchIterator getBatchIterator() {
     return new ArrayBatchIterator(this);
   }
@@ -1295,7 +1301,7 @@ public final class ArrayContainer extends Container implements Cloneable {
 }
 
 
-final class ArrayContainerShortIterator implements PeekableShortIterator {
+final class ArrayContainerShortIterator implements PeekableShortRankIterator {
   int pos;
   ArrayContainer parent;
 
@@ -1310,11 +1316,15 @@ final class ArrayContainerShortIterator implements PeekableShortIterator {
     pos = Util.advanceUntil(parent.content, pos - 1, parent.cardinality, minval);
   }
 
+  @Override
+  public short peekNextRank() {
+    return (short) (pos + 1);
+  }
 
   @Override
-  public PeekableShortIterator clone() {
+  public PeekableShortRankIterator clone() {
     try {
-      return (PeekableShortIterator) super.clone();
+      return (PeekableShortRankIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null;// will not happen
     }

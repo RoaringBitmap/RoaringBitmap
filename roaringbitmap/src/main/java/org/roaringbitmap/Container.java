@@ -322,6 +322,13 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
   public abstract PeekableShortIterator getShortIterator();
 
   /**
+   * Iterator to visit the short values in container and pre-compute ranks
+   *
+   * @return iterator
+   */
+  public abstract PeekableShortRankIterator getShortRankIterator();
+
+  /**
    * Gets an iterator to visit the contents of the container in batches
    * @return iterator
    */
