@@ -3,10 +3,6 @@
  */
 package org.roaringbitmap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import com.google.common.base.Predicate;
 import com.google.common.collect.ContiguousSet;
 import com.google.common.collect.DiscreteDomain;
@@ -19,6 +15,8 @@ import org.junit.Test;
 import java.io.*;
 import java.util.*;
 import java.util.stream.IntStream;
+
+import static org.junit.Assert.*;
 
 /**
  * Generic testing of the roaring bitmaps
@@ -1239,13 +1237,20 @@ public class TestRoaringBitmap {
 
   @Test
   public void bitmapOfTest() {
+    int[] back = null;
     int[] cuiRelsArray = new int[1024];
-    for (int k = 0; k < cuiRelsArray.length; ++k) {
-      cuiRelsArray[k] = k;
+    List<Integer> integerList = new ArrayList<>();
+
+    for (int k = 0; k < 1024; ++k) {
+      cuiRelsArray[k] = k+1;
+      integerList.add(k+3);
     }
-    RoaringBitmap rr1 = RoaringBitmap.bitmapOf(cuiRelsArray);
-    int[] back = rr1.toArray();
+
+    back = RoaringBitmap.bitmapOf(cuiRelsArray).toArray();
     Assert.assertArrayEquals(cuiRelsArray, back);
+
+    back = RoaringBitmap.bitmapOf(integerList).toArray();
+    Assert.assertArrayEquals(integerList.stream().mapToInt(Integer::intValue).toArray(), back);
   }
 
   @Test

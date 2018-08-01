@@ -4,21 +4,14 @@
 
 package org.roaringbitmap;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.Externalizable;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MappeableContainerPointer;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
+
+import java.io.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 import static org.roaringbitmap.Util.partialRadixSort;
 
@@ -515,23 +508,13 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   }
 
   /**
-   * {@link org.roaringbitmap.RoaringBitmap#bitmapOf(int...) bitmapOf(int...)} Integer... overload
-   *
-   * @param dat Integer array of values
-   * @return a new bitmap
-   */
-  public static RoaringBitmap bitmapOf(final Integer... dat){
-    return bitmapOf(Arrays.stream(dat).mapToInt(Integer::intValue).toArray());
-  }
-
-  /**
-   * {@link org.roaringbitmap.RoaringBitmap#bitmapOf(Integer...) bitmapOf(Integer...)} List<Integer> overload
+   * {@link org.roaringbitmap.RoaringBitmap#bitmapOf(int...) bitmapOf(int...)} List<Integer> overload
    *
    * @param dat collection of values
    * @return a new bitmap
    */
   public static RoaringBitmap bitmapOf(final List<Integer> dat){
-    return bitmapOf(dat.toArray(new Integer[dat.size()]));
+    return bitmapOf(dat.stream().mapToInt(Integer::intValue).toArray());
   }
 
   /**
