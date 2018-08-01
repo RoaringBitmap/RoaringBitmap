@@ -11,7 +11,9 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
@@ -510,6 +512,26 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     final RoaringBitmap ans = new RoaringBitmap();
     ans.add(dat);
     return ans;
+  }
+
+  /**
+   * {@link org.roaringbitmap.RoaringBitmap#bitmapOf(int...) bitmapOf(int...)} Integer... overload
+   *
+   * @param dat Integer array of values
+   * @return a new bitmap
+   */
+  public static RoaringBitmap bitmapOf(final Integer... dat){
+    return bitmapOf(Arrays.stream(dat).mapToInt(Integer::intValue).toArray());
+  }
+
+  /**
+   * {@link org.roaringbitmap.RoaringBitmap#bitmapOf(Integer...) bitmapOf(Integer...)} List<Integer> overload
+   *
+   * @param dat collection of values
+   * @return a new bitmap
+   */
+  public static RoaringBitmap bitmapOf(final List<Integer> dat){
+    return bitmapOf(dat.toArray(new Integer[dat.size()]));
   }
 
   /**
