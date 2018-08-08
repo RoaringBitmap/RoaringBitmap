@@ -484,4 +484,24 @@ public class TestRoaringBitmap_FastRank {
     Assert.assertTrue(fast.isCacheDismissed());
   }
 
+  @Test
+  public void testLongSizeInBytes() {
+    FastRankRoaringBitmap fast = new FastRankRoaringBitmap();
+
+    // Check when empty
+    Assert.assertEquals(16, fast.getLongSizeInBytes());
+    
+    fast.add(0);
+    fast.add(1024);
+    fast.add(Integer.MAX_VALUE);
+
+    Assert.assertEquals(34, fast.getLongSizeInBytes());
+    
+    // Compute a rank: the cache is allocated
+    fast.rank(1024);
+    
+    // Check the size is bigger once the cache is allocated
+    Assert.assertEquals(42, fast.getLongSizeInBytes());
+  }
+
 }

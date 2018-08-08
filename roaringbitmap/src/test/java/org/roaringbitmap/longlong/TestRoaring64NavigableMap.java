@@ -1464,5 +1464,9 @@ public class TestRoaring64NavigableMap {
 
     // Size with multiple entries
     Assert.assertEquals(228, map.getLongSizeInBytes());
+    
+    // Select does allocate some cache
+    map.select(16);
+    Assert.assertEquals(264, map.getLongSizeInBytes());
   }
 }

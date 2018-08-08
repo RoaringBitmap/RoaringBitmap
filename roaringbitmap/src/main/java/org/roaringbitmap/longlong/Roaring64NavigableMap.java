@@ -1071,6 +1071,10 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
     // Size of (boxed) Integers used as keys
     size += 16 * highToBitmap.size();
+
+    // The cache impacts the size in heap
+    size += 8 * sortedCumulatedCardinality.length;
+    size += 4 * sortedHighs.length;
     
     return size;
   }
