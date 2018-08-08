@@ -1447,4 +1447,22 @@ public class TestRoaring64NavigableMap {
     }
     Assert.assertTrue(map.isEmpty());
   }
+
+  @Test
+  public void testLongSizeInBytes() {
+    Roaring64NavigableMap map = newSignedBuffered();
+
+    // Size when empty
+    Assert.assertEquals(16, map.getLongSizeInBytes());
+
+    // Add values so that the underlying Map holds multiple entries
+    map.add(0);
+    map.add(2L * Integer.MAX_VALUE);
+    map.add(8L * Integer.MAX_VALUE, 8L * Integer.MAX_VALUE + 1024);
+    
+    Assert.assertEquals(3, map.getHighToBitmap().size());
+
+    // Size with multiple entries
+    Assert.assertEquals(228, map.getLongSizeInBytes());
+  }
 }

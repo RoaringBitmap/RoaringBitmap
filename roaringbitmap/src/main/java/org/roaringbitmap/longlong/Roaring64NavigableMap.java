@@ -1060,7 +1060,19 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
   @Override
   public long getLongSizeInBytes() {
-    throw new UnsupportedOperationException("TODO");
+    long size = 8;
+      
+    // Size of containers
+    size += highToBitmap.values().stream().mapToLong(p -> p.getLongSizeInBytes()).sum();
+    
+    // Size of Map data-structure: we consider each TreeMap entry costs 40 bytes
+    // http://java-performance.info/memory-consumption-of-java-data-types-2/
+    size += 8 + 40 * highToBitmap.size();
+
+    // Size of (boxed) Integers used as keys
+    size += 16 * highToBitmap.size();
+    
+    return size;
   }
 
   @Override
