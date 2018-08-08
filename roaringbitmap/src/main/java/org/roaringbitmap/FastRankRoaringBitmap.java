@@ -252,6 +252,16 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
 
     return value;
   }
+  
+  @Override
+  public long getLongSizeInBytes() {
+    long size = 8;
+    size += super.getLongSizeInBytes();
+    if (highToCumulatedCardinality != null) {
+      size += 4 * highToCumulatedCardinality.length;
+    }
+    return size;
+  }
 
   /**
    * Get a special iterator that allows .peekNextRank efficiently
