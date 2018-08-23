@@ -70,7 +70,7 @@ public final class ArrayContainer extends Container implements Cloneable {
   }
 
   /**
-   * Create a new container, no copy is made
+   * Create a new container from existing values array. This copies the data.
    *
    * @param newCard desired cardinality
    * @param newContent actual values (length should equal or exceed cardinality)
