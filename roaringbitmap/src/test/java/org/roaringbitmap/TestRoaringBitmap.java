@@ -42,7 +42,7 @@ public class TestRoaringBitmap {
     bitmap.addN(new int[]{1, 2, 3, 4, 5}, 1, 3);
     Assert.assertEquals("{2,3,4}",bitmap.toString());
   }
-s
+
 	@Test
 	public void testStringer() {
 	    RoaringBitmap bitmap = new RoaringBitmap();
