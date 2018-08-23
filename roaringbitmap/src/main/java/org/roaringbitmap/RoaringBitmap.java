@@ -446,7 +446,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @param dat set values
    */
   public void add(final int... dat) {
-    this.add(dat, 0, dat.length);
+    this.addN(dat, 0, dat.length);
   }
 
   /**
@@ -457,14 +457,14 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    *
    * @param dat set values
    * @param offset from which index the values should be set to true
-   * @param length how many values should be set to true
+   * @param n how many values should be set to true
    */
-  public void add(final int[] dat, final int offset, final int length) {
+  public void addN(final int[] dat, final int offset, final int n) {
     Container currentcont = null;
     short currenthb = 0;
     int currentcontainerindex = 0;
     int j = 0;
-    if(j < length) {
+    if(j < n) {
       int val = dat[j + offset];
       currenthb = Util.highbits(val);
       currentcontainerindex = highLowContainer.getIndex(currenthb);
@@ -483,7 +483,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       }
       j++;
     }
-    for( ; j < length; ++j) {
+    for( ; j < n; ++j) {
       int val = dat[j + offset];
       short newhb = Util.highbits(val);
       if(currenthb == newhb) {// easy case

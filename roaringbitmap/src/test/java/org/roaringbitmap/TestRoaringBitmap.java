@@ -26,17 +26,23 @@ import java.util.stream.IntStream;
 @SuppressWarnings({"static-method"})
 public class TestRoaringBitmap {
 
-	@Test
-	public void testMultipleAdd() {
-	    RoaringBitmap bitmap = new RoaringBitmap();
-	    bitmap.add(1);
-            bitmap.add(1, 2, 3);
-	    bitmap.add(0xFFFFFFFF);
-	    bitmap.add(0xFFFFFFFE,0xFFFFFFFF );
-            Assert.assertEquals("{1,2,3,4294967294,4294967295}",bitmap.toString());
-	}
+  @Test
+  public void testMultipleAdd() {
+    RoaringBitmap bitmap = new RoaringBitmap();
+    bitmap.add(1);
+    bitmap.add(1, 2, 3);
+    bitmap.add(0xFFFFFFFF);
+    bitmap.add(0xFFFFFFFE,0xFFFFFFFF );
+    Assert.assertEquals("{1,2,3,4294967294,4294967295}",bitmap.toString());
+  }
 
-
+  @Test
+  public void testAddN() {
+    RoaringBitmap bitmap = new RoaringBitmap();
+    bitmap.addN(new int[]{1, 2, 3, 4, 5}, 1, 3);
+    Assert.assertEquals("{2,3,4}",bitmap.toString());
+  }
+s
 	@Test
 	public void testStringer() {
 	    RoaringBitmap bitmap = new RoaringBitmap();
