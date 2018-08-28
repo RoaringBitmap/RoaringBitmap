@@ -289,8 +289,9 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     }
     return answer;
   }
+
   /**
-   * Set all the specified values  to true. This can be expected to be slightly
+   * Set all the specified values to true. This can be expected to be slightly
    * faster than calling "add" repeatedly. The provided integers values don't
    * have to be in sorted order, but it may be preferable to sort them from a performance point of
    * view.
@@ -298,13 +299,27 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @param dat set values
    */
   public void add(final int... dat) {
+    this.addN(dat, 0, dat.length);
+  }
+
+  /**
+   * Set the specified values to true, within given boundaries. This can be expected to be slightly
+   * faster than calling "add" repeatedly. The provided integers values don't
+   * have to be in sorted order, but it may be preferable to sort them from a performance point of
+   * view.
+   *
+   * @param dat set values
+   * @param offset from which index the values should be set to true
+   * @param n how many values should be set to true
+   */
+  public void addN(final int[] dat, final int offset, final int n) {
     MutableRoaringArray mra = (MutableRoaringArray) highLowContainer;
     MappeableContainer currentcont = null;
     short currenthb = 0;
     int currentcontainerindex = 0;
     int j = 0;
-    if(j < dat.length) {
-      int val = dat[j];
+    if(j < n) {
+      int val = dat[j + offset];
       currenthb = BufferUtil.highbits(val);
       currentcontainerindex = highLowContainer.getIndex(currenthb);
       if (currentcontainerindex >= 0) {
@@ -322,8 +337,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
       }
       j++;
     }
-    for( ; j < dat.length; ++j) {
-      int val = dat[j];
+    for( ; j < n; ++j) {
+      int val = dat[j + offset];
       short newhb = BufferUtil.highbits(val);
       if(currenthb == newhb) {// easy case
         // this could be quite frequent
