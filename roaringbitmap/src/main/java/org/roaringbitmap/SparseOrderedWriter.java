@@ -110,27 +110,11 @@ public class SparseOrderedWriter implements OrderedWriter {
   }
 
   private Container buildBestContainer() {
-    boolean allocatedNewArray = false;
-
     Container container;
-    short[] values;
-    if (valuesCount == ARRAY_MAX_SIZE) {
-      values = this.values;
-    } else {
-      values = Arrays.copyOf(this.values, valuesCount);
-    }
+    short[] values = Arrays.copyOf(this.values, valuesCount);
     container = new ArrayContainer(values).runOptimize();
-    if (container instanceof ArrayContainer) {
-      if (((ArrayContainer) container).content == this.values) {
-        this.values = new short[ARRAY_MAX_SIZE];
-        allocatedNewArray = true;
-      }
-    }
 
     valuesCount = 0;
-    if (!allocatedNewArray) {
-      Arrays.fill(this.values, (short) 0);
-    }
 
     return container;
   }

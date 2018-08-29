@@ -535,7 +535,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   public static RoaringBitmap bitmapOfUnordered(final int... data) {
     partialRadixSort(data);
     RoaringBitmap bitmap = new RoaringBitmap();
-    OrderedWriter writer = OrderedWriters.sparseWriter(bitmap);
+    OrderedWriter writer = OrderedWriters.denseWriter(bitmap);
     for (int i : data) {
       writer.add(i);
     }
