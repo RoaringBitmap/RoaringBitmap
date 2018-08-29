@@ -97,7 +97,8 @@ public class SparseOrderedWriter implements OrderedWriter {
       throw new IllegalStateException("Must write in ascending order.");
     }
     if (valueIndex >= values.length) {
-      throw new IllegalStateException(String.format("Exceeded limit of %d values per container.", values.length));
+      throw new IllegalStateException(
+          String.format("Exceeded limit of %d values per container.", values.length));
     }
 
     currentKey = key;
