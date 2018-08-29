@@ -19,7 +19,7 @@ public class WriteSequential {
   @Param({"0.1", "0.5", "0.9"})
   double randomness;
 
-  @Param({"DENSE", "SPARSE"})
+  @Param({"DENSE", "SPARSE", "UNOPTIMIZED"})
   String writerType;
 
   int[] data;
@@ -37,7 +37,7 @@ public class WriteSequential {
     while (i < size) {
       if (random.nextGaussian() > runThreshold) {
         int runLength = random.nextInt(Math.min(size - i, 1 << 16));
-        for (int j = 1; j < runLength; ++j) {
+        for (int j = 0; j < runLength; ++j) {
           data[i + j] = last + 1;
           last = data[i + j];
         }
@@ -83,8 +83,29 @@ public class WriteSequential {
         return new SparseOrderedWriter(roaringBitmap);
       case "DENSE":
         return new DenseOrderedWriter(roaringBitmap);
+      case "UNOPTIMIZED":
+        return new UnoptimizedOrderedWriter(roaringBitmap);
       default:
         throw new IllegalStateException("Unknown OrderedWriter implementation: " + writerType);
+    }
+  }
+
+  class UnoptimizedOrderedWriter implements OrderedWriter {
+
+    private final RoaringBitmap roaringBitmap;
+
+    UnoptimizedOrderedWriter(RoaringBitmap roaringBitmap) {
+      this.roaringBitmap = roaringBitmap;
+    }
+
+    @Override
+    public void add(int value) {
+      this.roaringBitmap.add(value);
+    }
+
+    @Override
+    public void flush() {
+
     }
   }
 }
