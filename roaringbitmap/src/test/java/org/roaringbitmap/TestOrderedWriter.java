@@ -7,7 +7,7 @@ public class TestOrderedWriter {
 
   @Test(expected = IllegalStateException.class)
   public void shouldThrowWhenAddingInReverseOrder() {
-    OrderedWriter writer = new OrderedWriter(new RoaringBitmap());
+    DenseOrderedWriter writer = new DenseOrderedWriter(new RoaringBitmap());
     writer.add(1 << 17);
     writer.add(0);
   }
@@ -15,7 +15,7 @@ public class TestOrderedWriter {
   @Test
   public void bitmapShouldContainAllValuesAfterFlush() {
     RoaringBitmap bitmap = new RoaringBitmap();
-    OrderedWriter writer = new OrderedWriter(bitmap);
+    DenseOrderedWriter writer = new DenseOrderedWriter(bitmap);
     writer.add(0);
     writer.add(1 << 17);
     writer.flush();
@@ -26,7 +26,7 @@ public class TestOrderedWriter {
   @Test
   public void newKeyShouldTriggerFlush() {
     RoaringBitmap bitmap = new RoaringBitmap();
-    OrderedWriter writer = new OrderedWriter(bitmap);
+    DenseOrderedWriter writer = new DenseOrderedWriter(bitmap);
     writer.add(0);
     writer.add(1 << 17);
     Assert.assertTrue(bitmap.contains(0));
@@ -36,7 +36,7 @@ public class TestOrderedWriter {
 
   @Test(expected = IllegalStateException.class)
   public void shouldThrowIfSameKeyIsWrittenToAfterManualFlush() {
-    OrderedWriter writer = new OrderedWriter(new RoaringBitmap());
+    DenseOrderedWriter writer = new DenseOrderedWriter(new RoaringBitmap());
     writer.add(0);
     writer.flush();
     writer.add(1);

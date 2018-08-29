@@ -118,7 +118,7 @@ public class TestConcatenation {
 
   private static RoaringBitmap read(String classPathResource) {
     try {
-      OrderedWriter writer = new OrderedWriter();
+      DenseOrderedWriter writer = new DenseOrderedWriter();
       Arrays.stream(Files.readFirstLine(new File(classPathResource), Charset.forName("UTF-8")).split(","))
               .mapToInt(Integer::parseInt)
               .forEach(writer::add);

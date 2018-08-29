@@ -3,6 +3,7 @@ package org.roaringbitmap.writer;
 
 import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.OrderedWriter;
+import org.roaringbitmap.OrderedWriters;
 import org.roaringbitmap.RoaringBitmap;
 
 import java.util.Arrays;
@@ -19,6 +20,9 @@ public class WriteSequential {
 
   @Param({"0.1", "0.5", "0.9"})
   double randomness;
+
+  @Param({"DENSE", "SPARSE"})
+  String writerType;
 
   int[] data;
 
@@ -67,11 +71,22 @@ public class WriteSequential {
   @Benchmark
   public RoaringBitmap incrementalUseOrderedWriter() {
     RoaringBitmap bitmap = new RoaringBitmap();
-    OrderedWriter writer = new OrderedWriter(bitmap);
+    OrderedWriter writer = createWriter(bitmap);
     for (int i = 0; i < data.length; ++i) {
       writer.add(data[i]);
     }
     writer.flush();
     return bitmap;
+  }
+
+  private OrderedWriter createWriter(final RoaringBitmap roaringBitmap) {
+    switch (writerType) {
+      case "SPARSE":
+        return OrderedWriters.sparseWriter(roaringBitmap);
+      case "DENSE":
+        return OrderedWriters.denseWriter(roaringBitmap);
+      default:
+        throw new IllegalStateException("Unknown OrderedWriter implementation: " + writerType);
+    }
   }
 }
