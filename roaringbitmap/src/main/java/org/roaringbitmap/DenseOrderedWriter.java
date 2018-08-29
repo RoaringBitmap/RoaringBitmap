@@ -41,7 +41,7 @@ public class DenseOrderedWriter implements OrderedWriter {
    * Initialize an DenseOrderedWriter with a receiving bitmap
    * @param underlying bitmap where the data gets written
    */
-  protected DenseOrderedWriter(RoaringBitmap underlying) {
+  public DenseOrderedWriter(RoaringBitmap underlying) {
     this.underlying = underlying;
     this.bitmap = new long[WORD_COUNT];
   }

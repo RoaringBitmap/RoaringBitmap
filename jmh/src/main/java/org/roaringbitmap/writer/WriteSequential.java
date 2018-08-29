@@ -2,9 +2,7 @@ package org.roaringbitmap.writer;
 
 
 import org.openjdk.jmh.annotations.*;
-import org.roaringbitmap.OrderedWriter;
-import org.roaringbitmap.OrderedWriters;
-import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.*;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -82,9 +80,9 @@ public class WriteSequential {
   private OrderedWriter createWriter(final RoaringBitmap roaringBitmap) {
     switch (writerType) {
       case "SPARSE":
-        return OrderedWriters.sparseWriter(roaringBitmap);
+        return new SparseOrderedWriter(roaringBitmap);
       case "DENSE":
-        return OrderedWriters.denseWriter(roaringBitmap);
+        return new DenseOrderedWriter(roaringBitmap);
       default:
         throw new IllegalStateException("Unknown OrderedWriter implementation: " + writerType);
     }

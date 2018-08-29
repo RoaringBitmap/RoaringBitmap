@@ -2,12 +2,41 @@ package org.roaringbitmap;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+@RunWith(Parameterized.class)
 public class TestOrderedWriter {
+
+  private final String writerType;
+
+  public TestOrderedWriter(String writerType) {
+    this.writerType = writerType;
+  }
+
+  @Parameterized.Parameters
+  public static Object[][] params() {
+    return new Object[][]
+        {
+            {"DENSE"},
+            {"SPARSE"}
+        };
+  }
+
+  private OrderedWriter createWriter(final RoaringBitmap roaringBitmap) {
+    switch (writerType) {
+      case "SPARSE":
+        return new SparseOrderedWriter(roaringBitmap);
+      case "DENSE":
+        return new DenseOrderedWriter(roaringBitmap);
+      default:
+        throw new IllegalStateException("Unknown OrderedWriter implementation: " + writerType);
+    }
+  }
 
   @Test(expected = IllegalStateException.class)
   public void shouldThrowWhenAddingInReverseOrder() {
-    DenseOrderedWriter writer = new DenseOrderedWriter(new RoaringBitmap());
+    OrderedWriter writer = createWriter(new RoaringBitmap());
     writer.add(1 << 17);
     writer.add(0);
   }
@@ -15,7 +44,7 @@ public class TestOrderedWriter {
   @Test
   public void bitmapShouldContainAllValuesAfterFlush() {
     RoaringBitmap bitmap = new RoaringBitmap();
-    DenseOrderedWriter writer = new DenseOrderedWriter(bitmap);
+    OrderedWriter writer = createWriter(bitmap);
     writer.add(0);
     writer.add(1 << 17);
     writer.flush();
@@ -26,7 +55,7 @@ public class TestOrderedWriter {
   @Test
   public void newKeyShouldTriggerFlush() {
     RoaringBitmap bitmap = new RoaringBitmap();
-    DenseOrderedWriter writer = new DenseOrderedWriter(bitmap);
+    OrderedWriter writer = createWriter(bitmap);
     writer.add(0);
     writer.add(1 << 17);
     Assert.assertTrue(bitmap.contains(0));
@@ -36,7 +65,7 @@ public class TestOrderedWriter {
 
   @Test(expected = IllegalStateException.class)
   public void shouldThrowIfSameKeyIsWrittenToAfterManualFlush() {
-    DenseOrderedWriter writer = new DenseOrderedWriter(new RoaringBitmap());
+    OrderedWriter writer = createWriter(new RoaringBitmap());
     writer.add(0);
     writer.flush();
     writer.add(1);

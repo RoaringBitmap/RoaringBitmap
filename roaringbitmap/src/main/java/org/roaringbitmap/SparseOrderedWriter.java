@@ -41,10 +41,20 @@ public class SparseOrderedWriter implements OrderedWriter {
    *
    * @param underlying bitmap where the data gets written
    */
-  SparseOrderedWriter(RoaringBitmap underlying) {
+  public SparseOrderedWriter(RoaringBitmap underlying) {
+    this(underlying, ARRAY_MAX_SIZE);
+  }
+
+  /**
+   * Initialize an SparseOrderedWriter with a receiving bitmap
+   *
+   * @param underlying bitmap where the data gets written
+   * @param size maximum amount of values per container
+   */
+  SparseOrderedWriter(RoaringBitmap underlying, int size) {
     this.underlying = underlying;
     this.valuesCount = 0;
-    this.values = new short[ARRAY_MAX_SIZE];
+    this.values = new short[size];
   }
 
   /**
@@ -82,12 +92,16 @@ public class SparseOrderedWriter implements OrderedWriter {
       flush();
     }
 
-    currentKey = key;
-
     int valueIndex = valuesCount++;
-    if (valueIndex < values.length) {
-      values[valueIndex] = low;
+    if (valueIndex > 0 && Util.compareUnsigned(low, values[valueIndex - 1]) <= 0) {
+      throw new IllegalStateException("Must write in ascending order");
     }
+    if (valueIndex >= values.length) {
+      throw new IllegalStateException(String.format("Exceeded limit of %d values per container", values.length));
+    }
+
+    currentKey = key;
+    values[valueIndex] = low;
   }
 
 
