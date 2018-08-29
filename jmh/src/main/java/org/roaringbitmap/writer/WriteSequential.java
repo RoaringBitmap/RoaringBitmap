@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 @BenchmarkMode(Mode.AverageTime)
 public class WriteSequential {
 
-  @Param({"10000", "100000", "1000000", "10000000"})
+  @Param({"100", "1000", "10000", "100000", "1000000", "10000000"})
   int size;
 
   @Param({"0.1", "0.5", "0.9"})
