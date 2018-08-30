@@ -19,7 +19,8 @@ public class TestOrderedWriter {
     return new Object[][]
         {
             {"DENSE"},
-            {"SPARSE"}
+            {"SPARSE"},
+            {"ADAPTIVE"}
         };
   }
 
@@ -29,6 +30,8 @@ public class TestOrderedWriter {
         return new SparseOrderedWriter(roaringBitmap);
       case "DENSE":
         return new DenseOrderedWriter(roaringBitmap);
+      case "ADAPTIVE":
+        return new AdaptiveOrderedWriter(roaringBitmap);
       default:
         throw new IllegalStateException("Unknown OrderedWriter implementation: " + writerType);
     }

@@ -4,7 +4,6 @@ import java.util.Arrays;
 
 
 /**
- * 
  * This class can be used to write quickly values to a bitmap.
  * The values are expected to be (increasing) sorted order.
  * Values are first written to a temporary internal buffer, but
@@ -12,8 +11,8 @@ import java.util.Arrays;
  * (although calling flush to often would defeat the performance
  * purpose of this class).
  * The main use case for an DenseOrderedWriter is to create bitmaps quickly.
- * You should benchmark your particular use case to see if it helps. 
- * 
+ * You should benchmark your particular use case to see if it helps.
+ *
  * <pre>
  * {@code
  *
@@ -31,14 +30,14 @@ import java.util.Arrays;
 public class DenseOrderedWriter implements OrderedWriter {
 
   private static final int WORD_COUNT = 1 << 10;
-  private final long[] bitmap;
+  final long[] bitmap;
   private final RoaringBitmap underlying;
-
+  boolean dirty = false;
   private short currentKey;
-  private boolean dirty = false;
 
   /**
    * Initialize an DenseOrderedWriter with a receiving bitmap
+   *
    * @param underlying bitmap where the data gets written
    */
   public DenseOrderedWriter(RoaringBitmap underlying) {
@@ -52,12 +51,13 @@ public class DenseOrderedWriter implements OrderedWriter {
   public DenseOrderedWriter() {
     this(new RoaringBitmap());
   }
-  
+
   /**
    * Grab a reference to the underlying bitmap
+   *
    * @return the underlying bitmap
    */
-  public RoaringBitmap getUnderlying(){
+  public RoaringBitmap getUnderlying() {
     return underlying;
   }
 
@@ -65,6 +65,7 @@ public class DenseOrderedWriter implements OrderedWriter {
    * Adds the value to the underlying bitmap. The data might
    * be added to a temporary buffer. You should call "flush"
    * when you are done.
+   *
    * @param value the value to add.
    * @throws IllegalStateException if values are not added in increasing order
    */
@@ -83,8 +84,8 @@ public class DenseOrderedWriter implements OrderedWriter {
     currentKey = key;
     dirty = true;
   }
-  
-  
+
+
   /**
    * Ensures that any buffered additions are flushed to the underlying bitmap.
    */
@@ -105,8 +106,19 @@ public class DenseOrderedWriter implements OrderedWriter {
     }
   }
 
+  @Override
+  public boolean isDirty() {
+    return this.dirty;
+  }
+
+  @Override
+  public void clear() {
+    clearBitmap();
+    this.dirty = false;
+  }
+
   private Container chooseBestContainer() {
-    Container container = new BitmapContainer(bitmap,-1).repairAfterLazy().runOptimize();
+    Container container = new BitmapContainer(bitmap, -1).repairAfterLazy().runOptimize();
     return container instanceof BitmapContainer ? container.clone() : container;
   }
 

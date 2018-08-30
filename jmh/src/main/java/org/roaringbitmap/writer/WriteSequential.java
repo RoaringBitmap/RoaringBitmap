@@ -19,7 +19,7 @@ public class WriteSequential {
   @Param({"0.1", "0.5", "0.9"})
   double randomness;
 
-  @Param({"DENSE", "SPARSE", "UNOPTIMIZED"})
+  @Param({"DENSE", "SPARSE", "ADAPTIVE", "UNOPTIMIZED"})
   String writerType;
 
   int[] data;
@@ -83,6 +83,8 @@ public class WriteSequential {
         return new SparseOrderedWriter(roaringBitmap);
       case "DENSE":
         return new DenseOrderedWriter(roaringBitmap);
+      case "ADAPTIVE":
+        return new AdaptiveOrderedWriter(roaringBitmap);
       case "UNOPTIMIZED":
         return new UnoptimizedOrderedWriter(roaringBitmap);
       default:
@@ -105,6 +107,16 @@ public class WriteSequential {
 
     @Override
     public void flush() {
+
+    }
+
+    @Override
+    public boolean isDirty() {
+      return false;
+    }
+
+    @Override
+    public void clear() {
 
     }
   }

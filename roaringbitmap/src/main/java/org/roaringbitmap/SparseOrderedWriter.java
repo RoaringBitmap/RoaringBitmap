@@ -49,7 +49,7 @@ public class SparseOrderedWriter implements OrderedWriter {
    * Initialize an SparseOrderedWriter with a receiving bitmap
    *
    * @param underlying bitmap where the data gets written
-   * @param size maximum amount of values per container
+   * @param size       maximum amount of values per container
    */
   SparseOrderedWriter(RoaringBitmap underlying, int size) {
     this.underlying = underlying;
@@ -124,6 +124,16 @@ public class SparseOrderedWriter implements OrderedWriter {
     }
   }
 
+  @Override
+  public boolean isDirty() {
+    return this.valuesCount > 0;
+  }
+
+  @Override
+  public void clear() {
+    this.valuesCount = 0;
+  }
+
   private Container buildBestContainer() {
     Container container;
     short[] values = Arrays.copyOf(this.values, valuesCount);
@@ -132,5 +142,23 @@ public class SparseOrderedWriter implements OrderedWriter {
     valuesCount = 0;
 
     return container;
+  }
+
+  public DenseOrderedWriter transfer(DenseOrderedWriter denseWriter) {
+    if (denseWriter == null) {
+      denseWriter = new DenseOrderedWriter(underlying);
+    } else {
+      denseWriter.clear();
+    }
+
+    denseWriter.dirty = this.valuesCount > 0;
+    for (int k = 0; k < this.valuesCount; ++k) {
+      final short x = this.values[k];
+      denseWriter.bitmap[Util.toIntUnsigned(x) / 64] |= (1L << x);
+    }
+
+    this.clear();
+
+    return denseWriter;
   }
 }
