@@ -145,6 +145,16 @@ public class SparseOrderedWriter implements OrderedWriter {
     return container;
   }
 
+  /**
+   * Transfers all non-flushed data contained in this SparseOrderedWriter to a DenseOrderedWriter.
+   * It might receive a DenseOrderedWriter instance in order to populate it.
+   * NOTE: This method clears the current SparseOrderedWriter.
+   *
+   * @param denseWriter a nullable DenseOrderedWriter reference.
+   *                    A new DenseOrderedWriter will be created if this is null.
+   * @return a DenseOrderedWriter instance containing all non-flushed data that was
+   *         present in this SparseOrderedWriter.
+   */
   public DenseOrderedWriter transfer(DenseOrderedWriter denseWriter) {
     if (denseWriter == null) {
       denseWriter = new DenseOrderedWriter(underlying);
