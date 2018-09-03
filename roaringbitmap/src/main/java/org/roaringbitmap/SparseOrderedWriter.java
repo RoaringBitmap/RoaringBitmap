@@ -98,7 +98,7 @@ public class SparseOrderedWriter implements OrderedWriter {
     }
     if (valueIndex >= values.length) {
       valuesCount = values.length;
-      throw new IllegalStateException(
+      throw new IndexOutOfBoundsException(
           String.format("Exceeded limit of %d values per container.", values.length));
     }
 
@@ -125,12 +125,6 @@ public class SparseOrderedWriter implements OrderedWriter {
     }
   }
 
-  @Override
-  public boolean isDirty() {
-    return this.valuesCount > 0;
-  }
-
-  @Override
   public void clear() {
     this.valuesCount = 0;
   }
@@ -147,20 +141,13 @@ public class SparseOrderedWriter implements OrderedWriter {
 
   /**
    * Transfers all non-flushed data contained in this SparseOrderedWriter to a DenseOrderedWriter.
-   * It might receive a DenseOrderedWriter instance in order to populate it.
    * NOTE: This method clears the current SparseOrderedWriter.
    *
-   * @param denseWriter a nullable DenseOrderedWriter reference.
-   *                    A new DenseOrderedWriter will be created if this is null.
    * @return a DenseOrderedWriter instance containing all non-flushed data that was
    *         present in this SparseOrderedWriter.
    */
-  public DenseOrderedWriter transfer(DenseOrderedWriter denseWriter) {
-    if (denseWriter == null) {
-      denseWriter = new DenseOrderedWriter(underlying);
-    } else {
-      denseWriter.clear();
-    }
+  public DenseOrderedWriter transfer() {
+    DenseOrderedWriter denseWriter = new DenseOrderedWriter(underlying);
 
     denseWriter.dirty = this.valuesCount > 0;
     for (int k = 0; k < this.valuesCount; ++k) {

@@ -110,14 +110,5 @@ public class WriteSequential {
 
     }
 
-    @Override
-    public boolean isDirty() {
-      return false;
-    }
-
-    @Override
-    public void clear() {
-
-    }
   }
 }

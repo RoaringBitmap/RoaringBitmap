@@ -10,7 +10,7 @@ public class AdaptiveOrderedWriter implements OrderedWriter {
     this.sparse = true;
   }
 
-  AdaptiveOrderedWriter(RoaringBitmap underlying, int size) {
+  public AdaptiveOrderedWriter(RoaringBitmap underlying, int size) {
     this.sparseWriter = new SparseOrderedWriter(underlying, size);
     this.sparse = true;
   }
@@ -20,16 +20,13 @@ public class AdaptiveOrderedWriter implements OrderedWriter {
     if (sparse) {
       try {
         sparseWriter.add(value);
-      } catch (IllegalStateException e) {
-        denseWriter = sparseWriter.transfer(denseWriter);
+      } catch (IndexOutOfBoundsException e) {
+        denseWriter = sparseWriter.transfer();
         denseWriter.add(value);
         sparse = false;
       }
     } else {
       denseWriter.add(value);
-      if (!denseWriter.isDirty()) {
-        sparse = true;
-      }
     }
   }
 
@@ -42,18 +39,4 @@ public class AdaptiveOrderedWriter implements OrderedWriter {
     }
   }
 
-  @Override
-  public boolean isDirty() {
-    if (sparse) {
-      return sparseWriter.isDirty();
-    } else {
-      return denseWriter.isDirty();
-    }
-  }
-
-  @Override
-  public void clear() {
-    sparseWriter.clear();
-    denseWriter.clear();
-  }
 }

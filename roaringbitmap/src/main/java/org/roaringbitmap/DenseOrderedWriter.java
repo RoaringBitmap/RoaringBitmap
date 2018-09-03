@@ -106,17 +106,6 @@ public class DenseOrderedWriter implements OrderedWriter {
     }
   }
 
-  @Override
-  public boolean isDirty() {
-    return this.dirty;
-  }
-
-  @Override
-  public void clear() {
-    clearBitmap();
-    this.dirty = false;
-  }
-
   private Container chooseBestContainer() {
     Container container = new BitmapContainer(bitmap, -1).repairAfterLazy().runOptimize();
     return container instanceof BitmapContainer ? container.clone() : container;
