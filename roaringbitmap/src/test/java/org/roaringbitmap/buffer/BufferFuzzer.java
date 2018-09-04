@@ -2,13 +2,8 @@ package org.roaringbitmap.buffer;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.roaringbitmap.FastAggregation;
-import org.roaringbitmap.OrderedWriter;
-import org.roaringbitmap.ParallelAggregation;
 import org.roaringbitmap.RandomisedTestData;
 
-import java.util.Arrays;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;

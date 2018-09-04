@@ -4654,7 +4654,7 @@ public class TestRoaringBitmap {
 
   @Test
   public void testContainsRange_DirtyBitmap() {
-    OrderedWriter writer = new OrderedWriter();
+    DenseOrderedWriter writer = new DenseOrderedWriter();
     IntStream.range(0, 1_000_000)
             .map(i -> i * 2)
             .forEach(writer::add);

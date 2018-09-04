@@ -2,8 +2,7 @@ package org.roaringbitmap.writer;
 
 
 import org.openjdk.jmh.annotations.*;
-import org.roaringbitmap.OrderedWriter;
-import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.*;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -14,11 +13,14 @@ import java.util.concurrent.TimeUnit;
 @BenchmarkMode(Mode.AverageTime)
 public class WriteSequential {
 
-  @Param({"10000", "100000", "1000000", "10000000"})
+  @Param({"100", "1000", "10000", "100000", "1000000", "10000000"})
   int size;
 
   @Param({"0.1", "0.5", "0.9"})
   double randomness;
+
+  @Param({"DENSE", "SPARSE", "ADAPTIVE", "UNOPTIMIZED"})
+  String writerType;
 
   int[] data;
 
@@ -35,7 +37,7 @@ public class WriteSequential {
     while (i < size) {
       if (random.nextGaussian() > runThreshold) {
         int runLength = random.nextInt(Math.min(size - i, 1 << 16));
-        for (int j = 1; j < runLength; ++j) {
+        for (int j = 0; j < runLength; ++j) {
           data[i + j] = last + 1;
           last = data[i + j];
         }
@@ -67,11 +69,46 @@ public class WriteSequential {
   @Benchmark
   public RoaringBitmap incrementalUseOrderedWriter() {
     RoaringBitmap bitmap = new RoaringBitmap();
-    OrderedWriter writer = new OrderedWriter(bitmap);
+    OrderedWriter writer = createWriter(bitmap);
     for (int i = 0; i < data.length; ++i) {
       writer.add(data[i]);
     }
     writer.flush();
     return bitmap;
+  }
+
+  private OrderedWriter createWriter(final RoaringBitmap roaringBitmap) {
+    switch (writerType) {
+      case "SPARSE":
+        return new SparseOrderedWriter(roaringBitmap);
+      case "DENSE":
+        return new DenseOrderedWriter(roaringBitmap);
+      case "ADAPTIVE":
+        return new AdaptiveOrderedWriter(roaringBitmap);
+      case "UNOPTIMIZED":
+        return new UnoptimizedOrderedWriter(roaringBitmap);
+      default:
+        throw new IllegalStateException("Unknown OrderedWriter implementation: " + writerType);
+    }
+  }
+
+  class UnoptimizedOrderedWriter implements OrderedWriter {
+
+    private final RoaringBitmap roaringBitmap;
+
+    UnoptimizedOrderedWriter(RoaringBitmap roaringBitmap) {
+      this.roaringBitmap = roaringBitmap;
+    }
+
+    @Override
+    public void add(int value) {
+      this.roaringBitmap.add(value);
+    }
+
+    @Override
+    public void flush() {
+
+    }
+
   }
 }

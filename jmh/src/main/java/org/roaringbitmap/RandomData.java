@@ -63,7 +63,7 @@ public class RandomData {
   }
 
   private static RoaringBitmap forKeys(int[] keys, double rleLimit, double denseLimit) {
-    OrderedWriter writer = new OrderedWriter();
+    DenseOrderedWriter writer = new DenseOrderedWriter();
     IntStream.of(keys)
             .forEach(key -> {
               double choice = ThreadLocalRandom.current().nextDouble();

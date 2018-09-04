@@ -101,7 +101,7 @@ public class Concatenation {
   @Benchmark
   public RoaringBitmap roaringBatchOrderedWriter() {
     int[] buffer = new int[256];
-    OrderedWriter writer = new OrderedWriter();
+    DenseOrderedWriter writer = new DenseOrderedWriter();
       for(int i = 0; i < bitSets.length; ++i) {
         BitSetWithOffset bit = bitSets[i];
         RoaringBatchIterator iterator = bit.bitmap.getBatchIterator();
