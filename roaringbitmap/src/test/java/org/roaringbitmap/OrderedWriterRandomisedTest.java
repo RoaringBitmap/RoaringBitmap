@@ -39,7 +39,7 @@ public class OrderedWriterRandomisedTest {
   public void shouldBuildSameBitmapAsBitmapOf() {
     RoaringBitmap baseline = RoaringBitmap.bitmapOf(values);
     RoaringBitmap rb = new RoaringBitmap();
-    OrderedWriter writer = new OrderedWriter(rb);
+    DenseOrderedWriter writer = new DenseOrderedWriter(rb);
     for (int i : values) {
       writer.add(i);
     }

@@ -12,7 +12,7 @@ public class RandomisedTestData {
 
   public static RoaringBitmap randomBitmap(int maxKeys, double rleLimit, double denseLimit) {
     int[] keys = createSorted16BitInts(ThreadLocalRandom.current().nextInt(1, maxKeys));
-    OrderedWriter writer = new OrderedWriter();
+    DenseOrderedWriter writer = new DenseOrderedWriter();
     IntStream.of(keys)
             .forEach(key -> {
               double choice = ThreadLocalRandom.current().nextDouble();
@@ -86,7 +86,7 @@ public class RandomisedTestData {
       return new TestDataSet();
     }
 
-    OrderedWriter writer = new OrderedWriter();
+    DenseOrderedWriter writer = new DenseOrderedWriter();
     private List<Long> ranges = new ArrayList<>();
 
     public TestDataSet withRunAt(int key) {
