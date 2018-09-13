@@ -325,25 +325,14 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   @Override
   public MappeableContainer andNot(final MappeableRunContainer value2) {
     MappeableBitmapContainer answer = this.clone();
-    if (BufferUtil.isBackedBySimpleArray(answer.bitmap)) {
-      long[] b = answer.bitmap.array();
-      for (int rlepos = 0; rlepos < value2.nbrruns; ++rlepos) {
-        int start = BufferUtil.toIntUnsigned(value2.getValue(rlepos));
-        int end = BufferUtil.toIntUnsigned(value2.getValue(rlepos))
-            + BufferUtil.toIntUnsigned(value2.getLength(rlepos)) + 1;
-        int prevOnesInRange = Util.cardinalityInBitmapRange(b, start, end);
-        Util.resetBitmapRange(b, start, end);
-        answer.updateCardinality(prevOnesInRange, 0);
-      }
-    } else {
-      for (int rlepos = 0; rlepos < value2.nbrruns; ++rlepos) {
-        int start = BufferUtil.toIntUnsigned(value2.getValue(rlepos));
-        int end = BufferUtil.toIntUnsigned(value2.getValue(rlepos))
-            + BufferUtil.toIntUnsigned(value2.getLength(rlepos)) + 1;
-        int prevOnesInRange = answer.cardinalityInRange(start, end);
-        BufferUtil.resetBitmapRange(answer.bitmap, start, end);
-        answer.updateCardinality(prevOnesInRange, 0);
-      }
+    long[] b = answer.bitmap.array();
+    for (int rlepos = 0; rlepos < value2.nbrruns; ++rlepos) {
+      int start = BufferUtil.toIntUnsigned(value2.getValue(rlepos));
+      int end = BufferUtil.toIntUnsigned(value2.getValue(rlepos))
+          + BufferUtil.toIntUnsigned(value2.getLength(rlepos)) + 1;
+      int prevOnesInRange = Util.cardinalityInBitmapRange(b, start, end);
+      Util.resetBitmapRange(b, start, end);
+      answer.updateCardinality(prevOnesInRange, 0);
     }
     if (answer.getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
       return answer;
@@ -1183,20 +1172,11 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   protected MappeableContainer lazyor(MappeableRunContainer x) {
     MappeableBitmapContainer bc = clone();
     bc.cardinality = -1;
-    if (BufferUtil.isBackedBySimpleArray(bc.bitmap)) {
-      long[] b = bc.bitmap.array();
-      for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
-        int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
-        int end = start + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
-        Util.setBitmapRange(b, start, end);
-      }
-      return bc;
-
-    }
+    long[] b = bc.bitmap.array();
     for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
       int start = BufferUtil.toIntUnsigned(x.getValue(rlepos));
       int end = start + BufferUtil.toIntUnsigned(x.getLength(rlepos)) + 1;
-      BufferUtil.setBitmapRange(bc.bitmap, start, end);
+      Util.setBitmapRange(b, start, end);
     }
     return bc;
   }
