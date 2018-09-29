@@ -1153,7 +1153,11 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     int nbHighs = in.readInt();
 
     // Other NavigableMap may accept a target capacity
-    highToBitmap = new TreeMap<>();
+    if (signedLongs) {
+      highToBitmap = new TreeMap<>();
+    } else {
+      highToBitmap = new TreeMap<>(RoaringIntPacking.unsignedComparator());
+    }
 
     for (int i = 0; i < nbHighs; i++) {
       int high = in.readInt();
