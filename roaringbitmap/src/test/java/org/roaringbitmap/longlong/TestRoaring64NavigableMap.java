@@ -729,8 +729,9 @@ public class TestRoaring64NavigableMap {
 
 
   @Test
-  public void testSerialization_MultipleBuckets() throws IOException, ClassNotFoundException {
-    final Roaring64NavigableMap map = newDefaultCtor();
+  public void testSerialization_MultipleBuckets_Signed() throws IOException, ClassNotFoundException {
+    final Roaring64NavigableMap map = newSignedBuffered();
+    map.addLong(-123);
     map.addLong(123);
     map.addLong(Long.MAX_VALUE);
 
@@ -747,9 +748,36 @@ public class TestRoaring64NavigableMap {
 
     // Check the test has not simply copied the ref
     Assert.assertNotSame(map, clone);
-    Assert.assertEquals(2, clone.getLongCardinality());
+    Assert.assertEquals(3, clone.getLongCardinality());
+    Assert.assertEquals(-123, clone.select(0));
+    Assert.assertEquals(123, clone.select(1));
+    Assert.assertEquals(Long.MAX_VALUE, clone.select(2));
+  }
+  
+  @Test
+  public void testSerialization_MultipleBuckets_Unsigned() throws IOException, ClassNotFoundException {
+    final Roaring64NavigableMap map = newUnsignedHeap();
+    map.addLong(-123);
+    map.addLong(123);
+    map.addLong(Long.MAX_VALUE);
+
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+      oos.writeObject(map);
+    }
+
+    final Roaring64NavigableMap clone;
+    try (ObjectInputStream ois =
+        new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
+      clone = (Roaring64NavigableMap) ois.readObject();
+    }
+
+    // Check the test has not simply copied the ref
+    Assert.assertNotSame(map, clone);
+    Assert.assertEquals(3, clone.getLongCardinality());
     Assert.assertEquals(123, clone.select(0));
     Assert.assertEquals(Long.MAX_VALUE, clone.select(1));
+    Assert.assertEquals(-123, clone.select(2));
   }
 
   @Test
