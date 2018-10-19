@@ -30,9 +30,9 @@ import java.util.Arrays;
 public class DenseOrderedWriter implements OrderedWriter {
 
   private static final int WORD_COUNT = 1 << 10;
-  final long[] bitmap;
+  private final long[] bitmap;
   private final RoaringBitmap underlying;
-  boolean dirty = false;
+  private boolean dirty = false;
   private short currentKey;
 
   /**
@@ -67,7 +67,6 @@ public class DenseOrderedWriter implements OrderedWriter {
    * when you are done.
    *
    * @param value the value to add.
-   * @throws IllegalStateException if values are not added in increasing order
    */
   @Override
   public void add(int value) {
@@ -75,9 +74,11 @@ public class DenseOrderedWriter implements OrderedWriter {
     short low = Util.lowbits(value);
     if (key != currentKey) {
       if (Util.compareUnsigned(key, currentKey) < 0) {
-        throw new IllegalStateException("Must write in ascending key order");
+        underlying.add(value);
+        return;
+      } else {
+        flush();
       }
-      flush();
     }
     int ulow = low & 0xFFFF;
     bitmap[(ulow >>> 6)] |= (1L << ulow);
@@ -103,6 +104,7 @@ public class DenseOrderedWriter implements OrderedWriter {
       highLowContainer.append(currentKey, chooseBestContainer());
       clearBitmap();
       dirty = false;
+      ++currentKey;
     }
   }
 

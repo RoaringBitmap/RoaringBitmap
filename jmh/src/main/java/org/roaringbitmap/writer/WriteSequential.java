@@ -13,14 +13,37 @@ import java.util.concurrent.TimeUnit;
 @BenchmarkMode(Mode.AverageTime)
 public class WriteSequential {
 
+  public enum Scenario {
+    DENSE {
+      @Override
+      OrderedWriter newWriter() {
+        return new DenseOrderedWriter();
+      }
+    },
+    SPARSE {
+      @Override
+      OrderedWriter newWriter() {
+        return new SparseOrderedWriter();
+      }
+    },
+    UNOPTIMIZED {
+      @Override
+      OrderedWriter newWriter() {
+        return new UnoptimizedOrderedWriter();
+      }
+    }
+    ;
+    abstract OrderedWriter newWriter();
+  }
+
   @Param({"100", "1000", "10000", "100000", "1000000", "10000000"})
   int size;
 
   @Param({"0.1", "0.5", "0.9"})
   double randomness;
 
-  @Param({"DENSE", "SPARSE", "ADAPTIVE", "UNOPTIMIZED"})
-  String writerType;
+  @Param({"DENSE", "SPARSE", "UNOPTIMIZED"})
+  Scenario scenario;
 
   int[] data;
 
@@ -68,41 +91,26 @@ public class WriteSequential {
 
   @Benchmark
   public RoaringBitmap incrementalUseOrderedWriter() {
-    RoaringBitmap bitmap = new RoaringBitmap();
-    OrderedWriter writer = createWriter(bitmap);
+    OrderedWriter writer = scenario.newWriter();
     for (int i = 0; i < data.length; ++i) {
       writer.add(data[i]);
     }
     writer.flush();
-    return bitmap;
+    return writer.getUnderlying();
   }
 
-  private OrderedWriter createWriter(final RoaringBitmap roaringBitmap) {
-    switch (writerType) {
-      case "SPARSE":
-        return new SparseOrderedWriter(roaringBitmap);
-      case "DENSE":
-        return new DenseOrderedWriter(roaringBitmap);
-      case "ADAPTIVE":
-        return new AdaptiveOrderedWriter(roaringBitmap);
-      case "UNOPTIMIZED":
-        return new UnoptimizedOrderedWriter(roaringBitmap);
-      default:
-        throw new IllegalStateException("Unknown OrderedWriter implementation: " + writerType);
-    }
-  }
+  public static class UnoptimizedOrderedWriter implements OrderedWriter {
 
-  class UnoptimizedOrderedWriter implements OrderedWriter {
+    private final RoaringBitmap roaringBitmap = new RoaringBitmap();
 
-    private final RoaringBitmap roaringBitmap;
-
-    UnoptimizedOrderedWriter(RoaringBitmap roaringBitmap) {
-      this.roaringBitmap = roaringBitmap;
+    @Override
+    public RoaringBitmap getUnderlying() {
+      return roaringBitmap;
     }
 
     @Override
     public void add(int value) {
-      this.roaringBitmap.add(value);
+      roaringBitmap.add(value);
     }
 
     @Override
