@@ -2,76 +2,80 @@ package org.roaringbitmap;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
-@RunWith(Parameterized.class)
+import static org.junit.Assert.assertEquals;
+
 public class TestOrderedWriter {
 
-  private final String writerType;
-
-  public TestOrderedWriter(String writerType) {
-    this.writerType = writerType;
-  }
-
-  @Parameterized.Parameters
-  public static Object[][] params() {
-    return new Object[][]
-        {
-            {"DENSE"},
-            {"SPARSE"},
-            {"ADAPTIVE"}
-        };
-  }
-
-  private OrderedWriter createWriter(final RoaringBitmap roaringBitmap) {
-    switch (writerType) {
-      case "SPARSE":
-        return new SparseOrderedWriter(roaringBitmap);
-      case "DENSE":
-        return new DenseOrderedWriter(roaringBitmap);
-      case "ADAPTIVE":
-        return new AdaptiveOrderedWriter(roaringBitmap);
-      default:
-        throw new IllegalStateException("Unknown OrderedWriter implementation: " + writerType);
-    }
-  }
-
-  @Test(expected = IllegalStateException.class)
-  public void shouldThrowWhenAddingInReverseOrder() {
-    OrderedWriter writer = createWriter(new RoaringBitmap());
-    writer.add(1 << 17);
-    writer.add(0);
+  @Test
+  public void shouldPermitAddingInReverseOrder_Sparse() {
+    addInReverseOrder(new SparseOrderedWriter(new RoaringBitmap()));
   }
 
   @Test
-  public void bitmapShouldContainAllValuesAfterFlush() {
-    RoaringBitmap bitmap = new RoaringBitmap();
-    OrderedWriter writer = createWriter(bitmap);
+  public void shouldPermitAddingInReverseOrder_Dense() {
+    addInReverseOrder(new DenseOrderedWriter(new RoaringBitmap()));
+  }
+
+  public void addInReverseOrder(OrderedWriter writer) {
+    writer.add(1 << 17);
+    writer.add(0);
+    writer.flush();
+    assertEquals(RoaringBitmap.bitmapOf(0, 1 << 17), writer.getUnderlying());
+  }
+
+  @Test
+  public void bitmapShouldContainAllValuesAfterFlush_Sparse() {
+    bitmapShouldContainAllValuesAfterFlush(new SparseOrderedWriter());
+  }
+
+  @Test
+  public void bitmapShouldContainAllValuesAfterFlush_Dense() {
+    bitmapShouldContainAllValuesAfterFlush(new DenseOrderedWriter());
+  }
+
+  public void bitmapShouldContainAllValuesAfterFlush(OrderedWriter writer) {
     writer.add(0);
     writer.add(1 << 17);
     writer.flush();
-    Assert.assertTrue(bitmap.contains(0));
-    Assert.assertTrue(bitmap.contains(1 << 17));
+    Assert.assertTrue(writer.getUnderlying().contains(0));
+    Assert.assertTrue(writer.getUnderlying().contains(1 << 17));
   }
 
   @Test
-  public void newKeyShouldTriggerFlush() {
-    RoaringBitmap bitmap = new RoaringBitmap();
-    OrderedWriter writer = createWriter(bitmap);
-    writer.add(0);
-    writer.add(1 << 17);
-    Assert.assertTrue(bitmap.contains(0));
-    writer.add(1 << 18);
-    Assert.assertTrue(bitmap.contains(1 << 17));
+  public void newKeyShouldTriggerFlush_Dense() {
+    newKeyShouldTriggerFlush(new DenseOrderedWriter());
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void shouldThrowIfSameKeyIsWrittenToAfterManualFlush() {
-    OrderedWriter writer = createWriter(new RoaringBitmap());
+  @Test
+  public void newKeyShouldTriggerFlush_Sparse() {
+    newKeyShouldTriggerFlush(new SparseOrderedWriter());
+  }
+
+  public void newKeyShouldTriggerFlush(OrderedWriter writer) {
+    writer.add(0);
+    writer.add(1 << 17);
+    Assert.assertTrue(writer.getUnderlying().contains(0));
+    writer.add(1 << 18);
+    Assert.assertTrue(writer.getUnderlying().contains(1 << 17));
+  }
+
+
+  @Test
+  public void shouldPermitWritingToSameKeyAfterManualFlush_Dense() {
+    writeSameKeyAfterManualFlush(new DenseOrderedWriter());
+  }
+
+  @Test
+  public void shouldPermitWritingToSameKeyAfterManualFlush_Sparse() {
+    writeSameKeyAfterManualFlush(new DenseOrderedWriter());
+  }
+
+  public void writeSameKeyAfterManualFlush(OrderedWriter writer) {
     writer.add(0);
     writer.flush();
     writer.add(1);
     writer.flush();
+    assertEquals(RoaringBitmap.bitmapOf(0, 1), writer.getUnderlying());
   }
 }
