@@ -25,6 +25,14 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
   private boolean cumulatedCardinalitiesCacheIsValid = false;
   private int[] highToCumulatedCardinality = null;
 
+  public FastRankRoaringBitmap() {
+    super();
+  }
+
+  public FastRankRoaringBitmap(RoaringArray array) {
+    super(array);
+  }
+
   private void resetCache() {
     // Reset the cache on any write operation
     if (highToCumulatedCardinality != null && highToCumulatedCardinality.length >= 1) {

@@ -10,13 +10,14 @@ import java.util.Arrays;
 import java.util.NoSuchElementException;
 
 import static org.roaringbitmap.Util.compareUnsigned;
+import static org.roaringbitmap.Util.toIntUnsigned;
 
 
 /**
  * Specialized array to store the containers used by a RoaringBitmap. This is not meant to be used
  * by end users.
  */
-public final class RoaringArray implements Cloneable, Externalizable {
+public final class RoaringArray implements Cloneable, Externalizable, AppendableStorage<Container> {
   protected static final short SERIAL_COOKIE_NO_RUNCONTAINER = 12346;
   protected static final short SERIAL_COOKIE = 12347;
   protected static final int NO_OFFSET_THRESHOLD = 4;
@@ -35,7 +36,11 @@ public final class RoaringArray implements Cloneable, Externalizable {
   int size = 0;
 
   protected RoaringArray() {
-    this(new short[INITIAL_CAPACITY], new Container[INITIAL_CAPACITY], 0);
+    this(INITIAL_CAPACITY);
+  }
+
+  RoaringArray(int initialCapacity) {
+    this(new short[initialCapacity], new Container[initialCapacity], 0);
   }
 
 
@@ -100,12 +105,16 @@ public final class RoaringArray implements Cloneable, Externalizable {
     return upper;
   }
 
-  protected void append(short key, Container value) {
-    assert !value.isEmpty();
+  @Override
+  public void append(short key, Container value) {
+    if (size > 0 && compareUnsigned(key, keys[size - 1]) < 0) {
+      throw new IllegalArgumentException("append only: "
+              + toIntUnsigned(key) + " < " + toIntUnsigned(keys[size - 1]));
+    }
     extendArray(1);
-    this.keys[this.size] = key;
-    this.values[this.size] = value;
-    this.size++;
+    keys[size] = key;
+    values[size] = value;
+    size++;
   }
 
   void append(RoaringArray roaringArray) {

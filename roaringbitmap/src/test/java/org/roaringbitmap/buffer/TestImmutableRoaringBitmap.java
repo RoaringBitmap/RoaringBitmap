@@ -6,8 +6,8 @@ package org.roaringbitmap.buffer;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.roaringbitmap.DenseOrderedWriter;
 import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.RoaringBitmapWriter;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -1438,12 +1438,12 @@ public class TestImmutableRoaringBitmap {
 
   @Test
   public void testContainsRange_DirtyBitmap() {
-    DenseOrderedWriter writer = new DenseOrderedWriter();
+    RoaringBitmapWriter<MutableRoaringBitmap> writer = RoaringBitmapWriter.bufferWriter().constantMemory().get();
     IntStream.range(0, 1_000_000)
             .map(i -> i * 2)
             .forEach(writer::add);
     writer.flush();
-    MutableRoaringBitmap bitmap = writer.getUnderlying().toMutableRoaringBitmap();
+    MutableRoaringBitmap bitmap = writer.getUnderlying();
     assertFalse(bitmap.contains(0L, 2_000_000L));
     assertFalse(bitmap.contains(0L, 2L));
     assertTrue(bitmap.contains(0L, 1L));

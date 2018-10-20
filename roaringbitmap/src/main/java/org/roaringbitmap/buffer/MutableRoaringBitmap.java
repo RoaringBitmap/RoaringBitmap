@@ -4,12 +4,7 @@
 
 package org.roaringbitmap.buffer;
 
-import org.roaringbitmap.BitmapDataProvider;
-import org.roaringbitmap.ContainerPointer;
-import org.roaringbitmap.RoaringBitmap;
-import org.roaringbitmap.ShortIterator;
-import org.roaringbitmap.InvalidRoaringFormat;
-import org.roaringbitmap.Util;
+import org.roaringbitmap.*;
 
 import java.io.*;
 import java.util.Iterator;
@@ -65,7 +60,8 @@ import java.util.Iterator;
  * @see org.roaringbitmap.RoaringBitmap
  */
 public class MutableRoaringBitmap extends ImmutableRoaringBitmap
-    implements Cloneable, Serializable, Iterable<Integer>, Externalizable, BitmapDataProvider {
+    implements Cloneable, Serializable, Iterable<Integer>, Externalizable,
+        BitmapDataProvider, HasAppendableStorage<MappeableContainer> {
   private static final long serialVersionUID = 4L; // 3L; bumped by ofk for runcontainers
 
   /**
@@ -1568,5 +1564,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    */
   public static long maximumSerializedSize(int cardinality, int universe_size) {
     return RoaringBitmap.maximumSerializedSize(cardinality, universe_size);
+  }
+
+  @Override
+  public AppendableStorage<MappeableContainer> getStorage() {
+    return (MutableRoaringArray) highLowContainer;
   }
 }

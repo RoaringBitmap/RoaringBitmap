@@ -15,7 +15,8 @@ import org.roaringbitmap.buffer.MappeableContainer;
 /**
  * Base container class.
  */
-public abstract class Container implements Iterable<Short>, Cloneable, Externalizable {
+public abstract class Container implements Iterable<Short>, Cloneable, Externalizable,
+        WordStorage<Container> {
 
   /**
    * Create a container initialized with a range of consecutive values

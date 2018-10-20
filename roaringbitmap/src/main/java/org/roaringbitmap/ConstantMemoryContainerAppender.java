@@ -2,6 +2,8 @@ package org.roaringbitmap;
 
 import java.util.Arrays;
 
+import static org.roaringbitmap.Util.*;
+
 
 /**
  * This class can be used to write quickly values to a bitmap.
@@ -10,7 +12,7 @@ import java.util.Arrays;
  * the underlying bitmap can forcefully synchronize by calling "flush"
  * (although calling flush to often would defeat the performance
  * purpose of this class).
- * The main use case for an DenseOrderedWriter is to create bitmaps quickly.
+ * The main use case for an ConstantMemoryContainerAppender is to get bitmaps quickly.
  * You should benchmark your particular use case to see if it helps.
  *
  * <pre>
@@ -18,38 +20,35 @@ import java.util.Arrays;
  *
  *       //...
  *
- *       RoaringBitmap r = new RoaringBitmap();
- *       DenseOrderedWriter ow = new DenseOrderedWriter(r);
+ *
+ *       RoaringBitmapWriter<RoaringBitmap> writer =
+ *            RoaringBitmapWriter.writer().constantMemory().get();
  *       for (int i :....) {
- *         ow.add(i);
+ *         writer.add(i);
  *       }
- *       ow.flush(); // important
+ *       writer.flush(); // important
  * }
  * </pre>
  */
-public class DenseOrderedWriter implements OrderedWriter {
+public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
+        & HasAppendableStorage<Container>> implements Appender<Container, T> {
 
+  private boolean doPartialSort;
   private static final int WORD_COUNT = 1 << 10;
   private final long[] bitmap;
-  private final RoaringBitmap underlying;
+  private final T underlying;
   private boolean dirty = false;
   private short currentKey;
 
   /**
-   * Initialize an DenseOrderedWriter with a receiving bitmap
+   * Initialize an ConstantMemoryContainerAppender with a receiving bitmap
    *
    * @param underlying bitmap where the data gets written
    */
-  public DenseOrderedWriter(RoaringBitmap underlying) {
+  ConstantMemoryContainerAppender(boolean doPartialSort, T underlying) {
     this.underlying = underlying;
+    this.doPartialSort = doPartialSort;
     this.bitmap = new long[WORD_COUNT];
-  }
-
-  /**
-   * Initialize an DenseOrderedWriter and construct a new RoaringBitmap
-   */
-  public DenseOrderedWriter() {
-    this(new RoaringBitmap());
   }
 
   /**
@@ -57,7 +56,8 @@ public class DenseOrderedWriter implements OrderedWriter {
    *
    * @return the underlying bitmap
    */
-  public RoaringBitmap getUnderlying() {
+  @Override
+  public T getUnderlying() {
     return underlying;
   }
 
@@ -70,22 +70,40 @@ public class DenseOrderedWriter implements OrderedWriter {
    */
   @Override
   public void add(int value) {
-    short key = Util.highbits(value);
-    short low = Util.lowbits(value);
+    short key = highbits(value);
     if (key != currentKey) {
-      if (Util.compareUnsigned(key, currentKey) < 0) {
+      if (compareUnsigned(key, currentKey) < 0) {
         underlying.add(value);
         return;
       } else {
         flush();
       }
+      currentKey = key;
     }
-    int ulow = low & 0xFFFF;
-    bitmap[(ulow >>> 6)] |= (1L << ulow);
-    currentKey = key;
+    int low = lowbits(value) & 0xFFFF;
+    bitmap[(low >>> 6)] |= (1L << low);
     dirty = true;
   }
 
+  @Override
+  public void addMany(int... values) {
+    if (doPartialSort) {
+      partialRadixSort(values);
+    }
+    for (int value : values) {
+      add(value);
+    }
+  }
+
+  @Override
+  public void add(long min, long max) {
+    flush();
+    underlying.add(min, max);
+    short mark = (short)((max >>> 16) + 1);
+    if (compareUnsigned(currentKey, mark) < 0) {
+      currentKey = mark;
+    }
+  }
 
   /**
    * Ensures that any buffered additions are flushed to the underlying bitmap.
@@ -93,27 +111,16 @@ public class DenseOrderedWriter implements OrderedWriter {
   @Override
   public void flush() {
     if (dirty) {
-      RoaringArray highLowContainer = underlying.highLowContainer;
-      // we check that it's safe to append since RoaringArray.append does no validation
-      if (highLowContainer.size > 0) {
-        short key = highLowContainer.getKeyAtIndex(highLowContainer.size - 1);
-        if (Util.compareUnsigned(currentKey, key) <= 0) {
-          throw new IllegalStateException("Cannot write " + currentKey + " after " + key);
-        }
-      }
-      highLowContainer.append(currentKey, chooseBestContainer());
-      clearBitmap();
+      underlying.getStorage().append(currentKey, chooseBestContainer());
+      Arrays.fill(bitmap, 0L);
       dirty = false;
       ++currentKey;
     }
   }
 
   private Container chooseBestContainer() {
-    Container container = new BitmapContainer(bitmap, -1).repairAfterLazy().runOptimize();
+    Container container = new BitmapContainer(bitmap, -1)
+            .repairAfterLazy().runOptimize();
     return container instanceof BitmapContainer ? container.clone() : container;
-  }
-
-  private void clearBitmap() {
-    Arrays.fill(bitmap, 0L);
   }
 }

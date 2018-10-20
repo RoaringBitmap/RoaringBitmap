@@ -6,7 +6,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -14,27 +13,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static junit.framework.TestCase.assertTrue;
+import static org.roaringbitmap.RandomisedTestData.randomBitmap;
+import static org.roaringbitmap.RoaringBitmapWriter.writer;
+
 @RunWith(Parameterized.class)
 public class TestRankIterator {
 
   @Parameterized.Parameters(name = "{index}: advance by {1}")
   public static Collection<Object[]> parameters() {
-    RoaringBitmap bm = RandomisedTestData.randomBitmap(1 << 12);
-    FastRankRoaringBitmap fast = new FastRankRoaringBitmap();
-    fast.or(bm);
-    fast.runOptimize();
-
+    FastRankRoaringBitmap fast = getBitmap();
     Assert.assertTrue(fast.isCacheDismissed());
-
-    List<Integer> primes = Arrays.asList(0, 1, 3, 5, 7, 11);
-    List<Integer> powers = IntStream.range(0, 18).mapToObj(i -> 1 << i).collect(Collectors.toList());
-
-    List<Integer> advances = Lists.cartesianProduct(primes, powers).stream()
-                                  .map(l -> l.get(0) * l.get(1))
-                                  .distinct().sorted()
-                                  .collect(Collectors.toList());
-
-    return Lists.cartesianProduct(Collections.singletonList(fast), advances)
+    return Lists.cartesianProduct(Collections.singletonList(fast), computeAdvances())
                 .stream().map(List::toArray).collect(Collectors.toList());
   }
 
@@ -52,7 +42,6 @@ public class TestRankIterator {
       System.out.println("next: " + ms + "ms");
     } else {
       testBitmapRanksOnAdvance(bitmap, advance);
-      long end = System.nanoTime();
       long ms = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
       System.out.println("advance by " + advance + ": " + ms + "ms");
     }
@@ -84,5 +73,20 @@ public class TestRankIterator {
         break;
       }
     }
+  }
+
+  private static List<Integer> computeAdvances() {
+    return IntStream.of(0, 1, 3, 5, 7, 11)
+            .flatMap(i -> IntStream.range(0, 18).map(j -> i * (1 << j)))
+            .boxed()
+            .distinct()
+            .collect(Collectors.toList());
+  }
+
+  private static FastRankRoaringBitmap getBitmap() {
+    FastRankRoaringBitmap bitmap = randomBitmap(50,
+            writer().fastRank().initialCapacity(50).constantMemory().get());
+    assertTrue(bitmap.isCacheDismissed());
+    return bitmap;
   }
 }

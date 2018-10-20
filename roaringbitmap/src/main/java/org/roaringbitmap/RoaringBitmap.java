@@ -18,7 +18,7 @@ import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MappeableContainerPointer;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
-import static org.roaringbitmap.Util.partialRadixSort;
+import static org.roaringbitmap.RoaringBitmapWriter.writer;
 
 
 /**
@@ -53,7 +53,7 @@ import static org.roaringbitmap.Util.partialRadixSort;
 
 
 public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>, Externalizable,
-    ImmutableBitmapDataProvider, BitmapDataProvider {
+    ImmutableBitmapDataProvider, BitmapDataProvider, HasAppendableStorage<Container> {
 
   private final class RoaringIntIterator implements PeekableIntIterator {
     private int hs = 0;
@@ -533,14 +533,11 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @return a new bitmap
    */
   public static RoaringBitmap bitmapOfUnordered(final int... data) {
-    partialRadixSort(data);
-    RoaringBitmap bitmap = new RoaringBitmap();
-    OrderedWriter writer = new DenseOrderedWriter(bitmap);
-    for (int i : data) {
-      writer.add(i);
-    }
+    RoaringBitmapWriter<RoaringBitmap> writer = writer().constantMemory()
+            .doPartialRadixSort().get();
+    writer.addMany(data);
     writer.flush();
-    return bitmap;
+    return writer.getUnderlying();
   }
 
   /**
@@ -2510,6 +2507,11 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       pos2 += c.getCardinality();
     }
     return array;
+  }
+
+  @Override
+  public AppendableStorage getStorage() {
+    return highLowContainer;
   }
 
 
