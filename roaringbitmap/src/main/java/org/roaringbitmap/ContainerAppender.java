@@ -30,7 +30,7 @@ import static org.roaringbitmap.Util.*;
  * </pre>
  */
 public class ContainerAppender<C extends WordStorage<C>,
-        T extends BitmapDataProvider & HasAppendableStorage<C>>
+        T extends BitmapDataProvider & AppendableStorage<C>>
         implements Appender<C, T> {
 
 
@@ -108,7 +108,7 @@ public class ContainerAppender<C extends WordStorage<C>,
   @Override
   public void flush() {
     if (!container.isEmpty()) {
-      underlying.getStorage().append(currentKey, container.runOptimize());
+      underlying.append(currentKey, container.runOptimize());
       ++currentKey;
       container = newContainer.get();
     }

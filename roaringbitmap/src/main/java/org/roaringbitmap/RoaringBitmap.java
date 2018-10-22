@@ -53,7 +53,7 @@ import static org.roaringbitmap.RoaringBitmapWriter.writer;
 
 
 public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>, Externalizable,
-    ImmutableBitmapDataProvider, BitmapDataProvider, HasAppendableStorage<Container> {
+    ImmutableBitmapDataProvider, BitmapDataProvider, AppendableStorage<Container> {
 
   private final class RoaringIntIterator implements PeekableIntIterator {
     private int hs = 0;
@@ -2510,10 +2510,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   }
 
   @Override
-  public AppendableStorage getStorage() {
-    return highLowContainer;
+  public void append(short key, Container container) {
+    highLowContainer.append(key, container);
   }
-
 
   /**
    *

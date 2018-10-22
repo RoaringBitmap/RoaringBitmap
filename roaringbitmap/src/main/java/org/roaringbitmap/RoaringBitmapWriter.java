@@ -15,7 +15,7 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
   }
 
   abstract class Wizard<C extends WordStorage<C>,
-          T extends BitmapDataProvider & HasAppendableStorage<C>>
+          T extends BitmapDataProvider & AppendableStorage<C>>
           implements Supplier<RoaringBitmapWriter<T>> {
 
     protected int initialCapacity = RoaringArray.INITIAL_CAPACITY;

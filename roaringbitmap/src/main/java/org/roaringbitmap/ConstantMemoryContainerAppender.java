@@ -31,7 +31,7 @@ import static org.roaringbitmap.Util.*;
  * </pre>
  */
 public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
-        & HasAppendableStorage<Container>> implements Appender<Container, T> {
+        & AppendableStorage<Container>> implements Appender<Container, T> {
 
   private boolean doPartialSort;
   private static final int WORD_COUNT = 1 << 10;
@@ -111,7 +111,7 @@ public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
   @Override
   public void flush() {
     if (dirty) {
-      underlying.getStorage().append(currentKey, chooseBestContainer());
+      underlying.append(currentKey, chooseBestContainer());
       Arrays.fill(bitmap, 0L);
       dirty = false;
       ++currentKey;
