@@ -31,7 +31,7 @@ import static org.roaringbitmap.Util.*;
  */
 public class ContainerAppender<C extends WordStorage<C>,
         T extends BitmapDataProvider & AppendableStorage<C>>
-        implements Appender<C, T> {
+        implements RoaringBitmapWriter<T> {
 
 
   final private boolean doPartialSort;

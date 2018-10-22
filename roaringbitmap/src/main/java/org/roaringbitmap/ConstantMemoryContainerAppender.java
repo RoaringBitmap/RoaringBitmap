@@ -31,7 +31,7 @@ import static org.roaringbitmap.Util.*;
  * </pre>
  */
 public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
-        & AppendableStorage<Container>> implements Appender<Container, T> {
+        & AppendableStorage<Container>> implements RoaringBitmapWriter<T> {
 
   private boolean doPartialSort;
   private static final int WORD_COUNT = 1 << 10;
