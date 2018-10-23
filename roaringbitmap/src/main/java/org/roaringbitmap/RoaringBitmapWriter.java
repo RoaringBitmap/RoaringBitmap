@@ -22,6 +22,7 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
     protected boolean constantMemory;
     protected boolean partiallySortValues = false;
     protected Supplier<C> containerSupplier;
+    protected int expectedContainerSize = 16;
 
     Wizard() {
       containerSupplier = arraySupplier();
@@ -63,6 +64,7 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
      */
     public Wizard<C, T> expectedValuesPerContainer(int count) {
       sanityCheck(count);
+      this.expectedContainerSize = count;
       if (count < ArrayContainer.DEFAULT_MAX_SIZE) {
         return optimiseForArrays();
       } else if (count < 1 << 14) {
@@ -167,7 +169,7 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
 
     @Override
     protected Supplier<MappeableContainer> arraySupplier() {
-      return MappeableArrayContainer::new;
+      return () -> new MappeableArrayContainer(expectedContainerSize);
     }
 
     @Override
@@ -190,7 +192,7 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
 
     @Override
     protected Supplier<Container> arraySupplier() {
-      return ArrayContainer::new;
+      return () -> new ArrayContainer(expectedContainerSize);
     }
 
     @Override
