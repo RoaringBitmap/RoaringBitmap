@@ -8,7 +8,9 @@ import org.junit.runners.Parameterized;
 import java.util.function.Supplier;
 
 import static java.lang.Integer.*;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.roaringbitmap.RoaringBitmapWriter.bufferWriter;
 import static org.roaringbitmap.RoaringBitmapWriter.writer;
 
 @RunWith(Parameterized.class)
@@ -57,27 +59,46 @@ public class TestRoaringBitmapWriter {
                     {writer().optimiseForArrays().expectedRange(toUnsignedLong(MAX_VALUE), toUnsignedLong(MIN_VALUE)).fastRank()},
                     {writer().optimiseForRuns().expectedRange(toUnsignedLong(MAX_VALUE), toUnsignedLong(MIN_VALUE)).fastRank()},
                     {writer().constantMemory().expectedRange(toUnsignedLong(MAX_VALUE), toUnsignedLong(MIN_VALUE)).fastRank()},
+                    {bufferWriter().optimiseForBitmaps()},
+                    {bufferWriter().optimiseForArrays()},
+                    {bufferWriter().optimiseForRuns()},
+                    {bufferWriter().constantMemory()},
+                    {bufferWriter().expectedDensity(0.001)},
+                    {bufferWriter().expectedDensity(0.01)},
+                    {bufferWriter().expectedDensity(0.1)},
+                    {bufferWriter().expectedDensity(0.6)},
+                    {bufferWriter().initialCapacity(1)},
+                    {bufferWriter().initialCapacity(8)},
+                    {bufferWriter().initialCapacity(8192)},
+                    {bufferWriter().optimiseForBitmaps().expectedRange(0, toUnsignedLong(MIN_VALUE))},
+                    {bufferWriter().optimiseForArrays().expectedRange(0, toUnsignedLong(MIN_VALUE))},
+                    {bufferWriter().optimiseForRuns().expectedRange(0, toUnsignedLong(MIN_VALUE))},
+                    {bufferWriter().constantMemory().expectedRange(0, toUnsignedLong(MIN_VALUE))},
+                    {bufferWriter().optimiseForBitmaps().expectedRange(toUnsignedLong(MAX_VALUE), toUnsignedLong(MIN_VALUE))},
+                    {bufferWriter().optimiseForArrays().expectedRange(toUnsignedLong(MAX_VALUE), toUnsignedLong(MIN_VALUE))},
+                    {bufferWriter().optimiseForRuns().expectedRange(toUnsignedLong(MAX_VALUE), toUnsignedLong(MIN_VALUE))},
+                    {bufferWriter().constantMemory().expectedRange(toUnsignedLong(MAX_VALUE), toUnsignedLong(MIN_VALUE))}
             };
   }
 
-  private final Supplier<RoaringBitmapWriter<? extends RoaringBitmap>> supplier;
+  private final Supplier<RoaringBitmapWriter<? extends BitmapDataProvider>> supplier;
 
-  public TestRoaringBitmapWriter(Supplier<RoaringBitmapWriter<? extends RoaringBitmap>> supplier) {
+  public TestRoaringBitmapWriter(Supplier<RoaringBitmapWriter<? extends BitmapDataProvider>> supplier) {
     this.supplier = supplier;
   }
 
   @Test
   public void addInReverseOrder() {
-    RoaringBitmapWriter writer = supplier.get();
+    RoaringBitmapWriter<? extends BitmapDataProvider> writer = supplier.get();
     writer.add(1 << 17);
     writer.add(0);
     writer.flush();
-    assertEquals(RoaringBitmap.bitmapOf(0, 1 << 17), writer.getUnderlying());
+    assertArrayEquals(RoaringBitmap.bitmapOf(0, 1 << 17).toArray(), writer.getUnderlying().toArray());
   }
 
   @Test
   public void bitmapShouldContainAllValuesAfterFlush() {
-    RoaringBitmapWriter writer = supplier.get();
+    RoaringBitmapWriter<? extends BitmapDataProvider> writer = supplier.get();
     writer.add(0);
     writer.add(1 << 17);
     writer.flush();
@@ -88,7 +109,7 @@ public class TestRoaringBitmapWriter {
 
   @Test
   public void newKeyShouldTriggerFlush() {
-    RoaringBitmapWriter writer = supplier.get();
+    RoaringBitmapWriter<? extends BitmapDataProvider> writer = supplier.get();
     writer.add(0);
     writer.add(1 << 17);
     Assert.assertTrue(writer.getUnderlying().contains(0));
@@ -98,18 +119,18 @@ public class TestRoaringBitmapWriter {
 
   @Test
   public void writeSameKeyAfterManualFlush() {
-    RoaringBitmapWriter writer = supplier.get();
+    RoaringBitmapWriter<? extends BitmapDataProvider> writer = supplier.get();
     writer.add(0);
     writer.flush();
     writer.add(1);
     writer.flush();
-    assertEquals(RoaringBitmap.bitmapOf(0, 1), writer.getUnderlying());
+    assertArrayEquals(RoaringBitmap.bitmapOf(0, 1).toArray(), writer.getUnderlying().toArray());
   }
 
 
   @Test
   public void writeRange() {
-    RoaringBitmapWriter writer = supplier.get();
+    RoaringBitmapWriter<? extends BitmapDataProvider> writer = supplier.get();
     writer.add(0);
     writer.add(65500L, 65600L);
     writer.add(1);
@@ -117,7 +138,7 @@ public class TestRoaringBitmapWriter {
     writer.flush();
     RoaringBitmap expected = RoaringBitmap.bitmapOf(0, 1, 65610);
     expected.add(65500L, 65600L);
-    assertEquals(expected, writer.getUnderlying());
+    assertArrayEquals(expected.toArray(), writer.getUnderlying().toArray());
   }
 
   @Test
@@ -126,8 +147,8 @@ public class TestRoaringBitmapWriter {
     writer.add(0);
     writer.add(-2);
     writer.flush();
-    assertEquals(RoaringBitmap.bitmapOf(0, -2), writer.get());
+    assertArrayEquals(RoaringBitmap.bitmapOf(0, -2).toArray(), writer.get().toArray());
     writer.add(-1);
-    assertEquals(RoaringBitmap.bitmapOf(0, -2, -1), writer.get());
+    assertArrayEquals(RoaringBitmap.bitmapOf(0, -2, -1).toArray(), writer.get().toArray());
   }
 }
