@@ -34,11 +34,11 @@ public class ContainerAppender<C extends WordStorage<C>,
         implements RoaringBitmapWriter<T> {
 
 
-  final private boolean doPartialSort;
+  private final boolean doPartialSort;
   private final T underlying;
   private final Supplier<C> newContainer;
   private C container;
-  private short currentKey;
+  private int currentKey;
 
   /**
    * Initialize an ContainerAppender with a receiving bitmap
@@ -69,25 +69,25 @@ public class ContainerAppender<C extends WordStorage<C>,
    */
   @Override
   public void add(int value) {
-    short key = highbits(value);
+    int key = toIntUnsigned(highbits(value));
     if (key != currentKey) {
-      if (compareUnsigned(key, currentKey) < 0) {
+      if (key < currentKey) {
         underlying.add(value);
         return;
       } else {
-        flush();
+        appendToUnderlying();
+        currentKey = key;
       }
-      currentKey = key;
     }
     container = container.add(lowbits(value));
   }
 
   @Override
   public void add(long min, long max) {
-    flush();
+    appendToUnderlying();
     underlying.add(min, max);
-    short mark = (short)((max >>> 16) + 1);
-    if (compareUnsigned(currentKey, mark) < 0) {
+    int mark = (int)((max >>> 16) + 1);
+    if (currentKey < mark) {
       currentKey = mark;
     }
   }
@@ -107,10 +107,16 @@ public class ContainerAppender<C extends WordStorage<C>,
    */
   @Override
   public void flush() {
+    currentKey += appendToUnderlying();
+  }
+
+  private int appendToUnderlying() {
     if (!container.isEmpty()) {
-      underlying.append(currentKey, container.runOptimize());
-      ++currentKey;
+      assert currentKey <= 0xFFFF;
+      underlying.append((short)currentKey, container.runOptimize());
       container = newContainer.get();
+      return 1;
     }
+    return 0;
   }
 }

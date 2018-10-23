@@ -60,9 +60,9 @@ public class TestRoaringBitmapWriter {
             };
   }
 
-  private final Supplier<RoaringBitmapWriter> supplier;
+  private final Supplier<RoaringBitmapWriter<? extends RoaringBitmap>> supplier;
 
-  public TestRoaringBitmapWriter(Supplier<RoaringBitmapWriter> supplier) {
+  public TestRoaringBitmapWriter(Supplier<RoaringBitmapWriter<? extends RoaringBitmap>> supplier) {
     this.supplier = supplier;
   }
 
@@ -118,5 +118,16 @@ public class TestRoaringBitmapWriter {
     RoaringBitmap expected = RoaringBitmap.bitmapOf(0, 1, 65610);
     expected.add(65500L, 65600L);
     assertEquals(expected, writer.getUnderlying());
+  }
+
+  @Test
+  public void testWriteToMaxKeyAfterFlush() {
+    RoaringBitmapWriter writer = supplier.get();
+    writer.add(0);
+    writer.add(-2);
+    writer.flush();
+    assertEquals(RoaringBitmap.bitmapOf(0, -2), writer.get());
+    writer.add(-1);
+    assertEquals(RoaringBitmap.bitmapOf(0, -2, -1), writer.get());
   }
 }

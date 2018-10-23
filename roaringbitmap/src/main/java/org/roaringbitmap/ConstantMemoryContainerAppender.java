@@ -38,7 +38,7 @@ public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
   private final long[] bitmap;
   private final T underlying;
   private boolean dirty = false;
-  private short currentKey;
+  private int currentKey;
 
   /**
    * Initialize an ConstantMemoryContainerAppender with a receiving bitmap
@@ -70,17 +70,17 @@ public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
    */
   @Override
   public void add(int value) {
-    short key = highbits(value);
+    int key = toIntUnsigned(highbits(value));
     if (key != currentKey) {
-      if (compareUnsigned(key, currentKey) < 0) {
+      if (key < currentKey) {
         underlying.add(value);
         return;
       } else {
-        flush();
+        appendToUnderlying();
+        currentKey = key;
       }
-      currentKey = key;
     }
-    int low = lowbits(value) & 0xFFFF;
+    int low = toIntUnsigned(lowbits(value));
     bitmap[(low >>> 6)] |= (1L << low);
     dirty = true;
   }
@@ -97,10 +97,10 @@ public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
 
   @Override
   public void add(long min, long max) {
-    flush();
+    appendToUnderlying();
     underlying.add(min, max);
-    short mark = (short)((max >>> 16) + 1);
-    if (compareUnsigned(currentKey, mark) < 0) {
+    int mark = (int)((max >>> 16) + 1);
+    if (currentKey < mark) {
       currentKey = mark;
     }
   }
@@ -110,17 +110,23 @@ public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
    */
   @Override
   public void flush() {
-    if (dirty) {
-      underlying.append(currentKey, chooseBestContainer());
-      Arrays.fill(bitmap, 0L);
-      dirty = false;
-      ++currentKey;
-    }
+    currentKey += appendToUnderlying();
   }
 
   private Container chooseBestContainer() {
     Container container = new BitmapContainer(bitmap, -1)
             .repairAfterLazy().runOptimize();
     return container instanceof BitmapContainer ? container.clone() : container;
+  }
+
+  private int appendToUnderlying() {
+    if (dirty) {
+      assert currentKey <= 0xFFFF;
+      underlying.append((short) currentKey, chooseBestContainer());
+      Arrays.fill(bitmap, 0L);
+      dirty = false;
+      return 1;
+    }
+    return 0;
   }
 }
