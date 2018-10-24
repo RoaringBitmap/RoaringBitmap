@@ -18,7 +18,7 @@
         <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
         
         <checkstyle.configLocation>${basedir}/../roaringbitmap/style/roaring_google_checks.xml</checkstyle.configLocation>
-        <instrumenter.version>3.1.0</instrumenter.version>
+        <instrumenter.version>3.2.0</instrumenter.version>
         <instrumenter.artifact>java-allocation-instrumenter</instrumenter.artifact>
         <instrumenter>com/google/code/${instrumenter.artifact}/${instrumenter.artifact}/${instrumenter.version}/${instrumenter.artifact}-${instrumenter.version}.jar</instrumenter>
     </properties>
