@@ -411,10 +411,6 @@ You can also run specific benchmarks...
 
          $ ./jmh/run.sh org.roaringbitmap.aggregation.and.identical.*
 
-To run memory benchmarks, use the following command:
-
-         $ ./memory/run.sh
-
 
 Mailing list/discussion group
 -----------------------------
