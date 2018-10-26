@@ -151,8 +151,8 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
      */
     @Override
     public RoaringBitmapWriter<T> get() {
-      return new ContainerAppender<>(partiallySortValues,
-              createUnderlying(initialCapacity), containerSupplier);
+      return new ContainerAppender<>(
+              partiallySortValues, () -> createUnderlying(initialCapacity), containerSupplier);
     }
 
     private static void sanityCheck(int count) {
@@ -213,8 +213,8 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
     @Override
     public RoaringBitmapWriter<T> get() {
       if (constantMemory) {
-        return new ConstantMemoryContainerAppender<>(partiallySortValues,
-                createUnderlying(initialCapacity));
+        return new ConstantMemoryContainerAppender<>(
+                partiallySortValues, () -> createUnderlying(initialCapacity));
       }
       return super.get();
     }
@@ -282,4 +282,9 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
     flush();
     return getUnderlying();
   }
+
+  /**
+   * Resets the writer so it can be reused, must release the reference to the underlying bitmap
+   */
+  void reset();
 }

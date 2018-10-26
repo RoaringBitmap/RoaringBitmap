@@ -1,6 +1,7 @@
 package org.roaringbitmap;
 
 import java.util.Arrays;
+import java.util.function.Supplier;
 
 import static org.roaringbitmap.Util.*;
 
@@ -36,17 +37,20 @@ public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
   private boolean doPartialSort;
   private static final int WORD_COUNT = 1 << 10;
   private final long[] bitmap;
-  private final T underlying;
+  private final Supplier<T> newUnderlying;
+  private T underlying;
   private boolean dirty = false;
   private int currentKey;
 
   /**
    * Initialize an ConstantMemoryContainerAppender with a receiving bitmap
    *
-   * @param underlying bitmap where the data gets written
+   * @param doPartialSort indicates whether to sort the upper 16 bits of input data in addMany
+   * @param newUnderlying supplier of bitmaps where the data gets written
    */
-  ConstantMemoryContainerAppender(boolean doPartialSort, T underlying) {
-    this.underlying = underlying;
+  ConstantMemoryContainerAppender(boolean doPartialSort, Supplier<T> newUnderlying) {
+    this.newUnderlying = newUnderlying;
+    this.underlying = newUnderlying.get();
     this.doPartialSort = doPartialSort;
     this.bitmap = new long[WORD_COUNT];
   }
@@ -111,6 +115,13 @@ public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
   @Override
   public void flush() {
     currentKey += appendToUnderlying();
+  }
+
+  @Override
+  public void reset() {
+    currentKey = 0;
+    underlying = newUnderlying.get();
+    dirty = false;
   }
 
   private Container chooseBestContainer() {

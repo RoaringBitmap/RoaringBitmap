@@ -151,4 +151,17 @@ public class TestRoaringBitmapWriter {
     writer.add(-1);
     assertArrayEquals(RoaringBitmap.bitmapOf(0, -2, -1).toArray(), writer.get().toArray());
   }
+
+
+  @Test
+  public void testWriteBitmapAfterReset() {
+    RoaringBitmapWriter writer = supplier.get();
+    writer.add(0);
+    writer.add(-2);
+    assertArrayEquals(new int[] {0, -2}, writer.get().toArray());
+    writer.reset();
+    writer.add(100);
+    writer.addMany(4, 5, 6);
+    assertArrayEquals(new int[] {4, 5, 6, 100}, writer.get().toArray());
+  }
 }

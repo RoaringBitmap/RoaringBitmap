@@ -35,18 +35,20 @@ public class ContainerAppender<C extends WordStorage<C>,
 
 
   private final boolean doPartialSort;
-  private final T underlying;
   private final Supplier<C> newContainer;
+  private final Supplier<T> newUnderlying;
   private C container;
+  private T underlying;
   private int currentKey;
 
   /**
    * Initialize an ContainerAppender with a receiving bitmap
    *
    */
-  ContainerAppender(boolean doPartialSort, T bitmap, Supplier<C> newContainer) {
+  ContainerAppender(boolean doPartialSort, Supplier<T> newUnderlying, Supplier<C> newContainer) {
     this.doPartialSort = doPartialSort;
-    this.underlying = bitmap;
+    this.newUnderlying = newUnderlying;
+    this.underlying = newUnderlying.get();
     this.newContainer = newContainer;
     this.container = newContainer.get();
   }
@@ -108,6 +110,13 @@ public class ContainerAppender<C extends WordStorage<C>,
   @Override
   public void flush() {
     currentKey += appendToUnderlying();
+  }
+
+  @Override
+  public void reset() {
+    currentKey = 0;
+    container = newContainer.get();
+    underlying = newUnderlying.get();
   }
 
   private int appendToUnderlying() {
