@@ -6,6 +6,7 @@ package org.roaringbitmap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.roaringbitmap.RoaringBitmapWriter.writer;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ContiguousSet;
@@ -4650,7 +4651,7 @@ public class TestRoaringBitmap {
 
   @Test
   public void testContainsRange_DirtyBitmap() {
-    DenseOrderedWriter writer = new DenseOrderedWriter();
+    RoaringBitmapWriter<RoaringBitmap> writer = writer().constantMemory().get();
     IntStream.range(0, 1_000_000)
             .map(i -> i * 2)
             .forEach(writer::add);

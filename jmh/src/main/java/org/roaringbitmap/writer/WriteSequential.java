@@ -16,24 +16,18 @@ public class WriteSequential {
   public enum Scenario {
     DENSE {
       @Override
-      OrderedWriter newWriter() {
-        return new DenseOrderedWriter();
+      RoaringBitmapWriter<RoaringBitmap> newWriter() {
+        return RoaringBitmapWriter.writer().constantMemory().get();
       }
     },
     SPARSE {
       @Override
-      OrderedWriter newWriter() {
-        return new SparseOrderedWriter();
-      }
-    },
-    UNOPTIMIZED {
-      @Override
-      OrderedWriter newWriter() {
-        return new UnoptimizedOrderedWriter();
+      RoaringBitmapWriter<RoaringBitmap> newWriter() {
+        return RoaringBitmapWriter.writer().optimiseForArrays().get();
       }
     }
     ;
-    abstract OrderedWriter newWriter();
+    abstract RoaringBitmapWriter newWriter();
   }
 
   @Param({"100", "1000", "10000", "100000", "1000000", "10000000"})
@@ -42,7 +36,7 @@ public class WriteSequential {
   @Param({"0.1", "0.5", "0.9"})
   double randomness;
 
-  @Param({"DENSE", "SPARSE", "UNOPTIMIZED"})
+  @Param({"DENSE", "SPARSE"})
   Scenario scenario;
 
   int[] data;
@@ -91,7 +85,7 @@ public class WriteSequential {
 
   @Benchmark
   public RoaringBitmap incrementalUseOrderedWriter() {
-    OrderedWriter writer = scenario.newWriter();
+    RoaringBitmapWriter<RoaringBitmap> writer = scenario.newWriter();
     for (int i = 0; i < data.length; ++i) {
       writer.add(data[i]);
     }
@@ -99,24 +93,4 @@ public class WriteSequential {
     return writer.getUnderlying();
   }
 
-  public static class UnoptimizedOrderedWriter implements OrderedWriter {
-
-    private final RoaringBitmap roaringBitmap = new RoaringBitmap();
-
-    @Override
-    public RoaringBitmap getUnderlying() {
-      return roaringBitmap;
-    }
-
-    @Override
-    public void add(int value) {
-      roaringBitmap.add(value);
-    }
-
-    @Override
-    public void flush() {
-
-    }
-
-  }
 }

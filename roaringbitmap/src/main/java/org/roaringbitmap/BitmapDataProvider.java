@@ -14,17 +14,24 @@ public interface BitmapDataProvider extends ImmutableBitmapDataProvider {
    *
    * @param x integer value
    */
-  public void add(int x);
+  void add(int x);
+
+  /**
+   * Add a range of values to the bitmap
+   * @param min the inclusive minimum value
+   * @param sup the exclusive maximum value
+   */
+  void add(long min, long sup);
 
   /**
    * If present remove the specified integers (effectively, sets its bit value to false)
    *
    * @param x integer value representing the index in a bitmap
    */
-  public void remove(int x);
+  void remove(int x);
 
   /**
    * Recover allocated but unused memory.
    */
-  public void trim();
+  void trim();
 }

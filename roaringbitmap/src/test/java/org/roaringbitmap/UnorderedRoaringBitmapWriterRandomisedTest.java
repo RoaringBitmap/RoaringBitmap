@@ -13,12 +13,13 @@ import java.util.Random;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(Parameterized.class)
-public class UnorderedWriterRandomisedTest {
+public class UnorderedRoaringBitmapWriterRandomisedTest {
 
 
   @Parameterized.Parameters
   public static Object[][] tests() {
     return new Object[][] {
+            {generateUnorderedArray(0)},
             {generateUnorderedArray(10)},
             {generateUnorderedArray(100)},
             {generateUnorderedArray(1000)},
@@ -31,7 +32,7 @@ public class UnorderedWriterRandomisedTest {
 
   private final int[] data;
 
-  public UnorderedWriterRandomisedTest(int[] data) {
+  public UnorderedRoaringBitmapWriterRandomisedTest(int[] data) {
     this.data = data;
   }
 
@@ -51,6 +52,9 @@ public class UnorderedWriterRandomisedTest {
   }
 
   private static int[] generateUnorderedArray(int size) {
+    if (size == 0) {
+      return new int[0];
+    }
     Random random = new Random();
     List<Integer> ints = new ArrayList<>(size);
     int last = 0;
