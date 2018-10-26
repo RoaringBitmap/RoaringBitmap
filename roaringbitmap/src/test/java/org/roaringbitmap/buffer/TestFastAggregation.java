@@ -135,7 +135,7 @@ public class TestFastAggregation {
     ImmutableRoaringBitmap data2 = toMapped(rb2);
     ImmutableRoaringBitmap data3 = toMapped(rb3);
     MutableRoaringBitmap mrb = data1.clone().toMutableRoaringBitmap();
-    mrb.add(100,10000);
+    mrb.add(100L,10000L);
     Assert.assertEquals(mrb, BufferFastAggregation.or(data1,data2,data3));
   }
 

@@ -368,7 +368,7 @@ public class TestRoaringBitmap_FastRank {
   public void testDismissCache_addIntRange() {
     FastRankRoaringBitmap fast = prepareFastWithComputedCache();
 
-    fast.add(0, 2);
+    fast.add(0L, 2L);
     Assert.assertTrue(fast.isCacheDismissed());
   }
 
@@ -400,7 +400,7 @@ public class TestRoaringBitmap_FastRank {
   public void testDismissCache_flipIntRange() {
     FastRankRoaringBitmap fast = prepareFastWithComputedCache();
 
-    fast.flip(0, 2);
+    fast.flip(0L, 2);
     Assert.assertTrue(fast.isCacheDismissed());
   }
 
@@ -424,7 +424,7 @@ public class TestRoaringBitmap_FastRank {
   public void testDismissCache_removeIntRange() {
     FastRankRoaringBitmap fast = prepareFastWithComputedCache();
 
-    fast.remove(0, 2);
+    fast.remove(0L, 2);
     Assert.assertTrue(fast.isCacheDismissed());
   }
 

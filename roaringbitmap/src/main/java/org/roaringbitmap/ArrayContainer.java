@@ -601,10 +601,6 @@ public final class ArrayContainer extends Container implements Cloneable {
     this.content = Arrays.copyOf(this.content, newCapacity);
   }
 
-  private void increaseCapacity(int min) {
-    this.content = Arrays.copyOf(this.content, calculateCapacity(min));
-  }
-
   private int calculateCapacity(int min) {
     int newCapacity =
         (this.content.length == 0) ? DEFAULT_INIT_SIZE

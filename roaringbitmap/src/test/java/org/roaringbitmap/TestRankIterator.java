@@ -17,7 +17,8 @@ import java.util.stream.IntStream;
 @RunWith(Parameterized.class)
 public class TestRankIterator {
 
-  @Parameterized.Parameters(name = "{index}: advance by {1}")
+  @SuppressWarnings("unchecked")
+@Parameterized.Parameters(name = "{index}: advance by {1}")
   public static Collection<Object[]> parameters() {
     RoaringBitmap bm = RandomisedTestData.randomBitmap(1 << 12);
     FastRankRoaringBitmap fast = new FastRankRoaringBitmap();
@@ -52,7 +53,6 @@ public class TestRankIterator {
       System.out.println("next: " + ms + "ms");
     } else {
       testBitmapRanksOnAdvance(bitmap, advance);
-      long end = System.nanoTime();
       long ms = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
       System.out.println("advance by " + advance + ": " + ms + "ms");
     }

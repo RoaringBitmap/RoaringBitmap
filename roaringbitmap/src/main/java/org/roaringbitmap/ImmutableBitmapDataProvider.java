@@ -133,6 +133,14 @@ public interface ImmutableBitmapDataProvider {
   long rankLong(int x);
 
   /**
+  * Computes the number of values in the interval [start,end) where
+  * start is included and end excluded.
+  * rangeCardinality(0,1L<<32) provides the total cardinality (getLongCardinality).
+  * The answer is a 64-bit value between 1 and 1L<<32. 
+  */
+  long rangeCardinality(long start, long end);
+
+  /**
    * Return the jth value stored in this bitmap. The provided value 
    * needs to be smaller than the cardinality otherwise an 
    * IllegalArgumentException
