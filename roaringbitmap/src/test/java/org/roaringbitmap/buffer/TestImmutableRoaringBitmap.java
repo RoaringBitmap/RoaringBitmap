@@ -331,7 +331,7 @@ public class TestImmutableRoaringBitmap {
     final MutableRoaringBitmap rb = new MutableRoaringBitmap();
     rb.add(0);
     rb.add(2);
-    final MutableRoaringBitmap rb2 = MutableRoaringBitmap.flip(rb, 0, 3);
+    final MutableRoaringBitmap rb2 = MutableRoaringBitmap.flip(rb, 0L, 3);
     final MutableRoaringBitmap result = new MutableRoaringBitmap();
     result.add(1);
 
@@ -345,7 +345,7 @@ public class TestImmutableRoaringBitmap {
     final MutableRoaringBitmap rb = new MutableRoaringBitmap();
     rb.add(0);
     rb.add(2);
-    final MutableRoaringBitmap rb2 = ImmutableRoaringBitmap.flip(rb, 0, 3);
+    final MutableRoaringBitmap rb2 = ImmutableRoaringBitmap.flip(rb, 0L, 3);
     final MutableRoaringBitmap result = new MutableRoaringBitmap();
     result.add(1);
 
@@ -639,7 +639,8 @@ public class TestImmutableRoaringBitmap {
 
 
 
-  @Test
+  @SuppressWarnings("resource")
+@Test
   public void testHighBits() throws IOException {
     // version without any runcontainers (earlier serialization version)
     for (int offset = 1 << 14; offset < 1 << 18; offset *= 2) {
@@ -941,14 +942,14 @@ public class TestImmutableRoaringBitmap {
       unionSet.addAll(set1);
       unionSet.addAll(set2);
       for (int iter = 0; iter < NUM_ITER; iter++) {
-        int rangeStart = random.nextInt(length - 1);
+        long rangeStart = random.nextInt(length - 1);
         // +1 to ensure rangeEnd >rangeStart, may
-        int rangeLength = random.nextInt(length - rangeStart) + 1;
-        int rangeEnd = rangeStart + rangeLength;
+        long rangeLength = random.nextInt(length - (int)rangeStart) + 1;
+        long rangeEnd = rangeStart + rangeLength;
         Set<Integer> expectedResultSet = new TreeSet<>();
-        for (int i = rangeStart; i < rangeEnd; i++) {
+        for (int i = (int)rangeStart; i < rangeEnd; i++) {
           if (unionSet.contains(i)) {
-            expectedResultSet.add(i);
+            expectedResultSet.add((int)i);
           }
         }
         List<ImmutableRoaringBitmap> list = new ArrayList<>();
@@ -992,8 +993,8 @@ public class TestImmutableRoaringBitmap {
       for (int iter = 0; iter < NUM_ITER; iter++) {
         int rangeStart = random.nextInt(length - 1);
         // +1 to ensure rangeEnd >rangeStart, may
-        int rangeLength = random.nextInt(length - rangeStart) + 1;
-        int rangeEnd = rangeStart + rangeLength;
+        long rangeLength = random.nextInt(length - rangeStart) + 1;
+        long rangeEnd = rangeStart + rangeLength;
         Set<Integer> expectedResultSet = new TreeSet<>();
         for (int i = rangeStart; i < rangeEnd; i++) {
           if (intersectionSet.contains(i)) {
@@ -1044,12 +1045,12 @@ public class TestImmutableRoaringBitmap {
 
       xorSet.removeAll(andSet);
       for (int iter = 0; iter < NUM_ITER; iter++) {
-        int rangeStart = random.nextInt(length - 1);
+        long rangeStart = random.nextInt(length - 1);
         // +1 to ensure rangeEnd >rangeStart, may
-        int rangeLength = random.nextInt(length - rangeStart) + 1;
-        int rangeEnd = rangeStart + rangeLength;
+        long rangeLength = random.nextInt(length - (int)rangeStart) + 1;
+        long rangeEnd = rangeStart + rangeLength;
         Set<Integer> expectedResultSet = new TreeSet<>();
-        for (int i = rangeStart; i < rangeEnd; i++) {
+        for (int i = (int)rangeStart; i < rangeEnd; i++) {
           if (xorSet.contains(i)) {
             expectedResultSet.add(i);
           }
@@ -1099,8 +1100,8 @@ public class TestImmutableRoaringBitmap {
       for (int iter = 0; iter < NUM_ITER; iter++) {
         int rangeStart = random.nextInt(length - 1);
         // +1 to ensure rangeEnd >rangeStart, may
-        int rangeLength = random.nextInt(length - rangeStart) + 1;
-        int rangeEnd = rangeStart + rangeLength;
+        long rangeLength = random.nextInt(length - rangeStart) + 1;
+        long rangeEnd = rangeStart + rangeLength;
         Set<Integer> expectedResultSet = new TreeSet<>();
         for (int i = rangeStart; i < rangeEnd; i++) {
           if (andNotSet.contains(i)) {

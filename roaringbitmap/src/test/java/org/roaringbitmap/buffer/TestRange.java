@@ -428,20 +428,20 @@ public class TestRange {
     assertTrue(rb2.equals(rb));
     assertTrue(TestRoaringBitmap.equals(bs, rb2));
 
-    MutableRoaringBitmap rb3 = MutableRoaringBitmap.add(rb2, 6407, 6460);
+    MutableRoaringBitmap rb3 = MutableRoaringBitmap.add(rb2, 6407L, 6460);
     bs.set(6407, 6460);
     assertTrue(TestRoaringBitmap.equals(bs, rb3));
     rb2.add(6407L, 6460L);
     assertTrue(rb2.equals(rb3));
 
-    rb3 = MutableRoaringBitmap.add(rb3, (65536 * 3) + 3, (65536 * 3) + 60);
+    rb3 = MutableRoaringBitmap.add(rb3, (65536 * 3) + 3L, (65536 * 3) + 60);
     rb2.add((65536L * 3) + 3, (65536L * 3) + 60);
     bs.set((65536 * 3) + 3, (65536 * 3) + 60);
     assertTrue(rb2.equals(rb3));
     assertTrue(TestRoaringBitmap.equals(bs, rb3));
 
 
-    rb3 = MutableRoaringBitmap.add(rb3, 65536 * 3 + 195, 65536 * 3 + 245);
+    rb3 = MutableRoaringBitmap.add(rb3, 65536 * 3 + 195L, 65536 * 3 + 245);
     bs.set(65536 * 3 + 195, 65536 * 3 + 245);
     rb2.add(65536L * 3 + 195, 65536L * 3 + 245);
     assertTrue(rb2.equals(rb3));
@@ -461,7 +461,7 @@ public class TestRange {
     assertTrue(rb2.equals(rb3));
     assertTrue(TestRoaringBitmap.equals(bs, rb3));
 
-    rb3 = MutableRoaringBitmap.remove(rb3, (65536 * 3) + 3, (65536 * 3) + 60);
+    rb3 = MutableRoaringBitmap.remove(rb3, (65536 * 3) + 3L, (65536 * 3) + 60);
     bs.clear((65536 * 3) + 3, (65536 * 3) + 60);
     rb2.remove((65536L * 3) + 3, (65536L * 3) + 60);
 

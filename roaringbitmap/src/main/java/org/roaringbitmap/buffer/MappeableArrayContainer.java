@@ -693,15 +693,6 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     newContent.put(this.content);
     this.content = newContent;
   }
-
-
-  // not thread safe!
-  private void increaseCapacity(int min) {
-    final ShortBuffer newContent = ShortBuffer.allocate(calculateCapacity(min));
-    this.content.rewind();
-    newContent.put(this.content);
-    this.content = newContent;
-  }
   
   private int calculateCapacity(int min){
     int len = this.content.limit();

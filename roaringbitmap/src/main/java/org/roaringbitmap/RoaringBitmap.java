@@ -1186,7 +1186,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @param rangeEnd exclusive ending of range
    * @return new result bitmap
    */
-  public static RoaringBitmap and(@SuppressWarnings("rawtypes") final Iterator bitmaps,
+  public static RoaringBitmap and(final Iterator<? extends RoaringBitmap> bitmaps,
       final long rangeStart, final long rangeEnd) {
     rangeSanityCheck(rangeStart, rangeEnd);
 
@@ -1211,7 +1211,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @deprecated use the version where longs specify the range. Negative range end are illegal.
    */
   @Deprecated
-  public static RoaringBitmap and(@SuppressWarnings("rawtypes") final Iterator bitmaps,
+  public static RoaringBitmap and(final Iterator<? extends RoaringBitmap> bitmaps,
       final int rangeStart, final int rangeEnd) {
     return and(bitmaps, (long) rangeStart, (long) rangeEnd);
   }
@@ -1993,7 +1993,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @param rangeEnd exclusive ending of range
    * @return new result bitmap
    */
-  public static RoaringBitmap or(@SuppressWarnings("rawtypes") final Iterator bitmaps,
+  public static RoaringBitmap or(final Iterator<? extends RoaringBitmap> bitmaps,
       final long rangeStart, final long rangeEnd) {
     rangeSanityCheck(rangeStart, rangeEnd);
 
@@ -2014,7 +2014,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    *     Negative range points are forbidden.
    */
   @Deprecated
-  public static RoaringBitmap or(@SuppressWarnings("rawtypes") final Iterator bitmaps,
+  public static RoaringBitmap or(final Iterator<? extends RoaringBitmap> bitmaps,
           final int rangeStart, final int rangeEnd) {
     return or(bitmaps, (long) rangeStart, (long) rangeEnd);
   }
@@ -2045,6 +2045,41 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     }
     return size;
   }
+
+  @Override
+  public long rangeCardinality(long start, long end) {
+    if(Long.compareUnsigned(start, end) >= 0) {
+      return 0;
+    }
+    long size = 0;
+    int startidx = this.highLowContainer.getIndex(Util.highbits(start));
+    if(startidx < 0)  {
+      startidx = - startidx;
+    } else {
+      short in_cont_start = Util.lowbits(start);
+      if(in_cont_start != 0) {
+        size -= this.highLowContainer
+          .getContainerAtIndex(startidx)
+          .rank((short)(in_cont_start - 1));
+      }
+    }
+    short xhigh = Util.highbits(end - 1);
+    for (int i = startidx; i < this.highLowContainer.size(); i++) {
+      short key = this.highLowContainer.getKeyAtIndex(i);
+      int comparison = Util.compareUnsigned(key, xhigh);
+      if (comparison < 0) {
+        size += this.highLowContainer
+          .getContainerAtIndex(i).getCardinality();
+      } else if (comparison == 0) {
+        return size + this.highLowContainer
+          .getContainerAtIndex(i)
+                .rank(Util.lowbits((int)(end - 1)));
+      }
+    }
+    return size;    
+  }
+
+
 
   @Override
   public int rank(int x) {
@@ -2400,7 +2435,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @param rangeEnd exclusive
    * @return new iterator of bitmaps
    */
-  private static Iterator<RoaringBitmap> selectRangeWithoutCopy(final Iterator bitmaps,
+  private static Iterator<RoaringBitmap> selectRangeWithoutCopy(final 
+      Iterator<? extends RoaringBitmap> bitmaps,
       final long rangeStart, final long rangeEnd) {
     Iterator<RoaringBitmap> bitmapsIterator;
     bitmapsIterator = new Iterator<RoaringBitmap>() {
@@ -2411,7 +2447,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
       @Override
       public RoaringBitmap next() {
-        RoaringBitmap next = (RoaringBitmap) bitmaps.next();
+        RoaringBitmap next = bitmaps.next();
         return selectRangeWithoutCopy(next, rangeStart, rangeEnd);
       }
 
@@ -2628,7 +2664,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @param rangeEnd exclusive ending of range
    * @return new result bitmap
    */
-  public static RoaringBitmap xor(@SuppressWarnings("rawtypes") final Iterator bitmaps,
+  public static RoaringBitmap xor(final Iterator<? extends RoaringBitmap> bitmaps,
       final long rangeStart, final long rangeEnd) {
     rangeSanityCheck(rangeStart, rangeEnd);
     Iterator<RoaringBitmap> bitmapsIterator;
@@ -2648,7 +2684,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    *     Negative values not allowed for rangeStart and rangeEnd
    */
   @Deprecated
-  public static RoaringBitmap xor(@SuppressWarnings("rawtypes") final Iterator bitmaps,
+  public static RoaringBitmap xor(final Iterator<? extends RoaringBitmap> bitmaps,
           final int rangeStart, final int rangeEnd) {
     return xor(bitmaps, (long) rangeStart, (long) rangeEnd);
   }

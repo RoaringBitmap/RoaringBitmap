@@ -4,8 +4,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.roaringbitmap.ArrayContainer;
-import org.roaringbitmap.Container;
 import org.roaringbitmap.ContainerBatchIterator;
 import org.roaringbitmap.RandomisedTestData;
 

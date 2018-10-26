@@ -126,35 +126,6 @@ public class TestFastAggregation {
     }
 
     @Test
-    public void testHorizontalOrWithIterator() {
-        final RoaringBitmap b1 = RoaringBitmap.bitmapOf(1, 2);
-        final RoaringBitmap b2 = RoaringBitmap.bitmapOf(2, 3);
-        final RoaringBitmap bItResult = FastAggregation.horizontal_or(Arrays.asList(b1, b2).iterator());
-        assertTrue(bItResult.contains(1));
-        assertTrue(bItResult.contains(2));
-        assertTrue(bItResult.contains(3));
-        final RoaringBitmap bListResult = FastAggregation.horizontal_or(Arrays.asList(b1, b2));
-        assertTrue(bListResult.contains(1));
-        assertTrue(bListResult.contains(2));
-        assertTrue(bListResult.contains(3));
-
-        final ExtendedRoaringBitmap eb1 = new ExtendedRoaringBitmap();
-        eb1.add(1);
-        eb1.add(2);
-        final ExtendedRoaringBitmap eb2 = new ExtendedRoaringBitmap();
-        eb2.add(2);
-        eb2.add(3);
-        final RoaringBitmap ebItResult = FastAggregation.horizontal_or(Arrays.asList(b1, b2).iterator());
-        assertTrue(ebItResult.contains(1));
-        assertTrue(ebItResult.contains(2));
-        assertTrue(ebItResult.contains(3));
-        final RoaringBitmap ebListResult = FastAggregation.horizontal_or(Arrays.asList(b1, b2));
-        assertTrue(ebListResult.contains(1));
-        assertTrue(ebListResult.contains(2));
-        assertTrue(ebListResult.contains(3));
-    }
-
-    @Test
     public void testNaiveOrWithIterator() {
         final RoaringBitmap b1 = RoaringBitmap.bitmapOf(1, 2);
         final RoaringBitmap b2 = RoaringBitmap.bitmapOf(2, 3);

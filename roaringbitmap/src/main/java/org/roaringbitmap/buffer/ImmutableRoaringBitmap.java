@@ -213,7 +213,7 @@ public class ImmutableRoaringBitmap
    * @param rangeEnd exclusive ending of range
    * @return new result bitmap
    */
-  public static MutableRoaringBitmap and(@SuppressWarnings("rawtypes") final Iterator bitmaps,
+  public static MutableRoaringBitmap and(final Iterator<? extends ImmutableRoaringBitmap> bitmaps,
       final long rangeStart, final long rangeEnd) {
     MutableRoaringBitmap.rangeSanityCheck(rangeStart,rangeEnd);
     Iterator<ImmutableRoaringBitmap> bitmapsIterator;
@@ -233,7 +233,7 @@ public class ImmutableRoaringBitmap
    * @deprecated use the version where longs specify the range. Negative range end are illegal.
    */
   @Deprecated
-  public static MutableRoaringBitmap and(@SuppressWarnings("rawtypes") final Iterator bitmaps,
+  public static MutableRoaringBitmap and(final Iterator<? extends ImmutableRoaringBitmap> bitmaps,
       final int rangeStart, final int rangeEnd) {
     return and(bitmaps, (long) rangeStart, (long) rangeEnd);
   }
@@ -533,7 +533,8 @@ public class ImmutableRoaringBitmap
    * @param rangeEnd exclusive
    * @return new iterator of bitmaps
    */
-  private static Iterator<ImmutableRoaringBitmap> selectRangeWithoutCopy(final Iterator bitmaps,
+  private static Iterator<ImmutableRoaringBitmap> selectRangeWithoutCopy(
+      final Iterator<? extends ImmutableRoaringBitmap> bitmaps,
       final long rangeStart, final long rangeEnd) {
     Iterator<ImmutableRoaringBitmap> bitmapsIterator;
     bitmapsIterator = new Iterator<ImmutableRoaringBitmap>() {
@@ -544,7 +545,7 @@ public class ImmutableRoaringBitmap
 
       @Override
       public ImmutableRoaringBitmap next() {
-        ImmutableRoaringBitmap next = (ImmutableRoaringBitmap) bitmaps.next();
+        ImmutableRoaringBitmap next = bitmaps.next();
         return selectRangeWithoutCopy(next, rangeStart, rangeEnd);
       }
 
@@ -778,7 +779,7 @@ public class ImmutableRoaringBitmap
    * @param bitmaps input bitmaps
    * @return aggregated bitmap
    */
-  public static MutableRoaringBitmap or(@SuppressWarnings("rawtypes") Iterator bitmaps) {
+  public static MutableRoaringBitmap or(Iterator<? extends ImmutableRoaringBitmap> bitmaps) {
     return BufferFastAggregation.or(bitmaps);
   }
 
@@ -791,7 +792,7 @@ public class ImmutableRoaringBitmap
    * @param rangeEnd exclusive ending of range
    * @return new result bitmap
    */
-  public static MutableRoaringBitmap or(@SuppressWarnings("rawtypes") final Iterator bitmaps,
+  public static MutableRoaringBitmap or(final Iterator<? extends ImmutableRoaringBitmap> bitmaps,
       final long rangeStart, final long rangeEnd) {
     MutableRoaringBitmap.rangeSanityCheck(rangeStart, rangeEnd);
     Iterator<ImmutableRoaringBitmap> bitmapsIterator;
@@ -811,7 +812,7 @@ public class ImmutableRoaringBitmap
    *     Negative range points are forbidden.
    */
   @Deprecated
-  public static MutableRoaringBitmap or(@SuppressWarnings("rawtypes") final Iterator bitmaps,
+  public static MutableRoaringBitmap or(final Iterator<? extends ImmutableRoaringBitmap> bitmaps,
           final int rangeStart, final int rangeEnd) {
     return or(bitmaps, (long) rangeStart, (long) rangeEnd);
   }
@@ -847,7 +848,7 @@ public class ImmutableRoaringBitmap
    * @param rangeEnd exclusive ending of range
    * @return new result bitmap
    */
-  public static MutableRoaringBitmap xor(@SuppressWarnings("rawtypes") final Iterator bitmaps,
+  public static MutableRoaringBitmap xor(final Iterator<? extends ImmutableRoaringBitmap> bitmaps,
       final long rangeStart, final long rangeEnd) {
     Iterator<ImmutableRoaringBitmap> bitmapsIterator;
     bitmapsIterator = selectRangeWithoutCopy(bitmaps, rangeStart, rangeEnd);
@@ -867,7 +868,7 @@ public class ImmutableRoaringBitmap
    *     Negative values not allowed for rangeStart and rangeEnd
    */
   @Deprecated
-  public static MutableRoaringBitmap xor(@SuppressWarnings("rawtypes") final Iterator bitmaps,
+  public static MutableRoaringBitmap xor(final Iterator<? extends ImmutableRoaringBitmap> bitmaps,
           final int rangeStart, final int rangeEnd) {
     return xor(bitmaps, (long) rangeStart, (long) rangeEnd);
   }
@@ -1451,6 +1452,40 @@ public class ImmutableRoaringBitmap
       }
     }
     return size;
+  }
+
+
+  @Override
+  public long rangeCardinality(long start, long end) {
+    if(Long.compareUnsigned(start, end) >= 0) {
+      return 0;
+    }
+    long size = 0;
+    int startidx = this.highLowContainer.getIndex(BufferUtil.highbits(start));
+    if(startidx < 0)  {
+      startidx = - startidx;
+    } else {
+      short in_cont_start = BufferUtil.lowbits(start);
+      if(in_cont_start != 0) {
+        size -= this.highLowContainer
+          .getContainerAtIndex(startidx)
+          .rank((short)(in_cont_start - 1));
+      }
+    }
+    short xhigh = BufferUtil.highbits(end - 1);
+    for (int i = startidx; i < this.highLowContainer.size(); i++) {
+      short key = this.highLowContainer.getKeyAtIndex(i);
+      int comparison = BufferUtil.compareUnsigned(key, xhigh);
+      if (comparison < 0) {
+        size += this.highLowContainer
+          .getContainerAtIndex(i).getCardinality();
+      } else if (comparison == 0) {
+        return size + this.highLowContainer
+          .getContainerAtIndex(i)
+          .rank(BufferUtil.lowbits((int)(end - 1)));
+      }
+    }
+    return size;    
   }
 
   @Override
