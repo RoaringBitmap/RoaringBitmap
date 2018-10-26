@@ -17,8 +17,7 @@ public class RandomData {
   }
 
   public static RoaringBitmap randomBitmap(int maxKeys, double rleLimit, double denseLimit) {
-    int[] keys = createSorted16BitInts(maxKeys);
-    return forKeys(keys, rleLimit, denseLimit);
+    return forKeys(createSorted16BitInts(maxKeys), rleLimit, denseLimit);
   }
 
   public static IntStream rleRegion() {
@@ -63,7 +62,7 @@ public class RandomData {
   }
 
   private static RoaringBitmap forKeys(int[] keys, double rleLimit, double denseLimit) {
-    DenseOrderedWriter writer = new DenseOrderedWriter();
+    RoaringBitmapWriter<RoaringBitmap> writer = RoaringBitmapWriter.writer().optimiseForArrays().get();
     IntStream.of(keys)
             .forEach(key -> {
               double choice = ThreadLocalRandom.current().nextDouble();

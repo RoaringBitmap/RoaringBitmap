@@ -15,7 +15,8 @@ import java.util.NoSuchElementException;
  * Base container class. This class is similar to org.roaringbitmap.Container but meant to be used
  * with memory mapping.
  */
-public abstract class MappeableContainer implements Iterable<Short>, Cloneable, Externalizable {
+public abstract class MappeableContainer implements Iterable<Short>, Cloneable, Externalizable,
+        WordStorage<MappeableContainer> {
   /**
    * Create a container initialized with a range of consecutive values
    * 

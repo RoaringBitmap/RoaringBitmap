@@ -6,6 +6,8 @@ import org.roaringbitmap.*;
 import java.util.BitSet;
 import java.util.stream.IntStream;
 
+import static org.roaringbitmap.RoaringBitmapWriter.writer;
+
 @State(Scope.Benchmark)
 @Fork(value = 1, jvmArgsPrepend =
         {
@@ -101,7 +103,7 @@ public class Concatenation {
   @Benchmark
   public RoaringBitmap roaringBatchOrderedWriter() {
     int[] buffer = new int[256];
-    DenseOrderedWriter writer = new DenseOrderedWriter();
+    RoaringBitmapWriter<RoaringBitmap> writer = writer().constantMemory().get();
       for(int i = 0; i < bitSets.length; ++i) {
         BitSetWithOffset bit = bitSets[i];
         RoaringBatchIterator iterator = bit.bitmap.getBatchIterator();
