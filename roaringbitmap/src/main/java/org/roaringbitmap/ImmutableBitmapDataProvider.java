@@ -135,8 +135,12 @@ public interface ImmutableBitmapDataProvider {
   /**
   * Computes the number of values in the interval [start,end) where
   * start is included and end excluded.
-  * rangeCardinality(0,1L<<32) provides the total cardinality (getLongCardinality).
-  * The answer is a 64-bit value between 1 and 1L<<32. 
+  * rangeCardinality(0,0x100000000) provides the total cardinality (getLongCardinality).
+  * The answer is a 64-bit value between 1 and 0x100000000. 
+  * 
+  * @param start lower limit (included)
+  * @param end upper limit (excluded)
+  * @return the number of elements in [start,end), between 0 and 0x100000000.
   */
   long rangeCardinality(long start, long end);
 
