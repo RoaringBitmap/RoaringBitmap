@@ -15,15 +15,15 @@ public class NaiveWriterRecommender {
     }
     StringBuilder sb = new StringBuilder();
     containerCountRecommendations(s, sb);
-    double acFraction = s.containerFraction(s.getArrayContainersStats().containersCount);
+    double acFraction = s.containerFraction(s.getArrayContainersStats().getContainersCount());
     if (acFraction > ArrayContainersDomination) {
-      if (s.arrayContainersStats.averageCardinality() < WorthUsingArraysCardinalityThreshold) {
+      if (s.getArrayContainersStats().averageCardinality() < WorthUsingArraysCardinalityThreshold) {
         arrayContainerRecommendations(s, sb);
       } else {
         denseArrayWarning(sb);
         constantMemoryRecommendation(s, sb);
       }
-    } else if (s.containerFraction(s.runContainerCount) > RunContainersDomination) {
+    } else if (s.containerFraction(s.getRunContainerCount()) > RunContainersDomination) {
       runContainerRecommendations(sb);
     } else {
       constantMemoryRecommendation(s, sb);
@@ -33,9 +33,9 @@ public class NaiveWriterRecommender {
 
   private static void denseArrayWarning(StringBuilder sb) {
     sb
-      .append("Most of your containers are array containers")
-      .append(", but with quite significant cardinality.\n")
-      .append("It should be better to start with .constantMemory()")
+      .append("Most of your containers are array containers, ")
+      .append("but with quite significant cardinality.\n")
+      .append("It should be better to start with .constantMemory() ")
       .append("that can scale down to ArrayContainer anyway.");
   }
 
@@ -49,7 +49,7 @@ public class NaiveWriterRecommender {
   }
 
   private static void constantMemoryRecommendation(BitmapStatistics s, StringBuilder sb) {
-    long buffersSizeBytes = s.bitmapsCount * Long.BYTES * 1024L;
+    long buffersSizeBytes = s.getBitmapsCount() * Long.BYTES * 1024L;
     long bufferSizeMiB = buffersSizeBytes / (1024 * 1024);
     sb
       .append(".constantMemory() is sensible default for most use cases.\n")
@@ -59,7 +59,7 @@ public class NaiveWriterRecommender {
   }
 
   private static void arrayContainerRecommendations(BitmapStatistics s, StringBuilder sb) {
-    double acFraction = s.containerFraction(s.getArrayContainersStats().containersCount);
+    double acFraction = s.containerFraction(s.getArrayContainersStats().getContainersCount());
     sb.append(".optimiseForArrays(), because fraction of ArrayContainers ")
       .append(acFraction)
       .append(" is over arbitrary threshold ")
@@ -71,7 +71,7 @@ public class NaiveWriterRecommender {
   }
 
   private static void containerCountRecommendations(BitmapStatistics basedOn, StringBuilder sb) {
-    int averageContainersCount = basedOn.containerCount() / basedOn.bitmapsCount;
+    int averageContainersCount = basedOn.containerCount() / basedOn.getBitmapsCount();
     sb.append(".initialCapacity(")
       .append(averageContainersCount)
       .append("), because on average each bitmap has ")

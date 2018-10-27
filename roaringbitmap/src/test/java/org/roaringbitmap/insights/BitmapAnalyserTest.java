@@ -5,6 +5,9 @@ import org.junit.Test;
 import org.roaringbitmap.RandomisedTestData;
 import org.roaringbitmap.RoaringBitmap;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 
 public class BitmapAnalyserTest {
@@ -25,14 +28,38 @@ public class BitmapAnalyserTest {
   @Test
   public void analyseRandomBitmap() {
     double delta = 0.05;
-    double rleLimit = 0.1;
-    double denseLimit = 0.2;
-    double sparseLimit = 1 - rleLimit - denseLimit;
-    RoaringBitmap rb = RandomisedTestData.randomBitmap(1000, rleLimit, denseLimit);
+    double runFraction = 0.1;
+    double bitmapFraction = 0.2;
+    double denseLimit = runFraction + bitmapFraction;
+    double arrayFraction = 1 - denseLimit;
+    RoaringBitmap rb = RandomisedTestData.randomBitmap(1000, runFraction, denseLimit);
     BitmapStatistics result = BitmapAnalyser.analyse(rb);
 
-    Assert.assertTrue(Math.abs(rleLimit - result.containerFraction(result.runContainerCount)) < delta);
-    Assert.assertTrue(Math.abs(denseLimit - result.containerFraction(result.bitmapContainerCount)) < delta);
-    Assert.assertTrue(Math.abs(sparseLimit - result.containerFraction(result.arrayContainersStats.containersCount)) < delta);
+    Assert.assertTrue(Math.abs(runFraction - result.containerFraction(result.getRunContainerCount())) < delta);
+    Assert.assertTrue(Math.abs(bitmapFraction - result.containerFraction(result.getBitmapContainerCount())) < delta);
+    Assert.assertTrue(Math.abs(arrayFraction - result.containerFraction(result.getArrayContainersStats().getContainersCount())) < delta);
   }
+
+  @Test
+  public void analyseRandomBitmaps() {
+    double delta = 0.05;
+    double runFraction = 0.05;
+    double bitmapFraction = 0.5;
+    double denseLimit = runFraction + bitmapFraction;
+    double arrayFraction = 1 - denseLimit;
+    List<RoaringBitmap> bitmaps = new ArrayList<>();
+    int totalBitmaps = 60;
+    for (int i = 0; i < totalBitmaps; i++) {
+      RoaringBitmap rb = RandomisedTestData.randomBitmap(80, runFraction, denseLimit);
+      bitmaps.add(rb);
+    }
+
+    BitmapStatistics result = BitmapAnalyser.analyse(bitmaps);
+
+    Assert.assertTrue(Math.abs(runFraction - result.containerFraction(result.getRunContainerCount())) < delta);
+    Assert.assertTrue(Math.abs(bitmapFraction - result.containerFraction(result.getBitmapContainerCount())) < delta);
+    Assert.assertTrue(Math.abs(arrayFraction - result.containerFraction(result.getArrayContainersStats().getContainersCount())) < delta);
+    Assert.assertEquals(totalBitmaps, result.getBitmapsCount());
+  }
+
 }

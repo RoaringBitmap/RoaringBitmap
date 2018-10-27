@@ -3,12 +3,12 @@ package org.roaringbitmap.insights;
 import java.util.Objects;
 
 public class BitmapStatistics {
-  final int bitmapsCount;
-  final ArrayContainersStats arrayContainersStats;
-  final int bitmapContainerCount;
-  final int runContainerCount;
+  private final int bitmapsCount;
+  private final ArrayContainersStats arrayContainersStats;
+  private final int bitmapContainerCount;
+  private final int runContainerCount;
 
-  public BitmapStatistics(
+  BitmapStatistics(
       ArrayContainersStats arrayContainersStats,
       int bitmapContainerCount,
       int runContainerCount) {
@@ -89,9 +89,30 @@ public class BitmapStatistics {
     return Objects.hash(bitmapsCount, bitmapContainerCount, runContainerCount);
   }
 
+  public int getBitmapsCount() {
+    return bitmapsCount;
+  }
+
+  public int getBitmapContainerCount() {
+    return bitmapContainerCount;
+  }
+
+  public int getRunContainerCount() {
+    return runContainerCount;
+  }
+
   public static class ArrayContainersStats {
-    final int containersCount;
-    final int cardinalitySum;
+    private final int containersCount;
+
+    public int getContainersCount() {
+      return containersCount;
+    }
+
+    public int getCardinalitySum() {
+      return cardinalitySum;
+    }
+
+    private final int cardinalitySum;
 
 
     ArrayContainersStats(int containersCount, int cardinalitySum) {
