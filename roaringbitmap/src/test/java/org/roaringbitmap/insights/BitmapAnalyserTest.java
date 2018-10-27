@@ -18,7 +18,7 @@ public class BitmapAnalyserTest {
       rb.add(i);
     }
     BitmapStatistics result = BitmapAnalyser.analyse(rb);
-    BitmapStatistics expected = new BitmapStatistics(new BitmapStatistics.ArrayContainersStats(1, 7), 1, 1);
+    BitmapStatistics expected = new BitmapStatistics(new BitmapStatistics.ArrayContainersStats(1, 6), 1, 1);
     assertEquals(expected, result);
   }
 
