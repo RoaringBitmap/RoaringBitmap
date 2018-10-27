@@ -71,7 +71,7 @@ public class NaiveWriterRecommender {
   }
 
   private static void containerCountRecommendations(BitmapStatistics basedOn, StringBuilder sb) {
-    int averageContainersCount = basedOn.containerCount() / basedOn.getBitmapsCount();
+    long averageContainersCount = basedOn.containerCount() / basedOn.getBitmapsCount();
     sb.append(".initialCapacity(")
       .append(averageContainersCount)
       .append("), because on average each bitmap has ")

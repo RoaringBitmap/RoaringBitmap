@@ -3,24 +3,24 @@ package org.roaringbitmap.insights;
 import java.util.Objects;
 
 public class BitmapStatistics {
-  private final int bitmapsCount;
+  private final long bitmapsCount;
   private final ArrayContainersStats arrayContainersStats;
-  private final int bitmapContainerCount;
-  private final int runContainerCount;
+  private final long bitmapContainerCount;
+  private final long runContainerCount;
 
   BitmapStatistics(
       ArrayContainersStats arrayContainersStats,
-      int bitmapContainerCount,
-      int runContainerCount) {
+      long bitmapContainerCount,
+      long runContainerCount) {
 
     this(arrayContainersStats, bitmapContainerCount, runContainerCount, 1);
   }
 
   BitmapStatistics(
       ArrayContainersStats arrayContainersStats,
-      int bitmapContainerCount,
-      int runContainerCount,
-      int bitmapsCount) {
+      long bitmapContainerCount,
+      long runContainerCount,
+      long bitmapsCount) {
 
     this.arrayContainersStats = arrayContainersStats;
     this.bitmapContainerCount = bitmapContainerCount;
@@ -32,7 +32,7 @@ public class BitmapStatistics {
   /**
    * Calculates what fraction of all containers is the `containerTypeCount`
    */
-  public double containerFraction(int containerTypeCount) {
+  public double containerFraction(long containerTypeCount) {
     if (containerCount() == 0) {
       return Double.NaN;
     } else {
@@ -54,7 +54,7 @@ public class BitmapStatistics {
       + '}';
   }
 
-  public int containerCount() {
+  public long containerCount() {
     return arrayContainersStats.containersCount + bitmapContainerCount + runContainerCount;
   }
 
@@ -89,33 +89,32 @@ public class BitmapStatistics {
     return Objects.hash(bitmapsCount, bitmapContainerCount, runContainerCount);
   }
 
-  public int getBitmapsCount() {
+  public long getBitmapsCount() {
     return bitmapsCount;
   }
 
-  public int getBitmapContainerCount() {
+  public long getBitmapContainerCount() {
     return bitmapContainerCount;
   }
 
-  public int getRunContainerCount() {
+  public long getRunContainerCount() {
     return runContainerCount;
   }
 
   public static class ArrayContainersStats {
-    private final int containersCount;
+    private final long containersCount;
 
-    public int getContainersCount() {
+    private final long cardinalitySum;
+
+    public long getContainersCount() {
       return containersCount;
     }
 
-    public int getCardinalitySum() {
+    public long getCardinalitySum() {
       return cardinalitySum;
     }
 
-    private final int cardinalitySum;
-
-
-    ArrayContainersStats(int containersCount, int cardinalitySum) {
+    ArrayContainersStats(long containersCount, long cardinalitySum) {
       this.containersCount = containersCount;
       this.cardinalitySum = cardinalitySum;
     }
@@ -129,9 +128,9 @@ public class BitmapStatistics {
     /**
      * Average cardinality of ArrayContainers
      */
-    public int averageCardinality() {
+    public long averageCardinality() {
       if (containersCount == 0) {
-        return Integer.MAX_VALUE;
+        return Long.MAX_VALUE;
       } else {
         return cardinalitySum / containersCount;
       }
