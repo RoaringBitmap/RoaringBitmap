@@ -25,7 +25,7 @@ public class RandomisedTestData {
               final IntStream stream;
               if (choice < rleLimit) {
                 stream = rleRegion();
-              } else if (choice < denseLimit) {
+              } else if (choice < rleLimit+ denseLimit) {
                 stream = denseRegion();
               } else {
                 stream = sparseRegion();
