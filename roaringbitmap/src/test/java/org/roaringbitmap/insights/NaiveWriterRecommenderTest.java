@@ -27,6 +27,24 @@ public class NaiveWriterRecommenderTest {
   }
 
   @Test
+  public void recommendForDenseArrays() {
+    int arrayContainerCount = 20000;
+    int denseAveragePerArrayContaier = 2500;
+    int bitmapContainerCount = 2;
+    int runContainerCount = 50;
+    int bitmapsCount = 10;
+    BitmapStatistics stats = new BitmapStatistics(
+      new BitmapStatistics.ArrayContainersStats(arrayContainerCount, arrayContainerCount * denseAveragePerArrayContaier),
+      bitmapContainerCount,
+      runContainerCount,
+      bitmapsCount);
+
+    String recommendation = NaiveWriterRecommender.recommend(stats);
+
+    Assert.assertTrue(recommendation.contains(".constantMemory()"));
+  }
+
+    @Test
   public void recommendForRuns() {
     int arrayContainerCount = 100;
     int averagePerArrayContaier = 10;
@@ -82,6 +100,12 @@ public class NaiveWriterRecommenderTest {
 
     Assert.assertTrue(recommendation.contains(".initialCapacity(526)"));
     Assert.assertTrue(recommendation.contains(".constantMemory()"));
+  }
+
+  @Test
+  public void notRecommendForEmptyStats(){
+    String recommendation = NaiveWriterRecommender.recommend(BitmapStatistics.empty);
+    Assert.assertFalse(recommendation.contains(".initialCapacity"));
   }
 
 }
