@@ -48,16 +48,6 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
     }
 
     /**
-     * Choose this option if the bitmap is expected to be mostly dense but unlikely to be RLE
-     * compressible
-     * @return this
-     */
-    public Wizard<C, T> optimiseForBitmaps() {
-      containerSupplier = bitmapSupplier();
-      return this;
-    }
-
-    /**
      *
      * @param count how many values are expected to fall within any 65536 bit range.
      * @return this
@@ -68,7 +58,7 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
       if (count < ArrayContainer.DEFAULT_MAX_SIZE) {
         return optimiseForArrays();
       } else if (count < 1 << 14) {
-        return optimiseForBitmaps();
+        return constantMemory();
       } else {
         return optimiseForRuns();
       }
@@ -137,8 +127,6 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
 
     protected abstract Supplier<C> arraySupplier();
 
-    protected abstract Supplier<C> bitmapSupplier();
-
     protected abstract Supplier<C> runSupplier();
 
     protected abstract T createUnderlying(int initialCapacity);
@@ -173,11 +161,6 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
     }
 
     @Override
-    protected Supplier<MappeableContainer> bitmapSupplier() {
-      return MappeableBitmapContainer::new;
-    }
-
-    @Override
     protected Supplier<MappeableContainer> runSupplier() {
       return MappeableRunContainer::new;
     }
@@ -193,11 +176,6 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
     @Override
     protected Supplier<Container> arraySupplier() {
       return () -> new ArrayContainer(expectedContainerSize);
-    }
-
-    @Override
-    protected Supplier<Container> bitmapSupplier() {
-      return BitmapContainer::new;
     }
 
     @Override
