@@ -12,6 +12,8 @@ import java.util.Iterator;
 import org.roaringbitmap.buffer.MappeableArrayContainer;
 import org.roaringbitmap.buffer.MappeableContainer;
 
+import static org.roaringbitmap.Util.toIntUnsigned;
+
 
 /**
  * Simple container made of an array of 16-bit integers
@@ -161,7 +163,7 @@ public final class ArrayContainer extends Container implements Cloneable {
 
   private int advance(ShortIterator it) {
     if (it.hasNext()) {
-      return Util.toIntUnsigned(it.next());
+      return toIntUnsigned(it.next());
     } else {
       return -1;
     }
@@ -239,9 +241,9 @@ public final class ArrayContainer extends Container implements Cloneable {
     int read = 0;
     ArrayContainer answer = new ArrayContainer(cardinality);
     for (int i = 0; i < x.numberOfRuns() && read < cardinality; ++i) {
-      int runStart = Util.toIntUnsigned(x.getValue(i));
-      int runEnd = runStart + Util.toIntUnsigned(x.getLength(i));
-      if (Util.toIntUnsigned(content[read]) > runEnd) {
+      int runStart = toIntUnsigned(x.getValue(i));
+      int runEnd = runStart + toIntUnsigned(x.getLength(i));
+      if (toIntUnsigned(content[read]) > runEnd) {
         continue;
       }
       int firstInRun = Util.iterateUntil(content, read, cardinality, runStart);
@@ -297,8 +299,8 @@ public final class ArrayContainer extends Container implements Cloneable {
     }
 
     for (int i = 0; i < runContainer.numberOfRuns(); ++i) {
-      int start = Util.toIntUnsigned(runContainer.getValue(i));
-      int length = Util.toIntUnsigned(runContainer.getLength(i));
+      int start = toIntUnsigned(runContainer.getValue(i));
+      int length = toIntUnsigned(runContainer.getLength(i));
       if (!contains(start, start + length)) {
         return false;
       }
@@ -372,7 +374,7 @@ public final class ArrayContainer extends Container implements Cloneable {
   @Override
   public void fillLeastSignificant16bits(int[] x, int i, int mask) {
     for (int k = 0; k < this.cardinality; ++k) {
-      x[k + i] = Util.toIntUnsigned(this.content[k]) | mask;
+      x[k + i] = toIntUnsigned(this.content[k]) | mask;
     }
 
   }
@@ -687,7 +689,7 @@ public final class ArrayContainer extends Container implements Cloneable {
   public boolean intersects(int minimum, int supremum) {
     int pos = Util.unsignedBinarySearch(content, 0, cardinality, (short)minimum);
     int index = pos >= 0 ? pos : -pos - 1;
-    return index < cardinality && Util.toIntUnsigned(content[index]) < supremum;
+    return index < cardinality && toIntUnsigned(content[index]) < supremum;
   }
 
 
@@ -698,12 +700,12 @@ public final class ArrayContainer extends Container implements Cloneable {
       BitmapContainer bc = new BitmapContainer();
       for (int k = 0; k < value2.cardinality; ++k) {
         short v = value2.content[k];
-        final int i = Util.toIntUnsigned(v) >>> 6;
+        final int i = toIntUnsigned(v) >>> 6;
         bc.bitmap[i] |= (1L << v);
       }
       for (int k = 0; k < this.cardinality; ++k) {
         short v = this.content[k];
-        final int i = Util.toIntUnsigned(v) >>> 6;
+        final int i = toIntUnsigned(v) >>> 6;
         bc.bitmap[i] |= (1L << v);
       }
       bc.cardinality = 0;
@@ -922,9 +924,9 @@ public final class ArrayContainer extends Container implements Cloneable {
       return 0; // should never happen
     }
     int numRuns = 1;
-    int oldv = Util.toIntUnsigned(content[0]);
+    int oldv = toIntUnsigned(content[0]);
     for (int i = 1; i < cardinality; i++) {
-      int newv = Util.toIntUnsigned(content[i]);
+      int newv = toIntUnsigned(content[i]);
       if (oldv + 1 != newv) {
         ++numRuns;
       }
@@ -941,12 +943,12 @@ public final class ArrayContainer extends Container implements Cloneable {
       BitmapContainer bc = new BitmapContainer();
       for (int k = 0; k < value2.cardinality; ++k) {
         short v = value2.content[k];
-        final int i = Util.toIntUnsigned(v) >>> 6;
+        final int i = toIntUnsigned(v) >>> 6;
         bc.bitmap[i] |= (1L << v);
       }
       for (int k = 0; k < this.cardinality; ++k) {
         short v = this.content[k];
-        final int i = Util.toIntUnsigned(v) >>> 6;
+        final int i = toIntUnsigned(v) >>> 6;
         bc.bitmap[i] |= (1L << v);
       }
       bc.cardinality = 0;
@@ -992,13 +994,13 @@ public final class ArrayContainer extends Container implements Cloneable {
     int myItPos = 0;
     ac.cardinality = 0;
     // do a merge. int -1 denotes end of input.
-    int myHead = (myItPos == cardinality) ? -1 : Util.toIntUnsigned(content[myItPos++]);
+    int myHead = (myItPos == cardinality) ? -1 : toIntUnsigned(content[myItPos++]);
     int hisHead = advance(it);
 
     while (myHead != -1 && hisHead != -1) {
       if (myHead < hisHead) {
         ac.emit((short) myHead);
-        myHead = (myItPos == cardinality) ? -1 : Util.toIntUnsigned(content[myItPos++]);
+        myHead = (myItPos == cardinality) ? -1 : toIntUnsigned(content[myItPos++]);
       } else if (myHead > hisHead) {
         ac.emit((short) hisHead);
         hisHead = advance(it);
@@ -1007,13 +1009,13 @@ public final class ArrayContainer extends Container implements Cloneable {
           ac.emit((short) hisHead);
         }
         hisHead = advance(it);
-        myHead = (myItPos == cardinality) ? -1 : Util.toIntUnsigned(content[myItPos++]);
+        myHead = (myItPos == cardinality) ? -1 : toIntUnsigned(content[myItPos++]);
       }
     }
 
     while (myHead != -1) {
       ac.emit((short) myHead);
-      myHead = (myItPos == cardinality) ? -1 : Util.toIntUnsigned(content[myItPos++]);
+      myHead = (myItPos == cardinality) ? -1 : toIntUnsigned(content[myItPos++]);
     }
 
     while (hisHead != -1) {
@@ -1140,20 +1142,36 @@ public final class ArrayContainer extends Container implements Cloneable {
   @Override
   public int nextValue(short fromValue) {
     int index = Util.advanceUntil(content, -1, cardinality, fromValue);
-    int effectiveIndex = index >= 0 ? index : -index - 1;
-    return effectiveIndex >= cardinality ? -1 : Util.toIntUnsigned(content[effectiveIndex]);
+    if (index == content.length) {
+      return fromValue == content[cardinality - 1] ? toIntUnsigned(fromValue) : -1;
+    }
+    return toIntUnsigned(content[index]);
+  }
+
+  @Override
+  public int previousValue(short fromValue) {
+    int index = Util.advanceUntil(content, -1, cardinality, fromValue);
+    if (content.length != index) {
+      if (content[index] == fromValue) {
+        return toIntUnsigned(content[index]);
+      }
+    }
+    if (index == 0) {
+      return -1;
+    }
+    return toIntUnsigned(content[index - 1]);
   }
 
   @Override
   public int first() {
     assertNonEmpty(cardinality == 0);
-    return Util.toIntUnsigned(content[0]);
+    return toIntUnsigned(content[0]);
   }
 
   @Override
   public int last() {
     assertNonEmpty(cardinality == 0);
-    return Util.toIntUnsigned(content[cardinality - 1]);
+    return toIntUnsigned(content[cardinality - 1]);
   }
 
   @Override
@@ -1181,10 +1199,10 @@ public final class ArrayContainer extends Container implements Cloneable {
     StringBuilder sb = new StringBuilder();
     sb.append("{");
     for (int i = 0; i < this.cardinality - 1; i++) {
-      sb.append(Util.toIntUnsigned(this.content[i]));
+      sb.append(toIntUnsigned(this.content[i]));
       sb.append(",");
     }
-    sb.append(Util.toIntUnsigned(this.content[this.cardinality - 1]));
+    sb.append(toIntUnsigned(this.content[this.cardinality - 1]));
     sb.append("}");
     return sb.toString();
   }
@@ -1219,12 +1237,12 @@ public final class ArrayContainer extends Container implements Cloneable {
       BitmapContainer bc = new BitmapContainer();
       for (int k = 0; k < value2.cardinality; ++k) {
         short v = value2.content[k];
-        final int i = Util.toIntUnsigned(v) >>> 6;
+        final int i = toIntUnsigned(v) >>> 6;
         bc.bitmap[i] ^= (1L << v);
       }
       for (int k = 0; k < this.cardinality; ++k) {
         short v = this.content[k];
-        final int i = Util.toIntUnsigned(v) >>> 6;
+        final int i = toIntUnsigned(v) >>> 6;
         bc.bitmap[i] ^= (1L << v);
       }
       bc.cardinality = 0;
@@ -1272,12 +1290,12 @@ public final class ArrayContainer extends Container implements Cloneable {
       BitmapContainer bc = new BitmapContainer();
       for (int k = 0; k < value2.cardinality; ++k) {
         short v = value2.content[k];
-        final int i = Util.toIntUnsigned(v) >>> 6;
+        final int i = toIntUnsigned(v) >>> 6;
         bc.bitmap[i] |= (1L << v);
       }
       for (int k = 0; k < this.cardinality; ++k) {
         short v = this.content[k];
-        final int i = Util.toIntUnsigned(v) >>> 6;
+        final int i = toIntUnsigned(v) >>> 6;
         bc.bitmap[i] |= (1L << v);
       }
       bc.cardinality = -1;
@@ -1338,7 +1356,7 @@ final class ArrayContainerShortIterator implements PeekableShortRankIterator {
 
   @Override
   public int nextAsInt() {
-    return Util.toIntUnsigned(parent.content[pos++]);
+    return toIntUnsigned(parent.content[pos++]);
   }
 
   @Override
@@ -1392,7 +1410,7 @@ final class ReverseArrayContainerShortIterator implements ShortIterator {
 
   @Override
   public int nextAsInt() {
-    return Util.toIntUnsigned(parent.content[pos--]);
+    return toIntUnsigned(parent.content[pos--]);
   }
 
 

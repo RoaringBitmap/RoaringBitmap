@@ -1418,6 +1418,29 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
   @Override
+  public int nextValue(short fromValue) {
+    int index = BufferUtil.advanceUntil(content, -1, cardinality, fromValue);
+    if (index == content.limit()) {
+      return fromValue == content.get(cardinality - 1) ? toIntUnsigned(fromValue) : -1;
+    }
+    return toIntUnsigned(content.get(index));
+  }
+
+  @Override
+  public int previousValue(short fromValue) {
+    int index = BufferUtil.advanceUntil(content, -1, cardinality, fromValue);
+    if (content.limit() != index) {
+      if (content.get(index) == fromValue) {
+        return toIntUnsigned(content.get(index));
+      }
+    }
+    if (index == 0) {
+      return -1;
+    }
+    return toIntUnsigned(content.get(index - 1));
+  }
+
+  @Override
   public Container toContainer() {
     return new ArrayContainer(this);
   }

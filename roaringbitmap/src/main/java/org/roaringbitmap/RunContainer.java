@@ -2556,6 +2556,23 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   @Override
+  public int previousValue(short fromValue) {
+    int index = unsignedInterleavedBinarySearch(valueslength, 0, nbrruns, fromValue);
+    int effectiveIndex = index >= 0 ? index : -index - 2;
+    if (effectiveIndex == -1) {
+      return -1;
+    }
+    int startValue = toIntUnsigned(getValue(effectiveIndex));
+    int value = toIntUnsigned(fromValue);
+    int offset = value - startValue;
+    int le = toIntUnsigned(getLength(effectiveIndex));
+    if (offset >= 0 && offset <= le) {
+      return value;
+    }
+    return startValue + le;
+  }
+
+  @Override
   public int first() {
     assertNonEmpty(numberOfRuns() == 0);
     return toIntUnsigned(valueslength[0]);

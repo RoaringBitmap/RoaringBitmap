@@ -2295,16 +2295,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
                  + this.getCardinality() + ".");
   }
 
-  /**
-   * Returns the first value equal to or larger than the provided value
-   * (interpreted as an unsigned integer). If no such
-   * bit exists then {@code -1} is returned. It is not necessarily a
-   * computationally effective way to iterate through the values.
-   *
-   * @param  fromValue the lower bound (inclusive)
-   * @return the smallest value larger than or equal to the specified value,
-   *       or {@code -1} if there is no such value
-   */
+  @Override
   public long nextValue(int fromValue) {
     short key = Util.highbits(fromValue);
     int containerIndex = highLowContainer.advanceUntil(key, -1);
@@ -2318,7 +2309,28 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       nextSetBit = bit == -1 ? -1L : Util.toUnsignedLong((containerKey << 16) | bit);
       ++containerIndex;
     }
+    assert nextSetBit <= 0xFFFFFFFFL;
+    assert nextSetBit == -1L || nextSetBit >= Util.toUnsignedLong(fromValue);
     return nextSetBit;
+  }
+
+  @Override
+  public long previousValue(int fromValue) {
+    short key = Util.highbits(fromValue);
+    int containerIndex = highLowContainer.advanceUntil(key, -1);
+    long prevSetBit = -1L;
+    while (containerIndex != -1 && containerIndex < highLowContainer.size() && prevSetBit == -1L) {
+      short containerKey = highLowContainer.getKeyAtIndex(containerIndex);
+      Container container = highLowContainer.getContainerAtIndex(containerIndex);
+      int bit = (Util.compareUnsigned(containerKey, key) < 0
+              ? container.last()
+              : container.previousValue(Util.lowbits(fromValue)));
+      prevSetBit = bit == -1 ? -1L : Util.toUnsignedLong((containerKey << 16) | bit);
+      --containerIndex;
+    }
+    assert prevSetBit <= 0xFFFFFFFFL;
+    assert prevSetBit <= Util.toUnsignedLong(fromValue);
+    return prevSetBit;
   }
 
   /**

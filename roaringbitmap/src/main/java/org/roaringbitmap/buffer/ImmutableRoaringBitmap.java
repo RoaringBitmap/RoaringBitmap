@@ -12,6 +12,11 @@ import java.util.NoSuchElementException;
 
 import org.roaringbitmap.*;
 
+import static org.roaringbitmap.Util.toUnsignedLong;
+import static org.roaringbitmap.buffer.BufferUtil.compareUnsigned;
+import static org.roaringbitmap.buffer.BufferUtil.highbits;
+import static org.roaringbitmap.buffer.BufferUtil.lowbits;
+
 /**
  * ImmutableRoaringBitmap provides a compressed immutable (cannot be modified) bitmap. It is meant
  * to be used with org.roaringbitmap.buffer.MutableRoaringBitmap, a derived class that adds methods
@@ -130,7 +135,7 @@ public class ImmutableRoaringBitmap
         nextContainer();
       }
       if (ok && ((hs >>> 16) == (minval >>> 16))) {
-        iter.advanceIfNeeded(BufferUtil.lowbits(minval));
+        iter.advanceIfNeeded(lowbits(minval));
         if (!iter.hasNext()) {
           cp.advance();
           nextContainer();
@@ -464,10 +469,10 @@ public class ImmutableRoaringBitmap
     }
 
     MutableRoaringBitmap answer = new MutableRoaringBitmap();
-    final short hbStart = BufferUtil.highbits(rangeStart);
-    final short lbStart = BufferUtil.lowbits(rangeStart);
-    final short hbLast = BufferUtil.highbits(rangeEnd - 1);
-    final short lbLast = BufferUtil.lowbits(rangeEnd - 1);
+    final short hbStart = highbits(rangeStart);
+    final short lbStart = lowbits(rangeStart);
+    final short hbLast = highbits(rangeEnd - 1);
+    final short lbLast = lowbits(rangeEnd - 1);
 
     // copy the containers before the active area
     answer.getMappeableRoaringArray().appendCopiesUntil(bm.highLowContainer, hbStart);
@@ -570,10 +575,10 @@ public class ImmutableRoaringBitmap
 
   private static MutableRoaringBitmap selectRangeWithoutCopy(ImmutableRoaringBitmap rb,
       final long rangeStart, final long rangeEnd) {
-    final int hbStart = BufferUtil.toIntUnsigned(BufferUtil.highbits(rangeStart));
-    final int lbStart = BufferUtil.toIntUnsigned(BufferUtil.lowbits(rangeStart));
-    final int hbLast = BufferUtil.toIntUnsigned(BufferUtil.highbits(rangeEnd - 1));
-    final int lbLast = BufferUtil.toIntUnsigned(BufferUtil.lowbits(rangeEnd - 1));
+    final int hbStart = BufferUtil.toIntUnsigned(highbits(rangeStart));
+    final int lbStart = BufferUtil.toIntUnsigned(lowbits(rangeStart));
+    final int hbLast = BufferUtil.toIntUnsigned(highbits(rangeEnd - 1));
+    final int lbLast = BufferUtil.toIntUnsigned(lowbits(rangeEnd - 1));
     MutableRoaringBitmap answer = new MutableRoaringBitmap();
 
     if (rangeEnd <= rangeStart) {
@@ -985,10 +990,10 @@ public class ImmutableRoaringBitmap
    */
   @Override
   public boolean contains(final int x) {
-    final short hb = BufferUtil.highbits(x);
+    final short hb = highbits(x);
     int index = highLowContainer.getContainerIndex(hb);
     return index >= 0
-        && highLowContainer.containsForContainerAtIndex(index, BufferUtil.lowbits(x));
+        && highLowContainer.containsForContainerAtIndex(index, lowbits(x));
   }
 
   /**
@@ -999,8 +1004,8 @@ public class ImmutableRoaringBitmap
    */
   public boolean contains(long minimum, long supremum) {
     MutableRoaringBitmap.rangeSanityCheck(minimum, supremum);
-    short firstKey = BufferUtil.highbits(minimum);
-    short lastKey = BufferUtil.highbits(supremum);
+    short firstKey = highbits(minimum);
+    short lastKey = highbits(supremum);
     int span = BufferUtil.toIntUnsigned(lastKey) - BufferUtil.toIntUnsigned(firstKey);
     int len = highLowContainer.size();
     if (len < span) {
@@ -1055,7 +1060,7 @@ public class ImmutableRoaringBitmap
         }
         ++pos1;
         ++pos2;
-      } else if (BufferUtil.compareUnsigned(s1, s2) > 0) {
+      } else if (compareUnsigned(s1, s2) > 0) {
         return false;
       } else {
         pos1 = subset.highLowContainer.advanceUntil(s2, pos1);
@@ -1144,18 +1149,18 @@ public class ImmutableRoaringBitmap
    */
   public boolean intersects(long minimum, long supremum) {
     MutableRoaringBitmap.rangeSanityCheck(minimum, supremum);
-    short minKey = BufferUtil.highbits(minimum);
-    short supKey = BufferUtil.highbits(supremum);
+    short minKey = highbits(minimum);
+    short supKey = highbits(supremum);
     int len = highLowContainer.size();
     // seek to start
     int pos = 0;
     while (pos < len
-            && BufferUtil.compareUnsigned(minKey, highLowContainer.getKeyAtIndex(pos)) > 0) {
+            && compareUnsigned(minKey, highLowContainer.getKeyAtIndex(pos)) > 0) {
       ++pos;
     }
-    short offset = BufferUtil.lowbits(minimum);
+    short offset = lowbits(minimum);
     while (pos < len
-            && BufferUtil.compareUnsigned(supKey, highLowContainer.getKeyAtIndex(pos)) > 0) {
+            && compareUnsigned(supKey, highLowContainer.getKeyAtIndex(pos)) > 0) {
       MappeableContainer container = highLowContainer.getContainerAtIndex(pos);
       if (container.intersects(offset, 1 << 16)) {
         return true;
@@ -1441,14 +1446,14 @@ public class ImmutableRoaringBitmap
   @Override
   public long rankLong(int x) {
     long size = 0;
-    short xhigh = BufferUtil.highbits(x);
+    short xhigh = highbits(x);
     for (int i = 0; i < this.highLowContainer.size(); i++) {
       short key = this.highLowContainer.getKeyAtIndex(i);
       int comparison = Util.compareUnsigned(key, xhigh);
       if (comparison < 0) {
         size += this.highLowContainer.getCardinality(i);
       } else if(comparison == 0) {
-        return size + this.highLowContainer.getContainerAtIndex(i).rank(BufferUtil.lowbits(x));
+        return size + this.highLowContainer.getContainerAtIndex(i).rank(lowbits(x));
       }
     }
     return size;
@@ -1461,28 +1466,28 @@ public class ImmutableRoaringBitmap
       return 0;
     }
     long size = 0;
-    int startidx = this.highLowContainer.getIndex(BufferUtil.highbits(start));
+    int startidx = this.highLowContainer.getIndex(highbits(start));
     if(startidx < 0)  {
       startidx = - startidx;
     } else {
-      short in_cont_start = BufferUtil.lowbits(start);
+      short in_cont_start = lowbits(start);
       if(in_cont_start != 0) {
         size -= this.highLowContainer
           .getContainerAtIndex(startidx)
           .rank((short)(in_cont_start - 1));
       }
     }
-    short xhigh = BufferUtil.highbits(end - 1);
+    short xhigh = highbits(end - 1);
     for (int i = startidx; i < this.highLowContainer.size(); i++) {
       short key = this.highLowContainer.getKeyAtIndex(i);
-      int comparison = BufferUtil.compareUnsigned(key, xhigh);
+      int comparison = compareUnsigned(key, xhigh);
       if (comparison < 0) {
         size += this.highLowContainer
           .getContainerAtIndex(i).getCardinality();
       } else if (comparison == 0) {
         return size + this.highLowContainer
           .getContainerAtIndex(i)
-          .rank(BufferUtil.lowbits((int)(end - 1)));
+          .rank(lowbits((int)(end - 1)));
       }
     }
     return size;    
@@ -1506,7 +1511,7 @@ public class ImmutableRoaringBitmap
    */
   @Override
   public int select(int j) {
-    long leftover = Util.toUnsignedLong(j);
+    long leftover = toUnsignedLong(j);
     for (int i = 0; i < this.highLowContainer.size(); i++) {
       int thiscard = this.highLowContainer.getCardinality(i);
       if (thiscard > leftover) {
@@ -1543,6 +1548,44 @@ public class ImmutableRoaringBitmap
   @Override
   public int last() {
     return highLowContainer.last();
+  }
+
+  @Override
+  public long nextValue(int fromValue) {
+    short key = highbits(fromValue);
+    int containerIndex = highLowContainer.advanceUntil(key, -1);
+    long nextSetBit = -1L;
+    while (containerIndex != -1 && containerIndex < highLowContainer.size() && nextSetBit == -1L) {
+      short containerKey = highLowContainer.getKeyAtIndex(containerIndex);
+      MappeableContainer container = highLowContainer.getContainerAtIndex(containerIndex);
+      int bit = (compareUnsigned(containerKey, key) > 0
+              ? container.first()
+              : container.nextValue(lowbits(fromValue)));
+      nextSetBit = bit == -1 ? -1L : toUnsignedLong((containerKey << 16) | bit);
+      ++containerIndex;
+    }
+    assert nextSetBit <= 0xFFFFFFFFL;
+    assert nextSetBit == -1L || nextSetBit >= toUnsignedLong(fromValue);
+    return nextSetBit;
+  }
+
+  @Override
+  public long previousValue(int fromValue) {
+    short key = highbits(fromValue);
+    int containerIndex = highLowContainer.advanceUntil(key, -1);
+    long prevSetBit = -1L;
+    while (containerIndex != -1 && containerIndex < highLowContainer.size() && prevSetBit == -1L) {
+      short containerKey = highLowContainer.getKeyAtIndex(containerIndex);
+      MappeableContainer container = highLowContainer.getContainerAtIndex(containerIndex);
+      int bit = (Util.compareUnsigned(containerKey, key) < 0
+              ? container.last()
+              : container.previousValue(lowbits(fromValue)));
+      prevSetBit = bit == -1 ? -1L : toUnsignedLong((containerKey << 16) | bit);
+      --containerIndex;
+    }
+    assert prevSetBit <= 0xFFFFFFFFL;
+    assert prevSetBit <= toUnsignedLong(fromValue);
+    return prevSetBit;
   }
 
   /**

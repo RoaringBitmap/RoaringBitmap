@@ -6,7 +6,9 @@ package org.roaringbitmap.buffer;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.RandomisedTestData;
 import org.roaringbitmap.RoaringBitmapWriter;
 
 import java.io.*;
@@ -17,6 +19,7 @@ import java.util.stream.IntStream;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.roaringbitmap.Util.toUnsignedLong;
 
 /**
  * Generic testing of the roaring bitmaps
@@ -1450,6 +1453,55 @@ public class TestImmutableRoaringBitmap {
     assertTrue(bitmap.contains(0L, 1L));
     assertTrue(bitmap.contains(1L << 10, 1| (1L << 10)));
     assertFalse(bitmap.contains(1L << 31, 1L << 32));
+  }
+
+  @Test
+  public void testNextValue() {
+    ImmutableRoaringBitmap bitmap = RandomisedTestData.TestDataSet.testCase()
+            .withRunAt(0)
+            .withBitmapAt(1)
+            .withArrayAt(2)
+            .withRunAt(3)
+            .withBitmapAt(4)
+            .withArrayAt(5)
+            .build()
+            .toMutableRoaringBitmap();
+
+    BitSet bitset = new BitSet();
+    bitmap.forEach((IntConsumer) bitset::set);
+    long b1 = 0;
+    int b2 = 0;
+    while (b1 >= 0 && b2 >= 0) {
+      b1 = bitmap.nextValue((int)b1 + 1);
+      b2 = bitset.nextSetBit(b2 + 1);
+      assertEquals(b1, b2);
+    }
+  }
+
+  @Test
+  public void testPreviousValue() {
+    ImmutableRoaringBitmap bitmap = RandomisedTestData.TestDataSet.testCase()
+            .withRunAt(0)
+            .withBitmapAt(1)
+            .withArrayAt(2)
+            .withRunAt(3)
+            .withBitmapAt(4)
+            .withArrayAt(5)
+            .build()
+            .toMutableRoaringBitmap();
+
+    BitSet bitset = new BitSet();
+    bitmap.forEach((IntConsumer) bitset::set);
+    long b1 = toUnsignedLong(bitmap.last());
+    int b2 = bitset.previousSetBit(Integer.MAX_VALUE);
+    int i = bitmap.getCardinality();
+    while (b1 != -1 && b2 != -1) {
+      assertEquals(b1, b2);
+      b1 = bitmap.previousValue((int)(b1 - 1));
+      b2 = bitset.previousSetBit(b2 - 1);
+      assertEquals("mismatch at " + i, b1, b2);
+      --i;
+    }
   }
 
 }

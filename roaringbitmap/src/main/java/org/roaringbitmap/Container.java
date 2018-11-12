@@ -892,6 +892,13 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
   public abstract int nextValue(short fromValue);
 
   /**
+   * Gets the last value less than or equal to the upper bound, or -1 if no such value exists.
+   * @param fromValue the upper bound (inclusive)
+   * @return the previous value
+   */
+  public abstract int previousValue(short fromValue);
+
+  /**
    * Get the first integer held in the container
    * @return the first integer in the container
    * @throws NoSuchElementException if empty
