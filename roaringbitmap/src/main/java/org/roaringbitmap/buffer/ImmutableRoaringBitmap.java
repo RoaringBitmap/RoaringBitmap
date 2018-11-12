@@ -1555,7 +1555,7 @@ public class ImmutableRoaringBitmap
     short key = highbits(fromValue);
     int containerIndex = highLowContainer.advanceUntil(key, -1);
     long nextSetBit = -1L;
-    while (containerIndex != -1 && containerIndex < highLowContainer.size() && nextSetBit == -1L) {
+    while (containerIndex < highLowContainer.size() && nextSetBit == -1L) {
       short containerKey = highLowContainer.getKeyAtIndex(containerIndex);
       MappeableContainer container = highLowContainer.getContainerAtIndex(containerIndex);
       int bit = (compareUnsigned(containerKey, key) > 0
