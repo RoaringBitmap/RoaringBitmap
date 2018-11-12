@@ -1429,15 +1429,10 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   @Override
   public int previousValue(short fromValue) {
     int index = BufferUtil.advanceUntil(content, -1, cardinality, fromValue);
-    if (content.limit() != index) {
-      if (content.get(index) == fromValue) {
-        return toIntUnsigned(content.get(index));
-      }
+    if (content.limit() != index && content.get(index) == fromValue) {
+      return toIntUnsigned(content.get(index));
     }
-    if (index == 0) {
-      return -1;
-    }
-    return toIntUnsigned(content.get(index - 1));
+    return index == 0 ? -1 : toIntUnsigned(content.get(index - 1));
   }
 
   @Override

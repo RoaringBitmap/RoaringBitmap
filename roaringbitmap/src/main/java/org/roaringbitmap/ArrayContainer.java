@@ -1151,15 +1151,10 @@ public final class ArrayContainer extends Container implements Cloneable {
   @Override
   public int previousValue(short fromValue) {
     int index = Util.advanceUntil(content, -1, cardinality, fromValue);
-    if (content.length != index) {
-      if (content[index] == fromValue) {
-        return toIntUnsigned(content[index]);
-      }
+    if (content.length != index && content[index] == fromValue) {
+      return toIntUnsigned(content[index]);
     }
-    if (index == 0) {
-      return -1;
-    }
-    return toIntUnsigned(content[index - 1]);
+    return index == 0 ? -1 : toIntUnsigned(content[index - 1]);
   }
 
   @Override
