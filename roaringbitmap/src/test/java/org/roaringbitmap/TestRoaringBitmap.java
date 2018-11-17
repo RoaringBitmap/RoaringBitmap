@@ -4696,7 +4696,7 @@ public class TestRoaringBitmap {
 
   @Test
   public void testNextValue() {
-    RoaringBitmap bitmap = RandomisedTestData.TestDataSet.testCase()
+    RoaringBitmap bitmap = SeededTestData.TestDataSet.testCase()
             .withRunAt(0)
             .withBitmapAt(1)
             .withArrayAt(2)
@@ -4718,7 +4718,7 @@ public class TestRoaringBitmap {
 
   @Test
   public void testPreviousValue() {
-    RoaringBitmap bitmap = RandomisedTestData.TestDataSet.testCase()
+    RoaringBitmap bitmap = SeededTestData.TestDataSet.testCase()
             .withRunAt(0)
             .withBitmapAt(1)
             .withArrayAt(2)

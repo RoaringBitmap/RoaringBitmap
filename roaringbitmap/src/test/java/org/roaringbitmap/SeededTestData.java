@@ -6,7 +6,7 @@ import java.util.stream.IntStream;
 
 import static org.roaringbitmap.RoaringBitmapWriter.writer;
 
-public class RandomisedTestData {
+public class SeededTestData {
 
   private static final ThreadLocal<long[]> bits = ThreadLocal.withInitial(() -> new long[1 << 10]);
 
@@ -135,7 +135,7 @@ public class RandomisedTestData {
   }
 
   public static class TestDataSet {
-    
+
     public static TestDataSet testCase() {
       return new TestDataSet();
     }

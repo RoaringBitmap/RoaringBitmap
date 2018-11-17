@@ -9,7 +9,7 @@ import org.roaringbitmap.BatchIterator;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 
-import static org.roaringbitmap.RandomisedTestData.TestDataSet.testCase;
+import static org.roaringbitmap.SeededTestData.TestDataSet.testCase;
 
 @RunWith(Parameterized.class)
 public class ImmutableRoaringBitmapBatchIteratorTest {

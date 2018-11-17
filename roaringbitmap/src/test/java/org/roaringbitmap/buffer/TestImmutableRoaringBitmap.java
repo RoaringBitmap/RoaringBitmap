@@ -8,7 +8,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.IntIterator;
-import org.roaringbitmap.RandomisedTestData;
+import org.roaringbitmap.SeededTestData;
 import org.roaringbitmap.RoaringBitmapWriter;
 
 import java.io.*;
@@ -1457,7 +1457,7 @@ public class TestImmutableRoaringBitmap {
 
   @Test
   public void testNextValue() {
-    ImmutableRoaringBitmap bitmap = RandomisedTestData.TestDataSet.testCase()
+    ImmutableRoaringBitmap bitmap = SeededTestData.TestDataSet.testCase()
             .withRunAt(0)
             .withBitmapAt(1)
             .withArrayAt(2)
@@ -1480,7 +1480,7 @@ public class TestImmutableRoaringBitmap {
 
   @Test
   public void testPreviousValue() {
-    ImmutableRoaringBitmap bitmap = RandomisedTestData.TestDataSet.testCase()
+    ImmutableRoaringBitmap bitmap = SeededTestData.TestDataSet.testCase()
             .withRunAt(0)
             .withBitmapAt(1)
             .withArrayAt(2)
