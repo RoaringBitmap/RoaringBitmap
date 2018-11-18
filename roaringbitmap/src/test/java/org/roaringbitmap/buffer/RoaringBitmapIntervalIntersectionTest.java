@@ -6,7 +6,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.roaringbitmap.RoaringBitmap;
 
-import static org.roaringbitmap.RandomisedTestData.TestDataSet.testCase;
+import static org.roaringbitmap.SeededTestData.TestDataSet.testCase;
 
 @RunWith(Parameterized.class)
 public class RoaringBitmapIntervalIntersectionTest {

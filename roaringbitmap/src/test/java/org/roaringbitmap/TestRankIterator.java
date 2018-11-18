@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static junit.framework.TestCase.assertTrue;
-import static org.roaringbitmap.RandomisedTestData.randomBitmap;
+import static org.roaringbitmap.SeededTestData.randomBitmap;
 import static org.roaringbitmap.RoaringBitmapWriter.writer;
 
 @RunWith(Parameterized.class)

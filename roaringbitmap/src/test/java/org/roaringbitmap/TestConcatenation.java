@@ -15,7 +15,7 @@ import java.util.Arrays;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.roaringbitmap.RandomisedTestData.TestDataSet.testCase;
+import static org.roaringbitmap.SeededTestData.TestDataSet.testCase;
 
 @RunWith(Parameterized.class)
 public class TestConcatenation {

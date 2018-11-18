@@ -490,6 +490,121 @@ public class TestArrayContainer {
         assertEquals(-1, container.nextValue((short)31));
     }
 
+    @Test
+    public void testNextValue2() {
+        Container container = new ArrayContainer().iadd(64, 129);
+        assertTrue(container instanceof ArrayContainer);
+        assertEquals(64, container.nextValue((short)0));
+        assertEquals(64, container.nextValue((short)64));
+        assertEquals(65, container.nextValue((short)65));
+        assertEquals(128, container.nextValue((short)128));
+        assertEquals(-1, container.nextValue((short)129));
+        assertEquals(-1, container.nextValue((short)5000));
+    }
+
+    @Test
+    public void testNextValueBetweenRuns() {
+        Container container = new ArrayContainer().iadd(64, 129).iadd(256, 321);
+        assertTrue(container instanceof ArrayContainer);
+        assertEquals(64, container.nextValue((short)0));
+        assertEquals(64, container.nextValue((short)64));
+        assertEquals(65, container.nextValue((short)65));
+        assertEquals(128, container.nextValue((short)128));
+        assertEquals(256, container.nextValue((short)129));
+        assertEquals(-1, container.nextValue((short)512));
+    }
+
+    @Test
+    public void testNextValue3() {
+        Container container = new ArrayContainer().iadd(64, 129).iadd(200, 501).iadd(5000, 5201);
+        assertTrue(container instanceof ArrayContainer);
+        assertEquals(64, container.nextValue((short)0));
+        assertEquals(64, container.nextValue((short)63));
+        assertEquals(64, container.nextValue((short)64));
+        assertEquals(65, container.nextValue((short)65));
+        assertEquals(128, container.nextValue((short)128));
+        assertEquals(200, container.nextValue((short)129));
+        assertEquals(200, container.nextValue((short)199));
+        assertEquals(200, container.nextValue((short)200));
+        assertEquals(250, container.nextValue((short)250));
+        assertEquals(5000, container.nextValue((short)2500));
+        assertEquals(5000, container.nextValue((short)5000));
+        assertEquals(5200, container.nextValue((short)5200));
+        assertEquals(-1, container.nextValue((short)5201));
+    }
+
+    @Test
+    public void testPreviousValue1() {
+        Container container = new ArrayContainer().iadd(64, 129);
+        assertTrue(container instanceof ArrayContainer);
+        assertEquals(-1, container.previousValue((short)0));
+        assertEquals(-1, container.previousValue((short)63));
+        assertEquals(64, container.previousValue((short)64));
+        assertEquals(65, container.previousValue((short)65));
+        assertEquals(128, container.previousValue((short)128));
+        assertEquals(128, container.previousValue((short)129));
+    }
+
+    @Test
+    public void testPreviousValue2() {
+        Container container = new ArrayContainer().iadd(64, 129).iadd(200, 501).iadd(5000, 5201);
+        assertTrue(container instanceof ArrayContainer);
+        assertEquals(-1, container.previousValue((short)0));
+        assertEquals(-1, container.previousValue((short)63));
+        assertEquals(64, container.previousValue((short)64));
+        assertEquals(65, container.previousValue((short)65));
+        assertEquals(128, container.previousValue((short)128));
+        assertEquals(128, container.previousValue((short)129));
+        assertEquals(128, container.previousValue((short)199));
+        assertEquals(200, container.previousValue((short)200));
+        assertEquals(250, container.previousValue((short)250));
+        assertEquals(500, container.previousValue((short)2500));
+        assertEquals(5000, container.previousValue((short)5000));
+        assertEquals(5200, container.previousValue((short)5200));
+    }
+
+    @Test
+    public void testPreviousValueBeforeStart() {
+        ArrayContainer container = new ArrayContainer(new short[] { 10, 20, 30});
+        assertEquals(-1, container.previousValue((short)5));
+    }
+
+    @Test
+    public void testPreviousValueSparse() {
+        ArrayContainer container = new ArrayContainer(new short[] { 10, 20, 30});
+        assertEquals(-1, container.previousValue((short)9));
+        assertEquals(10, container.previousValue((short)10));
+        assertEquals(10, container.previousValue((short)11));
+        assertEquals(20, container.previousValue((short)21));
+        assertEquals(30, container.previousValue((short)30));
+    }
+
+    @Test
+    public void testPreviousValueUnsigned() {
+        ArrayContainer container = new ArrayContainer(new short[] { (short)((1 << 15) | 5), (short)((1 << 15) | 7)});
+        assertEquals(-1, container.previousValue((short)((1 << 15) | 4)));
+        assertEquals(((1 << 15) | 5), container.previousValue((short)((1 << 15) | 5)));
+        assertEquals(((1 << 15) | 5), container.previousValue((short)((1 << 15) | 6)));
+        assertEquals(((1 << 15) | 7), container.previousValue((short)((1 << 15) | 7)));
+        assertEquals(((1 << 15) | 7), container.previousValue((short)((1 << 15) | 8)));
+    }
+
+    @Test
+    public void testNextValueUnsigned() {
+        ArrayContainer container = new ArrayContainer(new short[] { (short)((1 << 15) | 5), (short)((1 << 15) | 7)});
+        assertEquals(((1 << 15) | 5), container.nextValue((short)((1 << 15) | 4)));
+        assertEquals(((1 << 15) | 5), container.nextValue((short)((1 << 15) | 5)));
+        assertEquals(((1 << 15) | 7), container.nextValue((short)((1 << 15) | 6)));
+        assertEquals(((1 << 15) | 7), container.nextValue((short)((1 << 15) | 7)));
+        assertEquals(-1, container.nextValue((short)((1 << 15) | 8)));
+    }
+
+    @Test
+    public void testPreviousValueAfterEnd() {
+        ArrayContainer container = new ArrayContainer(new short[] { 10, 20, 30});
+        assertEquals(30, container.previousValue((short)31));
+    }
+
     private static int lower16Bits(int x) {
         return ((short)x) & 0xFFFF;
     }
