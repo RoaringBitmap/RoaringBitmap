@@ -8,7 +8,7 @@ import org.junit.Test;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.IntStream;
 
-import static org.roaringbitmap.RandomisedTestData.TestDataSet.testCase;
+import static org.roaringbitmap.SeededTestData.TestDataSet.testCase;
 
 public class ParallelAggregationTest {
 

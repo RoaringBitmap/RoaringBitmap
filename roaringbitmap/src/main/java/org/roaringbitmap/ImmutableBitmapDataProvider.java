@@ -174,6 +174,30 @@ public interface ImmutableBitmapDataProvider {
   int last();
 
   /**
+   * Returns the first value equal to or larger than the provided value
+   * (interpreted as an unsigned integer). If no such
+   * bit exists then {@code -1} is returned. It is not necessarily a
+   * computationally effective way to iterate through the values.
+   *
+   * @param  fromValue the lower bound (inclusive)
+   * @return the smallest value larger than or equal to the specified value,
+   *       or {@code -1} if there is no such value
+   */
+  long nextValue(int fromValue);
+  
+  /**
+   * Returns the first value less than or equal to the provided value
+   * (interpreted as an unsigned integer). If no such
+   * bit exists then {@code -1} is returned. It is not an efficient
+   * way to iterate through the values backwards.
+   *
+   * @param  fromValue the upper bound (inclusive)
+   * @return the largest value less than or equal to the specified value,
+   *       or {@code -1} if there is no such value
+   */
+  long previousValue(int fromValue);
+
+  /**
    * Serialize this bitmap.
    *
    * The current bitmap is not modified.

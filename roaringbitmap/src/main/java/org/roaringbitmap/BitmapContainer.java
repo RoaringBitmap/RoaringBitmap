@@ -1352,6 +1352,11 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
+  public int previousValue(short fromValue) {
+    return prevSetBit(Util.toIntUnsigned(fromValue));
+  }
+
+  @Override
   public int first() {
     assertNonEmpty(cardinality == 0);
     int i = 0;

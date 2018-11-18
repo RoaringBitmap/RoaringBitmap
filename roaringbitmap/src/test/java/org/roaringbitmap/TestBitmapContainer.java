@@ -734,7 +734,7 @@ public class TestBitmapContainer {
 
   @Test
   public void testContainsRangeSingleWord() {
-    long[] bitmap = oddBits();
+    long[] bitmap = evenBits();
     bitmap[10] = -1L;
     int cardinality = 32 + 1 << 15;
     BitmapContainer container = new BitmapContainer(bitmap, cardinality);
@@ -746,7 +746,7 @@ public class TestBitmapContainer {
 
   @Test
   public void testContainsRangeMultiWord() {
-    long[] bitmap = oddBits();
+    long[] bitmap = evenBits();
     bitmap[10] = -1L;
     bitmap[11] = -1L;
     bitmap[12] |= ((1L << 32) - 1);
@@ -763,7 +763,7 @@ public class TestBitmapContainer {
 
   @Test
   public void testContainsRangeSubWord() {
-    long[] bitmap = oddBits();
+    long[] bitmap = evenBits();
     bitmap[bitmap.length - 1] = ~((1L << 63) | 1L);
     int cardinality = 32 + 32 + 16 + 1 << 15;
     BitmapContainer container = new BitmapContainer(bitmap, cardinality);
@@ -777,7 +777,7 @@ public class TestBitmapContainer {
 
   @Test
   public void testNextSetBit() {
-    BitmapContainer container = new BitmapContainer(oddBits(), 1 << 15);
+    BitmapContainer container = new BitmapContainer(evenBits(), 1 << 15);
     assertEquals(0, container.nextSetBit(0));
     assertEquals(2, container.nextSetBit(1));
     assertEquals(2, container.nextSetBit(2));
@@ -786,7 +786,7 @@ public class TestBitmapContainer {
 
   @Test
   public void testNextSetBitAfterEnd() {
-    BitmapContainer container = new BitmapContainer(oddBits(), 1 << 15);
+    BitmapContainer container = new BitmapContainer(evenBits(), 1 << 15);
     container.bitmap[1023] = 0L;
     container.cardinality -= 32;
     assertEquals(-1, container.nextSetBit((64 * 1023) + 5));
@@ -794,13 +794,146 @@ public class TestBitmapContainer {
 
   @Test
   public void testNextSetBitBeforeStart() {
-    BitmapContainer container = new BitmapContainer(oddBits(), 1 << 15);
+    BitmapContainer container = new BitmapContainer(evenBits(), 1 << 15);
     container.bitmap[0] = 0L;
     container.cardinality -= 32;
     assertEquals(64, container.nextSetBit(1));
   }
 
-  private static long[] oddBits() {
+  @Test
+  public void testNextValue() {
+    BitmapContainer container = new ArrayContainer(new short[] { 10, 20, 30}).toBitmapContainer();
+    assertEquals(10, container.nextValue((short)10));
+    assertEquals(20, container.nextValue((short)11));
+    assertEquals(30, container.nextValue((short)30));
+  }
+
+  @Test
+  public void testNextValueAfterEnd() {
+    BitmapContainer container = new ArrayContainer(new short[] { 10, 20, 30}).toBitmapContainer();
+    assertEquals(-1, container.nextValue((short)31));
+  }
+
+  @Test
+  public void testNextValue2() {
+    BitmapContainer container = new BitmapContainer().iadd(64, 129).toBitmapContainer();
+    assertEquals(64, container.nextValue((short)0));
+    assertEquals(64, container.nextValue((short)64));
+    assertEquals(65, container.nextValue((short)65));
+    assertEquals(128, container.nextValue((short)128));
+    assertEquals(-1, container.nextValue((short)129));
+    assertEquals(-1, container.nextValue((short)5000));
+  }
+
+  @Test
+  public void testNextValueBetweenRuns() {
+    BitmapContainer container = new BitmapContainer().iadd(64, 129).iadd(256, 321).toBitmapContainer();
+    assertEquals(64, container.nextValue((short)0));
+    assertEquals(64, container.nextValue((short)64));
+    assertEquals(65, container.nextValue((short)65));
+    assertEquals(128, container.nextValue((short)128));
+    assertEquals(256, container.nextValue((short)129));
+    assertEquals(-1, container.nextValue((short)512));
+  }
+
+  @Test
+  public void testNextValue3() {
+    BitmapContainer container = new ArrayContainer().iadd(64, 129).iadd(200, 501).iadd(5000, 5201).toBitmapContainer();
+    assertEquals(64, container.nextValue((short)0));
+    assertEquals(64, container.nextValue((short)63));
+    assertEquals(64, container.nextValue((short)64));
+    assertEquals(65, container.nextValue((short)65));
+    assertEquals(128, container.nextValue((short)128));
+    assertEquals(200, container.nextValue((short)129));
+    assertEquals(200, container.nextValue((short)199));
+    assertEquals(200, container.nextValue((short)200));
+    assertEquals(250, container.nextValue((short)250));
+    assertEquals(5000, container.nextValue((short)2500));
+    assertEquals(5000, container.nextValue((short)5000));
+    assertEquals(5200, container.nextValue((short)5200));
+    assertEquals(-1, container.nextValue((short)5201));
+  }
+
+  @Test
+  public void testPreviousValue1() {
+    BitmapContainer container = new ArrayContainer().iadd(64, 129).toBitmapContainer();
+    assertEquals(-1, container.previousValue((short)0));
+    assertEquals(-1, container.previousValue((short)63));
+    assertEquals(64, container.previousValue((short)64));
+    assertEquals(65, container.previousValue((short)65));
+    assertEquals(128, container.previousValue((short)128));
+    assertEquals(128, container.previousValue((short)129));
+  }
+
+  @Test
+  public void testPreviousValue2() {
+    BitmapContainer container = new ArrayContainer().iadd(64, 129).iadd(200, 501).iadd(5000, 5201).toBitmapContainer();
+    assertEquals(-1, container.previousValue((short)0));
+    assertEquals(-1, container.previousValue((short)63));
+    assertEquals(64, container.previousValue((short)64));
+    assertEquals(65, container.previousValue((short)65));
+    assertEquals(128, container.previousValue((short)128));
+    assertEquals(128, container.previousValue((short)129));
+    assertEquals(128, container.previousValue((short)199));
+    assertEquals(200, container.previousValue((short)200));
+    assertEquals(250, container.previousValue((short)250));
+    assertEquals(500, container.previousValue((short)2500));
+    assertEquals(5000, container.previousValue((short)5000));
+    assertEquals(5200, container.previousValue((short)5200));
+  }
+
+  @Test
+  public void testPreviousValueBeforeStart() {
+    BitmapContainer container = new ArrayContainer(new short[] { 10, 20, 30}).toBitmapContainer();
+    assertEquals(-1, container.previousValue((short)5));
+  }
+
+  @Test
+  public void testPreviousValueSparse() {
+    BitmapContainer container = new ArrayContainer(new short[] { 10, 20, 30}).toBitmapContainer();
+    assertEquals(-1, container.previousValue((short)9));
+    assertEquals(10, container.previousValue((short)10));
+    assertEquals(10, container.previousValue((short)11));
+    assertEquals(20, container.previousValue((short)21));
+    assertEquals(30, container.previousValue((short)30));
+  }
+
+  @Test
+  public void testPreviousValueAfterEnd() {
+    BitmapContainer container = new ArrayContainer(new short[] { 10, 20, 30}).toBitmapContainer();
+    assertEquals(30, container.previousValue((short)31));
+  }
+
+  @Test
+  public void testPreviousEvenBits() {
+    BitmapContainer container = new BitmapContainer(evenBits(), 1 << 15);
+    assertEquals(0, container.previousValue((short)0));
+    assertEquals(0, container.previousValue((short)1));
+    assertEquals(2, container.previousValue((short)2));
+    assertEquals(2, container.previousValue((short)3));
+  }
+
+  @Test
+  public void testPreviousValueUnsigned() {
+    BitmapContainer container = new ArrayContainer(new short[] { (short)((1 << 15) | 5), (short)((1 << 15) | 7)}).toBitmapContainer();
+    assertEquals(-1, container.previousValue((short)((1 << 15) | 4)));
+    assertEquals(((1 << 15) | 5), container.previousValue((short)((1 << 15) | 5)));
+    assertEquals(((1 << 15) | 5), container.previousValue((short)((1 << 15) | 6)));
+    assertEquals(((1 << 15) | 7), container.previousValue((short)((1 << 15) | 7)));
+    assertEquals(((1 << 15) | 7), container.previousValue((short)((1 << 15) | 8)));
+  }
+
+  @Test
+  public void testNextValueUnsigned() {
+    BitmapContainer container = new ArrayContainer(new short[] { (short)((1 << 15) | 5), (short)((1 << 15) | 7)}).toBitmapContainer();
+    assertEquals(((1 << 15) | 5), container.nextValue((short)((1 << 15) | 4)));
+    assertEquals(((1 << 15) | 5), container.nextValue((short)((1 << 15) | 5)));
+    assertEquals(((1 << 15) | 7), container.nextValue((short)((1 << 15) | 6)));
+    assertEquals(((1 << 15) | 7), container.nextValue((short)((1 << 15) | 7)));
+    assertEquals(-1, container.nextValue((short)((1 << 15) | 8)));
+  }
+
+  private static long[] evenBits() {
     long[] bitmap = new long[1 << 10];
     Arrays.fill(bitmap, 0x5555555555555555L);
     return bitmap;

@@ -840,6 +840,20 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
   public abstract int last();
 
   /**
+   * Gets the first value greater than or equal to the lower bound, or -1 if no such value exists.
+   * @param fromValue the lower bound (inclusive)
+   * @return the next value
+   */
+  public abstract int nextValue(short fromValue);
+
+  /**
+   * Gets the last value less than or equal to the upper bound, or -1 if no such value exists.
+   * @param fromValue the upper bound (inclusive)
+   * @return the previous value
+   */
+  public abstract int previousValue(short fromValue);
+
+  /**
    * Throw if the container is empty
    * @param condition a boolean expression
    * @throws NoSuchElementException if empty

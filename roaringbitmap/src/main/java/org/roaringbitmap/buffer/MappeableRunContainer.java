@@ -2587,6 +2587,43 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     return start + length;
   }
 
+  @Override
+  public int nextValue(short fromValue) {
+    int index = bufferedUnsignedInterleavedBinarySearch(valueslength, 0, nbrruns, fromValue);
+    int effectiveIndex = index >= 0 ? index : -index - 2;
+    if (effectiveIndex == -1) {
+      return first();
+    }
+    int startValue = toIntUnsigned(getValue(effectiveIndex));
+    int value = toIntUnsigned(fromValue);
+    int offset = value - startValue;
+    int le = toIntUnsigned(getLength(effectiveIndex));
+    if (offset <= le) {
+      return value;
+    }
+    if (effectiveIndex + 1 < numberOfRuns()) {
+      return toIntUnsigned(getValue(effectiveIndex + 1));
+    }
+    return -1;
+  }
+
+  @Override
+  public int previousValue(short fromValue) {
+    int index = bufferedUnsignedInterleavedBinarySearch(valueslength, 0, nbrruns, fromValue);
+    int effectiveIndex = index >= 0 ? index : -index - 2;
+    if (effectiveIndex == -1) {
+      return -1;
+    }
+    int startValue = toIntUnsigned(getValue(effectiveIndex));
+    int value = toIntUnsigned(fromValue);
+    int offset = value - startValue;
+    int le = toIntUnsigned(getLength(effectiveIndex));
+    if (offset >= 0 && offset <= le) {
+      return value;
+    }
+    return startValue + le;
+  }
+
 
   @Override
   protected boolean contains(MappeableRunContainer runContainer) {

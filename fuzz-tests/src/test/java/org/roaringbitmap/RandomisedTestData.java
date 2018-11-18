@@ -4,20 +4,35 @@ import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 
+import static java.lang.Integer.parseInt;
 import static org.roaringbitmap.RoaringBitmapWriter.writer;
 
 public class RandomisedTestData {
 
+  public static final int ITERATIONS = parseInt(System.getProperty("org.roaringbitmap.fuzz.iterations", "10000"));
+
   private static final ThreadLocal<long[]> bits = ThreadLocal.withInitial(() -> new long[1 << 10]);
 
   public static RoaringBitmap randomBitmap(int maxKeys, double rleLimit, double denseLimit) {
-    return randomBitmap(maxKeys, rleLimit, denseLimit, writer().initialCapacity(maxKeys).optimiseForArrays().get());
+    return randomBitmap(maxKeys, rleLimit, denseLimit,  writer().initialCapacity(maxKeys).optimiseForArrays().get());
   }
 
-  public static <T extends BitmapDataProvider> T randomBitmap(int maxKeys,
-                                                              double rleLimit,
-                                                              double denseLimit,
-                                                              RoaringBitmapWriter<T> writer) {
+  public static RoaringBitmap randomBitmap(int maxKeys) {
+      double rleLimit = ThreadLocalRandom.current().nextDouble();
+      double denseLimit = ThreadLocalRandom.current().nextDouble(rleLimit, 1D);
+      return randomBitmap(maxKeys, rleLimit, denseLimit);
+  }
+
+  public static <T extends BitmapDataProvider> T randomBitmap(int maxKeys, RoaringBitmapWriter<T> writer) {
+      double rleLimit = ThreadLocalRandom.current().nextDouble();
+      double denseLimit = ThreadLocalRandom.current().nextDouble(rleLimit, 1D);
+      return randomBitmap(maxKeys, rleLimit, denseLimit, writer);
+  }
+
+  private static <T extends BitmapDataProvider> T randomBitmap(int maxKeys,
+                                                       double rleLimit,
+                                                       double denseLimit,
+                                                       RoaringBitmapWriter<T> writer) {
     int[] keys = createSorted16BitInts(ThreadLocalRandom.current().nextInt(1, maxKeys));
     IntStream.of(keys)
             .forEach(key -> {
@@ -35,19 +50,7 @@ public class RandomisedTestData {
     return writer.get();
   }
 
-  public static RoaringBitmap randomBitmap(int maxKeys) {
-    double rleLimit = ThreadLocalRandom.current().nextDouble();
-    double denseLimit = ThreadLocalRandom.current().nextDouble(rleLimit, 1D);
-    return randomBitmap(maxKeys, rleLimit, denseLimit);
-  }
-
-  public static <T extends BitmapDataProvider> T randomBitmap(int maxKeys, RoaringBitmapWriter<T> writer) {
-    double rleLimit = ThreadLocalRandom.current().nextDouble();
-    double denseLimit = ThreadLocalRandom.current().nextDouble(rleLimit, 1D);
-    return randomBitmap(maxKeys, rleLimit, denseLimit, writer);
-  }
-
-  public static IntStream rleRegion() {
+  private static IntStream rleRegion() {
     int numRuns = ThreadLocalRandom.current().nextInt(1, 2048);
     int[] runs = createSorted16BitInts(numRuns * 2);
     return IntStream.range(0, numRuns)
@@ -56,12 +59,11 @@ public class RandomisedTestData {
             .flatMapToInt(i -> i);
   }
 
-  public static IntStream sparseRegion() {
+  private static IntStream sparseRegion() {
     return IntStream.of(createSorted16BitInts(ThreadLocalRandom.current().nextInt(1, 4096)));
   }
 
-
-  public static IntStream denseRegion() {
+  private static IntStream denseRegion() {
     return IntStream.of(createSorted16BitInts(ThreadLocalRandom.current().nextInt(4096, 1 << 16)));
   }
 
@@ -83,48 +85,10 @@ public class RandomisedTestData {
       long word = bitset[i];
       while (word != 0) {
         keys[k++] = prefix + Long.numberOfTrailingZeros(word);
-        word ^= Long.lowestOneBit(word);
+        word &= (word - 1);
       }
       prefix += 64;
     }
     return keys;
-  }
-
-  public static class TestDataSet {
-
-
-    public static TestDataSet testCase() {
-      return new TestDataSet();
-    }
-
-    RoaringBitmapWriter<RoaringBitmap> writer = RoaringBitmapWriter.writer().constantMemory().get();
-
-    public TestDataSet withRunAt(int key) {
-      assert key < 1 << 16;
-      rleRegion().map(i -> (key << 16) | i).forEach(writer::add);
-      return this;
-    }
-
-    public TestDataSet withArrayAt(int key) {
-      assert key < 1 << 16;
-      sparseRegion().map(i -> (key << 16) | i).forEach(writer::add);
-      return this;
-    }
-
-    public TestDataSet withBitmapAt(int key) {
-      assert key < 1 << 16;
-      denseRegion().map(i -> (key << 16) | i).forEach(writer::add);
-      return this;
-    }
-
-    public TestDataSet withRange(long minimum, long supremum) {
-      writer.add(minimum, supremum);
-      return this;
-    }
-
-    public RoaringBitmap build() {
-      writer.flush();
-      return writer.getUnderlying();
-    }
   }
 }

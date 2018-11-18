@@ -11,6 +11,7 @@ import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.toList;
+import static org.roaringbitmap.RandomisedTestData.ITERATIONS;
 import static org.roaringbitmap.RandomisedTestData.randomBitmap;
 import static org.roaringbitmap.Util.toUnsignedLong;
 
@@ -23,7 +24,7 @@ public class Fuzzer {
 
   public static <T> void verifyInvarianceArray(Function<RoaringBitmap[], T> left,
                                                Function<RoaringBitmap[], T> right) {
-    verifyInvarianceArray(50, 1 << 5, 96, left, right);
+    verifyInvarianceArray(ITERATIONS, 1 << 5, 96, left, right);
   }
 
   public static <T> void verifyInvarianceArray(int count,
@@ -41,7 +42,7 @@ public class Fuzzer {
 
   public static <T> void verifyInvarianceIterator(Function<Iterator<RoaringBitmap>, T> left,
                                                   Function<Iterator<RoaringBitmap>, T> right) {
-    verifyInvarianceIterator(50, 1 << 5, 96, left, right);
+    verifyInvarianceIterator(ITERATIONS, 1 << 5, 96, left, right);
   }
 
 
@@ -59,7 +60,7 @@ public class Fuzzer {
   }
 
   public static <T> void verifyInvariance(T value, Function<RoaringBitmap, T> func) {
-    verifyInvariance(50, 1 << 9, value, func);
+    verifyInvariance(ITERATIONS, 1 << 9, value, func);
   }
 
   public static <T> void verifyInvariance(int count,
@@ -75,7 +76,7 @@ public class Fuzzer {
   public static <T> void verifyInvariance(Predicate<RoaringBitmap> validity,
                                           Function<RoaringBitmap, T> left,
                                           Function<RoaringBitmap, T> right) {
-    verifyInvariance(50, 1 << 8, validity, left, right);
+    verifyInvariance(ITERATIONS, 1 << 8, validity, left, right);
   }
 
   public static <T> void verifyInvariance(int count,
@@ -92,13 +93,13 @@ public class Fuzzer {
 
   public static <T> void verifyInvariance(BiFunction<RoaringBitmap, RoaringBitmap, T> left,
                                           BiFunction<RoaringBitmap, RoaringBitmap, T> right) {
-    verifyInvariance(50, 1 << 8, left, right);
+    verifyInvariance(ITERATIONS, 1 << 8, left, right);
   }
 
   public static <T> void verifyInvariance(BiPredicate<RoaringBitmap, RoaringBitmap> validity,
                                           BiFunction<RoaringBitmap, RoaringBitmap, T> left,
                                           BiFunction<RoaringBitmap, RoaringBitmap, T> right) {
-    verifyInvariance(validity, 50, 1 << 8, left, right);
+    verifyInvariance(validity, ITERATIONS, 1 << 8, left, right);
   }
 
 
@@ -131,7 +132,7 @@ public class Fuzzer {
 
   public static void verifyInvariance(Predicate<RoaringBitmap> validity,
                                       IntBitmapPredicate predicate) {
-    verifyInvariance(validity, 50, 1 << 3, predicate);
+    verifyInvariance(validity, ITERATIONS, 1 << 3, predicate);
   }
 
   public static void verifyInvariance(Predicate<RoaringBitmap> validity,
@@ -175,21 +176,21 @@ public class Fuzzer {
 
   @Test
   public void andCardinalityInvariance() {
-    verifyInvariance(50, 1 << 9,
+    verifyInvariance(ITERATIONS, 1 << 9,
             (l, r) -> RoaringBitmap.and(l, r).getCardinality(),
             (l, r) -> RoaringBitmap.andCardinality(l, r));
   }
 
   @Test
   public void orCardinalityInvariance() {
-    verifyInvariance(50, 1 << 9,
+    verifyInvariance(ITERATIONS, 1 << 9,
             (l, r) -> RoaringBitmap.or(l, r).getCardinality(),
             (l, r) -> RoaringBitmap.orCardinality(l, r));
   }
 
   @Test
   public void xorCardinalityInvariance() {
-    verifyInvariance(50, 1 << 9,
+    verifyInvariance(ITERATIONS, 1 << 9,
             (l, r) -> RoaringBitmap.xor(l, r).getCardinality(),
             (l, r) -> RoaringBitmap.xorCardinality(l, r));
   }
@@ -270,21 +271,21 @@ public class Fuzzer {
 
   @Test
   public void orOfDisjunction() {
-    verifyInvariance(50, 1 << 8,
+    verifyInvariance(ITERATIONS, 1 << 8,
             (l, r) -> l,
             (l, r) -> RoaringBitmap.or(l, RoaringBitmap.and(l, r)));
   }
 
   @Test
   public void orCoversXor() {
-    verifyInvariance(50, 1 << 8,
+    verifyInvariance(ITERATIONS, 1 << 8,
             (l, r) -> RoaringBitmap.or(l, r),
             (l, r) -> RoaringBitmap.or(l, RoaringBitmap.xor(l, r)));
   }
 
   @Test
   public void xorInvariance() {
-    verifyInvariance(50, 1 << 9,
+    verifyInvariance(ITERATIONS, 1 << 9,
             (l, r) -> RoaringBitmap.xor(l, r),
             (l, r) -> RoaringBitmap.andNot(RoaringBitmap.or(l, r), RoaringBitmap.and(l, r)));
   }

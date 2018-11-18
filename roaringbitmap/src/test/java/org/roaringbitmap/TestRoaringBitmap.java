@@ -4696,7 +4696,7 @@ public class TestRoaringBitmap {
 
   @Test
   public void testNextValue() {
-    RoaringBitmap bitmap = RandomisedTestData.TestDataSet.testCase()
+    RoaringBitmap bitmap = SeededTestData.TestDataSet.testCase()
             .withRunAt(0)
             .withBitmapAt(1)
             .withArrayAt(2)
@@ -4713,6 +4713,31 @@ public class TestRoaringBitmap {
       b1 = bitmap.nextValue((int)b1 + 1);
       b2 = bitset.nextSetBit(b2 + 1);
       assertEquals(b1, b2);
+    }
+  }
+
+  @Test
+  public void testPreviousValue() {
+    RoaringBitmap bitmap = SeededTestData.TestDataSet.testCase()
+            .withRunAt(0)
+            .withBitmapAt(1)
+            .withArrayAt(2)
+            .withRunAt(3)
+            .withBitmapAt(4)
+            .withArrayAt(5)
+            .build();
+
+    BitSet bitset = new BitSet();
+    bitmap.forEach((IntConsumer) bitset::set);
+    long b1 = Util.toUnsignedLong(bitmap.last());
+    int b2 = bitset.previousSetBit(Integer.MAX_VALUE);
+    int i = bitmap.getCardinality();
+    while (b1 != -1 && b2 != -1) {
+      assertEquals(b1, b2);
+      b1 = bitmap.previousValue((int)(b1 - 1));
+      b2 = bitset.previousSetBit(b2 - 1);
+      assertEquals("mismatch at " + i, b1, b2);
+      --i;
     }
   }
 
