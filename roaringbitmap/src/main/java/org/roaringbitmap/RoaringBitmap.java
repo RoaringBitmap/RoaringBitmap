@@ -2049,28 +2049,26 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       return 0;
     }
     long size = 0;
-    int startidx = this.highLowContainer.getIndex(Util.highbits(start));
-    if(startidx < 0)  {
-      startidx = - startidx;
+    int startIndex = this.highLowContainer.getIndex(Util.highbits(start));
+    if(startIndex < 0)  {
+      startIndex = -startIndex - 1;
     } else {
-      short in_cont_start = Util.lowbits(start);
-      if(in_cont_start != 0) {
+      int inContainerStart = Util.toIntUnsigned(Util.lowbits(start));
+      if(inContainerStart != 0) {
         size -= this.highLowContainer
-          .getContainerAtIndex(startidx)
-          .rank((short)(in_cont_start - 1));
+          .getContainerAtIndex(startIndex)
+          .rank((short)(inContainerStart - 1));
       }
     }
     short xhigh = Util.highbits(end - 1);
-    for (int i = startidx; i < this.highLowContainer.size(); i++) {
+    for (int i = startIndex; i < this.highLowContainer.size(); i++) {
       short key = this.highLowContainer.getKeyAtIndex(i);
       int comparison = Util.compareUnsigned(key, xhigh);
       if (comparison < 0) {
-        size += this.highLowContainer
-          .getContainerAtIndex(i).getCardinality();
+        size += this.highLowContainer.getContainerAtIndex(i).getCardinality();
       } else if (comparison == 0) {
         return size + this.highLowContainer
-          .getContainerAtIndex(i)
-                .rank(Util.lowbits((int)(end - 1)));
+          .getContainerAtIndex(i).rank(Util.lowbits((int)(end - 1)));
       }
     }
     return size;    

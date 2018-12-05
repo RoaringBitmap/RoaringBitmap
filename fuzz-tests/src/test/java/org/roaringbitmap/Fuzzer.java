@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Iterator;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
@@ -20,6 +21,11 @@ public class Fuzzer {
   @FunctionalInterface
   interface IntBitmapPredicate {
     boolean test(int index, RoaringBitmap bitmap);
+  }
+
+  @FunctionalInterface
+  interface RangeBitmapPredicate {
+    boolean test(long min, long max, RoaringBitmap bitmap);
   }
 
   public static <T> void verifyInvarianceArray(Function<RoaringBitmap[], T> left,
@@ -71,6 +77,20 @@ public class Fuzzer {
             .parallel()
             .mapToObj(i -> randomBitmap(maxKeys))
             .forEach(bitmap -> Assert.assertEquals(value, func.apply(bitmap)));
+  }
+
+
+
+  public static void verifyInvariance(int maxKeys, RangeBitmapPredicate pred) {
+    ThreadLocalRandom random = ThreadLocalRandom.current();
+    IntStream.range(0, ITERATIONS)
+            .parallel()
+            .mapToObj(i -> randomBitmap(maxKeys))
+            .forEach(bitmap -> {
+              long min = random.nextLong(1L << 32);
+              long max = random.nextLong(min,1L << 32);
+              Assert.assertTrue(pred.test(min, max, bitmap));
+            });
   }
 
   public static <T> void verifyInvariance(Predicate<RoaringBitmap> validity,
@@ -288,5 +308,15 @@ public class Fuzzer {
     verifyInvariance(ITERATIONS, 1 << 9,
             (l, r) -> RoaringBitmap.xor(l, r),
             (l, r) -> RoaringBitmap.andNot(RoaringBitmap.or(l, r), RoaringBitmap.and(l, r)));
+  }
+
+  @Test
+  public void rangeCardinalityVsMaterialisedRange() {
+    verifyInvariance(1 << 9,
+            (min, max, bitmap) -> {
+                RoaringBitmap range = new RoaringBitmap();
+                range.add(min, max);
+                return bitmap.rangeCardinality(min, max) == RoaringBitmap.andCardinality(range, bitmap);
+            });
   }
 }
