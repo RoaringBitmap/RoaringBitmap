@@ -1504,4 +1504,12 @@ public class TestImmutableRoaringBitmap {
     }
   }
 
+  @Test
+  public void testRangeCardinalityAtBoundary() {
+    // See https://github.com/RoaringBitmap/RoaringBitmap/issues/285
+    MutableRoaringBitmap r = new MutableRoaringBitmap();
+    r.add(66236);
+    Assert.assertEquals(1, r.rangeCardinality(60000, 70000));
+  }
+
 }
