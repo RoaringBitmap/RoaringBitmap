@@ -13,9 +13,7 @@ import java.util.NoSuchElementException;
 import org.roaringbitmap.*;
 
 import static org.roaringbitmap.Util.toUnsignedLong;
-import static org.roaringbitmap.buffer.BufferUtil.compareUnsigned;
-import static org.roaringbitmap.buffer.BufferUtil.highbits;
-import static org.roaringbitmap.buffer.BufferUtil.lowbits;
+import static org.roaringbitmap.buffer.BufferUtil.*;
 
 /**
  * ImmutableRoaringBitmap provides a compressed immutable (cannot be modified) bitmap. It is meant
@@ -1466,19 +1464,19 @@ public class ImmutableRoaringBitmap
       return 0;
     }
     long size = 0;
-    int startidx = this.highLowContainer.getIndex(highbits(start));
-    if(startidx < 0)  {
-      startidx = - startidx;
+    int startIndex = this.highLowContainer.getIndex(highbits(start));
+    if(startIndex < 0)  {
+      startIndex = -startIndex - 1;
     } else {
-      short in_cont_start = lowbits(start);
-      if(in_cont_start != 0) {
+      int inContainerStart = toIntUnsigned(lowbits(start));
+      if(inContainerStart != 0) {
         size -= this.highLowContainer
-          .getContainerAtIndex(startidx)
-          .rank((short)(in_cont_start - 1));
+          .getContainerAtIndex(startIndex)
+          .rank((short)(inContainerStart - 1));
       }
     }
     short xhigh = highbits(end - 1);
-    for (int i = startidx; i < this.highLowContainer.size(); i++) {
+    for (int i = startIndex; i < this.highLowContainer.size(); i++) {
       short key = this.highLowContainer.getKeyAtIndex(i);
       int comparison = compareUnsigned(key, xhigh);
       if (comparison < 0) {

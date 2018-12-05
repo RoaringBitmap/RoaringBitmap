@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
@@ -12,6 +13,7 @@ import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 import static org.roaringbitmap.RandomisedTestData.ITERATIONS;
+import static org.roaringbitmap.RandomisedTestData.randomBitmap;
 import static org.roaringbitmap.Util.toUnsignedLong;
 
 public class BufferFuzzer {
@@ -24,6 +26,23 @@ public class BufferFuzzer {
   public static <T> void verifyInvarianceArray(Function<ImmutableRoaringBitmap[], T> left,
                                                Function<ImmutableRoaringBitmap[], T> right) {
     verifyInvarianceArray(ITERATIONS, 1 << 5, 96, left, right);
+  }
+
+  @FunctionalInterface
+  interface RangeBitmapPredicate {
+    boolean test(long min, long max, ImmutableRoaringBitmap bitmap);
+  }
+
+  public static void verifyInvariance(int maxKeys, RangeBitmapPredicate pred) {
+    ThreadLocalRandom random = ThreadLocalRandom.current();
+    IntStream.range(0, ITERATIONS)
+            .parallel()
+            .mapToObj(i -> randomBitmap(maxKeys))
+            .forEach(bitmap -> {
+              long min = random.nextLong(1L << 32);
+              long max = random.nextLong(min,1L << 32);
+              Assert.assertTrue(pred.test(min, max, bitmap));
+            });
   }
 
   public static <T> void verifyInvarianceArray(int count,
@@ -248,6 +267,16 @@ public class BufferFuzzer {
     verifyInvariance(ITERATIONS, 1 << 9,
             (l, r) -> MutableRoaringBitmap.xor(l, r),
             (l, r) -> MutableRoaringBitmap.andNot(MutableRoaringBitmap.or(l, r), MutableRoaringBitmap.and(l, r)));
+  }
+
+  @Test
+  public void rangeCardinalityVsMaterialisedRange() {
+    verifyInvariance(1 << 9,
+            (min, max, bitmap) -> {
+              MutableRoaringBitmap range = new MutableRoaringBitmap();
+              range.add(min, max);
+              return bitmap.rangeCardinality(min, max) == ImmutableRoaringBitmap.andCardinality(range, bitmap);
+            });
   }
 
   private static MutableRoaringBitmap randomBitmap(int maxKeys) {
