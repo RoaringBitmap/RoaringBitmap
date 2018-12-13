@@ -143,6 +143,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <javac.target>1.8</javac.target>
+        <javac.release>8</javac.release>
 
         <!-- This location is OK for main module but not sub-modules -->
         <checkstyle.configLocation>${basedir}/roaringbitmap/style/roaring_google_checks.xml</checkstyle.configLocation>
@@ -163,8 +164,7 @@
                 <version>3.6.0</version>
                 <configuration>
                     <compilerVersion>${javac.target}</compilerVersion>
-                    <source>${javac.target}</source>
-                    <target>${javac.target}</target>
+                    <release>${javac.release}</release>
                     <verbose>true</verbose>
                     <fork>true</fork>
                     <showDeprecation>true</showDeprecation>
