@@ -178,6 +178,7 @@ public class TestRankIteratorsOfContainers {
     fillRange(container, 1024 + 3, 1024 + 5);
     fillRange(container, 1024 + 30, 1024 + 37);
     fillRange(container, 65535 - 7, 65535 - 5);
+    testContainerIterators(container);
   }
 
   @Test

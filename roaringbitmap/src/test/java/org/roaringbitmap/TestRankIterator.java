@@ -21,7 +21,7 @@ import static org.roaringbitmap.RoaringBitmapWriter.writer;
 public class TestRankIterator {
 
   @SuppressWarnings("unchecked")
-@Parameterized.Parameters(name = "{index}: advance by {1}")
+  @Parameterized.Parameters(name = "{index}: advance by {1}")
   public static Collection<Object[]> parameters() throws CloneNotSupportedException {
     FastRankRoaringBitmap fast = getBitmap();
     FastRankRoaringBitmap withFull = new FastRankRoaringBitmap(fast.highLowContainer.clone());
