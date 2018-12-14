@@ -179,4 +179,25 @@ public class TestRankIteratorsOfContainers {
     fillRange(container, 1024 + 30, 1024 + 37);
     fillRange(container, 65535 - 7, 65535 - 5);
   }
+
+  @Test
+  public void testOverflow() {
+    testContainerOverflow(new ArrayContainer(), false); // -- will be converted to BitmapContainer
+    testContainerOverflow(new BitmapContainer(), true);
+    testContainerOverflow(new RunContainer(), true);
+  }
+
+  private void testContainerOverflow(Container container, boolean checkSame) {
+    Container c1 = container.iadd(0, 65536);
+
+    if (checkSame) {
+      Assert.assertSame("bad test -- container was changed", container, c1);
+    }
+
+    PeekableShortRankIterator iterator = container.getShortRankIterator();
+    while (iterator.hasNext()) {
+      Assert.assertEquals(Util.toIntUnsigned(iterator.peekNext()) + 1, Util.toIntUnsigned(iterator.peekNextRank()));
+      iterator.next();
+    }
+  }
 }
