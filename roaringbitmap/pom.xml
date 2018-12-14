@@ -63,6 +63,7 @@
       <groupId>com.esotericsoftware</groupId>
       <artifactId>kryo</artifactId>
       <version>5.0.0-RC1</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   <build>
