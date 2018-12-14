@@ -125,7 +125,9 @@
             <!-- Activated only in 'mvn release:perform' step (and not 'mvn release:prepare' step) -->
             <id>allModules</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>!release</name>
+                </property>
             </activation>
 
             <!-- By default we want all modules to be visible, it is not true in 'mvn release:perform' step -->
@@ -138,11 +140,24 @@
                 <module>fuzz-tests</module>
             </modules>
         </profile>
+
+        <!-- once java 8 support is dropped, this should be removed -->
+        <!-- along with <source> and <target> compiler options in favor of <release>-->
+        <profile>
+            <id>targetJava8NewerJdk</id>
+            <activation>
+                <jdk>[9,)</jdk>
+            </activation>
+            <properties>
+                <maven.compiler.release>${javac.release}</maven.compiler.release>
+            </properties>
+        </profile>
     </profiles>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <javac.target>1.8</javac.target>
+        <javac.release>8</javac.release>
 
         <!-- This location is OK for main module but not sub-modules -->
         <checkstyle.configLocation>${basedir}/roaringbitmap/style/roaring_google_checks.xml</checkstyle.configLocation>
