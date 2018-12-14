@@ -9,7 +9,6 @@ import java.util.function.Supplier;
 
 import static java.lang.Integer.*;
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
 import static org.roaringbitmap.RoaringBitmapWriter.bufferWriter;
 import static org.roaringbitmap.RoaringBitmapWriter.writer;
 

@@ -22,7 +22,6 @@ import java.util.Arrays;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.roaringbitmap.ArrayContainer;
 import org.roaringbitmap.BitmapContainer;
 import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.ShortIterator;
