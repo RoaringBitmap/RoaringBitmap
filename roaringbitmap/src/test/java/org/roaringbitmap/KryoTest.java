@@ -79,7 +79,8 @@ class RoaringSerializer extends Serializer<RoaringBitmap> {
             throw new RuntimeException();
         }
     }
-
+    
+    @Override
     public RoaringBitmap read(Kryo kryo, Input input, Class<? extends RoaringBitmap> type) {
         RoaringBitmap bitmap = new RoaringBitmap();
         try {

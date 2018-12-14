@@ -269,6 +269,38 @@ to the same output however. The performance of the code in org.roaringbitmap pac
 generally superior because there is no overhead due to the use of ByteBuffer instances.
 
 
+Kryo
+-----
+
+Many applications use Kryo for serialization/deserialization. One can
+use Roaring bitmaps with Kryo efficiently thanks to a custom serializer:
+
+```java
+public class RoaringSerializer extends Serializer<RoaringBitmap> {
+    @Override
+    public void write(Kryo kryo, Output output, RoaringBitmap bitmap) {
+        try {
+            bitmap.serialize(new KryoDataOutput(output));
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException();
+        }
+    }
+    @Override
+    public RoaringBitmap read(Kryo kryo, Input input, Class<? extends RoaringBitmap> type) {
+        RoaringBitmap bitmap = new RoaringBitmap();
+        try {
+            bitmap.deserialize(new KryoDataInput(input));
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException();
+        }
+        return bitmap;
+    }
+
+}
+```
+
 64-bit integers (long)
 -----------------------
 
