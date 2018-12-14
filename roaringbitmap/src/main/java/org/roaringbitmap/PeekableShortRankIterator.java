@@ -7,9 +7,13 @@ public interface PeekableShortRankIterator extends PeekableShortIterator {
 
   /**
    * peek in-container rank of the next value
+   *
+   * Uses integer because internal representation of rank is int
+   * and in-container rank lies in range 1-65536
+   *
    * @return rank of the next value
    */
-  short peekNextRank();
+  int peekNextRank();
 
   @Override
   PeekableShortRankIterator clone();

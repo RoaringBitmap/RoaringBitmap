@@ -10,9 +10,9 @@ public class TestRankIteratorsOfContainers {
     PeekableShortRankIterator iterator = c.getShortRankIterator();
     while (iterator.hasNext()) {
       short bit = iterator.peekNext();
-      short rank = iterator.peekNextRank();
+      int rank = iterator.peekNextRank();
 
-      Assert.assertEquals((short) c.rank(bit), rank);
+      Assert.assertEquals(c.rank(bit), rank);
 
       iterator.next();
     }
@@ -22,9 +22,9 @@ public class TestRankIteratorsOfContainers {
     PeekableShortRankIterator iterator = c.getShortRankIterator();
     while (iterator.hasNext()) {
       short bit = iterator.peekNext();
-      short rank = iterator.peekNextRank();
+      int rank = iterator.peekNextRank();
 
-      Assert.assertEquals((short) c.rank(bit), rank);
+      Assert.assertEquals(c.rank(bit), rank);
 
       iterator.nextAsInt();
     }
@@ -35,9 +35,9 @@ public class TestRankIteratorsOfContainers {
     short bit;
     while (iterator.hasNext()) {
       bit = iterator.peekNext();
-      short rank = iterator.peekNextRank();
+      int rank = iterator.peekNextRank();
 
-      Assert.assertEquals((short) c.rank(bit), rank);
+      Assert.assertEquals(c.rank(bit), rank);
 
       if ((Util.toIntUnsigned(bit) + advance < 65536)) {
         iterator.advanceIfNeeded((short) (bit + advance));
@@ -196,7 +196,7 @@ public class TestRankIteratorsOfContainers {
 
     PeekableShortRankIterator iterator = container.getShortRankIterator();
     while (iterator.hasNext()) {
-      Assert.assertEquals(Util.toIntUnsigned(iterator.peekNext()) + 1, Util.toIntUnsigned(iterator.peekNextRank()));
+      Assert.assertEquals(Util.toIntUnsigned(iterator.peekNext()) + 1, iterator.peekNextRank());
       iterator.next();
     }
   }
