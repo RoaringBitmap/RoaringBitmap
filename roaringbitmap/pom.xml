@@ -11,7 +11,8 @@
   <url>https://github.com/RoaringBitmap/RoaringBitmap</url>
   <description>Roaring bitmaps are compressed bitmaps (also called bitsets) which tend to outperform
      conventional compressed bitmaps such as WAH or Concise. </description>
-  <packaging>bundle</packaging>
+  <packaging>jar</packaging>
+
   <developers>
     <developer>
       <id>lemire</id>
@@ -43,6 +44,8 @@
   </licenses>
   <properties>
     <checkstyle.configLocation>${basedir}/style/roaring_google_checks.xml</checkstyle.configLocation>
+    <java11.sourceDirectory>${project.basedir}/src/main/java11</java11.sourceDirectory>
+    <java11.build.outputDirectory>${project.build.directory}/classes-java11</java11.build.outputDirectory>
   </properties>
   <dependencies>
     <dependency>
@@ -87,15 +90,55 @@
         </configuration>
       </plugin>
       <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <version>3.2.0</version>
-        <extensions>true</extensions>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>compile-java11</id>
+            <phase>compile</phase>
+            <configuration>
+              <tasks>
+                <mkdir dir="${java11.build.outputDirectory}" />
+                <javac srcdir="${java11.sourceDirectory}" destdir="${java11.build.outputDirectory}"
+                       classpath="${project.build.outputDirectory}" includeantruntime="false" target="11" />
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}/META-INF/versions/11</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${java11.build.outputDirectory}</directory>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
         <configuration>
-          <instructions>
-            <Export-Package>org.roaringbitmap.*</Export-Package>
-            <Import-Package>*</Import-Package>
-          </instructions>
+          <archive>
+            <manifestEntries>
+              <Multi-Release>true</Multi-Release>
+            </manifestEntries>
+          </archive>
         </configuration>
       </plugin>
     </plugins>

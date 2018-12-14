@@ -352,12 +352,14 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       if (srb.size != this.size) {
         return false;
       }
-      for (int i = 0; i < srb.size; ++i) {
-        if (this.keys[i] != srb.keys[i] || !this.values[i].equals(srb.values[i])) {
-          return false;
+      if (ArraysShim.equals(keys, 0, size, srb.keys, 0, srb.size)) {
+        for (int i = 0; i < size; ++i) {
+          if (!values[i].equals(srb.values[i])) {
+            return false;
+          }
         }
+        return true;
       }
-      return true;
     }
     return false;
   }

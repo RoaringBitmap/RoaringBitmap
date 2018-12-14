@@ -73,7 +73,7 @@
         <maven.deploy.skip>true</maven.deploy.skip>
         <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
     
-        <jmh.version>1.17</jmh.version>
+        <jmh.version>1.21</jmh.version>
         <uberjar.name>benchmarks</uberjar.name>
 
         <!-- JMH does not like checkstyle for now -->
