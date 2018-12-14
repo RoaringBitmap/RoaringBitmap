@@ -125,7 +125,9 @@
             <!-- Activated only in 'mvn release:perform' step (and not 'mvn release:prepare' step) -->
             <id>allModules</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>!release</name>
+                </property>
             </activation>
 
             <!-- By default we want all modules to be visible, it is not true in 'mvn release:perform' step -->
@@ -137,6 +139,18 @@
                 <module>jmh</module>
                 <module>fuzz-tests</module>
             </modules>
+        </profile>
+
+        <!-- once java 8 support is dropped, this should be removed -->
+        <!-- along with <source> and <target> compiler options in favor of <release>-->
+        <profile>
+            <id>targetJava8NewerJdk</id>
+            <activation>
+                <jdk>[9,)</jdk>
+            </activation>
+            <properties>
+                <maven.compiler.release>${javac.release}</maven.compiler.release>
+            </properties>
         </profile>
     </profiles>
 
@@ -164,7 +178,8 @@
                 <version>3.6.0</version>
                 <configuration>
                     <compilerVersion>${javac.target}</compilerVersion>
-                    <release>${javac.release}</release>
+                    <source>${javac.target}</source>
+                    <target>${javac.target}</target>
                     <verbose>true</verbose>
                     <fork>true</fork>
                     <showDeprecation>true</showDeprecation>
