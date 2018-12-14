@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -41,31 +42,31 @@ public class KryoTest {
         inputMap.close();
         return roaring;
     }
-	
+    
     @Test
-	public void roaringTest() throws IOException {
-		RoaringSerializer serializer = new RoaringSerializer();
-	    RoaringBitmap roaringDense = new RoaringBitmap();
-	    for (int i = 0; i < 100_000; i++) {
-	            roaringDense.add(i);
-	    }
+    public void roaringTest() throws IOException {
+        RoaringSerializer serializer = new RoaringSerializer();
+        RoaringBitmap roaringDense = new RoaringBitmap();
+        for (int i = 0; i < 100_000; i++) {
+                roaringDense.add(i);
+        }
         File tmpfiledense = File.createTempFile("roaring_dense", "bin");
         tmpfiledense.deleteOnExit();
-	    writeRoaringToFile(tmpfiledense, roaringDense, serializer);
-	    RoaringBitmap denseRoaringFromFile = readRoaringFromFile(tmpfiledense, serializer);
-	    System.out.println("Roaring Dense: " + denseRoaringFromFile.equals(roaringDense));
+        writeRoaringToFile(tmpfiledense, roaringDense, serializer);
+        RoaringBitmap denseRoaringFromFile = readRoaringFromFile(tmpfiledense, serializer);
+        Assert.assertTrue(denseRoaringFromFile.equals(roaringDense));
 
-	    RoaringBitmap roaringSparse = new RoaringBitmap();
-	    for (int i = 0; i < 100_000; i++) {
-	            if (i % 11 == 0) {
-	                roaringSparse.add(i);
-	            }
-	    }
+        RoaringBitmap roaringSparse = new RoaringBitmap();
+        for (int i = 0; i < 100_000; i++) {
+                if (i % 11 == 0) {
+                    roaringSparse.add(i);
+                }
+        }
         File tmpfilesparse = File.createTempFile("roaring_sparse", "bin");
-	    writeRoaringToFile(tmpfilesparse, roaringSparse, serializer);
-	    RoaringBitmap sparseRoaringFromFile = readRoaringFromFile(tmpfilesparse, serializer);
-	    System.out.println("Roaring Sparse: " + sparseRoaringFromFile.equals(roaringSparse));
-	}
+        writeRoaringToFile(tmpfilesparse, roaringSparse, serializer);
+        RoaringBitmap sparseRoaringFromFile = readRoaringFromFile(tmpfilesparse, serializer);
+        Assert.assertTrue(sparseRoaringFromFile.equals(roaringSparse));
+    }
 
 }
 
