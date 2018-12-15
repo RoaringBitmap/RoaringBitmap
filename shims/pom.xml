@@ -10,6 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>shims</artifactId>
+    <packaging>jar</packaging>
 
     <properties>
         <checkstyle.configLocation>${project.parent.basedir}/roaringbitmap/style/roaring_google_checks.xml</checkstyle.configLocation>

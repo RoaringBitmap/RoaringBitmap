@@ -43,7 +43,6 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>shims</module>
         <!-- The roaringbitmap module is always visible -->
         <module>roaringbitmap</module>
     </modules>
@@ -131,11 +130,12 @@
                 </property>
             </activation>
 
-            <!-- By default we want all modules to be visible, it is not true in 'mvn release:perform' step -->
+            <!-- We want all modules to be visible, except in 'mvn release:perform' step -->
             <!-- Releasing only this parent pom and Roaring lib -->
             <!-- skipNexusStagingDeployMojo is not enough because of -->
             <!-- see https://issues.sonatype.org/browse/NEXUS-9138 -->
             <modules>
+                <module>shims</module>
                 <module>real-roaring-dataset</module>
                 <module>jmh</module>
                 <module>fuzz-tests</module>
