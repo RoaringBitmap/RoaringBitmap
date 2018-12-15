@@ -3,7 +3,8 @@ sudo: false
 
 jdk:
   - oraclejdk11
-  - openjdk11 
+  - openjdk11
+  - openjdk10 #capable of compiling but not loading java11 versions of shims, ensures java8 versions get tested
 
 # we removed oraclejdk7 as per https://github.com/RoaringBitmap/RoaringBitmap/pull/176#issuecomment-322257170
 

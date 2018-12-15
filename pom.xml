@@ -45,6 +45,7 @@
     <modules>
         <!-- The roaringbitmap module is always visible -->
         <module>roaringbitmap</module>
+        <module>shims</module>
     </modules>
 
     <profiles>

@@ -10,6 +10,9 @@ target/
 .idea
 *.iml
 
+
+roaringbitmap/dependency-reduced-pom.xml
+
 # eclipse
 .project
 .classpath
