@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.roaringbitmap</groupId>
     <artifactId>RoaringBitmapParent</artifactId>
-    <version>0.7.28-SNAPSHOT</version>
+    <version>0.7.29-SNAPSHOT</version>
   </parent>
   <artifactId>RoaringBitmap</artifactId>
   <name>RoaringBitmap</name>
@@ -69,6 +69,7 @@
       <groupId>com.esotericsoftware</groupId>
       <artifactId>kryo</artifactId>
       <version>5.0.0-RC1</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   <build>
