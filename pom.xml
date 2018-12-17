@@ -45,6 +45,7 @@
     <modules>
         <!-- The roaringbitmap module is always visible -->
         <module>roaringbitmap</module>
+        <module>shims</module>
     </modules>
 
     <profiles>
@@ -133,7 +134,7 @@
             <!-- skipNexusStagingDeployMojo is not enough because of -->
             <!-- see https://issues.sonatype.org/browse/NEXUS-9138 -->
             <modules>
-                <module>shims</module>
+                <!-- <module>shims</module> --> <!-- shims is necessary -->
                 <module>real-roaring-dataset</module>
                 <module>jmh</module>
                 <module>fuzz-tests</module>
