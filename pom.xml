@@ -125,9 +125,7 @@
             <!-- Activated only in 'mvn release:perform' step (and not 'mvn release:prepare' step) -->
             <id>allModules</id>
             <activation>
-                <property>
-                    <name>!release</name>
-                </property>
+                <activeByDefault>true</activeByDefault>
             </activation>
 
             <!-- By default we want all modules to be visible, it is not true in 'mvn release:perform' step -->
