@@ -2693,7 +2693,7 @@ class RunContainerShortIterator implements PeekableShortIterator {
 class RunContainerShortRankIterator extends RunContainerShortIterator
     implements PeekableShortRankIterator {
 
-  short nextRank = 1;
+  int nextRank = 1;
 
   public RunContainerShortRankIterator(RunContainer p) {
     super(p);
@@ -2736,7 +2736,7 @@ class RunContainerShortRankIterator extends RunContainerShortIterator
   }
 
   @Override
-  public short peekNextRank() {
+  public int peekNextRank() {
     return nextRank;
   }
 

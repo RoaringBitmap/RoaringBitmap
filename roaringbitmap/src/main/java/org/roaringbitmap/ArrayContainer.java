@@ -1326,8 +1326,8 @@ final class ArrayContainerShortIterator implements PeekableShortRankIterator {
   }
 
   @Override
-  public short peekNextRank() {
-    return (short) (pos + 1);
+  public int peekNextRank() {
+    return pos + 1;
   }
 
   @Override

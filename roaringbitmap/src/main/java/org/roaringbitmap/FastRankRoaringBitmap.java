@@ -294,7 +294,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
 
     @Override
     public int peekNextRank() {
-      int iterRank = Util.toIntUnsigned(iter.peekNextRank());
+      int iterRank = iter.peekNextRank();
       if (pos > 0) {
         return FastRankRoaringBitmap.this.highToCumulatedCardinality[pos - 1] + iterRank;
       } else {
