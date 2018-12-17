@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.roaringbitmap</groupId>
     <artifactId>RoaringBitmapParent</artifactId>
-    <version>0.7.30-SNAPSHOT</version>
+    <version>0.7.30</version>
 
     <!-- Trying work around * Invalid POM: /org/roaringbitmap/RoaringBitmapParent/0.6.61/RoaringBitmapParent-0.6.61.pom: Project name missing, Project description missing, Project URL missing, License information missing, Developer information missing-->
     <name>RoaringBitmapParent</name>
@@ -166,7 +166,7 @@
         <connection>scm:git:git@github.com:RoaringBitmap/RoaringBitmap.git</connection>
         <url>scm:git:git@github.com:RoaringBitmap/RoaringBitmap.git</url>
         <developerConnection>scm:git:git@github.com:RoaringBitmap/RoaringBitmap.git</developerConnection>
-        <tag>RoaringBitmap-0.6.61</tag>
+        <tag>RoaringBitmap-0.7.30</tag>
     </scm>
     <build>
         <plugins>
