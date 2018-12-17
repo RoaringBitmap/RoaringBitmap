@@ -273,7 +273,7 @@ Kryo
 -----
 
 Many applications use Kryo for serialization/deserialization. One can
-use Roaring bitmaps with Kryo efficiently thanks to a custom serializer:
+use Roaring bitmaps with Kryo efficiently thanks to a custom serializer (Kryo 5):
 
 ```java
 public class RoaringSerializer extends Serializer<RoaringBitmap> {
