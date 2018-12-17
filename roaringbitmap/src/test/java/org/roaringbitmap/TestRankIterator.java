@@ -6,8 +6,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -21,11 +21,14 @@ import static org.roaringbitmap.RoaringBitmapWriter.writer;
 public class TestRankIterator {
 
   @SuppressWarnings("unchecked")
-@Parameterized.Parameters(name = "{index}: advance by {1}")
-  public static Collection<Object[]> parameters() {
+  @Parameterized.Parameters(name = "{index}: advance by {1}")
+  public static Collection<Object[]> parameters() throws CloneNotSupportedException {
     FastRankRoaringBitmap fast = getBitmap();
+    FastRankRoaringBitmap withFull = new FastRankRoaringBitmap(fast.highLowContainer.clone());
+    withFull.add(0L, 262144L);
+
     Assert.assertTrue(fast.isCacheDismissed());
-    return Lists.cartesianProduct(Collections.singletonList(fast), computeAdvances())
+    return Lists.cartesianProduct(Arrays.asList(fast, withFull), computeAdvances())
                 .stream().map(List::toArray).collect(Collectors.toList());
   }
 

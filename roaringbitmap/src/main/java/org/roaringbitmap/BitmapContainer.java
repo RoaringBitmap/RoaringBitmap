@@ -1471,14 +1471,14 @@ class BitmapContainerShortIterator implements PeekableShortIterator {
 
 final class BitmapContainerShortRankIterator extends BitmapContainerShortIterator
     implements PeekableShortRankIterator {
-  short nextRank = 1;
+  int nextRank = 1;
 
   public BitmapContainerShortRankIterator(long[] p) {
     super(p);
   }
 
   @Override
-  public short peekNextRank() {
+  public int peekNextRank() {
     return nextRank;
   }
 
