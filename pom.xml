@@ -128,11 +128,12 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
 
-            <!-- By default we want all modules to be visible, it is not true in 'mvn release:perform' step -->
+            <!-- We want all modules to be visible, except in 'mvn release:perform' step -->
             <!-- Releasing only this parent pom and Roaring lib -->
             <!-- skipNexusStagingDeployMojo is not enough because of -->
             <!-- see https://issues.sonatype.org/browse/NEXUS-9138 -->
             <modules>
+                <module>shims</module>
                 <module>real-roaring-dataset</module>
                 <module>jmh</module>
                 <module>fuzz-tests</module>
@@ -262,6 +263,11 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.2</version>
+                <configuration>
+                    <excludes>
+                        <exclude>META-INF/**</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
@@ -282,27 +288,6 @@
                 <version>${maven.surefire.version}</version>
             </plugin>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>animal-sniffer-maven-plugin</artifactId>
-                <version>1.16</version>
-                <configuration>
-                    <signature>
-                        <groupId>org.codehaus.mojo.signature</groupId>
-                        <artifactId>java18</artifactId>
-                        <version>1.0</version>
-                    </signature>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>ensure-java-1.8-class-library</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.0.2</version>
@@ -311,7 +296,6 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>theMainClass</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
