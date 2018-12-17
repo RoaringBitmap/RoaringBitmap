@@ -356,15 +356,7 @@ public final class ArrayContainer extends Container implements Cloneable {
   public boolean equals(Object o) {
     if (o instanceof ArrayContainer) {
       ArrayContainer srb = (ArrayContainer) o;
-      if (srb.cardinality != this.cardinality) {
-        return false;
-      }
-      for (int i = 0; i < this.cardinality; ++i) {
-        if (this.content[i] != srb.content[i]) {
-          return false;
-        }
-      }
-      return true;
+      return ArraysShim.equals(this.content, 0, cardinality, srb.content, 0, srb.cardinality);
     } else if (o instanceof RunContainer) {
       return o.equals(this);
     }

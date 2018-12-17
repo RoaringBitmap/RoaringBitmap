@@ -967,19 +967,9 @@ public final class RunContainer extends Container implements Cloneable {
     return false;
   }
 
-  private boolean equals(RunContainer runContainer) {
-    if (runContainer.nbrruns != this.nbrruns) {
-      return false;
-    }
-    for (int i = 0; i < nbrruns; ++i) {
-      if (getValue(i) != runContainer.getValue(i)) {
-        return false;
-      }
-      if (getLength(i) != runContainer.getLength(i)) {
-        return false;
-      }
-    }
-    return true;
+  private boolean equals(RunContainer rc) {
+    return ArraysShim.equals(valueslength, 0, nbrruns,
+            rc.valueslength, 0, rc.nbrruns);
   }
 
   private boolean equals(ArrayContainer arrayContainer) {
