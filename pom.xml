@@ -140,18 +140,6 @@
                 <module>fuzz-tests</module>
             </modules>
         </profile>
-
-        <!-- once java 8 support is dropped, this should be removed -->
-        <!-- along with <source> and <target> compiler options in favor of <release>-->
-        <profile>
-            <id>targetJava8NewerJdk</id>
-            <activation>
-                <jdk>[9,)</jdk>
-            </activation>
-            <properties>
-                <maven.compiler.release>${javac.release}</maven.compiler.release>
-            </properties>
-        </profile>
     </profiles>
 
     <properties>
@@ -178,8 +166,7 @@
                 <version>3.6.0</version>
                 <configuration>
                     <compilerVersion>${javac.target}</compilerVersion>
-                    <source>${javac.target}</source>
-                    <target>${javac.target}</target>
+                    <release>${javac.release}</release>
                     <verbose>true</verbose>
                     <fork>true</fork>
                     <showDeprecation>true</showDeprecation>
