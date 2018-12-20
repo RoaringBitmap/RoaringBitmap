@@ -29,4 +29,14 @@ public class ArrayBatchIterator implements ContainerBatchIterator {
   public boolean hasNext() {
     return index < array.getCardinality();
   }
+
+  @Override
+  public ContainerBatchIterator clone() {
+    try {
+      return (ContainerBatchIterator)super.clone();
+    } catch (CloneNotSupportedException e) {
+      // won't happen
+      throw new IllegalStateException(e);
+    }
+  }
 }

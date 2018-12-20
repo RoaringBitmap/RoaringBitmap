@@ -1,14 +1,17 @@
 package org.roaringbitmap.buffer;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.roaringbitmap.BatchIterator;
+import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.RoaringBitmapWriter;
 
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 
+import static org.junit.Assert.assertEquals;
+import static org.roaringbitmap.RoaringBitmapWriter.bufferWriter;
 import static org.roaringbitmap.SeededTestData.TestDataSet.testCase;
 
 @RunWith(Parameterized.class)
@@ -67,6 +70,18 @@ public class ImmutableRoaringBitmapBatchIteratorTest {
                 .forEach(this::test);
     }
 
+    @Test
+    public void testBatchIteratorAsIntIterator() {
+        IntIterator it = bitmap.getBatchIterator().asIntIterator(128);
+        RoaringBitmapWriter<MutableRoaringBitmap> w = bufferWriter().constantMemory()
+                .initialCapacity(bitmap.highLowContainer.size()).get();
+        while (it.hasNext()) {
+            w.add(it.next());
+        }
+        MutableRoaringBitmap copy = w.get();
+        assertEquals(bitmap, copy);
+    }
+
     private void test(int batchSize) {
         int[] buffer = new int[batchSize];
         MutableRoaringBitmap result = new MutableRoaringBitmap();
@@ -79,8 +94,8 @@ public class ImmutableRoaringBitmapBatchIteratorTest {
             }
             cardinality += batch;
         }
-        Assert.assertEquals(bitmap, result);
-        Assert.assertEquals(bitmap.getCardinality(), cardinality);
+        assertEquals(bitmap, result);
+        assertEquals(bitmap.getCardinality(), cardinality);
     }
 
 }

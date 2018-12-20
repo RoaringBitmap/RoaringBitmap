@@ -36,4 +36,14 @@ public class BitmapBatchIterator implements ContainerBatchIterator {
   public boolean hasNext() {
     return wordIndex < 1024;
   }
+
+  @Override
+  public ContainerBatchIterator clone() {
+    try {
+      return (ContainerBatchIterator)super.clone();
+    } catch (CloneNotSupportedException e) {
+      // won't happen
+      throw new IllegalStateException(e);
+    }
+  }
 }

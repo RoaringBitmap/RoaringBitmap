@@ -1,6 +1,6 @@
 package org.roaringbitmap;
 
-public interface ContainerBatchIterator {
+public interface ContainerBatchIterator extends Cloneable {
 
   /**
    * Fills the buffer with values prefixed by the key,
@@ -16,5 +16,12 @@ public interface ContainerBatchIterator {
    * @return true if there is data remaining
    */
   boolean hasNext();
+
+  /**
+   * Creates a copy of the iterator.
+   *
+   * @return a clone of the current iterator
+   */
+  ContainerBatchIterator clone();
 
 }
