@@ -17,12 +17,14 @@ public class RoaringBatchIterator implements BatchIterator {
     int consumed = 0;
     if (iterator.hasNext()) {
       consumed += iterator.next(key, buffer);
-    } else {
-      ++index;
-      nextIterator();
-      if (null != iterator) {
-        return nextBatch(buffer);
+      if (consumed > 0) {
+        return consumed;
       }
+    }
+    ++index;
+    nextIterator();
+    if (null != iterator) {
+      return nextBatch(buffer);
     }
     return consumed;
   }
@@ -30,6 +32,20 @@ public class RoaringBatchIterator implements BatchIterator {
   @Override
   public boolean hasNext() {
     return null != iterator;
+  }
+
+  @Override
+  public BatchIterator clone() {
+    try {
+      RoaringBatchIterator it = (RoaringBatchIterator)super.clone();
+      if (null != iterator) {
+        it.iterator = iterator.clone();
+      }
+      return it;
+    } catch (CloneNotSupportedException e) {
+      // won't happen
+      throw new IllegalStateException();
+    }
   }
 
   private void nextIterator() {

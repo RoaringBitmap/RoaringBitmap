@@ -39,4 +39,14 @@ public class RunBatchIterator implements ContainerBatchIterator {
   public boolean hasNext() {
     return run < runs.numberOfRuns();
   }
+
+  @Override
+  public ContainerBatchIterator clone() {
+    try {
+      return (ContainerBatchIterator)super.clone();
+    } catch (CloneNotSupportedException e) {
+      // won't happen
+      throw new IllegalStateException(e);
+    }
+  }
 }

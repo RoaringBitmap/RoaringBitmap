@@ -1,6 +1,6 @@
 package org.roaringbitmap;
 
-public interface BatchIterator {
+public interface BatchIterator extends Cloneable {
 
   /**
    * Writes the next batch of integers onto the buffer,
@@ -16,4 +16,22 @@ public interface BatchIterator {
    * @return whether the iterator is exhaused or not.
    */
   boolean hasNext();
+
+  /**
+   * Creates a copy of the iterator.
+   *
+   * @return a clone of the current iterator
+   */
+  BatchIterator clone();
+
+  /**
+   * Creates a wrapper around the iterator so it behaves like an IntIterator
+   * @param batchSize - the size of the batch (128-256 should be best).
+   * @return the wrapper
+   */
+  default IntIterator asIntIterator(int batchSize) {
+    return new BatchIntIterator(this, batchSize);
+  }
+
+
 }
