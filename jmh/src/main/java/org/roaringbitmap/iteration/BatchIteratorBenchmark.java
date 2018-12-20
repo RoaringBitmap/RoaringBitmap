@@ -2,10 +2,7 @@ package org.roaringbitmap.iteration;
 
 
 import org.openjdk.jmh.annotations.*;
-import org.roaringbitmap.PeekableIntIterator;
-import org.roaringbitmap.RandomData;
-import org.roaringbitmap.RoaringBatchIterator;
-import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.*;
 
 import java.util.concurrent.TimeUnit;
 
@@ -55,6 +52,16 @@ public class BatchIteratorBenchmark {
       for (int i = 0; i < batch; ++i) {
         blackhole ^= buffer[i];
       }
+    }
+    return blackhole;
+  }
+
+  @Benchmark
+  public int batchIterateAsIntIterator() {
+    int blackhole = 0;
+    IntIterator it = bitmap.getBatchIterator().asIntIterator(bufferSize);
+    while (it.hasNext()) {
+      blackhole ^= it.next();
     }
     return blackhole;
   }

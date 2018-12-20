@@ -167,6 +167,9 @@
                 <configuration>
                     <compilerVersion>${javac.target}</compilerVersion>
                     <release>${javac.release}</release>
+                    <!-- for IDE convenience -->
+                    <source>${javac.target}</source>
+                    <target>${javac.target}</target>
                     <verbose>true</verbose>
                     <fork>true</fork>
                     <showDeprecation>true</showDeprecation>
