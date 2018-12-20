@@ -26,11 +26,11 @@ public interface BatchIterator extends Cloneable {
 
   /**
    * Creates a wrapper around the iterator so it behaves like an IntIterator
-   * @param batchSize - the size of the batch (128-256 should be best).
+   * @param buffer - array to buffer bits into (size 128-256 should be best).
    * @return the wrapper
    */
-  default IntIterator asIntIterator(int batchSize) {
-    return new BatchIntIterator(this, batchSize);
+  default IntIterator asIntIterator(int[] buffer) {
+    return new BatchIntIterator(this, buffer);
   }
 
 

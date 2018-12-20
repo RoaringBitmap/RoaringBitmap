@@ -19,9 +19,10 @@ public class BatchIntIterator implements IntIterator {
   /**
    * Wraps the batch iterator.
    * @param delegate the batch iterator to do the actual iteration
+   * @param buffer the buffer
    */
-  BatchIntIterator(BatchIterator delegate, int batchSize) {
-    this(delegate, 0, -1, new int[batchSize]);
+  BatchIntIterator(BatchIterator delegate, int[] buffer) {
+    this(delegate, 0, -1, buffer);
   }
 
   @Override
