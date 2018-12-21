@@ -14,6 +14,7 @@
         <checkstyle.configLocation>${project.parent.basedir}/roaringbitmap/style/roaring_google_checks.xml</checkstyle.configLocation>
         <java11.sourceDirectory>${project.basedir}/src/main/java11</java11.sourceDirectory>
         <java11.build.outputDirectory>${project.build.directory}/classes-java11</java11.build.outputDirectory>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
     </properties>
 
 
