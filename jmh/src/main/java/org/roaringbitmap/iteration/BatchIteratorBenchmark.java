@@ -59,7 +59,7 @@ public class BatchIteratorBenchmark {
   @Benchmark
   public int batchIterateAsIntIterator() {
     int blackhole = 0;
-    IntIterator it = bitmap.getBatchIterator().asIntIterator(bufferSize);
+    IntIterator it = bitmap.getBatchIterator().asIntIterator(buffer);
     while (it.hasNext()) {
       blackhole ^= it.next();
     }
