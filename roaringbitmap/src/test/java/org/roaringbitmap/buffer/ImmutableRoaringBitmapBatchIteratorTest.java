@@ -72,7 +72,7 @@ public class ImmutableRoaringBitmapBatchIteratorTest {
 
     @Test
     public void testBatchIteratorAsIntIterator() {
-        IntIterator it = bitmap.getBatchIterator().asIntIterator(128);
+        IntIterator it = bitmap.getBatchIterator().asIntIterator(new int[128]);
         RoaringBitmapWriter<MutableRoaringBitmap> w = bufferWriter().constantMemory()
                 .initialCapacity(bitmap.highLowContainer.size()).get();
         while (it.hasNext()) {
