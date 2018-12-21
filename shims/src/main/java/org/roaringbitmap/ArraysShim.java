@@ -1,6 +1,9 @@
 package org.roaringbitmap;
 
-class ArraysShim {
+/**
+ * Shim over JDK11 methods in Arrays to support multi-release
+ */
+public class ArraysShim {
 
   /**
    * Checks if the two arrays are equal within the given range.
