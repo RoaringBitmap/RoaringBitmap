@@ -81,7 +81,10 @@ public class ContainerAppender<C extends WordStorage<C>,
         currentKey = key;
       }
     }
-    container = container.add(lowbits(value));
+    C tmp = container.add(lowbits(value));
+    if (tmp != container) {
+      container = tmp;
+    }
   }
 
   @Override
