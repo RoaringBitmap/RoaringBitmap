@@ -15,10 +15,7 @@ branches:
   only:
     - master
 
-script: >
-          mvn javadoc:javadoc
-          mvn checkstyle:check
-          mvn test jacoco:report  -Dgpg.skip=true -DBITMAP_TYPES=ROARING_ONLY
+script: mvn javadoc:javadoc &&  mvn checkstyle:check &&  mvn test jacoco:report  -Dgpg.skip=true -DBITMAP_TYPES=ROARING_ONLY
 
 after_success:
   - mvn coveralls:report
