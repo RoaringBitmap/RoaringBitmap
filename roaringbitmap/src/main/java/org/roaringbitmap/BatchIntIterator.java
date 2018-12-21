@@ -30,10 +30,9 @@ public class BatchIntIterator implements IntIterator {
     if (i < mark) {
       return true;
     }
-    if (!delegate.hasNext()) {
+    if (!delegate.hasNext() || (mark = delegate.nextBatch(buffer)) == 0) {
       return false;
     }
-    mark = delegate.nextBatch(buffer);
     i = 0;
     return true;
   }

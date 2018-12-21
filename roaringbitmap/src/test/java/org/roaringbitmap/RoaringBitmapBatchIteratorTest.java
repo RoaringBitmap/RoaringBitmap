@@ -28,6 +28,9 @@ public class RoaringBitmapBatchIteratorTest {
                 {testCase().withRunAt((1 << 15) | (1 << 11)).withBitmapAt((1 << 15) | (1 << 12)).withArrayAt((1 << 15) | (1 << 13)).withBitmapAt((1 << 15) | (1 << 14)).build()},
                 {RoaringBitmap.bitmapOf(IntStream.range(1 << 10, 1 << 26).filter(i -> (i & 1) == 0).toArray())},
                 {RoaringBitmap.bitmapOf(IntStream.range(1 << 10, 1 << 25).filter(i -> ((i >>> 8) & 1) == 0).toArray())},
+                {RoaringBitmap.bitmapOf(IntStream.range(0,127).toArray())},
+                {RoaringBitmap.bitmapOf(IntStream.range(0,1024).toArray())},
+                {RoaringBitmap.bitmapOf(IntStream.concat(IntStream.range(0,256), IntStream.range(1 << 16, (1 << 16) | 256)).toArray())},
                 {new RoaringBitmap()}
         };
     }
