@@ -5,6 +5,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.roaringbitmap.BatchIterator;
 import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.RoaringBitmapWriter;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -31,6 +32,10 @@ public class ImmutableRoaringBitmapBatchIteratorTest {
                 {testCase().withRunAt((1 << 15) | (1 << 11)).withBitmapAt((1 << 15) | (1 << 12)).withArrayAt((1 << 15) | (1 << 13)).withBitmapAt((1 << 15) | (1 << 14)).build().toMutableRoaringBitmap()},
                 {ImmutableRoaringBitmap.bitmapOf(IntStream.range(1 << 10, 1 << 26).filter(i -> (i & 1) == 0).toArray()).toMutableRoaringBitmap()},
                 {ImmutableRoaringBitmap.bitmapOf(IntStream.range(1 << 10, 1 << 25).filter(i -> ((i >>> 8) & 1) == 0).toArray()).toMutableRoaringBitmap()},
+                {ImmutableRoaringBitmap.bitmapOf(IntStream.range(0,128).toArray())},
+                {ImmutableRoaringBitmap.bitmapOf(IntStream.range(0,256).toArray())},
+                {ImmutableRoaringBitmap.bitmapOf(IntStream.range(0,1024).toArray())},
+                {ImmutableRoaringBitmap.bitmapOf(IntStream.concat(IntStream.range(0,256), IntStream.range(1 << 16, (1 << 16) | 256)).toArray())},
                 {new MutableRoaringBitmap()}
         };
     }
