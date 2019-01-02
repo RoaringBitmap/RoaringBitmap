@@ -9,6 +9,8 @@ import java.util.function.Supplier;
 
 import static java.lang.Integer.*;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.roaringbitmap.RoaringBitmapWriter.bufferWriter;
 import static org.roaringbitmap.RoaringBitmapWriter.writer;
 
@@ -84,6 +86,23 @@ public class TestRoaringBitmapWriter {
     writer.add(0);
     writer.flush();
     assertArrayEquals(RoaringBitmap.bitmapOf(0, 1 << 17).toArray(), writer.getUnderlying().toArray());
+  }
+
+  @Test
+  public void testContains() {
+    RoaringBitmapWriter<? extends BitmapDataProvider> writer = supplier.get();
+    writer.add(10);
+    writer.addMany(11, 20000, 65000);
+    assertTrue(writer.contains(10));
+    assertTrue(writer.contains(11));
+    assertTrue(writer.contains(20000));
+    assertTrue(writer.contains(65000));
+    assertFalse(writer.contains(12));
+    writer.add(100000, 101000);
+    assertTrue(writer.contains(100010));
+    assertFalse(writer.contains(101000));
+    writer.add(200000);
+    assertTrue(writer.contains(200000));
   }
 
   @Test

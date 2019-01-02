@@ -4,6 +4,8 @@ public interface WordStorage<T> {
 
   T add(short value);
 
+  boolean contains(short value);
+
   boolean isEmpty();
 
   T runOptimize();

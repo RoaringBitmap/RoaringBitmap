@@ -262,6 +262,13 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
   }
 
   /**
+   * Returns true if the supplied value has been encountered
+   * @param value the value to check
+   * @return true if the value has been encountered
+   */
+  boolean contains(int value);
+
+  /**
    * Resets the writer so it can be reused, must release the reference to the underlying bitmap
    */
   void reset();

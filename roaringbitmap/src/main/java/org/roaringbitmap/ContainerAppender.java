@@ -116,6 +116,15 @@ public class ContainerAppender<C extends WordStorage<C>,
   }
 
   @Override
+  public boolean contains(int value) {
+    if (currentKey == value >>> 16) {
+      return container.contains(lowbits(value));
+    } else {
+      return underlying.contains(value);
+    }
+  }
+
+  @Override
   public void reset() {
     currentKey = 0;
     container = newContainer.get();

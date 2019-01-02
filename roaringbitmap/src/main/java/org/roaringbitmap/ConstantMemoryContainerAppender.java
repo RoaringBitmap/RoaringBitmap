@@ -118,6 +118,16 @@ public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
   }
 
   @Override
+  public boolean contains(int value) {
+    if (currentKey == value >>> 16) {
+      int low = toIntUnsigned(lowbits(value));
+      return (bitmap[(low >>> 6)] & (1L << low)) != 0;
+    } else {
+      return underlying.contains(value);
+    }
+  }
+
+  @Override
   public void reset() {
     currentKey = 0;
     underlying = newUnderlying.get();
