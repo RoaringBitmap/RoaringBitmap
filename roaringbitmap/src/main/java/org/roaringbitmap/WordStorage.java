@@ -18,4 +18,8 @@ public interface WordStorage<T> {
 
   T remove(short value);
 
+  int getSizeInBytes();
+
+  int rank(short lowbits);
+
 }

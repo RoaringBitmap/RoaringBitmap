@@ -52,9 +52,17 @@ public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
    * @param newUnderlying supplier of bitmaps where the data gets written
    */
   ConstantMemoryContainerAppender(boolean doPartialSort, Supplier<T> newUnderlying) {
+    this(doPartialSort, newUnderlying, newUnderlying.get());
+  }
+
+  private ConstantMemoryContainerAppender(ConstantMemoryContainerAppender<T> proto, T underlying) {
+    this (proto.doPartialSort, proto.newUnderlying, underlying);
+  }
+
+  private ConstantMemoryContainerAppender(boolean doPartialSort, Supplier<T> newUnderlying, T underlying) {
     this.newUnderlying = newUnderlying;
-    this.underlying = newUnderlying.get();
     this.doPartialSort = doPartialSort;
+    this.underlying = underlying;
     this.bitmap = new long[WORD_COUNT];
   }
 
@@ -203,6 +211,32 @@ public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
       return underlying.last();
     }
     return (currentKey << 16) | last;
+  }
+
+  @Override
+  public long getLongSizeInBytes() {
+    return underlying.getLongSizeInBytes() + bitmap.length * Long.BYTES;
+  }
+
+  @Override
+  public ImmutableBitmapDataProvider limit(int x) {
+    if (Integer.compareUnsigned(x, underlying.getCardinality()) > 0) {
+      flush();
+    }
+    //TODO return new ConstantMemoryContainerAppender<>(this, underlying.limit(x));
+    return underlying.limit(x);
+  }
+
+  @Override
+  public long rankLong(int x) {
+    int high = x >>> 16;
+    if (high > currentKey) {
+      return getLongCardinality();
+    } else if (high == currentKey) {
+      return underlying.getLongCardinality() + Util.cardinalityInBitmapRange(bitmap, 0, x & 0xFFFF);
+    } else {
+      return underlying.rankLong(x);
+    }
   }
 
   @Override

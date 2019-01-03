@@ -228,19 +228,6 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
   T getUnderlying();
 
   /**
-   * buffers a value to be added to the bitmap.
-   * @param value the value
-   */
-  void add(int value);
-
-  /**
-   * Add a range to the bitmap
-   * @param min the inclusive min value
-   * @param max the exclusive max value
-   */
-  void add(long min, long max);
-
-  /**
    * Adds many values to the bitmap.
    * @param values the values to add
    *
@@ -260,6 +247,27 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
     flush();
     return getUnderlying();
   }
+  /**
+   * Resets the writer so it can be reused, must release the reference to the underlying bitmap
+   */
+  void reset();
+
+
+  // TODO drop these and replace with extends BitmapDataProvider once feature parity is reached
+
+  /**
+   * buffers a value to be added to the bitmap.
+   * @param value the value
+   */
+  void add(int value);
+
+  /**
+   * Add a range to the bitmap
+   * @param min the inclusive min value
+   * @param max the exclusive max value
+   */
+  void add(long min, long max);
+
 
   /**
    * Returns true if the supplied value has been encountered
@@ -314,7 +322,57 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
   int last();
 
   /**
-   * Resets the writer so it can be reused, must release the reference to the underlying bitmap
+   * Estimate of the memory usage of this data structure.
+   *
+   * Internally, this is computed as a 64-bit counter.
+   *
+   * @return estimated memory usage.
    */
-  void reset();
+  default int getSizeInBytes() {
+    return (int) getLongSizeInBytes();
+  }
+
+  /**
+   * Estimate of the memory usage of this data structure. Provides
+   * full 64-bit number.
+   *
+   * @return estimated memory usage.
+   */
+  long getLongSizeInBytes();
+
+  /**
+   * Create a new bitmap of the same class, containing at most maxcardinality integers.
+   *
+   * @param x maximal cardinality
+   * @return a new bitmap with cardinality no more than maxcardinality
+   */
+  ImmutableBitmapDataProvider limit(int x);
+
+  /**
+   * Rank returns the number of integers that are smaller or equal to x (rank(infinity) would be
+   * getCardinality()).
+   *
+   * The value is internally computed as a 64-bit number.
+   *
+   * @param x upper limit
+   *
+   * @return the rank
+   * @see <a href="https://en.wikipedia.org/wiki/Ranking#Ranking_in_statistics">Ranking in statistics</a>
+   */
+  default int rank(int x) {
+    return (int)rankLong(x);
+  }
+
+  /**
+   * Rank returns the number of integers that are smaller or equal to x (rankLong(infinity) would be
+   * getLongCardinality()).
+   * Same as "rank" but produces a full 64-bit value.
+   *
+   * @param x upper limit
+   *
+   * @return the rank
+   * @see <a href="https://en.wikipedia.org/wiki/Ranking#Ranking_in_statistics">Ranking in statistics</a>
+   */
+  long rankLong(int x);
+
 }

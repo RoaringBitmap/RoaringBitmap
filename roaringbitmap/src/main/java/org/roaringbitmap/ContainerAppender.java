@@ -46,9 +46,13 @@ public class ContainerAppender<C extends WordStorage<C>,
    *
    */
   ContainerAppender(boolean doPartialSort, Supplier<T> newUnderlying, Supplier<C> newContainer) {
+    this(doPartialSort, newUnderlying, newContainer, newUnderlying.get());
+  }
+
+  private ContainerAppender(boolean doPartialSort, Supplier<T> newUnderlying, Supplier<C> newContainer, T underlying) {
     this.doPartialSort = doPartialSort;
     this.newUnderlying = newUnderlying;
-    this.underlying = newUnderlying.get();
+    this.underlying = underlying;
     this.newContainer = newContainer;
     this.container = newContainer.get();
   }
@@ -164,6 +168,32 @@ public class ContainerAppender<C extends WordStorage<C>,
       return underlying.last();
     }
     return (currentKey << 16) | container.last();
+  }
+
+  @Override
+  public long getLongSizeInBytes() {
+    return underlying.getLongSizeInBytes() + container.getSizeInBytes();
+  }
+
+  @Override
+  public ImmutableBitmapDataProvider limit(int x) {
+    if (Integer.compareUnsigned(currentKey, x) > 0) {
+      flush();
+    }
+    // TODO return new ContainerAppender<>(doPartialSort, newUnderlying, newContainer, underlying.limit(x));
+    return underlying.limit(x);
+  }
+
+  @Override
+  public long rankLong(int x) {
+    int high = x >>> 16;
+    if (high > currentKey) {
+      return getLongCardinality();
+    } else if (high == currentKey) {
+      return underlying.getLongCardinality() + container.rank(lowbits(x));
+    } else {
+      return underlying.rankLong(x);
+    }
   }
 
   @Override
