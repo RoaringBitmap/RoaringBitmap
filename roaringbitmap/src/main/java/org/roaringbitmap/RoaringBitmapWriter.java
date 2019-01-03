@@ -275,6 +275,26 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
   int getCardinality();
 
   /**
+   * Returns the number of distinct integers added to the bitmap (e.g., number of bits set).
+   * This returns a full 64-bit result.
+   *
+   * @return the cardinality
+   */
+  long getLongCardinality();
+
+  /**
+   * If present remove the specified integers (effectively, sets its bit value to false)
+   *
+   * @param x integer value representing the index in a bitmap
+   */
+  void remove(int x);
+
+  /**
+   * Recover allocated but unused memory.
+   */
+  void trim();
+
+  /**
    * Returns if the writer is currently empty
    * (i.e. if it has never been written to or has been reset)
    * @return true if the writer is empty

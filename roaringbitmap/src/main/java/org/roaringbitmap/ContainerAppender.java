@@ -81,10 +81,7 @@ public class ContainerAppender<C extends WordStorage<C>,
         currentKey = key;
       }
     }
-    C tmp = container.add(lowbits(value));
-    if (tmp != container) {
-      container = tmp;
-    }
+    setIfDifferent(container.add(lowbits(value)));
   }
 
   @Override
@@ -130,6 +127,25 @@ public class ContainerAppender<C extends WordStorage<C>,
   }
 
   @Override
+  public long getLongCardinality() {
+    return underlying.getLongCardinality() + container.getCardinality();
+  }
+
+  @Override
+  public void remove(int x) {
+    if (currentKey == x >>> 16) {
+      setIfDifferent(container.remove(lowbits(x)));
+    } else {
+      underlying.remove(x);
+    }
+  }
+
+  @Override
+  public void trim() {
+    underlying.trim();
+  }
+
+  @Override
   public boolean isEmpty() {
     return underlying.isEmpty() && container.isEmpty();
   }
@@ -165,5 +181,11 @@ public class ContainerAppender<C extends WordStorage<C>,
       return 1;
     }
     return 0;
+  }
+
+  private void setIfDifferent(C newContainer) {
+    if (newContainer != container) {
+      container = newContainer;
+    }
   }
 }

@@ -159,6 +159,43 @@ public class TestRoaringBitmapWriter {
   }
 
   @Test
+  public void testGetLongCardinality() {
+    RoaringBitmapWriter<? extends BitmapDataProvider> writer = supplier.get();
+    assertEquals(0L, writer.getLongCardinality());
+    writer.add(1);
+    assertEquals(1L, writer.getLongCardinality());
+    writer.add(100000);
+    assertEquals(2L, writer.getLongCardinality());
+    writer.flush();
+    assertEquals(2L, writer.getLongCardinality());
+    writer.add(10L, Integer.MAX_VALUE + 10L);
+    assertEquals(0x80000000L, writer.getLongCardinality());
+  }
+
+  @Test
+  public void testRemove() {
+    RoaringBitmapWriter<? extends BitmapDataProvider> writer = supplier.get();
+    assertEquals(0, writer.getCardinality());
+    writer.add(1);
+    writer.remove(1);
+    assertEquals(0, writer.getCardinality());
+    writer.add(100000);
+    writer.remove(100000);
+    assertEquals(0, writer.getCardinality());
+    writer.add(10L, 100010L);
+    writer.remove(11);
+    assertEquals(99999, writer.getCardinality());
+  }
+
+  @Test
+  public void testTrim() {
+    RoaringBitmapWriter<? extends BitmapDataProvider> writer = supplier.get();
+    writer.addMany(10, 5, 13, 100000);
+    writer.trim();
+    assertEquals(4, writer.getCardinality());
+  }
+
+  @Test
   public void bitmapShouldContainAllValuesAfterFlush() {
     RoaringBitmapWriter<? extends BitmapDataProvider> writer = supplier.get();
     writer.add(0);

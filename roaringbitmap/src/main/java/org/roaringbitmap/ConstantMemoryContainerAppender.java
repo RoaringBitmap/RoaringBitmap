@@ -132,7 +132,27 @@ public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
 
   @Override
   public int getCardinality() {
-    return (int) (underlying.getLongCardinality() + computeCardinality(bitmap));
+    return (int) getLongCardinality();
+  }
+
+  @Override
+  public long getLongCardinality() {
+    return underlying.getLongCardinality() + computeCardinality(bitmap);
+  }
+
+  @Override
+  public void remove(int x) {
+    if (currentKey == x >>> 16) {
+      int low = x & 0xFFFF;
+      bitmap[low >>> 6] &= ~ (1L << low);
+    } else {
+      underlying.remove(x);
+    }
+  }
+
+  @Override
+  public void trim() {
+    underlying.trim();
   }
 
   @Override

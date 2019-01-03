@@ -16,4 +16,6 @@ public interface WordStorage<T> {
 
   int last();
 
+  T remove(short value);
+
 }
