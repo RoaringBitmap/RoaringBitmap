@@ -5,12 +5,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import java.util.NoSuchElementException;
 import java.util.function.Supplier;
 
 import static java.lang.Integer.*;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.roaringbitmap.RoaringBitmapWriter.bufferWriter;
 import static org.roaringbitmap.RoaringBitmapWriter.writer;
 
@@ -103,6 +102,60 @@ public class TestRoaringBitmapWriter {
     assertFalse(writer.contains(101000));
     writer.add(200000);
     assertTrue(writer.contains(200000));
+  }
+
+  @Test
+  public void testIsEmpty() {
+    RoaringBitmapWriter<? extends BitmapDataProvider> writer = supplier.get();
+    assertTrue(writer.isEmpty());
+    writer.add(1);
+    assertFalse(writer.isEmpty());
+    writer.add(100000);
+    assertFalse(writer.isEmpty());
+  }
+
+  @Test(expected = NoSuchElementException.class)
+  public void testFirstThrowsWhenEmpty() {
+    supplier.get().first();
+  }
+
+  @Test
+  public void testFirst() {
+    RoaringBitmapWriter<? extends BitmapDataProvider> writer = supplier.get();
+    writer.add(1);
+    assertEquals(1, writer.first());
+    writer.add(100000);
+    assertEquals(1, writer.first());
+    writer.flush();
+    assertEquals(1, writer.first());
+  }
+
+  @Test(expected = NoSuchElementException.class)
+  public void testLastThrowsWhenEmpty() {
+    supplier.get().last();
+  }
+
+  @Test
+  public void testLast() {
+    RoaringBitmapWriter<? extends BitmapDataProvider> writer = supplier.get();
+    writer.add(1);
+    assertEquals(1, writer.last());
+    writer.add(100000);
+    assertEquals(100000, writer.last());
+    writer.flush();
+    assertEquals(100000, writer.last());
+  }
+
+  @Test
+  public void testGetCardinality() {
+    RoaringBitmapWriter<? extends BitmapDataProvider> writer = supplier.get();
+    assertEquals(0, writer.getCardinality());
+    writer.add(1);
+    assertEquals(1, writer.getCardinality());
+    writer.add(100000);
+    assertEquals(2, writer.getCardinality());
+    writer.flush();
+    assertEquals(2, writer.getCardinality());
   }
 
   @Test

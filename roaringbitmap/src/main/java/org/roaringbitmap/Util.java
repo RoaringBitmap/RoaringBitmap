@@ -575,6 +575,15 @@ public final class Util {
     return x & 0xFFFF;
   }
 
+
+  static int computeCardinality(long[] bitmap) {
+    int cardinality = 0;
+    for (long w : bitmap) {
+      cardinality += Long.bitCount(w);
+    }
+    return cardinality;
+  }
+
   /**
    * Look for value k in array in the range [begin,end). If the value is found, return its index. If
    * not, return -(i+1) where i is the index where the value would be inserted. The array is assumed

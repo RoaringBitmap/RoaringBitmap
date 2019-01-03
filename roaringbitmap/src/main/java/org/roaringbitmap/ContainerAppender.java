@@ -125,6 +125,32 @@ public class ContainerAppender<C extends WordStorage<C>,
   }
 
   @Override
+  public int getCardinality() {
+    return (int) (underlying.getLongCardinality() + container.getCardinality());
+  }
+
+  @Override
+  public boolean isEmpty() {
+    return underlying.isEmpty() && container.isEmpty();
+  }
+
+  @Override
+  public int first() {
+    if (underlying.isEmpty()) {
+      return (currentKey << 16) | container.first();
+    }
+    return underlying.first();
+  }
+
+  @Override
+  public int last() {
+    if (container.isEmpty()) {
+      return underlying.last();
+    }
+    return (currentKey << 16) | container.last();
+  }
+
+  @Override
   public void reset() {
     currentKey = 0;
     container = newContainer.get();

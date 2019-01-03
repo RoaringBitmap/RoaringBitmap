@@ -1,8 +1,11 @@
 package org.roaringbitmap;
 
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 import java.util.function.Supplier;
 
+import static java.lang.Long.numberOfLeadingZeros;
+import static java.lang.Long.numberOfTrailingZeros;
 import static org.roaringbitmap.Util.*;
 
 
@@ -125,6 +128,61 @@ public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
     } else {
       return underlying.contains(value);
     }
+  }
+
+  @Override
+  public int getCardinality() {
+    return (int) (underlying.getLongCardinality() + computeCardinality(bitmap));
+  }
+
+  @Override
+  public boolean isEmpty() {
+    if (underlying.isEmpty()) {
+      for (long w : bitmap) {
+        if (w != 0) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  @Override
+  public int first() {
+    if (underlying.isEmpty()) {
+      int first = 0;
+      for (int i = 0; i < bitmap.length; ++i) {
+        if (bitmap[i] == 0) {
+          first += Long.SIZE;
+        } else {
+          first += numberOfTrailingZeros(bitmap[i]);
+          break;
+        }
+      }
+      if (first == 0x10000) {
+        throw new NoSuchElementException("Empty");
+      }
+      return (currentKey << 16) | first;
+    }
+    return underlying.first();
+  }
+
+  @Override
+  public int last() {
+    int last = 0x10000;
+    for (int i = bitmap.length - 1; i >= 0; --i) {
+      if (bitmap[i] == 0) {
+        last -= Long.SIZE;
+      } else {
+        last -= (numberOfLeadingZeros(bitmap[i]) + 1);
+        break;
+      }
+    }
+    if (last == 0) {
+      return underlying.last();
+    }
+    return (currentKey << 16) | last;
   }
 
   @Override

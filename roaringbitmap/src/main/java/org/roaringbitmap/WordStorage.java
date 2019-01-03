@@ -8,6 +8,12 @@ public interface WordStorage<T> {
 
   boolean isEmpty();
 
+  int getCardinality();
+
   T runOptimize();
+
+  int first();
+
+  int last();
 
 }

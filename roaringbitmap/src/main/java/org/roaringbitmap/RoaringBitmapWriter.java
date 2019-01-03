@@ -269,6 +269,31 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
   boolean contains(int value);
 
   /**
+   * Gets the (unsigned) cardinality of every bit added
+   * @return the cardinality
+   */
+  int getCardinality();
+
+  /**
+   * Returns if the writer is currently empty
+   * (i.e. if it has never been written to or has been reset)
+   * @return true if the writer is empty
+   */
+  boolean isEmpty();
+
+  /**
+   * Returns the first element
+   * @return the first element
+   */
+  int first();
+
+  /**
+   * Returns the last element
+   * @return the last element
+   */
+  int last();
+
+  /**
    * Resets the writer so it can be reused, must release the reference to the underlying bitmap
    */
   void reset();
