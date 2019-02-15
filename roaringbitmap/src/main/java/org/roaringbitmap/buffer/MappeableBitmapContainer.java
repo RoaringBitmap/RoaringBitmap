@@ -1269,27 +1269,26 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   }
 
   /**
-   * Find the index of the next unset bit greater or equal to i, returns -1 if none found.
+   * Find the index of the next clear bit greater or equal to i.
    *
    * @param i starting index
-   * @return index of the next unset bit
+   * @return index of the next clear bit
    */
-  public short nextUnsetBit(final int i) {
-    int x = i / 64;
+  public int nextClearBit(final int i) {
+    int x = i >> 6; // i / 64 with sign extension
     long w = ~bitmap.get(x);
     w >>>= i;
     if (w != 0) {
-      return (short) (i + numberOfTrailingZeros(w));
+      return i + numberOfTrailingZeros(w);
     }
-    ++x;
-    // for speed, replaced bitmap.limit() with hardcoded MAX_CAPACITY / 64
-    for (; x < MAX_CAPACITY / 64; ++x) {
-      long X = bitmap.get(x);
-      if (X != ~0L) {
-        return (short) (x * 64 + numberOfTrailingZeros(~X));
+    int length = bitmap.limit();
+    for (++x; x < length; ++x) {
+      long map = ~bitmap.get(x);
+      if (map != 0L) {
+        return x * 64 + numberOfTrailingZeros(map);
       }
     }
-    return -1;
+    return MAX_CAPACITY;
   }
 
   @Override
@@ -1503,6 +1502,28 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       long X = bitmap.get(x);
       if (X != 0) {
         return x * 64 + 63 - Long.numberOfLeadingZeros(X);
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Find the index of the previous clear bit less than or equal to i.
+   *
+   * @param i starting index
+   * @return index of the previous clear bit
+   */
+  public int prevClearBit(final int i) {
+    int x = i >> 6; // i / 64 with sign extension
+    long w = ~bitmap.get(x);
+    w <<= 64 - i - 1;
+    if (w != 0L) {
+      return i - Long.numberOfLeadingZeros(w);
+    }
+    for (--x; x >= 0; --x) {
+      long map = ~bitmap.get(x);
+      if (map != 0L) {
+        return x * 64 + 63 - Long.numberOfLeadingZeros(map);
       }
     }
     return -1;
@@ -1934,6 +1955,16 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   @Override
   public int previousValue(short fromValue) {
     return prevSetBit(toIntUnsigned(fromValue));
+  }
+
+  @Override
+  public int nextAbsentValue(short fromValue) {
+    return nextClearBit(toIntUnsigned(fromValue));
+  }
+
+  @Override
+  public int previousAbsentValue(short fromValue) {
+    return prevClearBit(toIntUnsigned(fromValue));
   }
 
   @Override

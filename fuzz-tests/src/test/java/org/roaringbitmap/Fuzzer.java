@@ -4,13 +4,18 @@ import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
+import static org.junit.Assert.assertEquals;
 import static org.roaringbitmap.RandomisedTestData.ITERATIONS;
 import static org.roaringbitmap.RandomisedTestData.randomBitmap;
 import static org.roaringbitmap.Util.toUnsignedLong;
@@ -165,6 +170,26 @@ public class Fuzzer {
             });
   }
 
+  public static void verifyInvariance(Consumer<RoaringBitmap> action) {
+    verifyInvariance(rb -> true, action);
+  }
+
+  public static void verifyInvariance(Predicate<RoaringBitmap> validity,
+                                      Consumer<RoaringBitmap> action) {
+    verifyInvariance(validity, ITERATIONS, 1 << 3, action);
+  }
+
+  public static void verifyInvariance(Predicate<RoaringBitmap> validity,
+                                      int count,
+                                      int maxKeys,
+                                      Consumer<RoaringBitmap> action) {
+    IntStream.range(0, count)
+            .parallel()
+            .mapToObj(i -> randomBitmap(maxKeys))
+            .filter(validity)
+            .forEach(action);
+  }
+
   @Test
   public void rankSelectInvariance() {
     verifyInvariance("rankSelectInvariance", bitmap -> !bitmap.isEmpty(), (i, rb) -> rb.rank(rb.select(i)) == i + 1);
@@ -313,5 +338,26 @@ public class Fuzzer {
                 range.add(min, max);
                 return bitmap.rangeCardinality(min, max) == RoaringBitmap.andCardinality(range, bitmap);
             });
+  }
+
+  @Test
+  public void absentValuesConsistentWithBitSet() {
+    List<Integer> offsets = Arrays.asList(0, 1, -1, 10, -10, 100, -100);
+
+    // Size limit to avoid out of memory errors; r.last() > 0 to avoid bitmaps with last > Integer.MAX_VALUE
+    verifyInvariance(r -> r.isEmpty() || (r.last() > 0 && r.last() < 1 << 30), bitmap -> {
+      BitSet reference = new BitSet();
+      bitmap.iterator().forEachRemaining(reference::set);
+
+      for (int next : bitmap) {
+        for (int offset : offsets) {
+          int pos = next + offset;
+          if (pos >= 0) {
+            assertEquals(reference.nextClearBit(pos), bitmap.nextAbsentValue(pos));
+            assertEquals(reference.previousClearBit(pos), bitmap.previousAbsentValue(pos));
+          }
+        }
+      }
+    });
   }
 }

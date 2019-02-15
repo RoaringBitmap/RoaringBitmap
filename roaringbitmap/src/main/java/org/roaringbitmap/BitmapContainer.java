@@ -960,7 +960,7 @@ public final class BitmapContainer extends Container implements Cloneable {
    * @return index of the next set bit
    */
   public int nextSetBit(final int i) {
-    int x = i >> 6; // i / 64 with sign extension
+    int x = i >> 6;
     long w = bitmap[x];
     w >>>= i;
     if (w != 0) {
@@ -972,6 +972,28 @@ public final class BitmapContainer extends Container implements Cloneable {
       }
     }
     return -1;
+  }
+
+  /**
+   * Find the index of the next clear bit greater or equal to i.
+   *
+   * @param i starting index
+   * @return index of the next clear bit
+   */
+  public int nextClearBit(final int i) {
+    int x = i >> 6;
+    long w = ~bitmap[x];
+    w >>>= i;
+    if (w != 0) {
+      return i + numberOfTrailingZeros(w);
+    }
+    for (++x; x < bitmap.length; ++x) {
+      long map = ~bitmap[x];
+      if (map != 0) {
+        return x * 64 + numberOfTrailingZeros(map);
+      }
+    }
+    return MAX_CAPACITY;
   }
 
 
@@ -1100,6 +1122,28 @@ public final class BitmapContainer extends Container implements Cloneable {
     for (--x; x >= 0; --x) {
       if (bitmap[x] != 0) {
         return x * 64 + 63 - Long.numberOfLeadingZeros(bitmap[x]);
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Find the index of the previous clear bit less than or equal to i.
+   *
+   * @param i starting index
+   * @return index of the previous clear bit
+   */
+  public int prevClearBit(final int i) {
+    int x = i >> 6; // i / 64 with sign extension
+    long w = ~bitmap[x];
+    w <<= 64 - (i + 1);
+    if (w != 0) {
+      return i - Long.numberOfLeadingZeros(w);
+    }
+    for (--x; x >= 0; --x) {
+      long map = ~bitmap[x];
+      if (map != 0) {
+        return x * 64 + 63 - Long.numberOfLeadingZeros(map);
       }
     }
     return -1;
@@ -1354,6 +1398,16 @@ public final class BitmapContainer extends Container implements Cloneable {
   @Override
   public int previousValue(short fromValue) {
     return prevSetBit(Util.toIntUnsigned(fromValue));
+  }
+
+  @Override
+  public int nextAbsentValue(short fromValue) {
+    return nextClearBit(Util.toIntUnsigned(fromValue));
+  }
+
+  @Override
+  public int previousAbsentValue(short fromValue) {
+    return prevClearBit(Util.toIntUnsigned(fromValue));
   }
 
   @Override

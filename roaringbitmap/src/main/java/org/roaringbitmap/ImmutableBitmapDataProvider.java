@@ -198,6 +198,28 @@ public interface ImmutableBitmapDataProvider {
   long previousValue(int fromValue);
 
   /**
+   * Returns the first absent value equal to or larger than the provided
+   * value (interpreted as an unsigned integer). It is not necessarily a
+   * computationally effective way to iterate through the values.
+   *
+   * @param  fromValue the lower bound (inclusive)
+   * @return the smallest absent value larger than or equal to the specified
+   *       value.
+   */
+  long nextAbsentValue(int fromValue);
+
+  /**
+   * Returns the first absent value less than or equal to the provided
+   * value (interpreted as an unsigned integer). It is not necessarily a
+   * computationally effective way to iterate through the values.
+   *
+   * @param  fromValue the lower bound (inclusive)
+   * @return the smallest absent value larger than or equal to the specified
+   *       value.
+   */
+  long previousAbsentValue(int fromValue);
+
+  /**
    * Serialize this bitmap.
    *
    * The current bitmap is not modified.
