@@ -1,9 +1,9 @@
 package org.roaringbitmap;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Iterator;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
@@ -11,7 +11,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
-import static java.util.stream.Collectors.toList;
 import static org.roaringbitmap.RandomisedTestData.ITERATIONS;
 import static org.roaringbitmap.RandomisedTestData.randomBitmap;
 import static org.roaringbitmap.Util.toUnsignedLong;
@@ -28,60 +27,31 @@ public class Fuzzer {
     boolean test(long min, long max, RoaringBitmap bitmap);
   }
 
-  public static <T> void verifyInvarianceArray(Function<RoaringBitmap[], T> left,
-                                               Function<RoaringBitmap[], T> right) {
-    verifyInvarianceArray(ITERATIONS, 1 << 5, 96, left, right);
+  public static <T> void verifyInvariance(String testName, T value, Function<RoaringBitmap, T> func) {
+    verifyInvariance(testName, ITERATIONS, 1 << 9, value, func);
   }
 
-  public static <T> void verifyInvarianceArray(int count,
-                                               int maxKeys,
-                                               int setSize,
-                                               Function<RoaringBitmap[], T> left,
-                                               Function<RoaringBitmap[], T> right) {
-    IntStream.range(0, count)
-            .parallel()
-            .mapToObj(i -> IntStream.range(0, setSize)
-                    .mapToObj(j -> randomBitmap(maxKeys))
-                    .toArray(RoaringBitmap[]::new))
-            .forEach(bitmap -> Assert.assertEquals(left.apply(bitmap), right.apply(bitmap)));
-  }
-
-  public static <T> void verifyInvarianceIterator(Function<Iterator<RoaringBitmap>, T> left,
-                                                  Function<Iterator<RoaringBitmap>, T> right) {
-    verifyInvarianceIterator(ITERATIONS, 1 << 5, 96, left, right);
-  }
-
-
-  public static <T> void verifyInvarianceIterator(int count,
-                                                  int maxKeys,
-                                                  int setSize,
-                                                  Function<Iterator<RoaringBitmap>, T> left,
-                                                  Function<Iterator<RoaringBitmap>, T> right) {
-    IntStream.range(0, count)
-            .parallel()
-            .mapToObj(i -> IntStream.range(0, setSize)
-                    .mapToObj(j -> randomBitmap(maxKeys))
-                    .collect(toList()))
-            .forEach(bitmaps -> Assert.assertEquals(left.apply(bitmaps.iterator()), right.apply(bitmaps.iterator())));
-  }
-
-  public static <T> void verifyInvariance(T value, Function<RoaringBitmap, T> func) {
-    verifyInvariance(ITERATIONS, 1 << 9, value, func);
-  }
-
-  public static <T> void verifyInvariance(int count,
+  public static <T> void verifyInvariance(String testName,
+                                          int count,
                                           int maxKeys,
                                           T value,
                                           Function<RoaringBitmap, T> func) {
     IntStream.range(0, count)
             .parallel()
             .mapToObj(i -> randomBitmap(maxKeys))
-            .forEach(bitmap -> Assert.assertEquals(value, func.apply(bitmap)));
+            .forEach(bitmap -> {
+              try {
+                Assert.assertEquals(value, func.apply(bitmap));
+              } catch (Throwable e) {
+                Reporter.report(testName, ImmutableMap.of("value", value), e, bitmap);
+                throw e;
+              }
+            });
   }
 
 
 
-  public static void verifyInvariance(int maxKeys, RangeBitmapPredicate pred) {
+  public static void verifyInvariance(String testName, int maxKeys, RangeBitmapPredicate pred) {
     ThreadLocalRandom random = ThreadLocalRandom.current();
     IntStream.range(0, ITERATIONS)
             .parallel()
@@ -89,17 +59,24 @@ public class Fuzzer {
             .forEach(bitmap -> {
               long min = random.nextLong(1L << 32);
               long max = random.nextLong(min,1L << 32);
-              Assert.assertTrue(pred.test(min, max, bitmap));
+              try {
+                Assert.assertTrue(pred.test(min, max, bitmap));
+              } catch (Throwable e) {
+                Reporter.report(testName, ImmutableMap.of("min", min, "max", max), e, bitmap);
+                throw e;
+              }
             });
   }
 
-  public static <T> void verifyInvariance(Predicate<RoaringBitmap> validity,
+  public static <T> void verifyInvariance(String testName,
+                                          Predicate<RoaringBitmap> validity,
                                           Function<RoaringBitmap, T> left,
                                           Function<RoaringBitmap, T> right) {
-    verifyInvariance(ITERATIONS, 1 << 8, validity, left, right);
+    verifyInvariance(testName, ITERATIONS, 1 << 8, validity, left, right);
   }
 
-  public static <T> void verifyInvariance(int count,
+  public static <T> void verifyInvariance(String testName,
+                                          int count,
                                           int maxKeys,
                                           Predicate<RoaringBitmap> validity,
                                           Function<RoaringBitmap, T> left,
@@ -108,29 +85,39 @@ public class Fuzzer {
             .parallel()
             .mapToObj(i -> randomBitmap(maxKeys))
             .filter(validity)
-            .forEach(bitmap -> Assert.assertEquals(left.apply(bitmap), right.apply(bitmap)));
+            .forEach(bitmap -> {
+              try {
+                Assert.assertEquals(left.apply(bitmap), right.apply(bitmap));
+              } catch (Throwable e) {
+                Reporter.report(testName, ImmutableMap.of(), e, bitmap);
+                throw e;
+              }});
   }
 
-  public static <T> void verifyInvariance(BiFunction<RoaringBitmap, RoaringBitmap, T> left,
-                                          BiFunction<RoaringBitmap, RoaringBitmap, T> right) {
-    verifyInvariance(ITERATIONS, 1 << 8, left, right);
-  }
-
-  public static <T> void verifyInvariance(BiPredicate<RoaringBitmap, RoaringBitmap> validity,
+  public static <T> void verifyInvariance(String testName,
                                           BiFunction<RoaringBitmap, RoaringBitmap, T> left,
                                           BiFunction<RoaringBitmap, RoaringBitmap, T> right) {
-    verifyInvariance(validity, ITERATIONS, 1 << 8, left, right);
+    verifyInvariance(testName, ITERATIONS, 1 << 8, left, right);
+  }
+
+  public static <T> void verifyInvariance(String testName,
+                                          BiPredicate<RoaringBitmap, RoaringBitmap> validity,
+                                          BiFunction<RoaringBitmap, RoaringBitmap, T> left,
+                                          BiFunction<RoaringBitmap, RoaringBitmap, T> right) {
+    verifyInvariance(testName, validity, ITERATIONS, 1 << 8, left, right);
   }
 
 
-  public static <T> void verifyInvariance(int count,
+  public static <T> void verifyInvariance(String testName,
+                                          int count,
                                           int maxKeys,
                                           BiFunction<RoaringBitmap, RoaringBitmap, T> left,
                                           BiFunction<RoaringBitmap, RoaringBitmap, T> right) {
-    verifyInvariance((l, r) -> true, count, maxKeys, left, right);
+    verifyInvariance(testName, (l, r) -> true, count, maxKeys, left, right);
   }
 
-  public static <T> void verifyInvariance(BiPredicate<RoaringBitmap, RoaringBitmap> validity,
+  public static <T> void verifyInvariance(String testName,
+                                          BiPredicate<RoaringBitmap, RoaringBitmap> validity,
                                           int count,
                                           int maxKeys,
                                           BiFunction<RoaringBitmap, RoaringBitmap, T> left,
@@ -141,21 +128,24 @@ public class Fuzzer {
               RoaringBitmap one = randomBitmap(maxKeys);
               RoaringBitmap two = randomBitmap(maxKeys);
               if (validity.test(one, two)) {
-                Assert.assertEquals(left.apply(one, two), right.apply(one, two));
+                try {
+                  Assert.assertEquals(left.apply(one, two), right.apply(one, two));
+                } catch (Throwable t) {
+                  Reporter.report(testName, ImmutableMap.of(), t, one, two);
+                  throw t;
+                }
               }
             });
   }
 
-  public static void verifyInvariance(IntBitmapPredicate predicate) {
-    verifyInvariance(rb -> true, predicate);
-  }
-
-  public static void verifyInvariance(Predicate<RoaringBitmap> validity,
+  public static void verifyInvariance(String testName,
+                                      Predicate<RoaringBitmap> validity,
                                       IntBitmapPredicate predicate) {
-    verifyInvariance(validity, ITERATIONS, 1 << 3, predicate);
+    verifyInvariance(testName, validity, ITERATIONS, 1 << 3, predicate);
   }
 
-  public static void verifyInvariance(Predicate<RoaringBitmap> validity,
+  public static void verifyInvariance(String testName,
+                                      Predicate<RoaringBitmap> validity,
                                       int count,
                                       int maxKeys,
                                       IntBitmapPredicate predicate) {
@@ -165,77 +155,82 @@ public class Fuzzer {
             .filter(validity)
             .forEach(bitmap -> {
               for (int i = 0; i < bitmap.getCardinality(); ++i) {
-                Assert.assertTrue(predicate.test(i, bitmap));
+                try {
+                  Assert.assertTrue(predicate.test(i, bitmap));
+                } catch (Throwable t) {
+                  Reporter.report(testName, ImmutableMap.of("index", i), t, bitmap);
+                  throw t;
+                }
               }
             });
   }
 
   @Test
   public void rankSelectInvariance() {
-    verifyInvariance(bitmap -> !bitmap.isEmpty(), (i, rb) -> rb.rank(rb.select(i)) == i + 1);
+    verifyInvariance("rankSelectInvariance", bitmap -> !bitmap.isEmpty(), (i, rb) -> rb.rank(rb.select(i)) == i + 1);
   }
 
   @Test
   public void selectContainsInvariance() {
-    verifyInvariance(bitmap -> !bitmap.isEmpty(), (i, rb) -> rb.contains(rb.select(i)));
+    verifyInvariance("rankSelectInvariance", bitmap -> !bitmap.isEmpty(), (i, rb) -> rb.contains(rb.select(i)));
   }
 
   @Test
   public void firstSelect0Invariance() {
-    verifyInvariance(bitmap -> !bitmap.isEmpty(),
+    verifyInvariance("rankSelectInvariance", bitmap -> !bitmap.isEmpty(),
             bitmap -> bitmap.first(),
             bitmap -> bitmap.select(0));
   }
 
   @Test
   public void lastSelectCardinalityInvariance() {
-    verifyInvariance(bitmap -> !bitmap.isEmpty(),
+    verifyInvariance("rankSelectInvariance", bitmap -> !bitmap.isEmpty(),
             bitmap -> bitmap.last(),
             bitmap -> bitmap.select(bitmap.getCardinality() - 1));
   }
 
   @Test
   public void andCardinalityInvariance() {
-    verifyInvariance(ITERATIONS, 1 << 9,
+    verifyInvariance("andCardinalityInvariance", ITERATIONS, 1 << 9,
             (l, r) -> RoaringBitmap.and(l, r).getCardinality(),
             (l, r) -> RoaringBitmap.andCardinality(l, r));
   }
 
   @Test
   public void orCardinalityInvariance() {
-    verifyInvariance(ITERATIONS, 1 << 9,
+    verifyInvariance("orCardinalityInvariance", ITERATIONS, 1 << 9,
             (l, r) -> RoaringBitmap.or(l, r).getCardinality(),
             (l, r) -> RoaringBitmap.orCardinality(l, r));
   }
 
   @Test
   public void xorCardinalityInvariance() {
-    verifyInvariance(ITERATIONS, 1 << 9,
+    verifyInvariance("xorCardinalityInvariance", ITERATIONS, 1 << 9,
             (l, r) -> RoaringBitmap.xor(l, r).getCardinality(),
             (l, r) -> RoaringBitmap.xorCardinality(l, r));
   }
 
   @Test
   public void containsContainsInvariance() {
-    verifyInvariance((l, r) -> l.contains(r) && !r.equals(l),
+    verifyInvariance("containsContainsInvariance", (l, r) -> l.contains(r) && !r.equals(l),
             (l, r) -> false,
             (l, r) -> !r.contains(l));
   }
 
   @Test
   public void containsAndInvariance() {
-    verifyInvariance((l, r) -> l.contains(r), (l, r) -> RoaringBitmap.and(l, r).equals(r));
+    verifyInvariance("containsAndInvariance", (l, r) -> l.contains(r), (l, r) -> RoaringBitmap.and(l, r).equals(r));
   }
 
 
   @Test
   public void limitCardinalityEqualsSelf() {
-    verifyInvariance(true, rb -> rb.equals(rb.limit(rb.getCardinality())));
+    verifyInvariance("limitCardinalityEqualsSelf", true, rb -> rb.equals(rb.limit(rb.getCardinality())));
   }
 
   @Test
   public void limitCardinalityXorCardinalityInvariance() {
-    verifyInvariance(rb -> true,
+    verifyInvariance("limitCardinalityXorCardinalityInvariance", rb -> true,
             rb -> rb.getCardinality(),
             rb -> rb.getCardinality() / 2
                     + RoaringBitmap.xorCardinality(rb, rb.limit(rb.getCardinality() / 2)));
@@ -243,76 +238,76 @@ public class Fuzzer {
 
   @Test
   public void containsRangeFirstLastInvariance() {
-    verifyInvariance(true,
+    verifyInvariance("containsRangeFirstLastInvariance", true,
             rb -> RoaringBitmap.add(rb.clone(), toUnsignedLong(rb.first()), toUnsignedLong(rb.last()))
                                .contains(toUnsignedLong(rb.first()), toUnsignedLong(rb.last())));
   }
 
   @Test
   public void intersectsRangeFirstLastInvariance() {
-    verifyInvariance(true, rb -> rb.intersects(toUnsignedLong(rb.first()), toUnsignedLong(rb.last())));
+    verifyInvariance("intersectsRangeFirstLastInvariance", true, rb -> rb.intersects(toUnsignedLong(rb.first()), toUnsignedLong(rb.last())));
   }
 
   @Test
   public void containsSelf() {
-    verifyInvariance(true, rb -> rb.contains(rb.clone()));
+    verifyInvariance("containsSelf", true, rb -> rb.contains(rb.clone()));
   }
 
   @Test
   public void containsSubset() {
-    verifyInvariance(true, rb -> rb.contains(rb.limit(rb.getCardinality() / 2)));
+    verifyInvariance("containsSubset", true, rb -> rb.contains(rb.limit(rb.getCardinality() / 2)));
   }
 
   @Test
   public void andCardinalityContainsInvariance() {
-    verifyInvariance((l, r) -> RoaringBitmap.andCardinality(l, r) == 0,
+    verifyInvariance("andCardinalityContainsInvariance", (l, r) -> RoaringBitmap.andCardinality(l, r) == 0,
             (l, r) -> false,
             (l, r) -> l.contains(r) || r.contains(l));
   }
 
   @Test
   public void sizeOfUnionOfDisjointSetsEqualsSumOfSizes() {
-    verifyInvariance((l, r) -> RoaringBitmap.andCardinality(l, r) == 0,
+    verifyInvariance("sizeOfUnionOfDisjointSetsEqualsSumOfSizes", (l, r) -> RoaringBitmap.andCardinality(l, r) == 0,
             (l, r) -> l.getCardinality() + r.getCardinality(),
             (l, r) -> RoaringBitmap.orCardinality(l, r));
   }
 
   @Test
   public void sizeOfDifferenceOfDisjointSetsEqualsSumOfSizes() {
-    verifyInvariance((l, r) -> RoaringBitmap.andCardinality(l, r) == 0,
+    verifyInvariance("sizeOfDifferenceOfDisjointSetsEqualsSumOfSizes", (l, r) -> RoaringBitmap.andCardinality(l, r) == 0,
             (l, r) -> l.getCardinality() + r.getCardinality(),
             (l, r) -> RoaringBitmap.xorCardinality(l, r));
   }
 
   @Test
   public void equalsSymmetryInvariance() {
-    verifyInvariance((l, r) -> l.equals(r), (l, r) -> r.equals(l));
+    verifyInvariance("equalsSymmetryInvariance", (l, r) -> l.equals(r), (l, r) -> r.equals(l));
   }
 
   @Test
   public void orOfDisjunction() {
-    verifyInvariance(ITERATIONS, 1 << 8,
+    verifyInvariance("orOfDisjunction", ITERATIONS, 1 << 8,
             (l, r) -> l,
             (l, r) -> RoaringBitmap.or(l, RoaringBitmap.and(l, r)));
   }
 
   @Test
   public void orCoversXor() {
-    verifyInvariance(ITERATIONS, 1 << 8,
+    verifyInvariance("orCoversXor", ITERATIONS, 1 << 8,
             (l, r) -> RoaringBitmap.or(l, r),
             (l, r) -> RoaringBitmap.or(l, RoaringBitmap.xor(l, r)));
   }
 
   @Test
   public void xorInvariance() {
-    verifyInvariance(ITERATIONS, 1 << 9,
+    verifyInvariance("xorInvariance", ITERATIONS, 1 << 9,
             (l, r) -> RoaringBitmap.xor(l, r),
             (l, r) -> RoaringBitmap.andNot(RoaringBitmap.or(l, r), RoaringBitmap.and(l, r)));
   }
 
   @Test
   public void rangeCardinalityVsMaterialisedRange() {
-    verifyInvariance(1 << 9,
+    verifyInvariance("rangeCardinalityVsMaterialisedRange", 1 << 9,
             (min, max, bitmap) -> {
                 RoaringBitmap range = new RoaringBitmap();
                 range.add(min, max);
