@@ -2316,8 +2316,11 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   public long previousValue(int fromValue) {
     short key = Util.highbits(fromValue);
     int containerIndex = highLowContainer.advanceUntil(key, -1);
+    if (containerIndex == highLowContainer.size()) {
+      return -1L;
+    }
     long prevSetBit = -1L;
-    while (containerIndex != -1 && containerIndex < highLowContainer.size() && prevSetBit == -1L) {
+    while (containerIndex != -1 && prevSetBit == -1L) {
       short containerKey = highLowContainer.getKeyAtIndex(containerIndex);
       Container container = highLowContainer.getContainerAtIndex(containerIndex);
       int bit = (Util.compareUnsigned(containerKey, key) < 0
@@ -2329,6 +2332,92 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     assert prevSetBit <= 0xFFFFFFFFL;
     assert prevSetBit <= Util.toUnsignedLong(fromValue);
     return prevSetBit;
+  }
+
+  @Override
+  public long nextAbsentValue(int fromValue) {
+    long nextAbsentBit = computeNextAbsentValue(fromValue);
+    assert nextAbsentBit <= 0xFFFFFFFFL;
+    assert nextAbsentBit >= Util.toUnsignedLong(fromValue);
+    assert !contains((int) nextAbsentBit);
+    return nextAbsentBit;
+  }
+
+  private long computeNextAbsentValue(int fromValue) {
+    short key = Util.highbits(fromValue);
+    int containerIndex = highLowContainer.advanceUntil(key, -1);
+
+    int size = highLowContainer.size();
+    if (containerIndex == size) {
+      return Util.toUnsignedLong(fromValue);
+    }
+    short containerKey = highLowContainer.getKeyAtIndex(containerIndex);
+    if (fromValue < containerKey << 16) {
+      return Util.toUnsignedLong(fromValue);
+    }
+    Container container = highLowContainer.getContainerAtIndex(containerIndex);
+    int bit = container.nextAbsentValue(Util.lowbits(fromValue));
+    while (true) {
+      if (bit != 1 << 16) {
+        return Util.toUnsignedLong((containerKey << 16) | bit);
+      }
+      assert container.last() == (1 << 16) - 1;
+      if (containerIndex == size - 1) {
+        return Util.toUnsignedLong(highLowContainer.last()) + 1;
+      }
+
+      containerIndex += 1;
+      short nextContainerKey = highLowContainer.getKeyAtIndex(containerIndex);
+      if (containerKey + 1 < nextContainerKey) {
+        return Util.toUnsignedLong((containerKey + 1) << 16);
+      }
+      containerKey = nextContainerKey;
+      container = highLowContainer.getContainerAtIndex(containerIndex);
+      bit = container.nextAbsentValue((short) 0);
+    }
+  }
+
+  @Override
+  public long previousAbsentValue(int fromValue) {
+    long prevAbsentBit = computePreviousAbsentValue(fromValue);
+    assert prevAbsentBit <= 0xFFFFFFFFL;
+    assert prevAbsentBit <= Util.toUnsignedLong(fromValue);
+    assert !contains((int) prevAbsentBit);
+    return prevAbsentBit;
+  }
+
+  private long computePreviousAbsentValue(int fromValue) {
+    short key = Util.highbits(fromValue);
+    int containerIndex = highLowContainer.advanceUntil(key, -1);
+
+    if (containerIndex == highLowContainer.size()) {
+      return Util.toUnsignedLong(fromValue);
+    }
+    short containerKey = highLowContainer.getKeyAtIndex(containerIndex);
+    if (fromValue < containerKey << 16) {
+      return Util.toUnsignedLong(fromValue);
+    }
+    Container container = highLowContainer.getContainerAtIndex(containerIndex);
+    int bit = container.previousAbsentValue(Util.lowbits(fromValue));
+
+    while (true) {
+      if (bit != -1) {
+        return Util.toUnsignedLong((containerKey << 16) | bit);
+      }
+      assert container.first() == 0;
+      if (containerIndex == 0) {
+        return Util.toUnsignedLong(highLowContainer.first()) - 1;
+      }
+
+      containerIndex -= 1;
+      short nextContainerKey = highLowContainer.getKeyAtIndex(containerIndex);
+      if (nextContainerKey < containerKey - 1) {
+        return Util.toUnsignedLong((containerKey << 16)) - 1;
+      }
+      containerKey = nextContainerKey;
+      container = highLowContainer.getContainerAtIndex(containerIndex);
+      bit = container.previousAbsentValue((short) ((1 << 16) - 1));
+    }
   }
 
   /**

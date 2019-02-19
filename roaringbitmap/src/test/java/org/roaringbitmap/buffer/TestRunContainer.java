@@ -2632,6 +2632,152 @@ public class TestRunContainer {
   }
 
 
+  @Test
+  public void testPreviousAbsentValue1() {
+    MappeableContainer container = new MappeableRunContainer().iadd(64, 129);
+    assertEquals(0, container.previousAbsentValue((short)0));
+    assertEquals(63, container.previousAbsentValue((short)63));
+    assertEquals(63, container.previousAbsentValue((short)64));
+    assertEquals(63, container.previousAbsentValue((short)65));
+    assertEquals(63, container.previousAbsentValue((short)128));
+    assertEquals(129, container.previousAbsentValue((short)129));
+  }
+
+  @Test
+  public void testPreviousAbsentValue2() {
+    MappeableContainer container = new MappeableRunContainer().iadd(64, 129).iadd(200, 501).iadd(5000, 5201);
+    assertEquals(0, container.previousAbsentValue((short)0));
+    assertEquals(63, container.previousAbsentValue((short)63));
+    assertEquals(63, container.previousAbsentValue((short)64));
+    assertEquals(63, container.previousAbsentValue((short)65));
+    assertEquals(63, container.previousAbsentValue((short)128));
+    assertEquals(129, container.previousAbsentValue((short)129));
+    assertEquals(199, container.previousAbsentValue((short)199));
+    assertEquals(199, container.previousAbsentValue((short)200));
+    assertEquals(199, container.previousAbsentValue((short)250));
+    assertEquals(2500, container.previousAbsentValue((short)2500));
+    assertEquals(4999, container.previousAbsentValue((short)5000));
+    assertEquals(4999, container.previousAbsentValue((short)5200));
+  }
+
+  @Test
+  public void testPreviousAbsentValueEmpty() {
+    MappeableRunContainer container = new MappeableRunContainer();
+    for (int i = 0; i < 1000; i++) {
+      assertEquals(i, container.previousAbsentValue((short)i));
+    }
+  }
+
+  @Test
+  public void testPreviousAbsentValueSparse() {
+    MappeableRunContainer container = new MappeableRunContainer(ShortBuffer.wrap(new short[] { 10, 0, 20, 0, 30, 0}), 3);
+    assertEquals(9, container.previousAbsentValue((short)9));
+    assertEquals(9, container.previousAbsentValue((short)10));
+    assertEquals(11, container.previousAbsentValue((short)11));
+    assertEquals(21, container.previousAbsentValue((short)21));
+    assertEquals(29, container.previousAbsentValue((short)30));
+  }
+
+  @Test
+  public void testPreviousAbsentEvenBits() {
+    short[] evenBits = new short[1 << 15];
+    for (int i = 0; i < 1 << 15; i += 2) {
+      evenBits[i] = (short) i;
+      evenBits[i + 1] = 0;
+    }
+
+    MappeableRunContainer container = new MappeableRunContainer(ShortBuffer.wrap(evenBits), 1 << 14);
+    for (int i = 0; i < 1 << 10; i+=2) {
+      assertEquals(i - 1, container.previousAbsentValue((short)i));
+      assertEquals(i + 1, container.previousAbsentValue((short)(i+1)));
+    }
+  }
+
+  @Test
+  public void testPreviousAbsentValueUnsigned() {
+    short[] array = {(short) ((1 << 15) | 5), 0, (short) ((1 << 15) | 7), 0};
+    MappeableRunContainer container = new MappeableRunContainer(ShortBuffer.wrap(array), 2);
+    assertEquals(((1 << 15) | 4), container.previousAbsentValue((short)((1 << 15) | 4)));
+    assertEquals(((1 << 15) | 4), container.previousAbsentValue((short)((1 << 15) | 5)));
+    assertEquals(((1 << 15) | 6), container.previousAbsentValue((short)((1 << 15) | 6)));
+    assertEquals(((1 << 15) | 6), container.previousAbsentValue((short)((1 << 15) | 7)));
+    assertEquals(((1 << 15) | 8), container.previousAbsentValue((short)((1 << 15) | 8)));
+  }
+
+
+  @Test
+  public void testNextAbsentValue1() {
+    MappeableContainer container = new MappeableRunContainer().iadd(64, 129);
+    assertEquals(0, container.nextAbsentValue((short)0));
+    assertEquals(63, container.nextAbsentValue((short)63));
+    assertEquals(129, container.nextAbsentValue((short)64));
+    assertEquals(129, container.nextAbsentValue((short)65));
+    assertEquals(129, container.nextAbsentValue((short)128));
+    assertEquals(129, container.nextAbsentValue((short)129));
+  }
+
+  @Test
+  public void testNextAbsentValue2() {
+    MappeableContainer container = new MappeableRunContainer().iadd(64, 129).iadd(200, 501).iadd(5000, 5201);
+    assertEquals(0, container.nextAbsentValue((short)0));
+    assertEquals(63, container.nextAbsentValue((short)63));
+    assertEquals(129, container.nextAbsentValue((short)64));
+    assertEquals(129, container.nextAbsentValue((short)65));
+    assertEquals(129, container.nextAbsentValue((short)128));
+    assertEquals(129, container.nextAbsentValue((short)129));
+    assertEquals(199, container.nextAbsentValue((short)199));
+    assertEquals(501, container.nextAbsentValue((short)200));
+    assertEquals(501, container.nextAbsentValue((short)250));
+    assertEquals(2500, container.nextAbsentValue((short)2500));
+    assertEquals(5201, container.nextAbsentValue((short)5000));
+    assertEquals(5201, container.nextAbsentValue((short)5200));
+  }
+
+  @Test
+  public void testNextAbsentValueEmpty() {
+    MappeableRunContainer container = new MappeableRunContainer();
+    for (int i = 0; i < 1000; i++) {
+      assertEquals(i, container.nextAbsentValue((short)i));
+    }
+  }
+
+  @Test
+  public void testNextAbsentValueSparse() {
+    MappeableContainer container = new MappeableRunContainer(ShortBuffer.wrap(new short[] { 10, 0, 20, 0, 30, 0}), 3);
+    assertEquals(9, container.nextAbsentValue((short)9));
+    assertEquals(11, container.nextAbsentValue((short)10));
+    assertEquals(11, container.nextAbsentValue((short)11));
+    assertEquals(21, container.nextAbsentValue((short)21));
+    assertEquals(31, container.nextAbsentValue((short)30));
+  }
+
+  @Test
+  public void testNextAbsentEvenBits() {
+    short[] evenBits = new short[1 << 15];
+    for (int i = 0; i < 1 << 15; i += 2) {
+      evenBits[i] = (short) i;
+      evenBits[i + 1] = 0;
+    }
+
+    MappeableRunContainer container = new MappeableRunContainer(ShortBuffer.wrap(evenBits), 1 << 14);
+    for (int i = 0; i < 1 << 10; i+=2) {
+      assertEquals(i + 1, container.nextAbsentValue((short)i));
+      assertEquals(i + 1, container.nextAbsentValue((short)(i+1)));
+    }
+  }
+
+  @Test
+  public void testNextAbsentValueUnsigned() {
+    short[] array = {(short) ((1 << 15) | 5), 0, (short) ((1 << 15) | 7), 0};
+    MappeableRunContainer container = new MappeableRunContainer(ShortBuffer.wrap(array), 2);
+    assertEquals(((1 << 15) | 4), container.nextAbsentValue((short)((1 << 15) | 4)));
+    assertEquals(((1 << 15) | 6), container.nextAbsentValue((short)((1 << 15) | 5)));
+    assertEquals(((1 << 15) | 6), container.nextAbsentValue((short)((1 << 15) | 6)));
+    assertEquals(((1 << 15) | 8), container.nextAbsentValue((short)((1 << 15) | 7)));
+    assertEquals(((1 << 15) | 8), container.nextAbsentValue((short)((1 << 15) | 8)));
+  }
+
+
   private static int lower16Bits(int x) {
     return ((short)x) & 0xFFFF;
   }

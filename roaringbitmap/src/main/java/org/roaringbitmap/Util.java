@@ -63,8 +63,8 @@ public final class Util {
           low.bitmap[b + k] = (c.bitmap[k] << i) | (c.bitmap[k - 1] >>> (64-i));
         }
         for(int k = 1024 - b; k < 1024 ; k++) {
-          high.bitmap[k - (1024 - b)] = 
-             (c.bitmap[k] << i)  
+          high.bitmap[k - (1024 - b)] =
+             (c.bitmap[k] << i)
              | (c.bitmap[k - 1] >>> (64-i));
         }
         high.bitmap[b] =  (c.bitmap[1024 - 1] >>> (64-i));
@@ -109,7 +109,8 @@ public final class Util {
     int lower = pos + 1;
 
     // special handling for a possibly common sequential case
-    if (lower >= length || toIntUnsigned(array[lower]) >= toIntUnsigned(min)) {
+    int imin = toIntUnsigned(min);
+    if (lower >= length || toIntUnsigned(array[lower]) >= imin) {
       return lower;
     }
 
@@ -117,7 +118,7 @@ public final class Util {
     // bootstrap an upper limit
 
     while (lower + spansize < length
-        && toIntUnsigned(array[lower + spansize]) < toIntUnsigned(min)) {
+        && toIntUnsigned(array[lower + spansize]) < imin) {
       spansize *= 2; // hoping for compiler will reduce to
     }
     // shift
@@ -130,12 +131,8 @@ public final class Util {
       return upper;
     }
 
-    if (toIntUnsigned(array[upper]) < toIntUnsigned(min)) {// means
-      // array
-      // has no
-      // item
-      // >= min
-      // pos = array.length;
+    if (toIntUnsigned(array[upper]) < imin) {
+      // means array has no item >= min pos = array.length;
       return length;
     }
 
@@ -149,7 +146,7 @@ public final class Util {
       short arraymid = array[mid];
       if (arraymid == min) {
         return mid;
-      } else if (toIntUnsigned(arraymid) < toIntUnsigned(min)) {
+      } else if (toIntUnsigned(arraymid) < imin) {
         lower = mid;
       } else {
         upper = mid;
