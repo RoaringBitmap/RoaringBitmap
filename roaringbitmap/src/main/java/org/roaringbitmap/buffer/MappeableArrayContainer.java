@@ -1436,6 +1436,84 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
   @Override
+  public int nextAbsentValue(short fromValue) {
+    int index = BufferUtil.advanceUntil(content, -1, cardinality, fromValue);
+    int value = toIntUnsigned(fromValue);
+    if (index >= cardinality) {
+      return value;
+    }
+    if (index == cardinality - 1) {
+      return fromValue == content.get(cardinality - 1) ? value + 1 : value;
+    }
+    if (content.get(index) != fromValue) {
+      return value;
+    }
+    if (content.get(index + 1) > fromValue + 1) {
+      return value + 1;
+    }
+
+    int low = index;
+    int high = cardinality;
+
+    while (low + 1 < high) {
+      int mid = (high + low) >>> 1;
+      if (mid - index < toIntUnsigned(content.get(mid)) - value) {
+        high = mid;
+      } else {
+        low = mid;
+      }
+    }
+
+    if (low == cardinality - 1) {
+      return toIntUnsigned(content.get(cardinality - 1)) + 1;
+    }
+
+    assert toIntUnsigned(content.get(low)) + 1 < toIntUnsigned(content.get(high));
+    assert toIntUnsigned(content.get(low)) == value + (low - index);
+    return toIntUnsigned(content.get(low)) + 1;
+  }
+
+  @Override
+  public int previousAbsentValue(short fromValue) {
+    int index = BufferUtil.advanceUntil(content, -1, cardinality, fromValue);
+    int value = toIntUnsigned(fromValue);
+    if (index >= cardinality) {
+      return value;
+    }
+    if (index == 0) {
+      return fromValue == content.get(0) ? value - 1 : value;
+    }
+    if (content.get(index) != fromValue) {
+      return value;
+    }
+    if (content.get(index - 1) < fromValue - 1) {
+      return value - 1;
+    }
+
+    int low = -1;
+    int high = index;
+
+    // Binary search for the first index which differs by at least 2 from its
+    // successor
+    while (low + 1 < high) {
+      int mid = (high + low) >>> 1;
+      if (index - mid < value - toIntUnsigned(content.get(mid))) {
+        low = mid;
+      } else {
+        high = mid;
+      }
+    }
+
+    if (high == 0) {
+      return toIntUnsigned(content.get(0)) - 1;
+    }
+
+    assert toIntUnsigned(content.get(low)) + 1 < toIntUnsigned(content.get(high));
+    assert toIntUnsigned(content.get(high)) == value - (index - high);
+    return toIntUnsigned(content.get(high)) - 1;
+  }
+
+  @Override
   public Container toContainer() {
     return new ArrayContainer(this);
   }

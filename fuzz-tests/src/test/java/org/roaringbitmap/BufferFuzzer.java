@@ -6,9 +6,13 @@ import org.junit.Test;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
@@ -165,6 +169,26 @@ public class BufferFuzzer {
             });
   }
 
+  public static void verifyInvariance(Consumer<MutableRoaringBitmap> action) {
+    verifyInvariance(rb -> true, action);
+  }
+
+  public static void verifyInvariance(Predicate<MutableRoaringBitmap> validity,
+                                      Consumer<MutableRoaringBitmap> action) {
+    verifyInvariance(validity, ITERATIONS, 1 << 3, action);
+  }
+
+  public static void verifyInvariance(Predicate<MutableRoaringBitmap> validity,
+                                      int count,
+                                      int maxKeys,
+                                      Consumer<MutableRoaringBitmap> action) {
+    IntStream.range(0, count)
+            .parallel()
+            .mapToObj(i -> randomBitmap(maxKeys))
+            .filter(validity)
+            .forEach(action);
+  }
+
   @Test
   public void rankSelectInvariance() {
     verifyInvariance("rankSelectInvariance", bitmap -> !bitmap.isEmpty(), (i, rb) -> rb.rank(rb.select(i)) == i + 1);
@@ -297,6 +321,27 @@ public class BufferFuzzer {
               range.add(min, max);
               return bitmap.rangeCardinality(min, max) == ImmutableRoaringBitmap.andCardinality(range, bitmap);
             });
+  }
+
+  @Test
+  public void absentValuesConsistentWithBitSet() {
+    List<Integer> offsets = Arrays.asList(0, 1, -1, 10, -10, 100, -100);
+
+    // Size limit to avoid out of memory errors; r.last() > 0 to avoid bitmaps with last > Integer.MAX_VALUE
+    verifyInvariance(r -> r.isEmpty() || (r.last() > 0 && r.last() < 1 << 30), bitmap -> {
+      BitSet reference = new BitSet();
+      bitmap.iterator().forEachRemaining(reference::set);
+
+      for (int next : bitmap) {
+        for (int offset : offsets) {
+          int pos = next + offset;
+          if (pos >= 0) {
+            Assert.assertEquals(reference.nextClearBit(pos), bitmap.nextAbsentValue(pos));
+            Assert.assertEquals(reference.previousClearBit(pos), bitmap.previousAbsentValue(pos));
+          }
+        }
+      }
+    });
   }
 
   private static MutableRoaringBitmap randomBitmap(int maxKeys) {

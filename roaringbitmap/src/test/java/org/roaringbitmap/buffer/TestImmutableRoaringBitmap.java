@@ -1512,4 +1512,35 @@ public class TestImmutableRoaringBitmap {
     Assert.assertEquals(1, r.rangeCardinality(60000, 70000));
   }
 
+
+  @Test
+  public void testAbsentBits() {
+    int count = 50;
+    List<Integer> offsets = Arrays.asList(0, 1, -1, 10, -10, 100, -100);
+
+    for (int i = 0; i < count; i++) {
+      ImmutableRoaringBitmap bitmap = SeededTestData.TestDataSet.testCase()
+              .withRunAt(0)
+              .withBitmapAt(1)
+              .withArrayAt(2)
+              .withRunAt(3)
+              .withBitmapAt(4)
+              .withArrayAt(5)
+              .build()
+              .toMutableRoaringBitmap();
+
+      BitSet reference = new BitSet();
+      bitmap.iterator().forEachRemaining(reference::set);
+
+      for (int next : bitmap) {
+        for (int offset : offsets) {
+          int pos = next + offset;
+          if (pos >= 0) {
+            assertEquals(reference.nextClearBit(pos), bitmap.nextAbsentValue(pos));
+            assertEquals(reference.previousClearBit(pos), bitmap.previousAbsentValue(pos));
+          }
+        }
+      }
+    }
+  }
 }

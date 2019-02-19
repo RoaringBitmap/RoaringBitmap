@@ -2563,6 +2563,34 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   @Override
+  public int nextAbsentValue(short fromValue) {
+    int index = unsignedInterleavedBinarySearch(valueslength, 0, nbrruns, fromValue);
+    int effectiveIndex = index >= 0 ? index : -index - 2;
+    if (effectiveIndex == -1) {
+      return toIntUnsigned(fromValue);
+    }
+    int startValue = toIntUnsigned(getValue(effectiveIndex));
+    int value = toIntUnsigned(fromValue);
+    int offset = value - startValue;
+    int le = toIntUnsigned(getLength(effectiveIndex));
+    return offset <= le ? startValue + le + 1 : value;
+  }
+
+  @Override
+  public int previousAbsentValue(short fromValue) {
+    int index = unsignedInterleavedBinarySearch(valueslength, 0, nbrruns, fromValue);
+    int effectiveIndex = index >= 0 ? index : -index - 2;
+    if (effectiveIndex == -1) {
+      return toIntUnsigned(fromValue);
+    }
+    int startValue = toIntUnsigned(getValue(effectiveIndex));
+    int value = toIntUnsigned(fromValue);
+    int offset = value - startValue;
+    int le = toIntUnsigned(getLength(effectiveIndex));
+    return offset <= le ? startValue - 1 : value;
+  }
+
+  @Override
   public int first() {
     assertNonEmpty(numberOfRuns() == 0);
     return toIntUnsigned(valueslength[0]);
