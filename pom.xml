@@ -91,6 +91,11 @@
                                 </goals>
                             </execution>
                         </executions>
+                        <configuration>
+                            <!-- See Ability to pass release to Javadoc tool at 
+                            https://issues.apache.org/jira/browse/MJAVADOC-562-->
+                            <release>${javac.release}</release>
+                        </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
