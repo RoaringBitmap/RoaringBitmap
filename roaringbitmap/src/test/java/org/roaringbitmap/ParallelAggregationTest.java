@@ -14,17 +14,21 @@ public class ParallelAggregationTest {
 
   private static ForkJoinPool POOL;
 
+  private static ForkJoinPool BIG_POOL;
+
   private static ForkJoinPool NO_PARALLELISM_AVAILABLE;
 
   @BeforeClass
   public static void init() {
     POOL = new ForkJoinPool(4);
+    BIG_POOL = new ForkJoinPool(32);
     NO_PARALLELISM_AVAILABLE = new ForkJoinPool(1);
   }
 
   @AfterClass
   public static void teardown() {
     POOL.shutdownNow();
+    BIG_POOL.shutdownNow();
     NO_PARALLELISM_AVAILABLE.shutdownNow();
   }
 
@@ -114,16 +118,23 @@ public class ParallelAggregationTest {
             NO_PARALLELISM_AVAILABLE.submit(() -> ParallelAggregation.or(input)).join());
   }
 
-
   @Test
   public void hugeOrInFJP1() {
     RoaringBitmap[] input = IntStream.range(0, 513)
             .mapToObj(i -> testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build())
             .toArray(RoaringBitmap[]::new);
     Assert.assertEquals(FastAggregation.or(input),
-                        POOL.submit(() -> ParallelAggregation.or(input)).join());
+            POOL.submit(() -> ParallelAggregation.or(input)).join());
   }
 
+  @Test
+  public void regressionTest() {
+    RoaringBitmap[] input = IntStream.range(0, 513)
+            .mapToObj(i -> testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build())
+            .toArray(RoaringBitmap[]::new);
+    Assert.assertEquals(FastAggregation.or(input),
+            BIG_POOL.submit(() -> ParallelAggregation.or(input)).join());
+  }
 
   @Test
   public void hugeOrInFJP2() {

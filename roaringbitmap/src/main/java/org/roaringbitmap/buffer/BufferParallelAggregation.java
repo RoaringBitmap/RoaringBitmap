@@ -223,11 +223,12 @@ public class BufferParallelAggregation {
       return result.repairAfterLazy();
     }
     // we have an enormous slice (probably skewed), parallelise it
-    int partitionSize = (containers.size() + parallelism - 1) / parallelism;
+    int step = Math.floorDiv(containers.size(), parallelism);
+    int mod = Math.floorMod(containers.size(), parallelism);
     return IntStream.range(0, parallelism)
             .parallel()
-            .mapToObj(i -> containers.subList(i * partitionSize,
-                    Math.min((i + 1) * partitionSize, containers.size())))
+            .mapToObj(i -> containers.subList(i * step + Math.min(i, mod),
+                    (i + 1) * step + Math.min(i + 1, mod)))
             .collect(OR);
   }
 
