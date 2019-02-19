@@ -21,8 +21,7 @@ branches:
   only:
     - master
 
-script: 
-  - mvn javadoc:javadoc 
+script:
   - mvn checkstyle:check 
   - mvn test jacoco:report  -Dgpg.skip=true -DBITMAP_TYPES=ROARING_ONLY
 
