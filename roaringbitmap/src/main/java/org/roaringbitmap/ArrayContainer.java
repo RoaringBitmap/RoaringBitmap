@@ -1134,7 +1134,7 @@ public final class ArrayContainer extends Container implements Cloneable {
   @Override
   public int nextValue(short fromValue) {
     int index = Util.advanceUntil(content, -1, cardinality, fromValue);
-    if (index == content.length) {
+    if (index == cardinality) {
       return fromValue == content[cardinality - 1] ? toIntUnsigned(fromValue) : -1;
     }
     return toIntUnsigned(content[index]);
@@ -1143,7 +1143,7 @@ public final class ArrayContainer extends Container implements Cloneable {
   @Override
   public int previousValue(short fromValue) {
     int index = Util.advanceUntil(content, -1, cardinality, fromValue);
-    if (content.length != index && content[index] == fromValue) {
+    if (index != cardinality && content[index] == fromValue) {
       return toIntUnsigned(content[index]);
     }
     return index == 0 ? -1 : toIntUnsigned(content[index - 1]);

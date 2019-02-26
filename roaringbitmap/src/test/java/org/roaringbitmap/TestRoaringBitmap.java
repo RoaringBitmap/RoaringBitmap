@@ -4749,4 +4749,10 @@ public class TestRoaringBitmap {
     Assert.assertEquals(1, r.rangeCardinality(60000, 70000));
   }
 
+  @Test
+  public void testNextValueArray() {
+    RoaringBitmap r = new RoaringBitmap();
+    r.add(0, 1, 2, 4, 6);
+    assertEquals(-1, r.nextValue(7));
+  }
 }
