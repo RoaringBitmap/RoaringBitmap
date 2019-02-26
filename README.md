@@ -368,13 +368,13 @@ A convenient command to build the code is :
 
              mvn clean install -DskipTests -Dgpg.skip=true
 
-IntelliJ
+IntelliJ and Eclipse
 --------
 
 If you plan to contribute to RoaringBitmap, you can have load
-it up in your favorite IDE. For IntelliJ, in the IDE create a new
-project, possibly from existing sources, choose Maven, and remove
-the jmh module (possibly by clicking on it).
+it up in your favorite IDE. 
+- For IntelliJ, in the IDE create a new project, possibly from existing sources, choose import, Maven. 
+- For Eclipse: File, Import, Existing Maven Projects, Select RoaringBitmap on my disk
 
 Contributing
 ------------
