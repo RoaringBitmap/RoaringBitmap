@@ -5,7 +5,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.roaringbitmap.BatchIterator;
 import org.roaringbitmap.IntIterator;
-import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.RoaringBitmapWriter;
 
 import java.util.concurrent.ThreadLocalRandom;
