@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.roaringbitmap</groupId>
         <artifactId>RoaringBitmapParent</artifactId>
-        <version>0.7.39</version>
+        <version>0.7.40-SNAPSHOT</version>
     </parent>
 
     <artifactId>real-roaring-dataset</artifactId>
