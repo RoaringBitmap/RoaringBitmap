@@ -83,6 +83,20 @@ public class Issue319 {
     }
     System.out.println("\naverage: " + sum / count);
 
+    System.out.println("via Deserialize ByteBuffer: ");
+    sum = 0;
+    for (int k = 0; k < count; k++) {
+      bef = System.currentTimeMillis();
+      RoaringBitmap ret = new RoaringBitmap();
+      ret.deserialize(ByteBuffer.wrap(array));
+      aft = System.currentTimeMillis();
+      System.out.print(aft - bef + " ms ");
+      sum += aft - bef;
+      if (!ret.equals(mrb))
+        throw new RuntimeException("bug");
+    }
+    System.out.println("\naverage: " + sum / count);
+
 
   }
 

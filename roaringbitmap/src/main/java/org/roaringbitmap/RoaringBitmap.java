@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -1441,6 +1442,14 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   public void deserialize(DataInput in) throws IOException {
     try {
       this.highLowContainer.deserialize(in);
+    } catch(InvalidRoaringFormat cookie) {
+      throw cookie.toIOException();// we convert it to an IOException
+    }
+  }
+  
+  public void deserialize(ByteBuffer bbf) throws IOException {
+    try {
+      this.highLowContainer.deserialize(bbf);
     } catch(InvalidRoaringFormat cookie) {
       throw cookie.toIOException();// we convert it to an IOException
     }
