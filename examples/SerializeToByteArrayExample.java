@@ -1,6 +1,10 @@
 /**
 * This example shows how to serialize a Roaring bitmap to a byte array 
 */
+/*************** 
+* for performance considerations, see
+* https://github.com/RoaringBitmap/RoaringBitmap/issues/319
+**************/
 import org.roaringbitmap.RoaringBitmap;
 import java.io.*;
 import java.nio.*;
