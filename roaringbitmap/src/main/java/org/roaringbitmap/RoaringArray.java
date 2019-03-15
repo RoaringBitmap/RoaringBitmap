@@ -17,6 +17,7 @@ import java.io.ObjectOutput;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
+import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 
@@ -348,15 +349,34 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
         int nbrruns = Util.toIntUnsigned(Short.reverseBytes(in.readShort()));
         final short lengthsAndValues[] = new short[2 * nbrruns];
 
-        for (int j = 0; j < 2 * nbrruns; ++j) {
-          lengthsAndValues[j] = Short.reverseBytes(in.readShort());
-        }
+        // Read the whole RunContainer in a single pass
+        // TODO: What if 'lengthsAndValues.length * 2' > '(BitmapContainer.MAX_CAPACITY / 64) * 8'
+        in.readFully(buffer, 0, lengthsAndValues.length * 2);
+        
+        // little endian
+        ByteBuffer asByteBuffer = ByteBuffer.wrap(buffer);
+        asByteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        
+        ShortBuffer asShortBuffer = asByteBuffer.asShortBuffer();
+        asShortBuffer.rewind();
+        asShortBuffer.get(lengthsAndValues);
+        
         val = new RunContainer(lengthsAndValues, nbrruns);
       } else {
         final short[] shortArray = new short[cardinalities[k]];
-        for (int l = 0; l < shortArray.length; ++l) {
-          shortArray[l] = Short.reverseBytes(in.readShort());
-        }
+        
+        // Read the whole RunContainer in a single pass
+        // TODO: What if 'shortArray.length * 2' > '(BitmapContainer.MAX_CAPACITY / 64) * 8'
+        in.readFully(buffer, 0, shortArray.length * 2);
+        
+        // little endian
+        ByteBuffer asByteBuffer = ByteBuffer.wrap(buffer);
+        asByteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        
+        ShortBuffer asShortBuffer = asByteBuffer.asShortBuffer();
+        asShortBuffer.rewind();
+        asShortBuffer.get(shortArray);
+        
         val = new ArrayContainer(shortArray);
       }
       this.keys[k] = keys[k];
