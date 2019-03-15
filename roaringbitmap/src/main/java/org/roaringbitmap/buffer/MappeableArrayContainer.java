@@ -342,7 +342,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
   /**
    * Checks whether the container contains the value x.
-   * 
+   *
    * @param buf underlying buffer
    * @param position starting position of the container in the ByteBuffer
    * @param x target value x
@@ -353,7 +353,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     return BufferUtil.unsignedBinarySearch(buf, position, 0, cardinality, x) >= 0;
   }
 
-  
+
   // in order
   // not thread-safe
   private void emit(short val) {
@@ -546,19 +546,19 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     /*
      * b - index of begin(indexstart), e - index of end(indexend), |--| is current sequential
      * indexes in content. Total 6 cases are possible, listed as below:
-     * 
+     *
      * case-1) |--------|b-e case-2) |----b---|e case-3) |---b---e---| case-4) b|----e---| case-5)
      * b-e|------| case-6) b|-----|e
-     * 
+     *
      * In case of old approach, we did (1a) Array.copyOf in increaseCapacity ( # of elements copied
      * -> cardinality), (1b) then we moved elements using System.arrayCopy ( # of elements copied ->
      * cardinality -indexend), (1c) then we set all elements from begin to end ( # of elements set
      * -> end - begin)
-     * 
+     *
      * With new approach, (2a) we set all elements from begin to end ( # of elements set -> end-
      * begin), (2b) we only copy elements in current set which are not in range begin-end ( # of
      * elements copied -> cardinality - (end-begin) )
-     * 
+     *
      * why is it faster? Logically we are doing less # of copies. Mathematically proof as below: ->
      * 2a is same as 1c, so we can avoid. Assume, 2b < (1a+1b), lets prove this assumption.
      * Substitute the values. (cardinality - (end-begin)) < ( 2*cardinality - indexend) , lowest
@@ -693,7 +693,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     newContent.put(this.content);
     this.content = newContent;
   }
-  
+
   private int calculateCapacity(int min){
     int len = this.content.limit();
     int newCapacity = (len == 0) ? DEFAULT_INIT_SIZE
@@ -845,7 +845,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       this.content = destination;
     } else {
       BufferUtil.arraycopy(content, 0, content, value2.cardinality, cardinality);
-      
+
       if (BufferUtil.isBackedBySimpleArray(content)
           && BufferUtil.isBackedBySimpleArray(value2.content)) {
         cardinality =
@@ -1227,7 +1227,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     return answer;
   }
 
-  
+
   @Override
   public MappeableContainer or(MappeableBitmapContainer x) {
     return x.or(this);
@@ -1333,10 +1333,10 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     answer.cardinality = cardinality - rangelength;
     return answer;
   }
-  
+
   protected void removeAtIndex(final int loc) {
     System.arraycopy(content.array(), loc + 1, content.array(), loc, cardinality - loc - 1);
-    --cardinality;    
+    --cardinality;
   }
 
 
@@ -1520,7 +1520,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
   /**
    * Create a copy of the content of this container as a short array. This creates a copy.
-   * 
+   *
    * @return copy of the content as a short array
    */
   public short[] toShortArray() {
@@ -1694,7 +1694,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       return Util.unsignedLocalIntersect2by2Cardinality(content.array(), cardinality,
           value2.content.array(), value2.getCardinality());
     }
-    return BufferUtil.unsignedLocalIntersect2by2Cardinality(content, cardinality, 
+    return BufferUtil.unsignedLocalIntersect2by2Cardinality(content, cardinality,
         value2.content, value2.getCardinality());
   }
 
@@ -1939,7 +1939,7 @@ final class RawReverseArrayContainerShortIterator implements ShortIterator {
     pos++;
   }
 
-};
+}
 
 
 final class ReverseMappeableArrayContainerShortIterator implements ShortIterator {

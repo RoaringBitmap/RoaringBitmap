@@ -18,8 +18,8 @@ import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
 /**
  * This container takes the form of runs of consecutive values (effectively, run-length encoding).
  * Uses a ShortBuffer to store data, unlike org.roaringbitmap.RunContainer. Otherwise similar.
- * 
- * 
+ *
+ *
  * Adding and removing content from this container might make it wasteful so regular calls to
  * "runOptimize" might be warranted.
  */
@@ -69,8 +69,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       final int end, final short k) {
     return branchyBufferedUnsignedInterleavedBinarySearch(sb, begin, end, k);
   }
-  
-  
+
+
   private static int bufferedUnsignedInterleavedBinarySearch(final ByteBuffer sb, int position,
       final int begin, final int end, final short k) {
     return branchyBufferedUnsignedInterleavedBinarySearch(sb, position, begin, end, k);
@@ -299,7 +299,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   /**
    * Creates a new container from a non-mappeable one. This copies the data.
-   * 
+   *
    * @param bc the original container
    */
   public MappeableRunContainer(RunContainer bc) {
@@ -310,10 +310,10 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   /**
    * Construct a new RunContainer backed by the provided ShortBuffer. Note that if you modify the
    * RunContainer a new ShortBuffer may be produced.
-   * 
+   *
    * @param array ShortBuffer where the data is stored
    * @param numRuns number of runs (each using 2 shorts in the buffer)
-   * 
+   *
    */
   public MappeableRunContainer(final ShortBuffer array, final int numRuns) {
     if (array.limit() < 2 * numRuns) {
@@ -718,10 +718,10 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     }
     return false;
   }
-  
+
   /**
    * Checks whether the run container contains x.
-   * 
+   *
    * @param buf underlying ByteBuffer
    * @param position starting position of the container in the ByteBuffer
    * @param x target 16-bit value
@@ -743,7 +743,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       }
     }
     return false;
-    
+
   }
 
   // a very cheap check... if you have more than 4096, then you should use a bitmap container.
@@ -2096,7 +2096,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       setLength(nbrruns - 1, (short) (newend - 1 - toIntUnsigned(getValue(nbrruns - 1))));
     }
   }
-  
+
   private void smartAppend(short[] vl, short start, short length) {
     int oldend;
     if ((nbrruns == 0) || (
@@ -2217,7 +2217,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   /**
    * Convert the container to either a Bitmap or an Array Container, depending on the cardinality.
-   * 
+   *
    * @param card the current cardinality
    * @return new container
    */
@@ -2443,7 +2443,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       for(int l = base; l <= base + le; ++l ) {
         ic.accept(l);
       }
-    }    
+    }
   }
 
 
@@ -2469,7 +2469,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         rlelength = toIntUnsigned(this.getLength(rlepos));
       }
       if (rleval > arrayval) {
-        arraypos = BufferUtil.advanceUntil(x.content, arraypos, 
+        arraypos = BufferUtil.advanceUntil(x.content, arraypos,
             x.cardinality, this.getValue(rlepos));
       } else {
         andCardinality++;
@@ -2868,7 +2868,7 @@ final class MappeableRunContainerShortIterator implements PeekableShortIterator 
     return (short) (base + le);
   }
 
-};
+}
 
 
 final class RawMappeableRunContainerShortIterator implements PeekableShortIterator {
@@ -3068,7 +3068,7 @@ final class RawReverseMappeableRunContainerShortIterator implements ShortIterato
     }
   }
 
-};
+}
 
 
 final class ReverseMappeableRunContainerShortIterator implements ShortIterator {
