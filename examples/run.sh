@@ -3,7 +3,7 @@ SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 
 cd $SCRIPTPATH/.. && mvn -Dcheckstyle.skip=true -Dmaven.test.skip=true -Dmaven.javadoc.skip=true package && cd $SCRIPTPATH
 
-ROARINGPATH=$SCRIPTPATH"/../roaringbitmap/target/*"
+ROARINGPATH=$SCRIPTPATH"/../roaringbitmap/target/*":$SCRIPTPATH"/../shims/target/*"
 for filename in *.java; do
   nonext="${filename%.*}"
   echo $nonext
