@@ -5,14 +5,20 @@
 package org.roaringbitmap;
 
 
-import java.io.*;
+import static org.roaringbitmap.Util.compareUnsigned;
+import static org.roaringbitmap.Util.toIntUnsigned;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
-
-import static org.roaringbitmap.Util.compareUnsigned;
-import static org.roaringbitmap.Util.toIntUnsigned;
 
 
 /**
@@ -324,14 +330,17 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       Container val;
       if (isBitmap[k]) {
         final long[] bitmapArray = new long[BitmapContainer.MAX_CAPACITY / 64];
-        // little endian
+        
+        // Read the whole bitmapContainer in a single pass
         in.readFully(buffer);
-        LongBuffer asLongBuffer = ByteBuffer.wrap(buffer).asLongBuffer();
+        
+        // little endian
+        ByteBuffer asByteBuffer = ByteBuffer.wrap(buffer);
+        asByteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        
+        LongBuffer asLongBuffer = asByteBuffer.asLongBuffer();
         asLongBuffer.rewind();
         asLongBuffer.get(bitmapArray);
-        for (int l = 0; l < bitmapArray.length; ++l) {
-          bitmapArray[l] = Long.reverseBytes(bitmapArray[l]);
-        }
         val = new BitmapContainer(bitmapArray, cardinalities[k]);
       } else if (bitmapOfRunContainers != null
           && ((bitmapOfRunContainers[k / 8] & (1 << (k % 8))) != 0)) {
