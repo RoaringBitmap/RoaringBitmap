@@ -1441,7 +1441,7 @@ final class ArrayContainerShortIterator implements PeekableShortRankIterator {
     pos = 0;
   }
 
-};
+}
 
 
 final class ReverseArrayContainerShortIterator implements ShortIterator {
