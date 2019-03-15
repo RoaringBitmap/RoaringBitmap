@@ -323,7 +323,8 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       in.skipBytes(this.size * 4);
     }
 
-    // a buffer to load a BitmapContainer in a single .readFully
+    // a buffer to load a Container in a single .readFully
+    // We initialize it with the length of a BitmapContainer
     byte[] buffer = new byte[(BitmapContainer.MAX_CAPACITY / 64) * 8];
 
     // Reading the containers
@@ -333,7 +334,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
         final long[] bitmapArray = new long[BitmapContainer.MAX_CAPACITY / 64];
         
         // Read the whole bitmapContainer in a single pass
-        in.readFully(buffer);
+        in.readFully(buffer, 0, bitmapArray.length * 8);
         
         // little endian
         ByteBuffer asByteBuffer = ByteBuffer.wrap(buffer);
@@ -350,6 +351,9 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
         final short lengthsAndValues[] = new short[2 * nbrruns];
 
         // Read the whole RunContainer in a single pass
+        if (lengthsAndValues.length * 2 > buffer.length) {
+          buffer = new byte[lengthsAndValues.length * 2];
+        }
         // TODO: What if 'lengthsAndValues.length * 2' > '(BitmapContainer.MAX_CAPACITY / 64) * 8'
         in.readFully(buffer, 0, lengthsAndValues.length * 2);
         
@@ -365,8 +369,10 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       } else {
         final short[] shortArray = new short[cardinalities[k]];
         
-        // Read the whole RunContainer in a single pass
-        // TODO: What if 'shortArray.length * 2' > '(BitmapContainer.MAX_CAPACITY / 64) * 8'
+        // Read the whole ArrayContainer in a single pass
+        if (shortArray.length * 2 > buffer.length) {
+          buffer = new byte[shortArray.length * 2];
+        }
         in.readFully(buffer, 0, shortArray.length * 2);
         
         // little endian
