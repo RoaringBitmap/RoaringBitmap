@@ -6,6 +6,8 @@ package org.roaringbitmap;
 
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 
@@ -313,14 +315,22 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       // skipping the offsets
       in.skipBytes(this.size * 4);
     }
+
+    // a buffer to load a BitmapContainer in a single .readFully
+    byte[] buffer = new byte[(BitmapContainer.MAX_CAPACITY / 64) * 8];
+
     // Reading the containers
     for (int k = 0; k < this.size; ++k) {
       Container val;
       if (isBitmap[k]) {
         final long[] bitmapArray = new long[BitmapContainer.MAX_CAPACITY / 64];
         // little endian
+        in.readFully(buffer);
+        LongBuffer asLongBuffer = ByteBuffer.wrap(buffer).asLongBuffer();
+        asLongBuffer.rewind();
+        asLongBuffer.get(bitmapArray);
         for (int l = 0; l < bitmapArray.length; ++l) {
-          bitmapArray[l] = Long.reverseBytes(in.readLong());
+          bitmapArray[l] = Long.reverseBytes(bitmapArray[l]);
         }
         val = new BitmapContainer(bitmapArray, cardinalities[k]);
       } else if (bitmapOfRunContainers != null
