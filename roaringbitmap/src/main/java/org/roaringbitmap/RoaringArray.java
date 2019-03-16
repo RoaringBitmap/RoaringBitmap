@@ -277,7 +277,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
   public void deserialize(ByteBuffer buffer) {
     ByteBuffer buf = buffer.order() == ByteOrder.LITTLE_ENDIAN
             ? buffer
-            : buffer.order(ByteOrder.LITTLE_ENDIAN);
+            : buffer.asReadOnlyBuffer().order(ByteOrder.LITTLE_ENDIAN);
     clear();
     final int cookie = buf.getInt();
     if ((cookie & 0xFFFF) != SERIAL_COOKIE && cookie != SERIAL_COOKIE_NO_RUNCONTAINER) {
