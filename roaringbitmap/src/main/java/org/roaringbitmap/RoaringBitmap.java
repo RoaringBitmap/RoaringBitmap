@@ -1446,10 +1446,17 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       throw cookie.toIOException();// we convert it to an IOException
     }
   }
-  
+
   public void deserialize(ByteBuffer bbf) throws IOException {
     try {
       this.highLowContainer.deserialize(bbf);
+    } catch(InvalidRoaringFormat cookie) {
+      throw cookie.toIOException();// we convert it to an IOException
+    }
+  }
+  public void deserialize321(ByteBuffer bbf) throws IOException {
+    try {
+      this.highLowContainer.deserialize321(bbf);
     } catch(InvalidRoaringFormat cookie) {
       throw cookie.toIOException();// we convert it to an IOException
     }

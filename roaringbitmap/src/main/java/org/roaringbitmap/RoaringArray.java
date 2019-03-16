@@ -19,6 +19,7 @@ import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.NoSuchElementException;
 
 
@@ -473,6 +474,90 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     }
   }
 
+
+  /**
+   * Deserialize.
+   *
+   * @param buffer any ByteBuffer, LITTLE_ENDIAN preferred
+   * @throws IOException Signals that an I/O exception has occurred.
+   * @throws InvalidRoaringFormat if a Roaring Bitmap cookie
+   *             is missing.
+   */
+  public void deserialize321(ByteBuffer buffer) {
+    ByteBuffer buf = buffer.order() == ByteOrder.LITTLE_ENDIAN
+            ? buffer
+            : buffer.order(ByteOrder.LITTLE_ENDIAN);
+    clear();
+    final int cookie = buf.getInt();
+    if ((cookie & 0xFFFF) != SERIAL_COOKIE && cookie != SERIAL_COOKIE_NO_RUNCONTAINER) {
+      throw new InvalidRoaringFormat("I failed to find a valid cookie.");
+    }
+    this.size = ((cookie & 0xFFFF) == SERIAL_COOKIE) ? (cookie >>> 16) + 1 : buf.getInt();
+    // logically we cannot have more than (1<<16) containers.
+    if(this.size > (1<<16) ) {
+      throw new InvalidRoaringFormat("Size too large");
+    }
+    if ((this.keys == null) || (this.keys.length < this.size)) {
+      this.keys = new short[this.size];
+      this.values = new Container[this.size];
+    }
+
+
+    byte[] bitmapOfRunContainers = null;
+    boolean hasrun = (cookie & 0xFFFF) == SERIAL_COOKIE;
+    if (hasrun) {
+      bitmapOfRunContainers = new byte[(size + 7) / 8];
+      buf.get(bitmapOfRunContainers);
+    }
+
+    final short[] keys = new short[this.size];
+    final int[] cardinalities = new int[this.size];
+    final BitSet isBitmap = new BitSet(this.size);
+    for (int k = 0; k < this.size; ++k) {
+      keys[k] = buf.getShort();
+      cardinalities[k] = 1 + (0xFFFF & buf.getShort());
+
+      isBitmap.set(k, cardinalities[k] > ArrayContainer.DEFAULT_MAX_SIZE);
+      if (bitmapOfRunContainers != null && (bitmapOfRunContainers[k >>> 3] & (1 << (k & 7))) != 0) {
+        isBitmap.set(k, false);
+      }
+    }
+    if ((!hasrun) || (this.size >= NO_OFFSET_THRESHOLD)) {
+      // skipping the offsets
+      buf.position(buf.position() + this.size * 4);
+    }
+    // Reading the containers
+    for (int k = 0; k < this.size; ++k) {
+      Container val;
+      if (isBitmap.get(k)) {
+        final long[] bitmapArray = new long[BitmapContainer.MAX_CAPACITY / 64];
+        // little endian
+        for (int l = 0; l < bitmapArray.length; ++l) {
+          bitmapArray[l] = buf.getLong();
+        }
+        val = new BitmapContainer(bitmapArray, cardinalities[k]);
+      } else if (bitmapOfRunContainers != null
+              && ((bitmapOfRunContainers[k >>> 3] & (1 << (k & 7))) != 0)) {
+        // cf RunContainer.writeArray()
+        int nbrruns = Util.toIntUnsigned(buf.getShort());
+        final short[] lengthsAndValues = new short[2 * nbrruns];
+
+        for (int j = 0; j < 2 * nbrruns; ++j) {
+          lengthsAndValues[j] = buf.getShort();
+        }
+        val = new RunContainer(lengthsAndValues, nbrruns);
+      } else {
+        final short[] shortArray = new short[cardinalities[k]];
+        for (int l = 0; l < shortArray.length; ++l) {
+          shortArray[l] = buf.getShort();
+        }
+        val = new ArrayContainer(shortArray);
+      }
+      this.keys[k] = keys[k];
+      this.values[k] = val;
+    }
+  }
+  
   @Override
   public boolean equals(Object o) {
     if (o instanceof RoaringArray) {
