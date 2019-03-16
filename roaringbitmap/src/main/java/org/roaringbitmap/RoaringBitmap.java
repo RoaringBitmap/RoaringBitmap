@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -1426,6 +1427,23 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       }
     }
     return true;
+  }
+
+  /**
+   * Deserialize (retrieve) this bitmap.
+   * See format specification at https://github.com/RoaringBitmap/RoaringFormatSpec
+   *
+   * The current bitmap is overwritten.
+   *
+   * @param buffer the byte buffer (can be mapped, direct, array backed etc.
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public void deserialize(ByteBuffer buffer) throws IOException {
+    try {
+      this.highLowContainer.deserialize(buffer);
+    } catch(InvalidRoaringFormat cookie) {
+      throw cookie.toIOException();// we convert it to an IOException
+    }
   }
 
 
