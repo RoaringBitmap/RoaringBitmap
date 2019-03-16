@@ -22,7 +22,7 @@ branches:
     - master
 
 script:
-  - mvn javadoc:javadoc
+  - mvn javadoc:javadoc -html5
   - mvn checkstyle:check 
   - mvn test jacoco:report  -Dgpg.skip=true -DBITMAP_TYPES=ROARING_ONLY
 
