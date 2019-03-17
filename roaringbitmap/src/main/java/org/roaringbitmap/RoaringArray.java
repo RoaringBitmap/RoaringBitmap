@@ -391,6 +391,98 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     }
   }
 
+
+  /**
+   * Deserialize.
+   *
+   * @param in the DataInput stream
+   * @throws IOException Signals that an I/O exception has occurred.
+   * @throws InvalidRoaringFormat if a Roaring Bitmap cookie
+   *             is missing.
+   */
+  public void deserializeLegacy(DataInput in) throws IOException {
+    this.clear();
+    // little endian
+    final int cookie = Integer.reverseBytes(in.readInt());
+    if ((cookie & 0xFFFF) != SERIAL_COOKIE && cookie != SERIAL_COOKIE_NO_RUNCONTAINER) {
+      throw new InvalidRoaringFormat("I failed to find a valid cookie.");
+    }
+    this.size = ((cookie & 0xFFFF) == SERIAL_COOKIE) ? (cookie >>> 16) + 1
+        : Integer.reverseBytes(in.readInt());
+    // logically we cannot have more than (1<<16) containers.
+    if(this.size > (1<<16)) {
+      throw new InvalidRoaringFormat("Size too large");
+    }
+    if ((this.keys == null) || (this.keys.length < this.size)) {
+      this.keys = new short[this.size];
+      this.values = new Container[this.size];
+    }
+
+
+    byte[] bitmapOfRunContainers = null;
+    boolean hasrun = (cookie & 0xFFFF) == SERIAL_COOKIE;
+    if (hasrun) {
+      bitmapOfRunContainers = new byte[(size + 7) / 8];
+      in.readFully(bitmapOfRunContainers);
+    }
+
+    final short keys[] = new short[this.size];
+    final int cardinalities[] = new int[this.size];
+    final boolean isBitmap[] = new boolean[this.size];
+    for (int k = 0; k < this.size; ++k) {
+      keys[k] = Short.reverseBytes(in.readShort());
+      cardinalities[k] = 1 + (0xFFFF & Short.reverseBytes(in.readShort()));
+
+      isBitmap[k] = cardinalities[k] > ArrayContainer.DEFAULT_MAX_SIZE;
+      if (bitmapOfRunContainers != null && (bitmapOfRunContainers[k / 8] & (1 << (k % 8))) != 0) {
+        isBitmap[k] = false;
+      }
+    }
+    if ((!hasrun) || (this.size >= NO_OFFSET_THRESHOLD)) {
+      // skipping the offsets
+      in.skipBytes(this.size * 4);
+    }
+    // Reading the containers
+    for (int k = 0; k < this.size; ++k) {
+      Container val;
+      if (isBitmap[k]) {
+        final long[] bitmapArray = new long[BitmapContainer.MAX_CAPACITY / 64];
+        // little endian
+        for (int l = 0; l < bitmapArray.length; ++l) {
+          bitmapArray[l] = Long.reverseBytes(in.readLong());
+        }
+        val = new BitmapContainer(bitmapArray, cardinalities[k]);
+      } else if (bitmapOfRunContainers != null
+          && ((bitmapOfRunContainers[k / 8] & (1 << (k % 8))) != 0)) {
+        // cf RunContainer.writeArray()
+        int nbrruns = Util.toIntUnsigned(Short.reverseBytes(in.readShort()));
+        final short lengthsAndValues[] = new short[2 * nbrruns];
+
+        for (int j = 0; j < 2 * nbrruns; ++j) {
+          lengthsAndValues[j] = Short.reverseBytes(in.readShort());
+        }
+        val = new RunContainer(lengthsAndValues, nbrruns);
+      } else {
+        final short[] shortArray = new short[cardinalities[k]];
+        for (int l = 0; l < shortArray.length; ++l) {
+          shortArray[l] = Short.reverseBytes(in.readShort());
+        }
+        val = new ArrayContainer(shortArray);
+      }
+      this.keys[k] = keys[k];
+      this.values[k] = val;
+    }
+  }
+  
+  /**
+   * Deserialize (retrieve) this bitmap.
+   * See format specification at https://github.com/RoaringBitmap/RoaringFormatSpec
+   *
+   * The current bitmap is overwritten.
+   *
+   * @param bbf the byte buffer (can be mapped, direct, array backed etc.
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   public void deserialize(ByteBuffer bbf) throws IOException {
     this.clear();
     
