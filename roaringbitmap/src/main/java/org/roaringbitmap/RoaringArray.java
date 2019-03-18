@@ -372,7 +372,8 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     } else if (buffer != null && buffer.length % 8 != 0) {
       // This is necessary not to handle manually the gap between a ShortBuffer|LongBuffer and the
       // provided byte[]
-      throw new IllegalArgumentException("We need a buffer with a length multiple of 8. was length=" + buffer.length);
+      throw new IllegalArgumentException(
+          "We need a buffer with a length multiple of 8. was length=" + buffer.length);
     }
     
     this.clear();
