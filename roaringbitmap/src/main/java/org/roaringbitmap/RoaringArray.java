@@ -274,133 +274,15 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
   }
 
   /**
-   * Deserialize.
+   * Deserialize. If the DataInput is available as a byte[] or a ByteBuffer, you could prefer
+   * relying on {@link #deserialize(ByteBuffer)}. If the InputStream is >= 8kB, you could prefer
+   * relying on {@link #deserialize(DataInput, byte[])};
    *
    * @param in the DataInput stream
    * @throws IOException Signals that an I/O exception has occurred.
-   * @throws InvalidRoaringFormat if a Roaring Bitmap cookie
-   *             is missing.
+   * @throws InvalidRoaringFormat if a Roaring Bitmap cookie is missing.
    */
   public void deserialize(DataInput in) throws IOException {
-    this.clear();
-    // little endian
-    final int cookie = Integer.reverseBytes(in.readInt());
-    if ((cookie & 0xFFFF) != SERIAL_COOKIE && cookie != SERIAL_COOKIE_NO_RUNCONTAINER) {
-      throw new InvalidRoaringFormat("I failed to find a valid cookie.");
-    }
-    this.size = ((cookie & 0xFFFF) == SERIAL_COOKIE) ? (cookie >>> 16) + 1
-        : Integer.reverseBytes(in.readInt());
-    // logically we cannot have more than (1<<16) containers.
-    if(this.size > (1<<16)) {
-      throw new InvalidRoaringFormat("Size too large");
-    }
-    if ((this.keys == null) || (this.keys.length < this.size)) {
-      this.keys = new short[this.size];
-      this.values = new Container[this.size];
-    }
-
-
-    byte[] bitmapOfRunContainers = null;
-    boolean hasrun = (cookie & 0xFFFF) == SERIAL_COOKIE;
-    if (hasrun) {
-      bitmapOfRunContainers = new byte[(size + 7) / 8];
-      in.readFully(bitmapOfRunContainers);
-    }
-
-    final short keys[] = new short[this.size];
-    final int cardinalities[] = new int[this.size];
-    final boolean isBitmap[] = new boolean[this.size];
-    for (int k = 0; k < this.size; ++k) {
-      keys[k] = Short.reverseBytes(in.readShort());
-      cardinalities[k] = 1 + (0xFFFF & Short.reverseBytes(in.readShort()));
-
-      isBitmap[k] = cardinalities[k] > ArrayContainer.DEFAULT_MAX_SIZE;
-      if (bitmapOfRunContainers != null && (bitmapOfRunContainers[k / 8] & (1 << (k % 8))) != 0) {
-        isBitmap[k] = false;
-      }
-    }
-    if ((!hasrun) || (this.size >= NO_OFFSET_THRESHOLD)) {
-      // skipping the offsets
-      in.skipBytes(this.size * 4);
-    }
-
-    // a buffer to load a Container in a single .readFully
-    // We initialize it with the length of a BitmapContainer
-    byte[] buffer = new byte[(BitmapContainer.MAX_CAPACITY / 64) * 8];
-
-    // Reading the containers
-    for (int k = 0; k < this.size; ++k) {
-      Container val;
-      if (isBitmap[k]) {
-        final long[] bitmapArray = new long[BitmapContainer.MAX_CAPACITY / 64];
-        
-        // Read the whole bitmapContainer in a single pass
-        in.readFully(buffer, 0, bitmapArray.length * 8);
-        
-        // little endian
-        ByteBuffer asByteBuffer = ByteBuffer.wrap(buffer);
-        asByteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-        
-        LongBuffer asLongBuffer = asByteBuffer.asLongBuffer();
-        asLongBuffer.rewind();
-        asLongBuffer.get(bitmapArray);
-        val = new BitmapContainer(bitmapArray, cardinalities[k]);
-      } else if (bitmapOfRunContainers != null
-          && ((bitmapOfRunContainers[k / 8] & (1 << (k % 8))) != 0)) {
-        // cf RunContainer.writeArray()
-        int nbrruns = Util.toIntUnsigned(Short.reverseBytes(in.readShort()));
-        final short lengthsAndValues[] = new short[2 * nbrruns];
-
-        // Read the whole RunContainer in a single pass
-        if (lengthsAndValues.length * 2 > buffer.length) {
-          buffer = new byte[lengthsAndValues.length * 2];
-        }
-        // TODO: What if 'lengthsAndValues.length * 2' > '(BitmapContainer.MAX_CAPACITY / 64) * 8'
-        in.readFully(buffer, 0, lengthsAndValues.length * 2);
-        
-        // little endian
-        ByteBuffer asByteBuffer = ByteBuffer.wrap(buffer);
-        asByteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-        
-        ShortBuffer asShortBuffer = asByteBuffer.asShortBuffer();
-        asShortBuffer.rewind();
-        asShortBuffer.get(lengthsAndValues);
-        
-        val = new RunContainer(lengthsAndValues, nbrruns);
-      } else {
-        final short[] shortArray = new short[cardinalities[k]];
-        
-        // Read the whole ArrayContainer in a single pass
-        if (shortArray.length * 2 > buffer.length) {
-          buffer = new byte[shortArray.length * 2];
-        }
-        in.readFully(buffer, 0, shortArray.length * 2);
-        
-        // little endian
-        ByteBuffer asByteBuffer = ByteBuffer.wrap(buffer);
-        asByteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-        
-        ShortBuffer asShortBuffer = asByteBuffer.asShortBuffer();
-        asShortBuffer.rewind();
-        asShortBuffer.get(shortArray);
-        
-        val = new ArrayContainer(shortArray);
-      }
-      this.keys[k] = keys[k];
-      this.values[k] = val;
-    }
-  }
-
-
-  /**
-   * Deserialize.
-   *
-   * @param in the DataInput stream
-   * @throws IOException Signals that an I/O exception has occurred.
-   * @throws InvalidRoaringFormat if a Roaring Bitmap cookie
-   *             is missing.
-   */
-  public void deserializeLegacy(DataInput in) throws IOException {
     this.clear();
     // little endian
     final int cookie = Integer.reverseBytes(in.readInt());
@@ -473,17 +355,180 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       this.values[k] = val;
     }
   }
+
+  /**
+   * Deserialize.
+   *
+   * @param in the DataInput stream
+   * @param buffer a byte[] used to buffer DataInput reading
+   * @throws IOException Signals that an I/O exception has occurred.
+   * @throws InvalidRoaringFormat if a Roaring Bitmap cookie
+   *             is missing.
+   */
+  public void deserialize(DataInput in, byte[] buffer) throws IOException {
+    if (buffer != null && buffer.length == 0) {
+      // Get ride of this useless buffer
+      buffer = null;
+    }
+    
+    this.clear();
+    // little endian
+    final int cookie = Integer.reverseBytes(in.readInt());
+    if ((cookie & 0xFFFF) != SERIAL_COOKIE && cookie != SERIAL_COOKIE_NO_RUNCONTAINER) {
+      throw new InvalidRoaringFormat("I failed to find a valid cookie.");
+    }
+    this.size = ((cookie & 0xFFFF) == SERIAL_COOKIE) ? (cookie >>> 16) + 1
+        : Integer.reverseBytes(in.readInt());
+    // logically we cannot have more than (1<<16) containers.
+    if(this.size > (1<<16)) {
+      throw new InvalidRoaringFormat("Size too large");
+    }
+    if ((this.keys == null) || (this.keys.length < this.size)) {
+      this.keys = new short[this.size];
+      this.values = new Container[this.size];
+    }
+
+
+    byte[] bitmapOfRunContainers = null;
+    boolean hasrun = (cookie & 0xFFFF) == SERIAL_COOKIE;
+    if (hasrun) {
+      bitmapOfRunContainers = new byte[(size + 7) / 8];
+      in.readFully(bitmapOfRunContainers);
+    }
+
+    final short keys[] = new short[this.size];
+    final int cardinalities[] = new int[this.size];
+    final boolean isBitmap[] = new boolean[this.size];
+    for (int k = 0; k < this.size; ++k) {
+      keys[k] = Short.reverseBytes(in.readShort());
+      cardinalities[k] = 1 + (0xFFFF & Short.reverseBytes(in.readShort()));
+
+      isBitmap[k] = cardinalities[k] > ArrayContainer.DEFAULT_MAX_SIZE;
+      if (bitmapOfRunContainers != null && (bitmapOfRunContainers[k / 8] & (1 << (k % 8))) != 0) {
+        isBitmap[k] = false;
+      }
+    }
+    if ((!hasrun) || (this.size >= NO_OFFSET_THRESHOLD)) {
+      // skipping the offsets
+      in.skipBytes(this.size * 4);
+    }
+
+    // Reading the containers
+    for (int k = 0; k < this.size; ++k) {
+      Container val;
+      if (isBitmap[k]) {
+        final long[] bitmapArray = new long[BitmapContainer.MAX_CAPACITY / 64];
+        
+        if (buffer == null) {
+          // a buffer to load a Container in a single .readFully
+          // We initialize it with the length of a BitmapContainer
+          buffer = new byte[(BitmapContainer.MAX_CAPACITY / 64) * 8];
+        }
+        
+        // Read the whole bitmapContainer in a single pass
+        in.readFully(buffer, 0, bitmapArray.length * 8);
+        
+        // little endian
+        ByteBuffer asByteBuffer = ByteBuffer.wrap(buffer);
+        asByteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        
+        LongBuffer asLongBuffer = asByteBuffer.asLongBuffer();
+        asLongBuffer.rewind();
+        asLongBuffer.get(bitmapArray);
+        val = new BitmapContainer(bitmapArray, cardinalities[k]);
+      } else if (bitmapOfRunContainers != null
+          && ((bitmapOfRunContainers[k / 8] & (1 << (k % 8))) != 0)) {
+        // cf RunContainer.writeArray()
+        int nbrruns = Util.toIntUnsigned(Short.reverseBytes(in.readShort()));
+        final short lengthsAndValues[] = new short[2 * nbrruns];
+        
+        if (buffer == null && lengthsAndValues.length > (BitmapContainer.MAX_CAPACITY / 64) * 8) {
+          // a buffer to load a Container in a single .readFully
+          // We initialize it with the length of a BitmapContainer
+          buffer = new byte[(BitmapContainer.MAX_CAPACITY / 64) * 8];
+        }
+        
+        if (buffer == null) {
+          // The RunContainer is small: skip the buffer allocation
+          for (int j = 0; j < lengthsAndValues.length; ++j) {
+            lengthsAndValues[j] = Short.reverseBytes(in.readShort());
+          }
+        } else {
+          for (int iBlock = 0 ; iBlock < lengthsAndValues.length / buffer.length ; iBlock++) {
+            int start = buffer.length * iBlock;
+            int end = Math.min(buffer.length * (iBlock +1 ) - 1, lengthsAndValues.length);
+            
+            in.readFully(buffer, 0, end - start);
+            
+            // little endian
+            ByteBuffer asByteBuffer = ByteBuffer.wrap(buffer);
+            asByteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+            
+            ShortBuffer asShortBuffer = asByteBuffer.asShortBuffer();
+            asShortBuffer.rewind();
+            asShortBuffer.get(lengthsAndValues); 
+          }
+        }
+        
+        val = new RunContainer(lengthsAndValues, nbrruns);
+      } else {
+        final short[] shortArray = new short[cardinalities[k]];
+
+        if (buffer == null && shortArray.length > (BitmapContainer.MAX_CAPACITY / 64) * 8) {
+          // a buffer to load a Container in a single .readFully
+          // We initialize it with the length of a BitmapContainer
+          buffer = new byte[(BitmapContainer.MAX_CAPACITY / 64) * 8];
+        }
+        
+        if (buffer == null) {
+          // The ArrayContainer is small: skip the buffer allocation
+          for (int j = 0; j < shortArray.length; ++j) {
+            shortArray[j] = Short.reverseBytes(in.readShort());
+          }
+        } else {
+          for (int iBlock = 0 ; iBlock < shortArray.length / buffer.length ; iBlock++) {
+            int start = buffer.length * iBlock;
+            int end = Math.min(buffer.length * (iBlock +1 ) - 1, shortArray.length);
+            
+            in.readFully(buffer, 0, end - start);
+            
+            // little endian
+            ByteBuffer asByteBuffer = ByteBuffer.wrap(buffer);
+            asByteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+            
+            ShortBuffer asShortBuffer = asByteBuffer.asShortBuffer();
+            asShortBuffer.rewind();
+            asShortBuffer.get(shortArray); 
+          }
+        }
+        
+        val = new ArrayContainer(shortArray);
+      }
+      this.keys[k] = keys[k];
+      this.values[k] = val;
+    }
+  }
   
   /**
-   * Deserialize (retrieve) this bitmap.
-   * See format specification at https://github.com/RoaringBitmap/RoaringFormatSpec
+   * Deserialize (retrieve) this bitmap. See format specification at
+   * https://github.com/RoaringBitmap/RoaringFormatSpec
    *
    * The current bitmap is overwritten.
+   * 
+   * It is not necessary that limit() on the input ByteBuffer indicates the end of the serialized
+   * data.
+   * 
+   * After loading this RoaringBitmap, you can advance to the rest of the data (if there
+   * is more) by setting bbf.position(bbf.position() + bitmap.serializedSizeInBytes());
+   * 
+   * Note that the input ByteBuffer is effectively copied (with the slice operation) so you should
+   * expect the provided ByteBuffer to remain unchanged.
    *
    * @param bbf the byte buffer (can be mapped, direct, array backed etc.
    * @throws IOException Signals that an I/O exception has occurred.
    */
   public void deserialize(ByteBuffer bbf) throws IOException {
+    bbf = bbf.slice();
     this.clear();
     
     ByteBuffer buffer = bbf.slice();
@@ -575,6 +620,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
    * @throws InvalidRoaringFormat if a Roaring Bitmap cookie
    *             is missing.
    */
+  @Deprecated
   public void deserialize321(ByteBuffer buffer) {
     ByteBuffer buf = buffer.order() == ByteOrder.LITTLE_ENDIAN
             ? buffer
