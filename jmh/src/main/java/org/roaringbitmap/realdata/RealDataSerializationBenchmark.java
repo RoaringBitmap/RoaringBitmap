@@ -40,6 +40,11 @@ import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.ZipRealDataRetriever;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 
+/**
+ * 
+ * @author Richard Startin
+ *
+ */
 public class RealDataSerializationBenchmark {
 
 	 @Test
