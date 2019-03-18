@@ -1437,11 +1437,12 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * The current bitmap is overwritten.
    *
    * @param in the DataInput stream
+   * @param buffer a byte[] used to buffer DataInput reading
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public void deserialize(DataInput in) throws IOException {
+  public void deserialize(DataInput in, byte[] buffer) throws IOException {
     try {
-      this.highLowContainer.deserialize(in);
+      this.highLowContainer.deserialize(in, buffer);
     } catch(InvalidRoaringFormat cookie) {
       throw cookie.toIOException();// we convert it to an IOException
     }
@@ -1456,7 +1457,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @param in the DataInput stream
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public void deserializeLegacy(DataInput in) throws IOException {
+  public void deserialize(DataInput in) throws IOException {
     try {
       this.highLowContainer.deserialize(in);
     } catch(InvalidRoaringFormat cookie) {
