@@ -275,7 +275,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
 
   /**
    * Deserialize. If the DataInput is available as a byte[] or a ByteBuffer, you could prefer
-   * relying on {@link #deserialize(ByteBuffer)}. If the InputStream is >= 8kB, you could prefer
+   * relying on {@link #deserialize(ByteBuffer)}. If the InputStream is &gt;= 8kB, you could prefer
    * relying on {@link #deserialize(DataInput, byte[])};
    *
    * @param in the DataInput stream
@@ -641,7 +641,6 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
    * Deserialize.
    *
    * @param buffer any ByteBuffer, LITTLE_ENDIAN preferred
-   * @throws IOException Signals that an I/O exception has occurred.
    * @throws InvalidRoaringFormat if a Roaring Bitmap cookie
    *             is missing.
    */

@@ -31,6 +31,8 @@ public class BitmapStatistics {
 
   /**
    * Calculates what fraction of all containers is the `containerTypeCount`
+   * @param containerTypeCount
+   * @return
    */
   public double containerFraction(long containerTypeCount) {
     if (containerCount() == 0) {
@@ -127,6 +129,7 @@ public class BitmapStatistics {
 
     /**
      * Average cardinality of ArrayContainers
+     * @return
      */
     public long averageCardinality() {
       if (containersCount == 0) {
