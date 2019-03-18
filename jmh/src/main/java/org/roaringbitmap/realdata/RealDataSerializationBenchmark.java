@@ -116,23 +116,23 @@ public class RealDataSerializationBenchmark {
   }
 
   @Benchmark
+  public void streamBackedDataInputWithBuffer(BenchmarkState state, Blackhole bh) throws IOException {
+    byte[][] buffers = state.buffers;
+    for (int i = 0; i < buffers.length; ++i) {
+      RoaringBitmap bitmap = new RoaringBitmap();
+      ByteArrayInputStream bis = new ByteArrayInputStream(state.buffers[i]);
+      bitmap.deserialize(new DataInputStream(bis), null);
+      bh.consume(bitmap);
+    }
+  }
+
+  @Benchmark
   public void streamBackedDataInput(BenchmarkState state, Blackhole bh) throws IOException {
     byte[][] buffers = state.buffers;
     for (int i = 0; i < buffers.length; ++i) {
       RoaringBitmap bitmap = new RoaringBitmap();
       ByteArrayInputStream bis = new ByteArrayInputStream(state.buffers[i]);
       bitmap.deserialize(new DataInputStream(bis));
-      bh.consume(bitmap);
-    }
-  }
-
-  @Benchmark
-  public void streamBackedDataInputLegacy(BenchmarkState state, Blackhole bh) throws IOException {
-    byte[][] buffers = state.buffers;
-    for (int i = 0; i < buffers.length; ++i) {
-      RoaringBitmap bitmap = new RoaringBitmap();
-      ByteArrayInputStream bis = new ByteArrayInputStream(state.buffers[i]);
-      bitmap.deserializeLegacy(new DataInputStream(bis));
       bh.consume(bitmap);
     }
   }
