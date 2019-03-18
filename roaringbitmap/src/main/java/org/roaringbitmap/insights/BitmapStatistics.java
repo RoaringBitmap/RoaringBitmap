@@ -32,7 +32,7 @@ public class BitmapStatistics {
   /**
    * Calculates what fraction of all containers is the `containerTypeCount`
    * @param containerTypeCount
-   * @return
+   * @return some fraction
    */
   public double containerFraction(long containerTypeCount) {
     if (containerCount() == 0) {
