@@ -9,8 +9,8 @@ public class BitmapAnalyser {
 
   /**
    * Analyze the internal representation of bitmap
-   * @param r
-   * @return
+   * @param r the bitmap
+   * @return the statistics
    */
   public static BitmapStatistics analyse(RoaringBitmap r) {
     int acCount = 0;
@@ -36,8 +36,8 @@ public class BitmapAnalyser {
 
   /**
    * Analyze the internal representation of bitmaps
-   * @param bitmaps
-   * @return
+   * @param bitmaps the bitmaps
+   * @return the statistics
    */
   public static BitmapStatistics analyse(Collection<? extends RoaringBitmap> bitmaps) {
     return bitmaps
