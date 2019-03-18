@@ -1491,24 +1491,6 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     }
   }
   
-  /**
-   * Deserialize (retrieve) this bitmap.
-   * See format specification at https://github.com/RoaringBitmap/RoaringFormatSpec
-   *
-   * The current bitmap is overwritten.
-   *
-   * @param bbf the byte buffer (can be mapped, direct, array backed etc.
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  @Deprecated
-  public void deserialize321(ByteBuffer bbf) throws IOException {
-    try {
-      this.highLowContainer.deserialize321(bbf);
-    } catch(InvalidRoaringFormat cookie) {
-      throw cookie.toIOException();// we convert it to an IOException
-    }
-  }
-
   @Override
   public boolean equals(Object o) {
     if (o instanceof RoaringBitmap) {

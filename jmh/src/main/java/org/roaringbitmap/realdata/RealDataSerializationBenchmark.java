@@ -152,17 +152,6 @@ public class RealDataSerializationBenchmark {
     }
   }
 
-
-  @Benchmark
-  public void directToBuffer321(BenchmarkState state, Blackhole bh) throws IOException {
-    byte[][] buffers = state.buffers;
-    for (int i = 0; i < buffers.length; ++i) {
-      RoaringBitmap bitmap = new RoaringBitmap();
-      bitmap.deserialize321(ByteBuffer.wrap(state.buffers[i]));
-      bh.consume(bitmap);
-    }
-  }
-
   @Benchmark
   public void viaImmutable(BenchmarkState state, Blackhole bh) {
     byte[][] buffers = state.buffers;
