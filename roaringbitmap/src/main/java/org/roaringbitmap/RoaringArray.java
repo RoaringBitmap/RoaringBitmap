@@ -359,14 +359,16 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
    * Deserialize.
    *
    * @param in the DataInput stream
-   * @param buffer a byte[] used to buffer DataInput reading
+   * @param buffer The buffer gets overwritten with data during deserialization. You can pass a NULL
+   *        reference as a buffer. A buffer containing at least 8192 bytes might be ideal for
+   *        performance. It is recommended to reuse the buffer between calls to deserialize (in a
+   *        single-threaded context) for best performance.
    * @throws IOException Signals that an I/O exception has occurred.
-   * @throws InvalidRoaringFormat if a Roaring Bitmap cookie
-   *             is missing.
+   * @throws InvalidRoaringFormat if a Roaring Bitmap cookie is missing.
    */
   public void deserialize(DataInput in, byte[] buffer) throws IOException {
     if (buffer != null && buffer.length == 0) {
-      // Get ride of this useless buffer
+      // Get rid of this useless buffer
       buffer = null;
     } else if (buffer != null && buffer.length % 8 != 0) {
       // This is necessary not to handle manually the gap between a ShortBuffer|LongBuffer and the
