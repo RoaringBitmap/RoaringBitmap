@@ -8,6 +8,8 @@ public class NaiveWriterRecommender {
   /**
    * Based on the statistics it applies expert rules
    * to help tuning the {@link org.roaringbitmap.RoaringBitmapWriter}
+   * @param s statistics
+   * @return some message
    */
   public static String recommend(BitmapStatistics s) {
     if (s.containerCount() == 0) {

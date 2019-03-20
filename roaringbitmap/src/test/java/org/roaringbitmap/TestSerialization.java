@@ -111,6 +111,9 @@ public class TestSerialization {
   static ByteBuffer outbb;
 
   static ByteBuffer presoutbb;
+  
+  // Very small buffer to higher to chance to encounter edge-case
+  byte[] buffer = new byte[16];
 
   @BeforeClass
   public static void init() throws IOException {
@@ -146,13 +149,10 @@ public class TestSerialization {
     presoutbb = ByteBuffer
         .allocate(bitmap_a.serializedSizeInBytes() + bitmap_empty.serializedSizeInBytes());
     ByteBufferBackedOutputStream out = new ByteBufferBackedOutputStream(presoutbb);
-    try {
-      DataOutputStream dos = new DataOutputStream(out);
-      bitmap_empty.serialize(dos);
-      bitmap_a.serialize(dos);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+
+    DataOutputStream dos = new DataOutputStream(out);
+    bitmap_empty.serialize(dos);
+    bitmap_a.serialize(dos);
     presoutbb.flip();
 
   }
@@ -191,6 +191,15 @@ public class TestSerialization {
     DataInputStream dis = new DataInputStream(in);
     bitmap_empty.deserialize(dis);
     bitmap_b.deserialize(dis);
+  }
+
+  @Test
+  public void testDeserialize_buffer() throws IOException {
+    presoutbb.rewind();
+    ByteBufferBackedInputStream in = new ByteBufferBackedInputStream(presoutbb);
+    DataInputStream dis = new DataInputStream(in);
+    bitmap_empty.deserialize(dis, buffer);
+    bitmap_b.deserialize(dis, buffer);
   }
 
 

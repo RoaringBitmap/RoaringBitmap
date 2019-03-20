@@ -34,6 +34,8 @@ public class ZipRealDataRangeRetriever<T> {
   /**
    * 
    * Returns next range from file
+   * @return some Iterable
+   * @throws IOException it can happen
    */
   public Iterable<int[][]> fetchNextRange() throws IOException {
     final ZipInputStream zis = getResourceAsStream();
