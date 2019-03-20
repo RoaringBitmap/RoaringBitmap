@@ -291,13 +291,16 @@
                 </configuration>
             </plugin>
         </plugins>
-        
+
         <pluginManagement>
 			<plugins>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-javadoc-plugin</artifactId>
-					<version>3.1.0</version>
+					<version>3.0.1</version><!-- release fails with 3.1.0 with "Plugin 
+          org.apache.maven.plugins:maven-javadoc-plugin:3.1.0 or one of its dependencies could not be resolved"
+          https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-javadoc-plugin/
+        -->
 				</plugin>
 			</plugins>
 		</pluginManagement>
