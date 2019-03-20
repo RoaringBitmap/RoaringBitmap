@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -1430,6 +1431,27 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
 
   /**
+   * Deserialize (retrieve) this bitmap. See format specification at
+   * https://github.com/RoaringBitmap/RoaringFormatSpec
+   *
+   * The current bitmap is overwritten.
+   *
+   * @param in the DataInput stream
+   * @param buffer The buffer gets overwritten with data during deserialization. You can pass a NULL
+   *        reference as a buffer. A buffer containing at least 8192 bytes might be ideal for
+   *        performance. It is recommended to reuse the buffer between calls to deserialize (in a
+   *        single-threaded context) for best performance.
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public void deserialize(DataInput in, byte[] buffer) throws IOException {
+    try {
+      this.highLowContainer.deserialize(in, buffer);
+    } catch(InvalidRoaringFormat cookie) {
+      throw cookie.toIOException();// we convert it to an IOException
+    }
+  }
+
+  /**
    * Deserialize (retrieve) this bitmap.
    * See format specification at https://github.com/RoaringBitmap/RoaringFormatSpec
    *
@@ -1445,7 +1467,33 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       throw cookie.toIOException();// we convert it to an IOException
     }
   }
-
+  
+  /**
+   * Deserialize (retrieve) this bitmap.
+   * See format specification at https://github.com/RoaringBitmap/RoaringFormatSpec
+   *
+   * The current bitmap is overwritten.
+   *
+   * It is not necessary that limit() on the input ByteBuffer indicates the end of the serialized
+   * data.
+   * 
+   * After loading this RoaringBitmap, you can advance to the rest of the data (if there
+   * is more) by setting bbf.position(bbf.position() + bitmap.serializedSizeInBytes());
+   * 
+   * Note that the input ByteBuffer is effectively copied (with the slice operation) so you should
+   * expect the provided ByteBuffer to remain unchanged.
+   * 
+   * @param bbf the byte buffer (can be mapped, direct, array backed etc.
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public void deserialize(ByteBuffer bbf) throws IOException {
+    try {
+      this.highLowContainer.deserialize(bbf);
+    } catch(InvalidRoaringFormat cookie) {
+      throw cookie.toIOException();// we convert it to an IOException
+    }
+  }
+  
   @Override
   public boolean equals(Object o) {
     if (o instanceof RoaringBitmap) {

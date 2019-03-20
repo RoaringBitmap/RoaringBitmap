@@ -956,7 +956,7 @@ public class ImmutableRoaringBitmap
    * is more) by setting b.position(b.position() + bitmap.serializedSizeInBytes());
    *
    * Note that the input ByteBuffer is effectively copied (with the slice operation) so you should
-   * expect the provided ByteBuffer to remain unchanged.
+   * expect the provided ByteBuffer position/mark/limit/order to remain unchanged.
    *
    * This constructor may throw IndexOutOfBoundsException if the input is invalid/corrupted.
    * This constructor throws an InvalidRoaringFormat if the provided input

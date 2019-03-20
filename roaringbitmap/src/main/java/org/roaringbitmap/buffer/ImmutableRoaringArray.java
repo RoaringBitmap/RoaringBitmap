@@ -33,8 +33,8 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
   /**
    * Create an array based on a previously serialized ByteBuffer. The input ByteBuffer is
-   * effectively copied (with the slice operation) so you should expect the provided ByteBuffer to
-   * remain unchanged.
+   * effectively copied (with the slice operation) so you should expect the provided ByteBuffer
+   * position/mark/limit/order to remain unchanged.
    *
    * @param bbf The source ByteBuffer
    */

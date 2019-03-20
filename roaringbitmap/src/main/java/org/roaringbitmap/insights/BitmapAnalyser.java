@@ -8,7 +8,9 @@ import java.util.Collection;
 public class BitmapAnalyser {
 
   /**
-   * Analyse the internal representation of bitmap
+   * Analyze the internal representation of bitmap
+   * @param r the bitmap
+   * @return the statistics
    */
   public static BitmapStatistics analyse(RoaringBitmap r) {
     int acCount = 0;
@@ -33,7 +35,9 @@ public class BitmapAnalyser {
   }
 
   /**
-   * Analyse the internal representation of bitmaps
+   * Analyze the internal representation of bitmaps
+   * @param bitmaps the bitmaps
+   * @return the statistics
    */
   public static BitmapStatistics analyse(Collection<? extends RoaringBitmap> bitmaps) {
     return bitmaps
