@@ -1040,7 +1040,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   /**
    * Add the value to the container (set the value to "true"), whether it already appears or not.
    *
-   * Javac lacks native unsigned integers but the x argument is considered to be unsigned.
+   * Java lacks native unsigned integers but the x argument is considered to be unsigned.
    * Within bitmaps, numbers are ordered according to {@link Integer#compareUnsigned}.
    * We order the numbers like 0, 1, ..., 2147483647, -2147483648, -2147483647,..., -1.
    *
