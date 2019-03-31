@@ -8,6 +8,8 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -2417,6 +2419,16 @@ public final class RunContainer extends Container implements Cloneable {
     for (int k = 0; k < 2 * this.nbrruns; ++k) {
       out.writeShort(Short.reverseBytes(this.valueslength[k]));
     }
+  }
+
+  @Override
+  protected void writeArray(ByteBuffer buffer) {
+    assert buffer.order() == ByteOrder.LITTLE_ENDIAN;
+    ShortBuffer buf = buffer.asShortBuffer();
+    buf.put((short)nbrruns);
+    buf.put(valueslength, 0, nbrruns * 2);
+    int bytesWritten = (nbrruns * 2 + 1) * 2;
+    buffer.position(buffer.position() + bytesWritten);
   }
 
   @Override

@@ -9,6 +9,7 @@ import org.roaringbitmap.*;
 import java.io.DataOutput;
 import java.io.Externalizable;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.NoSuchElementException;
 
 /**
@@ -779,6 +780,13 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
    * @throws IOException in case of failure
    */
   protected abstract void writeArray(DataOutput out) throws IOException;
+
+  /**
+   * Write just the underlying array.
+   *
+   * @param buffer the buffer to write to
+   */
+  protected abstract void writeArray(ByteBuffer buffer);
 
   /**
    * Computes the bitwise XOR of this container with another (symmetric difference). This container

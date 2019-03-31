@@ -5,6 +5,8 @@
 package org.roaringbitmap;
 
 
+import static java.nio.ByteOrder.BIG_ENDIAN;
+import static java.nio.ByteOrder.LITTLE_ENDIAN;
 import static org.roaringbitmap.Util.compareUnsigned;
 import static org.roaringbitmap.Util.toIntUnsigned;
 
@@ -442,7 +444,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
             
             // little endian
             ByteBuffer asByteBuffer = ByteBuffer.wrap(buffer);
-            asByteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+            asByteBuffer.order(LITTLE_ENDIAN);
             
             LongBuffer asLongBuffer = asByteBuffer.asLongBuffer();
             asLongBuffer.rewind();
@@ -455,7 +457,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
           
           // little endian
           ByteBuffer asByteBuffer = ByteBuffer.wrap(buffer);
-          asByteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+          asByteBuffer.order(LITTLE_ENDIAN);
           
           LongBuffer asLongBuffer = asByteBuffer.asLongBuffer();
           asLongBuffer.rewind();
@@ -488,7 +490,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
 
             // little endian
             ByteBuffer asByteBuffer = ByteBuffer.wrap(buffer);
-            asByteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+            asByteBuffer.order(LITTLE_ENDIAN);
             
             ShortBuffer asShortBuffer = asByteBuffer.asShortBuffer();
             asShortBuffer.rewind();
@@ -520,7 +522,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
 
             // little endian
             ByteBuffer asByteBuffer = ByteBuffer.wrap(buffer);
-            asByteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+            asByteBuffer.order(LITTLE_ENDIAN);
             
             ShortBuffer asShortBuffer = asByteBuffer.asShortBuffer();
             asShortBuffer.rewind();
@@ -551,14 +553,13 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
    * expect the provided ByteBuffer position/mark/limit/order to remain unchanged.
    *
    * @param bbf the byte buffer (can be mapped, direct, array backed etc.
-   * @throws IOException Signals that an I/O exception has occurred.
    */
-  public void deserialize(ByteBuffer bbf) throws IOException {
+  public void deserialize(ByteBuffer bbf) {
     this.clear();
     
     // slice not to mutate the input ByteBuffer
     ByteBuffer buffer = bbf.slice();
-    buffer.order(ByteOrder.LITTLE_ENDIAN);
+    buffer.order(LITTLE_ENDIAN);
     final int cookie = buffer.getInt();
     if ((cookie & 0xFFFF) != SERIAL_COOKIE && cookie != SERIAL_COOKIE_NO_RUNCONTAINER) {
       throw new RuntimeException("I failed to find one of the right cookies. " + cookie);
@@ -897,6 +898,57 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     for (int k = 0; k < size; ++k) {
       values[k].writeArray(out);
     }
+  }
+
+  /**
+   * Serialize.
+   *
+   * The current bitmap is not modified.
+   *
+   * @param buffer the ByteBuffer to write to
+   */
+  public void serialize(ByteBuffer buffer) {
+    ByteBuffer buf = buffer.order() == LITTLE_ENDIAN ? buffer : buffer.slice().order(LITTLE_ENDIAN);
+    int startOffset;
+    boolean hasrun = hasRunContainer();
+    if (hasrun) {
+      buf.putInt(SERIAL_COOKIE | ((size - 1) << 16));
+      int offset = buf.position();
+      for (int i = 0; i < size; i += 8) {
+        int runMarker = 0;
+        for (int j = 0; j < 8 && i + j < size; ++j) {
+          if (values[i + j] instanceof RunContainer) {
+            runMarker |= (1 << j);
+          }
+        }
+        buf.put((byte)runMarker);
+      }
+      int runMarkersLength = buf.position() - offset;
+      if (this.size < NO_OFFSET_THRESHOLD) {
+        startOffset = 4 + 4 * this.size + runMarkersLength;
+      } else {
+        startOffset = 4 + 8 * this.size + runMarkersLength;
+      }
+    } else { // backwards compatibility
+      buf.putInt(SERIAL_COOKIE_NO_RUNCONTAINER);
+      buf.putInt(size);
+      startOffset = 4 + 4 + 4 * this.size + 4 * this.size;
+    }
+    for (int k = 0; k < size; ++k) {
+      buf.putShort(this.keys[k]);
+      buf.putShort((short) (this.values[k].getCardinality() - 1));
+    }
+    if ((!hasrun) || (this.size >= NO_OFFSET_THRESHOLD)) {
+      // writing the containers offsets
+      for (int k = 0; k < this.size; ++k) {
+        buf.putInt(startOffset);
+        startOffset = startOffset + this.values[k].getArraySizeInBytes();
+      }
+    }
+    for (int k = 0; k < size; ++k) {
+      values[k].writeArray(buf);
+    }
+    buffer.position(buf.position());
   }
 
   /**

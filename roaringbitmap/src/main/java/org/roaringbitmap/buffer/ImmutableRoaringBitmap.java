@@ -1737,6 +1737,11 @@ public class ImmutableRoaringBitmap
     this.highLowContainer.serialize(out);
   }
 
+  @Override
+  public void serialize(ByteBuffer buffer) {
+    this.highLowContainer.serialize(buffer);
+  }
+
   /**
    * Report the number of bytes required for serialization. This count will match the bytes written
    * when calling the serialize method.

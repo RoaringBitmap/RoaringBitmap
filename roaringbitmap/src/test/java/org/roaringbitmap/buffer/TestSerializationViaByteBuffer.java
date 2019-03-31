@@ -1,14 +1,16 @@
-package org.roaringbitmap;
+package org.roaringbitmap.buffer;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.roaringbitmap.SeededTestData;
 
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,9 +21,6 @@ import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
 import static java.nio.file.Files.delete;
 import static org.junit.Assert.assertEquals;
 
-/**
- * @author Richard Startin (see https://github.com/RoaringBitmap/RoaringBitmap/pull/321)
- */
 @RunWith(Parameterized.class)
 public class TestSerializationViaByteBuffer {
 
@@ -37,15 +36,15 @@ public class TestSerializationViaByteBuffer {
   public static void cleanup() throws IOException {
     System.gc();
     try (Stream<Path> files = Files.list(dir)) {
-      files.forEach(file -> {
-        try {
-          delete(file);
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      });
+       files.forEach(file -> {
+         try {
+           delete(file);
+         } catch (IOException e) {
+           e.printStackTrace();
+         }
+       });
+       delete(dir);
     }
-    delete(dir);
   }
 
   @Parameterized.Parameters(name = "{1}/{0} keys/runOptimise={2}")
@@ -110,12 +109,12 @@ public class TestSerializationViaByteBuffer {
     };
   }
 
-  private final RoaringBitmap input;
+  private final MutableRoaringBitmap input;
   private final ByteOrder order;
   private final byte[] serialised;
 
   public TestSerializationViaByteBuffer(int keys, ByteOrder order, boolean runOptimise) throws IOException {
-    RoaringBitmap input = SeededTestData.randomBitmap(keys);
+    MutableRoaringBitmap input = SeededTestData.randomBitmap(keys).toMutableRoaringBitmap();
     if (runOptimise) {
       input.runOptimize();
     }
@@ -132,14 +131,39 @@ public class TestSerializationViaByteBuffer {
   public void testDeserializeFromMappedFile() throws IOException {
     Path file = dir.resolve(UUID.randomUUID().toString());
     Files.createFile(file);
-    try (RandomAccessFile raf = new RandomAccessFile(file.toFile(), "rw")) {
-      ByteBuffer buffer = raf.getChannel().map(READ_WRITE, 0, serialised.length);
+    try (RandomAccessFile raf = new RandomAccessFile(file.toFile(), "rw");
+         FileChannel channel = raf.getChannel()) {
+      ByteBuffer buffer = channel.map(READ_WRITE, 0, serialised.length);
       buffer.put(serialised);
       buffer.flip();
       buffer.order(order);
-      RoaringBitmap deserialised = new RoaringBitmap();
+      MutableRoaringBitmap deserialised = new MutableRoaringBitmap();
       deserialised.deserialize(buffer);
       assertEquals(input, deserialised);
+    } finally {
+      if (!System.getProperty("os.name").toLowerCase().contains("windows")) {
+        // nothing really works properly on Windows
+        delete(file);
+      }
+    }
+  }
+
+
+  @Test
+  public void testSerializeMappedBitmap() throws IOException {
+    Path file = dir.resolve(UUID.randomUUID().toString());
+    Files.createFile(file);
+    try (RandomAccessFile raf = new RandomAccessFile(file.toFile(), "rw");
+         FileChannel channel = raf.getChannel()) {
+      ByteBuffer buffer = channel.map(READ_WRITE, 0, serialised.length);
+      buffer.put(serialised);
+      buffer.flip();
+      ImmutableRoaringBitmap bitmap = new ImmutableRoaringBitmap(buffer);
+      ByteBuffer buf = ByteBuffer.allocate(bitmap.serializedSizeInBytes());
+      bitmap.serialize(buf);
+      buf.flip();
+      ImmutableRoaringBitmap deserialised = new ImmutableRoaringBitmap(buf);
+      assertEquals(bitmap, deserialised);
     } finally {
       if (!System.getProperty("os.name").toLowerCase().contains("windows")) {
         // nothing really works properly on Windows
@@ -151,7 +175,7 @@ public class TestSerializationViaByteBuffer {
   @Test
   public void testDeserializeFromHeap() throws IOException {
     ByteBuffer buffer = ByteBuffer.wrap(serialised).order(order);
-    RoaringBitmap deserialised = new RoaringBitmap();
+    MutableRoaringBitmap deserialised = new MutableRoaringBitmap();
     deserialised.deserialize(buffer);
     assertEquals(input, deserialised);
   }
@@ -161,7 +185,7 @@ public class TestSerializationViaByteBuffer {
     ByteBuffer buffer = ByteBuffer.allocateDirect(serialised.length).order(order);
     buffer.put(serialised);
     buffer.position(0);
-    RoaringBitmap deserialised = new RoaringBitmap();
+    MutableRoaringBitmap deserialised = new MutableRoaringBitmap();
     deserialised.deserialize(buffer);
     assertEquals(input, deserialised);
   }
@@ -172,7 +196,7 @@ public class TestSerializationViaByteBuffer {
     buffer.position(10);
     buffer.put(serialised);
     buffer.position(10);
-    RoaringBitmap deserialised = new RoaringBitmap();
+    MutableRoaringBitmap deserialised = new MutableRoaringBitmap();
     deserialised.deserialize(buffer);
     assertEquals(input, deserialised);
   }
@@ -182,7 +206,7 @@ public class TestSerializationViaByteBuffer {
     ByteBuffer buffer = ByteBuffer.allocate(serialised.length).order(order);
     input.serialize(buffer);
     assertEquals(0, buffer.remaining());
-    RoaringBitmap roundtrip = new RoaringBitmap();
+    MutableRoaringBitmap roundtrip = new MutableRoaringBitmap();
     try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(buffer.array()))) {
       roundtrip.deserialize(dis);
     }
@@ -194,7 +218,7 @@ public class TestSerializationViaByteBuffer {
     ByteBuffer buffer = ByteBuffer.allocate(serialised.length).order(order);
     input.serialize(buffer);
     assertEquals(0, buffer.remaining());
-    RoaringBitmap roundtrip = new RoaringBitmap();
+    MutableRoaringBitmap roundtrip = new MutableRoaringBitmap();
     buffer.flip();
     roundtrip.deserialize(buffer);
     assertEquals(input, roundtrip);
