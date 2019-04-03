@@ -8,6 +8,8 @@ import org.roaringbitmap.buffer.MappeableBitmapContainer;
 import org.roaringbitmap.buffer.MappeableContainer;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -1322,6 +1324,15 @@ public final class BitmapContainer extends Container implements Cloneable {
   @Override
   protected void writeArray(DataOutput out) throws IOException {
     serialize(out);
+  }
+
+  @Override
+  protected void writeArray(ByteBuffer buffer) {
+    assert buffer.order() == ByteOrder.LITTLE_ENDIAN;
+    LongBuffer buf = buffer.asLongBuffer();
+    buf.put(bitmap);
+    int bytesWritten = bitmap.length * 8;
+    buffer.position(buffer.position() + bytesWritten);
   }
 
   @Override

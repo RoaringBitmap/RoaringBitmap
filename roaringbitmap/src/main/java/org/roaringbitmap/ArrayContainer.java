@@ -5,6 +5,8 @@
 package org.roaringbitmap;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -1287,6 +1289,15 @@ public final class ArrayContainer extends Container implements Cloneable {
       short v = this.content[k];
       out.writeShort(Short.reverseBytes(v));
     }
+  }
+
+  @Override
+  protected void writeArray(ByteBuffer buffer) {
+    assert buffer.order() == ByteOrder.LITTLE_ENDIAN;
+    ShortBuffer buf = buffer.asShortBuffer();
+    buf.put(content, 0, cardinality);
+    int bytesWritten = 2 * cardinality;
+    buffer.position(buffer.position() + bytesWritten);
   }
 
   @Override

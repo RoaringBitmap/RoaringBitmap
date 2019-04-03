@@ -6,6 +6,7 @@ package org.roaringbitmap;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.NoSuchElementException;
 
 /**
@@ -228,6 +229,15 @@ public interface ImmutableBitmapDataProvider {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   void serialize(DataOutput out) throws IOException;
+
+  /**
+   * Serialize this bitmap.
+   *
+   * The current bitmap is not modified.
+   *
+   * @param buffer the ByteBuffer
+   */
+  void serialize(ByteBuffer buffer);
 
   /**
    * Report the number of bytes required to serialize this bitmap. This is the number of bytes

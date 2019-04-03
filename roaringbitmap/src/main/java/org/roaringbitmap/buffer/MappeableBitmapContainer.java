@@ -8,11 +8,13 @@ import org.roaringbitmap.*;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 import java.util.Iterator;
 
 import static java.lang.Long.numberOfLeadingZeros;
 import static java.lang.Long.numberOfTrailingZeros;
+import static java.nio.ByteOrder.LITTLE_ENDIAN;
 import static org.roaringbitmap.buffer.BufferUtil.toIntUnsigned;
 
 /**
@@ -1749,6 +1751,15 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         out.writeLong(Long.reverseBytes(w));
       }
     }
+  }
+
+  @Override
+  protected void writeArray(ByteBuffer buffer) {
+    assert buffer.order() == LITTLE_ENDIAN;
+    LongBuffer buf = bitmap.duplicate();
+    buf.position(0);
+    buffer.asLongBuffer().put(buf);
+    buffer.position(buffer.position() + buf.position() * 8);
   }
 
   @Override
