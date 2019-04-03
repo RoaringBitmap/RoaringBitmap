@@ -51,10 +51,10 @@ import static org.roaringbitmap.buffer.BufferUtil.*;
  *       //...
  *
  *       MutableRoaringBitmap rr1 = MutableRoaringBitmap.bitmapOf(1, 2, 3, 1000);
- *       MutableRoaringBitmap rr2 = MutableRoaringBitmap.bitmapOf( 2, 3, 1010);
+ *       MutableRoaringBitmap rr2 = MutableRoaringBitmap.bitmapOf(2, 3, 1010);
  *       ByteArrayOutputStream bos = new ByteArrayOutputStream();
  *       DataOutputStream dos = new DataOutputStream(bos);
- *       // could call "rr1.runOptimize()" and "rr2.runOptimize" if there
+ *       // could call "rr1.runOptimize()" and "rr2.runOptimize" if 
  *       // there were runs to compress
  *       rr1.serialize(dos);
  *       rr2.serialize(dos);
@@ -1682,45 +1682,7 @@ public class ImmutableRoaringBitmap
    *
    * The current bitmap is not modified.
    *
-   * Advanced example: To serialize your bitmap to a ByteBuffer, you can do the following.
-   *
-   * <pre>
-   * {
-   *   &#64;code
-   *   // r is your bitmap
-   *
-   *   // r.runOptimize(); // might improve compression, only if you have a
-   *   // MutableRoaringBitmap instance.
-   *   // next we create the ByteBuffer where the data will be stored
-   *   ByteBuffer outbb = ByteBuffer.allocate(r.serializedSizeInBytes());
-   *   // then we can serialize on a custom OutputStream
-   *   mrb.serialize(new DataOutputStream(new OutputStream() {
-   *     ByteBuffer mBB;
-   *
-   *     OutputStream init(ByteBuffer mbb) {
-   *       mBB = mbb;
-   *       return this;
-   *     }
-   *
-   *     public void close() {}
-   *
-   *     public void flush() {}
-   *
-   *     public void write(int b) {
-   *       mBB.put((byte) b);
-   *     }
-   *
-   *     public void write(byte[] b) {
-   *       mBB.put(b);
-   *     }
-   *
-   *     public void write(byte[] b, int off, int l) {
-   *       mBB.put(b, off, l);
-   *     }
-   *   }.init(outbb)));
-   *   // outbuff will now contain a serialized version of your bitmap
-   * }
-   * </pre>
+   * There is a distinct and dedicated method to serialize to a ByteBuffer.
    *
    * Note: Java's data structures are in big endian format. Roaring serializes to a little endian
    * format, so the bytes are flipped by the library during serialization to ensure that what is

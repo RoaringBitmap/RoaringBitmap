@@ -254,6 +254,9 @@ in RAM while the actual data is accessed from the ByteBuffer on demand.
         ImmutableRoaringBitmap rrback2 = new ImmutableRoaringBitmap(bb);
 ```
 
+Alternatively, we can serialize directly to a `ByteBuffer` with the `serialize(ByteBuffer)` method.
+
+
 Operations on an ImmutableRoaringBitmap such as and, or, xor, flip, will
 generate a RoaringBitmap which lies in RAM. As the name suggest, the
 ImmutableRoaringBitmap itself cannot be modified.
@@ -372,8 +375,8 @@ IntelliJ and Eclipse
 --------
 
 If you plan to contribute to RoaringBitmap, you can have load
-it up in your favorite IDE. 
-- For IntelliJ, in the IDE create a new project, possibly from existing sources, choose import, Maven. 
+it up in your favorite IDE.
+- For IntelliJ, in the IDE create a new project, possibly from existing sources, choose import, Maven.
 - For Eclipse: File, Import, Existing Maven Projects, Select RoaringBitmap on my disk
 
 Contributing
