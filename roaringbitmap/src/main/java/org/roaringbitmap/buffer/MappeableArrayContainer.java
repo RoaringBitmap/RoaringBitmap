@@ -8,6 +8,7 @@ import org.roaringbitmap.*;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -1577,6 +1578,18 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         out.writeShort(Short.reverseBytes(content.get(k)));
       }
     }
+  }
+
+  @Override
+  protected void writeArray(ByteBuffer buffer) {
+    assert buffer.order() == ByteOrder.LITTLE_ENDIAN;
+    ShortBuffer target = buffer.asShortBuffer();
+    ShortBuffer source = content.duplicate();
+    source.position(0);
+    source.limit(cardinality);
+    target.put(source);
+    int bytesWritten = 2 * cardinality;
+    buffer.position(buffer.position() + bytesWritten);
   }
 
   @Override

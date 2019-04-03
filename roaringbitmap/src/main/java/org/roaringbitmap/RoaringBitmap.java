@@ -2537,6 +2537,17 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     this.highLowContainer.serialize(out);
   }
 
+  /**
+   * Serialize the bitmap to the provided ByteBuffer.
+   * LITTlE_ENDIAN buffers are preferred.
+   *
+   * @param buffer the buffer to serialize into
+   */
+  @Override
+  public void serialize(ByteBuffer buffer) {
+    highLowContainer.serialize(buffer);
+  }
+
 
   /**
    * Assume that one wants to store "cardinality" integers in [0, universe_size), this function

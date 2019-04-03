@@ -8,6 +8,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.Externalizable;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.NoSuchElementException;
 
 import org.roaringbitmap.buffer.MappeableContainer;
@@ -831,6 +832,13 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    * @throws IOException in case of failure
    */
   protected abstract void writeArray(DataOutput out) throws IOException;
+
+  /**
+   * Write just the underlying array.
+   *
+   * @param buffer ByteBuffer to write to
+   */
+  protected abstract void writeArray(ByteBuffer buffer);
 
 
   /**

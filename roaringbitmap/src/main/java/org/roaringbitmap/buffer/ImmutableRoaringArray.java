@@ -428,9 +428,15 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     } else {
       ByteBuffer tmp = buffer.duplicate();
       tmp.position(0);
-      WritableByteChannel channel = Channels.newChannel((OutputStream) out);
-      channel.write(tmp);
+      try (WritableByteChannel channel = Channels.newChannel((OutputStream) out)) {
+        channel.write(tmp);
+      }
     }
+  }
+
+  @Override
+  public void serialize(ByteBuffer buffer) {
+    buffer.put(this.buffer.duplicate());
   }
 
   /**

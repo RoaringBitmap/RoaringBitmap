@@ -6,15 +6,15 @@ package org.roaringbitmap.buffer;
 
 
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 
-import org.roaringbitmap.AppendableStorage;
-import org.roaringbitmap.InvalidRoaringFormat;
-import org.roaringbitmap.Util;
+import org.roaringbitmap.*;
 
+import static java.nio.ByteOrder.LITTLE_ENDIAN;
 import static org.roaringbitmap.buffer.BufferUtil.compareUnsigned;
 import static org.roaringbitmap.buffer.BufferUtil.toIntUnsigned;
 
@@ -327,6 +327,96 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
     }
   }
 
+  /**
+   * Deserialize (retrieve) this bitmap. See format specification at
+   * https://github.com/RoaringBitmap/RoaringFormatSpec
+   *
+   * The current bitmap is overwritten.
+   *
+   * It is not necessary that limit() on the input ByteBuffer indicates the end of the serialized
+   * data.
+   *
+   * After loading this RoaringBitmap, you can advance to the rest of the data (if there
+   * is more) by setting bbf.position(bbf.position() + bitmap.serializedSizeInBytes());
+   *
+   * Note that the input ByteBuffer is effectively copied (with the slice operation) so you should
+   * expect the provided ByteBuffer position/mark/limit/order to remain unchanged.
+   *
+   * @param bbf the byte buffer (can be mapped, direct, array backed etc.
+   */
+  public void deserialize(ByteBuffer bbf) {
+    this.clear();
+
+    ByteBuffer buffer = bbf.order() == LITTLE_ENDIAN ? bbf : bbf.slice().order(LITTLE_ENDIAN);
+    final int cookie = buffer.getInt();
+    if ((cookie & 0xFFFF) != SERIAL_COOKIE && cookie != SERIAL_COOKIE_NO_RUNCONTAINER) {
+      throw new RuntimeException("I failed to find one of the right cookies. " + cookie);
+    }
+    boolean hasRunContainers = (cookie & 0xFFFF) == SERIAL_COOKIE;
+    this.size = hasRunContainers ? (cookie >>> 16) + 1 : buffer.getInt();
+
+    if(this.size > (1<<16)) {
+      throw new InvalidRoaringFormat("Size too large");
+    }
+    if ((this.keys == null) || (this.keys.length < this.size)) {
+      this.keys = new short[this.size];
+      this.values = new MappeableContainer[this.size];
+    }
+
+
+    byte[] bitmapOfRunContainers = null;
+    boolean hasrun = (cookie & 0xFFFF) == SERIAL_COOKIE;
+    if (hasrun) {
+      bitmapOfRunContainers = new byte[(size + 7) / 8];
+      buffer.get(bitmapOfRunContainers);
+    }
+
+    final short[] keys = new short[this.size];
+    final int[] cardinalities = new int[this.size];
+    final boolean[] isBitmap = new boolean[this.size];
+    for (int k = 0; k < this.size; ++k) {
+      keys[k] = buffer.getShort();
+      cardinalities[k] = 1 + (0xFFFF & buffer.getShort());
+
+      isBitmap[k] = cardinalities[k] > MappeableArrayContainer.DEFAULT_MAX_SIZE;
+      if (bitmapOfRunContainers != null && (bitmapOfRunContainers[k / 8] & (1 << (k & 7))) != 0) {
+        isBitmap[k] = false;
+      }
+    }
+    if ((!hasrun) || (this.size >= NO_OFFSET_THRESHOLD)) {
+      // skipping the offsets
+      buffer.position(buffer.position() + this.size * 4);
+    }
+
+    // Reading the containers
+    for (int k = 0; k < this.size; ++k) {
+      MappeableContainer container;
+      if (isBitmap[k]) {
+        long[] array = new long[MappeableBitmapContainer.MAX_CAPACITY / 64];
+        buffer.asLongBuffer().get(array);
+        container = new MappeableBitmapContainer(cardinalities[k], LongBuffer.wrap(array));
+        buffer.position(buffer.position() + 1024 * 8);
+      } else if (bitmapOfRunContainers != null
+              && ((bitmapOfRunContainers[k / 8] & (1 << (k & 7))) != 0)) {
+
+        int nbrruns = toIntUnsigned(buffer.getShort());
+        int length = 2 * nbrruns;
+        short[] array = new short[length];
+        buffer.asShortBuffer().get(array);
+        container = new MappeableRunContainer(ShortBuffer.wrap(array), nbrruns);
+        buffer.position(buffer.position() + length * 2);
+      } else {
+        int cardinality = cardinalities[k];
+        short[] array = new short[cardinality];
+        buffer.asShortBuffer().get(array);
+        container = new MappeableArrayContainer(ShortBuffer.wrap(array), cardinality);
+        buffer.position(buffer.position() + cardinality * 2);
+      }
+      this.keys[k] = keys[k];
+      this.values[k] = container;
+    }
+  }
+
   // make sure there is capacity for at least k more elements
   protected void extendArray(int k) {
     // size + 1 could overflow
@@ -591,6 +681,58 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
       values[k].writeArray(out);
     }
 
+  }
+
+  /**
+   * Serialize.
+   *
+   * The current bitmap is not modified.
+   *
+   * @param buffer the ByteBuffer to write to
+   */
+  @Override
+  public void serialize(ByteBuffer buffer) {
+    ByteBuffer buf = buffer.order() == LITTLE_ENDIAN ? buffer : buffer.slice().order(LITTLE_ENDIAN);
+    int startOffset;
+    boolean hasrun = hasRunCompression();
+    if (hasrun) {
+      buf.putInt(SERIAL_COOKIE | ((size - 1) << 16));
+      int offset = buf.position();
+      for (int i = 0; i < size; i += 8) {
+        int runMarker = 0;
+        for (int j = 0; j < 8 && i + j < size; ++j) {
+          if (values[i + j] instanceof MappeableRunContainer) {
+            runMarker |= (1 << j);
+          }
+        }
+        buf.put((byte)runMarker);
+      }
+      int runMarkersLength = buf.position() - offset;
+      if (this.size < NO_OFFSET_THRESHOLD) {
+        startOffset = 4 + 4 * this.size + runMarkersLength;
+      } else {
+        startOffset = 4 + 8 * this.size + runMarkersLength;
+      }
+    } else { // backwards compatibility
+      buf.putInt(SERIAL_COOKIE_NO_RUNCONTAINER);
+      buf.putInt(size);
+      startOffset = 4 + 4 + 4 * this.size + 4 * this.size;
+    }
+    for (int k = 0; k < size; ++k) {
+      buf.putShort(this.keys[k]);
+      buf.putShort((short) (this.values[k].getCardinality() - 1));
+    }
+    if ((!hasrun) || (this.size >= NO_OFFSET_THRESHOLD)) {
+      // writing the containers offsets
+      for (int k = 0; k < this.size; ++k) {
+        buf.putInt(startOffset);
+        startOffset = startOffset + this.values[k].getArraySizeInBytes();
+      }
+    }
+    for (int k = 0; k < size; ++k) {
+      values[k].writeArray(buf);
+    }
+    buffer.position(buf.position());
   }
 
   /**

@@ -8,10 +8,12 @@ import org.roaringbitmap.*;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import static java.nio.ByteOrder.LITTLE_ENDIAN;
 import static org.roaringbitmap.buffer.BufferUtil.toIntUnsigned;
 import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
 
@@ -2349,6 +2351,19 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     for (int k = 0; k < 2 * this.nbrruns; ++k) {
       out.writeShort(Short.reverseBytes(this.valueslength.get(k)));
     }
+  }
+
+  @Override
+  protected void writeArray(ByteBuffer buffer) {
+    assert buffer.order() == LITTLE_ENDIAN;
+    ShortBuffer source = valueslength.duplicate();
+    source.position(0);
+    source.limit(nbrruns * 2);
+    ShortBuffer target = buffer.asShortBuffer();
+    target.put((short)nbrruns);
+    target.put(source);
+    int bytesWritten = (nbrruns * 2 + 1) * 2;
+    buffer.position(buffer.position() + bytesWritten);
   }
 
   @Override
