@@ -231,9 +231,22 @@ public interface ImmutableBitmapDataProvider {
   void serialize(DataOutput out) throws IOException;
 
   /**
-   * Serialize this bitmap.
+   * Serialize this bitmap to a ByteBuffer.
+   * This is the preferred method
+   * to serialize to a byte array (byte[]) or to a String 
+   * (via Base64.getEncoder().encodeToString)..
+   *
+   *  
+   * Irrespective of the endianess of the provided buffer, data is 
+   * written using LITTlE_ENDIAN as per the RoaringBitmap specification.
    *
    * The current bitmap is not modified.
+   * <pre>
+   * {@code
+   *   byte[] array = new byte[mrb.serializedSizeInBytes()];
+   *   mrb.serialize(ByteBuffer.wrap(array));
+   * }
+   * </pre>
    *
    * @param buffer the ByteBuffer
    */

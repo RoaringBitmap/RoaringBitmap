@@ -1488,16 +1488,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    *
    *      // we are going to create an immutable copy of rr
    *      ByteBuffer outbb = ByteBuffer.allocate(mrb.serializedSizeInBytes());
-   *      mrb.serialize(new DataOutputStream(new OutputStream(){
-   *            ByteBuffer mBB;
-   *            OutputStream init(ByteBuffer mbb) {mBB=mbb; return this;}
-   *            public void close() {}
-   *            public void flush() {}
-   *            public void write(int b) {
-   *                mBB.put((byte) b);}
-   *            public void write(byte[] b) {mBB.put(b);}
-   *            public void write(byte[] b, int off, int l) {mBB.put(b,off,l);}
-   *      }.init(outbb)));
+   *      mrb.serialize(outbb);
    *      outbb.flip();
    *      ImmutableRoaringBitmap irb = new ImmutableRoaringBitmap(outbb);
    * }
