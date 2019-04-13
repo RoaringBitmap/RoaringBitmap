@@ -5,7 +5,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.SeededTestData;
 
 import java.io.*;
