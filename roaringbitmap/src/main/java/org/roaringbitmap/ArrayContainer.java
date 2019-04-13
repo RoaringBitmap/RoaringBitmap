@@ -141,24 +141,33 @@ public final class ArrayContainer extends Container implements Cloneable {
    */
   @Override
   public Container add(final short x) {
-    int loc = Util.unsignedBinarySearch(content, 0, cardinality, x);
-    if (loc < 0) {
-      // Transform the ArrayContainer to a BitmapContainer
-      // when cardinality = DEFAULT_MAX_SIZE
+    if (cardinality == 0 || (cardinality > 0
+            && toIntUnsigned(x) > toIntUnsigned(content[cardinality - 1]))) {
       if (cardinality >= DEFAULT_MAX_SIZE) {
-        BitmapContainer a = this.toBitmapContainer();
-        a.add(x);
-        return a;
+        return toBitmapContainer().add(x);
       }
       if (cardinality >= this.content.length) {
         increaseCapacity();
       }
-      // insertion : shift the elements > x by one position to
-      // the right
-      // and put x in it's appropriate place
-      System.arraycopy(content, -loc - 1, content, -loc, cardinality + loc + 1);
-      content[-loc - 1] = x;
-      ++cardinality;
+      content[cardinality++] = x;
+    } else {
+      int loc = Util.unsignedBinarySearch(content, 0, cardinality, x);
+      if (loc < 0) {
+        // Transform the ArrayContainer to a BitmapContainer
+        // when cardinality = DEFAULT_MAX_SIZE
+        if (cardinality >= DEFAULT_MAX_SIZE) {
+          return toBitmapContainer().add(x);
+        }
+        if (cardinality >= this.content.length) {
+          increaseCapacity();
+        }
+        // insertion : shift the elements > x by one position to
+        // the right
+        // and put x in it's appropriate place
+        System.arraycopy(content, -loc - 1, content, -loc, cardinality + loc + 1);
+        content[-loc - 1] = x;
+        ++cardinality;
+      }
     }
     return this;
   }

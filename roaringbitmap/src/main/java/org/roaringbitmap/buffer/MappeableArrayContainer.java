@@ -162,28 +162,49 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (BufferUtil.isBackedBySimpleArray(this.content)) {
       short[] sarray = content.array();
 
-      int loc = Util.unsignedBinarySearch(sarray, 0, cardinality, x);
-      if (loc < 0) {
-        // Transform the ArrayContainer to a BitmapContainer
-        // when cardinality exceeds DEFAULT_MAX_SIZE
+      if (cardinality == 0 || (cardinality > 0
+              && toIntUnsigned(x) > toIntUnsigned(sarray[cardinality - 1]))) {
         if (cardinality >= DEFAULT_MAX_SIZE) {
-          final MappeableBitmapContainer a = this.toBitmapContainer();
-          a.add(x);
-          return a;
+          return toBitmapContainer().add(x);
         }
         if (cardinality >= sarray.length) {
           increaseCapacity();
           sarray = content.array();
         }
-        // insertion : shift the elements > x by one
-        // position to
-        // the right
-        // and put x in it's appropriate place
-        System.arraycopy(sarray, -loc - 1, sarray, -loc, cardinality + loc + 1);
-        sarray[-loc - 1] = x;
-        ++cardinality;
+        sarray[cardinality++] = x;
+      } else {
+
+        int loc = Util.unsignedBinarySearch(sarray, 0, cardinality, x);
+        if (loc < 0) {
+          // Transform the ArrayContainer to a BitmapContainer
+          // when cardinality exceeds DEFAULT_MAX_SIZE
+          if (cardinality >= DEFAULT_MAX_SIZE) {
+            return toBitmapContainer().add(x);
+          }
+          if (cardinality >= sarray.length) {
+            increaseCapacity();
+            sarray = content.array();
+          }
+          // insertion : shift the elements > x by one
+          // position to
+          // the right
+          // and put x in it's appropriate place
+          System.arraycopy(sarray, -loc - 1, sarray, -loc, cardinality + loc + 1);
+          sarray[-loc - 1] = x;
+          ++cardinality;
+        }
       }
     } else {
+      if (cardinality == 0 || (cardinality > 0
+              && toIntUnsigned(x) > toIntUnsigned(content.get(cardinality - 1)))) {
+        if (cardinality >= DEFAULT_MAX_SIZE) {
+          return toBitmapContainer().add(x);
+        }
+        if (cardinality >= content.limit()) {
+          increaseCapacity();
+        }
+        content.put(cardinality++, x);
+      }
 
       final int loc = BufferUtil.unsignedBinarySearch(content, 0, cardinality, x);
       if (loc < 0) {
