@@ -661,7 +661,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
   // make sure there is capacity for at least k more elements
   protected void extendArray(int k) {
     // size + 1 could overflow
-    if (this.size + k >= this.keys.length) {
+    if (this.size + k > this.keys.length) {
       int newCapacity;
       if (this.keys.length < 1024) {
         newCapacity = 2 * (this.size + k);
