@@ -948,7 +948,9 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     for (int k = 0; k < size; ++k) {
       values[k].writeArray(buf);
     }
-    buffer.position(buf.position());
+    if (buf != buffer) {
+      buffer.position(buffer.position() + buf.position());
+    }
   }
 
   /**

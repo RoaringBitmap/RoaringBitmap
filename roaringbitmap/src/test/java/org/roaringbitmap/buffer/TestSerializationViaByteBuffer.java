@@ -5,6 +5,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.SeededTestData;
 
 import java.io.*;
@@ -199,6 +200,15 @@ public class TestSerializationViaByteBuffer {
     MutableRoaringBitmap deserialised = new MutableRoaringBitmap();
     deserialised.deserialize(buffer);
     assertEquals(input, deserialised);
+  }
+
+  @Test
+  public void testSerializeCorrectOffset() {
+    ByteBuffer buffer = ByteBuffer.allocateDirect(10 + serialised.length).order(order);
+    buffer.position(10);
+    int serialisedSize = input.serializedSizeInBytes();
+    input.serialize(buffer);
+    assertEquals(10 + serialisedSize, buffer.position());
   }
 
   @Test
