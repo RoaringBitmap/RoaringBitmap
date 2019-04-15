@@ -77,4 +77,14 @@ public class RoaringArrayTest {
     assertArrayEquals(new short[] {0, 2, 5, 6, 7}, array.keys);
   }
 
+  @Test
+  public void resizeOnlyIfNecessary() {
+    short[] keys = new short[1];
+    int size = 0;
+    Container[] values = new Container[1];
+    RoaringArray array = new RoaringArray(keys, values, size);
+    array.extendArray(1);
+    assertTrue("Keys were not reallocated", keys == array.keys);
+  }
+
 }
