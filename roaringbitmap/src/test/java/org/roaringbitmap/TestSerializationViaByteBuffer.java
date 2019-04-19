@@ -13,7 +13,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
 import static java.nio.file.Files.delete;
@@ -36,16 +35,9 @@ public class TestSerializationViaByteBuffer {
   @AfterClass
   public static void cleanup() throws IOException {
     System.gc();
-    try (Stream<Path> files = Files.list(dir)) {
-      files.forEach(file -> {
-        try {
-          delete(file);
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      });
-    }
-    delete(dir);
+    try {
+      Files.walkFileTree(dir, new DirectoryCleanup());
+    } catch (IOException e) { }
   }
 
   @Parameterized.Parameters(name = "{1}/{0} keys/runOptimise={2}")
