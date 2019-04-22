@@ -6,13 +6,13 @@ import java.nio.ShortBuffer;
 
 import static org.roaringbitmap.buffer.BufferUtil.toIntUnsigned;
 
-public class ArrayBatchIterator implements ContainerBatchIterator {
+public final class ArrayBatchIterator implements ContainerBatchIterator {
 
   private int index = 0;
-  private final MappeableArrayContainer array;
+  private MappeableArrayContainer array;
 
   public ArrayBatchIterator(MappeableArrayContainer array) {
-    this.array = array;
+    wrap(array);
   }
 
   @Override
@@ -38,5 +38,15 @@ public class ArrayBatchIterator implements ContainerBatchIterator {
       // won't happen
       throw new IllegalStateException(e);
     }
+  }
+
+  @Override
+  public void releaseContainer() {
+    array = null;
+  }
+
+  public void wrap(MappeableArrayContainer array) {
+    this.array = array;
+    this.index = 0;
   }
 }

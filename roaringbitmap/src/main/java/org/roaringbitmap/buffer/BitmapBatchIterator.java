@@ -4,15 +4,14 @@ import org.roaringbitmap.ContainerBatchIterator;
 
 import static java.lang.Long.numberOfTrailingZeros;
 
-public class BitmapBatchIterator implements ContainerBatchIterator {
+public final class BitmapBatchIterator implements ContainerBatchIterator {
 
   private int wordIndex = 0;
   private long word;
-  private final MappeableBitmapContainer bitmap;
+  private MappeableBitmapContainer bitmap;
 
   public BitmapBatchIterator(MappeableBitmapContainer bitmap) {
-    this.bitmap = bitmap;
-    word = bitmap.bitmap.get(0);
+    wrap(bitmap);
   }
 
   @Override
@@ -46,4 +45,16 @@ public class BitmapBatchIterator implements ContainerBatchIterator {
       throw new IllegalStateException(e);
     }
   }
+
+  @Override
+  public void releaseContainer() {
+    bitmap = null;
+  }
+
+  void wrap(MappeableBitmapContainer bitmap) {
+    this.bitmap = bitmap;
+    this.word = bitmap.bitmap.get(0);
+    this.wordIndex = 0;
+  }
+
 }
