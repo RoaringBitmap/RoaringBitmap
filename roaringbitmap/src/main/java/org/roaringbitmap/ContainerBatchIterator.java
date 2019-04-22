@@ -24,4 +24,9 @@ public interface ContainerBatchIterator extends Cloneable {
    */
   ContainerBatchIterator clone();
 
+  /**
+   * Discard the reference to the container
+   */
+  void releaseContainer();
+
 }

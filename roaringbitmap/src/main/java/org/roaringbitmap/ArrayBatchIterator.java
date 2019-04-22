@@ -2,13 +2,13 @@ package org.roaringbitmap;
 
 import static org.roaringbitmap.Util.toIntUnsigned;
 
-public class ArrayBatchIterator implements ContainerBatchIterator {
+public final class ArrayBatchIterator implements ContainerBatchIterator {
 
   private int index = 0;
-  private final ArrayContainer array;
+  private ArrayContainer array;
 
   public ArrayBatchIterator(ArrayContainer array) {
-    this.array = array;
+    wrap(array);
   }
 
   @Override
@@ -34,5 +34,15 @@ public class ArrayBatchIterator implements ContainerBatchIterator {
       // won't happen
       throw new IllegalStateException(e);
     }
+  }
+
+  @Override
+  public void releaseContainer() {
+    array = null;
+  }
+
+  void wrap(ArrayContainer array) {
+    this.array = array;
+    this.index = 0;
   }
 }

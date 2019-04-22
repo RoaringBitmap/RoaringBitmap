@@ -3,12 +3,14 @@ package org.roaringbitmap.buffer;
 import org.roaringbitmap.BatchIterator;
 import org.roaringbitmap.ContainerBatchIterator;
 
-public class RoaringBatchIterator implements BatchIterator {
+public final class RoaringBatchIterator implements BatchIterator {
 
   private MappeableContainerPointer containerPointer;
-  int index = 0;
-  int key;
-  ContainerBatchIterator iterator;
+  private int key;
+  private ContainerBatchIterator iterator;
+  private ArrayBatchIterator arrayBatchIterator;
+  private BitmapBatchIterator bitmapBatchIterator;
+  private RunBatchIterator runBatchIterator;
 
   public RoaringBatchIterator(MappeableContainerPointer containerPointer) {
     this.containerPointer = containerPointer;
@@ -55,11 +57,48 @@ public class RoaringBatchIterator implements BatchIterator {
   }
 
   private void nextIterator() {
+    if (null != iterator) {
+      iterator.releaseContainer();
+    }
     if (null != containerPointer && containerPointer.hasContainer()) {
-      iterator = containerPointer.getContainer().getBatchIterator();
+      MappeableContainer container = containerPointer.getContainer();
+      if (container instanceof MappeableArrayContainer) {
+        nextIterator((MappeableArrayContainer)container);
+      } else if (container instanceof MappeableBitmapContainer) {
+        nextIterator((MappeableBitmapContainer)container);
+      } else if (container instanceof MappeableRunContainer) {
+        nextIterator((MappeableRunContainer)container);
+      }
       key = containerPointer.key() << 16;
     } else {
       iterator = null;
     }
+  }
+
+  private void nextIterator(MappeableArrayContainer array) {
+    if (null == arrayBatchIterator) {
+      arrayBatchIterator = new ArrayBatchIterator(array);
+    } else {
+      arrayBatchIterator.wrap(array);
+    }
+    iterator = arrayBatchIterator;
+  }
+
+  private void nextIterator(MappeableBitmapContainer bitmap) {
+    if (null == bitmapBatchIterator) {
+      bitmapBatchIterator = new BitmapBatchIterator(bitmap);
+    } else {
+      bitmapBatchIterator.wrap(bitmap);
+    }
+    iterator = bitmapBatchIterator;
+  }
+
+  private void nextIterator(MappeableRunContainer run) {
+    if (null == runBatchIterator) {
+      runBatchIterator = new RunBatchIterator(run);
+    } else {
+      runBatchIterator.wrap(run);
+    }
+    iterator = runBatchIterator;
   }
 }

@@ -2,14 +2,14 @@ package org.roaringbitmap;
 
 import static org.roaringbitmap.Util.toIntUnsigned;
 
-public class RunBatchIterator implements ContainerBatchIterator {
+public final class RunBatchIterator implements ContainerBatchIterator {
 
-  private final RunContainer runs;
+  private RunContainer runs;
   private int run = 0;
   private int cursor = 0;
 
   public RunBatchIterator(RunContainer runs) {
-    this.runs = runs;
+    wrap(runs);
   }
 
   @Override
@@ -48,5 +48,16 @@ public class RunBatchIterator implements ContainerBatchIterator {
       // won't happen
       throw new IllegalStateException(e);
     }
+  }
+
+  @Override
+  public void releaseContainer() {
+    runs = null;
+  }
+
+  void wrap(RunContainer runs) {
+    this.runs = runs;
+    this.run = 0;
+    this.cursor = 0;
   }
 }
