@@ -72,7 +72,7 @@ To implement a set
 of integers, a particularly appealing strategy is the
 bitmap (also called bitset or bit vector). Using n bits,
 we can represent any set made of the integers from the range
-[0,n): it suffices to set the ith bit is set to one if integer i is present in the set.
+[0,n): the ith bit is set to one if integer i is present in the set.
 Commodity processors use words of W=32 or W=64 bits. By combining many such words, we can
 support large values of n. Intersections, unions and differences can then be implemented
  as bitwise AND, OR and ANDNOT operations.
