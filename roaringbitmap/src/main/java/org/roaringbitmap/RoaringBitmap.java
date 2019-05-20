@@ -192,59 +192,69 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
   /**
    * Generate a new bitmap that has the same cardinality as x, but with
-   * all its values incremented by offset.
+   * all its values incremented by offset. The parameter offset can be
+   * negative.
+   *
+   * Values wrap around, being treated as unsigned integers. Thus, for
+   * example, if the bitmap contains the value 0, and you call this function
+   * with the offset -1, the resulting bitmap will contain the value
+   * 4294967295 (as an unsigned integer).
    *
    * @param x source bitmap
    * @param offset increment
    * @return a new bitmap
    */
   public static RoaringBitmap addOffset(final RoaringBitmap x, int offset) {
-    int container_offset = offset >>> 16;
-    int in_container_offset = offset % (1<<16);
+    int container_offset = Integer.divideUnsigned(offset, (1<<16));
+    int in_container_offset = Integer.remainderUnsigned(offset , (1<<16));
     if(in_container_offset == 0) {
-      RoaringBitmap answer = x.clone();
-      for(int pos = 0; pos < answer.highLowContainer.size(); pos++) {
-        int key = Util.toIntUnsigned(answer.highLowContainer.getKeyAtIndex(pos));
+      RoaringBitmap answer = new RoaringBitmap();
+      for(int pos = 0; pos < x.highLowContainer.size(); pos++) {
+        int key = Util.toIntUnsigned(x.highLowContainer.getKeyAtIndex(pos));
+        Container c = x.highLowContainer.getContainerAtIndex(pos);
         key += container_offset;
-        if(key > 0xFFFF) {
-          throw new IllegalArgumentException("Offset too large.");
-        }
-        answer.highLowContainer.keys[pos] = (short) key;
+        key = key % (1<<16); // we rotate
+        // here we use a binary search which is inefficient.
+        int containerindex = answer.highLowContainer.getIndex((short)key);
+        int actualindex = - containerindex - 1;
+        answer.highLowContainer.insertNewKeyValueAt(actualindex, (short) key, c.clone());
       }
       return answer;
     } else {
       RoaringBitmap answer = new RoaringBitmap();
       for(int pos = 0; pos < x.highLowContainer.size(); pos++) {
         int key = Util.toIntUnsigned(x.highLowContainer.getKeyAtIndex(pos));
-        key += container_offset;
-        if(key > 0xFFFF) {
-          throw new IllegalArgumentException("Offset too large.");
-        }
         Container c = x.highLowContainer.getContainerAtIndex(pos);
+        key += container_offset;
+        key = key % (1<<16); // we rotate
         Container[] offsetted = Util.addOffset(c,
                 (short)in_container_offset);
         if( !offsetted[0].isEmpty()) {
-          int current_size = answer.highLowContainer.size();
-          int lastkey = 0;
-          if(current_size > 0) {
-            lastkey = answer.highLowContainer.getKeyAtIndex(
-                    current_size - 1);
-          }
-          if((current_size > 0) && (lastkey == key)) {
-            Container prev = answer.highLowContainer
-                    .getContainerAtIndex(current_size - 1);
-            Container orresult = prev.ior(offsetted[0]);
-            answer.highLowContainer.setContainerAtIndex(current_size - 1,
-                    orresult);
+          // here we use a binary search which is inefficient.
+          int containerindex = answer.highLowContainer.getIndex((short) key);
+          if (containerindex < 0) {
+            int actualindex = - containerindex - 1;
+            answer.highLowContainer.insertNewKeyValueAt(actualindex, (short) key, offsetted[0]);
           } else {
-            answer.highLowContainer.append((short)key, offsetted[0]);
+            Container prev = answer.highLowContainer
+                    .getContainerAtIndex(containerindex);
+            Container orresult = prev.ior(offsetted[0]);
+            answer.highLowContainer.setContainerAtIndex(containerindex, orresult);
           }
         }
         if( !offsetted[1].isEmpty()) {
-          if(key == 0xFFFF) {
-            throw new IllegalArgumentException("Offset too large.");
+          int newkey = (key + 1) % (1<<16); // we rotate
+          // here we use a binary search which is inefficient.
+          int containerindex = answer.highLowContainer.getIndex((short) newkey);
+          if (containerindex < 0) {
+            int actualindex = - containerindex - 1;
+            answer.highLowContainer.insertNewKeyValueAt(actualindex, (short) newkey, offsetted[1]);
+          } else {
+            Container prev = answer.highLowContainer
+                    .getContainerAtIndex(containerindex);
+            Container orresult = prev.ior(offsetted[1]);
+            answer.highLowContainer.setContainerAtIndex(containerindex, orresult);
           }
-          answer.highLowContainer.append((short)(key + 1), offsetted[1]);
         }
       }
       answer.repairAfterLazy();

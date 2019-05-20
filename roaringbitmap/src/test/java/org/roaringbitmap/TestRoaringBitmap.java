@@ -4922,7 +4922,9 @@ public class TestRoaringBitmap {
       IntIterator i = rb.getIntIterator();
       IntIterator j = rboff.getIntIterator();
       while(i.hasNext() && j.hasNext()) {
-        assertTrue(i.next() + offset ==  j.next());  
+          int val1 = i.next() + offset;
+          int val2 = j.next();
+          assertTrue(val1 == val2);
       }
       assertTrue(i.hasNext() ==  j.hasNext());
     }
@@ -4931,13 +4933,50 @@ public class TestRoaringBitmap {
       IntIterator i = rb.getIntIterator();
       IntIterator j = rboff.getIntIterator();
       while(i.hasNext() && j.hasNext()) {
-      assertTrue(i.next() + offset ==  j.next());  
+         assertTrue(i.next() + offset ==  j.next());
       }
       assertTrue(i.hasNext() ==  j.hasNext());
     }
   }
 
-  @Test
+    @Test
+    public void addNegativeOffset() {
+        final RoaringBitmap rb = new RoaringBitmap();
+        rb.add(10);
+        rb.add(0xFFFF);
+        rb.add(0x010101);
+        for (int i = 100000; i < 200000; i += 4) {
+            rb.add(i);
+        }
+        rb.add(400000L, 1400000L);
+        for(int offset = 3; offset < 1000000; offset *= 3) {
+            RoaringBitmap rboffpos = RoaringBitmap.addOffset(rb, offset);
+            RoaringBitmap rboff = RoaringBitmap.addOffset(rboffpos, -offset);
+
+            IntIterator i = rb.getIntIterator();
+            IntIterator j = rboff.getIntIterator();
+            while(i.hasNext() && j.hasNext()) {
+                int val1 = i.next();
+                int val2 = j.next();
+                if(val1 != val2)
+                assertTrue(val1 == val2);
+            }
+            assertTrue(i.hasNext() ==  j.hasNext());
+        }
+        for(int offset = 1024; offset < 1000000; offset *= 2) {
+            RoaringBitmap rboffpos = RoaringBitmap.addOffset(rb, offset);
+            RoaringBitmap rboff = RoaringBitmap.addOffset(rboffpos, -offset);
+            IntIterator i = rb.getIntIterator();
+            IntIterator j = rboff.getIntIterator();
+            while(i.hasNext() && j.hasNext()) {
+                assertTrue(i.next() ==  j.next());
+            }
+            assertTrue(i.hasNext() ==  j.hasNext());
+        }
+    }
+
+
+    @Test
   public void testNextValue() {
     RoaringBitmap bitmap = SeededTestData.TestDataSet.testCase()
             .withRunAt(0)

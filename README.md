@@ -365,7 +365,7 @@ Usage
 * ``mvn compile`` will compile
 * ``mvn test`` will run the  unit tests
 * ``mvn package`` will package in a jar (found in target)
-* ``mvn checkstyle:check`` will check that you abide by the code style, run it within the roaringbitmap subdirectory (module). We enforce a strict style so that there is no debate as to the proper way to format the code.
+* ``mvn install -DskipTests`` will check that you abide by the code style and that the code compiles. We enforce a strict style so that there is no debate as to the proper way to format the code.
 
 A convenient command to build the code is :
 

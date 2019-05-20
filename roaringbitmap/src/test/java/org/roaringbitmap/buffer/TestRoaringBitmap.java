@@ -3529,6 +3529,38 @@ public class TestRoaringBitmap {
     }
   }
 
+  @Test
+  public void addNegativeOffset() {
+    final MutableRoaringBitmap rb = new MutableRoaringBitmap();
+    rb.add(10);
+    rb.add(0xFFFF);
+    rb.add(0x010101);
+    for (int i = 100000; i < 200000; i += 4) {
+      rb.add(i);
+    }
+    rb.add(400000L, 1400000L);
+    for(int offset = 3; offset < 1000000; offset *= 3) {
+      MutableRoaringBitmap rbposoff = MutableRoaringBitmap.addOffset(rb, offset);
+      MutableRoaringBitmap rboff = MutableRoaringBitmap.addOffset(rbposoff, -offset);
+      IntIterator i = rb.getIntIterator();
+      IntIterator j = rboff.getIntIterator();
+      while(i.hasNext() && j.hasNext()) {
+        assertTrue(i.next()  ==  j.next());
+      }
+      assertTrue(i.hasNext() ==  j.hasNext());
+    }
+    for(int offset = 1024; offset < 1000000; offset *= 2) {
+      MutableRoaringBitmap rbposoff = MutableRoaringBitmap.addOffset(rb, offset);
+      MutableRoaringBitmap rboff = MutableRoaringBitmap.addOffset(rbposoff, -offset);
+      IntIterator i = rb.getIntIterator();
+      IntIterator j = rboff.getIntIterator();
+      while(i.hasNext() && j.hasNext()) {
+        assertTrue(i.next() ==  j.next());
+      }
+      assertTrue(i.hasNext() ==  j.hasNext());
+    }
+  }
+
 
   @Test
   public void testNextValueArray() {

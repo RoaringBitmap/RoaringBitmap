@@ -70,57 +70,62 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * all its values incremented by offset.
    * 
    * @param x source bitmap
-   * @param offset increment
+   * @param offset increment (non-negative)
    * @return a new bitmap
    */
   public static MutableRoaringBitmap addOffset(final ImmutableRoaringBitmap x, int offset) {
-    int container_offset = offset >>> 16;
-    int in_container_offset = offset % (1<<16);
+    int container_offset = Integer.divideUnsigned(offset, (1<<16));
+    int in_container_offset = Integer.remainderUnsigned(offset , (1<<16));
     if(in_container_offset == 0) {
-      MutableRoaringBitmap answer = x.toMutableRoaringBitmap();
-      for(int pos = 0; pos < answer.highLowContainer.size(); pos++) {
-        int key = BufferUtil.toIntUnsigned(answer.getMappeableRoaringArray()
-            .getKeyAtIndex(pos));
+      MutableRoaringBitmap answer = new MutableRoaringBitmap();
+      for(int pos = 0; pos < x.highLowContainer.size(); pos++) {
+        int key = BufferUtil.toIntUnsigned(x.highLowContainer.getKeyAtIndex(pos));
+        MappeableContainer c = x.highLowContainer.getContainerAtIndex(pos);
         key += container_offset;
-        if(key > 0xFFFF) {
-          throw new IllegalArgumentException("Offset too large.");
-        }
-        answer.getMappeableRoaringArray().keys[pos] = (short) key;
+        key = key % (1<<16); // we rotate
+        // here we use a binary search which is inefficient.
+        int containerindex = answer.highLowContainer.getIndex((short)key);
+        int actualindex = - containerindex - 1;
+        answer.getMappeableRoaringArray().insertNewKeyValueAt(actualindex, (short) key, c.clone());
       }
       return answer;
     } else {
       MutableRoaringBitmap answer = new MutableRoaringBitmap();
       for(int pos = 0; pos < x.highLowContainer.size(); pos++) {
         int key = BufferUtil.toIntUnsigned(x.highLowContainer.getKeyAtIndex(pos));
-        key += container_offset;
-        if(key > 0xFFFF) {
-          throw new IllegalArgumentException("Offset too large.");
-        }
         MappeableContainer c = x.highLowContainer.getContainerAtIndex(pos);
-        MappeableContainer[] offsetted = BufferUtil.addOffset(c, 
-          (short)in_container_offset);
+        key += container_offset;
+        key = key % (1<<16); // we rotate
+        MappeableContainer[] offsetted = BufferUtil.addOffset(c,
+                (short)in_container_offset);
         if( !offsetted[0].isEmpty()) {
-          int current_size = answer.highLowContainer.size();
-          int lastkey = 0;
-          if(current_size > 0) {
-            lastkey = answer.highLowContainer.getKeyAtIndex(
-              current_size - 1);
-          }
-          if((current_size > 0) && (lastkey == key)) {
-            MappeableContainer prev = answer.highLowContainer
-                .getContainerAtIndex(current_size - 1);
-            MappeableContainer orresult = prev.ior(offsetted[0]);
-            answer.getMappeableRoaringArray().setContainerAtIndex(current_size - 1,
-                orresult);
+          // here we use a binary search which is inefficient.
+          int containerindex = answer.highLowContainer.getIndex((short) key);
+          if (containerindex < 0) {
+            int actualindex = - containerindex - 1;
+            answer.getMappeableRoaringArray()
+                    .insertNewKeyValueAt(actualindex, (short) key, offsetted[0]);
           } else {
-            answer.getMappeableRoaringArray().append((short)key, offsetted[0]);
+            MappeableContainer prev = answer.highLowContainer
+                    .getContainerAtIndex(containerindex);
+            MappeableContainer orresult = prev.ior(offsetted[0]);
+            answer.getMappeableRoaringArray().setContainerAtIndex(containerindex, orresult);
           }
         }
         if( !offsetted[1].isEmpty()) {
-          if(key == 0xFFFF) {
-            throw new IllegalArgumentException("Offset too large.");
+          int newkey = (key + 1) % (1<<16); // we rotate
+          // here we use a binary search which is inefficient.
+          int containerindex = answer.highLowContainer.getIndex((short) newkey);
+          if (containerindex < 0) {
+            int actualindex = - containerindex - 1;
+            answer.getMappeableRoaringArray()
+                    .insertNewKeyValueAt(actualindex, (short) newkey, offsetted[1]);
+          } else {
+            MappeableContainer prev = answer.highLowContainer
+                    .getContainerAtIndex(containerindex);
+            MappeableContainer orresult = prev.ior(offsetted[1]);
+            answer.getMappeableRoaringArray().setContainerAtIndex(containerindex, orresult);
           }
-          answer.getMappeableRoaringArray().append((short)(key + 1), offsetted[1]);
         }
       }
       answer.repairAfterLazy();
