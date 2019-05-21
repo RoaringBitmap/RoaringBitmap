@@ -1140,7 +1140,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     return pos < len
             && supKey == keys[pos]
             && highLowContainer.getContainerAtIndex(pos)
-                               .intersects(0, (int)((supremum - 1) & 0xFFFF) + 1);
+                               .intersects(offset, (int)((supremum - 1) & 0xFFFF) + 1);
   }
 
 
