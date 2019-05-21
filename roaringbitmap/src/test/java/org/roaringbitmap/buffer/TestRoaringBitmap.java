@@ -3222,6 +3222,47 @@ public class TestRoaringBitmap {
   }
 
 
+  @Test
+  public void intersecttestWithRange() {
+    MutableRoaringBitmap rr1 = new MutableRoaringBitmap();
+    MutableRoaringBitmap rr2 = new MutableRoaringBitmap();
+    MutableRoaringBitmap rr3 = new MutableRoaringBitmap();
+
+    // This bitmap containers will be Run Containers
+    rr1.add(1L, 4L);
+    rr1.add(6L, 10L);
+
+
+    // This one will be Array Containers
+    rr2.add(0);
+    rr2.add(2);
+
+    rr2.add(6);
+    rr2.add(7);
+    rr2.add(9);
+
+    Assert.assertFalse(rr1.intersects(0, 1));
+    Assert.assertTrue(rr1.intersects(0, 3));
+    Assert.assertTrue(rr1.intersects(0, 11));
+    Assert.assertFalse(rr1.intersects(12, 14));
+    Assert.assertFalse(rr1.intersects(4, 5));
+    Assert.assertTrue(rr1.intersects(2, 3));
+    Assert.assertTrue(rr1.intersects(4, 8));
+    Assert.assertTrue(rr1.intersects(8, 12));
+
+    Assert.assertTrue(rr2.intersects(0, 11));
+    Assert.assertFalse(rr2.intersects(12, 14));
+    Assert.assertFalse(rr2.intersects(4, 5));
+    Assert.assertTrue(rr2.intersects(2, 3));
+    Assert.assertTrue(rr2.intersects(4, 8));
+    Assert.assertTrue(rr2.intersects(8, 12));
+
+    rr3.add(5L, 10L);
+    Assert.assertTrue(rr3.intersects(5, 10));
+  }
+
+
+
 
   @Test
   public void testRandomLists() {

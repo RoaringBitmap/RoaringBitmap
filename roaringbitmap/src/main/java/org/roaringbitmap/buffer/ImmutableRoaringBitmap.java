@@ -1169,7 +1169,7 @@ public class ImmutableRoaringBitmap
     return pos < len
             && supKey == highLowContainer.getKeyAtIndex(pos)
             && highLowContainer.getContainerAtIndex(pos)
-            .intersects((short) 0, (int)((supremum - 1) & 0xFFFF) + 1);
+            .intersects(offset, (int)((supremum - 1) & 0xFFFF) + 1);
   }
 
   /**
