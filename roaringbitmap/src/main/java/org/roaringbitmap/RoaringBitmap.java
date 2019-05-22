@@ -1128,7 +1128,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     // seek to start
     int index = Util.unsignedBinarySearch(keys, 0, len, minKey);
     int pos = index >= 0 ? index : -index - 1;
-    short offset = Util.lowbits(minimum);
+    int offset = Util.lowbitsAsInteger(minimum);
     while (pos < len && Util.compareUnsigned(supKey, keys[pos]) > 0) {
       Container container = highLowContainer.getContainerAtIndex(pos);
       if (container.intersects(offset, 1 << 16)) {

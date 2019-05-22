@@ -1995,6 +1995,9 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   @Override
   public boolean intersects(int minimum, int supremum) {
+    if((minimum < 0) || (supremum < minimum) || (supremum > (1<<16))) {
+      throw new RuntimeException("This should never happen (bug).");
+    }
     int start = minimum >>> 6;
     int end = supremum >>> 6;
     if (start == end) {
