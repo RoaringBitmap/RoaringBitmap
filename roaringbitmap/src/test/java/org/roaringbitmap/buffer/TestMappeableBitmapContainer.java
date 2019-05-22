@@ -718,7 +718,7 @@ public class TestMappeableBitmapContainer {
     assertTrue(container.intersects(0, lower16Bits(-40)));
     assertFalse(container.intersects(lower16Bits(-100), lower16Bits(-55)));
     assertFalse(container.intersects(lower16Bits(-9), lower16Bits(-1)));
-    assertTrue(container.intersects(11, (short)-1));
+    //assertTrue(container.intersects(11, (short)-1));// forbidden
   }
 
   @Test
