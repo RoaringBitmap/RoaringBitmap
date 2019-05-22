@@ -3515,7 +3515,7 @@ public class TestRoaringBitmap {
       IntIterator j = rboff.getIntIterator();
       while(i.hasNext() && j.hasNext()) {
         assertTrue(i.next() + offset ==  j.next());  
-      }
+      }System.out.println("offset = "+offset);
       assertTrue(i.hasNext() ==  j.hasNext());
     }
     for(int offset = 1024; offset < 1000000; offset *= 2) {
@@ -3541,7 +3541,13 @@ public class TestRoaringBitmap {
     rb.add(400000L, 1400000L);
     for(int offset = 3; offset < 1000000; offset *= 3) {
       MutableRoaringBitmap rbposoff = MutableRoaringBitmap.addOffset(rb, offset);
+      if(rb.getLongCardinality() != rbposoff.getLongCardinality()) {
+        throw new RuntimeException("data loss");
+      }
       MutableRoaringBitmap rboff = MutableRoaringBitmap.addOffset(rbposoff, -offset);
+      if(rb.getLongCardinality() != rboff.getLongCardinality()) {
+        throw new RuntimeException("data loss");
+      }
       IntIterator i = rb.getIntIterator();
       IntIterator j = rboff.getIntIterator();
       while(i.hasNext() && j.hasNext()) {
@@ -3551,7 +3557,13 @@ public class TestRoaringBitmap {
     }
     for(int offset = 1024; offset < 1000000; offset *= 2) {
       MutableRoaringBitmap rbposoff = MutableRoaringBitmap.addOffset(rb, offset);
+      if(rb.getLongCardinality() != rbposoff.getLongCardinality()) {
+        throw new RuntimeException("data loss");
+      }
       MutableRoaringBitmap rboff = MutableRoaringBitmap.addOffset(rbposoff, -offset);
+      if(rb.getLongCardinality() != rboff.getLongCardinality()) {
+        throw new RuntimeException("data loss");
+      }
       IntIterator i = rb.getIntIterator();
       IntIterator j = rboff.getIntIterator();
       while(i.hasNext() && j.hasNext()) {
