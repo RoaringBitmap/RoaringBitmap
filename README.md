@@ -36,7 +36,7 @@ This library is used by
 *   [Apache Hivemall](http://hivemall.incubator.apache.org),
 *   [Gaffer](https://github.com/gchq/Gaffer),
 *   [LinkedIn Pinot](https://github.com/linkedin/pinot/wiki) and
-*   [Druid](http://druid.io/).
+*   [Apache Druid](https://druid.apache.org/).
 
 
 [Apache Lucene](http://lucene.apache.org/) uses  Roaring bitmaps, though they have their own [independent implementation](https://svn.apache.org/viewvc/lucene/dev/branches/branch_5x/lucene/core/src/java/org/apache/lucene/util/RoaringDocIdSet.java?view=markup&pathrev=1629606). Derivatives of Lucene such as Solr and Elastic also use Roaring bitmaps.
