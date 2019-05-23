@@ -49,7 +49,7 @@ We have interoperable [C/C++](https://github.com/RoaringBitmap/CRoaring), Java a
 (c) 2013-2017 the RoaringBitmap authors
 
 
-This code is licensed under Apache License, Version 2.0 (ASL2.0).
+This code is licensed under Apache License, Version 2.0 (AL2.0).
 
 
 
