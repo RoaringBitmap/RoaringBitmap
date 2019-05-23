@@ -205,8 +205,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   public static RoaringBitmap addOffset(final RoaringBitmap x, long offset) {
     // we need "offset" to be a long because we want to support values
     // between -0xFFFFFFFF up to +-0xFFFFFFFF
-    long container_offset_long = offset < 0 ? 
-      (offset - (1<<16) + 1)  / (1<<16) : offset / (1 << 16);
+    long container_offset_long = offset < 0 
+        ? (offset - (1<<16) + 1)  / (1<<16) : offset / (1 << 16);
     if((container_offset_long <= -(1<<16) ) || (container_offset_long >= (1<<16) )) {
       return new RoaringBitmap(); // it is necessarily going to be empty
     }
@@ -221,7 +221,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         key += container_offset;
         if((key >= 0) || (key <= 0xFFFF))  {
           answer.highLowContainer.append((short)key, 
-            x.highLowContainer.getContainerAtIndex(pos).clone());
+              x.highLowContainer.getContainerAtIndex(pos).clone());
         }
       }
       return answer;
