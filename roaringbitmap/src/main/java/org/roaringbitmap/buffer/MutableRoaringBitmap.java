@@ -66,26 +66,38 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   private static final long serialVersionUID = 4L; // 3L; bumped by ofk for runcontainers
 
   /**
-   * Generate a new bitmap that has the same cardinality as x, but with
+   * Generate a new bitmap, but with
    * all its values incremented by offset.
+   * The parameter offset can be
+   * negative. Values that would fall outside
+   * of the valid 32-bit range are discarded
+   * so that the result can have lower cardinality.
    * 
    * @param x source bitmap
-   * @param offset increment
+   * @param offset increment (can be negative)
    * @return a new bitmap
    */
-  public static MutableRoaringBitmap addOffset(final ImmutableRoaringBitmap x, int offset) {
-    int container_offset = offset >>> 16;
-    int in_container_offset = offset % (1<<16);
+  public static MutableRoaringBitmap addOffset(final ImmutableRoaringBitmap x, long offset) {
+    // we need "offset" to be a long because we want to support values
+    // between -0xFFFFFFFF up to +-0xFFFFFFFF
+    long container_offset_long = offset < 0 
+        ? (offset - (1<<16) + 1)  / (1<<16) : offset / (1 << 16);
+    if((container_offset_long <= -(1<<16) ) || (container_offset_long >= (1<<16) )) {
+      return new MutableRoaringBitmap(); // it is necessarily going to be empty
+    }
+    // next cast is necessarily safe, the result is between -0xFFFF and 0xFFFF
+    int container_offset = (int) container_offset_long;
+    // next case is safe
+    int in_container_offset = (int)(offset - container_offset_long * (1L<<16));
     if(in_container_offset == 0) {
-      MutableRoaringBitmap answer = x.toMutableRoaringBitmap();
-      for(int pos = 0; pos < answer.highLowContainer.size(); pos++) {
-        int key = BufferUtil.toIntUnsigned(answer.getMappeableRoaringArray()
-            .getKeyAtIndex(pos));
+      MutableRoaringBitmap answer = new MutableRoaringBitmap();
+      for(int pos = 0; pos < x.highLowContainer.size(); pos++) {
+        int key = BufferUtil.toIntUnsigned(x.highLowContainer.getKeyAtIndex(pos));
         key += container_offset;
-        if(key > 0xFFFF) {
-          throw new IllegalArgumentException("Offset too large.");
+        if((key >= 0) || (key <= 0xFFFF))  {
+          answer.getMappeableRoaringArray().append((short)key, 
+              x.highLowContainer.getContainerAtIndex(pos).clone());
         }
-        answer.getMappeableRoaringArray().keys[pos] = (short) key;
       }
       return answer;
     } else {
@@ -93,33 +105,29 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
       for(int pos = 0; pos < x.highLowContainer.size(); pos++) {
         int key = BufferUtil.toIntUnsigned(x.highLowContainer.getKeyAtIndex(pos));
         key += container_offset;
-        if(key > 0xFFFF) {
-          throw new IllegalArgumentException("Offset too large.");
-        }
         MappeableContainer c = x.highLowContainer.getContainerAtIndex(pos);
-        MappeableContainer[] offsetted = BufferUtil.addOffset(c, 
-          (short)in_container_offset);
-        if( !offsetted[0].isEmpty()) {
+        MappeableContainer[] offsetted = BufferUtil.addOffset(c,
+                (short)in_container_offset);
+        boolean keyok = (key >= 0) && (key <= 0xFFFF);
+        boolean keypok = (key + 1 >= 0) && (key + 1 <= 0xFFFF);
+        if( !offsetted[0].isEmpty() && keyok) {
           int current_size = answer.highLowContainer.size();
           int lastkey = 0;
           if(current_size > 0) {
-            lastkey = answer.highLowContainer.getKeyAtIndex(
-              current_size - 1);
+            lastkey = BufferUtil.toIntUnsigned(answer.highLowContainer.getKeyAtIndex(
+                    current_size - 1));
           }
           if((current_size > 0) && (lastkey == key)) {
             MappeableContainer prev = answer.highLowContainer
-                .getContainerAtIndex(current_size - 1);
+                    .getContainerAtIndex(current_size - 1);
             MappeableContainer orresult = prev.ior(offsetted[0]);
             answer.getMappeableRoaringArray().setContainerAtIndex(current_size - 1,
-                orresult);
+                    orresult);
           } else {
             answer.getMappeableRoaringArray().append((short)key, offsetted[0]);
           }
         }
-        if( !offsetted[1].isEmpty()) {
-          if(key == 0xFFFF) {
-            throw new IllegalArgumentException("Offset too large.");
-          }
+        if( !offsetted[1].isEmpty()  && keypok) {
           answer.getMappeableRoaringArray().append((short)(key + 1), offsetted[1]);
         }
       }
