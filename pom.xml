@@ -301,6 +301,10 @@
           org.apache.maven.plugins:maven-javadoc-plugin:3.1.0 or one of its dependencies could not be resolved"
           https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-javadoc-plugin/
         -->
+                                        <configuration>
+                                           <source>8</source>
+                                        </configuration>
+                                </plugin>
 				</plugin>
 			</plugins>
 		</pluginManagement>
