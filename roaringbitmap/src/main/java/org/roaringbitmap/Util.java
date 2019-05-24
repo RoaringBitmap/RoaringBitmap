@@ -405,6 +405,19 @@ public final class Util {
     return (short) (x & 0xFFFF);
   }
 
+
+  protected static int lowbitsAsInteger(int x) {
+    return x & 0xFFFF;
+  }
+
+  protected static int lowbitsAsInteger(long x) {
+    return (int)(x & 0xFFFF);
+  }
+
+  protected static long lowbitsAsLong(long x) {
+    return x & 0xFFFF;
+  }
+
   protected static short maxLowBit() {
     return (short) 0xFFFF;
   }

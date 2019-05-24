@@ -1156,7 +1156,7 @@ public class ImmutableRoaringBitmap
             && compareUnsigned(minKey, highLowContainer.getKeyAtIndex(pos)) > 0) {
       ++pos;
     }
-    short offset = lowbits(minimum);
+    int offset = BufferUtil.lowbitsAsInteger(minimum);
     while (pos < len
             && compareUnsigned(supKey, highLowContainer.getKeyAtIndex(pos)) > 0) {
       MappeableContainer container = highLowContainer.getContainerAtIndex(pos);
@@ -1169,7 +1169,7 @@ public class ImmutableRoaringBitmap
     return pos < len
             && supKey == highLowContainer.getKeyAtIndex(pos)
             && highLowContainer.getContainerAtIndex(pos)
-            .intersects((short) 0, (int)((supremum - 1) & 0xFFFF) + 1);
+            .intersects(offset, (int)((supremum - 1) & 0xFFFF) + 1);
   }
 
   /**
