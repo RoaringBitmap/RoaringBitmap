@@ -3394,7 +3394,7 @@ public class TestRunContainer {
     assertFalse(container.intersects(0, 1));
     assertTrue(container.intersects(0, lower16Bits(-40)));
     assertFalse(container.intersects(lower16Bits(-100), lower16Bits(-55)));
-    assertFalse(container.intersects(-9, 1 << 16));
+    //assertFalse(container.intersects(-9, 1 << 16)); // forbidden
     assertTrue(container.intersects(11, 1 << 16));
   }
 

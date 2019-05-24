@@ -44,6 +44,16 @@ import com.google.common.collect.Range;
  */
 @SuppressWarnings({"static-method"})
 public class TestRoaringBitmap {
+  @Test
+  public void intersectBitmapWithRangeHighBits() {
+      Container[] values = new Container[1];
+      RoaringArray ra = new RoaringArray(new short[1], values, 1);
+      long[] bitmap = new long[1024];
+      Arrays.fill(bitmap, 0, 512, 0xAAAAAAAAAAAAAAAAL);
+      values[0] = new BitmapContainer(bitmap, 512 * Long.bitCount(0xAAAAAAAAAAAAAAAAL));
+      RoaringBitmap rr1 = new RoaringBitmap(ra);
+      Assert.assertFalse(rr1.intersects((1 << 15) , 0xFFFF));
+  }
 	
   @Test
   public void testRangeCardinality() {

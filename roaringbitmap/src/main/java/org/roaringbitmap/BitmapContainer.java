@@ -718,6 +718,9 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public boolean intersects(int minimum, int supremum) {
+    if((minimum < 0) || (supremum < minimum) || (supremum > (1<<16))) {
+      throw new RuntimeException("This should never happen (bug).");
+    }
     int start = minimum >>> 6;
     int end = supremum >>> 6;
     if (start == end) {
