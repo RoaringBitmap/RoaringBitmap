@@ -20,6 +20,8 @@ import org.roaringbitmap.buffer.MappeableContainerPointer;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 import static org.roaringbitmap.RoaringBitmapWriter.writer;
+import static org.roaringbitmap.Util.lowbitsAsInteger;
+import static org.roaringbitmap.Util.toIntUnsigned;
 
 
 /**
@@ -1130,15 +1132,21 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   public boolean intersects(long minimum, long supremum) {
     rangeSanityCheck(minimum, supremum);
-    short minKey = Util.highbits(minimum);
-    short supKey = Util.highbits(supremum);
-    int len = highLowContainer.size;
+    int minKey = (int)(minimum >>> 16);
+    int supKey = (int)(supremum >>> 16);
+    int length = highLowContainer.size;
     short[] keys = highLowContainer.keys;
-    // seek to start
-    int index = Util.unsignedBinarySearch(keys, 0, len, minKey);
+    int offset = lowbitsAsInteger(minimum);
+    int limit = lowbitsAsInteger(supremum);
+    int index = Util.unsignedBinarySearch(keys, 0, length, (short)minKey);
     int pos = index >= 0 ? index : -index - 1;
-    int offset = Util.lowbitsAsInteger(minimum);
-    while (pos < len && Util.compareUnsigned(supKey, keys[pos]) > 0) {
+    if (pos < length && supKey == toIntUnsigned(keys[pos])) {
+      if (supKey > minKey) {
+        offset = 0;
+      }
+      return highLowContainer.getContainerAtIndex(pos).intersects(offset, limit);
+    }
+    while (pos < length && supKey > toIntUnsigned(keys[pos])) {
       Container container = highLowContainer.getContainerAtIndex(pos);
       if (container.intersects(offset, 1 << 16)) {
         return true;
@@ -1146,10 +1154,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       offset = 0;
       ++pos;
     }
-    return pos < len
-            && supKey == keys[pos]
+    return pos < length && supKey == keys[pos]
             && highLowContainer.getContainerAtIndex(pos)
-                               .intersects(offset, (int)((supremum - 1) & 0xFFFF) + 1);
+            .intersects(offset, limit);
   }
 
 
