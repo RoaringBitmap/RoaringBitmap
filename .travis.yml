@@ -3,11 +3,13 @@ sudo: false
 
 jdk:
   - openjdk10 #capable of compiling but not loading java11 versions of shims, ensures java8 versions get tested
+  - openjdk11
   - openjdk12
+  - oraclejdk10 #capable of compiling but not loading java11 versions of shims, ensures java8 versions get tested
+  - oraclejdk11
+  - oraclejdk12
+  
 
-###########
-# we removed oraclejdk11 and openjdk11 due to https://bugs.openjdk.java.net/browse/JDK-8212233, and it is not
-# clear when this will get fixed with jdk11, so we may have to wait for jdk12, jdk13, and skip jdk11 altogether.
 ############
 # We still support and test jdk8 for clients, but on travis we no longer build with jkd8, see 
 # https://github.com/RoaringBitmap/RoaringBitmap/pull/290 for rationale.
