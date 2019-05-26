@@ -1953,6 +1953,36 @@ public class TestRoaringBitmap {
     Assert.assertTrue(rr3.intersects(5, 10));
   }
 
+
+  @Test
+  public void shouldNotIntersectWithDisjointRangeBelowBitmapFirst() {
+    short[] keys = new short[1];
+    Container[] values = new Container[1];
+    RoaringBitmap bitmap = new RoaringBitmap(new RoaringArray(keys, values, 1));
+    keys[0] = (short)(1 << 15);
+    long[] bits = new long[1024];
+    long word = 1789303257167203747L;
+    Arrays.fill(bits, word);
+    values[0] = new BitmapContainer(bits, 1024 * Long.bitCount(word));
+    assertFalse(bitmap.intersects(0, bitmap.first() & 0xFFFFFFFFL));
+  }
+
+  @Test
+  public void shouldIntersectWithFirstWhenBitmapAtStart() {
+    short[] keys = new short[1];
+    Container[] values = new Container[1];
+    RoaringBitmap bitmap = new RoaringBitmap(new RoaringArray(keys, values, 1));
+    keys[0] = (short)(1 << 15);
+    long[] bits = new long[1024];
+    long word = 2697219678014362575L;
+    Arrays.fill(bits, word);
+    values[0] = new BitmapContainer(bits, 1024 * Long.bitCount(word));
+    long first = (bitmap.first() & 0xFFFFFFFFL);
+    assertTrue(bitmap.intersects(first - 1, first + 1));
+    assertTrue(bitmap.intersects(first, first + 1));
+    assertFalse(bitmap.intersects(first - 1, first));
+  }
+
   @Test
   public void orBigIntsTest() {
     RoaringBitmap rb = new RoaringBitmap();

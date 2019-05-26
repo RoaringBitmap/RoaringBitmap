@@ -1147,18 +1147,23 @@ public class ImmutableRoaringBitmap
    */
   public boolean intersects(long minimum, long supremum) {
     MutableRoaringBitmap.rangeSanityCheck(minimum, supremum);
-    short minKey = highbits(minimum);
-    short supKey = highbits(supremum);
-    int len = highLowContainer.size();
+    int minKey = (int)(minimum >>> 16);
+    int supKey = (int)(supremum >>> 16);
+    int length = highLowContainer.size();
     // seek to start
     int pos = 0;
-    while (pos < len
-            && compareUnsigned(minKey, highLowContainer.getKeyAtIndex(pos)) > 0) {
+    while (pos < length && minKey > toIntUnsigned(highLowContainer.getKeyAtIndex(pos))) {
       ++pos;
     }
-    int offset = BufferUtil.lowbitsAsInteger(minimum);
-    while (pos < len
-            && compareUnsigned(supKey, highLowContainer.getKeyAtIndex(pos)) > 0) {
+    int offset = lowbitsAsInteger(minimum);
+    int limit = lowbitsAsInteger(supremum);
+    if (pos < length && supKey == toIntUnsigned(highLowContainer.getKeyAtIndex(pos))) {
+      if (supKey > minKey) {
+        offset = 0;
+      }
+      return highLowContainer.getContainerAtIndex(pos).intersects(offset, limit);
+    }
+    while (pos < length && supKey > toIntUnsigned(highLowContainer.getKeyAtIndex(pos))) {
       MappeableContainer container = highLowContainer.getContainerAtIndex(pos);
       if (container.intersects(offset, 1 << 16)) {
         return true;
@@ -1166,10 +1171,9 @@ public class ImmutableRoaringBitmap
       offset = 0;
       ++pos;
     }
-    return pos < len
-            && supKey == highLowContainer.getKeyAtIndex(pos)
+    return pos < length && supKey == highLowContainer.getKeyAtIndex(pos)
             && highLowContainer.getContainerAtIndex(pos)
-            .intersects(offset, (int)((supremum - 1) & 0xFFFF) + 1);
+            .intersects(offset, limit);
   }
 
   /**

@@ -3,6 +3,7 @@ sudo: false
 
 jdk:
   - openjdk10 #capable of compiling but not loading java11 versions of shims, ensures java8 versions get tested
+  - openjdk12
 
 ###########
 # we removed oraclejdk11 and openjdk11 due to https://bugs.openjdk.java.net/browse/JDK-8212233, and it is not
