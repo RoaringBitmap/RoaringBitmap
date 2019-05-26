@@ -49,3 +49,7 @@ tasks.jmhJar {
     archiveBaseName.set("benchmarks")
     archiveClassifier.set("")
 }
+
+tasks.assemble {
+    dependsOn(tasks.jmhJar)
+}

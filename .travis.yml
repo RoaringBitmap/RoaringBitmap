@@ -25,7 +25,7 @@ cache:
     - $HOME/.gradle/wrapper/
 
 # Install silently to ensure all pom are installed and compilation is OK: actual checks will be processed by script:
-# Including testClasses so jmh benchmarks and tests will compile here.
+# Including testClasses so tests will compile too.
 install: "./gradlew assemble testClasses"
 
 branches:
@@ -33,10 +33,9 @@ branches:
     - master
 
 script:
-  # run checkstyle, etc, without the tests
+  # run checkstyle, etc, without the tests to fail fast
   - ./gradlew check -x test
-  # fuzz tests are slow
-  - ./gradlew test -x :fuzz-test:test jacocoTestReport -DBITMAP_TYPES=ROARING_ONLY
+  - ./gradlew test jacocoTestReport -DBITMAP_TYPES=ROARING_ONLY
 
 after_success:
   - ./gradlew coveralls
