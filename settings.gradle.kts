@@ -1,0 +1,9 @@
+include(
+        "roaringbitmap",
+        "shims",
+        "fuzz-tests",
+        "jmh",
+        "real-roaring-dataset",
+        "examples",
+        "simplebenchmark"
+        )

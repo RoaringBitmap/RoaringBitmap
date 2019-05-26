@@ -184,7 +184,7 @@ public class Basic {
 }
 ```
 
-Please see the examples folder for more examples.
+Please see the examples folder for more examples, which you can run with `./gradlew :examples:runAll`, or run a specific one with `./gradlew :examples:runExampleBitmap64`, etc.
 
 
 Unsigned integers
@@ -440,11 +440,11 @@ Benchmark
 
 To run JMH benchmarks, use the following command:
 
-         $ ./jmh/run.sh
+         $ ./gradlew jmh
 
 You can also run specific benchmarks...
 
-         $ ./jmh/run.sh org.roaringbitmap.aggregation.and.identical.*
+         $ ./jmh/run.sh 'org.roaringbitmap.aggregation.and.identical.*'
 
 
 Mailing list/discussion group
