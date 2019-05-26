@@ -9,8 +9,9 @@ sourceSets {
 }
 
 tasks.named<JavaCompile>("compileJava11Java") {
-    sourceCompatibility = "11"
-    targetCompatibility = "11"
+    // Arrays.equals exists since JDK9, but the intent is to only use it on Java 11+, it seems.
+    sourceCompatibility = "9"
+    targetCompatibility = "9"
 }
 
 tasks.named<Jar>("jar") {
