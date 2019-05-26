@@ -25,7 +25,8 @@ cache:
     - $HOME/.gradle/wrapper/
 
 # Install silently to ensure all pom are installed and compilation is OK: actual checks will be processed by script:
-install: "./gradlew assemble"
+# Including testClasses so jmh benchmarks and tests will compile here.
+install: "./gradlew assemble testClasses"
 
 branches:
   only:

@@ -35,7 +35,6 @@ dependencies {
 
     // tests run benchmark classes, so need to depend on benchmark compile output
     testImplementation(sourceSets.jmh.get().output)
-
 }
 
 jmh {
