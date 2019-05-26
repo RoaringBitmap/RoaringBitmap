@@ -1,11 +1,12 @@
 package org.roaringbitmap.buffer;
 
 import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.roaringbitmap.DirectoryCleanup;
 import org.roaringbitmap.SeededTestData;
 
 import java.io.*;
@@ -14,7 +15,6 @@ import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.UUID;
 
 import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
@@ -24,20 +24,19 @@ import static org.junit.Assert.assertEquals;
 @RunWith(Parameterized.class)
 public class TestSerializationViaByteBuffer {
 
-  private static Path dir;
+  private Path dir;
 
-  @BeforeClass
-  public static void setup() throws IOException {
-    dir = Paths.get(System.getProperty("user.dir")).resolve("target").resolve(UUID.randomUUID().toString());
-    Files.createDirectory(dir);
+  @Rule
+  public final TemporaryFolder tf = new TemporaryFolder();
+
+  @Before
+  public void setUp() throws IOException {
+    dir = tf.newFolder().toPath();
   }
 
   @AfterClass
-  public static void cleanup() throws IOException {
+  public static void cleanup() {
     System.gc();
-    try {
-      Files.walkFileTree(dir, new DirectoryCleanup());
-    } catch (IOException e) { }
   }
 
   @Parameterized.Parameters(name = "{1}/{0} keys/runOptimise={2}")
