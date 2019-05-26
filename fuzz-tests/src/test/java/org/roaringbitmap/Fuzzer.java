@@ -73,6 +73,20 @@ public class Fuzzer {
             });
   }
 
+  public static void verifyInvariance(String testName, int maxKeys, Predicate<RoaringBitmap> pred) {
+    IntStream.range(0, ITERATIONS)
+            .parallel()
+            .mapToObj(i -> randomBitmap(maxKeys))
+            .forEach(bitmap -> {
+              try {
+                Assert.assertTrue(pred.test(bitmap));
+              } catch (Throwable e) {
+                Reporter.report(testName, ImmutableMap.of(), e, bitmap);
+                throw e;
+              }
+            });
+  }
+
   public static <T> void verifyInvariance(String testName,
                                           Predicate<RoaringBitmap> validity,
                                           Function<RoaringBitmap, T> left,
@@ -339,6 +353,43 @@ public class Fuzzer {
                 return bitmap.rangeCardinality(min, max) == RoaringBitmap.andCardinality(range, bitmap);
             });
   }
+
+  @Test
+  public void intersectsUpperBoundary() {
+    verifyInvariance("intersectsUpperBoundary", 1 << 9,
+            (RoaringBitmap bitmap) -> {
+              long max = bitmap.last() & 0xFFFFFFFFL;
+              return max == 0xFFFFFFFFL || bitmap.intersects(max - 1, max + 1);
+            });
+  }
+
+  @Test
+  public void intersectsLowerBoundary() {
+    verifyInvariance("intersectsLowerBoundary", 1 << 9,
+            (RoaringBitmap bitmap) -> {
+              long min = bitmap.first() & 0xFFFFFFFFL;
+              return min == 0 || bitmap.intersects(min - 1, min + 1);
+            });
+  }
+
+  @Test
+  public void notIntersectsDisjointUpperBoundary() {
+    verifyInvariance("notIntersectsDisjointUpperBoundary", 1 << 9,
+            (RoaringBitmap bitmap) -> {
+              long max = (bitmap.last() & 0xFFFFFFFFL) + 1;
+              return !bitmap.intersects(max, 0xFFFFFFFFL);
+            });
+  }
+
+  @Test
+  public void notIntersectsDisjointLowerBoundary() {
+    verifyInvariance("notIntersectsDisjointLowerBoundary", 1 << 9,
+            (RoaringBitmap bitmap) -> {
+              long min = bitmap.first() & 0xFFFFFFFFL;
+              return !bitmap.intersects(0, min);
+            });
+  }
+
 
   @Test
   public void absentValuesConsistentWithBitSet() {

@@ -213,7 +213,7 @@
                         <goals>
                             <goal>check</goal>
                         </goals>
-                        <phase>test</phase>
+                        <phase>compile</phase>
                         <configuration>
                             <failOnViolation>true</failOnViolation>
                         </configuration>
