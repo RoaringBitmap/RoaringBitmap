@@ -1,23 +1,17 @@
+import com.jfrog.bintray.gradle.BintrayExtension
+
 plugins {
     id("net.researchgate.release") version "2.8.0"
+    id("com.jfrog.bintray") version "1.8.4" apply false
+    id("com.github.kt3k.coveralls") version "2.8.4" apply false
 }
 
 // some parts of the Kotlin DSL don't work inside a `subprojects` block yet, so we do them the old way
 // (without typesafe accessors)
 
-buildscript {
-    repositories {
-        maven {
-            url = uri("https://plugins.gradle.org/m2/")
-        }
-    }
-    dependencies {
-        classpath("gradle.plugin.com.github.kt3k.coveralls:coveralls-gradle-plugin:2.8.4")
-    }
-}
-
 subprojects {
-    val deps by extra {
+    // used in per-subproject dependencies
+    @Suppress("UNUSED_VARIABLE") val deps by extra {
         mapOf(
                 "junit" to "4.12",
                 "guava" to "20.0",
@@ -46,6 +40,7 @@ subprojects {
 
     tasks.named<JacocoReport>("jacocoTestReport") {
         reports {
+            // used by coveralls
             xml.isEnabled = true
         }
     }
@@ -71,7 +66,8 @@ subprojects.filter { !listOf("jmh", "fuzz-tests", "examples", "simplebenchmark")
 subprojects.filter { listOf("roaringbitmap", "shims").contains(it.name) }.forEach { project ->
     project.run {
         apply(plugin = "maven-publish")
-        
+        apply(plugin = "com.jfrog.bintray")
+
         tasks {
             register<Jar>("sourceJar") {
                 from(project.the<SourceSetContainer>()["main"].allJava)
@@ -97,6 +93,26 @@ subprojects.filter { listOf("roaringbitmap", "shims").contains(it.name) }.forEac
                 }
             }
         }
+
+        configure<BintrayExtension> {
+            user = rootProject.findProperty("bintrayUser")?.toString()
+            key = rootProject.findProperty("bintrayApiKey")?.toString()
+            setPublications("bintray")
+
+            with(pkg) {
+                repo = "maven"
+                setLicenses("Apache-2.0")
+                vcsUrl = "https://github.com/RoaringBitmap/RoaringBitmap"
+                name = "RoaringBitmap"
+                userOrg = "roaringbitmap"
+
+                with(version) {
+                    name = project.version.toString()
+                    released = java.util.Date().toString()
+                    vcsTag = "RoaringBitmap-${project.version}"
+                }
+            }
+        }
     }
 }
 
@@ -110,3 +126,6 @@ release {
     tagTemplate = "RoaringBitmap-\$version"
 }
 
+tasks.afterReleaseBuild {
+    dependsOn(tasks.named("bintrayUpload"))
+}
