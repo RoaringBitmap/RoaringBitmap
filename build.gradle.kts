@@ -1,3 +1,7 @@
+plugins {
+    id("net.researchgate.release") version "2.8.0"
+}
+
 // some parts of the Kotlin DSL don't work inside a `subprojects` block yet, so we do them the old way
 // (without typesafe accessors)
 
@@ -37,6 +41,7 @@ subprojects {
     configure<JavaPluginConvention> {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+        group = "org.roaringbitmap"
     }
 
     tasks.named<JacocoReport>("jacocoTestReport") {
@@ -62,3 +67,46 @@ subprojects.filter { !listOf("jmh", "fuzz-tests", "examples", "simplebenchmark")
         }
     }
 }
+
+subprojects.filter { listOf("roaringbitmap", "shims").contains(it.name) }.forEach { project ->
+    project.run {
+        apply(plugin = "maven-publish")
+        
+        tasks {
+            register<Jar>("sourceJar") {
+                from(project.the<SourceSetContainer>()["main"].allJava)
+                archiveClassifier.set("sources")
+            }
+
+            register<Jar>("docJar") {
+                from(project.tasks["javadoc"])
+                archiveClassifier.set("javadoc")
+            }
+        }
+
+        configure<PublishingExtension>() {
+            publications {
+                register<MavenPublication>("bintray") {
+                    groupId = project.group.toString()
+                    artifactId = project.name
+                    version = project.version.toString()
+
+                    from(components["java"])
+                    artifact(tasks["sourceJar"])
+                    artifact(tasks["docJar"])
+                }
+            }
+        }
+    }
+}
+
+tasks {
+    create("build") {
+        // dummy build task to appease release plugin
+    }
+}
+
+release {
+    tagTemplate = "RoaringBitmap-\$version"
+}
+
