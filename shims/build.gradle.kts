@@ -9,7 +9,8 @@ sourceSets {
 }
 
 tasks.named<JavaCompile>("compileJava11Java") {
-    // Arrays.equals exists since JDK9, but the intent is to only use it on Java 11+, it seems.
+    // Arrays.equals exists since JDK9, but we make it available for 11+ so we can test the shim by using Java 11
+    // and the old way by using Java 10, which will compile the new code but not use it..
     sourceCompatibility = "9"
     targetCompatibility = "9"
 }
@@ -21,4 +22,7 @@ tasks.named<Jar>("jar") {
     manifest.attributes(
             Pair("Multi-Release", "true")
     )
+
+    // normally jar is just main classes but we also have another sourceset
+    dependsOn(tasks.named("compileJava11Java"))
 }
