@@ -3,6 +3,7 @@
 set -e
 
 BASEDIR=$(dirname $0)
+echo $BASEDIR
 
 CLEAN=""
 if [[ "$1" = "-clean" ]]; then
@@ -17,7 +18,7 @@ if [[ "$CLEAN" = "clean" ]]; then
 fi
 
 echo "Building benchmarks jar"
-$BASEDIR/../gradlew jmhJar
+$BASEDIR/../gradlew shadowJar
 
 echo "Running benchmarks"
-java -jar $BASEDIR/target/benchmarks.jar true -wi 5 -i 5 -f 1 $@
+java -jar $BASEDIR/build/libs/benchmarks.jar true -wi 5 -i 5 -f 1 $@
