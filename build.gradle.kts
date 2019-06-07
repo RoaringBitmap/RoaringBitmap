@@ -51,7 +51,7 @@ subprojects.filter { !listOf("jmh", "fuzz-tests", "examples", "simplebenchmark")
         apply(plugin = "checkstyle")
 
         tasks.withType<Checkstyle> {
-            configFile = File(rootProject.projectDir, "roaringbitmap/style/roaring_google_checks.xml")
+            configFile = File(rootProject.projectDir, "RoaringBitmap/style/roaring_google_checks.xml")
             isIgnoreFailures = false
             isShowViolations = true
         }
@@ -63,7 +63,7 @@ subprojects.filter { !listOf("jmh", "fuzz-tests", "examples", "simplebenchmark")
     }
 }
 
-subprojects.filter { listOf("roaringbitmap", "shims").contains(it.name) }.forEach { project ->
+subprojects.filter { listOf("RoaringBitmap", "shims").contains(it.name) }.forEach { project ->
     project.run {
         apply(plugin = "maven-publish")
         apply(plugin = "com.jfrog.bintray")
