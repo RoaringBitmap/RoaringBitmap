@@ -11,23 +11,33 @@ jdk:
   
 
 ############
-# We still support and test jdk8 for clients, but on travis we no longer build with jkd8, see 
+# We still support and test jdk8 for clients, but on travis we no longer build with jkd8, see
 # https://github.com/RoaringBitmap/RoaringBitmap/pull/290 for rationale.
 ##########
 # we removed oraclejdk7 as per https://github.com/RoaringBitmap/RoaringBitmap/pull/176#issuecomment-322257170
 #########
 
+# from https://docs.travis-ci.com/user/languages/java/#caching
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+
 # Install silently to ensure all pom are installed and compilation is OK: actual checks will be processed by script:
-install: "mvn -P ci clean install --quiet -DskipTests -Dcheckstyle.skip=true -Dmaven.javadoc.skip=true -Dgpg.skip=true"
+# Including testClasses so tests will compile too.
+install: "./gradlew assemble testClasses"
 
 branches:
   only:
     - master
 
 script:
-  - mvn javadoc:javadoc
-  - mvn checkstyle:check 
-  - mvn test jacoco:report  -Dgpg.skip=true -DBITMAP_TYPES=ROARING_ONLY
+  # run checkstyle, etc, without the tests to fail fast
+  - ./gradlew check -x test
+  - ./gradlew test jacocoTestReport -DBITMAP_TYPES=ROARING_ONLY
 
 after_success:
-  - mvn coveralls:report
+  - ./gradlew coveralls
