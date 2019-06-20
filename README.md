@@ -364,7 +364,7 @@ Usage
 * ``./gradlew assemble`` will compile
 * ``./gradlew build`` will compile and run the  unit tests
 * ``./gradlew test `` will run the tests
-* ``./gradlew checkstyleTest`` will check that you abide by the code style and that the code compiles. We enforce a strict style so that there is no debate as to the proper way to format the code.
+* ``./gradlew checkstyleMain`` will check that you abide by the code style and that the code compiles. We enforce a strict style so that there is no debate as to the proper way to format the code.
 
 
 IntelliJ and Eclipse
@@ -379,7 +379,7 @@ Contributing
 ------------
 
 Contributions are invited. We enforce the Google Java style.
-Please run  ``./gradlew checkstyleTest`` on your code before submitting
+Please run  ``./gradlew checkstyleMain`` on your code before submitting
 a patch.
 
 FAQ
