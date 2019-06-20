@@ -360,30 +360,26 @@ Usage
 ------
 
 * Get java
-* Get maven 3
 
-* ``mvn compile`` will compile
-* ``mvn test`` will run the  unit tests
-* ``mvn package`` will package in a jar (found in target)
-* ``mvn install -DskipTests`` will check that you abide by the code style and that the code compiles. We enforce a strict style so that there is no debate as to the proper way to format the code.
+* ``./gradlew assemble`` will compile
+* ``./gradlew build`` will compile and run the  unit tests
+* ``./gradlew test `` will run the tests
+* ``./gradlew checkstyleMain`` will check that you abide by the code style and that the code compiles. We enforce a strict style so that there is no debate as to the proper way to format the code.
 
-A convenient command to build the code is :
-
-             mvn clean install -DskipTests -Dgpg.skip=true
 
 IntelliJ and Eclipse
 --------
 
 If you plan to contribute to RoaringBitmap, you can have load
 it up in your favorite IDE.
-- For IntelliJ, in the IDE create a new project, possibly from existing sources, choose import, Maven.
-- For Eclipse: File, Import, Existing Maven Projects, Select RoaringBitmap on my disk
+- For IntelliJ, in the IDE create a new project, possibly from existing sources, choose import, gradle.
+- For Eclipse: File, Import, Existing Gradle Projects, Select RoaringBitmap on my disk
 
 Contributing
 ------------
 
 Contributions are invited. We enforce the Google Java style.
-Please run  ``mvn checkstyle:check`` on your code in the roaringbitmap subdirectory (module) before submitting
+Please run  ``./gradlew checkstyleMain`` on your code before submitting
 a patch.
 
 FAQ
