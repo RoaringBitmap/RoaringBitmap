@@ -14,6 +14,11 @@ This little program is an attempt to do this. In under a minute, we get usable b
 numbers... Under Linux or macOS type:
 
 ```bash
-mvn -f ../pom.xml package -DskipTests -Dgpg.skip=true
-./run.sh
+./gradlew :simplebenchmark:runAll
+```
+
+Or see the list of individual benchmarks:
+
+```bash
+./gradlew :simplebenchmark:tasks --all
 ```

@@ -1,7 +1,9 @@
 .setting/
 bin/
 target/
-
+*/build
+*/out
+/.gradle
 
 # OS X
 .DS_Store
@@ -24,3 +26,4 @@ pom.xml.releaseBackup
 pom.xml.next
 pom.xml.tag
 
+*.bin
