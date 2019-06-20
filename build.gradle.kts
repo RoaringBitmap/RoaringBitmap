@@ -138,7 +138,9 @@ subprojects.filter { listOf("RoaringBitmap", "shims").contains(it.name) }.forEac
                 repo = "maven"
                 setLicenses("Apache-2.0")
                 vcsUrl = "https://github.com/RoaringBitmap/RoaringBitmap"
-                name = "RoaringBitmap"
+                // use "bintray package per artifact" to match the auto-gen'd pkg structure inherited from
+                // Maven Central's artifacts
+                name = "org.roaringbitmap:${project.name}"
                 userOrg = "roaringbitmap"
 
                 with(version) {
