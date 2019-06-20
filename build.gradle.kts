@@ -51,7 +51,7 @@ subprojects.filter { !listOf("jmh", "fuzz-tests", "examples", "simplebenchmark")
         apply(plugin = "checkstyle")
 
         tasks.withType<Checkstyle> {
-            configFile = File(rootProject.projectDir, "roaringbitmap/style/roaring_google_checks.xml")
+            configFile = File(rootProject.projectDir, "RoaringBitmap/style/roaring_google_checks.xml")
             isIgnoreFailures = false
             isShowViolations = true
         }
@@ -63,7 +63,7 @@ subprojects.filter { !listOf("jmh", "fuzz-tests", "examples", "simplebenchmark")
     }
 }
 
-subprojects.filter { listOf("roaringbitmap", "shims").contains(it.name) }.forEach { project ->
+subprojects.filter { listOf("RoaringBitmap", "shims").contains(it.name) }.forEach { project ->
     project.run {
         apply(plugin = "maven-publish")
         apply(plugin = "com.jfrog.bintray")
@@ -90,6 +90,41 @@ subprojects.filter { listOf("roaringbitmap", "shims").contains(it.name) }.forEac
                     from(components["java"])
                     artifact(tasks["sourceJar"])
                     artifact(tasks["docJar"])
+
+                    // requirements for maven central
+                    // https://central.sonatype.org/pages/requirements.html
+                    pom {
+                        name.set("${project.group}:${project.name}")
+                        description.set("Roaring bitmaps are compressed bitmaps (also called bitsets) which tend to outperform conventional compressed bitmaps such as WAH or Concise.")
+                        url.set("https://github.com/RoaringBitmap/RoaringBitmap")
+                        issueManagement {
+                            system.set("GitHub Issue Tracking")
+                            url.set("https://github.com/RoaringBitmap/RoaringBitmap/issues")
+                        }
+                        licenses {
+                            license {
+                                name.set("Apache 2")
+                                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                                distribution.set("repo")
+                            }
+                        }
+                        developers {
+                            developer {
+                                id.set("lemire")
+                                name.set("Daniel Lemire")
+                                email.set("lemire@gmail.com")
+                                url.set("http://lemire.me/en/")
+                                roles.addAll("architect", "developer", "maintainer")
+                                timezone.set("-5")
+                                properties.put("picUrl", "http://lemire.me/fr/images/JPG/profile2011B_152.jpg")
+                            }
+                        }
+                        scm {
+                            connection.set("scm:git:https://github.com/RoaringBitmap/RoaringBitmap.git")
+                            developerConnection.set("scm:git:https://github.com/RoaringBitmap/RoaringBitmap.git")
+                            url.set("https://github.com/RoaringBitmap/RoaringBitmap")
+                        }
+                    }
                 }
             }
         }

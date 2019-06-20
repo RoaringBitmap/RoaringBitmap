@@ -1,5 +1,5 @@
 dependencies {
-    implementation(project(":roaringbitmap"))
+    implementation(project(":RoaringBitmap"))
 }
 
 tasks {
