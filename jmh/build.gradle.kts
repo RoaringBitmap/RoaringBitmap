@@ -51,6 +51,14 @@ tasks.assemble {
     dependsOn(tasks.shadowJar)
 }
 
+tasks.test {
+    // stop these tests from running before RoaringBitmap
+    dependsOn(project(":RoaringBitmap").tasks.test)
+    useJUnit()
+    failFast = true
+    maxParallelForks = 8
+}
+
 
 // jmhJar task provided by jmh gradle plugin is currently broken
 // https://github.com/melix/jmh-gradle-plugin/issues/97

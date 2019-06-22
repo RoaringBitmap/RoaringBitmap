@@ -1,6 +1,7 @@
 .setting/
 bin/
 target/
+build/
 */build
 */out
 /.gradle
