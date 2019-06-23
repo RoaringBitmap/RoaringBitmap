@@ -53,7 +53,7 @@ tasks.assemble {
 
 tasks.test {
     // stop these tests from running before RoaringBitmap
-    dependsOn(project(":RoaringBitmap").tasks.test)
+    shouldRunAfter(project(":RoaringBitmap").tasks.test)
     useJUnit()
     failFast = true
     maxParallelForks = 8

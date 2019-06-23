@@ -11,7 +11,7 @@ dependencies {
 
 
 tasks.test {
-    dependsOn(tasks.checkstyleMain)
+    mustRunAfter(tasks.checkstyleMain)
     useJUnit()
     failFast = true
     maxParallelForks = 8
