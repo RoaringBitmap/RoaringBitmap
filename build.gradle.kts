@@ -80,7 +80,7 @@ subprojects.filter { listOf("RoaringBitmap", "shims").contains(it.name) }.forEac
             }
         }
 
-        configure<PublishingExtension>() {
+        configure<PublishingExtension> {
             publications {
                 register<MavenPublication>("bintray") {
                     groupId = project.group.toString()
