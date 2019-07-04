@@ -1395,7 +1395,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     if (BufferUtil.isBackedBySimpleArray(bitmap)) {
       long[] b = bitmap.array();
 
-      for (int blockOffset = 0; blockOffset < b.length; blockOffset += BLOCKSIZE) {
+      for (int blockOffset = 0; blockOffset + BLOCKSIZE <= b.length; blockOffset += BLOCKSIZE) {
 
         for (int i = blockOffset; i < blockOffset + BLOCKSIZE; i++) {
           long word = b[i];

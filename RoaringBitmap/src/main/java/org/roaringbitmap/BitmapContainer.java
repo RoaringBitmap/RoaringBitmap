@@ -1059,7 +1059,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   public int numberOfRunsLowerBound(int mustNotExceed) {
     int numRuns = 0;
 
-    for (int blockOffset = 0; blockOffset < bitmap.length; blockOffset += BLOCKSIZE) {
+    for (int blockOffset = 0; blockOffset + BLOCKSIZE <= bitmap.length; blockOffset += BLOCKSIZE) {
 
       for (int i = blockOffset; i < blockOffset + BLOCKSIZE; i++) {
         long word = bitmap[i];
