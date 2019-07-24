@@ -20,12 +20,4 @@ a Druid dump.
 
 ---
 
-Some bitsets from a real world example, that can be used to transform them into BitSets
-
-* bitsets_1925630_96.gz  # rows with long[], in this case: long[1925630][96]
-
-Can be deserialized by first reading an int, that is the amout of rows to come (e.g. 1925630 rows)
-A row is read by first reading an int, the amount of longs to come (e.g. 96 longs), and then reading those longs.
-Used DataInputStream to write this.
-
-See also BitSetUtilBenchmark.
+All files are zipped collection of textfiles except for bitsets_1925630_96.gz. These can be deserialized by first reading an int, that is the amout of rows to come (e.g. 1925630 rows). A row is read by first reading an int, the amount of longs to come (e.g. 96 longs), and then reading those longs. Used DataInputStream to write this. See also BitSetUtilBenchmark.
