@@ -13,6 +13,7 @@ tasks.named<JavaCompile>("compileJava11Java") {
     // and the old way by using Java 10, which will compile the new code but not use it..
     sourceCompatibility = "9"
     targetCompatibility = "9"
+    options.compilerArgs = listOf("--release", "9")
 }
 
 tasks.named<Jar>("jar") {

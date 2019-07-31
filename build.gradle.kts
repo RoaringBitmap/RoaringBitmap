@@ -30,6 +30,7 @@ subprojects {
     tasks.withType<JavaCompile> {
         options.isDeprecation = true
         options.isWarnings = true
+        options.compilerArgs = listOf("--release", "8")
     }
 
     configure<JavaPluginConvention> {
