@@ -4,6 +4,7 @@ sudo: false
 # oraclejdk10 is depecrated on travis
 # oraclejdk12 is apparently not yet available
 jdk:
+  - openjdk8
   - openjdk10 #capable of compiling but not loading java11 versions of shims, ensures java8 versions get tested
   - openjdk11
   - openjdk12

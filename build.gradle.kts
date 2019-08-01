@@ -30,7 +30,9 @@ subprojects {
     tasks.withType<JavaCompile> {
         options.isDeprecation = true
         options.isWarnings = true
-        options.compilerArgs = listOf("--release", "8")
+        if (JavaVersion.current().isJava9Compatible) {
+          options.compilerArgs = listOf("--release", "8")
+        }
     }
 
     configure<JavaPluginConvention> {

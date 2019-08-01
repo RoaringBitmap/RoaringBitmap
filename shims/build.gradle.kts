@@ -1,4 +1,5 @@
 // See https://blog.gradle.org/mrjars and https://github.com/melix/mrjar-gradle for more on multi release jars
+if (JavaVersion.current().isJava9Compatible) {
 
 sourceSets {
     create("java11") {
@@ -26,4 +27,6 @@ tasks.named<Jar>("jar") {
 
     // normally jar is just main classes but we also have another sourceset
     dependsOn(tasks.named("compileJava11Java"))
+}
+
 }
