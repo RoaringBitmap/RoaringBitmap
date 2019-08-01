@@ -13,6 +13,7 @@ build/
 .idea
 *.iml
 
+.vscode
 
 roaringbitmap/dependency-reduced-pom.xml
 
