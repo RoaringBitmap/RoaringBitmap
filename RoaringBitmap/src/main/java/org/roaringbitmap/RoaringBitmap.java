@@ -1313,8 +1313,270 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     return andNot(x1, x2, (long) rangeStart, (long) rangeEnd);
   }
 
+  /*
+   * Handle the orNot operations for the remaining containers in the Bitmap.
+   * This is done by iterating over the remaining containers while treating the holes
+   * (from s2 till lastKey)
+   *
+   * For each iteration Two cases here:
+   * 1. either we have a existing container. In this case, we replace it by a full.
+   * 2. or there is no container. In this case, we insert a full one.
+   *
+   * Note that, at this stage, all the other bitmap containers were treated.
+   * That's why we only have to handle the .
+   */
+
+  private static short orNotHandleRemainingSelfContainers(
+          RoaringBitmap src, RoaringBitmap dest, int  pos1, int length1, short s2,
+          short lastKey, int lastSize, boolean inplace) {
+    final int insertionIncrement = inplace ? 1 : 0;
+    int destPos = inplace ? pos1 : dest.highLowContainer.size();
+
+    while (pos1 < length1 && Util.compareUnsigned(s2, lastKey) <= 0) { // s2 <= lastKey
+      final short s1 = src.highLowContainer.getKeyAtIndex(pos1);
+      final int containerLast = (s2 == lastKey) ? lastSize : Util.maxLowBitAsInteger();
+      Container c2 = Container.rangeOfOnes(0, containerLast + 1);
+
+      if (s1 == s2) {
+        final Container c1 = src.highLowContainer.getContainerAtIndex(pos1);
+        // If we re not at the last container, just use the full container.
+        // Otherwise, compute an in-place or.
+        final Container c = (s2 == lastKey) ? (inplace ? c1.ior(c2) : c1.or(c2)) : c2;
+        if (destPos < dest.highLowContainer.size()) {
+          dest.highLowContainer.replaceKeyAndContainerAtIndex(destPos, s1, c);
+        } else {
+          dest.highLowContainer.insertNewKeyValueAt(destPos, s1, c);
+        }
+
+        pos1++;
+        s2++;
+        destPos++;
+      } else if (Util.compareUnsigned(s1, s2) > 0) { // s1 > s2
+        dest.highLowContainer.insertNewKeyValueAt(destPos, s2, c2);
+        pos1 += insertionIncrement;
+        length1 += insertionIncrement;
+        s2++;
+        destPos++;
+      } else { // s1 < s2
+        throw new IllegalStateException("This is a bug. Please report to github");
+      }
+    }
+    return s2;
+  }
+
+  /*
+   * Handle the orNot operations for the remaining containers in the other Bitmap.
+   * Two cases here:
+   * 1. either we have a hole. In this case, a full container should be appended.
+   * 2. or we have a container. an inplace orNot is applied and the result is appended.
+   *
+   * Note that, at this stage, all the own containers were treated.
+   * That's why we only have to append.
+   */
+  private static short orNotHandleRemainingOtherContainers(
+          final RoaringBitmap other, final RoaringBitmap dest, int pos2,
+          int length2, short s2, short lastKey, int lastSize) {
+    while (pos2 < length2 && Util.compareUnsigned(s2, lastKey) <= 0) { // s2 <= lastKey
+      final int containerLast = (s2 == lastKey) ? lastSize : Util.maxLowBitAsInteger();
+      if (s2 == other.highLowContainer.getKeyAtIndex(pos2)) {
+        final Container c2 = other.highLowContainer.getContainerAtIndex(pos2);
+        Container c = new RunContainer().iorNot(c2, containerLast + 1);
+        dest.highLowContainer.append(s2, c);
+        pos2++;
+      } else {
+        dest.highLowContainer.append(s2, Container.rangeOfOnes(0, containerLast + 1));
+      }
+      s2++;
+    }
+    return s2;
+  }
+
+  /*
+   * Handle the remaining holes.
+   * A full container should be appended for each key.
+   */
+  private static void orNotHandleRemainingHoles(
+          RoaringBitmap dest, short s2, short lastKey, int lastSize) {
+    while (Util.compareUnsigned(s2, lastKey) < 0) { // s2 < lastKey
+      dest.highLowContainer.append(s2, RunContainer.full());
+      s2++;
+    }
+    if (s2 == lastKey) {
+      dest.highLowContainer.append(s2, Container.rangeOfOnes(0, lastSize + 1));
+    }
+  }
+
+  /**
+   * In-place bitwise ORNOT operation. The current bitmap is modified.
+   *
+   * @param other the other bitmap
+   * @param rangeEnd end point of the range (exclusive)
+   */
+  public void orNot(final RoaringBitmap other, long rangeEnd) {
+    rangeSanityCheck(0, rangeEnd);
+
+    int pos1 = 0, pos2 = 0;
+    int length1 = highLowContainer.size();
+    final int length2 = other.highLowContainer.size();
+
+    final short lastKey = Util.highbits(rangeEnd - 1);
+    final int lastSize = Util.toIntUnsigned(Util.lowbits(rangeEnd - 1));
+
+    short s2 = 0;
+    boolean loopedAtleastOnce = (length1 > 0 && length2 > 0
+            && Util.compareUnsigned((short) 0, lastKey) <= 0);
+    while (pos1 < length1 && pos2 < length2
+            && Util.compareUnsigned(s2, lastKey) <= 0) { // s2 <= lastKey
+      final short s1 = highLowContainer.getKeyAtIndex(pos1);
+      final int containerLast = (s2 == lastKey) ? lastSize : Util.maxLowBitAsInteger();
+
+      if (s1 == s2) {
+        final Container c1 = highLowContainer.getContainerAtIndex(pos1);
+        if (s2 == other.highLowContainer.getKeyAtIndex(pos2)) {
+          final Container c2 = other.highLowContainer.getContainerAtIndex(pos2);
+          final Container c = c1.iorNot(c2, containerLast + 1);
+          highLowContainer.replaceKeyAndContainerAtIndex(pos1, s1, c);
+          pos2++;
+        } else {
+          highLowContainer.replaceKeyAndContainerAtIndex(pos1, s1,
+                  Container.rangeOfOnes(0, containerLast + 1));
+        }
+        pos1++;
+        s2++;
+      } else if (Util.compareUnsigned(s1, s2) > 0) { // s1 > s2
+        if (s2 == other.highLowContainer.getKeyAtIndex(pos2)) {
+          final Container c2 = other.highLowContainer.getContainerAtIndex(pos2);
+          Container c = new RunContainer().iorNot(c2, containerLast + 1);
+          highLowContainer.insertNewKeyValueAt(pos1, s2, c);
+          pos2++;
+        } else {
+          highLowContainer.insertNewKeyValueAt(pos1, s2,
+                  Container.rangeOfOnes(0, containerLast + 1));
+        }
+        // Move forward because we inserted an element in the container.
+        pos1++;
+        length1++;
+        s2++;
+      } else { // s1 < s2
+        throw new IllegalStateException("This is a bug. Please report to github");
+      }
+    }
+
+    // s2 == 0  means either that the bitmap is empty or that we wrapped around.
+    // In both cases, we want to stop
+    boolean loopHasWrapped = loopedAtleastOnce && (s2 == 0);
+    if (!loopHasWrapped && Util.compareUnsigned(s2, lastKey) <= 0) { // s2 <= lastKey
+      short newS2;
+      if (pos1 < length1) {
+        //all the "other" arrays were treated. Handle self containers.
+        newS2 = orNotHandleRemainingSelfContainers(this, this, pos1, length1, s2,
+                lastKey, lastSize, true);
+
+      } else {
+        // all the original arrays were treated.
+        // We just need to iterate on the rest of the other arrays while handling holes.
+        newS2 = orNotHandleRemainingOtherContainers(other, this, pos2, length2, s2,
+                lastKey, lastSize);
+      }
+      // Check that we didnt wrap around
+      if (!(Util.compareUnsigned(newS2, s2) < 0)) {
+        orNotHandleRemainingHoles(this, newS2, lastKey, lastSize);
+      }
+    }
+  }
 
 
+  private static RoaringBitmap doOrNot(
+          final RoaringBitmap rb1, final RoaringBitmap rb2, long rangeEnd) {
+    final RoaringBitmap answer = new RoaringBitmap();
+
+    int pos1 = 0, pos2 = 0;
+    int length1 = rb1.highLowContainer.size();
+    final int length2 = rb2.highLowContainer.size();
+
+    final short lastKey = Util.highbits(rangeEnd - 1);
+    final int lastSize = Util.toIntUnsigned(Util.lowbits(rangeEnd - 1));
+
+    short s2 = 0;
+    boolean loopedAtleastOnce = (length1 > 0 && length2 > 0
+            && Util.compareUnsigned((short) 0, lastKey) <= 0);
+    while (pos1 < length1 && pos2 < length2
+            && Util.compareUnsigned(s2, lastKey) <= 0) { // s2 <= lastKey
+      final short s1 = rb1.highLowContainer.getKeyAtIndex(pos1);
+      final int containerLast = (s2 == lastKey) ? lastSize : Util.maxLowBitAsInteger();
+
+      if (s1 == s2) {
+        final Container c1 = rb1.highLowContainer.getContainerAtIndex(pos1);
+        if (s2 == rb2.highLowContainer.getKeyAtIndex(pos2)) {
+          final Container c2 = rb2.highLowContainer.getContainerAtIndex(pos2);
+          final Container c = c1.orNot(c2, containerLast + 1);
+          answer.highLowContainer.append(s1, c);
+          pos2++;
+        } else {
+          answer.highLowContainer.append(s1,
+                  Container.rangeOfOnes(0, containerLast + 1));
+        }
+        pos1++;
+        s2++;
+      } else if (Util.compareUnsigned(s1, s2) > 0) { // s1 > s2
+        if (s2 == rb2.highLowContainer.getKeyAtIndex(pos2)) {
+          final Container c2 = rb2.highLowContainer.getContainerAtIndex(pos2);
+          Container c = new RunContainer().orNot(c2, containerLast + 1);
+          answer.highLowContainer.append(s2, c);
+          pos2++;
+        } else {
+          answer.highLowContainer.append(s2,
+                  Container.rangeOfOnes(0, containerLast + 1));
+        }
+        s2++;
+      } else { // s1 < s2
+        throw new IllegalStateException("This is a bug. Please report to github");
+      }
+    }
+
+    boolean loopHasWrapped = loopedAtleastOnce && (s2 == 0);
+    if (!loopHasWrapped && Util.compareUnsigned(s2, lastKey) <= 0) { // s2 <= lastKey
+      short newS2;
+      if (pos1 < length1) {
+        //all the "other" arrays were treated. Handle self containers.
+        answer.highLowContainer.extendArray(lastKey + 1);
+        newS2 = orNotHandleRemainingSelfContainers(rb1, answer, pos1, length1, s2,
+                lastKey, lastSize, false);
+      } else {
+        // all the original arrays were treated.
+        // We just need to iterate on the rest of the other arrays while handling holes.
+        newS2 = orNotHandleRemainingOtherContainers(rb2, answer, pos2, length2, s2,
+                lastKey, lastSize);
+      }
+      // Check that we didnt wrap around
+      if (!(Util.compareUnsigned(newS2, s2) < 0)) {
+        orNotHandleRemainingHoles(answer, newS2, lastKey, lastSize);
+      }
+
+    }
+    return answer;
+  }
+
+  /**
+   * Bitwise ORNOT operation for the given range, rangeStart (inclusive) and rangeEnd
+   * (exclusive).
+   * The provided bitmaps are *not* modified. This operation is thread-safe as long as
+   * the provided bitmaps remain unchanged.
+   *
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @param rangeEnd end point of the range (exclusive)
+   * @return result of the operation
+   */
+  public static RoaringBitmap orNot(
+          final RoaringBitmap x1, final RoaringBitmap x2, long rangeEnd) {
+    rangeSanityCheck(0, rangeEnd);
+
+    final RoaringBitmap rb1 = selectRangeWithoutCopy(x1, 0, rangeEnd);
+    final RoaringBitmap rb2 = selectRangeWithoutCopy(x2, 0, rangeEnd);
+
+    return doOrNot(rb1, rb2, rangeEnd);
+  }
 
 
 
