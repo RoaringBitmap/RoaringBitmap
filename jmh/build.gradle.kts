@@ -65,10 +65,12 @@ tasks.test {
 // so instead, we configure the shadowJar task to have JMH bits in it
 tasks.shadowJar {
     archiveBaseName.set("benchmarks")
+    archiveVersion.set("")
     archiveClassifier.set("")
 
     manifest {
         attributes(Pair("Main-Class", "org.openjdk.jmh.Main"))
+        attributes(Pair("Multi-Release", "true"))
     }
 
     // include dependencies
