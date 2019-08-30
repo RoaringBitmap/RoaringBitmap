@@ -436,7 +436,7 @@ Benchmark
 
 To run JMH benchmarks, use the following command:
 
-         $ ./gradlew jmh
+         $ ./gradlew jmhJar
 
 You can also run specific benchmarks...
 
