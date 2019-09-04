@@ -390,6 +390,40 @@ public class Fuzzer {
             });
   }
 
+  @Test
+  public void orNot() {
+    verifyInvariance("orNot", ITERATIONS,1 << 9,
+            (RoaringBitmap l, RoaringBitmap r) -> {
+              RoaringBitmap x = l.clone();
+              long max = (x.last() & 0xFFFFFFFFL) + 1;
+              x.orNot(r, max);
+              return x;
+            },
+            (RoaringBitmap l, RoaringBitmap r) -> {
+              RoaringBitmap range = new RoaringBitmap();
+              long limit = toUnsignedLong(l.last()) + 1;
+              range.add(0, limit);
+              RoaringBitmap rightFlipped = RoaringBitmap.and(r, range);
+              rightFlipped.flip(0, limit);
+              return RoaringBitmap.or(RoaringBitmap.and(l, range), rightFlipped);
+            });
+  }
+
+  @Test
+  public void orNotStatic() {
+    verifyInvariance("orNot", ITERATIONS,1 << 9,
+            (RoaringBitmap l, RoaringBitmap r) -> {
+              RoaringBitmap x = l.clone();
+              long max = (x.last() & 0xFFFFFFFFL) + 1;
+              x.orNot(r, max);
+              return x;
+            },
+            (RoaringBitmap l, RoaringBitmap r) -> {
+              RoaringBitmap x = l.clone();
+              long max = (x.last() & 0xFFFFFFFFL) + 1;
+              return RoaringBitmap.orNot(l, r, max);
+            });
+  }
 
   @Test
   public void absentValuesConsistentWithBitSet() {

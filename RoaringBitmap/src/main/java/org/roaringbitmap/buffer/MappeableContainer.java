@@ -176,6 +176,60 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
 
   public abstract MappeableContainer andNot(MappeableRunContainer x);
 
+
+  /**
+   * Computes the bitwise ORNOT of this container with another. This container as well
+   * as the provided container are left unaffected.
+   *
+   * @param x other container
+   * @param endOfRange the exclusive end
+   * @return aggregated container
+   */
+  public MappeableContainer orNot(MappeableArrayContainer x, int endOfRange){
+    return or(x.not(0, endOfRange)).and(MappeableRunContainer.rangeOfOnes(0, endOfRange));
+  }
+
+  /**
+   * Computes the bitwise ORNOT of this container with another. This container as well
+   * as the provided container are left unaffected.
+   *
+   * @param x other container
+   * @param endOfRange the exclusive end
+   * @return aggregated container
+   */
+  public MappeableContainer orNot(MappeableBitmapContainer x, int endOfRange) {
+    return or(x.not(0, endOfRange)).and(MappeableRunContainer.rangeOfOnes(0, endOfRange));
+  }
+
+  /**
+   * Computes the bitwise ORNOT of this container with another. This container as well
+   * as the provided container are left unaffected.
+   *
+   * @param x other container
+   * @param endOfRange the exclusive end
+   * @return aggregated container
+   */
+  public MappeableContainer orNot(MappeableRunContainer x, int endOfRange) {
+    return or(x.not(0, endOfRange)).and(MappeableRunContainer.rangeOfOnes(0, endOfRange));
+  }
+
+  /**
+   * Computes the bitwise ORNOT of this container with another. This container as well
+   * as the provided container are left unaffected.
+   *
+   * @param x other container
+   * @return aggregated container
+   */
+  public MappeableContainer orNot(MappeableContainer x, int endOfRange) {
+    if (x instanceof MappeableArrayContainer) {
+      return orNot((MappeableArrayContainer) x, endOfRange);
+    } else if (x instanceof MappeableBitmapContainer) {
+      return orNot((MappeableBitmapContainer) x, endOfRange);
+    }
+    return orNot((MappeableRunContainer) x, endOfRange);
+  }
+
+
   /**
    * Empties the container
    */
@@ -286,7 +340,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
   /**
    * Name of the various possible containers
    */
-  public static String ContainerNames[] = {"mappeablebitmap","mappeablearray","mappeablerun"};
+  public static String[] ContainerNames = {"mappeablebitmap","mappeablearray","mappeablerun"};
 
   /**
    * Iterator to visit the short values in the container in descending order.

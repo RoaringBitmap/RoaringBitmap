@@ -428,6 +428,175 @@ public class ImmutableRoaringBitmap
     return answer;
   }
 
+  /*
+   * Handle the orNot operations for the remaining containers in the Bitmap.
+   * This is done by iterating over the remaining containers while treating the holes
+   * (from s2 till lastKey)
+   *
+   * For each iteration Two cases here:
+   * 1. either we have a existing container. In this case, we replace it by a full.
+   * 2. or there is no container. In this case, we insert a full one.
+   *
+   * Note that, at this stage, all the other bitmap containers were treated.
+   * That's why we only have to handle the .
+   */
+
+  private static short orNotHandleRemainingSelfContainers(
+          ImmutableRoaringBitmap src, MutableRoaringBitmap dest, int pos1, int length1, short s2,
+          short lastKey, int lastSize) {
+    while (pos1 < length1 && Util.compareUnsigned(s2, lastKey) <= 0) { // s2 <= lastKey
+      final short s1 = src.highLowContainer.getKeyAtIndex(pos1);
+      final int containerLast = (s2 == lastKey) ? lastSize : BufferUtil.maxLowBitAsInteger();
+      MappeableContainer c2 = MappeableContainer.rangeOfOnes(0, containerLast + 1);
+
+      if (s1 == s2) {
+        final MappeableContainer c1 = src.highLowContainer.getContainerAtIndex(pos1);
+        // If we re not at the last container, just use the full container.
+        // Otherwise, compute an in-place or.
+        final MappeableContainer c = (s2 == lastKey) ? (c1.or(c2)) : c2;
+        dest.getMappeableRoaringArray().append(s1, c);
+        pos1++;
+        s2++;
+      } else if (Util.compareUnsigned(s1, s2) > 0) { // s1 > s2
+        dest.getMappeableRoaringArray().append(s2, c2);
+        s2++;
+      } else { // s1 < s2
+        throw new IllegalStateException("This is a bug. Please report to github");
+      }
+    }
+    return s2;
+  }
+
+  /*
+   * Handle the orNot operations for the remaining containers in the other Bitmap.
+   * Two cases here:
+   * 1. either we have a hole. In this case, a full container should be appended.
+   * 2. or we have a container. an inplace orNot is applied and the result is appended.
+   *
+   * Note that, at this stage, all the own containers were treated.
+   * That's why we only have to append.
+   */
+  private static short orNotHandleRemainingOtherContainers(
+          final ImmutableRoaringBitmap other, final MutableRoaringBitmap dest, int pos2,
+          int length2, short s2, short lastKey, int lastSize) {
+    while (pos2 < length2 && Util.compareUnsigned(s2, lastKey) <= 0) { // s2 <= lastKey
+      final int containerLast = (s2 == lastKey) ? lastSize : BufferUtil.maxLowBitAsInteger();
+      if (s2 == other.highLowContainer.getKeyAtIndex(pos2)) {
+        final MappeableContainer c2 = other.highLowContainer.getContainerAtIndex(pos2);
+        MappeableContainer c = new MappeableRunContainer().orNot(c2, containerLast + 1);
+        dest.getMappeableRoaringArray().append(s2, c);
+        pos2++;
+      } else {
+        dest.getMappeableRoaringArray().append(s2,
+                MappeableRunContainer.rangeOfOnes(0, containerLast + 1));
+      }
+      s2++;
+    }
+    return s2;
+  }
+
+  /*
+   * Handle the remaining holes.
+   * A full container should be appended for each key.
+   */
+  private static void orNotHandleRemainingHoles(
+          MutableRoaringBitmap dest, short s2, short lastKey, int lastSize) {
+    while (Util.compareUnsigned(s2, lastKey) < 0) { // s2 < lastKey
+      dest.getMappeableRoaringArray().append(s2, MappeableRunContainer.full());
+      s2++;
+    }
+    if (s2 == lastKey) {
+      dest.getMappeableRoaringArray().append(s2,
+              MappeableRunContainer.rangeOfOnes(0, lastSize + 1));
+    }
+  }
+
+  /**
+   * Bitwise ORNOT operation. The provided bitmaps are *not* modified. This operation
+   * is thread-safe as long as the provided bitmaps remain unchanged.
+   *
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @param rangeEnd exclusive ending of range
+   * @return result of the operation
+   */
+  public static MutableRoaringBitmap orNot(final ImmutableRoaringBitmap x1,
+                                            final ImmutableRoaringBitmap x2,
+                                            final long rangeEnd) {
+
+    MutableRoaringBitmap.rangeSanityCheck(0, rangeEnd);
+    ImmutableRoaringBitmap rb1 = selectRangeWithoutCopy(x1, 0, rangeEnd);
+    ImmutableRoaringBitmap rb2 = selectRangeWithoutCopy(x2, 0, rangeEnd);
+
+    final MutableRoaringBitmap answer = new MutableRoaringBitmap();
+
+    int pos1 = 0, pos2 = 0;
+    int length1 = rb1.highLowContainer.size();
+    final int length2 = rb2.highLowContainer.size();
+
+    final short lastKey = BufferUtil.highbits(rangeEnd - 1);
+    final int lastSize = BufferUtil.toIntUnsigned(BufferUtil.lowbits(rangeEnd - 1));
+
+    short s2 = 0;
+    boolean loopedAtleastOnce = (length1 > 0 && length2 > 0
+            && Util.compareUnsigned((short) 0, lastKey) <= 0);
+    while (pos1 < length1 && pos2 < length2
+            && Util.compareUnsigned(s2, lastKey) <= 0) { // s2 <= lastKey
+      final short s1 = rb1.highLowContainer.getKeyAtIndex(pos1);
+      final int containerLast = (s2 == lastKey) ? lastSize : BufferUtil.maxLowBitAsInteger();
+
+      if (s1 == s2) {
+        final MappeableContainer c1 = rb1.highLowContainer.getContainerAtIndex(pos1);
+        if (s2 == rb2.highLowContainer.getKeyAtIndex(pos2)) {
+          final MappeableContainer c2 = rb2.highLowContainer.getContainerAtIndex(pos2);
+          final MappeableContainer c = c1.orNot(c2, containerLast + 1);
+          answer.getMappeableRoaringArray().append(s1, c);
+          pos2++;
+        } else {
+          answer.getMappeableRoaringArray().append(s1,
+                  MappeableRunContainer.rangeOfOnes(0, containerLast + 1));
+        }
+        pos1++;
+        s2++;
+      } else if (Util.compareUnsigned(s1, s2) > 0) { // s1 > s2
+        if (s2 == rb2.highLowContainer.getKeyAtIndex(pos2)) {
+          final MappeableContainer c2 = rb2.highLowContainer.getContainerAtIndex(pos2);
+          MappeableContainer c = new MappeableRunContainer().orNot(c2, containerLast + 1);
+          answer.getMappeableRoaringArray().append(s2, c);
+          pos2++;
+        } else {
+          answer.getMappeableRoaringArray().append(s2,
+                  MappeableRunContainer.rangeOfOnes(0, containerLast + 1));
+        }
+        s2++;
+      } else { // s1 < s2
+        throw new IllegalStateException("This is a bug. Please report to github");
+      }
+    }
+
+    boolean loopHasWrapped = loopedAtleastOnce && (s2 == 0);
+    if (!loopHasWrapped && Util.compareUnsigned(s2, lastKey) <= 0) { // s2 <= lastKey
+      short newS2;
+      if (pos1 < length1) {
+        //all the "other" arrays were treated. Handle self containers.
+        answer.getMappeableRoaringArray().extendArray(lastKey + 1);
+        newS2 = orNotHandleRemainingSelfContainers(rb1, answer, pos1, length1, s2,
+                lastKey, lastSize);
+      } else {
+        // all the original arrays were treated.
+        // We just need to iterate on the rest of the other arrays while handling holes.
+        newS2 = orNotHandleRemainingOtherContainers(rb2, answer, pos2, length2, s2,
+                lastKey, lastSize);
+      }
+      // Check that we didnt wrap around
+      if (!(Util.compareUnsigned(newS2, s2) < 0)) {
+        orNotHandleRemainingHoles(answer, newS2, lastKey, lastSize);
+      }
+
+    }
+    return answer;
+  }
+
   /**
    * Generate a bitmap with the specified values set to true. The provided integers values don't
    * have to be in sorted order, but it may be preferable to sort them from a performance point of
