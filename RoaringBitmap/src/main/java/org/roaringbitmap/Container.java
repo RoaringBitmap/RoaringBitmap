@@ -181,6 +181,58 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
   public abstract Container andNot(RunContainer x);
 
   /**
+   * Computes the bitwise ORNOT of this container with another. This container as well
+   * as the provided container are left unaffected.
+   *
+   * @param x other container
+   * @param endOfRange the exclusive end
+   * @return aggregated container
+   */
+  public Container orNot(ArrayContainer x, int endOfRange){
+    return or(x.not(0, endOfRange)).and(RunContainer.rangeOfOnes(0, endOfRange));
+  }
+
+  /**
+   * Computes the bitwise ORNOT of this container with another. This container as well
+   * as the provided container are left unaffected.
+   *
+   * @param x other container
+   * @param endOfRange the exclusive end
+   * @return aggregated container
+   */
+  public Container orNot(BitmapContainer x, int endOfRange) {
+    return or(x.not(0, endOfRange)).and(RunContainer.rangeOfOnes(0, endOfRange));
+  }
+
+  /**
+   * Computes the bitwise ORNOT of this container with another. This container as well
+   * as the provided container are left unaffected.
+   *
+   * @param x other container
+   * @param endOfRange the exclusive end
+   * @return aggregated container
+   */
+  public Container orNot(RunContainer x, int endOfRange) {
+    return or(x.not(0, endOfRange)).and(RunContainer.rangeOfOnes(0, endOfRange));
+  }
+
+  /**
+   * Computes the bitwise ORNOT of this container with another. This container as well
+   * as the provided container are left unaffected.
+   *
+   * @param x other container
+   * @return aggregated container
+   */
+  public Container orNot(Container x, int endOfRange) {
+    if (x instanceof ArrayContainer) {
+      return orNot((ArrayContainer) x, endOfRange);
+    } else if (x instanceof BitmapContainer) {
+      return orNot((BitmapContainer) x, endOfRange);
+    }
+    return orNot((RunContainer) x, endOfRange);
+  }
+
+  /**
    * Empties the container
    */
   public abstract void clear();
@@ -448,6 +500,66 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    * @return aggregated container
    */
   public abstract Container iandNot(RunContainer x);
+
+  /**
+   * Computes the in-place bitwise ORNOT of this container with another. The current
+   * container is generally modified, whereas the provided container (x) is unaffected. May generate
+   * a new container.
+   *
+   * @param x other container
+   * @param endOfRange the exclusive end
+   * @return aggregated container
+   */
+  public Container iorNot(ArrayContainer x, int endOfRange) {
+    return or(x.not(0, endOfRange)).and(RunContainer.rangeOfOnes(0, endOfRange));
+  }
+
+
+  /**
+   * Computes the in-place bitwise ORNOT of this container with another. The current
+   * container is generally modified, whereas the provided container (x) is unaffected. May generate
+   * a new container.
+   *
+   * @param x other container
+   * @param endOfRange the exclusive end
+   * @return aggregated container
+   */
+  public Container iorNot(BitmapContainer x, int endOfRange) {
+    return or(x.not(0, endOfRange)).and(RunContainer.rangeOfOnes(0, endOfRange));
+  }
+
+  /**
+   * Computes the in-place bitwise ORNOT of this container with another. The current
+   * container is generally modified, whereas the provided container (x) is unaffected. May generate
+   * a new container.
+   *
+   * @param x other container
+   * @param endOfRange the exclusive end
+   * @return aggregated container
+   */
+  public Container iorNot(RunContainer x, int endOfRange) {
+    return or(x.not(0, endOfRange)).and(RunContainer.rangeOfOnes(0, endOfRange));
+  }
+
+  /**
+   * Computes the in-place bitwise ORNOT of this container with another. The current
+   * container is generally modified, whereas the provided container (x) is unaffected. May generate
+   * a new container.
+   *
+   * @param x other container
+   * @param endOfRange the exclusive end
+   * @return aggregated container
+   */
+  public Container iorNot(Container x, int endOfRange) {
+    if (x instanceof ArrayContainer) {
+      return iorNot((ArrayContainer) x, endOfRange);
+    } else if (x instanceof BitmapContainer) {
+      return iorNot((BitmapContainer) x, endOfRange);
+    }
+    return iorNot((RunContainer) x, endOfRange);
+  }
+
+
 
 
   /**

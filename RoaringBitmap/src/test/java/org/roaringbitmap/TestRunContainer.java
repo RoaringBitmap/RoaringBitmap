@@ -1325,6 +1325,178 @@ public class TestRunContainer {
     rc.ior(ac);
     assertEquals(512, rc.getCardinality());
   }
+  @Test
+  public void iorNot() {
+    Container rc1 = new RunContainer();
+    Container rc2 = new ArrayContainer();
+
+    rc1.iadd(257, 258);
+    rc2.iadd(128, 256);
+    rc1 = rc1.iorNot(rc2, 258);
+    assertEquals(130, rc1.getCardinality());
+
+    PeekableShortIterator iterator = rc1.getShortIterator();
+    for (int i = 0; i < 128; i++) {
+      assertTrue(iterator.hasNext());
+      assertEquals(i, iterator.next());
+    }
+    assertTrue(iterator.hasNext());
+    assertEquals(256, iterator.next());
+
+    assertTrue(iterator.hasNext());
+    assertEquals(257, iterator.next());
+
+    assertFalse(iterator.hasNext());
+  }
+
+  @Test
+  public void iorNot2() {
+    Container rc1 = new RunContainer();
+    Container rc2 = new ArrayContainer();
+    rc2.iadd(128, 256).iadd(257, 260);
+    rc1 = rc1.iorNot(rc2, 261);
+    assertEquals(130, rc1.getCardinality());
+
+    PeekableShortIterator iterator = rc1.getShortIterator();
+    for (int i = 0; i < 128; i++) {
+      assertTrue(iterator.hasNext());
+      assertEquals(i, iterator.next());
+    }
+    assertTrue(iterator.hasNext());
+    assertEquals(256, iterator.next());
+
+    assertTrue(iterator.hasNext());
+    assertEquals(260, iterator.next());
+
+    assertFalse(iterator.hasNext());
+  }
+
+  @Test
+  public void iorNot3() {
+    Container rc1 = new RunContainer();
+    Container rc2 = new BitmapContainer();
+
+    rc1.iadd(257, 258);
+    rc2.iadd(128, 256);
+    rc1 = rc1.iorNot(rc2, 258);
+    assertEquals(130, rc1.getCardinality());
+
+    PeekableShortIterator iterator = rc1.getShortIterator();
+    for (int i = 0; i < 128; i++) {
+      assertTrue(iterator.hasNext());
+      assertEquals(i, iterator.next());
+    }
+    assertTrue(iterator.hasNext());
+    assertEquals(256, iterator.next());
+
+    assertTrue(iterator.hasNext());
+    assertEquals(257, iterator.next());
+
+    assertFalse(iterator.hasNext());
+  }
+
+  @Test
+  public void iorNot4() {
+    Container rc1 = new RunContainer();
+    Container rc2 = new RunContainer();
+
+    rc1.iadd(257, 258);
+    rc2.iadd(128, 256);
+    rc1 = rc1.iorNot(rc2, 258);
+    assertEquals(130, rc1.getCardinality());
+
+    PeekableShortIterator iterator = rc1.getShortIterator();
+    for (int i = 0; i < 128; i++) {
+      assertTrue(iterator.hasNext());
+      assertEquals(i, iterator.next());
+    }
+    assertTrue(iterator.hasNext());
+    assertEquals(256, iterator.next());
+
+    assertTrue(iterator.hasNext());
+    assertEquals(257, iterator.next());
+
+    assertFalse(iterator.hasNext());
+  }
+
+  @Test
+  public void orNot() {
+    final Container rc1 = new RunContainer();
+
+    {
+      Container rc2 = new ArrayContainer();
+      rc2.iadd(128, 256);
+      Container res = rc1.orNot(rc2, 257);
+      assertEquals(129, res.getCardinality());
+
+      PeekableShortIterator iterator = res.getShortIterator();
+      for (int i = 0; i < 128; i++) {
+        assertTrue(iterator.hasNext());
+        assertEquals(i, iterator.next());
+      }
+      assertTrue(iterator.hasNext());
+      assertEquals(256, iterator.next());
+
+      assertFalse(iterator.hasNext());
+    }
+
+    {
+      Container rc2 = new BitmapContainer();
+      rc2.iadd(128, 256);
+      Container res = rc1.orNot(rc2, 257);
+      assertEquals(129, res.getCardinality());
+
+      PeekableShortIterator iterator = res.getShortIterator();
+      for (int i = 0; i < 128; i++) {
+        assertTrue(iterator.hasNext());
+        assertEquals(i, iterator.next());
+      }
+      assertTrue(iterator.hasNext());
+      assertEquals(256, iterator.next());
+
+      assertFalse(iterator.hasNext());
+    }
+
+    {
+      Container rc2 = new RunContainer();
+      rc2.iadd(128, 256);
+      Container res = rc1.orNot(rc2, 257);
+      assertEquals(129, res.getCardinality());
+
+      PeekableShortIterator iterator = res.getShortIterator();
+      for (int i = 0; i < 128; i++) {
+        assertTrue(iterator.hasNext());
+        assertEquals(i, iterator.next());
+      }
+      assertTrue(iterator.hasNext());
+      assertEquals(256, iterator.next());
+
+      assertFalse(iterator.hasNext());
+    }
+
+  }
+
+  @Test
+  public void orNot2() {
+    Container rc1 = new RunContainer();
+    Container rc2 = new ArrayContainer();
+    rc2.iadd(128, 256).iadd(257, 260);
+    rc1 = rc1.orNot(rc2, 261);
+    assertEquals(130, rc1.getCardinality());
+
+    PeekableShortIterator iterator = rc1.getShortIterator();
+    for (int i = 0; i < 128; i++) {
+      assertTrue(iterator.hasNext());
+      assertEquals(i, iterator.next());
+    }
+    assertTrue(iterator.hasNext());
+    assertEquals(256, iterator.next());
+
+    assertTrue(iterator.hasNext());
+    assertEquals(260, iterator.next());
+
+    assertFalse(iterator.hasNext());
+  }
 
   @Test
   public void iremove1() {
