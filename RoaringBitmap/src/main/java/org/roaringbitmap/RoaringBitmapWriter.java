@@ -139,8 +139,9 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
      */
     @Override
     public RoaringBitmapWriter<T> get() {
+      int capacity = initialCapacity;
       return new ContainerAppender<>(
-              partiallySortValues, () -> createUnderlying(initialCapacity), containerSupplier);
+              partiallySortValues, () -> createUnderlying(capacity), containerSupplier);
     }
 
     private static void sanityCheck(int count) {
@@ -157,7 +158,8 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
 
     @Override
     protected Supplier<MappeableContainer> arraySupplier() {
-      return () -> new MappeableArrayContainer(expectedContainerSize);
+      int size = expectedContainerSize;
+      return () -> new MappeableArrayContainer(size);
     }
 
     @Override
@@ -175,7 +177,8 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
 
     @Override
     protected Supplier<Container> arraySupplier() {
-      return () -> new ArrayContainer(expectedContainerSize);
+      int size = expectedContainerSize;
+      return () -> new ArrayContainer(size);
     }
 
     @Override
@@ -191,8 +194,9 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
     @Override
     public RoaringBitmapWriter<T> get() {
       if (constantMemory) {
+        int capacity = initialCapacity;
         return new ConstantMemoryContainerAppender<>(
-                partiallySortValues, () -> createUnderlying(initialCapacity));
+                partiallySortValues, () -> createUnderlying(capacity));
       }
       return super.get();
     }
