@@ -207,7 +207,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   public static RoaringBitmap addOffset(final RoaringBitmap x, long offset) {
     // we need "offset" to be a long because we want to support values
     // between -0xFFFFFFFF up to +-0xFFFFFFFF
-    long container_offset_long = offset < 0 
+    long container_offset_long = offset < 0
         ? (offset - (1<<16) + 1)  / (1<<16) : offset / (1 << 16);
     if((container_offset_long <= -(1<<16) ) || (container_offset_long >= (1<<16) )) {
       return new RoaringBitmap(); // it is necessarily going to be empty
@@ -222,7 +222,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         int key = Util.toIntUnsigned(x.highLowContainer.getKeyAtIndex(pos));
         key += container_offset;
         if((key >= 0) || (key <= 0xFFFF))  {
-          answer.highLowContainer.append((short)key, 
+          answer.highLowContainer.append((short)key,
               x.highLowContainer.getContainerAtIndex(pos).clone());
         }
       }
@@ -1670,7 +1670,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * Checks if the bitmap contains the range.
    * @param minimum the inclusive lower bound of the range
    * @param supremum the exclusive upper bound of the range
-   * @return whether the bitmap intersects with the range
+   * @return whether the bitmap contains the range
    */
   public boolean contains(long minimum, long supremum) {
     rangeSanityCheck(minimum, supremum);
@@ -1745,7 +1745,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       throw cookie.toIOException();// we convert it to an IOException
     }
   }
-  
+
   /**
    * Deserialize (retrieve) this bitmap.
    * See format specification at https://github.com/RoaringBitmap/RoaringFormatSpec
@@ -1754,13 +1754,13 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    *
    * It is not necessary that limit() on the input ByteBuffer indicates the end of the serialized
    * data.
-   * 
+   *
    * After loading this RoaringBitmap, you can advance to the rest of the data (if there
    * is more) by setting bbf.position(bbf.position() + bitmap.serializedSizeInBytes());
-   * 
+   *
    * Note that the input ByteBuffer is effectively copied (with the slice operation) so you should
    * expect the provided ByteBuffer to remain unchanged.
-   * 
+   *
    * @param bbf the byte buffer (can be mapped, direct, array backed etc.
    * @throws IOException Signals that an I/O exception has occurred.
    */
@@ -1771,7 +1771,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       throw cookie.toIOException();// we convert it to an IOException
     }
   }
-  
+
   @Override
   public boolean equals(Object o) {
     if (o instanceof RoaringBitmap) {
@@ -2397,7 +2397,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
           .getContainerAtIndex(i).rank(Util.lowbits((int)(end - 1)));
       }
     }
-    return size;    
+    return size;
   }
 
 
@@ -2840,7 +2840,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @param rangeEnd exclusive
    * @return new iterator of bitmaps
    */
-  private static Iterator<RoaringBitmap> selectRangeWithoutCopy(final 
+  private static Iterator<RoaringBitmap> selectRangeWithoutCopy(final
       Iterator<? extends RoaringBitmap> bitmaps,
       final long rangeStart, final long rangeEnd) {
     Iterator<RoaringBitmap> bitmapsIterator;

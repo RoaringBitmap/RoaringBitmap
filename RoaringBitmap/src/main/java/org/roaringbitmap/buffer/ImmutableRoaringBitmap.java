@@ -54,7 +54,7 @@ import static org.roaringbitmap.buffer.BufferUtil.*;
  *       MutableRoaringBitmap rr2 = MutableRoaringBitmap.bitmapOf(2, 3, 1010);
  *       ByteArrayOutputStream bos = new ByteArrayOutputStream();
  *       DataOutputStream dos = new DataOutputStream(bos);
- *       // could call "rr1.runOptimize()" and "rr2.runOptimize" if 
+ *       // could call "rr1.runOptimize()" and "rr2.runOptimize" if
  *       // there were runs to compress
  *       rr1.serialize(dos);
  *       rr2.serialize(dos);
@@ -1167,7 +1167,7 @@ public class ImmutableRoaringBitmap
    * Checks if the bitmap contains the range.
    * @param minimum the inclusive lower bound of the range
    * @param supremum the exclusive upper bound of the range
-   * @return whether the bitmap intersects with the range
+   * @return whether the bitmap contains the range
    */
   public boolean contains(long minimum, long supremum) {
     MutableRoaringBitmap.rangeSanityCheck(minimum, supremum);
