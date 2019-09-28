@@ -1427,12 +1427,13 @@ public final class BitmapContainer extends Container implements Cloneable {
   @Override
   public int first() {
     assertNonEmpty(cardinality == 0);
-    int i = 0;
-    while(i < bitmap.length - 1 && bitmap[i] == 0) {
-      ++i; // seek forward
+    int firstNonEmptyWordIndex = ArraysShim.indexOfFirstNonEmptyWord(bitmap);
+    if (-1 == firstNonEmptyWordIndex) { // empty bitmap in lazy state
+      assertNonEmpty(true);
     }
     // sizeof(long) * #empty words at start + number of bits preceding the first bit set
-    return i * 64 + numberOfTrailingZeros(bitmap[i]);
+    long firstNonEmptyWord = bitmap[firstNonEmptyWordIndex];
+    return firstNonEmptyWordIndex * Long.SIZE + numberOfTrailingZeros(firstNonEmptyWord);
   }
 
   @Override

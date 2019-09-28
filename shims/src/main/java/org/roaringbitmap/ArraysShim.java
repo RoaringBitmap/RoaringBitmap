@@ -28,4 +28,19 @@ public class ArraysShim {
     }
     return true;
   }
+
+  /**
+   * Find the index of the first non empty word.
+   *
+   * @param bitmap the bitmap
+   * @return the index of the first non empty word, or -1 if the bitmap is empty
+   */
+  public static int indexOfFirstNonEmptyWord(long[] bitmap) {
+    for (int i = 0; i < bitmap.length; ++i) {
+      if (bitmap[i] != 0) {
+        return i;
+      }
+    }
+    return -1;
+  }
 }

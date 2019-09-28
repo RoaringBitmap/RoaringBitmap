@@ -7,6 +7,8 @@ import java.util.Arrays;
  */
 public class ArraysShim {
 
+  private static final long[] EMPTY = new long[64];
+
   /**
    * Checks if the two arrays are equal within the given range.
    * @param x the first array
@@ -19,5 +21,19 @@ public class ArraysShim {
    */
   public static boolean equals(short[] x, int xmin, int xmax, short[] y, int ymin, int ymax) {
     return Arrays.equals(x, xmin, xmax, y, ymin, ymax);
+  }
+
+  /**
+   * Find the index of the first non empty word
+   *
+   * @param bitmap the bitmap
+   * @return the index of the first non empty word, or -1 if the bitmap is empty
+   */
+  public static int indexOfFirstNonEmptyWord(long[] bitmap) {
+    int firstNonEmpty = -1;
+    for (int i = 0; i < bitmap.length && firstNonEmpty == -1; i += EMPTY.length) {
+      firstNonEmpty = Arrays.mismatch(bitmap, i, i + EMPTY.length, EMPTY, 0, EMPTY.length);
+    }
+    return firstNonEmpty;
   }
 }
