@@ -1107,13 +1107,6 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     return (MutableRoaringArray) highLowContainer;
   }
 
-
-  @Override
-  public int hashCode() {
-    return highLowContainer.hashCode();
-  }
-
-
   /**
    * iterate over the positions of the true values.
    *

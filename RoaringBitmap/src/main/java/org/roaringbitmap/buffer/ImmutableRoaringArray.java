@@ -363,6 +363,28 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
   }
 
+
+  @Override
+  public boolean equals(Object o) {
+    if (o instanceof ImmutableRoaringArray) {
+      ImmutableRoaringArray srb = (ImmutableRoaringArray)o;
+      if (srb.size() != this.size()) {
+        return false;
+      }
+      MappeableContainerPointer cp = this.getContainerPointer();
+      MappeableContainerPointer cpo = srb.getContainerPointer();
+      while(cp.hasContainer() && cpo.hasContainer()) {
+        if(cp.key() != cpo.key()) {
+          return false;
+        }
+        if(!cp.getContainer().equals(cpo.getContainer())) {
+          return false;
+        }
+      }
+    }
+    return false;
+  }
+
   @Override
   public int hashCode() {
     MappeableContainerPointer cp = this.getContainerPointer();
