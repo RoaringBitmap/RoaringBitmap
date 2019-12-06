@@ -1028,7 +1028,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       mergeValuesLength(bIndex, eIndex);
       return this;
 
-    } else if (bIndex < 0 && eIndex >= 0) {
+    } else if (eIndex >= 0) {
       bIndex = -bIndex - 2;
 
       if (bIndex >= 0) {
