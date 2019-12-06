@@ -711,7 +711,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       @Override
       public int compareTo(ContainerPointer o) {
         if (key() != o.key()) {
-          return (key() & 0xFFFF) - (o.key() & 0xFFFF);
+          return key() - o.key();
         }
         return o.getCardinality() - getCardinality();
       }

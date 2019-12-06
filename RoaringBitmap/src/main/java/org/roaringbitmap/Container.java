@@ -4,14 +4,14 @@
 
 package org.roaringbitmap;
 
+import org.roaringbitmap.buffer.MappeableContainer;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.NoSuchElementException;
-
-import org.roaringbitmap.buffer.MappeableContainer;
 
 /**
  * Base container class.

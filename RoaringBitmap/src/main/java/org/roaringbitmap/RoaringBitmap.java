@@ -4,20 +4,14 @@
 
 package org.roaringbitmap;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.Externalizable;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.io.Serializable;
-import java.nio.ByteBuffer;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MappeableContainerPointer;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
+
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import static org.roaringbitmap.RoaringBitmapWriter.writer;
 import static org.roaringbitmap.Util.lowbitsAsInteger;
@@ -1686,8 +1680,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       return false;
     }
 
-    int min = (char)minimum & 0xFFFF;
-    int sup = (char)supremum & 0xFFFF;
+    int min = (char)minimum;
+    int sup = (char)supremum;
     if (firstKey == lastKey) {
       return highLowContainer.getContainerAtIndex(begin).contains(min, sup);
     }

@@ -4,9 +4,12 @@
 
 package org.roaringbitmap.buffer;
 
-import java.nio.*;
-
 import org.roaringbitmap.Util;
+
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.LongBuffer;
 
 import static java.lang.Long.numberOfTrailingZeros;
 
@@ -38,7 +41,7 @@ public final class BufferUtil {
         if(val <= 0xFFFF) {
           low.content.put(low.cardinality++, (char) val);
         } else {
-          high.content.put(high.cardinality++, (char) (val & 0xFFFF));
+          high.content.put(high.cardinality++, (char) val);
         }
       }
       return new MappeableContainer[] {low, high};
@@ -84,10 +87,10 @@ public final class BufferUtil {
             low.smartAppend((char)val,c.getLength(k));
           } else {
             low.smartAppend((char)val,(char)(0xFFFF-val));
-            high.smartAppend((char) 0,(char)(finalval & 0xFFFF));
+            high.smartAppend((char) 0,(char)finalval);
           }
         } else {
-          high.smartAppend((char)(val & 0xFFFF),c.getLength(k));
+          high.smartAppend((char)val,c.getLength(k));
         }
       }
       return new MappeableContainer[] {low, high};
@@ -507,11 +510,11 @@ public final class BufferUtil {
   }
 
   protected static char lowbits(int x) {
-    return (char) (x & 0xFFFF);
+    return (char) x;
   }
 
   protected static char lowbits(long x) {
-    return (char) (x & 0xFFFF);
+    return (char) x;
   }
 
   protected static int lowbitsAsInteger(long x) {

@@ -1245,6 +1245,6 @@ public class TestBitmapContainer {
   }
 
   private static int lower16Bits(int x) {
-    return ((char)x) & 0xFFFF;
+    return (char)x;
   }
 }

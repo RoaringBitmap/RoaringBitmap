@@ -4,13 +4,13 @@
 
 package org.roaringbitmap.buffer;
 
+import org.roaringbitmap.*;
+
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-
-import org.roaringbitmap.*;
 
 import static org.roaringbitmap.Util.toUnsignedLong;
 import static org.roaringbitmap.buffer.BufferUtil.*;
@@ -1185,8 +1185,8 @@ public class ImmutableRoaringBitmap
       return false;
     }
 
-    int min = (char)minimum & 0xFFFF;
-    int sup = (char)supremum & 0xFFFF;
+    int min = (char)minimum;
+    int sup = (char)supremum;
     if (firstKey == lastKey) {
       return highLowContainer.getContainerAtIndex(begin).contains(min, sup);
     }

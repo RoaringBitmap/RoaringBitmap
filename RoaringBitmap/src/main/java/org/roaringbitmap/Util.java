@@ -41,7 +41,7 @@ public final class Util {
         if(val <= 0xFFFF) {
           low.content[low.cardinality++] = (char) val;
         } else {
-          high.content[high.cardinality++] = (char) (val & 0xFFFF);
+          high.content[high.cardinality++] = (char) val;
         }
       }
       return new Container[] {low, high};
@@ -82,10 +82,10 @@ public final class Util {
             low.smartAppend((char)val,input.getLength(k));
           } else {
             low.smartAppend((char)val,(char)(0xFFFF-val));
-            high.smartAppend((char) 0,(char)(finalval & 0xFFFF));
+            high.smartAppend((char) 0,(char)finalval);
           }
         } else {
-          high.smartAppend((char)(val & 0xFFFF),input.getLength(k));
+          high.smartAppend((char)val,input.getLength(k));
         }
       }
       return new Container[] {low, high};
@@ -381,11 +381,11 @@ public final class Util {
   }
 
   protected static char lowbits(int x) {
-    return (char) (x & 0xFFFF);
+    return (char) x;
   }
 
   protected static char lowbits(long x) {
-    return (char) (x & 0xFFFF);
+    return (char) x;
   }
 
 
