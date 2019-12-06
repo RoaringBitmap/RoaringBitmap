@@ -30,7 +30,6 @@ public final class Util {
    * @return return an array made of two containers
    */
   public static  Container[] addOffset(Container source, char offsets) {
-    final int offset = (offsets);
     // could be a whole lot faster, this is a simple implementation
     if(source instanceof ArrayContainer) {
       ArrayContainer c = (ArrayContainer) source;
@@ -38,7 +37,7 @@ public final class Util {
       ArrayContainer high = new ArrayContainer(c.cardinality);
       for(int k = 0; k < c.cardinality; k++) {
         int val =  c.content[k];
-        val += offset;
+        val += (int) (offsets);
         if(val <= 0xFFFF) {
           low.content[low.cardinality++] = (char) val;
         } else {
@@ -52,8 +51,8 @@ public final class Util {
       BitmapContainer high = new BitmapContainer();
       low.cardinality = -1;
       high.cardinality = -1;
-      final int b = offset >>> 6;
-      final int i = offset % 64;
+      final int b = (int) (offsets) >>> 6;
+      final int i = (int) (offsets) % 64;
       if(i == 0) {
         System.arraycopy(c.bitmap, 0, low.bitmap, b, 1024 - b);
         System.arraycopy(c.bitmap, 1024 - b, high.bitmap, 0, b );
@@ -76,7 +75,7 @@ public final class Util {
       RunContainer high = new RunContainer();
       for(int k = 0 ; k < input.nbrruns; k++) {
         int val =  (input.getValue(k));
-        val += offset;
+        val += (int) (offsets);
         int finalval =  val + (input.getLength(k));
         if(val <= 0xFFFF) {
           if(finalval <= 0xFFFF) {
@@ -109,8 +108,7 @@ public final class Util {
     int lower = pos + 1;
 
     // special handling for a possibly common sequential case
-    int imin = (min);
-    if (lower >= length || (array[lower]) >= imin) {
+    if (lower >= length || (array[lower]) >= (int) (min)) {
       return lower;
     }
 
@@ -118,7 +116,7 @@ public final class Util {
     // bootstrap an upper limit
 
     while (lower + spansize < length
-        && (array[lower + spansize]) < imin) {
+        && (array[lower + spansize]) < (int) (min)) {
       spansize *= 2; // hoping for compiler will reduce to
     }
     // shift
@@ -131,7 +129,7 @@ public final class Util {
       return upper;
     }
 
-    if ((array[upper]) < imin) {
+    if ((array[upper]) < (int) (min)) {
       // means array has no item >= min pos = array.length;
       return length;
     }
@@ -146,7 +144,7 @@ public final class Util {
       char arraymid = array[mid];
       if (arraymid == min) {
         return mid;
-      } else if ((arraymid) < imin) {
+      } else if ((arraymid) < (int) (min)) {
         lower = mid;
       } else {
         upper = mid;
@@ -176,10 +174,9 @@ public final class Util {
 
   protected static int branchyUnsignedBinarySearch(final char[] array, final int begin,
       final int end, final char k) {
-    int ikey = (k);
     // next line accelerates the possibly common case where the value would
     // be inserted at the end
-    if ((end > 0) && ((array[end - 1]) < ikey)) {
+    if ((end > 0) && ((array[end - 1]) < (int) (k))) {
       return -end - 1;
     }
     int low = begin;
@@ -188,28 +185,15 @@ public final class Util {
       final int middleIndex = (low + high) >>> 1;
       final int middleValue = (array[middleIndex]);
 
-      if (middleValue < ikey) {
+      if (middleValue < (int) (k)) {
         low = middleIndex + 1;
-      } else if (middleValue > ikey) {
+      } else if (middleValue > (int) (k)) {
         high = middleIndex - 1;
       } else {
         return middleIndex;
       }
     }
     return -(low + 1);
-  }
-
-  /**
-   * Compares the two specified {@code short} values, treating them as unsigned values between
-   * {@code 0} and {@code 2^16 - 1} inclusive.
-   *
-   * @param a the first unsigned {@code short} to compare
-   * @param b the second unsigned {@code short} to compare
-   * @return a negative value if {@code a} is less than {@code b}; a positive value if {@code a} is
-   *         greater than {@code b}; or zero if they are equal
-   */
-  public static int compareUnsigned(char a, char b) {
-    return a - b;
   }
 
   /**
@@ -362,10 +346,9 @@ public final class Util {
   // starts with binary search and finishes with a sequential search
   protected static int hybridUnsignedBinarySearch(final char[] array, final int begin,
       final int end, final char k) {
-    int ikey = k;
     // next line accelerates the possibly common case where the value would
     // be inserted at the end
-    if ((end > 0) && ((array[end - 1]) < ikey)) {
+    if ((end > 0) && ((array[end - 1]) < (int) k)) {
       return -end - 1;
     }
     int low = begin;
@@ -375,9 +358,9 @@ public final class Util {
       final int middleIndex = (low + high) >>> 1;
       final int middleValue = (array[middleIndex]);
 
-      if (middleValue < ikey) {
+      if (middleValue < (int) k) {
         low = middleIndex + 1;
-      } else if (middleValue > ikey) {
+      } else if (middleValue > (int) k) {
         high = middleIndex - 1;
       } else {
         return middleIndex;
@@ -387,8 +370,8 @@ public final class Util {
     int x = low;
     for (; x <= high; ++x) {
       final int val = (array[x]);
-      if (val >= ikey) {
-        if (val == ikey) {
+      if (val >= (int) k) {
+        if (val == (int) k) {
           return x;
         }
         break;
@@ -412,14 +395,6 @@ public final class Util {
 
   protected static int lowbitsAsInteger(long x) {
     return (int)(x & 0xFFFF);
-  }
-
-  protected static long lowbitsAsLong(long x) {
-    return x & 0xFFFF;
-  }
-
-  protected static char maxLowBit() {
-    return (char) 0xFFFF;
   }
 
   protected static int maxLowBitAsInteger() {
@@ -462,7 +437,7 @@ public final class Util {
   public static int select(long w, int j) {
     int seen = 0;
     // Divide 64bit
-    int part = (int) (w & 0xFFFFFFFF);
+    int part = (int) w;
     int n = Integer.bitCount(part);
     if (n <= j) {
       part = (int) (w >>> 32);
@@ -626,14 +601,14 @@ public final class Util {
     char s1 = set1[k1];
     char s2 = set2[k2];
     while (true) {
-      if ((s1) < (s2)) {
+      if (s1 < s2) {
         buffer[pos++] = s1;
         ++k1;
         if (k1 >= length1) {
           break;
         }
         s1 = set1[k1];
-      } else if ((s1) == (s2)) {
+      } else if (s1 == s2) {
         ++k1;
         ++k2;
         if (k1 >= length1) {
@@ -739,7 +714,7 @@ public final class Util {
     char s1 = set1[k1];
     char s2 = set2[k2];
     while (true) {
-      if ((s1) < (s2)) {
+      if (s1 < s2) {
         buffer[pos++] = s1;
         ++k1;
         if (k1 >= length1) {
@@ -747,7 +722,7 @@ public final class Util {
           return pos + length2 - k2;
         }
         s1 = set1[k1];
-      } else if ((s1) == (s2)) {
+      } else if (s1 == s2) {
         ++k1;
         ++k2;
         if (k1 >= length1) {
@@ -818,23 +793,23 @@ public final class Util {
     char s1 = set1[k1];
     char s2 = set2[k2];
     mainwhile: while (true) {
-      if ((s2) < (s1)) {
+      if (s2 < s1) {
         do {
           ++k2;
           if (k2 == length2) {
             break mainwhile;
           }
           s2 = set2[k2];
-        } while ((s2) < (s1));
+        } while (s2 < s1);
       }
-      if ((s1) < (s2)) {
+      if (s1 < s2) {
         do {
           ++k1;
           if (k1 == length1) {
             break mainwhile;
           }
           s1 = set1[k1];
-        } while ((s1) < (s2));
+        } while (s1 < s2);
       } else {
         return true;
       }
@@ -856,7 +831,7 @@ public final class Util {
 
     mainwhile: while (true) {
       int v1 = (s1);
-      int v2 = (s2);
+      int v2 = s2;
       if (v2 < v1) {
         do {
           ++k2;
@@ -864,7 +839,7 @@ public final class Util {
             break mainwhile;
           }
           s2 = set2[k2];
-          v2 = (s2);
+          v2 = s2;
         } while (v2 < v1);
       }
       if (v1 < v2) {
@@ -874,7 +849,7 @@ public final class Util {
             break mainwhile;
           }
           s1 = set1[k1];
-          v1 = (s1);
+          v1 = s1;
         } while (v1 < v2);
       } else {
         // (set2[k2] == set1[k1])
@@ -915,8 +890,8 @@ public final class Util {
     char s2 = set2[k2];
 
     mainwhile: while (true) {
-      int v1 = (s1);
-      int v2 = (s2);
+      int v1 = s1;
+      int v2 = s2;
       if (v2 < v1) {
         do {
           ++k2;
@@ -924,7 +899,7 @@ public final class Util {
             break mainwhile;
           }
           s2 = set2[k2];
-          v2 = (s2);
+          v2 = s2;
         } while (v2 < v1);
       }
       if (v1 < v2) {
@@ -934,7 +909,7 @@ public final class Util {
             break mainwhile;
           }
           s1 = set1[k1];
-          v1 = (s1);
+          v1 = s1;
         } while (v1 < v2);
       } else {
         // (set2[k2] == set1[k1])
@@ -966,14 +941,14 @@ public final class Util {
     char s1 = largeSet[k1];
     char s2 = smallSet[k2];
     while (true) {
-      if ((s1) < (s2)) {
+      if (s1 < s2) {
         k1 = advanceUntil(largeSet, k1, largeLength, s2);
         if (k1 == largeLength) {
           break;
         }
         s1 = largeSet[k1];
       }
-      if ((s2) < (s1)) {
+      if (s2 < s1) {
         ++k2;
         if (k2 == smallLength) {
           break;
@@ -1028,8 +1003,8 @@ public final class Util {
     char s1 = set1[k1];
     char s2 = set2[k2];
     while (true) {
-      int v1 = (s1);
-      int v2 = (s2);
+      int v1 = s1;
+      int v2 = s2;
       if (v1 < v2) {
         buffer[pos++] = s1;
         ++k1;

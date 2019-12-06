@@ -11,8 +11,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.IntStream;
 
-import static org.roaringbitmap.Util.compareUnsigned;
-
 /**
  *
  * These utility methods provide parallel implementations of
@@ -62,7 +60,7 @@ public class BufferParallelAggregation {
      * Creates a collector with the reducer function.
      * @param reducer a function to apply to containers with the same key.
      */
-    public ContainerCollector(Function<List<MappeableContainer>, MappeableContainer> reducer) {
+    ContainerCollector(Function<List<MappeableContainer>, MappeableContainer> reducer) {
       this.reducer = reducer;
     }
 
@@ -75,7 +73,7 @@ public class BufferParallelAggregation {
     public BiConsumer<
             MutableRoaringArray, Map.Entry<Character, List<MappeableContainer>>> accumulator() {
       return (l, r) -> {
-        assert l.size == 0 || compareUnsigned(l.keys[l.size - 1], r.getKey()) < 0;
+        assert l.size == 0 || l.keys[l.size - 1] < r.getKey();
         MappeableContainer container = reducer.apply(r.getValue());
         if (!container.isEmpty()) {
           l.append(r.getKey(), container);
@@ -86,7 +84,7 @@ public class BufferParallelAggregation {
     @Override
     public BinaryOperator<MutableRoaringArray> combiner() {
       return (l, r) -> {
-        assert l.size == 0 || r.size == 0 || compareUnsigned(l.keys[l.size - 1], r.keys[0]) < 0;
+        assert l.size == 0 || r.size == 0 || l.keys[l.size - 1] - r.keys[0] < 0;
         l.append(r);
         return l;
       };

@@ -11,7 +11,6 @@ import java.io.ObjectOutput;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.CharBuffer;
-import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -35,15 +34,14 @@ public final class RunContainer extends Container implements Cloneable {
 
   private static int branchyUnsignedInterleavedBinarySearch(final char[] array, final int begin,
       final int end, final char k) {
-    int ikey = (k);
     int low = begin;
     int high = end - 1;
     while (low <= high) {
       final int middleIndex = (low + high) >>> 1;
       final int middleValue = (array[2 * middleIndex]);
-      if (middleValue < ikey) {
+      if (middleValue < (int) (k)) {
         low = middleIndex + 1;
-      } else if (middleValue > ikey) {
+      } else if (middleValue > (int) (k)) {
         high = middleIndex - 1;
       } else {
         return middleIndex;
@@ -55,16 +53,15 @@ public final class RunContainer extends Container implements Cloneable {
   // starts with binary search and finishes with a sequential search
   private static int hybridUnsignedInterleavedBinarySearch(final char[] array, final int begin,
       final int end, final char k) {
-    int ikey = (k);
     int low = begin;
     int high = end - 1;
     // 16 in the next line matches the size of a cache line
     while (low + 16 <= high) {
       final int middleIndex = (low + high) >>> 1;
       final int middleValue = (array[2 * middleIndex]);
-      if (middleValue < ikey) {
+      if (middleValue < (int) (k)) {
         low = middleIndex + 1;
-      } else if (middleValue > ikey) {
+      } else if (middleValue > (int) (k)) {
         high = middleIndex - 1;
       } else {
         return middleIndex;
@@ -74,8 +71,8 @@ public final class RunContainer extends Container implements Cloneable {
     int x = low;
     for (; x <= high; ++x) {
       final int val = (array[2 * x]);
-      if (val >= ikey) {
-        if (val == ikey) {
+      if (val >= (int) (k)) {
+        if (val == (int) (k)) {
           return x;
         }
         break;
@@ -715,9 +712,7 @@ public final class RunContainer extends Container implements Cloneable {
   private boolean canPrependValueLength(int value, int index) {
     if (index < this.nbrruns) {
       int nextValue = (getValue(index));
-      if (nextValue == value + 1) {
-        return true;
-      }
+      return nextValue == value + 1;
     }
     return false;
   }
@@ -753,9 +748,7 @@ public final class RunContainer extends Container implements Cloneable {
     if (index != -1) {// possible match
       int offset = (x) - (getValue(index));
       int le = (getLength(index));
-      if (offset <= le) {
-        return true;
-      }
+      return offset <= le;
     }
     return false;
   }
@@ -932,7 +925,7 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   // not actually used anywhere, but potentially useful
-  protected void ensureCapacity(int minNbRuns) {
+  void ensureCapacity(int minNbRuns) {
     final int minCapacity = 2 * minNbRuns;
     if (valueslength.length < minCapacity) {
       int newCapacity = valueslength.length;
@@ -1110,7 +1103,7 @@ public final class RunContainer extends Container implements Cloneable {
       mergeValuesLength(bIndex, eIndex);
       return this;
 
-    } else if (bIndex >= 0 && eIndex < 0) {
+    } else if (bIndex >= 0) {
       eIndex = -eIndex - 2;
 
       if (canPrependValueLength(end - 1, eIndex + 1)) {
@@ -1122,7 +1115,7 @@ public final class RunContainer extends Container implements Cloneable {
       mergeValuesLength(bIndex, eIndex);
       return this;
 
-    } else if (bIndex < 0 && eIndex >= 0) {
+    } else if (eIndex >= 0) {
       bIndex = -bIndex - 2;
 
       if (bIndex >= 0) {
@@ -1217,7 +1210,7 @@ public final class RunContainer extends Container implements Cloneable {
     return andNot(x);
   }
 
-  protected Container ilazyor(ArrayContainer x) {
+  Container ilazyor(ArrayContainer x) {
     if (isFull()) {
       return this; // this can sometimes solve a lot of computation!
     }
@@ -1235,7 +1228,7 @@ public final class RunContainer extends Container implements Cloneable {
     this.nbrruns = 0;
     PeekableCharIterator i = x.getShortIterator();
     while (i.hasNext() && (rlepos < nbrruns)) {
-      if (Util.compareUnsigned(getValue(rlepos + offset), i.peekNext()) <= 0) {
+      if (getValue(rlepos + offset) - i.peekNext() <= 0) {
         smartAppend(getValue(rlepos + offset), getLength(rlepos + offset));
         rlepos++;
       } else {
@@ -1482,7 +1475,7 @@ public final class RunContainer extends Container implements Cloneable {
       char runLastValue = (char) (runFirstValue + getLength(i));
 
       if ((runFirstValue) < supremum
-          && Util.compareUnsigned(runLastValue, (char)minimum) >= 0){
+          && runLastValue - (char) minimum >= 0){
         return true;
       }
     }
@@ -1501,7 +1494,7 @@ public final class RunContainer extends Container implements Cloneable {
     this.nbrruns = 0;
     PeekableCharIterator i = x.getShortIterator();
     while (i.hasNext() && (rlepos < nbrruns)) {
-      if (Util.compareUnsigned(getValue(rlepos + offset), i.peekNext()) <= 0) {
+      if (getValue(rlepos + offset) - i.peekNext() <= 0) {
         smartAppend(getValue(rlepos + offset), getLength(rlepos + offset));
         rlepos++;
       } else {
@@ -1559,7 +1552,7 @@ public final class RunContainer extends Container implements Cloneable {
       final char length = this.getLength(offset + rlepos);
       final char xlength = x.getLength(xrlepos);
 
-      if (Util.compareUnsigned(value, xvalue) <= 0) {
+      if (value - xvalue <= 0) {
         this.smartAppend(value, length);
         ++rlepos;
       } else {
@@ -1617,7 +1610,7 @@ public final class RunContainer extends Container implements Cloneable {
         recoverRoomsInRange(bIndex - 1, eIndex); // nothing left in the run
       }
 
-    } else if (bIndex < 0 && eIndex >= 0) {
+    } else if (eIndex >= 0) {
       // start does not coincide to a run start, but end does.
       bIndex = -bIndex - 2;
 
@@ -1808,7 +1801,7 @@ public final class RunContainer extends Container implements Cloneable {
     PeekableCharIterator i = x.getShortIterator();
 
     while (i.hasNext() && (rlepos < this.nbrruns)) {
-      if (Util.compareUnsigned(getValue(rlepos), i.peekNext()) <= 0) {
+      if (getValue(rlepos) - i.peekNext() <= 0) {
         answer.smartAppend(getValue(rlepos), getLength(rlepos));
         // in theory, this next code could help, in practice it doesn't.
         /*
@@ -1857,7 +1850,7 @@ public final class RunContainer extends Container implements Cloneable {
     char cv = i.next();
 
     while (true) {
-      if (Util.compareUnsigned(getValue(rlepos), cv) < 0) {
+      if (getValue(rlepos) < cv) {
         answer.smartAppendExclusive(getValue(rlepos), getLength(rlepos));
         rlepos++;
         if (rlepos == this.nbrruns) {
@@ -1992,7 +1985,7 @@ public final class RunContainer extends Container implements Cloneable {
     int xrlepos = 0;
 
     while ((xrlepos < x.nbrruns) && (rlepos < this.nbrruns)) {
-      if (Util.compareUnsigned(getValue(rlepos), x.getValue(xrlepos)) <= 0) {
+      if (getValue(rlepos) - x.getValue(xrlepos) <= 0) {
         answer.smartAppend(getValue(rlepos), getLength(rlepos));
         rlepos++;
       } else {
@@ -2024,15 +2017,14 @@ public final class RunContainer extends Container implements Cloneable {
 
   @Override
   public int rank(char lowbits) {
-    int x = (lowbits);
     int answer = 0;
     for (int k = 0; k < this.nbrruns; ++k) {
       int value = (getValue(k));
       int length = (getLength(k));
-      if (x < value) {
+      if ((int) (lowbits) < value) {
         return answer;
-      } else if (value + length + 1 > x) {
-        return answer + x - value + 1;
+      } else if (value + length + 1 > (int) (lowbits)) {
+        return answer + (int) (lowbits) - value + 1;
       }
       answer += length + 1;
     }
@@ -2040,7 +2032,7 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   @Override
-  public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+  public void readExternal(ObjectInput in) throws IOException {
     deserialize(in);
   }
 
@@ -2164,7 +2156,7 @@ public final class RunContainer extends Container implements Cloneable {
   private int skipAhead(RunContainer skippingOn, int pos, int targetToExceed) {
     int left = pos;
     int span = 1;
-    int probePos = 0;
+    int probePos;
     int end;
     // jump ahead to find a spot where end > targetToExceed (if it exists)
     do {
@@ -2361,7 +2353,7 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   // convert to bitmap or array *if needed*
-  Container toEfficientContainer() {
+  private Container toEfficientContainer() {
     int sizeAsRunContainer = RunContainer.serializedSizeInBytes(this.nbrruns);
     int sizeAsBitmapContainer = BitmapContainer.serializedSizeInBytes(0);
     int card = this.getCardinality();
@@ -2492,7 +2484,7 @@ public final class RunContainer extends Container implements Cloneable {
     int xrlepos = 0;
 
     while (true) {
-      if (Util.compareUnsigned(getValue(rlepos), x.getValue(xrlepos)) < 0) {
+      if (getValue(rlepos) < x.getValue(xrlepos)) {
         answer.smartAppendExclusive(getValue(rlepos), getLength(rlepos));
         rlepos++;
 
@@ -2552,11 +2544,10 @@ public final class RunContainer extends Container implements Cloneable {
       return first();
     }
     int startValue = (getValue(effectiveIndex));
-    int value = (fromValue);
-    int offset = value - startValue;
+    int offset = (int) (fromValue) - startValue;
     int le = (getLength(effectiveIndex));
     if (offset <= le) {
-      return value;
+      return (int) (fromValue);
     }
     if (effectiveIndex + 1 < numberOfRuns()) {
       return (getValue(effectiveIndex + 1));
@@ -2572,11 +2563,10 @@ public final class RunContainer extends Container implements Cloneable {
       return -1;
     }
     int startValue = (getValue(effectiveIndex));
-    int value = (fromValue);
-    int offset = value - startValue;
+    int offset = (int) (fromValue) - startValue;
     int le = (getLength(effectiveIndex));
     if (offset >= 0 && offset <= le) {
-      return value;
+      return (int) (fromValue);
     }
     return startValue + le;
   }
@@ -2589,10 +2579,9 @@ public final class RunContainer extends Container implements Cloneable {
       return (fromValue);
     }
     int startValue = (getValue(effectiveIndex));
-    int value = (fromValue);
-    int offset = value - startValue;
+    int offset = (int) (fromValue) - startValue;
     int le = (getLength(effectiveIndex));
-    return offset <= le ? startValue + le + 1 : value;
+    return offset <= le ? startValue + le + 1 : (int) (fromValue);
   }
 
   @Override
@@ -2603,10 +2592,9 @@ public final class RunContainer extends Container implements Cloneable {
       return (fromValue);
     }
     int startValue = (getValue(effectiveIndex));
-    int value = (fromValue);
-    int offset = value - startValue;
+    int offset = (int) (fromValue) - startValue;
     int le = (getLength(effectiveIndex));
-    return offset <= le ? startValue - 1 : value;
+    return offset <= le ? startValue - 1 : (int) (fromValue);
   }
 
   @Override
@@ -2730,9 +2718,9 @@ class RunContainerCharIterator implements PeekableCharIterator {
 class RunContainerCharRankIterator extends RunContainerCharIterator
     implements PeekableCharRankIterator {
 
-  int nextRank = 1;
+  private int nextRank = 1;
 
-  public RunContainerCharRankIterator(RunContainer p) {
+  RunContainerCharRankIterator(RunContainer p) {
     super(p);
   }
 
@@ -2786,10 +2774,10 @@ class RunContainerCharRankIterator extends RunContainerCharIterator
 
 final class ReverseRunContainerCharIterator implements CharIterator {
   int pos;
-  int le;
-  RunContainer parent;
-  int maxlength;
-  int base;
+  private int le;
+  private RunContainer parent;
+  private int maxlength;
+  private int base;
 
 
   ReverseRunContainerCharIterator() {}

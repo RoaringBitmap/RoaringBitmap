@@ -8,7 +8,6 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.CharBuffer;
-import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -330,7 +329,7 @@ public final class ArrayContainer extends Container implements Cloneable {
       if(content[i1] == arrayContainer.content[i2]) {
         ++i1;
         ++i2;
-      } else if(Util.compareUnsigned(content[i1], arrayContainer.content[i2]) < 0) {
+      } else if(content[i1] - arrayContainer.content[i2] < 0) {
         ++i1;
       } else {
         return false;
@@ -351,7 +350,7 @@ public final class ArrayContainer extends Container implements Cloneable {
       this.content = new char[this.cardinality];
     }
     for (int k = 0; k < this.cardinality; ++k) {
-      this.content[k] = Character.reverseBytes(in.readChar());;
+      this.content[k] = Character.reverseBytes(in.readChar());
     }
   }
 
@@ -828,7 +827,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     }
   }
 
-  protected void loadData(final BitmapContainer bitmapContainer) {
+  void loadData(final BitmapContainer bitmapContainer) {
     this.cardinality = bitmapContainer.cardinality;
     bitmapContainer.fillArray(content);
   }
@@ -1048,7 +1047,7 @@ public final class ArrayContainer extends Container implements Cloneable {
   }
 
   @Override
-  public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+  public void readExternal(ObjectInput in) throws IOException {
     deserialize(in);
   }
 
@@ -1078,7 +1077,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     return answer;
   }
 
-  protected void removeAtIndex(final int loc) {
+  void removeAtIndex(final int loc) {
     System.arraycopy(content, loc + 1, content, loc, cardinality - loc - 1);
     --cardinality;
   }
@@ -1167,18 +1166,17 @@ public final class ArrayContainer extends Container implements Cloneable {
   @Override
   public int nextAbsentValue(char fromValue) {
     int index = Util.advanceUntil(content, -1, cardinality, fromValue);
-    int value = (fromValue);
     if (index >= cardinality) {
-      return value;
+      return (int) (fromValue);
     }
     if (index == cardinality - 1) {
-      return fromValue == content[cardinality - 1] ? value + 1 : value;
+      return fromValue == content[cardinality - 1] ? (int) (fromValue) + 1 : (int) (fromValue);
     }
     if (content[index] != fromValue) {
-      return value;
+      return (int) (fromValue);
     }
     if (content[index + 1] > fromValue + 1) {
-      return value + 1;
+      return (int) (fromValue) + 1;
     }
 
     int low = index;
@@ -1186,7 +1184,7 @@ public final class ArrayContainer extends Container implements Cloneable {
 
     while (low + 1 < high) {
       int mid = (high + low) >>> 1;
-      if (mid - index < (content[mid]) - value) {
+      if (mid - index < (content[mid]) - (int) (fromValue)) {
         high = mid;
       } else {
         low = mid;
@@ -1198,25 +1196,24 @@ public final class ArrayContainer extends Container implements Cloneable {
     }
 
     assert (content[low]) + 1 < (content[high]);
-    assert (content[low]) == value + (low - index);
+    assert (content[low]) == (int) (fromValue) + (low - index);
     return (content[low]) + 1;
   }
 
   @Override
   public int previousAbsentValue(char fromValue) {
     int index = Util.advanceUntil(content, -1, cardinality, fromValue);
-    int value = (fromValue);
     if (index >= cardinality) {
-      return value;
+      return (int) (fromValue);
     }
     if (index == 0) {
-      return fromValue == content[0] ? value - 1 : value;
+      return fromValue == content[0] ? (int) (fromValue) - 1 : (int) (fromValue);
     }
     if (content[index] != fromValue) {
-      return value;
+      return (int) (fromValue);
     }
     if (content[index - 1] < fromValue - 1) {
-      return value - 1;
+      return (int) (fromValue) - 1;
     }
 
     int low = -1;
@@ -1226,7 +1223,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     // successor
     while (low + 1 < high) {
       int mid = (high + low) >>> 1;
-      if (index - mid < value - (content[mid])) {
+      if (index - mid < (int) (fromValue) - (content[mid])) {
         low = mid;
       } else {
         high = mid;
@@ -1238,7 +1235,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     }
 
     assert (content[low]) + 1 < (content[high]);
-    assert (content[high]) == value - (index - high);
+    assert (content[high]) == (int) (fromValue) - (index - high);
     return (content[high]) - 1;
   }
 
@@ -1406,7 +1403,7 @@ public final class ArrayContainer extends Container implements Cloneable {
 
 final class ArrayContainerCharIterator implements PeekableCharRankIterator {
   int pos;
-  ArrayContainer parent;
+  private ArrayContainer parent;
 
   ArrayContainerCharIterator() {}
 
@@ -1470,7 +1467,7 @@ final class ArrayContainerCharIterator implements PeekableCharRankIterator {
 
 final class ReverseArrayContainerCharIterator implements CharIterator {
   int pos;
-  ArrayContainer parent;
+  private ArrayContainer parent;
 
   ReverseArrayContainerCharIterator() {}
 

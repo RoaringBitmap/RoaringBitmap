@@ -32,10 +32,10 @@ public class TestUtil {
 
     @Test
     public void testCompare() {
-        Assert.assertTrue(Util.compareUnsigned((char)1,(char)2) < 0);
-        Assert.assertTrue(Util.compareUnsigned((char)-32333,(char)2) > 0);
-        Assert.assertTrue(Util.compareUnsigned((char)2, (char)-32333) < 0);
-        Assert.assertTrue(Util.compareUnsigned((char)0,(char)0) ==0);
+      Assert.assertTrue((char) 1 - (char) 2 < 0);
+      Assert.assertTrue((char) -32333 - (char) 2 > 0);
+      Assert.assertTrue((char) 2 - (char) -32333 < 0);
+      Assert.assertTrue((char) 0 - (char) 0 ==0);
 
     }
 

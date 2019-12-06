@@ -10,7 +10,6 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.CharBuffer;
-import java.nio.CharBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -1770,7 +1769,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       if(content.get(i1) == arrayContainer.content.get(i2)) {
         ++i1;
         ++i2;
-      } else if(BufferUtil.compareUnsigned(content.get(i1), arrayContainer.content.get(i2)) < 0) {
+      } else if((content.get(i1)) - (arrayContainer.content.get(i2)) < 0) {
         ++i1;
       } else {
         return false;

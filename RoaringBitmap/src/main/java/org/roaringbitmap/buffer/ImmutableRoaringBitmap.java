@@ -273,7 +273,7 @@ public class ImmutableRoaringBitmap
         }
         ++pos1;
         ++pos2;
-      } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
+      } else if (s1 < s2) { 
         pos1 = x1.highLowContainer.advanceUntil(s2, pos1);
       } else { // s1 > s2
         pos2 = x2.highLowContainer.advanceUntil(s1, pos2);
@@ -307,7 +307,7 @@ public class ImmutableRoaringBitmap
         answer += c1.andCardinality(c2);
         ++pos1;
         ++pos2;
-      } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
+      } else if (s1 < s2) { 
         pos1 = x1.highLowContainer.advanceUntil(s2, pos1);
       } else { // s1 > s2
         pos2 = x2.highLowContainer.advanceUntil(s1, pos2);
@@ -414,7 +414,7 @@ public class ImmutableRoaringBitmap
         }
         ++pos1;
         ++pos2;
-      } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
+      } else if (s1 < s2) { 
         final int nextPos1 = x1.highLowContainer.advanceUntil(s2, pos1);
         answer.getMappeableRoaringArray().appendCopy(x1.highLowContainer, pos1, nextPos1);
         pos1 = nextPos1;
@@ -444,7 +444,7 @@ public class ImmutableRoaringBitmap
   private static char orNotHandleRemainingSelfContainers(
           ImmutableRoaringBitmap src, MutableRoaringBitmap dest, int pos1, int length1, char s2,
           char lastKey, int lastSize) {
-    while (pos1 < length1 && Util.compareUnsigned(s2, lastKey) <= 0) { // s2 <= lastKey
+    while (pos1 < length1 && s2 - lastKey <= 0) { // s2 <= lastKey
       final char s1 = src.highLowContainer.getKeyAtIndex(pos1);
       final int containerLast = (s2 == lastKey) ? lastSize : BufferUtil.maxLowBitAsInteger();
       MappeableContainer c2 = MappeableContainer.rangeOfOnes(0, containerLast + 1);
@@ -457,10 +457,10 @@ public class ImmutableRoaringBitmap
         dest.getMappeableRoaringArray().append(s1, c);
         pos1++;
         s2++;
-      } else if (Util.compareUnsigned(s1, s2) > 0) { // s1 > s2
+      } else if (s1 - s2 > 0) { // s1 > s2
         dest.getMappeableRoaringArray().append(s2, c2);
         s2++;
-      } else { // s1 < s2
+      } else { 
         throw new IllegalStateException("This is a bug. Please report to github");
       }
     }
@@ -479,7 +479,7 @@ public class ImmutableRoaringBitmap
   private static char orNotHandleRemainingOtherContainers(
           final ImmutableRoaringBitmap other, final MutableRoaringBitmap dest, int pos2,
           int length2, char s2, char lastKey, int lastSize) {
-    while (pos2 < length2 && Util.compareUnsigned(s2, lastKey) <= 0) { // s2 <= lastKey
+    while (pos2 < length2 && s2 - lastKey <= 0) { // s2 <= lastKey
       final int containerLast = (s2 == lastKey) ? lastSize : BufferUtil.maxLowBitAsInteger();
       if (s2 == other.highLowContainer.getKeyAtIndex(pos2)) {
         final MappeableContainer c2 = other.highLowContainer.getContainerAtIndex(pos2);
@@ -501,7 +501,7 @@ public class ImmutableRoaringBitmap
    */
   private static void orNotHandleRemainingHoles(
           MutableRoaringBitmap dest, char s2, char lastKey, int lastSize) {
-    while (Util.compareUnsigned(s2, lastKey) < 0) { // s2 < lastKey
+    while (s2 < lastKey) { 
       dest.getMappeableRoaringArray().append(s2, MappeableRunContainer.full());
       s2++;
     }
@@ -539,9 +539,9 @@ public class ImmutableRoaringBitmap
 
     char s2 = 0;
     boolean loopedAtleastOnce = (length1 > 0 && length2 > 0
-            && Util.compareUnsigned((char) 0, lastKey) <= 0);
+            && (char) 0 - lastKey <= 0);
     while (pos1 < length1 && pos2 < length2
-            && Util.compareUnsigned(s2, lastKey) <= 0) { // s2 <= lastKey
+            && s2 - lastKey <= 0) { // s2 <= lastKey
       final char s1 = rb1.highLowContainer.getKeyAtIndex(pos1);
       final int containerLast = (s2 == lastKey) ? lastSize : BufferUtil.maxLowBitAsInteger();
 
@@ -558,7 +558,7 @@ public class ImmutableRoaringBitmap
         }
         pos1++;
         s2++;
-      } else if (Util.compareUnsigned(s1, s2) > 0) { // s1 > s2
+      } else if (s1 - s2 > 0) { // s1 > s2
         if (s2 == rb2.highLowContainer.getKeyAtIndex(pos2)) {
           final MappeableContainer c2 = rb2.highLowContainer.getContainerAtIndex(pos2);
           MappeableContainer c = new MappeableRunContainer().orNot(c2, containerLast + 1);
@@ -569,13 +569,13 @@ public class ImmutableRoaringBitmap
                   MappeableRunContainer.rangeOfOnes(0, containerLast + 1));
         }
         s2++;
-      } else { // s1 < s2
+      } else { 
         throw new IllegalStateException("This is a bug. Please report to github");
       }
     }
 
     boolean loopHasWrapped = loopedAtleastOnce && (s2 == 0);
-    if (!loopHasWrapped && Util.compareUnsigned(s2, lastKey) <= 0) { // s2 <= lastKey
+    if (!loopHasWrapped && s2 - lastKey <= 0) { // s2 <= lastKey
       char newS2;
       if (pos1 < length1) {
         //all the "other" arrays were treated. Handle self containers.
@@ -589,7 +589,7 @@ public class ImmutableRoaringBitmap
                 lastKey, lastSize);
       }
       // Check that we didnt wrap around
-      if (!(Util.compareUnsigned(newS2, s2) < 0)) {
+      if (newS2 >= s2) {
         orNotHandleRemainingHoles(answer, newS2, lastKey, lastSize);
       }
 
@@ -820,7 +820,7 @@ public class ImmutableRoaringBitmap
         }
         ++pos1;
         ++pos2;
-      } else if (Util.compareUnsigned(s1, s2) < 0) { // s1 < s2
+      } else if (s1 < s2) { 
         pos1 = x1.highLowContainer.advanceUntil(s2, pos1);
       } else { // s1 > s2
         pos2 = x2.highLowContainer.advanceUntil(s1, pos2);
@@ -845,7 +845,7 @@ public class ImmutableRoaringBitmap
           if (!i1.hasContainer() || !i2.hasContainer()) {
             break main;
           }
-        } else if (Util.compareUnsigned(i1.key(), i2.key()) < 0) { // i1.key() < i2.key()
+        } else if (i1.key() < i2.key()) {
           answer.getMappeableRoaringArray().appendCopy(i1.key(), i1.getContainer());
           i1.advance();
           if (!i1.hasContainer()) {
@@ -914,7 +914,7 @@ public class ImmutableRoaringBitmap
           if (!i1.hasContainer() || !i2.hasContainer()) {
             break main;
           }
-        } else if (Util.compareUnsigned(i1.key(), i2.key()) < 0) { // i1.key() < i2.key()
+        } else if (i1.key() < i2.key()) {
           answer.getMappeableRoaringArray().appendCopy(i1.key(), i1.getContainer());
           i1.advance();
           if (!i1.hasContainer()) {
@@ -1076,7 +1076,7 @@ public class ImmutableRoaringBitmap
           if (!i1.hasContainer() || !i2.hasContainer()) {
             break main;
           }
-        } else if (Util.compareUnsigned(i1.key(), i2.key()) < 0) { // i1.key() < i2.key()
+        } else if (i1.key() < i2.key()) {
           answer.getMappeableRoaringArray().appendCopy(i1.key(), i1.getContainer());
           i1.advance();
           if (!i1.hasContainer()) {
@@ -1227,7 +1227,7 @@ public class ImmutableRoaringBitmap
         }
         ++pos1;
         ++pos2;
-      } else if (compareUnsigned(s1, s2) > 0) {
+      } else if ((s1) - (s2) > 0) {
         return false;
       } else {
         pos1 = subset.highLowContainer.advanceUntil(s2, pos1);
@@ -1288,7 +1288,7 @@ public class ImmutableRoaringBitmap
         budget -= left.xorCardinality(right);
         ++pos1;
         ++pos2;
-      } else if(Util.compareUnsigned(key1, key2) < 0) {
+      } else if(key1 < key2) {
         budget -= left.getCardinality();
         ++pos1;
       } else {
@@ -1619,10 +1619,9 @@ public class ImmutableRoaringBitmap
     char xhigh = highbits(x);
     for (int i = 0; i < this.highLowContainer.size(); i++) {
       char key = this.highLowContainer.getKeyAtIndex(i);
-      int comparison = Util.compareUnsigned(key, xhigh);
-      if (comparison < 0) {
+      if (key < xhigh) {
         size += this.highLowContainer.getCardinality(i);
-      } else if(comparison == 0) {
+      } else if(key == xhigh) {
         return size + this.highLowContainer.getContainerAtIndex(i).rank(lowbits(x));
       }
     }
@@ -1650,11 +1649,10 @@ public class ImmutableRoaringBitmap
     char xhigh = highbits(end - 1);
     for (int i = startIndex; i < this.highLowContainer.size(); i++) {
       char key = this.highLowContainer.getKeyAtIndex(i);
-      int comparison = compareUnsigned(key, xhigh);
-      if (comparison < 0) {
+      if (key < xhigh) {
         size += this.highLowContainer
           .getContainerAtIndex(i).getCardinality();
-      } else if (comparison == 0) {
+      } else if (key == xhigh) {
         return size + this.highLowContainer
           .getContainerAtIndex(i)
           .rank(lowbits((int)(end - 1)));
@@ -1728,7 +1726,7 @@ public class ImmutableRoaringBitmap
     while (containerIndex < highLowContainer.size() && nextSetBit == -1L) {
       char containerKey = highLowContainer.getKeyAtIndex(containerIndex);
       MappeableContainer container = highLowContainer.getContainerAtIndex(containerIndex);
-      int bit = (compareUnsigned(containerKey, key) > 0
+      int bit = ((containerKey) - (key) > 0
               ? container.first()
               : container.nextValue(lowbits(fromValue)));
       nextSetBit = bit == -1 ? -1L : toUnsignedLong((containerKey << 16) | bit);
@@ -1747,7 +1745,7 @@ public class ImmutableRoaringBitmap
     while (containerIndex != -1 && containerIndex < highLowContainer.size() && prevSetBit == -1L) {
       char containerKey = highLowContainer.getKeyAtIndex(containerIndex);
       MappeableContainer container = highLowContainer.getContainerAtIndex(containerIndex);
-      int bit = (Util.compareUnsigned(containerKey, key) < 0
+      int bit = (containerKey < key
               ? container.last()
               : container.previousValue(lowbits(fromValue)));
       prevSetBit = bit == -1 ? -1L : toUnsignedLong((containerKey << 16) | bit);

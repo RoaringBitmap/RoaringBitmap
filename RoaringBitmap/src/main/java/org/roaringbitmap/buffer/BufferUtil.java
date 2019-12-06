@@ -27,7 +27,6 @@ public final class BufferUtil {
    * @return return an array made of two containers
    */
   public static  MappeableContainer[] addOffset(MappeableContainer source, char offsets) {
-    final int offset = (offsets);
     // could be a whole lot faster, this is a simple implementation
     if(source instanceof MappeableArrayContainer) {
       MappeableArrayContainer c = (MappeableArrayContainer) source;
@@ -35,7 +34,7 @@ public final class BufferUtil {
       MappeableArrayContainer high = new MappeableArrayContainer(c.cardinality);
       for(int k = 0; k < c.cardinality; k++) {
         int val = (c.content.get(k));
-        val += offset;
+        val += (int) (offsets);
         if(val <= 0xFFFF) {
           low.content.put(low.cardinality++, (char) val);
         } else {
@@ -49,8 +48,8 @@ public final class BufferUtil {
       MappeableBitmapContainer high = new MappeableBitmapContainer();
       low.cardinality = -1;
       high.cardinality = -1;
-      final int b = offset >>> 6;
-      final int i = offset % 64;
+      final int b = (int) (offsets) >>> 6;
+      final int i = (int) (offsets) % 64;
       if(i == 0) {
         for(int k = 0; k < 1024 - b; k++) {
           low.bitmap.put(b + k, c.bitmap.get(k));
@@ -78,7 +77,7 @@ public final class BufferUtil {
       MappeableRunContainer high = new MappeableRunContainer();
       for(int k = 0 ; k < c.nbrruns; k++) {
         int val =  (c.getValue(k));
-        val += offset;
+        val += (int) (offsets);
         int finalval =  val + (c.getLength(k));
         if(val <= 0xFFFF) {
           if(finalval <= 0xFFFF) {
@@ -199,9 +198,8 @@ public final class BufferUtil {
 
   protected static int branchyUnsignedBinarySearch(final CharBuffer array, final int begin,
       final int end, final char k) {
-    final int ikey = (k);
     // next line accelerates the possibly common case where the value would be inserted at the end
-    if ((end > 0) && ((array.get(end - 1)) < ikey)) {
+    if ((end > 0) && ((array.get(end - 1)) < (int) (k))) {
       return -end - 1;
     }
     int low = begin;
@@ -210,9 +208,9 @@ public final class BufferUtil {
       final int middleIndex = (low + high) >>> 1;
       final int middleValue = (array.get(middleIndex));
 
-      if (middleValue < ikey) {
+      if (middleValue < (int) (k)) {
         low = middleIndex + 1;
-      } else if (middleValue > ikey) {
+      } else if (middleValue > (int) (k)) {
         high = middleIndex - 1;
       } else {
         return middleIndex;
@@ -224,9 +222,8 @@ public final class BufferUtil {
 
   protected static int branchyUnsignedBinarySearch(final ByteBuffer array, int position,
         final int begin, final int end, final char k) {
-    final int ikey = (k);
     // next line accelerates the possibly common case where the value would be inserted at the end
-    if ((end > 0) && ((array.getChar(position + (end - 1)*2)) < ikey)) {
+    if ((end > 0) && ((array.getChar(position + (end - 1)*2)) < (int) (k))) {
       return -end - 1;
     }
     int low = begin;
@@ -235,28 +232,15 @@ public final class BufferUtil {
       final int middleIndex = (low + high) >>> 1;
       final int middleValue = (array.getChar(position + 2* middleIndex));
 
-      if (middleValue < ikey) {
+      if (middleValue < (int) (k)) {
         low = middleIndex + 1;
-      } else if (middleValue > ikey) {
+      } else if (middleValue > (int) (k)) {
         high = middleIndex - 1;
       } else {
         return middleIndex;
       }
     }
     return -(low + 1);
-  }
-
-  /**
-   * Compares the two specified {@code char} values, treating them as unsigned values between
-   * {@code 0} and {@code 2^16 - 1} inclusive.
-   *
-   * @param a the first unsigned {@code char} to compare
-   * @param b the second unsigned {@code char} to compare
-   * @return a negative value if {@code a} is less than {@code b}; a positive value if {@code a} is
-   *         greater than {@code b}; or zero if they are equal
-   */
-  public static int compareUnsigned(char a, char b) {
-    return (a) - (b);
   }
 
   protected static void fillArrayAND(char[] container, LongBuffer bitmap1, LongBuffer bitmap2) {
@@ -530,16 +514,8 @@ public final class BufferUtil {
     return (char) (x & 0xFFFF);
   }
 
-  protected static int lowbitsAsInteger(int x) {
-    return x & 0xFFFF;
-  }
-
   protected static int lowbitsAsInteger(long x) {
     return (int)(x & 0xFFFF);
-  }
-
-  protected static long lowbitsAsLong(long x) {
-    return x & 0xFFFF;
   }
 
   protected static char maxLowBit() {
@@ -654,14 +630,14 @@ public final class BufferUtil {
     char s1 = set1.get(k1);
     char s2 = set2.get(k2);
     while (true) {
-      if ((s1) < (s2)) {
+      if (s1 < s2) {
         buffer[pos++] = s1;
         ++k1;
         if (k1 >= length1) {
           break;
         }
         s1 = set1.get(k1);
-      } else if ((s1) == (s2)) {
+      } else if (s1 == s2) {
         ++k1;
         ++k2;
         if (k1 >= length1) {
@@ -702,7 +678,7 @@ public final class BufferUtil {
     char s1 = set1.get(k1);
     char s2 = set2.get(k2);
     while (true) {
-      if ((s1) < (s2)) {
+      if (s1 < s2) {
         buffer[pos++] = s1;
         ++k1;
         if (k1 >= length1) {
@@ -711,7 +687,7 @@ public final class BufferUtil {
           return pos + length2 - k2;
         }
         s1 = set1.get(k1);
-      } else if ((s1) == (s2)) {
+      } else if (s1 == s2) {
         ++k1;
         ++k2;
         if (k1 >= length1) {
@@ -775,23 +751,23 @@ public final class BufferUtil {
     char s2 = set2.get(k2);
 
     mainwhile: while (true) {
-      if ((s2) < (s1)) {
+      if (s2 < s1) {
         do {
           ++k2;
           if (k2 == length2) {
             break mainwhile;
           }
           s2 = set2.get(k2);
-        } while ((s2) < (s1));
+        } while (s2 < s1);
       }
-      if ((s1) < (s2)) {
+      if (s1 < s2) {
         do {
           ++k1;
           if (k1 == length1) {
             break mainwhile;
           }
           s1 = set1.get(k1);
-        } while ((s1) < (s2));
+        } while (s1 < s2);
       } else {
         return true;
       }
@@ -811,7 +787,7 @@ public final class BufferUtil {
     char s2 = set2.get(k2);
 
     mainwhile: while (true) {
-      if ((s2) < (s1)) {
+      if (s2 < s1) {
         do {
           ++k2;
           if (k2 == length2) {
@@ -819,9 +795,9 @@ public final class BufferUtil {
           }
           s2 = set2.get(k2);
 
-        } while ((s2) < (s1));
+        } while (s2 < s1);
       }
-      if ((s1) < (s2)) {
+      if (s1 < s2) {
         do {
           ++k1;
           if (k1 == length1) {
@@ -829,7 +805,7 @@ public final class BufferUtil {
           }
           s1 = set1.get(k1);
 
-        } while ((s1) < (s2));
+        } while (s1 < s2);
       } else {
         // (set2.get(k2) == set1.get(k1))
         buffer[pos++] = s1;
@@ -861,7 +837,7 @@ public final class BufferUtil {
     char s2 = set2.get(k2);
 
     mainwhile: while (true) {
-      if ((s2) < (s1)) {
+      if (s2 < s1) {
         do {
           ++k2;
           if (k2 == length2) {
@@ -869,9 +845,9 @@ public final class BufferUtil {
           }
           s2 = set2.get(k2);
 
-        } while ((s2) < (s1));
+        } while (s2 < s1);
       }
-      if ((s1) < (s2)) {
+      if (s1 < s2) {
         do {
           ++k1;
           if (k1 == length1) {
@@ -879,7 +855,7 @@ public final class BufferUtil {
           }
           s1 = set1.get(k1);
 
-        } while ((s1) < (s2));
+        } while (s1 < s2);
       } else {
         ++pos;
         ++k1;
@@ -912,14 +888,14 @@ public final class BufferUtil {
     char s1 = largeSet.get(k1);
     char s2 = smallSet.get(k2);
     while (true) {
-      if ((s1) < (s2)) {
+      if (s1 < s2) {
         k1 = advanceUntil(largeSet, k1, largeLength, s2);
         if (k1 == largeLength) {
           break;
         }
         s1 = largeSet.get(k1);
       }
-      if ((s2) < (s1)) {
+      if (s2 < s1) {
         ++k2;
         if (k2 == smallLength) {
           break;
@@ -964,8 +940,8 @@ public final class BufferUtil {
     char s1 = set1.get(k1);
     char s2 = set2.get(k2);
     while (true) {
-      int v1 = (s1);
-      int v2 = (s2);
+      int v1 = s1;
+      int v2 = s2;
       if (v1 < v2) {
         buffer[pos++] = s1;
         ++k1;

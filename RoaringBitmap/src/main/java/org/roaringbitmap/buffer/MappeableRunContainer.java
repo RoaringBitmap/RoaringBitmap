@@ -1141,7 +1141,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     this.nbrruns = 0;
     PeekableCharIterator i = x.getShortIterator();
     while (i.hasNext() && (rlepos < nbrruns)) {
-      if (BufferUtil.compareUnsigned(getValue(vl, rlepos + offset), i.peekNext()) <= 0) {
+      if ((getValue(vl, rlepos + offset)) - (i.peekNext()) <= 0) {
         smartAppend(vl, getValue(vl, rlepos + offset), getLength(vl, rlepos + offset));
         rlepos++;
       } else {
@@ -1386,7 +1386,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     this.nbrruns = 0;
     PeekableCharIterator i = x.getShortIterator();
     while (i.hasNext() && (rlepos < nbrruns)) {
-      if (BufferUtil.compareUnsigned(getValue(vl, rlepos + offset), i.peekNext()) <= 0) {
+      if ((getValue(vl, rlepos + offset)) - (i.peekNext()) <= 0) {
         smartAppend(vl, getValue(vl, rlepos + offset), getLength(vl, rlepos + offset));
         rlepos++;
       } else {
@@ -1446,7 +1446,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       final char length = getLength(vl, offset + rlepos);
       final char xlength = x.getLength(xrlepos);
 
-      if (BufferUtil.compareUnsigned(value, xvalue) <= 0) {
+      if ((value) - (xvalue) <= 0) {
         this.smartAppend(vl, value, length);
         ++rlepos;
       } else {
@@ -1693,7 +1693,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     PeekableCharIterator i = x.getShortIterator();
 
     while ((rlepos < this.nbrruns) && i.hasNext()) {
-      if (BufferUtil.compareUnsigned(getValue(rlepos), i.peekNext()) <= 0) {
+      if ((getValue(rlepos)) - (i.peekNext()) <= 0) {
         answer.smartAppend(vl, getValue(rlepos), getLength(rlepos));
         // could call i.advanceIfNeeded(minval);
         rlepos++;
@@ -1738,7 +1738,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     CharIterator i = x.getShortIterator();
     char cv = i.next();
     while (true) {
-      if (BufferUtil.compareUnsigned(getValue(rlepos), cv) < 0) {
+      if ((getValue(rlepos)) - (cv) < 0) {
         answer.smartAppendExclusive(vl, getValue(rlepos), getLength(rlepos));
         rlepos++;
         if (rlepos == this.nbrruns) {
@@ -1893,7 +1893,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     int xrlepos = 0;
 
     while ((rlepos < this.nbrruns) && (xrlepos < x.nbrruns)) {
-      if (BufferUtil.compareUnsigned(getValue(rlepos), x.getValue(xrlepos)) <= 0) {
+      if ((getValue(rlepos)) - (x.getValue(xrlepos)) <= 0) {
         answer.smartAppend(vl, getValue(rlepos), getLength(rlepos));
         rlepos++;
       } else {
@@ -2422,7 +2422,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     int xrlepos = 0;
 
     while (true) {
-      if (BufferUtil.compareUnsigned(getValue(rlepos), x.getValue(xrlepos)) < 0) {
+      if ((getValue(rlepos)) - (x.getValue(xrlepos)) < 0) {
         answer.smartAppendExclusive(vl, getValue(rlepos), getLength(rlepos));
         rlepos++;
         if (rlepos == this.nbrruns) {
@@ -2762,7 +2762,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       char runLastValue = (char) (runFirstValue + getLength(i));
 
       if ((runFirstValue) < supremum
-          && BufferUtil.compareUnsigned(runLastValue, (char)minimum) >= 0){
+          && (runLastValue) - ((char) minimum) >= 0){
         return true;
       }
     }

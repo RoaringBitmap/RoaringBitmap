@@ -9,15 +9,12 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.LongBuffer;
-import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 
 import org.roaringbitmap.*;
 
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
-import static org.roaringbitmap.buffer.BufferUtil.compareUnsigned;
-
 
 
 /**
@@ -109,7 +106,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
 
   @Override
   public void append(char key, MappeableContainer value) {
-    if (size > 0 && compareUnsigned(key, keys[size - 1]) < 0) {
+    if (size > 0 && key < keys[size - 1]) {
       throw new IllegalArgumentException("append only: " + (key)
               + " < " + (keys[size - 1]));
     }
@@ -121,7 +118,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
 
   void append(MutableRoaringArray appendage) {
     assert size == 0 || appendage.size == 0
-            || compareUnsigned(keys[size - 1], appendage.keys[0]) < 0;
+            || keys[size - 1] < appendage.keys[0];
     if (appendage.size != 0 && size != 0) {
       keys = Arrays.copyOf(keys, size + appendage.size);
       values = Arrays.copyOf(values, size + appendage.size);

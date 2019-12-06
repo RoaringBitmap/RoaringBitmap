@@ -10,8 +10,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.IntStream;
 
-import static org.roaringbitmap.Util.compareUnsigned;
-
 /**
  *
  * These utility methods provide parallel implementations of
@@ -59,7 +57,7 @@ public class ParallelAggregation {
      * Creates a collector with the reducer function.
      * @param reducer a function to apply to containers with the same key.
      */
-    public ContainerCollector(Function<List<Container>, Container> reducer) {
+    ContainerCollector(Function<List<Container>, Container> reducer) {
       this.reducer = reducer;
     }
 
@@ -71,7 +69,7 @@ public class ParallelAggregation {
     @Override
     public BiConsumer<RoaringArray, Map.Entry<Character, List<Container>>> accumulator() {
       return (l, r) -> {
-        assert l.size == 0 || compareUnsigned(l.keys[l.size - 1], r.getKey()) < 0;
+        assert l.size == 0 || l.keys[l.size - 1] < r.getKey();
         Container container = reducer.apply(r.getValue());
         if (!container.isEmpty()) {
           l.append(r.getKey(), container);
@@ -82,7 +80,7 @@ public class ParallelAggregation {
     @Override
     public BinaryOperator<RoaringArray> combiner() {
       return (l, r) -> {
-        assert l.size == 0 || r.size == 0 || compareUnsigned(l.keys[l.size - 1], r.keys[0]) < 0;
+        assert l.size == 0 || r.size == 0 || l.keys[l.size - 1] - r.keys[0] < 0;
         l.append(r);
         return l;
       };
