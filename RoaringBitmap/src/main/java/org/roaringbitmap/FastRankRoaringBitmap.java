@@ -253,7 +253,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
     }
 
     int keycontrib = this.highLowContainer.getKeyAtIndex(fixedIndex) << 16;
-    int lowcontrib = Util.toIntUnsigned(
+    int lowcontrib = (
         this.highLowContainer.getContainerAtIndex(fixedIndex).select((int) leftover));
     int value = lowcontrib + keycontrib;
 
@@ -356,7 +356,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
 
     @Override
     public int peekNext() {
-      return Util.toIntUnsigned(iter.peekNext()) | hs;
+      return (iter.peekNext()) | hs;
     }
   }
 }

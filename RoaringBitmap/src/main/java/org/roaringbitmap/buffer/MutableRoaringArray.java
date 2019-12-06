@@ -17,7 +17,7 @@ import org.roaringbitmap.*;
 
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
 import static org.roaringbitmap.buffer.BufferUtil.compareUnsigned;
-import static org.roaringbitmap.buffer.BufferUtil.toIntUnsigned;
+
 
 
 /**
@@ -65,7 +65,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
     int lower = pos + 1;
 
     // special handling for a possibly common sequential case
-    if (lower >= size || toIntUnsigned(keys[lower]) >= toIntUnsigned(x)) {
+    if (lower >= size || (keys[lower]) >= (x)) {
       return lower;
     }
 
@@ -73,7 +73,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
     // bootstrap an upper limit
 
     while (lower + spansize < size
-        && toIntUnsigned(keys[lower + spansize]) < toIntUnsigned(x)) {
+        && (keys[lower + spansize]) < (x)) {
       spansize *= 2; // hoping for compiler will reduce to shift
     }
     int upper = (lower + spansize < size) ? lower + spansize : size - 1;
@@ -84,7 +84,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
       return upper;
     }
 
-    if (toIntUnsigned(keys[upper]) < toIntUnsigned(x)) {// means array has no
+    if ((keys[upper]) < (x)) {// means array has no
                                                                               // item key >= x
       return size;
     }
@@ -98,7 +98,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
       int mid = (lower + upper) / 2;
       if (keys[mid] == x) {
         return mid;
-      } else if (toIntUnsigned(keys[mid]) < toIntUnsigned(x)) {
+      } else if ((keys[mid]) < (x)) {
         lower = mid;
       } else {
         upper = mid;
@@ -110,8 +110,8 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
   @Override
   public void append(char key, MappeableContainer value) {
     if (size > 0 && compareUnsigned(key, keys[size - 1]) < 0) {
-      throw new IllegalArgumentException("append only: " + toIntUnsigned(key)
-              + " < " + toIntUnsigned(keys[size - 1]));
+      throw new IllegalArgumentException("append only: " + (key)
+              + " < " + (keys[size - 1]));
     }
     extendArray(1);
     this.keys[this.size] = key;
@@ -165,10 +165,10 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
    * @param stoppingKey any equal or larger key in other array will terminate copying
    */
   protected void appendCopiesUntil(PointableRoaringArray highLowContainer, char stoppingKey) {
-    final int stopKey = toIntUnsigned(stoppingKey);
+    final int stopKey = (stoppingKey);
     MappeableContainerPointer cp = highLowContainer.getContainerPointer();
     while (cp.hasContainer()) {
-      if (toIntUnsigned(cp.key()) >= stopKey) {
+      if ((cp.key()) >= stopKey) {
         break;
       }
       extendArray(1);
@@ -310,7 +310,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
         val = new MappeableBitmapContainer(bitmapArray, cardinalities[k]);
       } else if (bitmapOfRunContainers != null
           && ((bitmapOfRunContainers[k / 8] & (1 << (k % 8))) != 0)) {
-        int nbrruns = toIntUnsigned(Character.reverseBytes(in.readChar()));
+        int nbrruns = (Character.reverseBytes(in.readChar()));
         final CharBuffer charArray = CharBuffer.allocate(2 * nbrruns);
         for (int l = 0; l < charArray.limit(); ++l) {
           charArray.put(l, Character.reverseBytes(in.readChar()));
@@ -400,7 +400,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
       } else if (bitmapOfRunContainers != null
               && ((bitmapOfRunContainers[k / 8] & (1 << (k & 7))) != 0)) {
 
-        int nbrruns = toIntUnsigned(buffer.getChar());
+        int nbrruns = (buffer.getChar());
         int length = 2 * nbrruns;
         char[] array = new char[length];
         buffer.asCharBuffer().get(array);
@@ -487,7 +487,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
       @Override
       public int compareTo(MappeableContainerPointer o) {
         if (key() != o.key()) {
-          return toIntUnsigned(key()) - toIntUnsigned(o.key());
+          return (key()) - (o.key());
         }
         return o.getCardinality() - this.getCardinality();
       }

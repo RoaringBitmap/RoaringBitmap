@@ -1,11 +1,11 @@
 package org.roaringbitmap;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 import java.util.BitSet;
 import java.util.Random;
 
-import org.junit.Test;
+import static org.junit.Assert.assertTrue;
 
 public class TestBitSetUtil {
   private static BitSet appendRandomBitset(final Random random, final int offset,

@@ -39,7 +39,7 @@ public class TestRankIteratorsOfContainers {
 
       Assert.assertEquals(c.rank(bit), rank);
 
-      if ((Util.toIntUnsigned(bit) + advance < 65536)) {
+      if (((bit) + advance < 65536)) {
         iterator.advanceIfNeeded((char) (bit + advance));
       } else {
         iterator.next();
@@ -197,7 +197,7 @@ public class TestRankIteratorsOfContainers {
 
     PeekableCharRankIterator iterator = container.getShortRankIterator();
     while (iterator.hasNext()) {
-      Assert.assertEquals(Util.toIntUnsigned(iterator.peekNext()) + 1, iterator.peekNextRank());
+      Assert.assertEquals((iterator.peekNext()) + 1, iterator.peekNextRank());
       iterator.next();
     }
   }

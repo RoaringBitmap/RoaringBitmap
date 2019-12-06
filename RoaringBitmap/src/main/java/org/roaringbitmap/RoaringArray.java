@@ -5,20 +5,15 @@
 package org.roaringbitmap;
 
 
-import static java.nio.ByteOrder.BIG_ENDIAN;
-import static java.nio.ByteOrder.LITTLE_ENDIAN;
-import static org.roaringbitmap.Util.compareUnsigned;
-import static org.roaringbitmap.Util.toIntUnsigned;
-
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.Externalizable;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.nio.*;
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
+
+import static java.nio.ByteOrder.LITTLE_ENDIAN;
+import static org.roaringbitmap.Util.compareUnsigned;
 
 
 /**
@@ -71,7 +66,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     int lower = pos + 1;
 
     // special handling for a possibly common sequential case
-    if (lower >= size || Util.toIntUnsigned(keys[lower]) >= Util.toIntUnsigned(x)) {
+    if (lower >= size || (keys[lower]) >= (x)) {
       return lower;
     }
 
@@ -79,7 +74,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     // bootstrap an upper limit
 
     while (lower + spansize < size
-        && Util.toIntUnsigned(keys[lower + spansize]) < Util.toIntUnsigned(x)) {
+        && (keys[lower + spansize]) < (x)) {
       spansize *= 2; // hoping for compiler will reduce to shift
     }
     int upper = (lower + spansize < size) ? lower + spansize : size - 1;
@@ -90,7 +85,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       return upper;
     }
 
-    if (Util.toIntUnsigned(keys[upper]) < Util.toIntUnsigned(x)) {// means array has no item key >=
+    if ((keys[upper]) < (x)) {// means array has no item key >=
                                                                   // x
       return size;
     }
@@ -104,7 +99,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       int mid = (lower + upper) / 2;
       if (keys[mid] == x) {
         return mid;
-      } else if (Util.toIntUnsigned(keys[mid]) < Util.toIntUnsigned(x)) {
+      } else if ((keys[mid]) < (x)) {
         lower = mid;
       } else {
         upper = mid;
@@ -117,7 +112,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
   public void append(char key, Container value) {
     if (size > 0 && compareUnsigned(key, keys[size - 1]) < 0) {
       throw new IllegalArgumentException("append only: "
-              + toIntUnsigned(key) + " < " + toIntUnsigned(keys[size - 1]));
+              + (key) + " < " + (keys[size - 1]));
     }
     extendArray(1);
     keys[size] = key;
@@ -170,9 +165,9 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
    * @param stoppingKey any equal or larger key in other array will terminate copying
    */
   protected void appendCopiesUntil(RoaringArray sourceArray, char stoppingKey) {
-    int stopKey = Util.toIntUnsigned(stoppingKey);
+    int stopKey = (stoppingKey);
     for (int i = 0; i < sourceArray.size; ++i) {
-      if (Util.toIntUnsigned(sourceArray.keys[i]) >= stopKey) {
+      if ((sourceArray.keys[i]) >= stopKey) {
         break;
       }
       extendArray(1);
@@ -335,7 +330,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       } else if (bitmapOfRunContainers != null
           && ((bitmapOfRunContainers[k / 8] & (1 << (k % 8))) != 0)) {
         // cf RunContainer.writeArray()
-        int nbrruns = Util.toIntUnsigned(Character.reverseBytes(in.readChar()));
+        int nbrruns = (Character.reverseBytes(in.readChar()));
         final char lengthsAndValues[] = new char[2 * nbrruns];
 
         for (int j = 0; j < 2 * nbrruns; ++j) {
@@ -464,7 +459,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       } else if (bitmapOfRunContainers != null
           && ((bitmapOfRunContainers[k / 8] & (1 << (k % 8))) != 0)) {
         // cf RunContainer.writeArray()
-        int nbrruns = Util.toIntUnsigned(Character.reverseBytes(in.readChar()));
+        int nbrruns = (Character.reverseBytes(in.readChar()));
         final char lengthsAndValues[] = new char[2 * nbrruns];
         
         if (buffer == null && lengthsAndValues.length > (BitmapContainer.MAX_CAPACITY / 64) * 8) {
@@ -614,7 +609,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       } else if (bitmapOfRunContainers != null
           && ((bitmapOfRunContainers[k / 8] & (1 << (k % 8))) != 0)) {
         // cf RunContainer.writeArray()
-        int nbrruns = Util.toIntUnsigned(buffer.getChar());
+        int nbrruns = (buffer.getChar());
         final char lengthsAndValues[] = new char[2 * nbrruns];
 
         buffer.asCharBuffer().get(lengthsAndValues);

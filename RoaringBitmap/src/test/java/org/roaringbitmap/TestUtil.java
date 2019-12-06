@@ -93,28 +93,10 @@ public class TestUtil {
     @Test
     public void testIterateUntil() {
         char data[] = fromShorts(new short[]{0, 3, 16, 18, 21, 29, 30,-342});
-        Assert.assertEquals(1, Util.iterateUntil(data, 0, data.length, Util.toIntUnsigned((char) 3)));
-        Assert.assertEquals(5, Util.iterateUntil(data, 0, data.length, Util.toIntUnsigned((char) 28)));
-        Assert.assertEquals(5, Util.iterateUntil(data, 0, data.length, Util.toIntUnsigned((char) 29)));
-        Assert.assertEquals(7, Util.iterateUntil(data, 0, data.length, Util.toIntUnsigned((char) -342)));
-    }
-
-    @Test
-    public void testToUnsigned() {
-        Assert.assertEquals(0, Util.toIntUnsigned((char) 0));
-        Assert.assertEquals(128, Util.toIntUnsigned((char) 128));
-        Assert.assertEquals(32767, Util.toIntUnsigned((char)Short.MAX_VALUE));
-        Assert.assertEquals(32768, Util.toIntUnsigned((char)Short.MIN_VALUE));
-        Assert.assertEquals(65535, Util.toIntUnsigned((char) -1));
-    }
-
-    @Test
-    public void testReverseToUnsigned() {
-        Assert.assertEquals((char) 0,  (char) 0);
-        Assert.assertEquals((char) 128,  (char) 128);
-        Assert.assertEquals((char)Short.MAX_VALUE,  (char) 32767);
-        Assert.assertEquals((char)Short.MIN_VALUE,  (char) 32768);
-        Assert.assertEquals((char) -1,  (char) 65535);
+        Assert.assertEquals(1, Util.iterateUntil(data, 0, data.length, ((char) 3)));
+        Assert.assertEquals(5, Util.iterateUntil(data, 0, data.length, ((char) 28)));
+        Assert.assertEquals(5, Util.iterateUntil(data, 0, data.length, ((char) 29)));
+        Assert.assertEquals(7, Util.iterateUntil(data, 0, data.length, ((char) -342)));
     }
 
     static char[] fromShorts(short[] array) {

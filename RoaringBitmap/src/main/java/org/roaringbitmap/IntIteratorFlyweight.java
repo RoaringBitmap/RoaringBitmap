@@ -88,7 +88,7 @@ public class IntIteratorFlyweight implements PeekableIntIterator {
         runIter.wrap((RunContainer) container);
         iter = runIter;
       }
-      hs = Util.toIntUnsigned(this.roaringBitmap.highLowContainer.getKeyAtIndex(pos)) << 16;
+      hs = (this.roaringBitmap.highLowContainer.getKeyAtIndex(pos)) << 16;
     }
   }
 
@@ -121,6 +121,6 @@ public class IntIteratorFlyweight implements PeekableIntIterator {
 
   @Override
   public int peekNext() {
-    return Util.toIntUnsigned(iter.peekNext()) | hs;
+    return (iter.peekNext()) | hs;
   }
 }

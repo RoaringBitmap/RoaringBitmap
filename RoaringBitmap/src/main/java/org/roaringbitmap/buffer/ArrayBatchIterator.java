@@ -4,7 +4,7 @@ import org.roaringbitmap.ContainerBatchIterator;
 
 import java.nio.CharBuffer;
 
-import static org.roaringbitmap.buffer.BufferUtil.toIntUnsigned;
+
 
 public final class ArrayBatchIterator implements ContainerBatchIterator {
 
@@ -20,7 +20,7 @@ public final class ArrayBatchIterator implements ContainerBatchIterator {
     int consumed = 0;
     CharBuffer data = array.content;
     while (consumed < buffer.length && index < array.getCardinality()) {
-      buffer[consumed++] = key + toIntUnsigned(data.get(index++));
+      buffer[consumed++] = key + (data.get(index++));
     }
     return consumed;
   }

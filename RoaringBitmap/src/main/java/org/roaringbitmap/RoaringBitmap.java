@@ -21,7 +21,7 @@ import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 import static org.roaringbitmap.RoaringBitmapWriter.writer;
 import static org.roaringbitmap.Util.lowbitsAsInteger;
-import static org.roaringbitmap.Util.toIntUnsigned;
+
 
 
 /**
@@ -121,7 +121,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
     @Override
     public int peekNext() {
-      return Util.toIntUnsigned(iter.peekNext()) | hs;
+      return (iter.peekNext()) | hs;
     }
 
 
@@ -217,7 +217,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     if(in_container_offset == 0) {
       RoaringBitmap answer = new RoaringBitmap();
       for(int pos = 0; pos < x.highLowContainer.size(); pos++) {
-        int key = Util.toIntUnsigned(x.highLowContainer.getKeyAtIndex(pos));
+        int key = (x.highLowContainer.getKeyAtIndex(pos));
         key += container_offset;
         if((key >= 0) || (key <= 0xFFFF))  {
           answer.highLowContainer.append((char)key,
@@ -228,7 +228,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     } else {
       RoaringBitmap answer = new RoaringBitmap();
       for(int pos = 0; pos < x.highLowContainer.size(); pos++) {
-        int key = Util.toIntUnsigned(x.highLowContainer.getKeyAtIndex(pos));
+        int key = (x.highLowContainer.getKeyAtIndex(pos));
         key += container_offset;
         Container c = x.highLowContainer.getContainerAtIndex(pos);
         Container[] offsetted = Util.addOffset(c,
@@ -239,7 +239,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
           int current_size = answer.highLowContainer.size();
           int lastkey = 0;
           if(current_size > 0) {
-            lastkey = Util.toIntUnsigned(answer.highLowContainer.getKeyAtIndex(
+            lastkey = (answer.highLowContainer.getKeyAtIndex(
                     current_size - 1));
           }
           if((current_size > 0) && (lastkey == key)) {
@@ -276,10 +276,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     }
 
 
-    final int hbStart = Util.toIntUnsigned(Util.highbits(rangeStart));
-    final int lbStart = Util.toIntUnsigned(Util.lowbits(rangeStart));
-    final int hbLast = Util.toIntUnsigned(Util.highbits(rangeEnd - 1));
-    final int lbLast = Util.toIntUnsigned(Util.lowbits(rangeEnd - 1));
+    final int hbStart = (Util.highbits(rangeStart));
+    final int lbStart = (Util.lowbits(rangeStart));
+    final int hbLast = (Util.highbits(rangeEnd - 1));
+    final int lbLast = (Util.lowbits(rangeEnd - 1));
 
     RoaringBitmap answer = new RoaringBitmap();
     answer.highLowContainer.appendCopiesUntil(rb.highLowContainer, (char) hbStart);
@@ -565,10 +565,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       return bm.clone();
     }
     RoaringBitmap answer = new RoaringBitmap();
-    final int hbStart = Util.toIntUnsigned(Util.highbits(rangeStart));
-    final int lbStart = Util.toIntUnsigned(Util.lowbits(rangeStart));
-    final int hbLast = Util.toIntUnsigned(Util.highbits(rangeEnd - 1));
-    final int lbLast = Util.toIntUnsigned(Util.lowbits(rangeEnd - 1));
+    final int hbStart = (Util.highbits(rangeStart));
+    final int lbStart = (Util.lowbits(rangeStart));
+    final int hbLast = (Util.highbits(rangeEnd - 1));
+    final int lbLast = (Util.lowbits(rangeEnd - 1));
 
     // copy the containers before the active area
     answer.highLowContainer.appendCopiesUntil(bm.highLowContainer, (char) hbStart);
@@ -896,10 +896,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     }
 
 
-    final int hbStart = Util.toIntUnsigned(Util.highbits(rangeStart));
-    final int lbStart = Util.toIntUnsigned(Util.lowbits(rangeStart));
-    final int hbLast = Util.toIntUnsigned(Util.highbits(rangeEnd - 1));
-    final int lbLast = Util.toIntUnsigned(Util.lowbits(rangeEnd - 1));
+    final int hbStart = (Util.highbits(rangeStart));
+    final int lbStart = (Util.lowbits(rangeStart));
+    final int hbLast = (Util.highbits(rangeEnd - 1));
+    final int lbLast = (Util.lowbits(rangeEnd - 1));
     RoaringBitmap answer = new RoaringBitmap();
     answer.highLowContainer.appendCopiesUntil(rb.highLowContainer, (char) hbStart);
 
@@ -1081,10 +1081,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       return; // empty range
     }
 
-    final int hbStart = Util.toIntUnsigned(Util.highbits(rangeStart));
-    final int lbStart = Util.toIntUnsigned(Util.lowbits(rangeStart));
-    final int hbLast = Util.toIntUnsigned(Util.highbits(rangeEnd - 1));
-    final int lbLast = Util.toIntUnsigned(Util.lowbits(rangeEnd - 1));
+    final int hbStart = (Util.highbits(rangeStart));
+    final int lbStart = (Util.lowbits(rangeStart));
+    final int hbLast = (Util.highbits(rangeEnd - 1));
+    final int lbLast = (Util.lowbits(rangeEnd - 1));
     for (int hb = hbStart; hb <= hbLast; ++hb) {
 
       // first container may contain partial range
@@ -1138,13 +1138,13 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     int limit = lowbitsAsInteger(supremum);
     int index = Util.unsignedBinarySearch(keys, 0, length, (char)minKey);
     int pos = index >= 0 ? index : -index - 1;
-    if (pos < length && supKey == toIntUnsigned(keys[pos])) {
+    if (pos < length && supKey == (keys[pos])) {
       if (supKey > minKey) {
         offset = 0;
       }
       return highLowContainer.getContainerAtIndex(pos).intersects(offset, limit);
     }
-    while (pos < length && supKey > toIntUnsigned(keys[pos])) {
+    while (pos < length && supKey > (keys[pos])) {
       Container container = highLowContainer.getContainerAtIndex(pos);
       if (container.intersects(offset, 1 << 16)) {
         return true;
@@ -1418,7 +1418,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     final int length2 = other.highLowContainer.size();
 
     final char lastKey = Util.highbits(rangeEnd - 1);
-    final int lastSize = Util.toIntUnsigned(Util.lowbits(rangeEnd - 1));
+    final int lastSize = (Util.lowbits(rangeEnd - 1));
 
     char s2 = 0;
     boolean loopedAtleastOnce = (length1 > 0 && length2 > 0
@@ -1493,7 +1493,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     final int length2 = rb2.highLowContainer.size();
 
     final char lastKey = Util.highbits(rangeEnd - 1);
-    final int lastSize = Util.toIntUnsigned(Util.lowbits(rangeEnd - 1));
+    final int lastSize = (Util.lowbits(rangeEnd - 1));
 
     char s2 = 0;
     boolean loopedAtleastOnce = (length1 > 0 && length2 > 0
@@ -1674,7 +1674,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     rangeSanityCheck(minimum, supremum);
     char firstKey = Util.highbits(minimum);
     char lastKey = Util.highbits(supremum);
-    int span = Util.toIntUnsigned(lastKey) - Util.toIntUnsigned(firstKey);
+    int span = (lastKey) - (firstKey);
     int len = highLowContainer.size;
     if (len < span) {
       return false;
@@ -1856,10 +1856,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       return; // empty range
     }
 
-    final int hbStart = Util.toIntUnsigned(Util.highbits(rangeStart));
-    final int lbStart = Util.toIntUnsigned(Util.lowbits(rangeStart));
-    final int hbLast = Util.toIntUnsigned(Util.highbits(rangeEnd - 1));
-    final int lbLast = Util.toIntUnsigned(Util.lowbits(rangeEnd - 1));
+    final int hbStart = (Util.highbits(rangeStart));
+    final int lbStart = (Util.lowbits(rangeStart));
+    final int hbLast = (Util.highbits(rangeEnd - 1));
+    final int lbLast = (Util.lowbits(rangeEnd - 1));
 
     // TODO:this can be accelerated considerably
     for (int hb = hbStart; hb <= hbLast; ++hb) {
@@ -2377,7 +2377,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     if(startIndex < 0)  {
       startIndex = -startIndex - 1;
     } else {
-      int inContainerStart = Util.toIntUnsigned(Util.lowbits(start));
+      int inContainerStart = (Util.lowbits(start));
       if(inContainerStart != 0) {
         size -= this.highLowContainer
           .getContainerAtIndex(startIndex)
@@ -2444,10 +2444,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     }
 
 
-    final int hbStart = Util.toIntUnsigned(Util.highbits(rangeStart));
-    final int lbStart = Util.toIntUnsigned(Util.lowbits(rangeStart));
-    final int hbLast = Util.toIntUnsigned(Util.highbits(rangeEnd - 1));
-    final int lbLast = Util.toIntUnsigned(Util.lowbits(rangeEnd - 1));
+    final int hbStart = (Util.highbits(rangeStart));
+    final int lbStart = (Util.lowbits(rangeStart));
+    final int hbLast = (Util.highbits(rangeEnd - 1));
+    final int lbLast = (Util.lowbits(rangeEnd - 1));
     if (hbStart == hbLast) {
       final int i = highLowContainer.getIndex((char) hbStart);
       if (i < 0) {
@@ -2607,7 +2607,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       int thiscard = c.getCardinality();
       if (thiscard > leftover) {
         int keycontrib = this.highLowContainer.getKeyAtIndex(i) << 16;
-        int lowcontrib = Util.toIntUnsigned(c.select((int)leftover));
+        int lowcontrib = (c.select((int)leftover));
         return lowcontrib + keycontrib;
       }
       leftover -= thiscard;
@@ -2877,10 +2877,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   // had formerly failed if rangeEnd==0
   private static RoaringBitmap selectRangeWithoutCopy(RoaringBitmap rb, final long rangeStart,
       final long rangeEnd) {
-    final int hbStart = Util.toIntUnsigned(Util.highbits(rangeStart));
-    final int lbStart = Util.toIntUnsigned(Util.lowbits(rangeStart));
-    final int hbLast = Util.toIntUnsigned(Util.highbits(rangeEnd - 1));
-    final int lbLast = Util.toIntUnsigned(Util.lowbits(rangeEnd - 1));
+    final int hbStart = (Util.highbits(rangeStart));
+    final int lbStart = (Util.lowbits(rangeStart));
+    final int hbLast = (Util.highbits(rangeEnd - 1));
+    final int lbLast = (Util.lowbits(rangeEnd - 1));
     RoaringBitmap answer = new RoaringBitmap();
 
     assert(rangeStart >= 0 && rangeEnd >= 0);

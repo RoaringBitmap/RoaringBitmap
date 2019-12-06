@@ -71,7 +71,7 @@ public class ContainerAppender<C extends WordStorage<C>,
    */
   @Override
   public void add(int value) {
-    int key = toIntUnsigned(highbits(value));
+    int key = (highbits(value));
     if (key != currentKey) {
       if (key < currentKey) {
         underlying.add(value);

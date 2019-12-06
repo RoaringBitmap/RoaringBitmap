@@ -94,7 +94,7 @@ public class BufferIntIteratorFlyweight implements PeekableIntIterator {
         iter = arrIter;
       }
 
-      hs = BufferUtil.toIntUnsigned(this.roaringBitmap.highLowContainer.getKeyAtIndex(pos)) << 16;
+      hs = (this.roaringBitmap.highLowContainer.getKeyAtIndex(pos)) << 16;
     }
   }
 
@@ -127,7 +127,7 @@ public class BufferIntIteratorFlyweight implements PeekableIntIterator {
 
   @Override
   public int peekNext() {
-    return BufferUtil.toIntUnsigned(iter.peekNext()) | hs;
+    return (iter.peekNext()) | hs;
   }
 
 

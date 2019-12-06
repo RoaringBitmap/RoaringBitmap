@@ -92,7 +92,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     if(in_container_offset == 0) {
       MutableRoaringBitmap answer = new MutableRoaringBitmap();
       for(int pos = 0; pos < x.highLowContainer.size(); pos++) {
-        int key = BufferUtil.toIntUnsigned(x.highLowContainer.getKeyAtIndex(pos));
+        int key = (x.highLowContainer.getKeyAtIndex(pos));
         key += container_offset;
         if((key >= 0) || (key <= 0xFFFF))  {
           answer.getMappeableRoaringArray().append((char)key,
@@ -103,7 +103,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     } else {
       MutableRoaringBitmap answer = new MutableRoaringBitmap();
       for(int pos = 0; pos < x.highLowContainer.size(); pos++) {
-        int key = BufferUtil.toIntUnsigned(x.highLowContainer.getKeyAtIndex(pos));
+        int key = (x.highLowContainer.getKeyAtIndex(pos));
         key += container_offset;
         MappeableContainer c = x.highLowContainer.getContainerAtIndex(pos);
         MappeableContainer[] offsetted = BufferUtil.addOffset(c,
@@ -114,7 +114,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
           int current_size = answer.highLowContainer.size();
           int lastkey = 0;
           if(current_size > 0) {
-            lastkey = BufferUtil.toIntUnsigned(answer.highLowContainer.getKeyAtIndex(
+            lastkey = (answer.highLowContainer.getKeyAtIndex(
                     current_size - 1));
           }
           if((current_size > 0) && (lastkey == key)) {
@@ -151,10 +151,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
       return rb.clone(); // empty range
     }
 
-    final int hbStart = BufferUtil.toIntUnsigned(BufferUtil.highbits(rangeStart));
-    final int lbStart = BufferUtil.toIntUnsigned(BufferUtil.lowbits(rangeStart));
-    final int hbLast = BufferUtil.toIntUnsigned(BufferUtil.highbits(rangeEnd - 1));
-    final int lbLast = BufferUtil.toIntUnsigned(BufferUtil.lowbits(rangeEnd - 1));
+    final int hbStart = (BufferUtil.highbits(rangeStart));
+    final int lbStart = (BufferUtil.lowbits(rangeStart));
+    final int hbLast = (BufferUtil.highbits(rangeEnd - 1));
+    final int lbLast = (BufferUtil.lowbits(rangeEnd - 1));
 
     MutableRoaringBitmap answer = new MutableRoaringBitmap();
     ((MutableRoaringArray) answer.highLowContainer).appendCopiesUntil(rb.highLowContainer,
@@ -416,10 +416,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     }
 
     MutableRoaringBitmap answer = new MutableRoaringBitmap();
-    final int hbStart = BufferUtil.toIntUnsigned(BufferUtil.highbits(rangeStart));
-    final int lbStart = BufferUtil.toIntUnsigned(BufferUtil.lowbits(rangeStart));
-    final int hbLast = BufferUtil.toIntUnsigned(BufferUtil.highbits(rangeEnd - 1));
-    final int lbLast = BufferUtil.toIntUnsigned(BufferUtil.lowbits(rangeEnd - 1));
+    final int hbStart = (BufferUtil.highbits(rangeStart));
+    final int lbStart = (BufferUtil.lowbits(rangeStart));
+    final int hbLast = (BufferUtil.highbits(rangeEnd - 1));
+    final int lbLast = (BufferUtil.lowbits(rangeEnd - 1));
 
 
     // copy the containers before the active area
@@ -608,10 +608,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     if (rangeStart >= rangeEnd) {
       return rb.clone(); // empty range
     }
-    final int hbStart = BufferUtil.toIntUnsigned(BufferUtil.highbits(rangeStart));
-    final int lbStart = BufferUtil.toIntUnsigned(BufferUtil.lowbits(rangeStart));
-    final int hbLast = BufferUtil.toIntUnsigned(BufferUtil.highbits(rangeEnd - 1));
-    final int lbLast = BufferUtil.toIntUnsigned(BufferUtil.lowbits(rangeEnd - 1));
+    final int hbStart = (BufferUtil.highbits(rangeStart));
+    final int lbStart = (BufferUtil.lowbits(rangeStart));
+    final int hbLast = (BufferUtil.highbits(rangeEnd - 1));
+    final int lbLast = (BufferUtil.lowbits(rangeEnd - 1));
     MutableRoaringBitmap answer = new MutableRoaringBitmap();
     ((MutableRoaringArray) answer.highLowContainer).appendCopiesUntil(rb.highLowContainer,
         (char) hbStart);
@@ -790,10 +790,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
       return; // empty range
     }
 
-    final int hbStart = BufferUtil.toIntUnsigned(BufferUtil.highbits(rangeStart));
-    final int lbStart = BufferUtil.toIntUnsigned(BufferUtil.lowbits(rangeStart));
-    final int hbLast = BufferUtil.toIntUnsigned(BufferUtil.highbits(rangeEnd - 1));
-    final int lbLast = BufferUtil.toIntUnsigned(BufferUtil.lowbits(rangeEnd - 1));
+    final int hbStart = (BufferUtil.highbits(rangeStart));
+    final int lbStart = (BufferUtil.lowbits(rangeStart));
+    final int hbLast = (BufferUtil.highbits(rangeEnd - 1));
+    final int lbLast = (BufferUtil.lowbits(rangeEnd - 1));
     for (int hb = hbStart; hb <= hbLast; ++hb) {
 
       // first container may contain partial range
@@ -1050,10 +1050,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
       return; // empty range
     }
 
-    final int hbStart = BufferUtil.toIntUnsigned(BufferUtil.highbits(rangeStart));
-    final int lbStart = BufferUtil.toIntUnsigned(BufferUtil.lowbits(rangeStart));
-    final int hbLast = BufferUtil.toIntUnsigned(BufferUtil.highbits(rangeEnd - 1));
-    final int lbLast = BufferUtil.toIntUnsigned(BufferUtil.lowbits(rangeEnd - 1));
+    final int hbStart = (BufferUtil.highbits(rangeStart));
+    final int lbStart = (BufferUtil.lowbits(rangeStart));
+    final int hbLast = (BufferUtil.highbits(rangeEnd - 1));
+    final int lbLast = (BufferUtil.lowbits(rangeEnd - 1));
 
     for (int hb = hbStart; hb <= hbLast; ++hb) {
       // first container may contain partial range
@@ -1139,15 +1139,14 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         if (pos < MutableRoaringBitmap.this.highLowContainer.size()) {
           iter = MutableRoaringBitmap.this.highLowContainer.getContainerAtIndex(pos)
               .getShortIterator();
-          hs = BufferUtil
-              .toIntUnsigned(MutableRoaringBitmap.this.highLowContainer.getKeyAtIndex(pos)) << 16;
+          hs = (MutableRoaringBitmap.this.highLowContainer.getKeyAtIndex(pos)) << 16;
         }
         return this;
       }
 
       @Override
       public Integer next() {
-        x = BufferUtil.toIntUnsigned(iter.next()) | hs;
+        x = (iter.next()) | hs;
         if (!iter.hasNext()) {
           ++pos;
           init();
@@ -1348,10 +1347,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     if (rangeStart >= rangeEnd) {
       return; // empty range
     }
-    final int hbStart = BufferUtil.toIntUnsigned(BufferUtil.highbits(rangeStart));
-    final int lbStart = BufferUtil.toIntUnsigned(BufferUtil.lowbits(rangeStart));
-    final int hbLast = BufferUtil.toIntUnsigned(BufferUtil.highbits(rangeEnd - 1));
-    final int lbLast = BufferUtil.toIntUnsigned(BufferUtil.lowbits(rangeEnd - 1));
+    final int hbStart = (BufferUtil.highbits(rangeStart));
+    final int lbStart = (BufferUtil.lowbits(rangeStart));
+    final int hbLast = (BufferUtil.highbits(rangeEnd - 1));
+    final int lbLast = (BufferUtil.lowbits(rangeEnd - 1));
     if (hbStart == hbLast) {
       final int i = highLowContainer.getIndex((char) hbStart);
       if (i < 0) {

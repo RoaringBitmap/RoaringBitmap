@@ -30,7 +30,7 @@ public final class Util {
    * @return return an array made of two containers
    */
   public static  Container[] addOffset(Container source, char offsets) {
-    final int offset = Util.toIntUnsigned(offsets);
+    final int offset = (offsets);
     // could be a whole lot faster, this is a simple implementation
     if(source instanceof ArrayContainer) {
       ArrayContainer c = (ArrayContainer) source;
@@ -75,9 +75,9 @@ public final class Util {
       RunContainer low = new RunContainer();
       RunContainer high = new RunContainer();
       for(int k = 0 ; k < input.nbrruns; k++) {
-        int val =  Util.toIntUnsigned(input.getValue(k));
+        int val =  (input.getValue(k));
         val += offset;
-        int finalval =  val + Util.toIntUnsigned(input.getLength(k));
+        int finalval =  val + (input.getLength(k));
         if(val <= 0xFFFF) {
           if(finalval <= 0xFFFF) {
             low.smartAppend((char)val,input.getLength(k));
@@ -109,8 +109,8 @@ public final class Util {
     int lower = pos + 1;
 
     // special handling for a possibly common sequential case
-    int imin = toIntUnsigned(min);
-    if (lower >= length || toIntUnsigned(array[lower]) >= imin) {
+    int imin = (min);
+    if (lower >= length || (array[lower]) >= imin) {
       return lower;
     }
 
@@ -118,7 +118,7 @@ public final class Util {
     // bootstrap an upper limit
 
     while (lower + spansize < length
-        && toIntUnsigned(array[lower + spansize]) < imin) {
+        && (array[lower + spansize]) < imin) {
       spansize *= 2; // hoping for compiler will reduce to
     }
     // shift
@@ -131,7 +131,7 @@ public final class Util {
       return upper;
     }
 
-    if (toIntUnsigned(array[upper]) < imin) {
+    if ((array[upper]) < imin) {
       // means array has no item >= min pos = array.length;
       return length;
     }
@@ -146,7 +146,7 @@ public final class Util {
       char arraymid = array[mid];
       if (arraymid == min) {
         return mid;
-      } else if (toIntUnsigned(arraymid) < imin) {
+      } else if ((arraymid) < imin) {
         lower = mid;
       } else {
         upper = mid;
@@ -168,7 +168,7 @@ public final class Util {
    *         length if it is not possible.
    */
   public static int iterateUntil(char[] array, int pos, int length, int min) {
-    while (pos < length && toIntUnsigned(array[pos]) < min) {
+    while (pos < length && (array[pos]) < min) {
       pos++;
     }
     return pos;
@@ -176,17 +176,17 @@ public final class Util {
 
   protected static int branchyUnsignedBinarySearch(final char[] array, final int begin,
       final int end, final char k) {
-    int ikey = toIntUnsigned(k);
+    int ikey = (k);
     // next line accelerates the possibly common case where the value would
     // be inserted at the end
-    if ((end > 0) && (toIntUnsigned(array[end - 1]) < ikey)) {
+    if ((end > 0) && ((array[end - 1]) < ikey)) {
       return -end - 1;
     }
     int low = begin;
     int high = end - 1;
     while (low <= high) {
       final int middleIndex = (low + high) >>> 1;
-      final int middleValue = toIntUnsigned(array[middleIndex]);
+      final int middleValue = (array[middleIndex]);
 
       if (middleValue < ikey) {
         low = middleIndex + 1;
@@ -365,7 +365,7 @@ public final class Util {
     int ikey = k;
     // next line accelerates the possibly common case where the value would
     // be inserted at the end
-    if ((end > 0) && (toIntUnsigned(array[end - 1]) < ikey)) {
+    if ((end > 0) && ((array[end - 1]) < ikey)) {
       return -end - 1;
     }
     int low = begin;
@@ -373,7 +373,7 @@ public final class Util {
     // 32 in the next line matches the size of a cache line
     while (low + 32 <= high) {
       final int middleIndex = (low + high) >>> 1;
-      final int middleValue = toIntUnsigned(array[middleIndex]);
+      final int middleValue = (array[middleIndex]);
 
       if (middleValue < ikey) {
         low = middleIndex + 1;
@@ -386,7 +386,7 @@ public final class Util {
     // we finish the job with a sequential search
     int x = low;
     for (; x <= high; ++x) {
-      final int val = toIntUnsigned(array[x]);
+      final int val = (array[x]);
       if (val >= ikey) {
         if (val == ikey) {
           return x;
@@ -581,10 +581,6 @@ public final class Util {
     return cardafter - cardbefore;
   }
 
-  protected static int toIntUnsigned(char x) {
-    return x;
-  }
-
   /**
    * Look for value k in array in the range [begin,end). If the value is found, return its index. If
    * not, return -(i+1) where i is the index where the value would be inserted. The array is assumed
@@ -630,14 +626,14 @@ public final class Util {
     char s1 = set1[k1];
     char s2 = set2[k2];
     while (true) {
-      if (toIntUnsigned(s1) < toIntUnsigned(s2)) {
+      if ((s1) < (s2)) {
         buffer[pos++] = s1;
         ++k1;
         if (k1 >= length1) {
           break;
         }
         s1 = set1[k1];
-      } else if (toIntUnsigned(s1) == toIntUnsigned(s2)) {
+      } else if ((s1) == (s2)) {
         ++k1;
         ++k2;
         if (k1 >= length1) {
@@ -685,7 +681,7 @@ public final class Util {
     char v1 = set1.next();
     char v2 = set2.next();
     while (true) {
-      if (toIntUnsigned(v1) < toIntUnsigned(v2)) {
+      if ((v1) < (v2)) {
         buffer[pos++] = v1;
         if (!set1.hasNext()) {
           return pos;
@@ -743,7 +739,7 @@ public final class Util {
     char s1 = set1[k1];
     char s2 = set2[k2];
     while (true) {
-      if (toIntUnsigned(s1) < toIntUnsigned(s2)) {
+      if ((s1) < (s2)) {
         buffer[pos++] = s1;
         ++k1;
         if (k1 >= length1) {
@@ -751,7 +747,7 @@ public final class Util {
           return pos + length2 - k2;
         }
         s1 = set1[k1];
-      } else if (toIntUnsigned(s1) == toIntUnsigned(s2)) {
+      } else if ((s1) == (s2)) {
         ++k1;
         ++k2;
         if (k1 >= length1) {
@@ -822,23 +818,23 @@ public final class Util {
     char s1 = set1[k1];
     char s2 = set2[k2];
     mainwhile: while (true) {
-      if (toIntUnsigned(s2) < toIntUnsigned(s1)) {
+      if ((s2) < (s1)) {
         do {
           ++k2;
           if (k2 == length2) {
             break mainwhile;
           }
           s2 = set2[k2];
-        } while (toIntUnsigned(s2) < toIntUnsigned(s1));
+        } while ((s2) < (s1));
       }
-      if (toIntUnsigned(s1) < toIntUnsigned(s2)) {
+      if ((s1) < (s2)) {
         do {
           ++k1;
           if (k1 == length1) {
             break mainwhile;
           }
           s1 = set1[k1];
-        } while (toIntUnsigned(s1) < toIntUnsigned(s2));
+        } while ((s1) < (s2));
       } else {
         return true;
       }
@@ -859,8 +855,8 @@ public final class Util {
     char s2 = set2[k2];
 
     mainwhile: while (true) {
-      int v1 = toIntUnsigned(s1);
-      int v2 = toIntUnsigned(s2);
+      int v1 = (s1);
+      int v2 = (s2);
       if (v2 < v1) {
         do {
           ++k2;
@@ -868,7 +864,7 @@ public final class Util {
             break mainwhile;
           }
           s2 = set2[k2];
-          v2 = toIntUnsigned(s2);
+          v2 = (s2);
         } while (v2 < v1);
       }
       if (v1 < v2) {
@@ -878,7 +874,7 @@ public final class Util {
             break mainwhile;
           }
           s1 = set1[k1];
-          v1 = toIntUnsigned(s1);
+          v1 = (s1);
         } while (v1 < v2);
       } else {
         // (set2[k2] == set1[k1])
@@ -919,8 +915,8 @@ public final class Util {
     char s2 = set2[k2];
 
     mainwhile: while (true) {
-      int v1 = toIntUnsigned(s1);
-      int v2 = toIntUnsigned(s2);
+      int v1 = (s1);
+      int v2 = (s2);
       if (v2 < v1) {
         do {
           ++k2;
@@ -928,7 +924,7 @@ public final class Util {
             break mainwhile;
           }
           s2 = set2[k2];
-          v2 = toIntUnsigned(s2);
+          v2 = (s2);
         } while (v2 < v1);
       }
       if (v1 < v2) {
@@ -938,7 +934,7 @@ public final class Util {
             break mainwhile;
           }
           s1 = set1[k1];
-          v1 = toIntUnsigned(s1);
+          v1 = (s1);
         } while (v1 < v2);
       } else {
         // (set2[k2] == set1[k1])
@@ -970,14 +966,14 @@ public final class Util {
     char s1 = largeSet[k1];
     char s2 = smallSet[k2];
     while (true) {
-      if (toIntUnsigned(s1) < toIntUnsigned(s2)) {
+      if ((s1) < (s2)) {
         k1 = advanceUntil(largeSet, k1, largeLength, s2);
         if (k1 == largeLength) {
           break;
         }
         s1 = largeSet[k1];
       }
-      if (toIntUnsigned(s2) < toIntUnsigned(s1)) {
+      if ((s2) < (s1)) {
         ++k2;
         if (k2 == smallLength) {
           break;
@@ -1032,8 +1028,8 @@ public final class Util {
     char s1 = set1[k1];
     char s2 = set2[k2];
     while (true) {
-      int v1 = toIntUnsigned(s1);
-      int v2 = toIntUnsigned(s2);
+      int v1 = (s1);
+      int v2 = (s2);
       if (v1 < v2) {
         buffer[pos++] = s1;
         ++k1;

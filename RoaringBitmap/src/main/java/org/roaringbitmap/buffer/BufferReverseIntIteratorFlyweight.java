@@ -99,7 +99,7 @@ public class BufferReverseIntIteratorFlyweight implements IntIterator {
         iter = arrIter;
       }
 
-      hs = BufferUtil.toIntUnsigned(this.roaringBitmap.highLowContainer.getKeyAtIndex(pos)) << 16;
+      hs = (this.roaringBitmap.highLowContainer.getKeyAtIndex(pos)) << 16;
     }
   }
 

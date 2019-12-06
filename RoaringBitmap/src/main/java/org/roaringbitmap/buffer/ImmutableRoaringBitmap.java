@@ -122,7 +122,7 @@ public class ImmutableRoaringBitmap
       ok = cp.hasContainer();
       if (ok) {
         iter = cp.getContainer().getShortIterator();
-        hs = BufferUtil.toIntUnsigned(cp.key()) << 16;
+        hs = (cp.key()) << 16;
       }
     }
 
@@ -143,7 +143,7 @@ public class ImmutableRoaringBitmap
 
     @Override
     public int peekNext() {
-      return BufferUtil.toIntUnsigned(iter.peekNext()) | hs;
+      return (iter.peekNext()) | hs;
     }
 
 
@@ -200,7 +200,7 @@ public class ImmutableRoaringBitmap
       ok = cp.hasContainer();
       if (ok) {
         iter = cp.getContainer().getReverseShortIterator();
-        hs = BufferUtil.toIntUnsigned(cp.key()) << 16;
+        hs = (cp.key()) << 16;
       }
     }
 
@@ -535,7 +535,7 @@ public class ImmutableRoaringBitmap
     final int length2 = rb2.highLowContainer.size();
 
     final char lastKey = BufferUtil.highbits(rangeEnd - 1);
-    final int lastSize = BufferUtil.toIntUnsigned(BufferUtil.lowbits(rangeEnd - 1));
+    final int lastSize = (BufferUtil.lowbits(rangeEnd - 1));
 
     char s2 = 0;
     boolean loopedAtleastOnce = (length1 > 0 && length2 > 0
@@ -644,10 +644,10 @@ public class ImmutableRoaringBitmap
     // copy the containers before the active area
     answer.getMappeableRoaringArray().appendCopiesUntil(bm.highLowContainer, hbStart);
 
-    final int max = BufferUtil.toIntUnsigned(BufferUtil.maxLowBit());
+    final int max = (BufferUtil.maxLowBit());
     for (char hb = hbStart; hb <= hbLast; ++hb) {
-      final int containerStart = (hb == hbStart) ? BufferUtil.toIntUnsigned(lbStart) : 0;
-      final int containerLast = (hb == hbLast) ? BufferUtil.toIntUnsigned(lbLast) : max;
+      final int containerStart = (hb == hbStart) ? (lbStart) : 0;
+      final int containerLast = (hb == hbLast) ? (lbLast) : max;
 
       final int i = bm.highLowContainer.getIndex(hb);
       final int j = answer.getMappeableRoaringArray().getIndex(hb);
@@ -742,10 +742,10 @@ public class ImmutableRoaringBitmap
 
   private static MutableRoaringBitmap selectRangeWithoutCopy(ImmutableRoaringBitmap rb,
       final long rangeStart, final long rangeEnd) {
-    final int hbStart = BufferUtil.toIntUnsigned(highbits(rangeStart));
-    final int lbStart = BufferUtil.toIntUnsigned(lowbits(rangeStart));
-    final int hbLast = BufferUtil.toIntUnsigned(highbits(rangeEnd - 1));
-    final int lbLast = BufferUtil.toIntUnsigned(lowbits(rangeEnd - 1));
+    final int hbStart = (highbits(rangeStart));
+    final int lbStart = (lowbits(rangeStart));
+    final int hbLast = (highbits(rangeEnd - 1));
+    final int lbLast = (lowbits(rangeEnd - 1));
     MutableRoaringBitmap answer = new MutableRoaringBitmap();
 
     if (rangeEnd <= rangeStart) {
@@ -1173,7 +1173,7 @@ public class ImmutableRoaringBitmap
     MutableRoaringBitmap.rangeSanityCheck(minimum, supremum);
     char firstKey = highbits(minimum);
     char lastKey = highbits(supremum);
-    int span = BufferUtil.toIntUnsigned(lastKey) - BufferUtil.toIntUnsigned(firstKey);
+    int span = (lastKey) - (firstKey);
     int len = highLowContainer.size();
     if (len < span) {
       return false;
@@ -1321,18 +1321,18 @@ public class ImmutableRoaringBitmap
     int length = highLowContainer.size();
     // seek to start
     int pos = 0;
-    while (pos < length && minKey > toIntUnsigned(highLowContainer.getKeyAtIndex(pos))) {
+    while (pos < length && minKey > (highLowContainer.getKeyAtIndex(pos))) {
       ++pos;
     }
     int offset = lowbitsAsInteger(minimum);
     int limit = lowbitsAsInteger(supremum);
-    if (pos < length && supKey == toIntUnsigned(highLowContainer.getKeyAtIndex(pos))) {
+    if (pos < length && supKey == (highLowContainer.getKeyAtIndex(pos))) {
       if (supKey > minKey) {
         offset = 0;
       }
       return highLowContainer.getContainerAtIndex(pos).intersects(offset, limit);
     }
-    while (pos < length && supKey > toIntUnsigned(highLowContainer.getKeyAtIndex(pos))) {
+    while (pos < length && supKey > (highLowContainer.getKeyAtIndex(pos))) {
       MappeableContainer container = highLowContainer.getContainerAtIndex(pos);
       if (container.intersects(offset, 1 << 16)) {
         return true;
@@ -1553,8 +1553,7 @@ public class ImmutableRoaringBitmap
         if (pos < ImmutableRoaringBitmap.this.highLowContainer.size()) {
           iter = ImmutableRoaringBitmap.this.highLowContainer.getContainerAtIndex(pos)
               .getShortIterator();
-          hs = BufferUtil
-              .toIntUnsigned(ImmutableRoaringBitmap.this.highLowContainer.getKeyAtIndex(pos)) << 16;
+          hs = (ImmutableRoaringBitmap.this.highLowContainer.getKeyAtIndex(pos)) << 16;
         }
         return this;
       }
@@ -1641,7 +1640,7 @@ public class ImmutableRoaringBitmap
     if(startIndex < 0)  {
       startIndex = -startIndex - 1;
     } else {
-      int inContainerStart = toIntUnsigned(lowbits(start));
+      int inContainerStart = (lowbits(start));
       if(inContainerStart != 0) {
         size -= this.highLowContainer
           .getContainerAtIndex(startIndex)
@@ -1688,7 +1687,7 @@ public class ImmutableRoaringBitmap
       if (thiscard > leftover) {
         int keycontrib = this.highLowContainer.getKeyAtIndex(i) << 16;
         MappeableContainer c = this.highLowContainer.getContainerAtIndex(i);
-        int lowcontrib = BufferUtil.toIntUnsigned(c.select((int)leftover));
+        int lowcontrib = (c.select((int)leftover));
         return lowcontrib + keycontrib;
       }
       leftover -= thiscard;
@@ -1900,7 +1899,7 @@ public class ImmutableRoaringBitmap
     final int[] array = new int[this.getCardinality()];
     int pos = 0, pos2 = 0;
     while (pos < this.highLowContainer.size()) {
-      final int hs = BufferUtil.toIntUnsigned(this.highLowContainer.getKeyAtIndex(pos)) << 16;
+      final int hs = (this.highLowContainer.getKeyAtIndex(pos)) << 16;
       final MappeableContainer c = this.highLowContainer.getContainerAtIndex(pos++);
       c.fillLeastSignificant16bits(array, pos2, hs);
       pos2 += c.getCardinality();

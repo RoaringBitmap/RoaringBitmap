@@ -9,12 +9,13 @@ package org.roaringbitmap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
+import org.junit.Assert;
+import org.junit.Test;
+
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Random;
-import org.junit.Assert;
-import org.junit.Test;
 
 public class TestIterators {
   private static List<Integer> asList(IntIterator ints) {

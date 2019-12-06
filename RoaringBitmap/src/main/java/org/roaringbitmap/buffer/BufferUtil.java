@@ -27,14 +27,14 @@ public final class BufferUtil {
    * @return return an array made of two containers
    */
   public static  MappeableContainer[] addOffset(MappeableContainer source, char offsets) {
-    final int offset = BufferUtil.toIntUnsigned(offsets);
+    final int offset = (offsets);
     // could be a whole lot faster, this is a simple implementation
     if(source instanceof MappeableArrayContainer) {
       MappeableArrayContainer c = (MappeableArrayContainer) source;
       MappeableArrayContainer low = new MappeableArrayContainer(c.cardinality);
       MappeableArrayContainer high = new MappeableArrayContainer(c.cardinality);
       for(int k = 0; k < c.cardinality; k++) {
-        int val = BufferUtil.toIntUnsigned(c.content.get(k));
+        int val = (c.content.get(k));
         val += offset;
         if(val <= 0xFFFF) {
           low.content.put(low.cardinality++, (char) val);
@@ -77,9 +77,9 @@ public final class BufferUtil {
       MappeableRunContainer low = new MappeableRunContainer();
       MappeableRunContainer high = new MappeableRunContainer();
       for(int k = 0 ; k < c.nbrruns; k++) {
-        int val =  BufferUtil.toIntUnsigned(c.getValue(k));
+        int val =  (c.getValue(k));
         val += offset;
-        int finalval =  val + BufferUtil.toIntUnsigned(c.getLength(k));
+        int finalval =  val + (c.getLength(k));
         if(val <= 0xFFFF) {
           if(finalval <= 0xFFFF) {
             low.smartAppend((char)val,c.getLength(k));
@@ -111,7 +111,7 @@ public final class BufferUtil {
     int lower = pos + 1;
 
     // special handling for a possibly common sequential case
-    if (lower >= length || toIntUnsigned(array.get(lower)) >= toIntUnsigned(min)) {
+    if (lower >= length || (array.get(lower)) >= (min)) {
       return lower;
     }
 
@@ -119,7 +119,7 @@ public final class BufferUtil {
     // bootstrap an upper limit
 
     while (lower + spansize < length
-        && toIntUnsigned(array.get(lower + spansize)) < toIntUnsigned(min)) {
+        && (array.get(lower + spansize)) < (min)) {
       spansize *= 2; // hoping for compiler will reduce to
     }
     // shift
@@ -132,7 +132,7 @@ public final class BufferUtil {
       return upper;
     }
 
-    if (toIntUnsigned(array.get(upper)) < toIntUnsigned(min)) {// means
+    if ((array.get(upper)) < (min)) {// means
       // array
       // has no
       // item
@@ -151,7 +151,7 @@ public final class BufferUtil {
       char arraymid = array.get(mid);
       if (arraymid == min) {
         return mid;
-      } else if (toIntUnsigned(arraymid) < toIntUnsigned(min)) {
+      } else if ((arraymid) < (min)) {
         lower = mid;
       } else {
         upper = mid;
@@ -173,7 +173,7 @@ public final class BufferUtil {
    *         length if it is not possible.
    */
   public static int iterateUntil(CharBuffer array, int pos, int length, int min) {
-    while (pos < length && toIntUnsigned(array.get(pos)) < min) {
+    while (pos < length && (array.get(pos)) < min) {
       pos++;
     }
     return pos;
@@ -199,16 +199,16 @@ public final class BufferUtil {
 
   protected static int branchyUnsignedBinarySearch(final CharBuffer array, final int begin,
       final int end, final char k) {
-    final int ikey = toIntUnsigned(k);
+    final int ikey = (k);
     // next line accelerates the possibly common case where the value would be inserted at the end
-    if ((end > 0) && (toIntUnsigned(array.get(end - 1)) < ikey)) {
+    if ((end > 0) && ((array.get(end - 1)) < ikey)) {
       return -end - 1;
     }
     int low = begin;
     int high = end - 1;
     while (low <= high) {
       final int middleIndex = (low + high) >>> 1;
-      final int middleValue = toIntUnsigned(array.get(middleIndex));
+      final int middleValue = (array.get(middleIndex));
 
       if (middleValue < ikey) {
         low = middleIndex + 1;
@@ -224,16 +224,16 @@ public final class BufferUtil {
 
   protected static int branchyUnsignedBinarySearch(final ByteBuffer array, int position,
         final int begin, final int end, final char k) {
-    final int ikey = toIntUnsigned(k);
+    final int ikey = (k);
     // next line accelerates the possibly common case where the value would be inserted at the end
-    if ((end > 0) && (toIntUnsigned(array.getChar(position + (end - 1)*2)) < ikey)) {
+    if ((end > 0) && ((array.getChar(position + (end - 1)*2)) < ikey)) {
       return -end - 1;
     }
     int low = begin;
     int high = end - 1;
     while (low <= high) {
       final int middleIndex = (low + high) >>> 1;
-      final int middleValue = toIntUnsigned(array.getChar(position + 2* middleIndex));
+      final int middleValue = (array.getChar(position + 2* middleIndex));
 
       if (middleValue < ikey) {
         low = middleIndex + 1;
@@ -256,7 +256,7 @@ public final class BufferUtil {
    *         greater than {@code b}; or zero if they are equal
    */
   public static int compareUnsigned(char a, char b) {
-    return toIntUnsigned(a) - toIntUnsigned(b);
+    return (a) - (b);
   }
 
   protected static void fillArrayAND(char[] container, LongBuffer bitmap1, LongBuffer bitmap2) {
@@ -608,11 +608,6 @@ public final class BufferUtil {
     bitmap.put(endword, bitmap.get(endword) | (~0L >>> -end));
   }
 
-
-  protected static int toIntUnsigned(char x) {
-    return x;
-  }
-
   /**
    * Look for value k in buffer in the range [begin,end). If the value is found, return its index.
    * If not, return -(i+1) where i is the index where the value would be inserted. The buffer is
@@ -659,14 +654,14 @@ public final class BufferUtil {
     char s1 = set1.get(k1);
     char s2 = set2.get(k2);
     while (true) {
-      if (toIntUnsigned(s1) < toIntUnsigned(s2)) {
+      if ((s1) < (s2)) {
         buffer[pos++] = s1;
         ++k1;
         if (k1 >= length1) {
           break;
         }
         s1 = set1.get(k1);
-      } else if (toIntUnsigned(s1) == toIntUnsigned(s2)) {
+      } else if ((s1) == (s2)) {
         ++k1;
         ++k2;
         if (k1 >= length1) {
@@ -707,7 +702,7 @@ public final class BufferUtil {
     char s1 = set1.get(k1);
     char s2 = set2.get(k2);
     while (true) {
-      if (toIntUnsigned(s1) < toIntUnsigned(s2)) {
+      if ((s1) < (s2)) {
         buffer[pos++] = s1;
         ++k1;
         if (k1 >= length1) {
@@ -716,7 +711,7 @@ public final class BufferUtil {
           return pos + length2 - k2;
         }
         s1 = set1.get(k1);
-      } else if (toIntUnsigned(s1) == toIntUnsigned(s2)) {
+      } else if ((s1) == (s2)) {
         ++k1;
         ++k2;
         if (k1 >= length1) {
@@ -780,23 +775,23 @@ public final class BufferUtil {
     char s2 = set2.get(k2);
 
     mainwhile: while (true) {
-      if (toIntUnsigned(s2) < toIntUnsigned(s1)) {
+      if ((s2) < (s1)) {
         do {
           ++k2;
           if (k2 == length2) {
             break mainwhile;
           }
           s2 = set2.get(k2);
-        } while (toIntUnsigned(s2) < toIntUnsigned(s1));
+        } while ((s2) < (s1));
       }
-      if (toIntUnsigned(s1) < toIntUnsigned(s2)) {
+      if ((s1) < (s2)) {
         do {
           ++k1;
           if (k1 == length1) {
             break mainwhile;
           }
           s1 = set1.get(k1);
-        } while (toIntUnsigned(s1) < toIntUnsigned(s2));
+        } while ((s1) < (s2));
       } else {
         return true;
       }
@@ -816,7 +811,7 @@ public final class BufferUtil {
     char s2 = set2.get(k2);
 
     mainwhile: while (true) {
-      if (toIntUnsigned(s2) < toIntUnsigned(s1)) {
+      if ((s2) < (s1)) {
         do {
           ++k2;
           if (k2 == length2) {
@@ -824,9 +819,9 @@ public final class BufferUtil {
           }
           s2 = set2.get(k2);
 
-        } while (toIntUnsigned(s2) < toIntUnsigned(s1));
+        } while ((s2) < (s1));
       }
-      if (toIntUnsigned(s1) < toIntUnsigned(s2)) {
+      if ((s1) < (s2)) {
         do {
           ++k1;
           if (k1 == length1) {
@@ -834,7 +829,7 @@ public final class BufferUtil {
           }
           s1 = set1.get(k1);
 
-        } while (toIntUnsigned(s1) < toIntUnsigned(s2));
+        } while ((s1) < (s2));
       } else {
         // (set2.get(k2) == set1.get(k1))
         buffer[pos++] = s1;
@@ -866,7 +861,7 @@ public final class BufferUtil {
     char s2 = set2.get(k2);
 
     mainwhile: while (true) {
-      if (toIntUnsigned(s2) < toIntUnsigned(s1)) {
+      if ((s2) < (s1)) {
         do {
           ++k2;
           if (k2 == length2) {
@@ -874,9 +869,9 @@ public final class BufferUtil {
           }
           s2 = set2.get(k2);
 
-        } while (toIntUnsigned(s2) < toIntUnsigned(s1));
+        } while ((s2) < (s1));
       }
-      if (toIntUnsigned(s1) < toIntUnsigned(s2)) {
+      if ((s1) < (s2)) {
         do {
           ++k1;
           if (k1 == length1) {
@@ -884,7 +879,7 @@ public final class BufferUtil {
           }
           s1 = set1.get(k1);
 
-        } while (toIntUnsigned(s1) < toIntUnsigned(s2));
+        } while ((s1) < (s2));
       } else {
         ++pos;
         ++k1;
@@ -917,14 +912,14 @@ public final class BufferUtil {
     char s1 = largeSet.get(k1);
     char s2 = smallSet.get(k2);
     while (true) {
-      if (toIntUnsigned(s1) < toIntUnsigned(s2)) {
+      if ((s1) < (s2)) {
         k1 = advanceUntil(largeSet, k1, largeLength, s2);
         if (k1 == largeLength) {
           break;
         }
         s1 = largeSet.get(k1);
       }
-      if (toIntUnsigned(s2) < toIntUnsigned(s1)) {
+      if ((s2) < (s1)) {
         ++k2;
         if (k2 == smallLength) {
           break;
@@ -969,8 +964,8 @@ public final class BufferUtil {
     char s1 = set1.get(k1);
     char s2 = set2.get(k2);
     while (true) {
-      int v1 = toIntUnsigned(s1);
-      int v2 = toIntUnsigned(s2);
+      int v1 = (s1);
+      int v2 = (s2);
       if (v1 < v2) {
         buffer[pos++] = s1;
         ++k1;

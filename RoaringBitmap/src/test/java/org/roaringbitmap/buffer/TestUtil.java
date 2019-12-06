@@ -4,8 +4,8 @@ package org.roaringbitmap.buffer;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.nio.LongBuffer;
 import java.nio.CharBuffer;
+import java.nio.LongBuffer;
 import java.util.Arrays;
 
 public class TestUtil {
@@ -74,30 +74,11 @@ public class TestUtil {
     @Test
     public void testIterateUntil() {
         CharBuffer data = CharBuffer.wrap(fromShorts(new short[] {0, 3, 16, 18, 21, 29, 30, -342}));
-        Assert.assertEquals(1, BufferUtil.iterateUntil(data, 0, data.limit(), BufferUtil.toIntUnsigned((char) 3)));
-        Assert.assertEquals(5, BufferUtil.iterateUntil(data, 0, data.limit(), BufferUtil.toIntUnsigned((char) 28)));
-        Assert.assertEquals(5, BufferUtil.iterateUntil(data, 0, data.limit(), BufferUtil.toIntUnsigned((char) 29)));
-        Assert.assertEquals(7, BufferUtil.iterateUntil(data, 0, data.limit(), BufferUtil.toIntUnsigned((char) -342)));
+        Assert.assertEquals(1, BufferUtil.iterateUntil(data, 0, data.limit(), ((char) 3)));
+        Assert.assertEquals(5, BufferUtil.iterateUntil(data, 0, data.limit(), ((char) 28)));
+        Assert.assertEquals(5, BufferUtil.iterateUntil(data, 0, data.limit(), ((char) 29)));
+        Assert.assertEquals(7, BufferUtil.iterateUntil(data, 0, data.limit(), ((char) -342)));
     }
-
-    @Test
-    public void testToUnsigned() {
-        Assert.assertEquals(0, BufferUtil.toIntUnsigned((char) 0));
-        Assert.assertEquals(128, BufferUtil.toIntUnsigned((char) 128));
-        Assert.assertEquals(32767, BufferUtil.toIntUnsigned((char)Short.MAX_VALUE));
-        Assert.assertEquals(32768, BufferUtil.toIntUnsigned((char)Short.MIN_VALUE));
-        Assert.assertEquals(65535, BufferUtil.toIntUnsigned((char) -1));
-    }
-
-    @Test
-    public void testReverseToUnsigned() {
-        Assert.assertEquals((char) 0, (char) 0);
-        Assert.assertEquals((char) 128, (char) 128);
-        Assert.assertEquals((char)Short.MAX_VALUE, (char) 32767);
-        Assert.assertEquals((char)Short.MIN_VALUE, (char) 32768);
-        Assert.assertEquals((char) -1, (char) 65535);
-    }
-
 
   static char[] fromShorts(short[] array) {
     char[] result = new char[array.length];

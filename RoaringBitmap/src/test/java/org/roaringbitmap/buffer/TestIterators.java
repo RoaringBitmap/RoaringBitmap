@@ -8,22 +8,18 @@ package org.roaringbitmap.buffer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
+import org.junit.Assert;
+import org.junit.Test;
+import org.roaringbitmap.CharIterator;
+import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.PeekableIntIterator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import org.junit.Assert;
-import org.junit.Test;
-import org.roaringbitmap.CharIterator;
-import org.roaringbitmap.IntIterator;
-import org.roaringbitmap.PeekableIntIterator;
+import java.util.*;
 
 public class TestIterators {
 

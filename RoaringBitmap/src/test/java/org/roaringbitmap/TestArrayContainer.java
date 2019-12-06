@@ -1,7 +1,6 @@
 package org.roaringbitmap;
 
 import com.google.common.primitives.Ints;
-
 import org.junit.Assert;
 import org.junit.Test;
 

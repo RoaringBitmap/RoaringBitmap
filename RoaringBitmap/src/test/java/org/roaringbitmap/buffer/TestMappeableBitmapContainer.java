@@ -4,29 +4,25 @@
 
 package org.roaringbitmap.buffer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
-import static org.roaringbitmap.buffer.TestMappeableArrayContainer.newArrayContainer;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.nio.ByteBuffer;
-import java.nio.LongBuffer;
-import java.nio.CharBuffer;
-import java.util.Arrays;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.roaringbitmap.BitmapContainer;
 import org.roaringbitmap.CharIterator;
 import org.roaringbitmap.IntConsumer;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.LongBuffer;
+import java.util.Arrays;
+
 import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.junit.Assert.*;
+import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
+import static org.roaringbitmap.buffer.TestMappeableArrayContainer.newArrayContainer;
 
 
 public class TestMappeableBitmapContainer {

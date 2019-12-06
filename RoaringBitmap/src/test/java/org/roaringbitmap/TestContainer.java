@@ -4,15 +4,13 @@
 package org.roaringbitmap;
 
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-
-import java.util.*;
-
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.junit.Test;
+
+import java.util.*;
+
+import static org.junit.Assert.*;
 
 /**
  * Various tests on Container and its subclasses, ArrayContainer and BitmapContainer

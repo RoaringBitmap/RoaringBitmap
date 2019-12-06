@@ -5,8 +5,6 @@
 package org.roaringbitmap.buffer;
 
 
-import static org.junit.Assert.*;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.roaringbitmap.IntConsumer;
@@ -18,6 +16,9 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.util.*;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Generic testing of the roaring bitmaps
