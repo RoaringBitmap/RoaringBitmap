@@ -2190,7 +2190,7 @@ public final class RunContainer extends Container implements Cloneable {
   private void smartAppend(char val) {
     int oldend;
     if ((nbrruns == 0)
-        || ((val) > (oldend = (valueslength[2 * (nbrruns - 1)])
+        || (val > (oldend = (valueslength[2 * (nbrruns - 1)])
             + (valueslength[2 * (nbrruns - 1) + 1])) + 1)) { // we add a new one
       valueslength[2 * nbrruns] = val;
       valueslength[2 * nbrruns + 1] = 0;
@@ -2213,7 +2213,7 @@ public final class RunContainer extends Container implements Cloneable {
       nbrruns++;
       return;
     }
-    int newend = (start) + (length) + 1;
+    int newend = (start) + length + 1;
     if (newend > oldend) { // we merge
       setLength(nbrruns - 1, (char) (newend - 1 - (getValue(nbrruns - 1))));
     }
@@ -2222,21 +2222,21 @@ public final class RunContainer extends Container implements Cloneable {
   private void smartAppendExclusive(char val) {
     int oldend;
     if ((nbrruns == 0)
-        || ((val) > (oldend = (getValue(nbrruns - 1))
-            + (getLength(nbrruns - 1)) + 1))) { // we add a new one
+        || (val > (oldend = getValue(nbrruns - 1)
+            + getLength(nbrruns - 1) + 1))) { // we add a new one
       valueslength[2 * nbrruns] = val;
       valueslength[2 * nbrruns + 1] = 0;
       nbrruns++;
       return;
     }
-    if (oldend == (val)) {
+    if (oldend == val) {
       // we merge
       valueslength[2 * (nbrruns - 1) + 1]++;
       return;
     }
-    int newend = (val) + 1;
+    int newend = val + 1;
 
-    if ((val) == (getValue(nbrruns - 1))) {
+    if (val == getValue(nbrruns - 1)) {
       // we wipe out previous
       if (newend != oldend) {
         setValue(nbrruns - 1, (char) newend);
@@ -2247,7 +2247,7 @@ public final class RunContainer extends Container implements Cloneable {
         return;
       }
     }
-    setLength(nbrruns - 1, (char) (val - (getValue(nbrruns - 1)) - 1));
+    setLength(nbrruns - 1, (char) (val - getValue(nbrruns - 1) - 1));
     if (newend < oldend) {
       setValue(nbrruns, (char) newend);
       setLength(nbrruns, (char) (oldend - newend - 1));
@@ -2263,22 +2263,22 @@ public final class RunContainer extends Container implements Cloneable {
   private void smartAppendExclusive(char start, char length) {
     int oldend;
     if ((nbrruns == 0)
-        || ((start) > (oldend = (getValue(nbrruns - 1))
+        || (start > (oldend = (getValue(nbrruns - 1))
             + (getLength(nbrruns - 1)) + 1))) { // we add a new one
       valueslength[2 * nbrruns] = start;
       valueslength[2 * nbrruns + 1] = length;
       nbrruns++;
       return;
     }
-    if (oldend == (start)) {
+    if (oldend == start) {
       // we merge
       valueslength[2 * (nbrruns - 1) + 1] += length + 1;
       return;
     }
 
-    int newend = (start) + (length) + 1;
+    int newend = start + length + 1;
 
-    if ((start) == (getValue(nbrruns - 1))) {
+    if (start == (getValue(nbrruns - 1))) {
       // we wipe out previous
       if (newend < oldend) {
         setValue(nbrruns - 1, (char) newend);

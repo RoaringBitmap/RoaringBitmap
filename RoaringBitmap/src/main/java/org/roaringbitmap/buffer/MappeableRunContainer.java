@@ -2154,23 +2154,22 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   private void smartAppendExclusive(char[] vl, char start, char length) {
     int oldend;
     if ((nbrruns == 0) || (
-            (start) > (oldend = (getValue(nbrruns - 1))
-            + (getLength(nbrruns - 1)) + 1))) { // we add a new one
+            start > (oldend = getValue(nbrruns - 1)
+            + getLength(nbrruns - 1) + 1))) { // we add a new one
       vl[2 * nbrruns] = start;
       vl[2 * nbrruns + 1] = length;
       nbrruns++;
       return;
     }
-    if (oldend == (start)) {
+    if (oldend == start) {
       // we merge
       vl[2 * (nbrruns - 1) + 1] += length + 1;
       return;
     }
 
+    int newend = start + (length) + 1;
 
-    int newend = (start) + (length) + 1;
-
-    if ((start) == (getValue(nbrruns - 1))) {
+    if (start == getValue(nbrruns - 1)) {
       // we wipe out previous
       if (newend < oldend) {
         setValue(nbrruns - 1, (char) newend);
@@ -2185,7 +2184,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         return;
       }
     }
-    setLength(nbrruns - 1, (char) (start - (getValue(nbrruns - 1)) - 1));
+    setLength(nbrruns - 1, (char) (start - getValue(nbrruns - 1) - 1));
 
     if (newend < oldend) {
       setValue(nbrruns, (char) newend);
