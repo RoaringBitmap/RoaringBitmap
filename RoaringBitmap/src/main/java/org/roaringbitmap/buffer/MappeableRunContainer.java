@@ -32,15 +32,14 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   private static int branchyBufferedUnsignedInterleavedBinarySearch(final CharBuffer sb,
       final int begin, final int end, final char k) {
-    int ikey = (k);
     int low = begin;
     int high = end - 1;
     while (low <= high) {
       final int middleIndex = (low + high) >>> 1;
       final int middleValue = (sb.get(2 * middleIndex));
-      if (middleValue < ikey) {
+      if (middleValue < (int) (k)) {
         low = middleIndex + 1;
-      } else if (middleValue > ikey) {
+      } else if (middleValue > (int) (k)) {
         high = middleIndex - 1;
       } else {
         return middleIndex;
@@ -51,15 +50,14 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   private static int branchyBufferedUnsignedInterleavedBinarySearch(final ByteBuffer sb,
       int position, final int begin, final int end, final char k) {
-    int ikey = (k);
     int low = begin;
     int high = end - 1;
     while (low <= high) {
       final int middleIndex = (low + high) >>> 1;
       final int middleValue = (sb.getChar(position + 2 * middleIndex * 2));
-      if (middleValue < ikey) {
+      if (middleValue < (int) (k)) {
         low = middleIndex + 1;
-      } else if (middleValue > ikey) {
+      } else if (middleValue > (int) (k)) {
         high = middleIndex - 1;
       } else {
         return middleIndex;
@@ -83,12 +81,12 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     return 2 + 4 * nbrruns;
   }
 
-  static char getLength(char[] vl, int index) {
+  private static char getLength(char[] vl, int index) {
     return vl[2 * index + 1];
   }
 
 
-  static char getValue(char[] vl, int index) {
+  private static char getValue(char[] vl, int index) {
     return vl[2 * index];
   }
 
@@ -497,7 +495,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
           xend = xstart + (x.getLength(xrlepos)) + 1;
         }
       } else {// they overlap
-        final int lateststart = start > xstart ? start : xstart;
+        final int lateststart = Math.max(start, xstart);
         int earliestend;
         if (end == xend) {// improbable
           earliestend = end;
@@ -677,9 +675,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   private boolean canPrependValueLength(int value, int index) {
     if (index < this.nbrruns) {
       int nextValue = (getValue(index));
-      if (nextValue == value + 1) {
-        return true;
-      }
+      return nextValue == value + 1;
     }
     return false;
   }
@@ -715,9 +711,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     if (index != -1) {// possible match
       int offset = (x) - (getValue(index));
       int le = (getLength(index));
-      if (offset <= le) {
-        return true;
-      }
+      return offset <= le;
     }
     return false;
   }
@@ -741,9 +735,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       int offset = (x)
           - (buf.getChar(position + index * 2 * 2));
       int le = (buf.getChar(position + index * 2 * 2 + 2));
-      if (offset <= le) {
-        return true;
-      }
+      return offset <= le;
     }
     return false;
 
@@ -818,7 +810,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   // not thread safe!
   // not actually used anywhere, but potentially useful
-  protected void ensureCapacity(int minNbRuns) {
+  private void ensureCapacity(int minNbRuns) {
     final int minCapacity = 2 * minNbRuns;
     if (valueslength.capacity() < minCapacity) {
       int newCapacity = valueslength.capacity();
@@ -1016,7 +1008,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       mergeValuesLength(bIndex, eIndex);
       return this;
 
-    } else if (bIndex >= 0 && eIndex < 0) {
+    } else if (bIndex >= 0) {
       eIndex = -eIndex - 2;
 
       if (canPrependValueLength(end - 1, eIndex + 1)) {
@@ -1123,7 +1115,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     return andNot(x);
   }
 
-  protected MappeableContainer ilazyor(MappeableArrayContainer x) {
+  MappeableContainer ilazyor(MappeableArrayContainer x) {
     if (isFull()) {
       return this; // this can sometimes solve a lot of computation!
     }
@@ -1219,8 +1211,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       // this is a bit costly now (4 "contains" checks)
 
       boolean lastValueBeforeRange = false;
-      boolean firstValueInRange = false;
-      boolean lastValueInRange = false;
+      boolean firstValueInRange;
+      boolean lastValueInRange;
       boolean firstValuePastRange = false;
 
       // contains is based on a binary search and is hopefully fairly fast.
@@ -1500,7 +1492,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         recoverRoomsInRange(bIndex - 1, eIndex);
       }
 
-    } else if (bIndex < 0 && eIndex >= 0) {
+    } else if (eIndex >= 0) {
       bIndex = -bIndex - 2;
 
       if (bIndex >= 0) {
@@ -1927,15 +1919,14 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   @Override
   public int rank(char lowbits) {
-    int x = (lowbits);
     int answer = 0;
     for (int k = 0; k < this.nbrruns; ++k) {
       int value = (getValue(k));
       int length = (getLength(k));
-      if (x < value) {
+      if ((int) (lowbits) < value) {
         return answer;
-      } else if (value + length + 1 > x) {
-        return answer + x - value + 1;
+      } else if (value + length + 1 > (int) (lowbits)) {
+        return answer + (int) (lowbits) - value + 1;
       }
       answer += length + 1;
     }
@@ -1943,9 +1934,9 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   }
 
   @Override
-  public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+  public void readExternal(ObjectInput in) throws IOException {
     // little endian
-    this.nbrruns = 0xFFFF & Character.reverseBytes(in.readChar());
+    this.nbrruns = Character.reverseBytes(in.readChar());
     if (this.valueslength.capacity() < 2 * this.nbrruns) {
       this.valueslength = CharBuffer.allocate(2 * this.nbrruns);
     }
@@ -2537,7 +2528,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
           xend = xstart + (x.getLength(xrlepos)) + 1;
         }
       } else {// they overlap
-        final int lateststart = start > xstart ? start : xstart;
+        final int lateststart = Math.max(start, xstart);
         int earliestend;
         if (end == xend) {// improbable
           earliestend = end;
@@ -2611,11 +2602,10 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       return first();
     }
     int startValue = (getValue(effectiveIndex));
-    int value = (fromValue);
-    int offset = value - startValue;
+    int offset = (int) (fromValue) - startValue;
     int le = (getLength(effectiveIndex));
     if (offset <= le) {
-      return value;
+      return fromValue;
     }
     if (effectiveIndex + 1 < numberOfRuns()) {
       return (getValue(effectiveIndex + 1));
@@ -2631,11 +2621,10 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       return -1;
     }
     int startValue = (getValue(effectiveIndex));
-    int value = (fromValue);
-    int offset = value - startValue;
+    int offset = (int) (fromValue) - startValue;
     int le = (getLength(effectiveIndex));
     if (offset >= 0 && offset <= le) {
-      return value;
+      return fromValue;
     }
     return startValue + le;
   }
@@ -2648,10 +2637,9 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       return (fromValue);
     }
     int startValue = (getValue(effectiveIndex));
-    int value = (fromValue);
-    int offset = value - startValue;
+    int offset = (int) (fromValue) - startValue;
     int le = (getLength(effectiveIndex));
-    return offset <= le ? startValue + le + 1 : value;
+    return offset <= le ? startValue + le + 1 : (int) (fromValue);
   }
 
   @Override
@@ -2662,10 +2650,9 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       return (fromValue);
     }
     int startValue = (getValue(effectiveIndex));
-    int value = (fromValue);
-    int offset = value - startValue;
+    int offset = (int) (fromValue) - startValue;
     int le = (getLength(effectiveIndex));
-    return offset <= le ? startValue - 1 : value;
+    return offset <= le ? startValue - 1 : (int) (fromValue);
   }
 
   @Override
@@ -2795,12 +2782,12 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
 
 final class MappeableRunContainerCharIterator implements PeekableCharIterator {
-  int pos;
-  int le = 0;
-  int maxlength;
-  int base;
+  private int pos;
+  private int le = 0;
+  private int maxlength;
+  private int base;
 
-  MappeableRunContainer parent;
+  private MappeableRunContainer parent;
 
   MappeableRunContainerCharIterator() {}
 
@@ -2894,13 +2881,13 @@ final class MappeableRunContainerCharIterator implements PeekableCharIterator {
 
 
 final class RawMappeableRunContainerCharIterator implements PeekableCharIterator {
-  int pos;
-  int le = 0;
-  int maxlength;
-  int base;
+  private int pos;
+  private int le = 0;
+  private int maxlength;
+  private int base;
 
-  MappeableRunContainer parent;
-  char[] vl;
+  private MappeableRunContainer parent;
+  private char[] vl;
 
 
   RawMappeableRunContainerCharIterator(MappeableRunContainer p) {
@@ -2916,11 +2903,11 @@ final class RawMappeableRunContainerCharIterator implements PeekableCharIterator
     }
   }
 
-  char getLength(int index) {
+  private char getLength(int index) {
     return vl[2 * index + 1];
   }
 
-  char getValue(int index) {
+  private char getValue(int index) {
     return vl[2 * index];
   }
 
@@ -2965,7 +2952,7 @@ final class RawMappeableRunContainerCharIterator implements PeekableCharIterator
     throw new RuntimeException("Not implemented");// TODO
   }
 
-  void wrap(MappeableRunContainer p) {
+  private void wrap(MappeableRunContainer p) {
     parent = p;
     if (!parent.isArrayBacked()) {
       throw new RuntimeException("internal error");
@@ -3006,12 +2993,12 @@ final class RawMappeableRunContainerCharIterator implements PeekableCharIterator
 
 
 final class RawReverseMappeableRunContainerCharIterator implements CharIterator {
-  int pos;
-  int le;
-  int maxlength;
-  int base;
-  MappeableRunContainer parent;
-  char[] vl;
+  private int pos;
+  private int le;
+  private int maxlength;
+  private int base;
+  private MappeableRunContainer parent;
+  private char[] vl;
 
 
 
@@ -3028,11 +3015,11 @@ final class RawReverseMappeableRunContainerCharIterator implements CharIterator 
     }
   }
 
-  char getLength(int index) {
+  private char getLength(int index) {
     return vl[2 * index + 1];
   }
 
-  char getValue(int index) {
+  private char getValue(int index) {
     return vl[2 * index];
   }
 
@@ -3076,7 +3063,7 @@ final class RawReverseMappeableRunContainerCharIterator implements CharIterator 
     throw new RuntimeException("Not implemented");// TODO
   }
 
-  void wrap(MappeableRunContainer p) {
+  private void wrap(MappeableRunContainer p) {
     parent = p;
     if (!parent.isArrayBacked()) {
       throw new RuntimeException("internal error");
@@ -3094,11 +3081,11 @@ final class RawReverseMappeableRunContainerCharIterator implements CharIterator 
 
 
 final class ReverseMappeableRunContainerCharIterator implements CharIterator {
-  int pos;
-  int le;
-  int maxlength;
-  int base;
-  MappeableRunContainer parent;
+  private int pos;
+  private int le;
+  private int maxlength;
+  private int base;
+  private MappeableRunContainer parent;
 
 
   ReverseMappeableRunContainerCharIterator() {}

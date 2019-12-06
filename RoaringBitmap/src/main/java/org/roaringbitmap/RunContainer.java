@@ -414,7 +414,7 @@ public final class RunContainer extends Container implements Cloneable {
           xend = xstart + (x.getLength(xrlepos)) + 1;
         }
       } else {// they overlap
-        final int lateststart = start > xstart ? start : xstart;
+        final int lateststart = Math.max(start, xstart);
         int earliestend;
         if (end == xend) {// improbable
           earliestend = end;
@@ -536,7 +536,7 @@ public final class RunContainer extends Container implements Cloneable {
           xend = xstart + (x.getLength(xrlepos)) + 1;
         }
       } else {// they overlap
-        final int lateststart = start > xstart ? start : xstart;
+        final int lateststart = Math.max(start, xstart);
         int earliestend;
         if (end == xend) {// improbable
           earliestend = end;
@@ -1297,8 +1297,8 @@ public final class RunContainer extends Container implements Cloneable {
       // this is a bit costly now (4 "contains" checks)
 
       boolean lastValueBeforeRange = false;
-      boolean firstValueInRange = false;
-      boolean lastValueInRange = false;
+      boolean firstValueInRange;
+      boolean lastValueInRange;
       boolean firstValuePastRange = false;
 
       // contains is based on a binary search and is hopefully fairly fast.
@@ -1653,9 +1653,8 @@ public final class RunContainer extends Container implements Cloneable {
               // there is additional stuff in the eIndex run
               initValueLength(end, eIndex);
               eIndex--;
-            } else {
-              // run ends at or before the range being removed, can delete it
-            }
+            }  // run ends at or before the range being removed, can delete it
+
             recoverRoomsInRange(bIndex, eIndex);
           }
 
@@ -1669,9 +1668,8 @@ public final class RunContainer extends Container implements Cloneable {
           }
         }
 
-      } else {
-        // eIndex == -1: whole range is before first run, nothing to delete...
-      }
+      } // eIndex == -1: whole range is before first run, nothing to delete...
+
 
     }
     return this;
@@ -2543,7 +2541,7 @@ public final class RunContainer extends Container implements Cloneable {
     int offset = (int) (fromValue) - startValue;
     int le = (getLength(effectiveIndex));
     if (offset <= le) {
-      return (int) (fromValue);
+      return fromValue;
     }
     if (effectiveIndex + 1 < numberOfRuns()) {
       return (getValue(effectiveIndex + 1));
@@ -2562,7 +2560,7 @@ public final class RunContainer extends Container implements Cloneable {
     int offset = (int) (fromValue) - startValue;
     int le = (getLength(effectiveIndex));
     if (offset >= 0 && offset <= le) {
-      return (int) (fromValue);
+      return fromValue;
     }
     return startValue + le;
   }
