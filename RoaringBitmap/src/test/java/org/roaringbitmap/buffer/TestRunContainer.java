@@ -2,15 +2,15 @@ package org.roaringbitmap.buffer;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.roaringbitmap.CharIterator;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.RunContainer;
-import org.roaringbitmap.ShortIterator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ShortBuffer;
+import java.nio.CharBuffer;
 import java.util.*;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -34,7 +34,7 @@ public class TestRunContainer {
   @Test
   public void testToString() {
     MappeableRunContainer rc = new MappeableRunContainer(32200, 35000);
-    rc.add((short)-1);
+    rc.add((char)-1);
     assertEquals("[32200,34999][65535,65535]", rc.toString());
   }
 
@@ -56,8 +56,8 @@ public class TestRunContainer {
       x.next();
       count++;
     }
-    Assert.assertTrue(m2.getCardinality() == count);
-    Assert.assertTrue(mrb.getCardinality() == count);
+    assertEquals(m2.getCardinality(), count);
+    assertEquals(mrb.getCardinality(), count);
     Assert.assertTrue(m2.serializedSizeInBytes() < mrb.serializedSizeInBytes());
     Assert.assertEquals(m2, mrb);
     Assert.assertEquals(toMapped(m2), mrb);
@@ -70,7 +70,7 @@ public class TestRunContainer {
       throw new RuntimeException("You are trying to create an empty bitmap! ");
     }
     for (int k = 0; k < values.length; ++k) {
-      c = c.add((short) values[k]);
+      c = c.add((char) values[k]);
     }
     if (c.getCardinality() != values.length) {
       throw new RuntimeException("add failure");
@@ -90,7 +90,7 @@ public class TestRunContainer {
       return negate(generateUniformHash(rand, Max - N, Max), Max);
     }
     int[] ans = new int[N];
-    HashSet<Integer> s = new HashSet<Integer>();
+    HashSet<Integer> s = new HashSet<>();
     while (s.size() < N) {
       s.add(new Integer(rand.nextInt(Max)));
     }
@@ -108,7 +108,7 @@ public class TestRunContainer {
     r1 = (MappeableRunContainer) r1.iadd(0, (1 << 16));
     MappeableContainer b1 = new MappeableArrayContainer();
     b1 = b1.iadd(0, 1 << 16);
-    assertTrue(r1.equals(b1));
+    assertEquals(r1, b1);
 
     set.add(r1);
     setb.add(b1);
@@ -119,25 +119,25 @@ public class TestRunContainer {
     b2 = b2.iadd(0, 4096);
     set.add(r2);
     setb.add(b2);
-    assertTrue(r2.equals(b2));
+    assertEquals(r2, b2);
 
     MappeableRunContainer r3 = new MappeableRunContainer();
     MappeableContainer b3 = new MappeableArrayContainer();
     for (int k = 0; k < 655536; k += 2) {
-      r3 = (MappeableRunContainer) r3.add((short) k);
-      b3 = b3.add((short) k);
+      r3 = (MappeableRunContainer) r3.add((char) k);
+      b3 = b3.add((char) k);
     }
-    assertTrue(r3.equals(b3));
+    assertEquals(r3, b3);
     set.add(r3);
     setb.add(b3);
 
     MappeableRunContainer r4 = new MappeableRunContainer();
     MappeableContainer b4 = new MappeableArrayContainer();
     for (int k = 0; k < 655536; k += 256) {
-      r4 = (MappeableRunContainer) r4.add((short) k);
-      b4 = b4.add((short) k);
+      r4 = (MappeableRunContainer) r4.add((char) k);
+      b4 = b4.add((char) k);
     }
-    assertTrue(r4.equals(b4));
+    assertEquals(r4, b4);
     set.add(r4);
     setb.add(b4);
 
@@ -147,7 +147,7 @@ public class TestRunContainer {
       r5 = (MappeableRunContainer) r5.iadd(k, k + 256);
       b5 = b5.iadd(k, k + 256);
     }
-    assertTrue(r5.equals(b5));
+    assertEquals(r5, b5);
     set.add(r5);
     setb.add(b5);
 
@@ -157,7 +157,7 @@ public class TestRunContainer {
       r6 = (MappeableRunContainer) r6.iadd(k, k + 1);
       b6 = b6.iadd(k, k + 1);
     }
-    assertTrue(r6.equals(b6));
+    assertEquals(r6, b6);
     set.add(r6);
     setb.add(b6);
 
@@ -168,7 +168,7 @@ public class TestRunContainer {
       r7 = (MappeableRunContainer) r7.iadd(k, k + 1);
       b7 = b7.iadd(k, k + 1);
     }
-    assertTrue(r7.equals(b7));
+    assertEquals(r7, b7);
     set.add(r7);
     setb.add(b7);
 
@@ -197,24 +197,24 @@ public class TestRunContainer {
   @Test
   public void addAndCompress() {
     MappeableRunContainer container = new MappeableRunContainer();
-    container.add((short) 0);
-    container.add((short) 99);
-    container.add((short) 98);
+    container.add((char) 0);
+    container.add((char) 99);
+    container.add((char) 98);
     assertEquals(12, container.getSizeInBytes());
   }
 
   @Test
   public void addOutOfOrder() {
     MappeableRunContainer container = new MappeableRunContainer();
-    container.add((short) 0);
-    container.add((short) 2);
-    container.add((short) 55);
-    container.add((short) 1);
+    container.add((char) 0);
+    container.add((char) 2);
+    container.add((char) 55);
+    container.add((char) 1);
     assertEquals(4, container.getCardinality());
-    assertTrue(container.contains((short) 0));
-    assertTrue(container.contains((short) 1));
-    assertTrue(container.contains((short) 2));
-    assertTrue(container.contains((short) 55));
+    assertTrue(container.contains((char) 0));
+    assertTrue(container.contains((char) 1));
+    assertTrue(container.contains((char) 2));
+    assertTrue(container.contains((char) 55));
   }
 
   @Test
@@ -225,11 +225,11 @@ public class TestRunContainer {
           BitSet bs = new BitSet();
           MappeableRunContainer container = new MappeableRunContainer();
           for (int p = 0; p < i; ++p) {
-            container.add((short) p);
+            container.add((char) p);
             bs.set(p);
           }
           for (int p = 0; p < j; ++p) {
-            container.add((short) (99 - p));
+            container.add((char) (99 - p));
             bs.set(99 - p);
           }
           MappeableContainer newContainer = container.add(49 - k, 50 + k);
@@ -244,7 +244,7 @@ public class TestRunContainer {
               nb_runs++;
             }
             lastIndex = p;
-            assertTrue(newContainer.contains((short) p));
+            assertTrue(newContainer.contains((char) p));
           }
           assertEquals(nb_runs * 4 + 4, newContainer.getSizeInBytes());
         }
@@ -255,16 +255,16 @@ public class TestRunContainer {
   @Test
   public void addRangeAndFuseWithNextValueLength() {
     MappeableRunContainer container = new MappeableRunContainer();
-    for (short i = 10; i < 20; ++i) {
+    for (char i = 10; i < 20; ++i) {
       container.add(i);
     }
-    for (short i = 21; i < 30; ++i) {
+    for (char i = 21; i < 30; ++i) {
       container.add(i);
     }
     MappeableContainer newContainer = container.add(15, 21);
     assertNotSame(container, newContainer);
     assertEquals(20, newContainer.getCardinality());
-    for (short i = 10; i < 30; ++i) {
+    for (char i = 10; i < 30; ++i) {
       assertTrue(newContainer.contains(i));
     }
     assertEquals(8, newContainer.getSizeInBytes());
@@ -273,13 +273,13 @@ public class TestRunContainer {
   @Test
   public void addRangeAndFuseWithPreviousValueLength() {
     MappeableRunContainer container = new MappeableRunContainer();
-    for (short i = 10; i < 20; ++i) {
+    for (char i = 10; i < 20; ++i) {
       container.add(i);
     }
     MappeableContainer newContainer = container.add(20, 30);
     assertNotSame(container, newContainer);
     assertEquals(20, newContainer.getCardinality());
-    for (short i = 10; i < 30; ++i) {
+    for (char i = 10; i < 30; ++i) {
       assertTrue(newContainer.contains(i));
     }
     assertEquals(8, newContainer.getSizeInBytes());
@@ -291,7 +291,7 @@ public class TestRunContainer {
     MappeableContainer newContainer = container.add(10, 100);
     assertNotSame(container, newContainer);
     assertEquals(90, newContainer.getCardinality());
-    for (short i = 10; i < 100; ++i) {
+    for (char i = 10; i < 100; ++i) {
       assertTrue(newContainer.contains(i));
     }
   }
@@ -299,14 +299,14 @@ public class TestRunContainer {
   @Test
   public void addRangeOnNonEmptyContainer() {
     MappeableRunContainer container = new MappeableRunContainer();
-    container.add((short) 1);
-    container.add((short) 256);
+    container.add((char) 1);
+    container.add((char) 256);
     MappeableContainer newContainer = container.add(10, 100);
     assertNotSame(container, newContainer);
     assertEquals(92, newContainer.getCardinality());
-    assertTrue(newContainer.contains((short) 1));
-    assertTrue(newContainer.contains((short) 256));
-    for (short i = 10; i < 100; ++i) {
+    assertTrue(newContainer.contains((char) 1));
+    assertTrue(newContainer.contains((char) 256));
+    for (char i = 10; i < 100; ++i) {
       assertTrue(newContainer.contains(i));
     }
   }
@@ -314,16 +314,16 @@ public class TestRunContainer {
   @Test
   public void addRangeOnNonEmptyContainerAndFuse() {
     MappeableRunContainer container = new MappeableRunContainer();
-    for (short i = 1; i < 20; ++i) {
+    for (char i = 1; i < 20; ++i) {
       container.add(i);
     }
-    for (short i = 90; i < 120; ++i) {
+    for (char i = 90; i < 120; ++i) {
       container.add(i);
     }
     MappeableContainer newContainer = container.add(10, 100);
     assertNotSame(container, newContainer);
     assertEquals(119, newContainer.getCardinality());
-    for (short i = 1; i < 120; ++i) {
+    for (char i = 1; i < 120; ++i) {
       assertTrue(newContainer.contains(i));
     }
   }
@@ -331,12 +331,12 @@ public class TestRunContainer {
   @Test
   public void addRangeWithinSetBounds() {
     MappeableRunContainer container = new MappeableRunContainer();
-    container.add((short) 10);
-    container.add((short) 99);
+    container.add((char) 10);
+    container.add((char) 99);
     MappeableContainer newContainer = container.add(10, 100);
     assertNotSame(container, newContainer);
     assertEquals(90, newContainer.getCardinality());
-    for (short i = 10; i < 100; ++i) {
+    for (char i = 10; i < 100; ++i) {
       assertTrue(newContainer.contains(i));
     }
   }
@@ -344,15 +344,15 @@ public class TestRunContainer {
   @Test
   public void addRangeWithinSetBoundsAndFuse() {
     MappeableRunContainer container = new MappeableRunContainer();
-    container.add((short) 1);
-    container.add((short) 10);
-    container.add((short) 55);
-    container.add((short) 99);
-    container.add((short) 150);
+    container.add((char) 1);
+    container.add((char) 10);
+    container.add((char) 55);
+    container.add((char) 99);
+    container.add((char) 150);
     MappeableContainer newContainer = container.add(10, 100);
     assertNotSame(container, newContainer);
     assertEquals(92, newContainer.getCardinality());
-    for (short i = 10; i < 100; ++i) {
+    for (char i = 10; i < 100; ++i) {
       assertTrue(newContainer.contains(i));
     }
   }
@@ -362,8 +362,8 @@ public class TestRunContainer {
     MappeableContainer bc = new MappeableBitmapContainer();
     MappeableContainer rc = new MappeableRunContainer();
     for (int k = 0; k < 2 * DEFAULT_MAX_SIZE; ++k) {
-      bc = bc.add((short) (k * 10));
-      rc = rc.add((short) (k * 10 + 3));
+      bc = bc.add((char) (k * 10));
+      rc = rc.add((char) (k * 10 + 3));
     }
     MappeableContainer result = rc.andNot(bc);
     assertEquals(rc, result);
@@ -373,17 +373,17 @@ public class TestRunContainer {
   public void andNot1() {
     MappeableContainer bc = new MappeableBitmapContainer();
     MappeableContainer rc = new MappeableRunContainer();
-    rc.add((short) 1);
+    rc.add((char) 1);
     MappeableContainer result = rc.andNot(bc);
     assertEquals(1, result.getCardinality());
-    assertTrue(result.contains((short) 1));
+    assertTrue(result.contains((char) 1));
   }
 
   @Test
   public void andNot2() {
     MappeableContainer bc = new MappeableBitmapContainer();
     MappeableContainer rc = new MappeableRunContainer();
-    bc.add((short) 1);
+    bc.add((char) 1);
     MappeableContainer result = rc.andNot(bc);
     assertEquals(0, result.getCardinality());
   }
@@ -394,16 +394,16 @@ public class TestRunContainer {
     MappeableContainer bc = new MappeableBitmapContainer();
     MappeableContainer rc = new MappeableRunContainer();
     for (int k = 0; k < 100; ++k) {
-      bc = bc.add((short) (k * 10));
-      bc = bc.add((short) (k * 10 + 3));
+      bc = bc.add((char) (k * 10));
+      bc = bc.add((char) (k * 10 + 3));
 
-      rc = rc.add((short) (k * 10 + 5));
-      rc = rc.add((short) (k * 10 + 3));
+      rc = rc.add((char) (k * 10 + 5));
+      rc = rc.add((char) (k * 10 + 3));
     }
     MappeableContainer intersectionNOT = rc.andNot(bc);
     assertEquals(100, intersectionNOT.getCardinality());
     for (int k = 0; k < 100; ++k) {
-      assertTrue(" missing k=" + k, intersectionNOT.contains((short) (k * 10 + 5)));
+      assertTrue(" missing k=" + k, intersectionNOT.contains((char) (k * 10 + 5)));
     }
     assertEquals(200, bc.getCardinality());
     assertEquals(200, rc.getCardinality());
@@ -415,16 +415,16 @@ public class TestRunContainer {
     MappeableContainer ac = new MappeableArrayContainer();
     MappeableContainer rc = new MappeableRunContainer();
     for (int k = 0; k < 100; ++k) {
-      ac = ac.add((short) (k * 10));
-      ac = ac.add((short) (k * 10 + 3));
+      ac = ac.add((char) (k * 10));
+      ac = ac.add((char) (k * 10 + 3));
 
-      rc = rc.add((short) (k * 10 + 5));
-      rc = rc.add((short) (k * 10 + 3));
+      rc = rc.add((char) (k * 10 + 5));
+      rc = rc.add((char) (k * 10 + 3));
     }
     MappeableContainer intersectionNOT = rc.andNot(ac);
     assertEquals(100, intersectionNOT.getCardinality());
     for (int k = 0; k < 100; ++k) {
-      assertTrue(" missing k=" + k, intersectionNOT.contains((short) (k * 10 + 5)));
+      assertTrue(" missing k=" + k, intersectionNOT.contains((char) (k * 10 + 5)));
     }
     assertEquals(200, ac.getCardinality());
     assertEquals(200, rc.getCardinality());
@@ -436,24 +436,24 @@ public class TestRunContainer {
     int a = 33;
     int b = 50000;
     for (int k = a; k < b; ++k) {
-      x = x.add((short) k);
+      x = x.add((char) k);
     }
 
     for (int k = 0; k < (1 << 16); ++k) {
-      if (x.contains((short) k)) {
+      if (x.contains((char) k)) {
         MappeableRunContainer copy = (MappeableRunContainer) x.clone();
-        copy = (MappeableRunContainer) copy.remove((short) k);
-        copy = (MappeableRunContainer) copy.add((short) k);
+        copy = (MappeableRunContainer) copy.remove((char) k);
+        copy = (MappeableRunContainer) copy.add((char) k);
         assertEquals(copy.getCardinality(), x.getCardinality());
-        assertTrue(copy.equals(x));
-        assertTrue(x.equals(copy));
+        assertEquals(copy, x);
+        assertEquals(x, copy);
         x.trim();
-        assertTrue(copy.equals(x));
-        assertTrue(x.equals(copy));
+        assertEquals(copy, x);
+        assertEquals(x, copy);
 
       } else {
         MappeableRunContainer copy = (MappeableRunContainer) x.clone();
-        copy = (MappeableRunContainer) copy.add((short) k);
+        copy = (MappeableRunContainer) copy.add((char) k);
         assertEquals(copy.getCardinality(), x.getCardinality() + 1);
       }
     }
@@ -462,7 +462,7 @@ public class TestRunContainer {
   @Test
   public void clear() {
     MappeableContainer rc = new MappeableRunContainer();
-    rc.add((short) 1);
+    rc.add((char) 1);
     assertEquals(1, rc.getCardinality());
     rc.clear();
     assertEquals(0, rc.getCardinality());
@@ -473,8 +473,8 @@ public class TestRunContainer {
     MappeableContainer ac = new MappeableArrayContainer();
     MappeableContainer ar = new MappeableRunContainer();
     for (int k = 0; k < 100; ++k) {
-      ac = ac.add((short) (k * 10));
-      ar = ar.add((short) (k * 10));
+      ac = ac.add((char) (k * 10));
+      ar = ar.add((char) (k * 10));
     }
     assertEquals(ac, ar);
   }
@@ -484,8 +484,8 @@ public class TestRunContainer {
     MappeableContainer ac = new MappeableArrayContainer();
     MappeableContainer ar = new MappeableRunContainer();
     for (int k = 0; k < 10000; ++k) {
-      ac = ac.add((short) k);
-      ar = ar.add((short) k);
+      ac = ac.add((char) k);
+      ar = ar.add((char) k);
     }
     assertEquals(ac, ar);
   }
@@ -493,9 +493,9 @@ public class TestRunContainer {
   @Test
   public void fillLeastSignificantBits() {
     MappeableContainer rc = new MappeableRunContainer();
-    rc.add((short) 1);
-    rc.add((short) 3);
-    rc.add((short) 12);
+    rc.add((char) 1);
+    rc.add((char) 3);
+    rc.add((char) 12);
     int[] array = new int[4];
     rc.fillLeastSignificant16bits(array, 1, 0);
     assertEquals(0, array[0]);
@@ -507,10 +507,10 @@ public class TestRunContainer {
   @Test
   public void flip() {
     MappeableRunContainer rc = new MappeableRunContainer();
-    rc.flip((short) 1);
-    assertTrue(rc.contains((short) 1));
-    rc.flip((short) 1);
-    assertFalse(rc.contains((short) 1));
+    rc.flip((char) 1);
+    assertTrue(rc.contains((char) 1));
+    rc.flip((char) 1);
+    assertFalse(rc.contains((char) 1));
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -533,11 +533,11 @@ public class TestRunContainer {
           BitSet bs = new BitSet();
           MappeableRunContainer container = new MappeableRunContainer();
           for (int p = 0; p < i; ++p) {
-            container.add((short) p);
+            container.add((char) p);
             bs.set(p);
           }
           for (int p = 0; p < j; ++p) {
-            container.add((short) (99 - p));
+            container.add((char) (99 - p));
             bs.set(99 - p);
           }
           container.iadd(49 - k, 50 + k);
@@ -551,7 +551,7 @@ public class TestRunContainer {
               nb_runs++;
             }
             lastIndex = p;
-            assertTrue(container.contains((short) p));
+            assertTrue(container.contains((char) p));
           }
           assertEquals(nb_runs * 4 + 4, container.getSizeInBytes());
         }
@@ -562,21 +562,21 @@ public class TestRunContainer {
   @Test
   public void iaddRange1() {
     MappeableContainer rc = new MappeableRunContainer();
-    for (short k = 0; k < 10; ++k) {
+    for (char k = 0; k < 10; ++k) {
       rc.add(k);
     }
-    for (short k = 20; k < 30; ++k) {
+    for (char k = 20; k < 30; ++k) {
       rc.add(k);
     }
-    for (short k = 40; k < 50; ++k) {
+    for (char k = 40; k < 50; ++k) {
       rc.add(k);
     }
     rc.iadd(5, 21);
     assertEquals(40, rc.getCardinality());
-    for (short k = 0; k < 30; ++k) {
+    for (char k = 0; k < 30; ++k) {
       assertTrue(rc.contains(k));
     }
-    for (short k = 40; k < 50; ++k) {
+    for (char k = 40; k < 50; ++k) {
       assertTrue(rc.contains(k));
     }
     assertEquals(12, rc.getSizeInBytes());
@@ -585,18 +585,18 @@ public class TestRunContainer {
   @Test
   public void iaddRange10() {
     MappeableContainer rc = new MappeableRunContainer();
-    for (short k = 0; k < 10; ++k) {
+    for (char k = 0; k < 10; ++k) {
       rc.add(k);
     }
-    for (short k = 20; k < 30; ++k) {
+    for (char k = 20; k < 30; ++k) {
       rc.add(k);
     }
     rc.iadd(15, 35);
     assertEquals(30, rc.getCardinality());
-    for (short k = 0; k < 10; ++k) {
+    for (char k = 0; k < 10; ++k) {
       assertTrue(rc.contains(k));
     }
-    for (short k = 15; k < 35; ++k) {
+    for (char k = 15; k < 35; ++k) {
       assertTrue(rc.contains(k));
     }
     assertEquals(12, rc.getSizeInBytes());
@@ -605,15 +605,15 @@ public class TestRunContainer {
   @Test
   public void iaddRange11() {
     MappeableContainer rc = new MappeableRunContainer();
-    for (short k = 5; k < 10; ++k) {
+    for (char k = 5; k < 10; ++k) {
       rc.add(k);
     }
-    for (short k = 20; k < 30; ++k) {
+    for (char k = 20; k < 30; ++k) {
       rc.add(k);
     }
     rc.iadd(0, 20);
     assertEquals(30, rc.getCardinality());
-    for (short k = 0; k < 30; ++k) {
+    for (char k = 0; k < 30; ++k) {
       assertTrue(rc.contains(k));
     }
     assertEquals(8, rc.getSizeInBytes());
@@ -622,15 +622,15 @@ public class TestRunContainer {
   @Test
   public void iaddRange12() {
     MappeableContainer rc = new MappeableRunContainer();
-    for (short k = 5; k < 10; ++k) {
+    for (char k = 5; k < 10; ++k) {
       rc.add(k);
     }
-    for (short k = 20; k < 30; ++k) {
+    for (char k = 20; k < 30; ++k) {
       rc.add(k);
     }
     rc.iadd(0, 35);
     assertEquals(35, rc.getCardinality());
-    for (short k = 0; k < 35; ++k) {
+    for (char k = 0; k < 35; ++k) {
       assertTrue(rc.contains(k));
     }
     assertEquals(8, rc.getSizeInBytes());
@@ -639,21 +639,21 @@ public class TestRunContainer {
   @Test
   public void iaddRange2() {
     MappeableContainer rc = new MappeableRunContainer();
-    for (short k = 0; k < 10; ++k) {
+    for (char k = 0; k < 10; ++k) {
       rc.add(k);
     }
-    for (short k = 20; k < 30; ++k) {
+    for (char k = 20; k < 30; ++k) {
       rc.add(k);
     }
-    for (short k = 40; k < 50; ++k) {
+    for (char k = 40; k < 50; ++k) {
       rc.add(k);
     }
     rc.iadd(0, 26);
     assertEquals(40, rc.getCardinality());
-    for (short k = 0; k < 30; ++k) {
+    for (char k = 0; k < 30; ++k) {
       assertTrue(rc.contains(k));
     }
-    for (short k = 40; k < 50; ++k) {
+    for (char k = 40; k < 50; ++k) {
       assertTrue(rc.contains(k));
     }
     assertEquals(12, rc.getSizeInBytes());
@@ -662,21 +662,21 @@ public class TestRunContainer {
   @Test
   public void iaddRange3() {
     MappeableContainer rc = new MappeableRunContainer();
-    for (short k = 0; k < 10; ++k) {
+    for (char k = 0; k < 10; ++k) {
       rc.add(k);
     }
-    for (short k = 20; k < 30; ++k) {
+    for (char k = 20; k < 30; ++k) {
       rc.add(k);
     }
-    for (short k = 40; k < 50; ++k) {
+    for (char k = 40; k < 50; ++k) {
       rc.add(k);
     }
     rc.iadd(0, 20);
     assertEquals(40, rc.getCardinality());
-    for (short k = 0; k < 30; ++k) {
+    for (char k = 0; k < 30; ++k) {
       assertTrue(rc.contains(k));
     }
-    for (short k = 40; k < 50; ++k) {
+    for (char k = 40; k < 50; ++k) {
       assertTrue(rc.contains(k));
     }
     assertEquals(12, rc.getSizeInBytes());
@@ -685,21 +685,21 @@ public class TestRunContainer {
   @Test
   public void iaddRange4() {
     MappeableContainer rc = new MappeableRunContainer();
-    for (short k = 0; k < 10; ++k) {
+    for (char k = 0; k < 10; ++k) {
       rc.add(k);
     }
-    for (short k = 20; k < 30; ++k) {
+    for (char k = 20; k < 30; ++k) {
       rc.add(k);
     }
-    for (short k = 40; k < 50; ++k) {
+    for (char k = 40; k < 50; ++k) {
       rc.add(k);
     }
     rc.iadd(10, 21);
     assertEquals(40, rc.getCardinality());
-    for (short k = 0; k < 30; ++k) {
+    for (char k = 0; k < 30; ++k) {
       assertTrue(rc.contains(k));
     }
-    for (short k = 40; k < 50; ++k) {
+    for (char k = 40; k < 50; ++k) {
       assertTrue(rc.contains(k));
     }
     assertEquals(12, rc.getSizeInBytes());
@@ -708,24 +708,24 @@ public class TestRunContainer {
   @Test
   public void iaddRange5() {
     MappeableContainer rc = new MappeableRunContainer();
-    for (short k = 0; k < 10; ++k) {
+    for (char k = 0; k < 10; ++k) {
       rc.add(k);
     }
-    for (short k = 20; k < 30; ++k) {
+    for (char k = 20; k < 30; ++k) {
       rc.add(k);
     }
-    for (short k = 40; k < 50; ++k) {
+    for (char k = 40; k < 50; ++k) {
       rc.add(k);
     }
     rc.iadd(15, 21);
     assertEquals(35, rc.getCardinality());
-    for (short k = 0; k < 10; ++k) {
+    for (char k = 0; k < 10; ++k) {
       assertTrue(rc.contains(k));
     }
-    for (short k = 15; k < 30; ++k) {
+    for (char k = 15; k < 30; ++k) {
       assertTrue(rc.contains(k));
     }
-    for (short k = 40; k < 50; ++k) {
+    for (char k = 40; k < 50; ++k) {
       assertTrue(rc.contains(k));
     }
     assertEquals(16, rc.getSizeInBytes());
@@ -735,21 +735,21 @@ public class TestRunContainer {
   @Test
   public void iaddRange6() {
     MappeableContainer rc = new MappeableRunContainer();
-    for (short k = 5; k < 10; ++k) {
+    for (char k = 5; k < 10; ++k) {
       rc.add(k);
     }
-    for (short k = 20; k < 30; ++k) {
+    for (char k = 20; k < 30; ++k) {
       rc.add(k);
     }
-    for (short k = 40; k < 50; ++k) {
+    for (char k = 40; k < 50; ++k) {
       rc.add(k);
     }
     rc.iadd(0, 21);
     assertEquals(40, rc.getCardinality());
-    for (short k = 0; k < 30; ++k) {
+    for (char k = 0; k < 30; ++k) {
       assertTrue(rc.contains(k));
     }
-    for (short k = 40; k < 50; ++k) {
+    for (char k = 40; k < 50; ++k) {
       assertTrue(rc.contains(k));
     }
     assertEquals(12, rc.getSizeInBytes());
@@ -758,24 +758,24 @@ public class TestRunContainer {
   @Test
   public void iaddRange7() {
     MappeableContainer rc = new MappeableRunContainer();
-    for (short k = 0; k < 10; ++k) {
+    for (char k = 0; k < 10; ++k) {
       rc.add(k);
     }
-    for (short k = 20; k < 30; ++k) {
+    for (char k = 20; k < 30; ++k) {
       rc.add(k);
     }
-    for (short k = 40; k < 50; ++k) {
+    for (char k = 40; k < 50; ++k) {
       rc.add(k);
     }
     rc.iadd(15, 25);
     assertEquals(35, rc.getCardinality());
-    for (short k = 0; k < 10; ++k) {
+    for (char k = 0; k < 10; ++k) {
       assertTrue(rc.contains(k));
     }
-    for (short k = 15; k < 30; ++k) {
+    for (char k = 15; k < 30; ++k) {
       assertTrue(rc.contains(k));
     }
-    for (short k = 40; k < 50; ++k) {
+    for (char k = 40; k < 50; ++k) {
       assertTrue(rc.contains(k));
     }
     assertEquals(16, rc.getSizeInBytes());
@@ -784,21 +784,21 @@ public class TestRunContainer {
   @Test
   public void iaddRange8() {
     MappeableContainer rc = new MappeableRunContainer();
-    for (short k = 0; k < 10; ++k) {
+    for (char k = 0; k < 10; ++k) {
       rc.add(k);
     }
-    for (short k = 20; k < 30; ++k) {
+    for (char k = 20; k < 30; ++k) {
       rc.add(k);
     }
-    for (short k = 40; k < 50; ++k) {
+    for (char k = 40; k < 50; ++k) {
       rc.add(k);
     }
     rc.iadd(15, 40);
     assertEquals(45, rc.getCardinality());
-    for (short k = 0; k < 10; ++k) {
+    for (char k = 0; k < 10; ++k) {
       assertTrue(rc.contains(k));
     }
-    for (short k = 15; k < 50; ++k) {
+    for (char k = 15; k < 50; ++k) {
       assertTrue(rc.contains(k));
     }
     assertEquals(12, rc.getSizeInBytes());
@@ -807,12 +807,12 @@ public class TestRunContainer {
   @Test
   public void iaddRangeAndFuseWithPreviousValueLength() {
     MappeableRunContainer container = new MappeableRunContainer();
-    for (short i = 10; i < 20; ++i) {
+    for (char i = 10; i < 20; ++i) {
       container.add(i);
     }
     container.iadd(20, 30);
     assertEquals(20, container.getCardinality());
-    for (short i = 10; i < 30; ++i) {
+    for (char i = 10; i < 30; ++i) {
       assertTrue(container.contains(i));
     }
     assertEquals(8, container.getSizeInBytes());
@@ -821,15 +821,15 @@ public class TestRunContainer {
   @Test
   public void iaddRangeOnNonEmptyContainerAndFuse() {
     MappeableRunContainer container = new MappeableRunContainer();
-    for (short i = 1; i < 20; ++i) {
+    for (char i = 1; i < 20; ++i) {
       container.add(i);
     }
-    for (short i = 90; i < 120; ++i) {
+    for (char i = 90; i < 120; ++i) {
       container.add(i);
     }
     container.iadd(10, 100);
     assertEquals(119, container.getCardinality());
-    for (short i = 1; i < 120; ++i) {
+    for (char i = 1; i < 120; ++i) {
       assertTrue(container.contains(i));
     }
   }
@@ -837,11 +837,11 @@ public class TestRunContainer {
   @Test
   public void iaddRangeWithinSetBounds() {
     MappeableRunContainer container = new MappeableRunContainer();
-    container.add((short) 10);
-    container.add((short) 99);
+    container.add((char) 10);
+    container.add((char) 99);
     container.iadd(10, 100);
     assertEquals(90, container.getCardinality());
-    for (short i = 10; i < 100; ++i) {
+    for (char i = 10; i < 100; ++i) {
       assertTrue(container.contains(i));
     }
   }
@@ -851,8 +851,8 @@ public class TestRunContainer {
     MappeableContainer ac = new MappeableArrayContainer();
     MappeableContainer rc = new MappeableRunContainer();
     for (int k = 0; k < 100; ++k) {
-      ac = ac.add((short) (k * 10));
-      rc = rc.add((short) (k * 10));
+      ac = ac.add((char) (k * 10));
+      rc = rc.add((char) (k * 10));
     }
     assertEquals(ac, ac.and(rc));
     assertEquals(ac, rc.and(ac));
@@ -865,8 +865,8 @@ public class TestRunContainer {
     MappeableContainer ac = new MappeableArrayContainer();
     MappeableContainer rc = new MappeableRunContainer();
     for (int k = 0; k < 10000; ++k) {
-      ac = ac.add((short) k);
-      rc = rc.add((short) k);
+      ac = ac.add((char) k);
+      rc = rc.add((char) k);
     }
     assertEquals(ac, ac.and(rc));
     assertEquals(ac, rc.and(ac));
@@ -877,8 +877,8 @@ public class TestRunContainer {
     MappeableContainer ac = new MappeableArrayContainer();
     MappeableContainer rc = new MappeableRunContainer();
     for (int k = 0; k < 100; ++k) {
-      ac = ac.add((short) k);
-      rc = rc.add((short) (k + 100));
+      ac = ac.add((char) k);
+      rc = rc.add((char) (k + 100));
     }
     assertEquals(0, rc.and(ac).getCardinality());
   }
@@ -888,16 +888,16 @@ public class TestRunContainer {
     MappeableContainer bc = new MappeableBitmapContainer();
     MappeableContainer rc = new MappeableRunContainer();
     for (int k = 0; k < 100; ++k) {
-      bc = bc.add((short) (k * 10));
-      bc = bc.add((short) (k * 10 + 3));
+      bc = bc.add((char) (k * 10));
+      bc = bc.add((char) (k * 10 + 3));
 
-      rc = rc.add((short) (k * 10 + 5));
-      rc = rc.add((short) (k * 10 + 3));
+      rc = rc.add((char) (k * 10 + 5));
+      rc = rc.add((char) (k * 10 + 3));
     }
     MappeableContainer intersection = rc.and(bc);
     assertEquals(100, intersection.getCardinality());
     for (int k = 0; k < 100; ++k) {
-      assertTrue(intersection.contains((short) (k * 10 + 3)));
+      assertTrue(intersection.contains((char) (k * 10 + 3)));
     }
     assertEquals(200, bc.getCardinality());
     assertEquals(200, rc.getCardinality());
@@ -916,7 +916,7 @@ public class TestRunContainer {
   @Test
   public void iremove1() {
     MappeableContainer rc = new MappeableRunContainer();
-    rc.add((short) 1);
+    rc.add((char) 1);
     rc.iremove(1, 2);
     assertEquals(0, rc.getCardinality());
   }
@@ -928,7 +928,7 @@ public class TestRunContainer {
     rc.iadd(20, 30);
     rc.iremove(0, 25);
     assertEquals(5, rc.getCardinality());
-    for (short k = 25; k < 30; ++k) {
+    for (char k = 25; k < 30; ++k) {
       assertTrue(rc.contains(k));
     }
     assertEquals(8, rc.getSizeInBytes());
@@ -949,8 +949,8 @@ public class TestRunContainer {
   @Test
   public void iremove12() {
     MappeableContainer rc = new MappeableRunContainer();
-    rc.add((short) 0);
-    rc.add((short) 10);
+    rc.add((char) 0);
+    rc.add((char) 10);
     rc.iremove(0, 11);
     assertEquals(0, rc.getCardinality());
   }
@@ -962,10 +962,10 @@ public class TestRunContainer {
     rc.iadd(20, 30);
     rc.iremove(5, 25);
     assertEquals(10, rc.getCardinality());
-    for (short k = 0; k < 5; ++k) {
+    for (char k = 0; k < 5; ++k) {
       assertTrue(rc.contains(k));
     }
-    for (short k = 25; k < 30; ++k) {
+    for (char k = 25; k < 30; ++k) {
       assertTrue(rc.contains(k));
     }
     assertEquals(12, rc.getSizeInBytes());
@@ -979,7 +979,7 @@ public class TestRunContainer {
     rc.iadd(20, 30);
     rc.iremove(5, 31);
     assertEquals(5, rc.getCardinality());
-    for (short k = 0; k < 5; ++k) {
+    for (char k = 0; k < 5; ++k) {
       assertTrue(rc.contains(k));
     }
     assertEquals(8, rc.getSizeInBytes());
@@ -992,10 +992,10 @@ public class TestRunContainer {
     rc.iadd(20, 30);
     rc.iremove(5, 25);
     assertEquals(10, rc.getCardinality());
-    for (short k = 0; k < 5; ++k) {
+    for (char k = 0; k < 5; ++k) {
       assertTrue(rc.contains(k));
     }
-    for (short k = 25; k < 30; ++k) {
+    for (char k = 25; k < 30; ++k) {
       assertTrue(rc.contains(k));
     }
     assertEquals(12, rc.getSizeInBytes());
@@ -1008,7 +1008,7 @@ public class TestRunContainer {
     rc.iadd(20, 30);
     rc.iremove(5, 31);
     assertEquals(5, rc.getCardinality());
-    for (short k = 0; k < 5; ++k) {
+    for (char k = 0; k < 5; ++k) {
       assertTrue(rc.contains(k));
     }
     assertEquals(8, rc.getSizeInBytes());
@@ -1029,7 +1029,7 @@ public class TestRunContainer {
     rc.iadd(20, 30);
     rc.iremove(0, 21);
     assertEquals(9, rc.getCardinality());
-    for (short k = 21; k < 30; ++k) {
+    for (char k = 21; k < 30; ++k) {
       assertTrue(rc.contains(k));
     }
     assertEquals(8, rc.getSizeInBytes());
@@ -1043,10 +1043,10 @@ public class TestRunContainer {
     rc.iadd(40, 50);
     rc.iremove(0, 21);
     assertEquals(19, rc.getCardinality());
-    for (short k = 21; k < 30; ++k) {
+    for (char k = 21; k < 30; ++k) {
       assertTrue(rc.contains(k));
     }
-    for (short k = 40; k < 50; ++k) {
+    for (char k = 40; k < 50; ++k) {
       assertTrue(rc.contains(k));
     }
     assertEquals(12, rc.getSizeInBytes());
@@ -1058,7 +1058,7 @@ public class TestRunContainer {
     rc.iadd(0, 10);
     rc.iremove(0, 5);
     assertEquals(5, rc.getCardinality());
-    for (short k = 5; k < 10; ++k) {
+    for (char k = 5; k < 10; ++k) {
       assertTrue(rc.contains(k));
     }
     assertEquals(8, rc.getSizeInBytes());
@@ -1080,7 +1080,7 @@ public class TestRunContainer {
     rc.iadd(20, 30);
     rc.iremove(0, 25);
     assertEquals(5, rc.getCardinality());
-    for (short k = 25; k < 30; ++k) {
+    for (char k = 25; k < 30; ++k) {
       assertTrue(rc.contains(k));
     }
     assertEquals(8, rc.getSizeInBytes());
@@ -1101,10 +1101,10 @@ public class TestRunContainer {
     rc.iadd(20, 30);
     rc.iremove(5, 21);
     assertEquals(14, rc.getCardinality());
-    for (short k = 0; k < 5; ++k) {
+    for (char k = 0; k < 5; ++k) {
       assertTrue(rc.contains(k));
     }
-    for (short k = 21; k < 30; ++k) {
+    for (char k = 21; k < 30; ++k) {
       assertTrue(rc.contains(k));
     }
     assertEquals(12, rc.getSizeInBytes());
@@ -1117,10 +1117,10 @@ public class TestRunContainer {
     rc.iadd(20, 30);
     rc.iremove(15, 21);
     assertEquals(19, rc.getCardinality());
-    for (short k = 0; k < 10; ++k) {
+    for (char k = 0; k < 10; ++k) {
       assertTrue(rc.contains(k));
     }
-    for (short k = 21; k < 30; ++k) {
+    for (char k = 21; k < 30; ++k) {
       assertTrue(rc.contains(k));
     }
     assertEquals(12, rc.getSizeInBytes());
@@ -1146,11 +1146,11 @@ public class TestRunContainer {
           BitSet bs = new BitSet();
           MappeableRunContainer container = new MappeableRunContainer();
           for (int p = 0; p < i; ++p) {
-            container.add((short) p);
+            container.add((char) p);
             bs.set(p);
           }
           for (int p = 0; p < j; ++p) {
-            container.add((short) (99 - p));
+            container.add((char) (99 - p));
             bs.set(99 - p);
           }
           container.iremove(49 - k, 50 + k);
@@ -1164,7 +1164,7 @@ public class TestRunContainer {
               nb_runs++;
             }
             lastIndex = p;
-            assertTrue(container.contains((short) p));
+            assertTrue(container.contains((char) p));
           }
           assertEquals(nb_runs * 4 + 4, container.getSizeInBytes());
         }
@@ -1177,14 +1177,14 @@ public class TestRunContainer {
     MappeableContainer x = new MappeableRunContainer();
     for (int k = 0; k < 100; ++k) {
       for (int j = 0; j < k; ++j) {
-        x = x.add((short) (k * 100 + j));
+        x = x.add((char) (k * 100 + j));
       }
     }
-    ShortIterator i = x.getShortIterator();
+    CharIterator i = x.getShortIterator();
     for (int k = 0; k < 100; ++k) {
       for (int j = 0; j < k; ++j) {
         assertTrue(i.hasNext());
-        assertEquals(i.next(), (short) (k * 100 + j));
+        assertEquals(i.next(), (char) (k * 100 + j));
       }
     }
     assertFalse(i.hasNext());
@@ -1193,33 +1193,33 @@ public class TestRunContainer {
   @Test
   public void limit() {
     MappeableRunContainer container = new MappeableRunContainer();
-    container.add((short) 0);
-    container.add((short) 2);
-    container.add((short) 55);
-    container.add((short) 64);
-    container.add((short) 256);
+    container.add((char) 0);
+    container.add((char) 2);
+    container.add((char) 55);
+    container.add((char) 64);
+    container.add((char) 256);
     MappeableContainer limit = container.limit(1024);
     assertNotSame(container, limit);
     assertEquals(container, limit);
     limit = container.limit(3);
     assertNotSame(container, limit);
     assertEquals(3, limit.getCardinality());
-    assertTrue(limit.contains((short) 0));
-    assertTrue(limit.contains((short) 2));
-    assertTrue(limit.contains((short) 55));
+    assertTrue(limit.contains((char) 0));
+    assertTrue(limit.contains((char) 2));
+    assertTrue(limit.contains((char) 55));
   }
 
   @Test
   public void longbacksimpleIterator() {
     MappeableContainer x = new MappeableRunContainer();
     for (int k = 0; k < (1 << 16); ++k) {
-      x = x.add((short) k);
+      x = x.add((char) k);
     }
 
-    ShortIterator i = x.getReverseShortIterator();
+    CharIterator i = x.getReverseShortIterator();
     for (int k = (1 << 16) - 1; k >= 0; --k) {
       assertTrue(i.hasNext());
-      assertEquals(i.next(), (short) k);
+      assertEquals(i.next(), (char) k);
     }
     assertFalse(i.hasNext());
   }
@@ -1228,12 +1228,12 @@ public class TestRunContainer {
   public void longcsimpleIterator() {
     MappeableContainer x = new MappeableRunContainer();
     for (int k = 0; k < (1 << 16); ++k) {
-      x = x.add((short) k);
+      x = x.add((char) k);
     }
-    Iterator<Short> i = x.iterator();
+    Iterator<Character> i = x.iterator();
     for (int k = 0; k < (1 << 16); ++k) {
       assertTrue(i.hasNext());
-      assertEquals(i.next().shortValue(), (short) k);
+      assertEquals(i.next().charValue(), (char) k);
     }
     assertFalse(i.hasNext());
   }
@@ -1242,12 +1242,12 @@ public class TestRunContainer {
   public void longsimpleIterator() {
     MappeableContainer x = new MappeableRunContainer();
     for (int k = 0; k < (1 << 16); ++k) {
-      x = x.add((short) (k));
+      x = x.add((char) (k));
     }
-    ShortIterator i = x.getShortIterator();
+    CharIterator i = x.getShortIterator();
     for (int k = 0; k < (1 << 16); ++k) {
       assertTrue(i.hasNext());
-      assertEquals(i.next(), (short) k);
+      assertEquals(i.next(), (char) k);
     }
     assertFalse(i.hasNext());
   }
@@ -1255,13 +1255,13 @@ public class TestRunContainer {
   @Test
   public void MappeableRunContainerArg_ArrayAND() {
     boolean atLeastOneArray = false;
-    ArrayList<MappeableRunContainer> set = new ArrayList<MappeableRunContainer>();
-    ArrayList<MappeableContainer> setb = new ArrayList<MappeableContainer>();
+    ArrayList<MappeableRunContainer> set = new ArrayList<>();
+    ArrayList<MappeableContainer> setb = new ArrayList<>();
     getSetOfMappeableRunContainers(set, setb);
     for (int k = 0; k < set.size(); ++k) {
       for (int l = 0; l < set.size(); ++l) {
-        assertTrue(set.get(k).equals(setb.get(k)));
-        assertTrue(set.get(l).equals(setb.get(l)));
+        assertEquals(set.get(k), setb.get(k));
+        assertEquals(set.get(l), setb.get(l));
         MappeableContainer thisContainer = setb.get(k);
         if (thisContainer instanceof MappeableBitmapContainer) {
           // continue;
@@ -1271,7 +1271,7 @@ public class TestRunContainer {
 
         MappeableContainer c1 = thisContainer.and(set.get(l));
         MappeableContainer c2 = setb.get(k).and(setb.get(l));
-        assertTrue(c1.equals(c2));
+        assertEquals(c1, c2);
       }
     }
     assertTrue(atLeastOneArray);
@@ -1280,13 +1280,13 @@ public class TestRunContainer {
   @Test
   public void MappeableRunContainerArg_ArrayANDNOT() {
     boolean atLeastOneArray = false;
-    ArrayList<MappeableRunContainer> set = new ArrayList<MappeableRunContainer>();
-    ArrayList<MappeableContainer> setb = new ArrayList<MappeableContainer>();
+    ArrayList<MappeableRunContainer> set = new ArrayList<>();
+    ArrayList<MappeableContainer> setb = new ArrayList<>();
     getSetOfMappeableRunContainers(set, setb);
     for (int k = 0; k < set.size(); ++k) {
       for (int l = 0; l < set.size(); ++l) {
-        assertTrue(set.get(k).equals(setb.get(k)));
-        assertTrue(set.get(l).equals(setb.get(l)));
+        assertEquals(set.get(k), setb.get(k));
+        assertEquals(set.get(l), setb.get(l));
         MappeableContainer thisContainer = setb.get(k);
         if (thisContainer instanceof MappeableBitmapContainer) {
           // continue;
@@ -1297,7 +1297,7 @@ public class TestRunContainer {
         MappeableContainer c1 = thisContainer.andNot(set.get(l));
         MappeableContainer c2 = setb.get(k).andNot(setb.get(l));
 
-        assertTrue(c1.equals(c2));
+        assertEquals(c1, c2);
       }
     }
     assertTrue(atLeastOneArray);
@@ -1305,35 +1305,35 @@ public class TestRunContainer {
 
   @Test
   public void RunContainerArg_ArrayANDNOT2() {
-    MappeableArrayContainer ac = new MappeableArrayContainer(ShortBuffer.wrap(new short[]{0, 2, 4, 8, 10, 15, 16, 48, 50, 61, 80, -2}), 12);
-    MappeableContainer rc = new MappeableRunContainer(ShortBuffer.wrap(new short[]{7, 3, 17, 2, 20, 3, 30, 3, 36, 6, 60, 5, -3, 2}), 7);
-    Assert.assertEquals(new MappeableArrayContainer(ShortBuffer.wrap(new short[]{0, 2, 4, 15, 16, 48, 50, 80}), 8), ac.andNot(rc));
+    MappeableArrayContainer ac = new MappeableArrayContainer(CharBuffer.wrap(new char[]{0, 2, 4, 8, 10, 15, 16, 48, 50, 61, 80, (char)-2}), 12);
+    MappeableContainer rc = new MappeableRunContainer(CharBuffer.wrap(new char[]{7, 3, 17, 2, 20, 3, 30, 3, 36, 6, 60, 5, (char)-3, 2}), 7);
+    Assert.assertEquals(new MappeableArrayContainer(CharBuffer.wrap(new char[]{0, 2, 4, 15, 16, 48, 50, 80}), 8), ac.andNot(rc));
   }
 
   @Test
   public void FullRunContainerArg_ArrayANDNOT2() {
-    MappeableArrayContainer ac = new MappeableArrayContainer(ShortBuffer.wrap(new short[]{3}), 1);
+    MappeableArrayContainer ac = new MappeableArrayContainer(CharBuffer.wrap(new char[]{3}), 1);
     MappeableContainer rc = MappeableRunContainer.full();
     Assert.assertEquals(new MappeableArrayContainer(), ac.andNot(rc));
   }
 
   @Test
   public void RunContainerArg_ArrayANDNOT3() {
-    MappeableArrayContainer ac = new MappeableArrayContainer(ShortBuffer.wrap(new short[]{5}), 1);
-    MappeableContainer rc = new MappeableRunContainer(ShortBuffer.wrap(new short[]{3, 10}), 1);
+    MappeableArrayContainer ac = new MappeableArrayContainer(CharBuffer.wrap(new char[]{5}), 1);
+    MappeableContainer rc = new MappeableRunContainer(CharBuffer.wrap(new char[]{3, 10}), 1);
     Assert.assertEquals(new MappeableArrayContainer(), ac.andNot(rc));
   }
 
   @Test
   public void MappeableRunContainerArg_ArrayOR() {
     boolean atLeastOneArray = false;
-    ArrayList<MappeableRunContainer> set = new ArrayList<MappeableRunContainer>();
-    ArrayList<MappeableContainer> setb = new ArrayList<MappeableContainer>();
+    ArrayList<MappeableRunContainer> set = new ArrayList<>();
+    ArrayList<MappeableContainer> setb = new ArrayList<>();
     getSetOfMappeableRunContainers(set, setb);
     for (int k = 0; k < set.size(); ++k) {
       for (int l = 0; l < set.size(); ++l) {
-        assertTrue(set.get(k).equals(setb.get(k)));
-        assertTrue(set.get(l).equals(setb.get(l)));
+        assertEquals(set.get(k), setb.get(k));
+        assertEquals(set.get(l), setb.get(l));
         MappeableContainer thisContainer = setb.get(k);
         // MappeableBitmapContainers are tested separately, but why not test some more?
         if (thisContainer instanceof MappeableBitmapContainer) {
@@ -1344,7 +1344,7 @@ public class TestRunContainer {
 
         MappeableContainer c1 = thisContainer.or(set.get(l));
         MappeableContainer c2 = setb.get(k).or(setb.get(l));
-        assertTrue(c1.equals(c2));
+        assertEquals(c1, c2);
       }
     }
     assertTrue(atLeastOneArray);
@@ -1353,13 +1353,13 @@ public class TestRunContainer {
   @Test
   public void MappeableRunContainerArg_ArrayXOR() {
     boolean atLeastOneArray = false;
-    ArrayList<MappeableRunContainer> set = new ArrayList<MappeableRunContainer>();
-    ArrayList<MappeableContainer> setb = new ArrayList<MappeableContainer>();
+    ArrayList<MappeableRunContainer> set = new ArrayList<>();
+    ArrayList<MappeableContainer> setb = new ArrayList<>();
     getSetOfMappeableRunContainers(set, setb);
     for (int k = 0; k < set.size(); ++k) {
       for (int l = 0; l < set.size(); ++l) {
-        assertTrue(set.get(k).equals(setb.get(k)));
-        assertTrue(set.get(l).equals(setb.get(l)));
+        assertEquals(set.get(k), setb.get(k));
+        assertEquals(set.get(l), setb.get(l));
         MappeableContainer thisContainer = setb.get(k);
         if (thisContainer instanceof MappeableBitmapContainer) {
           // continue;
@@ -1369,7 +1369,7 @@ public class TestRunContainer {
 
         MappeableContainer c1 = thisContainer.xor(set.get(l));
         MappeableContainer c2 = setb.get(k).xor(setb.get(l));
-        assertTrue(c1.equals(c2));
+        assertEquals(c1, c2);
       }
     }
     assertTrue(atLeastOneArray);
@@ -1377,64 +1377,64 @@ public class TestRunContainer {
 
   @Test
   public void MappeableRunContainerVSMappeableRunContainerAND() {
-    ArrayList<MappeableRunContainer> set = new ArrayList<MappeableRunContainer>();
-    ArrayList<MappeableContainer> setb = new ArrayList<MappeableContainer>();
+    ArrayList<MappeableRunContainer> set = new ArrayList<>();
+    ArrayList<MappeableContainer> setb = new ArrayList<>();
     getSetOfMappeableRunContainers(set, setb);
     for (int k = 0; k < set.size(); ++k) {
       for (int l = 0; l < set.size(); ++l) {
-        assertTrue(set.get(k).equals(setb.get(k)));
-        assertTrue(set.get(l).equals(setb.get(l)));
+        assertEquals(set.get(k), setb.get(k));
+        assertEquals(set.get(l), setb.get(l));
         MappeableContainer c1 = set.get(k).and(set.get(l));
         MappeableContainer c2 = setb.get(k).and(setb.get(l));
-        assertTrue(c1.equals(c2));
+        assertEquals(c1, c2);
       }
     }
   }
 
   @Test
   public void MappeableRunContainerVSMappeableRunContainerANDNOT() {
-    ArrayList<MappeableRunContainer> set = new ArrayList<MappeableRunContainer>();
-    ArrayList<MappeableContainer> setb = new ArrayList<MappeableContainer>();
+    ArrayList<MappeableRunContainer> set = new ArrayList<>();
+    ArrayList<MappeableContainer> setb = new ArrayList<>();
     getSetOfMappeableRunContainers(set, setb);
     for (int k = 0; k < set.size(); ++k) {
       for (int l = 0; l < set.size(); ++l) {
-        assertTrue(set.get(k).equals(setb.get(k)));
-        assertTrue(set.get(l).equals(setb.get(l)));
+        assertEquals(set.get(k), setb.get(k));
+        assertEquals(set.get(l), setb.get(l));
         MappeableContainer c1 = set.get(k).andNot(set.get(l));
         MappeableContainer c2 = setb.get(k).andNot(setb.get(l));
-        assertTrue(c1.equals(c2));
+        assertEquals(c1, c2);
       }
     }
   }
 
   @Test
   public void MappeableRunContainerVSMappeableRunContainerOR() {
-    ArrayList<MappeableRunContainer> set = new ArrayList<MappeableRunContainer>();
-    ArrayList<MappeableContainer> setb = new ArrayList<MappeableContainer>();
+    ArrayList<MappeableRunContainer> set = new ArrayList<>();
+    ArrayList<MappeableContainer> setb = new ArrayList<>();
     getSetOfMappeableRunContainers(set, setb);
     for (int k = 0; k < set.size(); ++k) {
       for (int l = 0; l < set.size(); ++l) {
-        assertTrue(set.get(k).equals(setb.get(k)));
-        assertTrue(set.get(l).equals(setb.get(l)));
+        assertEquals(set.get(k), setb.get(k));
+        assertEquals(set.get(l), setb.get(l));
         MappeableContainer c1 = set.get(k).or(set.get(l));
         MappeableContainer c2 = setb.get(k).or(setb.get(l));
-        assertTrue(c1.equals(c2));
+        assertEquals(c1, c2);
       }
     }
   }
 
   @Test
   public void MappeableRunContainerVSMappeableRunContainerXOR() {
-    ArrayList<MappeableRunContainer> set = new ArrayList<MappeableRunContainer>();
-    ArrayList<MappeableContainer> setb = new ArrayList<MappeableContainer>();
+    ArrayList<MappeableRunContainer> set = new ArrayList<>();
+    ArrayList<MappeableContainer> setb = new ArrayList<>();
     getSetOfMappeableRunContainers(set, setb);
     for (int k = 0; k < set.size(); ++k) {
       for (int l = 0; l < set.size(); ++l) {
-        assertTrue(set.get(k).equals(setb.get(k)));
-        assertTrue(set.get(l).equals(setb.get(l)));
+        assertEquals(set.get(k), setb.get(k));
+        assertEquals(set.get(l), setb.get(l));
         MappeableContainer c1 = set.get(k).xor(set.get(l));
         MappeableContainer c2 = setb.get(k).xor(setb.get(l));
-        assertTrue(c1.equals(c2));
+        assertEquals(c1, c2);
       }
     }
   }
@@ -1442,11 +1442,11 @@ public class TestRunContainer {
   @Test
   public void not1() {
     MappeableRunContainer container = new MappeableRunContainer();
-    container.add((short) 0);
-    container.add((short) 2);
-    container.add((short) 55);
-    container.add((short) 64);
-    container.add((short) 256);
+    container.add((char) 0);
+    container.add((char) 2);
+    container.add((char) 55);
+    container.add((char) 64);
+    container.add((char) 256);
 
     MappeableContainer result = container.not(64, 64); // empty range
     assertNotSame(container, result);
@@ -1456,19 +1456,19 @@ public class TestRunContainer {
   @Test
   public void not10() {
     MappeableRunContainer container = new MappeableRunContainer();
-    container.add((short) 300);
-    container.add((short) 500);
-    container.add((short) 501);
-    container.add((short) 502);
-    container.add((short) 503);
-    container.add((short) 504);
-    container.add((short) 505);
+    container.add((char) 300);
+    container.add((char) 500);
+    container.add((char) 501);
+    container.add((char) 502);
+    container.add((char) 503);
+    container.add((char) 504);
+    container.add((char) 505);
 
     // second run begins inside the range but extends outside
     MappeableContainer result = container.not(498, 504);
 
     assertEquals(5, result.getCardinality());
-    for (short i : new short[] {300, 498, 499, 504, 505}) {
+    for (char i : new char[] {300, 498, 499, 504, 505}) {
       assertTrue(result.contains(i));
     }
   }
@@ -1476,8 +1476,8 @@ public class TestRunContainer {
 
   /*
    * @Test public void safeSerialization() throws Exception { MappeableRunContainer container = new
-   * MappeableRunContainer(); container.add((short) 0); container.add((short) 2);
-   * container.add((short) 55); container.add((short) 64); container.add((short) 256);
+   * MappeableRunContainer(); container.add((char) 0); container.add((char) 2);
+   * container.add((char) 55); container.add((char) 64); container.add((char) 256);
    * 
    * ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutputStream out = new
    * ObjectOutputStream(bos); out.writeObject(container);
@@ -1492,21 +1492,21 @@ public class TestRunContainer {
   @Test
   public void not11() {
     MappeableRunContainer container = new MappeableRunContainer();
-    container.add((short) 300);
+    container.add((char) 300);
 
-    container.add((short) 500);
-    container.add((short) 501);
-    container.add((short) 502);
+    container.add((char) 500);
+    container.add((char) 501);
+    container.add((char) 502);
 
-    container.add((short) 504);
+    container.add((char) 504);
 
-    container.add((short) 510);
+    container.add((char) 510);
 
     // second run entirely inside range, third run entirely inside range, 4th run entirely outside
     MappeableContainer result = container.not(498, 507);
 
     assertEquals(7, result.getCardinality());
-    for (short i : new short[] {300, 498, 499, 503, 505, 506, 510}) {
+    for (char i : new char[] {300, 498, 499, 503, 505, 506, 510}) {
       assertTrue(result.contains(i));
     }
   }
@@ -1515,22 +1515,22 @@ public class TestRunContainer {
   @Test
   public void not12() {
     MappeableRunContainer container = new MappeableRunContainer();
-    container.add((short) 300);
+    container.add((char) 300);
 
-    container.add((short) 500);
-    container.add((short) 501);
-    container.add((short) 502);
+    container.add((char) 500);
+    container.add((char) 501);
+    container.add((char) 502);
 
-    container.add((short) 504);
+    container.add((char) 504);
 
-    container.add((short) 510);
-    container.add((short) 511);
+    container.add((char) 510);
+    container.add((char) 511);
 
     // second run crosses into range, third run entirely inside range, 4th crosses outside
     MappeableContainer result = container.not(501, 511);
 
     assertEquals(9, result.getCardinality());
-    for (short i : new short[] {300, 500, 503, 505, 506, 507, 508, 509, 511}) {
+    for (char i : new char[] {300, 500, 503, 505, 506, 507, 508, 509, 511}) {
       assertTrue(result.contains(i));
     }
   }
@@ -1538,14 +1538,14 @@ public class TestRunContainer {
   @Test
   public void not12A() {
     MappeableRunContainer container = new MappeableRunContainer();
-    container.add((short) 300);
-    container.add((short) 301);
+    container.add((char) 300);
+    container.add((char) 301);
 
     // first run crosses into range
     MappeableContainer result = container.not(301, 303);
 
     assertEquals(2, result.getCardinality());
-    for (short i : new short[] {300, 302}) {
+    for (char i : new char[] {300, 302}) {
       assertTrue(result.contains(i));
     }
   }
@@ -1556,14 +1556,14 @@ public class TestRunContainer {
     // check for off-by-1 errors that might affect length 1 runs
 
     for (int i = 100; i < 120; i += 3) {
-      container.add((short) i);
+      container.add((char) i);
     }
 
     // second run crosses into range, third run entirely inside range, 4th crosses outside
     MappeableContainer result = container.not(110, 115);
 
     assertEquals(10, result.getCardinality());
-    for (short i : new short[] {100, 103, 106, 109, 110, 111, 113, 114, 115, 118}) {
+    for (char i : new char[] {100, 103, 106, 109, 110, 111, 113, 114, 115, 118}) {
       assertTrue(result.contains(i));
     }
   }
@@ -1572,11 +1572,11 @@ public class TestRunContainer {
   public void not15() {
     MappeableRunContainer container = new MappeableRunContainer();
     for (int i = 0; i < 20000; ++i) {
-      container.add((short) i);
+      container.add((char) i);
     }
 
     for (int i = 40000; i < 60000; ++i) {
-      container.add((short) i);
+      container.add((char) i);
     }
 
     MappeableContainer result = container.not(15000, 25000);
@@ -1588,15 +1588,15 @@ public class TestRunContainer {
   @Test
   public void not2() {
     MappeableRunContainer container = new MappeableRunContainer();
-    container.add((short) 0);
-    container.add((short) 2);
-    container.add((short) 55);
-    container.add((short) 64);
-    container.add((short) 256);
+    container.add((char) 0);
+    container.add((char) 2);
+    container.add((char) 55);
+    container.add((char) 64);
+    container.add((char) 256);
 
     MappeableContainer result = container.not(64, 66);
     assertEquals(5, result.getCardinality());
-    for (short i : new short[] {0, 2, 55, 65, 256}) {
+    for (char i : new char[] {0, 2, 55, 65, 256}) {
       assertTrue(result.contains(i));
     }
   }
@@ -1607,7 +1607,7 @@ public class TestRunContainer {
     // applied to a run-less container
     MappeableContainer result = container.not(64, 68);
     assertEquals(4, result.getCardinality());
-    for (short i : new short[] {64, 65, 66, 67}) {
+    for (char i : new char[] {64, 65, 66, 67}) {
       assertTrue(result.contains(i));
     }
   }
@@ -1616,16 +1616,16 @@ public class TestRunContainer {
   @Test
   public void not4() {
     MappeableRunContainer container = new MappeableRunContainer();
-    container.add((short) 0);
-    container.add((short) 2);
-    container.add((short) 55);
-    container.add((short) 64);
-    container.add((short) 256);
+    container.add((char) 0);
+    container.add((char) 2);
+    container.add((char) 55);
+    container.add((char) 64);
+    container.add((char) 256);
 
     // all runs are before the range
     MappeableContainer result = container.not(300, 303);
     assertEquals(8, result.getCardinality());
-    for (short i : new short[] {0, 2, 55, 64, 256, 300, 301, 302}) {
+    for (char i : new char[] {0, 2, 55, 64, 256, 300, 301, 302}) {
       assertTrue(result.contains(i));
     }
   }
@@ -1633,16 +1633,16 @@ public class TestRunContainer {
   @Test
   public void not5() {
     MappeableRunContainer container = new MappeableRunContainer();
-    container.add((short) 500);
-    container.add((short) 502);
-    container.add((short) 555);
-    container.add((short) 564);
-    container.add((short) 756);
+    container.add((char) 500);
+    container.add((char) 502);
+    container.add((char) 555);
+    container.add((char) 564);
+    container.add((char) 756);
 
     // all runs are after the range
     MappeableContainer result = container.not(300, 303);
     assertEquals(8, result.getCardinality());
-    for (short i : new short[] {500, 502, 555, 564, 756, 300, 301, 302}) {
+    for (char i : new char[] {500, 502, 555, 564, 756, 300, 301, 302}) {
       assertTrue(result.contains(i));
     }
   }
@@ -1650,15 +1650,15 @@ public class TestRunContainer {
   @Test
   public void not6() {
     MappeableRunContainer container = new MappeableRunContainer();
-    container.add((short) 500);
-    container.add((short) 501);
-    container.add((short) 502);
-    container.add((short) 503);
+    container.add((char) 500);
+    container.add((char) 501);
+    container.add((char) 502);
+    container.add((char) 503);
 
     // one run is strictly within the range
     MappeableContainer result = container.not(499, 505);
     assertEquals(2, result.getCardinality());
-    for (short i : new short[] {499, 504}) {
+    for (char i : new char[] {499, 504}) {
       assertTrue(result.contains(i));
     }
   }
@@ -1667,19 +1667,19 @@ public class TestRunContainer {
   @Test
   public void not7() {
     MappeableRunContainer container = new MappeableRunContainer();
-    container.add((short) 500);
-    container.add((short) 501);
-    container.add((short) 502);
-    container.add((short) 503);
-    container.add((short) 504);
-    container.add((short) 505);
+    container.add((char) 500);
+    container.add((char) 501);
+    container.add((char) 502);
+    container.add((char) 503);
+    container.add((char) 504);
+    container.add((char) 505);
 
 
     // one run, spans the range
     MappeableContainer result = container.not(502, 504);
 
     assertEquals(4, result.getCardinality());
-    for (short i : new short[] {500, 501, 504, 505}) {
+    for (char i : new char[] {500, 501, 504, 505}) {
       assertTrue(result.contains(i));
     }
   }
@@ -1688,19 +1688,19 @@ public class TestRunContainer {
   @Test
   public void not8() {
     MappeableRunContainer container = new MappeableRunContainer();
-    container.add((short) 300);
-    container.add((short) 500);
-    container.add((short) 501);
-    container.add((short) 502);
-    container.add((short) 503);
-    container.add((short) 504);
-    container.add((short) 505);
+    container.add((char) 300);
+    container.add((char) 500);
+    container.add((char) 501);
+    container.add((char) 502);
+    container.add((char) 503);
+    container.add((char) 504);
+    container.add((char) 505);
 
     // second run, spans the range
     MappeableContainer result = container.not(502, 504);
 
     assertEquals(5, result.getCardinality());
-    for (short i : new short[] {300, 500, 501, 504, 505}) {
+    for (char i : new char[] {300, 500, 501, 504, 505}) {
       assertTrue(result.contains(i));
     }
   }
@@ -1709,18 +1709,18 @@ public class TestRunContainer {
   @Test
   public void not9() {
     MappeableRunContainer container = new MappeableRunContainer();
-    container.add((short) 500);
-    container.add((short) 501);
-    container.add((short) 502);
-    container.add((short) 503);
-    container.add((short) 504);
-    container.add((short) 505);
+    container.add((char) 500);
+    container.add((char) 501);
+    container.add((char) 502);
+    container.add((char) 503);
+    container.add((char) 504);
+    container.add((char) 505);
 
     // first run, begins inside the range but extends outside
     MappeableContainer result = container.not(498, 504);
 
     assertEquals(4, result.getCardinality());
-    for (short i : new short[] {498, 499, 504, 505}) {
+    for (char i : new char[] {498, 499, 504, 505}) {
       assertTrue(result.contains(i));
     }
   }
@@ -1782,31 +1782,31 @@ public class TestRunContainer {
   @Test
   public void rank() {
     MappeableRunContainer container = new MappeableRunContainer();
-    container.add((short) 0);
-    container.add((short) 2);
-    container.add((short) 55);
-    container.add((short) 64);
-    container.add((short) 256);
-    assertEquals(1, container.rank((short) 0));
-    assertEquals(2, container.rank((short) 10));
-    assertEquals(4, container.rank((short) 128));
-    assertEquals(5, container.rank((short) 1024));
+    container.add((char) 0);
+    container.add((char) 2);
+    container.add((char) 55);
+    container.add((char) 64);
+    container.add((char) 256);
+    assertEquals(1, container.rank((char) 0));
+    assertEquals(2, container.rank((char) 10));
+    assertEquals(4, container.rank((char) 128));
+    assertEquals(5, container.rank((char) 1024));
   }
 
   @Test
-  public void shortRangeRank() {
+  public void charRangeRank() {
     MappeableContainer container = new MappeableRunContainer();
     container = container.add(16, 32);
     assertThat(container, instanceOf(MappeableRunContainer.class));
     // results in correct value: 16
-    // assertEquals(16, container.toBitmapContainer().rank((short) 32));
-    assertEquals(16, container.rank((short) 32));
+    // assertEquals(16, container.toBitmapContainer().rank((char) 32));
+    assertEquals(16, container.rank((char) 32));
   }
 
   @Test
   public void remove() {
     MappeableContainer rc = new MappeableRunContainer();
-    rc.add((short) 1);
+    rc.add((char) 1);
     MappeableContainer newContainer = rc.remove(1, 2);
     assertEquals(0, newContainer.getCardinality());
   }
@@ -1837,11 +1837,11 @@ public class TestRunContainer {
   @Test
   public void select() {
     MappeableRunContainer container = new MappeableRunContainer();
-    container.add((short) 0);
-    container.add((short) 2);
-    container.add((short) 55);
-    container.add((short) 64);
-    container.add((short) 256);
+    container.add((char) 0);
+    container.add((char) 2);
+    container.add((char) 55);
+    container.add((char) 64);
+    container.add((char) 256);
     assertEquals(0, container.select(0));
     assertEquals(2, container.select(1));
     assertEquals(55, container.select(2));
@@ -1855,12 +1855,12 @@ public class TestRunContainer {
   public void simpleIterator() {
     MappeableContainer x = new MappeableRunContainer();
     for (int k = 0; k < 100; ++k) {
-      x = x.add((short) (k));
+      x = x.add((char) (k));
     }
-    ShortIterator i = x.getShortIterator();
+    CharIterator i = x.getShortIterator();
     for (int k = 0; k < 100; ++k) {
       assertTrue(i.hasNext());
-      assertEquals(i.next(), (short) k);
+      assertEquals(i.next(), (char) k);
     }
     assertFalse(i.hasNext());
   }
@@ -1884,7 +1884,7 @@ public class TestRunContainer {
   @Test
   public void testRoaringWithOptimize() {
     // create the same bitmap over and over again, with optimizing it
-    final Set<MutableRoaringBitmap> setWithOptimize = new HashSet<MutableRoaringBitmap>();
+    final Set<MutableRoaringBitmap> setWithOptimize = new HashSet<>();
     final int max = 1000;
     for (int i = 0; i < max; i++) {
       final MutableRoaringBitmap bitmapWithOptimize = new MutableRoaringBitmap();
@@ -1902,7 +1902,7 @@ public class TestRunContainer {
   @Test
   public void testRoaringWithoutOptimize() {
     // create the same bitmap over and over again, without optimizing it
-    final Set<MutableRoaringBitmap> setWithoutOptimize = new HashSet<MutableRoaringBitmap>();
+    final Set<MutableRoaringBitmap> setWithoutOptimize = new HashSet<>();
     final int max = 1000;
     for (int i = 0; i < max; i++) {
       final MutableRoaringBitmap bitmapWithoutOptimize = new MutableRoaringBitmap();
@@ -1923,14 +1923,14 @@ public class TestRunContainer {
     MappeableContainer ac = rc.toBitmapOrArrayContainer(rc.getCardinality());
     assertTrue(ac instanceof MappeableArrayContainer);
     assertEquals(DEFAULT_MAX_SIZE / 2, ac.getCardinality());
-    for (short k = 0; k < DEFAULT_MAX_SIZE / 2; ++k) {
+    for (char k = 0; k < DEFAULT_MAX_SIZE / 2; ++k) {
       assertTrue(ac.contains(k));
     }
     rc.iadd(DEFAULT_MAX_SIZE / 2, 2 * DEFAULT_MAX_SIZE);
     MappeableContainer bc = rc.toBitmapOrArrayContainer(rc.getCardinality());
     assertTrue(bc instanceof MappeableBitmapContainer);
     assertEquals(2 * DEFAULT_MAX_SIZE, bc.getCardinality());
-    for (short k = 0; k < 2 * DEFAULT_MAX_SIZE; ++k) {
+    for (char k = 0; k < 2 * DEFAULT_MAX_SIZE; ++k) {
       assertTrue(bc.contains(k));
     }
   }
@@ -1940,14 +1940,14 @@ public class TestRunContainer {
     MappeableContainer bc = new MappeableBitmapContainer();
     MappeableContainer rc = new MappeableRunContainer();
     for (int k = 0; k < 100; ++k) {
-      bc = bc.add((short) (k * 10));
-      rc = rc.add((short) (k * 10 + 3));
+      bc = bc.add((char) (k * 10));
+      rc = rc.add((char) (k * 10 + 3));
     }
     MappeableContainer union = rc.or(bc);
     assertEquals(200, union.getCardinality());
     for (int k = 0; k < 100; ++k) {
-      assertTrue(union.contains((short) (k * 10)));
-      assertTrue(union.contains((short) (k * 10 + 3)));
+      assertTrue(union.contains((char) (k * 10)));
+      assertTrue(union.contains((char) (k * 10 + 3)));
     }
     assertEquals(100, bc.getCardinality());
     assertEquals(100, rc.getCardinality());
@@ -1960,8 +1960,8 @@ public class TestRunContainer {
     MappeableContainer rc = new MappeableRunContainer();
     int N = 1;
     for (int k = 0; k < N; ++k) {
-      ac = ac.add((short) (k * 10));
-      rc = rc.add((short) (k * 10 + 3));
+      ac = ac.add((char) (k * 10));
+      rc = rc.add((char) (k * 10 + 3));
     }
     System.out.println("run=" + rc);
     System.out.println("array=" + ac);
@@ -1969,8 +1969,8 @@ public class TestRunContainer {
     System.out.println(union);
     assertEquals(2 * N, union.getCardinality());
     for (int k = 0; k < N; ++k) {
-      assertTrue(union.contains((short) (k * 10)));
-      assertTrue(union.contains((short) (k * 10 + 3)));
+      assertTrue(union.contains((char) (k * 10)));
+      assertTrue(union.contains((char) (k * 10 + 3)));
     }
     assertEquals(N, ac.getCardinality());
     assertEquals(N, rc.getCardinality());
@@ -1982,16 +1982,16 @@ public class TestRunContainer {
     MappeableContainer bc = new MappeableBitmapContainer();
     MappeableContainer rc = new MappeableRunContainer();
     for (int k = 0; k < 2 * DEFAULT_MAX_SIZE; ++k) {
-      bc = bc.add((short) (k * 10));
-      bc = bc.add((short) (k * 10 + 1));
-      rc = rc.add((short) (k * 10));
-      rc = rc.add((short) (k * 10 + 3));
+      bc = bc.add((char) (k * 10));
+      bc = bc.add((char) (k * 10 + 1));
+      rc = rc.add((char) (k * 10));
+      rc = rc.add((char) (k * 10 + 3));
     }
     MappeableContainer result = rc.xor(bc);
     assertEquals(4 * DEFAULT_MAX_SIZE, result.getCardinality());
     for (int k = 0; k < 2 * DEFAULT_MAX_SIZE; ++k) {
-      assertTrue(result.contains((short) (k * 10 + 1)));
-      assertTrue(result.contains((short) (k * 10 + 3)));
+      assertTrue(result.contains((char) (k * 10 + 1)));
+      assertTrue(result.contains((char) (k * 10 + 3)));
     }
     assertEquals(4 * DEFAULT_MAX_SIZE, bc.getCardinality());
     assertEquals(4 * DEFAULT_MAX_SIZE, rc.getCardinality());
@@ -2003,16 +2003,16 @@ public class TestRunContainer {
     MappeableContainer bc = new MappeableArrayContainer();
     MappeableContainer rc = new MappeableRunContainer();
     for (int k = 0; k < 2 * DEFAULT_MAX_SIZE; ++k) {
-      bc = bc.add((short) (k * 10));
-      bc = bc.add((short) (k * 10 + 1));
-      rc = rc.add((short) (k * 10));
-      rc = rc.add((short) (k * 10 + 3));
+      bc = bc.add((char) (k * 10));
+      bc = bc.add((char) (k * 10 + 1));
+      rc = rc.add((char) (k * 10));
+      rc = rc.add((char) (k * 10 + 3));
     }
     MappeableContainer result = rc.xor(bc);
     assertEquals(4 * DEFAULT_MAX_SIZE, result.getCardinality());
     for (int k = 0; k < 2 * DEFAULT_MAX_SIZE; ++k) {
-      assertTrue(result.contains((short) (k * 10 + 1)));
-      assertTrue(result.contains((short) (k * 10 + 3)));
+      assertTrue(result.contains((char) (k * 10 + 1)));
+      assertTrue(result.contains((char) (k * 10 + 3)));
     }
     assertEquals(4 * DEFAULT_MAX_SIZE, bc.getCardinality());
     assertEquals(4 * DEFAULT_MAX_SIZE, rc.getCardinality());
@@ -2023,10 +2023,10 @@ public class TestRunContainer {
   public void xor1() {
     MappeableContainer bc = new MappeableBitmapContainer();
     MappeableContainer rc = new MappeableRunContainer();
-    rc.add((short) 1);
+    rc.add((char) 1);
     MappeableContainer result = rc.xor(bc);
     assertEquals(1, result.getCardinality());
-    assertTrue(result.contains((short) 1));
+    assertTrue(result.contains((char) 1));
   }
 
 
@@ -2035,10 +2035,10 @@ public class TestRunContainer {
   public void xor1a() {
     MappeableContainer bc = new MappeableArrayContainer();
     MappeableContainer rc = new MappeableRunContainer();
-    rc.add((short) 1);
+    rc.add((char) 1);
     MappeableContainer result = rc.xor(bc);
     assertEquals(1, result.getCardinality());
-    assertTrue(result.contains((short) 1));
+    assertTrue(result.contains((char) 1));
   }
 
 
@@ -2046,10 +2046,10 @@ public class TestRunContainer {
   public void xor2() {
     MappeableContainer bc = new MappeableBitmapContainer();
     MappeableContainer rc = new MappeableRunContainer();
-    bc.add((short) 1);
+    bc.add((char) 1);
     MappeableContainer result = rc.xor(bc);
     assertEquals(1, result.getCardinality());
-    assertTrue(result.contains((short) 1));
+    assertTrue(result.contains((char) 1));
   }
 
 
@@ -2057,18 +2057,18 @@ public class TestRunContainer {
   public void xor2a() {
     MappeableContainer bc = new MappeableArrayContainer();
     MappeableContainer rc = new MappeableRunContainer();
-    bc.add((short) 1);
+    bc.add((char) 1);
     MappeableContainer result = rc.xor(bc);
     assertEquals(1, result.getCardinality());
-    assertTrue(result.contains((short) 1));
+    assertTrue(result.contains((char) 1));
   }
 
   @Test
   public void xor3() {
     MappeableContainer bc = new MappeableBitmapContainer();
     MappeableContainer rc = new MappeableRunContainer();
-    rc.add((short) 1);
-    bc.add((short) 1);
+    rc.add((char) 1);
+    bc.add((char) 1);
     MappeableContainer result = rc.xor(bc);
     assertEquals(0, result.getCardinality());
   }
@@ -2077,8 +2077,8 @@ public class TestRunContainer {
   public void xor3a() {
     MappeableContainer bc = new MappeableArrayContainer();
     MappeableContainer rc = new MappeableRunContainer();
-    rc.add((short) 1);
-    bc.add((short) 1);
+    rc.add((char) 1);
+    bc.add((char) 1);
     MappeableContainer result = rc.xor(bc);
     assertEquals(0, result.getCardinality());
   }
@@ -2093,8 +2093,8 @@ public class TestRunContainer {
     rc = rc.add(28203, 28214);
     int[] data = {17739, 17740, 17945, 19077, 19278, 19407};
     for (int x : data) {
-      answer = answer.add((short) x);
-      bc = bc.add((short) x);
+      answer = answer.add((char) x);
+      bc = bc.add((char) x);
     }
     MappeableContainer result = rc.xor(bc);
     assertEquals(answer, result);
@@ -2359,41 +2359,41 @@ public class TestRunContainer {
   public void testEqualsMappeableArrayContainer_Equal() {
     MappeableContainer rc = new MappeableRunContainer().add(0, 10);
     MappeableContainer ac = new MappeableArrayContainer().add(0, 10);
-    assertTrue(rc.equals(ac));
-    assertTrue(ac.equals(rc));
+    assertEquals(rc, ac);
+    assertEquals(ac, rc);
   }
 
   @Test
   public void testEqualsMappeableArrayContainer_NotEqual_ArrayLarger() {
     MappeableContainer rc = new MappeableRunContainer().add(0, 10);
     MappeableContainer ac = new MappeableArrayContainer().add(0, 11);
-    assertFalse(rc.equals(ac));
-    assertFalse(ac.equals(rc));
+    assertNotEquals(rc, ac);
+    assertNotEquals(ac, rc);
   }
 
   @Test
   public void testEqualsMappeableArrayContainer_NotEqual_ArraySmaller() {
     MappeableContainer rc = new MappeableRunContainer().add(0, 10);
     MappeableContainer ac = new MappeableArrayContainer().add(0, 9);
-    assertFalse(rc.equals(ac));
-    assertFalse(ac.equals(rc));
+    assertNotEquals(rc, ac);
+    assertNotEquals(ac, rc);
   }
 
   @Test
   public void testEqualsMappeableArrayContainer_NotEqual_ArrayShifted() {
     MappeableContainer rc = new MappeableRunContainer().add(0, 10);
     MappeableContainer ac = new MappeableArrayContainer().add(1, 11);
-    assertFalse(rc.equals(ac));
-    assertFalse(ac.equals(rc));
+    assertNotEquals(rc, ac);
+    assertNotEquals(ac, rc);
   }
 
   @Test
   public void testEqualsMappeableArrayContainer_NotEqual_ArrayDiscontiguous() {
     MappeableContainer rc = new MappeableRunContainer().add(0, 10);
     MappeableContainer ac = new MappeableArrayContainer().add(0, 11);
-    ac.flip((short)9);
-    assertFalse(rc.equals(ac));
-    assertFalse(ac.equals(rc));
+    ac.flip((char)9);
+    assertNotEquals(rc, ac);
+    assertNotEquals(ac, rc);
   }
 
   @Test
@@ -2437,8 +2437,8 @@ public class TestRunContainer {
   @Test
   public void testSimpleCardinality() {
     MappeableRunContainer c = new MappeableRunContainer();
-    c.add((short) 1);
-    c.add((short) 17);
+    c.add((char) 1);
+    c.add((char) 17);
     Assert.assertEquals(2, c.getCardinality());
   }
 
@@ -2479,7 +2479,7 @@ public class TestRunContainer {
   @Test
   public void testContainsFull() {
     assertTrue(MappeableRunContainer.full().contains(0, 1 << 16));
-    assertFalse(MappeableRunContainer.full().flip((short)(1 << 15)).contains(0, 1 << 16));
+    assertFalse(MappeableRunContainer.full().flip((char)(1 << 15)).contains(0, 1 << 16));
   }
 
   @Test
@@ -2540,245 +2540,245 @@ public class TestRunContainer {
 
   @Test
   public void testNextValue() {
-    MappeableContainer container = new RunContainer(new short[] { 64, 64 }, 1).toMappeableContainer();
-    assertEquals(64, container.nextValue((short)0));
-    assertEquals(64, container.nextValue((short)64));
-    assertEquals(65, container.nextValue((short)65));
-    assertEquals(128, container.nextValue((short)128));
-    assertEquals(-1, container.nextValue((short)129));
+    MappeableContainer container = new RunContainer(new char[] { 64, 64 }, 1).toMappeableContainer();
+    assertEquals(64, container.nextValue((char)0));
+    assertEquals(64, container.nextValue((char)64));
+    assertEquals(65, container.nextValue((char)65));
+    assertEquals(128, container.nextValue((char)128));
+    assertEquals(-1, container.nextValue((char)129));
   }
 
   @Test
   public void testNextValueBetweenRuns() {
-    MappeableContainer container = new RunContainer(new short[] { 64, 64, 256, 64 }, 2)
+    MappeableContainer container = new RunContainer(new char[] { 64, 64, 256, 64 }, 2)
             .toMappeableContainer();
-    assertEquals(64, container.nextValue((short)0));
-    assertEquals(64, container.nextValue((short)64));
-    assertEquals(65, container.nextValue((short)65));
-    assertEquals(128, container.nextValue((short)128));
-    assertEquals(256, container.nextValue((short)129));
-    assertEquals(-1, container.nextValue((short)512));
+    assertEquals(64, container.nextValue((char)0));
+    assertEquals(64, container.nextValue((char)64));
+    assertEquals(65, container.nextValue((char)65));
+    assertEquals(128, container.nextValue((char)128));
+    assertEquals(256, container.nextValue((char)129));
+    assertEquals(-1, container.nextValue((char)512));
   }
 
   @Test
   public void testNextValue2() {
-    MappeableContainer container = new RunContainer(new short[] { 64, 64, 200, 300, 5000, 200 }, 3)
+    MappeableContainer container = new RunContainer(new char[] { 64, 64, 200, 300, 5000, 200 }, 3)
             .toMappeableContainer();
-    assertEquals(64, container.nextValue((short)0));
-    assertEquals(64, container.nextValue((short)63));
-    assertEquals(64, container.nextValue((short)64));
-    assertEquals(65, container.nextValue((short)65));
-    assertEquals(128, container.nextValue((short)128));
-    assertEquals(200, container.nextValue((short)129));
-    assertEquals(200, container.nextValue((short)199));
-    assertEquals(200, container.nextValue((short)200));
-    assertEquals(250, container.nextValue((short)250));
-    assertEquals(5000, container.nextValue((short)2500));
-    assertEquals(5000, container.nextValue((short)5000));
-    assertEquals(5200, container.nextValue((short)5200));
-    assertEquals(-1, container.nextValue((short)5201));
+    assertEquals(64, container.nextValue((char)0));
+    assertEquals(64, container.nextValue((char)63));
+    assertEquals(64, container.nextValue((char)64));
+    assertEquals(65, container.nextValue((char)65));
+    assertEquals(128, container.nextValue((char)128));
+    assertEquals(200, container.nextValue((char)129));
+    assertEquals(200, container.nextValue((char)199));
+    assertEquals(200, container.nextValue((char)200));
+    assertEquals(250, container.nextValue((char)250));
+    assertEquals(5000, container.nextValue((char)2500));
+    assertEquals(5000, container.nextValue((char)5000));
+    assertEquals(5200, container.nextValue((char)5200));
+    assertEquals(-1, container.nextValue((char)5201));
   }
 
   @Test
   public void testPreviousValue1() {
-    MappeableContainer container = new RunContainer(new short[] { 64, 64 }, 1)
+    MappeableContainer container = new RunContainer(new char[] { 64, 64 }, 1)
             .toMappeableContainer();
-    assertEquals(-1, container.previousValue((short)0));
-    assertEquals(-1, container.previousValue((short)63));
-    assertEquals(64, container.previousValue((short)64));
-    assertEquals(65, container.previousValue((short)65));
-    assertEquals(128, container.previousValue((short)128));
-    assertEquals(128, container.previousValue((short)129));
+    assertEquals(-1, container.previousValue((char)0));
+    assertEquals(-1, container.previousValue((char)63));
+    assertEquals(64, container.previousValue((char)64));
+    assertEquals(65, container.previousValue((char)65));
+    assertEquals(128, container.previousValue((char)128));
+    assertEquals(128, container.previousValue((char)129));
   }
 
   @Test
   public void testPreviousValue2() {
-    MappeableContainer container = new RunContainer(new short[] { 64, 64, 200, 300, 5000, 200 }, 3)
+    MappeableContainer container = new RunContainer(new char[] { 64, 64, 200, 300, 5000, 200 }, 3)
             .toMappeableContainer();
-    assertEquals(-1, container.previousValue((short)0));
-    assertEquals(-1, container.previousValue((short)63));
-    assertEquals(64, container.previousValue((short)64));
-    assertEquals(65, container.previousValue((short)65));
-    assertEquals(128, container.previousValue((short)128));
-    assertEquals(128, container.previousValue((short)129));
-    assertEquals(128, container.previousValue((short)199));
-    assertEquals(200, container.previousValue((short)200));
-    assertEquals(250, container.previousValue((short)250));
-    assertEquals(500, container.previousValue((short)2500));
-    assertEquals(5000, container.previousValue((short)5000));
-    assertEquals(5200, container.previousValue((short)5200));
+    assertEquals(-1, container.previousValue((char)0));
+    assertEquals(-1, container.previousValue((char)63));
+    assertEquals(64, container.previousValue((char)64));
+    assertEquals(65, container.previousValue((char)65));
+    assertEquals(128, container.previousValue((char)128));
+    assertEquals(128, container.previousValue((char)129));
+    assertEquals(128, container.previousValue((char)199));
+    assertEquals(200, container.previousValue((char)200));
+    assertEquals(250, container.previousValue((char)250));
+    assertEquals(500, container.previousValue((char)2500));
+    assertEquals(5000, container.previousValue((char)5000));
+    assertEquals(5200, container.previousValue((char)5200));
   }
 
   @Test
   public void testPreviousValueUnsigned() {
-    MappeableContainer container = new RunContainer(new short[] { (short)((1 << 15) | 5), (short)0, (short)((1 << 15) | 7), (short)0}, 2)
+    MappeableContainer container = new RunContainer(new char[] { (char)((1 << 15) | 5), (char)0, (char)((1 << 15) | 7), (char)0}, 2)
             .toMappeableContainer();
-    assertEquals(-1, container.previousValue((short)((1 << 15) | 4)));
-    assertEquals(((1 << 15) | 5), container.previousValue((short)((1 << 15) | 5)));
-    assertEquals(((1 << 15) | 5), container.previousValue((short)((1 << 15) | 6)));
-    assertEquals(((1 << 15) | 7), container.previousValue((short)((1 << 15) | 7)));
-    assertEquals(((1 << 15) | 7), container.previousValue((short)((1 << 15) | 8)));
+    assertEquals(-1, container.previousValue((char)((1 << 15) | 4)));
+    assertEquals(((1 << 15) | 5), container.previousValue((char)((1 << 15) | 5)));
+    assertEquals(((1 << 15) | 5), container.previousValue((char)((1 << 15) | 6)));
+    assertEquals(((1 << 15) | 7), container.previousValue((char)((1 << 15) | 7)));
+    assertEquals(((1 << 15) | 7), container.previousValue((char)((1 << 15) | 8)));
   }
 
   @Test
   public void testNextValueUnsigned() {
-    MappeableContainer container = new RunContainer(new short[] { (short)((1 << 15) | 5), (short)0, (short)((1 << 15) | 7), (short)0}, 2)
+    MappeableContainer container = new RunContainer(new char[] { (char)((1 << 15) | 5), (char)0, (char)((1 << 15) | 7), (char)0}, 2)
             .toMappeableContainer();
-    assertEquals(((1 << 15) | 5), container.nextValue((short)((1 << 15) | 4)));
-    assertEquals(((1 << 15) | 5), container.nextValue((short)((1 << 15) | 5)));
-    assertEquals(((1 << 15) | 7), container.nextValue((short)((1 << 15) | 6)));
-    assertEquals(((1 << 15) | 7), container.nextValue((short)((1 << 15) | 7)));
-    assertEquals(-1, container.nextValue((short)((1 << 15) | 8)));
+    assertEquals(((1 << 15) | 5), container.nextValue((char)((1 << 15) | 4)));
+    assertEquals(((1 << 15) | 5), container.nextValue((char)((1 << 15) | 5)));
+    assertEquals(((1 << 15) | 7), container.nextValue((char)((1 << 15) | 6)));
+    assertEquals(((1 << 15) | 7), container.nextValue((char)((1 << 15) | 7)));
+    assertEquals(-1, container.nextValue((char)((1 << 15) | 8)));
   }
 
 
   @Test
   public void testPreviousAbsentValue1() {
     MappeableContainer container = new MappeableRunContainer().iadd(64, 129);
-    assertEquals(0, container.previousAbsentValue((short)0));
-    assertEquals(63, container.previousAbsentValue((short)63));
-    assertEquals(63, container.previousAbsentValue((short)64));
-    assertEquals(63, container.previousAbsentValue((short)65));
-    assertEquals(63, container.previousAbsentValue((short)128));
-    assertEquals(129, container.previousAbsentValue((short)129));
+    assertEquals(0, container.previousAbsentValue((char)0));
+    assertEquals(63, container.previousAbsentValue((char)63));
+    assertEquals(63, container.previousAbsentValue((char)64));
+    assertEquals(63, container.previousAbsentValue((char)65));
+    assertEquals(63, container.previousAbsentValue((char)128));
+    assertEquals(129, container.previousAbsentValue((char)129));
   }
 
   @Test
   public void testPreviousAbsentValue2() {
     MappeableContainer container = new MappeableRunContainer().iadd(64, 129).iadd(200, 501).iadd(5000, 5201);
-    assertEquals(0, container.previousAbsentValue((short)0));
-    assertEquals(63, container.previousAbsentValue((short)63));
-    assertEquals(63, container.previousAbsentValue((short)64));
-    assertEquals(63, container.previousAbsentValue((short)65));
-    assertEquals(63, container.previousAbsentValue((short)128));
-    assertEquals(129, container.previousAbsentValue((short)129));
-    assertEquals(199, container.previousAbsentValue((short)199));
-    assertEquals(199, container.previousAbsentValue((short)200));
-    assertEquals(199, container.previousAbsentValue((short)250));
-    assertEquals(2500, container.previousAbsentValue((short)2500));
-    assertEquals(4999, container.previousAbsentValue((short)5000));
-    assertEquals(4999, container.previousAbsentValue((short)5200));
+    assertEquals(0, container.previousAbsentValue((char)0));
+    assertEquals(63, container.previousAbsentValue((char)63));
+    assertEquals(63, container.previousAbsentValue((char)64));
+    assertEquals(63, container.previousAbsentValue((char)65));
+    assertEquals(63, container.previousAbsentValue((char)128));
+    assertEquals(129, container.previousAbsentValue((char)129));
+    assertEquals(199, container.previousAbsentValue((char)199));
+    assertEquals(199, container.previousAbsentValue((char)200));
+    assertEquals(199, container.previousAbsentValue((char)250));
+    assertEquals(2500, container.previousAbsentValue((char)2500));
+    assertEquals(4999, container.previousAbsentValue((char)5000));
+    assertEquals(4999, container.previousAbsentValue((char)5200));
   }
 
   @Test
   public void testPreviousAbsentValueEmpty() {
     MappeableRunContainer container = new MappeableRunContainer();
     for (int i = 0; i < 1000; i++) {
-      assertEquals(i, container.previousAbsentValue((short)i));
+      assertEquals(i, container.previousAbsentValue((char)i));
     }
   }
 
   @Test
   public void testPreviousAbsentValueSparse() {
-    MappeableRunContainer container = new MappeableRunContainer(ShortBuffer.wrap(new short[] { 10, 0, 20, 0, 30, 0}), 3);
-    assertEquals(9, container.previousAbsentValue((short)9));
-    assertEquals(9, container.previousAbsentValue((short)10));
-    assertEquals(11, container.previousAbsentValue((short)11));
-    assertEquals(21, container.previousAbsentValue((short)21));
-    assertEquals(29, container.previousAbsentValue((short)30));
+    MappeableRunContainer container = new MappeableRunContainer(CharBuffer.wrap(new char[] { 10, 0, 20, 0, 30, 0}), 3);
+    assertEquals(9, container.previousAbsentValue((char)9));
+    assertEquals(9, container.previousAbsentValue((char)10));
+    assertEquals(11, container.previousAbsentValue((char)11));
+    assertEquals(21, container.previousAbsentValue((char)21));
+    assertEquals(29, container.previousAbsentValue((char)30));
   }
 
   @Test
   public void testPreviousAbsentEvenBits() {
-    short[] evenBits = new short[1 << 15];
+    char[] evenBits = new char[1 << 15];
     for (int i = 0; i < 1 << 15; i += 2) {
-      evenBits[i] = (short) i;
+      evenBits[i] = (char) i;
       evenBits[i + 1] = 0;
     }
 
-    MappeableRunContainer container = new MappeableRunContainer(ShortBuffer.wrap(evenBits), 1 << 14);
+    MappeableRunContainer container = new MappeableRunContainer(CharBuffer.wrap(evenBits), 1 << 14);
     for (int i = 0; i < 1 << 10; i+=2) {
-      assertEquals(i - 1, container.previousAbsentValue((short)i));
-      assertEquals(i + 1, container.previousAbsentValue((short)(i+1)));
+      assertEquals(i - 1, container.previousAbsentValue((char)i));
+      assertEquals(i + 1, container.previousAbsentValue((char)(i+1)));
     }
   }
 
   @Test
   public void testPreviousAbsentValueUnsigned() {
-    short[] array = {(short) ((1 << 15) | 5), 0, (short) ((1 << 15) | 7), 0};
-    MappeableRunContainer container = new MappeableRunContainer(ShortBuffer.wrap(array), 2);
-    assertEquals(((1 << 15) | 4), container.previousAbsentValue((short)((1 << 15) | 4)));
-    assertEquals(((1 << 15) | 4), container.previousAbsentValue((short)((1 << 15) | 5)));
-    assertEquals(((1 << 15) | 6), container.previousAbsentValue((short)((1 << 15) | 6)));
-    assertEquals(((1 << 15) | 6), container.previousAbsentValue((short)((1 << 15) | 7)));
-    assertEquals(((1 << 15) | 8), container.previousAbsentValue((short)((1 << 15) | 8)));
+    char[] array = {(char) ((1 << 15) | 5), 0, (char) ((1 << 15) | 7), 0};
+    MappeableRunContainer container = new MappeableRunContainer(CharBuffer.wrap(array), 2);
+    assertEquals(((1 << 15) | 4), container.previousAbsentValue((char)((1 << 15) | 4)));
+    assertEquals(((1 << 15) | 4), container.previousAbsentValue((char)((1 << 15) | 5)));
+    assertEquals(((1 << 15) | 6), container.previousAbsentValue((char)((1 << 15) | 6)));
+    assertEquals(((1 << 15) | 6), container.previousAbsentValue((char)((1 << 15) | 7)));
+    assertEquals(((1 << 15) | 8), container.previousAbsentValue((char)((1 << 15) | 8)));
   }
 
 
   @Test
   public void testNextAbsentValue1() {
     MappeableContainer container = new MappeableRunContainer().iadd(64, 129);
-    assertEquals(0, container.nextAbsentValue((short)0));
-    assertEquals(63, container.nextAbsentValue((short)63));
-    assertEquals(129, container.nextAbsentValue((short)64));
-    assertEquals(129, container.nextAbsentValue((short)65));
-    assertEquals(129, container.nextAbsentValue((short)128));
-    assertEquals(129, container.nextAbsentValue((short)129));
+    assertEquals(0, container.nextAbsentValue((char)0));
+    assertEquals(63, container.nextAbsentValue((char)63));
+    assertEquals(129, container.nextAbsentValue((char)64));
+    assertEquals(129, container.nextAbsentValue((char)65));
+    assertEquals(129, container.nextAbsentValue((char)128));
+    assertEquals(129, container.nextAbsentValue((char)129));
   }
 
   @Test
   public void testNextAbsentValue2() {
     MappeableContainer container = new MappeableRunContainer().iadd(64, 129).iadd(200, 501).iadd(5000, 5201);
-    assertEquals(0, container.nextAbsentValue((short)0));
-    assertEquals(63, container.nextAbsentValue((short)63));
-    assertEquals(129, container.nextAbsentValue((short)64));
-    assertEquals(129, container.nextAbsentValue((short)65));
-    assertEquals(129, container.nextAbsentValue((short)128));
-    assertEquals(129, container.nextAbsentValue((short)129));
-    assertEquals(199, container.nextAbsentValue((short)199));
-    assertEquals(501, container.nextAbsentValue((short)200));
-    assertEquals(501, container.nextAbsentValue((short)250));
-    assertEquals(2500, container.nextAbsentValue((short)2500));
-    assertEquals(5201, container.nextAbsentValue((short)5000));
-    assertEquals(5201, container.nextAbsentValue((short)5200));
+    assertEquals(0, container.nextAbsentValue((char)0));
+    assertEquals(63, container.nextAbsentValue((char)63));
+    assertEquals(129, container.nextAbsentValue((char)64));
+    assertEquals(129, container.nextAbsentValue((char)65));
+    assertEquals(129, container.nextAbsentValue((char)128));
+    assertEquals(129, container.nextAbsentValue((char)129));
+    assertEquals(199, container.nextAbsentValue((char)199));
+    assertEquals(501, container.nextAbsentValue((char)200));
+    assertEquals(501, container.nextAbsentValue((char)250));
+    assertEquals(2500, container.nextAbsentValue((char)2500));
+    assertEquals(5201, container.nextAbsentValue((char)5000));
+    assertEquals(5201, container.nextAbsentValue((char)5200));
   }
 
   @Test
   public void testNextAbsentValueEmpty() {
     MappeableRunContainer container = new MappeableRunContainer();
     for (int i = 0; i < 1000; i++) {
-      assertEquals(i, container.nextAbsentValue((short)i));
+      assertEquals(i, container.nextAbsentValue((char)i));
     }
   }
 
   @Test
   public void testNextAbsentValueSparse() {
-    MappeableContainer container = new MappeableRunContainer(ShortBuffer.wrap(new short[] { 10, 0, 20, 0, 30, 0}), 3);
-    assertEquals(9, container.nextAbsentValue((short)9));
-    assertEquals(11, container.nextAbsentValue((short)10));
-    assertEquals(11, container.nextAbsentValue((short)11));
-    assertEquals(21, container.nextAbsentValue((short)21));
-    assertEquals(31, container.nextAbsentValue((short)30));
+    MappeableContainer container = new MappeableRunContainer(CharBuffer.wrap(new char[] { 10, 0, 20, 0, 30, 0}), 3);
+    assertEquals(9, container.nextAbsentValue((char)9));
+    assertEquals(11, container.nextAbsentValue((char)10));
+    assertEquals(11, container.nextAbsentValue((char)11));
+    assertEquals(21, container.nextAbsentValue((char)21));
+    assertEquals(31, container.nextAbsentValue((char)30));
   }
 
   @Test
   public void testNextAbsentEvenBits() {
-    short[] evenBits = new short[1 << 15];
+    char[] evenBits = new char[1 << 15];
     for (int i = 0; i < 1 << 15; i += 2) {
-      evenBits[i] = (short) i;
+      evenBits[i] = (char) i;
       evenBits[i + 1] = 0;
     }
 
-    MappeableRunContainer container = new MappeableRunContainer(ShortBuffer.wrap(evenBits), 1 << 14);
+    MappeableRunContainer container = new MappeableRunContainer(CharBuffer.wrap(evenBits), 1 << 14);
     for (int i = 0; i < 1 << 10; i+=2) {
-      assertEquals(i + 1, container.nextAbsentValue((short)i));
-      assertEquals(i + 1, container.nextAbsentValue((short)(i+1)));
+      assertEquals(i + 1, container.nextAbsentValue((char)i));
+      assertEquals(i + 1, container.nextAbsentValue((char)(i+1)));
     }
   }
 
   @Test
   public void testNextAbsentValueUnsigned() {
-    short[] array = {(short) ((1 << 15) | 5), 0, (short) ((1 << 15) | 7), 0};
-    MappeableRunContainer container = new MappeableRunContainer(ShortBuffer.wrap(array), 2);
-    assertEquals(((1 << 15) | 4), container.nextAbsentValue((short)((1 << 15) | 4)));
-    assertEquals(((1 << 15) | 6), container.nextAbsentValue((short)((1 << 15) | 5)));
-    assertEquals(((1 << 15) | 6), container.nextAbsentValue((short)((1 << 15) | 6)));
-    assertEquals(((1 << 15) | 8), container.nextAbsentValue((short)((1 << 15) | 7)));
-    assertEquals(((1 << 15) | 8), container.nextAbsentValue((short)((1 << 15) | 8)));
+    char[] array = {(char) ((1 << 15) | 5), 0, (char) ((1 << 15) | 7), 0};
+    MappeableRunContainer container = new MappeableRunContainer(CharBuffer.wrap(array), 2);
+    assertEquals(((1 << 15) | 4), container.nextAbsentValue((char)((1 << 15) | 4)));
+    assertEquals(((1 << 15) | 6), container.nextAbsentValue((char)((1 << 15) | 5)));
+    assertEquals(((1 << 15) | 6), container.nextAbsentValue((char)((1 << 15) | 6)));
+    assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 7)));
+    assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 8)));
   }
 
 
   private static int lower16Bits(int x) {
-    return ((short)x) & 0xFFFF;
+    return ((char)x) & 0xFFFF;
   }
 }

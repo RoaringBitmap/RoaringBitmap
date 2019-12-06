@@ -10,9 +10,9 @@ import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.roaringbitmap.ArrayContainer;
+import org.roaringbitmap.CharIterator;
 import org.roaringbitmap.Container;
 import org.roaringbitmap.RunContainer;
-import org.roaringbitmap.ShortIterator;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
@@ -23,7 +23,7 @@ public class BasicIteratorBenchmark {
   public int iteratorRunContainer(BenchmarkState benchmarkState) {
     if (benchmarkState.rc2.serializedSizeInBytes() > benchmarkState.ac2.serializedSizeInBytes())
       throw new RuntimeException("Can't expect run containers to win if they are larger.");
-    ShortIterator si = benchmarkState.rc2.getShortIterator();
+    CharIterator si = benchmarkState.rc2.getShortIterator();
     int answer = 0;
     while (si.hasNext())
       answer += si.next() & 0xFFFF;
@@ -32,7 +32,7 @@ public class BasicIteratorBenchmark {
 
   @Benchmark
   public int iteratorBitmapContainer(BenchmarkState benchmarkState) {
-    ShortIterator si = benchmarkState.ac2.getShortIterator();
+    CharIterator si = benchmarkState.ac2.getShortIterator();
     int answer = 0;
     while (si.hasNext())
       answer += si.next() & 0xFFFF;

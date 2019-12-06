@@ -58,5 +58,5 @@ public interface ContainerPointer extends Comparable<ContainerPointer>, Cloneabl
    * 
    * @return the key
    */
-  short key();
+  char key();
 }

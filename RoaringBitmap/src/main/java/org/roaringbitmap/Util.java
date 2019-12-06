@@ -29,7 +29,7 @@ public final class Util {
    * @param offsets value to add to each value in the container
    * @return return an array made of two containers
    */
-  public static  Container[] addOffset(Container source, short offsets) {
+  public static  Container[] addOffset(Container source, char offsets) {
     final int offset = Util.toIntUnsigned(offsets);
     // could be a whole lot faster, this is a simple implementation
     if(source instanceof ArrayContainer) {
@@ -37,12 +37,12 @@ public final class Util {
       ArrayContainer low = new ArrayContainer(c.cardinality);
       ArrayContainer high = new ArrayContainer(c.cardinality);
       for(int k = 0; k < c.cardinality; k++) {
-        int val =  Util.toIntUnsigned(c.content[k]);
+        int val =  c.content[k];
         val += offset;
         if(val <= 0xFFFF) {
-          low.content[low.cardinality++] = (short) val;
+          low.content[low.cardinality++] = (char) val;
         } else {
-          high.content[high.cardinality++] = (short) (val & 0xFFFF);
+          high.content[high.cardinality++] = (char) (val & 0xFFFF);
         }
       }
       return new Container[] {low, high};
@@ -80,13 +80,13 @@ public final class Util {
         int finalval =  val + Util.toIntUnsigned(input.getLength(k));
         if(val <= 0xFFFF) {
           if(finalval <= 0xFFFF) {
-            low.smartAppend((short)val,input.getLength(k));
+            low.smartAppend((char)val,input.getLength(k));
           } else {
-            low.smartAppend((short)val,(short)(0xFFFF-val));
-            high.smartAppend((short) 0,(short)(finalval & 0xFFFF));
+            low.smartAppend((char)val,(char)(0xFFFF-val));
+            high.smartAppend((char) 0,(char)(finalval & 0xFFFF));
           }
         } else {
-          high.smartAppend((short)(val & 0xFFFF),input.getLength(k));
+          high.smartAppend((char)(val & 0xFFFF),input.getLength(k));
         }
       }
       return new Container[] {low, high};
@@ -105,7 +105,7 @@ public final class Util {
    * @return x greater than pos such that array[pos] is at least as large as min, pos is is equal to
    *         length if it is not possible.
    */
-  public static int advanceUntil(short[] array, int pos, int length, short min) {
+  public static int advanceUntil(char[] array, int pos, int length, char min) {
     int lower = pos + 1;
 
     // special handling for a possibly common sequential case
@@ -143,7 +143,7 @@ public final class Util {
     // invariant: array[lower]<min && array[upper]>min
     while (lower + 1 != upper) {
       int mid = (lower + upper) >>> 1;
-      short arraymid = array[mid];
+      char arraymid = array[mid];
       if (arraymid == min) {
         return mid;
       } else if (toIntUnsigned(arraymid) < imin) {
@@ -167,15 +167,15 @@ public final class Util {
    * @return x greater than pos such that array[pos] is at least as large as min, pos is is equal to
    *         length if it is not possible.
    */
-  public static int iterateUntil(short[] array, int pos, int length, int min) {
+  public static int iterateUntil(char[] array, int pos, int length, int min) {
     while (pos < length && toIntUnsigned(array[pos]) < min) {
       pos++;
     }
     return pos;
   }
 
-  protected static int branchyUnsignedBinarySearch(final short[] array, final int begin,
-      final int end, final short k) {
+  protected static int branchyUnsignedBinarySearch(final char[] array, final int begin,
+      final int end, final char k) {
     int ikey = toIntUnsigned(k);
     // next line accelerates the possibly common case where the value would
     // be inserted at the end
@@ -208,8 +208,8 @@ public final class Util {
    * @return a negative value if {@code a} is less than {@code b}; a positive value if {@code a} is
    *         greater than {@code b}; or zero if they are equal
    */
-  public static int compareUnsigned(short a, short b) {
-    return toIntUnsigned(a) - toIntUnsigned(b);
+  public static int compareUnsigned(char a, char b) {
+    return a - b;
   }
 
   /**
@@ -219,7 +219,7 @@ public final class Util {
    * @param bitmap1 first bitmap
    * @param bitmap2 second bitmap
    */
-  public static void fillArrayAND(final short[] container, final long[] bitmap1,
+  public static void fillArrayAND(final char[] container, final long[] bitmap1,
       final long[] bitmap2) {
     int pos = 0;
     if (bitmap1.length != bitmap2.length) {
@@ -228,7 +228,7 @@ public final class Util {
     for (int k = 0; k < bitmap1.length; ++k) {
       long bitset = bitmap1[k] & bitmap2[k];
       while (bitset != 0) {
-        container[pos++] = (short) (k * 64 + numberOfTrailingZeros(bitset));
+        container[pos++] = (char) (k * 64 + numberOfTrailingZeros(bitset));
         bitset &= (bitset - 1);
       }
     }
@@ -241,7 +241,7 @@ public final class Util {
    * @param bitmap1 first bitmap
    * @param bitmap2 second bitmap
    */
-  public static void fillArrayANDNOT(final short[] container, final long[] bitmap1,
+  public static void fillArrayANDNOT(final char[] container, final long[] bitmap1,
       final long[] bitmap2) {
     int pos = 0;
     if (bitmap1.length != bitmap2.length) {
@@ -250,7 +250,7 @@ public final class Util {
     for (int k = 0; k < bitmap1.length; ++k) {
       long bitset = bitmap1[k] & (~bitmap2[k]);
       while (bitset != 0) {
-        container[pos++] = (short) (k * 64 + numberOfTrailingZeros(bitset));
+        container[pos++] = (char) (k * 64 + numberOfTrailingZeros(bitset));
         bitset &= (bitset - 1);
       }
     }
@@ -263,7 +263,7 @@ public final class Util {
    * @param bitmap1 first bitmap
    * @param bitmap2 second bitmap
    */
-  public static void fillArrayXOR(final short[] container, final long[] bitmap1,
+  public static void fillArrayXOR(final char[] container, final long[] bitmap1,
       final long[] bitmap2) {
     int pos = 0;
     if (bitmap1.length != bitmap2.length) {
@@ -272,7 +272,7 @@ public final class Util {
     for (int k = 0; k < bitmap1.length; ++k) {
       long bitset = bitmap1[k] ^ bitmap2[k];
       while (bitset != 0) {
-        container[pos++] = (short) (k * 64 + numberOfTrailingZeros(bitset));
+        container[pos++] = (char) (k * 64 + numberOfTrailingZeros(bitset));
         bitset &= (bitset - 1);
       }
     }
@@ -351,18 +351,18 @@ public final class Util {
     return answer;
   }
 
-  protected static short highbits(int x) {
-    return (short) (x >>> 16);
+  protected static char highbits(int x) {
+    return (char) (x >>> 16);
   }
 
-  protected static short highbits(long x) {
-    return (short) (x >>> 16);
+  protected static char highbits(long x) {
+    return (char) (x >>> 16);
   }
 
   // starts with binary search and finishes with a sequential search
-  protected static int hybridUnsignedBinarySearch(final short[] array, final int begin,
-      final int end, final short k) {
-    int ikey = toIntUnsigned(k);
+  protected static int hybridUnsignedBinarySearch(final char[] array, final int begin,
+      final int end, final char k) {
+    int ikey = k;
     // next line accelerates the possibly common case where the value would
     // be inserted at the end
     if ((end > 0) && (toIntUnsigned(array[end - 1]) < ikey)) {
@@ -397,12 +397,12 @@ public final class Util {
     return -(x + 1);
   }
 
-  protected static short lowbits(int x) {
-    return (short) (x & 0xFFFF);
+  protected static char lowbits(int x) {
+    return (char) (x & 0xFFFF);
   }
 
-  protected static short lowbits(long x) {
-    return (short) (x & 0xFFFF);
+  protected static char lowbits(long x) {
+    return (char) (x & 0xFFFF);
   }
 
 
@@ -418,8 +418,8 @@ public final class Util {
     return x & 0xFFFF;
   }
 
-  protected static short maxLowBit() {
-    return (short) 0xFFFF;
+  protected static char maxLowBit() {
+    return (char) 0xFFFF;
   }
 
   protected static int maxLowBitAsInteger() {
@@ -581,8 +581,8 @@ public final class Util {
     return cardafter - cardbefore;
   }
 
-  protected static int toIntUnsigned(short x) {
-    return x & 0xFFFF;
+  protected static int toIntUnsigned(char x) {
+    return x;
   }
 
   /**
@@ -596,8 +596,8 @@ public final class Util {
    * @param k value we search for
    * @return count
    */
-  public static int unsignedBinarySearch(final short[] array, final int begin, final int end,
-      final short k) {
+  public static int unsignedBinarySearch(final char[] array, final int begin, final int end,
+      final char k) {
     if (USE_HYBRID_BINSEARCH) {
       return hybridUnsignedBinarySearch(array, begin, end, k);
     } else {
@@ -616,8 +616,8 @@ public final class Util {
    * @param buffer output array
    * @return cardinality of the difference
    */
-  public static int unsignedDifference(final short[] set1, final int length1, final short[] set2,
-      final int length2, final short[] buffer) {
+  public static int unsignedDifference(final char[] set1, final int length1, final char[] set2,
+      final int length2, final char[] buffer) {
     int pos = 0;
     int k1 = 0, k2 = 0;
     if (0 == length2) {
@@ -627,8 +627,8 @@ public final class Util {
     if (0 == length1) {
       return 0;
     }
-    short s1 = set1[k1];
-    short s2 = set2[k2];
+    char s1 = set1[k1];
+    char s2 = set2[k2];
     while (true) {
       if (toIntUnsigned(s1) < toIntUnsigned(s2)) {
         buffer[pos++] = s1;
@@ -670,8 +670,8 @@ public final class Util {
    * @param buffer output array
    * @return cardinality of the difference
    */
-  public static int unsignedDifference(ShortIterator set1, ShortIterator set2,
-      final short[] buffer) {
+  public static int unsignedDifference(CharIterator set1, CharIterator set2,
+                                       final char[] buffer) {
     int pos = 0;
     if (!set2.hasNext()) {
       while (set1.hasNext()) {
@@ -682,8 +682,8 @@ public final class Util {
     if (!set1.hasNext()) {
       return 0;
     }
-    short v1 = set1.next();
-    short v2 = set2.next();
+    char v1 = set1.next();
+    char v2 = set2.next();
     while (true) {
       if (toIntUnsigned(v1) < toIntUnsigned(v2)) {
         buffer[pos++] = v1;
@@ -728,8 +728,8 @@ public final class Util {
    * @param buffer output array
    * @return cardinality of the exclusive union
    */
-  public static int unsignedExclusiveUnion2by2(final short[] set1, final int length1,
-      final short[] set2, final int length2, final short[] buffer) {
+  public static int unsignedExclusiveUnion2by2(final char[] set1, final int length1,
+      final char[] set2, final int length2, final char[] buffer) {
     int pos = 0;
     int k1 = 0, k2 = 0;
     if (0 == length2) {
@@ -740,8 +740,8 @@ public final class Util {
       System.arraycopy(set2, 0, buffer, 0, length2);
       return length2;
     }
-    short s1 = set1[k1];
-    short s2 = set2[k2];
+    char s1 = set1[k1];
+    char s2 = set2[k2];
     while (true) {
       if (toIntUnsigned(s1) < toIntUnsigned(s2)) {
         buffer[pos++] = s1;
@@ -789,8 +789,8 @@ public final class Util {
    * @param buffer output array
    * @return cardinality of the intersection
    */
-  public static int unsignedIntersect2by2(final short[] set1, final int length1, final short[] set2,
-      final int length2, final short[] buffer) {
+  public static int unsignedIntersect2by2(final char[] set1, final int length1, final char[] set2,
+      final int length2, final char[] buffer) {
     final int THRESHOLD = 25;
     if (set1.length * THRESHOLD < set2.length) {
       return unsignedOneSidedGallopingIntersect2by2(set1, length1, set2, length2, buffer);
@@ -812,15 +812,15 @@ public final class Util {
    * @param length2 length of second array
    * @return true if they intersect
    */
-  public static boolean unsignedIntersects(short[] set1, int length1, short[] set2, int length2) {
+  public static boolean unsignedIntersects(char[] set1, int length1, char[] set2, int length2) {
     // galloping might be faster, but we do not expect this function to be slow
     if ((0 == length1) || (0 == length2)) {
       return false;
     }
     int k1 = 0;
     int k2 = 0;
-    short s1 = set1[k1];
-    short s2 = set2[k2];
+    char s1 = set1[k1];
+    char s2 = set2[k2];
     mainwhile: while (true) {
       if (toIntUnsigned(s2) < toIntUnsigned(s1)) {
         do {
@@ -847,16 +847,16 @@ public final class Util {
   }
 
 
-  protected static int unsignedLocalIntersect2by2(final short[] set1, final int length1,
-      final short[] set2, final int length2, final short[] buffer) {
+  protected static int unsignedLocalIntersect2by2(final char[] set1, final int length1,
+      final char[] set2, final int length2, final char[] buffer) {
     if ((0 == length1) || (0 == length2)) {
       return 0;
     }
     int k1 = 0;
     int k2 = 0;
     int pos = 0;
-    short s1 = set1[k1];
-    short s2 = set2[k2];
+    char s1 = set1[k1];
+    char s2 = set2[k2];
 
     mainwhile: while (true) {
       int v1 = toIntUnsigned(s1);
@@ -907,16 +907,16 @@ public final class Util {
    * @param length2 how many values to consider in the second set
    * @return cardinality of the intersection
    */
-  public static int unsignedLocalIntersect2by2Cardinality(final short[] set1, final int length1,
-      final short[] set2, final int length2) {
+  public static int unsignedLocalIntersect2by2Cardinality(final char[] set1, final int length1,
+      final char[] set2, final int length2) {
     if ((0 == length1) || (0 == length2)) {
       return 0;
     }
     int k1 = 0;
     int k2 = 0;
     int pos = 0;
-    short s1 = set1[k1];
-    short s2 = set2[k2];
+    char s1 = set1[k1];
+    char s2 = set2[k2];
 
     mainwhile: while (true) {
       int v1 = toIntUnsigned(s1);
@@ -959,16 +959,16 @@ public final class Util {
   }
 
 
-  protected static int unsignedOneSidedGallopingIntersect2by2(final short[] smallSet,
-      final int smallLength, final short[] largeSet, final int largeLength, final short[] buffer) {
+  protected static int unsignedOneSidedGallopingIntersect2by2(final char[] smallSet,
+      final int smallLength, final char[] largeSet, final int largeLength, final char[] buffer) {
     if (0 == smallLength) {
       return 0;
     }
     int k1 = 0;
     int k2 = 0;
     int pos = 0;
-    short s1 = largeSet[k1];
-    short s2 = smallSet[k2];
+    char s1 = largeSet[k1];
+    char s2 = smallSet[k2];
     while (true) {
       if (toIntUnsigned(s1) < toIntUnsigned(s2)) {
         k1 = advanceUntil(largeSet, k1, largeLength, s2);
@@ -1016,9 +1016,9 @@ public final class Util {
    * @return cardinality of the union
    */
   public static int unsignedUnion2by2(
-          final short[] set1, final int offset1, final int length1,
-          final short[] set2, final int offset2, final int length2,
-          final short[] buffer) {
+          final char[] set1, final int offset1, final int length1,
+          final char[] set2, final int offset2, final int length2,
+          final char[] buffer) {
     if (0 == length2) {
       System.arraycopy(set1, offset1, buffer, 0, length1);
       return length1;
@@ -1029,8 +1029,8 @@ public final class Util {
     }
     int pos = 0;
     int k1 = offset1, k2 = offset2;
-    short s1 = set1[k1];
-    short s2 = set2[k2];
+    char s1 = set1[k1];
+    char s2 = set2[k2];
     while (true) {
       int v1 = toIntUnsigned(s1);
       int v2 = toIntUnsigned(s2);

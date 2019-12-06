@@ -9,7 +9,7 @@ public class MutableRoaringArrayTest {
 
   @Test
   public void resizeOnlyIfNecessary() {
-    short[] keys = new short[1];
+    char[] keys = new char[1];
     int size = 0;
     MappeableContainer[] values = new MappeableContainer[1];
     MutableRoaringArray array = new MutableRoaringArray(keys, values, size);

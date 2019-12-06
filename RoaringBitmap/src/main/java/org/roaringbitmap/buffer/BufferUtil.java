@@ -4,10 +4,7 @@
 
 package org.roaringbitmap.buffer;
 
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
-import java.nio.LongBuffer;
-import java.nio.ShortBuffer;
+import java.nio.*;
 
 import org.roaringbitmap.Util;
 
@@ -29,7 +26,7 @@ public final class BufferUtil {
    * @param offsets value to add to each value in the container
    * @return return an array made of two containers
    */
-  public static  MappeableContainer[] addOffset(MappeableContainer source, short offsets) {
+  public static  MappeableContainer[] addOffset(MappeableContainer source, char offsets) {
     final int offset = BufferUtil.toIntUnsigned(offsets);
     // could be a whole lot faster, this is a simple implementation
     if(source instanceof MappeableArrayContainer) {
@@ -40,9 +37,9 @@ public final class BufferUtil {
         int val = BufferUtil.toIntUnsigned(c.content.get(k));
         val += offset;
         if(val <= 0xFFFF) {
-          low.content.put(low.cardinality++, (short) val);
+          low.content.put(low.cardinality++, (char) val);
         } else {
-          high.content.put(high.cardinality++, (short) (val & 0xFFFF));
+          high.content.put(high.cardinality++, (char) (val & 0xFFFF));
         }
       }
       return new MappeableContainer[] {low, high};
@@ -85,13 +82,13 @@ public final class BufferUtil {
         int finalval =  val + BufferUtil.toIntUnsigned(c.getLength(k));
         if(val <= 0xFFFF) {
           if(finalval <= 0xFFFF) {
-            low.smartAppend((short)val,c.getLength(k));
+            low.smartAppend((char)val,c.getLength(k));
           } else {
-            low.smartAppend((short)val,(short)(0xFFFF-val));
-            high.smartAppend((short) 0,(short)(finalval & 0xFFFF));
+            low.smartAppend((char)val,(char)(0xFFFF-val));
+            high.smartAppend((char) 0,(char)(finalval & 0xFFFF));
           }
         } else {
-          high.smartAppend((short)(val & 0xFFFF),c.getLength(k));
+          high.smartAppend((char)(val & 0xFFFF),c.getLength(k));
         }
       }
       return new MappeableContainer[] {low, high};
@@ -110,7 +107,7 @@ public final class BufferUtil {
    * @return x greater than pos such that array[pos] is at least as large as min, pos is is equal to
    *         length if it is not possible.
    */
-  protected static int advanceUntil(ShortBuffer array, int pos, int length, short min) {
+  protected static int advanceUntil(CharBuffer array, int pos, int length, char min) {
     int lower = pos + 1;
 
     // special handling for a possibly common sequential case
@@ -151,7 +148,7 @@ public final class BufferUtil {
     // invariant: array[lower]<min && array[upper]>min
     while (lower + 1 != upper) {
       int mid = (lower + upper) >>> 1;
-      short arraymid = array.get(mid);
+      char arraymid = array.get(mid);
       if (arraymid == min) {
         return mid;
       } else if (toIntUnsigned(arraymid) < toIntUnsigned(min)) {
@@ -175,7 +172,7 @@ public final class BufferUtil {
    * @return x greater than pos such that array[pos] is at least as large as min, pos is is equal to
    *         length if it is not possible.
    */
-  public static int iterateUntil(ShortBuffer array, int pos, int length, int min) {
+  public static int iterateUntil(CharBuffer array, int pos, int length, int min) {
     while (pos < length && toIntUnsigned(array.get(pos)) < min) {
       pos++;
     }
@@ -183,7 +180,7 @@ public final class BufferUtil {
   }
 
 
-  protected static void arraycopy(ShortBuffer src, int srcPos, ShortBuffer dest, int destPos,
+  protected static void arraycopy(CharBuffer src, int srcPos, CharBuffer dest, int destPos,
       int length) {
     if (BufferUtil.isBackedBySimpleArray(src) && BufferUtil.isBackedBySimpleArray(dest)) {
       System.arraycopy(src.array(), srcPos, dest.array(), destPos, length);
@@ -200,8 +197,8 @@ public final class BufferUtil {
     }
   }
 
-  protected static int branchyUnsignedBinarySearch(final ShortBuffer array, final int begin,
-      final int end, final short k) {
+  protected static int branchyUnsignedBinarySearch(final CharBuffer array, final int begin,
+      final int end, final char k) {
     final int ikey = toIntUnsigned(k);
     // next line accelerates the possibly common case where the value would be inserted at the end
     if ((end > 0) && (toIntUnsigned(array.get(end - 1)) < ikey)) {
@@ -226,17 +223,17 @@ public final class BufferUtil {
 
 
   protected static int branchyUnsignedBinarySearch(final ByteBuffer array, int position,
-        final int begin, final int end, final short k) {
+        final int begin, final int end, final char k) {
     final int ikey = toIntUnsigned(k);
     // next line accelerates the possibly common case where the value would be inserted at the end
-    if ((end > 0) && (toIntUnsigned(array.getShort(position + (end - 1)*2)) < ikey)) {
+    if ((end > 0) && (toIntUnsigned(array.getChar(position + (end - 1)*2)) < ikey)) {
       return -end - 1;
     }
     int low = begin;
     int high = end - 1;
     while (low <= high) {
       final int middleIndex = (low + high) >>> 1;
-      final int middleValue = toIntUnsigned(array.getShort(position + 2* middleIndex));
+      final int middleValue = toIntUnsigned(array.getChar(position + 2* middleIndex));
 
       if (middleValue < ikey) {
         low = middleIndex + 1;
@@ -250,19 +247,19 @@ public final class BufferUtil {
   }
 
   /**
-   * Compares the two specified {@code short} values, treating them as unsigned values between
+   * Compares the two specified {@code char} values, treating them as unsigned values between
    * {@code 0} and {@code 2^16 - 1} inclusive.
    *
-   * @param a the first unsigned {@code short} to compare
-   * @param b the second unsigned {@code short} to compare
+   * @param a the first unsigned {@code char} to compare
+   * @param b the second unsigned {@code char} to compare
    * @return a negative value if {@code a} is less than {@code b}; a positive value if {@code a} is
    *         greater than {@code b}; or zero if they are equal
    */
-  public static int compareUnsigned(short a, short b) {
+  public static int compareUnsigned(char a, char b) {
     return toIntUnsigned(a) - toIntUnsigned(b);
   }
 
-  protected static void fillArrayAND(short[] container, LongBuffer bitmap1, LongBuffer bitmap2) {
+  protected static void fillArrayAND(char[] container, LongBuffer bitmap1, LongBuffer bitmap2) {
     int pos = 0;
     if (bitmap1.limit() != bitmap2.limit()) {
       throw new IllegalArgumentException("not supported");
@@ -274,7 +271,7 @@ public final class BufferUtil {
       for (int k = 0; k < len; ++k) {
         long bitset = b1[k] & b2[k];
         while (bitset != 0) {
-          container[pos++] = (short) (k * 64 + numberOfTrailingZeros(bitset));
+          container[pos++] = (char) (k * 64 + numberOfTrailingZeros(bitset));
           bitset &= (bitset - 1);
         }
       }
@@ -283,14 +280,14 @@ public final class BufferUtil {
       for (int k = 0; k < len; ++k) {
         long bitset = bitmap1.get(k) & bitmap2.get(k);
         while (bitset != 0) {
-          container[pos++] = (short) (k * 64 + numberOfTrailingZeros(bitset));
+          container[pos++] = (char) (k * 64 + numberOfTrailingZeros(bitset));
           bitset &= (bitset - 1);
         }
       }
     }
   }
 
-  protected static void fillArrayANDNOT(short[] container, LongBuffer bitmap1, LongBuffer bitmap2) {
+  protected static void fillArrayANDNOT(char[] container, LongBuffer bitmap1, LongBuffer bitmap2) {
     int pos = 0;
     if (bitmap1.limit() != bitmap2.limit()) {
       throw new IllegalArgumentException("not supported");
@@ -302,7 +299,7 @@ public final class BufferUtil {
       for (int k = 0; k < len; ++k) {
         long bitset = b1[k] & (~b2[k]);
         while (bitset != 0) {
-          container[pos++] = (short) (k * 64 + numberOfTrailingZeros(bitset));
+          container[pos++] = (char) (k * 64 + numberOfTrailingZeros(bitset));
           bitset &= (bitset - 1);
         }
       }
@@ -311,14 +308,14 @@ public final class BufferUtil {
       for (int k = 0; k < len; ++k) {
         long bitset = bitmap1.get(k) & (~bitmap2.get(k));
         while (bitset != 0) {
-          container[pos++] = (short) (k * 64 + numberOfTrailingZeros(bitset));
+          container[pos++] = (char) (k * 64 + numberOfTrailingZeros(bitset));
           bitset &= (bitset - 1);
         }
       }
     }
   }
 
-  protected static void fillArrayXOR(short[] container, LongBuffer bitmap1, LongBuffer bitmap2) {
+  protected static void fillArrayXOR(char[] container, LongBuffer bitmap1, LongBuffer bitmap2) {
     int pos = 0;
     if (bitmap1.limit() != bitmap2.limit()) {
       throw new IllegalArgumentException("not supported");
@@ -330,7 +327,7 @@ public final class BufferUtil {
       for (int k = 0; k < len; ++k) {
         long bitset = bitmap1.get(k) ^ bitmap2.get(k);
         while (bitset != 0) {
-          container[pos++] = (short) (k * 64 + numberOfTrailingZeros(bitset));
+          container[pos++] = (char) (k * 64 + numberOfTrailingZeros(bitset));
           bitset &= (bitset - 1);
         }
       }
@@ -492,7 +489,7 @@ public final class BufferUtil {
   protected static int getSizeInBytesFromCardinalityEtc(int card, int numRuns,
       boolean isRunEncoded) {
     if (isRunEncoded) {
-      return 2 + numRuns * 2 * 2; // each run uses 2 shorts, plus the initial short giving num runs
+      return 2 + numRuns * 2 * 2; // each run uses 2 chars, plus the initial char giving num runs
     }
     boolean isBitmap = card > MappeableArrayContainer.DEFAULT_MAX_SIZE;
     if (isBitmap) {
@@ -503,13 +500,13 @@ public final class BufferUtil {
 
   }
 
-  protected static short highbits(int x) {
-    return (short) (x >>> 16);
+  protected static char highbits(int x) {
+    return (char) (x >>> 16);
   }
 
 
-  protected static short highbits(long x) {
-    return (short) (x >>> 16);
+  protected static char highbits(long x) {
+    return (char) (x >>> 16);
   }
 
   /**
@@ -525,12 +522,12 @@ public final class BufferUtil {
     return b.hasArray() && (b.arrayOffset() == 0);
   }
 
-  protected static short lowbits(int x) {
-    return (short) (x & 0xFFFF);
+  protected static char lowbits(int x) {
+    return (char) (x & 0xFFFF);
   }
 
-  protected static short lowbits(long x) {
-    return (short) (x & 0xFFFF);
+  protected static char lowbits(long x) {
+    return (char) (x & 0xFFFF);
   }
 
   protected static int lowbitsAsInteger(int x) {
@@ -545,8 +542,8 @@ public final class BufferUtil {
     return x & 0xFFFF;
   }
 
-  protected static short maxLowBit() {
-    return (short) 0xFFFF;
+  protected static char maxLowBit() {
+    return (char) 0xFFFF;
   }
 
   protected static int maxLowBitAsInteger() {
@@ -612,14 +609,14 @@ public final class BufferUtil {
   }
 
 
-  protected static int toIntUnsigned(short x) {
-    return x & 0xFFFF;
+  protected static int toIntUnsigned(char x) {
+    return x;
   }
 
   /**
    * Look for value k in buffer in the range [begin,end). If the value is found, return its index.
    * If not, return -(i+1) where i is the index where the value would be inserted. The buffer is
-   * assumed to contain sorted values where shorts are interpreted as unsigned integers.
+   * assumed to contain sorted values where chars are interpreted as unsigned integers.
    *
    * @param array buffer where we search
    * @param begin first index (inclusive)
@@ -627,14 +624,14 @@ public final class BufferUtil {
    * @param k value we search for
    * @return count
    */
-  public static int unsignedBinarySearch(final ShortBuffer array, final int begin, final int end,
-      final short k) {
+  public static int unsignedBinarySearch(final CharBuffer array, final int begin, final int end,
+                                         final char k) {
     return branchyUnsignedBinarySearch(array, begin, end, k);
   }
   /**
    * Look for value k in buffer in the range [begin,end). If the value is found, return its index.
    * If not, return -(i+1) where i is the index where the value would be inserted. The buffer is
-   * assumed to contain sorted values where shorts are interpreted as unsigned integers.
+   * assumed to contain sorted values where chars are interpreted as unsigned integers.
    *
    * @param array buffer where we search
    * @param position starting position of the container in the ByteBuffer
@@ -644,12 +641,12 @@ public final class BufferUtil {
    * @return count
    */
   public static int unsignedBinarySearch(final ByteBuffer array, int position,
-      final int begin, final int end, final short k) {
+      final int begin, final int end, final char k) {
     return branchyUnsignedBinarySearch(array, position, begin, end, k);
   }
 
-  protected static int unsignedDifference(final ShortBuffer set1, final int length1,
-      final ShortBuffer set2, final int length2, final short[] buffer) {
+  protected static int unsignedDifference(final CharBuffer set1, final int length1,
+      final CharBuffer set2, final int length2, final char[] buffer) {
     int pos = 0;
     int k1 = 0, k2 = 0;
     if (0 == length2) {
@@ -659,8 +656,8 @@ public final class BufferUtil {
     if (0 == length1) {
       return 0;
     }
-    short s1 = set1.get(k1);
-    short s2 = set2.get(k2);
+    char s1 = set1.get(k1);
+    char s2 = set2.get(k2);
     while (true) {
       if (toIntUnsigned(s1) < toIntUnsigned(s2)) {
         buffer[pos++] = s1;
@@ -695,8 +692,8 @@ public final class BufferUtil {
     return pos;
   }
 
-  protected static int unsignedExclusiveUnion2by2(final ShortBuffer set1, final int length1,
-      final ShortBuffer set2, final int length2, final short[] buffer) {
+  protected static int unsignedExclusiveUnion2by2(final CharBuffer set1, final int length1,
+      final CharBuffer set2, final int length2, final char[] buffer) {
     int pos = 0;
     int k1 = 0, k2 = 0;
     if (0 == length2) {
@@ -707,8 +704,8 @@ public final class BufferUtil {
       set2.get(buffer, 0, length2);
       return length2;
     }
-    short s1 = set1.get(k1);
-    short s2 = set2.get(k2);
+    char s1 = set1.get(k1);
+    char s2 = set2.get(k2);
     while (true) {
       if (toIntUnsigned(s1) < toIntUnsigned(s2)) {
         buffer[pos++] = s1;
@@ -749,8 +746,8 @@ public final class BufferUtil {
   }
 
 
-  protected static int unsignedIntersect2by2(final ShortBuffer set1, final int length1,
-      final ShortBuffer set2, final int length2, final short[] buffer) {
+  protected static int unsignedIntersect2by2(final CharBuffer set1, final int length1,
+      final CharBuffer set2, final int length2, final char[] buffer) {
     final int THRESHOLD = 34;
     if (length1 * THRESHOLD < length2) {
       return unsignedOneSidedGallopingIntersect2by2(set1, length1, set2, length2, buffer);
@@ -770,7 +767,7 @@ public final class BufferUtil {
    * @param length2 length of second array
    * @return true if they intersect
    */
-  public static boolean unsignedIntersects(ShortBuffer set1, int length1, ShortBuffer set2,
+  public static boolean unsignedIntersects(CharBuffer set1, int length1, CharBuffer set2,
       int length2) {
     if ((0 == length1) || (0 == length2)) {
       return false;
@@ -779,8 +776,8 @@ public final class BufferUtil {
     int k2 = 0;
 
     // could be more efficient with galloping
-    short s1 = set1.get(k1);
-    short s2 = set2.get(k2);
+    char s1 = set1.get(k1);
+    char s2 = set2.get(k2);
 
     mainwhile: while (true) {
       if (toIntUnsigned(s2) < toIntUnsigned(s1)) {
@@ -807,16 +804,16 @@ public final class BufferUtil {
     return false;
   }
 
-  protected static int unsignedLocalIntersect2by2(final ShortBuffer set1, final int length1,
-      final ShortBuffer set2, final int length2, final short[] buffer) {
+  protected static int unsignedLocalIntersect2by2(final CharBuffer set1, final int length1,
+      final CharBuffer set2, final int length2, final char[] buffer) {
     if ((0 == length1) || (0 == length2)) {
       return 0;
     }
     int k1 = 0;
     int k2 = 0;
     int pos = 0;
-    short s1 = set1.get(k1);
-    short s2 = set2.get(k2);
+    char s1 = set1.get(k1);
+    char s2 = set2.get(k2);
 
     mainwhile: while (true) {
       if (toIntUnsigned(s2) < toIntUnsigned(s1)) {
@@ -857,16 +854,16 @@ public final class BufferUtil {
     return pos;
   }
 
-  protected static int unsignedLocalIntersect2by2Cardinality(final ShortBuffer set1,
-      final int length1, final ShortBuffer set2, final int length2) {
+  protected static int unsignedLocalIntersect2by2Cardinality(final CharBuffer set1,
+      final int length1, final CharBuffer set2, final int length2) {
     if ((0 == length1) || (0 == length2)) {
       return 0;
     }
     int k1 = 0;
     int k2 = 0;
     int pos = 0;
-    short s1 = set1.get(k1);
-    short s2 = set2.get(k2);
+    char s1 = set1.get(k1);
+    char s2 = set2.get(k2);
 
     mainwhile: while (true) {
       if (toIntUnsigned(s2) < toIntUnsigned(s1)) {
@@ -907,9 +904,9 @@ public final class BufferUtil {
   }
 
 
-  protected static int unsignedOneSidedGallopingIntersect2by2(final ShortBuffer smallSet,
-      final int smallLength, final ShortBuffer largeSet, final int largeLength,
-      final short[] buffer) {
+  protected static int unsignedOneSidedGallopingIntersect2by2(final CharBuffer smallSet,
+      final int smallLength, final CharBuffer largeSet, final int largeLength,
+      final char[] buffer) {
     if (0 == smallLength) {
       return 0;
     }
@@ -917,8 +914,8 @@ public final class BufferUtil {
     int k2 = 0;
     int pos = 0;
 
-    short s1 = largeSet.get(k1);
-    short s2 = smallSet.get(k2);
+    char s1 = largeSet.get(k1);
+    char s2 = smallSet.get(k2);
     while (true) {
       if (toIntUnsigned(s1) < toIntUnsigned(s2)) {
         k1 = advanceUntil(largeSet, k1, largeLength, s2);
@@ -954,9 +951,9 @@ public final class BufferUtil {
   }
 
   protected static int unsignedUnion2by2(
-          final ShortBuffer set1, final int offset1, final int length1,
-          final ShortBuffer set2, final int offset2, final int length2,
-          final short[] buffer) {
+          final CharBuffer set1, final int offset1, final int length1,
+          final CharBuffer set2, final int offset2, final int length2,
+          final char[] buffer) {
     if (0 == length2) {
       set1.position(offset1);
       set1.get(buffer, 0, length1);
@@ -969,8 +966,8 @@ public final class BufferUtil {
     }
     int pos = 0;
     int k1 = offset1, k2 = offset2;
-    short s1 = set1.get(k1);
-    short s2 = set2.get(k2);
+    char s1 = set1.get(k1);
+    char s2 = set2.get(k2);
     while (true) {
       int v1 = toIntUnsigned(s1);
       int v2 = toIntUnsigned(s2);

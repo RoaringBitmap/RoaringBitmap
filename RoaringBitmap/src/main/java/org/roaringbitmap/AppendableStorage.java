@@ -12,6 +12,6 @@ public interface AppendableStorage<T> {
    * @param key the key to append
    * @param container the data to append
    */
-  void append(short key, T container);
+  void append(char key, T container);
 
 }

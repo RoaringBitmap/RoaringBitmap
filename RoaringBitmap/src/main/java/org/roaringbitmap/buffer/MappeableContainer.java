@@ -16,7 +16,7 @@ import java.util.NoSuchElementException;
  * Base container class. This class is similar to org.roaringbitmap.Container but meant to be used
  * with memory mapping.
  */
-public abstract class MappeableContainer implements Iterable<Short>, Cloneable, Externalizable,
+public abstract class MappeableContainer implements Iterable<Character>, Cloneable, Externalizable,
         WordStorage<MappeableContainer> {
   /**
    * Create a container initialized with a range of consecutive values
@@ -36,7 +36,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
   }
 
   /**
-   * Return a new container with all shorts in [begin,end) added using an unsigned interpretation.
+   * Return a new container with all chars in [begin,end) added using an unsigned interpretation.
    *
    * @param begin start of range (inclusive)
    * @param end end of range (exclusive)
@@ -46,12 +46,12 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
 
 
   /**
-   * Add a short to the container. May generate a new container.
+   * Add a char to the container. May generate a new container.
    * 
-   * @param x short to be added
+   * @param x char to be added
    * @return the new container
    */
-  public abstract MappeableContainer add(short x);
+  public abstract MappeableContainer add(char x);
 
   /**
    * Checks whether the container is empty or not.
@@ -244,7 +244,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
    * @param x value to check
    * @return whether the value is in the container
    */
-  public abstract boolean contains(short x);
+  public abstract boolean contains(char x);
 
     /**
    * Checks whether the container is a subset of this container or not
@@ -287,7 +287,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
   
   /**
    * Fill the least significant 16 bits of the integer array, starting at index index, with the
-   * short values from this container. The caller is responsible to allocate enough room. The most
+   * char values from this container. The caller is responsible to allocate enough room. The most
    * significant 16 bits of each integer are given by the most significant bits of the provided
    * mask.
    * 
@@ -298,13 +298,13 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
   public abstract void fillLeastSignificant16bits(int[] x, int i, int mask);
 
   /**
-   * Add a short to the container if it is not present, otherwise remove it. May generate a new
+   * Add a char to the container if it is not present, otherwise remove it. May generate a new
    * container.
    *
-   * @param x short to be added
+   * @param x char to be added
    * @return the new container
    */
-  public abstract MappeableContainer flip(short x);
+  public abstract MappeableContainer flip(char x);
 
 
   /**
@@ -316,7 +316,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
 
 
   /**
-   * Computes the distinct number of short values in the container. Can be expected to run in
+   * Computes the distinct number of char values in the container. Can be expected to run in
    * constant time.
    * 
    * @return the cardinality
@@ -343,19 +343,19 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
   public static String[] ContainerNames = {"mappeablebitmap","mappeablearray","mappeablerun"};
 
   /**
-   * Iterator to visit the short values in the container in descending order.
+   * Iterator to visit the char values in the container in descending order.
    *
    * @return iterator
    */
-  public abstract ShortIterator getReverseShortIterator();
+  public abstract CharIterator getReverseShortIterator();
 
 
   /**
-   * Iterator to visit the short values in the container in ascending order.
+   * Iterator to visit the char values in the container in ascending order.
    *
    * @return iterator
    */
-  public abstract PeekableShortIterator getShortIterator();
+  public abstract PeekableCharIterator getShortIterator();
 
   /**
    * Gets an iterator to visit the contents of the container in batches
@@ -369,7 +369,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
    * @param msb 16 most significant bits
    * @param ic consumer
    */
-  public abstract void forEach(short msb, IntConsumer ic);
+  public abstract void forEach(char msb, IntConsumer ic);
 
   /**
    * Computes an estimate of the memory usage of this container. The estimate is not meant to be
@@ -380,7 +380,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
   public abstract int getSizeInBytes();
 
   /**
-   * Add all shorts in [begin,end) using an unsigned interpretation. May generate a new container.
+   * Add all chars in [begin,end) using an unsigned interpretation. May generate a new container.
    *
    * @param begin start of range (inclusive)
    * @param end end of range (exclusive)
@@ -566,7 +566,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
   public abstract MappeableContainer ior(MappeableRunContainer x);
 
   /**
-   * Remove shorts in [begin,end) using an unsigned interpretation. May generate a new container.
+   * Remove chars in [begin,end) using an unsigned interpretation. May generate a new container.
    *
    * @param begin start of range (inclusive)
    * @param end end of range (exclusive)
@@ -759,10 +759,10 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
    *
    * @return the rank
    */
-  public abstract int rank(short lowbits);
+  public abstract int rank(char lowbits);
 
   /**
-   * Return a new container with all shorts in [begin,end) remove using an unsigned interpretation.
+   * Return a new container with all chars in [begin,end) remove using an unsigned interpretation.
    *
    * @param begin start of range (inclusive)
    * @param end end of range (exclusive)
@@ -771,12 +771,12 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
   public abstract MappeableContainer remove(int begin, int end);
 
   /**
-   * Remove the short from this container. May create a new container.
+   * Remove the char from this container. May create a new container.
    * 
    * @param x to be removed
    * @return New container
    */
-  public abstract MappeableContainer remove(short x);
+  public abstract MappeableContainer remove(char x);
 
   /**
    * The output of a lazyOR or lazyIOR might be an invalid container, this should be called on it.
@@ -801,7 +801,7 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
    *
    * @return the value
    */
-  public abstract short select(int j);
+  public abstract char select(int j);
 
 
   /**
@@ -906,28 +906,28 @@ public abstract class MappeableContainer implements Iterable<Short>, Cloneable, 
    * @param fromValue the lower bound (inclusive)
    * @return the next value
    */
-  public abstract int nextValue(short fromValue);
+  public abstract int nextValue(char fromValue);
 
   /**
    * Gets the last value less than or equal to the upper bound, or -1 if no such value exists.
    * @param fromValue the upper bound (inclusive)
    * @return the previous value
    */
-  public abstract int previousValue(short fromValue);
+  public abstract int previousValue(char fromValue);
 
   /**
    * Gets the first absent value greater than or equal to the lower bound.
    * @param fromValue the lower bound (inclusive)
    * @return the next absent value
    */
-  public abstract int nextAbsentValue(short fromValue);
+  public abstract int nextAbsentValue(char fromValue);
 
   /**
    * Gets the last value less than or equal to the upper bound.
    * @param fromValue the upper bound (inclusive)
    * @return the previous absent value
    */
-  public abstract int previousAbsentValue(short fromValue);
+  public abstract int previousAbsentValue(char fromValue);
 
 
   /**

@@ -4,8 +4,8 @@
 
 package org.roaringbitmap.buffer;
 
+import org.roaringbitmap.PeekableCharIterator;
 import org.roaringbitmap.PeekableIntIterator;
-import org.roaringbitmap.PeekableShortIterator;
 
 /**
  * Fast iterator minimizing the stress on the garbage collector. You can create one reusable
@@ -19,14 +19,14 @@ public class BufferIntIteratorFlyweight implements PeekableIntIterator {
 
   private int hs;
 
-  private PeekableShortIterator iter;
+  private PeekableCharIterator iter;
 
-  private MappeableArrayContainerShortIterator arrIter = new MappeableArrayContainerShortIterator();
+  private MappeableArrayContainerCharIterator arrIter = new MappeableArrayContainerCharIterator();
 
-  private MappeableBitmapContainerShortIterator bitmapIter =
-      new MappeableBitmapContainerShortIterator();
+  private MappeableBitmapContainerCharIterator bitmapIter =
+      new MappeableBitmapContainerCharIterator();
 
-  private MappeableRunContainerShortIterator runIter = new MappeableRunContainerShortIterator();
+  private MappeableRunContainerCharIterator runIter = new MappeableRunContainerCharIterator();
 
 
   private int pos;

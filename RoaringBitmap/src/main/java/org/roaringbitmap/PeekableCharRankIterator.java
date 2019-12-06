@@ -1,9 +1,9 @@
 package org.roaringbitmap;
 
 /**
- * PeekableShortIterator that calculates the next value rank during iteration
+ * PeekableCharIterator that calculates the next value rank during iteration
  */
-public interface PeekableShortRankIterator extends PeekableShortIterator {
+public interface PeekableCharRankIterator extends PeekableCharIterator {
 
   /**
    * peek in-container rank of the next value
@@ -16,5 +16,5 @@ public interface PeekableShortRankIterator extends PeekableShortIterator {
   int peekNextRank();
 
   @Override
-  PeekableShortRankIterator clone();
+  PeekableCharRankIterator clone();
 }

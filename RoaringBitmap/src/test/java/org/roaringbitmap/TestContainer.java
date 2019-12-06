@@ -30,8 +30,8 @@ public class TestContainer {
     assertTrue(new RunContainer().getContainerName().equals(Container.ContainerNames[2]));
   }
   
-  public static boolean checkContent(Container c, short[] s) {
-    ShortIterator si = c.getShortIterator();
+  public static boolean checkContent(Container c, char[] s) {
+    CharIterator si = c.getShortIterator();
     int ctr = 0;
     boolean fail = false;
     while (si.hasNext()) {
@@ -55,7 +55,7 @@ public class TestContainer {
         System.out.print(" " + si.next());
       }
       System.out.print("\n expected ");
-      for (final short s1 : s) {
+      for (final char s1 : s) {
         System.out.print(" " + s1);
       }
       System.out.println();
@@ -63,9 +63,9 @@ public class TestContainer {
     return !fail;
   }
 
-  public static Container makeContainer(short[] ss) {
+  public static Container makeContainer(char[] ss) {
     Container c = new ArrayContainer();
-    for (final short s : ss) {
+    for (final char s : ss) {
       c = c.add(s);
     }
     return c;
@@ -76,15 +76,15 @@ public class TestContainer {
     System.out.println("and1");
     for (Class<?> ct : CONTAINER_TYPES) {
       Container ac = (Container) ct.newInstance();
-      ac.add((short) 1);
-      ac.add((short) 3);
-      ac.add((short) 5);
-      ac.add((short) 50000);
-      ac.add((short) 50001);
+      ac.add((char) 1);
+      ac.add((char) 3);
+      ac.add((char) 5);
+      ac.add((char) 50000);
+      ac.add((char) 50001);
       for (Class<?> ct1 : CONTAINER_TYPES) {
         Container ac1 = (Container) ct1.newInstance();
         Container result = ac.and(ac1);
-        assertTrue(checkContent(result, new short[] {}));
+        assertTrue(checkContent(result, new char[] {}));
         assertEquals(0, result.getCardinality());
         assertEquals(0, ac.andCardinality(ac1));
         assertEquals(0, ac1.andCardinality(ac));
@@ -97,20 +97,20 @@ public class TestContainer {
     System.out.println("and2");
     for (Class<?> ct : CONTAINER_TYPES) {
       Container ac = (Container) ct.newInstance();
-      ac.add((short) 1);
+      ac.add((char) 1);
       for (Class<?> ct1 : CONTAINER_TYPES) {
         Container ac1 = (Container) ct1.newInstance();
 
-        ac1.add((short) 1);
-        ac1.add((short) 4);
-        ac1.add((short) 5);
-        ac1.add((short) 50000);
-        ac1.add((short) 50002);
-        ac1.add((short) 50003);
-        ac1.add((short) 50004);
+        ac1.add((char) 1);
+        ac1.add((char) 4);
+        ac1.add((char) 5);
+        ac1.add((char) 50000);
+        ac1.add((char) 50002);
+        ac1.add((char) 50003);
+        ac1.add((char) 50004);
 
         Container result = ac.and(ac1);
-        assertTrue(checkContent(result, new short[] {1}));
+        assertTrue(checkContent(result, new char[] {1}));
         assertEquals(result.getCardinality(), ac.andCardinality(ac1));
         assertEquals(result.getCardinality(), ac1.andCardinality(ac));
         assertEquals(1, ac1.andCardinality(ac));
@@ -124,27 +124,27 @@ public class TestContainer {
     for (Class<?> ct : CONTAINER_TYPES) {
       Container ac = (Container) ct.newInstance();
 
-      ac.add((short) 1);
-      ac.add((short) 3);
-      ac.add((short) 5);
-      ac.add((short) 50000);
-      ac.add((short) 50001);
+      ac.add((char) 1);
+      ac.add((char) 3);
+      ac.add((char) 5);
+      ac.add((char) 50000);
+      ac.add((char) 50001);
 
       // array ends first
 
       for (Class<?> ct1 : CONTAINER_TYPES) {
         Container ac1 = (Container) ct1.newInstance();
 
-        ac1.add((short) 1);
-        ac1.add((short) 4);
-        ac1.add((short) 5);
-        ac1.add((short) 50000);
-        ac1.add((short) 50002);
-        ac1.add((short) 50003);
-        ac1.add((short) 50004);
+        ac1.add((char) 1);
+        ac1.add((char) 4);
+        ac1.add((char) 5);
+        ac1.add((char) 50000);
+        ac1.add((char) 50002);
+        ac1.add((char) 50003);
+        ac1.add((char) 50004);
 
         Container result = ac.and(ac1);
-        assertTrue(checkContent(result, new short[] {1, 5, (short) 50000}));
+        assertTrue(checkContent(result, new char[] {1, 5, (char) 50000}));
         assertEquals(result.getCardinality(), ac.andCardinality(ac1));
         assertEquals(result.getCardinality(), ac1.andCardinality(ac));
         assertEquals(3, ac1.andCardinality(ac));
@@ -158,28 +158,28 @@ public class TestContainer {
     for (Class<?> ct : CONTAINER_TYPES) {
       Container ac = (Container) ct.newInstance();
 
-      ac.add((short) 1);
-      ac.add((short) 3);
-      ac.add((short) 5);
-      ac.add((short) 50000);
-      ac.add((short) 50001);
-      ac.add((short) 50011);
+      ac.add((char) 1);
+      ac.add((char) 3);
+      ac.add((char) 5);
+      ac.add((char) 50000);
+      ac.add((char) 50001);
+      ac.add((char) 50011);
 
       // iterator ends first
 
       for (Class<?> ct1 : CONTAINER_TYPES) {
         Container ac1 = (Container) ct1.newInstance();
 
-        ac1.add((short) 1);
-        ac1.add((short) 4);
-        ac1.add((short) 5);
-        ac1.add((short) 50000);
-        ac1.add((short) 50002);
-        ac1.add((short) 50003);
-        ac1.add((short) 50004);
+        ac1.add((char) 1);
+        ac1.add((char) 4);
+        ac1.add((char) 5);
+        ac1.add((char) 50000);
+        ac1.add((char) 50002);
+        ac1.add((char) 50003);
+        ac1.add((char) 50004);
 
         Container result = ac.and(ac1);
-        assertTrue(checkContent(result, new short[] {1, 5, (short) 50000}));
+        assertTrue(checkContent(result, new char[] {1, 5, (char) 50000}));
         assertEquals(result.getCardinality(), ac.andCardinality(ac1));
         assertEquals(result.getCardinality(), ac1.andCardinality(ac));
         assertEquals(3, ac1.andCardinality(ac));
@@ -193,25 +193,25 @@ public class TestContainer {
     for (Class<?> ct : CONTAINER_TYPES) {
       Container ac = (Container) ct.newInstance();
 
-      ac.add((short) 1);
-      ac.add((short) 3);
-      ac.add((short) 5);
-      ac.add((short) 50000);
-      ac.add((short) 50001);
+      ac.add((char) 1);
+      ac.add((char) 3);
+      ac.add((char) 5);
+      ac.add((char) 50000);
+      ac.add((char) 50001);
 
       // end together
 
       for (Class<?> ct1 : CONTAINER_TYPES) {
         Container ac1 = (Container) ct1.newInstance();
 
-        ac1.add((short) 1);
-        ac1.add((short) 4);
-        ac1.add((short) 5);
-        ac1.add((short) 50000);
-        ac1.add((short) 50001);
+        ac1.add((char) 1);
+        ac1.add((char) 4);
+        ac1.add((char) 5);
+        ac1.add((char) 50000);
+        ac1.add((char) 50001);
 
         Container result = ac.and(ac1);
-        assertTrue(checkContent(result, new short[] {1, 5, (short) 50000, (short) 50001}));
+        assertTrue(checkContent(result, new char[] {1, 5, (char) 50000, (char) 50001}));
         assertEquals(result.getCardinality(), ac.andCardinality(ac1));
         assertEquals(result.getCardinality(), ac1.andCardinality(ac));
         assertEquals(4, ac1.andCardinality(ac));
@@ -222,14 +222,14 @@ public class TestContainer {
   @Test
   public void inotTest1() {
     // Array container, range is complete
-    final short[] content = {1, 3, 5, 7, 9};
+    final char[] content = {1, 3, 5, 7, 9};
     Container c = makeContainer(content);
     c = c.inot(0, 65536);
-    final short[] s = new short[65536 - content.length];
+    final char[] s = new char[65536 - content.length];
     int pos = 0;
     for (int i = 0; i < 65536; ++i) {
-      if (Arrays.binarySearch(content, (short) i) < 0) {
-        s[pos++] = (short) i;
+      if (Arrays.binarySearch(content, (char) i) < 0) {
+        s[pos++] = (char) i;
       }
     }
     assertTrue(checkContent(c, s));
@@ -239,7 +239,7 @@ public class TestContainer {
   public void inotTest10() {
     System.out.println("inotTest10");
     // Array container, inverting a range past any set bit
-    final short[] content = new short[3];
+    final char[] content = new char[3];
     content[0] = 0;
     content[1] = 2;
     content[2] = 4;
@@ -248,15 +248,15 @@ public class TestContainer {
     assertTrue(c1 instanceof ArrayContainer);
     assertEquals(14, c1.getCardinality());
     assertTrue(checkContent(c1,
-        new short[] {0, 2, 4, (short) 65190, (short) 65191, (short) 65192, (short) 65193,
-            (short) 65194, (short) 65195, (short) 65196, (short) 65197, (short) 65198,
-            (short) 65199, (short) 65200}));
+        new char[] {0, 2, 4, (char) 65190, (char) 65191, (char) 65192, (char) 65193,
+            (char) 65194, (char) 65195, (char) 65196, (char) 65197, (char) 65198,
+            (char) 65199, (char) 65200}));
   }
 
   @Test
   public void inotTest2() {
     // Array and then Bitmap container, range is complete
-    final short[] content = {1, 3, 5, 7, 9};
+    final char[] content = {1, 3, 5, 7, 9};
     Container c = makeContainer(content);
     c = c.inot(0, 65535);
     c = c.inot(0, 65535);
@@ -269,22 +269,22 @@ public class TestContainer {
 
     Container c = new ArrayContainer();
     for (int i = 0; i < 65536; i += 2) {
-      c = c.add((short) i);
+      c = c.add((char) i);
     }
 
     c = c.inot(0, 65536);
-    assertTrue(c.contains((short) 3) && !c.contains((short) 4));
+    assertTrue(c.contains((char) 3) && !c.contains((char) 4));
     assertEquals(32768, c.getCardinality());
     c = c.inot(0, 65536);
     for (int i = 0; i < 65536; i += 2) {
-      assertTrue(c.contains((short) i) && !c.contains((short) (i + 1)));
+      assertTrue(c.contains((char) i) && !c.contains((char) (i + 1)));
     }
   }
 
   @Test
   public void inotTest4() {
     // Array container, range is partial, result stays array
-    final short[] content = {1, 3, 5, 7, 9};
+    final char[] content = {1, 3, 5, 7, 9};
     Container c = makeContainer(content);
     c = c.inot(4, 1000);
     assertTrue(c instanceof ArrayContainer);
@@ -297,14 +297,14 @@ public class TestContainer {
   public void inotTest5() {
     System.out.println("inotTest5");
     // Bitmap container, range is partial, result stays bitmap
-    final short[] content = new short[32768 - 5];
+    final char[] content = new char[32768 - 5];
     content[0] = 0;
     content[1] = 2;
     content[2] = 4;
     content[3] = 6;
     content[4] = 8;
     for (int i = 10; i <= 32767; ++i) {
-      content[i - 10 + 5] = (short) i;
+      content[i - 10 + 5] = (char) i;
     }
     Container c = makeContainer(content);
     c = c.inot(4, 1000);
@@ -321,14 +321,14 @@ public class TestContainer {
     System.out.println("inotTest6");
     // Bitmap container, range is partial and in one word, result
     // stays bitmap
-    final short[] content = new short[32768 - 5];
+    final char[] content = new char[32768 - 5];
     content[0] = 0;
     content[1] = 2;
     content[2] = 4;
     content[3] = 6;
     content[4] = 8;
     for (int i = 10; i <= 32767; ++i) {
-      content[i - 10 + 5] = (short) i;
+      content[i - 10 + 5] = (char) i;
     }
     Container c = makeContainer(content);
     c = c.inot(4, 9);
@@ -343,14 +343,14 @@ public class TestContainer {
   public void inotTest7() {
     System.out.println("inotTest7");
     // Bitmap container, range is partial, result flips to array
-    final short[] content = new short[32768 - 5];
+    final char[] content = new char[32768 - 5];
     content[0] = 0;
     content[1] = 2;
     content[2] = 4;
     content[3] = 6;
     content[4] = 8;
     for (int i = 10; i <= 32767; ++i) {
-      content[i - 10 + 5] = (short) i;
+      content[i - 10 + 5] = (char) i;
     }
     Container c = makeContainer(content);
     c = c.inot(5, 31001);
@@ -374,9 +374,9 @@ public class TestContainer {
   public void inotTest8() {
     System.out.println("inotTest8");
     // Array container
-    final short[] content = new short[21];
+    final char[] content = new char[21];
     for (int i = 0; i < 18; ++i) {
-      content[i] = (short) i;
+      content[i] = (char) i;
     }
     content[18] = 21;
     content[19] = 22;
@@ -396,14 +396,14 @@ public class TestContainer {
   @Test
   public void notTest1() {
     // Array container, range is complete
-    final short[] content = {1, 3, 5, 7, 9};
+    final char[] content = {1, 3, 5, 7, 9};
     final Container c = makeContainer(content);
     final Container c1 = c.not(0, 65536);
-    final short[] s = new short[65536 - content.length];
+    final char[] s = new char[65536 - content.length];
     int pos = 0;
     for (int i = 0; i < 65536; ++i) {
-      if (Arrays.binarySearch(content, (short) i) < 0) {
-        s[pos++] = (short) i;
+      if (Arrays.binarySearch(content, (char) i) < 0) {
+        s[pos++] = (char) i;
       }
     }
     assertTrue(checkContent(c1, s));
@@ -416,20 +416,20 @@ public class TestContainer {
     // Array container, inverting a range past any set bit
     // attempting to recreate a bug (but bug required extra space
     // in the array with just the right junk in it.
-    final short[] content = new short[40];
+    final char[] content = new char[40];
     for (int i = 244; i <= 283; ++i) {
-      content[i - 244] = (short) i;
+      content[i - 244] = (char) i;
     }
     final Container c = makeContainer(content);
     final Container c1 = c.not(51413, 51471);
     assertTrue(c1 instanceof ArrayContainer);
     assertEquals(40 + 58, c1.getCardinality());
-    final short[] rightAns = new short[98];
+    final char[] rightAns = new char[98];
     for (int i = 244; i <= 283; ++i) {
-      rightAns[i - 244] = (short) i;
+      rightAns[i - 244] = (char) i;
     }
     for (int i = 51413; i <= 51470; ++i) {
-      rightAns[i - 51413 + 40] = (short) i;
+      rightAns[i - 51413 + 40] = (char) i;
     }
 
     assertTrue(checkContent(c1, rightAns));
@@ -441,20 +441,20 @@ public class TestContainer {
     // Array container, inverting a range before any set bit
     // attempting to recreate a bug (but required extra space
     // in the array with the right junk in it.
-    final short[] content = new short[40];
+    final char[] content = new char[40];
     for (int i = 244; i <= 283; ++i) {
-      content[i - 244] = (short) i;
+      content[i - 244] = (char) i;
     }
     final Container c = makeContainer(content);
     final Container c1 = c.not(1, 59);
     assertTrue(c1 instanceof ArrayContainer);
     assertEquals(40 + 58, c1.getCardinality());
-    final short[] rightAns = new short[98];
+    final char[] rightAns = new char[98];
     for (int i = 1; i <= 58; ++i) {
-      rightAns[i - 1] = (short) i;
+      rightAns[i - 1] = (char) i;
     }
     for (int i = 244; i <= 283; ++i) {
-      rightAns[i - 244 + 58] = (short) i;
+      rightAns[i - 244 + 58] = (char) i;
     }
 
     assertTrue(checkContent(c1, rightAns));
@@ -463,7 +463,7 @@ public class TestContainer {
   @Test
   public void notTest2() {
     // Array and then Bitmap container, range is complete
-    final short[] content = {1, 3, 5, 7, 9};
+    final char[] content = {1, 3, 5, 7, 9};
     final Container c = makeContainer(content);
     final Container c1 = c.not(0, 65535);
     final Container c2 = c1.not(0, 65535);
@@ -476,15 +476,15 @@ public class TestContainer {
 
     Container c = new ArrayContainer();
     for (int i = 0; i < 65536; i += 2) {
-      c = c.add((short) i);
+      c = c.add((char) i);
     }
 
     final Container c1 = c.not(0, 65536);
-    assertTrue(c1.contains((short) 3) && !c1.contains((short) 4));
+    assertTrue(c1.contains((char) 3) && !c1.contains((char) 4));
     assertEquals(32768, c1.getCardinality());
     final Container c2 = c1.not(0, 65536);
     for (int i = 0; i < 65536; i += 2) {
-      assertTrue(c2.contains((short) i) && !c2.contains((short) (i + 1)));
+      assertTrue(c2.contains((char) i) && !c2.contains((char) (i + 1)));
     }
   }
 
@@ -492,7 +492,7 @@ public class TestContainer {
   public void notTest4() {
     System.out.println("notTest4");
     // Array container, range is partial, result stays array
-    final short[] content = {1, 3, 5, 7, 9};
+    final char[] content = {1, 3, 5, 7, 9};
     final Container c = makeContainer(content);
     final Container c1 = c.not(4, 1000);
     assertTrue(c1 instanceof ArrayContainer);
@@ -505,14 +505,14 @@ public class TestContainer {
   public void notTest5() {
     System.out.println("notTest5");
     // Bitmap container, range is partial, result stays bitmap
-    final short[] content = new short[32768 - 5];
+    final char[] content = new char[32768 - 5];
     content[0] = 0;
     content[1] = 2;
     content[2] = 4;
     content[3] = 6;
     content[4] = 8;
     for (int i = 10; i <= 32767; ++i) {
-      content[i - 10 + 5] = (short) i;
+      content[i - 10 + 5] = (char) i;
     }
     final Container c = makeContainer(content);
     final Container c1 = c.not(4, 1000);
@@ -528,14 +528,14 @@ public class TestContainer {
     System.out.println("notTest6");
     // Bitmap container, range is partial and in one word, result
     // stays bitmap
-    final short[] content = new short[32768 - 5];
+    final char[] content = new char[32768 - 5];
     content[0] = 0;
     content[1] = 2;
     content[2] = 4;
     content[3] = 6;
     content[4] = 8;
     for (int i = 10; i <= 32767; ++i) {
-      content[i - 10 + 5] = (short) i;
+      content[i - 10 + 5] = (char) i;
     }
     final Container c = makeContainer(content);
     final Container c1 = c.not(4, 9);
@@ -550,14 +550,14 @@ public class TestContainer {
   public void notTest7() {
     System.out.println("notTest7");
     // Bitmap container, range is partial, result flips to array
-    final short[] content = new short[32768 - 5];
+    final char[] content = new char[32768 - 5];
     content[0] = 0;
     content[1] = 2;
     content[2] = 4;
     content[3] = 6;
     content[4] = 8;
     for (int i = 10; i <= 32767; ++i) {
-      content[i - 10 + 5] = (short) i;
+      content[i - 10 + 5] = (char) i;
     }
     final Container c = makeContainer(content);
     final Container c1 = c.not(5, 31001);
@@ -580,14 +580,14 @@ public class TestContainer {
   public void notTest8() {
     System.out.println("notTest8");
     // Bitmap container, range is partial on the lower end
-    final short[] content = new short[32768 - 5];
+    final char[] content = new char[32768 - 5];
     content[0] = 0;
     content[1] = 2;
     content[2] = 4;
     content[3] = 6;
     content[4] = 8;
     for (int i = 10; i <= 32767; ++i) {
-      content[i - 10 + 5] = (short) i;
+      content[i - 10 + 5] = (char) i;
     }
     final Container c = makeContainer(content);
     final Container c1 = c.not(4, 65536);
@@ -603,14 +603,14 @@ public class TestContainer {
     System.out.println("notTest9");
     // Bitmap container, range is partial on the upper end, not
     // single word
-    final short[] content = new short[32768 - 5];
+    final char[] content = new char[32768 - 5];
     content[0] = 0;
     content[1] = 2;
     content[2] = 4;
     content[3] = 6;
     content[4] = 8;
     for (int i = 10; i <= 32767; ++i) {
-      content[i - 10 + 5] = (short) i;
+      content[i - 10 + 5] = (char) i;
     }
     final Container c = makeContainer(content);
     final Container c1 = c.not(0, 65201);
@@ -625,11 +625,11 @@ public class TestContainer {
 
   @Test
   public void numberOfRuns() {
-    short[] positions = {3, 4, 5, 10, 11, 13, 15, 62, 63, 64, 65};
+    char[] positions = {3, 4, 5, 10, 11, 13, 15, 62, 63, 64, 65};
     Container ac = new ArrayContainer();
     Container bc = new BitmapContainer();
     Container rc = new RunContainer();
-    for (short position : positions) {
+    for (char position : positions) {
       ac.add(position);
       bc.add(position);
       rc.add(position);
@@ -658,9 +658,9 @@ public class TestContainer {
       BitmapContainer bc = new BitmapContainer();
       Container rc = new RunContainer();
       for (int position : positions) {
-        ac = ac.add((short) position);
-        bc.add((short) position);
-        rc.add((short) position);
+        ac = ac.add((char) position);
+        bc.add((char) position);
+        rc.add((char) position);
       }
 
       assertEquals(rc.numberOfRuns(), ac.numberOfRuns());
@@ -681,15 +681,15 @@ public class TestContainer {
   public void or1() {
     System.out.println("or1");
     ArrayContainer ac = new ArrayContainer();
-    ac.add((short) 1);
-    ac.add((short) 3);
-    ac.add((short) 5);
-    ac.add((short) 50000);
-    ac.add((short) 50001);
+    ac.add((char) 1);
+    ac.add((char) 3);
+    ac.add((char) 5);
+    ac.add((char) 50000);
+    ac.add((char) 50001);
 
     ArrayContainer ac1 = new ArrayContainer(); // empty iterator
     Container result = ac.or(ac1.getShortIterator());
-    assertTrue(checkContent(result, new short[] {1, 3, 5, (short) 50000, (short) 50001}));
+    assertTrue(checkContent(result, new char[] {1, 3, 5, (char) 50000, (char) 50001}));
   }
 
 
@@ -700,43 +700,43 @@ public class TestContainer {
     // empty array
 
     ArrayContainer ac1 = new ArrayContainer();
-    ac1.add((short) 1);
-    ac1.add((short) 4);
-    ac1.add((short) 5);
-    ac1.add((short) 50000);
-    ac1.add((short) 50002);
-    ac1.add((short) 50003);
-    ac1.add((short) 50004);
+    ac1.add((char) 1);
+    ac1.add((char) 4);
+    ac1.add((char) 5);
+    ac1.add((char) 50000);
+    ac1.add((char) 50002);
+    ac1.add((char) 50003);
+    ac1.add((char) 50004);
 
     Container result = ac.or(ac1.getShortIterator());
     assertTrue(checkContent(result,
-        new short[] {1, 4, 5, (short) 50000, (short) 50002, (short) 50003, (short) 50004}));
+        new char[] {1, 4, 5, (char) 50000, (char) 50002, (char) 50003, (char) 50004}));
   }
 
   @Test
   public void or3() {
     System.out.println("or3");
     ArrayContainer ac = new ArrayContainer();
-    ac.add((short) 1);
-    ac.add((short) 3);
-    ac.add((short) 5);
-    ac.add((short) 50000);
-    ac.add((short) 50001);
+    ac.add((char) 1);
+    ac.add((char) 3);
+    ac.add((char) 5);
+    ac.add((char) 50000);
+    ac.add((char) 50001);
 
     // array ends first
 
     ArrayContainer ac1 = new ArrayContainer();
-    ac1.add((short) 1);
-    ac1.add((short) 4);
-    ac1.add((short) 5);
-    ac1.add((short) 50000);
-    ac1.add((short) 50002);
-    ac1.add((short) 50003);
-    ac1.add((short) 50004);
+    ac1.add((char) 1);
+    ac1.add((char) 4);
+    ac1.add((char) 5);
+    ac1.add((char) 50000);
+    ac1.add((char) 50002);
+    ac1.add((char) 50003);
+    ac1.add((char) 50004);
 
     Container result = ac.or(ac1.getShortIterator());
-    assertTrue(checkContent(result, new short[] {1, 3, 4, 5, (short) 50000, (short) 50001,
-        (short) 50002, (short) 50003, (short) 50004}));
+    assertTrue(checkContent(result, new char[] {1, 3, 4, 5, (char) 50000, (char) 50001,
+        (char) 50002, (char) 50003, (char) 50004}));
   }
 
 
@@ -745,28 +745,28 @@ public class TestContainer {
   public void or4() {
     System.out.println("or4");
     ArrayContainer ac = new ArrayContainer();
-    ac.add((short) 1);
-    ac.add((short) 3);
-    ac.add((short) 5);
-    ac.add((short) 50000);
-    ac.add((short) 50001);
-    ac.add((short) 50011);
+    ac.add((char) 1);
+    ac.add((char) 3);
+    ac.add((char) 5);
+    ac.add((char) 50000);
+    ac.add((char) 50001);
+    ac.add((char) 50011);
 
     // iterator ends first
 
     ArrayContainer ac1 = new ArrayContainer();
-    ac1.add((short) 1);
-    ac1.add((short) 4);
-    ac1.add((short) 5);
-    ac1.add((short) 50000);
-    ac1.add((short) 50002);
-    ac1.add((short) 50003);
-    ac1.add((short) 50004);
+    ac1.add((char) 1);
+    ac1.add((char) 4);
+    ac1.add((char) 5);
+    ac1.add((char) 50000);
+    ac1.add((char) 50002);
+    ac1.add((char) 50003);
+    ac1.add((char) 50004);
 
 
     Container result = ac.or(ac1.getShortIterator());
-    assertTrue(checkContent(result, new short[] {1, 3, 4, 5, (short) 50000, (short) 50001,
-        (short) 50002, (short) 50003, (short) 50004, (short) 50011}));
+    assertTrue(checkContent(result, new char[] {1, 3, 4, 5, (char) 50000, (char) 50001,
+        (char) 50002, (char) 50003, (char) 50004, (char) 50011}));
   }
 
 
@@ -775,33 +775,33 @@ public class TestContainer {
   public void or5() {
     System.out.println("or5");
     ArrayContainer ac = new ArrayContainer();
-    ac.add((short) 1);
-    ac.add((short) 3);
-    ac.add((short) 5);
-    ac.add((short) 50000);
-    ac.add((short) 50001);
+    ac.add((char) 1);
+    ac.add((char) 3);
+    ac.add((char) 5);
+    ac.add((char) 50000);
+    ac.add((char) 50001);
 
     // end together
 
     ArrayContainer ac1 = new ArrayContainer();
-    ac1.add((short) 1);
-    ac1.add((short) 4);
-    ac1.add((short) 5);
-    ac1.add((short) 50000);
-    ac1.add((short) 50001);
+    ac1.add((char) 1);
+    ac1.add((char) 4);
+    ac1.add((char) 5);
+    ac1.add((char) 50000);
+    ac1.add((char) 50001);
 
     Container result = ac.or(ac1.getShortIterator());
-    assertTrue(checkContent(result, new short[] {1, 3, 4, 5, (short) 50000, (short) 50001}));
+    assertTrue(checkContent(result, new char[] {1, 3, 4, 5, (char) 50000, (char) 50001}));
   }
 
   @Test
   public void testXorContainer() throws Exception {
-    Container rc1 = new RunContainer(new short[] {10, 12, 90, 10}, 2);
-    Container rc2 = new RunContainer(new short[]{1, 10, 40, 400, 900, 10}, 3);
+    Container rc1 = new RunContainer(new char[] {10, 12, 90, 10}, 2);
+    Container rc2 = new RunContainer(new char[]{1, 10, 40, 400, 900, 10}, 3);
     Container bc1 = new BitmapContainer().add(10, 20);
     Container bc2 = new BitmapContainer().add(21, 30);
-    Container ac1 = new ArrayContainer(4, new short[] {10, 12, 90, 104});
-    Container ac2 = new ArrayContainer(2, new short[]{1, 10, 40, 400, 900, 1910});
+    Container ac1 = new ArrayContainer(4, new char[] {10, 12, 90, 104});
+    Container ac2 = new ArrayContainer(2, new char[]{1, 10, 40, 400, 900, 1910});
     for(Set<Container> test : Sets.powerSet(ImmutableSet.of(rc1, rc2, bc1, bc2, ac1, ac2))) {
       Iterator<Container> it = test.iterator();
       if(test.size() == 1) { // compare with self
@@ -824,7 +824,7 @@ public class TestContainer {
     final Container c = Container.rangeOfOnes(4, 11); // sparse
     // assertTrue(c instanceof ArrayContainer);
     assertEquals(10 - 4 + 1, c.getCardinality());
-    assertTrue(checkContent(c, new short[] {4, 5, 6, 7, 8, 9, 10}));
+    assertTrue(checkContent(c, new char[] {4, 5, 6, 7, 8, 9, 10}));
   }
 
 
@@ -840,9 +840,9 @@ public class TestContainer {
   @Test
   public void rangeOfOnesTest2A() {
     final Container c = Container.rangeOfOnes(1000, 35001); // dense
-    final short s[] = new short[35000 - 1000 + 1];
+    final char s[] = new char[35000 - 1000 + 1];
     for (int i = 1000; i <= 35000; ++i) {
-      s[i - 1000] = (short) i;
+      s[i - 1000] = (char) i;
     }
     assertTrue(checkContent(c, s));
   }
@@ -864,7 +864,7 @@ public class TestContainer {
   @Test
   public void testRunOptimize1() {
     ArrayContainer ac = new ArrayContainer();
-    for (short s : new short[] {1, 2, 3, 4, 5, 6, 7, 8, 9, (short) 50000, (short) 50001}) {
+    for (char s : new char[] {1, 2, 3, 4, 5, 6, 7, 8, 9, (char) 50000, (char) 50001}) {
       ac.add(s);
     }
     Container c = ac.runOptimize();
@@ -876,7 +876,7 @@ public class TestContainer {
 
   public void testRunOptimize1A() {
     ArrayContainer ac = new ArrayContainer();
-    for (short s : new short[] {1, 2, 3, 4, 6, 8, 9, (short) 50000, (short) 50003}) {
+    for (char s : new char[] {1, 2, 3, 4, 6, 8, 9, (char) 50000, (char) 50003}) {
       ac.add(s);
     }
     Container c = ac.runOptimize();
@@ -889,7 +889,7 @@ public class TestContainer {
   public void testRunOptimize2() {
     BitmapContainer bc = new BitmapContainer();
     for (int i = 0; i < 40000; ++i) {
-      bc.add((short) i);
+      bc.add((char) i);
     }
     Container c = bc.runOptimize();
     assertTrue(c instanceof RunContainer);
@@ -902,7 +902,7 @@ public class TestContainer {
   public void testRunOptimize2A() {
     BitmapContainer bc = new BitmapContainer();
     for (int i = 0; i < 40000; i += 2) {
-      bc.add((short) i);
+      bc.add((char) i);
     }
     Container c = bc.runOptimize();
     assertTrue(c instanceof BitmapContainer);
@@ -912,7 +912,7 @@ public class TestContainer {
   @Test
   public void testRunOptimize3() {
     RunContainer rc = new RunContainer();
-    for (short s : new short[] {1, 2,3, 4, 5, 6, 7, 8, 9, (short) 50000, (short) 50001}) {
+    for (char s : new char[] {1, 2,3, 4, 5, 6, 7, 8, 9, (char) 50000, (char) 50001}) {
       rc.add(s);
     }
     Container c = rc.runOptimize();
@@ -923,7 +923,7 @@ public class TestContainer {
   @Test
   public void testRunOptimize3A() {
     RunContainer rc = new RunContainer();
-    for (short s : new short[] {1, 3, 5, 7, 9, 11, 17, 21, (short) 50000, (short) 50002}) {
+    for (char s : new char[] {1, 3, 5, 7, 9, 11, 17, 21, (char) 50000, (char) 50002}) {
       rc.add(s);
     }
     Container c = rc.runOptimize();
@@ -935,7 +935,7 @@ public class TestContainer {
   @Test
   public void testRunOptimize3B() {
     RunContainer rc = new RunContainer();
-    for (short i = 100; i < 30000; i += 2) {
+    for (char i = 100; i < 30000; i += 2) {
       rc.add(i);
     }
     Container c = rc.runOptimize();
@@ -947,19 +947,19 @@ public class TestContainer {
   public void transitionTest() {
     Container c = new ArrayContainer();
     for (int i = 0; i < 4096; ++i) {
-      c = c.add((short) i);
+      c = c.add((char) i);
     }
     assertEquals(c.getCardinality(), 4096);
     assertTrue(c instanceof ArrayContainer);
     for (int i = 0; i < 4096; ++i) {
-      c = c.add((short) i);
+      c = c.add((char) i);
     }
     assertEquals(c.getCardinality(), 4096);
     assertTrue(c instanceof ArrayContainer);
-    c = c.add((short) 4096);
+    c = c.add((char) 4096);
     assertEquals(c.getCardinality(), 4097);
     assertTrue(c instanceof BitmapContainer);
-    c = c.remove((short) 4096);
+    c = c.remove((char) 4096);
     assertEquals(c.getCardinality(), 4096);
     assertTrue(c instanceof ArrayContainer);
   }
@@ -968,15 +968,15 @@ public class TestContainer {
   public void xor1() {
     System.out.println("xor1");
     ArrayContainer ac = new ArrayContainer();
-    ac.add((short) 1);
-    ac.add((short) 3);
-    ac.add((short) 5);
-    ac.add((short) 50000);
-    ac.add((short) 50001);
+    ac.add((char) 1);
+    ac.add((char) 3);
+    ac.add((char) 5);
+    ac.add((char) 50000);
+    ac.add((char) 50001);
 
     ArrayContainer ac1 = new ArrayContainer(); // empty iterator
     Container result = ac.xor(ac1.getShortIterator());
-    assertTrue(checkContent(result, new short[] {1, 3, 5, (short) 50000, (short) 50001}));
+    assertTrue(checkContent(result, new char[] {1, 3, 5, (char) 50000, (char) 50001}));
   }
 
   @Test
@@ -986,17 +986,17 @@ public class TestContainer {
     // empty array
 
     ArrayContainer ac1 = new ArrayContainer();
-    ac1.add((short) 1);
-    ac1.add((short) 4);
-    ac1.add((short) 5);
-    ac1.add((short) 50000);
-    ac1.add((short) 50002);
-    ac1.add((short) 50003);
-    ac1.add((short) 50004);
+    ac1.add((char) 1);
+    ac1.add((char) 4);
+    ac1.add((char) 5);
+    ac1.add((char) 50000);
+    ac1.add((char) 50002);
+    ac1.add((char) 50003);
+    ac1.add((char) 50004);
 
     Container result = ac.xor(ac1.getShortIterator());
     assertTrue(checkContent(result,
-        new short[] {1, 4, 5, (short) 50000, (short) 50002, (short) 50003, (short) 50004}));
+        new char[] {1, 4, 5, (char) 50000, (char) 50002, (char) 50003, (char) 50004}));
   }
 
 
@@ -1005,26 +1005,26 @@ public class TestContainer {
   public void xor3() {
     System.out.println("xor3");
     ArrayContainer ac = new ArrayContainer();
-    ac.add((short) 1);
-    ac.add((short) 3);
-    ac.add((short) 5);
-    ac.add((short) 50000);
-    ac.add((short) 50001);
+    ac.add((char) 1);
+    ac.add((char) 3);
+    ac.add((char) 5);
+    ac.add((char) 50000);
+    ac.add((char) 50001);
 
     // array ends first
 
     ArrayContainer ac1 = new ArrayContainer();
-    ac1.add((short) 1);
-    ac1.add((short) 4);
-    ac1.add((short) 5);
-    ac1.add((short) 50000);
-    ac1.add((short) 50002);
-    ac1.add((short) 50003);
-    ac1.add((short) 50004);
+    ac1.add((char) 1);
+    ac1.add((char) 4);
+    ac1.add((char) 5);
+    ac1.add((char) 50000);
+    ac1.add((char) 50002);
+    ac1.add((char) 50003);
+    ac1.add((char) 50004);
 
     Container result = ac.xor(ac1.getShortIterator());
     assertTrue(checkContent(result,
-        new short[] {3, 4, (short) 50001, (short) 50002, (short) 50003, (short) 50004}));
+        new char[] {3, 4, (char) 50001, (char) 50002, (char) 50003, (char) 50004}));
   }
 
   @Test
@@ -1032,7 +1032,7 @@ public class TestContainer {
     ArrayContainer ac = new ArrayContainer();
     BitmapContainer bc = new BitmapContainer();
     RunContainer rc = new RunContainer();
-    for (short i : new short[]{0, 2, 17, Short.MAX_VALUE, -3, -1}) {
+    for (char i : new char[]{0, 2, 17, Short.MAX_VALUE, (char)-3, (char)-1}) {
       ac.add(i);
       bc.add(i);
       rc.add(i);
@@ -1052,28 +1052,28 @@ public class TestContainer {
   public void xor4() {
     System.out.println("xor4");
     ArrayContainer ac = new ArrayContainer();
-    ac.add((short) 1);
-    ac.add((short) 3);
-    ac.add((short) 5);
-    ac.add((short) 50000);
-    ac.add((short) 50001);
-    ac.add((short) 50011);
+    ac.add((char) 1);
+    ac.add((char) 3);
+    ac.add((char) 5);
+    ac.add((char) 50000);
+    ac.add((char) 50001);
+    ac.add((char) 50011);
 
     // iterator ends first
 
     ArrayContainer ac1 = new ArrayContainer();
-    ac1.add((short) 1);
-    ac1.add((short) 4);
-    ac1.add((short) 5);
-    ac1.add((short) 50000);
-    ac1.add((short) 50002);
-    ac1.add((short) 50003);
-    ac1.add((short) 50004);
+    ac1.add((char) 1);
+    ac1.add((char) 4);
+    ac1.add((char) 5);
+    ac1.add((char) 50000);
+    ac1.add((char) 50002);
+    ac1.add((char) 50003);
+    ac1.add((char) 50004);
 
 
     Container result = ac.xor(ac1.getShortIterator());
-    assertTrue(checkContent(result, new short[] {3, 4, (short) 50001, (short) 50002, (short) 50003,
-        (short) 50004, (short) 50011}));
+    assertTrue(checkContent(result, new char[] {3, 4, (char) 50001, (char) 50002, (char) 50003,
+        (char) 50004, (char) 50011}));
   }
 
 
@@ -1082,22 +1082,22 @@ public class TestContainer {
   public void xor5() {
     System.out.println("xor5");
     ArrayContainer ac = new ArrayContainer();
-    ac.add((short) 1);
-    ac.add((short) 3);
-    ac.add((short) 5);
-    ac.add((short) 50000);
-    ac.add((short) 50001);
+    ac.add((char) 1);
+    ac.add((char) 3);
+    ac.add((char) 5);
+    ac.add((char) 50000);
+    ac.add((char) 50001);
 
     // end together
 
     ArrayContainer ac1 = new ArrayContainer();
-    ac1.add((short) 1);
-    ac1.add((short) 4);
-    ac1.add((short) 5);
-    ac1.add((short) 50000);
-    ac1.add((short) 50001);
+    ac1.add((char) 1);
+    ac1.add((char) 4);
+    ac1.add((char) 5);
+    ac1.add((char) 50000);
+    ac1.add((char) 50001);
 
     Container result = ac.xor(ac1.getShortIterator());
-    assertTrue(checkContent(result, new short[] {3, 4}));
+    assertTrue(checkContent(result, new char[] {3, 4}));
   }
 }

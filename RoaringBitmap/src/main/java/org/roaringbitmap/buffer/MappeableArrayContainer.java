@@ -9,7 +9,8 @@ import org.roaringbitmap.*;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.ShortBuffer;
+import java.nio.CharBuffer;
+import java.nio.CharBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -17,7 +18,7 @@ import static org.roaringbitmap.buffer.BufferUtil.toIntUnsigned;
 
 /**
  * Simple container made of an array of 16-bit integers. Unlike org.roaringbitmap.ArrayContainer,
- * this class uses a ShortBuffer to store data.
+ * this class uses a CharBuffer to store data.
  */
 public final class MappeableArrayContainer extends MappeableContainer implements Cloneable {
   private static final int DEFAULT_INIT_SIZE = 4;
@@ -38,7 +39,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   protected int cardinality = 0;
 
 
-  protected ShortBuffer content;
+  protected CharBuffer content;
 
 
 
@@ -60,7 +61,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
    */
   public MappeableArrayContainer(ArrayContainer bc) {
     this.cardinality = bc.getCardinality();
-    this.content = bc.toShortBuffer();
+    this.content = bc.toCharBuffer();
   }
 
 
@@ -70,7 +71,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
    * @param capacity The capacity of the container
    */
   public MappeableArrayContainer(final int capacity) {
-    content = ShortBuffer.allocate(capacity);
+    content = CharBuffer.allocate(capacity);
   }
 
   /**
@@ -83,30 +84,30 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   public MappeableArrayContainer(final int firstOfRun, final int lastOfRun) {
     // TODO: this can be optimized for performance
     final int valuesInRange = lastOfRun - firstOfRun;
-    content = ShortBuffer.allocate(valuesInRange);
-    short[] sarray = content.array();
+    content = CharBuffer.allocate(valuesInRange);
+    char[] sarray = content.array();
     for (int i = 0; i < valuesInRange; ++i) {
-      sarray[i] = (short) (firstOfRun + i);
+      sarray[i] = (char) (firstOfRun + i);
     }
     cardinality = valuesInRange;
   }
 
-  private MappeableArrayContainer(int newCard, ShortBuffer newContent) {
+  private MappeableArrayContainer(int newCard, CharBuffer newContent) {
     this.cardinality = newCard;
-    ShortBuffer tmp = newContent.duplicate();// for thread-safety
-    this.content = ShortBuffer.allocate(Math.max(newCard, tmp.limit()));
+    CharBuffer tmp = newContent.duplicate();// for thread-safety
+    this.content = CharBuffer.allocate(Math.max(newCard, tmp.limit()));
     tmp.rewind();
     this.content.put(tmp);
   }
 
   /**
-   * Construct a new ArrayContainer backed by the provided ShortBuffer. Note that if you modify the
-   * ArrayContainer a new ShortBuffer may be produced.
+   * Construct a new ArrayContainer backed by the provided CharBuffer. Note that if you modify the
+   * ArrayContainer a new CharBuffer may be produced.
    *
-   * @param array ShortBuffer where the data is stored
+   * @param array CharBuffer where the data is stored
    * @param cardinality cardinality (number of values stored)
    */
-  public MappeableArrayContainer(final ShortBuffer array, final int cardinality) {
+  public MappeableArrayContainer(final CharBuffer array, final int cardinality) {
     if (array.limit() != cardinality) {
       throw new RuntimeException("Mismatch between buffer and cardinality");
     }
@@ -123,11 +124,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if ((begin > end) || (end > (1 << 16))) {
       throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
     }
-    int indexstart = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (short) begin);
+    int indexstart = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) begin);
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (short) (end - 1));
+    int indexend = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {
@@ -145,9 +146,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
     BufferUtil.arraycopy(content, indexend, answer.content, indexstart + rangelength,
         cardinality - indexend);
-    short[] answerarray = answer.content.array();
+    char[] answerarray = answer.content.array();
     for (int k = 0; k < rangelength; ++k) {
-      answerarray[k + indexstart] = (short) (begin + k);
+      answerarray[k + indexstart] = (char) (begin + k);
     }
     answer.cardinality = newcardinality;
     return answer;
@@ -158,9 +159,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
    */
   @Override
   // not thread-safe
-  public MappeableContainer add(final short x) {
+  public MappeableContainer add(final char x) {
     if (BufferUtil.isBackedBySimpleArray(this.content)) {
-      short[] sarray = content.array();
+      char[] sarray = content.array();
 
       if (cardinality == 0 || (cardinality > 0
               && toIntUnsigned(x) > toIntUnsigned(sarray[cardinality - 1]))) {
@@ -238,7 +239,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     return cardinality == 0;
   }
 
-  private int advance(ShortIterator it) {
+  private int advance(CharIterator it) {
     if (it.hasNext()) {
       return toIntUnsigned(it.next());
     } else {
@@ -298,17 +299,17 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     final MappeableArrayContainer answer = new MappeableArrayContainer(content.limit());
     int pos = 0;
-    short[] sarray = answer.content.array();
+    char[] sarray = answer.content.array();
     if (BufferUtil.isBackedBySimpleArray(this.content)) {
-      short[] c = content.array();
+      char[] c = content.array();
       for (int k = 0; k < cardinality; ++k) {
-        short v = c[k];
+        char v = c[k];
         sarray[pos] = v;
         pos += 1 - value2.bitValue(v);
       }
     } else {
       for (int k = 0; k < cardinality; ++k) {
-        short v = this.content.get(k);
+        char v = this.content.get(k);
         sarray[pos] = v;
         pos += 1 - value2.bitValue(v);
       }
@@ -358,7 +359,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
   @Override
-  public boolean contains(final short x) {
+  public boolean contains(final char x) {
     return BufferUtil.unsignedBinarySearch(content, 0, cardinality, x) >= 0;
   }
 
@@ -371,14 +372,14 @@ public final class MappeableArrayContainer extends MappeableContainer implements
    * @param cardinality container cardinality
    * @return whether the container contains the value x
    */
-  public static boolean contains(ByteBuffer buf, int position, final short x, int cardinality) {
+  public static boolean contains(ByteBuffer buf, int position, final char x, int cardinality) {
     return BufferUtil.unsignedBinarySearch(buf, position, 0, cardinality, x) >= 0;
   }
 
 
   // in order
   // not thread-safe
-  private void emit(short val) {
+  private void emit(char val) {
     if (cardinality == content.limit()) {
       increaseCapacity(true);
     }
@@ -394,8 +395,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       }
       if (BufferUtil.isBackedBySimpleArray(this.content)
           && BufferUtil.isBackedBySimpleArray(srb.content)) {
-        short[] t = this.content.array();
-        short[] sr = srb.content.array();
+        char[] t = this.content.array();
+        char[] sr = srb.content.array();
 
         for (int i = 0; i < this.cardinality; ++i) {
           if (t[i] != sr[i]) {
@@ -421,7 +422,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   @Override
   public void fillLeastSignificant16bits(int[] x, int i, int mask) {
     if (BufferUtil.isBackedBySimpleArray(this.content)) {
-      short[] c = this.content.array();
+      char[] c = this.content.array();
       for (int k = 0; k < this.cardinality; ++k) {
         x[k + i] = toIntUnsigned(c[k]) | mask;
       }
@@ -435,9 +436,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
   @Override
   // not thread-safe
-  public MappeableContainer flip(short x) {
+  public MappeableContainer flip(char x) {
     if (BufferUtil.isBackedBySimpleArray(this.content)) {
-      short[] sarray = content.array();
+      char[] sarray = content.array();
       int loc = Util.unsignedBinarySearch(sarray, 0, cardinality, x);
       if (loc < 0) {
         // Transform the ArrayContainer to a BitmapContainer
@@ -505,19 +506,19 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
   @Override
-  public ShortIterator getReverseShortIterator() {
+  public CharIterator getReverseShortIterator() {
     if (this.isArrayBacked()) {
-      return new RawReverseArrayContainerShortIterator(this);
+      return new RawReverseArrayContainerCharIterator(this);
     }
-    return new ReverseMappeableArrayContainerShortIterator(this);
+    return new ReverseMappeableArrayContainerCharIterator(this);
   }
 
   @Override
-  public PeekableShortIterator getShortIterator() {
+  public PeekableCharIterator getShortIterator() {
     if (this.isArrayBacked()) {
-      return new RawArrayContainerShortIterator(this);
+      return new RawArrayContainerCharIterator(this);
     }
-    return new MappeableArrayContainerShortIterator(this);
+    return new MappeableArrayContainerCharIterator(this);
   }
 
   @Override
@@ -549,11 +550,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if ((begin > end) || (end > (1 << 16))) {
       throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
     }
-    int indexstart = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (short) begin);
+    int indexstart = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) begin);
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (short) (end - 1));
+    int indexend = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {
@@ -588,16 +589,16 @@ public final class MappeableArrayContainer extends MappeableContainer implements
      * is cardinality and equation holds true , hence "<" equation holds true always
      */
     if (newcardinality >= this.content.limit()) {
-      ShortBuffer destination = ShortBuffer.allocate(newcardinality);
+      CharBuffer destination = CharBuffer.allocate(newcardinality);
       BufferUtil.arraycopy(content, 0, destination, 0, indexstart);
       if (BufferUtil.isBackedBySimpleArray(content)) {
-        short[] destinationarray = destination.array();
+        char[] destinationarray = destination.array();
         for (int k = 0; k < rangelength; ++k) {
-          destinationarray[k + indexstart] = (short) (begin + k);
+          destinationarray[k + indexstart] = (char) (begin + k);
         }
       } else {
         for (int k = 0; k < rangelength; ++k) {
-          destination.put(k + indexstart, (short) (begin + k));
+          destination.put(k + indexstart, (char) (begin + k));
         }
       }
       BufferUtil.arraycopy(content, indexend, destination, indexstart + rangelength, cardinality
@@ -607,13 +608,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       BufferUtil.arraycopy(content, indexend, content, indexstart + rangelength, cardinality
           - indexend);
       if (BufferUtil.isBackedBySimpleArray(content)) {
-        short[] contentarray = content.array();
+        char[] contentarray = content.array();
         for (int k = 0; k < rangelength; ++k) {
-          contentarray[k + indexstart] = (short) (begin + k);
+          contentarray[k + indexstart] = (char) (begin + k);
         }
       } else {
         for (int k = 0; k < rangelength; ++k) {
-          content.put(k + indexstart, (short) (begin + k));
+          content.put(k + indexstart, (char) (begin + k));
         }
       }
     }
@@ -637,7 +638,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   public MappeableContainer iand(MappeableBitmapContainer value2) {
     int pos = 0;
     for (int k = 0; k < cardinality; ++k) {
-      short v = this.content.get(k);
+      char v = this.content.get(k);
       this.content.put(pos, v);
       pos += value2.bitValue(v);
     }
@@ -674,10 +675,10 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (!BufferUtil.isBackedBySimpleArray(this.content)) {
       throw new RuntimeException("Should not happen. Internal bug.");
     }
-    short[] c = this.content.array();
+    char[] c = this.content.array();
     int pos = 0;
     for (int k = 0; k < cardinality; ++k) {
-      short v = c[k];
+      char v = c[k];
       c[pos] = v;
       pos += 1 - value2.bitValue(v);
     }
@@ -710,7 +711,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         - MappeableArrayContainer.DEFAULT_MAX_SIZE / 16 && !allowIllegalSize) {
       newCapacity = MappeableArrayContainer.DEFAULT_MAX_SIZE;
     }
-    final ShortBuffer newContent = ShortBuffer.allocate(newCapacity);
+    final CharBuffer newContent = CharBuffer.allocate(newCapacity);
     this.content.rewind();
     newContent.put(this.content);
     this.content = newContent;
@@ -739,19 +740,19 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     // TODO: may need to convert to a RunContainer
     // TODO: this can be optimized for performance
     // determine the span of array indices to be affected
-    int startIndex = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (short) firstOfRange);
+    int startIndex = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) firstOfRange);
     if (startIndex < 0) {
       startIndex = -startIndex - 1;
     }
     int lastIndex =
-        BufferUtil.unsignedBinarySearch(content, 0, cardinality, (short) (lastOfRange - 1));
+        BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) (lastOfRange - 1));
     if (lastIndex < 0) {
       lastIndex = -lastIndex - 1 - 1;
     }
     final int currentValuesInRange = lastIndex - startIndex + 1;
     final int spanToBeFlipped = lastOfRange - firstOfRange;
     final int newValuesInRange = spanToBeFlipped - currentValuesInRange;
-    final ShortBuffer buffer = ShortBuffer.allocate(newValuesInRange);
+    final CharBuffer buffer = CharBuffer.allocate(newValuesInRange);
     final int cardinalityChange = newValuesInRange - currentValuesInRange;
     final int newCardinality = cardinality + cardinalityChange;
 
@@ -761,7 +762,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         if (newCardinality > DEFAULT_MAX_SIZE) {
           return toBitmapContainer().inot(firstOfRange, lastOfRange);
         }
-        final ShortBuffer co = ShortBuffer.allocate(newCardinality);
+        final CharBuffer co = CharBuffer.allocate(newCardinality);
         content.rewind();
         co.put(content);
         content = co;
@@ -811,29 +812,29 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       }
       long[] bitArray = bc.bitmap.array();
       if (BufferUtil.isBackedBySimpleArray(value2.content)) {
-        short[] sarray = value2.content.array();
+        char[] sarray = value2.content.array();
         for (int k = 0; k < value2.cardinality; ++k) {
-          short v = sarray[k];
+          char v = sarray[k];
           final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] |= (1L << v);
         }
       } else {
         for (int k = 0; k < value2.cardinality; ++k) {
-          short v2 = value2.content.get(k);
+          char v2 = value2.content.get(k);
           final int i = toIntUnsigned(v2) >>> 6;
           bitArray[i] |= (1L << v2);
         }
       }
       if (BufferUtil.isBackedBySimpleArray(content)) {
-        short[] sarray = content.array();
+        char[] sarray = content.array();
         for (int k = 0; k < cardinality; ++k) {
-          short v = sarray[k];
+          char v = sarray[k];
           final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] |= (1L << v);
         }
       } else {
         for (int k = 0; k < cardinality; ++k) {
-          short v = content.get(k);
+          char v = content.get(k);
           final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] |= (1L << v);
         }
@@ -852,7 +853,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
     if (totalCardinality >= content.limit()) {
       int newCapacity = calculateCapacity(totalCardinality);
-      ShortBuffer destination = ShortBuffer.allocate(newCapacity);
+      CharBuffer destination = CharBuffer.allocate(newCapacity);
 
       if (BufferUtil.isBackedBySimpleArray(content)
           && BufferUtil.isBackedBySimpleArray(value2.content)) {
@@ -901,11 +902,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if ((begin > end) || (end > (1 << 16))) {
       throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
     }
-    int indexstart = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (short) begin);
+    int indexstart = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) begin);
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (short) (end - 1));
+    int indexend = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {
@@ -925,10 +926,10 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
 
   @Override
-  public Iterator<Short> iterator() {
+  public Iterator<Character> iterator() {
 
-    return new Iterator<Short>() {
-      short pos = 0;
+    return new Iterator<Character>() {
+      char pos = 0;
 
       @Override
       public boolean hasNext() {
@@ -936,7 +937,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       }
 
       @Override
-      public Short next() {
+      public Character next() {
         return MappeableArrayContainer.this.content.get(pos++);
       }
 
@@ -983,7 +984,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
   // for use in inot range known to be nonempty
-  private void negateRange(final ShortBuffer buffer, final int startIndex, final int lastIndex,
+  private void negateRange(final CharBuffer buffer, final int startIndex, final int lastIndex,
       final int startRange, final int lastRange) {
     // compute the negation into buffer
 
@@ -994,8 +995,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     int valInRange = startRange;
     for (; valInRange < lastRange && inPos <= lastIndex; ++valInRange) {
-      if ((short) valInRange != content.get(inPos)) {
-        buffer.put(outPos++, (short) valInRange);
+      if ((char) valInRange != content.get(inPos)) {
+        buffer.put(outPos++, (char) valInRange);
       } else {
         ++inPos;
       }
@@ -1004,7 +1005,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     // if there are extra items (greater than the biggest
     // pre-existing one in range), buffer them
     for (; valInRange < lastRange; ++valInRange) {
-      buffer.put(outPos++, (short) valInRange);
+      buffer.put(outPos++, (char) valInRange);
     }
 
     if (outPos != buffer.limit()) {
@@ -1016,7 +1017,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     int i = startIndex;
     int len = buffer.limit();
     for (int k = 0; k < len; ++k) {
-      final short item = buffer.get(k);
+      final char item = buffer.get(k);
       content.put(i++, item);
     }
   }
@@ -1031,12 +1032,12 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
     // determine the span of array indices to be affected
-    int startIndex = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (short) firstOfRange);
+    int startIndex = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) firstOfRange);
     if (startIndex < 0) {
       startIndex = -startIndex - 1;
     }
     int lastIndex =
-        BufferUtil.unsignedBinarySearch(content, 0, cardinality, (short) (lastOfRange - 1));
+        BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) (lastOfRange - 1));
     if (lastIndex < 0) {
       lastIndex = -lastIndex - 2;
     }
@@ -1054,7 +1055,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (!BufferUtil.isBackedBySimpleArray(answer.content)) {
       throw new RuntimeException("Should not happen. Internal bug.");
     }
-    short[] sarray = answer.content.array();
+    char[] sarray = answer.content.array();
 
     for (int i = 0; i < startIndex; ++i) {
       // copy stuff before the active area
@@ -1066,15 +1067,15 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     int valInRange = firstOfRange;
     for (; valInRange < lastOfRange && inPos <= lastIndex; ++valInRange) {
-      if ((short) valInRange != content.get(inPos)) {
-        sarray[outPos++] = (short) valInRange;
+      if ((char) valInRange != content.get(inPos)) {
+        sarray[outPos++] = (char) valInRange;
       } else {
         ++inPos;
       }
     }
 
     for (; valInRange < lastOfRange; ++valInRange) {
-      answer.content.put(outPos++, (short) valInRange);
+      answer.content.put(outPos++, (char) valInRange);
     }
 
     // content after the active range
@@ -1092,7 +1093,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
     if (BufferUtil.isBackedBySimpleArray(content)) {
-      short[] c = content.array();
+      char[] c = content.array();
       int numRuns = 1;
       int oldv = toIntUnsigned(c[0]);
       for (int i = 1; i < cardinality; i++) {
@@ -1130,29 +1131,29 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       }
       long[] bitArray = bc.bitmap.array();
       if (BufferUtil.isBackedBySimpleArray(value2.content)) {
-        short[] sarray = value2.content.array();
+        char[] sarray = value2.content.array();
         for (int k = 0; k < value2.cardinality; ++k) {
-          short v = sarray[k];
+          char v = sarray[k];
           final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] |= (1L << v);
         }
       } else {
         for (int k = 0; k < value2.cardinality; ++k) {
-          short v2 = value2.content.get(k);
+          char v2 = value2.content.get(k);
           final int i = toIntUnsigned(v2) >>> 6;
           bitArray[i] |= (1L << v2);
         }
       }
       if (BufferUtil.isBackedBySimpleArray(this.content)) {
-        short[] sarray = this.content.array();
+        char[] sarray = this.content.array();
         for (int k = 0; k < this.cardinality; ++k) {
-          short v = sarray[k];
+          char v = sarray[k];
           final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] |= (1L << v);
         }
       } else {
         for (int k = 0; k < this.cardinality; ++k) {
-          short v = this.content.get(k);
+          char v = this.content.get(k);
           final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] |= (1L << v);
         }
@@ -1199,29 +1200,29 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       }
       long[] bitArray = bc.bitmap.array();
       if (BufferUtil.isBackedBySimpleArray(value2.content)) {
-        short[] sarray = value2.content.array();
+        char[] sarray = value2.content.array();
         for (int k = 0; k < value2.cardinality; ++k) {
-          short v = sarray[k];
+          char v = sarray[k];
           final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] |= (1L << v);
         }
       } else {
         for (int k = 0; k < value2.cardinality; ++k) {
-          short v2 = value2.content.get(k);
+          char v2 = value2.content.get(k);
           final int i = toIntUnsigned(v2) >>> 6;
           bitArray[i] |= (1L << v2);
         }
       }
       if (BufferUtil.isBackedBySimpleArray(this.content)) {
-        short[] sarray = this.content.array();
+        char[] sarray = this.content.array();
         for (int k = 0; k < this.cardinality; ++k) {
-          short v = sarray[k];
+          char v = sarray[k];
           final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] |= (1L << v);
         }
       } else {
         for (int k = 0; k < this.cardinality; ++k) {
-          short v = this.content.get(k);
+          char v = this.content.get(k);
           final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] |= (1L << v);
         }
@@ -1260,14 +1261,14 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     return value2.or(this);
   }
 
-  protected MappeableContainer or(ShortIterator it) {
+  protected MappeableContainer or(CharIterator it) {
     return or(it, false);
   }
 
   /**
    * it must return items in (unsigned) sorted order. Possible candidate for Container interface?
    **/
-  private MappeableContainer or(ShortIterator it, boolean exclusive) {
+  private MappeableContainer or(CharIterator it, boolean exclusive) {
     MappeableArrayContainer ac = new MappeableArrayContainer();
     int myItPos = 0;
     ac.cardinality = 0;
@@ -1277,14 +1278,14 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     while (myHead != -1 && hisHead != -1) {
       if (myHead < hisHead) {
-        ac.emit((short) myHead);
+        ac.emit((char) myHead);
         myHead = (myItPos == cardinality) ? -1 : toIntUnsigned(content.get(myItPos++));
       } else if (myHead > hisHead) {
-        ac.emit((short) hisHead);
+        ac.emit((char) hisHead);
         hisHead = advance(it);
       } else {
         if (!exclusive) {
-          ac.emit((short) hisHead);
+          ac.emit((char) hisHead);
         }
         hisHead = advance(it);
         myHead = (myItPos == cardinality) ? -1 : toIntUnsigned(content.get(myItPos++));
@@ -1292,12 +1293,12 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
     while (myHead != -1) {
-      ac.emit((short) myHead);
+      ac.emit((char) myHead);
       myHead = (myItPos == cardinality) ? -1 : toIntUnsigned(content.get(myItPos++));
     }
 
     while (hisHead != -1) {
-      ac.emit((short) hisHead);
+      ac.emit((char) hisHead);
       hisHead = advance(it);
     }
 
@@ -1309,7 +1310,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
   @Override
-  public int rank(short lowbits) {
+  public int rank(char lowbits) {
     int answer = BufferUtil.unsignedBinarySearch(content, 0, cardinality, lowbits);
     if (answer >= 0) {
       return answer + 1;
@@ -1321,12 +1322,12 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   @Override
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
     // little endian
-    this.cardinality = 0xFFFF & Short.reverseBytes(in.readShort());
+    this.cardinality = 0xFFFF & Character.reverseBytes(in.readChar());
     if (this.content.limit() < this.cardinality) {
-      this.content = ShortBuffer.allocate(this.cardinality);
+      this.content = CharBuffer.allocate(this.cardinality);
     }
     for (int k = 0; k < this.cardinality; ++k) {
-      this.content.put(k, Short.reverseBytes(in.readShort()));
+      this.content.put(k, Character.reverseBytes(in.readChar()));
     }
   }
 
@@ -1338,11 +1339,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if ((begin > end) || (end > (1 << 16))) {
       throw new IllegalArgumentException("Invalid range [" + begin + "," + end + ")");
     }
-    int indexstart = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (short) begin);
+    int indexstart = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) begin);
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (short) (end - 1));
+    int indexend = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {
@@ -1363,7 +1364,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
 
   @Override
-  public MappeableContainer remove(final short x) {
+  public MappeableContainer remove(final char x) {
     if (BufferUtil.isBackedBySimpleArray(this.content)) {
       final int loc = Util.unsignedBinarySearch(content.array(), 0, cardinality, x);
       if (loc >= 0) {
@@ -1406,7 +1407,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
   @Override
-  public short select(int j) {
+  public char select(int j) {
     return this.content.get(j);
   }
 
@@ -1440,7 +1441,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
   @Override
-  public int nextValue(short fromValue) {
+  public int nextValue(char fromValue) {
     int index = BufferUtil.advanceUntil(content, -1, cardinality, fromValue);
     if (index == cardinality) {
       return fromValue == content.get(cardinality - 1) ? toIntUnsigned(fromValue) : -1;
@@ -1449,7 +1450,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
   @Override
-  public int previousValue(short fromValue) {
+  public int previousValue(char fromValue) {
     int index = BufferUtil.advanceUntil(content, -1, cardinality, fromValue);
     if (index != cardinality && content.get(index) == fromValue) {
       return toIntUnsigned(content.get(index));
@@ -1458,7 +1459,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
   @Override
-  public int nextAbsentValue(short fromValue) {
+  public int nextAbsentValue(char fromValue) {
     int index = BufferUtil.advanceUntil(content, -1, cardinality, fromValue);
     int value = toIntUnsigned(fromValue);
     if (index >= cardinality) {
@@ -1496,7 +1497,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
   @Override
-  public int previousAbsentValue(short fromValue) {
+  public int previousAbsentValue(char fromValue) {
     int index = BufferUtil.advanceUntil(content, -1, cardinality, fromValue);
     int value = toIntUnsigned(fromValue);
     if (index >= cardinality) {
@@ -1541,12 +1542,12 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
   /**
-   * Create a copy of the content of this container as a short array. This creates a copy.
+   * Create a copy of the content of this container as a char array. This creates a copy.
    *
-   * @return copy of the content as a short array
+   * @return copy of the content as a char array
    */
-  public short[] toShortArray() {
-    short[] answer = new short[cardinality];
+  public char[] toShortArray() {
+    char[] answer = new char[cardinality];
     content.rewind();
     content.get(answer);
     return answer;
@@ -1574,11 +1575,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       return;
     }
     if (BufferUtil.isBackedBySimpleArray(content)) {
-      this.content = ShortBuffer.wrap(Arrays.copyOf(content.array(), cardinality));
+      this.content = CharBuffer.wrap(Arrays.copyOf(content.array(), cardinality));
     } else {
-      final ShortBuffer co = ShortBuffer.allocate(this.cardinality);
+      final CharBuffer co = CharBuffer.allocate(this.cardinality);
       // can assume that new co is array backed
-      short[] x = co.array();
+      char[] x = co.array();
       for (int k = 0; k < this.cardinality; ++k) {
         x[k] = this.content.get(k);
       }
@@ -1590,13 +1591,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   protected void writeArray(DataOutput out) throws IOException {
     // little endian
     if (BufferUtil.isBackedBySimpleArray(content)) {
-      short[] a = content.array();
+      char[] a = content.array();
       for (int k = 0; k < this.cardinality; ++k) {
-        out.writeShort(Short.reverseBytes(a[k]));
+        out.writeShort(Character.reverseBytes(a[k]));
       }
     } else {
       for (int k = 0; k < this.cardinality; ++k) {
-        out.writeShort(Short.reverseBytes(content.get(k)));
+        out.writeShort(Character.reverseBytes(content.get(k)));
       }
     }
   }
@@ -1604,8 +1605,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   @Override
   protected void writeArray(ByteBuffer buffer) {
     assert buffer.order() == ByteOrder.LITTLE_ENDIAN;
-    ShortBuffer target = buffer.asShortBuffer();
-    ShortBuffer source = content.duplicate();
+    CharBuffer target = buffer.asCharBuffer();
+    CharBuffer source = content.duplicate();
     source.position(0);
     source.limit(cardinality);
     target.put(source);
@@ -1618,13 +1619,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     out.write(this.cardinality & 0xFF);
     out.write((this.cardinality >>> 8) & 0xFF);
     if (BufferUtil.isBackedBySimpleArray(content)) {
-      short[] a = content.array();
+      char[] a = content.array();
       for (int k = 0; k < this.cardinality; ++k) {
-        out.writeShort(Short.reverseBytes(a[k]));
+        out.writeShort(Character.reverseBytes(a[k]));
       }
     } else {
       for (int k = 0; k < this.cardinality; ++k) {
-        out.writeShort(Short.reverseBytes(content.get(k)));
+        out.writeShort(Character.reverseBytes(content.get(k)));
       }
     }
   }
@@ -1640,29 +1641,29 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       }
       long[] bitArray = bc.bitmap.array();
       if (BufferUtil.isBackedBySimpleArray(value2.content)) {
-        short[] sarray = value2.content.array();
+        char[] sarray = value2.content.array();
         for (int k = 0; k < value2.cardinality; ++k) {
-          short v = sarray[k];
+          char v = sarray[k];
           final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] ^= (1L << v);
         }
       } else {
         for (int k = 0; k < value2.cardinality; ++k) {
-          short v2 = value2.content.get(k);
+          char v2 = value2.content.get(k);
           final int i = toIntUnsigned(v2) >>> 6;
           bitArray[i] ^= (1L << v2);
         }
       }
       if (BufferUtil.isBackedBySimpleArray(this.content)) {
-        short[] sarray = this.content.array();
+        char[] sarray = this.content.array();
         for (int k = 0; k < this.cardinality; ++k) {
-          short v = sarray[k];
+          char v = sarray[k];
           final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] ^= (1L << v);
         }
       } else {
         for (int k = 0; k < this.cardinality; ++k) {
-          short v = this.content.get(k);
+          char v = this.content.get(k);
           final int i = toIntUnsigned(v) >>> 6;
           bitArray[i] ^= (1L << v);
         }
@@ -1702,15 +1703,15 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
 
-  protected MappeableContainer xor(ShortIterator it) {
+  protected MappeableContainer xor(CharIterator it) {
     return or(it, true);
   }
 
   @Override
-  public void forEach(short msb, IntConsumer ic) {
+  public void forEach(char msb, IntConsumer ic) {
     int high = ((int) msb) << 16;
     if (BufferUtil.isBackedBySimpleArray(content)) {
-      short[] c = content.array();
+      char[] c = content.array();
       for (int k = 0; k < cardinality; ++k) {
         ic.accept((c[k] & 0xFFFF) | high);
       }
@@ -1788,7 +1789,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if((minimum < 0) || (supremum < minimum) || (supremum > (1<<16))) {
       throw new RuntimeException("This should never happen (bug).");
     }
-    int pos = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (short)minimum);
+    int pos = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char)minimum);
     int index = pos >= 0 ? pos : -pos - 1;
     return index < cardinality && BufferUtil.toIntUnsigned(content.get(index)) < supremum;
   }
@@ -1796,38 +1797,38 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   @Override
   public boolean contains(int minimum, int supremum) {
     int maximum = supremum - 1;
-    int start = BufferUtil.advanceUntil(content, -1, cardinality, (short)minimum);
-    int end = BufferUtil.advanceUntil(content, start - 1, cardinality, (short)maximum);
+    int start = BufferUtil.advanceUntil(content, -1, cardinality, (char)minimum);
+    int end = BufferUtil.advanceUntil(content, start - 1, cardinality, (char)maximum);
     return start < cardinality
             && end < cardinality
             && end - start == maximum - minimum
-            && content.get(start) == (short)minimum
-            && content.get(end) == (short)maximum;
+            && content.get(start) == (char)minimum
+            && content.get(end) == (char)maximum;
   }
 
 }
 
 
-final class MappeableArrayContainerShortIterator implements PeekableShortIterator {
+final class MappeableArrayContainerCharIterator implements PeekableCharIterator {
   int pos;
   MappeableArrayContainer parent;
 
-  MappeableArrayContainerShortIterator() {}
+  MappeableArrayContainerCharIterator() {}
 
 
-  MappeableArrayContainerShortIterator(MappeableArrayContainer p) {
+  MappeableArrayContainerCharIterator(MappeableArrayContainer p) {
     wrap(p);
   }
 
   @Override
-  public void advanceIfNeeded(short minval) {
+  public void advanceIfNeeded(char minval) {
     pos = BufferUtil.advanceUntil(parent.content, pos - 1, parent.cardinality, minval);
   }
 
   @Override
-  public PeekableShortIterator clone() {
+  public PeekableCharIterator clone() {
     try {
-      return (PeekableShortIterator) super.clone();
+      return (PeekableCharIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null;// will not happen
     }
@@ -1839,7 +1840,7 @@ final class MappeableArrayContainerShortIterator implements PeekableShortIterato
   }
 
   @Override
-  public short next() {
+  public char next() {
     return parent.content.get(pos++);
   }
 
@@ -1850,7 +1851,7 @@ final class MappeableArrayContainerShortIterator implements PeekableShortIterato
   }
 
   @Override
-  public short peekNext() {
+  public char peekNext() {
     return parent.content.get(pos);
   }
 
@@ -1871,13 +1872,13 @@ final class MappeableArrayContainerShortIterator implements PeekableShortIterato
 }
 
 
-final class RawArrayContainerShortIterator implements PeekableShortIterator {
+final class RawArrayContainerCharIterator implements PeekableCharIterator {
   int pos;
   MappeableArrayContainer parent;
-  short[] content;
+  char[] content;
 
 
-  RawArrayContainerShortIterator(MappeableArrayContainer p) {
+  RawArrayContainerCharIterator(MappeableArrayContainer p) {
     parent = p;
     if (!p.isArrayBacked()) {
       throw new RuntimeException("internal bug");
@@ -1888,14 +1889,14 @@ final class RawArrayContainerShortIterator implements PeekableShortIterator {
 
 
   @Override
-  public void advanceIfNeeded(short minval) {
+  public void advanceIfNeeded(char minval) {
     pos = Util.advanceUntil(content, pos - 1, parent.cardinality, minval);
   }
 
   @Override
-  public PeekableShortIterator clone() {
+  public PeekableCharIterator clone() {
     try {
-      return (PeekableShortIterator) super.clone();
+      return (PeekableCharIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null;// will not happen
     }
@@ -1907,7 +1908,7 @@ final class RawArrayContainerShortIterator implements PeekableShortIterator {
   }
 
   @Override
-  public short next() {
+  public char next() {
     return content[pos++];
   }
 
@@ -1917,7 +1918,7 @@ final class RawArrayContainerShortIterator implements PeekableShortIterator {
   }
 
   @Override
-  public short peekNext() {
+  public char peekNext() {
     return content[pos];
   }
 
@@ -1930,13 +1931,13 @@ final class RawArrayContainerShortIterator implements PeekableShortIterator {
 }
 
 
-final class RawReverseArrayContainerShortIterator implements ShortIterator {
+final class RawReverseArrayContainerCharIterator implements CharIterator {
   int pos;
   MappeableArrayContainer parent;
-  short[] content;
+  char[] content;
 
 
-  RawReverseArrayContainerShortIterator(MappeableArrayContainer p) {
+  RawReverseArrayContainerCharIterator(MappeableArrayContainer p) {
     parent = p;
     if (!p.isArrayBacked()) {
       throw new RuntimeException("internal bug");
@@ -1946,9 +1947,9 @@ final class RawReverseArrayContainerShortIterator implements ShortIterator {
   }
 
   @Override
-  public ShortIterator clone() {
+  public CharIterator clone() {
     try {
-      return (ShortIterator) super.clone();
+      return (CharIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null;// will not happen
     }
@@ -1961,7 +1962,7 @@ final class RawReverseArrayContainerShortIterator implements ShortIterator {
 
 
   @Override
-  public short next() {
+  public char next() {
     return content[pos--];
   }
 
@@ -1979,23 +1980,23 @@ final class RawReverseArrayContainerShortIterator implements ShortIterator {
 }
 
 
-final class ReverseMappeableArrayContainerShortIterator implements ShortIterator {
+final class ReverseMappeableArrayContainerCharIterator implements CharIterator {
 
   int pos;
 
   MappeableArrayContainer parent;
 
-  ReverseMappeableArrayContainerShortIterator() {}
+  ReverseMappeableArrayContainerCharIterator() {}
 
 
-  ReverseMappeableArrayContainerShortIterator(MappeableArrayContainer p) {
+  ReverseMappeableArrayContainerCharIterator(MappeableArrayContainer p) {
     wrap(p);
   }
 
   @Override
-  public ShortIterator clone() {
+  public CharIterator clone() {
     try {
-      return (ShortIterator) super.clone();
+      return (CharIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null;// will not happen
     }
@@ -2007,7 +2008,7 @@ final class ReverseMappeableArrayContainerShortIterator implements ShortIterator
   }
 
   @Override
-  public short next() {
+  public char next() {
     return parent.content.get(pos--);
   }
 

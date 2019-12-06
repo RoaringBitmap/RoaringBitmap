@@ -78,7 +78,7 @@ public class ImmutableRoaringBitmap
 
     private int hs = 0;
 
-    private PeekableShortIterator iter;
+    private PeekableCharIterator iter;
 
     private boolean ok;
 
@@ -156,7 +156,7 @@ public class ImmutableRoaringBitmap
 
     private int hs = 0;
 
-    private ShortIterator iter;
+    private CharIterator iter;
 
     private boolean ok;
 
@@ -261,8 +261,8 @@ public class ImmutableRoaringBitmap
     final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
 
     while (pos1 < length1 && pos2 < length2) {
-      final short s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-      final short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+      final char s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+      final char s2 = x2.highLowContainer.getKeyAtIndex(pos2);
 
       if (s1 == s2) {
         final MappeableContainer c1 = x1.highLowContainer.getContainerAtIndex(pos1);
@@ -298,8 +298,8 @@ public class ImmutableRoaringBitmap
     final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
 
     while (pos1 < length1 && pos2 < length2) {
-      final short s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-      final short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+      final char s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+      final char s2 = x2.highLowContainer.getKeyAtIndex(pos2);
 
       if (s1 == s2) {
         final MappeableContainer c1 = x1.highLowContainer.getContainerAtIndex(pos1);
@@ -403,8 +403,8 @@ public class ImmutableRoaringBitmap
     final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
 
     while (pos1 < length1 && pos2 < length2) {
-      final short s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-      final short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+      final char s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+      final char s2 = x2.highLowContainer.getKeyAtIndex(pos2);
       if (s1 == s2) {
         final MappeableContainer c1 = x1.highLowContainer.getContainerAtIndex(pos1);
         final MappeableContainer c2 = x2.highLowContainer.getContainerAtIndex(pos2);
@@ -441,11 +441,11 @@ public class ImmutableRoaringBitmap
    * That's why we only have to handle the .
    */
 
-  private static short orNotHandleRemainingSelfContainers(
-          ImmutableRoaringBitmap src, MutableRoaringBitmap dest, int pos1, int length1, short s2,
-          short lastKey, int lastSize) {
+  private static char orNotHandleRemainingSelfContainers(
+          ImmutableRoaringBitmap src, MutableRoaringBitmap dest, int pos1, int length1, char s2,
+          char lastKey, int lastSize) {
     while (pos1 < length1 && Util.compareUnsigned(s2, lastKey) <= 0) { // s2 <= lastKey
-      final short s1 = src.highLowContainer.getKeyAtIndex(pos1);
+      final char s1 = src.highLowContainer.getKeyAtIndex(pos1);
       final int containerLast = (s2 == lastKey) ? lastSize : BufferUtil.maxLowBitAsInteger();
       MappeableContainer c2 = MappeableContainer.rangeOfOnes(0, containerLast + 1);
 
@@ -476,9 +476,9 @@ public class ImmutableRoaringBitmap
    * Note that, at this stage, all the own containers were treated.
    * That's why we only have to append.
    */
-  private static short orNotHandleRemainingOtherContainers(
+  private static char orNotHandleRemainingOtherContainers(
           final ImmutableRoaringBitmap other, final MutableRoaringBitmap dest, int pos2,
-          int length2, short s2, short lastKey, int lastSize) {
+          int length2, char s2, char lastKey, int lastSize) {
     while (pos2 < length2 && Util.compareUnsigned(s2, lastKey) <= 0) { // s2 <= lastKey
       final int containerLast = (s2 == lastKey) ? lastSize : BufferUtil.maxLowBitAsInteger();
       if (s2 == other.highLowContainer.getKeyAtIndex(pos2)) {
@@ -500,7 +500,7 @@ public class ImmutableRoaringBitmap
    * A full container should be appended for each key.
    */
   private static void orNotHandleRemainingHoles(
-          MutableRoaringBitmap dest, short s2, short lastKey, int lastSize) {
+          MutableRoaringBitmap dest, char s2, char lastKey, int lastSize) {
     while (Util.compareUnsigned(s2, lastKey) < 0) { // s2 < lastKey
       dest.getMappeableRoaringArray().append(s2, MappeableRunContainer.full());
       s2++;
@@ -534,15 +534,15 @@ public class ImmutableRoaringBitmap
     int length1 = rb1.highLowContainer.size();
     final int length2 = rb2.highLowContainer.size();
 
-    final short lastKey = BufferUtil.highbits(rangeEnd - 1);
+    final char lastKey = BufferUtil.highbits(rangeEnd - 1);
     final int lastSize = BufferUtil.toIntUnsigned(BufferUtil.lowbits(rangeEnd - 1));
 
-    short s2 = 0;
+    char s2 = 0;
     boolean loopedAtleastOnce = (length1 > 0 && length2 > 0
-            && Util.compareUnsigned((short) 0, lastKey) <= 0);
+            && Util.compareUnsigned((char) 0, lastKey) <= 0);
     while (pos1 < length1 && pos2 < length2
             && Util.compareUnsigned(s2, lastKey) <= 0) { // s2 <= lastKey
-      final short s1 = rb1.highLowContainer.getKeyAtIndex(pos1);
+      final char s1 = rb1.highLowContainer.getKeyAtIndex(pos1);
       final int containerLast = (s2 == lastKey) ? lastSize : BufferUtil.maxLowBitAsInteger();
 
       if (s1 == s2) {
@@ -576,7 +576,7 @@ public class ImmutableRoaringBitmap
 
     boolean loopHasWrapped = loopedAtleastOnce && (s2 == 0);
     if (!loopHasWrapped && Util.compareUnsigned(s2, lastKey) <= 0) { // s2 <= lastKey
-      short newS2;
+      char newS2;
       if (pos1 < length1) {
         //all the "other" arrays were treated. Handle self containers.
         answer.getMappeableRoaringArray().extendArray(lastKey + 1);
@@ -636,16 +636,16 @@ public class ImmutableRoaringBitmap
     }
 
     MutableRoaringBitmap answer = new MutableRoaringBitmap();
-    final short hbStart = highbits(rangeStart);
-    final short lbStart = lowbits(rangeStart);
-    final short hbLast = highbits(rangeEnd - 1);
-    final short lbLast = lowbits(rangeEnd - 1);
+    final char hbStart = highbits(rangeStart);
+    final char lbStart = lowbits(rangeStart);
+    final char hbLast = highbits(rangeEnd - 1);
+    final char lbLast = lowbits(rangeEnd - 1);
 
     // copy the containers before the active area
     answer.getMappeableRoaringArray().appendCopiesUntil(bm.highLowContainer, hbStart);
 
     final int max = BufferUtil.toIntUnsigned(BufferUtil.maxLowBit());
-    for (short hb = hbStart; hb <= hbLast; ++hb) {
+    for (char hb = hbStart; hb <= hbLast; ++hb) {
       final int containerStart = (hb == hbStart) ? BufferUtil.toIntUnsigned(lbStart) : 0;
       final int containerLast = (hb == hbLast) ? BufferUtil.toIntUnsigned(lbLast) : max;
 
@@ -753,34 +753,34 @@ public class ImmutableRoaringBitmap
     }
 
     if (hbStart == hbLast) {
-      final int i = rb.highLowContainer.getIndex((short) hbStart);
+      final int i = rb.highLowContainer.getIndex((char) hbStart);
       if (i >= 0) {
         final MappeableContainer c = rb.highLowContainer.getContainerAtIndex(i).remove(0, lbStart)
             .iremove(lbLast + 1, BufferUtil.maxLowBitAsInteger() + 1);
         if (!c.isEmpty()) {
-          ((MutableRoaringArray) answer.highLowContainer).append((short) hbStart, c);
+          ((MutableRoaringArray) answer.highLowContainer).append((char) hbStart, c);
         }
       }
       return answer;
     }
-    int ifirst = rb.highLowContainer.getIndex((short) hbStart);
-    int ilast = rb.highLowContainer.getIndex((short) hbLast);
+    int ifirst = rb.highLowContainer.getIndex((char) hbStart);
+    int ilast = rb.highLowContainer.getIndex((char) hbLast);
     if (ifirst >= 0) {
       final MappeableContainer c =
           rb.highLowContainer.getContainerAtIndex(ifirst).remove(0, lbStart);
       if (!c.isEmpty()) {
-        ((MutableRoaringArray) answer.highLowContainer).append((short) hbStart, c);
+        ((MutableRoaringArray) answer.highLowContainer).append((char) hbStart, c);
       }
     }
 
     for (int hb = hbStart + 1; hb <= hbLast - 1; ++hb) {
-      final int i = rb.highLowContainer.getIndex((short) hb);
-      final int j = answer.getMappeableRoaringArray().getIndex((short) hb);
+      final int i = rb.highLowContainer.getIndex((char) hb);
+      final int j = answer.getMappeableRoaringArray().getIndex((char) hb);
       assert j < 0;
 
       if (i >= 0) {
         final MappeableContainer c = rb.highLowContainer.getContainerAtIndex(i);
-        answer.getMappeableRoaringArray().insertNewKeyValueAt(-j - 1, (short) hb, c);
+        answer.getMappeableRoaringArray().insertNewKeyValueAt(-j - 1, (char) hb, c);
       }
     }
 
@@ -788,7 +788,7 @@ public class ImmutableRoaringBitmap
       final MappeableContainer c = rb.highLowContainer.getContainerAtIndex(ilast).remove(lbLast + 1,
           BufferUtil.maxLowBitAsInteger() + 1);
       if (!c.isEmpty()) {
-        ((MutableRoaringArray) answer.highLowContainer).append((short) hbLast, c);
+        ((MutableRoaringArray) answer.highLowContainer).append((char) hbLast, c);
       }
     }
     return answer;
@@ -809,8 +809,8 @@ public class ImmutableRoaringBitmap
     final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
 
     while (pos1 < length1 && pos2 < length2) {
-      final short s1 = x1.highLowContainer.getKeyAtIndex(pos1);
-      final short s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+      final char s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+      final char s2 = x2.highLowContainer.getKeyAtIndex(pos2);
 
       if (s1 == s2) {
         final MappeableContainer c1 = x1.highLowContainer.getContainerAtIndex(pos1);
@@ -1157,7 +1157,7 @@ public class ImmutableRoaringBitmap
    */
   @Override
   public boolean contains(final int x) {
-    final short hb = highbits(x);
+    final char hb = highbits(x);
     int index = highLowContainer.getContainerIndex(hb);
     return index >= 0
         && highLowContainer.containsForContainerAtIndex(index, lowbits(x));
@@ -1171,8 +1171,8 @@ public class ImmutableRoaringBitmap
    */
   public boolean contains(long minimum, long supremum) {
     MutableRoaringBitmap.rangeSanityCheck(minimum, supremum);
-    short firstKey = highbits(minimum);
-    short lastKey = highbits(supremum);
+    char firstKey = highbits(minimum);
+    char lastKey = highbits(supremum);
     int span = BufferUtil.toIntUnsigned(lastKey) - BufferUtil.toIntUnsigned(firstKey);
     int len = highLowContainer.size();
     if (len < span) {
@@ -1185,8 +1185,8 @@ public class ImmutableRoaringBitmap
       return false;
     }
 
-    int min = (short)minimum & 0xFFFF;
-    int sup = (short)supremum & 0xFFFF;
+    int min = (char)minimum & 0xFFFF;
+    int sup = (char)supremum & 0xFFFF;
     if (firstKey == lastKey) {
       return highLowContainer.getContainerAtIndex(begin).contains(min, sup);
     }
@@ -1217,8 +1217,8 @@ public class ImmutableRoaringBitmap
     final int length2 = subset.highLowContainer.size();
     int pos1 = 0, pos2 = 0;
     while (pos1 < length1 && pos2 < length2) {
-      final short s1 = this.highLowContainer.getKeyAtIndex(pos1);
-      final short s2 = subset.highLowContainer.getKeyAtIndex(pos2);
+      final char s1 = this.highLowContainer.getKeyAtIndex(pos1);
+      final char s2 = subset.highLowContainer.getKeyAtIndex(pos2);
       if (s1 == s2) {
         MappeableContainer c1 = this.highLowContainer.getContainerAtIndex(pos1);
         MappeableContainer c2 = subset.highLowContainer.getContainerAtIndex(pos2);
@@ -1280,8 +1280,8 @@ public class ImmutableRoaringBitmap
     int pos2 = 0;
     int budget = tolerance;
     while(budget >= 0 && pos1 < size1 && pos2 < size2) {
-      final short key1 = highLowContainer.getKeyAtIndex(pos1);
-      final short key2 = other.highLowContainer.getKeyAtIndex(pos2);
+      final char key1 = highLowContainer.getKeyAtIndex(pos1);
+      final char key2 = other.highLowContainer.getKeyAtIndex(pos2);
       MappeableContainer left = highLowContainer.getContainerAtIndex(pos1);
       MappeableContainer right = other.highLowContainer.getContainerAtIndex(pos2);
       if(key1 == key2) {
@@ -1538,7 +1538,7 @@ public class ImmutableRoaringBitmap
     return new Iterator<Integer>() {
       int hs = 0;
 
-      ShortIterator iter;
+      CharIterator iter;
 
       int pos = 0;
 
@@ -1617,9 +1617,9 @@ public class ImmutableRoaringBitmap
   @Override
   public long rankLong(int x) {
     long size = 0;
-    short xhigh = highbits(x);
+    char xhigh = highbits(x);
     for (int i = 0; i < this.highLowContainer.size(); i++) {
-      short key = this.highLowContainer.getKeyAtIndex(i);
+      char key = this.highLowContainer.getKeyAtIndex(i);
       int comparison = Util.compareUnsigned(key, xhigh);
       if (comparison < 0) {
         size += this.highLowContainer.getCardinality(i);
@@ -1645,12 +1645,12 @@ public class ImmutableRoaringBitmap
       if(inContainerStart != 0) {
         size -= this.highLowContainer
           .getContainerAtIndex(startIndex)
-          .rank((short)(inContainerStart - 1));
+          .rank((char)(inContainerStart - 1));
       }
     }
-    short xhigh = highbits(end - 1);
+    char xhigh = highbits(end - 1);
     for (int i = startIndex; i < this.highLowContainer.size(); i++) {
-      short key = this.highLowContainer.getKeyAtIndex(i);
+      char key = this.highLowContainer.getKeyAtIndex(i);
       int comparison = compareUnsigned(key, xhigh);
       if (comparison < 0) {
         size += this.highLowContainer
@@ -1723,11 +1723,11 @@ public class ImmutableRoaringBitmap
 
   @Override
   public long nextValue(int fromValue) {
-    short key = highbits(fromValue);
+    char key = highbits(fromValue);
     int containerIndex = highLowContainer.advanceUntil(key, -1);
     long nextSetBit = -1L;
     while (containerIndex < highLowContainer.size() && nextSetBit == -1L) {
-      short containerKey = highLowContainer.getKeyAtIndex(containerIndex);
+      char containerKey = highLowContainer.getKeyAtIndex(containerIndex);
       MappeableContainer container = highLowContainer.getContainerAtIndex(containerIndex);
       int bit = (compareUnsigned(containerKey, key) > 0
               ? container.first()
@@ -1742,11 +1742,11 @@ public class ImmutableRoaringBitmap
 
   @Override
   public long previousValue(int fromValue) {
-    short key = highbits(fromValue);
+    char key = highbits(fromValue);
     int containerIndex = highLowContainer.advanceUntil(key, -1);
     long prevSetBit = -1L;
     while (containerIndex != -1 && containerIndex < highLowContainer.size() && prevSetBit == -1L) {
-      short containerKey = highLowContainer.getKeyAtIndex(containerIndex);
+      char containerKey = highLowContainer.getKeyAtIndex(containerIndex);
       MappeableContainer container = highLowContainer.getContainerAtIndex(containerIndex);
       int bit = (Util.compareUnsigned(containerKey, key) < 0
               ? container.last()
@@ -1769,14 +1769,14 @@ public class ImmutableRoaringBitmap
   }
 
   private long computeNextAbsentValue(int fromValue) {
-    short key = highbits(fromValue);
+    char key = highbits(fromValue);
     int containerIndex = highLowContainer.advanceUntil(key, -1);
 
     int size = highLowContainer.size();
     if (containerIndex == size) {
       return Util.toUnsignedLong(fromValue);
     }
-    short containerKey = highLowContainer.getKeyAtIndex(containerIndex);
+    char containerKey = highLowContainer.getKeyAtIndex(containerIndex);
     if (fromValue < containerKey << 16) {
       return Util.toUnsignedLong(fromValue);
     }
@@ -1792,13 +1792,13 @@ public class ImmutableRoaringBitmap
       }
 
       containerIndex += 1;
-      short nextContainerKey = highLowContainer.getKeyAtIndex(containerIndex);
+      char nextContainerKey = highLowContainer.getKeyAtIndex(containerIndex);
       if (containerKey + 1 < nextContainerKey) {
         return Util.toUnsignedLong((containerKey + 1) << 16);
       }
       containerKey = nextContainerKey;
       container = highLowContainer.getContainerAtIndex(containerIndex);
-      bit = container.nextAbsentValue((short) 0);
+      bit = container.nextAbsentValue((char) 0);
     }
   }
 
@@ -1812,13 +1812,13 @@ public class ImmutableRoaringBitmap
   }
 
   private long computePreviousAbsentValue(int fromValue) {
-    short key = highbits(fromValue);
+    char key = highbits(fromValue);
     int containerIndex = highLowContainer.advanceUntil(key, -1);
 
     if (containerIndex == highLowContainer.size()) {
       return Util.toUnsignedLong(fromValue);
     }
-    short containerKey = highLowContainer.getKeyAtIndex(containerIndex);
+    char containerKey = highLowContainer.getKeyAtIndex(containerIndex);
     if (fromValue < containerKey << 16) {
       return Util.toUnsignedLong(fromValue);
     }
@@ -1835,13 +1835,13 @@ public class ImmutableRoaringBitmap
       }
 
       containerIndex -= 1;
-      short nextContainerKey = highLowContainer.getKeyAtIndex(containerIndex);
+      char nextContainerKey = highLowContainer.getKeyAtIndex(containerIndex);
       if (nextContainerKey < containerKey - 1) {
         return Util.toUnsignedLong((containerKey << 16)) - 1;
       }
       containerKey = nextContainerKey;
       container = highLowContainer.getContainerAtIndex(containerIndex);
-      bit = container.previousAbsentValue((short) ((1 << 16) - 1));
+      bit = container.previousAbsentValue((char) ((1 << 16) - 1));
     }
   }
 

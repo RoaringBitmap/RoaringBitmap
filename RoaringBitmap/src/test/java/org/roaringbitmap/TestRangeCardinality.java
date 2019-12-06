@@ -40,7 +40,7 @@ public class TestRangeCardinality {
     public void testCardinalityInBitmapWordRange() {
         BitmapContainer bc = new BitmapContainer();
         for (int e : elements) {
-            bc.add((short) e);
+            bc.add((char) e);
         }
         Assert.assertEquals(expected, Util.cardinalityInBitmapRange(bc.bitmap, begin, end));
     }

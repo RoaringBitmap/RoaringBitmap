@@ -17,14 +17,14 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
-import java.nio.ShortBuffer;
+import java.nio.CharBuffer;
 import java.util.Arrays;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.roaringbitmap.BitmapContainer;
+import org.roaringbitmap.CharIterator;
 import org.roaringbitmap.IntConsumer;
-import org.roaringbitmap.ShortIterator;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 
@@ -34,11 +34,11 @@ public class TestMappeableBitmapContainer {
   private static MappeableBitmapContainer emptyContainer() {
     return new MappeableBitmapContainer(0, LongBuffer.allocate(1));
   }
-  static MappeableBitmapContainer generateContainer(short min, short max, int sample) {
+  static MappeableBitmapContainer generateContainer(char min, char max, int sample) {
     LongBuffer array = ByteBuffer.allocateDirect(MappeableBitmapContainer.MAX_CAPACITY / 8).asLongBuffer();
     MappeableBitmapContainer bc = new MappeableBitmapContainer(array, 0);
     for (int i = min; i < max; i++) {
-      if (i % sample != 0) bc.add((short) i);
+      if (i % sample != 0) bc.add((char) i);
     }
     return bc;
   }
@@ -46,8 +46,8 @@ public class TestMappeableBitmapContainer {
   @Test
   public void testToString() {
     MappeableBitmapContainer bc2 = new MappeableBitmapContainer(5, 15);
-    bc2.add((short) -19);
-    bc2.add((short) -3);
+    bc2.add((char) -19);
+    bc2.add((char) -3);
     String s = bc2.toString();
     assertTrue(s.equals("{5,6,7,8,9,10,11,12,13,14,65517,65533}"));
   }
@@ -60,8 +60,8 @@ public class TestMappeableBitmapContainer {
 
     for(int i = 100; i < 10000; ++i) {
       if((i%2 ) == 0)
-        bc2 = (MappeableBitmapContainer) bc2.add((short) i);
-        else bc3 = (MappeableBitmapContainer) bc3.add((short) i);
+        bc2 = (MappeableBitmapContainer) bc2.add((char) i);
+        else bc3 = (MappeableBitmapContainer) bc3.add((char) i);
     }
     bc = (MappeableBitmapContainer) bc.ixor(bc2);
     assertTrue(bc.ixor(bc3).getCardinality() == 0);
@@ -75,8 +75,8 @@ public class TestMappeableBitmapContainer {
 
     for(int i = 100; i < 10000; ++i) {
       if((i%2 ) == 0)
-        bc2 = (MappeableBitmapContainer) bc2.add((short) i);
-        else bc3 = (MappeableBitmapContainer) bc3.add((short) i);
+        bc2 = (MappeableBitmapContainer) bc2.add((char) i);
+        else bc3 = (MappeableBitmapContainer) bc3.add((char) i);
     }
     bc = (MappeableBitmapContainer) bc.iandNot(bc2);
     assertTrue(bc.equals(bc3));
@@ -96,8 +96,8 @@ public class TestMappeableBitmapContainer {
 
     for(int i = 100; i < 10000; ++i) {
       if((i%2 ) == 0)
-        bc2 = (MappeableBitmapContainer) bc2.add((short) i);
-        else bc3 = (MappeableBitmapContainer) bc3.add((short) i);
+        bc2 = (MappeableBitmapContainer) bc2.add((char) i);
+        else bc3 = (MappeableBitmapContainer) bc3.add((char) i);
     }
     MappeableRunContainer rc = new MappeableRunContainer();
     rc.iadd(0, 1<<16);
@@ -117,8 +117,8 @@ public class TestMappeableBitmapContainer {
 
     for(int i = 100; i < 10000; ++i) {
       if((i%2 ) == 0)
-        bc2 = (MappeableBitmapContainer) bc2.add((short) i);
-        else bc3 = (MappeableBitmapContainer) bc3.add((short) i);
+        bc2 = (MappeableBitmapContainer) bc2.add((char) i);
+        else bc3 = (MappeableBitmapContainer) bc3.add((char) i);
     }
     bc2 = (MappeableBitmapContainer) bc2.ior(bc3);
     assertTrue(bc.equals(bc2));        
@@ -144,8 +144,8 @@ public class TestMappeableBitmapContainer {
 
     for(int i = 100; i < 10000; ++i) {
       if((i%2 ) == 0)
-        bc2 = (MappeableBitmapContainer) bc2.add((short) i);
-        else bc3 = (MappeableBitmapContainer) bc3.add((short) i);
+        bc2 = (MappeableBitmapContainer) bc2.add((char) i);
+        else bc3 = (MappeableBitmapContainer) bc3.add((char) i);
     }
     removeArray(bc2);
     removeArray(bc3);
@@ -161,8 +161,8 @@ public class TestMappeableBitmapContainer {
 
     for(int i = 100; i < 10000; ++i) {
       if((i%2 ) == 0)
-        bc2 = (MappeableBitmapContainer) bc2.add((short) i);
-        else bc3 = (MappeableBitmapContainer) bc3.add((short) i);
+        bc2 = (MappeableBitmapContainer) bc2.add((char) i);
+        else bc3 = (MappeableBitmapContainer) bc3.add((char) i);
     }
     removeArray(bc2);
     removeArray(bc3);
@@ -179,8 +179,8 @@ public class TestMappeableBitmapContainer {
 
     for(int i = 100; i < 10000; ++i) {
       if((i%2 ) == 0)
-        bc2 = (MappeableBitmapContainer) bc2.add((short) i);
-        else bc3 = (MappeableBitmapContainer) bc3.add((short) i);
+        bc2 = (MappeableBitmapContainer) bc2.add((char) i);
+        else bc3 = (MappeableBitmapContainer) bc3.add((char) i);
     }
     removeArray(bc);
     removeArray(bc2);
@@ -201,8 +201,8 @@ public class TestMappeableBitmapContainer {
 
     for(int i = 100; i < 10000; ++i) {
       if((i%2 ) == 0)
-        bc2 = (MappeableBitmapContainer) bc2.add((short) i);
-        else bc3 = (MappeableBitmapContainer) bc3.add((short) i);
+        bc2 = (MappeableBitmapContainer) bc2.add((char) i);
+        else bc3 = (MappeableBitmapContainer) bc3.add((char) i);
     }
     removeArray(bc);
     removeArray(bc3);
@@ -260,54 +260,54 @@ public class TestMappeableBitmapContainer {
 
   @Test
   public void testRangeCardinality() {
-    MappeableBitmapContainer bc = generateContainer((short)100, (short)10000, 5);
+    MappeableBitmapContainer bc = generateContainer((char)100, (char)10000, 5);
     bc = (MappeableBitmapContainer) bc.add(200, 2000);
     assertEquals(8280, bc.cardinality);
   }
 
   @Test
   public void testRangeCardinality2() {
-    MappeableBitmapContainer bc = generateContainer((short)100, (short)10000, 5);
+    MappeableBitmapContainer bc = generateContainer((char)100, (char)10000, 5);
     bc.iadd(200, 2000);
     assertEquals(8280, bc.cardinality);
   }
 
   @Test
   public void testRangeCardinality3() {
-    MappeableBitmapContainer bc = generateContainer((short)100, (short)10000, 5);
-    MappeableRunContainer rc = TestMappeableRunContainer.generateContainer(new short[]{7, 300, 400, 900, 1400, 2200}, 3);
+    MappeableBitmapContainer bc = generateContainer((char)100, (char)10000, 5);
+    MappeableRunContainer rc = TestMappeableRunContainer.generateContainer(new char[]{7, 300, 400, 900, 1400, 2200}, 3);
     bc.ior(rc);
     assertEquals(8677, bc.cardinality);
   }
 
   @Test
   public void testRangeCardinality4() {
-    MappeableBitmapContainer bc = generateContainer((short)100, (short)10000, 5);
-    MappeableRunContainer rc = TestMappeableRunContainer.generateContainer(new short[]{7, 300, 400, 900, 1400, 2200}, 3);
+    MappeableBitmapContainer bc = generateContainer((char)100, (char)10000, 5);
+    MappeableRunContainer rc = TestMappeableRunContainer.generateContainer(new char[]{7, 300, 400, 900, 1400, 2200}, 3);
     bc = (MappeableBitmapContainer) bc.andNot(rc);
     assertEquals(5274, bc.cardinality);
   }
 
   @Test
   public void testRangeCardinality5() {
-    MappeableBitmapContainer bc = generateContainer((short)100, (short)10000, 5);
-    MappeableRunContainer rc = TestMappeableRunContainer.generateContainer(new short[]{7, 300, 400, 900, 1400, 2200}, 3);
+    MappeableBitmapContainer bc = generateContainer((char)100, (char)10000, 5);
+    MappeableRunContainer rc = TestMappeableRunContainer.generateContainer(new char[]{7, 300, 400, 900, 1400, 2200}, 3);
     bc.iandNot(rc);
     assertEquals(5274, bc.cardinality);
   }
 
   @Test
   public void testRangeCardinality6() {
-    MappeableBitmapContainer bc = generateContainer((short)100, (short)10000, 5);
-    MappeableRunContainer rc = TestMappeableRunContainer.generateContainer(new short[]{7, 300, 400, 900, 1400, 5200}, 3);
+    MappeableBitmapContainer bc = generateContainer((char)100, (char)10000, 5);
+    MappeableRunContainer rc = TestMappeableRunContainer.generateContainer(new char[]{7, 300, 400, 900, 1400, 5200}, 3);
     bc = (MappeableBitmapContainer) bc.iand(rc);
     assertEquals(5046, bc.cardinality);
   }
 
   @Test
   public void testRangeCardinality7() {
-    MappeableBitmapContainer bc = generateContainer((short)100, (short)10000, 5);
-    MappeableRunContainer rc = TestMappeableRunContainer.generateContainer(new short[]{7, 300, 400, 900, 1400, 2200}, 3);
+    MappeableBitmapContainer bc = generateContainer((char)100, (char)10000, 5);
+    MappeableRunContainer rc = TestMappeableRunContainer.generateContainer(new char[]{7, 300, 400, 900, 1400, 2200}, 3);
     bc.ixor(rc);
     assertEquals(6031, bc.cardinality);
   }
@@ -352,7 +352,7 @@ public class TestMappeableBitmapContainer {
     rc.iadd(5,27);
     MappeableContainer result = bc.iand(rc);
     assertEquals(8, result.getCardinality());
-    for (short i = 5; i < 13; i++) {
+    for (char i = 5; i < 13; i++) {
       assertTrue(result.contains(i));
     }
   }
@@ -365,7 +365,7 @@ public class TestMappeableBitmapContainer {
     rc.iadd(5,27);
     MappeableContainer result = bc.ior(rc);
     assertEquals(26, result.getCardinality());
-    for (short i = 1; i < 27; i++) {
+    for (char i = 1; i < 27; i++) {
       assertTrue(result.contains(i));
     }
   }
@@ -396,7 +396,7 @@ public class TestMappeableBitmapContainer {
     bc = bc.add(1, 8192);
     bc.iremove(1, 10);
     assertEquals(8182, bc.getCardinality());
-    for (short i = 10; i < 8192; i++) {
+    for (char i = 10; i < 8192; i++) {
       assertTrue(bc.contains(i));
     }
   }
@@ -438,7 +438,7 @@ public class TestMappeableBitmapContainer {
     MappeableBitmapContainer bc = new MappeableBitmapContainer();
     bc = (MappeableBitmapContainer) bc.iadd(1,13);
     bc = (MappeableBitmapContainer) bc.iadd(10017,10029);
-    ShortIterator iterator = new ReverseMappeableBitmapContainerShortIterator(bc);
+    CharIterator iterator = new ReverseMappeableBitmapContainerCharIterator(bc);
     for (int i = 10028; i >= 10017; i--) {
       assertTrue(iterator.hasNext());
       assertEquals(i, iterator.next());
@@ -459,7 +459,7 @@ public class TestMappeableBitmapContainer {
     ac = ac.add(32, 64);
     bc = bc.andNot(ac);
     assertEquals(32, bc.getCardinality());
-    for (short i = 0; i < 32; i++) {
+    for (char i = 0; i < 32; i++) {
       assertTrue(bc.contains(i));
     }
   }
@@ -473,7 +473,7 @@ public class TestMappeableBitmapContainer {
     bc2 = bc2.add(32, 64);
     bc = bc.andNot(bc2);
     assertEquals(32, bc.getCardinality());
-    for (short i = 0; i < 32; i++) {
+    for (char i = 0; i < 32; i++) {
       assertTrue(bc.contains(i));
     }
   }
@@ -504,7 +504,7 @@ public class TestMappeableBitmapContainer {
     MappeableContainer ac = newArrayContainer(5, 15);
     bc = bc.ior(ac);
     assertEquals(14, bc.getCardinality());
-    for (short i = 1; i < 15; i++) {
+    for (char i = 1; i < 15; i++) {
       assertTrue(bc.contains(i));
     }
   }
@@ -516,7 +516,7 @@ public class TestMappeableBitmapContainer {
     MappeableContainer ac = newArrayContainer(5, 15);
     bc = bc.or(ac);
     assertEquals(14, bc.getCardinality());
-    for (short i = 1; i < 15; i++) {
+    for (char i = 1; i < 15; i++) {
       assertTrue(bc.contains(i));
     }
   }
@@ -529,10 +529,10 @@ public class TestMappeableBitmapContainer {
     MappeableContainer ac = newArrayContainer(5, 15);
     bc = bc.xor(ac);
     assertEquals(54, bc.getCardinality());
-    for (short i = 0; i < 5; i++) {
+    for (char i = 0; i < 5; i++) {
       assertTrue(bc.contains(i));
     }
-    for (short i = 15; i < 64; i++) {
+    for (char i = 15; i < 64; i++) {
       assertTrue(bc.contains(i));
     }
   }
@@ -546,7 +546,7 @@ public class TestMappeableBitmapContainer {
     bc2 = bc2.add(10, 64);
     bc = bc.xor(bc2);
     assertEquals(10, bc.getCardinality());
-    for (short i = 0; i < 10; i++) {
+    for (char i = 0; i < 10; i++) {
       assertTrue(bc.contains(i));
     }
   }
@@ -562,7 +562,7 @@ public class TestMappeableBitmapContainer {
     bc2 = bc2.add(5000, 8192);
     bc = bc.xor(bc2);
     assertEquals(5000, bc.getCardinality());
-    for (short i = 0; i < 5000; i++) {
+    for (char i = 0; i < 5000; i++) {
       assertTrue(bc.contains(i));
     }
   }
@@ -572,7 +572,7 @@ public class TestMappeableBitmapContainer {
     LongBuffer buffer = LongBuffer.allocate(MAX_CAPACITY / 64);
     buffer.put(~0L);
     MappeableContainer bc = new MappeableBitmapContainer(buffer.asReadOnlyBuffer(), 64);
-    bc.forEach((short) 0, new IntConsumer() {
+    bc.forEach((char) 0, new IntConsumer() {
       int expected = 0;
 
       @Override
@@ -597,7 +597,7 @@ public class TestMappeableBitmapContainer {
 
     assertEquals(64, bc2.getCardinality());
     for (int i = 0; i < 64; i++) {
-      assertTrue(bc2.contains((short) i));
+      assertTrue(bc2.contains((char) i));
     }
   }
 
@@ -718,7 +718,7 @@ public class TestMappeableBitmapContainer {
     assertTrue(container.intersects(0, lower16Bits(-40)));
     assertFalse(container.intersects(lower16Bits(-100), lower16Bits(-55)));
     assertFalse(container.intersects(lower16Bits(-9), lower16Bits(-1)));
-    //assertTrue(container.intersects(11, (short)-1));// forbidden
+    //assertTrue(container.intersects(11, (char)-1));// forbidden
   }
 
   @Test
@@ -785,252 +785,252 @@ public class TestMappeableBitmapContainer {
 
   @Test
   public void testNextValue() {
-    MappeableBitmapContainer container = new MappeableArrayContainer(ShortBuffer.wrap(new short[] { 10, 20, 30}), 3).toBitmapContainer();
-    assertEquals(10, container.nextValue((short)10));
-    assertEquals(20, container.nextValue((short)11));
-    assertEquals(30, container.nextValue((short)30));
+    MappeableBitmapContainer container = new MappeableArrayContainer(CharBuffer.wrap(new char[] { 10, 20, 30}), 3).toBitmapContainer();
+    assertEquals(10, container.nextValue((char)10));
+    assertEquals(20, container.nextValue((char)11));
+    assertEquals(30, container.nextValue((char)30));
   }
 
   @Test
   public void testNextValueAfterEnd() {
-    MappeableBitmapContainer container = new MappeableArrayContainer(ShortBuffer.wrap(new short[] { 10, 20, 30}), 3).toBitmapContainer();
-    assertEquals(-1, container.nextValue((short)31));
+    MappeableBitmapContainer container = new MappeableArrayContainer(CharBuffer.wrap(new char[] { 10, 20, 30}), 3).toBitmapContainer();
+    assertEquals(-1, container.nextValue((char)31));
   }
 
   @Test
   public void testNextValue2() {
     MappeableBitmapContainer container = new MappeableBitmapContainer().iadd(64, 129).toBitmapContainer();
-    assertEquals(64, container.nextValue((short)0));
-    assertEquals(64, container.nextValue((short)64));
-    assertEquals(65, container.nextValue((short)65));
-    assertEquals(128, container.nextValue((short)128));
-    assertEquals(-1, container.nextValue((short)129));
-    assertEquals(-1, container.nextValue((short)5000));
+    assertEquals(64, container.nextValue((char)0));
+    assertEquals(64, container.nextValue((char)64));
+    assertEquals(65, container.nextValue((char)65));
+    assertEquals(128, container.nextValue((char)128));
+    assertEquals(-1, container.nextValue((char)129));
+    assertEquals(-1, container.nextValue((char)5000));
   }
 
   @Test
   public void testNextValueBetweenRuns() {
     MappeableBitmapContainer container = new MappeableBitmapContainer().iadd(64, 129).iadd(256, 321).toBitmapContainer();
-    assertEquals(64, container.nextValue((short)0));
-    assertEquals(64, container.nextValue((short)64));
-    assertEquals(65, container.nextValue((short)65));
-    assertEquals(128, container.nextValue((short)128));
-    assertEquals(256, container.nextValue((short)129));
-    assertEquals(-1, container.nextValue((short)512));
+    assertEquals(64, container.nextValue((char)0));
+    assertEquals(64, container.nextValue((char)64));
+    assertEquals(65, container.nextValue((char)65));
+    assertEquals(128, container.nextValue((char)128));
+    assertEquals(256, container.nextValue((char)129));
+    assertEquals(-1, container.nextValue((char)512));
   }
 
   @Test
   public void testNextValue3() {
     MappeableBitmapContainer container = new MappeableBitmapContainer().iadd(64, 129).iadd(200, 501).iadd(5000, 5201).toBitmapContainer();
-    assertEquals(64, container.nextValue((short)0));
-    assertEquals(64, container.nextValue((short)63));
-    assertEquals(64, container.nextValue((short)64));
-    assertEquals(65, container.nextValue((short)65));
-    assertEquals(128, container.nextValue((short)128));
-    assertEquals(200, container.nextValue((short)129));
-    assertEquals(200, container.nextValue((short)199));
-    assertEquals(200, container.nextValue((short)200));
-    assertEquals(250, container.nextValue((short)250));
-    assertEquals(5000, container.nextValue((short)2500));
-    assertEquals(5000, container.nextValue((short)5000));
-    assertEquals(5200, container.nextValue((short)5200));
-    assertEquals(-1, container.nextValue((short)5201));
+    assertEquals(64, container.nextValue((char)0));
+    assertEquals(64, container.nextValue((char)63));
+    assertEquals(64, container.nextValue((char)64));
+    assertEquals(65, container.nextValue((char)65));
+    assertEquals(128, container.nextValue((char)128));
+    assertEquals(200, container.nextValue((char)129));
+    assertEquals(200, container.nextValue((char)199));
+    assertEquals(200, container.nextValue((char)200));
+    assertEquals(250, container.nextValue((char)250));
+    assertEquals(5000, container.nextValue((char)2500));
+    assertEquals(5000, container.nextValue((char)5000));
+    assertEquals(5200, container.nextValue((char)5200));
+    assertEquals(-1, container.nextValue((char)5201));
   }
 
   @Test
   public void testPreviousValue1() {
     MappeableBitmapContainer container = new MappeableBitmapContainer().iadd(64, 129).toBitmapContainer();
-    assertEquals(-1, container.previousValue((short)0));
-    assertEquals(-1, container.previousValue((short)63));
-    assertEquals(64, container.previousValue((short)64));
-    assertEquals(65, container.previousValue((short)65));
-    assertEquals(128, container.previousValue((short)128));
-    assertEquals(128, container.previousValue((short)129));
+    assertEquals(-1, container.previousValue((char)0));
+    assertEquals(-1, container.previousValue((char)63));
+    assertEquals(64, container.previousValue((char)64));
+    assertEquals(65, container.previousValue((char)65));
+    assertEquals(128, container.previousValue((char)128));
+    assertEquals(128, container.previousValue((char)129));
   }
 
   @Test
   public void testPreviousValue2() {
     MappeableBitmapContainer container = new MappeableBitmapContainer().iadd(64, 129).iadd(200, 501).iadd(5000, 5201).toBitmapContainer();
-    assertEquals(-1, container.previousValue((short)0));
-    assertEquals(-1, container.previousValue((short)63));
-    assertEquals(64, container.previousValue((short)64));
-    assertEquals(65, container.previousValue((short)65));
-    assertEquals(128, container.previousValue((short)128));
-    assertEquals(128, container.previousValue((short)129));
-    assertEquals(128, container.previousValue((short)199));
-    assertEquals(200, container.previousValue((short)200));
-    assertEquals(250, container.previousValue((short)250));
-    assertEquals(500, container.previousValue((short)2500));
-    assertEquals(5000, container.previousValue((short)5000));
-    assertEquals(5200, container.previousValue((short)5200));
+    assertEquals(-1, container.previousValue((char)0));
+    assertEquals(-1, container.previousValue((char)63));
+    assertEquals(64, container.previousValue((char)64));
+    assertEquals(65, container.previousValue((char)65));
+    assertEquals(128, container.previousValue((char)128));
+    assertEquals(128, container.previousValue((char)129));
+    assertEquals(128, container.previousValue((char)199));
+    assertEquals(200, container.previousValue((char)200));
+    assertEquals(250, container.previousValue((char)250));
+    assertEquals(500, container.previousValue((char)2500));
+    assertEquals(5000, container.previousValue((char)5000));
+    assertEquals(5200, container.previousValue((char)5200));
   }
 
   @Test
   public void testPreviousValueBeforeStart() {
-    MappeableBitmapContainer container = new MappeableArrayContainer(ShortBuffer.wrap(new short[] { 10, 20, 30}), 3).toBitmapContainer();
-    assertEquals(-1, container.previousValue((short)5));
+    MappeableBitmapContainer container = new MappeableArrayContainer(CharBuffer.wrap(new char[] { 10, 20, 30}), 3).toBitmapContainer();
+    assertEquals(-1, container.previousValue((char)5));
   }
 
   @Test
   public void testPreviousValueSparse() {
-    MappeableBitmapContainer container = new MappeableArrayContainer(ShortBuffer.wrap(new short[] { 10, 20, 30}), 3).toBitmapContainer();
-    assertEquals(-1, container.previousValue((short)9));
-    assertEquals(10, container.previousValue((short)10));
-    assertEquals(10, container.previousValue((short)11));
-    assertEquals(20, container.previousValue((short)21));
-    assertEquals(30, container.previousValue((short)30));
+    MappeableBitmapContainer container = new MappeableArrayContainer(CharBuffer.wrap(new char[] { 10, 20, 30}), 3).toBitmapContainer();
+    assertEquals(-1, container.previousValue((char)9));
+    assertEquals(10, container.previousValue((char)10));
+    assertEquals(10, container.previousValue((char)11));
+    assertEquals(20, container.previousValue((char)21));
+    assertEquals(30, container.previousValue((char)30));
   }
 
   @Test
   public void testPreviousValueAfterEnd() {
-    MappeableBitmapContainer container = new MappeableArrayContainer(ShortBuffer.wrap(new short[] { 10, 20, 30}), 3).toBitmapContainer();
-    assertEquals(30, container.previousValue((short)31));
+    MappeableBitmapContainer container = new MappeableArrayContainer(CharBuffer.wrap(new char[] { 10, 20, 30}), 3).toBitmapContainer();
+    assertEquals(30, container.previousValue((char)31));
   }
 
   @Test
   public void testPreviousEvenBits() {
     MappeableContainer container = new BitmapContainer(evenBits(), 1 << 15).toMappeableContainer();
-    assertEquals(0, container.previousValue((short)0));
-    assertEquals(0, container.previousValue((short)1));
-    assertEquals(2, container.previousValue((short)2));
-    assertEquals(2, container.previousValue((short)3));
+    assertEquals(0, container.previousValue((char)0));
+    assertEquals(0, container.previousValue((char)1));
+    assertEquals(2, container.previousValue((char)2));
+    assertEquals(2, container.previousValue((char)3));
   }
 
   @Test
   public void testPreviousValueUnsigned() {
-    MappeableBitmapContainer container = new MappeableArrayContainer(ShortBuffer.wrap(new short[] { (short)((1 << 15) | 5), (short)((1 << 15) | 7)}), 2)
+    MappeableBitmapContainer container = new MappeableArrayContainer(CharBuffer.wrap(new char[] { (char)((1 << 15) | 5), (char)((1 << 15) | 7)}), 2)
             .toBitmapContainer();
-    assertEquals(-1, container.previousValue((short)((1 << 15) | 4)));
-    assertEquals(((1 << 15) | 5), container.previousValue((short)((1 << 15) | 5)));
-    assertEquals(((1 << 15) | 5), container.previousValue((short)((1 << 15) | 6)));
-    assertEquals(((1 << 15) | 7), container.previousValue((short)((1 << 15) | 7)));
-    assertEquals(((1 << 15) | 7), container.previousValue((short)((1 << 15) | 8)));
+    assertEquals(-1, container.previousValue((char)((1 << 15) | 4)));
+    assertEquals(((1 << 15) | 5), container.previousValue((char)((1 << 15) | 5)));
+    assertEquals(((1 << 15) | 5), container.previousValue((char)((1 << 15) | 6)));
+    assertEquals(((1 << 15) | 7), container.previousValue((char)((1 << 15) | 7)));
+    assertEquals(((1 << 15) | 7), container.previousValue((char)((1 << 15) | 8)));
   }
 
   @Test
   public void testNextValueUnsigned() {
-    MappeableBitmapContainer container = new MappeableArrayContainer(ShortBuffer.wrap(new short[] { (short)((1 << 15) | 5), (short)((1 << 15) | 7)}), 2).toBitmapContainer();
-    assertEquals(((1 << 15) | 5), container.nextValue((short)((1 << 15) | 4)));
-    assertEquals(((1 << 15) | 5), container.nextValue((short)((1 << 15) | 5)));
-    assertEquals(((1 << 15) | 7), container.nextValue((short)((1 << 15) | 6)));
-    assertEquals(((1 << 15) | 7), container.nextValue((short)((1 << 15) | 7)));
-    assertEquals(-1, container.nextValue((short)((1 << 15) | 8)));
+    MappeableBitmapContainer container = new MappeableArrayContainer(CharBuffer.wrap(new char[] { (char)((1 << 15) | 5), (char)((1 << 15) | 7)}), 2).toBitmapContainer();
+    assertEquals(((1 << 15) | 5), container.nextValue((char)((1 << 15) | 4)));
+    assertEquals(((1 << 15) | 5), container.nextValue((char)((1 << 15) | 5)));
+    assertEquals(((1 << 15) | 7), container.nextValue((char)((1 << 15) | 6)));
+    assertEquals(((1 << 15) | 7), container.nextValue((char)((1 << 15) | 7)));
+    assertEquals(-1, container.nextValue((char)((1 << 15) | 8)));
   }
 
 
   @Test
   public void testPreviousAbsentValue1() {
     MappeableBitmapContainer container = new MappeableArrayContainer().iadd(64, 129).toBitmapContainer();
-    assertEquals(0, container.previousAbsentValue((short)0));
-    assertEquals(63, container.previousAbsentValue((short)63));
-    assertEquals(63, container.previousAbsentValue((short)64));
-    assertEquals(63, container.previousAbsentValue((short)65));
-    assertEquals(63, container.previousAbsentValue((short)128));
-    assertEquals(129, container.previousAbsentValue((short)129));
+    assertEquals(0, container.previousAbsentValue((char)0));
+    assertEquals(63, container.previousAbsentValue((char)63));
+    assertEquals(63, container.previousAbsentValue((char)64));
+    assertEquals(63, container.previousAbsentValue((char)65));
+    assertEquals(63, container.previousAbsentValue((char)128));
+    assertEquals(129, container.previousAbsentValue((char)129));
   }
 
   @Test
   public void testPreviousAbsentValue2() {
     MappeableBitmapContainer container = new MappeableArrayContainer().iadd(64, 129).iadd(200, 501).iadd(5000, 5201).toBitmapContainer();
-    assertEquals(0, container.previousAbsentValue((short)0));
-    assertEquals(63, container.previousAbsentValue((short)63));
-    assertEquals(63, container.previousAbsentValue((short)64));
-    assertEquals(63, container.previousAbsentValue((short)65));
-    assertEquals(63, container.previousAbsentValue((short)128));
-    assertEquals(129, container.previousAbsentValue((short)129));
-    assertEquals(199, container.previousAbsentValue((short)199));
-    assertEquals(199, container.previousAbsentValue((short)200));
-    assertEquals(199, container.previousAbsentValue((short)250));
-    assertEquals(2500, container.previousAbsentValue((short)2500));
-    assertEquals(4999, container.previousAbsentValue((short)5000));
-    assertEquals(4999, container.previousAbsentValue((short)5200));
+    assertEquals(0, container.previousAbsentValue((char)0));
+    assertEquals(63, container.previousAbsentValue((char)63));
+    assertEquals(63, container.previousAbsentValue((char)64));
+    assertEquals(63, container.previousAbsentValue((char)65));
+    assertEquals(63, container.previousAbsentValue((char)128));
+    assertEquals(129, container.previousAbsentValue((char)129));
+    assertEquals(199, container.previousAbsentValue((char)199));
+    assertEquals(199, container.previousAbsentValue((char)200));
+    assertEquals(199, container.previousAbsentValue((char)250));
+    assertEquals(2500, container.previousAbsentValue((char)2500));
+    assertEquals(4999, container.previousAbsentValue((char)5000));
+    assertEquals(4999, container.previousAbsentValue((char)5200));
   }
 
   @Test
   public void testPreviousAbsentValueEmpty() {
     MappeableBitmapContainer container = new MappeableArrayContainer().toBitmapContainer();
     for (int i = 0; i < 1000; i++) {
-      assertEquals(i, container.previousAbsentValue((short)i));
+      assertEquals(i, container.previousAbsentValue((char)i));
     }
   }
 
   @Test
   public void testPreviousAbsentValueSparse() {
-    MappeableBitmapContainer container = new MappeableArrayContainer(ShortBuffer.wrap(new short[] { 10, 20, 30}), 3).toBitmapContainer();
-    assertEquals(9, container.previousAbsentValue((short)9));
-    assertEquals(9, container.previousAbsentValue((short)10));
-    assertEquals(11, container.previousAbsentValue((short)11));
-    assertEquals(21, container.previousAbsentValue((short)21));
-    assertEquals(29, container.previousAbsentValue((short)30));
+    MappeableBitmapContainer container = new MappeableArrayContainer(CharBuffer.wrap(new char[] { 10, 20, 30}), 3).toBitmapContainer();
+    assertEquals(9, container.previousAbsentValue((char)9));
+    assertEquals(9, container.previousAbsentValue((char)10));
+    assertEquals(11, container.previousAbsentValue((char)11));
+    assertEquals(21, container.previousAbsentValue((char)21));
+    assertEquals(29, container.previousAbsentValue((char)30));
   }
 
   @Test
   public void testPreviousAbsentEvenBits() {
     MappeableContainer container = new BitmapContainer(evenBits(), 1 << 15).toMappeableContainer();
     for (int i = 0; i < 1 << 10; i+=2) {
-      assertEquals(i - 1, container.previousAbsentValue((short)i));
-      assertEquals(i + 1, container.previousAbsentValue((short)(i+1)));
+      assertEquals(i - 1, container.previousAbsentValue((char)i));
+      assertEquals(i + 1, container.previousAbsentValue((char)(i+1)));
     }
   }
 
   @Test
   public void testPreviousAbsentValueUnsigned() {
-    short[] array = {(short) ((1 << 15) | 5), (short) ((1 << 15) | 7)};
-    MappeableBitmapContainer container = new MappeableArrayContainer(ShortBuffer.wrap(array), 2).toBitmapContainer();
-    assertEquals(((1 << 15) | 4), container.previousAbsentValue((short)((1 << 15) | 4)));
-    assertEquals(((1 << 15) | 4), container.previousAbsentValue((short)((1 << 15) | 5)));
-    assertEquals(((1 << 15) | 6), container.previousAbsentValue((short)((1 << 15) | 6)));
-    assertEquals(((1 << 15) | 6), container.previousAbsentValue((short)((1 << 15) | 7)));
-    assertEquals(((1 << 15) | 8), container.previousAbsentValue((short)((1 << 15) | 8)));
+    char[] array = {(char) ((1 << 15) | 5), (char) ((1 << 15) | 7)};
+    MappeableBitmapContainer container = new MappeableArrayContainer(CharBuffer.wrap(array), 2).toBitmapContainer();
+    assertEquals(((1 << 15) | 4), container.previousAbsentValue((char)((1 << 15) | 4)));
+    assertEquals(((1 << 15) | 4), container.previousAbsentValue((char)((1 << 15) | 5)));
+    assertEquals(((1 << 15) | 6), container.previousAbsentValue((char)((1 << 15) | 6)));
+    assertEquals(((1 << 15) | 6), container.previousAbsentValue((char)((1 << 15) | 7)));
+    assertEquals(((1 << 15) | 8), container.previousAbsentValue((char)((1 << 15) | 8)));
   }
 
 
   @Test
   public void testNextAbsentValue1() {
     MappeableBitmapContainer container = new MappeableArrayContainer().iadd(64, 129).toBitmapContainer();
-    assertEquals(0, container.nextAbsentValue((short)0));
-    assertEquals(63, container.nextAbsentValue((short)63));
-    assertEquals(129, container.nextAbsentValue((short)64));
-    assertEquals(129, container.nextAbsentValue((short)65));
-    assertEquals(129, container.nextAbsentValue((short)128));
-    assertEquals(129, container.nextAbsentValue((short)129));
+    assertEquals(0, container.nextAbsentValue((char)0));
+    assertEquals(63, container.nextAbsentValue((char)63));
+    assertEquals(129, container.nextAbsentValue((char)64));
+    assertEquals(129, container.nextAbsentValue((char)65));
+    assertEquals(129, container.nextAbsentValue((char)128));
+    assertEquals(129, container.nextAbsentValue((char)129));
   }
 
   @Test
   public void testNextAbsentValue2() {
     MappeableBitmapContainer container = new MappeableArrayContainer().iadd(64, 129).iadd(200, 501).iadd(5000, 5201)
             .toBitmapContainer();
-    assertEquals(0, container.nextAbsentValue((short)0));
-    assertEquals(63, container.nextAbsentValue((short)63));
-    assertEquals(129, container.nextAbsentValue((short)64));
-    assertEquals(129, container.nextAbsentValue((short)65));
-    assertEquals(129, container.nextAbsentValue((short)128));
-    assertEquals(129, container.nextAbsentValue((short)129));
-    assertEquals(199, container.nextAbsentValue((short)199));
-    assertEquals(501, container.nextAbsentValue((short)200));
-    assertEquals(501, container.nextAbsentValue((short)250));
-    assertEquals(2500, container.nextAbsentValue((short)2500));
-    assertEquals(5201, container.nextAbsentValue((short)5000));
-    assertEquals(5201, container.nextAbsentValue((short)5200));
+    assertEquals(0, container.nextAbsentValue((char)0));
+    assertEquals(63, container.nextAbsentValue((char)63));
+    assertEquals(129, container.nextAbsentValue((char)64));
+    assertEquals(129, container.nextAbsentValue((char)65));
+    assertEquals(129, container.nextAbsentValue((char)128));
+    assertEquals(129, container.nextAbsentValue((char)129));
+    assertEquals(199, container.nextAbsentValue((char)199));
+    assertEquals(501, container.nextAbsentValue((char)200));
+    assertEquals(501, container.nextAbsentValue((char)250));
+    assertEquals(2500, container.nextAbsentValue((char)2500));
+    assertEquals(5201, container.nextAbsentValue((char)5000));
+    assertEquals(5201, container.nextAbsentValue((char)5200));
   }
 
   @Test
   public void testNextAbsentValueEmpty() {
     MappeableBitmapContainer container = new MappeableArrayContainer().toBitmapContainer();
     for (int i = 0; i < 1000; i++) {
-      assertEquals(i, container.nextAbsentValue((short)i));
+      assertEquals(i, container.nextAbsentValue((char)i));
     }
   }
 
   @Test
   public void testNextAbsentValueSparse() {
-    short[] array = {10, 20, 30};
-    MappeableBitmapContainer container = new MappeableArrayContainer(ShortBuffer.wrap(array), 3).toBitmapContainer();
-    assertEquals(9, container.nextAbsentValue((short)9));
-    assertEquals(11, container.nextAbsentValue((short)10));
-    assertEquals(11, container.nextAbsentValue((short)11));
-    assertEquals(21, container.nextAbsentValue((short)21));
-    assertEquals(31, container.nextAbsentValue((short)30));
+    char[] array = {10, 20, 30};
+    MappeableBitmapContainer container = new MappeableArrayContainer(CharBuffer.wrap(array), 3).toBitmapContainer();
+    assertEquals(9, container.nextAbsentValue((char)9));
+    assertEquals(11, container.nextAbsentValue((char)10));
+    assertEquals(11, container.nextAbsentValue((char)11));
+    assertEquals(21, container.nextAbsentValue((char)21));
+    assertEquals(31, container.nextAbsentValue((char)30));
   }
 
   @Test
@@ -1038,20 +1038,20 @@ public class TestMappeableBitmapContainer {
     int cardinality = 32 + 1 << 15;
     MappeableBitmapContainer container = new MappeableBitmapContainer(LongBuffer.wrap(evenBits()), cardinality);
     for (int i = 0; i < 1 << 10; i+=2) {
-      assertEquals(i + 1, container.nextAbsentValue((short)i));
-      assertEquals(i + 1, container.nextAbsentValue((short)(i+1)));
+      assertEquals(i + 1, container.nextAbsentValue((char)i));
+      assertEquals(i + 1, container.nextAbsentValue((char)(i+1)));
     }
   }
 
   @Test
   public void testNextAbsentValueUnsigned() {
-    short[] array = {(short) ((1 << 15) | 5), (short) ((1 << 15) | 7)};
-    MappeableBitmapContainer container = new MappeableArrayContainer(ShortBuffer.wrap(array), 2).toBitmapContainer();
-    assertEquals(((1 << 15) | 4), container.nextAbsentValue((short)((1 << 15) | 4)));
-    assertEquals(((1 << 15) | 6), container.nextAbsentValue((short)((1 << 15) | 5)));
-    assertEquals(((1 << 15) | 6), container.nextAbsentValue((short)((1 << 15) | 6)));
-    assertEquals(((1 << 15) | 8), container.nextAbsentValue((short)((1 << 15) | 7)));
-    assertEquals(((1 << 15) | 8), container.nextAbsentValue((short)((1 << 15) | 8)));
+    char[] array = {(char) ((1 << 15) | 5), (char) ((1 << 15) | 7)};
+    MappeableBitmapContainer container = new MappeableArrayContainer(CharBuffer.wrap(array), 2).toBitmapContainer();
+    assertEquals(((1 << 15) | 4), container.nextAbsentValue((char)((1 << 15) | 4)));
+    assertEquals(((1 << 15) | 6), container.nextAbsentValue((char)((1 << 15) | 5)));
+    assertEquals(((1 << 15) | 6), container.nextAbsentValue((char)((1 << 15) | 6)));
+    assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 7)));
+    assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 8)));
   }
 
 
@@ -1062,7 +1062,7 @@ public class TestMappeableBitmapContainer {
   }
 
   private static int lower16Bits(int x) {
-    return ((short)x) & 0xFFFF;
+    return ((char)x);
   }
 
 }

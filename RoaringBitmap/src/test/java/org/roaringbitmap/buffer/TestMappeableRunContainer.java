@@ -8,8 +8,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.LongBuffer;
-import java.nio.ShortBuffer;
 
 import static org.junit.Assert.*;
 import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
@@ -18,9 +18,9 @@ import static org.roaringbitmap.buffer.TestMappeableArrayContainer.newArrayConta
 
 public class TestMappeableRunContainer {
 
-  protected static MappeableRunContainer generateContainer(short[] values, int numOfRuns) {
-    ShortBuffer array = ByteBuffer.allocateDirect(values.length * 2).asShortBuffer();
-    for (short v : values) {
+  protected static MappeableRunContainer generateContainer(char[] values, int numOfRuns) {
+    CharBuffer array = ByteBuffer.allocateDirect(values.length * 2).asCharBuffer();
+    for (char v : values) {
       array.put(v);
     }
     return new MappeableRunContainer(array, numOfRuns);
@@ -32,7 +32,7 @@ public class TestMappeableRunContainer {
     MappeableRunContainer rc = new MappeableRunContainer(ac, 1);
     assertEquals(99, rc.getCardinality());
     for (int i = 1; i < 100; i++) {
-      assertTrue(rc.contains((short) i));
+      assertTrue(rc.contains((char) i));
     }
   }
 
@@ -44,7 +44,7 @@ public class TestMappeableRunContainer {
     MappeableRunContainer rc = new MappeableRunContainer(bc, 1);
     assertEquals(64, rc.getCardinality());
     for (int i = 0; i < 64; i++) {
-      assertTrue(rc.contains((short) i));
+      assertTrue(rc.contains((char) i));
     }
   }
 
@@ -54,17 +54,17 @@ public class TestMappeableRunContainer {
     MappeableContainer result = rc.not(5, 8);
     assertEquals(9, result.getCardinality());
     for (int i = 1; i < 5; i++) {
-      assertTrue(rc.contains((short) i));
+      assertTrue(rc.contains((char) i));
     }
     for (int i = 8; i < 13; i++) {
-      assertTrue(rc.contains((short) i));
+      assertTrue(rc.contains((char) i));
     }
   }
 
   static MappeableRunContainer newRunContainer(int firstOfRun, final int lastOfRun) {
-    ShortBuffer buffer = ShortBuffer.allocate(2);
-    buffer.put((short) firstOfRun);
-    buffer.put((short) (lastOfRun-firstOfRun-1));
+    CharBuffer buffer = CharBuffer.allocate(2);
+    buffer.put((char) firstOfRun);
+    buffer.put((char) (lastOfRun-firstOfRun-1));
     return new MappeableRunContainer(buffer.asReadOnlyBuffer(), 1);
   }
 
@@ -82,7 +82,7 @@ public class TestMappeableRunContainer {
     rc.trim();
     assertEquals(4, rc.getCardinality());
     for (int i = 1; i < 5; i++) {
-      assertTrue(rc.contains((short) i));
+      assertTrue(rc.contains((char) i));
     }
   }
 
@@ -100,7 +100,7 @@ public class TestMappeableRunContainer {
 
     assertEquals(4, rc2.getCardinality());
     for (int i = 1; i < 5; i++) {
-      assertTrue(rc2.contains((short) i));
+      assertTrue(rc2.contains((char) i));
     }
   }
 
@@ -216,18 +216,18 @@ public class TestMappeableRunContainer {
 
   @Test
   public void testRangeCardinality() {
-    MappeableBitmapContainer bc = TestMappeableBitmapContainer.generateContainer((short) 100, (short) 10000, 5);
-    MappeableRunContainer rc = generateContainer(new short[]{7, 300, 400, 900, 1400, 2200}, 3);
+    MappeableBitmapContainer bc = TestMappeableBitmapContainer.generateContainer((char) 100, (char) 10000, 5);
+    MappeableRunContainer rc = generateContainer(new char[]{7, 300, 400, 900, 1400, 2200}, 3);
     MappeableContainer result = rc.or(bc);
     assertEquals(8677, result.getCardinality());
   }
 
   @Test
   public void testRangeCardinality2() {
-    MappeableBitmapContainer bc = TestMappeableBitmapContainer.generateContainer((short) 100, (short) 10000, 5);
-    bc.add((short)22345); //important case to have greater element than run container
-    bc.add(Short.MAX_VALUE);
-    MappeableRunContainer rc = generateContainer(new short[]{7, 300, 400, 900, 1400, 18000}, 3);
+    MappeableBitmapContainer bc = TestMappeableBitmapContainer.generateContainer((char) 100, (char) 10000, 5);
+    bc.add((char)22345); //important case to have greater element than run container
+    bc.add((char)Short.MAX_VALUE);
+    MappeableRunContainer rc = generateContainer(new char[]{7, 300, 400, 900, 1400, 18000}, 3);
     Assert.assertTrue(rc.getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE);
     MappeableContainer result = rc.andNot(bc);
     assertEquals(11437, result.getCardinality());
@@ -235,16 +235,16 @@ public class TestMappeableRunContainer {
 
   @Test
   public void testRangeCardinality3() {
-    MappeableBitmapContainer bc = TestMappeableBitmapContainer.generateContainer((short) 100, (short) 10000, 5);
-    MappeableRunContainer rc = generateContainer(new short[]{7, 300, 400, 900, 1400, 5200}, 3);
+    MappeableBitmapContainer bc = TestMappeableBitmapContainer.generateContainer((char) 100, (char) 10000, 5);
+    MappeableRunContainer rc = generateContainer(new char[]{7, 300, 400, 900, 1400, 5200}, 3);
     MappeableBitmapContainer result = (MappeableBitmapContainer) rc.and(bc);
     assertEquals(5046, result.getCardinality());
   }
 
   @Test
   public void testRangeCardinality4() {
-    MappeableBitmapContainer bc = TestMappeableBitmapContainer.generateContainer((short) 100, (short) 10000, 5);
-    MappeableRunContainer rc = generateContainer(new short[]{7, 300, 400, 900, 1400, 2200}, 3);
+    MappeableBitmapContainer bc = TestMappeableBitmapContainer.generateContainer((char) 100, (char) 10000, 5);
+    MappeableRunContainer rc = generateContainer(new char[]{7, 300, 400, 900, 1400, 2200}, 3);
     MappeableBitmapContainer result = (MappeableBitmapContainer) rc.xor(bc);
     assertEquals(6031, result.getCardinality());
   }
@@ -285,7 +285,7 @@ public class TestMappeableRunContainer {
   public void testEqualsArrayContainer_NotEqual_ArrayDiscontiguous() {
     MappeableContainer rc = new MappeableRunContainer().add(0, 10);
     MappeableContainer ac = new MappeableArrayContainer().add(0, 11);
-    ac.flip((short)9);
+    ac.flip((char)9);
     assertFalse(rc.equals(ac));
     assertFalse(ac.equals(rc));
   }

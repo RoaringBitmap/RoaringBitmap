@@ -16,13 +16,13 @@ public class IntIteratorFlyweight implements PeekableIntIterator {
 
   private int hs;
 
-  private PeekableShortIterator iter;
+  private PeekableCharIterator iter;
 
-  private ArrayContainerShortIterator arrIter = new ArrayContainerShortIterator();
+  private ArrayContainerCharIterator arrIter = new ArrayContainerCharIterator();
 
-  private BitmapContainerShortIterator bitmapIter = new BitmapContainerShortIterator();
+  private BitmapContainerCharIterator bitmapIter = new BitmapContainerCharIterator();
 
-  private RunContainerShortIterator runIter = new RunContainerShortIterator();
+  private RunContainerCharIterator runIter = new RunContainerCharIterator();
 
   private int pos;
 

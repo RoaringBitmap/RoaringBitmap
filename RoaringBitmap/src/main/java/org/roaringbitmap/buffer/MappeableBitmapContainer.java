@@ -8,7 +8,6 @@ import org.roaringbitmap.*;
 
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 import java.util.Iterator;
 
@@ -128,7 +127,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
 
   @Override
-  public MappeableContainer add(final short i) {
+  public MappeableContainer add(final char i) {
     final int x = toIntUnsigned(i);
     final long previous = bitmap.get(x / 64);
     final long newv = previous | (1L << x);
@@ -153,12 +152,12 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     if (!BufferUtil.isBackedBySimpleArray(answer.content)) {
       throw new RuntimeException("Should not happen. Internal bug.");
     }
-    short[] sarray = answer.content.array();
+    char[] sarray = answer.content.array();
     if (BufferUtil.isBackedBySimpleArray(value2.content)) {
-      short[] c = value2.content.array();
+      char[] c = value2.content.array();
       int ca = value2.cardinality;
       for (int k = 0; k < ca; ++k) {
-        short v = c[k];
+        char v = c[k];
         sarray[answer.cardinality] = v;
         answer.cardinality += this.bitValue(v);
       }
@@ -166,7 +165,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     } else {
       int ca = value2.cardinality;
       for (int k = 0; k < ca; ++k) {
-        short v = value2.content.get(k);
+        char v = value2.content.get(k);
         sarray[answer.cardinality] = v;
         answer.cardinality += this.bitValue(v);
       }
@@ -242,10 +241,10 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     long[] bitArray = answer.bitmap.array();
     if (BufferUtil.isBackedBySimpleArray(value2.content)
         && BufferUtil.isBackedBySimpleArray(this.bitmap)) {
-      short[] v2 = value2.content.array();
+      char[] v2 = value2.content.array();
       int c = value2.cardinality;
       for (int k = 0; k < c; ++k) {
-        short v = v2[k];
+        char v = v2[k];
         final int i = toIntUnsigned(v) >>> 6;
         long w = bitArray[i];
         long aft = w & (~(1L << v));
@@ -255,7 +254,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     } else {
       int c = value2.cardinality;
       for (int k = 0; k < c; ++k) {
-        short v2 = value2.content.get(k);
+        char v2 = value2.content.get(k);
         final int i = toIntUnsigned(v2) >>> 6;
         long w = bitArray[i];
         long aft = bitArray[i] & (~(1L << v2));
@@ -396,12 +395,12 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   }
 
   @Override
-  public boolean contains(final short i) {
+  public boolean contains(final char i) {
     final int x = toIntUnsigned(i);
     return (bitmap.get(x / 64) & (1L << x)) != 0;
   }
 
-  protected long bitValue(final short i) {
+  protected long bitValue(final char i) {
     final int x = toIntUnsigned(i);
     return (bitmap.get(x / 64) >>> x ) & 1;
   }
@@ -415,7 +414,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
    * @param i index
    * @return whether the container contains the value i
    */
-  public static boolean contains(ByteBuffer buf, int position, final short i) {
+  public static boolean contains(ByteBuffer buf, int position, final char i) {
     final int x = toIntUnsigned(i);
     return (buf.getLong(x / 64 * 8 + position) & (1L << x)) != 0;
   }
@@ -459,7 +458,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
    * 
    * @param array container (should be sufficiently large)
    */
-  protected void fillArray(final short[] array) {
+  protected void fillArray(final char[] array) {
     int pos = 0;
     if (BufferUtil.isBackedBySimpleArray(bitmap)) {
       long[] b = bitmap.array();
@@ -467,7 +466,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       for (int k = 0; k < b.length; ++k) {
         long bitset = b[k];
         while (bitset != 0) {
-          array[pos++] = (short) (base + numberOfTrailingZeros(bitset));
+          array[pos++] = (char) (base + numberOfTrailingZeros(bitset));
           bitset &= (bitset - 1);
         }
         base += 64;
@@ -479,7 +478,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       for (int k = 0; k < len; ++k) {
         long bitset = bitmap.get(k);
         while (bitset != 0) {
-          array[pos++] = (short) (base + numberOfLeadingZeros(bitset));
+          array[pos++] = (char) (base + numberOfLeadingZeros(bitset));
           bitset &= (bitset - 1);
         }
         base += 64;
@@ -517,7 +516,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   }
 
   @Override
-  public MappeableContainer flip(short i) {
+  public MappeableContainer flip(char i) {
     final int x = toIntUnsigned(i);
     final long bef = bitmap.get(x / 64);
     final long mask = 1L << x;
@@ -553,19 +552,19 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   }
 
   @Override
-  public ShortIterator getReverseShortIterator() {
+  public CharIterator getReverseShortIterator() {
     if (this.isArrayBacked()) {
       return BitmapContainer.getReverseShortIterator(bitmap.array());
     }
-    return new ReverseMappeableBitmapContainerShortIterator(this);
+    return new ReverseMappeableBitmapContainerCharIterator(this);
   }
 
   @Override
-  public PeekableShortIterator getShortIterator() {
+  public PeekableCharIterator getShortIterator() {
     if (this.isArrayBacked()) {
       return BitmapContainer.getShortIterator(bitmap.array());
     }
-    return new MappeableBitmapContainerShortIterator(this);
+    return new MappeableBitmapContainerCharIterator(this);
   }
 
   @Override
@@ -662,8 +661,8 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         int runStart = toIntUnsigned(x.getValue(rlepos));
         int runEnd = runStart + toIntUnsigned(x.getLength(rlepos));
         for (int runValue = runStart; runValue <= runEnd; ++runValue) {
-          answer.content.put(answer.cardinality, (short) runValue);
-          answer.cardinality += this.bitValue((short) runValue);
+          answer.content.put(answer.cardinality, (char) runValue);
+          answer.cardinality += this.bitValue((char) runValue);
         }
       }
       return answer;
@@ -783,7 +782,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     long[] b = this.bitmap.array();
     int c = value2.cardinality;
     for (int k = 0; k < c; ++k) {
-      short v2 = value2.content.get(k);
+      char v2 = value2.content.get(k);
       final int i = toIntUnsigned(v2) >>> 6;
       b[i] |= (1L << v2);
     }
@@ -833,7 +832,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   @Override
   public boolean intersects(MappeableArrayContainer value2) {
     if (BufferUtil.isBackedBySimpleArray(value2.content)) {
-      short[] c = value2.content.array();
+      char[] c = value2.content.array();
       int ca = value2.cardinality;
       for (int k = 0; k < ca; ++k) {
         if (this.contains(c[k])) {
@@ -844,7 +843,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     } else {
       int ca = value2.cardinality;
       for (int k = 0; k < ca; ++k) {
-        short v = value2.content.get(k);
+        char v = value2.content.get(k);
         if (this.contains(v)) {
           return true;
         }
@@ -890,7 +889,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     }
     long[] b = this.bitmap.array();
     if (BufferUtil.isBackedBySimpleArray(value2.content)) {
-      short[] v2 = value2.content.array();
+      char[] v2 = value2.content.array();
       int c = value2.cardinality;
       for (int k = 0; k < c; ++k) {
         final int i = toIntUnsigned(v2[k]) >>> 6;
@@ -909,7 +908,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     }
     int c = value2.cardinality;
     for (int k = 0; k < c; ++k) {
-      short v2 = value2.content.get(k);
+      char v2 = value2.content.get(k);
       final int i = toIntUnsigned(v2) >>> 6;
       long bef = b[i];
       long aft = bef | (1L << v2);
@@ -1010,9 +1009,9 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   }
 
   @Override
-  public Iterator<Short> iterator() {
-    return new Iterator<Short>() {
-      final ShortIterator si = MappeableBitmapContainer.this.getShortIterator();
+  public Iterator<Character> iterator() {
+    return new Iterator<Character>() {
+      final CharIterator si = MappeableBitmapContainer.this.getShortIterator();
 
       @Override
       public boolean hasNext() {
@@ -1020,7 +1019,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       }
 
       @Override
-      public Short next() {
+      public Character next() {
         return si.next();
       }
 
@@ -1039,10 +1038,10 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     }
     long[] b = bitmap.array();
     if (BufferUtil.isBackedBySimpleArray(value2.content)) {
-      short[] v2 = value2.content.array();
+      char[] v2 = value2.content.array();
       int c = value2.cardinality;
       for (int k = 0; k < c; ++k) {
-        short vc = v2[k];
+        char vc = v2[k];
         long mask = 1L << v2[k];
         final int index = toIntUnsigned(vc) >>> 6;
         long ba = b[index];
@@ -1054,7 +1053,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     } else {
       int c = value2.cardinality;
       for (int k = 0; k < c; ++k) {
-        short v2 = value2.content.get(k);
+        char v2 = value2.content.get(k);
         long mask = 1L << v2;
         final int index = toIntUnsigned(v2) >>> 6;
         long ba = b[index];
@@ -1152,7 +1151,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     long[] b = answer.bitmap.array();
     int c = value2.cardinality;
     for (int k = 0; k < c; ++k) {
-      short v2 = value2.content.get(k);
+      char v2 = value2.content.get(k);
       final int i = toIntUnsigned(v2) >>> 6;
       b[i] |= 1L << v2;
     }
@@ -1195,12 +1194,12 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       if (!BufferUtil.isBackedBySimpleArray(ac.content)) {
         throw new RuntimeException("Should not happen. Internal bug.");
       }
-      short[] cont = ac.content.array();
+      char[] cont = ac.content.array();
       int len = this.bitmap.limit();
       for (int k = 0; (ac.cardinality < maxcardinality) && (k < len); ++k) {
         long bitset = bitmap.get(k);
         while ((ac.cardinality < maxcardinality) && (bitset != 0)) {
-          cont[pos++] = (short) (k * 64 + numberOfTrailingZeros(bitset));
+          cont[pos++] = (char) (k * 64 + numberOfTrailingZeros(bitset));
           ac.cardinality++;
           bitset &= (bitset - 1);
         }
@@ -1231,16 +1230,16 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     if (BufferUtil.isBackedBySimpleArray(bitmap)
         && BufferUtil.isBackedBySimpleArray(arrayContainer.content)) {
       long[] b = bitmap.array();
-      short[] ac = arrayContainer.content.array();
+      char[] ac = arrayContainer.content.array();
       for (int k = 0; k < arrayContainer.cardinality; ++k) {
-        final short x = ac[k];
+        final char x = ac[k];
         bitArray[toIntUnsigned(x) / 64] =
             b[toIntUnsigned(x) / 64] | (1L << x);
       }
 
     } else {
       for (int k = 0; k < arrayContainer.cardinality; ++k) {
-        final short x = arrayContainer.content.get(k);
+        final char x = arrayContainer.content.get(k);
         bitArray[toIntUnsigned(x) / 64] =
             bitmap.get(toIntUnsigned(x) / 64) | (1L << x);
       }
@@ -1433,10 +1432,10 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     if (BufferUtil.isBackedBySimpleArray(answer.bitmap)
         && BufferUtil.isBackedBySimpleArray(value2.content)) {
       long[] ab = answer.bitmap.array();
-      short[] v2 = value2.content.array();
+      char[] v2 = value2.content.array();
       int c = value2.cardinality;
       for (int k = 0; k < c; ++k) {
-        short v = v2[k];
+        char v = v2[k];
         final int i = toIntUnsigned(v) >>> 6;
         long w = ab[i];
         long aft = w | (1L << v);
@@ -1452,7 +1451,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     } else {
       int c = value2.cardinality;
       for (int k = 0; k < c; ++k) {
-        short v2 = value2.content.get(k);
+        char v2 = value2.content.get(k);
         final int i = toIntUnsigned(v2) >>> 6;
         long w = answer.bitmap.get(i);
         long aft = w | (1L << v2);
@@ -1532,7 +1531,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   }
 
   @Override
-  public int rank(short lowbits) {
+  public int rank(char lowbits) {
     int x = toIntUnsigned(lowbits);
     int leftover = (x + 1) & 63;
     int answer = 0;
@@ -1598,7 +1597,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
 
   @Override
-  public MappeableContainer remove(final short i) {
+  public MappeableContainer remove(final char i) {
     final int x = toIntUnsigned(i);
     long X = bitmap.get(x / 64);
     long mask = 1L << x;
@@ -1656,7 +1655,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   }
 
   @Override
-  public short select(int j) {
+  public char select(int j) {
     int leftover = j;
     if (BufferUtil.isBackedBySimpleArray(this.bitmap)) {
       long[] b = this.bitmap.array();
@@ -1664,7 +1663,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       for (int k = 0; k < b.length; ++k) {
         int w = Long.bitCount(b[k]);
         if (w > leftover) {
-          return (short) (k * 64 + Util.select(b[k], leftover));
+          return (char) (k * 64 + Util.select(b[k], leftover));
         }
         leftover -= w;
       }
@@ -1674,7 +1673,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         long X = bitmap.get(k);
         int w = Long.bitCount(X);
         if (w > leftover) {
-          return (short) (k * 64 + Util.select(X, leftover));
+          return (char) (k * 64 + Util.select(X, leftover));
         }
         leftover -= w;
       }
@@ -1721,7 +1720,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder();
-    final ShortIterator i = this.getShortIterator();
+    final CharIterator i = this.getShortIterator();
     sb.append("{");
     while (i.hasNext()) {
       sb.append(toIntUnsigned(i.next()));
@@ -1775,10 +1774,10 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     }
     long[] bitArray = answer.bitmap.array();
     if (BufferUtil.isBackedBySimpleArray(value2.content)) {
-      short[] v2 = value2.content.array();
+      char[] v2 = value2.content.array();
       int c = value2.cardinality;
       for (int k = 0; k < c; ++k) {
-        short vc = v2[k];
+        char vc = v2[k];
         long mask = 1L << vc;
         final int index = toIntUnsigned(vc) >>> 6;
         long ba = bitArray[index];
@@ -1789,7 +1788,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     } else {
       int c = value2.cardinality;
       for (int k = 0; k < c; ++k) {
-        short v2 = value2.content.get(k);
+        char v2 = value2.content.get(k);
         long mask = 1L << v2;
         final int index = toIntUnsigned(v2) >>> 6;
         long ba = bitArray[index];
@@ -1853,7 +1852,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   }
 
   @Override
-  public void forEach(short msb, IntConsumer ic) {
+  public void forEach(char msb, IntConsumer ic) {
     int high = ((int) msb) << 16;
     if (BufferUtil.isBackedBySimpleArray(bitmap)) {
       long[] b = bitmap.array();
@@ -1882,7 +1881,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     int answer = 0;
     int c = value2.cardinality;
     for (int k = 0; k < c; ++k) {
-      short v = value2.content.get(k);
+      char v = value2.content.get(k);
       answer += this.bitValue(v);
     }
     return answer;
@@ -1959,22 +1958,22 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   }
 
   @Override
-  public int nextValue(short fromValue) {
+  public int nextValue(char fromValue) {
     return nextSetBit(toIntUnsigned(fromValue));
   }
 
   @Override
-  public int previousValue(short fromValue) {
+  public int previousValue(char fromValue) {
     return prevSetBit(toIntUnsigned(fromValue));
   }
 
   @Override
-  public int nextAbsentValue(short fromValue) {
+  public int nextAbsentValue(char fromValue) {
     return nextClearBit(toIntUnsigned(fromValue));
   }
 
   @Override
-  public int previousAbsentValue(short fromValue) {
+  public int previousAbsentValue(char fromValue) {
     return prevClearBit(toIntUnsigned(fromValue));
   }
 
@@ -2082,7 +2081,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 }
 
 
-final class MappeableBitmapContainerShortIterator implements PeekableShortIterator {
+final class MappeableBitmapContainerCharIterator implements PeekableCharIterator {
   final static int len = MappeableBitmapContainer.MAX_CAPACITY / 64;// hard coded for speed
   long w;
   int x;
@@ -2090,16 +2089,16 @@ final class MappeableBitmapContainerShortIterator implements PeekableShortIterat
 
   MappeableBitmapContainer parent;
 
-  MappeableBitmapContainerShortIterator() {}
+  MappeableBitmapContainerCharIterator() {}
 
-  MappeableBitmapContainerShortIterator(MappeableBitmapContainer p) {
+  MappeableBitmapContainerCharIterator(MappeableBitmapContainer p) {
     wrap(p);
   }
 
   @Override
-  public PeekableShortIterator clone() {
+  public PeekableCharIterator clone() {
     try {
-      return (PeekableShortIterator) super.clone();
+      return (PeekableCharIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null;// will not happen
     }
@@ -2111,8 +2110,8 @@ final class MappeableBitmapContainerShortIterator implements PeekableShortIterat
   }
 
   @Override
-  public short next() {
-    short answer = (short) (x * 64 + numberOfTrailingZeros(w));
+  public char next() {
+    char answer = (char) (x * 64 + numberOfTrailingZeros(w));
     w &= (w - 1);
     while (w == 0) {
       ++x;
@@ -2145,7 +2144,7 @@ final class MappeableBitmapContainerShortIterator implements PeekableShortIterat
   }
 
   @Override
-  public void advanceIfNeeded(short minval) {
+  public void advanceIfNeeded(char minval) {
     if (toIntUnsigned(minval) >= (x + 1) * 64) {
       x = toIntUnsigned(minval) / 64;
       w = parent.bitmap.get(x);
@@ -2164,13 +2163,13 @@ final class MappeableBitmapContainerShortIterator implements PeekableShortIterat
   }
 
   @Override
-  public short peekNext() {
-    return (short) (x * 64 + numberOfTrailingZeros(w));
+  public char peekNext() {
+    return (char) (x * 64 + numberOfTrailingZeros(w));
   }
 }
 
 
-final class ReverseMappeableBitmapContainerShortIterator implements ShortIterator {
+final class ReverseMappeableBitmapContainerCharIterator implements CharIterator {
 
   final static int len = MappeableBitmapContainer.MAX_CAPACITY / 64;// hard coded for speed
   long w;
@@ -2178,16 +2177,16 @@ final class ReverseMappeableBitmapContainerShortIterator implements ShortIterato
 
   MappeableBitmapContainer parent;
 
-  ReverseMappeableBitmapContainerShortIterator() {}
+  ReverseMappeableBitmapContainerCharIterator() {}
 
-  ReverseMappeableBitmapContainerShortIterator(MappeableBitmapContainer p) {
+  ReverseMappeableBitmapContainerCharIterator(MappeableBitmapContainer p) {
     wrap(p);
   }
 
   @Override
-  public ShortIterator clone() {
+  public CharIterator clone() {
     try {
-      return (ShortIterator) super.clone();
+      return (CharIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null;
     }
@@ -2199,9 +2198,9 @@ final class ReverseMappeableBitmapContainerShortIterator implements ShortIterato
   }
 
   @Override
-  public short next() {
+  public char next() {
     int shift = Long.numberOfLeadingZeros(w) + 1;
-    short answer = (short)((x + 1) * 64 - shift);
+    char answer = (char)((x + 1) * 64 - shift);
     w &= ~(1L << (64 - shift));
     while (w == 0) {
       --x;

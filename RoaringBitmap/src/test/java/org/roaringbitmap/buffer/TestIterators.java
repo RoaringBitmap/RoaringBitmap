@@ -21,9 +21,9 @@ import java.util.List;
 import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
+import org.roaringbitmap.CharIterator;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.PeekableIntIterator;
-import org.roaringbitmap.ShortIterator;
 
 public class TestIterators {
 
@@ -39,7 +39,7 @@ public class TestIterators {
     return Ints.asList(Arrays.copyOf(values, size));
   }
 
-  private static List<Integer> asList(final ShortIterator shorts) {
+  private static List<Integer> asList(final CharIterator shorts) {
     return asList(new IntIterator() {
       @Override
       public IntIterator clone() {

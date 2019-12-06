@@ -54,7 +54,7 @@ public class KryoTest {
         tmpfiledense.deleteOnExit();
         writeRoaringToFile(tmpfiledense, roaringDense, serializer);
         RoaringBitmap denseRoaringFromFile = readRoaringFromFile(tmpfiledense, serializer);
-        Assert.assertTrue(denseRoaringFromFile.equals(roaringDense));
+        Assert.assertEquals(denseRoaringFromFile, roaringDense);
 
         RoaringBitmap roaringSparse = new RoaringBitmap();
         for (int i = 0; i < 100_000; i++) {
@@ -65,7 +65,7 @@ public class KryoTest {
         File tmpfilesparse = File.createTempFile("roaring_sparse", "bin");
         writeRoaringToFile(tmpfilesparse, roaringSparse, serializer);
         RoaringBitmap sparseRoaringFromFile = readRoaringFromFile(tmpfilesparse, serializer);
-        Assert.assertTrue(sparseRoaringFromFile.equals(roaringSparse));
+        Assert.assertEquals(sparseRoaringFromFile, roaringSparse);
     }
 
 }

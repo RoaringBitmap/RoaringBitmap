@@ -16,7 +16,7 @@ import org.roaringbitmap.buffer.MappeableContainer;
 /**
  * Base container class.
  */
-public abstract class Container implements Iterable<Short>, Cloneable, Externalizable,
+public abstract class Container implements Iterable<Character>, Cloneable, Externalizable,
         WordStorage<Container> {
 
   /**
@@ -51,7 +51,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    * @param x short to be added
    * @return the new container
    */
-  public abstract Container add(short x);
+  public abstract Container add(char x);
 
   /**
    * Computes the bitwise AND of this container with another (intersection). This container as well
@@ -252,7 +252,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    * @param x value to check
    * @return whether the value is in the container
    */
-  public abstract boolean contains(short x);
+  public abstract boolean contains(char x);
 
   /**
    * Checks whether the container contains the entire range
@@ -315,7 +315,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    * @param x short to be added
    * @return the new container
    */
-  public abstract Container flip(short x);
+  public abstract Container flip(char x);
 
   /**
    * Size of the underlying array
@@ -325,7 +325,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
   protected abstract int getArraySizeInBytes();
 
   /**
-   * Computes the distinct number of short values in the container. Can be expected to run in
+   * Computes the distinct number of char values in the container. Can be expected to run in
    * constant time.
    *
    * @return the cardinality
@@ -359,28 +359,28 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    * @param msb 16 most significant bits
    * @param ic consumer
    */
-  public abstract void forEach(short msb, IntConsumer ic);
+  public abstract void forEach(char msb, IntConsumer ic);
 
   /**
-   * Iterator to visit the short values in the container in descending order.
+   * Iterator to visit the char values in the container in descending order.
    *
    * @return iterator
    */
-  public abstract ShortIterator getReverseShortIterator();
+  public abstract CharIterator getReverseShortIterator();
 
   /**
-   * Iterator to visit the short values in the container in ascending order.
+   * Iterator to visit the char values in the container in ascending order.
    *
    * @return iterator
    */
-  public abstract PeekableShortIterator getShortIterator();
+  public abstract PeekableCharIterator getShortIterator();
 
   /**
    * Iterator to visit the short values in container and pre-compute ranks
    *
    * @return iterator
    */
-  public abstract PeekableShortRankIterator getShortRankIterator();
+  public abstract PeekableCharRankIterator getShortRankIterator();
 
   /**
    * Gets an iterator to visit the contents of the container in batches
@@ -865,10 +865,10 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    *
    * @return the rank
    */
-  public abstract int rank(short lowbits);
+  public abstract int rank(char lowbits);
 
   /**
-   * Return a new container with all shorts in [begin,end) remove using an unsigned interpretation.
+   * Return a new container with all chars in [begin,end) remove using an unsigned interpretation.
    *
    * @param begin start of range (inclusive)
    * @param end end of range (exclusive)
@@ -877,12 +877,12 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
   public abstract Container remove(int begin, int end);
 
   /**
-   * Remove the short from this container. May create a new container.
+   * Remove the char from this container. May create a new container.
    *
    * @param x to be removed
    * @return New container
    */
-  public abstract Container remove(short x);
+  public abstract Container remove(char x);
 
   /**
    * The output of a lazyOR or lazyIOR might be an invalid container, this should be called on it.
@@ -907,7 +907,7 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    *
    * @return the value
    */
-  public abstract short select(int j);
+  public abstract char select(int j);
 
   /**
    * Serialize the container.
@@ -1009,28 +1009,28 @@ public abstract class Container implements Iterable<Short>, Cloneable, Externali
    * @param fromValue the lower bound (inclusive)
    * @return the next value
    */
-  public abstract int nextValue(short fromValue);
+  public abstract int nextValue(char fromValue);
 
   /**
    * Gets the last value less than or equal to the upper bound, or -1 if no such value exists.
    * @param fromValue the upper bound (inclusive)
    * @return the previous value
    */
-  public abstract int previousValue(short fromValue);
+  public abstract int previousValue(char fromValue);
 
   /**
    * Gets the first absent value greater than or equal to the lower bound.
    * @param fromValue the lower bound (inclusive)
    * @return the next absent value
    */
-  public abstract int nextAbsentValue(short fromValue);
+  public abstract int nextAbsentValue(char fromValue);
 
   /**
    * Gets the last value less than or equal to the upper bound.
    * @param fromValue the upper bound (inclusive)
    * @return the previous absent value
    */
-  public abstract int previousAbsentValue(short fromValue);
+  public abstract int previousAbsentValue(char fromValue);
 
 
   /**

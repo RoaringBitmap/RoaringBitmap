@@ -133,7 +133,7 @@ public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
   private int appendToUnderlying() {
     if (dirty) {
       assert currentKey <= 0xFFFF;
-      underlying.append((short) currentKey, chooseBestContainer());
+      underlying.append((char) currentKey, chooseBestContainer());
       Arrays.fill(bitmap, 0L);
       dirty = false;
       return 1;

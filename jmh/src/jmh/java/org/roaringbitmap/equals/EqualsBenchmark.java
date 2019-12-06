@@ -80,8 +80,8 @@ public class EqualsBenchmark {
 
     @Setup(Level.Trial)
     public void init() {
-      short[] l = array(size);
-      short[] r = Arrays.copyOf(l, size);
+      char[] l = array(size);
+      char[] r = Arrays.copyOf(l, size);
       int mismatch = (int) (firstMismatch * size);
       if (mismatch < size) {
         for (int i = 0; i < size; ++i) {
@@ -115,13 +115,13 @@ public class EqualsBenchmark {
   }
 
 
-  private static short[] array(int size) {
+  private static char[] array(int size) {
     if (size >= 4096) {
       throw new IllegalStateException();
     }
-    short[] array = new short[size];
+    char[] array = new char[size];
     for (int i = 0; i < size; ++i) {
-      array[i] = (short) i;
+      array[i] = (char) i;
     }
     return array;
   }

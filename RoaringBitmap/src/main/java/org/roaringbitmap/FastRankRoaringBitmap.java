@@ -188,7 +188,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
       return 0L;
     }
 
-    short xhigh = Util.highbits(x);
+    char xhigh = Util.highbits(x);
 
     int index = Util.hybridUnsignedBinarySearch(this.highLowContainer.keys, 0,
         this.highLowContainer.size(), xhigh);
@@ -284,7 +284,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
   private class FastRoaringIntRankIterator implements PeekableIntRankIterator {
     private int hs = 0;
 
-    private PeekableShortRankIterator iter;
+    private PeekableCharRankIterator iter;
 
     private int pos = 0;
 

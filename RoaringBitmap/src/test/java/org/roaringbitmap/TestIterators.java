@@ -29,7 +29,7 @@ public class TestIterators {
     return Ints.asList(Arrays.copyOf(values, size));
   }
 
-  private static List<Integer> asList(final ShortIterator shorts) {
+  private static List<Integer> asList(final CharIterator shorts) {
     return asList(new IntIterator() {
       @Override
       public IntIterator clone() {

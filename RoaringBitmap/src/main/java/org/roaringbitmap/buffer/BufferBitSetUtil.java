@@ -1,6 +1,7 @@
 package org.roaringbitmap.buffer;
 
 
+import java.nio.CharBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 import java.util.Arrays;
@@ -28,17 +29,17 @@ public class BufferBitSetUtil {
   private static MappeableArrayContainer arrayContainerOf(final int from, final int to,
       final int cardinality, final long[] words) {
     // precondition: cardinality is max 4096
-    final short[] content = new short[cardinality];
+    final char[] content = new char[cardinality];
     int index = 0;
 
     for (int i = from, socket = 0; i < to; ++i, socket += Long.SIZE) {
       long word = words[i];
       while (word != 0) {
-        content[index++] = (short) (socket + numberOfTrailingZeros(word));
+        content[index++] = (char) (socket + numberOfTrailingZeros(word));
         word &= (word - 1);
       }
     }
-    return new MappeableArrayContainer(ShortBuffer.wrap(content), cardinality);
+    return new MappeableArrayContainer(CharBuffer.wrap(content), cardinality);
   }
 
 

@@ -47,7 +47,7 @@ public class TestRoaringBitmap {
   @Test
   public void intersectBitmapWithRangeHighBits() {
       Container[] values = new Container[1];
-      RoaringArray ra = new RoaringArray(new short[1], values, 1);
+      RoaringArray ra = new RoaringArray(new char[1], values, 1);
       long[] bitmap = new long[1024];
       Arrays.fill(bitmap, 0, 512, 0xAAAAAAAAAAAAAAAAL);
       values[0] = new BitmapContainer(bitmap, 512 * Long.bitCount(0xAAAAAAAAAAAAAAAAL));
@@ -1229,11 +1229,11 @@ public class TestRoaringBitmap {
   @Test
   public void ArrayContainerCardinalityTest() {
     final ArrayContainer ac = new ArrayContainer();
-    for (short k = 0; k < 100; ++k) {
+    for (char k = 0; k < 100; ++k) {
       ac.add(k);
       Assert.assertEquals(ac.getCardinality(), k + 1);
     }
-    for (short k = 0; k < 100; ++k) {
+    for (char k = 0; k < 100; ++k) {
       ac.add(k);
       Assert.assertEquals(ac.getCardinality(), 100);
     }
@@ -1242,17 +1242,17 @@ public class TestRoaringBitmap {
   @Test
   public void arraytest() {
     final ArrayContainer rr = new ArrayContainer();
-    rr.add((short) 110);
-    rr.add((short) 114);
-    rr.add((short) 115);
-    final short[] array = new short[3];
+    rr.add((char) 110);
+    rr.add((char) 114);
+    rr.add((char) 115);
+    final char[] array = new char[3];
     int pos = 0;
-    for (final short i : rr) {
+    for (final char i : rr) {
       array[pos++] = i;
     }
-    Assert.assertEquals(array[0], (short) 110);
-    Assert.assertEquals(array[1], (short) 114);
-    Assert.assertEquals(array[2], (short) 115);
+    Assert.assertEquals(array[0], (char) 110);
+    Assert.assertEquals(array[1], (char) 114);
+    Assert.assertEquals(array[2], (char) 115);
   }
 
   @Test
@@ -1277,11 +1277,11 @@ public class TestRoaringBitmap {
   @Test
   public void BitmapContainerCardinalityTest() {
     final BitmapContainer ac = new BitmapContainer();
-    for (short k = 0; k < 100; ++k) {
+    for (char k = 0; k < 100; ++k) {
       ac.add(k);
       Assert.assertEquals(ac.getCardinality(), k + 1);
     }
-    for (short k = 0; k < 100; ++k) {
+    for (char k = 0; k < 100; ++k) {
       ac.add(k);
       Assert.assertEquals(ac.getCardinality(), 100);
     }
@@ -1301,17 +1301,17 @@ public class TestRoaringBitmap {
   @Test
   public void bitmaptest() {
     final BitmapContainer rr = new BitmapContainer();
-    rr.add((short) 110);
-    rr.add((short) 114);
-    rr.add((short) 115);
-    final short[] array = new short[3];
+    rr.add((char) 110);
+    rr.add((char) 114);
+    rr.add((char) 115);
+    final char[] array = new char[3];
     int pos = 0;
-    for (final short i : rr) {
+    for (final char i : rr) {
       array[pos++] = i;
     }
-    Assert.assertEquals(array[0], (short) 110);
-    Assert.assertEquals(array[1], (short) 114);
-    Assert.assertEquals(array[2], (short) 115);
+    Assert.assertEquals(array[0], (char) 110);
+    Assert.assertEquals(array[1], (char) 114);
+    Assert.assertEquals(array[2], (char) 115);
   }
 
   @Test
@@ -1412,24 +1412,24 @@ public class TestRoaringBitmap {
     ac2 = new ArrayContainer();
     ac3 = new ArrayContainer();
 
-    for (short i = 0; i < 5000; i++) {
-      bc1.add((short) (i * 70));
+    for (char i = 0; i < 5000; i++) {
+      bc1.add((char) (i * 70));
     }
-    for (short i = 0; i < 5000; i++) {
-      bc2.add((short) (i * 70));
+    for (char i = 0; i < 5000; i++) {
+      bc2.add((char) (i * 70));
     }
-    for (short i = 0; i < 5000; i++) {
-      bc3.add((short) (i * 70));
+    for (char i = 0; i < 5000; i++) {
+      bc3.add((char) (i * 70));
     }
 
-    for (short i = 0; i < 4000; i++) {
-      ac1.add((short) (i * 50));
+    for (char i = 0; i < 4000; i++) {
+      ac1.add((char) (i * 50));
     }
-    for (short i = 0; i < 4000; i++) {
-      ac2.add((short) (i * 50));
+    for (char i = 0; i < 4000; i++) {
+      ac2.add((char) (i * 50));
     }
-    for (short i = 0; i < 4000; i++) {
-      ac3.add((short) (i * 50));
+    for (char i = 0; i < 4000; i++) {
+      ac3.add((char) (i * 50));
     }
 
     BitmapContainer rbc;
@@ -1956,10 +1956,10 @@ public class TestRoaringBitmap {
 
   @Test
   public void shouldNotIntersectWithDisjointRangeBelowBitmapFirst() {
-    short[] keys = new short[1];
+    char[] keys = new char[1];
     Container[] values = new Container[1];
     RoaringBitmap bitmap = new RoaringBitmap(new RoaringArray(keys, values, 1));
-    keys[0] = (short)(1 << 15);
+    keys[0] = (char)(1 << 15);
     long[] bits = new long[1024];
     long word = 1789303257167203747L;
     Arrays.fill(bits, word);
@@ -1969,10 +1969,10 @@ public class TestRoaringBitmap {
 
   @Test
   public void shouldIntersectWithFirstWhenBitmapAtStart() {
-    short[] keys = new short[1];
+    char[] keys = new char[1];
     Container[] values = new Container[1];
     RoaringBitmap bitmap = new RoaringBitmap(new RoaringArray(keys, values, 1));
-    keys[0] = (short)(1 << 15);
+    keys[0] = (char)(1 << 15);
     long[] bits = new long[1024];
     long word = 2697219678014362575L;
     Arrays.fill(bits, word);
@@ -4137,10 +4137,10 @@ public class TestRoaringBitmap {
 
   @Test
   public void testSetUtilIntersection() {
-    short data1[] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18};
-    short data2[] = {0, 3, 6, 9, 12, 15, 18};
-    short result[] = new short[data1.length + data2.length];
-    short expectedresult[] = {0, 6, 12, 18};
+    char data1[] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18};
+    char data2[] = {0, 3, 6, 9, 12, 15, 18};
+    char result[] = new char[data1.length + data2.length];
+    char expectedresult[] = {0, 6, 12, 18};
     int nl = Util.unsignedLocalIntersect2by2(data1, data1.length, data2, data2.length, result);
     result = Arrays.copyOf(result, nl);
     Assert.assertTrue(Arrays.equals(expectedresult, result));
@@ -4161,12 +4161,12 @@ public class TestRoaringBitmap {
   public void trimArrayContainerCardinalityTest() {
     final ArrayContainer ac = new ArrayContainer();
     ac.trim();
-    for (short k = 0; k < 100; ++k) {
+    for (char k = 0; k < 100; ++k) {
       ac.add(k);
       ac.trim();
       Assert.assertEquals(ac.getCardinality(), k + 1);
     }
-    for (short k = 0; k < 100; ++k) {
+    for (char k = 0; k < 100; ++k) {
       ac.add(k);
       ac.trim();
       Assert.assertEquals(ac.getCardinality(), 100);
@@ -4186,7 +4186,7 @@ public class TestRoaringBitmap {
     int i = bc.nextSetBit(0);
     while (i >= 0) {
       ++counter;
-      if (!ac.contains((short) i)) {
+      if (!ac.contains((char) i)) {
         System.out.println("content differs");
         System.out.println(bc);
         System.out.println(ac);
@@ -4406,7 +4406,7 @@ public class TestRoaringBitmap {
     }
 
     for (final int i : rrxor.toArray()) {
-      if (!vector.contains(new Integer(i))) {
+      if (!vector.contains(i)) {
         valide = false;
       }
       V2.add(i);

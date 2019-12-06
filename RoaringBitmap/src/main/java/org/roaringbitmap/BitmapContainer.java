@@ -10,6 +10,7 @@ import org.roaringbitmap.buffer.MappeableContainer;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.CharBuffer;
 import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -44,8 +45,8 @@ public final class BitmapContainer extends Container implements Cloneable {
    * @param bitmap array to be iterated over
    * @return an iterator
    */
-  public static ShortIterator getReverseShortIterator(long[] bitmap) {
-    return new ReverseBitmapContainerShortIterator(bitmap);
+  public static CharIterator getReverseShortIterator(long[] bitmap) {
+    return new ReverseBitmapContainerCharIterator(bitmap);
   }
 
   /**
@@ -54,8 +55,8 @@ public final class BitmapContainer extends Container implements Cloneable {
    * @param bitmap array to be iterated over
    * @return an iterator
    */
-  public static PeekableShortIterator getShortIterator(long[] bitmap) {
-    return new BitmapContainerShortIterator(bitmap);
+  public static PeekableCharIterator getShortIterator(long[] bitmap) {
+    return new BitmapContainerCharIterator(bitmap);
   }
 
   // the parameter is for overloading and symmetry with ArrayContainer
@@ -143,7 +144,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
 
   @Override
-  public Container add(final short i) {
+  public Container add(final char i) {
     final int x = Util.toIntUnsigned(i);
     final long previous = bitmap[x / 64];
     long newval = previous | (1L << x);
@@ -161,7 +162,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     final ArrayContainer answer = new ArrayContainer(value2.content.length);
     int c = value2.cardinality;
     for (int k = 0; k < c; ++k) {
-      short v = value2.content[k];
+      char v = value2.content[k];
       answer.content[answer.cardinality] = v;
       answer.cardinality += this.bitValue(v);
     }
@@ -198,7 +199,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     int answer = 0;
     int c = value2.cardinality;
     for (int k = 0; k < c; ++k) {
-      short v = value2.content[k];
+      char v = value2.content[k];
       answer += this.bitValue(v);
     }
     return answer;
@@ -223,7 +224,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     final BitmapContainer answer = clone();
     int c = value2.cardinality;
     for (int k = 0; k < c; ++k) {
-      short v = value2.content[k];
+      char v = value2.content[k];
       final int i = Util.toIntUnsigned(v) >>> 6;
       long w = answer.bitmap[i];
       long aft = w & (~(1L << v));
@@ -318,7 +319,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
-  public boolean contains(final short i) {
+  public boolean contains(final char i) {
     final int x = Util.toIntUnsigned(i);
     return (bitmap[x / 64] & (1L << x)) != 0;
   }
@@ -400,7 +401,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
 
-  protected long bitValue(final short i) {
+  protected long bitValue(final char i) {
     final int x = Util.toIntUnsigned(i);
     return (bitmap[x / 64] >>> x ) & 1;
   }
@@ -437,13 +438,13 @@ public final class BitmapContainer extends Container implements Cloneable {
    *
    * @param array container (should be sufficiently large)
    */
-  protected void fillArray(final short[] array) {
+  protected void fillArray(final char[] array) {
     int pos = 0;
     int base = 0;
     for (int k = 0; k < bitmap.length; ++k) {
       long bitset = bitmap[k];
       while (bitset != 0) {
-        array[pos++] = (short) (base + numberOfTrailingZeros(bitset));
+        array[pos++] = (char) (base + numberOfTrailingZeros(bitset));
         bitset &= (bitset - 1);
       }
       base += 64;
@@ -466,7 +467,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
 
   @Override
-  public Container flip(short i) {
+  public Container flip(char i) {
     final int x = Util.toIntUnsigned(i);
     int index = x / 64;
     long bef = bitmap[index];
@@ -498,18 +499,18 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
-  public ShortIterator getReverseShortIterator() {
-    return new ReverseBitmapContainerShortIterator(this.bitmap);
+  public CharIterator getReverseShortIterator() {
+    return new ReverseBitmapContainerCharIterator(this.bitmap);
   }
 
   @Override
-  public PeekableShortIterator getShortIterator() {
-    return new BitmapContainerShortIterator(this.bitmap);
+  public PeekableCharIterator getShortIterator() {
+    return new BitmapContainerCharIterator(this.bitmap);
   }
 
   @Override
-  public PeekableShortRankIterator getShortRankIterator() {
-    return new BitmapContainerShortRankIterator(this.bitmap);
+  public PeekableCharRankIterator getShortRankIterator() {
+    return new BitmapContainerCharRankIterator(this.bitmap);
   }
 
   @Override
@@ -578,8 +579,8 @@ public final class BitmapContainer extends Container implements Cloneable {
         int runStart = Util.toIntUnsigned(x.getValue(rlepos));
         int runEnd = runStart + Util.toIntUnsigned(x.getLength(rlepos));
         for (int runValue = runStart; runValue <= runEnd; ++runValue) {
-          answer.content[answer.cardinality] = (short) runValue;
-          answer.cardinality += this.bitValue((short) runValue);
+          answer.content[answer.cardinality] = (char) runValue;
+          answer.cardinality += this.bitValue((char) runValue);
         }
       }
       return answer;
@@ -653,7 +654,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     this.cardinality = -1;// invalid
     int c = value2.cardinality;
     for (int k = 0; k < c; ++k) {
-      short v = value2.content[k];
+      char v = value2.content[k];
       final int i = Util.toIntUnsigned(v) >>> 6;
       this.bitmap[i] |= (1L << v);
     }
@@ -808,9 +809,9 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
-  public Iterator<Short> iterator() {
-    return new Iterator<Short>() {
-      final ShortIterator si = BitmapContainer.this.getShortIterator();
+  public Iterator<Character> iterator() {
+    return new Iterator<Character>() {
+      final CharIterator si = BitmapContainer.this.getShortIterator();
 
       @Override
       public boolean hasNext() {
@@ -818,7 +819,7 @@ public final class BitmapContainer extends Container implements Cloneable {
       }
 
       @Override
-      public Short next() {
+      public Character next() {
         return si.next();
       }
 
@@ -834,7 +835,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   public Container ixor(final ArrayContainer value2) {
     int c = value2.cardinality;
     for (int k = 0; k < c; ++k) {
-      short vc = value2.content[k];
+      char vc = value2.content[k];
       long mask = 1L << vc;
       final int index = Util.toIntUnsigned(vc) >>> 6;
       long ba = this.bitmap[index];
@@ -890,7 +891,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     answer.cardinality = -1;// invalid
     int c = value2.cardinality;
     for (int k = 0; k < c; ++k) {
-      short v = value2.content[k];
+      char v = value2.content[k];
       final int i = Util.toIntUnsigned(v) >>> 6;
       answer.bitmap[i] |= (1L << v);
     }
@@ -929,7 +930,7 @@ public final class BitmapContainer extends Container implements Cloneable {
       for (int k = 0; (ac.cardinality < maxcardinality) && (k < bitmap.length); ++k) {
         long bitset = bitmap[k];
         while ((ac.cardinality < maxcardinality) && (bitset != 0)) {
-          ac.content[pos++] = (short) (k * 64 + numberOfTrailingZeros(bitset));
+          ac.content[pos++] = (char) (k * 64 + numberOfTrailingZeros(bitset));
           ac.cardinality++;
           bitset &= (bitset - 1);
         }
@@ -953,7 +954,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   protected void loadData(final ArrayContainer arrayContainer) {
     this.cardinality = arrayContainer.cardinality;
     for (int k = 0; k < arrayContainer.cardinality; ++k) {
-      final short x = arrayContainer.content[k];
+      final char x = arrayContainer.content[k];
       bitmap[Util.toIntUnsigned(x) / 64] |= (1L << x);
     }
   }
@@ -1077,7 +1078,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     final BitmapContainer answer = clone();
     int c = value2.cardinality;
     for (int k = 0; k < c; ++k) {
-      short v = value2.content[k];
+      char v = value2.content[k];
       final int i = Util.toIntUnsigned(v) >>> 6;
       long w = answer.bitmap[i];
       long aft = w | (1L << v);
@@ -1155,7 +1156,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
-  public int rank(short lowbits) {
+  public int rank(char lowbits) {
     int x = Util.toIntUnsigned(lowbits);
     int leftover = (x + 1) & 63;
     int answer = 0;
@@ -1193,7 +1194,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
-  public Container remove(final short i) {
+  public Container remove(final char i) {
     final int x = Util.toIntUnsigned(i);
     int index = x / 64;
     long bef = bitmap[index];
@@ -1250,12 +1251,12 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
-  public short select(int j) {
+  public char select(int j) {
     int leftover = j;
     for (int k = 0; k < bitmap.length; ++k) {
       int w = Long.bitCount(bitmap[k]);
       if (w > leftover) {
-        return (short) (k * 64 + Util.select(bitmap[k], leftover));
+        return (char) (k * 64 + Util.select(bitmap[k], leftover));
       }
       leftover -= w;
     }
@@ -1309,7 +1310,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    final ShortIterator i = this.getShortIterator();
+    final CharIterator i = this.getShortIterator();
     sb.append("{");
     while (i.hasNext()) {
       sb.append(Util.toIntUnsigned(i.next()));
@@ -1348,7 +1349,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     final BitmapContainer answer = clone();
     int c = value2.cardinality;
     for (int k = 0; k < c; ++k) {
-      short vc = value2.content[k];
+      char vc = value2.content[k];
       final int index = Util.toIntUnsigned(vc) >>> 6;
       final long mask = 1L << vc;
       final long val = answer.bitmap[index];
@@ -1388,8 +1389,8 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
-  public void forEach(short msb, IntConsumer ic) {
-    int high = ((int) msb) << 16;
+  public void forEach(char msb, IntConsumer ic) {
+    int high = msb << 16;
     for (int x = 0; x < bitmap.length; ++x) {
       long w = bitmap[x];
       while (w != 0) {
@@ -1405,22 +1406,22 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
-  public int nextValue(short fromValue) {
+  public int nextValue(char fromValue) {
     return nextSetBit(Util.toIntUnsigned(fromValue));
   }
 
   @Override
-  public int previousValue(short fromValue) {
+  public int previousValue(char fromValue) {
     return prevSetBit(Util.toIntUnsigned(fromValue));
   }
 
   @Override
-  public int nextAbsentValue(short fromValue) {
+  public int nextAbsentValue(char fromValue) {
     return nextClearBit(Util.toIntUnsigned(fromValue));
   }
 
   @Override
-  public int previousAbsentValue(short fromValue) {
+  public int previousAbsentValue(char fromValue) {
     return prevClearBit(Util.toIntUnsigned(fromValue));
   }
 
@@ -1449,23 +1450,23 @@ public final class BitmapContainer extends Container implements Cloneable {
 }
 
 
-class BitmapContainerShortIterator implements PeekableShortIterator {
+class BitmapContainerCharIterator implements PeekableCharIterator {
 
   long w;
   int x;
 
   long[] bitmap;
 
-  BitmapContainerShortIterator() {}
+  BitmapContainerCharIterator() {}
 
-  BitmapContainerShortIterator(long[] p) {
+  BitmapContainerCharIterator(long[] p) {
     wrap(p);
   }
 
   @Override
-  public PeekableShortIterator clone() {
+  public PeekableCharIterator clone() {
     try {
-      return (PeekableShortIterator) super.clone();
+      return (PeekableCharIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null;// will not happen
     }
@@ -1477,8 +1478,8 @@ class BitmapContainerShortIterator implements PeekableShortIterator {
   }
 
   @Override
-  public short next() {
-    short answer = (short) (x * 64 + numberOfTrailingZeros(w));
+  public char next() {
+    char answer = (char) (x * 64 + numberOfTrailingZeros(w));
     w &= (w - 1);
     while (w == 0) {
       ++x;
@@ -1514,7 +1515,7 @@ class BitmapContainerShortIterator implements PeekableShortIterator {
   }
 
   @Override
-  public void advanceIfNeeded(short minval) {
+  public void advanceIfNeeded(char minval) {
     if (Util.toIntUnsigned(minval) >= (x + 1) * 64) {
       x = Util.toIntUnsigned(minval) / 64;
       w = bitmap[x];
@@ -1532,16 +1533,16 @@ class BitmapContainerShortIterator implements PeekableShortIterator {
   }
 
   @Override
-  public short peekNext() {
-    return (short) (x * 64 + numberOfTrailingZeros(w));
+  public char peekNext() {
+    return (char) (x * 64 + numberOfTrailingZeros(w));
   }
 }
 
-final class BitmapContainerShortRankIterator extends BitmapContainerShortIterator
-    implements PeekableShortRankIterator {
+final class BitmapContainerCharRankIterator extends BitmapContainerCharIterator
+    implements PeekableCharRankIterator {
   int nextRank = 1;
 
-  public BitmapContainerShortRankIterator(long[] p) {
+  public BitmapContainerCharRankIterator(long[] p) {
     super(p);
   }
 
@@ -1551,13 +1552,13 @@ final class BitmapContainerShortRankIterator extends BitmapContainerShortIterato
   }
 
   @Override
-  public short next() {
+  public char next() {
     ++nextRank;
     return super.next();
   }
 
   @Override
-  public void advanceIfNeeded(short minval) {
+  public void advanceIfNeeded(char minval) {
     if (Util.toIntUnsigned(minval) >= (x + 1) * 64) {
 
       int nextX = Util.toIntUnsigned(minval) / 64;
@@ -1584,28 +1585,28 @@ final class BitmapContainerShortRankIterator extends BitmapContainerShortIterato
   }
 
   @Override
-  public PeekableShortRankIterator clone() {
-    return (PeekableShortRankIterator) super.clone();
+  public PeekableCharRankIterator clone() {
+    return (PeekableCharRankIterator) super.clone();
   }
 }
 
-final class ReverseBitmapContainerShortIterator implements ShortIterator {
+final class ReverseBitmapContainerCharIterator implements CharIterator {
 
   long word;
   int position;
 
   long[] bitmap;
 
-  ReverseBitmapContainerShortIterator() {}
+  ReverseBitmapContainerCharIterator() {}
 
-  ReverseBitmapContainerShortIterator(long[] bitmap) {
+  ReverseBitmapContainerCharIterator(long[] bitmap) {
     wrap(bitmap);
   }
 
   @Override
-  public ShortIterator clone() {
+  public CharIterator clone() {
     try {
-      return (ShortIterator) super.clone();
+      return (CharIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null;
     }
@@ -1617,9 +1618,9 @@ final class ReverseBitmapContainerShortIterator implements ShortIterator {
   }
 
   @Override
-  public short next() {
+  public char next() {
     int shift = Long.numberOfLeadingZeros(word) + 1;
-    short answer = (short)((position + 1) * 64 - shift);
+    char answer = (char)((position + 1) * 64 - shift);
     word &= ~(1L << (64 - shift));
     while (word == 0) {
       --position;
