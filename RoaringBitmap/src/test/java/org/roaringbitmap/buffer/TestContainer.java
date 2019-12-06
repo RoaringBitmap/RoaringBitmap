@@ -33,7 +33,7 @@ public class TestContainer {
   }
 
   public static boolean checkContent(MappeableContainer c, char[] s) {
-    CharIterator si = c.getShortIterator();
+    CharIterator si = c.getCharIterator();
     int ctr = 0;
     boolean fail = false;
     while (si.hasNext()) {
@@ -52,7 +52,7 @@ public class TestContainer {
     }
     if (fail) {
       System.out.print("fail, found ");
-      si = c.getShortIterator();
+      si = c.getCharIterator();
       while (si.hasNext()) {
         System.out.print(" " + si.next());
       }

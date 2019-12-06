@@ -74,8 +74,8 @@ public class TestIterators {
     final MappeableBitmapContainer bits =
         new MappeableBitmapContainer(2, LongBuffer.allocate(2).put(0x1l).put(1l << 63));
 
-    Assert.assertEquals(asList(bits.getShortIterator()), ImmutableList.of(0, 127));
-    Assert.assertEquals(asList(bits.getReverseShortIterator()), ImmutableList.of(127, 0));
+    Assert.assertEquals(asList(bits.getCharIterator()), ImmutableList.of(0, 127));
+    Assert.assertEquals(asList(bits.getReverseCharIterator()), ImmutableList.of(127, 0));
   }
 
   @Test

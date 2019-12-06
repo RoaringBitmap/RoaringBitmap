@@ -7,7 +7,7 @@ import java.util.Random;
 
 public class TestRankIteratorsOfContainers {
   private void testContainerRanksOnNext(Container c) {
-    PeekableCharRankIterator iterator = c.getShortRankIterator();
+    PeekableCharRankIterator iterator = c.getCharRankIterator();
     while (iterator.hasNext()) {
       char bit = iterator.peekNext();
       int rank = iterator.peekNextRank();
@@ -19,7 +19,7 @@ public class TestRankIteratorsOfContainers {
   }
 
   private void testContainerRanksOnNextAsInt(Container c) {
-    PeekableCharRankIterator iterator = c.getShortRankIterator();
+    PeekableCharRankIterator iterator = c.getCharRankIterator();
     while (iterator.hasNext()) {
       char bit = iterator.peekNext();
       int rank = iterator.peekNextRank();
@@ -31,7 +31,7 @@ public class TestRankIteratorsOfContainers {
   }
 
   private void testContainerRanksOnAdvance(Container c, int advance) {
-    PeekableCharRankIterator iterator = c.getShortRankIterator();
+    PeekableCharRankIterator iterator = c.getCharRankIterator();
     char bit;
     while (iterator.hasNext()) {
       bit = iterator.peekNext();
@@ -195,7 +195,7 @@ public class TestRankIteratorsOfContainers {
       Assert.assertSame("bad test -- container was changed", container, c1);
     }
 
-    PeekableCharRankIterator iterator = container.getShortRankIterator();
+    PeekableCharRankIterator iterator = container.getCharRankIterator();
     while (iterator.hasNext()) {
       Assert.assertEquals((iterator.peekNext()) + 1, iterator.peekNextRank());
       iterator.next();

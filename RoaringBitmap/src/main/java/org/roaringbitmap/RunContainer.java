@@ -590,7 +590,7 @@ public final class RunContainer extends Container implements Cloneable {
       // if the cardinality is small, we construct the solution in place
       ArrayContainer ac = new ArrayContainer(card);
       ac.cardinality =
-          Util.unsignedDifference(this.getShortIterator(), x.getShortIterator(), ac.content);
+          Util.unsignedDifference(this.getCharIterator(), x.getCharIterator(), ac.content);
       return ac;
     }
     // otherwise, we generate a bitmap
@@ -951,8 +951,8 @@ public final class RunContainer extends Container implements Cloneable {
         return false; // should be a frequent branch if they differ
       }
       // next bit could be optimized if needed:
-      CharIterator me = this.getShortIterator();
-      CharIterator you = ((Container) o).getShortIterator();
+      CharIterator me = this.getCharIterator();
+      CharIterator you = ((Container) o).getCharIterator();
       while (me.hasNext()) {
         if (me.next() != you.next()) {
           return false;
@@ -1035,17 +1035,17 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   @Override
-  public CharIterator getReverseShortIterator() {
+  public CharIterator getReverseCharIterator() {
     return new ReverseRunContainerCharIterator(this);
   }
 
   @Override
-  public PeekableCharIterator getShortIterator() {
+  public PeekableCharIterator getCharIterator() {
     return new RunContainerCharIterator(this);
   }
 
   @Override
-  public PeekableCharRankIterator getShortRankIterator() {
+  public PeekableCharRankIterator getCharRankIterator() {
     return new RunContainerCharRankIterator(this);
   }
 
@@ -1226,7 +1226,7 @@ public final class RunContainer extends Container implements Cloneable {
     copyToOffset(offset);
     int rlepos = 0;
     this.nbrruns = 0;
-    PeekableCharIterator i = x.getShortIterator();
+    PeekableCharIterator i = x.getCharIterator();
     while (i.hasNext() && (rlepos < nbrruns)) {
       if (getValue(rlepos + offset) - i.peekNext() <= 0) {
         smartAppend(getValue(rlepos + offset), getLength(rlepos + offset));
@@ -1492,7 +1492,7 @@ public final class RunContainer extends Container implements Cloneable {
     copyToOffset(offset);
     int rlepos = 0;
     this.nbrruns = 0;
-    PeekableCharIterator i = x.getShortIterator();
+    PeekableCharIterator i = x.getCharIterator();
     while (i.hasNext() && (rlepos < nbrruns)) {
       if (getValue(rlepos + offset) - i.peekNext() <= 0) {
         smartAppend(getValue(rlepos + offset), getLength(rlepos + offset));
@@ -1691,7 +1691,7 @@ public final class RunContainer extends Container implements Cloneable {
 
   @Override
   public Iterator<Character> iterator() {
-    final CharIterator i = getShortIterator();
+    final CharIterator i = getCharIterator();
     return new Iterator<Character>() {
 
       @Override
@@ -1798,7 +1798,7 @@ public final class RunContainer extends Container implements Cloneable {
     // TODO: should optimize for the frequent case where we have a single run
     RunContainer answer = new RunContainer(new char[2 * (this.nbrruns + x.getCardinality())], 0);
     int rlepos = 0;
-    PeekableCharIterator i = x.getShortIterator();
+    PeekableCharIterator i = x.getCharIterator();
 
     while (i.hasNext() && (rlepos < this.nbrruns)) {
       if (getValue(rlepos) - i.peekNext() <= 0) {
@@ -1846,7 +1846,7 @@ public final class RunContainer extends Container implements Cloneable {
     }
     RunContainer answer = new RunContainer(new char[2 * (this.nbrruns + x.getCardinality())], 0);
     int rlepos = 0;
-    CharIterator i = x.getShortIterator();
+    CharIterator i = x.getCharIterator();
     char cv = i.next();
 
     while (true) {
@@ -2447,7 +2447,7 @@ public final class RunContainer extends Container implements Cloneable {
     final int card = getCardinality();
     if (card <= ArrayContainer.DEFAULT_MAX_SIZE) {
       // if the cardinality is small, we construct the solution in place
-      return x.xor(this.getShortIterator());
+      return x.xor(this.getCharIterator());
     }
     // otherwise, we generate a bitmap (even if runcontainer would be better)
     return toBitmapOrArrayContainer(card).ixor(x);

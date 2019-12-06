@@ -334,7 +334,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
     private void nextContainer() {
       if (pos < FastRankRoaringBitmap.this.highLowContainer.size()) {
         iter = FastRankRoaringBitmap.this.highLowContainer.getContainerAtIndex(pos)
-                                                          .getShortRankIterator();
+                                                          .getCharRankIterator();
         hs = FastRankRoaringBitmap.this.highLowContainer.getKeyAtIndex(pos) << 16;
       }
     }

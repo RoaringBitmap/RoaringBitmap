@@ -66,8 +66,8 @@ public class TestIterators {
   public void testBitmapIteration() {
     final BitmapContainer bits = new BitmapContainer(new long[] {0x1l, 1l << 63}, 2);
 
-    Assert.assertEquals(asList(bits.getShortIterator()), ImmutableList.of(0, 127));
-    Assert.assertEquals(asList(bits.getReverseShortIterator()), ImmutableList.of(127, 0));
+    Assert.assertEquals(asList(bits.getCharIterator()), ImmutableList.of(0, 127));
+    Assert.assertEquals(asList(bits.getReverseCharIterator()), ImmutableList.of(127, 0));
   }
 
   @Test

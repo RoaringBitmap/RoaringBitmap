@@ -44,7 +44,7 @@ public class BitmapIteratorBenchmark {
 
   @Benchmark
   public char forwards() {
-    PeekableCharIterator it = container.getShortIterator();
+    PeekableCharIterator it = container.getCharIterator();
     char max = 0;
     while (it.hasNext()) {
       max = it.next();
@@ -54,7 +54,7 @@ public class BitmapIteratorBenchmark {
 
   @Benchmark
   public char backwards() {
-    CharIterator it = container.getReverseShortIterator();
+    CharIterator it = container.getReverseCharIterator();
     char min = 0;
     while (it.hasNext()) {
       min = it.next();
@@ -64,7 +64,7 @@ public class BitmapIteratorBenchmark {
 
   @Benchmark
   public char forwardsBuffer() {
-    PeekableCharIterator it = bufferContainer.getShortIterator();
+    PeekableCharIterator it = bufferContainer.getCharIterator();
     char max = 0;
     while (it.hasNext()) {
       max = it.next();
@@ -74,7 +74,7 @@ public class BitmapIteratorBenchmark {
 
   @Benchmark
   public char backwardsBuffer() {
-    CharIterator it = bufferContainer.getReverseShortIterator();
+    CharIterator it = bufferContainer.getReverseCharIterator();
     char min = 0;
     while (it.hasNext()) {
       min = it.next();

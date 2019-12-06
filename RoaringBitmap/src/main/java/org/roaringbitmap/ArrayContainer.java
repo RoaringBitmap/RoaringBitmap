@@ -420,17 +420,17 @@ public final class ArrayContainer extends Container implements Cloneable {
   }
 
   @Override
-  public CharIterator getReverseShortIterator() {
+  public CharIterator getReverseCharIterator() {
     return new ReverseArrayContainerCharIterator(this);
   }
 
   @Override
-  public PeekableCharIterator getShortIterator() {
+  public PeekableCharIterator getCharIterator() {
     return new ArrayContainerCharIterator(this);
   }
 
   @Override
-  public PeekableCharRankIterator getShortRankIterator() {
+  public PeekableCharRankIterator getCharRankIterator() {
     // for ArrayContainer there is no additional work, pos is known in advance
     return new ArrayContainerCharIterator(this);
   }

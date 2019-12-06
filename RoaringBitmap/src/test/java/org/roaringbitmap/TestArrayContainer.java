@@ -409,7 +409,7 @@ public class TestArrayContainer {
         rc1 = rc1.iorNot(rc2, 258);
         assertEquals(130, rc1.getCardinality());
 
-        PeekableCharIterator iterator = rc1.getShortIterator();
+        PeekableCharIterator iterator = rc1.getCharIterator();
         for (int i = 0; i < 128; i++) {
             assertTrue(iterator.hasNext());
             assertEquals(i, iterator.next());
@@ -431,7 +431,7 @@ public class TestArrayContainer {
         rc1 = rc1.iorNot(rc2, 261);
         assertEquals(130, rc1.getCardinality());
 
-        PeekableCharIterator iterator = rc1.getShortIterator();
+        PeekableCharIterator iterator = rc1.getCharIterator();
         for (int i = 0; i < 128; i++) {
             assertTrue(iterator.hasNext());
             assertEquals(i, iterator.next());
@@ -455,7 +455,7 @@ public class TestArrayContainer {
         rc1 = rc1.iorNot(rc2, 258);
         assertEquals(130, rc1.getCardinality());
 
-        PeekableCharIterator iterator = rc1.getShortIterator();
+        PeekableCharIterator iterator = rc1.getCharIterator();
         for (int i = 0; i < 128; i++) {
             assertTrue(iterator.hasNext());
             assertEquals(i, iterator.next());
@@ -479,7 +479,7 @@ public class TestArrayContainer {
         rc1 = rc1.iorNot(rc2, 258);
         assertEquals(130, rc1.getCardinality());
 
-        PeekableCharIterator iterator = rc1.getShortIterator();
+        PeekableCharIterator iterator = rc1.getCharIterator();
         for (int i = 0; i < 128; i++) {
             assertTrue(iterator.hasNext());
             assertEquals(i, iterator.next());
@@ -503,7 +503,7 @@ public class TestArrayContainer {
             Container res = rc1.orNot(rc2, 257);
             assertEquals(129, res.getCardinality());
 
-            PeekableCharIterator iterator = res.getShortIterator();
+            PeekableCharIterator iterator = res.getCharIterator();
             for (int i = 0; i < 128; i++) {
                 assertTrue(iterator.hasNext());
                 assertEquals(i, iterator.next());
@@ -520,7 +520,7 @@ public class TestArrayContainer {
             Container res = rc1.orNot(rc2, 257);
             assertEquals(129, res.getCardinality());
 
-            PeekableCharIterator iterator = res.getShortIterator();
+            PeekableCharIterator iterator = res.getCharIterator();
             for (int i = 0; i < 128; i++) {
                 assertTrue(iterator.hasNext());
                 assertEquals(i, iterator.next());
@@ -537,7 +537,7 @@ public class TestArrayContainer {
             Container res = rc1.orNot(rc2, 257);
             assertEquals(129, res.getCardinality());
 
-            PeekableCharIterator iterator = res.getShortIterator();
+            PeekableCharIterator iterator = res.getCharIterator();
             for (int i = 0; i < 128; i++) {
                 assertTrue(iterator.hasNext());
                 assertEquals(i, iterator.next());
@@ -558,7 +558,7 @@ public class TestArrayContainer {
         rc1 = rc1.orNot(rc2, 261);
         assertEquals(130, rc1.getCardinality());
 
-        PeekableCharIterator iterator = rc1.getShortIterator();
+        PeekableCharIterator iterator = rc1.getCharIterator();
         for (int i = 0; i < 128; i++) {
             assertTrue(iterator.hasNext());
             assertEquals(i, iterator.next());

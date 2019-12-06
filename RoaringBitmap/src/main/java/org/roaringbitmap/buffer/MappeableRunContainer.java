@@ -545,8 +545,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     if (card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
       // if the cardinality is small, we construct the solution in place
       MappeableArrayContainer ac = new MappeableArrayContainer(card);
-      ac.cardinality = org.roaringbitmap.Util.unsignedDifference(this.getShortIterator(),
-          x.getShortIterator(), ac.content.array());
+      ac.cardinality = org.roaringbitmap.Util.unsignedDifference(this.getCharIterator(),
+          x.getCharIterator(), ac.content.array());
       return ac;
     }
     // otherwise, we generate a bitmap
@@ -843,8 +843,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         return false; // should be a frequent branch if they differ
       }
       // next bit could be optimized if needed:
-      CharIterator me = this.getShortIterator();
-      CharIterator you = ((MappeableContainer) o).getShortIterator();
+      CharIterator me = this.getCharIterator();
+      CharIterator you = ((MappeableContainer) o).getCharIterator();
       while (me.hasNext()) {
         if (me.next() != you.next()) {
           return false;
@@ -944,7 +944,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   }
 
   @Override
-  public CharIterator getReverseShortIterator() {
+  public CharIterator getReverseCharIterator() {
     if (isArrayBacked()) {
       return new RawReverseMappeableRunContainerCharIterator(this);
     }
@@ -952,7 +952,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   }
 
   @Override
-  public PeekableCharIterator getShortIterator() {
+  public PeekableCharIterator getCharIterator() {
     if (isArrayBacked()) {
       return new RawMappeableRunContainerCharIterator(this);
     }
@@ -1139,7 +1139,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     char[] vl = valueslength.array();
     int rlepos = 0;
     this.nbrruns = 0;
-    PeekableCharIterator i = x.getShortIterator();
+    PeekableCharIterator i = x.getCharIterator();
     while (i.hasNext() && (rlepos < nbrruns)) {
       if ((getValue(vl, rlepos + offset)) - (i.peekNext()) <= 0) {
         smartAppend(vl, getValue(vl, rlepos + offset), getLength(vl, rlepos + offset));
@@ -1384,7 +1384,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     char[] vl = this.valueslength.array();
     int rlepos = 0;
     this.nbrruns = 0;
-    PeekableCharIterator i = x.getShortIterator();
+    PeekableCharIterator i = x.getCharIterator();
     while (i.hasNext() && (rlepos < nbrruns)) {
       if ((getValue(vl, rlepos + offset)) - (i.peekNext()) <= 0) {
         smartAppend(vl, getValue(vl, rlepos + offset), getLength(vl, rlepos + offset));
@@ -1572,7 +1572,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   @Override
   public Iterator<Character> iterator() {
-    final CharIterator i = getShortIterator();
+    final CharIterator i = getCharIterator();
     return new Iterator<Character>() {
 
       @Override
@@ -1690,7 +1690,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         new MappeableRunContainer(CharBuffer.allocate(2 * (this.nbrruns + x.getCardinality())), 0);
     char[] vl = answer.valueslength.array();
     int rlepos = 0;
-    PeekableCharIterator i = x.getShortIterator();
+    PeekableCharIterator i = x.getCharIterator();
 
     while ((rlepos < this.nbrruns) && i.hasNext()) {
       if ((getValue(rlepos)) - (i.peekNext()) <= 0) {
@@ -1735,7 +1735,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         new MappeableRunContainer(CharBuffer.allocate(2 * (this.nbrruns + x.getCardinality())), 0);
     char[] vl = answer.valueslength.array();
     int rlepos = 0;
-    CharIterator i = x.getShortIterator();
+    CharIterator i = x.getCharIterator();
     char cv = i.next();
     while (true) {
       if ((getValue(rlepos)) - (cv) < 0) {
@@ -2384,7 +2384,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     final int card = getCardinality();
     if (card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
       // if the cardinality is small, we construct the solution in place
-      return x.xor(this.getShortIterator());
+      return x.xor(this.getCharIterator());
     }
     // otherwise, we generate a bitmap
     return toBitmapOrArrayContainer(card).ixor(x);

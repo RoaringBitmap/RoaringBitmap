@@ -1138,7 +1138,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
       private Iterator<Integer> init() {
         if (pos < MutableRoaringBitmap.this.highLowContainer.size()) {
           iter = MutableRoaringBitmap.this.highLowContainer.getContainerAtIndex(pos)
-              .getShortIterator();
+              .getCharIterator();
           hs = (MutableRoaringBitmap.this.highLowContainer.getKeyAtIndex(pos)) << 16;
         }
         return this;

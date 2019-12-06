@@ -505,7 +505,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
   @Override
-  public CharIterator getReverseShortIterator() {
+  public CharIterator getReverseCharIterator() {
     if (this.isArrayBacked()) {
       return new RawReverseArrayContainerCharIterator(this);
     }
@@ -513,7 +513,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
   @Override
-  public PeekableCharIterator getShortIterator() {
+  public PeekableCharIterator getCharIterator() {
     if (this.isArrayBacked()) {
       return new RawArrayContainerCharIterator(this);
     }

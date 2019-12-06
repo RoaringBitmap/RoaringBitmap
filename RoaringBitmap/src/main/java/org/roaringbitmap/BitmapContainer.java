@@ -10,7 +10,6 @@ import org.roaringbitmap.buffer.MappeableContainer;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.CharBuffer;
 import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -499,17 +498,17 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
-  public CharIterator getReverseShortIterator() {
+  public CharIterator getReverseCharIterator() {
     return new ReverseBitmapContainerCharIterator(this.bitmap);
   }
 
   @Override
-  public PeekableCharIterator getShortIterator() {
+  public PeekableCharIterator getCharIterator() {
     return new BitmapContainerCharIterator(this.bitmap);
   }
 
   @Override
-  public PeekableCharRankIterator getShortRankIterator() {
+  public PeekableCharRankIterator getCharRankIterator() {
     return new BitmapContainerCharRankIterator(this.bitmap);
   }
 
@@ -811,7 +810,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   @Override
   public Iterator<Character> iterator() {
     return new Iterator<Character>() {
-      final CharIterator si = BitmapContainer.this.getShortIterator();
+      final CharIterator si = BitmapContainer.this.getCharIterator();
 
       @Override
       public boolean hasNext() {
@@ -1310,7 +1309,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    final CharIterator i = this.getShortIterator();
+    final CharIterator i = this.getCharIterator();
     sb.append("{");
     while (i.hasNext()) {
       sb.append((int)(i.next()));

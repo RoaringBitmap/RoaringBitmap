@@ -347,7 +347,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    *
    * @return iterator
    */
-  public abstract CharIterator getReverseShortIterator();
+  public abstract CharIterator getReverseCharIterator();
 
 
   /**
@@ -355,7 +355,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    *
    * @return iterator
    */
-  public abstract PeekableCharIterator getShortIterator();
+  public abstract PeekableCharIterator getCharIterator();
 
   /**
    * Gets an iterator to visit the contents of the container in batches

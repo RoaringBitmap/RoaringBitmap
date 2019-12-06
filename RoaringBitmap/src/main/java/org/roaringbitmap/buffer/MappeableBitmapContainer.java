@@ -552,7 +552,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   }
 
   @Override
-  public CharIterator getReverseShortIterator() {
+  public CharIterator getReverseCharIterator() {
     if (this.isArrayBacked()) {
       return BitmapContainer.getReverseShortIterator(bitmap.array());
     }
@@ -560,7 +560,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   }
 
   @Override
-  public PeekableCharIterator getShortIterator() {
+  public PeekableCharIterator getCharIterator() {
     if (this.isArrayBacked()) {
       return BitmapContainer.getShortIterator(bitmap.array());
     }
@@ -1011,7 +1011,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   @Override
   public Iterator<Character> iterator() {
     return new Iterator<Character>() {
-      final CharIterator si = MappeableBitmapContainer.this.getShortIterator();
+      final CharIterator si = MappeableBitmapContainer.this.getCharIterator();
 
       @Override
       public boolean hasNext() {
@@ -1720,7 +1720,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder();
-    final CharIterator i = this.getShortIterator();
+    final CharIterator i = this.getCharIterator();
     sb.append("{");
     while (i.hasNext()) {
       sb.append((int)(i.next()));

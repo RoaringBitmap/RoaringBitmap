@@ -121,7 +121,7 @@ public class ImmutableRoaringBitmap
     private void nextContainer() {
       ok = cp.hasContainer();
       if (ok) {
-        iter = cp.getContainer().getShortIterator();
+        iter = cp.getContainer().getCharIterator();
         hs = (cp.key()) << 16;
       }
     }
@@ -199,7 +199,7 @@ public class ImmutableRoaringBitmap
     private void nextContainer() {
       ok = cp.hasContainer();
       if (ok) {
-        iter = cp.getContainer().getReverseShortIterator();
+        iter = cp.getContainer().getReverseCharIterator();
         hs = (cp.key()) << 16;
       }
     }
@@ -1552,7 +1552,7 @@ public class ImmutableRoaringBitmap
       public Iterator<Integer> init() {
         if (pos < ImmutableRoaringBitmap.this.highLowContainer.size()) {
           iter = ImmutableRoaringBitmap.this.highLowContainer.getContainerAtIndex(pos)
-              .getShortIterator();
+              .getCharIterator();
           hs = (ImmutableRoaringBitmap.this.highLowContainer.getKeyAtIndex(pos)) << 16;
         }
         return this;

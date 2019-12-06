@@ -1335,7 +1335,7 @@ public class TestRunContainer {
     rc1 = rc1.iorNot(rc2, 258);
     assertEquals(130, rc1.getCardinality());
 
-    PeekableCharIterator iterator = rc1.getShortIterator();
+    PeekableCharIterator iterator = rc1.getCharIterator();
     for (int i = 0; i < 128; i++) {
       assertTrue(iterator.hasNext());
       assertEquals(i, iterator.next());
@@ -1357,7 +1357,7 @@ public class TestRunContainer {
     rc1 = rc1.iorNot(rc2, 261);
     assertEquals(130, rc1.getCardinality());
 
-    PeekableCharIterator iterator = rc1.getShortIterator();
+    PeekableCharIterator iterator = rc1.getCharIterator();
     for (int i = 0; i < 128; i++) {
       assertTrue(iterator.hasNext());
       assertEquals(i, iterator.next());
@@ -1381,7 +1381,7 @@ public class TestRunContainer {
     rc1 = rc1.iorNot(rc2, 258);
     assertEquals(130, rc1.getCardinality());
 
-    PeekableCharIterator iterator = rc1.getShortIterator();
+    PeekableCharIterator iterator = rc1.getCharIterator();
     for (int i = 0; i < 128; i++) {
       assertTrue(iterator.hasNext());
       assertEquals(i, iterator.next());
@@ -1405,7 +1405,7 @@ public class TestRunContainer {
     rc1 = rc1.iorNot(rc2, 258);
     assertEquals(130, rc1.getCardinality());
 
-    PeekableCharIterator iterator = rc1.getShortIterator();
+    PeekableCharIterator iterator = rc1.getCharIterator();
     for (int i = 0; i < 128; i++) {
       assertTrue(iterator.hasNext());
       assertEquals(i, iterator.next());
@@ -1429,7 +1429,7 @@ public class TestRunContainer {
       Container res = rc1.orNot(rc2, 257);
       assertEquals(129, res.getCardinality());
 
-      PeekableCharIterator iterator = res.getShortIterator();
+      PeekableCharIterator iterator = res.getCharIterator();
       for (int i = 0; i < 128; i++) {
         assertTrue(iterator.hasNext());
         assertEquals(i, iterator.next());
@@ -1446,7 +1446,7 @@ public class TestRunContainer {
       Container res = rc1.orNot(rc2, 257);
       assertEquals(129, res.getCardinality());
 
-      PeekableCharIterator iterator = res.getShortIterator();
+      PeekableCharIterator iterator = res.getCharIterator();
       for (int i = 0; i < 128; i++) {
         assertTrue(iterator.hasNext());
         assertEquals(i, iterator.next());
@@ -1463,7 +1463,7 @@ public class TestRunContainer {
       Container res = rc1.orNot(rc2, 257);
       assertEquals(129, res.getCardinality());
 
-      PeekableCharIterator iterator = res.getShortIterator();
+      PeekableCharIterator iterator = res.getCharIterator();
       for (int i = 0; i < 128; i++) {
         assertTrue(iterator.hasNext());
         assertEquals(i, iterator.next());
@@ -1484,7 +1484,7 @@ public class TestRunContainer {
     rc1 = rc1.orNot(rc2, 261);
     assertEquals(130, rc1.getCardinality());
 
-    PeekableCharIterator iterator = rc1.getShortIterator();
+    PeekableCharIterator iterator = rc1.getCharIterator();
     for (int i = 0; i < 128; i++) {
       assertTrue(iterator.hasNext());
       assertEquals(i, iterator.next());
@@ -1801,7 +1801,7 @@ public class TestRunContainer {
         x = (RunContainer) x.add((char) (k * 100 + j));
       }
     }
-    CharIterator i = x.getShortIterator();
+    CharIterator i = x.getCharIterator();
     for (int k = 0; k < 100; ++k) {
       for (int j = 0; j < k; ++j) {
         assertTrue(i.hasNext());
@@ -1836,7 +1836,7 @@ public class TestRunContainer {
     for (int k = 0; k < (1 << 16); ++k) {
       x = (RunContainer) x.add((char) k);
     }
-    CharIterator i = x.getReverseShortIterator();
+    CharIterator i = x.getReverseCharIterator();
     for (int k = (1 << 16) - 1; k >= 0; --k) {
       assertTrue(i.hasNext());
       assertEquals(i.next(), (char) k);
@@ -1864,7 +1864,7 @@ public class TestRunContainer {
     for (int k = 0; k < (1 << 16); ++k) {
       x = (RunContainer) x.add((char) (k));
     }
-    CharIterator i = x.getShortIterator();
+    CharIterator i = x.getCharIterator();
     for (int k = 0; k < (1 << 16); ++k) {
       assertTrue(i.hasNext());
       assertEquals(i.next(), (char) k);
@@ -2699,7 +2699,7 @@ public class TestRunContainer {
     for (int k = 0; k < 100; ++k) {
       x = (RunContainer) x.add((char) (k));
     }
-    CharIterator i = x.getShortIterator();
+    CharIterator i = x.getCharIterator();
     for (int k = 0; k < 100; ++k) {
       assertTrue(i.hasNext());
       assertEquals(i.next(), (char) k);

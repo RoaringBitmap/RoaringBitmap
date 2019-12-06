@@ -29,7 +29,7 @@ public class TestContainer {
   }
   
   public static boolean checkContent(Container c, char[] s) {
-    CharIterator si = c.getShortIterator();
+    CharIterator si = c.getCharIterator();
     int ctr = 0;
     boolean fail = false;
     while (si.hasNext()) {
@@ -48,7 +48,7 @@ public class TestContainer {
     }
     if (fail) {
       System.out.print("fail, found ");
-      si = c.getShortIterator();
+      si = c.getCharIterator();
       while (si.hasNext()) {
         System.out.print(" " + si.next());
       }
@@ -686,7 +686,7 @@ public class TestContainer {
     ac.add((char) 50001);
 
     ArrayContainer ac1 = new ArrayContainer(); // empty iterator
-    Container result = ac.or(ac1.getShortIterator());
+    Container result = ac.or(ac1.getCharIterator());
     assertTrue(checkContent(result, new char[] {1, 3, 5, (char) 50000, (char) 50001}));
   }
 
@@ -706,7 +706,7 @@ public class TestContainer {
     ac1.add((char) 50003);
     ac1.add((char) 50004);
 
-    Container result = ac.or(ac1.getShortIterator());
+    Container result = ac.or(ac1.getCharIterator());
     assertTrue(checkContent(result,
         new char[] {1, 4, 5, (char) 50000, (char) 50002, (char) 50003, (char) 50004}));
   }
@@ -732,7 +732,7 @@ public class TestContainer {
     ac1.add((char) 50003);
     ac1.add((char) 50004);
 
-    Container result = ac.or(ac1.getShortIterator());
+    Container result = ac.or(ac1.getCharIterator());
     assertTrue(checkContent(result, new char[] {1, 3, 4, 5, (char) 50000, (char) 50001,
         (char) 50002, (char) 50003, (char) 50004}));
   }
@@ -762,7 +762,7 @@ public class TestContainer {
     ac1.add((char) 50004);
 
 
-    Container result = ac.or(ac1.getShortIterator());
+    Container result = ac.or(ac1.getCharIterator());
     assertTrue(checkContent(result, new char[] {1, 3, 4, 5, (char) 50000, (char) 50001,
         (char) 50002, (char) 50003, (char) 50004, (char) 50011}));
   }
@@ -788,7 +788,7 @@ public class TestContainer {
     ac1.add((char) 50000);
     ac1.add((char) 50001);
 
-    Container result = ac.or(ac1.getShortIterator());
+    Container result = ac.or(ac1.getCharIterator());
     assertTrue(checkContent(result, new char[] {1, 3, 4, 5, (char) 50000, (char) 50001}));
   }
 
@@ -973,7 +973,7 @@ public class TestContainer {
     ac.add((char) 50001);
 
     ArrayContainer ac1 = new ArrayContainer(); // empty iterator
-    Container result = ac.xor(ac1.getShortIterator());
+    Container result = ac.xor(ac1.getCharIterator());
     assertTrue(checkContent(result, new char[] {1, 3, 5, (char) 50000, (char) 50001}));
   }
 
@@ -992,7 +992,7 @@ public class TestContainer {
     ac1.add((char) 50003);
     ac1.add((char) 50004);
 
-    Container result = ac.xor(ac1.getShortIterator());
+    Container result = ac.xor(ac1.getCharIterator());
     assertTrue(checkContent(result,
         new char[] {1, 4, 5, (char) 50000, (char) 50002, (char) 50003, (char) 50004}));
   }
@@ -1020,7 +1020,7 @@ public class TestContainer {
     ac1.add((char) 50003);
     ac1.add((char) 50004);
 
-    Container result = ac.xor(ac1.getShortIterator());
+    Container result = ac.xor(ac1.getCharIterator());
     assertTrue(checkContent(result,
         new char[] {3, 4, (char) 50001, (char) 50002, (char) 50003, (char) 50004}));
   }
@@ -1069,7 +1069,7 @@ public class TestContainer {
     ac1.add((char) 50004);
 
 
-    Container result = ac.xor(ac1.getShortIterator());
+    Container result = ac.xor(ac1.getCharIterator());
     assertTrue(checkContent(result, new char[] {3, 4, (char) 50001, (char) 50002, (char) 50003,
         (char) 50004, (char) 50011}));
   }
@@ -1095,7 +1095,7 @@ public class TestContainer {
     ac1.add((char) 50000);
     ac1.add((char) 50001);
 
-    Container result = ac.xor(ac1.getShortIterator());
+    Container result = ac.xor(ac1.getCharIterator());
     assertTrue(checkContent(result, new char[] {3, 4}));
   }
 }

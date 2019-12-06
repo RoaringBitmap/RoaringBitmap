@@ -23,7 +23,7 @@ public class BasicIteratorBenchmark {
   public int iteratorRunContainer(BenchmarkState benchmarkState) {
     if (benchmarkState.rc2.serializedSizeInBytes() > benchmarkState.ac2.serializedSizeInBytes())
       throw new RuntimeException("Can't expect run containers to win if they are larger.");
-    CharIterator si = benchmarkState.rc2.getShortIterator();
+    CharIterator si = benchmarkState.rc2.getCharIterator();
     int answer = 0;
     while (si.hasNext())
       answer += si.next() & 0xFFFF;
@@ -32,7 +32,7 @@ public class BasicIteratorBenchmark {
 
   @Benchmark
   public int iteratorBitmapContainer(BenchmarkState benchmarkState) {
-    CharIterator si = benchmarkState.ac2.getShortIterator();
+    CharIterator si = benchmarkState.ac2.getCharIterator();
     int answer = 0;
     while (si.hasNext())
       answer += si.next() & 0xFFFF;

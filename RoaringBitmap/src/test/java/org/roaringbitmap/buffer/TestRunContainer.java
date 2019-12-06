@@ -1180,7 +1180,7 @@ public class TestRunContainer {
         x = x.add((char) (k * 100 + j));
       }
     }
-    CharIterator i = x.getShortIterator();
+    CharIterator i = x.getCharIterator();
     for (int k = 0; k < 100; ++k) {
       for (int j = 0; j < k; ++j) {
         assertTrue(i.hasNext());
@@ -1216,7 +1216,7 @@ public class TestRunContainer {
       x = x.add((char) k);
     }
 
-    CharIterator i = x.getReverseShortIterator();
+    CharIterator i = x.getReverseCharIterator();
     for (int k = (1 << 16) - 1; k >= 0; --k) {
       assertTrue(i.hasNext());
       assertEquals(i.next(), (char) k);
@@ -1244,7 +1244,7 @@ public class TestRunContainer {
     for (int k = 0; k < (1 << 16); ++k) {
       x = x.add((char) (k));
     }
-    CharIterator i = x.getShortIterator();
+    CharIterator i = x.getCharIterator();
     for (int k = 0; k < (1 << 16); ++k) {
       assertTrue(i.hasNext());
       assertEquals(i.next(), (char) k);
@@ -1857,7 +1857,7 @@ public class TestRunContainer {
     for (int k = 0; k < 100; ++k) {
       x = x.add((char) (k));
     }
-    CharIterator i = x.getShortIterator();
+    CharIterator i = x.getCharIterator();
     for (int k = 0; k < 100; ++k) {
       assertTrue(i.hasNext());
       assertEquals(i.next(), (char) k);
