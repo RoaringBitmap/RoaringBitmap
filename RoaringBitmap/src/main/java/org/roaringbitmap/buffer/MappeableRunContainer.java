@@ -2816,8 +2816,8 @@ final class MappeableRunContainerCharIterator implements PeekableCharIterator {
       pos++;
       le = 0;
       if (pos < parent.nbrruns) {
-        maxlength = (parent.getLength(pos));
-        base = (parent.getValue(pos));
+        maxlength = parent.getLength(pos);
+        base = parent.getValue(pos);
       }
     }
     return ans;
@@ -2831,8 +2831,8 @@ final class MappeableRunContainerCharIterator implements PeekableCharIterator {
       pos++;
       le = 0;
       if (pos < parent.nbrruns) {
-        maxlength = (parent.getLength(pos));
-        base = (parent.getValue(pos));
+        maxlength = parent.getLength(pos);
+        base = parent.getValue(pos);
       }
     }
     return ans;
@@ -2848,8 +2848,8 @@ final class MappeableRunContainerCharIterator implements PeekableCharIterator {
     pos = 0;
     le = 0;
     if (pos < parent.nbrruns) {
-      maxlength = (parent.getLength(pos));
-      base = (parent.getValue(pos));
+      maxlength = parent.getLength(pos);
+      base = parent.getValue(pos);
     }
   }
 
@@ -2859,8 +2859,8 @@ final class MappeableRunContainerCharIterator implements PeekableCharIterator {
       pos++;
       le = 0;
       if (pos < parent.nbrruns) {
-        maxlength = (parent.getLength(pos));
-        base = (parent.getValue(pos));
+        maxlength = parent.getLength(pos);
+        base = parent.getValue(pos);
       } else {
         return;
       }
@@ -2868,7 +2868,7 @@ final class MappeableRunContainerCharIterator implements PeekableCharIterator {
     if (base > (minval)) {
       return;
     }
-    le = (minval) - base;
+    le = minval - base;
   }
 
   @Override
@@ -2923,8 +2923,8 @@ final class RawMappeableRunContainerCharIterator implements PeekableCharIterator
       pos++;
       le = 0;
       if (pos < parent.nbrruns) {
-        maxlength = (getLength(pos));
-        base = (getValue(pos));
+        maxlength = getLength(pos);
+        base = getValue(pos);
       }
     }
     return ans;
@@ -2939,8 +2939,8 @@ final class RawMappeableRunContainerCharIterator implements PeekableCharIterator
       pos++;
       le = 0;
       if (pos < parent.nbrruns) {
-        maxlength = (getLength(pos));
-        base = (getValue(pos));
+        maxlength = getLength(pos);
+        base = getValue(pos);
       }
     }
     return ans;
@@ -2960,19 +2960,19 @@ final class RawMappeableRunContainerCharIterator implements PeekableCharIterator
     pos = 0;
     le = 0;
     if (pos < parent.nbrruns) {
-      maxlength = (getLength(pos));
-      base = (getValue(pos));
+      maxlength = getLength(pos);
+      base = getValue(pos);
     }
   }
 
   @Override
   public void advanceIfNeeded(char minval) {
-    while (base + maxlength < (minval)) {
+    while (base + maxlength < minval) {
       pos++;
       le = 0;
       if (pos < parent.nbrruns) {
-        maxlength = (parent.getLength(pos));
-        base = (parent.getValue(pos));
+        maxlength = parent.getLength(pos);
+        base = parent.getValue(pos);
       } else {
         return;
       }
@@ -2996,7 +2996,6 @@ final class RawReverseMappeableRunContainerCharIterator implements CharIterator 
   private int le;
   private int maxlength;
   private int base;
-  private MappeableRunContainer parent;
   private char[] vl;
 
 
@@ -3035,8 +3034,8 @@ final class RawReverseMappeableRunContainerCharIterator implements CharIterator 
       pos--;
       le = 0;
       if (pos >= 0) {
-        maxlength = (getLength(pos));
-        base = (getValue(pos));
+        maxlength = getLength(pos);
+        base = getValue(pos);
       }
     }
     return ans;
@@ -3050,8 +3049,8 @@ final class RawReverseMappeableRunContainerCharIterator implements CharIterator 
       pos--;
       le = 0;
       if (pos >= 0) {
-        maxlength = (getLength(pos));
-        base = (getValue(pos));
+        maxlength = getLength(pos);
+        base = getValue(pos);
       }
     }
     return ans;
@@ -3063,7 +3062,7 @@ final class RawReverseMappeableRunContainerCharIterator implements CharIterator 
   }
 
   private void wrap(MappeableRunContainer p) {
-    parent = p;
+    MappeableRunContainer parent = p;
     if (!parent.isArrayBacked()) {
       throw new RuntimeException("internal error");
     }
@@ -3071,8 +3070,8 @@ final class RawReverseMappeableRunContainerCharIterator implements CharIterator 
     pos = parent.nbrruns - 1;
     le = 0;
     if (pos >= 0) {
-      maxlength = (getLength(pos));
-      base = (getValue(pos));
+      maxlength = getLength(pos);
+      base = getValue(pos);
     }
   }
 
@@ -3115,8 +3114,8 @@ final class ReverseMappeableRunContainerCharIterator implements CharIterator {
       pos--;
       le = 0;
       if (pos >= 0) {
-        maxlength = (parent.getLength(pos));
-        base = (parent.getValue(pos));
+        maxlength = parent.getLength(pos);
+        base = parent.getValue(pos);
       }
     }
     return ans;
@@ -3130,8 +3129,8 @@ final class ReverseMappeableRunContainerCharIterator implements CharIterator {
       pos--;
       le = 0;
       if (pos >= 0) {
-        maxlength = (parent.getLength(pos));
-        base = (parent.getValue(pos));
+        maxlength = parent.getLength(pos);
+        base = parent.getValue(pos);
       }
     }
     return ans;
@@ -3147,8 +3146,8 @@ final class ReverseMappeableRunContainerCharIterator implements CharIterator {
     pos = parent.nbrruns - 1;
     le = 0;
     if (pos >= 0) {
-      maxlength = (parent.getLength(pos));
-      base = (parent.getValue(pos));
+      maxlength = parent.getLength(pos);
+      base = parent.getValue(pos);
     }
   }
 

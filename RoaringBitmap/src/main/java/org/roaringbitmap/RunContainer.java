@@ -175,7 +175,7 @@ public final class RunContainer extends Container implements Cloneable {
       long curWordWith1s = curWord | (curWord - 1);
 
       // find the next 0, potentially in a later word
-      int runEnd = 0;
+      int runEnd;
       while (curWordWith1s == -1L && longCtr < bc.bitmap.length - 1) {
         curWordWith1s = bc.bitmap[++longCtr];
       }

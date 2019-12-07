@@ -977,7 +977,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
 
-  protected void loadData(final MappeableBitmapContainer bitmapContainer) {
+  void loadData(final MappeableBitmapContainer bitmapContainer) {
     this.cardinality = bitmapContainer.cardinality;
     if (!BufferUtil.isBackedBySimpleArray(this.content)) {
       throw new RuntimeException("Should not happen. Internal bug.");
@@ -1014,7 +1014,6 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       throw new RuntimeException(
           "negateRange: outPos " + outPos + " whereas buffer.length=" + buffer.limit());
     }
-    assert outPos == buffer.limit();
     // copy back from buffer...caller must ensure there is room
     int i = startIndex;
     int len = buffer.limit();
@@ -1322,7 +1321,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
   @Override
-  public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+  public void readExternal(ObjectInput in) throws IOException {
     // little endian
     this.cardinality = 0xFFFF & Character.reverseBytes(in.readChar());
     if (this.content.limit() < this.cardinality) {
@@ -1359,7 +1358,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     return answer;
   }
 
-  protected void removeAtIndex(final int loc) {
+  void removeAtIndex(final int loc) {
     System.arraycopy(content.array(), loc + 1, content.array(), loc, cardinality - loc - 1);
     --cardinality;
   }
@@ -1463,18 +1462,17 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   @Override
   public int nextAbsentValue(char fromValue) {
     int index = BufferUtil.advanceUntil(content, -1, cardinality, fromValue);
-    int value = (fromValue);
     if (index >= cardinality) {
-      return value;
+      return fromValue;
     }
     if (index == cardinality - 1) {
-      return fromValue == content.get(cardinality - 1) ? value + 1 : value;
+      return fromValue == content.get(cardinality - 1) ? fromValue + 1 : fromValue;
     }
     if (content.get(index) != fromValue) {
-      return value;
+      return fromValue;
     }
     if (content.get(index + 1) > fromValue + 1) {
-      return value + 1;
+      return fromValue + 1;
     }
 
     int low = index;
@@ -1482,7 +1480,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     while (low + 1 < high) {
       int mid = (high + low) >>> 1;
-      if (mid - index < (content.get(mid)) - value) {
+      if (mid - index < (content.get(mid)) - fromValue) {
         high = mid;
       } else {
         low = mid;
@@ -1494,25 +1492,24 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
     assert (content.get(low)) + 1 < (content.get(high));
-    assert (content.get(low)) == value + (low - index);
+    assert (content.get(low)) == fromValue + (low - index);
     return (content.get(low)) + 1;
   }
 
   @Override
   public int previousAbsentValue(char fromValue) {
     int index = BufferUtil.advanceUntil(content, -1, cardinality, fromValue);
-    int value = (fromValue);
     if (index >= cardinality) {
-      return value;
+      return fromValue;
     }
     if (index == 0) {
-      return fromValue == content.get(0) ? value - 1 : value;
+      return fromValue == content.get(0) ? fromValue - 1 : fromValue;
     }
     if (content.get(index) != fromValue) {
-      return value;
+      return fromValue;
     }
     if (content.get(index - 1) < fromValue - 1) {
-      return value - 1;
+      return fromValue - 1;
     }
 
     int low = -1;
@@ -1522,7 +1519,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     // successor
     while (low + 1 < high) {
       int mid = (high + low) >>> 1;
-      if (index - mid < value - (content.get(mid))) {
+      if (index - mid < fromValue - (content.get(mid))) {
         low = mid;
       } else {
         high = mid;
@@ -1534,7 +1531,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
 
     assert (content.get(low)) + 1 < (content.get(high));
-    assert (content.get(high)) == value - (index - high);
+    assert (content.get(high)) == fromValue - (index - high);
     return (content.get(high)) - 1;
   }
 
@@ -1769,10 +1766,10 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
     int i1 = 0, i2 = 0;
     while(i1 < cardinality && i2 < arrayContainer.cardinality) {
-      if(content.get(i1) == arrayContainer.content.get(i2)) {
+      if (content.get(i1) == arrayContainer.content.get(i2)) {
         ++i1;
         ++i2;
-      } else if((content.get(i1)) - (arrayContainer.content.get(i2)) < 0) {
+      } else if (content.get(i1) < arrayContainer.content.get(i2)) {
         ++i1;
       } else {
         return false;
@@ -1813,7 +1810,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
 final class MappeableArrayContainerCharIterator implements PeekableCharIterator {
   int pos;
-  MappeableArrayContainer parent;
+  private MappeableArrayContainer parent;
 
   MappeableArrayContainerCharIterator() {}
 
@@ -1876,7 +1873,7 @@ final class MappeableArrayContainerCharIterator implements PeekableCharIterator 
 
 final class RawArrayContainerCharIterator implements PeekableCharIterator {
   int pos;
-  MappeableArrayContainer parent;
+  private MappeableArrayContainer parent;
   char[] content;
 
 
@@ -1935,7 +1932,7 @@ final class RawArrayContainerCharIterator implements PeekableCharIterator {
 
 final class RawReverseArrayContainerCharIterator implements CharIterator {
   int pos;
-  MappeableArrayContainer parent;
+  private MappeableArrayContainer parent;
   char[] content;
 
 
@@ -1986,7 +1983,7 @@ final class ReverseMappeableArrayContainerCharIterator implements CharIterator {
 
   int pos;
 
-  MappeableArrayContainer parent;
+  private MappeableArrayContainer parent;
 
   ReverseMappeableArrayContainerCharIterator() {}
 

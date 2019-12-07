@@ -329,7 +329,7 @@ public final class ArrayContainer extends Container implements Cloneable {
       if(content[i1] == arrayContainer.content[i2]) {
         ++i1;
         ++i2;
-      } else if(content[i1] - arrayContainer.content[i2] < 0) {
+      } else if(content[i1] < arrayContainer.content[i2]) {
         ++i1;
       } else {
         return false;
