@@ -57,7 +57,7 @@ public interface MappeableContainerPointer
    * 
    * @return boolean indicated if it is a bitmap container
    */
-  public boolean isBitmapContainer();
+  boolean isBitmapContainer();
 
   /**
    * Returns true if it is a run container (MappeableRunContainer).
@@ -72,7 +72,7 @@ public interface MappeableContainerPointer
    * 
    * @return the key
    */
-  short key();
+  char key();
 
   /**
    * Move to the previous container

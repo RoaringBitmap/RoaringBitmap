@@ -16,14 +16,14 @@ public class ReverseIntIteratorFlyweight implements IntIterator {
 
   private int hs;
 
-  private ShortIterator iter;
+  private CharIterator iter;
 
-  private ReverseArrayContainerShortIterator arrIter = new ReverseArrayContainerShortIterator();
+  private ReverseArrayContainerCharIterator arrIter = new ReverseArrayContainerCharIterator();
 
-  private ReverseBitmapContainerShortIterator bitmapIter =
-      new ReverseBitmapContainerShortIterator();
+  private ReverseBitmapContainerCharIterator bitmapIter =
+      new ReverseBitmapContainerCharIterator();
 
-  private ReverseRunContainerShortIterator runIter = new ReverseRunContainerShortIterator();
+  private ReverseRunContainerCharIterator runIter = new ReverseRunContainerCharIterator();
 
   private short pos;
 
@@ -94,7 +94,7 @@ public class ReverseIntIteratorFlyweight implements IntIterator {
         runIter.wrap((RunContainer) container);
         iter = runIter;
       }
-      hs = Util.toIntUnsigned(this.roaringBitmap.highLowContainer.getKeyAtIndex(pos)) << 16;
+      hs = (this.roaringBitmap.highLowContainer.getKeyAtIndex(pos)) << 16;
     }
   }
 

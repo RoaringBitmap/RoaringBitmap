@@ -154,7 +154,7 @@ public class BufferContainerBatchIteratorTest {
     private MappeableContainer createContainer() {
         MappeableContainer container = new MappeableArrayContainer();
         for (int value : expectedValues) {
-            container = container.add((short) value);
+            container = container.add((char) value);
         }
         return container.runOptimize();
     }

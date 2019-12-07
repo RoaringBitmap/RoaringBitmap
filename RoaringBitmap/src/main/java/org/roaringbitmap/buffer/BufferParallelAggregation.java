@@ -11,8 +11,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.IntStream;
 
-import static org.roaringbitmap.Util.compareUnsigned;
-
 /**
  *
  * These utility methods provide parallel implementations of
@@ -42,9 +40,9 @@ import static org.roaringbitmap.Util.compareUnsigned;
  */
 public class BufferParallelAggregation {
 
-  private static final Collector<
-          Map.Entry<Short,List<MappeableContainer>>, MutableRoaringArray, MutableRoaringBitmap> XOR
-          = new ContainerCollector(BufferParallelAggregation::xor);
+  private static final Collector<Map.Entry<Character, List<MappeableContainer>>,
+          MutableRoaringArray, MutableRoaringBitmap>
+          XOR = new ContainerCollector(BufferParallelAggregation::xor);
 
   private static final OrCollector OR = new OrCollector();
 
@@ -52,8 +50,9 @@ public class BufferParallelAggregation {
    * Collects containers grouped by their key into a RoaringBitmap, applying the
    * supplied aggregation function to each group.
    */
-  public static class ContainerCollector implements Collector<
-          Map.Entry<Short,List<MappeableContainer>>, MutableRoaringArray, MutableRoaringBitmap> {
+  public static class ContainerCollector implements
+          Collector<Map.Entry<Character, List<MappeableContainer>>,
+                  MutableRoaringArray, MutableRoaringBitmap> {
 
     private final Function<List<MappeableContainer>, MappeableContainer> reducer;
 
@@ -61,7 +60,7 @@ public class BufferParallelAggregation {
      * Creates a collector with the reducer function.
      * @param reducer a function to apply to containers with the same key.
      */
-    public ContainerCollector(Function<List<MappeableContainer>, MappeableContainer> reducer) {
+    ContainerCollector(Function<List<MappeableContainer>, MappeableContainer> reducer) {
       this.reducer = reducer;
     }
 
@@ -72,9 +71,9 @@ public class BufferParallelAggregation {
 
     @Override
     public BiConsumer<
-            MutableRoaringArray, Map.Entry<Short, List<MappeableContainer>>> accumulator() {
+            MutableRoaringArray, Map.Entry<Character, List<MappeableContainer>>> accumulator() {
       return (l, r) -> {
-        assert l.size == 0 || compareUnsigned(l.keys[l.size - 1], r.getKey()) < 0;
+        assert l.size == 0 || l.keys[l.size - 1] < r.getKey();
         MappeableContainer container = reducer.apply(r.getValue());
         if (!container.isEmpty()) {
           l.append(r.getKey(), container);
@@ -85,7 +84,7 @@ public class BufferParallelAggregation {
     @Override
     public BinaryOperator<MutableRoaringArray> combiner() {
       return (l, r) -> {
-        assert l.size == 0 || r.size == 0 || compareUnsigned(l.keys[l.size - 1], r.keys[0]) < 0;
+        assert l.size == 0 || r.size == 0 || l.keys[l.size - 1] - r.keys[0] < 0;
         l.append(r);
         return l;
       };
@@ -139,14 +138,14 @@ public class BufferParallelAggregation {
    * @param bitmaps input bitmaps
    * @return The containers from the bitmaps grouped by key
    */
-  public static SortedMap<Short, List<MappeableContainer>> groupByKey(
+  public static SortedMap<Character, List<MappeableContainer>> groupByKey(
           ImmutableRoaringBitmap... bitmaps) {
-    Map<Short, List<MappeableContainer>> grouped = new HashMap<>();
+    Map<Character, List<MappeableContainer>> grouped = new HashMap<>();
     for (ImmutableRoaringBitmap bitmap : bitmaps) {
       MappeableContainerPointer it = bitmap.highLowContainer.getContainerPointer();
       while (null != it.getContainer()) {
         MappeableContainer container = it.getContainer();
-        Short key = it.key();
+        Character key = it.key();
         List<MappeableContainer> slice = grouped.get(key);
         if (null == slice) {
           slice = new ArrayList<>();
@@ -156,9 +155,7 @@ public class BufferParallelAggregation {
         it.advance();
       }
     }
-    SortedMap<Short, List<MappeableContainer>> sorted = new TreeMap<>(BufferUtil::compareUnsigned);
-    sorted.putAll(grouped);
-    return sorted;
+    return new TreeMap<>(grouped);
   }
 
   /**
@@ -167,12 +164,12 @@ public class BufferParallelAggregation {
    * @return the union of the bitmaps
    */
   public static MutableRoaringBitmap or(ImmutableRoaringBitmap... bitmaps) {
-    SortedMap<Short, List<MappeableContainer>> grouped = groupByKey(bitmaps);
-    short[] keys = new short[grouped.size()];
+    SortedMap<Character, List<MappeableContainer>> grouped = groupByKey(bitmaps);
+    char[] keys = new char[grouped.size()];
     MappeableContainer[] values = new MappeableContainer[grouped.size()];
     List<List<MappeableContainer>> slices = new ArrayList<>(grouped.size());
     int i = 0;
-    for (Map.Entry<Short, List<MappeableContainer>> slice : grouped.entrySet()) {
+    for (Map.Entry<Character, List<MappeableContainer>> slice : grouped.entrySet()) {
       keys[i++] = slice.getKey();
       slices.add(slice.getValue());
     }

@@ -22,14 +22,14 @@ public class BitSetUtil {
   private static ArrayContainer arrayContainerOf(final int from, final int to,
       final int cardinality, final long[] words) {
     // precondition: cardinality is max 4096
-    final short[] content = new short[cardinality];
+    final char[] content = new char[cardinality];
     int index = 0;
 
     for (int i = from, socket = 0; i < to; ++i, socket += Long.SIZE) {
       long word = words[i];
       while (word != 0) {
         long t = word & -word;
-        content[index++] = (short) (socket + Long.bitCount(t - 1));
+        content[index++] = (char) (socket + Long.bitCount(t - 1));
         word ^= t;
       }
     }

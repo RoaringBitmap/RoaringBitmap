@@ -22,7 +22,7 @@ public interface PointableRoaringArray extends Cloneable {
    * @return the smallest index greater than pos such that getKeyAtIndex(index) is at least as large
    *         as min, or size if it is not possible.
    */
-  int advanceUntil(short x, int pos);
+  int advanceUntil(char x, int pos);
 
   /**
    * Create an independent copy of the underlying array
@@ -40,7 +40,7 @@ public interface PointableRoaringArray extends Cloneable {
    * @param x 16-bit value to check
    * @return whether the container contains at index i contains x
    */
-  boolean containsForContainerAtIndex(int i, short x);
+  boolean containsForContainerAtIndex(int i, char x);
 
   
   /**
@@ -50,7 +50,7 @@ public interface PointableRoaringArray extends Cloneable {
    * @param i index
    * @return the cardinality
    */
-  public int getCardinality(int i);
+  int getCardinality(int i);
 
   /**
    * Obsolete method (retired because it forces us to create a new container).
@@ -66,7 +66,7 @@ public interface PointableRoaringArray extends Cloneable {
    * @param x 16-bit key
    * @return index of container (negative value if no container found)
    */
-  int getContainerIndex(short x);
+  int getContainerIndex(char x);
 
   /**
    * @param i index
@@ -89,20 +89,20 @@ public interface PointableRoaringArray extends Cloneable {
    * @param x 16-bit key
    * @return corresponding index
    */
-  int getIndex(short x);
+  int getIndex(char x);
 
   /**
    * @param i the index
    * @return 16-bit key at the index
    */
-  short getKeyAtIndex(int i);
+  char getKeyAtIndex(int i);
 
   /**
    * Check whether this bitmap has had its runs compressed.
    * 
    * @return whether this bitmap has run compression
    */
-  public boolean hasRunCompression();
+  boolean hasRunCompression();
 
   /**
    * Serialize.
@@ -112,7 +112,7 @@ public interface PointableRoaringArray extends Cloneable {
    * @param out the DataOutput stream
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public void serialize(DataOutput out) throws IOException;
+  void serialize(DataOutput out) throws IOException;
 
   /**
    * Serialize.
@@ -126,7 +126,7 @@ public interface PointableRoaringArray extends Cloneable {
   /**
    * @return the size that the data structure occupies on disk
    */
-  public int serializedSizeInBytes();
+  int serializedSizeInBytes();
 
 
   /**

@@ -1,12 +1,12 @@
 package org.roaringbitmap.buffer;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
+import org.roaringbitmap.IntIterator;
 
 import java.util.BitSet;
 import java.util.Random;
 
-import org.junit.Test;
-import org.roaringbitmap.IntIterator;
+import static org.junit.Assert.*;
 
 
 public class TestRange {

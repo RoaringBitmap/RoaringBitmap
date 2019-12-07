@@ -110,7 +110,7 @@ public class ContainerBatchIteratorTest {
     private Container createContainer() {
         Container container = new ArrayContainer();
         for (int value : expectedValues) {
-            container = container.add((short) value);
+            container = container.add((char) value);
         }
         return container.runOptimize();
     }

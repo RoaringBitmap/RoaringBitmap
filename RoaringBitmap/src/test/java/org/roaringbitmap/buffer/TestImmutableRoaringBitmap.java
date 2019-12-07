@@ -8,17 +8,17 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.IntIterator;
-import org.roaringbitmap.SeededTestData;
 import org.roaringbitmap.RoaringBitmapWriter;
+import org.roaringbitmap.SeededTestData;
 
-import java.io.*;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.stream.IntStream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.roaringbitmap.Util.toUnsignedLong;
 
 /**

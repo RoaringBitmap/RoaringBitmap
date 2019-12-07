@@ -15,7 +15,7 @@ public class ArraysShim {
    * @param ymax the exclusive maximum of the range of the second array
    * @return true if the arrays are equal in the specified ranges
    */
-  public static boolean equals(short[] x, int xmin, int xmax, short[] y, int ymin, int ymax) {
+  public static boolean equals(char[] x, int xmin, int xmax, char[] y, int ymin, int ymax) {
     int xlen = xmax - xmin;
     int ylen = ymax - ymin;
     if (xlen != ylen) {

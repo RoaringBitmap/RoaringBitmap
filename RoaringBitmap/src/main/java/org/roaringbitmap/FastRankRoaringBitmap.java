@@ -188,7 +188,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
       return 0L;
     }
 
-    short xhigh = Util.highbits(x);
+    char xhigh = Util.highbits(x);
 
     int index = Util.hybridUnsignedBinarySearch(this.highLowContainer.keys, 0,
         this.highLowContainer.size(), xhigh);
@@ -253,7 +253,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
     }
 
     int keycontrib = this.highLowContainer.getKeyAtIndex(fixedIndex) << 16;
-    int lowcontrib = Util.toIntUnsigned(
+    int lowcontrib = (
         this.highLowContainer.getContainerAtIndex(fixedIndex).select((int) leftover));
     int value = lowcontrib + keycontrib;
 
@@ -284,7 +284,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
   private class FastRoaringIntRankIterator implements PeekableIntRankIterator {
     private int hs = 0;
 
-    private PeekableShortRankIterator iter;
+    private PeekableCharRankIterator iter;
 
     private int pos = 0;
 
@@ -334,7 +334,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
     private void nextContainer() {
       if (pos < FastRankRoaringBitmap.this.highLowContainer.size()) {
         iter = FastRankRoaringBitmap.this.highLowContainer.getContainerAtIndex(pos)
-                                                          .getShortRankIterator();
+                                                          .getCharRankIterator();
         hs = FastRankRoaringBitmap.this.highLowContainer.getKeyAtIndex(pos) << 16;
       }
     }
@@ -356,7 +356,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
 
     @Override
     public int peekNext() {
-      return Util.toIntUnsigned(iter.peekNext()) | hs;
+      return (iter.peekNext()) | hs;
     }
   }
 }

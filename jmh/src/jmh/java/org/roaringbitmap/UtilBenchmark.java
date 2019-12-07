@@ -68,22 +68,22 @@ class BenchmarkData {
   BenchmarkData(BenchmarkContainer[] small, BenchmarkContainer[] big) {
     this.small = small;
     this.big = big;
-    this.dest = new short[Short.MAX_VALUE];
+    this.dest = new char[Short.MAX_VALUE];
   }
 
   final BenchmarkContainer[] small;
   final BenchmarkContainer[] big;
-  final short[] dest;
+  final char[] dest;
 }
 
 
 class BenchmarkContainer {
-  BenchmarkContainer(short[] content) {
+  BenchmarkContainer(char[] content) {
     this.content = content;
     this.length = content.length;
   }
 
-  final short[] content;
+  final char[] content;
   final int length;
 }
 
@@ -103,38 +103,38 @@ class BenchmarkDataGenerator {
     for (int i = 0; i < howMany; i++) {
       int smallSize = p.sample();
       int bigSize = smallSize * param;
-      short[] small =
+      char[] small =
           smallType == 0 ? generateUniform(ud, smallSize) : generateClustered(cd, smallSize);
-      short[] big = bigType == 0 ? generateUniform(ud, bigSize) : generateClustered(cd, bigSize);
+      char[] big = bigType == 0 ? generateUniform(ud, bigSize) : generateClustered(cd, bigSize);
       smalls[i] = new BenchmarkContainer(small);
       bigs[i] = new BenchmarkContainer(big);
     }
     return new BenchmarkData(smalls, bigs);
   }
 
-  private static short[] intArrayToShortArraySorted(int[] source) {
-    short[] result = new short[source.length];
+  private static char[] intArrayToShortArraySorted(int[] source) {
+    char[] result = new char[source.length];
     for (int i = 0; i < source.length; i++) {
-      result[i] = (short) source[i];
+      result[i] = (char) source[i];
     }
     Arrays.sort(result);
     return result;
   }
 
-  private static short[] generateClustered(ClusteredDataGenerator cd, int howMany) {
+  private static char[] generateClustered(ClusteredDataGenerator cd, int howMany) {
     int[] half1raw = cd.generateClustered(howMany / 2, Short.MAX_VALUE);
     for (int i = 0; i < half1raw.length; i++) {
       half1raw[i] = -half1raw[i];
     }
-    short[] half1 = intArrayToShortArraySorted(half1raw);
-    short[] half2 = intArrayToShortArraySorted(cd.generateClustered(howMany / 2, Short.MAX_VALUE));
-    short[] result = new short[half1.length + half2.length];
+    char[] half1 = intArrayToShortArraySorted(half1raw);
+    char[] half2 = intArrayToShortArraySorted(cd.generateClustered(howMany / 2, Short.MAX_VALUE));
+    char[] result = new char[half1.length + half2.length];
     System.arraycopy(half1, 0, result, 0, half1.length);
     System.arraycopy(half2, 0, result, half1.length, half2.length);
     return result;
   }
 
-  private static short[] generateUniform(IntegerDistribution ud, int howMany) {
+  private static char[] generateUniform(IntegerDistribution ud, int howMany) {
     return intArrayToShortArraySorted(ud.sample(howMany));
   }
 

@@ -8,22 +8,18 @@ package org.roaringbitmap.buffer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
+import org.junit.Assert;
+import org.junit.Test;
+import org.roaringbitmap.CharIterator;
+import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.PeekableIntIterator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import org.junit.Assert;
-import org.junit.Test;
-import org.roaringbitmap.IntIterator;
-import org.roaringbitmap.PeekableIntIterator;
-import org.roaringbitmap.ShortIterator;
+import java.util.*;
 
 public class TestIterators {
 
@@ -39,7 +35,7 @@ public class TestIterators {
     return Ints.asList(Arrays.copyOf(values, size));
   }
 
-  private static List<Integer> asList(final ShortIterator shorts) {
+  private static List<Integer> asList(final CharIterator shorts) {
     return asList(new IntIterator() {
       @Override
       public IntIterator clone() {
@@ -78,8 +74,8 @@ public class TestIterators {
     final MappeableBitmapContainer bits =
         new MappeableBitmapContainer(2, LongBuffer.allocate(2).put(0x1l).put(1l << 63));
 
-    Assert.assertEquals(asList(bits.getShortIterator()), ImmutableList.of(0, 127));
-    Assert.assertEquals(asList(bits.getReverseShortIterator()), ImmutableList.of(127, 0));
+    Assert.assertEquals(asList(bits.getCharIterator()), ImmutableList.of(0, 127));
+    Assert.assertEquals(asList(bits.getReverseCharIterator()), ImmutableList.of(127, 0));
   }
 
   @Test

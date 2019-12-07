@@ -3,10 +3,9 @@ package org.roaringbitmap.iteration;
 
 import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.BitmapContainer;
+import org.roaringbitmap.CharIterator;
 import org.roaringbitmap.Container;
-import org.roaringbitmap.PeekableShortIterator;
-import org.roaringbitmap.ShortIterator;
-import org.roaringbitmap.buffer.MappeableArrayContainer;
+import org.roaringbitmap.PeekableCharIterator;
 import org.roaringbitmap.buffer.MappeableBitmapContainer;
 import org.roaringbitmap.buffer.MappeableContainer;
 
@@ -44,9 +43,9 @@ public class BitmapIteratorBenchmark {
   }
 
   @Benchmark
-  public short forwards() {
-    PeekableShortIterator it = container.getShortIterator();
-    short max = 0;
+  public char forwards() {
+    PeekableCharIterator it = container.getCharIterator();
+    char max = 0;
     while (it.hasNext()) {
       max = it.next();
     }
@@ -54,9 +53,9 @@ public class BitmapIteratorBenchmark {
   }
 
   @Benchmark
-  public short backwards() {
-    ShortIterator it = container.getReverseShortIterator();
-    short min = 0;
+  public char backwards() {
+    CharIterator it = container.getReverseCharIterator();
+    char min = 0;
     while (it.hasNext()) {
       min = it.next();
     }
@@ -64,9 +63,9 @@ public class BitmapIteratorBenchmark {
   }
 
   @Benchmark
-  public short forwardsBuffer() {
-    PeekableShortIterator it = bufferContainer.getShortIterator();
-    short max = 0;
+  public char forwardsBuffer() {
+    PeekableCharIterator it = bufferContainer.getCharIterator();
+    char max = 0;
     while (it.hasNext()) {
       max = it.next();
     }
@@ -74,9 +73,9 @@ public class BitmapIteratorBenchmark {
   }
 
   @Benchmark
-  public short backwardsBuffer() {
-    ShortIterator it = bufferContainer.getReverseShortIterator();
-    short min = 0;
+  public char backwardsBuffer() {
+    CharIterator it = bufferContainer.getReverseCharIterator();
+    char min = 0;
     while (it.hasNext()) {
       min = it.next();
     }

@@ -74,7 +74,7 @@ public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
    */
   @Override
   public void add(int value) {
-    int key = toIntUnsigned(highbits(value));
+    int key = (highbits(value));
     if (key != currentKey) {
       if (key < currentKey) {
         underlying.add(value);
@@ -84,7 +84,7 @@ public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
         currentKey = key;
       }
     }
-    int low = toIntUnsigned(lowbits(value));
+    int low = (lowbits(value));
     bitmap[(low >>> 6)] |= (1L << low);
     dirty = true;
   }
@@ -133,7 +133,7 @@ public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
   private int appendToUnderlying() {
     if (dirty) {
       assert currentKey <= 0xFFFF;
-      underlying.append((short) currentKey, chooseBestContainer());
+      underlying.append((char) currentKey, chooseBestContainer());
       Arrays.fill(bitmap, 0L);
       dirty = false;
       return 1;

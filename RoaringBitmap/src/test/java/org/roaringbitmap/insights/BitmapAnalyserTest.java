@@ -2,8 +2,8 @@ package org.roaringbitmap.insights;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.roaringbitmap.SeededTestData;
 import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.SeededTestData;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -5,23 +5,14 @@
 package org.roaringbitmap;
 
 
-import static java.nio.ByteOrder.BIG_ENDIAN;
-import static java.nio.ByteOrder.LITTLE_ENDIAN;
-import static org.roaringbitmap.Util.compareUnsigned;
-import static org.roaringbitmap.Util.toIntUnsigned;
-
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.Externalizable;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
+import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import java.nio.CharBuffer;
 import java.nio.LongBuffer;
-import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
+
+import static java.nio.ByteOrder.LITTLE_ENDIAN;
 
 
 /**
@@ -29,9 +20,9 @@ import java.util.NoSuchElementException;
  * by end users.
  */
 public final class RoaringArray implements Cloneable, Externalizable, AppendableStorage<Container> {
-  protected static final short SERIAL_COOKIE_NO_RUNCONTAINER = 12346;
-  protected static final short SERIAL_COOKIE = 12347;
-  protected static final int NO_OFFSET_THRESHOLD = 4;
+  private static final char SERIAL_COOKIE_NO_RUNCONTAINER = 12346;
+  private static final char SERIAL_COOKIE = 12347;
+  private static final int NO_OFFSET_THRESHOLD = 4;
 
   // bumped serialVersionUID with runcontainers, so default serialization
   // will not work...
@@ -40,7 +31,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
   static final int INITIAL_CAPACITY = 4;
 
 
-  short[] keys = null;
+  char[] keys = null;
 
   Container[] values = null;
 
@@ -51,11 +42,11 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
   }
 
   RoaringArray(int initialCapacity) {
-    this(new short[initialCapacity], new Container[initialCapacity], 0);
+    this(new char[initialCapacity], new Container[initialCapacity], 0);
   }
 
 
-  RoaringArray(short[] keys, Container[] values, int size) {
+  RoaringArray(char[] keys, Container[] values, int size) {
     this.keys = keys;
     this.values = values;
     this.size = size;
@@ -70,11 +61,11 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
    * @return the smallest index greater than pos such that array[index].key is at least as large as
    *         min, or size if it is not possible.
    */
-  protected int advanceUntil(short x, int pos) {
+  protected int advanceUntil(char x, int pos) {
     int lower = pos + 1;
 
     // special handling for a possibly common sequential case
-    if (lower >= size || Util.toIntUnsigned(keys[lower]) >= Util.toIntUnsigned(x)) {
+    if (lower >= size || (keys[lower]) >= (x)) {
       return lower;
     }
 
@@ -82,7 +73,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     // bootstrap an upper limit
 
     while (lower + spansize < size
-        && Util.toIntUnsigned(keys[lower + spansize]) < Util.toIntUnsigned(x)) {
+        && (keys[lower + spansize]) < (x)) {
       spansize *= 2; // hoping for compiler will reduce to shift
     }
     int upper = (lower + spansize < size) ? lower + spansize : size - 1;
@@ -93,7 +84,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       return upper;
     }
 
-    if (Util.toIntUnsigned(keys[upper]) < Util.toIntUnsigned(x)) {// means array has no item key >=
+    if ((keys[upper]) < (x)) {// means array has no item key >=
                                                                   // x
       return size;
     }
@@ -107,7 +98,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       int mid = (lower + upper) / 2;
       if (keys[mid] == x) {
         return mid;
-      } else if (Util.toIntUnsigned(keys[mid]) < Util.toIntUnsigned(x)) {
+      } else if ((keys[mid]) < (x)) {
         lower = mid;
       } else {
         upper = mid;
@@ -117,10 +108,10 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
   }
 
   @Override
-  public void append(short key, Container value) {
-    if (size > 0 && compareUnsigned(key, keys[size - 1]) < 0) {
+  public void append(char key, Container value) {
+    if (size > 0 && key < keys[size - 1]) {
       throw new IllegalArgumentException("append only: "
-              + toIntUnsigned(key) + " < " + toIntUnsigned(keys[size - 1]));
+              + (key) + " < " + (keys[size - 1]));
     }
     extendArray(1);
     keys[size] = key;
@@ -130,7 +121,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
 
   void append(RoaringArray roaringArray) {
     assert size == 0 || roaringArray.size == 0
-            || compareUnsigned(keys[size - 1], roaringArray.keys[0]) < 0;
+            || keys[size - 1] < roaringArray.keys[0];
     if (roaringArray.size != 0 && size != 0) {
       keys = Arrays.copyOf(keys, size + roaringArray.size);
       values = Arrays.copyOf(values, size + roaringArray.size);
@@ -150,7 +141,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
    * @param sa other array
    * @param beforeStart given key is the largest key that we won't copy
    */
-  protected void appendCopiesAfter(RoaringArray sa, short beforeStart) {
+  void appendCopiesAfter(RoaringArray sa, char beforeStart) {
     int startLocation = sa.getIndex(beforeStart);
     if (startLocation >= 0) {
       startLocation++;
@@ -172,10 +163,9 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
    * @param sourceArray The array to copy from
    * @param stoppingKey any equal or larger key in other array will terminate copying
    */
-  protected void appendCopiesUntil(RoaringArray sourceArray, short stoppingKey) {
-    int stopKey = Util.toIntUnsigned(stoppingKey);
+  void appendCopiesUntil(RoaringArray sourceArray, char stoppingKey) {
     for (int i = 0; i < sourceArray.size; ++i) {
-      if (Util.toIntUnsigned(sourceArray.keys[i]) >= stopKey) {
+      if (sourceArray.keys[i] >= stoppingKey) {
         break;
       }
       extendArray(1);
@@ -191,7 +181,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
    * @param sa other array
    * @param index index in the other array
    */
-  protected void appendCopy(RoaringArray sa, int index) {
+  void appendCopy(RoaringArray sa, int index) {
     extendArray(1);
     this.keys[this.size] = sa.keys[index];
     this.values[this.size] = sa.values[index].clone();
@@ -205,7 +195,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
    * @param startingIndex starting index in the other array
    * @param end endingIndex (exclusive) in the other array
    */
-  protected void appendCopy(RoaringArray sa, int startingIndex, int end) {
+  void appendCopy(RoaringArray sa, int startingIndex, int end) {
     extendArray(end - startingIndex);
     for (int i = startingIndex; i < end; ++i) {
       this.keys[this.size] = sa.keys[i];
@@ -233,7 +223,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
   }
 
 
-  private int binarySearch(int begin, int end, short key) {
+  private int binarySearch(int begin, int end, char key) {
     return Util.unsignedBinarySearch(keys, begin, end, key);
   }
 
@@ -267,7 +257,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     return sa;
   }
 
-  protected void copyRange(int begin, int end, int newBegin) {
+  void copyRange(int begin, int end, int newBegin) {
     // assuming begin <= end and newBegin < begin
     final int range = end - begin;
     System.arraycopy(this.keys, begin, this.keys, newBegin, range);
@@ -297,7 +287,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       throw new InvalidRoaringFormat("Size too large");
     }
     if ((this.keys == null) || (this.keys.length < this.size)) {
-      this.keys = new short[this.size];
+      this.keys = new char[this.size];
       this.values = new Container[this.size];
     }
 
@@ -309,12 +299,12 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       in.readFully(bitmapOfRunContainers);
     }
 
-    final short keys[] = new short[this.size];
-    final int cardinalities[] = new int[this.size];
-    final boolean isBitmap[] = new boolean[this.size];
+    final char[] keys = new char[this.size];
+    final int[] cardinalities = new int[this.size];
+    final boolean[] isBitmap = new boolean[this.size];
     for (int k = 0; k < this.size; ++k) {
-      keys[k] = Short.reverseBytes(in.readShort());
-      cardinalities[k] = 1 + (0xFFFF & Short.reverseBytes(in.readShort()));
+      keys[k] = Character.reverseBytes(in.readChar());
+      cardinalities[k] = 1 + (0xFFFF & Character.reverseBytes(in.readChar()));
 
       isBitmap[k] = cardinalities[k] > ArrayContainer.DEFAULT_MAX_SIZE;
       if (bitmapOfRunContainers != null && (bitmapOfRunContainers[k / 8] & (1 << (k % 8))) != 0) {
@@ -338,19 +328,19 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       } else if (bitmapOfRunContainers != null
           && ((bitmapOfRunContainers[k / 8] & (1 << (k % 8))) != 0)) {
         // cf RunContainer.writeArray()
-        int nbrruns = Util.toIntUnsigned(Short.reverseBytes(in.readShort()));
-        final short lengthsAndValues[] = new short[2 * nbrruns];
+        int nbrruns = (Character.reverseBytes(in.readChar()));
+        final char[] lengthsAndValues = new char[2 * nbrruns];
 
         for (int j = 0; j < 2 * nbrruns; ++j) {
-          lengthsAndValues[j] = Short.reverseBytes(in.readShort());
+          lengthsAndValues[j] = Character.reverseBytes(in.readChar());
         }
         val = new RunContainer(lengthsAndValues, nbrruns);
       } else {
-        final short[] shortArray = new short[cardinalities[k]];
-        for (int l = 0; l < shortArray.length; ++l) {
-          shortArray[l] = Short.reverseBytes(in.readShort());
+        final char[] charArray = new char[cardinalities[k]];
+        for (int l = 0; l < charArray.length; ++l) {
+          charArray[l] = Character.reverseBytes(in.readChar());
         }
-        val = new ArrayContainer(shortArray);
+        val = new ArrayContainer(charArray);
       }
       this.keys[k] = keys[k];
       this.values[k] = val;
@@ -392,7 +382,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       throw new InvalidRoaringFormat("Size too large");
     }
     if ((this.keys == null) || (this.keys.length < this.size)) {
-      this.keys = new short[this.size];
+      this.keys = new char[this.size];
       this.values = new Container[this.size];
     }
 
@@ -404,12 +394,12 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       in.readFully(bitmapOfRunContainers);
     }
 
-    final short keys[] = new short[this.size];
-    final int cardinalities[] = new int[this.size];
-    final boolean isBitmap[] = new boolean[this.size];
+    final char[] keys = new char[this.size];
+    final int[] cardinalities = new int[this.size];
+    final boolean[] isBitmap = new boolean[this.size];
     for (int k = 0; k < this.size; ++k) {
-      keys[k] = Short.reverseBytes(in.readShort());
-      cardinalities[k] = 1 + (0xFFFF & Short.reverseBytes(in.readShort()));
+      keys[k] = Character.reverseBytes(in.readChar());
+      cardinalities[k] = 1 + (0xFFFF & Character.reverseBytes(in.readChar()));
 
       isBitmap[k] = cardinalities[k] > ArrayContainer.DEFAULT_MAX_SIZE;
       if (bitmapOfRunContainers != null && (bitmapOfRunContainers[k / 8] & (1 << (k % 8))) != 0) {
@@ -467,8 +457,8 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       } else if (bitmapOfRunContainers != null
           && ((bitmapOfRunContainers[k / 8] & (1 << (k % 8))) != 0)) {
         // cf RunContainer.writeArray()
-        int nbrruns = Util.toIntUnsigned(Short.reverseBytes(in.readShort()));
-        final short lengthsAndValues[] = new short[2 * nbrruns];
+        int nbrruns = (Character.reverseBytes(in.readChar()));
+        final char[] lengthsAndValues = new char[2 * nbrruns];
         
         if (buffer == null && lengthsAndValues.length > (BitmapContainer.MAX_CAPACITY / 64) * 8) {
           // a buffer to load a Container in a single .readFully
@@ -479,7 +469,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
         if (buffer == null) {
           // The RunContainer is small: skip the buffer allocation
           for (int j = 0; j < lengthsAndValues.length; ++j) {
-            lengthsAndValues[j] = Short.reverseBytes(in.readShort());
+            lengthsAndValues[j] = Character.reverseBytes(in.readChar());
           }
         } else {
           for (int iBlock = 0 ; iBlock <= lengthsAndValues.length / buffer.length / 2; iBlock++) {
@@ -492,17 +482,17 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
             ByteBuffer asByteBuffer = ByteBuffer.wrap(buffer);
             asByteBuffer.order(LITTLE_ENDIAN);
             
-            ShortBuffer asShortBuffer = asByteBuffer.asShortBuffer();
-            asShortBuffer.rewind();
-            asShortBuffer.get(lengthsAndValues, start, (end - start) / 2); 
+            CharBuffer asCharBuffer = asByteBuffer.asCharBuffer();
+            asCharBuffer.rewind();
+            asCharBuffer.get(lengthsAndValues, start, (end - start) / 2);
           }
         }
         
         val = new RunContainer(lengthsAndValues, nbrruns);
       } else {
-        final short[] shortArray = new short[cardinalities[k]];
+        final char[] charArray = new char[cardinalities[k]];
 
-        if (buffer == null && shortArray.length > (BitmapContainer.MAX_CAPACITY / 64) * 8) {
+        if (buffer == null && charArray.length > (BitmapContainer.MAX_CAPACITY / 64) * 8) {
           // a buffer to load a Container in a single .readFully
           // We initialize it with the length of a BitmapContainer
           buffer = new byte[(BitmapContainer.MAX_CAPACITY / 64) * 8];
@@ -510,13 +500,13 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
         
         if (buffer == null) {
           // The ArrayContainer is small: skip the buffer allocation
-          for (int j = 0; j < shortArray.length; ++j) {
-            shortArray[j] = Short.reverseBytes(in.readShort());
+          for (int j = 0; j < charArray.length; ++j) {
+            charArray[j] = Character.reverseBytes(in.readChar());
           }
         } else {
-          for (int iBlock = 0 ; iBlock <= shortArray.length / buffer.length / 2; iBlock++) {
+          for (int iBlock = 0 ; iBlock <= charArray.length / buffer.length / 2; iBlock++) {
             int start = buffer.length * iBlock;
-            int end = Math.min(buffer.length * (iBlock +1 ) - 1, 2 * shortArray.length);
+            int end = Math.min(buffer.length * (iBlock +1 ) - 1, 2 * charArray.length);
             
             in.readFully(buffer, 0, end - start);
 
@@ -524,13 +514,13 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
             ByteBuffer asByteBuffer = ByteBuffer.wrap(buffer);
             asByteBuffer.order(LITTLE_ENDIAN);
             
-            ShortBuffer asShortBuffer = asByteBuffer.asShortBuffer();
-            asShortBuffer.rewind();
-            asShortBuffer.get(shortArray, start, (end - start) / 2);
+            CharBuffer asCharBuffer = asByteBuffer.asCharBuffer();
+            asCharBuffer.rewind();
+            asCharBuffer.get(charArray, start, (end - start) / 2);
           }
         }
         
-        val = new ArrayContainer(shortArray);
+        val = new ArrayContainer(charArray);
       }
       this.keys[k] = keys[k];
       this.values[k] = val;
@@ -575,7 +565,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       throw new InvalidRoaringFormat("Size too large");
     }
     if ((this.keys == null) || (this.keys.length < this.size)) {
-      this.keys = new short[this.size];
+      this.keys = new char[this.size];
       this.values = new Container[this.size];
     }
 
@@ -587,12 +577,12 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       buffer.get(bitmapOfRunContainers);
     }
 
-    final short keys[] = new short[this.size];
-    final int cardinalities[] = new int[this.size];
-    final boolean isBitmap[] = new boolean[this.size];
+    final char[] keys = new char[this.size];
+    final int[] cardinalities = new int[this.size];
+    final boolean[] isBitmap = new boolean[this.size];
     for (int k = 0; k < this.size; ++k) {
-      keys[k] = buffer.getShort();
-      cardinalities[k] = 1 + (0xFFFF & buffer.getShort());
+      keys[k] = buffer.getChar();
+      cardinalities[k] = 1 + (0xFFFF & buffer.getChar());
 
       isBitmap[k] = cardinalities[k] > ArrayContainer.DEFAULT_MAX_SIZE;
       if (bitmapOfRunContainers != null && (bitmapOfRunContainers[k / 8] & (1 << (k % 8))) != 0) {
@@ -617,21 +607,21 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       } else if (bitmapOfRunContainers != null
           && ((bitmapOfRunContainers[k / 8] & (1 << (k % 8))) != 0)) {
         // cf RunContainer.writeArray()
-        int nbrruns = Util.toIntUnsigned(buffer.getShort());
-        final short lengthsAndValues[] = new short[2 * nbrruns];
+        int nbrruns = (buffer.getChar());
+        final char[] lengthsAndValues = new char[2 * nbrruns];
 
-        buffer.asShortBuffer().get(lengthsAndValues);
+        buffer.asCharBuffer().get(lengthsAndValues);
         buffer.position(buffer.position() + lengthsAndValues.length * 2);
         
         val = new RunContainer(lengthsAndValues, nbrruns);
       } else {
-        final short[] shortArray = new short[cardinalities[k]];
+        final char[] charArray = new char[cardinalities[k]];
         
 
-        buffer.asShortBuffer().get(shortArray);
-        buffer.position(buffer.position() + shortArray.length * 2);
+        buffer.asCharBuffer().get(charArray);
+        buffer.position(buffer.position() + charArray.length * 2);
         
-        val = new ArrayContainer(shortArray);
+        val = new ArrayContainer(charArray);
       }
       this.keys[k] = keys[k];
       this.values[k] = val;
@@ -659,7 +649,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
   }
 
   // make sure there is capacity for at least k more elements
-  protected void extendArray(int k) {
+  void extendArray(int k) {
     // size + 1 could overflow
     if (this.size + k > this.keys.length) {
       int newCapacity;
@@ -674,7 +664,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
   }
 
   // involves a binary search
-  protected Container getContainer(short x) {
+  protected Container getContainer(char x) {
     int i = this.binarySearch(0, size, x);
     if (i < 0) {
       return null;
@@ -721,7 +711,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       @Override
       public int compareTo(ContainerPointer o) {
         if (key() != o.key()) {
-          return Util.toIntUnsigned(key()) - Util.toIntUnsigned(o.key());
+          return key() - o.key();
         }
         return o.getCardinality() - getCardinality();
       }
@@ -752,7 +742,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
 
 
       @Override
-      public short key() {
+      public char key() {
         return RoaringArray.this.keys[k];
 
       }
@@ -760,7 +750,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
   }
 
   // involves a binary search
-  protected int getIndex(short x) {
+  int getIndex(char x) {
     // before the binary search, we optimize for frequent cases
     if ((size == 0) || (keys[size - 1] == x)) {
       return size - 1;
@@ -769,7 +759,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     return this.binarySearch(0, size, x);
   }
 
-  protected short getKeyAtIndex(int i) {
+  protected char getKeyAtIndex(int i) {
     return this.keys[i];
   }
 
@@ -782,7 +772,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     return hashvalue;
   }
 
-  boolean hasRunContainer() {
+  private boolean hasRunContainer() {
     for (int k = 0; k < size; ++k) {
       Container ck = values[k];
       if (ck instanceof RunContainer) {
@@ -792,7 +782,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     return false;
   }
 
-  protected int headerSize() {
+  private int headerSize() {
     if (hasRunContainer()) {
       if (size < NO_OFFSET_THRESHOLD) {// for small bitmaps, we omit the offsets
         return 4 + (size + 7) / 8 + 4 * size;
@@ -805,7 +795,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
 
 
   // insert a new key, it is assumed that it does not exist
-  protected void insertNewKeyValueAt(int i, short key, Container value) {
+  void insertNewKeyValueAt(int i, char key, Container value) {
     extendArray(1);
     System.arraycopy(keys, i, keys, i + 1, size - i);
     keys[i] = key;
@@ -815,11 +805,11 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
   }
 
   @Override
-  public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+  public void readExternal(ObjectInput in) throws IOException {
     deserialize(in);
   }
 
-  protected void removeAtIndex(int i) {
+  void removeAtIndex(int i) {
     System.arraycopy(keys, i + 1, keys, i, size - i - 1);
     keys[size - 1] = 0;
     System.arraycopy(values, i + 1, values, i, size - i - 1);
@@ -827,7 +817,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     size--;
   }
 
-  protected void removeIndexRange(int begin, int end) {
+  void removeIndexRange(int begin, int end) {
     if (end <= begin) {
       return;
     }
@@ -841,13 +831,13 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     size -= range;
   }
 
-  protected void replaceKeyAndContainerAtIndex(int i, short key, Container c) {
+  void replaceKeyAndContainerAtIndex(int i, char key, Container c) {
     this.keys[i] = key;
     this.values[i] = c;
   }
 
-  protected void resize(int newLength) {
-    Arrays.fill(this.keys, newLength, this.size, (short) 0);
+  void resize(int newLength) {
+    Arrays.fill(this.keys, newLength, this.size, (char) 0);
     Arrays.fill(this.values, newLength, this.size, null);
     this.size = newLength;
   }
@@ -885,8 +875,8 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       startOffset = 4 + 4 + 4 * this.size + 4 * this.size;
     }
     for (int k = 0; k < size; ++k) {
-      out.writeShort(Short.reverseBytes(this.keys[k]));
-      out.writeShort(Short.reverseBytes((short) (this.values[k].getCardinality() - 1)));
+      out.writeShort(Character.reverseBytes(this.keys[k]));
+      out.writeShort(Character.reverseBytes((char) (this.values[k].getCardinality() - 1)));
     }
     if ((!hasrun) || (this.size >= NO_OFFSET_THRESHOLD)) {
       // writing the containers offsets
@@ -935,8 +925,8 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       startOffset = 4 + 4 + 4 * this.size + 4 * this.size;
     }
     for (int k = 0; k < size; ++k) {
-      buf.putShort(this.keys[k]);
-      buf.putShort((short) (this.values[k].getCardinality() - 1));
+      buf.putChar(this.keys[k]);
+      buf.putChar((char) (this.values[k].getCardinality() - 1));
     }
     if ((!hasrun) || (this.size >= NO_OFFSET_THRESHOLD)) {
       // writing the containers offsets
@@ -966,7 +956,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     return count;
   }
 
-  protected void setContainerAtIndex(int i, Container c) {
+  void setContainerAtIndex(int i, Container c) {
     this.values[i] = c;
   }
 
@@ -986,7 +976,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
    */
   public int first() {
     assertNonEmpty();
-    short firstKey = keys[0];
+    char firstKey = keys[0];
     Container container = values[0];
     return firstKey << 16 | container.first();
   }
@@ -998,7 +988,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
    */
   public int last() {
     assertNonEmpty();
-    short lastKey = keys[size - 1];
+    char lastKey = keys[size - 1];
     Container container = values[size - 1];
     return lastKey << 16 | container.last();
   }
