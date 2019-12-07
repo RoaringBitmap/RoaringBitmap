@@ -9,12 +9,13 @@ package org.roaringbitmap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
+import org.junit.Assert;
+import org.junit.Test;
+
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Random;
-import org.junit.Assert;
-import org.junit.Test;
 
 public class TestIterators {
   private static List<Integer> asList(IntIterator ints) {
@@ -29,7 +30,7 @@ public class TestIterators {
     return Ints.asList(Arrays.copyOf(values, size));
   }
 
-  private static List<Integer> asList(final ShortIterator shorts) {
+  private static List<Integer> asList(final CharIterator shorts) {
     return asList(new IntIterator() {
       @Override
       public IntIterator clone() {
@@ -65,8 +66,8 @@ public class TestIterators {
   public void testBitmapIteration() {
     final BitmapContainer bits = new BitmapContainer(new long[] {0x1l, 1l << 63}, 2);
 
-    Assert.assertEquals(asList(bits.getShortIterator()), ImmutableList.of(0, 127));
-    Assert.assertEquals(asList(bits.getReverseShortIterator()), ImmutableList.of(127, 0));
+    Assert.assertEquals(asList(bits.getCharIterator()), ImmutableList.of(0, 127));
+    Assert.assertEquals(asList(bits.getReverseCharIterator()), ImmutableList.of(127, 0));
   }
 
   @Test

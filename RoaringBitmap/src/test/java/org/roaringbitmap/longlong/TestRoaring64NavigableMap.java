@@ -1,19 +1,7 @@
 package org.roaringbitmap.longlong;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NavigableMap;
-import java.util.Random;
-
+import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -23,8 +11,8 @@ import org.roaringbitmap.RoaringBitmapSupplier;
 import org.roaringbitmap.Util;
 import org.roaringbitmap.buffer.MutableRoaringBitmapSupplier;
 
-import com.google.common.primitives.Ints;
-import com.google.common.primitives.Longs;
+import java.io.*;
+import java.util.*;
 
 public class TestRoaring64NavigableMap {
 

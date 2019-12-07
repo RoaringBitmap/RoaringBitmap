@@ -124,7 +124,7 @@ public class BasicAndNotContainerBenchmark {
       rc3 = new RunContainer();
       rc3 = RandomUtil.fillMeUp(rc3, values3);
 
-      rc4 = new RunContainer(new short[]{4, 500, 2000, 1000, 5000, 3000, 16000, 10000, 32000, 600}, 5);
+      rc4 = new RunContainer(new char[]{4, 500, 2000, 1000, 5000, 3000, 16000, 10000, 32000, 600}, 5);
 
       ac1 = new ArrayContainer();
       ac1 = RandomUtil.fillMeUp(ac1, values1);

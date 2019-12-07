@@ -20,13 +20,13 @@ public class UnsignedVSFlip {
 
   @Benchmark
   @BenchmarkMode(Mode.Throughput)
-  public int tointUnsignedTime() {
+  public int Time() {
     return key & 0xFFFF;
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
-  public int tointUnsignedTimeAvg() {
+  public int TimeAvg() {
     return key & 0xFFFF;
   }
 

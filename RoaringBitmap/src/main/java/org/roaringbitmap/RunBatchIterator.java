@@ -1,6 +1,6 @@
 package org.roaringbitmap;
 
-import static org.roaringbitmap.Util.toIntUnsigned;
+
 
 public final class RunBatchIterator implements ContainerBatchIterator {
 
@@ -16,8 +16,8 @@ public final class RunBatchIterator implements ContainerBatchIterator {
   public int next(int key, int[] buffer) {
     int consumed = 0;
     do {
-      int runStart = toIntUnsigned(runs.getValue(run));
-      int runLength = toIntUnsigned(runs.getLength(run));
+      int runStart = (runs.getValue(run));
+      int runLength = (runs.getLength(run));
       int chunkStart = runStart + cursor;
       int chunkEnd = chunkStart + Math.min(runLength - cursor, buffer.length - consumed - 1);
       int chunk = chunkEnd - chunkStart + 1;

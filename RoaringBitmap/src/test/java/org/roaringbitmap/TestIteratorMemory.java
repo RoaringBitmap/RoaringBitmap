@@ -1,5 +1,10 @@
 package org.roaringbitmap;
 
+import org.junit.Assert;
+import org.junit.Assume;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 import java.lang.reflect.InvocationTargetException;
@@ -8,11 +13,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Random;
 import java.util.stream.Stream;
-
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 public class TestIteratorMemory {
   final IntIteratorFlyweight flyweightIterator = new IntIteratorFlyweight();

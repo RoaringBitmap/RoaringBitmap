@@ -7,9 +7,9 @@ import java.util.Random;
 
 public class TestRankIteratorsOfContainers {
   private void testContainerRanksOnNext(Container c) {
-    PeekableShortRankIterator iterator = c.getShortRankIterator();
+    PeekableCharRankIterator iterator = c.getCharRankIterator();
     while (iterator.hasNext()) {
-      short bit = iterator.peekNext();
+      char bit = iterator.peekNext();
       int rank = iterator.peekNextRank();
 
       Assert.assertEquals(c.rank(bit), rank);
@@ -19,9 +19,9 @@ public class TestRankIteratorsOfContainers {
   }
 
   private void testContainerRanksOnNextAsInt(Container c) {
-    PeekableShortRankIterator iterator = c.getShortRankIterator();
+    PeekableCharRankIterator iterator = c.getCharRankIterator();
     while (iterator.hasNext()) {
-      short bit = iterator.peekNext();
+      char bit = iterator.peekNext();
       int rank = iterator.peekNextRank();
 
       Assert.assertEquals(c.rank(bit), rank);
@@ -31,16 +31,16 @@ public class TestRankIteratorsOfContainers {
   }
 
   private void testContainerRanksOnAdvance(Container c, int advance) {
-    PeekableShortRankIterator iterator = c.getShortRankIterator();
-    short bit;
+    PeekableCharRankIterator iterator = c.getCharRankIterator();
+    char bit;
     while (iterator.hasNext()) {
       bit = iterator.peekNext();
       int rank = iterator.peekNextRank();
 
       Assert.assertEquals(c.rank(bit), rank);
 
-      if ((Util.toIntUnsigned(bit) + advance < 65536)) {
-        iterator.advanceIfNeeded((short) (bit + advance));
+      if (((bit) + advance < 65536)) {
+        iterator.advanceIfNeeded((char) (bit + advance));
       } else {
         iterator.next();
       }
@@ -68,15 +68,15 @@ public class TestRankIteratorsOfContainers {
     Container empty = container;
 
     for (int i = 0; i < 1024; ++i) {
-      container.add((short) rnd.nextInt(1 << 10));
+      container.add((char) rnd.nextInt(1 << 10));
     }
 
     for (int i = 0; i < 1024; ++i) {
-      container.add((short) (8192 + rnd.nextInt(1 << 10)));
+      container.add((char) (8192 + rnd.nextInt(1 << 10)));
     }
 
     for (int i = 0; i < 1024; ++i) {
-      container.add((short) (16384 + rnd.nextInt(1 << 10)));
+      container.add((char) (16384 + rnd.nextInt(1 << 10)));
     }
 
     Assert.assertSame("bad test -- container was changed", empty, container);
@@ -93,8 +93,8 @@ public class TestRankIteratorsOfContainers {
   @Test
   public void testBitmapContainer1() {
     BitmapContainer container = new BitmapContainer();
-    container.add((short) 123);
-    container.add((short) 65535);
+    container.add((char) 123);
+    container.add((char) 65535);
 
     testContainerRanksOnNext(container);
   }
@@ -131,7 +131,7 @@ public class TestRankIteratorsOfContainers {
   @Test
   public void testArrayContainer1() {
     ArrayContainer container = new ArrayContainer();
-    container.add((short) 123);
+    container.add((char) 123);
 
     testContainerRanksOnNext(container);
   }
@@ -157,7 +157,7 @@ public class TestRankIteratorsOfContainers {
   @Test
   public void testRunContainer1() {
     RunContainer container = new RunContainer();
-    container.add((short) 123);
+    container.add((char) 123);
     testContainerIterators(container);
   }
 
@@ -195,9 +195,9 @@ public class TestRankIteratorsOfContainers {
       Assert.assertSame("bad test -- container was changed", container, c1);
     }
 
-    PeekableShortRankIterator iterator = container.getShortRankIterator();
+    PeekableCharRankIterator iterator = container.getCharRankIterator();
     while (iterator.hasNext()) {
-      Assert.assertEquals(Util.toIntUnsigned(iterator.peekNext()) + 1, iterator.peekNextRank());
+      Assert.assertEquals((iterator.peekNext()) + 1, iterator.peekNextRank());
       iterator.next();
     }
   }

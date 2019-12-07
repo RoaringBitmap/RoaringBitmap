@@ -4,15 +4,11 @@
 
 package org.roaringbitmap.buffer;
 
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import org.junit.Test;
+
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-
-import org.junit.Test;
 
 public class TestExamples {
   @Test

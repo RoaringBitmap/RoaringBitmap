@@ -8,7 +8,6 @@ package org.roaringbitmap.buffer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.roaringbitmap.IntIterator;

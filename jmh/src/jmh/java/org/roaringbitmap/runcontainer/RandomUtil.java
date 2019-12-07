@@ -60,7 +60,7 @@ public class RandomUtil {
     if (values.length == 0)
       throw new RuntimeException("You are trying to create an empty bitmap! ");
     for (int k = 0; k < values.length; ++k)
-      c = c.add((short) values[k]);
+      c = c.add((char) values[k]);
     if (c.getCardinality() != values.length)
       throw new RuntimeException("add failure");
     return c;

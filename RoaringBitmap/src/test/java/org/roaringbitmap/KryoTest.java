@@ -1,20 +1,15 @@
 package org.roaringbitmap;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.KryoDataInput;
 import com.esotericsoftware.kryo.io.KryoDataOutput;
 import com.esotericsoftware.kryo.io.Output;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.io.*;
 
 public class KryoTest {
     public static Kryo createKryo() {
@@ -54,7 +49,7 @@ public class KryoTest {
         tmpfiledense.deleteOnExit();
         writeRoaringToFile(tmpfiledense, roaringDense, serializer);
         RoaringBitmap denseRoaringFromFile = readRoaringFromFile(tmpfiledense, serializer);
-        Assert.assertTrue(denseRoaringFromFile.equals(roaringDense));
+        Assert.assertEquals(denseRoaringFromFile, roaringDense);
 
         RoaringBitmap roaringSparse = new RoaringBitmap();
         for (int i = 0; i < 100_000; i++) {
@@ -65,7 +60,7 @@ public class KryoTest {
         File tmpfilesparse = File.createTempFile("roaring_sparse", "bin");
         writeRoaringToFile(tmpfilesparse, roaringSparse, serializer);
         RoaringBitmap sparseRoaringFromFile = readRoaringFromFile(tmpfilesparse, serializer);
-        Assert.assertTrue(sparseRoaringFromFile.equals(roaringSparse));
+        Assert.assertEquals(sparseRoaringFromFile, roaringSparse);
     }
 
 }

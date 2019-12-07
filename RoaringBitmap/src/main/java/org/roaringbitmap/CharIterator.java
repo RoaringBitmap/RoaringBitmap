@@ -7,13 +7,13 @@ package org.roaringbitmap;
 /**
  * Iterator over short values.
  */
-public interface ShortIterator extends Cloneable {
+public interface CharIterator extends Cloneable {
   /**
    * Creates a copy of the iterator.
    * 
    * @return a clone of the current iterator
    */
-  ShortIterator clone();
+  CharIterator clone();
 
   /**
    * @return whether there is another value
@@ -22,9 +22,9 @@ public interface ShortIterator extends Cloneable {
 
 
   /**
-   * @return next short value
+   * @return next char value
    */
-  short next();
+  char next();
 
   /**
    * @return next short value as int value (using the least significant 16 bits)

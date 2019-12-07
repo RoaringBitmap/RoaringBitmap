@@ -1,6 +1,6 @@
 package org.roaringbitmap;
 
-import static org.roaringbitmap.Util.toIntUnsigned;
+
 
 public final class ArrayBatchIterator implements ContainerBatchIterator {
 
@@ -14,9 +14,9 @@ public final class ArrayBatchIterator implements ContainerBatchIterator {
   @Override
   public int next(int key, int[] buffer) {
     int consumed = 0;
-    short[] data = array.content;
+    char[] data = array.content;
     while (consumed < buffer.length && index < array.getCardinality()) {
-      buffer[consumed++] = key + toIntUnsigned(data[index++]);
+      buffer[consumed++] = key + (data[index++]);
     }
     return consumed;
   }

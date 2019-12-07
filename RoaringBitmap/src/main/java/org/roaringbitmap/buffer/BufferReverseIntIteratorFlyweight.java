@@ -4,8 +4,8 @@
 
 package org.roaringbitmap.buffer;
 
+import org.roaringbitmap.CharIterator;
 import org.roaringbitmap.IntIterator;
-import org.roaringbitmap.ShortIterator;
 
 /**
  * Fast iterator minimizing the stress on the garbage collector. You can create one reusable
@@ -19,16 +19,16 @@ public class BufferReverseIntIteratorFlyweight implements IntIterator {
 
   private int hs;
 
-  private ShortIterator iter;
+  private CharIterator iter;
 
-  private ReverseMappeableArrayContainerShortIterator arrIter =
-      new ReverseMappeableArrayContainerShortIterator();
+  private ReverseMappeableArrayContainerCharIterator arrIter =
+      new ReverseMappeableArrayContainerCharIterator();
 
-  private ReverseMappeableBitmapContainerShortIterator bitmapIter =
-      new ReverseMappeableBitmapContainerShortIterator();
+  private ReverseMappeableBitmapContainerCharIterator bitmapIter =
+      new ReverseMappeableBitmapContainerCharIterator();
 
-  private ReverseMappeableRunContainerShortIterator runIter =
-      new ReverseMappeableRunContainerShortIterator();
+  private ReverseMappeableRunContainerCharIterator runIter =
+      new ReverseMappeableRunContainerCharIterator();
 
   private short pos;
 
@@ -99,7 +99,7 @@ public class BufferReverseIntIteratorFlyweight implements IntIterator {
         iter = arrIter;
       }
 
-      hs = BufferUtil.toIntUnsigned(this.roaringBitmap.highLowContainer.getKeyAtIndex(pos)) << 16;
+      hs = (this.roaringBitmap.highLowContainer.getKeyAtIndex(pos)) << 16;
     }
   }
 

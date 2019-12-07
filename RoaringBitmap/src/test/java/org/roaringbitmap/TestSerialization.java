@@ -1,22 +1,18 @@
 package org.roaringbitmap;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Random;
-import java.util.Iterator;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.roaringbitmap.buffer.MutableRoaringBitmap;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
-import static org.junit.Assert.*;
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Random;
+
+import static org.junit.Assert.assertEquals;
 
 class ByteBufferBackedInputStream extends InputStream {
 

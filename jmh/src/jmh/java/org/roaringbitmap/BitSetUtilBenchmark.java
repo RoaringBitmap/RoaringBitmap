@@ -55,7 +55,7 @@ public class BitSetUtilBenchmark {
       // for each bit, unless updated word has become 0 (no more bits left) or we already have
       // reached cardinality
       word = words[i];
-      for (int bitIndex = 0; word != 0 && bitIndex < Long.SIZE && index < cardinality; word >>=
+      for (int bitIndex = 0; word != 0 && bitIndex < Long.SIZE; word >>=
           1, bitIndex++) {
         if ((word & 1l) != 0) {
           bitmap.add(socket + bitIndex);
@@ -92,16 +92,11 @@ public class BitSetUtilBenchmark {
           }
 
           // duplicate long[] n times to the right
-          for (int j = 0; j < clone; j++) {
-            System.arraycopy(words, 0, words, (j + 1) * wordSize, wordSize);
-          }
           bitset[i] = words;
         }
         return bitset;
       } finally {
-        if (dos != null) {
-          dos.close();
-        }
+        dos.close();
       }
     }
   }

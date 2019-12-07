@@ -43,7 +43,7 @@ public class TestBufferRangeCardinality {
         LongBuffer array = ByteBuffer.allocateDirect(MappeableBitmapContainer.MAX_CAPACITY / 8).asLongBuffer();
         MappeableBitmapContainer bc = new MappeableBitmapContainer(array, 0);
         for (int e : elements) {
-            bc.add((short) e);
+            bc.add((char) e);
         }
         Assert.assertEquals(false, bc.isArrayBacked());
         Assert.assertEquals(expected, BufferUtil.cardinalityInBitmapRange(bc.bitmap, begin, end));

@@ -10,8 +10,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.IntStream;
 
-import static org.roaringbitmap.Util.compareUnsigned;
-
 /**
  *
  * These utility methods provide parallel implementations of
@@ -40,8 +38,9 @@ import static org.roaringbitmap.Util.compareUnsigned;
  */
 public class ParallelAggregation {
 
-  private static final Collector<Map.Entry<Short,List<Container>>, RoaringArray, RoaringBitmap> XOR
-          = new ContainerCollector(ParallelAggregation::xor);
+  private static final Collector<Map.Entry<Character, List<Container>>,
+          RoaringArray, RoaringBitmap>
+          XOR = new ContainerCollector(ParallelAggregation::xor);
 
   private static final OrCollector OR = new OrCollector();
 
@@ -50,7 +49,7 @@ public class ParallelAggregation {
    * supplied aggregation function to each group.
    */
   public static class ContainerCollector implements
-          Collector<Map.Entry<Short,List<Container>>, RoaringArray, RoaringBitmap> {
+          Collector<Map.Entry<Character, List<Container>>, RoaringArray, RoaringBitmap> {
 
     private final Function<List<Container>, Container> reducer;
 
@@ -58,7 +57,7 @@ public class ParallelAggregation {
      * Creates a collector with the reducer function.
      * @param reducer a function to apply to containers with the same key.
      */
-    public ContainerCollector(Function<List<Container>, Container> reducer) {
+    ContainerCollector(Function<List<Container>, Container> reducer) {
       this.reducer = reducer;
     }
 
@@ -68,9 +67,9 @@ public class ParallelAggregation {
     }
 
     @Override
-    public BiConsumer<RoaringArray, Map.Entry<Short, List<Container>>> accumulator() {
+    public BiConsumer<RoaringArray, Map.Entry<Character, List<Container>>> accumulator() {
       return (l, r) -> {
-        assert l.size == 0 || compareUnsigned(l.keys[l.size - 1], r.getKey()) < 0;
+        assert l.size == 0 || l.keys[l.size - 1] < r.getKey();
         Container container = reducer.apply(r.getValue());
         if (!container.isEmpty()) {
           l.append(r.getKey(), container);
@@ -81,7 +80,7 @@ public class ParallelAggregation {
     @Override
     public BinaryOperator<RoaringArray> combiner() {
       return (l, r) -> {
-        assert l.size == 0 || r.size == 0 || compareUnsigned(l.keys[l.size - 1], r.keys[0]) < 0;
+        assert l.size == 0 || r.size == 0 || l.keys[l.size - 1] - r.keys[0] < 0;
         l.append(r);
         return l;
       };
@@ -135,13 +134,13 @@ public class ParallelAggregation {
    * @param bitmaps input bitmaps
    * @return The containers from the bitmaps grouped by key
    */
-  public static SortedMap<Short, List<Container>> groupByKey(RoaringBitmap... bitmaps) {
-    Map<Short, List<Container>> grouped = new HashMap<>();
+  public static SortedMap<Character, List<Container>> groupByKey(RoaringBitmap... bitmaps) {
+    Map<Character, List<Container>> grouped = new HashMap<>();
     for (RoaringBitmap bitmap : bitmaps) {
       RoaringArray ra = bitmap.highLowContainer;
       for (int i = 0; i < ra.size; ++i) {
         Container container = ra.values[i];
-        Short key = ra.keys[i];
+        Character key = ra.keys[i];
         List<Container> slice = grouped.get(key);
         if (null == slice) {
           slice = new ArrayList<>();
@@ -150,9 +149,7 @@ public class ParallelAggregation {
         slice.add(container);
       }
     }
-    SortedMap<Short, List<Container>> sorted = new TreeMap<>(Util::compareUnsigned);
-    sorted.putAll(grouped);
-    return sorted;
+    return new TreeMap<>(grouped);
   }
 
 
@@ -162,12 +159,12 @@ public class ParallelAggregation {
    * @return the union of the bitmaps
    */
   public static RoaringBitmap or(RoaringBitmap... bitmaps) {
-    SortedMap<Short, List<Container>> grouped = groupByKey(bitmaps);
-    short[] keys = new short[grouped.size()];
+    SortedMap<Character, List<Container>> grouped = groupByKey(bitmaps);
+    char[] keys = new char[grouped.size()];
     Container[] values = new Container[grouped.size()];
     List<List<Container>> slices = new ArrayList<>(grouped.size());
     int i = 0;
-    for (Map.Entry<Short, List<Container>> slice : grouped.entrySet()) {
+    for (Map.Entry<Character, List<Container>> slice : grouped.entrySet()) {
       keys[i++] = slice.getKey();
       slices.add(slice.getValue());
     }

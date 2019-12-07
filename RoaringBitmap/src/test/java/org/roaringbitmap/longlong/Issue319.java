@@ -1,10 +1,12 @@
 package org.roaringbitmap.longlong;
 
 import org.roaringbitmap.RoaringBitmap;
-import org.roaringbitmap.buffer.*;
+import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 
-import java.io.*;
-import java.nio.*;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class Issue319 {
 

@@ -6,17 +6,17 @@ package org.roaringbitmap;
 
 
 /**
- * Simple extension to the ShortIterator interface
+ * Simple extension to the CharIterator interface
  *
  */
-public interface PeekableShortIterator extends ShortIterator {
+public interface PeekableCharIterator extends CharIterator {
   /**
    * If needed, advance as long as the next value is smaller than minval (as an unsigned
    * short)
    * 
    * @param minval threshold
    */
-  public void advanceIfNeeded(short minval);
+  public void advanceIfNeeded(char minval);
 
   /**
    * 
@@ -24,7 +24,7 @@ public interface PeekableShortIterator extends ShortIterator {
    * 
    * @return next value
    */
-  public short peekNext();
+  public char peekNext();
   
   /**
    * Creates a copy of the iterator.
@@ -32,6 +32,6 @@ public interface PeekableShortIterator extends ShortIterator {
    * @return a clone of the current iterator
    */
   @Override
-  PeekableShortIterator clone();
+  PeekableCharIterator clone();
 }
 

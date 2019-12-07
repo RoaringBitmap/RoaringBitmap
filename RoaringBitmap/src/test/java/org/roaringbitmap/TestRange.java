@@ -1,13 +1,13 @@
 package org.roaringbitmap;
 
-import static org.junit.Assert.*;
-
-import java.util.BitSet;
-import java.util.Random;
-import java.util.List;
-import java.util.ArrayList;
-
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.List;
+import java.util.Random;
+
+import static org.junit.Assert.*;
 
 
 

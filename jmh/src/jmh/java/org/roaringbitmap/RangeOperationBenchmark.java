@@ -80,12 +80,12 @@ public class RangeOperationBenchmark {
   public static class BenchmarkState {
     BitmapContainer emptyBC = new BitmapContainer();
     BitmapContainer bc = new BitmapContainer();
-    RunContainer rc = new RunContainer(new short[] {7, 300, 400, 900, 1400, 2200, 4000, 2700}, 4);
+    RunContainer rc = new RunContainer(new char[] {7, 300, 400, 900, 1400, 2200, 4000, 2700}, 4);
 
     public BenchmarkState() {
       for (int i = 100; i < 15000; i++) {
         if (i % 5 != 0)
-          bc.add((short) i);
+          bc.add((char) i);
       }
     }
   }
