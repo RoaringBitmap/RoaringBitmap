@@ -12,6 +12,7 @@ public class RandomisedTestData {
   public static final int ITERATIONS = parseInt(System.getProperty("org.roaringbitmap.fuzz.iterations", "10000"));
 
   private static final ThreadLocal<long[]> bits = ThreadLocal.withInitial(() -> new long[1 << 10]);
+  private static final ThreadLocal<int[]> runs = ThreadLocal.withInitial(() -> new int[4096]);
 
   public static RoaringBitmap randomBitmap(int maxKeys, double rleLimit, double denseLimit) {
     return randomBitmap(maxKeys, rleLimit, denseLimit,  writer().initialCapacity(maxKeys).optimiseForArrays().get());
@@ -51,11 +52,23 @@ public class RandomisedTestData {
   }
 
   private static IntStream rleRegion() {
-    int numRuns = ThreadLocalRandom.current().nextInt(1, 2048);
-    int[] runs = createSorted16BitInts(numRuns * 2);
-    return IntStream.range(0, numRuns)
+    int maxNumRuns = ThreadLocalRandom.current().nextInt(1, 2048);
+    int minRequiredCardinality = maxNumRuns * 2 + 1;
+    int[] values = runs.get();
+    int totalRuns = 0;
+    int start = ThreadLocalRandom.current().nextInt(64);
+    int run = 0;
+    while (minRequiredCardinality > 0 && start < 0xFFFF && run < 2 * maxNumRuns) {
+        int runLength = ThreadLocalRandom.current().nextInt(1, minRequiredCardinality + 1);
+        values[run++] = start;
+        values[run++] = Math.min(start + runLength, 0x10000 - start);
+        start += runLength + ThreadLocalRandom.current().nextInt(64);
+        minRequiredCardinality -= runLength;
+        ++totalRuns;
+    }
+    return IntStream.range(0, totalRuns)
             .map(i -> i * 2)
-            .mapToObj(i -> IntStream.range(runs[i], runs[i + 1]))
+            .mapToObj(i -> IntStream.range(values[i], values[i + 1]))
             .flatMapToInt(i -> i);
   }
 
