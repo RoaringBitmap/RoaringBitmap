@@ -7,6 +7,7 @@ import java.util.stream.IntStream;
 public class RandomData {
 
   private static final ThreadLocal<long[]> bits = ThreadLocal.withInitial(() -> new long[1 << 10]);
+  private static final ThreadLocal<int[]> runs = ThreadLocal.withInitial(() -> new int[4096]);
 
   public static RoaringBitmap randomContiguousBitmap(int startKey, int numKeys, double rleLimit, double denseLimit) {
     int[] keys = new int[numKeys];
@@ -21,11 +22,23 @@ public class RandomData {
   }
 
   public static IntStream rleRegion() {
-    int numRuns = ThreadLocalRandom.current().nextInt(1, 2048);
-    int[] runs = createSorted16BitInts(numRuns * 2);
-    return IntStream.range(0, numRuns)
+    int maxNumRuns = ThreadLocalRandom.current().nextInt(1, 2048);
+    int minRequiredCardinality = maxNumRuns * 2 + 1;
+    int[] values = runs.get();
+    int totalRuns = 0;
+    int start = ThreadLocalRandom.current().nextInt(64);
+    int run = 0;
+    while (minRequiredCardinality > 0 && start < 0xFFFF && run < 2 * maxNumRuns) {
+      int runLength = ThreadLocalRandom.current().nextInt(1, minRequiredCardinality + 1);
+      values[run++] = start;
+      values[run++] = Math.min(start + runLength, 0x10000 - start);
+      start += runLength + ThreadLocalRandom.current().nextInt(64);
+      minRequiredCardinality -= runLength;
+      ++totalRuns;
+    }
+    return IntStream.range(0, totalRuns)
             .map(i -> i * 2)
-            .mapToObj(i -> IntStream.range(runs[i], runs[i + 1]))
+            .mapToObj(i -> IntStream.range(values[i], values[i + 1]))
             .flatMapToInt(i -> i);
   }
 
