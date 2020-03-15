@@ -135,7 +135,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     final long newv = previous | (1L << i);
     bitmap.put(i / 64, newv);
     if (USE_BRANCHLESS) {
-      cardinality += (previous ^ newv) >>> i;
+      cardinality += (int)((previous ^ newv) >>> i);
     } else if (previous != newv) {
       cardinality++;
     }
@@ -161,7 +161,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       for (int k = 0; k < ca; ++k) {
         char v = c[k];
         sarray[answer.cardinality] = v;
-        answer.cardinality += this.bitValue(v);
+        answer.cardinality += (int)this.bitValue(v);
       }
 
     } else {
@@ -169,7 +169,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       for (int k = 0; k < ca; ++k) {
         char v = value2.content.get(k);
         sarray[answer.cardinality] = v;
-        answer.cardinality += this.bitValue(v);
+        answer.cardinality += (int)this.bitValue(v);
       }
     }
     return answer;
@@ -530,7 +530,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     }
     long aft = bef ^ mask;
     // TODO: check whether a branchy version could be faster
-    cardinality += 1 - 2 * ((bef & mask) >>> i);
+    cardinality += 1 - 2 * (int)((bef & mask) >>> i);
     bitmap.put(i >>> 6, aft);
     return this;
   }
@@ -659,7 +659,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         int runEnd = runStart + (x.getLength(rlepos));
         for (int runValue = runStart; runValue <= runEnd; ++runValue) {
           answer.content.put(answer.cardinality, (char) runValue);
-          answer.cardinality += this.bitValue((char) runValue);
+          answer.cardinality += (int)this.bitValue((char) runValue);
         }
       }
       return answer;
@@ -894,7 +894,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         long aft = bef | (1L << v2[k]);
         b[i] = aft;
         if (USE_BRANCHLESS) {
-          cardinality += (bef - aft) >>> 63;
+          cardinality += (int)((bef - aft) >>> 63);
         } else {
           if (aft != bef) {
             cardinality++;
@@ -911,7 +911,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       long aft = bef | (1L << v2);
       b[i] = aft;
       if (USE_BRANCHLESS) {
-        cardinality += (bef - aft) >>> 63;
+        cardinality += (int)((bef - aft) >>> 63);
       } else {
         if (aft != bef) {
           cardinality++;
@@ -1043,7 +1043,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         final int index = (vc) >>> 6;
         long ba = b[index];
         // TODO: check whether a branchy version could be faster
-        this.cardinality += 1 - 2 * ((ba & mask) >>> vc);
+        this.cardinality += 1 - 2 * (int)((ba & mask) >>> vc);
         b[index] = ba ^ mask;
       }
 
@@ -1055,7 +1055,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         final int index = (v2) >>> 6;
         long ba = b[index];
         // TODO: check whether a branchy version could be faster
-        this.cardinality += 1 - 2 * ((ba & mask) >>> v2);
+        this.cardinality += 1 - 2 * (int)((ba & mask) >>> v2);
         b[index] = ba ^ mask;
       }
     }
@@ -1306,7 +1306,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       for (int i = 0; i < src.length - 1; i++) {
         long word = nextWord;
         nextWord = src[i + 1];
-        numRuns += Long.bitCount((~word) & (word << 1)) + ((word >>> 63) & ~nextWord);
+        numRuns += Long.bitCount((~word) & (word << 1)) + (int)((word >>> 63) & ~nextWord);
       }
 
       long word = nextWord;
@@ -1324,7 +1324,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       for (int i = 0; i < len - 1; i++) {
         long word = nextWord;
         nextWord = bitmap.get(i + 1);
-        numRuns += Long.bitCount((~word) & (word << 1)) + ((word >>> 63) & ~nextWord);
+        numRuns += Long.bitCount((~word) & (word << 1)) + (int)((word >>> 63) & ~nextWord);
       }
 
       long word = nextWord;
@@ -1352,7 +1352,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         final long word = nextWord;
 
         nextWord = b[i + 1];
-        ans += ((word >>> 63) & ~nextWord);
+        ans += (int)((word >>> 63) & ~nextWord);
       }
 
       final long word = nextWord;
@@ -1368,7 +1368,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         final long word = nextWord;
 
         nextWord = bitmap.get(i + 1);
-        ans += ((word >>> 63) & ~nextWord);
+        ans += (int)((word >>> 63) & ~nextWord);
       }
 
       final long word = nextWord;
@@ -1438,7 +1438,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         long aft = w | (1L << v);
         bitArray[i] = aft;
         if (USE_BRANCHLESS) {
-          answer.cardinality += (w - aft) >>> 63;
+          answer.cardinality += (int)((w - aft) >>> 63);
         } else {
           if (w != aft) {
             answer.cardinality++;
@@ -1454,7 +1454,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         long aft = w | (1L << v2);
         bitArray[i] = aft;
         if (USE_BRANCHLESS) {
-          answer.cardinality += (w - aft) >>> 63;
+          answer.cardinality += (int)((w - aft) >>> 63);
         } else {
           if (w != aft) {
             answer.cardinality++;
@@ -1777,7 +1777,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         final int index = (vc) >>> 6;
         long ba = bitArray[index];
         // TODO: check whether a branchy version could be faster
-        answer.cardinality += 1 - 2 * ((ba & mask) >>> vc);
+        answer.cardinality += 1 - 2 * (int)((ba & mask) >>> vc);
         bitArray[index] = ba ^ mask;
       }
     } else {
@@ -1788,7 +1788,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         final int index = (v2) >>> 6;
         long ba = bitArray[index];
         // TODO: check whether a branchy version could be faster
-        answer.cardinality += 1 - 2 * ((ba & mask) >>> v2);
+        answer.cardinality += 1 - 2 * (int)((ba & mask) >>> v2);
         bitArray[index] = ba ^ mask;
       }
     }
@@ -1877,7 +1877,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     int c = value2.cardinality;
     for (int k = 0; k < c; ++k) {
       char v = value2.content.get(k);
-      answer += this.bitValue(v);
+      answer += (int)this.bitValue(v);
     }
     return answer;
   }
