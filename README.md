@@ -6,6 +6,8 @@ RoaringBitmap
 [![][license img]][license]
 [![docs-badge][]][docs]
 [![Coverage Status](https://coveralls.io/repos/github/RoaringBitmap/RoaringBitmap/badge.svg?branch=master)](https://coveralls.io/github/RoaringBitmap/RoaringBitmap?branch=master)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/RoaringBitmap/RoaringBitmap.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/RoaringBitmap/RoaringBitmap/alerts/)
+[![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/RoaringBitmap/RoaringBitmap.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/RoaringBitmap/RoaringBitmap/context:java)
 
 Bitsets, also called bitmaps, are commonly used as fast data structures.
 Unfortunately, they can use too much memory. To compensate, we often use

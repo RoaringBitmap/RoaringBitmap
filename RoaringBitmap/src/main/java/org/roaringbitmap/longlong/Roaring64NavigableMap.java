@@ -1048,14 +1048,14 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     
     // Size of Map data-structure: we consider each TreeMap entry costs 40 bytes
     // http://java-performance.info/memory-consumption-of-java-data-types-2/
-    size += 8 + 40 * highToBitmap.size();
+    size += 8L + 40L * highToBitmap.size();
 
     // Size of (boxed) Integers used as keys
-    size += 16 * highToBitmap.size();
+    size += 16L * highToBitmap.size();
 
     // The cache impacts the size in heap
-    size += 8 * sortedCumulatedCardinality.length;
-    size += 4 * sortedHighs.length;
+    size += 8L * sortedCumulatedCardinality.length;
+    size += 4L * sortedHighs.length;
     
     return size;
   }

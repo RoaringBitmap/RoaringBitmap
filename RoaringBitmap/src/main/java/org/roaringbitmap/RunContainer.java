@@ -829,7 +829,7 @@ public final class RunContainer extends Container implements Cloneable {
         int start = (getValue(ir));
         int stop = start+ (getLength(ir));
         long t = w & -w;
-        long r = ib * 64 + Long.numberOfTrailingZeros(w);
+        long r = ib * 64L + Long.numberOfTrailingZeros(w);
         if (r < start) {
           return false;
         } else if(r > stop) {
