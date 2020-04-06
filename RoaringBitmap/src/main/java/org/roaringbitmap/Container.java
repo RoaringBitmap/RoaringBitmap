@@ -221,6 +221,7 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    * as the provided container are left unaffected.
    *
    * @param x other container
+   * @param endOfRange end of range (size of the universe)
    * @return aggregated container
    */
   public Container orNot(Container x, int endOfRange) {
