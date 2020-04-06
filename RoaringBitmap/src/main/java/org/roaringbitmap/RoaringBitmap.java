@@ -1007,6 +1007,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   }
 
   RoaringArray highLowContainer = null;
+  long cachedCardinality = -1;
 
   /**
    * Create an empty bitmap
@@ -1049,6 +1050,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   @Override
   public void add(final int x) {
+    cachedCardinality = -1;
     final char hb = Util.highbits(x);
     final int i = highLowContainer.getIndex(hb);
     if (i >= 0) {
@@ -1072,6 +1074,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     if (rangeStart >= rangeEnd) {
       return; // empty range
     }
+    cachedCardinality = -1;
 
     final int hbStart = (Util.highbits(rangeStart));
     final int lbStart = (Util.lowbits(rangeStart));
@@ -1156,6 +1159,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @param x2 other bitmap
    */
   public void and(final RoaringBitmap x2) {
+    cachedCardinality = -1;
+
     int pos1 = 0, pos2 = 0, intersectionSize = 0;
     final int length1 = highLowContainer.size(), length2 = x2.highLowContainer.size();
 
@@ -1229,6 +1234,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @param x2 other bitmap
    */
   public void andNot(final RoaringBitmap x2) {
+    cachedCardinality = -1;
+
     int pos1 = 0, pos2 = 0, intersectionSize = 0;
     final int length1 = highLowContainer.size(), length2 = x2.highLowContainer.size();
 
@@ -1403,6 +1410,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @param rangeEnd end point of the range (exclusive)
    */
   public void orNot(final RoaringBitmap other, long rangeEnd) {
+    cachedCardinality = -1;
+
     rangeSanityCheck(0, rangeEnd);
 
     int pos1 = 0, pos2 = 0;
@@ -1587,11 +1596,17 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       Container newCont = c.add(Util.lowbits(x));
       highLowContainer.setContainerAtIndex(i, newCont);
       if (newCont.getCardinality() > oldCard) {
+        if (cachedCardinality >= 0) {
+          cachedCardinality += 1;
+        }
         return true;
       }
     } else {
       final ArrayContainer newac = new ArrayContainer();
       highLowContainer.insertNewKeyValueAt(-i - 1, hb, newac.add(Util.lowbits(x)));
+      if (cachedCardinality >= 0) {
+        cachedCardinality += 1;
+      }
       return true;
     }
     return false;
@@ -1621,6 +1636,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     } else {
       highLowContainer.removeAtIndex(i);
     }
+    if (cachedCardinality >= 0) {
+      cachedCardinality -= 1;
+    }
     return true;
   }
 
@@ -1628,6 +1646,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * reset to an empty bitmap; result occupies as much space a newly created bitmap.
    */
   public void clear() {
+    cachedCardinality = 0;
     highLowContainer = new RoaringArray(); // lose references
   }
 
@@ -1713,6 +1732,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   public void deserialize(DataInput in, byte[] buffer) throws IOException {
     try {
+      cachedCardinality = -1;
       this.highLowContainer.deserialize(in, buffer);
     } catch(InvalidRoaringFormat cookie) {
       throw cookie.toIOException();// we convert it to an IOException
@@ -1730,6 +1750,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   public void deserialize(DataInput in) throws IOException {
     try {
+      cachedCardinality = -1;
       this.highLowContainer.deserialize(in);
     } catch(InvalidRoaringFormat cookie) {
       throw cookie.toIOException();// we convert it to an IOException
@@ -1756,6 +1777,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   public void deserialize(ByteBuffer bbf) throws IOException {
     try {
+      cachedCardinality = -1;
       this.highLowContainer.deserialize(bbf);
     } catch(InvalidRoaringFormat cookie) {
       throw cookie.toIOException();// we convert it to an IOException
@@ -1766,6 +1788,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   public boolean equals(Object o) {
     if (o instanceof RoaringBitmap) {
       final RoaringBitmap srb = (RoaringBitmap) o;
+      if (cachedCardinality >= 0 && srb.cachedCardinality >= 0
+          && cachedCardinality != srb.cachedCardinality) {
+        return false;
+      }
       return srb.highLowContainer.equals(this.highLowContainer);
     }
     return false;
@@ -1824,6 +1850,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     final int i = highLowContainer.getIndex(hb);
     if (i >= 0) {
       Container c = highLowContainer.getContainerAtIndex(i).flip(Util.lowbits(x));
+      cachedCardinality = -1;
       if (!c.isEmpty()) {
         highLowContainer.setContainerAtIndex(i, c);
       } else {
@@ -1831,6 +1858,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       }
     } else {
       final ArrayContainer newac = new ArrayContainer();
+      if (cachedCardinality >= 0) {
+        cachedCardinality += 1;
+      }
       highLowContainer.insertNewKeyValueAt(-i - 1, hb, newac.add(Util.lowbits(x)));
     }
   }
@@ -1847,6 +1877,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     if (rangeStart >= rangeEnd) {
       return; // empty range
     }
+    cachedCardinality = -1;
 
     final int hbStart = (Util.highbits(rangeStart));
     final int lbStart = (Util.lowbits(rangeStart));
@@ -1907,6 +1938,15 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   @Override
   public long getLongCardinality() {
+    if (cachedCardinality < 0) {
+      cachedCardinality = doGetLongCardinality();
+    } else {
+      assert cachedCardinality == doGetLongCardinality();
+    }
+    return cachedCardinality;
+  }
+
+  private long doGetLongCardinality() {
     long size = 0;
     for (int i = 0; i < this.highLowContainer.size(); i++) {
       size += this.highLowContainer.getContainerAtIndex(i).getCardinality();
@@ -2234,16 +2274,23 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     for (int i = 0; (currentcardinality < maxcardinality)
         && (i < this.highLowContainer.size()); i++) {
       Container c = this.highLowContainer.getContainerAtIndex(i);
-      if (c.getCardinality() + currentcardinality <= maxcardinality) {
+      int cardinality = c.getCardinality();
+      if (cardinality + currentcardinality <= maxcardinality) {
         answer.highLowContainer.appendCopy(this.highLowContainer, i);
-        currentcardinality += c.getCardinality();
+        currentcardinality += cardinality;
       } else {
         int leftover = maxcardinality - currentcardinality;
         Container limited = c.limit(leftover);
+        currentcardinality = maxcardinality;
         answer.highLowContainer.append(this.highLowContainer.getKeyAtIndex(i), limited);
         break;
       }
     }
+    if (currentcardinality < maxcardinality) {
+      assert cachedCardinality < 0 || cachedCardinality == currentcardinality;
+      cachedCardinality = currentcardinality;
+    }
+    answer.cachedCardinality = currentcardinality;
     return answer;
   }
 
@@ -2253,6 +2300,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @param x2 other bitmap
    */
   public void or(final RoaringBitmap x2) {
+    cachedCardinality = -1;
+
     int pos1 = 0, pos2 = 0;
     int length1 = highLowContainer.size();
     final int length2 = x2.highLowContainer.size();
@@ -2417,6 +2466,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     if (highLowContainer.getContainerAtIndex(i).isEmpty()) {
       highLowContainer.removeAtIndex(i);
     }
+    if (cachedCardinality >= 0) {
+      cachedCardinality -= 1;
+    }
   }
 
   /**
@@ -2426,13 +2478,11 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @param rangeEnd exclusive ending of range
    */
   public void remove(final long rangeStart, final long rangeEnd) {
-
     rangeSanityCheck(rangeStart, rangeEnd);
-
     if (rangeStart >= rangeEnd) {
       return; // empty range
     }
-
+    cachedCardinality = -1;
 
     final int hbStart = (Util.highbits(rangeStart));
     final int lbStart = (Util.lowbits(rangeStart));
@@ -2522,6 +2572,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
   // to be used with lazyor
   protected void repairAfterLazy() {
+    cachedCardinality = -1;
     for (int k = 0; k < highLowContainer.size(); ++k) {
       Container c = highLowContainer.getContainerAtIndex(k);
       highLowContainer.setContainerAtIndex(k, c.repairAfterLazy());
@@ -3003,6 +3054,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @param x2 other bitmap
    */
   public void xor(final RoaringBitmap x2) {
+    cachedCardinality = -1;
+
     int pos1 = 0, pos2 = 0;
     int length1 = highLowContainer.size();
     final int length2 = x2.highLowContainer.size();
