@@ -218,6 +218,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * as the provided container are left unaffected.
    *
    * @param x other container
+   * @param endOfRange end of range (size of the universe)
    * @return aggregated container
    */
   public MappeableContainer orNot(MappeableContainer x, int endOfRange) {
