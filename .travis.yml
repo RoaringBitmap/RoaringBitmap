@@ -9,7 +9,7 @@ jdk:
   - openjdk11
   - openjdk12
   - oraclejdk11
-  
+
 
 ############
 # We still support and test jdk8 for clients, but on travis we no longer build with jkd8, see
@@ -39,6 +39,7 @@ script:
   # run checkstyle, etc, without the tests to fail fast
   - ./gradlew check -x test
   - ./gradlew test jacocoTestReport -DBITMAP_TYPES=ROARING_ONLY
+  - ./gradlew :roaringbitmap:test --tests *testIndexIterator4
 
 after_success:
   - ./gradlew coveralls
