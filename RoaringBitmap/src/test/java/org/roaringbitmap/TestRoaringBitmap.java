@@ -2370,6 +2370,19 @@ public class TestRoaringBitmap {
       assertEquals(one, RoaringBitmap.bitmapOf(32));
   }
 
+    @Test
+    public void orNotPositiveLimit() {
+        RoaringBitmap one = new RoaringBitmap();
+        one.add(32);
+
+        RoaringBitmap other = new RoaringBitmap();
+        other.add(0L, 100);
+
+        one.orNot(other, 10);
+        one.toString();
+        assertEquals(one, RoaringBitmap.bitmapOf());
+    }
+
   @Test
   public void orNotWithSparseBitmaps() {
     final RoaringBitmap rb = new RoaringBitmap();

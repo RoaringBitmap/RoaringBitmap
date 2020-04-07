@@ -1367,15 +1367,16 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         // If we re not at the last container, just use the full container.
         // Otherwise, compute an in-place or.
         final Container c = (s2 == lastKey) ? (inplace ? c1.ior(c2) : c1.or(c2)) : c2;
-        if (destPos < dest.highLowContainer.size()) {
-          dest.highLowContainer.replaceKeyAndContainerAtIndex(destPos, s1, c);
-        } else {
-          dest.highLowContainer.insertNewKeyValueAt(destPos, s1, c);
+        if (!c.isEmpty()) {
+          if (destPos < dest.highLowContainer.size()) {
+            dest.highLowContainer.replaceKeyAndContainerAtIndex(destPos, s1, c);
+          } else {
+            dest.highLowContainer.insertNewKeyValueAt(destPos, s1, c);
+          }
+          pos1++;
+          s2++;
+          destPos++;
         }
-
-        pos1++;
-        s2++;
-        destPos++;
       } else if (s1 - s2 > 0) { 
         dest.highLowContainer.insertNewKeyValueAt(destPos, s2, c2);
         pos1 += insertionIncrement;
@@ -1435,7 +1436,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * In-place bitwise ORNOT operation. The current bitmap is modified.
    *
    * @param other the other bitmap
-   * @param rangeEnd end point of the range (exclusive)
+   * @param rangeEnd end point of the range (exclusive); values beyond this range in
+   *                 will be removed from this bitmap.
    */
   public void orNot(final RoaringBitmap other, long rangeEnd) {
     rangeSanityCheck(0, rangeEnd);
@@ -1462,8 +1464,12 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         if (s2 == other.highLowContainer.getKeyAtIndex(pos2)) {
           final Container c2 = other.highLowContainer.getContainerAtIndex(pos2);
           final Container c = c1.iorNot(c2, containerLast + 1);
-          highLowContainer.replaceKeyAndContainerAtIndex(pos1, s1, c);
-          pos2++;
+          if (!c.isEmpty()) {
+            highLowContainer.replaceKeyAndContainerAtIndex(pos1, s1, c);
+            pos2++;
+          } else {
+            highLowContainer.removeAtIndex(pos1);
+          }
         } else {
           highLowContainer.replaceKeyAndContainerAtIndex(pos1, s1,
                   Container.rangeOfOnes(0, containerLast + 1));
@@ -1474,8 +1480,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         if (s2 == other.highLowContainer.getKeyAtIndex(pos2)) {
           final Container c2 = other.highLowContainer.getContainerAtIndex(pos2);
           Container c = new RunContainer().iorNot(c2, containerLast + 1);
-          highLowContainer.insertNewKeyValueAt(pos1, s2, c);
-          pos2++;
+          if (!c.isEmpty()) {
+            highLowContainer.insertNewKeyValueAt(pos1, s2, c);
+            pos2++;
+          }
         } else {
           highLowContainer.insertNewKeyValueAt(pos1, s2,
                   Container.rangeOfOnes(0, containerLast + 1));
