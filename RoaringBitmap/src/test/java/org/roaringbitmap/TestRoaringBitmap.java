@@ -2345,6 +2345,19 @@ public class TestRoaringBitmap {
     Assert.assertFalse(iterator.hasNext());
   }
 
+
+  @Test
+  public void orNotRegressionTest() {
+      long len = 3L;
+      long orLen = 3L;
+
+      RoaringBitmap one = new RoaringBitmap();
+      RoaringBitmap other = new RoaringBitmap();
+      other.add(0L, len);
+
+      one.orNot(other, orLen);
+  }
+
   @Test
   public void orNotWithSparseBitmaps() {
     final RoaringBitmap rb = new RoaringBitmap();

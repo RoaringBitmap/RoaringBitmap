@@ -382,6 +382,9 @@ public final class RunContainer extends Container implements Cloneable {
   @Override
   public Container and(RunContainer x) {
     RunContainer answer = new RunContainer(new char[2 * (this.nbrruns + x.nbrruns)], 0);
+    if (isEmpty()) {
+      return answer;
+    }
     int rlepos = 0;
     int xrlepos = 0;
     int start = (this.getValue(rlepos));

@@ -1401,7 +1401,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   private static char orNotHandleRemainingOtherContainers(
           final RoaringBitmap other, final RoaringBitmap dest, int pos2,
           int length2, char s2, char lastKey, int lastSize) {
-    while (pos2 < length2 && s2 - lastKey <= 0) { // s2 <= lastKey
+    while (pos2 < length2 && s2 <= lastKey) {
       final int containerLast = (s2 == lastKey) ? lastSize : Util.maxLowBitAsInteger();
       if (s2 == other.highLowContainer.getKeyAtIndex(pos2)) {
         final Container c2 = other.highLowContainer.getContainerAtIndex(pos2);
@@ -1445,11 +1445,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     final int length2 = other.highLowContainer.size();
 
     final char lastKey = Util.highbits(rangeEnd - 1);
-    final int lastSize = (Util.lowbits(rangeEnd - 1));
+    final int lastSize = Util.lowbits(rangeEnd - 1);
 
     char s2 = 0;
-    boolean loopedAtleastOnce = (length1 > 0 && length2 > 0
-            && (char) 0 - lastKey <= 0);
+    boolean loopedAtleastOnce = (length1 > 0 && length2 > 0);
     while (pos1 < length1 && pos2 < length2
             && s2 - lastKey <= 0) { // s2 <= lastKey
       final char s1 = highLowContainer.getKeyAtIndex(pos1);
@@ -1523,8 +1522,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     final int lastSize = (Util.lowbits(rangeEnd - 1));
 
     char s2 = 0;
-    boolean loopedAtleastOnce = (length1 > 0 && length2 > 0
-            && (char) 0 - lastKey <= 0);
+    boolean loopedAtleastOnce = (length1 > 0 && length2 > 0);
     while (pos1 < length1 && pos2 < length2
             && s2 - lastKey <= 0) { // s2 <= lastKey
       final char s1 = rb1.highLowContainer.getKeyAtIndex(pos1);
