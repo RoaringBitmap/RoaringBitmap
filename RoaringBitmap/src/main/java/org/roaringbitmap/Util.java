@@ -1089,6 +1089,8 @@ public final class Util {
   /**
    * Private constructor to prevent instantiation of utility class
    */
-  private Util() {}
+  private Util() {
+
+  }
 
 }

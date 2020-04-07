@@ -75,7 +75,9 @@ public final class BufferFastAggregation {
       }
 
       @Override
-      public void remove() {};
+      public void remove() {
+
+      }
 
     };
 
@@ -634,6 +636,8 @@ public final class BufferFastAggregation {
   /**
    * Private constructor to prevent instantiation of utility class
    */
-  private BufferFastAggregation() {}
+  private BufferFastAggregation() {
+
+  }
 
 }

@@ -2617,7 +2617,9 @@ class RunContainerCharIterator implements PeekableCharIterator {
 
   RunContainer parent;
 
-  RunContainerCharIterator() {}
+  RunContainerCharIterator() {
+
+  }
 
   RunContainerCharIterator(RunContainer p) {
     wrap(p);
@@ -2774,7 +2776,9 @@ final class ReverseRunContainerCharIterator implements CharIterator {
   private int base;
 
 
-  ReverseRunContainerCharIterator() {}
+  ReverseRunContainerCharIterator() {
+
+  }
 
   ReverseRunContainerCharIterator(RunContainer p) {
     wrap(p);

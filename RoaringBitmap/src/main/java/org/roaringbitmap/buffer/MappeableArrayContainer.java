@@ -1812,7 +1812,9 @@ final class MappeableArrayContainerCharIterator implements PeekableCharIterator 
   int pos;
   private MappeableArrayContainer parent;
 
-  MappeableArrayContainerCharIterator() {}
+  MappeableArrayContainerCharIterator() {
+
+  }
 
 
   MappeableArrayContainerCharIterator(MappeableArrayContainer p) {
@@ -1985,7 +1987,9 @@ final class ReverseMappeableArrayContainerCharIterator implements CharIterator {
 
   private MappeableArrayContainer parent;
 
-  ReverseMappeableArrayContainerCharIterator() {}
+  ReverseMappeableArrayContainerCharIterator() {
+
+  }
 
 
   ReverseMappeableArrayContainerCharIterator(MappeableArrayContainer p) {
