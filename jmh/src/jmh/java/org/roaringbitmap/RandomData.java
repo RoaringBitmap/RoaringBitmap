@@ -1,10 +1,12 @@
 package org.roaringbitmap;
 
 import java.util.Arrays;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.SplittableRandom;
 import java.util.stream.IntStream;
 
 public class RandomData {
+  
+  private static final SplittableRandom RANDOM = new SplittableRandom(0);
 
   private static final ThreadLocal<long[]> bits = ThreadLocal.withInitial(() -> new long[1 << 10]);
   private static final ThreadLocal<int[]> runs = ThreadLocal.withInitial(() -> new int[4096]);
@@ -22,17 +24,17 @@ public class RandomData {
   }
 
   public static IntStream rleRegion() {
-    int maxNumRuns = ThreadLocalRandom.current().nextInt(1, 2048);
+    int maxNumRuns = RANDOM.nextInt(1, 2048);
     int minRequiredCardinality = maxNumRuns * 2 + 1;
     int[] values = runs.get();
     int totalRuns = 0;
-    int start = ThreadLocalRandom.current().nextInt(64);
+    int start = RANDOM.nextInt(64);
     int run = 0;
     while (minRequiredCardinality > 0 && start < 0xFFFF && run < 2 * maxNumRuns) {
-      int runLength = ThreadLocalRandom.current().nextInt(1, minRequiredCardinality + 1);
+      int runLength = RANDOM.nextInt(1, minRequiredCardinality + 1);
       values[run++] = start;
       values[run++] = Math.min(start + runLength, 0x10000 - start);
-      start += runLength + ThreadLocalRandom.current().nextInt(64);
+      start += runLength + RANDOM.nextInt(64);
       minRequiredCardinality -= runLength;
       ++totalRuns;
     }
@@ -43,11 +45,11 @@ public class RandomData {
   }
 
   public static IntStream sparseRegion() {
-    return IntStream.of(createSorted16BitInts(ThreadLocalRandom.current().nextInt(1, 4096)));
+    return IntStream.of(createSorted16BitInts(RANDOM.nextInt(1, 4096)));
   }
 
   public static IntStream denseRegion() {
-    return IntStream.of(createSorted16BitInts(ThreadLocalRandom.current().nextInt(4096, 1 << 16)));
+    return IntStream.of(createSorted16BitInts(RANDOM.nextInt(4096, 1 << 16)));
   }
 
   private static int[] createSorted16BitInts(int howMany) {
@@ -55,7 +57,7 @@ public class RandomData {
     Arrays.fill(bitset, 0L);
     int consumed = 0;
     while (consumed < howMany) {
-      int value = ThreadLocalRandom.current().nextInt(1 << 16);
+      int value = RANDOM.nextInt(1 << 16);
       long bit = (1L << value);
       consumed += 1 - Long.bitCount(bitset[value >>> 6] & bit);
       bitset[value >>> 6] |= bit;
@@ -78,7 +80,7 @@ public class RandomData {
     RoaringBitmapWriter<RoaringBitmap> writer = RoaringBitmapWriter.writer().optimiseForArrays().get();
     IntStream.of(keys)
             .forEach(key -> {
-              double choice = ThreadLocalRandom.current().nextDouble();
+              double choice = RANDOM.nextDouble();
               final IntStream stream;
               if (choice < rleLimit) {
                 stream = rleRegion();

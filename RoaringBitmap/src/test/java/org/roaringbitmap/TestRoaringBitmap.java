@@ -2066,6 +2066,29 @@ public class TestRoaringBitmap {
     assertEquals(andNot.getCardinality(), RoaringBitmap.andNotCardinality(rb, rb2));
   }
 
+
+  @Test
+  public void testAndNotCardinalityBigVsSmall() {
+    RoaringBitmap small = RoaringBitmap.bitmapOf(1, 2, 3);
+    RoaringBitmap big = new RoaringBitmap();
+    for (int i = 0; i < 4000; ++i) {
+      big.add(1 + i * 0x1000);
+    }
+    RoaringBitmap andNot = RoaringBitmap.andNot(big, small);
+    assertEquals(andNot.getCardinality(), RoaringBitmap.andNotCardinality(big, small));
+  }
+
+  @Test
+  public void testAndNotCardinalitySmallVsBig() {
+    RoaringBitmap small = RoaringBitmap.bitmapOf(1, 2, 3);
+    RoaringBitmap big = new RoaringBitmap();
+    for (int i = 0; i < 4000; ++i) {
+        big.add(1 + i * 0x1000);
+    }
+    RoaringBitmap andNot = RoaringBitmap.andNot(small, big);
+    assertEquals(andNot.getCardinality(), RoaringBitmap.andNotCardinality(small, big));
+  }
+
   @Test
   public void ortest() {
     final RoaringBitmap rr = new RoaringBitmap();
