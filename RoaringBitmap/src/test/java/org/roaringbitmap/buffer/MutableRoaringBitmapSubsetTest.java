@@ -4,12 +4,9 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import java.util.Set;
 
-@RunWith(Parameterized.class)
 public class MutableRoaringBitmapSubsetTest {
 
 
@@ -17,9 +14,8 @@ public class MutableRoaringBitmapSubsetTest {
 
   private static final Predicate<Integer> DIVISIBLE_BY_3 = i -> i % 3 == 0;
 
-  @Parameterized.Parameters(name = "assert that {1} is subset of {0}")
-  public static Object[][] params() {
-    return new Object[][]
+  public static ImmutableSet<Integer>[][] params() {
+    return new ImmutableSet[][]
             {
                     { // array vs array
                             ImmutableSet.of(1, 2, 3, 4),
@@ -134,22 +130,19 @@ public class MutableRoaringBitmapSubsetTest {
             };
   }
 
-  private final Set<Integer> superSet;
-  private final Set<Integer> subSet;
-
-  public MutableRoaringBitmapSubsetTest(Set<Integer> superSet, Set<Integer> subSet) {
-    this.superSet = superSet;
-    this.subSet = subSet;
-  }
 
 
   @Test
   public void testProperSubset() {
-    MutableRoaringBitmap superSetRB = create(superSet);
-    MutableRoaringBitmap subSetRB = create(subSet);
-    Assert.assertEquals(superSet.containsAll(subSet), superSetRB.contains(subSetRB));
-    // reverse the test
-    Assert.assertEquals(subSet.containsAll(superSet), subSetRB.contains(superSetRB));
+    for(ImmutableSet<Integer>[] x : params() ) {
+      ImmutableSet<Integer> superSet = x[0];
+      ImmutableSet<Integer> subSet = x[1];
+      MutableRoaringBitmap superSetRB = create(superSet);
+      MutableRoaringBitmap subSetRB = create(subSet);
+      Assert.assertEquals(superSet.containsAll(subSet), superSetRB.contains(subSetRB));
+      // reverse the test
+      Assert.assertEquals(subSet.containsAll(superSet), subSetRB.contains(superSetRB));
+    }
   }
   
   private MutableRoaringBitmap create(Set<Integer> set) {
