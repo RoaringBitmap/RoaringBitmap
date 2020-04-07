@@ -870,7 +870,42 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @return cardinality of the left difference
    */
   public static int andNotCardinality(final RoaringBitmap x1, final RoaringBitmap x2) {
-    return x1.getCardinality() - andCardinality(x1, x2);
+    final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
+
+    if (length2 > 4 * length1) {
+      // if x1 is much smaller than x2, this can be much faster
+      return x1.getCardinality() - andCardinality(x1, x2);
+    }
+
+    long cardinality = 0L;
+    int pos1 = 0, pos2 = 0;
+
+    while (pos1 < length1 && pos2 < length2) {
+      char s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+      char s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+      if (s1 == s2) {
+        final Container c1 = x1.highLowContainer.getContainerAtIndex(pos1);
+        final Container c2 = x2.highLowContainer.getContainerAtIndex(pos2);
+        cardinality += c1.getCardinality() - c1.andCardinality(c2);
+        ++pos1;
+        ++pos2;
+      } else if (s1 < s2) {
+        while (s1 < s2 && pos1 < length1) {
+          cardinality += x1.highLowContainer.getContainerAtIndex(pos1).getCardinality();
+          s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+          ++pos1;
+        }
+      } else {
+        pos2 = x2.highLowContainer.advanceUntil(s1, pos2);
+      }
+    }
+    if (pos2 == length2) {
+      while (pos1 < length1) {
+        cardinality += x1.highLowContainer.getContainerAtIndex(pos1).getCardinality();
+        ++pos1;
+      }
+    }
+    return (int)cardinality;
   }
 
   /**
