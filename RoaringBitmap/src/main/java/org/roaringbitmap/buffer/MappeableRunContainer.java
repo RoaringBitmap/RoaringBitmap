@@ -1502,7 +1502,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       }
       // last run is one charer
       if (getLength(eIndex) == 0) {// special case where we remove last run
-        recoverRoomsInRange(eIndex, eIndex + 1);
+        recoverRoomsInRange(eIndex - 1, eIndex);
       } else {
         incrementValue(eIndex);
         decrementLength(eIndex);
