@@ -2359,6 +2359,18 @@ public class TestRoaringBitmap {
   }
 
   @Test
+  public void orNotLimitZero() {
+      RoaringBitmap one = new RoaringBitmap();
+      one.add(32);
+
+      RoaringBitmap other = new RoaringBitmap();
+      other.add(0L, 100);
+
+      one.orNot(other, 0);
+      assertEquals(one, RoaringBitmap.bitmapOf(32));
+  }
+
+  @Test
   public void orNotWithSparseBitmaps() {
     final RoaringBitmap rb = new RoaringBitmap();
     final RoaringBitmap rb2 = new RoaringBitmap();

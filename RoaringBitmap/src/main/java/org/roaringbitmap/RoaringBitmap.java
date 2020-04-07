@@ -1439,6 +1439,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   public void orNot(final RoaringBitmap other, long rangeEnd) {
     rangeSanityCheck(0, rangeEnd);
+    if (rangeEnd == 0) {
+      return;
+    }
 
     int pos1 = 0, pos2 = 0;
     int length1 = highLowContainer.size();
