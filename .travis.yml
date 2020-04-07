@@ -8,9 +8,12 @@ jdk:
   - openjdk11
   - openjdk12
   - openjdk13
+  - openjdk14
   - oraclejdk11
   - oraclejdk12
   - oraclejdk13
+  - oraclejdk14
+
 
 ############
 # We still support and test jdk8 for clients, but on travis we no longer build with jkd8, see
