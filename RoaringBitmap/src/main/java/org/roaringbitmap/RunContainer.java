@@ -1618,7 +1618,7 @@ public final class RunContainer extends Container implements Cloneable {
 
       // last run is one shorter
       if (getLength(eIndex) == 0) {// special case where we remove last run
-        recoverRoomsInRange(eIndex, eIndex + 1);
+        recoverRoomsInRange(eIndex - 1, eIndex);
       } else {
         incrementValue(eIndex);
         decrementLength(eIndex);
