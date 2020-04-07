@@ -74,7 +74,7 @@ public class RoaringBitmapBatchIteratorTest {
     public void testBatchIteratorAsIntIterator() {
         IntIterator it = bitmap.getBatchIterator().asIntIterator(new int[128]);
         RoaringBitmapWriter<RoaringBitmap> w = writer().constantMemory()
-                .initialCapacity(bitmap.highLowContainer.size).get();
+                .initialCapacity(bitmap.size).get();
         while (it.hasNext()) {
             w.add(it.next());
         }

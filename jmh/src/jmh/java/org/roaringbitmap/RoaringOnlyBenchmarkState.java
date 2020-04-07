@@ -67,7 +67,7 @@ public abstract class RoaringOnlyBenchmarkState {
       ContainerPointer cp = rb.getContainerPointer();
       while (cp.getContainer() != null) {
         if (cp.isRunContainer()) {
-          runOnly.highLowContainer.append(cp.key(), cp.getContainer());
+          runOnly.append(cp.key(), cp.getContainer());
         }
         cp.advance();
       }
@@ -83,7 +83,7 @@ public abstract class RoaringOnlyBenchmarkState {
       ContainerPointer cp = clone.getContainerPointer();
       while (cp.getContainer() != null) {
         if (!cp.isBitmapContainer()) {
-          arrayOnly.highLowContainer.append(cp.key(), cp.getContainer());
+          arrayOnly.append(cp.key(), cp.getContainer());
         }
         cp.advance();
       }
@@ -99,7 +99,7 @@ public abstract class RoaringOnlyBenchmarkState {
       ContainerPointer cp = clone.getContainerPointer();
       while (cp.getContainer() != null) {
         if (cp.isBitmapContainer()) {
-          bitmapOnly.highLowContainer.append(cp.key(), cp.getContainer());
+          bitmapOnly.append(cp.key(), cp.getContainer());
         }
         cp.advance();
       }

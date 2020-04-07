@@ -6,8 +6,6 @@
 */
 import org.roaringbitmap.*;
 import java.io.*;
-import java.nio.*;
-import java.util.*;
 
 public class SerializeToDiskExample {
 

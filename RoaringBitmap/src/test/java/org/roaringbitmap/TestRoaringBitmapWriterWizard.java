@@ -25,7 +25,7 @@ public class TestRoaringBitmapWriterWizard {
 
   @Test
   public void shouldRespectProvidedStorageSizeHint() {
-    assertEquals(20, writer().initialCapacity(20).get().getUnderlying().highLowContainer.keys.length);
+    assertEquals(20, writer().initialCapacity(20).get().getUnderlying().keys.length);
   }
 
 }

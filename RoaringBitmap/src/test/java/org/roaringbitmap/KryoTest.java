@@ -80,7 +80,7 @@ class RoaringSerializer extends Serializer<RoaringBitmap> {
     public RoaringBitmap read(Kryo kryo, Input input, Class<? extends RoaringBitmap> type) {
         RoaringBitmap bitmap = new RoaringBitmap();
         try {
-            bitmap.deserialize(new KryoDataInput(input));
+            bitmap.deserializeContent(new KryoDataInput(input));
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException();

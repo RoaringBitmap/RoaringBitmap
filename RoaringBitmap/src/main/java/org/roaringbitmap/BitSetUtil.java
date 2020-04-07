@@ -64,7 +64,7 @@ public class BitSetUtil {
       final int to = Math.min(from + BLOCK_LENGTH, words.length);
       final int blockCardinality = cardinality(from, to, words);
       if (blockCardinality > 0) {
-        ans.highLowContainer.insertNewKeyValueAt(containerIndex++, Util.highbits(from * Long.SIZE),
+        ans.insertNewKeyValueAt(containerIndex++, Util.highbits(from * Long.SIZE),
             BitSetUtil.containerOf(from, to, blockCardinality, words));
       }
     }

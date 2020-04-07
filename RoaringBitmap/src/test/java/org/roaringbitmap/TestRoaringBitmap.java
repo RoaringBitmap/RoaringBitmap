@@ -2499,8 +2499,8 @@ public class TestRoaringBitmap {
           }
           if (!t.equals(RoaringBitmap.and(rb1, rb2))) {
             System.out
-                .println(t.highLowContainer.getContainerAtIndex(0).getClass().getCanonicalName());
-            System.out.println(RoaringBitmap.and(rb1, rb2).highLowContainer.getContainerAtIndex(0)
+                .println(t.getContainerAtIndex(0).getClass().getCanonicalName());
+            System.out.println(RoaringBitmap.and(rb1, rb2).getContainerAtIndex(0)
                 .getClass().getCanonicalName());
 
             throw new RuntimeException("bug inplace and");
@@ -4192,7 +4192,7 @@ public class TestRoaringBitmap {
 
     int wastedBytes = 0;
     final int javaReferenceSize = 4; // or 8 depending on factors
-    RoaringArray ra = rb.highLowContainer;
+    RoaringArray ra = rb;
     wastedBytes += Short.BYTES * (ra.keys.length - ra.size);
     wastedBytes += javaReferenceSize * (ra.values.length - ra.size);
     ContainerPointer cp = ra.getContainerPointer();

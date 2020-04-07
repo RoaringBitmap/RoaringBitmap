@@ -185,8 +185,8 @@ public class TestSerialization {
     presoutbb.rewind();
     ByteBufferBackedInputStream in = new ByteBufferBackedInputStream(presoutbb);
     DataInputStream dis = new DataInputStream(in);
-    bitmap_empty.deserialize(dis);
-    bitmap_b.deserialize(dis);
+    bitmap_empty.deserializeContent(dis);
+    bitmap_b.deserializeContent(dis);
   }
 
   @Test
@@ -194,8 +194,8 @@ public class TestSerialization {
     presoutbb.rewind();
     ByteBufferBackedInputStream in = new ByteBufferBackedInputStream(presoutbb);
     DataInputStream dis = new DataInputStream(in);
-    bitmap_empty.deserialize(dis, buffer);
-    bitmap_b.deserialize(dis, buffer);
+    bitmap_empty.deserializeContent(dis, buffer);
+    bitmap_b.deserializeContent(dis, buffer);
   }
 
 
@@ -372,10 +372,10 @@ public class TestSerialization {
     RoaringBitmap bitmap_c4 = new RoaringBitmap();
 
     DataInputStream in = new DataInputStream(new ByteBufferBackedInputStream(outbuf));
-    bitmap_c1.deserialize(in);
-    bitmap_c2.deserialize(in);
-    bitmap_c3.deserialize(in);
-    bitmap_c4.deserialize(in);
+    bitmap_c1.deserializeContent(in);
+    bitmap_c2.deserializeContent(in);
+    bitmap_c3.deserializeContent(in);
+    bitmap_c4.deserializeContent(in);
 
     assertEquals(bitmap_a, bitmap_c1);
     assertEquals(bitmap_a, bitmap_c2);
@@ -430,7 +430,7 @@ public class TestSerialization {
     RoaringBitmap bitmap_c = new RoaringBitmap();
 
     ByteBufferBackedInputStream in = new ByteBufferBackedInputStream(outbuf);
-    bitmap_c.deserialize(new DataInputStream(in));
+    bitmap_c.deserializeContent(new DataInputStream(in));
 
     assertEquals(bitmap_a, bitmap_c);
   }

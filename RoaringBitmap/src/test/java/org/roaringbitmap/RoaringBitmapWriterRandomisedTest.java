@@ -104,8 +104,8 @@ public class RoaringBitmapWriterRandomisedTest {
 
   private void verify(RoaringBitmap rb) {
     RoaringBitmap baseline = RoaringBitmap.bitmapOf(values);
-    RoaringArray baselineHLC = baseline.highLowContainer;
-    RoaringArray rbHLC = rb.highLowContainer;
+    RoaringArray baselineHLC = baseline;
+    RoaringArray rbHLC = rb;
     Assert.assertEquals(baselineHLC.size, rbHLC.size);
     for (int i = 0; i < baselineHLC.size; ++i) {
       Container baselineContainer = baselineHLC.getContainerAtIndex(i);

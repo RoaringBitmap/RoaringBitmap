@@ -24,7 +24,7 @@ public class TestRankIterator {
   @Parameterized.Parameters(name = "{index}: advance by {1}")
   public static Collection<Object[]> parameters() throws CloneNotSupportedException {
     FastRankRoaringBitmap fast = getBitmap();
-    FastRankRoaringBitmap withFull = new FastRankRoaringBitmap(fast.highLowContainer.clone());
+    FastRankRoaringBitmap withFull = new FastRankRoaringBitmap(fast.clone());
     withFull.add(0L, 262144L);
 
     Assert.assertTrue(fast.isCacheDismissed());

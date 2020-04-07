@@ -102,7 +102,7 @@ public class TestConcatenation {
     ByteArrayDataOutput out = ByteStreams.newDataOutput();
     shifted.serialize(out);
     RoaringBitmap deserialized = new RoaringBitmap();
-    deserialized.deserialize(ByteStreams.newDataInput(out.toByteArray()));
+    deserialized.deserializeContent(ByteStreams.newDataInput(out.toByteArray()));
     assertEquals(failureMessage(bitmap), shifted, deserialized);
   }
 

@@ -29,7 +29,11 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
     super();
   }
 
-  public FastRankRoaringBitmap(RoaringArray array) {
+  FastRankRoaringBitmap(int initialCapacity) {
+    super(initialCapacity);
+  }
+
+  FastRankRoaringBitmap(RoaringArray array) {
     super(array);
   }
 
@@ -158,7 +162,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
    */
   private void preComputeCardinalities() {
     if (!cumulatedCardinalitiesCacheIsValid) {
-      int nbBuckets = highLowContainer.size();
+      int nbBuckets = size();
 
       // Ensure the cache size is the right one
       if (highToCumulatedCardinality == null || highToCumulatedCardinality.length != nbBuckets) {
@@ -168,11 +172,11 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
       // Ensure the cache content is valid
       if (highToCumulatedCardinality.length >= 1) {
         // As we compute the cumulated cardinalities, the first index is an edge case
-        highToCumulatedCardinality[0] = highLowContainer.getContainerAtIndex(0).getCardinality();
+        highToCumulatedCardinality[0] = getContainerAtIndex(0).getCardinality();
 
         for (int i = 1; i < highToCumulatedCardinality.length; i++) {
           highToCumulatedCardinality[i] = highToCumulatedCardinality[i - 1]
-              + highLowContainer.getContainerAtIndex(i).getCardinality();
+              + getContainerAtIndex(i).getCardinality();
         }
       }
 
@@ -184,14 +188,14 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
   public long rankLong(int x) {
     preComputeCardinalities();
 
-    if (highLowContainer.size() == 0) {
+    if (size() == 0) {
       return 0L;
     }
 
     char xhigh = Util.highbits(x);
 
-    int index = Util.hybridUnsignedBinarySearch(this.highLowContainer.keys, 0,
-        this.highLowContainer.size(), xhigh);
+    int index = Util.hybridUnsignedBinarySearch(this.keys, 0,
+        this.size(), xhigh);
 
     boolean hasBitmapOnIdex;
     if (index < 0) {
@@ -208,7 +212,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
 
     long rank = size;
     if (hasBitmapOnIdex) {
-      rank = size + this.highLowContainer.getContainerAtIndex(index).rank(Util.lowbits(x));
+      rank = size + this.getContainerAtIndex(index).rank(Util.lowbits(x));
     }
 
     return rank;
@@ -218,7 +222,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
   public int select(int j) {
     preComputeCardinalities();
 
-    if (highLowContainer.size() == 0) {
+    if (size() == 0) {
       // empty: .select is out-of-bounds
 
       throw new IllegalArgumentException(
@@ -236,11 +240,11 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
       return this.last();
     } else if (index >= 0) {
       // We selected a cumulated cardinality: we are selecting the last element of given bucket
-      int keycontrib = this.highLowContainer.getKeyAtIndex(index + 1) << 16;
+      int keycontrib = this.getKeyAtIndex(index + 1) << 16;
 
       // If first bucket has cardinality 1 and we select 1: we actual select the first item of
       // second bucket
-      int output = keycontrib + this.highLowContainer.getContainerAtIndex(index + 1).first();
+      int output = keycontrib + this.getContainerAtIndex(index + 1).first();
 
       return output;
     } else {
@@ -252,9 +256,9 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
       }
     }
 
-    int keycontrib = this.highLowContainer.getKeyAtIndex(fixedIndex) << 16;
+    int keycontrib = this.getKeyAtIndex(fixedIndex) << 16;
     int lowcontrib = (
-        this.highLowContainer.getContainerAtIndex(fixedIndex).select((int) leftover));
+        this.getContainerAtIndex(fixedIndex).select((int) leftover));
     int value = lowcontrib + keycontrib;
 
 
@@ -318,7 +322,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
 
     @Override
     public boolean hasNext() {
-      return pos < FastRankRoaringBitmap.this.highLowContainer.size();
+      return pos < FastRankRoaringBitmap.this.size();
     }
 
     @Override
@@ -332,10 +336,10 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
     }
 
     private void nextContainer() {
-      if (pos < FastRankRoaringBitmap.this.highLowContainer.size()) {
-        iter = FastRankRoaringBitmap.this.highLowContainer.getContainerAtIndex(pos)
+      if (pos < FastRankRoaringBitmap.this.size()) {
+        iter = FastRankRoaringBitmap.this.getContainerAtIndex(pos)
                                                           .getCharRankIterator();
-        hs = FastRankRoaringBitmap.this.highLowContainer.getKeyAtIndex(pos) << 16;
+        hs = FastRankRoaringBitmap.this.getKeyAtIndex(pos) << 16;
       }
     }
 

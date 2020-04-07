@@ -39,7 +39,7 @@ import java.util.stream.IntStream;
 public class ParallelAggregation {
 
   private static final Collector<Map.Entry<Character, List<Container>>,
-          RoaringArray, RoaringBitmap>
+          RoaringBitmap, RoaringBitmap>
           XOR = new ContainerCollector(ParallelAggregation::xor);
 
   private static final OrCollector OR = new OrCollector();
@@ -49,7 +49,7 @@ public class ParallelAggregation {
    * supplied aggregation function to each group.
    */
   public static class ContainerCollector implements
-          Collector<Map.Entry<Character, List<Container>>, RoaringArray, RoaringBitmap> {
+          Collector<Map.Entry<Character, List<Container>>, RoaringBitmap, RoaringBitmap> {
 
     private final Function<List<Container>, Container> reducer;
 
@@ -62,12 +62,12 @@ public class ParallelAggregation {
     }
 
     @Override
-    public Supplier<RoaringArray> supplier() {
-      return RoaringArray::new;
+    public Supplier<RoaringBitmap> supplier() {
+      return RoaringBitmap::new;
     }
 
     @Override
-    public BiConsumer<RoaringArray, Map.Entry<Character, List<Container>>> accumulator() {
+    public BiConsumer<RoaringBitmap, Map.Entry<Character, List<Container>>> accumulator() {
       return (l, r) -> {
         assert l.size == 0 || l.keys[l.size - 1] < r.getKey();
         Container container = reducer.apply(r.getValue());
@@ -78,7 +78,7 @@ public class ParallelAggregation {
     }
 
     @Override
-    public BinaryOperator<RoaringArray> combiner() {
+    public BinaryOperator<RoaringBitmap> combiner() {
       return (l, r) -> {
         assert l.size == 0 || r.size == 0 || l.keys[l.size - 1] - r.keys[0] < 0;
         l.append(r);
@@ -87,13 +87,13 @@ public class ParallelAggregation {
     }
 
     @Override
-    public Function<RoaringArray, RoaringBitmap> finisher() {
-      return RoaringBitmap::new;
+    public Function<RoaringBitmap, RoaringBitmap> finisher() {
+      return Function.identity();
     }
 
     @Override
     public Set<Characteristics> characteristics() {
-      return EnumSet.noneOf(Characteristics.class);
+      return EnumSet.of(Characteristics.IDENTITY_FINISH);
     }
   }
 
@@ -137,10 +137,9 @@ public class ParallelAggregation {
   public static SortedMap<Character, List<Container>> groupByKey(RoaringBitmap... bitmaps) {
     Map<Character, List<Container>> grouped = new HashMap<>();
     for (RoaringBitmap bitmap : bitmaps) {
-      RoaringArray ra = bitmap.highLowContainer;
-      for (int i = 0; i < ra.size; ++i) {
-        Container container = ra.values[i];
-        Character key = ra.keys[i];
+      for (int i = 0; i < bitmap.size; ++i) {
+        Container container = bitmap.values[i];
+        Character key = bitmap.keys[i];
         List<Container> slice = grouped.get(key);
         if (null == slice) {
           slice = new ArrayList<>();
@@ -171,7 +170,7 @@ public class ParallelAggregation {
     IntStream.range(0, i)
              .parallel()
              .forEach(position -> values[position] = or(slices.get(position)));
-    return new RoaringBitmap(new RoaringArray(keys, values, i));
+    return new RoaringBitmap(keys, values, i);
   }
 
   /**

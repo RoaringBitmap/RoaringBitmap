@@ -19,7 +19,7 @@ import static java.nio.ByteOrder.LITTLE_ENDIAN;
  * Specialized array to store the containers used by a RoaringBitmap. This is not meant to be used
  * by end users.
  */
-public final class RoaringArray implements Cloneable, Externalizable, AppendableStorage<Container> {
+public class RoaringArray implements Cloneable, Externalizable, AppendableStorage<Container> {
   private static final char SERIAL_COOKIE_NO_RUNCONTAINER = 12346;
   private static final char SERIAL_COOKIE = 12347;
   private static final int NO_OFFSET_THRESHOLD = 4;
@@ -228,8 +228,8 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
   }
 
   protected void clear() {
-    this.keys = null;
-    this.values = null;
+    this.keys = new char[INITIAL_CAPACITY];
+    this.values = new Container[INITIAL_CAPACITY];
     this.size = 0;
   }
 
@@ -266,14 +266,15 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
 
   /**
    * Deserialize. If the DataInput is available as a byte[] or a ByteBuffer, you could prefer
-   * relying on {@link #deserialize(ByteBuffer)}. If the InputStream is &gt;= 8kB, you could prefer
-   * relying on {@link #deserialize(DataInput, byte[])};
+   * relying on {@link #deserializeContent(ByteBuffer)}.
+   * If the InputStream is &gt;= 8kB, you could prefer
+   * relying on {@link #deserializeContent(DataInput, byte[])};
    *
    * @param in the DataInput stream
    * @throws IOException Signals that an I/O exception has occurred.
    * @throws InvalidRoaringFormat if a Roaring Bitmap cookie is missing.
    */
-  public void deserialize(DataInput in) throws IOException {
+  void deserializeContent(DataInput in) throws IOException {
     this.clear();
     // little endian
     final int cookie = Integer.reverseBytes(in.readInt());
@@ -358,7 +359,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
    * @throws IOException Signals that an I/O exception has occurred.
    * @throws InvalidRoaringFormat if a Roaring Bitmap cookie is missing.
    */
-  public void deserialize(DataInput in, byte[] buffer) throws IOException {
+  public void deserializeContent(DataInput in, byte[] buffer) throws IOException {
     if (buffer != null && buffer.length == 0) {
       // Get rid of this useless buffer
       buffer = null;
@@ -544,7 +545,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
    *
    * @param bbf the byte buffer (can be mapped, direct, array backed etc.
    */
-  public void deserialize(ByteBuffer bbf) {
+  public void deserializeContent(ByteBuffer bbf) {
     this.clear();
     
     // slice not to mutate the input ByteBuffer
@@ -806,7 +807,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
 
   @Override
   public void readExternal(ObjectInput in) throws IOException {
-    deserialize(in);
+    deserializeContent(in);
   }
 
   void removeAtIndex(int i) {
@@ -852,7 +853,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
    * @param out the DataOutput stream
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public void serialize(DataOutput out) throws IOException {
+  void serializeContent(DataOutput out) throws IOException {
     int startOffset = 0;
     boolean hasrun = hasRunContainer();
     if (hasrun) {
@@ -897,7 +898,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
    *
    * @param buffer the ByteBuffer to write to
    */
-  public void serialize(ByteBuffer buffer) {
+  void serializeContent(ByteBuffer buffer) {
     ByteBuffer buf = buffer.order() == LITTLE_ENDIAN ? buffer : buffer.slice().order(LITTLE_ENDIAN);
     int startOffset;
     boolean hasrun = hasRunContainer();
@@ -944,7 +945,9 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
   }
 
   /**
-   * Report the number of bytes required for serialization.
+   * Report the number of bytes required to serialize this bitmap. This is the number of bytes
+   * written out when using the serialize method. When using the writeExternal method, the count
+   * will be higher due to the overhead of Java serialization.
    *
    * @return the size in bytes
    */
@@ -966,14 +969,15 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
 
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
-    serialize(out);
+    serializeContent(out);
   }
 
   /**
-   * Gets the first value in the array
-   * @return the first value in the array
-   * @throws NoSuchElementException if empty
-   */
+  * Get the first (smallest) integer in this RoaringBitmap,
+  * that is, returns the minimum of the set.
+  * @return the first (smallest) integer
+  * @throws NoSuchElementException if empty
+  */
   public int first() {
     assertNonEmpty();
     char firstKey = keys[0];
@@ -982,10 +986,11 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
   }
 
   /**
-   * Gets the last value in the array
-   * @return the last value in the array
-   * @throws NoSuchElementException if empty
-   */
+  * Get the last (largest) integer in this RoaringBitmap,
+  * that is, returns the maximum of the set.
+  * @return the last (largest) integer
+  * @throws NoSuchElementException if empty
+  */
   public int last() {
     assertNonEmpty();
     char lastKey = keys[size - 1];

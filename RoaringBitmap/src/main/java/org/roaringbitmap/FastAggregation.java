@@ -68,7 +68,7 @@ public final class FastAggregation {
     }
     PriorityQueue<ContainerPointer> pq = new PriorityQueue<>(bitmaps.size());
     for (int k = 0; k < bitmaps.size(); ++k) {
-      ContainerPointer x = bitmaps.get(k).highLowContainer.getContainerPointer();
+      ContainerPointer x = bitmaps.get(k).getContainerPointer();
       if (x.getContainer() != null) {
         pq.add(x);
       }
@@ -77,7 +77,7 @@ public final class FastAggregation {
     while (!pq.isEmpty()) {
       ContainerPointer x1 = pq.poll();
       if (pq.isEmpty() || (pq.peek().key() != x1.key())) {
-        answer.highLowContainer.append(x1.key(), x1.getContainer().clone());
+        answer.append(x1.key(), x1.getContainer().clone());
         x1.advance();
         if (x1.getContainer() != null) {
           pq.add(x1);
@@ -98,7 +98,7 @@ public final class FastAggregation {
         }
       }
       newc = newc.repairAfterLazy();
-      answer.highLowContainer.append(x1.key(), newc);
+      answer.append(x1.key(), newc);
       x1.advance();
       if (x1.getContainer() != null) {
         pq.add(x1);
@@ -127,7 +127,7 @@ public final class FastAggregation {
     }
     PriorityQueue<ContainerPointer> pq = new PriorityQueue<>(bitmaps.length);
     for (int k = 0; k < bitmaps.length; ++k) {
-      ContainerPointer x = bitmaps[k].highLowContainer.getContainerPointer();
+      ContainerPointer x = bitmaps[k].getContainerPointer();
       if (x.getContainer() != null) {
         pq.add(x);
       }
@@ -136,7 +136,7 @@ public final class FastAggregation {
     while (!pq.isEmpty()) {
       ContainerPointer x1 = pq.poll();
       if (pq.isEmpty() || (pq.peek().key() != x1.key())) {
-        answer.highLowContainer.append(x1.key(), x1.getContainer().clone());
+        answer.append(x1.key(), x1.getContainer().clone());
         x1.advance();
         if (x1.getContainer() != null) {
           pq.add(x1);
@@ -157,7 +157,7 @@ public final class FastAggregation {
         }
       }
       newc = newc.repairAfterLazy();
-      answer.highLowContainer.append(x1.key(), newc);
+      answer.append(x1.key(), newc);
       x1.advance();
       if (x1.getContainer() != null) {
         pq.add(x1);
@@ -187,7 +187,7 @@ public final class FastAggregation {
     }
     PriorityQueue<ContainerPointer> pq = new PriorityQueue<>(bitmaps.length);
     for (int k = 0; k < bitmaps.length; ++k) {
-      ContainerPointer x = bitmaps[k].highLowContainer.getContainerPointer();
+      ContainerPointer x = bitmaps[k].getContainerPointer();
       if (x.getContainer() != null) {
         pq.add(x);
       }
@@ -196,7 +196,7 @@ public final class FastAggregation {
     while (!pq.isEmpty()) {
       ContainerPointer x1 = pq.poll();
       if (pq.isEmpty() || (pq.peek().key() != x1.key())) {
-        answer.highLowContainer.append(x1.key(), x1.getContainer().clone());
+        answer.append(x1.key(), x1.getContainer().clone());
         x1.advance();
         if (x1.getContainer() != null) {
           pq.add(x1);
@@ -215,7 +215,7 @@ public final class FastAggregation {
           break;
         }
       }
-      answer.highLowContainer.append(x1.key(), newc);
+      answer.append(x1.key(), newc);
       x1.advance();
       if (x1.getContainer() != null) {
         pq.add(x1);

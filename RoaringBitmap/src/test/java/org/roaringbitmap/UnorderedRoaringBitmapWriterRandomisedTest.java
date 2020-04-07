@@ -40,8 +40,8 @@ public class UnorderedRoaringBitmapWriterRandomisedTest {
   public void bitmapOfUnorderedShouldBuildSameBitmapAsBitmapOf() {
     RoaringBitmap baseline = RoaringBitmap.bitmapOf(data);
     RoaringBitmap test = RoaringBitmap.bitmapOfUnordered(data);
-    RoaringArray baselineHLC = baseline.highLowContainer;
-    RoaringArray testHLC = test.highLowContainer;
+    RoaringArray baselineHLC = baseline;
+    RoaringArray testHLC = test;
     Assert.assertEquals(baselineHLC.size, testHLC.size);
     for (int i = 0; i < baselineHLC.size; ++i) {
       Container baselineContainer = baselineHLC.getContainerAtIndex(i);

@@ -60,7 +60,7 @@ public class IntIteratorFlyweight implements PeekableIntIterator {
 
   @Override
   public boolean hasNext() {
-    return pos < this.roaringBitmap.highLowContainer.size();
+    return pos < this.roaringBitmap.size();
   }
 
   @Override
@@ -74,9 +74,9 @@ public class IntIteratorFlyweight implements PeekableIntIterator {
   }
 
   private void nextContainer() {
-    if (pos < this.roaringBitmap.highLowContainer.size()) {
+    if (pos < this.roaringBitmap.size()) {
 
-      Container container = this.roaringBitmap.highLowContainer.getContainerAtIndex(pos);
+      Container container = this.roaringBitmap.getContainerAtIndex(pos);
 
       if (container instanceof BitmapContainer) {
         bitmapIter.wrap(((BitmapContainer) container).bitmap);
@@ -88,7 +88,7 @@ public class IntIteratorFlyweight implements PeekableIntIterator {
         runIter.wrap((RunContainer) container);
         iter = runIter;
       }
-      hs = (this.roaringBitmap.highLowContainer.getKeyAtIndex(pos)) << 16;
+      hs = (this.roaringBitmap.getKeyAtIndex(pos)) << 16;
     }
   }
 

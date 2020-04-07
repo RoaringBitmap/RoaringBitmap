@@ -213,7 +213,7 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
 
     @Override
     protected FastRankRoaringBitmap createUnderlying(int initialCapacity) {
-      return new FastRankRoaringBitmap(new RoaringArray(initialCapacity));
+      return new FastRankRoaringBitmap(initialCapacity);
     }
   }
 
@@ -221,7 +221,7 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
 
     @Override
     protected RoaringBitmap createUnderlying(int initialCapacity) {
-      return new RoaringBitmap(new RoaringArray(initialCapacity));
+      return new RoaringBitmap(initialCapacity);
     }
   }
 
