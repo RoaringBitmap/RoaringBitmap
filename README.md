@@ -1,7 +1,7 @@
 RoaringBitmap
 =============
 
-[![Build Status](https://travis-ci.org/RoaringBitmap/RoaringBitmap.png)](https://travis-ci.org/RoaringBitmap/RoaringBitmap)
+[![Build Status](https://travis-ci.com/RoaringBitmap/RoaringBitmap.svg?branch=master)](https://travis-ci.com/github/RoaringBitmap/RoaringBitmap)
 [![][maven img]][maven]
 [![][license img]][license]
 [![docs-badge][]][docs]
