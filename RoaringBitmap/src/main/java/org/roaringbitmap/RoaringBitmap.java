@@ -2524,9 +2524,6 @@ public class RoaringBitmap extends RoaringArray implements Cloneable, Serializab
    * @return true if the parameter is a subset of this RoaringBitmap
    */
   public boolean contains(RoaringBitmap subset) {
-    if(subset.getCardinality() > getCardinality()) {
-      return false;
-    }
     final int length1 = this.size;
     final int length2 = subset.size;
     int pos1 = 0, pos2 = 0;
