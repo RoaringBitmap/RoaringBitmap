@@ -5288,4 +5288,19 @@ public class TestRoaringBitmap {
       rbB.runOptimize();
       assertNotEquals(rbB, rbA);
   }
+
+  @Test
+  public void regressionTestRemove377() {
+    // https://github.com/RoaringBitmap/RoaringBitmap/issues/377
+    RoaringBitmap map = new RoaringBitmap();
+    map.add(0L, 64L);
+    for (int i = 0; i < 64; i++) {
+      if (i != 30 && i != 32) {
+        map.remove(i);
+      }
+    }
+    map.remove(0L, 31L);
+    assertFalse(map.contains(30));
+    assertTrue(map.contains(32));
+  }
 }

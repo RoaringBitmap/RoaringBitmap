@@ -366,6 +366,7 @@ Usage
 * ``./gradlew assemble`` will compile
 * ``./gradlew build`` will compile and run the  unit tests
 * ``./gradlew test `` will run the tests
+* ``./gradlew :roaringbitmap:test  --tests *regressionTestRemove377`` run just the test `regressionTestRemove377`
 * ``./gradlew checkstyleMain`` will check that you abide by the code style and that the code compiles. We enforce a strict style so that there is no debate as to the proper way to format the code.
 
 
