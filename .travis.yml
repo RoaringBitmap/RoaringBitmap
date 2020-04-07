@@ -2,14 +2,17 @@ language: java
 sudo: false
 
 # oraclejdk10 is depecrated on travis
-# oraclejdk12 is apparently not yet available
 jdk:
   - openjdk8
   - openjdk10 #capable of compiling but not loading java11 versions of shims, ensures java8 versions get tested
   - openjdk11
   - openjdk12
+  - openjdk13
+  - openjdk14
   - oraclejdk11
-  
+  - oraclejdk12
+  - oraclejdk13
+  - oraclejdk14
 
 ############
 # We still support and test jdk8 for clients, but on travis we no longer build with jkd8, see
@@ -39,6 +42,7 @@ script:
   # run checkstyle, etc, without the tests to fail fast
   - ./gradlew check -x test
   - ./gradlew test jacocoTestReport -DBITMAP_TYPES=ROARING_ONLY
+  - ./gradlew :roaringbitmap:test --tests TestIterators.testIndexIterator4
 
 after_success:
   - ./gradlew coveralls
