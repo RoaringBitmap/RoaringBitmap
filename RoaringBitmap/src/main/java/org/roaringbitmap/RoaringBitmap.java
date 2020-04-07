@@ -1442,6 +1442,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   public void orNot(final RoaringBitmap other, long rangeEnd) {
     rangeSanityCheck(0, rangeEnd);
     if (rangeEnd == 0) {
+      clear();
       return;
     }
 

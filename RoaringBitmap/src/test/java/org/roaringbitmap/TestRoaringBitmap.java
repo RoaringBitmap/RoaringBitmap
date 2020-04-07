@@ -2359,7 +2359,7 @@ public class TestRoaringBitmap {
   }
 
   @Test
-  public void orNotLimitZero() {
+  public void orNotZeroRangeEndClearsBitmap() {
       RoaringBitmap one = new RoaringBitmap();
       one.add(32);
 
@@ -2367,11 +2367,11 @@ public class TestRoaringBitmap {
       other.add(0L, 100);
 
       one.orNot(other, 0);
-      assertEquals(one, RoaringBitmap.bitmapOf(32));
+      assertEquals(one, RoaringBitmap.bitmapOf());
   }
 
     @Test
-    public void orNotPositiveLimit() {
+    public void orNotLimitLowerThanFirstBitClearsBitmap() {
         RoaringBitmap one = new RoaringBitmap();
         one.add(32);
 
@@ -2379,8 +2379,20 @@ public class TestRoaringBitmap {
         other.add(0L, 100);
 
         one.orNot(other, 10);
-        one.toString();
         assertEquals(one, RoaringBitmap.bitmapOf());
+    }
+
+
+    @Test
+    public void orNotLimitHigherThanFirstBitPreservesBits() {
+        RoaringBitmap one = new RoaringBitmap();
+        one.add(32);
+
+        RoaringBitmap other = new RoaringBitmap();
+        other.add(0L, 100);
+
+        one.orNot(other, 35);
+        assertEquals(one, RoaringBitmap.bitmapOf(32));
     }
 
   @Test
