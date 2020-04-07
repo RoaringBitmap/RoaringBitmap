@@ -148,7 +148,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     long newval = previous | (1L << i);
     bitmap[i >>> 6] = newval;
     if (USE_BRANCHLESS) {
-      cardinality += (previous ^ newval) >>> i;
+      cardinality += (int)((previous ^ newval) >>> i);
     } else if (previous != newval) {
       ++cardinality;
     }
@@ -162,7 +162,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     for (int k = 0; k < c; ++k) {
       char v = value2.content[k];
       answer.content[answer.cardinality] = v;
-      answer.cardinality += this.bitValue(v);
+      answer.cardinality += (int)this.bitValue(v);
     }
     return answer;
   }
@@ -198,7 +198,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     int c = value2.cardinality;
     for (int k = 0; k < c; ++k) {
       char v = value2.content[k];
-      answer += this.bitValue(v);
+      answer += (int)this.bitValue(v);
     }
     return answer;
   }
@@ -478,7 +478,7 @@ public final class BitmapContainer extends Container implements Cloneable {
       }
     }
     // TODO: check whether a branchy version could be faster
-    cardinality += 1 - 2 * ((bef & mask) >>> i);
+    cardinality += 1 - 2 * (int)((bef & mask) >>> i);
     bitmap[index] ^= mask;
     return this;
   }
@@ -575,7 +575,7 @@ public final class BitmapContainer extends Container implements Cloneable {
         int runEnd = runStart + (x.getLength(rlepos));
         for (int runValue = runStart; runValue <= runEnd; ++runValue) {
           answer.content[answer.cardinality] = (char) runValue;
-          answer.cardinality += this.bitValue((char) runValue);
+          answer.cardinality += (int)this.bitValue((char) runValue);
         }
       }
       return answer;
@@ -746,7 +746,7 @@ public final class BitmapContainer extends Container implements Cloneable {
       long aft = bef | (1L << value2.content[k]);
       this.bitmap[i] = aft;
       if (USE_BRANCHLESS) {
-        cardinality += (bef - aft) >>> 63;
+        cardinality += (int)((bef - aft) >>> 63);
       } else {
         if (bef != aft) {
           cardinality++;
@@ -835,7 +835,7 @@ public final class BitmapContainer extends Container implements Cloneable {
       final int index = (vc) >>> 6;
       long ba = this.bitmap[index];
       // TODO: check whether a branchy version could be faster
-      this.cardinality += 1 - 2 * ((ba & mask) >>> vc);
+      this.cardinality += 1 - 2 * (int)((ba & mask) >>> vc);
       this.bitmap[index] = ba ^ mask;
     }
     if (this.cardinality <= ArrayContainer.DEFAULT_MAX_SIZE) {
@@ -1012,7 +1012,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     for (int i = 0; i < bitmap.length - 1; i++) {
       long word = nextWord;
       nextWord = bitmap[i + 1];
-      numRuns += Long.bitCount((~word) & (word << 1)) + ((word >>> 63) & ~nextWord);
+      numRuns += Long.bitCount((~word) & (word << 1)) + (int)((word >>> 63) & ~nextWord);
     }
 
     long word = nextWord;
@@ -1036,7 +1036,7 @@ public final class BitmapContainer extends Container implements Cloneable {
       final long word = nextWord;
 
       nextWord = bitmap[i + 1];
-      ans += ((word >>> 63) & ~nextWord);
+      ans += (int)((word >>> 63) & ~nextWord);
     }
     final long word = nextWord;
 
@@ -1079,7 +1079,7 @@ public final class BitmapContainer extends Container implements Cloneable {
       long aft = w | (1L << v);
       answer.bitmap[i] = aft;
       if (USE_BRANCHLESS) {
-        answer.cardinality += (w - aft) >>> 63;
+        answer.cardinality += (int)((w - aft) >>> 63);
       } else {
         if (w != aft) {
           answer.cardinality++;

@@ -270,7 +270,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
     long size = 8;
     size += super.getLongSizeInBytes();
     if (highToCumulatedCardinality != null) {
-      size += 4 * highToCumulatedCardinality.length;
+      size += 4L * highToCumulatedCardinality.length;
     }
     return size;
   }

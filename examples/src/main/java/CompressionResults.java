@@ -30,7 +30,7 @@ public class CompressionResults {
     int howmany = 100;
     int gap = universe_size / howmany;
     for (int i = 1; i < howmany; i++) {
-      r.add(i * gap+1,((i+1) * gap));
+      r.add(i * gap + 1,((i + 1) * gap));
     }
     System.out.println("Adding "+r.getCardinality()+" values partionned by "+howmany+" gaps of 1 ...");
     System.out.println("As a bitmap it would look like 01111...11011111... ");

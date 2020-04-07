@@ -121,7 +121,7 @@ public final class RunContainer extends Container implements Cloneable {
     int runCount = 0;
 
     for (int i = 0; i < arr.cardinality; i++) {
-      int curVal = (arr.content[i]);
+      int curVal = arr.content[i];
       if (curVal == prevVal + 1) {
         ++runLen;
       } else {
@@ -829,7 +829,7 @@ public final class RunContainer extends Container implements Cloneable {
         int start = (getValue(ir));
         int stop = start+ (getLength(ir));
         long t = w & -w;
-        long r = ib * 64 + Long.numberOfTrailingZeros(w);
+        long r = ib * 64L + Long.numberOfTrailingZeros(w);
         if (r < start) {
           return false;
         } else if(r > stop) {
@@ -960,8 +960,8 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   private boolean equals(RunContainer rc) {
-    return ArraysShim.equals(valueslength, 0, nbrruns,
-            rc.valueslength, 0, rc.nbrruns);
+    return ArraysShim.equals(valueslength, 0, 2 * nbrruns,
+            rc.valueslength, 0, 2 * rc.nbrruns);
   }
 
   private boolean equals(ArrayContainer arrayContainer) {

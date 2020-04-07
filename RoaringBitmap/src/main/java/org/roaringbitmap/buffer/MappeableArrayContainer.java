@@ -307,13 +307,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       for (int k = 0; k < cardinality; ++k) {
         char v = c[k];
         sarray[pos] = v;
-        pos += 1 - value2.bitValue(v);
+        pos += 1 - (int)value2.bitValue(v);
       }
     } else {
       for (int k = 0; k < cardinality; ++k) {
         char v = this.content.get(k);
         sarray[pos] = v;
-        pos += 1 - value2.bitValue(v);
+        pos += 1 - (int)value2.bitValue(v);
       }
     }
     answer.cardinality = pos;
@@ -642,7 +642,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     for (int k = 0; k < cardinality; ++k) {
       char v = this.content.get(k);
       this.content.put(pos, v);
-      pos += value2.bitValue(v);
+      pos += (int)value2.bitValue(v);
     }
     cardinality = pos;
     return this;
@@ -682,7 +682,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     for (int k = 0; k < cardinality; ++k) {
       char v = c[k];
       c[pos] = v;
-      pos += 1 - value2.bitValue(v);
+      pos += 1 - (int)value2.bitValue(v);
     }
     this.cardinality = pos;
     return this;
