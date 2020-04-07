@@ -1405,7 +1405,9 @@ final class ArrayContainerCharIterator implements PeekableCharRankIterator {
   int pos;
   private ArrayContainer parent;
 
-  ArrayContainerCharIterator() {}
+  ArrayContainerCharIterator() {
+
+  }
 
   ArrayContainerCharIterator(ArrayContainer p) {
     wrap(p);
@@ -1469,7 +1471,9 @@ final class ReverseArrayContainerCharIterator implements CharIterator {
   int pos;
   private ArrayContainer parent;
 
-  ReverseArrayContainerCharIterator() {}
+  ReverseArrayContainerCharIterator() {
+
+  }
 
   ReverseArrayContainerCharIterator(ArrayContainer p) {
     wrap(p);

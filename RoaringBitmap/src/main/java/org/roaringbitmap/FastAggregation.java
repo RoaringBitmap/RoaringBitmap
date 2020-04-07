@@ -532,6 +532,8 @@ public final class FastAggregation {
   /**
    * Private constructor to prevent instantiation of utility class
    */
-  private FastAggregation() {}
+  private FastAggregation() {
+
+  }
 
 }

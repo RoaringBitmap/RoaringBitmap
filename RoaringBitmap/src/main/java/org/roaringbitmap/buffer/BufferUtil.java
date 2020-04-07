@@ -987,5 +987,7 @@ public final class BufferUtil {
   /**
    * Private constructor to prevent instantiation of utility class
    */
-  private BufferUtil() {}
+  private BufferUtil() {
+
+  }
 }
