@@ -1342,8 +1342,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * In-place bitwise ORNOT operation. The current bitmap is modified.
    *
    * @param other the other bitmap
-   * @param rangeEnd end point of the range (exclusive); values beyond this range in
-   *                 will be removed from this bitmap.
+   * @param rangeEnd end point of the range (exclusive).
    */
   public void orNot(final RoaringBitmap other, long rangeEnd) {
     rangeSanityCheck(0, rangeEnd);
