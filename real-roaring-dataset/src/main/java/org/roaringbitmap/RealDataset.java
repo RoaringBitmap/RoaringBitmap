@@ -2,7 +2,9 @@ package org.roaringbitmap;
 
 public final class RealDataset {
 
-  private RealDataset() {}
+  private RealDataset() {
+    
+  }
 
   public static final String CENSUS_INCOME = "census-income";
   public static final String CENSUS1881 = "census1881";

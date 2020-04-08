@@ -1316,7 +1316,9 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
-  public void trim() {}
+  public void trim() {
+
+  }
 
   @Override
   protected void writeArray(DataOutput out) throws IOException {
@@ -1450,7 +1452,9 @@ class BitmapContainerCharIterator implements PeekableCharIterator {
 
   long[] bitmap;
 
-  BitmapContainerCharIterator() {}
+  BitmapContainerCharIterator() {
+
+  }
 
   BitmapContainerCharIterator(long[] p) {
     wrap(p);
@@ -1590,7 +1594,9 @@ final class ReverseBitmapContainerCharIterator implements CharIterator {
 
   long[] bitmap;
 
-  ReverseBitmapContainerCharIterator() {}
+  ReverseBitmapContainerCharIterator() {
+
+  }
 
   ReverseBitmapContainerCharIterator(long[] bitmap) {
     wrap(bitmap);
