@@ -2370,7 +2370,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
   /**
    * Rank returns the number of integers that are smaller or equal to x (Rank(infinity) would be
-   * GetCardinality()).
+   * GetCardinality()).  If you provide the smallest value as a parameter, this function will
+   * return 1. If provide a value smaller than the smallest value, it will return 0.
    *
    * @param x upper limit
    *
@@ -2614,7 +2615,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * Return the jth value stored in this bitmap. The provided value
    * needs to be smaller than the cardinality otherwise an
    * IllegalArgumentException
-   * exception is thrown.
+   * exception is thrown.  The smallest value is at index 0.
+   * Note that this function differs in convention from the rank function which
+   * returns 1 when ranking the smallest value.
    *
    * @param j index of the value
    *
