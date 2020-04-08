@@ -2383,17 +2383,17 @@ public class TestRoaringBitmap {
   }
 
 
-    @Test
-    public void orNotLimitHigherThanFirstBitPreservesBitmap() {
-        RoaringBitmap one = new RoaringBitmap();
-        one.add(32);
+  @Test
+  public void orNotLimitHigherThanFirstBitPreservesBitmap() {
+    RoaringBitmap one = new RoaringBitmap();
+    one.add(32);
 
-        RoaringBitmap other = new RoaringBitmap();
-        other.add(0L, 100);
+    RoaringBitmap other = new RoaringBitmap();
+    other.add(0L, 100);
 
-        one.orNot(other, 35);
-        assertEquals(one, RoaringBitmap.bitmapOf(32));
-    }
+    one.orNot(other, 35);
+    assertEquals(one, RoaringBitmap.bitmapOf(32));
+  }
 
   @Test
   public void orNotWithSparseBitmaps() {
