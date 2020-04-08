@@ -1399,13 +1399,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     }
     // copy over everything which will remain without being complemented
     if (remainder > 0) {
-      for (int i = 1; i <= remainder; ++i) {
-        int source = highLowContainer.size - i;
-        int target = newKeys.length - i;
-        newKeys[target] = highLowContainer.keys[source];
-        // no need to copy, the old storage will be lost anyway
-        newValues[target] = highLowContainer.values[source];
-      }
+      System.arraycopy(highLowContainer.keys, highLowContainer.size - remainder,
+              newKeys, newKeys.length - remainder, remainder);
+      System.arraycopy(highLowContainer.values, highLowContainer.size - remainder,
+              newValues, newValues.length - remainder, remainder);
     }
     highLowContainer.keys = newKeys;
     highLowContainer.values = newValues;
@@ -1478,11 +1475,12 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     }
     // copy over everything which will remain without being complemented
     if (remainder > 0) {
-      for (int i = 1; i <= remainder; ++i) {
-        int source = x1.highLowContainer.size - i;
-        int target = newKeys.length - i;
-        newKeys[target] = x1.highLowContainer.keys[source];
-        newValues[target] = x1.highLowContainer.values[source].clone();
+      System.arraycopy(x1.highLowContainer.keys, x1.highLowContainer.size - remainder,
+              newKeys, newKeys.length - remainder, remainder);
+      System.arraycopy(x1.highLowContainer.values, x1.highLowContainer.size - remainder,
+              newValues, newValues.length - remainder, remainder);
+      for (int i = newValues.length - remainder; i < newValues.length; ++i) {
+        newValues[i] = newValues[i].clone();
       }
     }
     RoaringBitmap result = new RoaringBitmap();
