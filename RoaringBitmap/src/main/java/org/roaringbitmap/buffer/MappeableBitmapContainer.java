@@ -1728,7 +1728,9 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   }
 
   @Override
-  public void trim() {}
+  public void trim() {
+
+  }
 
   @Override
   protected void writeArray(DataOutput out) throws IOException {
@@ -2084,7 +2086,9 @@ final class MappeableBitmapContainerCharIterator implements PeekableCharIterator
 
   private MappeableBitmapContainer parent;
 
-  MappeableBitmapContainerCharIterator() {}
+  MappeableBitmapContainerCharIterator() {
+
+  }
 
   MappeableBitmapContainerCharIterator(MappeableBitmapContainer p) {
     wrap(p);
@@ -2172,7 +2176,9 @@ final class ReverseMappeableBitmapContainerCharIterator implements CharIterator 
 
   private MappeableBitmapContainer parent;
 
-  ReverseMappeableBitmapContainerCharIterator() {}
+  ReverseMappeableBitmapContainerCharIterator() {
+
+  }
 
   ReverseMappeableBitmapContainerCharIterator(MappeableBitmapContainer p) {
     wrap(p);
