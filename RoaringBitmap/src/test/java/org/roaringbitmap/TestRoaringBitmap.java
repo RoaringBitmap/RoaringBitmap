@@ -2348,43 +2348,43 @@ public class TestRoaringBitmap {
 
   @Test
   public void orNotRegressionTest() {
-      long len = 3L;
-      long orLen = 3L;
+    long len = 3L;
+    long orLen = 3L;
 
-      RoaringBitmap one = new RoaringBitmap();
-      RoaringBitmap other = new RoaringBitmap();
-      other.add(0L, len);
+    RoaringBitmap one = new RoaringBitmap();
+    RoaringBitmap other = new RoaringBitmap();
+    other.add(0L, len);
 
-      one.orNot(other, orLen);
+    one.orNot(other, orLen);
   }
 
   @Test
-  public void orNotZeroRangeEndClearsBitmap() {
-      RoaringBitmap one = new RoaringBitmap();
-      one.add(32);
+  public void orNotZeroRangeEndPreservesBitmap() {
+    RoaringBitmap one = new RoaringBitmap();
+    one.add(32);
 
-      RoaringBitmap other = new RoaringBitmap();
-      other.add(0L, 100);
+    RoaringBitmap other = new RoaringBitmap();
+    other.add(0L, 100);
 
-      one.orNot(other, 0);
-      assertEquals(one, RoaringBitmap.bitmapOf());
+    one.orNot(other, 0);
+    assertEquals(one, RoaringBitmap.bitmapOf(32));
   }
 
+  @Test
+  public void orNotLimitLowerThanFirstPreservesBitmap() {
+    RoaringBitmap one = new RoaringBitmap();
+    one.add(32);
+
+    RoaringBitmap other = new RoaringBitmap();
+    other.add(0L, 100);
+
+    one.orNot(other, 10);
+    assertEquals(one, RoaringBitmap.bitmapOf(32));
+  }
+
+
     @Test
-    public void orNotLimitLowerThanFirstBitClearsBitmap() {
-        RoaringBitmap one = new RoaringBitmap();
-        one.add(32);
-
-        RoaringBitmap other = new RoaringBitmap();
-        other.add(0L, 100);
-
-        one.orNot(other, 10);
-        assertEquals(one, RoaringBitmap.bitmapOf());
-    }
-
-
-    @Test
-    public void orNotLimitHigherThanFirstBitPreservesBits() {
+    public void orNotLimitHigherThanFirstBitPreservesBitmap() {
         RoaringBitmap one = new RoaringBitmap();
         one.add(32);
 

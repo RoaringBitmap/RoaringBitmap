@@ -539,7 +539,10 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    * @return aggregated container
    */
   public Container iorNot(RunContainer x, int endOfRange) {
-    return or(x.not(0, endOfRange)).and(RunContainer.rangeOfOnes(0, endOfRange));
+    if (endOfRange < 0x10000) {
+      return ior(x.not(0, endOfRange).iremove(endOfRange, 0x10000));
+    }
+    return ior(x.not(0, 0x10000));
   }
 
   /**
