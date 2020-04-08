@@ -27,7 +27,7 @@ dependencies {
             "me.lemire.integercompression:JavaFastPFOR:0.1.11"
     ).forEach {
         jmh(it)
-        testRuntime(it)
+        testRuntimeOnly(it)
     }
 
     testImplementation(project(":real-roaring-dataset"))
