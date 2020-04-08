@@ -2345,6 +2345,56 @@ public class TestRoaringBitmap {
     Assert.assertFalse(iterator.hasNext());
   }
 
+
+  @Test
+  public void orNotRegressionTest() {
+    long len = 3L;
+    long orLen = 3L;
+
+    RoaringBitmap one = new RoaringBitmap();
+    RoaringBitmap other = new RoaringBitmap();
+    other.add(0L, len);
+
+    one.orNot(other, orLen);
+  }
+
+  @Test
+  public void orNotZeroRangeEndPreservesBitmap() {
+    RoaringBitmap one = new RoaringBitmap();
+    one.add(32);
+
+    RoaringBitmap other = new RoaringBitmap();
+    other.add(0L, 100);
+
+    one.orNot(other, 0);
+    assertEquals(one, RoaringBitmap.bitmapOf(32));
+  }
+
+  @Test
+  public void orNotLimitLowerThanFirstPreservesBitmap() {
+    RoaringBitmap one = new RoaringBitmap();
+    one.add(32);
+
+    RoaringBitmap other = new RoaringBitmap();
+    other.add(0L, 100);
+
+    one.orNot(other, 10);
+    assertEquals(one, RoaringBitmap.bitmapOf(32));
+  }
+
+
+  @Test
+  public void orNotLimitHigherThanFirstBitPreservesBitmap() {
+    RoaringBitmap one = new RoaringBitmap();
+    one.add(32);
+
+    RoaringBitmap other = new RoaringBitmap();
+    other.add(0L, 100);
+
+    one.orNot(other, 35);
+    assertEquals(one, RoaringBitmap.bitmapOf(32));
+  }
+
   @Test
   public void orNotWithSparseBitmaps() {
     final RoaringBitmap rb = new RoaringBitmap();

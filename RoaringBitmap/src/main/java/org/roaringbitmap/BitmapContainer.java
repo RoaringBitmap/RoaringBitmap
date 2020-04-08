@@ -1092,7 +1092,8 @@ public final class BitmapContainer extends Container implements Cloneable {
     return answer;
   }
 
-  protected boolean isFull() {
+  @Override
+  public boolean isFull() {
     return cardinality == MAX_CAPACITY;
   }
 

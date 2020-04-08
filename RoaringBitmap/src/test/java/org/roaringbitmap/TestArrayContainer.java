@@ -34,6 +34,11 @@ public class TestArrayContainer {
     }
 
     @Test
+    public void arrayContainersNeverFull() {
+        assertFalse(new ArrayContainer(5, 15).isFull());
+    }
+
+    @Test
     public void testToString() {
         ArrayContainer ac1 = new ArrayContainer(5, 15);
         ac1.add((char) -3);
