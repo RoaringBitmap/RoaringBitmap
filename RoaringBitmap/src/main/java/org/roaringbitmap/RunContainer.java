@@ -1678,7 +1678,8 @@ public final class RunContainer extends Container implements Cloneable {
     return this;
   }
 
-  protected boolean isFull() {
+  @Override
+  public boolean isFull() {
     return (this.nbrruns == 1) && (this.getValue(0) == 0) && (this.getLength(0) == 0xFFFF);
   }
 

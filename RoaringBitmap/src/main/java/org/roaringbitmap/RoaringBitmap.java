@@ -1346,7 +1346,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   public void orNot(final RoaringBitmap other, long rangeEnd) {
     rangeSanityCheck(0, rangeEnd);
-    int maxKey = (int)(rangeEnd >>> 16);
+    int maxKey = (int)((rangeEnd - 1) >>> 16);
+    int lastRun = (rangeEnd & 0xFFFF) == 0 ? 0x10000 : (int)(rangeEnd & 0xFFFF);
     int size = 0;
     int pos1 = 0, pos2 = 0;
     int length1 = highLowContainer.size(), length2 = other.highLowContainer.size();
@@ -1358,15 +1359,26 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
          --i) {
       ++remainder;
     }
+    int correction = 0;
+    for (int i = 0; i < other.highLowContainer.size - remainder; ++i) {
+      correction += other.highLowContainer.getContainerAtIndex(i).isFull() ? 1 : 0;
+      if (other.highLowContainer.getKeyAtIndex(i) >= maxKey) {
+        break;
+      }
+    }
     // it's almost certain that the bitmap will grow, so make a conservative overestimate,
     // this avoids temporary allocation, and can trim afterwards
-    char[] newKeys = new char[maxKey + 1 + remainder];
-    Container[] newValues = new Container[maxKey + 1 + remainder];
-    for (int key = 0; key <= maxKey; ++key) {
+    int maxSize = Math.min(maxKey + 1 + remainder - correction + highLowContainer.size, 0x10000);
+    if (maxSize == 0) {
+      return;
+    }
+    char[] newKeys = new char[maxSize];
+    Container[] newValues = new Container[maxSize];
+    for (int key = 0; key <= maxKey && size < maxSize; ++key) {
       if (key == s1 && key == s2) { // actually need to do an or not
         newValues[size] = highLowContainer.getContainerAtIndex(pos1)
                 .iorNot(other.highLowContainer.getContainerAtIndex(pos2),
-                        key == maxKey ? (int)(rangeEnd & 0xFFFF) : 0x10000);
+                        key == maxKey ? lastRun : 0x10000);
         ++pos1;
         ++pos2;
         s1 = pos1 < length1 ? highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
@@ -1374,18 +1386,18 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       } else if (key == s1) { // or in a hole
         newValues[size] = highLowContainer.getContainerAtIndex(pos1)
                 .ior(key == maxKey
-                  ? RunContainer.rangeOfOnes(0, (int)(rangeEnd & 0xFFFF))
+                  ? RunContainer.rangeOfOnes(0, lastRun)
                   : RunContainer.full());
         ++pos1;
         s1 = pos1 < length1 ? highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
       } else if (key == s2) { // insert the complement
         newValues[size] = other.highLowContainer.getContainerAtIndex(pos2)
-                .not(0, key == maxKey ? (int)(rangeEnd & 0xFFFF) : 0x10000);
+                .not(0, key == maxKey ? lastRun : 0x10000);
         ++pos2;
         s2 = pos2 < length2 ? other.highLowContainer.getKeyAtIndex(pos2) : maxKey + 1;
       } else { // key missing from both
         newValues[size] = key == maxKey
-                        ? RunContainer.rangeOfOnes(0, (int)(rangeEnd & 0xFFFF))
+                        ? RunContainer.rangeOfOnes(0, lastRun)
                         : RunContainer.full();
       }
       // might have appended an empty container (rare case)
@@ -1399,9 +1411,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     // copy over everything which will remain without being complemented
     if (remainder > 0) {
       System.arraycopy(highLowContainer.keys, highLowContainer.size - remainder,
-              newKeys, newKeys.length - remainder, remainder);
+              newKeys, size, remainder);
       System.arraycopy(highLowContainer.values, highLowContainer.size - remainder,
-              newValues, newValues.length - remainder, remainder);
+              newValues, size, remainder);
     }
     highLowContainer.keys = newKeys;
     highLowContainer.values = newValues;
@@ -1422,7 +1434,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   public static RoaringBitmap orNot(
           final RoaringBitmap x1, final RoaringBitmap x2, long rangeEnd) {
     rangeSanityCheck(0, rangeEnd);
-    int maxKey = (int)(rangeEnd >>> 16);
+    int maxKey = (int)((rangeEnd - 1) >>> 16);
+    int lastRun = (rangeEnd & 0xFFFF) == 0 ? 0x10000 : (int)(rangeEnd & 0xFFFF);
     int size = 0;
     int pos1 = 0, pos2 = 0;
     int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
@@ -1430,55 +1443,65 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     int s2 = length2 > 0 ? x2.highLowContainer.getKeyAtIndex(pos2) : maxKey + 1;
     int remainder = 0;
     for (int i = x1.highLowContainer.size - 1;
-         i >= 0 && x2.highLowContainer.keys[i] > maxKey;
+         i >= 0 && x1.highLowContainer.keys[i] > maxKey;
          --i) {
       ++remainder;
     }
+    int correction = 0;
+    for (int i = 0; i < x2.highLowContainer.size - remainder; ++i) {
+      correction += x2.highLowContainer.getContainerAtIndex(i).isFull() ? 1 : 0;
+      if (x2.highLowContainer.getKeyAtIndex(i) >= maxKey) {
+        break;
+      }
+    }
     // it's almost certain that the bitmap will grow, so make a conservative overestimate,
     // this avoids temporary allocation, and can trim afterwards
-    char[] newKeys = new char[maxKey + 1 + remainder];
-    Container[] newValues = new Container[maxKey + 1 + remainder];
-    for (int key = 0; key <= maxKey; ++key) {
+    int maxSize = Math.min(maxKey + 1 + remainder - correction + x1.highLowContainer.size, 0x10000);
+    if (maxSize == 0) {
+      return new RoaringBitmap();
+    }
+    char[] newKeys = new char[maxSize];
+    Container[] newValues = new Container[maxSize];
+    for (int key = 0; key <= maxKey && size < maxSize; ++key) {
       if (key == s1 && key == s2) { // actually need to do an or not
         newValues[size] = x1.highLowContainer.getContainerAtIndex(pos1)
-                .orNot(x2.highLowContainer.getContainerAtIndex(pos2),
-                        key == maxKey ? (int)(rangeEnd & 0xFFFF) : 0x10000);
+                .iorNot(x2.highLowContainer.getContainerAtIndex(pos2),
+                        key == maxKey ? lastRun : 0x10000);
         ++pos1;
         ++pos2;
         s1 = pos1 < length1 ? x1.highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
         s2 = pos2 < length2 ? x2.highLowContainer.getKeyAtIndex(pos2) : maxKey + 1;
       } else if (key == s1) { // or in a hole
         newValues[size] = x1.highLowContainer.getContainerAtIndex(pos1)
-                .or(key == maxKey
-                        ? RunContainer.rangeOfOnes(0, (int)(rangeEnd & 0xFFFF))
+                .ior(key == maxKey
+                        ? RunContainer.rangeOfOnes(0, lastRun)
                         : RunContainer.full());
         ++pos1;
         s1 = pos1 < length1 ? x1.highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
       } else if (key == s2) { // insert the complement
         newValues[size] = x2.highLowContainer.getContainerAtIndex(pos2)
-                .not(0, key == maxKey ? (int)(rangeEnd & 0xFFFF) : 0x10000);
+                .not(0, key == maxKey ? lastRun : 0x10000);
         ++pos2;
         s2 = pos2 < length2 ? x2.highLowContainer.getKeyAtIndex(pos2) : maxKey + 1;
       } else { // key missing from both
         newValues[size] = key == maxKey
-                ? RunContainer.rangeOfOnes(0, (int)(rangeEnd & 0xFFFF))
+                ? RunContainer.rangeOfOnes(0, lastRun)
                 : RunContainer.full();
       }
       // might have appended an empty container (rare case)
       if (newValues[size].isEmpty()) {
         newValues[size] = null;
       } else {
-        newKeys[size] = (char)key;
-        ++size;
+        newKeys[size++] = (char)key;
       }
     }
     // copy over everything which will remain without being complemented
     if (remainder > 0) {
       System.arraycopy(x1.highLowContainer.keys, x1.highLowContainer.size - remainder,
-              newKeys, newKeys.length - remainder, remainder);
+              newKeys, size, remainder);
       System.arraycopy(x1.highLowContainer.values, x1.highLowContainer.size - remainder,
-              newValues, newValues.length - remainder, remainder);
-      for (int i = newValues.length - remainder; i < newValues.length; ++i) {
+              newValues, size, remainder);
+      for (int i = size; i < size + remainder; ++i) {
         newValues[i] = newValues[i].clone();
       }
     }

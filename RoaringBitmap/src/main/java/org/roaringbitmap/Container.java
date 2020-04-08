@@ -248,6 +248,12 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
   public abstract boolean isEmpty();
 
   /**
+   * Checks whether the container is full or not.
+   * @return true if the container is full.
+   */
+  public abstract boolean isFull();
+
+  /**
    * Checks whether the contain contains the provided value
    *
    * @param x value to check
