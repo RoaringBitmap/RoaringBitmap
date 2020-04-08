@@ -403,9 +403,8 @@ public class Fuzzer {
               RoaringBitmap range = new RoaringBitmap();
               long limit = toUnsignedLong(l.last()) + 1;
               range.add(0, limit);
-              RoaringBitmap rightFlipped = RoaringBitmap.and(r, range);
-              rightFlipped.flip(0, limit);
-              return RoaringBitmap.or(RoaringBitmap.and(l, range), rightFlipped);
+              range.andNot(r);
+              return RoaringBitmap.or(l, range);
             });
   }
 

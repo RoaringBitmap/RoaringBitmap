@@ -286,6 +286,11 @@ public final class ArrayContainer extends Container implements Cloneable {
   }
 
   @Override
+  public boolean isFull() {
+    return false;
+  }
+
+  @Override
   public boolean contains(final char x) {
     return Util.unsignedBinarySearch(content, 0, cardinality, x) >= 0;
   }

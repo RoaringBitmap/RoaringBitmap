@@ -382,6 +382,9 @@ public final class RunContainer extends Container implements Cloneable {
   @Override
   public Container and(RunContainer x) {
     RunContainer answer = new RunContainer(new char[2 * (this.nbrruns + x.nbrruns)], 0);
+    if (isEmpty()) {
+      return answer;
+    }
     int rlepos = 0;
     int xrlepos = 0;
     int start = (this.getValue(rlepos));
@@ -1675,7 +1678,8 @@ public final class RunContainer extends Container implements Cloneable {
     return this;
   }
 
-  protected boolean isFull() {
+  @Override
+  public boolean isFull() {
     return (this.nbrruns == 1) && (this.getValue(0) == 0) && (this.getLength(0) == 0xFFFF);
   }
 
