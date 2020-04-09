@@ -1157,6 +1157,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   public boolean intersects(long minimum, long supremum) {
     rangeSanityCheck(minimum, supremum);
+    if (supremum <= minimum) {
+      return false;
+    }
     int minKey = (int)(minimum >>> 16);
     int supKey = (int)(supremum >>> 16);
     int length = highLowContainer.size;
@@ -1608,9 +1611,12 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   public boolean contains(long minimum, long supremum) {
     rangeSanityCheck(minimum, supremum);
+    if (supremum <= minimum) {
+      return false;
+    }
     char firstKey = Util.highbits(minimum);
     char lastKey = Util.highbits(supremum);
-    int span = (lastKey) - (firstKey);
+    int span = lastKey - firstKey;
     int len = highLowContainer.size;
     if (len < span) {
       return false;
@@ -1625,12 +1631,14 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     int min = (char)minimum;
     int sup = (char)supremum;
     if (firstKey == lastKey) {
-      return highLowContainer.getContainerAtIndex(begin).contains(min, sup);
+      return highLowContainer.getContainerAtIndex(begin)
+              .contains(min, (supremum & 0xFFFF) == 0 ? 0x10000 : sup);
     }
     if (!highLowContainer.getContainerAtIndex(begin).contains(min, 1 << 16)) {
       return false;
     }
-    if (end < len && !highLowContainer.getContainerAtIndex(end).contains(0, sup)) {
+    if (end < len && !highLowContainer.getContainerAtIndex(end)
+            .contains(0, (supremum & 0xFFFF) == 0 ? 0x10000 : sup)) {
       return false;
     }
     for (int i = begin + 1; i < end; ++i) {
