@@ -6,20 +6,13 @@ import org.junit.Test;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
-import java.util.Arrays;
 import java.util.BitSet;
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.BiFunction;
-import java.util.function.BiPredicate;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.function.*;
 import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertTrue;
 import static org.roaringbitmap.RandomisedTestData.ITERATIONS;
-import static org.roaringbitmap.RandomisedTestData.randomBitmap;
 import static org.roaringbitmap.Util.toUnsignedLong;
 
 public class BufferFuzzer {
@@ -41,7 +34,7 @@ public class BufferFuzzer {
             .mapToObj(i -> randomBitmap(maxKeys))
             .forEach(bitmap -> {
               long min = random.nextLong(1L << 32);
-              long max = random.nextLong(min,1L << 32);
+              long max = random.nextLong(min, 1L << 32);
               try {
                 Assert.assertTrue(pred.test(min, max, bitmap));
               } catch (Throwable t) {
@@ -244,16 +237,16 @@ public class BufferFuzzer {
   public void firstSelect0Invariance() {
     verifyInvariance("firstSelect0Invariance",
             bitmap -> !bitmap.isEmpty(),
-            ImmutableRoaringBitmap::first,
-                     bitmap -> bitmap.select(0));
+            b -> b.first(),
+            bitmap -> bitmap.select(0));
   }
 
   @Test
   public void lastSelectCardinalityInvariance() {
     verifyInvariance("lastSelectCardinalityInvariance",
             bitmap -> !bitmap.isEmpty(),
-            ImmutableRoaringBitmap::last,
-                     bitmap -> bitmap.select(bitmap.getCardinality() - 1));
+            bitmap -> bitmap.last(),
+            bitmap -> bitmap.select(bitmap.getCardinality() - 1));
   }
 
   @Test
@@ -273,21 +266,21 @@ public class BufferFuzzer {
   public void andCardinalityInvariance() {
     verifyInvariance("andCardinalityInvariance", ITERATIONS, 1 << 9,
             (l, r) -> MutableRoaringBitmap.and(l, r).getCardinality(),
-            MutableRoaringBitmap::andCardinality);
+            (l, r) -> MutableRoaringBitmap.andCardinality(l, r));
   }
 
   @Test
   public void orCardinalityInvariance() {
     verifyInvariance("orCardinalityInvariance", ITERATIONS, 1 << 9,
             (l, r) -> MutableRoaringBitmap.or(l, r).getCardinality(),
-            MutableRoaringBitmap::orCardinality);
+            (l, r) -> MutableRoaringBitmap.orCardinality(l, r));
   }
 
   @Test
   public void xorCardinalityInvariance() {
     verifyInvariance("xorCardinalityInvariance", ITERATIONS, 1 << 9,
             (l, r) -> MutableRoaringBitmap.xor(l, r).getCardinality(),
-            MutableRoaringBitmap::xorCardinality);
+            (l, r) -> MutableRoaringBitmap.xorCardinality(l, r));
   }
 
   @Test
@@ -301,7 +294,7 @@ public class BufferFuzzer {
   @Test
   public void containsAndInvariance() {
     verifyInvariance("containsAndInvariance",
-            ImmutableRoaringBitmap::contains,
+            (l, r) -> l.contains(r),
             (l, r) -> MutableRoaringBitmap.and(l, r).equals(r));
   }
 
@@ -318,7 +311,7 @@ public class BufferFuzzer {
     verifyInvariance("sizeOfUnionOfDisjointSetsEqualsSumOfSizes",
             (l, r) -> MutableRoaringBitmap.andCardinality(l, r) == 0,
             (l, r) -> l.getCardinality() + r.getCardinality(),
-            MutableRoaringBitmap::orCardinality);
+            (l, r) -> MutableRoaringBitmap.orCardinality(l, r));
   }
 
   @Test
@@ -326,12 +319,12 @@ public class BufferFuzzer {
     verifyInvariance("sizeOfDifferenceOfDisjointSetsEqualsSumOfSizes",
             (l, r) -> MutableRoaringBitmap.andCardinality(l, r) == 0,
             (l, r) -> l.getCardinality() + r.getCardinality(),
-            MutableRoaringBitmap::xorCardinality);
+            (l, r) -> MutableRoaringBitmap.xorCardinality(l, r));
   }
 
   @Test
   public void equalsSymmetryInvariance() {
-    verifyInvariance("equalsSymmetryInvariance", ImmutableRoaringBitmap::equals, (l, r) -> r.equals(l));
+    verifyInvariance("equalsSymmetryInvariance", (l, r) -> l.equals(r), (l, r) -> r.equals(l));
   }
 
   @Test
@@ -476,7 +469,7 @@ public class BufferFuzzer {
 
   @Test
   public void absentValuesConsistentWithBitSet() {
-    int[] offsets = new int[] {0, 1, -1, 10, -10, 100, -100};
+    int[] offsets = new int[]{0, 1, -1, 10, -10, 100, -100};
 
     // Size limit to avoid out of memory errors; r.last() > 0 to avoid bitmaps with last > Integer.MAX_VALUE
     verifyInvariance(r -> r.isEmpty() || (r.last() > 0 && r.last() < 1 << 30), bitmap -> {

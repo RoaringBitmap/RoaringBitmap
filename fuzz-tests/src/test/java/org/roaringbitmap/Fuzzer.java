@@ -50,14 +50,13 @@ public class Fuzzer {
   }
 
 
-
   public static void verifyInvariance(String testName, int maxKeys, RangeBitmapPredicate pred) {
     IntStream.range(0, ITERATIONS)
             .parallel()
             .mapToObj(i -> randomBitmap(maxKeys))
             .forEach(bitmap -> {
               long min = ThreadLocalRandom.current().nextLong(1L << 32);
-              long max = ThreadLocalRandom.current().nextLong(min,1L << 32);
+              long max = ThreadLocalRandom.current().nextLong(min, 1L << 32);
               try {
                 assertTrue(pred.test(min, max, bitmap));
               } catch (Throwable e) {
@@ -104,7 +103,8 @@ public class Fuzzer {
               } catch (Throwable e) {
                 Reporter.report(testName, ImmutableMap.of(), e, bitmap);
                 throw e;
-              }});
+              }
+            });
   }
 
   public static <T> void verifyInvariance(String testName,
@@ -236,14 +236,14 @@ public class Fuzzer {
   @Test
   public void firstSelect0Invariance() {
     verifyInvariance("rankSelectInvariance", bitmap -> !bitmap.isEmpty(),
-            RoaringBitmap::first,
+            l -> l.first(),
             bitmap -> bitmap.select(0));
   }
 
   @Test
   public void lastSelectCardinalityInvariance() {
     verifyInvariance("rankSelectInvariance", bitmap -> !bitmap.isEmpty(),
-            RoaringBitmap::last,
+            l -> l.last(),
             bitmap -> bitmap.select(bitmap.getCardinality() - 1));
   }
 
@@ -251,21 +251,21 @@ public class Fuzzer {
   public void andCardinalityInvariance() {
     verifyInvariance("andCardinalityInvariance", ITERATIONS, 1 << 9,
             (l, r) -> RoaringBitmap.and(l, r).getCardinality(),
-            RoaringBitmap::andCardinality);
+            (l, r) -> RoaringBitmap.andCardinality(l, r));
   }
 
   @Test
   public void orCardinalityInvariance() {
     verifyInvariance("orCardinalityInvariance", ITERATIONS, 1 << 9,
             (l, r) -> RoaringBitmap.or(l, r).getCardinality(),
-            RoaringBitmap::orCardinality);
+            (l, r) -> RoaringBitmap.orCardinality(l, r));
   }
 
   @Test
   public void xorCardinalityInvariance() {
     verifyInvariance("xorCardinalityInvariance", ITERATIONS, 1 << 9,
             (l, r) -> RoaringBitmap.xor(l, r).getCardinality(),
-            RoaringBitmap::xorCardinality);
+            (l, r) -> RoaringBitmap.xorCardinality(l, r));
   }
 
   @Test
@@ -277,7 +277,7 @@ public class Fuzzer {
 
   @Test
   public void containsAndInvariance() {
-    verifyInvariance("containsAndInvariance", RoaringBitmap::contains, (l, r) -> RoaringBitmap.and(l, r).equals(r));
+    verifyInvariance("containsAndInvariance", (l, r) -> l.contains(r), (l, r) -> RoaringBitmap.and(l, r).equals(r));
   }
 
 
@@ -289,7 +289,7 @@ public class Fuzzer {
   @Test
   public void limitCardinalityXorCardinalityInvariance() {
     verifyInvariance("limitCardinalityXorCardinalityInvariance", rb -> true,
-            RoaringBitmap::getCardinality,
+            l -> l.getCardinality(),
             rb -> rb.getCardinality() / 2
                     + RoaringBitmap.xorCardinality(rb, rb.limit(rb.getCardinality() / 2)));
   }
@@ -298,7 +298,7 @@ public class Fuzzer {
   public void containsRangeFirstLastInvariance() {
     verifyInvariance("containsRangeFirstLastInvariance", true,
             rb -> RoaringBitmap.add(rb.clone(), toUnsignedLong(rb.first()), toUnsignedLong(rb.last()))
-                               .contains(toUnsignedLong(rb.first()), toUnsignedLong(rb.last())));
+                    .contains(toUnsignedLong(rb.first()), toUnsignedLong(rb.last())));
   }
 
   @Test
@@ -367,9 +367,9 @@ public class Fuzzer {
   public void rangeCardinalityVsMaterialisedRange() {
     verifyInvariance("rangeCardinalityVsMaterialisedRange", 1 << 9,
             (min, max, bitmap) -> {
-                RoaringBitmap range = new RoaringBitmap();
-                range.add(min, max);
-                return bitmap.rangeCardinality(min, max) == RoaringBitmap.andCardinality(range, bitmap);
+              RoaringBitmap range = new RoaringBitmap();
+              range.add(min, max);
+              return bitmap.rangeCardinality(min, max) == RoaringBitmap.andCardinality(range, bitmap);
             });
   }
 
@@ -444,7 +444,7 @@ public class Fuzzer {
                 }
                 l.remove(next);
                 if (l.contains(next)) {
-                    return false;
+                  return false;
                 }
                 if (first != next && l.contains(first, toUnsignedLong(next))) {
                   return false;
@@ -455,36 +455,52 @@ public class Fuzzer {
             });
   }
 
-    @Test
-    public void intersectsContainsRemove() {
-        verifyInvariance("intersectsContainsRemove",
-                (l, r) -> RoaringBitmap.andCardinality(l, r) > 0,
-                1 << 12,
-                (l, r) -> {
-                    RoaringBitmap and = RoaringBitmap.and(l, r);
-                    if (!(l.contains(and) && r.contains(and))) {
-                        return false;
-                    }
-                    long first = and.first() & 0xFFFFFFFFL;
-                    long last = and.last() & 0xFFFFFFFFL;
-                    IntIterator it = and.getBatchIterator().asIntIterator(new int[16]);
-                    l.remove(first, last + 1);
-                    while (it.hasNext()) {
-                        long next = toUnsignedLong(it.next());
-                        if (l.intersects(first, next) || (first != next && !r.intersects(first, next))) {
-                            return false;
-                        }
-                        if (l.contains(first, next)) {
-                            return false;
-                        }
-                    }
-                    return !l.contains(and);
-                });
-    }
+  @Test
+  public void intersectsContainsRemove() {
+    verifyInvariance("intersectsContainsRemove",
+            (l, r) -> RoaringBitmap.andCardinality(l, r) > 0,
+            1 << 12,
+            (l, r) -> {
+              RoaringBitmap and = RoaringBitmap.and(l, r);
+              if (!(l.contains(and) && r.contains(and))) {
+                return false;
+              }
+              long first = and.first() & 0xFFFFFFFFL;
+              long last = and.last() & 0xFFFFFFFFL;
+              IntIterator it = and.getBatchIterator().asIntIterator(new int[16]);
+              l.remove(first, last + 1);
+              while (it.hasNext()) {
+                long next = toUnsignedLong(it.next());
+                if (l.intersects(first, next) || (first != next && !r.intersects(first, next))) {
+                  return false;
+                }
+                if (l.contains(first, next)) {
+                  return false;
+                }
+              }
+              return !l.contains(and);
+            });
+  }
+
+  @Test
+  public void orNotDoesNotTruncate() {
+    verifyInvariance("orNotDoesNotTruncate",
+            (l, r) -> !l.isEmpty() && (r.isEmpty() || l.last() > r.last()),
+            1 << 12,
+            (l, r) -> {
+              int last = l.last();
+              if (last > 1) {
+                long rangeEnd = ThreadLocalRandom.current().nextLong(0, last - 1);
+                l.orNot(r, rangeEnd);
+                return l.contains(last);
+              }
+              return true;
+            });
+  }
 
   @Test
   public void orNot() {
-    verifyInvariance("orNot", ITERATIONS,1 << 9,
+    verifyInvariance("orNot", ITERATIONS, 1 << 9,
             (RoaringBitmap l, RoaringBitmap r) -> {
               RoaringBitmap x = l.clone();
               long max = (x.last() & 0xFFFFFFFFL) + 1;
@@ -502,7 +518,7 @@ public class Fuzzer {
 
   @Test
   public void orNotStatic() {
-    verifyInvariance("orNot", ITERATIONS,1 << 9,
+    verifyInvariance("orNot", ITERATIONS, 1 << 9,
             (RoaringBitmap l, RoaringBitmap r) -> {
               RoaringBitmap x = l.clone();
               long max = (x.last() & 0xFFFFFFFFL) + 1;
@@ -518,7 +534,7 @@ public class Fuzzer {
 
   @Test
   public void absentValuesConsistentWithBitSet() {
-    int[] offsets = new int[] {0, 1, -1, 10, -10, 100, -100};
+    int[] offsets = new int[]{0, 1, -1, 10, -10, 100, -100};
     // Size limit to avoid out of memory errors; r.last() > 0 to avoid bitmaps with last > Integer.MAX_VALUE
     verifyInvariance(r -> r.isEmpty() || (r.last() > 0 && r.last() < 1 << 30), bitmap -> {
       BitSet reference = new BitSet();
