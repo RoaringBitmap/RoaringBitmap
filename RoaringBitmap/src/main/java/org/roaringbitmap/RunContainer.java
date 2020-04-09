@@ -754,21 +754,18 @@ public final class RunContainer extends Container implements Cloneable {
 
   @Override
   public boolean contains(int minimum, int supremum) {
-    int count = 0;
     for (int i = 0; i < numberOfRuns(); ++i) {
-      int start = (getValue(i));
-      int length = (getLength(i));
-      int stop = start + length;
+      int start = getValue(i);
+      int length = getLength(i);
+      int stop = start + length + 1;
       if (start >= supremum) {
         break;
       }
-      if (stop >= supremum) {
-        count += Math.max(0, supremum - start);
-        break;
+      if (minimum >= start && supremum <= stop) {
+        return true;
       }
-      count += Math.min(Math.max(0, stop - minimum), length);
     }
-    return count >= supremum - minimum - 1;
+    return false;
   }
 
   @Override
@@ -1470,11 +1467,9 @@ public final class RunContainer extends Container implements Cloneable {
       throw new RuntimeException("This should never happen (bug).");
     }
     for (int i = 0; i < numberOfRuns(); ++i) {
-      char runFirstValue = getValue(i);
-      char runLastValue = (char) (runFirstValue + getLength(i));
-
-      if ((runFirstValue) < supremum
-          && runLastValue - (char) minimum >= 0){
+      int runFirstValue = getValue(i);
+      int runLastValue = (char) (runFirstValue + getLength(i)) + 1;
+      if (supremum > runFirstValue && minimum < runLastValue) {
         return true;
       }
     }

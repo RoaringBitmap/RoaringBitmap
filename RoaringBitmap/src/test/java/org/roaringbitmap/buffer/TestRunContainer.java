@@ -2777,6 +2777,12 @@ public class TestRunContainer {
     assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 8)));
   }
 
+  @Test
+  public void testContains() {
+    MappeableRunContainer rc = new MappeableRunContainer(CharBuffer.wrap(new char[]{23, 24}), 1);
+    assertFalse(rc.contains(48, 49));
+  }
+
 
   private static int lower16Bits(int x) {
     return ((char)x) & 0xFFFF;

@@ -2759,21 +2759,18 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   @Override
   public boolean contains(int minimum, int supremum) {
-    int count = 0;
     for (int i = 0; i < numberOfRuns(); ++i) {
-      int start = (getValue(i));
-      int length = (getLength(i));
-      int stop = start + length;
+      int start = getValue(i);
+      int length = getLength(i);
+      int stop = start + length + 1;
       if (start >= supremum) {
         break;
       }
-      if (stop >= supremum) {
-        count += Math.max(0, supremum - start);
-        break;
+      if (minimum >= start && supremum <= stop) {
+        return true;
       }
-      count += Math.min(Math.max(0, stop - minimum), length);
     }
-    return count >= supremum - minimum - 1;
+    return false;
   }
 
 
