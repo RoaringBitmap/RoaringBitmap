@@ -508,48 +508,6 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    */
   public abstract Container iandNot(RunContainer x);
 
-  /**
-   * Computes the in-place bitwise ORNOT of this container with another. The current
-   * container is generally modified, whereas the provided container (x) is unaffected. May generate
-   * a new container.
-   *
-   * @param x other container
-   * @param endOfRange the exclusive end
-   * @return aggregated container
-   */
-  public Container iorNot(ArrayContainer x, int endOfRange) {
-    return or(x.not(0, endOfRange)).and(RunContainer.rangeOfOnes(0, endOfRange));
-  }
-
-
-  /**
-   * Computes the in-place bitwise ORNOT of this container with another. The current
-   * container is generally modified, whereas the provided container (x) is unaffected. May generate
-   * a new container.
-   *
-   * @param x other container
-   * @param endOfRange the exclusive end
-   * @return aggregated container
-   */
-  public Container iorNot(BitmapContainer x, int endOfRange) {
-    return or(x.not(0, endOfRange)).and(RunContainer.rangeOfOnes(0, endOfRange));
-  }
-
-  /**
-   * Computes the in-place bitwise ORNOT of this container with another. The current
-   * container is generally modified, whereas the provided container (x) is unaffected. May generate
-   * a new container.
-   *
-   * @param x other container
-   * @param endOfRange the exclusive end
-   * @return aggregated container
-   */
-  public Container iorNot(RunContainer x, int endOfRange) {
-    if (endOfRange < 0x10000) {
-      return ior(x.not(0, endOfRange).iremove(endOfRange, 0x10000));
-    }
-    return ior(x.not(0, 0x10000));
-  }
 
   /**
    * Computes the in-place bitwise ORNOT of this container with another. The current
@@ -561,12 +519,10 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    * @return aggregated container
    */
   public Container iorNot(Container x, int endOfRange) {
-    if (x instanceof ArrayContainer) {
-      return iorNot((ArrayContainer) x, endOfRange);
-    } else if (x instanceof BitmapContainer) {
-      return iorNot((BitmapContainer) x, endOfRange);
+    if (endOfRange < 0x10000) {
+      return ior(x.not(0, endOfRange).iremove(endOfRange, 0x10000));
     }
-    return iorNot((RunContainer) x, endOfRange);
+    return ior(x.not(0, 0x10000));
   }
 
 
