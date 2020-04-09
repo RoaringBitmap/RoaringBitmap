@@ -4,8 +4,10 @@
 
 package org.roaringbitmap.buffer;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.roaringbitmap.BitmapContainer;
 import org.roaringbitmap.CharIterator;
 import org.roaringbitmap.IntConsumer;
@@ -19,12 +21,11 @@ import java.nio.CharBuffer;
 import java.nio.LongBuffer;
 import java.util.Arrays;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
 import static org.roaringbitmap.buffer.TestMappeableArrayContainer.newArrayContainer;
 
-
+@Execution(ExecutionMode.CONCURRENT)
 public class TestMappeableBitmapContainer {
 
   private static MappeableBitmapContainer emptyContainer() {
@@ -45,7 +46,7 @@ public class TestMappeableBitmapContainer {
     bc2.add((char) -19);
     bc2.add((char) -3);
     String s = bc2.toString();
-    assertTrue(s.equals("{5,6,7,8,9,10,11,12,13,14,65517,65533}"));
+    assertEquals("{5,6,7,8,9,10,11,12,13,14,65517,65533}", s);
   }
   
   @Test  
@@ -55,12 +56,14 @@ public class TestMappeableBitmapContainer {
     MappeableBitmapContainer bc3 = new MappeableBitmapContainer();
 
     for(int i = 100; i < 10000; ++i) {
-      if((i%2 ) == 0)
-        bc2 = (MappeableBitmapContainer) bc2.add((char) i);
-        else bc3 = (MappeableBitmapContainer) bc3.add((char) i);
+      if((i%2 ) == 0) {
+        bc2.add((char) i);
+      } else {
+        bc3.add((char) i);
+      }
     }
     bc = (MappeableBitmapContainer) bc.ixor(bc2);
-    assertTrue(bc.ixor(bc3).getCardinality() == 0);
+    assertEquals(0, bc.ixor(bc3).getCardinality());
   }
   
   @Test  
@@ -70,16 +73,18 @@ public class TestMappeableBitmapContainer {
     MappeableBitmapContainer bc3 = new MappeableBitmapContainer();
 
     for(int i = 100; i < 10000; ++i) {
-      if((i%2 ) == 0)
-        bc2 = (MappeableBitmapContainer) bc2.add((char) i);
-        else bc3 = (MappeableBitmapContainer) bc3.add((char) i);
+      if((i%2 ) == 0) {
+        bc2.add((char) i);
+      } else {
+        bc3.add((char) i);
+      }
     }
     bc = (MappeableBitmapContainer) bc.iandNot(bc2);
-    assertTrue(bc.equals(bc3));
-    assertTrue(bc.hashCode() == bc3.hashCode());
-    assertTrue(bc.iandNot(bc3).getCardinality() == 0);
+    assertEquals(bc, bc3);
+    assertEquals(bc.hashCode(), bc3.hashCode());
+    assertEquals(0, bc.iandNot(bc3).getCardinality());
     bc3.clear();
-    assertTrue(bc3.getCardinality() == 0);
+    assertEquals(0, bc3.getCardinality());
   }
   
 
@@ -91,16 +96,18 @@ public class TestMappeableBitmapContainer {
     
 
     for(int i = 100; i < 10000; ++i) {
-      if((i%2 ) == 0)
-        bc2 = (MappeableBitmapContainer) bc2.add((char) i);
-        else bc3 = (MappeableBitmapContainer) bc3.add((char) i);
+      if((i%2 ) == 0) {
+        bc2.add((char) i);
+      } else {
+        bc3.add((char) i);
+      }
     }
     MappeableRunContainer rc = new MappeableRunContainer();
     rc.iadd(0, 1<<16);
     bc = (MappeableBitmapContainer) bc.iand(rc);
     bc = (MappeableBitmapContainer) bc.iand(bc2);
-    assertTrue(bc.equals(bc2));    
-    assertTrue(bc.iand(bc3).getCardinality() == 0);    
+    assertEquals(bc, bc2);
+    assertEquals(0, bc.iand(bc3).getCardinality());
   }
 
   
@@ -112,17 +119,19 @@ public class TestMappeableBitmapContainer {
     MappeableBitmapContainer bc3 = new MappeableBitmapContainer();
 
     for(int i = 100; i < 10000; ++i) {
-      if((i%2 ) == 0)
-        bc2 = (MappeableBitmapContainer) bc2.add((char) i);
-        else bc3 = (MappeableBitmapContainer) bc3.add((char) i);
+      if((i%2 ) == 0) {
+        bc2.add((char) i);
+      } else {
+        bc3.add((char) i);
+      }
     }
     bc2 = (MappeableBitmapContainer) bc2.ior(bc3);
-    assertTrue(bc.equals(bc2));        
+    assertEquals(bc, bc2);
     bc2 = (MappeableBitmapContainer) bc2.ior(bc);
-    assertTrue(bc.equals(bc2));       
+    assertEquals(bc, bc2);
     MappeableRunContainer rc = new MappeableRunContainer();
     rc.iadd(0, 1<<16);
-    assertTrue(bc.iandNot(rc).getCardinality() == 0);      
+    assertEquals(0, bc.iandNot(rc).getCardinality());
   }
 
   private static void removeArray(MappeableBitmapContainer bc) {
@@ -139,14 +148,16 @@ public class TestMappeableBitmapContainer {
     MappeableBitmapContainer bc3 = new MappeableBitmapContainer();
 
     for(int i = 100; i < 10000; ++i) {
-      if((i%2 ) == 0)
-        bc2 = (MappeableBitmapContainer) bc2.add((char) i);
-        else bc3 = (MappeableBitmapContainer) bc3.add((char) i);
+      if((i%2 ) == 0) {
+        bc2.add((char) i);
+      } else {
+        bc3.add((char) i);
+      }
     }
     removeArray(bc2);
     removeArray(bc3);
     bc = (MappeableBitmapContainer) bc.ixor(bc2);
-    assertTrue(bc.ixor(bc3).getCardinality() == 0);
+    assertEquals(0, bc.ixor(bc3).getCardinality());
   }
   
   @Test  
@@ -156,14 +167,16 @@ public class TestMappeableBitmapContainer {
     MappeableBitmapContainer bc3 = new MappeableBitmapContainer();
 
     for(int i = 100; i < 10000; ++i) {
-      if((i%2 ) == 0)
-        bc2 = (MappeableBitmapContainer) bc2.add((char) i);
-        else bc3 = (MappeableBitmapContainer) bc3.add((char) i);
+      if((i%2 ) == 0) {
+        bc2.add((char) i);
+      } else {
+        bc3.add((char) i);
+      }
     }
     removeArray(bc2);
     removeArray(bc3);
     bc = (MappeableBitmapContainer) bc.iandNot(bc2);
-    assertTrue(bc.equals(bc3));
+    assertEquals(bc, bc3);
   }
   
 
@@ -174,17 +187,19 @@ public class TestMappeableBitmapContainer {
     MappeableBitmapContainer bc3 = new MappeableBitmapContainer();
 
     for(int i = 100; i < 10000; ++i) {
-      if((i%2 ) == 0)
-        bc2 = (MappeableBitmapContainer) bc2.add((char) i);
-        else bc3 = (MappeableBitmapContainer) bc3.add((char) i);
+      if((i%2 ) == 0) {
+        bc2.add((char) i);
+      } else {
+        bc3.add((char) i);
+      }
     }
     removeArray(bc);
     removeArray(bc2);
     removeArray(bc3);
     bc = (MappeableBitmapContainer) bc.iand(bc2);
-    assertTrue(bc.equals(bc2));
-    removeArray(bc);    
-    assertTrue(bc.iand(bc3).getCardinality() == 0);    
+    assertEquals(bc, bc2);
+    removeArray(bc);
+    assertEquals(0, bc.iand(bc3).getCardinality());
   }
 
   
@@ -196,16 +211,18 @@ public class TestMappeableBitmapContainer {
     MappeableBitmapContainer bc3 = new MappeableBitmapContainer();
 
     for(int i = 100; i < 10000; ++i) {
-      if((i%2 ) == 0)
-        bc2 = (MappeableBitmapContainer) bc2.add((char) i);
-        else bc3 = (MappeableBitmapContainer) bc3.add((char) i);
+      if((i%2 ) == 0) {
+        bc2.add((char) i);
+      } else {
+        bc3.add((char) i);
+      }
     }
     removeArray(bc);
     removeArray(bc3);
     bc2 = (MappeableBitmapContainer) bc2.ior(bc3);
-    assertTrue(bc.equals(bc2));
+    assertEquals(bc, bc2);
     bc2 = (MappeableBitmapContainer) bc2.ior(bc);
-    assertTrue(bc.equals(bc2));       
+    assertEquals(bc, bc2);
   }
   
   @Test
@@ -216,7 +233,7 @@ public class TestMappeableBitmapContainer {
         LongBuffer array = ByteBuffer.allocateDirect((1<<16)/8).asLongBuffer();
         MappeableBitmapContainer bc = new MappeableBitmapContainer(start,end);
         MappeableBitmapContainer bc2 = new MappeableBitmapContainer(array,0);
-        assertEquals(false, bc2.isArrayBacked());
+        assertFalse(bc2.isArrayBacked());
         MappeableBitmapContainer bc3 = (MappeableBitmapContainer) bc2.add(start,end);
         bc2.iadd(start,end);
         assertEquals(bc.getCardinality(), end-start);
@@ -239,7 +256,7 @@ public class TestMappeableBitmapContainer {
         LongBuffer array = ByteBuffer.allocateDirect((1<<16)/8).asLongBuffer();
         MappeableBitmapContainer bc = new MappeableBitmapContainer(start,end);
         MappeableBitmapContainer bc2 = new MappeableBitmapContainer(array,0);
-        assertEquals(false, bc2.isArrayBacked());
+        assertFalse(bc2.isArrayBacked());
         MappeableBitmapContainer bc3 = (MappeableBitmapContainer) bc2.add(start,end);
         bc2.iadd(start,end);
         assertEquals(bc.getCardinality(), end-start);
@@ -308,36 +325,44 @@ public class TestMappeableBitmapContainer {
     assertEquals(6031, bc.cardinality);
   }
 
-  @Test(expected = IndexOutOfBoundsException.class)
+  @Test
   public void testNextTooLarge() {
-    emptyContainer().nextSetBit(Short.MAX_VALUE + 1);
+    assertThrows(IndexOutOfBoundsException.class, () ->
+    emptyContainer().nextSetBit(Short.MAX_VALUE + 1));
   }
 
-  @Test(expected = IndexOutOfBoundsException.class)
+  @Test
   public void testNextTooSmall() {
-    emptyContainer().nextSetBit(-1);
+    assertThrows(IndexOutOfBoundsException.class, () ->
+    emptyContainer().nextSetBit(-1));
   }
 
-  @Test(expected = IndexOutOfBoundsException.class)
+  @Test
   public void testPreviousTooLarge() {
-    emptyContainer().prevSetBit(Short.MAX_VALUE + 1);
+    assertThrows(IndexOutOfBoundsException.class, () ->
+    emptyContainer().prevSetBit(Short.MAX_VALUE + 1));
   }
 
-  @Test(expected = IndexOutOfBoundsException.class)
+  @Test
   public void testPreviousTooSmall() {
-    emptyContainer().prevSetBit(-1);
+    assertThrows(IndexOutOfBoundsException.class, () ->
+    emptyContainer().prevSetBit(-1));
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void addInvalidRange() {
-    MappeableBitmapContainer bc = new MappeableBitmapContainer();
-    bc.add(10,1);
+    assertThrows(RuntimeException.class, () -> {
+      MappeableBitmapContainer bc = new MappeableBitmapContainer();
+      bc.add(10, 1);
+    });
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void iaddInvalidRange() {
-    MappeableBitmapContainer bc = new MappeableBitmapContainer();
-    bc.iadd(10,1);
+    assertThrows(RuntimeException.class, () -> {
+      MappeableBitmapContainer bc = new MappeableBitmapContainer();
+      bc.iadd(10, 1);
+    });
   }
 
   @Test
@@ -373,10 +398,12 @@ public class TestMappeableBitmapContainer {
     assertEquals(0, bc.getCardinality());
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void iremoveInvalidRange() {
-    MappeableBitmapContainer bc = new MappeableBitmapContainer();
-    bc.iremove(13,1);
+    assertThrows(IllegalArgumentException.class, () -> {
+      MappeableBitmapContainer bc = new MappeableBitmapContainer();
+      bc.iremove(13, 1);
+    });
   }
 
   @Test
@@ -413,11 +440,13 @@ public class TestMappeableBitmapContainer {
     assertEquals(2, bc.numberOfRuns());
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void selectInvalidPosition() {
-    MappeableContainer bc = new MappeableBitmapContainer();
-    bc = bc.add(1,13);
-    bc.select(100);
+    assertThrows(IllegalArgumentException.class, () -> {
+      MappeableContainer bc = new MappeableBitmapContainer();
+      bc = bc.add(1, 13);
+      bc.select(100);
+    });
   }
 
   @Test
@@ -432,8 +461,8 @@ public class TestMappeableBitmapContainer {
   @Test
   public void reverseShortIterator() {
     MappeableBitmapContainer bc = new MappeableBitmapContainer();
-    bc = (MappeableBitmapContainer) bc.iadd(1,13);
-    bc = (MappeableBitmapContainer) bc.iadd(10017,10029);
+    bc.iadd(1, 13);
+    bc.iadd(10017, 10029);
     CharIterator iterator = new ReverseMappeableBitmapContainerCharIterator(bc);
     for (int i = 10028; i >= 10017; i--) {
       assertTrue(iterator.hasNext());
@@ -603,7 +632,7 @@ public class TestMappeableBitmapContainer {
     MappeableBitmapContainer half = new MappeableBitmapContainer(1 << 15, 1 << 16);
     MappeableContainer result = bc.or(half);
     assertEquals(1 << 16, result.getCardinality());
-    assertThat(result, instanceOf(MappeableRunContainer.class));
+    assertTrue(result instanceof MappeableRunContainer);
   }
 
   @Test
@@ -612,7 +641,7 @@ public class TestMappeableBitmapContainer {
     MappeableArrayContainer half = new MappeableArrayContainer(1 << 15, 1 << 16);
     MappeableContainer result = bc.or(half);
     assertEquals(1 << 16, result.getCardinality());
-    assertThat(result, instanceOf(MappeableRunContainer.class));
+    assertTrue(result instanceof MappeableRunContainer);
   }
 
   @Test
@@ -627,8 +656,8 @@ public class TestMappeableBitmapContainer {
     MappeableContainer irepaired = iresult.repairAfterLazy();
     assertEquals(1 << 16, repaired.getCardinality());
     assertEquals(1 << 16, irepaired.getCardinality());
-    assertThat(repaired, instanceOf(MappeableRunContainer.class));
-    assertThat(irepaired, instanceOf(MappeableRunContainer.class));
+    assertTrue(repaired instanceof MappeableRunContainer);
+    assertTrue(irepaired instanceof MappeableRunContainer);
   }
 
   @Test
@@ -637,7 +666,7 @@ public class TestMappeableBitmapContainer {
     MappeableContainer bc2 = MappeableContainer.rangeOfOnes(3210, 1 << 16);
     MappeableContainer iresult = bc.ior(bc2);
     assertEquals(1 << 16, iresult.getCardinality());
-    assertThat(iresult, instanceOf(MappeableRunContainer.class));
+    assertTrue(iresult instanceof MappeableRunContainer);
   }
 
   @Test
@@ -652,8 +681,8 @@ public class TestMappeableBitmapContainer {
     MappeableContainer irepaired = iresult.repairAfterLazy();
     assertEquals(1 << 16, repaired.getCardinality());
     assertEquals(1 << 16, irepaired.getCardinality());
-    assertThat(repaired, instanceOf(MappeableRunContainer.class));
-    assertThat(irepaired, instanceOf(MappeableRunContainer.class));
+    assertTrue(repaired instanceof MappeableRunContainer);
+    assertTrue(irepaired instanceof MappeableRunContainer);
   }
 
   @Test
@@ -668,8 +697,8 @@ public class TestMappeableBitmapContainer {
     MappeableContainer irepaired = iresult.repairAfterLazy();
     assertEquals(1 << 16, repaired.getCardinality());
     assertEquals(1 << 16, irepaired.getCardinality());
-    assertThat(repaired, instanceOf(MappeableRunContainer.class));
-    assertThat(irepaired, instanceOf(MappeableRunContainer.class));
+    assertTrue(repaired instanceof MappeableRunContainer);
+    assertTrue(irepaired instanceof MappeableRunContainer);
   }
 
   @Test
@@ -679,10 +708,10 @@ public class TestMappeableBitmapContainer {
                                   .put(1, 1L << 2 | 1L << 32)
                                   .slice()
                                   .asReadOnlyBuffer();
-    Assert.assertFalse("Sanity check - aiming to test non array backed branch", BufferUtil.isBackedBySimpleArray(buffer));
+    assertFalse(BufferUtil.isBackedBySimpleArray(buffer), "Sanity check - aiming to test non array backed branch");
     MappeableBitmapContainer mbc = new MappeableBitmapContainer(buffer, 3);
-    Assert.assertEquals(62, mbc.first());
-    Assert.assertEquals(96, mbc.last());
+    assertEquals(62, mbc.first());
+    assertEquals(96, mbc.last());
   }
 
   @Test

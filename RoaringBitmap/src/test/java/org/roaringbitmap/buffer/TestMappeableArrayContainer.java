@@ -1,6 +1,8 @@
 package org.roaringbitmap.buffer;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.roaringbitmap.IntConsumer;
 
 import java.io.ByteArrayInputStream;
@@ -9,10 +11,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.CharBuffer;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-
+@Execution(ExecutionMode.CONCURRENT)
 public class TestMappeableArrayContainer {
 
   @Test
@@ -22,16 +23,20 @@ public class TestMappeableArrayContainer {
     assertEquals(0, ac.getCardinality());
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void addInvalidRange() {
-    MappeableContainer ac = new MappeableArrayContainer();
-    ac.add(13,1);
+    assertThrows(IllegalArgumentException.class, () -> {
+      MappeableContainer ac = new MappeableArrayContainer();
+      ac.add(13, 1);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void iaddInvalidRange() {
-    MappeableContainer ac = new MappeableArrayContainer();
-    ac.iadd(13,1);
+    assertThrows(IllegalArgumentException.class, () -> {
+      MappeableContainer ac = new MappeableArrayContainer();
+      ac.iadd(13, 1);
+    });
   }
 
   @Test
@@ -62,10 +67,12 @@ public class TestMappeableArrayContainer {
     assertTrue(ac.contains((char) 1));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void removeInvalidRange() {
-    MappeableContainer ac = new MappeableArrayContainer();
-    ac.remove(13,1);
+    assertThrows(IllegalArgumentException.class, () -> {
+      MappeableContainer ac = new MappeableArrayContainer();
+      ac.remove(13, 1);
+    });
   }
 
   @Test
@@ -75,10 +82,12 @@ public class TestMappeableArrayContainer {
     assertEquals(0, ac.getCardinality());
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void iremoveInvalidRange() {
-    MappeableContainer ac = new MappeableArrayContainer();
-    ac.iremove(13,1);
+    assertThrows(IllegalArgumentException.class, () -> {
+      MappeableContainer ac = new MappeableArrayContainer();
+      ac.iremove(13, 1);
+    });
   }
 
   @Test
@@ -273,7 +282,7 @@ public class TestMappeableArrayContainer {
     MappeableBitmapContainer half = new MappeableBitmapContainer(1 << 12, 1 << 16);
     MappeableContainer result = ac.or(half);
     assertEquals(1 << 16, result.getCardinality());
-    assertThat(result, instanceOf(MappeableRunContainer.class));
+    assertTrue(result instanceof MappeableRunContainer);
   }
 
   @Test
@@ -282,7 +291,7 @@ public class TestMappeableArrayContainer {
     MappeableArrayContainer half = new MappeableArrayContainer(1 << 15, 1 << 16);
     MappeableContainer result = ac.or(half);
     assertEquals(1 << 16, result.getCardinality());
-    assertThat(result, instanceOf(MappeableRunContainer.class));
+    assertTrue(result instanceof MappeableRunContainer);
   }
 
   @Test
@@ -293,7 +302,7 @@ public class TestMappeableArrayContainer {
     assertEquals(-1, rbc.getCardinality());
     MappeableContainer repaired = rbc.repairAfterLazy();
     assertEquals(1 << 16, repaired.getCardinality());
-    assertThat(repaired, instanceOf(MappeableRunContainer.class));
+    assertTrue(repaired instanceof MappeableRunContainer);
   }
 
   @Test

@@ -5,8 +5,10 @@
 package org.roaringbitmap.buffer;
 
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.PeekableIntIterator;
@@ -17,13 +19,14 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.util.*;
 
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 /**
  * Generic testing of the roaring bitmaps
  */
 @SuppressWarnings({"static-method"})
+@Execution(ExecutionMode.CONCURRENT)
 public class TestRoaringBitmap {
   @Test
   public void testRangeCardinality() {
@@ -33,7 +36,7 @@ public class TestRoaringBitmap {
 		  r.add(Min, Max);
 		  for(long s = Min; s <= Max ; s+= 100 ) {
 			  for(long e = s; e <= Max; e+= 100 ) {
-				 Assert.assertEquals(e - s, r.rangeCardinality(s, e));
+				 assertEquals(e - s, r.rangeCardinality(s, e));
 			  }
 		  }
   }
@@ -46,7 +49,7 @@ public class TestRoaringBitmap {
 		  r.add(Min, Max);
 		  for(long s = Min; s <= Max ; s+= 1024 ) {
 			  for(long e = s; e <= Max; e+= 1024 ) {
-				 Assert.assertEquals(e - s, r.rangeCardinality(s, e));
+				 assertEquals(e - s, r.rangeCardinality(s, e));
 			  }
 		  }
   }	
@@ -58,7 +61,7 @@ public class TestRoaringBitmap {
     bitmap.add(1, 2, 3);
     bitmap.add(0xFFFFFFFF);
     bitmap.add(0xFFFFFFFEL,0xFFFFFFFFL);
-    Assert.assertEquals("{1,2,3,4294967294,4294967295}",bitmap.toString());   
+    assertEquals("{1,2,3,4294967294,4294967295}",bitmap.toString());
   }
     
   @Test 
@@ -84,21 +87,21 @@ public class TestRoaringBitmap {
       dos2.close();
       ByteBuffer bb2 = ByteBuffer.wrap(bos2.toByteArray());
       final ImmutableRoaringBitmap rrback2 = new ImmutableRoaringBitmap(bb2);
-      Assert.assertEquals(ImmutableRoaringBitmap.and(rrback1, rrback2), 
+      assertEquals(ImmutableRoaringBitmap.and(rrback1, rrback2),
           MutableRoaringBitmap.and(rr1, rr2));
-      Assert.assertEquals(ImmutableRoaringBitmap.and(rrback2, rrback1), 
+      assertEquals(ImmutableRoaringBitmap.and(rrback2, rrback1),
           MutableRoaringBitmap.and(rr2, rr1));
-      Assert.assertEquals(ImmutableRoaringBitmap.andNot(rrback1, rrback2), 
+      assertEquals(ImmutableRoaringBitmap.andNot(rrback1, rrback2),
           MutableRoaringBitmap.andNot(rr1, rr2));
-      Assert.assertEquals(ImmutableRoaringBitmap.andNot(rrback2, rrback1), 
+      assertEquals(ImmutableRoaringBitmap.andNot(rrback2, rrback1),
           MutableRoaringBitmap.andNot(rr2, rr1));
-      Assert.assertEquals(ImmutableRoaringBitmap.xor(rrback1, rrback2), 
+      assertEquals(ImmutableRoaringBitmap.xor(rrback1, rrback2),
           MutableRoaringBitmap.xor(rr1, rr2));
-      Assert.assertEquals(ImmutableRoaringBitmap.xor(rrback2, rrback1), 
+      assertEquals(ImmutableRoaringBitmap.xor(rrback2, rrback1),
           MutableRoaringBitmap.xor(rr2, rr1));
-      Assert.assertEquals(ImmutableRoaringBitmap.or(rrback1, rrback2), 
+      assertEquals(ImmutableRoaringBitmap.or(rrback1, rrback2),
           MutableRoaringBitmap.or(rr1, rr2));
-      Assert.assertEquals(ImmutableRoaringBitmap.or(rrback2, rrback1), 
+      assertEquals(ImmutableRoaringBitmap.or(rrback2, rrback1),
           MutableRoaringBitmap.or(rr2, rr1));      
     }
   }
@@ -110,7 +113,7 @@ public class TestRoaringBitmap {
 	    bitmap.add(2);
 	    bitmap.add(3);
 	    bitmap.add(0xFFFFFFFF);
-	    Assert.assertEquals("{1,2,3,4294967295}",bitmap.toString());		
+	    assertEquals("{1,2,3,4294967295}",bitmap.toString());
 	}
 	
 	@Test
@@ -122,9 +125,9 @@ public class TestRoaringBitmap {
         bitmap.add(101993170);
         PeekableIntIterator it = bitmap.getIntIterator();
         it.advanceIfNeeded(100620278);
-        Assert.assertTrue(it.hasNext());
-        Assert.assertEquals(101993170, it.next());
-        Assert.assertFalse(it.hasNext());
+        assertTrue(it.hasNext());
+        assertEquals(101993170, it.next());
+        assertFalse(it.hasNext());
 	}
 	
 	@Test
@@ -137,9 +140,9 @@ public class TestRoaringBitmap {
         BufferIntIteratorFlyweight it = new BufferIntIteratorFlyweight();
         it.wrap(bitmap);
         it.advanceIfNeeded(100620278);
-        Assert.assertTrue(it.hasNext());
-        Assert.assertEquals(101993170, it.next());
-        Assert.assertFalse(it.hasNext());
+        assertTrue(it.hasNext());
+        assertEquals(101993170, it.next());
+        assertFalse(it.hasNext());
 	}
 	@Test
 	public  void limitBug2() {
@@ -156,11 +159,11 @@ public class TestRoaringBitmap {
 			}
 		}
 		MutableRoaringBitmap limited = r.limit(1000000);
-		Assert.assertEquals(1000000,limited.getCardinality());
+		assertEquals(1000000,limited.getCardinality());
 		MyConsumer c = new MyConsumer();
 		limited.forEach(c);
-		Assert.assertEquals(1000000,c.count);
-		Assert.assertEquals(1000000,limited.toArray().length);
+		assertEquals(1000000,c.count);
+		assertEquals(1000000,limited.toArray().length);
 
 	}
   
@@ -168,13 +171,13 @@ public class TestRoaringBitmap {
   public void limitTest() {
     MutableRoaringBitmap r = new MutableRoaringBitmap();
     r.add(0l, 10000000l);
-    Assert.assertEquals(1,r.limit(1).getCardinality());
-    Assert.assertEquals(10,r.limit(10).getCardinality());
-    Assert.assertEquals(100,r.limit(100).getCardinality());
-    Assert.assertEquals(1000,r.limit(1000).getCardinality());
-    Assert.assertEquals(10000,r.limit(10000).getCardinality());
-    Assert.assertEquals(100000,r.limit(100000).getCardinality());
-    Assert.assertEquals(1000000,r.limit(1000000).getCardinality());
+    assertEquals(1,r.limit(1).getCardinality());
+    assertEquals(10,r.limit(10).getCardinality());
+    assertEquals(100,r.limit(100).getCardinality());
+    assertEquals(1000,r.limit(1000).getCardinality());
+    assertEquals(10000,r.limit(10000).getCardinality());
+    assertEquals(100000,r.limit(100000).getCardinality());
+    assertEquals(1000000,r.limit(1000000).getCardinality());
   }
   
   @Test
@@ -192,37 +195,37 @@ public class TestRoaringBitmap {
     rb.runOptimize();
     MappeableContainerPointer cp = rb.getContainerPointer();
     MappeableContainerPointer cpo =  (MappeableContainerPointer) cp.clone();
-    Assert.assertNotEquals(cp.getContainer(), null);
-    Assert.assertNotEquals(cpo.getContainer(), null);
+    assertNotEquals(cp.getContainer(), null);
+    assertNotEquals(cpo.getContainer(), null);
 
-    Assert.assertEquals(cp.compareTo(cpo),0);
+    assertEquals(cp.compareTo(cpo),0);
     
-    Assert.assertEquals(cp.getCardinality(), (1<<16)/2);
-    Assert.assertTrue(cp.isBitmapContainer());
-    Assert.assertFalse(cp.isRunContainer());
+    assertEquals(cp.getCardinality(), (1<<16)/2);
+    assertTrue(cp.isBitmapContainer());
+    assertFalse(cp.isRunContainer());
 
     cp.advance();
-    Assert.assertTrue(cp.compareTo(cpo)>0);
-    Assert.assertNotEquals(cp.getContainer(), null);
-    Assert.assertEquals(cp.getCardinality(), (1<<16)/512);
-    Assert.assertFalse(cp.isBitmapContainer());
-    Assert.assertFalse(cp.isRunContainer());
+    assertTrue(cp.compareTo(cpo)>0);
+    assertNotEquals(cp.getContainer(), null);
+    assertEquals(cp.getCardinality(), (1<<16)/512);
+    assertFalse(cp.isBitmapContainer());
+    assertFalse(cp.isRunContainer());
 
     cp.advance();
-    Assert.assertTrue(cp.compareTo(cpo)>0);
-    Assert.assertNotEquals(cp.getContainer(), null);
-    Assert.assertEquals(cp.getCardinality(), (1<<16));
-    Assert.assertFalse(cp.isBitmapContainer());
-    Assert.assertTrue(cp.isRunContainer());
+    assertTrue(cp.compareTo(cpo)>0);
+    assertNotEquals(cp.getContainer(), null);
+    assertEquals(cp.getCardinality(), (1<<16));
+    assertFalse(cp.isBitmapContainer());
+    assertTrue(cp.isRunContainer());
 
     cpo.advance();
-    Assert.assertTrue(cp.compareTo(cpo)>0);
+    assertTrue(cp.compareTo(cpo)>0);
     cpo.advance();
-    Assert.assertTrue(cp.compareTo(cpo)==0);
+    assertTrue(cp.compareTo(cpo)==0);
 
     cp.advance();
 
-    Assert.assertEquals(cp.getContainer(), null);
+    assertEquals(cp.getContainer(), null);
     
   }
   @Test
@@ -241,37 +244,37 @@ public class TestRoaringBitmap {
     ImmutableRoaringBitmap irb =toMapped(rb);
     MappeableContainerPointer cp = irb.getContainerPointer();
     MappeableContainerPointer cpo =  (MappeableContainerPointer) cp.clone();
-    Assert.assertNotEquals(cp.getContainer(), null);
-    Assert.assertNotEquals(cpo.getContainer(), null);
+    assertNotEquals(cp.getContainer(), null);
+    assertNotEquals(cpo.getContainer(), null);
 
-    Assert.assertEquals(cp.compareTo(cpo),0);
+    assertEquals(cp.compareTo(cpo),0);
     
-    Assert.assertEquals(cp.getCardinality(), (1<<16)/2);
-    Assert.assertTrue(cp.isBitmapContainer());
-    Assert.assertFalse(cp.isRunContainer());
+    assertEquals(cp.getCardinality(), (1<<16)/2);
+    assertTrue(cp.isBitmapContainer());
+    assertFalse(cp.isRunContainer());
 
     cp.advance();
-    Assert.assertTrue(cp.compareTo(cpo)>0);
-    Assert.assertNotEquals(cp.getContainer(), null);
-    Assert.assertEquals(cp.getCardinality(), (1<<16)/512);
-    Assert.assertFalse(cp.isBitmapContainer());
-    Assert.assertFalse(cp.isRunContainer());
+    assertTrue(cp.compareTo(cpo)>0);
+    assertNotEquals(cp.getContainer(), null);
+    assertEquals(cp.getCardinality(), (1<<16)/512);
+    assertFalse(cp.isBitmapContainer());
+    assertFalse(cp.isRunContainer());
 
     cp.advance();
-    Assert.assertTrue(cp.compareTo(cpo)>0);
-    Assert.assertNotEquals(cp.getContainer(), null);
-    Assert.assertEquals(cp.getCardinality(), (1<<16));
-    Assert.assertFalse(cp.isBitmapContainer());
-    Assert.assertTrue(cp.isRunContainer());
+    assertTrue(cp.compareTo(cpo)>0);
+    assertNotEquals(cp.getContainer(), null);
+    assertEquals(cp.getCardinality(), (1<<16));
+    assertFalse(cp.isBitmapContainer());
+    assertTrue(cp.isRunContainer());
 
     cpo.advance();
-    Assert.assertTrue(cp.compareTo(cpo)>0);
+    assertTrue(cp.compareTo(cpo)>0);
     cpo.advance();
-    Assert.assertTrue(cp.compareTo(cpo)==0);
+    assertTrue(cp.compareTo(cpo)==0);
 
     cp.advance();
 
-    Assert.assertEquals(cp.getContainer(), null);
+    assertEquals(cp.getContainer(), null);
     
   }
   
@@ -304,9 +307,9 @@ public class TestRoaringBitmap {
     rb.runOptimize();
     MutableRoaringBitmap mrb = rb.toMutableRoaringBitmap();
     RoaringBitmap rb2 = mrb.toRoaringBitmap();
-    Assert.assertEquals(rb, rb2);
+    assertEquals(rb, rb2);
     ImmutableRoaringBitmap irb = toMapped(mrb);
-    Assert.assertEquals(irb.toRoaringBitmap(), rb2);
+    assertEquals(irb.toRoaringBitmap(), rb2);
     
   }
 
@@ -330,7 +333,7 @@ public class TestRoaringBitmap {
   public void testFlipOnEmpty() {
     MutableRoaringBitmap r1 = new MutableRoaringBitmap();
     r1.flip(0L, 10L);
-    Assert.assertTrue(r1.getCardinality() == 10);
+    assertTrue(r1.getCardinality() == 10);
   }
 
   @Test
@@ -359,14 +362,14 @@ public class TestRoaringBitmap {
     MutableRoaringBitmap r3 = new MutableRoaringBitmap();
     int killingPosition = 66000;
     r3.add(killingPosition);
-    Assert.assertFalse(r1.contains(killingPosition));
+    assertFalse(r1.contains(killingPosition));
     r2.xor(r1);
-    Assert.assertTrue(r2.contains(131000));
-    Assert.assertFalse(r1.contains(killingPosition));
+    assertTrue(r2.contains(131000));
+    assertFalse(r1.contains(killingPosition));
     r2.or(r3);
-    Assert.assertTrue(r2.contains(131000));
-    Assert.assertTrue(r2.contains(killingPosition));
-    Assert.assertFalse(r1.contains(killingPosition));
+    assertTrue(r2.contains(131000));
+    assertTrue(r2.contains(killingPosition));
+    assertFalse(r1.contains(killingPosition));
   }
 
   @Test
@@ -379,11 +382,11 @@ public class TestRoaringBitmap {
     MutableRoaringBitmap r3 = new MutableRoaringBitmap();
     int killingPosition = 66000;
     r3.add(killingPosition);
-    Assert.assertFalse(r1.contains(killingPosition)); // ok
+    assertFalse(r1.contains(killingPosition)); // ok
     r2.or(r1);
-    Assert.assertFalse(r1.contains(killingPosition)); // ok
+    assertFalse(r1.contains(killingPosition)); // ok
     r2.or(r3);
-    Assert.assertFalse(r1.contains(killingPosition)); // ko
+    assertFalse(r1.contains(killingPosition)); // ko
   }
 
   @Test
@@ -852,7 +855,7 @@ public class TestRoaringBitmap {
     MutableRoaringBitmap rrb2 = rb2.clone();
     rrb1.runOptimize();
     rrb2.runOptimize();
-    Assert.assertEquals(MutableRoaringBitmap.or(rb1, rb2), MutableRoaringBitmap.or(rrb1, rrb2));
+    assertEquals(MutableRoaringBitmap.or(rb1, rb2), MutableRoaringBitmap.or(rrb1, rrb2));
   }
 
   @Test
@@ -863,7 +866,7 @@ public class TestRoaringBitmap {
     MutableRoaringBitmap rb1 = MutableRoaringBitmap.bitmapOf(array1);
     MutableRoaringBitmap rb2 = MutableRoaringBitmap.bitmapOf(array2);
     MutableRoaringBitmap answer = MutableRoaringBitmap.andNot(rb1, rb2);
-    Assert.assertEquals(answer.getCardinality(), array1.length);
+    assertEquals(answer.getCardinality(), array1.length);
   }
 
   @Test
@@ -871,9 +874,9 @@ public class TestRoaringBitmap {
     MutableRoaringBitmap rr1 = MutableRoaringBitmap.bitmapOf(1, 2, 100000);
     MutableRoaringBitmap rr2 = MutableRoaringBitmap.bitmapOf(3, 4, 100001);
     MutableRoaringBitmap rr3 = MutableRoaringBitmap.bitmapOf(1, 2, 100000);
-    Assert.assertEquals(rr1, rr3);
-    Assert.assertNotEquals(rr1, rr2);
-    Assert.assertNotEquals(rr3, rr2);
+    assertEquals(rr1, rr3);
+    assertNotEquals(rr1, rr2);
+    assertNotEquals(rr3, rr2);
   }
 
   @Test
@@ -884,7 +887,7 @@ public class TestRoaringBitmap {
     }
     MutableRoaringBitmap rr1 = MutableRoaringBitmap.bitmapOf(cuiRelsArray);
     int[] back = rr1.toArray();
-    Assert.assertArrayEquals(cuiRelsArray, back);
+    assertArrayEquals(cuiRelsArray, back);
   }
 
   @Test
@@ -898,13 +901,13 @@ public class TestRoaringBitmap {
       }
       int cardinality = 0;
       for (long k = Integer.MIN_VALUE; k < Integer.MAX_VALUE; k += offset) {
-        Assert.assertTrue(rb.contains((int) k));
+        assertTrue(rb.contains((int) k));
         ++cardinality;
       }
       int[] array = rb.toArray();
       int[] sarray = srb.toArray();
-      Assert.assertTrue(Arrays.equals(sarray, array));
-      Assert.assertTrue(array.length == cardinality);
+      assertTrue(Arrays.equals(sarray, array));
+      assertTrue(array.length == cardinality);
     }
   }
 
@@ -918,16 +921,16 @@ public class TestRoaringBitmap {
       rb.add(i);
     }
     for (int i = 0; i < 2 * (1 << 16); i += 2) {
-      Assert.assertTrue(rb.checkedRemove(i));
+      assertTrue(rb.checkedRemove(i));
     }
     for (int i = 0; i < 2 * (1 << 16); i += 2) {
-      Assert.assertFalse(rb.checkedRemove(i));
+      assertFalse(rb.checkedRemove(i));
     }
     for (int i = 1; i < 2 * (1 << 16); i += 2) {
-      Assert.assertTrue(rb.checkedRemove(i));
+      assertTrue(rb.checkedRemove(i));
     }
     for (int i = 1; i < 2 * (1 << 16) + 1; i += 2) {
-      Assert.assertFalse(rb.checkedRemove(i));
+      assertFalse(rb.checkedRemove(i));
     }
   }
 
@@ -938,18 +941,18 @@ public class TestRoaringBitmap {
     // checking if the true value is well returned
     // when adding new ints
     for (int i = 0; i < 2 * (1 << 16); i += 2) {
-      Assert.assertTrue(rb.checkedAdd(i));
+      assertTrue(rb.checkedAdd(i));
     }
     for (int i = 1; i < 2 * (1 << 16); i += 2) {
-      Assert.assertTrue(rb.checkedAdd(i));
+      assertTrue(rb.checkedAdd(i));
     }
     // Checking if the false value is well returned
     // when adding already existing ints
     for (int i = 0; i < 2 * (1 << 16); i += 2) {
-      Assert.assertFalse(rb.checkedAdd(i));
+      assertFalse(rb.checkedAdd(i));
     }
     for (int i = 1; i < 2 * (1 << 16) + 1; i += 2) {
-      Assert.assertFalse(rb.checkedAdd(i));
+      assertFalse(rb.checkedAdd(i));
     }
   }
 
@@ -976,7 +979,7 @@ public class TestRoaringBitmap {
     char expectedresult[] = {0, 6, 12, 18};
     int nl = BufferUtil.unsignedLocalIntersect2by2(b1, b1.limit(), b2, b2.limit(), result);
     result = Arrays.copyOf(result, nl);
-    Assert.assertTrue(Arrays.equals(expectedresult, result));
+    assertTrue(Arrays.equals(expectedresult, result));
   }
 
 
@@ -988,7 +991,7 @@ public class TestRoaringBitmap {
         79, 80, 81, 88, 89, 172);
     MutableRoaringBitmap rxor = ImmutableRoaringBitmap.xor(a, b);
     MutableRoaringBitmap ror = MutableRoaringBitmap.or(a, b);
-    Assert.assertTrue(rxor.equals(ror));
+    assertTrue(rxor.equals(ror));
   }
 
   @Test
@@ -1001,10 +1004,10 @@ public class TestRoaringBitmap {
       rb.add(k);
     }
     for (int k = 0; k < 100000; ++k) {
-      Assert.assertEquals(1 + k / 7, rb.rank(k));
+      assertEquals(1 + k / 7, rb.rank(k));
     }
     for (int k = 100000; k < 200000; ++k) {
-      Assert.assertEquals(1 + 100000 / 7 + 1 + (k - 100000) / 1000, rb.rank(k));
+      assertEquals(1 + 100000 / 7 + 1 + (k - 100000) / 1000, rb.rank(k));
     }
   }
 
@@ -1019,10 +1022,10 @@ public class TestRoaringBitmap {
       rb.add((1<<31)+k);
     }
     for (int k = 0; k < 100000; ++k) {
-      Assert.assertEquals(1 + k / 7, rb.rank((1<<31)+k));
+      assertEquals(1 + k / 7, rb.rank((1<<31)+k));
     }
     for (int k = 100000; k < 200000; ++k) {
-      Assert.assertEquals(1 + 100000 / 7 + 1 + (k - 100000) / 1000, rb.rank((1<<31)+k));
+      assertEquals(1 + 100000 / 7 + 1 + (k - 100000) / 1000, rb.rank((1<<31)+k));
     }
   }
 
@@ -1035,7 +1038,7 @@ public class TestRoaringBitmap {
         rb.add(k);
       }
       for (int k = 0; k < 100000 / gap; ++k) {
-        Assert.assertEquals(k * gap, rb.select(k));
+        assertEquals(k * gap, rb.select(k));
       }
     }
   }
@@ -1049,7 +1052,7 @@ public class TestRoaringBitmap {
         rb.add((1<<31)+k);
       }
       for (int k = 0; k < 100000 / gap; ++k) {
-        Assert.assertEquals((1<<31)+k * gap, rb.select(k));
+        assertEquals((1<<31)+k * gap, rb.select(k));
       }
     }
   }
@@ -1064,10 +1067,10 @@ public class TestRoaringBitmap {
       int thiscard = rb.getCardinality();
       for (int k = 0; k < thiscard; k += 100) {
         MutableRoaringBitmap limited = rb.limit(k);
-        Assert.assertEquals(limited.getCardinality(), k);
+        assertEquals(limited.getCardinality(), k);
       }
-      Assert.assertEquals(rb.limit(thiscard).getCardinality(), thiscard);
-      Assert.assertEquals(rb.limit(thiscard + 1).getCardinality(), thiscard);
+      assertEquals(rb.limit(thiscard).getCardinality(), thiscard);
+      assertEquals(rb.limit(thiscard + 1).getCardinality(), thiscard);
     }
   }
 
@@ -1083,10 +1086,10 @@ public class TestRoaringBitmap {
       int thiscard = rb.getCardinality();
       for (int k = 0; k < thiscard; k += 100) {
         MutableRoaringBitmap limited = rb.limit(k);
-        Assert.assertEquals(limited.getCardinality(), k);
+        assertEquals(limited.getCardinality(), k);
       }
-      Assert.assertEquals(rb.limit(thiscard).getCardinality(), thiscard);
-      Assert.assertEquals(rb.limit(thiscard + 1).getCardinality(), thiscard);
+      assertEquals(rb.limit(thiscard).getCardinality(), thiscard);
+      assertEquals(rb.limit(thiscard + 1).getCardinality(), thiscard);
     }
   }
 
@@ -1113,7 +1116,7 @@ public class TestRoaringBitmap {
         return b[k++];
       }
     });
-    Assert.assertEquals(8, a.getCardinality());
+    assertEquals(8, a.getCardinality());
   }
 
 
@@ -1139,7 +1142,7 @@ public class TestRoaringBitmap {
         return b[k++];
       }
     });
-    Assert.assertEquals(8, a.getCardinality());
+    assertEquals(8, a.getCardinality());
   }
 
 
@@ -1150,7 +1153,7 @@ public class TestRoaringBitmap {
       rbm1.add(17 * k);
     }
     for (int k = 0; k < 17 * 1000; ++k) {
-      Assert.assertTrue(rbm1.contains(k) == (k / 17 * 17 == k));
+      assertTrue(rbm1.contains(k) == (k / 17 * 17 == k));
     }
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     DataOutputStream dos = new DataOutputStream(bos);
@@ -1162,7 +1165,7 @@ public class TestRoaringBitmap {
     ImmutableRoaringBitmap rrback1 = new ImmutableRoaringBitmap(bb);
     for (int k = 0; k < 17 * 1000; ++k) {
 
-      Assert.assertTrue(rrback1.contains(k) == (k / 17 * 17 == k));
+      assertTrue(rrback1.contains(k) == (k / 17 * 17 == k));
     }
   }
 
@@ -1172,9 +1175,9 @@ public class TestRoaringBitmap {
     rbm1.add(17);
     MutableRoaringBitmap rbm2 = new MutableRoaringBitmap();
     rbm2.add(17);
-    Assert.assertTrue(rbm1.hashCode() == rbm2.hashCode());
+    assertTrue(rbm1.hashCode() == rbm2.hashCode());
     rbm2 = rbm1.clone();
-    Assert.assertTrue(rbm1.hashCode() == rbm2.hashCode());
+    assertTrue(rbm1.hashCode() == rbm2.hashCode());
   }
 
   @Test
@@ -1185,11 +1188,11 @@ public class TestRoaringBitmap {
     final MutableRoaringBitmap rr2 = new MutableRoaringBitmap();
     rr2.add(1 << 31);
     MutableRoaringBitmap andNot = MutableRoaringBitmap.andNot(rr1, rr2);
-    Assert.assertEquals(1, andNot.getCardinality());
-    Assert.assertTrue(andNot.contains(1));
+    assertEquals(1, andNot.getCardinality());
+    assertTrue(andNot.contains(1));
     rr1.andNot(rr2);
-    Assert.assertEquals(1, rr1.getCardinality());
-    Assert.assertTrue(andNot.contains(1));
+    assertEquals(1, rr1.getCardinality());
+    assertTrue(andNot.contains(1));
   }
 
   @Test
@@ -1238,7 +1241,7 @@ public class TestRoaringBitmap {
     }
     final MutableRoaringBitmap correct = MutableRoaringBitmap.andNot(rr, rr2);
     rr.andNot(rr2);
-    Assert.assertTrue(correct.equals(rr));
+    assertTrue(correct.equals(rr));
   }
 
   @Test
@@ -1258,10 +1261,10 @@ public class TestRoaringBitmap {
     final MutableRoaringBitmap andNotresult = MutableRoaringBitmap.andNot(rb, rb2);
     final MutableRoaringBitmap off = MutableRoaringBitmap.andNot(rb2, rb);
 
-    Assert.assertEquals(rb, andNotresult);
-    Assert.assertEquals(rb2, off);
+    assertEquals(rb, andNotresult);
+    assertEquals(rb2, off);
     rb2.andNot(rb);
-    Assert.assertEquals(rb2, off);
+    assertEquals(rb2, off);
 
   }
 
@@ -1273,11 +1276,11 @@ public class TestRoaringBitmap {
     final MutableRoaringBitmap rr2 = new MutableRoaringBitmap();
     rr2.add(1 << 31);
     MutableRoaringBitmap and = MutableRoaringBitmap.and(rr1, rr2);
-    Assert.assertEquals(1, and.getCardinality());
-    Assert.assertTrue(and.contains(1 << 31));
+    assertEquals(1, and.getCardinality());
+    assertTrue(and.contains(1 << 31));
     rr1.and(rr2);
-    Assert.assertEquals(1, rr1.getCardinality());
-    Assert.assertTrue(and.contains(1 << 31));
+    assertEquals(1, rr1.getCardinality());
+    assertTrue(and.contains(1 << 31));
   }
 
   @Test
@@ -1293,12 +1296,12 @@ public class TestRoaringBitmap {
     final MutableRoaringBitmap rrand = MutableRoaringBitmap.and(rr, rr2);
     int[] array = rrand.toArray();
 
-    Assert.assertEquals(array.length, 1);
-    Assert.assertEquals(array[0], 13);
+    assertEquals(array.length, 1);
+    assertEquals(array[0], 13);
     rr.and(rr2);
     array = rr.toArray();
-    Assert.assertEquals(array.length, 1);
-    Assert.assertEquals(array[0], 13);
+    assertEquals(array.length, 1);
+    assertEquals(array[0], 13);
   }
 
   @Test
@@ -1347,7 +1350,7 @@ public class TestRoaringBitmap {
     }
     final MutableRoaringBitmap correct = MutableRoaringBitmap.and(rr, rr2);
     rr.and(rr2);
-    Assert.assertTrue(correct.equals(rr));
+    assertTrue(correct.equals(rr));
   }
 
   @Test
@@ -1363,8 +1366,8 @@ public class TestRoaringBitmap {
     final MutableRoaringBitmap rrand = MutableRoaringBitmap.and(rr, rr2);
 
     final int[] array = rrand.toArray();
-    Assert.assertEquals(array.length, 1);
-    Assert.assertEquals(array[0], 13);
+    assertEquals(array.length, 1);
+    assertEquals(array[0], 13);
   }
 
   @Test
@@ -1428,7 +1431,7 @@ public class TestRoaringBitmap {
 
     final int[] arrayres = rrand.toArray();
 
-    Assert.assertTrue(Arrays.equals(arrayand, arrayres));
+    assertTrue(Arrays.equals(arrayand, arrayres));
 
   }
 
@@ -1447,9 +1450,9 @@ public class TestRoaringBitmap {
     // check or against an empty bitmap
     final MutableRoaringBitmap andresult = MutableRoaringBitmap.and(rb, rb2);
     final MutableRoaringBitmap off = MutableRoaringBitmap.and(rb2, rb);
-    Assert.assertTrue(andresult.equals(off));
+    assertTrue(andresult.equals(off));
 
-    Assert.assertEquals(0, andresult.getCardinality());
+    assertEquals(0, andresult.getCardinality());
 
     for (int i = 500000; i < 600000; i += 14) {
       rb.add(i);
@@ -1459,19 +1462,19 @@ public class TestRoaringBitmap {
     }
     // check or against an empty bitmap
     final MutableRoaringBitmap andresult2 = MutableRoaringBitmap.and(rb, rb2);
-    Assert.assertEquals(0, andresult.getCardinality());
+    assertEquals(0, andresult.getCardinality());
 
-    Assert.assertEquals(0, andresult2.getCardinality());
+    assertEquals(0, andresult2.getCardinality());
     for (int i = 0; i < 200000; i += 4) {
       rb.add(i);
     }
     for (int i = 200000; i < 400000; i += 14) {
       rb.add(i);
     }
-    Assert.assertEquals(0, andresult.getCardinality());
+    assertEquals(0, andresult.getCardinality());
     final MutableRoaringBitmap rc = MutableRoaringBitmap.and(rb, rb2);
     rb.and(rb2);
-    Assert.assertEquals(rc.getCardinality(), rb.getCardinality());
+    assertEquals(rc.getCardinality(), rb.getCardinality());
 
   }
 
@@ -1480,11 +1483,11 @@ public class TestRoaringBitmap {
     final MappeableArrayContainer ac = new MappeableArrayContainer();
     for (char k = 0; k < 100; ++k) {
       ac.add(k);
-      Assert.assertEquals(ac.getCardinality(), k + 1);
+      assertEquals(ac.getCardinality(), k + 1);
     }
     for (char k = 0; k < 100; ++k) {
       ac.add(k);
-      Assert.assertEquals(ac.getCardinality(), 100);
+      assertEquals(ac.getCardinality(), 100);
     }
   }
 
@@ -1495,12 +1498,12 @@ public class TestRoaringBitmap {
     for (char k = 0; k < 100; ++k) {
       ac.add(k);
       ac.trim();
-      Assert.assertEquals(ac.getCardinality(), k + 1);
+      assertEquals(ac.getCardinality(), k + 1);
     }
     for (char k = 0; k < 100; ++k) {
       ac.add(k);
       ac.trim();
-      Assert.assertEquals(ac.getCardinality(), 100);
+      assertEquals(ac.getCardinality(), 100);
     }
   }
 
@@ -1532,7 +1535,7 @@ public class TestRoaringBitmap {
       }
       cp.advance();
     }
-    Assert.assertEquals(0, wastedBytes);
+    assertEquals(0, wastedBytes);
   }
 
   @Test
@@ -1546,9 +1549,9 @@ public class TestRoaringBitmap {
     for (final char i : rr) {
       array[pos++] = i;
     }
-    Assert.assertEquals(array[0], (char) 110);
-    Assert.assertEquals(array[1], (char) 114);
-    Assert.assertEquals(array[2], (char) 115);
+    assertEquals(array[0], (char) 110);
+    assertEquals(array[1], (char) 114);
+    assertEquals(array[2], (char) 115);
   }
 
   @Test
@@ -1567,7 +1570,7 @@ public class TestRoaringBitmap {
     a[pos++] = 110000;
     final int[] array = rr.toArray();
  
-    Assert.assertTrue(Arrays.equals(array, a));
+    assertTrue(Arrays.equals(array, a));
   }
 
   @Test
@@ -1575,11 +1578,11 @@ public class TestRoaringBitmap {
     final MappeableBitmapContainer ac = new MappeableBitmapContainer();
     for (char k = 0; k < 100; ++k) {
       ac.add(k);
-      Assert.assertEquals(ac.getCardinality(), k + 1);
+      assertEquals(ac.getCardinality(), k + 1);
     }
     for (char k = 0; k < 100; ++k) {
       ac.add(k);
-      Assert.assertEquals(ac.getCardinality(), 100);
+      assertEquals(ac.getCardinality(), 100);
     }
   }
 
@@ -1594,9 +1597,9 @@ public class TestRoaringBitmap {
     for (final char i : rr) {
       array[pos++] = i;
     }
-    Assert.assertEquals(array[0], (char) 110);
-    Assert.assertEquals(array[1], (char) 114);
-    Assert.assertEquals(array[2], (char) 115);
+    assertEquals(array[0], (char) 110);
+    assertEquals(array[1], (char) 114);
+    assertEquals(array[2], (char) 115);
   }
 
   @Test
@@ -1608,31 +1611,31 @@ public class TestRoaringBitmap {
         // check the add of new values
         for (int k = 0; k < N; k++) {
           rb.add(k * gap);
-          Assert.assertEquals(rb.getCardinality(), k + 1);
+          assertEquals(rb.getCardinality(), k + 1);
         }
-        Assert.assertEquals(rb.getCardinality(), N);
+        assertEquals(rb.getCardinality(), N);
         // check the add of existing values
         for (int k = 0; k < N; k++) {
           rb.add(k * gap);
-          Assert.assertEquals(rb.getCardinality(), N);
+          assertEquals(rb.getCardinality(), N);
         }
 
         final MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
 
         for (int k = 0; k < N; k++) {
           rb2.add(k * gap * offset);
-          Assert.assertEquals(rb2.getCardinality(), k + 1);
+          assertEquals(rb2.getCardinality(), k + 1);
         }
 
-        Assert.assertEquals(rb2.getCardinality(), N);
+        assertEquals(rb2.getCardinality(), N);
 
         for (int k = 0; k < N; k++) {
           rb2.add(k * gap * offset);
-          Assert.assertEquals(rb2.getCardinality(), N);
+          assertEquals(rb2.getCardinality(), N);
         }
-        Assert.assertEquals(MutableRoaringBitmap.and(rb, rb2).getCardinality(), N / offset);
-        Assert.assertEquals(MutableRoaringBitmap.or(rb, rb2).getCardinality(), 2 * N - N / offset);
-        Assert.assertEquals(MutableRoaringBitmap.xor(rb, rb2).getCardinality(),
+        assertEquals(MutableRoaringBitmap.and(rb, rb2).getCardinality(), N / offset);
+        assertEquals(MutableRoaringBitmap.or(rb, rb2).getCardinality(), 2 * N - N / offset);
+        assertEquals(MutableRoaringBitmap.xor(rb, rb2).getCardinality(),
             2 * N - 2 * N / offset);
       }
     }
@@ -1660,16 +1663,16 @@ public class TestRoaringBitmap {
     }
 
     rb.clear();
-    Assert.assertEquals(0, rb.getCardinality());
-    Assert.assertTrue(0 != rb2.getCardinality());
+    assertEquals(0, rb.getCardinality());
+    assertTrue(0 != rb2.getCardinality());
 
     rb.add(4);
     rb3.add(4);
     final MutableRoaringBitmap andresult = MutableRoaringBitmap.and(rb, rb2);
     final MutableRoaringBitmap orresult = MutableRoaringBitmap.or(rb, rb2);
 
-    Assert.assertEquals(1, andresult.getCardinality());
-    Assert.assertEquals(rb2.getCardinality(), orresult.getCardinality());
+    assertEquals(1, andresult.getCardinality());
+    assertEquals(rb2.getCardinality(), orresult.getCardinality());
 
     for (int i = 0; i < 200000; i += 4) {
       rb.add(i);
@@ -1683,7 +1686,7 @@ public class TestRoaringBitmap {
     final int[] arrayrr = rb.toArray();
     final int[] arrayrr3 = rb3.toArray();
 
-    Assert.assertTrue(Arrays.equals(arrayrr, arrayrr3));
+    assertTrue(Arrays.equals(arrayrr, arrayrr3));
   }
 
   @Test
@@ -1721,11 +1724,11 @@ public class TestRoaringBitmap {
     MappeableBitmapContainer rbc;
 
     rbc = ac1.clone().toBitmapContainer();
-    Assert.assertTrue(validate(rbc, ac1));
+    assertTrue(validate(rbc, ac1));
     rbc = ac2.clone().toBitmapContainer();
-    Assert.assertTrue(validate(rbc, ac2));
+    assertTrue(validate(rbc, ac2));
     rbc = ac3.clone().toBitmapContainer();
-    Assert.assertTrue(validate(rbc, ac3));
+    assertTrue(validate(rbc, ac3));
   }
 
   @Test
@@ -1734,13 +1737,13 @@ public class TestRoaringBitmap {
 
     rb.flip(100000L, 200000L); // in-place on empty bitmap
     final int rbcard = rb.getCardinality();
-    Assert.assertEquals(100000, rbcard);
+    assertEquals(100000, rbcard);
 
     final BitSet bs = new BitSet();
     for (int i = 100000; i < 200000; ++i) {
       bs.set(i);
     }
-    Assert.assertTrue(equals(bs, rb));
+    assertTrue(equals(bs, rb));
   }
 
   @Test
@@ -1749,15 +1752,15 @@ public class TestRoaringBitmap {
 
     final MutableRoaringBitmap rb1 = MutableRoaringBitmap.flip(rb, 100000L, 200000L);
     final int rbcard = rb1.getCardinality();
-    Assert.assertEquals(100000, rbcard);
-    Assert.assertEquals(0, rb.getCardinality());
+    assertEquals(100000, rbcard);
+    assertEquals(0, rb.getCardinality());
 
     final BitSet bs = new BitSet();
-    Assert.assertTrue(equals(bs, rb)); // still empty?
+    assertTrue(equals(bs, rb)); // still empty?
     for (int i = 100000; i < 200000; ++i) {
       bs.set(i);
     }
-    Assert.assertTrue(equals(bs, rb1));
+    assertTrue(equals(bs, rb1));
   }
 
   @Test
@@ -1766,10 +1769,10 @@ public class TestRoaringBitmap {
 
     rb.flip(100000L, 100000L);
     final int rbcard = rb.getCardinality();
-    Assert.assertEquals(0, rbcard);
+    assertEquals(0, rbcard);
 
     final BitSet bs = new BitSet();
-    Assert.assertTrue(equals(bs, rb));
+    assertTrue(equals(bs, rb));
   }
 
   @Test
@@ -1779,13 +1782,13 @@ public class TestRoaringBitmap {
     final MutableRoaringBitmap rb1 = MutableRoaringBitmap.flip(rb, 100000L, 100000L);
     rb.add(1); // will not affect rb1 (no shared container)
     final int rbcard = rb1.getCardinality();
-    Assert.assertEquals(0, rbcard);
-    Assert.assertEquals(1, rb.getCardinality());
+    assertEquals(0, rbcard);
+    assertEquals(1, rb.getCardinality());
 
     final BitSet bs = new BitSet();
-    Assert.assertTrue(equals(bs, rb1));
+    assertTrue(equals(bs, rb1));
     bs.set(1);
-    Assert.assertTrue(equals(bs, rb));
+    assertTrue(equals(bs, rb));
   }
 
   @Test
@@ -1796,14 +1799,14 @@ public class TestRoaringBitmap {
     rb.flip(100000L, 199991L); // give back 100k-199990
     final int rbcard = rb.getCardinality();
 
-    Assert.assertEquals(9, rbcard);
+    assertEquals(9, rbcard);
 
     final BitSet bs = new BitSet();
     for (int i = 199991; i < 200000; ++i) {
       bs.set(i);
     }
 
-    Assert.assertTrue(equals(bs, rb));
+    assertTrue(equals(bs, rb));
   }
 
   @Test
@@ -1813,14 +1816,14 @@ public class TestRoaringBitmap {
     final MutableRoaringBitmap rb2 = MutableRoaringBitmap.flip(rb1, 100000L, 199991L);
     final int rbcard = rb2.getCardinality();
 
-    Assert.assertEquals(9, rbcard);
+    assertEquals(9, rbcard);
 
     final BitSet bs = new BitSet();
     for (int i = 199991; i < 200000; ++i) {
       bs.set(i);
     }
 
-    Assert.assertTrue(equals(bs, rb2));
+    assertTrue(equals(bs, rb2));
   }
 
   @Test
@@ -1833,7 +1836,7 @@ public class TestRoaringBitmap {
     // 65536 to 99999 are 1s
     // 200000 to 262143 are 1s: total card
 
-    Assert.assertEquals(96608, rbcard);
+    assertEquals(96608, rbcard);
 
     final BitSet bs = new BitSet();
     for (int i = 65536; i < 100000; ++i) {
@@ -1843,7 +1846,7 @@ public class TestRoaringBitmap {
       bs.set(i);
     }
 
-    Assert.assertTrue(equals(bs, rb));
+    assertTrue(equals(bs, rb));
   }
 
   @Test
@@ -1853,7 +1856,7 @@ public class TestRoaringBitmap {
     final MutableRoaringBitmap rb2 = MutableRoaringBitmap.flip(rb1, 65536L, 4L * 65536);
     final int rbcard = rb2.getCardinality();
 
-    Assert.assertEquals(96608, rbcard);
+    assertEquals(96608, rbcard);
 
     final BitSet bs = new BitSet();
     for (int i = 65536; i < 100000; ++i) {
@@ -1863,7 +1866,7 @@ public class TestRoaringBitmap {
       bs.set(i);
     }
 
-    Assert.assertTrue(equals(bs, rb2));
+    assertTrue(equals(bs, rb2));
   }
 
   @Test
@@ -1877,7 +1880,7 @@ public class TestRoaringBitmap {
     // 65536 to 99999 are 1s
     // 120000 to 131999
 
-    Assert.assertEquals(46464, rbcard);
+    assertEquals(46464, rbcard);
 
     final BitSet bs = new BitSet();
     for (int i = 65536; i < 100000; ++i) {
@@ -1886,7 +1889,7 @@ public class TestRoaringBitmap {
     for (int i = 120000; i < 132000; ++i) {
       bs.set(i);
     }
-    Assert.assertTrue(equals(bs, rb));
+    assertTrue(equals(bs, rb));
   }
 
   @Test
@@ -1896,7 +1899,7 @@ public class TestRoaringBitmap {
     final MutableRoaringBitmap rb2 = MutableRoaringBitmap.flip(rb1, 65536L, 120000L);
     final int rbcard = rb2.getCardinality();
 
-    Assert.assertEquals(46464, rbcard);
+    assertEquals(46464, rbcard);
 
     final BitSet bs = new BitSet();
     for (int i = 65536; i < 100000; ++i) {
@@ -1905,7 +1908,7 @@ public class TestRoaringBitmap {
     for (int i = 120000; i < 132000; ++i) {
       bs.set(i);
     }
-    Assert.assertTrue(equals(bs, rb2));
+    assertTrue(equals(bs, rb2));
   }
 
   @Test
@@ -1918,7 +1921,7 @@ public class TestRoaringBitmap {
     // 99000 to 99999 are 1000 1s
     // 131072 to 131999 are 928 1s
 
-    Assert.assertEquals(1928, rbcard);
+    assertEquals(1928, rbcard);
 
     final BitSet bs = new BitSet();
     for (int i = 99000; i < 100000; ++i) {
@@ -1927,7 +1930,7 @@ public class TestRoaringBitmap {
     for (int i = 2 * 65536; i < 132000; ++i) {
       bs.set(i);
     }
-    Assert.assertTrue(equals(bs, rb));
+    assertTrue(equals(bs, rb));
   }
 
   @Test
@@ -1937,7 +1940,7 @@ public class TestRoaringBitmap {
     final MutableRoaringBitmap rb2 = MutableRoaringBitmap.flip(rb1, 99000L, 2 * 65536L);
     final int rbcard = rb2.getCardinality();
 
-    Assert.assertEquals(1928, rbcard);
+    assertEquals(1928, rbcard);
 
     final BitSet bs = new BitSet();
     for (int i = 99000; i < 100000; ++i) {
@@ -1946,7 +1949,7 @@ public class TestRoaringBitmap {
     for (int i = 2 * 65536; i < 132000; ++i) {
       bs.set(i);
     }
-    Assert.assertTrue(equals(bs, rb2));
+    assertTrue(equals(bs, rb2));
   }
 
   @Test
@@ -1958,7 +1961,7 @@ public class TestRoaringBitmap {
 
     // 648, 649, 651-131999
 
-    Assert.assertEquals(132000 - 651 + 2, rbcard);
+    assertEquals(132000 - 651 + 2, rbcard);
 
     final BitSet bs = new BitSet();
     bs.set(648);
@@ -1966,7 +1969,7 @@ public class TestRoaringBitmap {
     for (int i = 651; i < 132000; ++i) {
       bs.set(i);
     }
-    Assert.assertTrue(equals(bs, rb));
+    assertTrue(equals(bs, rb));
   }
 
   @Test
@@ -1978,7 +1981,7 @@ public class TestRoaringBitmap {
 
     // 648, 649, 651-131999
 
-    Assert.assertEquals(132000 - 651 + 2, rbcard);
+    assertEquals(132000 - 651 + 2, rbcard);
 
     final BitSet bs = new BitSet();
     bs.set(648);
@@ -1986,7 +1989,7 @@ public class TestRoaringBitmap {
     for (int i = 651; i < 132000; ++i) {
       bs.set(i);
     }
-    Assert.assertTrue(equals(bs, rb2));
+    assertTrue(equals(bs, rb2));
   }
 
   @Test
@@ -1996,10 +1999,10 @@ public class TestRoaringBitmap {
     rb.add( Integer.MAX_VALUE + 100002);
     final MutableRoaringBitmap rb2 = MutableRoaringBitmap.flip(rb, Integer.MAX_VALUE+100001L , 
                                                      Integer.MAX_VALUE+200000L);
-    Assert.assertEquals(99999, rb2.getCardinality());
-    Assert.assertTrue(rb2.contains(Integer.MAX_VALUE+100000));
-    Assert.assertFalse(rb2.contains(Integer.MAX_VALUE+100002));
-    Assert.assertTrue(rb2.contains(Integer.MAX_VALUE+199999));
+    assertEquals(99999, rb2.getCardinality());
+    assertTrue(rb2.contains(Integer.MAX_VALUE+100000));
+    assertFalse(rb2.contains(Integer.MAX_VALUE+100002));
+    assertTrue(rb2.contains(Integer.MAX_VALUE+199999));
   }
 
 
@@ -2043,7 +2046,7 @@ public class TestRoaringBitmap {
         irrelevant.flip(190000L, 260000L);
       }
       if (i > checkTime) {
-        Assert.assertTrue(equals(bs, rb));
+        assertTrue(equals(bs, rb));
         checkTime *= 1.5;
       }
     }
@@ -2100,7 +2103,7 @@ public class TestRoaringBitmap {
       if (i > checkTime) {
         final MutableRoaringBitmap rb = (i & 1) == 0 ? rb2 : rb1;
         final boolean status = equals(bs, rb);
-        Assert.assertTrue(status);
+        assertTrue(status);
         checkTime *= 1.5;
       }
     }
@@ -2114,13 +2117,13 @@ public class TestRoaringBitmap {
     final MutableRoaringBitmap rr2 = new MutableRoaringBitmap();
     rr2.add(1 << 31);
     MutableRoaringBitmap or = MutableRoaringBitmap.or(rr1, rr2);
-    Assert.assertEquals(2, or.getCardinality());
-    Assert.assertTrue(or.contains(1));
-    Assert.assertTrue(or.contains(1 << 31));
+    assertEquals(2, or.getCardinality());
+    assertTrue(or.contains(1));
+    assertTrue(or.contains(1 << 31));
     rr1.or(rr2);
-    Assert.assertEquals(2, rr1.getCardinality());
-    Assert.assertTrue(or.contains(1));
-    Assert.assertTrue(or.contains(1 << 31));
+    assertEquals(2, rr1.getCardinality());
+    assertTrue(or.contains(1));
+    assertTrue(or.contains(1 << 31));
   }
 
   @Test
@@ -2141,11 +2144,11 @@ public class TestRoaringBitmap {
     final int[] array = rror.toArray();
     final int[] arrayrr = rr.toArray();
 
-    Assert.assertTrue(Arrays.equals(array, arrayrr));
+    assertTrue(Arrays.equals(array, arrayrr));
 
     rr.or(rr2);
     final int[] arrayirr = rr.toArray();
-    Assert.assertTrue(Arrays.equals(array, arrayirr));
+    assertTrue(Arrays.equals(array, arrayirr));
 
   }
 
@@ -2195,7 +2198,7 @@ public class TestRoaringBitmap {
     }
     final MutableRoaringBitmap correct = MutableRoaringBitmap.or(rr, rr2);
     rr.or(rr2);
-    Assert.assertTrue(correct.equals(rr));
+    assertTrue(correct.equals(rr));
   }
 
   @Test
@@ -2222,7 +2225,7 @@ public class TestRoaringBitmap {
 
     final int[] arrayor = rror.toArray();
 
-    Assert.assertTrue(Arrays.equals(arrayor, arrayrr));
+    assertTrue(Arrays.equals(arrayor, arrayrr));
   }
 
   @Test
@@ -2313,7 +2316,7 @@ public class TestRoaringBitmap {
       }
     }
 
-    Assert.assertEquals(valide, true);
+    assertEquals(valide, true);
   }
 
   // tests for how range falls on container boundaries
@@ -2334,9 +2337,9 @@ public class TestRoaringBitmap {
     // check or against an empty bitmap
     final MutableRoaringBitmap orresult = MutableRoaringBitmap.or(rb, rb2);
     final MutableRoaringBitmap off = MutableRoaringBitmap.or(rb2, rb);
-    Assert.assertTrue(orresult.equals(off));
+    assertTrue(orresult.equals(off));
 
-    Assert.assertEquals(rb2card, orresult.getCardinality());
+    assertEquals(rb2card, orresult.getCardinality());
 
     for (int i = 500000; i < 600000; i += 14) {
       rb.add(i);
@@ -2346,11 +2349,11 @@ public class TestRoaringBitmap {
     }
     // check or against an empty bitmap
     final MutableRoaringBitmap orresult2 = MutableRoaringBitmap.or(rb, rb2);
-    Assert.assertEquals(rb2card, orresult.getCardinality());
+    assertEquals(rb2card, orresult.getCardinality());
 
-    Assert.assertEquals(rb2.getCardinality() + rb.getCardinality(), orresult2.getCardinality());
+    assertEquals(rb2.getCardinality() + rb.getCardinality(), orresult2.getCardinality());
     rb.or(rb2);
-    Assert.assertTrue(rb.equals(orresult2));
+    assertTrue(rb.equals(orresult2));
 
   }
 
@@ -2514,12 +2517,12 @@ public class TestRoaringBitmap {
     final MutableRoaringBitmap rb = new MutableRoaringBitmap();
     for (int k = 0; k < N; k++) {
       rb.add(k * gap);
-      Assert.assertEquals(rb.getCardinality(), k + 1);
+      assertEquals(rb.getCardinality(), k + 1);
     }
-    Assert.assertEquals(rb.getCardinality(), N);
+    assertEquals(rb.getCardinality(), N);
     for (int k = 0; k < N; k++) {
       rb.add(k * gap);
-      Assert.assertEquals(rb.getCardinality(), N);
+      assertEquals(rb.getCardinality(), N);
     }
 
   }
@@ -2534,7 +2537,7 @@ public class TestRoaringBitmap {
     dos.close();
     final ByteBuffer bb = ByteBuffer.wrap(bos.toByteArray());
     final ImmutableRoaringBitmap rrback = new ImmutableRoaringBitmap(bb);
-    Assert.assertTrue(rr.equals(rrback));
+    assertTrue(rr.equals(rrback));
   }
 
   @Test
@@ -2552,8 +2555,8 @@ public class TestRoaringBitmap {
     final MutableRoaringBitmap rrback = new MutableRoaringBitmap();
     final ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
     rrback.readExternal(new ObjectInputStream(bis));
-    Assert.assertEquals(rr.getCardinality(), rrback.getCardinality());
-    Assert.assertTrue(rr.equals(rrback));
+    assertEquals(rr.getCardinality(), rrback.getCardinality());
+    assertTrue(rr.equals(rrback));
   }
 
 
@@ -2572,8 +2575,8 @@ public class TestRoaringBitmap {
     final MutableRoaringBitmap rrback = new MutableRoaringBitmap();
     final ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
     rrback.readExternal(new ObjectInputStream(bis));
-    Assert.assertEquals(rr.getCardinality(), rrback.getCardinality());
-    Assert.assertTrue(rr.equals(rrback));
+    assertEquals(rr.getCardinality(), rrback.getCardinality());
+    assertTrue(rr.equals(rrback));
   }
 
   @Test
@@ -2591,8 +2594,8 @@ public class TestRoaringBitmap {
     final MutableRoaringBitmap rrback = new MutableRoaringBitmap();
     final ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
     rrback.readExternal(new ObjectInputStream(bis));
-    Assert.assertEquals(rr.getCardinality(), rrback.getCardinality());
-    Assert.assertTrue(rr.equals(rrback));
+    assertEquals(rr.getCardinality(), rrback.getCardinality());
+    assertTrue(rr.equals(rrback));
   }
 
   @Test
@@ -2609,12 +2612,12 @@ public class TestRoaringBitmap {
     final DataOutputStream oo = new DataOutputStream(bos);
     rr.serialize(oo);
     oo.close();
-    Assert.assertEquals(howmuch, bos.toByteArray().length);
+    assertEquals(howmuch, bos.toByteArray().length);
     final MutableRoaringBitmap rrback = new MutableRoaringBitmap();
     final ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
     rrback.deserialize(new DataInputStream(bis));
-    Assert.assertEquals(rr.getCardinality(), rrback.getCardinality());
-    Assert.assertTrue(rr.equals(rrback));
+    assertEquals(rr.getCardinality(), rrback.getCardinality());
+    assertTrue(rr.equals(rrback));
   }
 
   @Test
@@ -2630,12 +2633,12 @@ public class TestRoaringBitmap {
     final DataOutputStream oo = new DataOutputStream(bos);
     rr.serialize(oo);
     oo.close();
-    Assert.assertEquals(howmuch, bos.toByteArray().length);
+    assertEquals(howmuch, bos.toByteArray().length);
     final MutableRoaringBitmap rrback = new MutableRoaringBitmap();
     final ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
     rrback.deserialize(new DataInputStream(bis));
-    Assert.assertEquals(rr.getCardinality(), rrback.getCardinality());
-    Assert.assertTrue(rr.equals(rrback));
+    assertEquals(rr.getCardinality(), rrback.getCardinality());
+    assertTrue(rr.equals(rrback));
   }
 
 
@@ -2647,11 +2650,11 @@ public class TestRoaringBitmap {
     final MutableRoaringBitmap rr2 = new MutableRoaringBitmap();
     rr2.add(1 << 31);
     MutableRoaringBitmap xor = MutableRoaringBitmap.xor(rr1, rr2);
-    Assert.assertEquals(1, xor.getCardinality());
-    Assert.assertTrue(xor.contains(1));
+    assertEquals(1, xor.getCardinality());
+    assertTrue(xor.contains(1));
     rr1.xor(rr2);
-    Assert.assertEquals(1, rr1.getCardinality());
-    Assert.assertTrue(xor.contains(1));
+    assertEquals(1, rr1.getCardinality());
+    assertTrue(xor.contains(1));
   }
 
 
@@ -2701,7 +2704,7 @@ public class TestRoaringBitmap {
     }
     final MutableRoaringBitmap correct = MutableRoaringBitmap.xor(rr, rr2);
     rr.xor(rr2);
-    Assert.assertTrue(correct.equals(rr));
+    assertTrue(correct.equals(rr));
   }
 
   @Test
@@ -2717,7 +2720,7 @@ public class TestRoaringBitmap {
     for (int x : rb) {
       copy1.add(x);
     }
-    Assert.assertTrue(copy1.equals(rb));
+    assertTrue(copy1.equals(rb));
     MutableRoaringBitmap copy2 = new MutableRoaringBitmap();
     IntIterator i = rb.getIntIterator();
     Iterator<Integer> is = rb.iterator();
@@ -2735,7 +2738,7 @@ public class TestRoaringBitmap {
     if (is.hasNext()) {
       throw new RuntimeException("bug: more data available");
     }
-    Assert.assertTrue(copy2.equals(rb));
+    assertTrue(copy2.equals(rb));
   }
 
 
@@ -2752,7 +2755,7 @@ public class TestRoaringBitmap {
     for (int x : rb) {
       copy1.add(x);
     }
-    Assert.assertTrue(copy1.equals(rb));
+    assertTrue(copy1.equals(rb));
     MutableRoaringBitmap copy2 = new MutableRoaringBitmap();
     IntIterator i = rb.getIntIterator();
     Iterator<Integer> is = rb.iterator();
@@ -2770,7 +2773,7 @@ public class TestRoaringBitmap {
     if (is.hasNext()) {
       throw new RuntimeException("bug: more data available");
     }
-    Assert.assertTrue(copy2.equals(rb));
+    assertTrue(copy2.equals(rb));
   }
 
 
@@ -2790,7 +2793,7 @@ public class TestRoaringBitmap {
     for (int x : orb) {
       ocopy1.add(x);
     }
-    Assert.assertTrue(ocopy1.equals(orb));
+    assertTrue(ocopy1.equals(orb));
     MutableRoaringBitmap copy2 = new MutableRoaringBitmap();
     IntIterator i = toMapped(orb).getIntIterator();
     Iterator<Integer> is = toMapped(orb).iterator();
@@ -2808,7 +2811,7 @@ public class TestRoaringBitmap {
     if (is.hasNext()) {
       throw new RuntimeException("bug: more data available");
     }
-    Assert.assertTrue(copy2.equals(toMapped(orb)));
+    assertTrue(copy2.equals(toMapped(orb)));
   }
  
 
@@ -2825,7 +2828,7 @@ public class TestRoaringBitmap {
     for (int x : orb) {
       ocopy1.add(x);
     }
-    Assert.assertTrue(ocopy1.equals(orb));
+    assertTrue(ocopy1.equals(orb));
     MutableRoaringBitmap copy2 = new MutableRoaringBitmap();
     IntIterator i = toMapped(orb).getIntIterator();
     Iterator<Integer> is = toMapped(orb).iterator();
@@ -2843,7 +2846,7 @@ public class TestRoaringBitmap {
     if (is.hasNext()) {
       throw new RuntimeException("bug: more data available");
     }
-    Assert.assertTrue(copy2.equals(toMapped(orb)));
+    assertTrue(copy2.equals(toMapped(orb)));
   }
  
 
@@ -2936,7 +2939,7 @@ public class TestRoaringBitmap {
       }
     }
 
-    Assert.assertEquals(valide, true);
+    assertEquals(valide, true);
   }
 
   @Test
@@ -2955,9 +2958,9 @@ public class TestRoaringBitmap {
     // check or against an empty bitmap
     final MutableRoaringBitmap xorresult = MutableRoaringBitmap.xor(rb, rb2);
     final MutableRoaringBitmap off = MutableRoaringBitmap.or(rb2, rb);
-    Assert.assertTrue(xorresult.equals(off));
+    assertTrue(xorresult.equals(off));
 
-    Assert.assertEquals(rb2card, xorresult.getCardinality());
+    assertEquals(rb2card, xorresult.getCardinality());
 
     for (int i = 500000; i < 600000; i += 14) {
       rb.add(i);
@@ -2967,11 +2970,11 @@ public class TestRoaringBitmap {
     }
     // check or against an empty bitmap
     final MutableRoaringBitmap xorresult2 = MutableRoaringBitmap.xor(rb, rb2);
-    Assert.assertEquals(rb2card, xorresult.getCardinality());
+    assertEquals(rb2card, xorresult.getCardinality());
 
-    Assert.assertEquals(rb2.getCardinality() + rb.getCardinality(), xorresult2.getCardinality());
+    assertEquals(rb2.getCardinality() + rb.getCardinality(), xorresult2.getCardinality());
     rb.xor(rb2);
-    Assert.assertTrue(xorresult2.equals(rb));
+    assertTrue(xorresult2.equals(rb));
 
   }
 
@@ -3035,13 +3038,13 @@ public class TestRoaringBitmap {
       }
 
       MutableRoaringBitmap answer2 = BufferFastAggregation.and(Arrays.copyOf(ewah, N));
-      Assert.assertTrue(answer.equals(answer2));
-      Assert.assertTrue(answer.getCardinality() == answer2.getCardinality());
+      assertTrue(answer.equals(answer2));
+      assertTrue(answer.getCardinality() == answer2.getCardinality());
       @SuppressWarnings({"unchecked", "rawtypes"})
       Iterator<ImmutableRoaringBitmap> z = (Iterator) toIterator(Arrays.copyOf(ewah, N));
       MutableRoaringBitmap answer2b = BufferFastAggregation.and(z);
-      Assert.assertTrue(answer.equals(answer2b));
-      Assert.assertTrue(answer.getCardinality() == answer2b.getCardinality());
+      assertTrue(answer.equals(answer2b));
+      assertTrue(answer.getCardinality() == answer2b.getCardinality());
 
     }
   }
@@ -3068,13 +3071,13 @@ public class TestRoaringBitmap {
       }
 
       MutableRoaringBitmap answer2 = BufferFastAggregation.and(Arrays.copyOf(ewah, N));
-      Assert.assertTrue(answer.equals(answer2));
-      Assert.assertTrue(answer.getCardinality() == answer2.getCardinality());
+      assertTrue(answer.equals(answer2));
+      assertTrue(answer.getCardinality() == answer2.getCardinality());
       @SuppressWarnings({"unchecked", "rawtypes"})
       Iterator<ImmutableRoaringBitmap> z = (Iterator) toIterator(Arrays.copyOf(ewah, N));
       MutableRoaringBitmap answer2b = BufferFastAggregation.and(z);
-      Assert.assertTrue(answer.equals(answer2b));
-      Assert.assertTrue(answer.getCardinality() == answer2b.getCardinality());
+      assertTrue(answer.equals(answer2b));
+      assertTrue(answer.getCardinality() == answer2b.getCardinality());
 
     }
   }
@@ -3126,12 +3129,12 @@ public class TestRoaringBitmap {
       MutableRoaringBitmap answer3 = BufferFastAggregation.horizontal_or(ewah);
       MutableRoaringBitmap answer3b = BufferFastAggregation.or(toIterator(ewah));
 
-      Assert.assertTrue(answer.equals(answer2));
-      Assert.assertTrue(answer.equals(answer3));
-      Assert.assertTrue(answer.equals(answer3b));
-      Assert.assertTrue(answer.getCardinality() == answer3.getCardinality());
-      Assert.assertTrue(answer.equals(answer3b));
-      Assert.assertTrue(answer.getCardinality() == answer3b.getCardinality());
+      assertTrue(answer.equals(answer2));
+      assertTrue(answer.equals(answer3));
+      assertTrue(answer.equals(answer3b));
+      assertTrue(answer.getCardinality() == answer3.getCardinality());
+      assertTrue(answer.equals(answer3b));
+      assertTrue(answer.getCardinality() == answer3b.getCardinality());
     }
   }
 
@@ -3157,12 +3160,12 @@ public class TestRoaringBitmap {
       MutableRoaringBitmap answer3 = BufferFastAggregation.horizontal_or(ewah);
       MutableRoaringBitmap answer3b = BufferFastAggregation.or(toIterator(ewah));
 
-      Assert.assertTrue(answer.equals(answer2));
-      Assert.assertTrue(answer.equals(answer3));
-      Assert.assertTrue(answer.equals(answer3b));
-      Assert.assertTrue(answer.getCardinality() == answer3.getCardinality());
-      Assert.assertTrue(answer.equals(answer3b));
-      Assert.assertTrue(answer.getCardinality() == answer3b.getCardinality());
+      assertTrue(answer.equals(answer2));
+      assertTrue(answer.equals(answer3));
+      assertTrue(answer.equals(answer3b));
+      assertTrue(answer.getCardinality() == answer3.getCardinality());
+      assertTrue(answer.equals(answer3b));
+      assertTrue(answer.getCardinality() == answer3b.getCardinality());
     }
   }
 
@@ -3191,8 +3194,8 @@ public class TestRoaringBitmap {
       }
       MutableRoaringBitmap answer2 = BufferFastAggregation.xor(ewah);
       MutableRoaringBitmap answer3 = BufferFastAggregation.horizontal_xor(ewah);
-      Assert.assertTrue(answer.equals(answer2));
-      Assert.assertTrue(answer.equals(answer3));
+      assertTrue(answer.equals(answer2));
+      assertTrue(answer.equals(answer3));
     }
   }
 
@@ -3217,8 +3220,8 @@ public class TestRoaringBitmap {
       }
       MutableRoaringBitmap answer2 = BufferFastAggregation.xor(ewah);
       MutableRoaringBitmap answer3 = BufferFastAggregation.horizontal_xor(ewah);
-      Assert.assertTrue(answer.equals(answer2));
-      Assert.assertTrue(answer.equals(answer3));
+      assertTrue(answer.equals(answer2));
+      assertTrue(answer.equals(answer3));
     }
   }
 
@@ -3242,24 +3245,24 @@ public class TestRoaringBitmap {
     rr2.add(7);
     rr2.add(9);
 
-    Assert.assertFalse(rr1.intersects(0, 1));
-    Assert.assertTrue(rr1.intersects(0, 3));
-    Assert.assertTrue(rr1.intersects(0, 11));
-    Assert.assertFalse(rr1.intersects(12, 14));
-    Assert.assertFalse(rr1.intersects(4, 5));
-    Assert.assertTrue(rr1.intersects(2, 3));
-    Assert.assertTrue(rr1.intersects(4, 8));
-    Assert.assertTrue(rr1.intersects(8, 12));
+    assertFalse(rr1.intersects(0, 1));
+    assertTrue(rr1.intersects(0, 3));
+    assertTrue(rr1.intersects(0, 11));
+    assertFalse(rr1.intersects(12, 14));
+    assertFalse(rr1.intersects(4, 5));
+    assertTrue(rr1.intersects(2, 3));
+    assertTrue(rr1.intersects(4, 8));
+    assertTrue(rr1.intersects(8, 12));
 
-    Assert.assertTrue(rr2.intersects(0, 11));
-    Assert.assertFalse(rr2.intersects(12, 14));
-    Assert.assertFalse(rr2.intersects(4, 5));
-    Assert.assertTrue(rr2.intersects(2, 3));
-    Assert.assertTrue(rr2.intersects(4, 8));
-    Assert.assertTrue(rr2.intersects(8, 12));
+    assertTrue(rr2.intersects(0, 11));
+    assertFalse(rr2.intersects(12, 14));
+    assertFalse(rr2.intersects(4, 5));
+    assertTrue(rr2.intersects(2, 3));
+    assertTrue(rr2.intersects(4, 8));
+    assertTrue(rr2.intersects(8, 12));
 
     rr3.add(5L, 10L);
-    Assert.assertTrue(rr3.intersects(5, 10));
+    assertTrue(rr3.intersects(5, 10));
   }
 
 
@@ -3272,7 +3275,7 @@ public class TestRoaringBitmap {
     MutableRoaringBitmap rb2 =
         MutableRoaringBitmap.bitmapOf(org.roaringbitmap.TestRoaringBitmap.randomlists[1]);
     MutableRoaringBitmap rbor = MutableRoaringBitmap.or(rb1, rb2);
-    Assert.assertTrue(rbor.equals(BufferFastAggregation.horizontal_or(rb1, rb2)));
+    assertTrue(rbor.equals(BufferFastAggregation.horizontal_or(rb1, rb2)));
   }
 
 
@@ -3285,18 +3288,18 @@ public class TestRoaringBitmap {
       rr1.add(2 * k);
       rr2.add(2 * k + 1);
     }
-    Assert.assertEquals(ImmutableRoaringBitmap.intersects(rr1, rr2), false);
+    assertEquals(ImmutableRoaringBitmap.intersects(rr1, rr2), false);
     rr1.add(2 * 500 + 1);
-    Assert.assertEquals(ImmutableRoaringBitmap.intersects(rr1, rr2), true);
+    assertEquals(ImmutableRoaringBitmap.intersects(rr1, rr2), true);
     final MutableRoaringBitmap rr3 = new MutableRoaringBitmap();
     rr3.add(2 * 501 + 1);
-    Assert.assertEquals(ImmutableRoaringBitmap.intersects(rr3, rr2), true);
-    Assert.assertEquals(ImmutableRoaringBitmap.intersects(rr3, rr1), false);
+    assertEquals(ImmutableRoaringBitmap.intersects(rr3, rr2), true);
+    assertEquals(ImmutableRoaringBitmap.intersects(rr3, rr1), false);
     for (int k = 0; k < 40000; ++k) {
       rr1.add(2 * k + 1);
     }
     rr1.runOptimize();
-    Assert.assertEquals(ImmutableRoaringBitmap.intersects(rr1, rr2), true);
+    assertEquals(ImmutableRoaringBitmap.intersects(rr1, rr2), true);
   }
 
   // From a bug report contributed by Kevin Karpenske
@@ -3401,9 +3404,9 @@ public class TestRoaringBitmap {
     final ImmutableRoaringBitmap rrand = ImmutableRoaringBitmap.and(rr, rr2);
     final int rrandCount = ImmutableRoaringBitmap.andCardinality(rr, rr2);
 
-    Assert.assertEquals(rrand.getCardinality(), rrandCount);
+    assertEquals(rrand.getCardinality(), rrandCount);
     final int rrandCountm = ImmutableRoaringBitmap.andCardinality(toMapped(rr), toMapped(rr2));
-    Assert.assertEquals(rrand.getCardinality(), rrandCountm);
+    assertEquals(rrand.getCardinality(), rrandCountm);
 
   }
 
@@ -3445,7 +3448,7 @@ public class TestRoaringBitmap {
     }
 
     final MutableRoaringBitmap rror = ImmutableRoaringBitmap.or(rr, rr2);
-    Assert.assertEquals(rror.getCardinality(), ImmutableRoaringBitmap.orCardinality(rr, rr2));
+    assertEquals(rror.getCardinality(), ImmutableRoaringBitmap.orCardinality(rr, rr2));
 
   }
 
@@ -3485,7 +3488,7 @@ public class TestRoaringBitmap {
     rb4.add(1<<18);
     rb4.add(1<<19);
     rb4.add(1<<20);
-    Assert.assertEquals(rb4, rb1);
+    assertEquals(rb4, rb1);
   }
 
   @Test
@@ -3495,19 +3498,19 @@ public class TestRoaringBitmap {
     for(int i = 18; i < 31; ++i) {
       int x = 1 << i;
       rb.add(x);
-      Assert.assertEquals(1, rb.first());
-      Assert.assertEquals(x, rb.last());
+      assertEquals(1, rb.first());
+      assertEquals(x, rb.last());
     }
   }
 
-  @Test(expected = NoSuchElementException.class)
+  @Test
   public void testEmptyFirst() {
-    new MutableRoaringBitmap().first();
+    assertThrows(NoSuchElementException.class, () -> new MutableRoaringBitmap().first());
   }
 
-  @Test(expected = NoSuchElementException.class)
+  @Test
   public void testEmptyLast() {
-    new MutableRoaringBitmap().last();
+    assertThrows(NoSuchElementException.class, () -> new MutableRoaringBitmap().last());
   }
 
   @Test
@@ -3517,16 +3520,16 @@ public class TestRoaringBitmap {
     rb.add(2);
     rb.add(4);
     rb.add(8);
-    Assert.assertEquals(2, rb.first());
-    Assert.assertEquals(8, rb.last());
+    assertEquals(2, rb.first());
+    assertEquals(8, rb.last());
 
     rb.add(1L << 5, 1L << 14);
-    Assert.assertEquals(2, rb.first());
-    Assert.assertEquals((1 << 14) - 1, rb.last());
+    assertEquals(2, rb.first());
+    assertEquals((1 << 14) - 1, rb.last());
 
     rb.add(1L<< 15, 1L << 30);
-    Assert.assertEquals(2, rb.first());
-    Assert.assertEquals((1L << 30) - 1, rb.last());
+    assertEquals(2, rb.first());
+    assertEquals((1L << 30) - 1, rb.last());
   }
 
   @Test

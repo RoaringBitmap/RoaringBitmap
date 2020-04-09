@@ -1,24 +1,11 @@
 package org.roaringbitmap.realdata;
 
-import static org.junit.Assert.assertEquals;
-import static org.roaringbitmap.RealDataset.CENSUS1881;
-import static org.roaringbitmap.RealDataset.CENSUS1881_SRT;
-import static org.roaringbitmap.RealDataset.CENSUS_INCOME;
-import static org.roaringbitmap.RealDataset.CENSUS_INCOME_SRT;
-import static org.roaringbitmap.RealDataset.DIMENSION_003;
-import static org.roaringbitmap.RealDataset.DIMENSION_008;
-import static org.roaringbitmap.RealDataset.DIMENSION_033;
-import static org.roaringbitmap.RealDataset.USCENSUS2000;
-import static org.roaringbitmap.RealDataset.WEATHER_SEPT_85;
-import static org.roaringbitmap.RealDataset.WEATHER_SEPT_85_SRT;
-import static org.roaringbitmap.RealDataset.WIKILEAKS_NOQUOTES;
-import static org.roaringbitmap.RealDataset.WIKILEAKS_NOQUOTES_SRT;
+import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
 
-import org.junit.Test;
-
-import com.google.common.collect.ImmutableMap;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.roaringbitmap.RealDataset.*;
 
 
 public class RealDataBenchmarkOrTest extends RealDataBenchmarkSanityTest {
@@ -37,18 +24,10 @@ public class RealDataBenchmarkOrTest extends RealDataBenchmarkSanityTest {
       .put(CENSUS_INCOME_SRT, 325103).put(CENSUS1881_SRT, 113309680)
       .put(WEATHER_SEPT_85_SRT, 11922488).put(WIKILEAKS_NOQUOTES_SRT, 28702307).build();
 
-  @Test
-  public void test() throws Exception {
-    int expected = EXPECTED_RESULTS.get(dataset);
+  @Override
+  protected void doTest(String dataset, String type, boolean immutable) {
     RealDataBenchmarkOr bench = new RealDataBenchmarkOr();
-    assertEquals(expected, bench.pairwiseOr(bs));
+    assertEquals((int)EXPECTED_RESULTS.get(dataset), bench.pairwiseOr(bs));
+    assertEquals((int)EXPECTED_RESULTS_NO_CARDINALITY.get(dataset), bench.pairwiseOr_NoCardinality(bs));
   }
-
-  @Test
-  public void test_NoCardinality() throws Exception {
-    int expected = EXPECTED_RESULTS_NO_CARDINALITY.get(dataset);
-    RealDataBenchmarkOr bench = new RealDataBenchmarkOr();
-    assertEquals(expected, bench.pairwiseOr_NoCardinality(bs));
-  }
-
 }

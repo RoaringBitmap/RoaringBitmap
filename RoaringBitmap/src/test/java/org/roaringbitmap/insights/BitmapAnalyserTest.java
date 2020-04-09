@@ -1,15 +1,19 @@
 package org.roaringbitmap.insights;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.SeededTestData;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+
+@Execution(ExecutionMode.CONCURRENT)
 public class BitmapAnalyserTest {
 
   @Test
@@ -35,9 +39,9 @@ public class BitmapAnalyserTest {
     RoaringBitmap rb = SeededTestData.randomBitmap(1000, runFraction, denseLimit);
     BitmapStatistics result = BitmapAnalyser.analyse(rb);
 
-    Assert.assertEquals(runFraction, result.containerFraction(result.getRunContainerCount()), delta);
-    Assert.assertEquals(bitmapFraction, result.containerFraction(result.getBitmapContainerCount()), delta);
-    Assert.assertEquals(arrayFraction, result.containerFraction(result.getArrayContainersStats().getContainersCount()), delta);
+    assertEquals(runFraction, result.containerFraction(result.getRunContainerCount()), delta);
+    assertEquals(bitmapFraction, result.containerFraction(result.getBitmapContainerCount()), delta);
+    assertEquals(arrayFraction, result.containerFraction(result.getArrayContainersStats().getContainersCount()), delta);
   }
 
   @Test
@@ -56,10 +60,10 @@ public class BitmapAnalyserTest {
 
     BitmapStatistics result = BitmapAnalyser.analyse(bitmaps);
 
-    Assert.assertEquals(runFraction, result.containerFraction(result.getRunContainerCount()), delta);
-    Assert.assertEquals(bitmapFraction, result.containerFraction(result.getBitmapContainerCount()), delta);
-    Assert.assertEquals(arrayFraction, result.containerFraction(result.getArrayContainersStats().getContainersCount()), delta);
-    Assert.assertEquals(totalBitmaps, result.getBitmapsCount());
+    assertEquals(runFraction, result.containerFraction(result.getRunContainerCount()), delta);
+    assertEquals(bitmapFraction, result.containerFraction(result.getBitmapContainerCount()), delta);
+    assertEquals(arrayFraction, result.containerFraction(result.getArrayContainersStats().getContainersCount()), delta);
+    assertEquals(totalBitmaps, result.getBitmapsCount());
   }
 
 }

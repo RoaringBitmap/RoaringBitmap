@@ -2,9 +2,8 @@ package org.roaringbitmap.longlong;
 
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.roaringbitmap.BitmapDataProvider;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.RoaringBitmapSupplier;
@@ -13,6 +12,9 @@ import org.roaringbitmap.buffer.MutableRoaringBitmapSupplier;
 
 import java.io.*;
 import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+
 
 public class TestRoaring64NavigableMap {
 
@@ -56,33 +58,33 @@ public class TestRoaring64NavigableMap {
       index++;
     }
 
-    Assert.assertArrayEquals(expectedCardinalities,
+    assertArrayEquals(expectedCardinalities,
         Arrays.copyOf(bitmap.getSortedCumulatedCardinality(), expectedCardinalities.length));
   }
 
   @Test
   public void testHelperCtor() {
     // RoaringIntPacking is not supposed to be instantiated. Add test for coverage
-    Assert.assertNotNull(new RoaringIntPacking());
+    assertNotNull(new RoaringIntPacking());
   }
 
   @Test
   public void testEmpty() {
     Roaring64NavigableMap map = newDefaultCtor();
 
-    Assert.assertFalse(map.getLongIterator().hasNext());
+    assertFalse(map.getLongIterator().hasNext());
 
-    Assert.assertEquals(0, map.getLongCardinality());
-    Assert.assertTrue(map.isEmpty());
-    Assert.assertFalse(map.contains(0));
+    assertEquals(0, map.getLongCardinality());
+    assertTrue(map.isEmpty());
+    assertFalse(map.contains(0));
 
-    Assert.assertEquals(0, map.rankLong(Long.MIN_VALUE));
-    Assert.assertEquals(0, map.rankLong(Long.MIN_VALUE + 1));
-    Assert.assertEquals(0, map.rankLong(-1));
-    Assert.assertEquals(0, map.rankLong(0));
-    Assert.assertEquals(0, map.rankLong(1));
-    Assert.assertEquals(0, map.rankLong(Long.MAX_VALUE - 1));
-    Assert.assertEquals(0, map.rankLong(Long.MAX_VALUE));
+    assertEquals(0, map.rankLong(Long.MIN_VALUE));
+    assertEquals(0, map.rankLong(Long.MIN_VALUE + 1));
+    assertEquals(0, map.rankLong(-1));
+    assertEquals(0, map.rankLong(0));
+    assertEquals(0, map.rankLong(1));
+    assertEquals(0, map.rankLong(Long.MAX_VALUE - 1));
+    assertEquals(0, map.rankLong(Long.MAX_VALUE));
   }
 
   @Test
@@ -94,24 +96,24 @@ public class TestRoaring64NavigableMap {
     {
       LongIterator iterator = map.getLongIterator();
 
-      Assert.assertTrue(iterator.hasNext());
-      Assert.assertEquals(0, iterator.next());
-      Assert.assertEquals(0, map.select(0));
-      Assert.assertTrue(map.contains(0));
+      assertTrue(iterator.hasNext());
+      assertEquals(0, iterator.next());
+      assertEquals(0, map.select(0));
+      assertTrue(map.contains(0));
 
-      Assert.assertFalse(iterator.hasNext());
+      assertFalse(iterator.hasNext());
     }
 
-    Assert.assertEquals(1, map.getLongCardinality());
-    Assert.assertFalse(map.isEmpty());
+    assertEquals(1, map.getLongCardinality());
+    assertFalse(map.isEmpty());
 
-    Assert.assertEquals(0, map.rankLong(Long.MIN_VALUE));
-    Assert.assertEquals(0, map.rankLong(Integer.MIN_VALUE - 1L));
-    Assert.assertEquals(0, map.rankLong(-1));
-    Assert.assertEquals(1, map.rankLong(0));
-    Assert.assertEquals(1, map.rankLong(1));
-    Assert.assertEquals(1, map.rankLong(Integer.MAX_VALUE + 1L));
-    Assert.assertEquals(1, map.rankLong(Long.MAX_VALUE));
+    assertEquals(0, map.rankLong(Long.MIN_VALUE));
+    assertEquals(0, map.rankLong(Integer.MIN_VALUE - 1L));
+    assertEquals(0, map.rankLong(-1));
+    assertEquals(1, map.rankLong(0));
+    assertEquals(1, map.rankLong(1));
+    assertEquals(1, map.rankLong(Integer.MAX_VALUE + 1L));
+    assertEquals(1, map.rankLong(Long.MAX_VALUE));
   }
 
 
@@ -124,28 +126,28 @@ public class TestRoaring64NavigableMap {
     {
       LongIterator iterator = map.getLongIterator();
 
-      Assert.assertTrue(iterator.hasNext());
-      Assert.assertEquals(-1, iterator.next());
-      Assert.assertEquals(-1, map.select(0));
-      Assert.assertTrue(map.contains(-1));
+      assertTrue(iterator.hasNext());
+      assertEquals(-1, iterator.next());
+      assertEquals(-1, map.select(0));
+      assertTrue(map.contains(-1));
 
-      Assert.assertFalse(iterator.hasNext());
+      assertFalse(iterator.hasNext());
     }
 
-    Assert.assertEquals(1, map.getLongCardinality());
-    Assert.assertFalse(map.isEmpty());
+    assertEquals(1, map.getLongCardinality());
+    assertFalse(map.isEmpty());
 
-    Assert.assertEquals(0, map.rankLong(Long.MIN_VALUE));
-    Assert.assertEquals(0, map.rankLong(Integer.MIN_VALUE - 1L));
-    Assert.assertEquals(0, map.rankLong(0));
-    Assert.assertEquals(0, map.rankLong(1));
-    Assert.assertEquals(0, map.rankLong(Integer.MAX_VALUE + 1L));
-    Assert.assertEquals(0, map.rankLong(Long.MAX_VALUE));
-    Assert.assertEquals(0, map.rankLong(-2));
-    Assert.assertEquals(1, map.rankLong(-1));
+    assertEquals(0, map.rankLong(Long.MIN_VALUE));
+    assertEquals(0, map.rankLong(Integer.MIN_VALUE - 1L));
+    assertEquals(0, map.rankLong(0));
+    assertEquals(0, map.rankLong(1));
+    assertEquals(0, map.rankLong(Integer.MAX_VALUE + 1L));
+    assertEquals(0, map.rankLong(Long.MAX_VALUE));
+    assertEquals(0, map.rankLong(-2));
+    assertEquals(1, map.rankLong(-1));
 
 
-    Assert.assertArrayEquals(new long[] {-1L}, map.toArray());
+    assertArrayEquals(new long[] {-1L}, map.toArray());
   }
 
 
@@ -159,24 +161,24 @@ public class TestRoaring64NavigableMap {
     {
       LongIterator iterator = map.getLongIterator();
 
-      Assert.assertTrue(iterator.hasNext());
-      Assert.assertEquals(0, iterator.next());
-      Assert.assertEquals(0, map.select(0));
-      Assert.assertTrue(map.contains(0));
+      assertTrue(iterator.hasNext());
+      assertEquals(0, iterator.next());
+      assertEquals(0, map.select(0));
+      assertTrue(map.contains(0));
 
-      Assert.assertFalse(iterator.hasNext());
+      assertFalse(iterator.hasNext());
     }
 
-    Assert.assertEquals(1, map.getLongCardinality());
-    Assert.assertFalse(map.isEmpty());
+    assertEquals(1, map.getLongCardinality());
+    assertFalse(map.isEmpty());
 
-    Assert.assertEquals(0, map.rankLong(Long.MIN_VALUE));
-    Assert.assertEquals(0, map.rankLong(Integer.MIN_VALUE - 1L));
-    Assert.assertEquals(0, map.rankLong(-1));
-    Assert.assertEquals(1, map.rankLong(0));
-    Assert.assertEquals(1, map.rankLong(1));
-    Assert.assertEquals(1, map.rankLong(Integer.MAX_VALUE + 1L));
-    Assert.assertEquals(1, map.rankLong(Long.MAX_VALUE));
+    assertEquals(0, map.rankLong(Long.MIN_VALUE));
+    assertEquals(0, map.rankLong(Integer.MIN_VALUE - 1L));
+    assertEquals(0, map.rankLong(-1));
+    assertEquals(1, map.rankLong(0));
+    assertEquals(1, map.rankLong(1));
+    assertEquals(1, map.rankLong(Integer.MAX_VALUE + 1L));
+    assertEquals(1, map.rankLong(Long.MAX_VALUE));
   }
 
   @Test
@@ -189,32 +191,32 @@ public class TestRoaring64NavigableMap {
     {
       LongIterator iterator = map.getLongIterator();
 
-      Assert.assertTrue(iterator.hasNext());
-      Assert.assertEquals(123, iterator.next());
-      Assert.assertEquals(123, map.select(0));
-      Assert.assertTrue(map.contains(123));
+      assertTrue(iterator.hasNext());
+      assertEquals(123, iterator.next());
+      assertEquals(123, map.select(0));
+      assertTrue(map.contains(123));
 
-      Assert.assertTrue(iterator.hasNext());
-      Assert.assertEquals(234, iterator.next());
-      Assert.assertEquals(234, map.select(1));
-      Assert.assertTrue(map.contains(234));
+      assertTrue(iterator.hasNext());
+      assertEquals(234, iterator.next());
+      assertEquals(234, map.select(1));
+      assertTrue(map.contains(234));
 
-      Assert.assertFalse(iterator.hasNext());
+      assertFalse(iterator.hasNext());
     }
 
-    Assert.assertFalse(map.contains(345));
+    assertFalse(map.contains(345));
 
-    Assert.assertEquals(2, map.getLongCardinality());
+    assertEquals(2, map.getLongCardinality());
 
-    Assert.assertEquals(0, map.rankLong(0));
-    Assert.assertEquals(1, map.rankLong(123));
-    Assert.assertEquals(1, map.rankLong(233));
-    Assert.assertEquals(2, map.rankLong(234));
-    Assert.assertEquals(2, map.rankLong(235));
-    Assert.assertEquals(2, map.rankLong(Integer.MAX_VALUE + 1L));
-    Assert.assertEquals(2, map.rankLong(Long.MAX_VALUE));
+    assertEquals(0, map.rankLong(0));
+    assertEquals(1, map.rankLong(123));
+    assertEquals(1, map.rankLong(233));
+    assertEquals(2, map.rankLong(234));
+    assertEquals(2, map.rankLong(235));
+    assertEquals(2, map.rankLong(Integer.MAX_VALUE + 1L));
+    assertEquals(2, map.rankLong(Long.MAX_VALUE));
 
-    Assert.assertArrayEquals(new long[] {123L, 234L}, map.toArray());
+    assertArrayEquals(new long[] {123L, 234L}, map.toArray());
   }
 
 
@@ -228,18 +230,20 @@ public class TestRoaring64NavigableMap {
 
     Roaring64NavigableMap right = Roaring64NavigableMap.bitmapOf(123, Long.MAX_VALUE);
 
-    Assert.assertEquals(left.hashCode(), right.hashCode());
-    Assert.assertEquals(left, right);
-    Assert.assertEquals(right, left);
+    assertEquals(left.hashCode(), right.hashCode());
+    assertEquals(left, right);
+    assertEquals(right, left);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testAddOneSelect2() {
-    Roaring64NavigableMap map = newDefaultCtor();
+    assertThrows(IllegalArgumentException.class, () -> {
+      Roaring64NavigableMap map = newDefaultCtor();
 
-    map.addLong(123);
+      map.addLong(123);
 
-    map.select(1);
+      map.select(1);
+    });
   }
 
 
@@ -249,7 +253,7 @@ public class TestRoaring64NavigableMap {
 
     map.addInt(-1);
 
-    Assert.assertEquals(Util.toUnsignedLong(-1), map.select(0));
+    assertEquals(Util.toUnsignedLong(-1), map.select(0));
   }
 
   @Test
@@ -258,15 +262,17 @@ public class TestRoaring64NavigableMap {
 
     map.addLong(0);
 
-    Assert.assertTrue(map.getLongIterator().hasNext());
-    Assert.assertEquals(0, map.getLongIterator().next());
+    assertTrue(map.getLongIterator().hasNext());
+    assertEquals(0, map.getLongIterator().next());
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testIterator_NextWithoutHasNext_Empty() {
-    Roaring64NavigableMap map = newDefaultCtor();
+    assertThrows(IllegalStateException.class, () -> {
+      Roaring64NavigableMap map = newDefaultCtor();
 
-    map.getLongIterator().next();
+      map.getLongIterator().next();
+    });
   }
 
   @Test
@@ -277,23 +283,23 @@ public class TestRoaring64NavigableMap {
 
     {
       LongIterator iterator = map.getLongIterator();
-      Assert.assertTrue(iterator.hasNext());
-      Assert.assertEquals(Long.MAX_VALUE, iterator.next());
-      Assert.assertEquals(Long.MAX_VALUE, map.select(0));
-      Assert.assertFalse(iterator.hasNext());
+      assertTrue(iterator.hasNext());
+      assertEquals(Long.MAX_VALUE, iterator.next());
+      assertEquals(Long.MAX_VALUE, map.select(0));
+      assertFalse(iterator.hasNext());
     }
 
-    Assert.assertEquals(1, map.getLongCardinality());
+    assertEquals(1, map.getLongCardinality());
 
-    Assert.assertEquals(0, map.rankLong(Long.MIN_VALUE));
-    Assert.assertEquals(0, map.rankLong(Long.MIN_VALUE + 1));
-    Assert.assertEquals(0, map.rankLong(-1));
-    Assert.assertEquals(0, map.rankLong(0));
-    Assert.assertEquals(0, map.rankLong(1));
-    Assert.assertEquals(0, map.rankLong(Long.MAX_VALUE - 1));
-    Assert.assertEquals(1, map.rankLong(Long.MAX_VALUE));
+    assertEquals(0, map.rankLong(Long.MIN_VALUE));
+    assertEquals(0, map.rankLong(Long.MIN_VALUE + 1));
+    assertEquals(0, map.rankLong(-1));
+    assertEquals(0, map.rankLong(0));
+    assertEquals(0, map.rankLong(1));
+    assertEquals(0, map.rankLong(Long.MAX_VALUE - 1));
+    assertEquals(1, map.rankLong(Long.MAX_VALUE));
 
-    Assert.assertArrayEquals(new long[] {Long.MAX_VALUE}, map.toArray());
+    assertArrayEquals(new long[] {Long.MAX_VALUE}, map.toArray());
   }
 
   @Test
@@ -304,21 +310,21 @@ public class TestRoaring64NavigableMap {
 
     {
       LongIterator iterator = map.getLongIterator();
-      Assert.assertTrue(iterator.hasNext());
-      Assert.assertEquals(Long.MIN_VALUE, iterator.next());
-      Assert.assertEquals(Long.MIN_VALUE, map.select(0));
-      Assert.assertFalse(iterator.hasNext());
+      assertTrue(iterator.hasNext());
+      assertEquals(Long.MIN_VALUE, iterator.next());
+      assertEquals(Long.MIN_VALUE, map.select(0));
+      assertFalse(iterator.hasNext());
     }
 
-    Assert.assertEquals(1, map.getLongCardinality());
+    assertEquals(1, map.getLongCardinality());
 
-    Assert.assertEquals(1, map.rankLong(Long.MIN_VALUE));
-    Assert.assertEquals(1, map.rankLong(Long.MIN_VALUE + 1));
-    Assert.assertEquals(1, map.rankLong(-1));
-    Assert.assertEquals(1, map.rankLong(0));
-    Assert.assertEquals(1, map.rankLong(1));
-    Assert.assertEquals(1, map.rankLong(Long.MAX_VALUE - 1));
-    Assert.assertEquals(1, map.rankLong(Long.MAX_VALUE));
+    assertEquals(1, map.rankLong(Long.MIN_VALUE));
+    assertEquals(1, map.rankLong(Long.MIN_VALUE + 1));
+    assertEquals(1, map.rankLong(-1));
+    assertEquals(1, map.rankLong(0));
+    assertEquals(1, map.rankLong(1));
+    assertEquals(1, map.rankLong(Long.MAX_VALUE - 1));
+    assertEquals(1, map.rankLong(Long.MAX_VALUE));
   }
 
   @Test
@@ -332,28 +338,28 @@ public class TestRoaring64NavigableMap {
 
     {
       LongIterator iterator = map.getLongIterator();
-      Assert.assertTrue(iterator.hasNext());
-      Assert.assertEquals(Long.MIN_VALUE, iterator.next());
-      Assert.assertEquals(Long.MIN_VALUE, map.select(0));
-      Assert.assertEquals(0, iterator.next());
-      Assert.assertEquals(0, map.select(1));
-      Assert.assertEquals(1, iterator.next());
-      Assert.assertEquals(1, map.select(2));
-      Assert.assertEquals(Long.MAX_VALUE, iterator.next());
-      Assert.assertEquals(Long.MAX_VALUE, map.select(3));
-      Assert.assertFalse(iterator.hasNext());
+      assertTrue(iterator.hasNext());
+      assertEquals(Long.MIN_VALUE, iterator.next());
+      assertEquals(Long.MIN_VALUE, map.select(0));
+      assertEquals(0, iterator.next());
+      assertEquals(0, map.select(1));
+      assertEquals(1, iterator.next());
+      assertEquals(1, map.select(2));
+      assertEquals(Long.MAX_VALUE, iterator.next());
+      assertEquals(Long.MAX_VALUE, map.select(3));
+      assertFalse(iterator.hasNext());
     }
 
-    Assert.assertEquals(4, map.getLongCardinality());
+    assertEquals(4, map.getLongCardinality());
 
-    Assert.assertEquals(1, map.rankLong(Long.MIN_VALUE));
-    Assert.assertEquals(1, map.rankLong(Long.MIN_VALUE + 1));
-    Assert.assertEquals(1, map.rankLong(-1));
-    Assert.assertEquals(2, map.rankLong(0));
-    Assert.assertEquals(3, map.rankLong(1));
-    Assert.assertEquals(3, map.rankLong(2));
-    Assert.assertEquals(3, map.rankLong(Long.MAX_VALUE - 1));
-    Assert.assertEquals(4, map.rankLong(Long.MAX_VALUE));
+    assertEquals(1, map.rankLong(Long.MIN_VALUE));
+    assertEquals(1, map.rankLong(Long.MIN_VALUE + 1));
+    assertEquals(1, map.rankLong(-1));
+    assertEquals(2, map.rankLong(0));
+    assertEquals(3, map.rankLong(1));
+    assertEquals(3, map.rankLong(2));
+    assertEquals(3, map.rankLong(Long.MAX_VALUE - 1));
+    assertEquals(4, map.rankLong(Long.MAX_VALUE));
 
     final List<Long> foreach = new ArrayList<>();
     map.forEach(new LongConsumer() {
@@ -363,7 +369,7 @@ public class TestRoaring64NavigableMap {
         foreach.add(value);
       }
     });
-    Assert.assertEquals(Arrays.asList(Long.MIN_VALUE, 0L, 1L, Long.MAX_VALUE), foreach);
+    assertEquals(Arrays.asList(Long.MIN_VALUE, 0L, 1L, Long.MAX_VALUE), foreach);
   }
 
   @Test
@@ -375,11 +381,11 @@ public class TestRoaring64NavigableMap {
 
     {
       LongIterator iterator = map.getReverseLongIterator();
-      Assert.assertTrue(iterator.hasNext());
-      Assert.assertEquals(234, iterator.next());
-      Assert.assertTrue(iterator.hasNext());
-      Assert.assertEquals(123, iterator.next());
-      Assert.assertFalse(iterator.hasNext());
+      assertTrue(iterator.hasNext());
+      assertEquals(234, iterator.next());
+      assertTrue(iterator.hasNext());
+      assertEquals(123, iterator.next());
+      assertFalse(iterator.hasNext());
     }
   }
 
@@ -392,11 +398,11 @@ public class TestRoaring64NavigableMap {
 
     {
       LongIterator iterator = map.getReverseLongIterator();
-      Assert.assertTrue(iterator.hasNext());
-      Assert.assertEquals(Long.MAX_VALUE, iterator.next());
-      Assert.assertTrue(iterator.hasNext());
-      Assert.assertEquals(123, iterator.next());
-      Assert.assertFalse(iterator.hasNext());
+      assertTrue(iterator.hasNext());
+      assertEquals(Long.MAX_VALUE, iterator.next());
+      assertTrue(iterator.hasNext());
+      assertEquals(123, iterator.next());
+      assertFalse(iterator.hasNext());
     }
   }
 
@@ -406,16 +412,16 @@ public class TestRoaring64NavigableMap {
 
     // Add a value
     map.addLong(123);
-    Assert.assertEquals(1L, map.getLongCardinality());
+    assertEquals(1L, map.getLongCardinality());
 
     // Remove it
     map.removeLong(123L);
-    Assert.assertEquals(0L, map.getLongCardinality());
-    Assert.assertTrue(map.isEmpty());
+    assertEquals(0L, map.getLongCardinality());
+    assertTrue(map.isEmpty());
 
     // Add it back
     map.addLong(123);
-    Assert.assertEquals(1L, map.getLongCardinality());
+    assertEquals(1L, map.getLongCardinality());
   }
 
   @Test
@@ -424,16 +430,16 @@ public class TestRoaring64NavigableMap {
 
     // Add a value
     map.addLong(123);
-    Assert.assertEquals(1L, map.getLongCardinality());
+    assertEquals(1L, map.getLongCardinality());
 
     // Remove it
     map.removeLong(123L);
-    Assert.assertEquals(0L, map.getLongCardinality());
-    Assert.assertTrue(map.isEmpty());
+    assertEquals(0L, map.getLongCardinality());
+    assertTrue(map.isEmpty());
 
     // Add it back
     map.addLong(123);
-    Assert.assertEquals(1L, map.getLongCardinality());
+    assertEquals(1L, map.getLongCardinality());
   }
 
   @Test
@@ -443,20 +449,20 @@ public class TestRoaring64NavigableMap {
     // Add two values
     map.addLong(123);
     map.addLong(Long.MAX_VALUE);
-    Assert.assertEquals(2L, map.getLongCardinality());
+    assertEquals(2L, map.getLongCardinality());
 
     // Remove biggest
     map.removeLong(Long.MAX_VALUE);
-    Assert.assertEquals(1L, map.getLongCardinality());
+    assertEquals(1L, map.getLongCardinality());
 
-    Assert.assertEquals(123L, map.select(0));
+    assertEquals(123L, map.select(0));
 
     // Add back to different bucket
     map.addLong(Long.MAX_VALUE);
-    Assert.assertEquals(2L, map.getLongCardinality());
+    assertEquals(2L, map.getLongCardinality());
 
-    Assert.assertEquals(123L, map.select(0));
-    Assert.assertEquals(Long.MAX_VALUE, map.select(1));
+    assertEquals(123L, map.select(0));
+    assertEquals(Long.MAX_VALUE, map.select(1));
   }
 
   @Test
@@ -466,20 +472,20 @@ public class TestRoaring64NavigableMap {
     // Add two values
     map.addLong(123);
     map.addLong(Long.MAX_VALUE);
-    Assert.assertEquals(2L, map.getLongCardinality());
+    assertEquals(2L, map.getLongCardinality());
 
     // Remove biggest
     map.removeLong(Long.MAX_VALUE);
-    Assert.assertEquals(1L, map.getLongCardinality());
+    assertEquals(1L, map.getLongCardinality());
 
-    Assert.assertEquals(123L, map.select(0));
+    assertEquals(123L, map.select(0));
 
     // Add back to different bucket
     map.addLong(Long.MAX_VALUE / 2L);
-    Assert.assertEquals(2L, map.getLongCardinality());
+    assertEquals(2L, map.getLongCardinality());
 
-    Assert.assertEquals(123L, map.select(0));
-    Assert.assertEquals(Long.MAX_VALUE / 2L, map.select(1));
+    assertEquals(123L, map.select(0));
+    assertEquals(Long.MAX_VALUE / 2L, map.select(1));
   }
 
   @Test
@@ -489,20 +495,20 @@ public class TestRoaring64NavigableMap {
     // Add two values
     map.addLong(123);
     map.addLong(Long.MAX_VALUE / 2L);
-    Assert.assertEquals(2L, map.getLongCardinality());
+    assertEquals(2L, map.getLongCardinality());
 
     // Remove biggest
     map.removeLong(Long.MAX_VALUE / 2L);
-    Assert.assertEquals(1L, map.getLongCardinality());
+    assertEquals(1L, map.getLongCardinality());
 
-    Assert.assertEquals(123L, map.select(0));
+    assertEquals(123L, map.select(0));
 
     // Add back to different bucket
     map.addLong(Long.MAX_VALUE);
-    Assert.assertEquals(2L, map.getLongCardinality());
+    assertEquals(2L, map.getLongCardinality());
 
-    Assert.assertEquals(123L, map.select(0));
-    Assert.assertEquals(Long.MAX_VALUE, map.select(1));
+    assertEquals(123L, map.select(0));
+    assertEquals(Long.MAX_VALUE, map.select(1));
   }
 
   @Test
@@ -515,11 +521,11 @@ public class TestRoaring64NavigableMap {
     }
 
     long cardinality = map.getLongCardinality();
-    Assert.assertEquals(problemSize, cardinality);
+    assertEquals(problemSize, cardinality);
 
     long last = map.select(cardinality - 1);
-    Assert.assertEquals(problemSize * Integer.MAX_VALUE + 1L, last);
-    Assert.assertEquals(cardinality, map.rankLong(last));
+    assertEquals(problemSize * Integer.MAX_VALUE + 1L, last);
+    assertEquals(cardinality, map.rankLong(last));
   }
 
   @Test
@@ -532,11 +538,11 @@ public class TestRoaring64NavigableMap {
     }
 
     long cardinality = map.getLongCardinality();
-    Assert.assertEquals(problemSize, cardinality);
+    assertEquals(problemSize, cardinality);
 
     long last = map.select(cardinality - 1);
-    Assert.assertEquals(problemSize * Integer.MAX_VALUE + 1L, last);
-    Assert.assertEquals(cardinality, map.rankLong(last));
+    assertEquals(problemSize * Integer.MAX_VALUE + 1L, last);
+    assertEquals(cardinality, map.rankLong(last));
   }
 
   @Test
@@ -551,15 +557,15 @@ public class TestRoaring64NavigableMap {
     Comparator<Integer> unsigned = RoaringIntPacking.unsignedComparator();
 
     // Comparator a negative and a positive differs from natural comparison
-    Assert.assertTrue(natural.compare(-1, 1) < 0);
-    Assert.assertFalse(unsigned.compare(-1, 1) < 0);
+    assertTrue(natural.compare(-1, 1) < 0);
+    assertFalse(unsigned.compare(-1, 1) < 0);
 
     // Comparator Long.MAX_VALUE and Long.MAX_VALUE + 1 differs
-    Assert.assertTrue(natural.compare(Integer.MAX_VALUE, Integer.MAX_VALUE + 1) > 0);
-    Assert.assertFalse(unsigned.compare(Integer.MAX_VALUE, Integer.MAX_VALUE + 1) > 0);
+    assertTrue(natural.compare(Integer.MAX_VALUE, Integer.MAX_VALUE + 1) > 0);
+    assertFalse(unsigned.compare(Integer.MAX_VALUE, Integer.MAX_VALUE + 1) > 0);
 
     // 'Integer.MAX_VALUE+1' is lower than 'Integer.MAX_VALUE+2'
-    Assert.assertTrue(unsigned.compare(Integer.MAX_VALUE + 1, Integer.MAX_VALUE + 2) < 0);
+    assertTrue(unsigned.compare(Integer.MAX_VALUE + 1, Integer.MAX_VALUE + 2) < 0);
   }
 
   @Test
@@ -573,8 +579,8 @@ public class TestRoaring64NavigableMap {
     long last = map.select(1);
 
     // signed: positive is after negative
-    Assert.assertEquals(negative, first);
-    Assert.assertEquals(positive, last);
+    assertEquals(negative, first);
+    assertEquals(positive, last);
   }
 
   @Test
@@ -588,8 +594,8 @@ public class TestRoaring64NavigableMap {
     long last = map.select(1);
 
     // unsigned: negative means bigger than Long.MAX_VALUE
-    Assert.assertEquals(positive, first);
-    Assert.assertEquals(negative, last);
+    assertEquals(positive, first);
+    assertEquals(negative, last);
   }
 
   @Test
@@ -599,7 +605,7 @@ public class TestRoaring64NavigableMap {
     Roaring64NavigableMap map = newSignedBuffered();
     map.addLong(positive);
     map.addLong(negative);
-    Assert.assertEquals(1, map.rankLong(negative));
+    assertEquals(1, map.rankLong(negative));
   }
 
   @Test
@@ -609,7 +615,7 @@ public class TestRoaring64NavigableMap {
     Roaring64NavigableMap map = newUnsignedHeap();
     map.addLong(positive);
     map.addLong(negative);
-    Assert.assertEquals(2, map.rankLong(negative));
+    assertEquals(2, map.rankLong(negative));
   }
 
   @Test
@@ -622,8 +628,8 @@ public class TestRoaring64NavigableMap {
     LongIterator it = map.getLongIterator();
     long first = it.next();
     long last = it.next();
-    Assert.assertEquals(negative, first);
-    Assert.assertEquals(positive, last);
+    assertEquals(negative, first);
+    assertEquals(positive, last);
   }
 
   @Test
@@ -636,18 +642,18 @@ public class TestRoaring64NavigableMap {
     LongIterator it = map.getLongIterator();
     long first = it.next();
     long last = it.next();
-    Assert.assertEquals(positive, first);
-    Assert.assertEquals(negative, last);
+    assertEquals(positive, first);
+    assertEquals(negative, last);
   }
 
   @Test
   public void testAddingLowValueAfterHighValue() {
     Roaring64NavigableMap map = newDefaultCtor();
     map.addLong(Long.MAX_VALUE);
-    Assert.assertEquals(Long.MAX_VALUE, map.select(0));
+    assertEquals(Long.MAX_VALUE, map.select(0));
     map.addLong(666);
-    Assert.assertEquals(666, map.select(0));
-    Assert.assertEquals(Long.MAX_VALUE, map.select(1));
+    assertEquals(666, map.select(0));
+    assertEquals(Long.MAX_VALUE, map.select(1));
   }
 
   @Test
@@ -666,8 +672,8 @@ public class TestRoaring64NavigableMap {
     }
 
     // Check the test has not simply copied the ref
-    Assert.assertNotSame(map, clone);
-    Assert.assertEquals(0, clone.getLongCardinality());
+    assertNotSame(map, clone);
+    assertEquals(0, clone.getLongCardinality());
   }
 
   @Test
@@ -687,9 +693,9 @@ public class TestRoaring64NavigableMap {
     }
 
     // Check the test has not simply copied the ref
-    Assert.assertNotSame(map, clone);
-    Assert.assertEquals(1, clone.getLongCardinality());
-    Assert.assertEquals(123, clone.select(0));
+    assertNotSame(map, clone);
+    assertEquals(1, clone.getLongCardinality());
+    assertEquals(123, clone.select(0));
   }
 
 
@@ -710,9 +716,9 @@ public class TestRoaring64NavigableMap {
     }
 
     // Check the test has not simply copied the ref
-    Assert.assertNotSame(map, clone);
-    Assert.assertEquals(1, clone.getLongCardinality());
-    Assert.assertEquals(123, clone.select(0));
+    assertNotSame(map, clone);
+    assertEquals(1, clone.getLongCardinality());
+    assertEquals(123, clone.select(0));
   }
 
 
@@ -735,11 +741,11 @@ public class TestRoaring64NavigableMap {
     }
 
     // Check the test has not simply copied the ref
-    Assert.assertNotSame(map, clone);
-    Assert.assertEquals(3, clone.getLongCardinality());
-    Assert.assertEquals(-123, clone.select(0));
-    Assert.assertEquals(123, clone.select(1));
-    Assert.assertEquals(Long.MAX_VALUE, clone.select(2));
+    assertNotSame(map, clone);
+    assertEquals(3, clone.getLongCardinality());
+    assertEquals(-123, clone.select(0));
+    assertEquals(123, clone.select(1));
+    assertEquals(Long.MAX_VALUE, clone.select(2));
   }
   
   @Test
@@ -761,11 +767,11 @@ public class TestRoaring64NavigableMap {
     }
 
     // Check the test has not simply copied the ref
-    Assert.assertNotSame(map, clone);
-    Assert.assertEquals(3, clone.getLongCardinality());
-    Assert.assertEquals(123, clone.select(0));
-    Assert.assertEquals(Long.MAX_VALUE, clone.select(1));
-    Assert.assertEquals(-123, clone.select(2));
+    assertNotSame(map, clone);
+    assertEquals(3, clone.getLongCardinality());
+    assertEquals(123, clone.select(0));
+    assertEquals(Long.MAX_VALUE, clone.select(1));
+    assertEquals(-123, clone.select(2));
   }
 
   @Test
@@ -779,7 +785,7 @@ public class TestRoaring64NavigableMap {
       map.serialize(oos);
     }
 
-    Assert.assertEquals(baos.toByteArray().length, map.serializedSizeInBytes());
+    assertEquals(baos.toByteArray().length, map.serializedSizeInBytes());
   }
 
   @Test
@@ -792,10 +798,10 @@ public class TestRoaring64NavigableMap {
 
     left.or(right);
 
-    Assert.assertEquals(2, left.getLongCardinality());
+    assertEquals(2, left.getLongCardinality());
 
-    Assert.assertEquals(123, left.select(0));
-    Assert.assertEquals(234, left.select(1));
+    assertEquals(123, left.select(0));
+    assertEquals(234, left.select(1));
   }
 
   @Test
@@ -809,11 +815,11 @@ public class TestRoaring64NavigableMap {
 
     left.or(right);
 
-    Assert.assertEquals(3, left.getLongCardinality());
+    assertEquals(3, left.getLongCardinality());
 
-    Assert.assertEquals(123, left.select(0));
-    Assert.assertEquals(234, left.select(1));
-    Assert.assertEquals(Long.MAX_VALUE, left.select(2));
+    assertEquals(123, left.select(0));
+    assertEquals(234, left.select(1));
+    assertEquals(Long.MAX_VALUE, left.select(2));
   }
 
   @Test
@@ -826,10 +832,10 @@ public class TestRoaring64NavigableMap {
 
     left.or(right);
 
-    Assert.assertEquals(2, left.getLongCardinality());
+    assertEquals(2, left.getLongCardinality());
 
-    Assert.assertEquals(123, left.select(0));
-    Assert.assertEquals(Long.MAX_VALUE / 2, left.select(1));
+    assertEquals(123, left.select(0));
+    assertEquals(Long.MAX_VALUE / 2, left.select(1));
   }
 
 
@@ -843,10 +849,10 @@ public class TestRoaring64NavigableMap {
 
     left.or(right);
 
-    Assert.assertEquals(2, left.getLongCardinality());
+    assertEquals(2, left.getLongCardinality());
 
-    Assert.assertEquals(123, left.select(0));
-    Assert.assertEquals(234, left.select(1));
+    assertEquals(123, left.select(0));
+    assertEquals(234, left.select(1));
   }
 
   @Test
@@ -859,10 +865,10 @@ public class TestRoaring64NavigableMap {
 
     left.or(right);
 
-    Assert.assertEquals(2, left.getLongCardinality());
+    assertEquals(2, left.getLongCardinality());
 
-    Assert.assertEquals(123, left.select(0));
-    Assert.assertEquals(Long.MAX_VALUE, left.select(1));
+    assertEquals(123, left.select(0));
+    assertEquals(Long.MAX_VALUE, left.select(1));
   }
 
   @Test
@@ -875,10 +881,10 @@ public class TestRoaring64NavigableMap {
 
     left.or(right);
 
-    Assert.assertEquals(2, left.getLongCardinality());
+    assertEquals(2, left.getLongCardinality());
 
-    Assert.assertEquals(123, left.select(0));
-    Assert.assertEquals(234, left.select(1));
+    assertEquals(123, left.select(0));
+    assertEquals(234, left.select(1));
   }
 
   @Test
@@ -894,12 +900,12 @@ public class TestRoaring64NavigableMap {
     // Then we mutate left: ensure it does not impact right as it should remain unchanged
     left.addLong(234);
 
-    Assert.assertEquals(2, left.getLongCardinality());
-    Assert.assertEquals(123, left.select(0));
-    Assert.assertEquals(234, left.select(1));
+    assertEquals(2, left.getLongCardinality());
+    assertEquals(123, left.select(0));
+    assertEquals(234, left.select(1));
 
-    Assert.assertEquals(1, right.getLongCardinality());
-    Assert.assertEquals(123, right.select(0));
+    assertEquals(1, right.getLongCardinality());
+    assertEquals(123, right.select(0));
   }
 
 
@@ -916,9 +922,9 @@ public class TestRoaring64NavigableMap {
     // We have 1 shared value: 234
     left.xor(right);
 
-    Assert.assertEquals(2, left.getLongCardinality());
-    Assert.assertEquals(123, left.select(0));
-    Assert.assertEquals(345, left.select(1));
+    assertEquals(2, left.getLongCardinality());
+    assertEquals(123, left.select(0));
+    assertEquals(345, left.select(1));
   }
 
   @Test
@@ -933,9 +939,9 @@ public class TestRoaring64NavigableMap {
 
     left.xor(right);
 
-    Assert.assertEquals(2, left.getLongCardinality());
-    Assert.assertEquals(123, left.select(0));
-    Assert.assertEquals(345, left.select(1));
+    assertEquals(2, left.getLongCardinality());
+    assertEquals(123, left.select(0));
+    assertEquals(345, left.select(1));
   }
 
   @Test
@@ -949,9 +955,9 @@ public class TestRoaring64NavigableMap {
     // We have 1 shared value: 234
     left.xor(right);
 
-    Assert.assertEquals(2, left.getLongCardinality());
-    Assert.assertEquals(123, left.select(0));
-    Assert.assertEquals(Long.MAX_VALUE, left.select(1));
+    assertEquals(2, left.getLongCardinality());
+    assertEquals(123, left.select(0));
+    assertEquals(Long.MAX_VALUE, left.select(1));
   }
 
   @Test
@@ -966,8 +972,8 @@ public class TestRoaring64NavigableMap {
     // We have 1 shared value: 234
     left.xor(right);
 
-    Assert.assertEquals(1, left.getLongCardinality());
-    Assert.assertEquals(123, left.select(0));
+    assertEquals(1, left.getLongCardinality());
+    assertEquals(123, left.select(0));
   }
 
 
@@ -984,8 +990,8 @@ public class TestRoaring64NavigableMap {
     // We have 1 shared value: 234
     left.and(right);
 
-    Assert.assertEquals(1, left.getLongCardinality());
-    Assert.assertEquals(234, left.select(0));
+    assertEquals(1, left.getLongCardinality());
+    assertEquals(234, left.select(0));
   }
 
   @Test
@@ -999,8 +1005,8 @@ public class TestRoaring64NavigableMap {
     // We have 1 shared value: 234
     left.and(right);
 
-    Assert.assertEquals(1, left.getLongCardinality());
-    Assert.assertEquals(123, left.select(0));
+    assertEquals(1, left.getLongCardinality());
+    assertEquals(123, left.select(0));
   }
 
   @Test
@@ -1014,7 +1020,7 @@ public class TestRoaring64NavigableMap {
     // We have 1 shared value: 234
     left.and(right);
 
-    Assert.assertEquals(0, left.getLongCardinality());
+    assertEquals(0, left.getLongCardinality());
   }
 
   @Test
@@ -1029,8 +1035,8 @@ public class TestRoaring64NavigableMap {
     // We have 1 shared value: 234
     left.and(right);
 
-    Assert.assertEquals(1, left.getLongCardinality());
-    Assert.assertEquals(Long.MAX_VALUE, left.select(0));
+    assertEquals(1, left.getLongCardinality());
+    assertEquals(Long.MAX_VALUE, left.select(0));
   }
 
 
@@ -1047,8 +1053,8 @@ public class TestRoaring64NavigableMap {
     // We have 1 shared value: 234
     left.andNot(right);
 
-    Assert.assertEquals(1, left.getLongCardinality());
-    Assert.assertEquals(123, left.select(0));
+    assertEquals(1, left.getLongCardinality());
+    assertEquals(123, left.select(0));
   }
 
   @Test
@@ -1062,8 +1068,8 @@ public class TestRoaring64NavigableMap {
     // We have 1 shared value: 234
     left.andNot(right);
 
-    Assert.assertEquals(1, left.getLongCardinality());
-    Assert.assertEquals(123, left.select(0));
+    assertEquals(1, left.getLongCardinality());
+    assertEquals(123, left.select(0));
   }
 
   @Test
@@ -1077,8 +1083,8 @@ public class TestRoaring64NavigableMap {
     // We have 1 shared value: 234
     left.andNot(right);
 
-    Assert.assertEquals(1, left.getLongCardinality());
-    Assert.assertEquals(123, left.select(0));
+    assertEquals(1, left.getLongCardinality());
+    assertEquals(123, left.select(0));
   }
 
   @Test
@@ -1093,8 +1099,8 @@ public class TestRoaring64NavigableMap {
     // We have 1 shared value: 234
     left.andNot(right);
 
-    Assert.assertEquals(1, left.getLongCardinality());
-    Assert.assertEquals(123, left.select(0));
+    assertEquals(1, left.getLongCardinality());
+    assertEquals(123, left.select(0));
   }
 
   @Test
@@ -1105,7 +1111,7 @@ public class TestRoaring64NavigableMap {
     map.addLong(Long.MAX_VALUE);
     map.addLong(Long.MAX_VALUE + 1L);
 
-    Assert.assertEquals("{-9223372036854775808,123,9223372036854775807}", map.toString());
+    assertEquals("{-9223372036854775808,123,9223372036854775807}", map.toString());
   }
 
   @Test
@@ -1116,7 +1122,7 @@ public class TestRoaring64NavigableMap {
     map.addLong(Long.MAX_VALUE);
     map.addLong(Long.MAX_VALUE + 1L);
 
-    Assert.assertEquals("{123,9223372036854775807,9223372036854775808}", map.toString());
+    assertEquals("{123,9223372036854775807,9223372036854775808}", map.toString());
   }
 
   @Test
@@ -1124,10 +1130,10 @@ public class TestRoaring64NavigableMap {
     Roaring64NavigableMap map = newUnsignedHeap();
 
     map.add(5L, 12L);
-    Assert.assertEquals(7L, map.getLongCardinality());
+    assertEquals(7L, map.getLongCardinality());
 
-    Assert.assertEquals(5L, map.select(0));
-    Assert.assertEquals(11L, map.select(6L));
+    assertEquals(5L, map.select(0));
+    assertEquals(11L, map.select(6L));
   }
 
 
@@ -1136,10 +1142,10 @@ public class TestRoaring64NavigableMap {
     Roaring64NavigableMap map = newSignedBuffered();
 
     map.add(5L, 12L);
-    Assert.assertEquals(7L, map.getLongCardinality());
+    assertEquals(7L, map.getLongCardinality());
 
-    Assert.assertEquals(5L, map.select(0));
-    Assert.assertEquals(11L, map.select(6L));
+    assertEquals(5L, map.select(0));
+    assertEquals(11L, map.select(6L));
   }
 
   // Edge case: the last high is excluded and should not lead to a new bitmap. However, it may be
@@ -1151,10 +1157,10 @@ public class TestRoaring64NavigableMap {
     long end = Util.toUnsignedLong(-1) + 1;
 
     map.add(end - 2, end);
-    Assert.assertEquals(2, map.getLongCardinality());
+    assertEquals(2, map.getLongCardinality());
 
-    Assert.assertEquals(end - 2, map.select(0));
-    Assert.assertEquals(end - 1, map.select(1));
+    assertEquals(end - 2, map.select(0));
+    assertEquals(end - 1, map.select(1));
   }
 
 
@@ -1168,21 +1174,23 @@ public class TestRoaring64NavigableMap {
     long to = from + 2 * enableTrim;
     map.add(from, to);
     int nbItems = (int) (to - from);
-    Assert.assertEquals(nbItems, map.getLongCardinality());
+    assertEquals(nbItems, map.getLongCardinality());
 
-    Assert.assertEquals(from, map.select(0));
-    Assert.assertEquals(to - 1, map.select(nbItems - 1));
+    assertEquals(from, map.select(0));
+    assertEquals(to - 1, map.select(nbItems - 1));
   }
 
 
   public static final long outOfRoaringBitmapRange = 2L * Integer.MAX_VALUE + 3L;
 
   // Check this range is not handled by RoaringBitmap
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testCardinalityAboveIntegerMaxValue_RoaringBitmap() {
-    RoaringBitmap map = new RoaringBitmap();
+    assertThrows(IllegalArgumentException.class, () -> {
+      RoaringBitmap map = new RoaringBitmap();
 
-    map.add(0L, outOfRoaringBitmapRange);
+      map.add(0L, outOfRoaringBitmapRange);
+    });
   }
 
   @Test
@@ -1193,12 +1201,12 @@ public class TestRoaring64NavigableMap {
 
     // This should fill entirely one bitmap,and add one in the next bitmap
     map.add(0, outOfSingleRoaring);
-    Assert.assertEquals(outOfSingleRoaring, map.getLongCardinality());
+    assertEquals(outOfSingleRoaring, map.getLongCardinality());
 
-    Assert.assertEquals(outOfSingleRoaring, map.getLongCardinality());
+    assertEquals(outOfSingleRoaring, map.getLongCardinality());
 
-    Assert.assertEquals(0, map.select(0));
-    Assert.assertEquals(outOfSingleRoaring - 1, map.select(outOfSingleRoaring - 1));
+    assertEquals(0, map.select(0));
+    assertEquals(outOfSingleRoaring - 1, map.select(outOfSingleRoaring - 1));
 
   }
 
@@ -1209,8 +1217,8 @@ public class TestRoaring64NavigableMap {
     long maxForRoaringBitmap = Util.toUnsignedLong(-1) + 1;
     map.add(0L, maxForRoaringBitmap);
 
-    Assert.assertEquals(maxForRoaringBitmap, map.getLongCardinality());
-    Assert.assertEquals(-1, map.select(-1));
+    assertEquals(maxForRoaringBitmap, map.getLongCardinality());
+    assertEquals(-1, map.select(-1));
   }
 
   @Test
@@ -1220,8 +1228,8 @@ public class TestRoaring64NavigableMap {
     long maxForRoaringBitmap = Util.toUnsignedLong(-1) + 1;
     map.add(0L, maxForRoaringBitmap);
 
-    Assert.assertEquals(maxForRoaringBitmap, map.getLongCardinality());
-    Assert.assertEquals(-1, map.select(-1));
+    assertEquals(maxForRoaringBitmap, map.getLongCardinality());
+    assertEquals(-1, map.select(-1));
   }
 
   @Test
@@ -1235,7 +1243,7 @@ public class TestRoaring64NavigableMap {
     long to = from + 2 * enableTrim;
 
     // Check we cover different buckets
-    Assert.assertNotEquals(RoaringIntPacking.high(to), RoaringIntPacking.high(from));
+    assertNotEquals(RoaringIntPacking.high(to), RoaringIntPacking.high(from));
 
     for (long i = from; i <= to; i++) {
       map.addLong(i);
@@ -1253,26 +1261,28 @@ public class TestRoaring64NavigableMap {
 
     Iterator<Long> it = map.iterator();
 
-    Assert.assertTrue(it.hasNext());
-    Assert.assertEquals(123L, it.next().longValue());
-    Assert.assertTrue(it.hasNext());
-    Assert.assertEquals(234, it.next().longValue());
-    Assert.assertFalse(it.hasNext());
+    assertTrue(it.hasNext());
+    assertEquals(123L, it.next().longValue());
+    assertTrue(it.hasNext());
+    assertEquals(234, it.next().longValue());
+    assertFalse(it.hasNext());
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void testAutoboxedIterator_CanNotRemove() {
-    Roaring64NavigableMap map = newUnsignedHeap();
+    assertThrows(UnsupportedOperationException.class, () -> {
+      Roaring64NavigableMap map = newUnsignedHeap();
 
-    map.addLong(123);
-    map.addLong(234);
+      map.addLong(123);
+      map.addLong(234);
 
-    Iterator<Long> it = map.iterator();
+      Iterator<Long> it = map.iterator();
 
-    Assert.assertTrue(it.hasNext());
+      assertTrue(it.hasNext());
 
-    // Should throw a UnsupportedOperationException
-    it.remove();
+      // Should throw a UnsupportedOperationException
+      it.remove();
+    });
   }
 
 
@@ -1284,34 +1294,40 @@ public class TestRoaring64NavigableMap {
     map.addLong(123);
     map.addLong(Long.MAX_VALUE);
 
-    Assert.assertEquals(123L, map.select(0));
-    Assert.assertEquals(Long.MAX_VALUE, map.select(1));
+    assertEquals(123L, map.select(0));
+    assertEquals(Long.MAX_VALUE, map.select(1));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testSelect_Empty() {
-    Roaring64NavigableMap map = newUnsignedHeap();
+    assertThrows(IllegalArgumentException.class, () -> {
+      Roaring64NavigableMap map = newUnsignedHeap();
 
-    map.select(0);
+      map.select(0);
+    });
   }
 
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testSelect_OutOfBounds_MatchCardinality() {
-    Roaring64NavigableMap map = newUnsignedHeap();
+    assertThrows(IllegalArgumentException.class, () -> {
+      Roaring64NavigableMap map = newUnsignedHeap();
 
-    map.addLong(123);
+      map.addLong(123);
 
-    map.select(1);
+      map.select(1);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testSelect_OutOfBounds_OtherCardinality() {
-    Roaring64NavigableMap map = newUnsignedHeap();
+    assertThrows(IllegalArgumentException.class, () -> {
+      Roaring64NavigableMap map = newUnsignedHeap();
 
-    map.addLong(123);
+      map.addLong(123);
 
-    map.select(2);
+      map.select(2);
+    });
   }
 
 
@@ -1322,10 +1338,10 @@ public class TestRoaring64NavigableMap {
     map.addLong(123);
     map.addLong(Long.MAX_VALUE);
 
-    Assert.assertEquals(0, map.rankLong(0));
-    Assert.assertEquals(1, map.rankLong(123));
-    Assert.assertEquals(1, map.rankLong(Long.MAX_VALUE - 1));
-    Assert.assertEquals(2, map.rankLong(Long.MAX_VALUE));
+    assertEquals(0, map.rankLong(0));
+    assertEquals(1, map.rankLong(123));
+    assertEquals(1, map.rankLong(Long.MAX_VALUE - 1));
+    assertEquals(2, map.rankLong(Long.MAX_VALUE));
   }
 
   @Test
@@ -1335,7 +1351,7 @@ public class TestRoaring64NavigableMap {
     map.addLong(123);
     map.addLong(Long.MAX_VALUE);
 
-    Assert.assertEquals(1, map.rankLong(Long.MAX_VALUE / 2L));
+    assertEquals(1, map.rankLong(Long.MAX_VALUE / 2L));
   }
 
   @Test
@@ -1363,10 +1379,10 @@ public class TestRoaring64NavigableMap {
     final Roaring64NavigableMap r = newUnsignedHeap();
     final long value = 1L;
     r.addLong(value);
-    Assert.assertEquals(1, r.getLongCardinality());
+    assertEquals(1, r.getLongCardinality());
 
     r.flip(1);
-    Assert.assertEquals(0, r.getLongCardinality());
+    assertEquals(0, r.getLongCardinality());
   }
 
   @Test
@@ -1376,7 +1392,7 @@ public class TestRoaring64NavigableMap {
     map.addLong(0);
     map.flip(0);
 
-    Assert.assertFalse(map.contains(0));
+    assertFalse(map.contains(0));
 
     checkCardinalities(map);
   }
@@ -1388,7 +1404,7 @@ public class TestRoaring64NavigableMap {
     map.addLong(0);
     map.flip(0);
 
-    Assert.assertFalse(map.contains(0));
+    assertFalse(map.contains(0));
   }
 
   // Ensure the ordering behavior with default constructors is the same between RoaringBitmap and
@@ -1410,8 +1426,8 @@ public class TestRoaring64NavigableMap {
 
     // The array seems equivalent, but beware one represents unsigned integers while the others
     // holds unsigned longs: -1 have a different meaning
-    Assert.assertArrayEquals(bitmapAsIntArray, Ints.toArray(Longs.asList(longBitmapAsArray)));
-    Assert.assertArrayEquals(Longs.toArray(Ints.asList(bitmapAsIntArray)), longBitmapAsArray);
+    assertArrayEquals(bitmapAsIntArray, Ints.toArray(Longs.asList(longBitmapAsArray)));
+    assertArrayEquals(Longs.toArray(Ints.asList(bitmapAsIntArray)), longBitmapAsArray);
 
     long[] bitmapAsLongArray = new long[bitmapAsIntArray.length];
     for (int i = 0; i < bitmapAsIntArray.length; i++) {
@@ -1419,7 +1435,7 @@ public class TestRoaring64NavigableMap {
     }
   }
 
-  @Ignore(".add have a different meaning between Roaring64NavigableMap and RoaringBitmap")
+  @Disabled(".add have a different meaning between Roaring64NavigableMap and RoaringBitmap")
   @Test
   public void testDefaultBehaviorLikeRoaring_MinusOneAsInt() {
     Roaring64NavigableMap longBitmap = newDefaultCtor();
@@ -1429,11 +1445,11 @@ public class TestRoaring64NavigableMap {
     bitmap.add(-1);
 
     // Ok as -1 === -1
-    Assert.assertEquals(bitmap.select(0), longBitmap.select(0));
+    assertEquals(bitmap.select(0), longBitmap.select(0));
 
     // But RoaringBitmap.select has to be interpreted as an unsigned integer: not as an unsigned
     // long
-    Assert.assertEquals(Util.toUnsignedLong(bitmap.select(0)), longBitmap.select(0));
+    assertEquals(Util.toUnsignedLong(bitmap.select(0)), longBitmap.select(0));
   }
 
   @Test
@@ -1459,9 +1475,9 @@ public class TestRoaring64NavigableMap {
       for (int i = 0; i < chunksSize; i++) {
         map.removeLong(map.select(r.nextInt(map.getIntCardinality())));
       }
-      Assert.assertEquals(targetCardinality - chunksSize * (j + 1), map.getIntCardinality());
+      assertEquals(targetCardinality - chunksSize * (j + 1), map.getIntCardinality());
     }
-    Assert.assertTrue(map.isEmpty());
+    assertTrue(map.isEmpty());
   }
 
   @Test
@@ -1469,20 +1485,20 @@ public class TestRoaring64NavigableMap {
     Roaring64NavigableMap map = newSignedBuffered();
 
     // Size when empty
-    Assert.assertEquals(16, map.getLongSizeInBytes());
+    assertEquals(16, map.getLongSizeInBytes());
 
     // Add values so that the underlying Map holds multiple entries
     map.add(0);
     map.add(2L * Integer.MAX_VALUE);
     map.add(8L * Integer.MAX_VALUE, 8L * Integer.MAX_VALUE + 1024);
     
-    Assert.assertEquals(3, map.getHighToBitmap().size());
+    assertEquals(3, map.getHighToBitmap().size());
 
     // Size with multiple entries
-    Assert.assertEquals(228, map.getLongSizeInBytes());
+    assertEquals(228, map.getLongSizeInBytes());
     
     // Select does allocate some cache
     map.select(16);
-    Assert.assertEquals(264, map.getLongSizeInBytes());
+    assertEquals(264, map.getLongSizeInBytes());
   }
 }
