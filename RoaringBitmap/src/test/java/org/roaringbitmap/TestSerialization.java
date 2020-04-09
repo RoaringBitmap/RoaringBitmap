@@ -1,7 +1,7 @@
 package org.roaringbitmap;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
@@ -12,7 +12,8 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Random;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 class ByteBufferBackedInputStream extends InputStream {
 
@@ -111,7 +112,7 @@ public class TestSerialization {
   // Very small buffer to higher to chance to encounter edge-case
   byte[] buffer = new byte[16];
 
-  @BeforeClass
+  @BeforeAll
   public static void init() throws IOException {
     final int[] data = takeSortedAndDistinct(new Random(0xcb000a2b9b5bdfb6L), 100000);
     bitmap_a = RoaringBitmap.bitmapOf(data);

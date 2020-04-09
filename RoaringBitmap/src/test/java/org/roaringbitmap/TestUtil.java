@@ -1,42 +1,38 @@
 package org.roaringbitmap;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import java.util.Arrays;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+@Execution(ExecutionMode.CONCURRENT)
 public class TestUtil {
 
     @Test
     public void testUtilUnsignedIntersection() {
-        char data1[] = fromShorts(new short[]{-19, -17, -15, -13, -11, -9, -7, -5, -3, -1});
-        char data2[] = fromShorts(new short[]{-18, -16, -14, -12, -10, -8, -1});
-        Assert.assertTrue(Util.unsignedIntersects(data1, data1.length, data2, data2.length));
-        char data3[] = fromShorts(new short[]{-19, -17, -15, -13, -11, -9, -7});
-        char data4[] = fromShorts(new short[]{-18, -16, -14, -12, -10, -8, -6, -4, -2, 0});
-        Assert.assertFalse(Util.unsignedIntersects(data3, data3.length, data4, data4.length));
-        char data5[] = {};
-        char data6[] = {};
-        Assert.assertFalse(Util.unsignedIntersects(data5, data5.length, data6, data6.length));
+        char[] data1 = fromShorts(new short[]{-19, -17, -15, -13, -11, -9, -7, -5, -3, -1});
+        char[] data2 = fromShorts(new short[]{-18, -16, -14, -12, -10, -8, -1});
+        assertTrue(Util.unsignedIntersects(data1, data1.length, data2, data2.length));
+        char[] data3 = fromShorts(new short[]{-19, -17, -15, -13, -11, -9, -7});
+        char[] data4 = fromShorts(new short[]{-18, -16, -14, -12, -10, -8, -6, -4, -2, 0});
+        assertFalse(Util.unsignedIntersects(data3, data3.length, data4, data4.length));
+        char[] data5 = {};
+        char[] data6 = {};
+        assertFalse(Util.unsignedIntersects(data5, data5.length, data6, data6.length));
     }
 
     @Test
     public void testBranchyUnsignedBinarySearch() {
-        char data1[] = fromShorts(new short[]{-19, -17, -15, -13, -11, -9, -7, -5, -3});
-        Assert.assertEquals(8, Util.branchyUnsignedBinarySearch(data1, 0, data1.length, data1[8]));
-        Assert.assertEquals(0, Util.branchyUnsignedBinarySearch(data1, 0, data1.length, data1[0]));
-        Assert.assertEquals(data1.length-1, Util.branchyUnsignedBinarySearch(data1, data1.length-1, data1.length, data1[data1.length-1]));
-        Assert.assertEquals(-1, Util.branchyUnsignedBinarySearch(data1, 0, 0, (char)0));
-        Assert.assertEquals(-10, Util.branchyUnsignedBinarySearch(data1, 0, data1.length, (char) -1));
-    }
-
-    @Test
-    public void testCompare() {
-      Assert.assertTrue((char) 1 - (char) 2 < 0);
-      Assert.assertTrue((char) -32333 - (char) 2 > 0);
-      Assert.assertTrue((char) 2 - (char) -32333 < 0);
-      Assert.assertTrue((char) 0 - (char) 0 ==0);
-
+        char[] data1 = fromShorts(new short[]{-19, -17, -15, -13, -11, -9, -7, -5, -3});
+        assertEquals(8, Util.branchyUnsignedBinarySearch(data1, 0, data1.length, data1[8]));
+        assertEquals(0, Util.branchyUnsignedBinarySearch(data1, 0, data1.length, data1[0]));
+        assertEquals(data1.length-1, Util.branchyUnsignedBinarySearch(data1, data1.length-1, data1.length, data1[data1.length-1]));
+        assertEquals(-1, Util.branchyUnsignedBinarySearch(data1, 0, 0, (char)0));
+        assertEquals(-10, Util.branchyUnsignedBinarySearch(data1, 0, data1.length, (char) -1));
     }
 
     @Test
@@ -44,7 +40,7 @@ public class TestUtil {
         int[] data = new int[] {};
         int[] test = Arrays.copyOf(data, data.length);
         Util.partialRadixSort(test);
-        Assert.assertArrayEquals(data, test);
+        assertArrayEquals(data, test);
     }
 
     @Test
@@ -52,7 +48,7 @@ public class TestUtil {
         int[] data = new int[] {25, 1, 0, 10};
         int[] test = Arrays.copyOf(data, data.length);
         Util.partialRadixSort(test);
-        Assert.assertArrayEquals(data, test);
+        assertArrayEquals(data, test);
     }
 
     @Test
@@ -64,7 +60,7 @@ public class TestUtil {
         int[] expected = new int[] {0, 25, 10, key1 | 1, key1 | 10, key1, key2 | 25, key2 | 10};
         int[] test = Arrays.copyOf(data, data.length);
         Util.partialRadixSort(test);
-        Assert.assertArrayEquals(expected, test);
+        assertArrayEquals(expected, test);
     }
 
     @Test
@@ -78,25 +74,25 @@ public class TestUtil {
                                     key2 | 25, key2 | 10, key2 | 25, key2 | 10};
         int[] test = Arrays.copyOf(data, data.length);
         Util.partialRadixSort(test);
-        Assert.assertArrayEquals(expected, test);
+        assertArrayEquals(expected, test);
     }
 
     @Test
     public void testAdvanceUntil() {
-        char data[] = fromShorts(new short[]{0, 3, 16, 18, 21, 29, 30,-342});
-        Assert.assertEquals(1, Util.advanceUntil(data, -1, data.length, (char) 3));
-        Assert.assertEquals(5, Util.advanceUntil(data, -1, data.length, (char) 28));
-        Assert.assertEquals(5, Util.advanceUntil(data, -1, data.length, (char) 29));
-        Assert.assertEquals(7, Util.advanceUntil(data, -1, data.length, (char) -342));
+        char[] data = fromShorts(new short[]{0, 3, 16, 18, 21, 29, 30,-342});
+        assertEquals(1, Util.advanceUntil(data, -1, data.length, (char) 3));
+        assertEquals(5, Util.advanceUntil(data, -1, data.length, (char) 28));
+        assertEquals(5, Util.advanceUntil(data, -1, data.length, (char) 29));
+        assertEquals(7, Util.advanceUntil(data, -1, data.length, (char) -342));
     }
 
     @Test
     public void testIterateUntil() {
-        char data[] = fromShorts(new short[]{0, 3, 16, 18, 21, 29, 30,-342});
-        Assert.assertEquals(1, Util.iterateUntil(data, 0, data.length, ((char) 3)));
-        Assert.assertEquals(5, Util.iterateUntil(data, 0, data.length, ((char) 28)));
-        Assert.assertEquals(5, Util.iterateUntil(data, 0, data.length, ((char) 29)));
-        Assert.assertEquals(7, Util.iterateUntil(data, 0, data.length, ((char) -342)));
+        char[] data = fromShorts(new short[]{0, 3, 16, 18, 21, 29, 30,-342});
+        assertEquals(1, Util.iterateUntil(data, 0, data.length, ((char) 3)));
+        assertEquals(5, Util.iterateUntil(data, 0, data.length, ((char) 28)));
+        assertEquals(5, Util.iterateUntil(data, 0, data.length, ((char) 29)));
+        assertEquals(7, Util.iterateUntil(data, 0, data.length, ((char) -342)));
     }
 
     static char[] fromShorts(short[] array) {

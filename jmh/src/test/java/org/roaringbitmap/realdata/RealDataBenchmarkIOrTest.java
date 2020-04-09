@@ -1,32 +1,13 @@
 package org.roaringbitmap.realdata;
 
-import static org.junit.Assert.assertEquals;
-import static org.roaringbitmap.RealDataset.CENSUS1881;
-import static org.roaringbitmap.RealDataset.CENSUS1881_SRT;
-import static org.roaringbitmap.RealDataset.CENSUS_INCOME;
-import static org.roaringbitmap.RealDataset.CENSUS_INCOME_SRT;
-import static org.roaringbitmap.RealDataset.DIMENSION_003;
-import static org.roaringbitmap.RealDataset.DIMENSION_008;
-import static org.roaringbitmap.RealDataset.DIMENSION_033;
-import static org.roaringbitmap.RealDataset.USCENSUS2000;
-import static org.roaringbitmap.RealDataset.WEATHER_SEPT_85;
-import static org.roaringbitmap.RealDataset.WEATHER_SEPT_85_SRT;
-import static org.roaringbitmap.RealDataset.WIKILEAKS_NOQUOTES;
-import static org.roaringbitmap.RealDataset.WIKILEAKS_NOQUOTES_SRT;
-import static org.roaringbitmap.realdata.wrapper.BitmapFactory.CONCISE;
-import static org.roaringbitmap.realdata.wrapper.BitmapFactory.EWAH;
-import static org.roaringbitmap.realdata.wrapper.BitmapFactory.EWAH32;
-import static org.roaringbitmap.realdata.wrapper.BitmapFactory.ROARING;
-import static org.roaringbitmap.realdata.wrapper.BitmapFactory.ROARING_WITH_RUN;
-import static org.roaringbitmap.realdata.wrapper.BitmapFactory.WAH;
+import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
 
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.google.common.collect.ImmutableMap;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.roaringbitmap.RealDataset.*;
+import static org.roaringbitmap.realdata.wrapper.BitmapFactory.*;
 
 
 public class RealDataBenchmarkIOrTest extends RealDataBenchmarkSanityTest {
@@ -39,18 +20,12 @@ public class RealDataBenchmarkIOrTest extends RealDataBenchmarkSanityTest {
           .put(WEATHER_SEPT_85_SRT, 1015367).put(WIKILEAKS_NOQUOTES_SRT, 236436).build();
 
   @Override
-  @Before
-  public void setup() throws Exception {
-    Assume.assumeFalse(type.equals(CONCISE));
-    Assume.assumeFalse(type.equals(WAH));
-    Assume.assumeFalse(type.equals(EWAH));
-    Assume.assumeFalse(type.equals(EWAH32));
-    Assume.assumeFalse((type.equals(ROARING) || type.equals(ROARING_WITH_RUN)) && immutable);
-    super.setup();
-  }
-
-  @Test
-  public void test() throws Exception {
+  protected void doTest(String dataset, String type, boolean immutable) {
+    assumeFalse(type.equals(CONCISE));
+    assumeFalse(type.equals(WAH));
+    assumeFalse(type.equals(EWAH));
+    assumeFalse(type.equals(EWAH32));
+    assumeFalse((type.equals(ROARING) || type.equals(ROARING_WITH_RUN)) && immutable);
     int expected = EXPECTED_RESULTS.get(dataset);
     RealDataBenchmarkIOr bench = new RealDataBenchmarkIOr();
     assertEquals(expected, bench.pairwiseIOr(bs));

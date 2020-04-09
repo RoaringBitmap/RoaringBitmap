@@ -1,7 +1,10 @@
 package org.roaringbitmap.insights;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class NaiveWriterRecommenderTest {
 
@@ -21,9 +24,9 @@ public class NaiveWriterRecommenderTest {
     String recommendation = NaiveWriterRecommender.recommend(stats);
 
     //System.out.println(recommendation);
-    Assert.assertTrue(recommendation.contains(".initialCapacity(2005)"));
-    Assert.assertTrue(recommendation.contains(".optimiseForArrays()"));
-    Assert.assertTrue(recommendation.contains(".expectedContainerSize(10)"));
+    assertTrue(recommendation.contains(".initialCapacity(2005)"));
+    assertTrue(recommendation.contains(".optimiseForArrays()"));
+    assertTrue(recommendation.contains(".expectedContainerSize(10)"));
   }
 
   @Test
@@ -41,7 +44,7 @@ public class NaiveWriterRecommenderTest {
 
     String recommendation = NaiveWriterRecommender.recommend(stats);
 
-    Assert.assertTrue(recommendation.contains(".constantMemory()"));
+    assertTrue(recommendation.contains(".constantMemory()"));
   }
 
     @Test
@@ -59,8 +62,8 @@ public class NaiveWriterRecommenderTest {
 
     String recommendation = NaiveWriterRecommender.recommend(stats);
 
-    Assert.assertTrue(recommendation.contains(".initialCapacity(718)"));
-    Assert.assertTrue(recommendation.contains(".optimiseForRuns()"));
+    assertTrue(recommendation.contains(".initialCapacity(718)"));
+    assertTrue(recommendation.contains(".optimiseForRuns()"));
   }
 
 
@@ -79,8 +82,8 @@ public class NaiveWriterRecommenderTest {
 
     String recommendation = NaiveWriterRecommender.recommend(stats);
 
-    Assert.assertTrue(recommendation.contains(".initialCapacity(250)"));
-    Assert.assertTrue(recommendation.contains(".constantMemory()"));
+    assertTrue(recommendation.contains(".initialCapacity(250)"));
+    assertTrue(recommendation.contains(".constantMemory()"));
   }
 
   @Test
@@ -98,14 +101,14 @@ public class NaiveWriterRecommenderTest {
 
     String recommendation = NaiveWriterRecommender.recommend(stats);
 
-    Assert.assertTrue(recommendation.contains(".initialCapacity(526)"));
-    Assert.assertTrue(recommendation.contains(".constantMemory()"));
+    assertTrue(recommendation.contains(".initialCapacity(526)"));
+    assertTrue(recommendation.contains(".constantMemory()"));
   }
 
   @Test
   public void notRecommendForEmptyStats(){
     String recommendation = NaiveWriterRecommender.recommend(BitmapStatistics.empty);
-    Assert.assertFalse(recommendation.contains(".initialCapacity"));
+    assertFalse(recommendation.contains(".initialCapacity"));
   }
 
 }

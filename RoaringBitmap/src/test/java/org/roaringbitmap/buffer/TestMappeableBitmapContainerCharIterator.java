@@ -1,15 +1,19 @@
 package org.roaringbitmap.buffer;
 
 import com.google.common.primitives.Ints;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.roaringbitmap.PeekableCharIterator;
 
 import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.roaringbitmap.buffer.MappeableArrayContainer.DEFAULT_MAX_SIZE;
 
+@Execution(ExecutionMode.CONCURRENT)
 public class TestMappeableBitmapContainerCharIterator {
 
     private static List<Integer> asList(PeekableCharIterator ints) {
@@ -32,8 +36,9 @@ public class TestMappeableBitmapContainerCharIterator {
         }
         MappeableBitmapContainerCharIterator tmbc = new MappeableBitmapContainerCharIterator(mappeableBitmapContainer);
         PeekableCharIterator tmbcClone = tmbc.clone();
+        assertNotNull(tmbcClone);
         final List<Integer> tmbcList = asList(tmbc);
         final List<Integer> tmbcCloneList = asList(tmbcClone);
-        Assert.assertEquals(tmbcList, tmbcCloneList);
+        assertEquals(tmbcList, tmbcCloneList);
     }
 }

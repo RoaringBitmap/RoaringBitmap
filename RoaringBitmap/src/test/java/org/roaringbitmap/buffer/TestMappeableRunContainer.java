@@ -1,7 +1,9 @@
 package org.roaringbitmap.buffer;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -11,11 +13,11 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.LongBuffer;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
 import static org.roaringbitmap.buffer.TestMappeableArrayContainer.newArrayContainer;
 
-
+@Execution(ExecutionMode.CONCURRENT)
 public class TestMappeableRunContainer {
 
   protected static MappeableRunContainer generateContainer(char[] values, int numOfRuns) {
@@ -68,11 +70,13 @@ public class TestMappeableRunContainer {
     return new MappeableRunContainer(buffer.asReadOnlyBuffer(), 1);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void selectInvalidPosition() {
-    MappeableContainer bc = new MappeableRunContainer();
-    bc = bc.add(1,13);
-    bc.select(100);
+    assertThrows(IllegalArgumentException.class, () -> {
+      MappeableContainer bc = new MappeableRunContainer();
+      bc = bc.add(1, 13);
+      bc.select(100);
+    });
   }
 
   @Test
@@ -156,30 +160,30 @@ public class TestMappeableRunContainer {
   public void orFullToRunContainer() {
     MappeableContainer rc = MappeableContainer.rangeOfOnes(0, 1 << 15);
     MappeableBitmapContainer half = new MappeableBitmapContainer(1 << 15, 1 << 16);
-    Assert.assertTrue(rc instanceof MappeableRunContainer);
+    assertTrue(rc instanceof MappeableRunContainer);
     MappeableContainer result = rc.or(half);
     assertEquals(1 << 16, result.getCardinality());
-    Assert.assertTrue(result instanceof MappeableRunContainer);
+    assertTrue(result instanceof MappeableRunContainer);
   }
 
   @Test
   public void orFullToRunContainer2() {
     MappeableContainer rc = MappeableContainer.rangeOfOnes(0, 1 << 15);
     MappeableArrayContainer half = new MappeableArrayContainer(1 << 15, 1 << 16);
-    Assert.assertTrue(rc instanceof MappeableRunContainer);
+    assertTrue(rc instanceof MappeableRunContainer);
     MappeableContainer result = rc.or(half);
     assertEquals(1 << 16, result.getCardinality());
-    Assert.assertTrue(result instanceof MappeableRunContainer);
+    assertTrue(result instanceof MappeableRunContainer);
   }
 
   @Test
   public void orFullToRunContainer3() {
     MappeableContainer rc = MappeableContainer.rangeOfOnes(0, 1 << 15);
     MappeableContainer half = MappeableContainer.rangeOfOnes(1 << 15, 1 << 16);
-    Assert.assertTrue(rc instanceof MappeableRunContainer);
+    assertTrue(rc instanceof MappeableRunContainer);
     MappeableContainer result = rc.or(half);
     assertEquals(1 << 16, result.getCardinality());
-    Assert.assertTrue(result instanceof MappeableRunContainer);
+    assertTrue(result instanceof MappeableRunContainer);
   }
 
   @Test
@@ -199,7 +203,7 @@ public class TestMappeableRunContainer {
     MappeableArrayContainer ac = new MappeableArrayContainer(0, 1 << 10);
     MappeableContainer rbc = rc.lazyOR(ac);
     assertEquals(1 << 16, rbc.getCardinality());
-    Assert.assertTrue(rbc instanceof MappeableRunContainer);
+    assertTrue(rbc instanceof MappeableRunContainer);
   }
 
   @Test
@@ -210,8 +214,8 @@ public class TestMappeableRunContainer {
     MappeableContainer iresult = rc.lazyIOR(rc2);
     assertEquals(1 << 16, result.getCardinality());
     assertEquals(1 << 16, iresult.getCardinality());
-    Assert.assertTrue(result instanceof MappeableRunContainer);
-    Assert.assertTrue(iresult instanceof MappeableRunContainer);
+    assertTrue(result instanceof MappeableRunContainer);
+    assertTrue(iresult instanceof MappeableRunContainer);
   }
 
   @Test
@@ -228,7 +232,7 @@ public class TestMappeableRunContainer {
     bc.add((char)22345); //important case to have greater element than run container
     bc.add((char)Short.MAX_VALUE);
     MappeableRunContainer rc = generateContainer(new char[]{7, 300, 400, 900, 1400, 18000}, 3);
-    Assert.assertTrue(rc.getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE);
+    assertTrue(rc.getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE);
     MappeableContainer result = rc.andNot(bc);
     assertEquals(11437, result.getCardinality());
   }

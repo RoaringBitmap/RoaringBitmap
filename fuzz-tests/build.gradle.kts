@@ -2,7 +2,8 @@ val deps: Map<String, String> by extra
 
 dependencies {
     implementation(project(":RoaringBitmap"))
-    testImplementation("junit:junit:${deps["junit"]}")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:${deps["jupiter"]}")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${deps["jupiter"]}")
     testImplementation("com.google.guava:guava:${deps["guava"]}")
     testImplementation("com.fasterxml.jackson.core", "jackson-databind", "2.10.3")
 }
@@ -12,4 +13,5 @@ tasks.test {
     if (!project.hasProperty("roaringbitmap.fuzz-tests")) {
        exclude("**")
     }
+    failFast = true
 }

@@ -4,8 +4,9 @@
 package org.roaringbitmap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -15,13 +16,10 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.roaringbitmap.Util.toUnsignedLong;
 
-/**
- * Generic testing of the roaring bitmaps
- */
+@Execution(ExecutionMode.CONCURRENT)
 public class TestRoaringBitmapOrNot {
 
   @Test
@@ -40,15 +38,15 @@ public class TestRoaringBitmapOrNot {
 
     rb.orNot(rb2, (4 << 16) - 1);
 
-    Assert.assertEquals((4 << 16) - 1, rb.getCardinality());
+    assertEquals((4 << 16) - 1, rb.getCardinality());
 
     final IntIterator iterator = rb.getIntIterator();
 
     for (int i = 0; i < (4 << 16) - 1; ++i) {
-      assertTrue("Error on iteration " + i, iterator.hasNext());
-      Assert.assertEquals(i, iterator.next());
+      assertTrue(iterator.hasNext());
+      assertEquals(i, iterator.next());
     }
-    Assert.assertFalse(iterator.hasNext());
+    assertFalse(iterator.hasNext());
   }
 
   @Test
@@ -64,15 +62,15 @@ public class TestRoaringBitmapOrNot {
 
     rb.orNot(rb2, 4 << 16);
 
-    Assert.assertEquals((4 << 16) - 1, rb.getCardinality());
+    assertEquals((4 << 16) - 1, rb.getCardinality());
 
     final IntIterator iterator = rb.getIntIterator();
 
     for (int i = 0; i < (4 << 16) - 1; ++i) {
-      assertTrue("Error on iteration " + i, iterator.hasNext());
-      Assert.assertEquals(i, iterator.next());
+      assertTrue(iterator.hasNext(), "Error on iteration " + i);
+      assertEquals(i, iterator.next());
     }
-    Assert.assertFalse(iterator.hasNext());
+    assertFalse(iterator.hasNext());
   }
 
   @Test
@@ -85,16 +83,16 @@ public class TestRoaringBitmapOrNot {
     rb2.add(3 << 16); //196 608
 
     rb.orNot(rb2, (5 << 16));
-    Assert.assertEquals((5 << 16) - 2, rb.getCardinality());
+    assertEquals((5 << 16) - 2, rb.getCardinality());
 
     final IntIterator iterator = rb.getIntIterator();
     for (int i = 0; i < (5 << 16); ++i) {
       if ((i != (1 << 14)) && (i != (3 << 16))) {
-        assertTrue("Error on iteration " + i, iterator.hasNext());
-        Assert.assertEquals("Error on iteration " + i, i, iterator.next());
+        assertTrue(iterator.hasNext(), "Error on iteration " + i);
+        assertEquals(i, iterator.next(), "Error on iteration " + i);
       }
     }
-    Assert.assertFalse(iterator.hasNext());
+    assertFalse(iterator.hasNext());
   }
 
   @Test
@@ -106,14 +104,14 @@ public class TestRoaringBitmapOrNot {
     rb2.add(3 << 16); //196 608
 
     rb.orNot(rb2, (2 << 16) + (2 << 14)); //131 072 + 32 768 = 163 840
-    Assert.assertEquals((2 << 16) + (2 << 14), rb.getCardinality());
+    assertEquals((2 << 16) + (2 << 14), rb.getCardinality());
 
     final IntIterator iterator = rb.getIntIterator();
     for (int i = 0; i < (2 << 16) + (2 << 14); ++i) {
-      assertTrue("Error on iteration " + i, iterator.hasNext());
-      Assert.assertEquals("Error on iteration " + i, i, iterator.next());
+      assertTrue(iterator.hasNext(), "Error on iteration " + i);
+      assertEquals(i, iterator.next(), "Error on iteration " + i);
     }
-    Assert.assertFalse(iterator.hasNext());
+    assertFalse(iterator.hasNext());
   }
 
   @Test
@@ -128,14 +126,14 @@ public class TestRoaringBitmapOrNot {
     final RoaringBitmap rb2 = new RoaringBitmap();
 
     rb.orNot(rb2, (5 << 16));
-    Assert.assertEquals((5 << 16), rb.getCardinality());
+    assertEquals((5 << 16), rb.getCardinality());
 
     final IntIterator iterator = rb.getIntIterator();
     for (int i = 0; i < (5 << 16); ++i) {
-      assertTrue("Error on iteration " + i, iterator.hasNext());
-      Assert.assertEquals("Error on iteration " + i, i, iterator.next());
+      assertTrue(iterator.hasNext(), "Error on iteration " + i);
+      assertEquals(i, iterator.next(), "Error on iteration " + i);
     }
-    Assert.assertFalse(iterator.hasNext());
+    assertFalse(iterator.hasNext());
   }
 
   @Test
@@ -153,27 +151,27 @@ public class TestRoaringBitmapOrNot {
     rb.orNot(rb2, (1 << 14));
 
     // {[0, 2^14], 65 535, 65 536, 131 072, 196 608}
-    Assert.assertEquals((1 << 14) + 4, rb.getCardinality());
+    assertEquals((1 << 14) + 4, rb.getCardinality());
 
     final IntIterator iterator = rb.getIntIterator();
     for (int i = 0; i < (1 << 14); ++i) {
-      assertTrue("Error on iteration " + i, iterator.hasNext());
-      Assert.assertEquals("Error on iteration " + i, i, iterator.next());
+      assertTrue(iterator.hasNext(), "Error on iteration " + i);
+      assertEquals(i, iterator.next(), "Error on iteration " + i);
     }
 
     assertTrue(iterator.hasNext());
-    Assert.assertEquals((1 << 16) - 1, iterator.next());
+    assertEquals((1 << 16) - 1, iterator.next());
 
     assertTrue(iterator.hasNext());
-    Assert.assertEquals(1 << 16, iterator.next());
+    assertEquals(1 << 16, iterator.next());
 
     assertTrue(iterator.hasNext());
-    Assert.assertEquals(2 << 16, iterator.next());
+    assertEquals(2 << 16, iterator.next());
 
     assertTrue(iterator.hasNext());
-    Assert.assertEquals(3 << 16, iterator.next());
+    assertEquals(3 << 16, iterator.next());
 
-    Assert.assertFalse(iterator.hasNext());
+    assertFalse(iterator.hasNext());
   }
 
   @Test
@@ -189,25 +187,25 @@ public class TestRoaringBitmapOrNot {
     rb.orNot(rb2, (1 << 14));
 
     // {[0, 2^14], 65 536, 131 072, 196 608}
-    Assert.assertEquals((1 << 14) + 3, rb.getCardinality());
+    assertEquals((1 << 14) + 3, rb.getCardinality());
 
     final IntIterator iterator = rb.getIntIterator();
     for (int i = 0; i < (1 << 14); ++i) {
-      assertTrue("Error on iteration " + i, iterator.hasNext());
-      Assert.assertEquals("Error on iteration " + i, i, iterator.next());
+      assertTrue(iterator.hasNext(), "Error on iteration " + i);
+      assertEquals(i, iterator.next(), "Error on iteration " + i);
     }
 
 
     assertTrue(iterator.hasNext());
-    Assert.assertEquals(1 << 16, iterator.next());
+    assertEquals(1 << 16, iterator.next());
 
     assertTrue(iterator.hasNext());
-    Assert.assertEquals(2 << 16, iterator.next());
+    assertEquals(2 << 16, iterator.next());
 
     assertTrue(iterator.hasNext());
-    Assert.assertEquals(3 << 16, iterator.next());
+    assertEquals(3 << 16, iterator.next());
 
-    Assert.assertFalse(iterator.hasNext());
+    assertFalse(iterator.hasNext());
   }
 
 
@@ -226,16 +224,16 @@ public class TestRoaringBitmapOrNot {
       final RoaringBitmap answer1 = RoaringBitmap.orNot(rb1, rb2, (1 << 14));
 
       // {[0, 2^14] | {65 536} {131 072} {196 608}}
-      Assert.assertEquals((1 << 14) + 3, answer1.getCardinality());
+      assertEquals((1 << 14) + 3, answer1.getCardinality());
 
       final IntIterator iterator1 = answer1.getIntIterator();
       for (int i = 0; i < (1 << 14); ++i) {
-        assertTrue("Error on iteration " + i, iterator1.hasNext());
-        Assert.assertEquals("Error on iteration " + i, i, iterator1.next());
+        assertTrue(iterator1.hasNext(), "Error on iteration " + i);
+        assertEquals(i, iterator1.next(), "Error on iteration " + i);
       }
-      Assert.assertEquals(1 << 16, iterator1.next());
-      Assert.assertEquals(2 << 16, iterator1.next());
-      Assert.assertEquals(3 << 16, iterator1.next());
+      assertEquals(1 << 16, iterator1.next());
+      assertEquals(2 << 16, iterator1.next());
+      assertEquals(3 << 16, iterator1.next());
     }
 
     {
@@ -243,12 +241,12 @@ public class TestRoaringBitmapOrNot {
       final RoaringBitmap answer = RoaringBitmap.orNot(rb1, rb2, (2 << 16));
 
       // {[0, 2^16] | 131 072, 196608}
-      Assert.assertEquals((2 << 16) + 2, answer.getCardinality());
+      assertEquals((2 << 16) + 2, answer.getCardinality());
 
       final IntIterator iterator = answer.getIntIterator();
       for (int i = 0; i < (2 << 16) + 1; ++i) {
-        assertTrue("Error on iteration " + i, iterator.hasNext());
-        Assert.assertEquals("Error on iteration " + i, i, iterator.next());
+        assertTrue(iterator.hasNext(), "Error on iteration " + i);
+        assertEquals(i, iterator.next(), "Error on iteration " + i);
       }
       assertEquals(196608, iterator.next());
     }
@@ -262,13 +260,13 @@ public class TestRoaringBitmapOrNot {
       final RoaringBitmap answer = RoaringBitmap.orNot(rb1, rb2, (2 << 16));
 
       // {[0, 2^16] | 196608}
-      Assert.assertEquals((2 << 16) - 1, answer.getCardinality());
+      assertEquals((2 << 16) - 1, answer.getCardinality());
 
       final IntIterator iterator = answer.getIntIterator();
       for (int i = 0; i < (2 << 16) + 1; ++i) {
         if ((i != (1 << 16) + (1 << 13)) && (i != (1 << 16) + (1 << 14)) && (i != (1 << 16) + (1 << 15))) {
-          assertTrue("Error on iteration " + i, iterator.hasNext());
-          Assert.assertEquals("Error on iteration " + i, i, iterator.next());
+          assertTrue(iterator.hasNext(), "Error on iteration " + i);
+          assertEquals(i, iterator.next(), "Error on iteration " + i);
         }
       }
       assertEquals(196608, iterator.next());
@@ -283,16 +281,16 @@ public class TestRoaringBitmapOrNot {
       final RoaringBitmap answer = RoaringBitmap.orNot(rb1, rb2, (5 << 16));
 
       // {[0, 2^16]}
-      Assert.assertEquals((5 << 16) - 1, answer.getCardinality());
+      assertEquals((5 << 16) - 1, answer.getCardinality());
 
       final IntIterator iterator = answer.getIntIterator();
       for (int i = 0; i < (5 << 16); ++i) {
         if (i != (4 << 16)) {
-          assertTrue("Error on iteration " + i, iterator.hasNext());
-          Assert.assertEquals("Error on iteration " + i, i, iterator.next());
+          assertTrue(iterator.hasNext(), "Error on iteration " + i);
+          assertEquals(i, iterator.next(), "Error on iteration " + i);
         }
       }
-      Assert.assertFalse("Number of elements " + (2 << 16) , iterator.hasNext());
+      assertFalse(iterator.hasNext(), "Number of elements " + (2 << 16));
     }
 
     {
@@ -304,16 +302,16 @@ public class TestRoaringBitmapOrNot {
       final RoaringBitmap answer = RoaringBitmap.orNot(rb2, rb1, (5 << 16));
 
       // {[0, 2^16]}
-      Assert.assertEquals((5 << 16) - 1, answer.getCardinality());
+      assertEquals((5 << 16) - 1, answer.getCardinality());
 
       final IntIterator iterator = answer.getIntIterator();
       for (int i = 0; i < (5 << 16); ++i) {
         if (i != (2 << 16)) {
-          assertTrue("Error on iteration " + i, iterator.hasNext());
-          Assert.assertEquals("Error on iteration " + i, i, iterator.next());
+          assertTrue(iterator.hasNext(), "Error on iteration " + i);
+          assertEquals(i, iterator.next(), "Error on iteration " + i);
         }
       }
-      Assert.assertFalse("Number of elements " + (2 << 16) , iterator.hasNext());
+      assertFalse(iterator.hasNext(), "Number of elements " + (2 << 16));
     }
   }
 
@@ -327,7 +325,7 @@ public class TestRoaringBitmapOrNot {
 
     rb.orNot(rb2, 6);
 
-    Assert.assertEquals(5, rb.last());
+    assertEquals(5, rb.last());
   }
 
   @Test
@@ -340,7 +338,7 @@ public class TestRoaringBitmapOrNot {
 
     RoaringBitmap rb3 = RoaringBitmap.orNot(rb, rb2, 65535L * 65536L + 65524);
 
-    Assert.assertEquals((int)(65535L * 65536L + 65523), rb3.last());
+    assertEquals((int)(65535L * 65536L + 65523), rb3.last());
   }
 
   @Test

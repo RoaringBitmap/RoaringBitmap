@@ -1,13 +1,18 @@
 package org.roaringbitmap.buffer;
 
 import com.google.common.primitives.Ints;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.roaringbitmap.CharIterator;
 
 import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+@Execution(ExecutionMode.CONCURRENT)
 public class TestReverseMappeableRunContainer {
 
     private static List<Integer> asList(CharIterator ints) {
@@ -31,8 +36,9 @@ public class TestReverseMappeableRunContainer {
         ReverseMappeableRunContainerCharIterator rmr = new ReverseMappeableRunContainerCharIterator(mappeableRunContainer);
         CharIterator rmrClone = rmr.clone();
         final List<Integer> rmrList = asList(rmr);
+        assertNotNull(rmrClone);
         final List<Integer> rmrCloneList = asList(rmrClone);
-        Assert.assertTrue(rmrList.equals(rmrCloneList));
+        assertEquals(rmrList, rmrCloneList);
     }
 
     @Test
@@ -42,7 +48,7 @@ public class TestReverseMappeableRunContainer {
             mappeableRunContainer.add(i);
         }
         ReverseMappeableRunContainerCharIterator rmr = new ReverseMappeableRunContainerCharIterator(mappeableRunContainer);
-        Assert.assertEquals(14, rmr.nextAsInt());
+        assertEquals(14, rmr.nextAsInt());
         rmr.next();
         rmr.next();
         rmr.next();
@@ -53,7 +59,7 @@ public class TestReverseMappeableRunContainer {
         rmr.nextAsInt();
         rmr.nextAsInt();
         rmr.nextAsInt();
-        Assert.assertEquals(13, rmr.nextAsInt());
+        assertEquals(13, rmr.nextAsInt());
     }
 }
 

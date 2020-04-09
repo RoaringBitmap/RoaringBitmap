@@ -1,7 +1,9 @@
 package org.roaringbitmap;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -9,9 +11,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.roaringbitmap.ArrayContainer.DEFAULT_MAX_SIZE;
 
+@Execution(ExecutionMode.CONCURRENT)
 public class TestRunContainer {
   @Test
   public void testRunOpti() {
@@ -31,10 +34,10 @@ public class TestRunContainer {
       x.next();
       count++;
     }
-    Assert.assertTrue(m2.getCardinality() == count);
-    Assert.assertTrue(mrb.getCardinality() == count);
-    Assert.assertTrue(m2.serializedSizeInBytes() < mrb.serializedSizeInBytes());
-    Assert.assertEquals(m2, mrb);
+    assertEquals(m2.getCardinality(), count);
+    assertEquals(mrb.getCardinality(), count);
+    assertTrue(m2.serializedSizeInBytes() < mrb.serializedSizeInBytes());
+    assertEquals(m2, mrb);
   }
 
   public static Container fillMeUp(Container c, int[] values) {
@@ -80,7 +83,7 @@ public class TestRunContainer {
     r1 = (RunContainer) r1.iadd(0, (1 << 16));
     Container b1 = new ArrayContainer();
     b1 = b1.iadd(0, 1 << 16);
-    assertTrue(r1.equals(b1));
+    assertEquals(r1, b1);
 
     set.add(r1);
     setb.add(b1);
@@ -91,7 +94,7 @@ public class TestRunContainer {
     b2 = b2.iadd(0, 4096);
     set.add(r2);
     setb.add(b2);
-    assertTrue(r2.equals(b2));
+    assertEquals(r2, b2);
 
     RunContainer r3 = new RunContainer();
     Container b3 = new ArrayContainer();
@@ -101,7 +104,7 @@ public class TestRunContainer {
       r3 = (RunContainer) r3.add((char) k);
       b3 = b3.add((char) k);
     }
-    assertTrue(r3.equals(b3));
+    assertEquals(r3, b3);
     set.add(r3);
     setb.add(b3);
 
@@ -111,7 +114,7 @@ public class TestRunContainer {
       r4 = (RunContainer) r4.add((char) k);
       b4 = b4.add((char) k);
     }
-    assertTrue(r4.equals(b4));
+    assertEquals(r4, b4);
     set.add(r4);
     setb.add(b4);
 
@@ -121,7 +124,7 @@ public class TestRunContainer {
       r5 = (RunContainer) r5.iadd(k, k + 256);
       b5 = b5.iadd(k, k + 256);
     }
-    assertTrue(r5.equals(b5));
+    assertEquals(r5, b5);
     set.add(r5);
     setb.add(b5);
 
@@ -131,7 +134,7 @@ public class TestRunContainer {
       r6 = (RunContainer) r6.iadd(k, k + 1);
       b6 = b6.iadd(k, k + 1);
     }
-    assertTrue(r6.equals(b6));
+    assertEquals(r6, b6);
     set.add(r6);
     setb.add(b6);
 
@@ -142,7 +145,7 @@ public class TestRunContainer {
       r7 = (RunContainer) r7.iadd(k, k + 1);
       b7 = b7.iadd(k, k + 1);
     }
-    assertTrue(r7.equals(b7));
+    assertEquals(r7, b7);
     set.add(r7);
     setb.add(b7);
 
@@ -377,7 +380,7 @@ public class TestRunContainer {
     Container intersectionNOT = rc.andNot(bc);
     assertEquals(100, intersectionNOT.getCardinality());
     for (int k = 0; k < 100; ++k) {
-      assertTrue(" missing k=" + k, intersectionNOT.contains((char) (k * 10 + 5)));
+      assertTrue(intersectionNOT.contains((char) (k * 10 + 5)), " missing k=" + k);
     }
     assertEquals(200, bc.getCardinality());
     assertEquals(200, rc.getCardinality());
@@ -398,7 +401,7 @@ public class TestRunContainer {
     Container intersectionNOT = rc.andNot(ac);
     assertEquals(100, intersectionNOT.getCardinality());
     for (int k = 0; k < 100; ++k) {
-      assertTrue(" missing k=" + k, intersectionNOT.contains((char) (k * 10 + 5)));
+      assertTrue(intersectionNOT.contains((char) (k * 10 + 5)), " missing k=" + k);
     }
     assertEquals(200, ac.getCardinality());
     assertEquals(200, rc.getCardinality());
@@ -449,11 +452,11 @@ public class TestRunContainer {
       assertEquals(copy.getCardinality() + 1, x.getCardinality());
       copy = (RunContainer) copy.add((char) k);
       assertEquals(copy.getCardinality(), x.getCardinality());
-      assertTrue(copy.equals(x));
-      assertTrue(x.equals(copy));
+      assertEquals(copy, x);
+      assertEquals(x, copy);
       copy.trim();
-      assertTrue(copy.equals(x));
-      assertTrue(x.equals(copy));
+      assertEquals(copy, x);
+      assertEquals(x, copy);
     }
   }
 
@@ -471,11 +474,11 @@ public class TestRunContainer {
         copy = (RunContainer) copy.remove((char) k);
         copy = (RunContainer) copy.add((char) k);
         assertEquals(copy.getCardinality(), x.getCardinality());
-        assertTrue(copy.equals(x));
-        assertTrue(x.equals(copy));
+        assertEquals(copy, x);
+        assertEquals(x, copy);
         x.trim();
-        assertTrue(copy.equals(x));
-        assertTrue(x.equals(copy));
+        assertEquals(copy, x);
+        assertEquals(x, copy);
 
       } else {
         RunContainer copy = (RunContainer) x.clone();
@@ -535,11 +538,11 @@ public class TestRunContainer {
       copy = (RunContainer) copy.remove((char) k);
       copy = (RunContainer) copy.add((char) k);
       assertEquals(copy.getCardinality(), x.getCardinality());
-      assertTrue(copy.equals(x));
-      assertTrue(x.equals(copy));
+      assertEquals(copy, x);
+      assertEquals(x, copy);
       copy.trim();
-      assertTrue(copy.equals(x));
-      assertTrue(x.equals(copy));
+      assertEquals(copy, x);
+      assertEquals(x, copy);
     }
   }
 
@@ -601,18 +604,22 @@ public class TestRunContainer {
   }
 
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void iaddInvalidRange1() {
-    Container rc = new RunContainer();
-    rc.iadd(10, 9);
+    assertThrows(IllegalArgumentException.class, () -> {
+      Container rc = new RunContainer();
+      rc.iadd(10, 9);
+    });
   }
 
 
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void iaddInvalidRange2() {
-    Container rc = new RunContainer();
-    rc.iadd(0, 1 << 20);
+    assertThrows(IllegalArgumentException.class, () -> {
+      Container rc = new RunContainer();
+      rc.iadd(0, 1 << 20);
+    });
   }
 
   @Test
@@ -1739,16 +1746,20 @@ public class TestRunContainer {
     assertEquals(12, rc.getSizeInBytes());
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void iremoveInvalidRange1() {
-    Container rc = new RunContainer();
-    rc.iremove(10, 9);
+    assertThrows(IllegalArgumentException.class, () -> {
+      Container rc = new RunContainer();
+      rc.iremove(10, 9);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void iremoveInvalidRange2() {
-    Container rc = new RunContainer();
-    rc.remove(0, 1 << 20);
+    assertThrows(IllegalArgumentException.class, () -> {
+      Container rc = new RunContainer();
+      rc.remove(0, 1 << 20);
+    });
   }
 
   @Test
@@ -2285,8 +2296,8 @@ public class TestRunContainer {
     getSetOfRunContainers(set, setb);
     for (int k = 0; k < set.size(); ++k) {
       for (int l = 0; l < set.size(); ++l) {
-        assertTrue(set.get(k).equals(setb.get(k)));
-        assertTrue(set.get(l).equals(setb.get(l)));
+        assertEquals(set.get(k), setb.get(k));
+        assertEquals(set.get(l), setb.get(l));
         Container thisContainer = setb.get(k);
         if (thisContainer instanceof BitmapContainer) {
           ; // continue;
@@ -2295,7 +2306,7 @@ public class TestRunContainer {
         }
         Container c1 = thisContainer.and(set.get(l));
         Container c2 = setb.get(k).and(setb.get(l));
-        assertTrue(c1.equals(c2));
+        assertEquals(c1, c2);
       }
     }
     assertTrue(atLeastOneArray);
@@ -2311,8 +2322,8 @@ public class TestRunContainer {
     getSetOfRunContainers(set, setb);
     for (int k = 0; k < set.size(); ++k) {
       for (int l = 0; l < set.size(); ++l) {
-        assertTrue(set.get(k).equals(setb.get(k)));
-        assertTrue(set.get(l).equals(setb.get(l)));
+        assertEquals(set.get(k), setb.get(k));
+        assertEquals(set.get(l), setb.get(l));
         Container thisContainer = setb.get(k);
         if (thisContainer instanceof BitmapContainer) {
           // continue;
@@ -2323,7 +2334,7 @@ public class TestRunContainer {
         Container c1 = thisContainer.andNot(set.get(l));
         Container c2 = setb.get(k).andNot(setb.get(l));
 
-        assertTrue(c1.equals(c2));
+        assertEquals(c1, c2);
       }
     }
     assertTrue(atLeastOneArray);
@@ -2333,21 +2344,21 @@ public class TestRunContainer {
   public void RunContainerArg_ArrayANDNOT2() {
     ArrayContainer ac = new ArrayContainer(12, new char[]{0, 2, 4, 8, 10, 15, 16, 48, 50, 61, 80, (char)-2});
     RunContainer rc = new RunContainer(new char[]{7, 3, 17, 2, 20, 3, 30, 3, 36, 6, 60, 5, (char)-3, 2}, 7);
-    Assert.assertEquals(new ArrayContainer(8, new char[]{0, 2, 4, 15, 16, 48, 50, 80}), ac.andNot(rc));
+    assertEquals(new ArrayContainer(8, new char[]{0, 2, 4, 15, 16, 48, 50, 80}), ac.andNot(rc));
   }
 
   @Test
   public void FullRunContainerArg_ArrayANDNOT2() {
     ArrayContainer ac = new ArrayContainer(1, new char[]{3});
     Container rc = RunContainer.full();
-    Assert.assertEquals(new ArrayContainer(), ac.andNot(rc));
+    assertEquals(new ArrayContainer(), ac.andNot(rc));
   }
 
   @Test
   public void RunContainerArg_ArrayANDNOT3() {
     ArrayContainer ac = new ArrayContainer(1, new char[]{5});
     Container rc = new RunContainer(new char[]{3, 10}, 1);
-    Assert.assertEquals(new ArrayContainer(), ac.andNot(rc));
+    assertEquals(new ArrayContainer(), ac.andNot(rc));
   }
 
   @Test
@@ -2358,8 +2369,8 @@ public class TestRunContainer {
     getSetOfRunContainers(set, setb);
     for (int k = 0; k < set.size(); ++k) {
       for (int l = 0; l < set.size(); ++l) {
-        assertTrue(set.get(k).equals(setb.get(k)));
-        assertTrue(set.get(l).equals(setb.get(l)));
+        assertEquals(set.get(k), setb.get(k));
+        assertEquals(set.get(l), setb.get(l));
         Container thisContainer = setb.get(k);
         // BitmapContainers are tested separately, but why not test some more?
         if (thisContainer instanceof BitmapContainer) {
@@ -2370,7 +2381,7 @@ public class TestRunContainer {
 
         Container c1 = thisContainer.or(set.get(l));
         Container c2 = setb.get(k).or(setb.get(l));
-        assertTrue(c1.equals(c2));
+        assertEquals(c1, c2);
       }
     }
     assertTrue(atLeastOneArray);
@@ -2384,8 +2395,8 @@ public class TestRunContainer {
     getSetOfRunContainers(set, setb);
     for (int k = 0; k < set.size(); ++k) {
       for (int l = 0; l < set.size(); ++l) {
-        assertTrue(set.get(k).equals(setb.get(k)));
-        assertTrue(set.get(l).equals(setb.get(l)));
+        assertEquals(set.get(k), setb.get(k));
+        assertEquals(set.get(l), setb.get(l));
         Container thisContainer = setb.get(k);
         if (thisContainer instanceof BitmapContainer) {
           ; // continue;
@@ -2395,7 +2406,7 @@ public class TestRunContainer {
 
         Container c1 = thisContainer.xor(set.get(l));
         Container c2 = setb.get(k).xor(setb.get(l));
-        assertTrue(c1.equals(c2));
+        assertEquals(c1, c2);
       }
     }
     assertTrue(atLeastOneArray);
@@ -2540,11 +2551,11 @@ public class TestRunContainer {
     getSetOfRunContainers(set, setb);
     for (int k = 0; k < set.size(); ++k) {
       for (int l = 0; l < set.size(); ++l) {
-        assertTrue(set.get(k).equals(setb.get(k)));
-        assertTrue(set.get(l).equals(setb.get(l)));
+        assertEquals(set.get(k), setb.get(k));
+        assertEquals(set.get(l), setb.get(l));
         Container c1 = set.get(k).and(set.get(l));
         Container c2 = setb.get(k).and(setb.get(l));
-        assertTrue(c1.equals(c2));
+        assertEquals(c1, c2);
       }
     }
   }
@@ -2557,11 +2568,11 @@ public class TestRunContainer {
     getSetOfRunContainers(set, setb);
     for (int k = 0; k < set.size(); ++k) {
       for (int l = 0; l < set.size(); ++l) {
-        assertTrue(set.get(k).equals(setb.get(k)));
-        assertTrue(set.get(l).equals(setb.get(l)));
+        assertEquals(set.get(k), setb.get(k));
+        assertEquals(set.get(l), setb.get(l));
         Container c1 = set.get(k).andNot(set.get(l));
         Container c2 = setb.get(k).andNot(setb.get(l));
-        assertTrue(c1.equals(c2));
+        assertEquals(c1, c2);
       }
     }
   }
@@ -2575,11 +2586,11 @@ public class TestRunContainer {
     getSetOfRunContainers(set, setb);
     for (int k = 0; k < set.size(); ++k) {
       for (int l = 0; l < set.size(); ++l) {
-        assertTrue(set.get(k).equals(setb.get(k)));
-        assertTrue(set.get(l).equals(setb.get(l)));
+        assertEquals(set.get(k), setb.get(k));
+        assertEquals(set.get(l), setb.get(l));
         Container c1 = set.get(k).or(set.get(l));
         Container c2 = setb.get(k).or(setb.get(l));
-        assertTrue(c1.equals(c2));
+        assertEquals(c1, c2);
       }
     }
   }
@@ -2591,11 +2602,11 @@ public class TestRunContainer {
     getSetOfRunContainers(set, setb);
     for (int k = 0; k < set.size(); ++k) {
       for (int l = 0; l < set.size(); ++l) {
-        assertTrue(set.get(k).equals(setb.get(k)));
-        assertTrue(set.get(l).equals(setb.get(l)));
+        assertEquals(set.get(k), setb.get(k));
+        assertEquals(set.get(l), setb.get(l));
         Container c1 = set.get(k).xor(set.get(l));
         Container c2 = setb.get(k).xor(setb.get(l));
-        assertTrue(c1.equals(c2));
+        assertEquals(c1, c2);
       }
     }
   }
@@ -2621,30 +2632,30 @@ public class TestRunContainer {
   public void orFullToRunContainer() {
     Container rc = Container.rangeOfOnes(0, 1 << 15);
     Container half = new BitmapContainer(1 << 15, 1 << 16);
-    Assert.assertTrue(rc instanceof RunContainer);
+    assertTrue(rc instanceof RunContainer);
     Container result = rc.or(half);
     assertEquals(1 << 16, result.getCardinality());
-    Assert.assertTrue(result instanceof RunContainer);
+    assertTrue(result instanceof RunContainer);
   }
 
   @Test
   public void orFullToRunContainer2() {
     Container rc = Container.rangeOfOnes((1 << 10) - 200, 1 << 16);
     Container half = new ArrayContainer(0, 1 << 10);
-    Assert.assertTrue(rc instanceof RunContainer);
+    assertTrue(rc instanceof RunContainer);
     Container result = rc.or(half);
     assertEquals(1 << 16, result.getCardinality());
-    Assert.assertTrue(result instanceof RunContainer);
+    assertTrue(result instanceof RunContainer);
   }
 
   @Test
   public void orFullToRunContainer3() {
     Container rc = Container.rangeOfOnes(0, 1 << 15);
     Container half = Container.rangeOfOnes((1 << 15) - 200, 1 << 16);
-    Assert.assertTrue(rc instanceof RunContainer);
+    assertTrue(rc instanceof RunContainer);
     Container result = rc.or(half);
     assertEquals(1 << 16, result.getCardinality());
-    Assert.assertTrue(result instanceof RunContainer);
+    assertTrue(result instanceof RunContainer);
   }
 
   @Test
@@ -2684,13 +2695,15 @@ public class TestRunContainer {
     assertEquals(256, container.select(4));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void select2() {
-    RunContainer container = new RunContainer();
-    container.add((char) 0);
-    container.add((char) 3);
-    container.add((char) 118);
-    container.select(666);
+    assertThrows(IllegalArgumentException.class, () -> {
+      RunContainer container = new RunContainer();
+      container.add((char) 0);
+      container.add((char) 3);
+      container.add((char) 118);
+      container.select(666);
+    });
   }
 
   @Test
@@ -2717,7 +2730,7 @@ public class TestRunContainer {
     rb1.runOptimize();
     RoaringBitmap rb2 = RoaringBitmap.bitmapOf(array2);
     RoaringBitmap answer = RoaringBitmap.andNot(rb1, rb2);
-    Assert.assertEquals(answer.getCardinality(), array1.length);
+    assertEquals(answer.getCardinality(), array1.length);
   }
 
 
@@ -3137,9 +3150,9 @@ public class TestRunContainer {
     assertFalse(rc.intersects(bc));
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void constructor1() {
-    new RunContainer(new char[] { 1, 2, 10, 3 }, 5);
+    assertThrows(RuntimeException.class, () -> new RunContainer(new char[]{1, 2, 10, 3}, 5));
   }
 
   @Test
@@ -3207,7 +3220,7 @@ public class TestRunContainer {
     assertEquals(-1, rbc.getCardinality());
     Container repaired = rbc.repairAfterLazy();
     assertEquals(1 << 16, repaired.getCardinality());
-    Assert.assertTrue(repaired instanceof RunContainer);
+    assertTrue(repaired instanceof RunContainer);
   }
 
   @Test
@@ -3216,7 +3229,7 @@ public class TestRunContainer {
     ArrayContainer ac = new ArrayContainer(0, 1 << 10);
     Container rbc = rc.lazyOR(ac);
     assertEquals(1 << 16, rbc.getCardinality());
-    Assert.assertTrue(rbc instanceof RunContainer);
+    assertTrue(rbc instanceof RunContainer);
   }
 
   @Test
@@ -3227,8 +3240,8 @@ public class TestRunContainer {
     Container iresult = rc.lazyIOR(rc2);
     assertEquals(1 << 16, result.getCardinality());
     assertEquals(1 << 16, iresult.getCardinality());
-    Assert.assertTrue(result instanceof RunContainer);
-    Assert.assertTrue(iresult instanceof RunContainer);
+    assertTrue(result instanceof RunContainer);
+    assertTrue(iresult instanceof RunContainer);
   }
 
   @Test
@@ -3245,7 +3258,7 @@ public class TestRunContainer {
     bc.add((char)22345); //important case to have greater element than run container
     bc.add((char)Short.MAX_VALUE);
     RunContainer rc = new RunContainer(new char[]{7, 300, 400, 900, 1400, 18000}, 3);
-    Assert.assertTrue(rc.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE);
+    assertTrue(rc.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE);
     Container result = rc.andNot(bc);
     assertEquals(11437, result.getCardinality());
   }
@@ -3266,14 +3279,14 @@ public class TestRunContainer {
     assertEquals(6031, result.getCardinality());
   }
 
-  @Test(expected = NoSuchElementException.class)
+  @Test
   public void testFirst_Empty() {
-    new RunContainer().first();
+    assertThrows(NoSuchElementException.class, () -> new RunContainer().first());
   }
 
-  @Test(expected = NoSuchElementException.class)
+  @Test
   public void testLast_Empty() {
-    new RunContainer().last();
+    assertThrows(NoSuchElementException.class, () -> new RunContainer().last());
   }
 
   @Test
@@ -3467,32 +3480,32 @@ public class TestRunContainer {
   public void testEqualsArrayContainer_Equal() {
     Container rc = new RunContainer().add(0, 10);
     Container ac = new ArrayContainer().add(0, 10);
-    assertTrue(rc.equals(ac));
-    assertTrue(ac.equals(rc));
+    assertEquals(rc, ac);
+    assertEquals(ac, rc);
   }
 
   @Test
   public void testEqualsArrayContainer_NotEqual_ArrayLarger() {
     Container rc = new RunContainer().add(0, 10);
     Container ac = new ArrayContainer().add(0, 11);
-    assertFalse(rc.equals(ac));
-    assertFalse(ac.equals(rc));
+    assertNotEquals(rc, ac);
+    assertNotEquals(ac, rc);
   }
 
   @Test
   public void testEqualsArrayContainer_NotEqual_ArraySmaller() {
     Container rc = new RunContainer().add(0, 10);
     Container ac = new ArrayContainer().add(0, 9);
-    assertFalse(rc.equals(ac));
-    assertFalse(ac.equals(rc));
+    assertNotEquals(rc, ac);
+    assertNotEquals(ac, rc);
   }
 
   @Test
   public void testEqualsArrayContainer_NotEqual_ArrayShifted() {
     Container rc = new RunContainer().add(0, 10);
     Container ac = new ArrayContainer().add(1, 11);
-    assertFalse(rc.equals(ac));
-    assertFalse(ac.equals(rc));
+    assertNotEquals(rc, ac);
+    assertNotEquals(ac, rc);
   }
 
   @Test
@@ -3500,32 +3513,32 @@ public class TestRunContainer {
     Container rc = new RunContainer().add(0, 10);
     Container ac = new ArrayContainer().add(0, 11);
     ac.flip((char)9);
-    assertFalse(rc.equals(ac));
-    assertFalse(ac.equals(rc));
+    assertNotEquals(rc, ac);
+    assertNotEquals(ac, rc);
   }
 
   @Test
   public void testEquals_FullRunContainerWithArrayContainer() {
     Container full = new RunContainer().add(0, 1 << 16);
-    Assert.assertNotEquals(full, new ArrayContainer().add(0, 10));
+    assertNotEquals(full, new ArrayContainer().add(0, 10));
   }
 
   @Test
   public void testFullConstructor() {
-    Assert.assertTrue(RunContainer.full().isFull());
+    assertTrue(RunContainer.full().isFull());
   }
 
   @Test
   public void testRangeConstructor() {
     RunContainer c = new RunContainer(0, 1 << 16);
-    Assert.assertTrue(c.isFull());
-    Assert.assertEquals(65536, c.getCardinality());
+    assertTrue(c.isFull());
+    assertEquals(65536, c.getCardinality());
   }
 
   @Test
   public void testRangeConstructor2() {
     RunContainer c = new RunContainer(17, 1000);
-    Assert.assertEquals(983, c.getCardinality());
+    assertEquals(983, c.getCardinality());
   }
 
   @Test
@@ -3533,13 +3546,13 @@ public class TestRunContainer {
     RunContainer a = new RunContainer(17, 45679);
     RunContainer b = new RunContainer();
     b.iadd(17, 45679);
-    Assert.assertEquals(a, b);
+    assertEquals(a, b);
   }
 
   @Test
   public void testRangeConstructor4() {
     RunContainer c = new RunContainer(0, 45679);
-    Assert.assertEquals(45679, c.getCardinality());
+    assertEquals(45679, c.getCardinality());
   }
 
   @Test
@@ -3547,7 +3560,7 @@ public class TestRunContainer {
     RunContainer c = new RunContainer();
     c.add((char) 1);
     c.add((char) 17);
-    Assert.assertEquals(2, c.getCardinality());
+    assertEquals(2, c.getCardinality());
   }
 
   @Test

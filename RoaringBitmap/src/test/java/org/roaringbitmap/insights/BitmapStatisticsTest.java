@@ -1,7 +1,10 @@
 package org.roaringbitmap.insights;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class BitmapStatisticsTest {
 
@@ -14,7 +17,7 @@ public class BitmapStatisticsTest {
 
     String string = statistics.toString();
 
-    Assert.assertTrue(string.contains(BitmapStatistics.class.getSimpleName()));
+    assertTrue(string.contains(BitmapStatistics.class.getSimpleName()));
   }
 
   @Test
@@ -22,8 +25,8 @@ public class BitmapStatisticsTest {
     BitmapStatistics statistics = BitmapStatistics.empty;
 
     double bitmapFraction = statistics.containerFraction(statistics.getBitmapContainerCount());
-    Assert.assertTrue(Double.isNaN(bitmapFraction));
+    assertTrue(Double.isNaN(bitmapFraction));
     long averageArraysCardinality = statistics.getArrayContainersStats().averageCardinality();
-    Assert.assertEquals(Long.MAX_VALUE, averageArraysCardinality);
+    assertEquals(Long.MAX_VALUE, averageArraysCardinality);
   }
 }

@@ -1,8 +1,9 @@
 package org.roaringbitmap;
 
 import com.google.common.primitives.Ints;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -12,9 +13,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
+@Execution(ExecutionMode.CONCURRENT)
 public class TestArrayContainer {
 
     @Test
@@ -22,7 +23,7 @@ public class TestArrayContainer {
         ArrayContainer ac1 = new ArrayContainer(5, 15);
         char[] data = {5, 6, 7, 8, 9, 10, 11, 12, 13, 14};
         ArrayContainer ac2 = new ArrayContainer(data);
-        Assert.assertEquals(ac1, ac2);
+        assertEquals(ac1, ac2);
     }
 
     @Test
@@ -30,7 +31,7 @@ public class TestArrayContainer {
         ArrayContainer ac1 = new ArrayContainer(5, 15);
         ac1.remove((char)14);
         ArrayContainer ac2 = new ArrayContainer(5, 14);
-        Assert.assertEquals(ac1, ac2);
+        assertEquals(ac1, ac2);
     }
 
     @Test
@@ -43,7 +44,7 @@ public class TestArrayContainer {
         ArrayContainer ac1 = new ArrayContainer(5, 15);
         ac1.add((char) -3);
         ac1.add((char) -17);
-        Assert.assertEquals("{5,6,7,8,9,10,11,12,13,14,65519,65533}", ac1.toString());
+        assertEquals("{5,6,7,8,9,10,11,12,13,14,65519,65533}", ac1.toString());
     }
 
     @Test
@@ -52,7 +53,7 @@ public class TestArrayContainer {
         ArrayContainer ac2 = new ArrayContainer(10, 15);
         BitmapContainer bc = new BitmapContainer(5, 10);
         ArrayContainer ac3 = ac1.iandNot(bc);
-        Assert.assertEquals(ac2, ac3);
+        assertEquals(ac2, ac3);
     }
 
     @Test
@@ -61,7 +62,8 @@ public class TestArrayContainer {
         ArrayContainer ac1 = new ArrayContainer(5, 15);
         ReverseArrayContainerCharIterator rac1 = new ReverseArrayContainerCharIterator(ac1);
         CharIterator rac2 = rac1.clone();
-        Assert.assertEquals(asList(rac1), asList(rac2));
+        assertNotNull(rac2);
+        assertEquals(asList(rac1), asList(rac2));
     }
 
     private static List<Integer> asList(CharIterator ints) {
@@ -95,7 +97,7 @@ public class TestArrayContainer {
     }
 
     @Test
-    public void intersectsArray() throws Exception {
+    public void intersectsArray() {
         Container ac = new ArrayContainer();
         ac = ac.add(1, 10);
         Container ac2 = new ArrayContainer();
@@ -109,7 +111,7 @@ public class TestArrayContainer {
         BitmapContainer half = new BitmapContainer(1 << 12, 1 << 16);
         Container result = ac.or(half);
         assertEquals(1 << 16, result.getCardinality());
-        assertThat(result, instanceOf(RunContainer.class));
+        assertTrue(result instanceof RunContainer);
     }
 
     @Test
@@ -118,11 +120,11 @@ public class TestArrayContainer {
         ArrayContainer half = new ArrayContainer(1 << 15, 1 << 16);
         Container result = ac.or(half);
         assertEquals(1 << 16, result.getCardinality());
-        assertThat(result, instanceOf(RunContainer.class));
+        assertTrue(result instanceof RunContainer);
     }
 
     @Test
-    public void iandBitmap() throws Exception {
+    public void iandBitmap() {
         Container ac = new ArrayContainer();
         ac = ac.add(1, 10);
         Container bc = new BitmapContainer();
@@ -135,7 +137,7 @@ public class TestArrayContainer {
     }
 
     @Test
-    public void iandRun() throws Exception {
+    public void iandRun() {
         Container ac = new ArrayContainer();
         ac = ac.add(1, 10);
         Container rc = new RunContainer();
@@ -154,10 +156,12 @@ public class TestArrayContainer {
         assertEquals(0, ac.getCardinality());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void addInvalidRange() {
-        Container ac = new ArrayContainer();
-        ac.add(13,1);
+        assertThrows(IllegalArgumentException.class, () -> {
+            Container ac = new ArrayContainer();
+            ac.add(13, 1);
+        });
     }
 
     @Test
@@ -167,10 +171,12 @@ public class TestArrayContainer {
         assertEquals(0, ac.getCardinality());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void iaddInvalidRange() {
-        Container ac = new ArrayContainer();
-        ac.iadd(13,1);
+        assertThrows(IllegalArgumentException.class, () -> {
+            Container ac = new ArrayContainer();
+            ac.iadd(13, 1);
+        });
     }
 
     @Test
@@ -193,7 +199,7 @@ public class TestArrayContainer {
     }
 
     @Test
-    public void clear() throws Exception {
+    public void clear() {
         Container ac = new ArrayContainer();
         ac = ac.add(1, 10);
         ac.clear();
@@ -208,17 +214,17 @@ public class TestArrayContainer {
         assertEquals(-1, rbc.getCardinality());
         Container repaired = rbc.repairAfterLazy();
         assertEquals(1 << 16, repaired.getCardinality());
-        assertThat(repaired, instanceOf(RunContainer.class));
+        assertTrue(repaired instanceof RunContainer);
     }
 
-    @Test(expected = NoSuchElementException.class)
+    @Test
     public void testFirst_Empty() {
-        new ArrayContainer().first();
+        assertThrows(NoSuchElementException.class, () -> new ArrayContainer().first());
     }
 
-    @Test(expected = NoSuchElementException.class)
+    @Test
     public void testLast_Empty() {
-        new ArrayContainer().last();
+        assertThrows(NoSuchElementException.class, () -> new ArrayContainer().last());
     }
 
     @Test

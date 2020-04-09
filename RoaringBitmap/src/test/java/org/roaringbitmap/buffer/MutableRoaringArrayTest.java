@@ -1,8 +1,9 @@
 package org.roaringbitmap.buffer;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertSame;
+
 
 public class MutableRoaringArrayTest {
 
@@ -14,6 +15,6 @@ public class MutableRoaringArrayTest {
     MappeableContainer[] values = new MappeableContainer[1];
     MutableRoaringArray array = new MutableRoaringArray(keys, values, size);
     array.extendArray(1);
-    assertTrue("Keys were not reallocated", keys == array.keys);
+    assertSame(keys, array.keys, "Keys were not reallocated");
   }
 }
