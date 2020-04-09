@@ -7,6 +7,8 @@ import org.junit.runners.Parameterized;
 
 import java.util.function.Consumer;
 
+import static org.roaringbitmap.SeededTestData.TestDataSet.testCase;
+
 @RunWith(Parameterized.class)
 public class OrNotTruncationTest {
 
@@ -30,6 +32,18 @@ public class OrNotTruncationTest {
             }},
             {RoaringBitmap.bitmapOf(2), NO_OP},
             {RoaringBitmap.bitmapOf(2, 3, 4), NO_OP},
+            {testCase().withArrayAt(0).build(), NO_OP},
+            {testCase().withRunAt(0).build(), NO_OP},
+            {testCase().withBitmapAt(0).build(), NO_OP},
+            {testCase().withArrayAt(0).withRunAt(1).build(), NO_OP},
+            {testCase().withRunAt(0).withRunAt(1).build(), NO_OP},
+            {testCase().withBitmapAt(0).withRunAt(1).build(), NO_OP},
+            {testCase().withArrayAt(1).build(), NO_OP},
+            {testCase().withRunAt(1).build(), NO_OP},
+            {testCase().withBitmapAt(1).build(), NO_OP},
+            {testCase().withArrayAt(1).withRunAt(2).build(), NO_OP},
+            {testCase().withRunAt(1).withRunAt(2).build(), NO_OP},
+            {testCase().withBitmapAt(1).withRunAt(2).build(), NO_OP},
     };
   }
 
