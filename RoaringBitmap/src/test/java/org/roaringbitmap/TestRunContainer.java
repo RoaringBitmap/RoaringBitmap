@@ -3854,6 +3854,18 @@ public class TestRunContainer {
     assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 8)));
   }
 
+  @Test
+  public void testContains() {
+    RunContainer rc = new RunContainer(new char[]{23, 24}, 1);
+    assertFalse(rc.contains(48, 49));
+  }
+
+  @Test
+  public void testIntersects() {
+    RunContainer rc = new RunContainer(new char[]{41, 15, 215, 0, 217, 2790, 3065, 170, 3269, 422, 3733, 43, 3833, 16, 3852, 7, 3662, 3, 3901, 2}, 10);
+    assertFalse(rc.intersects(57, 215));
+  }
+
   private static int lower16Bits(int x) {
     return ((char)x) & 0xFFFF;
   }

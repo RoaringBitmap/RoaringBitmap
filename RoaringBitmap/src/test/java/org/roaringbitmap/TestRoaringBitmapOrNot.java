@@ -402,8 +402,4 @@ public class TestRoaringBitmapOrNot {
     assertEquals(expected, actual);
   }
 
-
-
-
-
 }

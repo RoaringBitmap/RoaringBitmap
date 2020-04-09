@@ -15,6 +15,7 @@ public class RoaringBitmapIntervalIntersectionTest {
   public static Object[][] params() {
     return new Object[][] {
             {RoaringBitmap.bitmapOf(1, 2, 3), 0, 1 << 16},
+            {RoaringBitmap.bitmapOf(1, 2, 3), 1, 1},
             {RoaringBitmap.bitmapOf(1 << 31 | 1 << 30), 0, 1 << 16},
             {RoaringBitmap.bitmapOf(1 << 31 | 1 << 30), 0, 256},
             {RoaringBitmap.bitmapOf(1, 1 << 31 | 1 << 30), 0, 256},
@@ -64,8 +65,8 @@ public class RoaringBitmapIntervalIntersectionTest {
   public void testContains() {
     MutableRoaringBitmap test = new MutableRoaringBitmap();
     test.add(minimum, supremum);
-    Assert.assertEquals(bitmap.contains(test), bitmap.contains(minimum, supremum));
-    Assert.assertTrue(test.contains(minimum, supremum));
+    Assert.assertEquals(!test.isEmpty() && bitmap.contains(test), bitmap.contains(minimum, supremum));
+    Assert.assertTrue(test.isEmpty() || test.contains(minimum, supremum));
   }
 
   @Test
