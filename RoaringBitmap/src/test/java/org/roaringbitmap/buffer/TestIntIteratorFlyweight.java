@@ -8,8 +8,7 @@ package org.roaringbitmap.buffer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.PeekableIntIterator;
 
@@ -17,6 +16,9 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Random;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class TestIntIteratorFlyweight {
   private static List<Integer> asList(IntIterator ints) {
@@ -59,9 +61,9 @@ public class TestIntIteratorFlyweight {
     MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf();
     iter.wrap(bitmap);
     reverseIter.wrap(bitmap);
-    Assert.assertFalse(iter.hasNext());
+    assertFalse(iter.hasNext());
 
-    Assert.assertFalse(reverseIter.hasNext());
+    assertFalse(reverseIter.hasNext());
   }
 
 
@@ -81,8 +83,8 @@ public class TestIntIteratorFlyweight {
       iter2.advanceIfNeeded(data[k]);
       j.advanceIfNeeded(data[k]);
       j.advanceIfNeeded(data[k]);
-      Assert.assertEquals(j.peekNext(),data[k]);            
-      Assert.assertEquals(iter2.peekNext(),data[k]);
+      assertEquals(j.peekNext(),data[k]);
+      assertEquals(iter2.peekNext(),data[k]);
     }
     new BufferIntIteratorFlyweight(bitmap).advanceIfNeeded(-1);
     bitmap.getIntIterator().advanceIfNeeded(-1);// should not crash
@@ -94,11 +96,11 @@ public class TestIntIteratorFlyweight {
     final List<Integer> intIteratorCopy = asList(iter);
     final List<Integer> reverseIntIteratorCopy = asList(reverseIter);
 
-    Assert.assertEquals(bitmap.getCardinality(), intIteratorCopy.size());
-    Assert.assertEquals(bitmap.getCardinality(), reverseIntIteratorCopy.size());
+    assertEquals(bitmap.getCardinality(), intIteratorCopy.size());
+    assertEquals(bitmap.getCardinality(), reverseIntIteratorCopy.size());
 
-    Assert.assertEquals(Ints.asList(data), intIteratorCopy);
-    Assert.assertEquals(Lists.reverse(Ints.asList(data)), reverseIntIteratorCopy);
+    assertEquals(Ints.asList(data), intIteratorCopy);
+    assertEquals(Lists.reverse(Ints.asList(data)), reverseIntIteratorCopy);
   }
 
 
@@ -109,8 +111,8 @@ public class TestIntIteratorFlyweight {
     MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(data);
 
     BufferIntIteratorFlyweight iter = new BufferIntIteratorFlyweight(bitmap);
-    Assert.assertEquals(iter.peekNext(),data[0]);
-    Assert.assertEquals(iter.peekNext(),data[0]);
+    assertEquals(iter.peekNext(),data[0]);
+    assertEquals(iter.peekNext(),data[0]);
 
     BufferIntIteratorFlyweight iter2 = new BufferIntIteratorFlyweight(bitmap);
     PeekableIntIterator j = bitmap.getIntIterator();
@@ -119,8 +121,8 @@ public class TestIntIteratorFlyweight {
       iter2.advanceIfNeeded(data[k]);
       j.advanceIfNeeded(data[k]);
       j.advanceIfNeeded(data[k]);
-      Assert.assertEquals(j.peekNext(),data[k]);            
-      Assert.assertEquals(iter2.peekNext(),data[k]);
+      assertEquals(j.peekNext(),data[k]);
+      assertEquals(iter2.peekNext(),data[k]);
     }
 
 
@@ -130,11 +132,11 @@ public class TestIntIteratorFlyweight {
     final List<Integer> intIteratorCopy = asList(iter);
     final List<Integer> reverseIntIteratorCopy = asList(reverseIter);
 
-    Assert.assertEquals(bitmap.getCardinality(), intIteratorCopy.size());
-    Assert.assertEquals(bitmap.getCardinality(), reverseIntIteratorCopy.size());
+    assertEquals(bitmap.getCardinality(), intIteratorCopy.size());
+    assertEquals(bitmap.getCardinality(), reverseIntIteratorCopy.size());
 
-    Assert.assertEquals(Ints.asList(data), intIteratorCopy);
-    Assert.assertEquals(Lists.reverse(Ints.asList(data)), reverseIntIteratorCopy);
+    assertEquals(Ints.asList(data), intIteratorCopy);
+    assertEquals(Lists.reverse(Ints.asList(data)), reverseIntIteratorCopy);
   }
 
 
@@ -151,11 +153,11 @@ public class TestIntIteratorFlyweight {
     final List<Integer> intIteratorCopy = asList(iter);
     final List<Integer> reverseIntIteratorCopy = asList(reverseIter);
 
-    Assert.assertEquals(bitmap.getCardinality(), intIteratorCopy.size());
-    Assert.assertEquals(bitmap.getCardinality(), reverseIntIteratorCopy.size());
+    assertEquals(bitmap.getCardinality(), intIteratorCopy.size());
+    assertEquals(bitmap.getCardinality(), reverseIntIteratorCopy.size());
 
-    Assert.assertEquals(Ints.asList(data), intIteratorCopy);
-    Assert.assertEquals(Lists.reverse(Ints.asList(data)), reverseIntIteratorCopy);
+    assertEquals(Ints.asList(data), intIteratorCopy);
+    assertEquals(Lists.reverse(Ints.asList(data)), reverseIntIteratorCopy);
   }
 
   @Test
@@ -194,11 +196,11 @@ public class TestIntIteratorFlyweight {
     final List<Integer> intIteratorCopy = asList(iter);
     final List<Integer> reverseIntIteratorCopy = asList(reverseIter);
 
-    Assert.assertEquals(bitmap.getCardinality(), intIteratorCopy.size());
-    Assert.assertEquals(bitmap.getCardinality(), reverseIntIteratorCopy.size());
+    assertEquals(bitmap.getCardinality(), intIteratorCopy.size());
+    assertEquals(bitmap.getCardinality(), reverseIntIteratorCopy.size());
 
-    Assert.assertEquals(Ints.asList(data), intIteratorCopy);
-    Assert.assertEquals(Lists.reverse(Ints.asList(data)), reverseIntIteratorCopy);
+    assertEquals(Ints.asList(data), intIteratorCopy);
+    assertEquals(Lists.reverse(Ints.asList(data)), reverseIntIteratorCopy);
   }
 
   @Test
@@ -213,8 +215,8 @@ public class TestIntIteratorFlyweight {
 
     final List<Integer> intIteratorCopy = asList(iter);
     final List<Integer> reverseIntIteratorCopy = asList(reverseIter);
-    Assert.assertEquals(ImmutableList.of(1, 2, 3), intIteratorCopy);
-    Assert.assertEquals(ImmutableList.of(3, 2, 1), reverseIntIteratorCopy);
+    assertEquals(ImmutableList.of(1, 2, 3), intIteratorCopy);
+    assertEquals(ImmutableList.of(3, 2, 1), reverseIntIteratorCopy);
   }
 
 

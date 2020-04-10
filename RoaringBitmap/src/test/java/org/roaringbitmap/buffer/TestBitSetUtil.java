@@ -1,12 +1,15 @@
 package org.roaringbitmap.buffer;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import java.util.BitSet;
 import java.util.Random;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Execution(ExecutionMode.CONCURRENT)
 public class TestBitSetUtil {
   private static BitSet appendRandomBitset(final Random random, final int offset,
       final BitSet bitset, final int nbits) {

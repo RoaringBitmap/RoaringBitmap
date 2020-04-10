@@ -7,7 +7,9 @@ package org.roaringbitmap.buffer;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.roaringbitmap.CharIterator;
 
 import java.util.Arrays;
@@ -15,21 +17,22 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 /**
  * Various tests on Container and its subclasses, ArrayContainer, RunContainer and BitmapContainer
  */
 @SuppressWarnings({"static-method"})
+@Execution(ExecutionMode.CONCURRENT)
 public class TestContainer {
 
 
   @Test
   public void testNames() {
-    assertTrue(new MappeableBitmapContainer().getContainerName().equals(MappeableContainer.ContainerNames[0]));
-    assertTrue(new MappeableArrayContainer().getContainerName().equals(MappeableContainer.ContainerNames[1]));
-    assertTrue(new MappeableRunContainer().getContainerName().equals(MappeableContainer.ContainerNames[2]));
+    assertEquals(new MappeableBitmapContainer().getContainerName(), MappeableContainer.ContainerNames[0]);
+    assertEquals(new MappeableArrayContainer().getContainerName(), MappeableContainer.ContainerNames[1]);
+    assertEquals(new MappeableRunContainer().getContainerName(), MappeableContainer.ContainerNames[2]);
   }
 
   public static boolean checkContent(MappeableContainer c, char[] s) {
@@ -763,34 +766,34 @@ public class TestContainer {
     }
   }
 
-  @Test(expected = NoSuchElementException.class)
+  @Test
   public void testFirst_Array() {
-    new MappeableArrayContainer().first();
+    assertThrows(NoSuchElementException.class, () -> new MappeableArrayContainer().first());
   }
 
-  @Test(expected = NoSuchElementException.class)
+  @Test
   public void testLast_Array() {
-    new MappeableArrayContainer().last();
+    assertThrows(NoSuchElementException.class, () -> new MappeableArrayContainer().last());
   }
 
-  @Test(expected = NoSuchElementException.class)
+  @Test
   public void testFirst_Run() {
-    new MappeableRunContainer().first();
+    assertThrows(NoSuchElementException.class, () -> new MappeableRunContainer().first());
   }
 
-  @Test(expected = NoSuchElementException.class)
+  @Test
   public void testLast_Run() {
-    new MappeableRunContainer().last();
+    assertThrows(NoSuchElementException.class, () -> new MappeableRunContainer().last());
   }
 
-  @Test(expected = NoSuchElementException.class)
+  @Test
   public void testFirst_Bitmap() {
-    new MappeableBitmapContainer().first();
+    assertThrows(NoSuchElementException.class, () -> new MappeableBitmapContainer().first());
   }
 
-  @Test(expected = NoSuchElementException.class)
+  @Test
   public void testLast_Bitmap() {
-    new MappeableBitmapContainer().last();
+    assertThrows(NoSuchElementException.class, () -> new MappeableBitmapContainer().last());
   }
 
   @Test

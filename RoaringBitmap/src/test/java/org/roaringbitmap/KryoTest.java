@@ -6,10 +6,11 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.KryoDataInput;
 import com.esotericsoftware.kryo.io.KryoDataOutput;
 import com.esotericsoftware.kryo.io.Output;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class KryoTest {
     public static Kryo createKryo() {
@@ -49,7 +50,7 @@ public class KryoTest {
         tmpfiledense.deleteOnExit();
         writeRoaringToFile(tmpfiledense, roaringDense, serializer);
         RoaringBitmap denseRoaringFromFile = readRoaringFromFile(tmpfiledense, serializer);
-        Assert.assertEquals(denseRoaringFromFile, roaringDense);
+        assertEquals(denseRoaringFromFile, roaringDense);
 
         RoaringBitmap roaringSparse = new RoaringBitmap();
         for (int i = 0; i < 100_000; i++) {
@@ -60,7 +61,7 @@ public class KryoTest {
         File tmpfilesparse = File.createTempFile("roaring_sparse", "bin");
         writeRoaringToFile(tmpfilesparse, roaringSparse, serializer);
         RoaringBitmap sparseRoaringFromFile = readRoaringFromFile(tmpfilesparse, serializer);
-        Assert.assertEquals(sparseRoaringFromFile, roaringSparse);
+        assertEquals(sparseRoaringFromFile, roaringSparse);
     }
 
 }

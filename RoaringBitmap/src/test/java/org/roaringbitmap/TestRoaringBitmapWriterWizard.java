@@ -1,8 +1,8 @@
 package org.roaringbitmap;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.roaringbitmap.RoaringBitmapWriter.bufferWriter;
 import static org.roaringbitmap.RoaringBitmapWriter.writer;
 
@@ -18,9 +18,10 @@ public class TestRoaringBitmapWriterWizard {
     assertNotNull(writer().fastRank().get().getUnderlying());
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void whenFastRankIsSelectedBufferWizardThrows() {
-    bufferWriter().fastRank().get().getUnderlying();
+    assertThrows(IllegalStateException.class,
+            () -> bufferWriter().fastRank().get().getUnderlying());
   }
 
   @Test

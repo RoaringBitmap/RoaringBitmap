@@ -1,8 +1,8 @@
 package org.roaringbitmap;
 
 import com.google.common.collect.ImmutableMap;
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
@@ -11,7 +11,9 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.*;
 import java.util.stream.IntStream;
 
-import static org.junit.Assert.assertTrue;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.roaringbitmap.RandomisedTestData.ITERATIONS;
 import static org.roaringbitmap.Util.toUnsignedLong;
 
@@ -36,7 +38,7 @@ public class BufferFuzzer {
               long min = random.nextLong(1L << 32);
               long max = random.nextLong(min, 1L << 32);
               try {
-                Assert.assertTrue(pred.test(min, max, bitmap));
+                assertTrue(pred.test(min, max, bitmap));
               } catch (Throwable t) {
                 Reporter.report(testName, ImmutableMap.of("min", min, "max", max), t, bitmap);
                 throw t;
@@ -63,7 +65,7 @@ public class BufferFuzzer {
             .filter(validity)
             .forEach(bitmap -> {
               try {
-                Assert.assertEquals(left.apply(bitmap), right.apply(bitmap));
+                assertEquals(left.apply(bitmap), right.apply(bitmap));
               } catch (Throwable t) {
                 Reporter.report(testName, ImmutableMap.of(), t, bitmap);
                 throw t;
@@ -77,7 +79,7 @@ public class BufferFuzzer {
             .mapToObj(i -> randomBitmap(maxKeys))
             .forEach(bitmap -> {
               try {
-                Assert.assertTrue(pred.test(bitmap));
+                assertTrue(pred.test(bitmap));
               } catch (Throwable e) {
                 Reporter.report(testName, ImmutableMap.of(), e, bitmap);
                 throw e;
@@ -120,7 +122,7 @@ public class BufferFuzzer {
               MutableRoaringBitmap two = randomBitmap(maxKeys);
               if (validity.test(one, two)) {
                 try {
-                  Assert.assertEquals(left.apply(one, two), right.apply(one, two));
+                  assertEquals(left.apply(one, two), right.apply(one, two));
                 } catch (Throwable t) {
                   Reporter.report(testName, ImmutableMap.of(), t, one, two);
                   throw t;
@@ -147,7 +149,7 @@ public class BufferFuzzer {
             .forEach(bitmap -> {
               for (int i = 0; i < bitmap.getCardinality(); ++i) {
                 try {
-                  Assert.assertTrue(predicate.test(i, bitmap));
+                  assertTrue(predicate.test(i, bitmap));
                 } catch (Throwable t) {
                   Reporter.report(testName, ImmutableMap.of(), t, bitmap);
                   throw t;
@@ -170,7 +172,7 @@ public class BufferFuzzer {
             .mapToObj(i -> randomBitmap(maxKeys))
             .forEach(bitmap -> {
               try {
-                Assert.assertEquals(value, func.apply(bitmap));
+                assertEquals(value, func.apply(bitmap));
               } catch (Throwable t) {
                 Reporter.report(testName, ImmutableMap.of("value", value), t, bitmap);
                 throw t;
@@ -480,8 +482,8 @@ public class BufferFuzzer {
         for (int offset : offsets) {
           int pos = next + offset;
           if (pos >= 0) {
-            Assert.assertEquals(reference.nextClearBit(pos), bitmap.nextAbsentValue(pos));
-            Assert.assertEquals(reference.previousClearBit(pos), bitmap.previousAbsentValue(pos));
+            assertEquals(reference.nextClearBit(pos), bitmap.nextAbsentValue(pos));
+            assertEquals(reference.previousClearBit(pos), bitmap.previousAbsentValue(pos));
           }
         }
       }

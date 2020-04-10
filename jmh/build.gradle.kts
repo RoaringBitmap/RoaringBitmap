@@ -15,7 +15,9 @@ repositories {
 
 dependencies {
     jmh(project(":real-roaring-dataset"))
-    jmh("junit:junit:${deps["junit"]}")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:${deps["jupiter"]}")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:${deps["jupiter"]}")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${deps["jupiter"]}")
 
     // tests and benchmarks both need dependencies: javaEWAH, extendedset, etc.
     listOf(
@@ -32,14 +34,13 @@ dependencies {
 
     testImplementation(project(":real-roaring-dataset"))
     testImplementation("com.google.guava:guava:${deps["guava"]}")
-    testImplementation("junit:junit:${deps["junit"]}")
 
     // tests run benchmark classes, so need to depend on benchmark compile output
     testImplementation(sourceSets.jmh.get().output)
 }
 
 jmh {
-    jmhVersion = "1.21"
+    jmhVersion = "1.23"
     // tests depend on jmh, not the other way around
     isIncludeTests = false
     warmupIterations = 5
@@ -52,11 +53,15 @@ tasks.assemble {
 }
 
 tasks.test {
-    // stop these tests from running before RoaringBitmap
-    shouldRunAfter(project(":RoaringBitmap").tasks.test)
-    useJUnit()
-    failFast = true
-    maxParallelForks = 8
+    // set the property on the CLI with -P or add to gradle.properties to enable tests
+    if (!project.hasProperty("roaringbitmap.jmh")) {
+        exclude("**")
+    } else {
+        // stop these tests from running before RoaringBitmap
+        shouldRunAfter(project(":RoaringBitmap").tasks.test)
+        useJUnitPlatform()
+        failFast = true
+    }
 }
 
 

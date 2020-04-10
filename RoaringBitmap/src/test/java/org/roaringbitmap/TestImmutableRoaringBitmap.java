@@ -1,9 +1,11 @@
 package org.roaringbitmap;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 
 public class TestImmutableRoaringBitmap {
 
@@ -34,22 +36,28 @@ public class TestImmutableRoaringBitmap {
         assertEquals(expected, andNot);
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void flipInvalidRange() {
-        ImmutableRoaringBitmap a = ImmutableRoaringBitmap.bitmapOf(1, 5, 7, 13);
-        ImmutableRoaringBitmap.flip(a, 7L, 5L);
+        assertThrows(RuntimeException.class, () -> {
+            ImmutableRoaringBitmap a = ImmutableRoaringBitmap.bitmapOf(1, 5, 7, 13);
+            ImmutableRoaringBitmap.flip(a, 7L, 5L);
+        });
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void flipInvalidRange2() {
-        ImmutableRoaringBitmap a = ImmutableRoaringBitmap.bitmapOf(1, 5, 7, 13);
-        ImmutableRoaringBitmap.flip(a, 1L<<32, 1L<<33);
+        assertThrows(IllegalArgumentException.class, () -> {
+            ImmutableRoaringBitmap a = ImmutableRoaringBitmap.bitmapOf(1, 5, 7, 13);
+            ImmutableRoaringBitmap.flip(a, 1L << 32, 1L << 33);
+        });
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void flipInvalidRange3() {
-        ImmutableRoaringBitmap a = ImmutableRoaringBitmap.bitmapOf(1, 5, 7, 13);
-        ImmutableRoaringBitmap.flip(a, 1L, 1L<<33);
+        assertThrows(IllegalArgumentException.class, () -> {
+            ImmutableRoaringBitmap a = ImmutableRoaringBitmap.bitmapOf(1, 5, 7, 13);
+            ImmutableRoaringBitmap.flip(a, 1L, 1L << 33);
+        });
     }
 
 

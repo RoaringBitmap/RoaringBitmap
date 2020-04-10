@@ -23,7 +23,6 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.StreamSupport;
 
-import org.junit.Test;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Mode;
@@ -47,7 +46,6 @@ import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
  */
 public class RealDataSerializationBenchmark {
 
-	 @Test
 	 public void 
 	    launchBenchmark() throws Exception {
 

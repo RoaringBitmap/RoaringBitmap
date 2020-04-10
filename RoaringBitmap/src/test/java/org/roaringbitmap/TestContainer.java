@@ -6,11 +6,12 @@ package org.roaringbitmap;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 /**
  * Various tests on Container and its subclasses, ArrayContainer and BitmapContainer
@@ -23,9 +24,9 @@ public class TestContainer {
 
   @Test
   public void testNames() {
-    assertTrue(new BitmapContainer().getContainerName().equals(Container.ContainerNames[0]));
-    assertTrue(new ArrayContainer().getContainerName().equals(Container.ContainerNames[1]));
-    assertTrue(new RunContainer().getContainerName().equals(Container.ContainerNames[2]));
+    assertEquals(new BitmapContainer().getContainerName(), Container.ContainerNames[0]);
+    assertEquals(new ArrayContainer().getContainerName(), Container.ContainerNames[1]);
+    assertEquals(new RunContainer().getContainerName(), Container.ContainerNames[2]);
   }
   
   public static boolean checkContent(Container c, char[] s) {
@@ -804,13 +805,13 @@ public class TestContainer {
       Iterator<Container> it = test.iterator();
       if(test.size() == 1) { // compare with self
         Container x = it.next();
-        assertEquals(x.getContainerName() + ": " + x, x.xor(x).getCardinality(), x.xorCardinality(x));
+        assertEquals(x.xor(x).getCardinality(), x.xorCardinality(x), x.getContainerName() + ": " + x);
       } else if(test.size() == 2) {
         Container x = it.next();
         Container y = it.next();
-        assertEquals(x.getContainerName() + " " + x + " " + y.getContainerName() + " " + y,
-                x.xor(y).getCardinality(), x.xorCardinality(y));
-        assertEquals(y.getContainerName() + " " + y + " " + x.getContainerName() + " " + x, y.xor(x).getCardinality(), y.xorCardinality(x));
+        assertEquals(
+                x.xor(y).getCardinality(), x.xorCardinality(y), x.getContainerName() + " " + x + " " + y.getContainerName() + " " + y);
+        assertEquals(y.xor(x).getCardinality(), y.xorCardinality(x), y.getContainerName() + " " + y + " " + x.getContainerName() + " " + x);
       }
     }
   }

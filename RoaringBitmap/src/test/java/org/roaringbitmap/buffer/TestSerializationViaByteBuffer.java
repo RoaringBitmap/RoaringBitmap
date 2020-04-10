@@ -1,12 +1,14 @@
 package org.roaringbitmap.buffer;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.roaringbitmap.SeededTestData;
 
 import java.io.*;
@@ -16,113 +18,105 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
 import static java.nio.file.Files.delete;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@RunWith(Parameterized.class)
+@Execution(ExecutionMode.CONCURRENT)
 public class TestSerializationViaByteBuffer {
 
-  private Path dir;
-
-  @Rule
-  public final TemporaryFolder tf = new TemporaryFolder();
-
-  @Before
-  public void setUp() throws IOException {
-    dir = tf.newFolder().toPath();
-  }
-
-  @AfterClass
+  @AfterAll
   public static void cleanup() {
     System.gc();
   }
 
-  @Parameterized.Parameters(name = "{1}/{0} keys/runOptimise={2}")
-  public static Object[][] params() {
-    return new Object[][]{
-            {2, ByteOrder.BIG_ENDIAN, true},
-            {2, ByteOrder.LITTLE_ENDIAN, true},
-            {3, ByteOrder.BIG_ENDIAN, true},
-            {3, ByteOrder.LITTLE_ENDIAN, true},
-            {4, ByteOrder.BIG_ENDIAN, true,},
-            {4, ByteOrder.LITTLE_ENDIAN, true},
-            {5, ByteOrder.BIG_ENDIAN, true},
-            {5, ByteOrder.LITTLE_ENDIAN, true},
-            {6, ByteOrder.BIG_ENDIAN, true},
-            {6, ByteOrder.LITTLE_ENDIAN, true},
-            {7, ByteOrder.BIG_ENDIAN, true},
-            {7, ByteOrder.LITTLE_ENDIAN, true},
-            {8, ByteOrder.BIG_ENDIAN, true},
-            {8, ByteOrder.LITTLE_ENDIAN, true},
-            {9, ByteOrder.BIG_ENDIAN, true},
-            {9, ByteOrder.LITTLE_ENDIAN, true},
-            {10, ByteOrder.BIG_ENDIAN, true},
-            {10, ByteOrder.LITTLE_ENDIAN, true},
-            {11, ByteOrder.BIG_ENDIAN, true},
-            {11, ByteOrder.LITTLE_ENDIAN, true},
-            {12, ByteOrder.BIG_ENDIAN, true},
-            {12, ByteOrder.LITTLE_ENDIAN, true},
-            {13, ByteOrder.BIG_ENDIAN, true},
-            {13, ByteOrder.LITTLE_ENDIAN, true},
-            {14, ByteOrder.BIG_ENDIAN, true},
-            {14, ByteOrder.LITTLE_ENDIAN, true},
-            {15, ByteOrder.BIG_ENDIAN, true},
-            {15, ByteOrder.LITTLE_ENDIAN, true},
-            {2, ByteOrder.BIG_ENDIAN, false},
-            {2, ByteOrder.LITTLE_ENDIAN, false},
-            {3, ByteOrder.BIG_ENDIAN, false},
-            {3, ByteOrder.LITTLE_ENDIAN, false},
-            {4, ByteOrder.BIG_ENDIAN, false},
-            {4, ByteOrder.LITTLE_ENDIAN, false},
-            {5, ByteOrder.BIG_ENDIAN, false},
-            {5, ByteOrder.LITTLE_ENDIAN, false},
-            {6, ByteOrder.BIG_ENDIAN, false},
-            {6, ByteOrder.LITTLE_ENDIAN, false},
-            {7, ByteOrder.BIG_ENDIAN, false},
-            {7, ByteOrder.LITTLE_ENDIAN, false},
-            {8, ByteOrder.BIG_ENDIAN, false},
-            {8, ByteOrder.LITTLE_ENDIAN, false},
-            {9, ByteOrder.BIG_ENDIAN, false},
-            {9, ByteOrder.LITTLE_ENDIAN, false},
-            {10, ByteOrder.BIG_ENDIAN, false},
-            {10, ByteOrder.LITTLE_ENDIAN, false},
-            {11, ByteOrder.BIG_ENDIAN, false},
-            {11, ByteOrder.LITTLE_ENDIAN, false},
-            {12, ByteOrder.BIG_ENDIAN, false},
-            {12, ByteOrder.LITTLE_ENDIAN, false},
-            {13, ByteOrder.BIG_ENDIAN, false},
-            {13, ByteOrder.LITTLE_ENDIAN, false},
-            {14, ByteOrder.BIG_ENDIAN, false},
-            {14, ByteOrder.LITTLE_ENDIAN, false},
-            {15, ByteOrder.BIG_ENDIAN, false},
-            {15, ByteOrder.LITTLE_ENDIAN, false}
-    };
+  public static Stream<Arguments> params() {
+    return Stream.of(
+            Arguments.of(2, ByteOrder.BIG_ENDIAN, true),
+            Arguments.of(2, ByteOrder.LITTLE_ENDIAN, true),
+            Arguments.of(3, ByteOrder.BIG_ENDIAN, true),
+            Arguments.of(3, ByteOrder.LITTLE_ENDIAN, true),
+            Arguments.of(4, ByteOrder.BIG_ENDIAN, true),
+            Arguments.of(4, ByteOrder.LITTLE_ENDIAN, true),
+            Arguments.of(5, ByteOrder.BIG_ENDIAN, true),
+            Arguments.of(5, ByteOrder.LITTLE_ENDIAN, true),
+            Arguments.of(6, ByteOrder.BIG_ENDIAN, true),
+            Arguments.of(6, ByteOrder.LITTLE_ENDIAN, true),
+            Arguments.of(7, ByteOrder.BIG_ENDIAN, true),
+            Arguments.of(7, ByteOrder.LITTLE_ENDIAN, true),
+            Arguments.of(8, ByteOrder.BIG_ENDIAN, true),
+            Arguments.of(8, ByteOrder.LITTLE_ENDIAN, true),
+            Arguments.of(9, ByteOrder.BIG_ENDIAN, true),
+            Arguments.of(9, ByteOrder.LITTLE_ENDIAN, true),
+            Arguments.of(10, ByteOrder.BIG_ENDIAN, true),
+            Arguments.of(10, ByteOrder.LITTLE_ENDIAN, true),
+            Arguments.of(11, ByteOrder.BIG_ENDIAN, true),
+            Arguments.of(11, ByteOrder.LITTLE_ENDIAN, true),
+            Arguments.of(12, ByteOrder.BIG_ENDIAN, true),
+            Arguments.of(12, ByteOrder.LITTLE_ENDIAN, true),
+            Arguments.of(13, ByteOrder.BIG_ENDIAN, true),
+            Arguments.of(13, ByteOrder.LITTLE_ENDIAN, true),
+            Arguments.of(14, ByteOrder.BIG_ENDIAN, true),
+            Arguments.of(14, ByteOrder.LITTLE_ENDIAN, true),
+            Arguments.of(15, ByteOrder.BIG_ENDIAN, true),
+            Arguments.of(15, ByteOrder.LITTLE_ENDIAN, true),
+            Arguments.of(2, ByteOrder.BIG_ENDIAN, false),
+            Arguments.of(2, ByteOrder.LITTLE_ENDIAN, false),
+            Arguments.of(3, ByteOrder.BIG_ENDIAN, false),
+            Arguments.of(3, ByteOrder.LITTLE_ENDIAN, false),
+            Arguments.of(4, ByteOrder.BIG_ENDIAN, false),
+            Arguments.of(4, ByteOrder.LITTLE_ENDIAN, false),
+            Arguments.of(5, ByteOrder.BIG_ENDIAN, false),
+            Arguments.of(5, ByteOrder.LITTLE_ENDIAN, false),
+            Arguments.of(6, ByteOrder.BIG_ENDIAN, false),
+            Arguments.of(6, ByteOrder.LITTLE_ENDIAN, false),
+            Arguments.of(7, ByteOrder.BIG_ENDIAN, false),
+            Arguments.of(7, ByteOrder.LITTLE_ENDIAN, false),
+            Arguments.of(8, ByteOrder.BIG_ENDIAN, false),
+            Arguments.of(8, ByteOrder.LITTLE_ENDIAN, false),
+            Arguments.of(9, ByteOrder.BIG_ENDIAN, false),
+            Arguments.of(9, ByteOrder.LITTLE_ENDIAN, false),
+            Arguments.of(10, ByteOrder.BIG_ENDIAN, false),
+            Arguments.of(10, ByteOrder.LITTLE_ENDIAN, false),
+            Arguments.of(11, ByteOrder.BIG_ENDIAN, false),
+            Arguments.of(11, ByteOrder.LITTLE_ENDIAN, false),
+            Arguments.of(12, ByteOrder.BIG_ENDIAN, false),
+            Arguments.of(12, ByteOrder.LITTLE_ENDIAN, false),
+            Arguments.of(13, ByteOrder.BIG_ENDIAN, false),
+            Arguments.of(13, ByteOrder.LITTLE_ENDIAN, false),
+            Arguments.of(14, ByteOrder.BIG_ENDIAN, false),
+            Arguments.of(14, ByteOrder.LITTLE_ENDIAN, false),
+            Arguments.of(15, ByteOrder.BIG_ENDIAN, false),
+            Arguments.of(15, ByteOrder.LITTLE_ENDIAN, false)
+    );
   }
 
-  private final MutableRoaringBitmap input;
-  private final ByteOrder order;
-  private final byte[] serialised;
+  private Path file;
 
-  public TestSerializationViaByteBuffer(int keys, ByteOrder order, boolean runOptimise) throws IOException {
-    MutableRoaringBitmap input = SeededTestData.randomBitmap(keys).toMutableRoaringBitmap();
-    if (runOptimise) {
-      input.runOptimize();
-    }
-    this.input = input;
-    this.order = order;
-    try (ByteArrayOutputStream bos = new ByteArrayOutputStream(input.serializedSizeInBytes());
-         DataOutputStream dos = new DataOutputStream(bos)) {
-      input.serialize(dos);
-      this.serialised = bos.toByteArray();
-    }
-  }
-
-  @Test
-  public void testDeserializeFromMappedFile() throws IOException {
-    Path file = dir.resolve(UUID.randomUUID().toString());
+  @BeforeEach
+  public void before(@TempDir Path tempDir) throws IOException {
+    this.file = tempDir;
+    file = tempDir.resolve(UUID.randomUUID().toString());
     Files.createFile(file);
+  }
+
+  @AfterEach
+  public void after() throws IOException {
+    if (null != file) {
+      if (!System.getProperty("os.name").toLowerCase().contains("windows")) {
+        // nothing really works properly on Windows
+        delete(file);
+      }
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("params")
+  public void testDeserializeFromMappedFile(int keys, ByteOrder order, boolean runOptimise) throws IOException {
+    MutableRoaringBitmap input = SeededTestData.randomBitmap(keys).toMutableRoaringBitmap();
+    byte[] serialised = serialise(input, runOptimise);
     try (RandomAccessFile raf = new RandomAccessFile(file.toFile(), "rw");
          FileChannel channel = raf.getChannel()) {
       ByteBuffer buffer = channel.map(READ_WRITE, 0, serialised.length);
@@ -132,19 +126,15 @@ public class TestSerializationViaByteBuffer {
       MutableRoaringBitmap deserialised = new MutableRoaringBitmap();
       deserialised.deserialize(buffer);
       assertEquals(input, deserialised);
-    } finally {
-      if (!System.getProperty("os.name").toLowerCase().contains("windows")) {
-        // nothing really works properly on Windows
-        delete(file);
-      }
     }
   }
 
 
-  @Test
-  public void testSerializeMappedBitmap() throws IOException {
-    Path file = dir.resolve(UUID.randomUUID().toString());
-    Files.createFile(file);
+  @ParameterizedTest
+  @MethodSource("params")
+  public void testSerializeMappedBitmap(int keys, ByteOrder order, boolean runOptimise) throws IOException {
+    MutableRoaringBitmap input = SeededTestData.randomBitmap(keys).toMutableRoaringBitmap();
+    byte[] serialised = serialise(input, runOptimise);
     try (RandomAccessFile raf = new RandomAccessFile(file.toFile(), "rw");
          FileChannel channel = raf.getChannel()) {
       ByteBuffer buffer = channel.map(READ_WRITE, 0, serialised.length);
@@ -156,24 +146,25 @@ public class TestSerializationViaByteBuffer {
       buf.flip();
       ImmutableRoaringBitmap deserialised = new ImmutableRoaringBitmap(buf);
       assertEquals(bitmap, deserialised);
-    } finally {
-      if (!System.getProperty("os.name").toLowerCase().contains("windows")) {
-        // nothing really works properly on Windows
-        delete(file);
-      }
     }
   }
 
-  @Test
-  public void testDeserializeFromHeap() throws IOException {
+  @ParameterizedTest
+  @MethodSource("params")
+  public void testDeserializeFromHeap(int keys, ByteOrder order, boolean runOptimise) throws IOException {
+    MutableRoaringBitmap input = SeededTestData.randomBitmap(keys).toMutableRoaringBitmap();
+    byte[] serialised = serialise(input, runOptimise);
     ByteBuffer buffer = ByteBuffer.wrap(serialised).order(order);
     MutableRoaringBitmap deserialised = new MutableRoaringBitmap();
     deserialised.deserialize(buffer);
     assertEquals(input, deserialised);
   }
 
-  @Test
-  public void testDeserializeFromDirect() throws IOException {
+  @ParameterizedTest
+  @MethodSource("params")
+  public void testDeserializeFromDirect(int keys, ByteOrder order, boolean runOptimise) throws IOException {
+    MutableRoaringBitmap input = SeededTestData.randomBitmap(keys).toMutableRoaringBitmap();
+    byte[] serialised = serialise(input, runOptimise);
     ByteBuffer buffer = ByteBuffer.allocateDirect(serialised.length).order(order);
     buffer.put(serialised);
     buffer.position(0);
@@ -182,8 +173,11 @@ public class TestSerializationViaByteBuffer {
     assertEquals(input, deserialised);
   }
 
-  @Test
-  public void testDeserializeFromDirectWithOffset() throws IOException {
+  @ParameterizedTest
+  @MethodSource("params")
+  public void testDeserializeFromDirectWithOffset(int keys, ByteOrder order, boolean runOptimise) throws IOException {
+    MutableRoaringBitmap input = SeededTestData.randomBitmap(keys).toMutableRoaringBitmap();
+    byte[] serialised = serialise(input, runOptimise);
     ByteBuffer buffer = ByteBuffer.allocateDirect(10 + serialised.length).order(order);
     buffer.position(10);
     buffer.put(serialised);
@@ -193,8 +187,11 @@ public class TestSerializationViaByteBuffer {
     assertEquals(input, deserialised);
   }
 
-  @Test
-  public void testSerializeCorrectOffset() {
+  @ParameterizedTest
+  @MethodSource("params")
+  public void testSerializeCorrectOffset(int keys, ByteOrder order, boolean runOptimise) throws IOException {
+    MutableRoaringBitmap input = SeededTestData.randomBitmap(keys).toMutableRoaringBitmap();
+    byte[] serialised = serialise(input, runOptimise);
     ByteBuffer buffer = ByteBuffer.allocateDirect(10 + serialised.length).order(order);
     buffer.position(10);
     int serialisedSize = input.serializedSizeInBytes();
@@ -202,8 +199,11 @@ public class TestSerializationViaByteBuffer {
     assertEquals(10 + serialisedSize, buffer.position());
   }
 
-  @Test
-  public void testSerializeToByteBufferDeserializeViaStream() throws IOException {
+  @ParameterizedTest
+  @MethodSource("params")
+  public void testSerializeToByteBufferDeserializeViaStream(int keys, ByteOrder order, boolean runOptimise) throws IOException {
+    MutableRoaringBitmap input = SeededTestData.randomBitmap(keys).toMutableRoaringBitmap();
+    byte[] serialised = serialise(input, runOptimise);
     ByteBuffer buffer = ByteBuffer.allocate(serialised.length).order(order);
     input.serialize(buffer);
     assertEquals(0, buffer.remaining());
@@ -214,8 +214,11 @@ public class TestSerializationViaByteBuffer {
     assertEquals(input, roundtrip);
   }
 
-  @Test
-  public void testSerializeToByteBufferDeserializeByteBuffer() throws IOException {
+  @ParameterizedTest
+  @MethodSource("params")
+  public void testSerializeToByteBufferDeserializeByteBuffer(int keys, ByteOrder order, boolean runOptimise) throws IOException {
+    MutableRoaringBitmap input = SeededTestData.randomBitmap(keys).toMutableRoaringBitmap();
+    byte[] serialised = serialise(input, runOptimise);
     ByteBuffer buffer = ByteBuffer.allocate(serialised.length).order(order);
     input.serialize(buffer);
     assertEquals(0, buffer.remaining());
@@ -223,5 +226,16 @@ public class TestSerializationViaByteBuffer {
     buffer.flip();
     roundtrip.deserialize(buffer);
     assertEquals(input, roundtrip);
+  }
+
+  private static byte[] serialise(MutableRoaringBitmap input, boolean runOptimise) throws IOException {
+    if (runOptimise) {
+      input.runOptimize();
+    }
+    try (ByteArrayOutputStream bos = new ByteArrayOutputStream(input.serializedSizeInBytes());
+         DataOutputStream dos = new DataOutputStream(bos)) {
+      input.serialize(dos);
+      return bos.toByteArray();
+    }
   }
 }

@@ -1,16 +1,17 @@
 package org.roaringbitmap;
 
 import com.google.common.collect.ImmutableMap;
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 import java.util.BitSet;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.*;
 import java.util.stream.IntStream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.roaringbitmap.RandomisedTestData.ITERATIONS;
 import static org.roaringbitmap.RandomisedTestData.randomBitmap;
 import static org.roaringbitmap.Util.toUnsignedLong;
@@ -41,7 +42,7 @@ public class Fuzzer {
             .mapToObj(i -> randomBitmap(maxKeys))
             .forEach(bitmap -> {
               try {
-                Assert.assertEquals(value, func.apply(bitmap));
+                assertEquals(value, func.apply(bitmap));
               } catch (Throwable e) {
                 Reporter.report(testName, ImmutableMap.of("value", value), e, bitmap);
                 throw e;
@@ -99,7 +100,7 @@ public class Fuzzer {
             .filter(validity)
             .forEach(bitmap -> {
               try {
-                Assert.assertEquals(left.apply(bitmap), right.apply(bitmap));
+                assertEquals(left.apply(bitmap), right.apply(bitmap));
               } catch (Throwable e) {
                 Reporter.report(testName, ImmutableMap.of(), e, bitmap);
                 throw e;
@@ -142,7 +143,7 @@ public class Fuzzer {
               RoaringBitmap two = randomBitmap(maxKeys);
               if (validity.test(one, two)) {
                 try {
-                  Assert.assertEquals(left.apply(one, two), right.apply(one, two));
+                  assertEquals(left.apply(one, two), right.apply(one, two));
                 } catch (Throwable t) {
                   Reporter.report(testName, ImmutableMap.of(), t, one, two);
                   throw t;

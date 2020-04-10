@@ -1,9 +1,12 @@
 package org.roaringbitmap;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 import java.util.Random;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 public class TestRankIteratorsOfContainers {
   private void testContainerRanksOnNext(Container c) {
@@ -12,7 +15,7 @@ public class TestRankIteratorsOfContainers {
       char bit = iterator.peekNext();
       int rank = iterator.peekNextRank();
 
-      Assert.assertEquals(c.rank(bit), rank);
+      assertEquals(c.rank(bit), rank);
 
       iterator.next();
     }
@@ -24,7 +27,7 @@ public class TestRankIteratorsOfContainers {
       char bit = iterator.peekNext();
       int rank = iterator.peekNextRank();
 
-      Assert.assertEquals(c.rank(bit), rank);
+      assertEquals(c.rank(bit), rank);
 
       iterator.nextAsInt();
     }
@@ -37,7 +40,7 @@ public class TestRankIteratorsOfContainers {
       bit = iterator.peekNext();
       int rank = iterator.peekNextRank();
 
-      Assert.assertEquals(c.rank(bit), rank);
+      assertEquals(c.rank(bit), rank);
 
       if (((bit) + advance < 65536)) {
         iterator.advanceIfNeeded((char) (bit + advance));
@@ -79,7 +82,7 @@ public class TestRankIteratorsOfContainers {
       container.add((char) (16384 + rnd.nextInt(1 << 10)));
     }
 
-    Assert.assertSame("bad test -- container was changed", empty, container);
+    assertSame(empty, container,"bad test -- container was changed");
   }
 
   private void fillRange(Container container, int begin, int end) {
@@ -87,7 +90,7 @@ public class TestRankIteratorsOfContainers {
 
     container.iadd(begin, end);
 
-    Assert.assertSame("bad test -- container was changed", empty, container);
+    assertSame(empty, container, "bad test -- container was changed");
   }
 
   @Test
@@ -192,12 +195,12 @@ public class TestRankIteratorsOfContainers {
     Container c1 = container.iadd(0, 65536);
 
     if (checkSame) {
-      Assert.assertSame("bad test -- container was changed", container, c1);
+      assertSame(container, c1, "bad test -- container was changed");
     }
 
     PeekableCharRankIterator iterator = container.getCharRankIterator();
     while (iterator.hasNext()) {
-      Assert.assertEquals((iterator.peekNext()) + 1, iterator.peekNextRank());
+      assertEquals((iterator.peekNext()) + 1, iterator.peekNextRank());
       iterator.next();
     }
   }
