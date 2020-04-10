@@ -1,7 +1,9 @@
 package org.roaringbitmap;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestForEach {
 
@@ -17,10 +19,10 @@ public class TestForEach {
       @Override
       public void accept(int value) {
         cardinality.value++;
-        Assert.assertEquals(value, expected++);
+        assertEquals(value, expected++);
       }
     });
-    Assert.assertEquals(cardinality.value, bitmap.getCardinality());
+    assertEquals(cardinality.value, bitmap.getCardinality());
   }
   
   @Test
@@ -36,11 +38,11 @@ public class TestForEach {
       @Override
       public void accept(int value) {
         cardinality.value++;
-        Assert.assertEquals(value, expected);
+        assertEquals(value, expected);
         expected += 3;
       }
     });
-    Assert.assertEquals(cardinality.value, bitmap.getCardinality());
+    assertEquals(cardinality.value, bitmap.getCardinality());
   }
 
 
@@ -57,11 +59,11 @@ public class TestForEach {
       @Override
       public void accept(int value) {
         cardinality.value++;
-        Assert.assertEquals(value, expected);
+        assertEquals(value, expected);
         expected += 3000;
       }
     });
-    Assert.assertEquals(cardinality.value, bitmap.getCardinality());
+    assertEquals(cardinality.value, bitmap.getCardinality());
   }
 }
 

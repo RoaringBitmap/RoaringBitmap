@@ -1,7 +1,9 @@
 package org.roaringbitmap.buffer;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -9,6 +11,10 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@Execution(ExecutionMode.CONCURRENT)
 public class TestFastAggregation {
 
   private static ImmutableRoaringBitmap toMapped(MutableRoaringBitmap r) {
@@ -34,8 +40,8 @@ public class TestFastAggregation {
     MutableRoaringBitmap data2 = MutableRoaringBitmap.bitmapOf(array2);
     MutableRoaringBitmap data3 = MutableRoaringBitmap.bitmapOf(array3);
     MutableRoaringBitmap data4 = MutableRoaringBitmap.bitmapOf(array4);
-    Assert.assertEquals(data3, BufferFastAggregation.naive_and(data1, data2));
-    Assert.assertEquals(new MutableRoaringBitmap(), BufferFastAggregation.naive_and(data4));
+    assertEquals(data3, BufferFastAggregation.naive_and(data1, data2));
+    assertEquals(new MutableRoaringBitmap(), BufferFastAggregation.naive_and(data4));
   }
 
   @Test
@@ -53,27 +59,29 @@ public class TestFastAggregation {
     MutableRoaringBitmap data4 = MutableRoaringBitmap.bitmapOf(array4);
     data5.add(data1);
     data5.add(data2);
-    Assert.assertEquals(data3, BufferFastAggregation.priorityqueue_or(data1, data2));
-    Assert.assertEquals(data1, BufferFastAggregation.priorityqueue_or(data1));
-    Assert.assertEquals(data1, BufferFastAggregation.priorityqueue_or(data1, data4));
-    Assert.assertEquals(data3, BufferFastAggregation.priorityqueue_or(data5.iterator()));
-    Assert.assertEquals(new MutableRoaringBitmap(),
+    assertEquals(data3, BufferFastAggregation.priorityqueue_or(data1, data2));
+    assertEquals(data1, BufferFastAggregation.priorityqueue_or(data1));
+    assertEquals(data1, BufferFastAggregation.priorityqueue_or(data1, data4));
+    assertEquals(data3, BufferFastAggregation.priorityqueue_or(data5.iterator()));
+    assertEquals(new MutableRoaringBitmap(),
         BufferFastAggregation.priorityqueue_or(data6.iterator()));
     data6.add(data1);
-    Assert.assertEquals(data1, BufferFastAggregation.priorityqueue_or(data6.iterator()));
+    assertEquals(data1, BufferFastAggregation.priorityqueue_or(data6.iterator()));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testPriorityQueueXor() {
-    int[] array1 = {1232, 3324, 123, 43243, 1322, 7897, 8767};
-    int[] array2 = {39173, 39174, 39175, 39176, 39177, 39178, 39179};
-    int[] array3 =
-        {1232, 3324, 123, 43243, 1322, 7897, 8767, 39173, 39174, 39175, 39176, 39177, 39178, 39179};
-    ImmutableRoaringBitmap data1 = MutableRoaringBitmap.bitmapOf(array1);
-    ImmutableRoaringBitmap data2 = MutableRoaringBitmap.bitmapOf(array2);
-    ImmutableRoaringBitmap data3 = MutableRoaringBitmap.bitmapOf(array3);
-    Assert.assertEquals(data3, BufferFastAggregation.priorityqueue_xor(data1, data2));
-    BufferFastAggregation.priorityqueue_xor(data1);
+    assertThrows(IllegalArgumentException.class, () -> {
+      int[] array1 = {1232, 3324, 123, 43243, 1322, 7897, 8767};
+      int[] array2 = {39173, 39174, 39175, 39176, 39177, 39178, 39179};
+      int[] array3 =
+              {1232, 3324, 123, 43243, 1322, 7897, 8767, 39173, 39174, 39175, 39176, 39177, 39178, 39179};
+      ImmutableRoaringBitmap data1 = MutableRoaringBitmap.bitmapOf(array1);
+      ImmutableRoaringBitmap data2 = MutableRoaringBitmap.bitmapOf(array2);
+      ImmutableRoaringBitmap data3 = MutableRoaringBitmap.bitmapOf(array3);
+      assertEquals(data3, BufferFastAggregation.priorityqueue_xor(data1, data2));
+      BufferFastAggregation.priorityqueue_xor(data1);
+    });
   }
   
 
@@ -87,8 +95,8 @@ public class TestFastAggregation {
     ImmutableRoaringBitmap data2 = toMapped(MutableRoaringBitmap.bitmapOf(array2));
     ImmutableRoaringBitmap data3 = toMapped(MutableRoaringBitmap.bitmapOf(array3));
     ImmutableRoaringBitmap data4 = toMapped(MutableRoaringBitmap.bitmapOf(array4));
-    Assert.assertEquals(data3, BufferFastAggregation.naive_and(data1, data2));
-    Assert.assertEquals(new MutableRoaringBitmap(), BufferFastAggregation.naive_and(data4));
+    assertEquals(data3, BufferFastAggregation.naive_and(data1, data2));
+    assertEquals(new MutableRoaringBitmap(), BufferFastAggregation.naive_and(data4));
   }
 
   @Test
@@ -106,14 +114,14 @@ public class TestFastAggregation {
     ImmutableRoaringBitmap data4 = toMapped(MutableRoaringBitmap.bitmapOf(array4));
     data5.add(data1);
     data5.add(data2);
-    Assert.assertEquals(data3, BufferFastAggregation.priorityqueue_or(data1, data2));
-    Assert.assertEquals(data1, BufferFastAggregation.priorityqueue_or(data1));
-    Assert.assertEquals(data1, BufferFastAggregation.priorityqueue_or(data1, data4));
-    Assert.assertEquals(data3, BufferFastAggregation.priorityqueue_or(data5.iterator()));
-    Assert.assertEquals(new MutableRoaringBitmap(),
+    assertEquals(data3, BufferFastAggregation.priorityqueue_or(data1, data2));
+    assertEquals(data1, BufferFastAggregation.priorityqueue_or(data1));
+    assertEquals(data1, BufferFastAggregation.priorityqueue_or(data1, data4));
+    assertEquals(data3, BufferFastAggregation.priorityqueue_or(data5.iterator()));
+    assertEquals(new MutableRoaringBitmap(),
         BufferFastAggregation.priorityqueue_or(data6.iterator()));
     data6.add(data1);
-    Assert.assertEquals(data1, BufferFastAggregation.priorityqueue_or(data6.iterator()));
+    assertEquals(data1, BufferFastAggregation.priorityqueue_or(data6.iterator()));
   }
   
   public void testBigOrMapped() {
@@ -136,19 +144,21 @@ public class TestFastAggregation {
     ImmutableRoaringBitmap data3 = toMapped(rb3);
     MutableRoaringBitmap mrb = data1.clone().toMutableRoaringBitmap();
     mrb.add(100L,10000L);
-    Assert.assertEquals(mrb, BufferFastAggregation.or(data1,data2,data3));
+    assertEquals(mrb, BufferFastAggregation.or(data1,data2,data3));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testPriorityQueueXorMapped() {
-    int[] array1 = {1232, 3324, 123, 43243, 1322, 7897, 8767};
-    int[] array2 = {39173, 39174, 39175, 39176, 39177, 39178, 39179};
-    int[] array3 =
-        {1232, 3324, 123, 43243, 1322, 7897, 8767, 39173, 39174, 39175, 39176, 39177, 39178, 39179};
-    ImmutableRoaringBitmap data1 = toMapped(MutableRoaringBitmap.bitmapOf(array1));
-    ImmutableRoaringBitmap data2 = toMapped(MutableRoaringBitmap.bitmapOf(array2));
-    ImmutableRoaringBitmap data3 = toMapped(MutableRoaringBitmap.bitmapOf(array3));
-    Assert.assertEquals(data3, BufferFastAggregation.priorityqueue_xor(data1, data2));
-    BufferFastAggregation.priorityqueue_xor(data1);
+    assertThrows(IllegalArgumentException.class, () -> {
+      int[] array1 = {1232, 3324, 123, 43243, 1322, 7897, 8767};
+      int[] array2 = {39173, 39174, 39175, 39176, 39177, 39178, 39179};
+      int[] array3 =
+              {1232, 3324, 123, 43243, 1322, 7897, 8767, 39173, 39174, 39175, 39176, 39177, 39178, 39179};
+      ImmutableRoaringBitmap data1 = toMapped(MutableRoaringBitmap.bitmapOf(array1));
+      ImmutableRoaringBitmap data2 = toMapped(MutableRoaringBitmap.bitmapOf(array2));
+      ImmutableRoaringBitmap data3 = toMapped(MutableRoaringBitmap.bitmapOf(array3));
+      assertEquals(data3, BufferFastAggregation.priorityqueue_xor(data1, data2));
+      BufferFastAggregation.priorityqueue_xor(data1);
+    });
   }
 }

@@ -1,13 +1,15 @@
 package org.roaringbitmap;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 import java.util.Random;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class TestMemory {
   @Test
-  public void testGCStability() throws Throwable {
+  public void testGCStability() {
     final int N = 10000;
     final int M = 5000000;
     System.out.println("[testGCStability] testing GC stability with " + N + " bitmaps containing ~"
@@ -26,6 +28,6 @@ public class TestMemory {
     for (int i = 0; i < N; i++) {
       totalcard += bitmaps[i].getCardinality();
     }
-    Assert.assertEquals(totalcard, M);
+    assertEquals(totalcard, M);
   }
 }

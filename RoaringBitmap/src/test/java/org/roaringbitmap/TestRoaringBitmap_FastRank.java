@@ -3,15 +3,20 @@
  */
 package org.roaringbitmap;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import java.util.Random;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 
 /**
  * Check FastRankRoaringBitmap dismiss the caches cardinalities when necessary
  */
+@Execution(ExecutionMode.CONCURRENT)
 public class TestRoaringBitmap_FastRank {
 
   @Test
@@ -19,15 +24,15 @@ public class TestRoaringBitmap_FastRank {
     FastRankRoaringBitmap b = new FastRankRoaringBitmap();
 
     b.add(123);
-    Assert.assertEquals(1, b.rank(123));
+    assertEquals(1, b.rank(123));
 
     // Add smaller element
     b.add(12);
-    Assert.assertEquals(2, b.rank(123));
+    assertEquals(2, b.rank(123));
 
     // Remove smaller element
     b.remove(12);
-    Assert.assertEquals(1, b.rank(123));
+    assertEquals(1, b.rank(123));
   }
 
   @Test
@@ -35,31 +40,31 @@ public class TestRoaringBitmap_FastRank {
     FastRankRoaringBitmap b = new FastRankRoaringBitmap();
 
     b.add(123);
-    Assert.assertEquals(1, b.rank(123));
-    Assert.assertEquals(123, b.select(0));
+    assertEquals(1, b.rank(123));
+    assertEquals(123, b.select(0));
 
     // Add smaller element
     b.add(Integer.MAX_VALUE);
 
-    Assert.assertEquals(123, b.select(0));
-    Assert.assertEquals(Integer.MAX_VALUE, b.select(1));
+    assertEquals(123, b.select(0));
+    assertEquals(Integer.MAX_VALUE, b.select(1));
 
-    Assert.assertEquals(0, b.rank(123 - 1));
-    Assert.assertEquals(1, b.rank(123));
-    Assert.assertEquals(1, b.rank(123 + 1));
+    assertEquals(0, b.rank(123 - 1));
+    assertEquals(1, b.rank(123));
+    assertEquals(1, b.rank(123 + 1));
 
-    Assert.assertEquals(1, b.rank(Integer.MAX_VALUE - 1));
-    Assert.assertEquals(2, b.rank(Integer.MAX_VALUE));
-    Assert.assertEquals(2, b.rank(Integer.MAX_VALUE + 1));
+    assertEquals(1, b.rank(Integer.MAX_VALUE - 1));
+    assertEquals(2, b.rank(Integer.MAX_VALUE));
+    assertEquals(2, b.rank(Integer.MAX_VALUE + 1));
 
     // Remove smaller element
     b.remove(123);
 
-    Assert.assertEquals(Integer.MAX_VALUE, b.select(0));
+    assertEquals(Integer.MAX_VALUE, b.select(0));
 
-    Assert.assertEquals(0, b.rank(Integer.MAX_VALUE - 1));
-    Assert.assertEquals(1, b.rank(Integer.MAX_VALUE));
-    Assert.assertEquals(1, b.rank(Integer.MAX_VALUE + 1));
+    assertEquals(0, b.rank(Integer.MAX_VALUE - 1));
+    assertEquals(1, b.rank(Integer.MAX_VALUE));
+    assertEquals(1, b.rank(Integer.MAX_VALUE + 1));
   }
 
   @Test
@@ -68,30 +73,30 @@ public class TestRoaringBitmap_FastRank {
 
     b.add(123);
 
-    Assert.assertEquals(123, b.select(0));
+    assertEquals(123, b.select(0));
 
     // Add smaller element
     b.add(Integer.MAX_VALUE);
 
-    Assert.assertEquals(123, b.select(0));
-    Assert.assertEquals(Integer.MAX_VALUE, b.select(1));
+    assertEquals(123, b.select(0));
+    assertEquals(Integer.MAX_VALUE, b.select(1));
 
-    Assert.assertEquals(0, b.rank(123 - 1));
-    Assert.assertEquals(1, b.rank(123));
-    Assert.assertEquals(1, b.rank(123 + 1));
+    assertEquals(0, b.rank(123 - 1));
+    assertEquals(1, b.rank(123));
+    assertEquals(1, b.rank(123 + 1));
 
-    Assert.assertEquals(1, b.rank(Integer.MAX_VALUE - 1));
-    Assert.assertEquals(2, b.rank(Integer.MAX_VALUE));
-    Assert.assertEquals(2, b.rank(Integer.MAX_VALUE + 1));
+    assertEquals(1, b.rank(Integer.MAX_VALUE - 1));
+    assertEquals(2, b.rank(Integer.MAX_VALUE));
+    assertEquals(2, b.rank(Integer.MAX_VALUE + 1));
 
     // Remove smaller element
     b.remove(Integer.MAX_VALUE);
 
-    Assert.assertEquals(123, b.select(0));
+    assertEquals(123, b.select(0));
 
-    Assert.assertEquals(0, b.rank(123 - 1));
-    Assert.assertEquals(1, b.rank(123));
-    Assert.assertEquals(1, b.rank(123 + 1));
+    assertEquals(0, b.rank(123 - 1));
+    assertEquals(1, b.rank(123));
+    assertEquals(1, b.rank(123 + 1));
   }
 
   @Test
@@ -99,31 +104,31 @@ public class TestRoaringBitmap_FastRank {
     FastRankRoaringBitmap b = new FastRankRoaringBitmap();
 
     b.add(123);
-    Assert.assertEquals(1, b.rank(123));
-    Assert.assertEquals(123, b.select(0));
+    assertEquals(1, b.rank(123));
+    assertEquals(123, b.select(0));
 
     // Add negative element
     b.add(-234);
 
-    Assert.assertEquals(123, b.select(0));
-    Assert.assertEquals(-234, b.select(1));
+    assertEquals(123, b.select(0));
+    assertEquals(-234, b.select(1));
 
-    Assert.assertEquals(0, b.rank(123 - 1));
-    Assert.assertEquals(1, b.rank(123));
-    Assert.assertEquals(1, b.rank(123 + 1));
+    assertEquals(0, b.rank(123 - 1));
+    assertEquals(1, b.rank(123));
+    assertEquals(1, b.rank(123 + 1));
 
-    Assert.assertEquals(1, b.rank(-234 - 1));
-    Assert.assertEquals(2, b.rank(-234));
-    Assert.assertEquals(2, b.rank(-234 + 1));
+    assertEquals(1, b.rank(-234 - 1));
+    assertEquals(2, b.rank(-234));
+    assertEquals(2, b.rank(-234 + 1));
 
     // Remove smaller element
     b.remove(123);
 
-    Assert.assertEquals(-234, b.select(0));
+    assertEquals(-234, b.select(0));
 
-    Assert.assertEquals(0, b.rank(-234 - 1));
-    Assert.assertEquals(1, b.rank(-234));
-    Assert.assertEquals(1, b.rank(-234 + 1));
+    assertEquals(0, b.rank(-234 - 1));
+    assertEquals(1, b.rank(-234));
+    assertEquals(1, b.rank(-234 + 1));
   }
 
 
@@ -133,30 +138,30 @@ public class TestRoaringBitmap_FastRank {
 
     b.add(123);
 
-    Assert.assertEquals(123, b.select(0));
+    assertEquals(123, b.select(0));
 
     // Add negative element
     b.add(-234);
 
-    Assert.assertEquals(123, b.select(0));
-    Assert.assertEquals(-234, b.select(1));
+    assertEquals(123, b.select(0));
+    assertEquals(-234, b.select(1));
 
-    Assert.assertEquals(0, b.rank(123 - 1));
-    Assert.assertEquals(1, b.rank(123));
-    Assert.assertEquals(1, b.rank(123 + 1));
+    assertEquals(0, b.rank(123 - 1));
+    assertEquals(1, b.rank(123));
+    assertEquals(1, b.rank(123 + 1));
 
-    Assert.assertEquals(1, b.rank(-234 - 1));
-    Assert.assertEquals(2, b.rank(-234));
-    Assert.assertEquals(2, b.rank(-234 + 1));
+    assertEquals(1, b.rank(-234 - 1));
+    assertEquals(2, b.rank(-234));
+    assertEquals(2, b.rank(-234 + 1));
 
     // Remove smaller element
     b.remove(-234);
 
-    Assert.assertEquals(123, b.select(0));
+    assertEquals(123, b.select(0));
 
-    Assert.assertEquals(0, b.rank(123 - 1));
-    Assert.assertEquals(1, b.rank(123));
-    Assert.assertEquals(1, b.rank(123 + 1));
+    assertEquals(0, b.rank(123 - 1));
+    assertEquals(1, b.rank(123));
+    assertEquals(1, b.rank(123 + 1));
   }
 
   @Test
@@ -182,7 +187,7 @@ public class TestRoaringBitmap_FastRank {
       b.remove(selected);
 
     }
-    Assert.assertEquals(0, b.getLongCardinality());
+    assertEquals(0, b.getLongCardinality());
   }
 
   @Test
@@ -195,7 +200,7 @@ public class TestRoaringBitmap_FastRank {
 
     int nbReallyAdded = addSelectRemoveRandomly(b, r, problemSize, 0);
 
-    Assert.assertEquals(nbReallyAdded, b.getLongCardinality());
+    assertEquals(nbReallyAdded, b.getLongCardinality());
   }
 
   private int addSelectRemoveRandomly(RoaringBitmap b, Random r, int problemSize, int intBound) {
@@ -229,11 +234,12 @@ public class TestRoaringBitmap_FastRank {
     b.rank(0);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void selectOnEmpty() {
-    FastRankRoaringBitmap b = new FastRankRoaringBitmap();
-
-    b.select(0);
+    assertThrows(IllegalArgumentException.class, () -> {
+      FastRankRoaringBitmap b = new FastRankRoaringBitmap();
+      b.select(0);
+    });
   }
 
   @Test
@@ -245,7 +251,7 @@ public class TestRoaringBitmap_FastRank {
       FastRankRoaringBitmap fast = new FastRankRoaringBitmap();
       Random r = new Random(0);
       int nbReallyAdded = addSelectRemoveRandomly(fast, r, problemSize, 0);
-      Assert.assertEquals(nbReallyAdded, fast.getLongCardinality());
+      assertEquals(nbReallyAdded, fast.getLongCardinality());
     }
     long timeFast = System.currentTimeMillis() - startFast;
 
@@ -254,7 +260,7 @@ public class TestRoaringBitmap_FastRank {
       RoaringBitmap normal = new RoaringBitmap();
       Random r = new Random(0);
       int nbReallyAdded = addSelectRemoveRandomly(normal, r, problemSize, 0);
-      Assert.assertEquals(nbReallyAdded, normal.getLongCardinality());
+      assertEquals(nbReallyAdded, normal.getLongCardinality());
     }
     long timeNormal = System.currentTimeMillis() - startNormal;
 
@@ -273,7 +279,7 @@ public class TestRoaringBitmap_FastRank {
       FastRankRoaringBitmap fast = new FastRankRoaringBitmap();
       Random r = new Random(0);
       int nbReallyAdded = addSelectRemoveRandomly(fast, r, problemSize, 123);
-      Assert.assertEquals(nbReallyAdded, fast.getLongCardinality());
+      assertEquals(nbReallyAdded, fast.getLongCardinality());
     }
     long timeFast = System.currentTimeMillis() - startFast;
 
@@ -282,7 +288,7 @@ public class TestRoaringBitmap_FastRank {
       RoaringBitmap normal = new RoaringBitmap();
       Random r = new Random(0);
       int nbReallyAdded = addSelectRemoveRandomly(normal, r, problemSize, 123);
-      Assert.assertEquals(nbReallyAdded, normal.getLongCardinality());
+      assertEquals(nbReallyAdded, normal.getLongCardinality());
     }
     long timeNormal = System.currentTimeMillis() - startNormal;
 
@@ -344,7 +350,7 @@ public class TestRoaringBitmap_FastRank {
     fast.select(0);
 
     // The cache is computed
-    Assert.assertFalse(fast.isCacheDismissed());
+    assertFalse(fast.isCacheDismissed());
 
     return fast;
   }
@@ -353,7 +359,7 @@ public class TestRoaringBitmap_FastRank {
   public void testDismissCache_constructor() {
     FastRankRoaringBitmap fast = new FastRankRoaringBitmap();
 
-    Assert.assertTrue(fast.isCacheDismissed());
+    assertTrue(fast.isCacheDismissed());
   }
 
   @Test
@@ -361,7 +367,7 @@ public class TestRoaringBitmap_FastRank {
     FastRankRoaringBitmap fast = prepareFastWithComputedCache();
 
     fast.add(0L, 2L);
-    Assert.assertTrue(fast.isCacheDismissed());
+    assertTrue(fast.isCacheDismissed());
   }
 
   @Test
@@ -369,7 +375,7 @@ public class TestRoaringBitmap_FastRank {
     FastRankRoaringBitmap fast = prepareFastWithComputedCache();
 
     fast.add(0L, 2L);
-    Assert.assertTrue(fast.isCacheDismissed());
+    assertTrue(fast.isCacheDismissed());
   }
 
   @Test
@@ -377,7 +383,7 @@ public class TestRoaringBitmap_FastRank {
     FastRankRoaringBitmap fast = prepareFastWithComputedCache();
 
     fast.add(0, 2, 3);
-    Assert.assertTrue(fast.isCacheDismissed());
+    assertTrue(fast.isCacheDismissed());
   }
 
   @Test
@@ -385,7 +391,7 @@ public class TestRoaringBitmap_FastRank {
     FastRankRoaringBitmap fast = prepareFastWithComputedCache();
 
     fast.clear();
-    Assert.assertTrue(fast.isCacheDismissed());
+    assertTrue(fast.isCacheDismissed());
   }
 
   @Test
@@ -393,7 +399,7 @@ public class TestRoaringBitmap_FastRank {
     FastRankRoaringBitmap fast = prepareFastWithComputedCache();
 
     fast.flip(0);
-    Assert.assertTrue(fast.isCacheDismissed());
+    assertTrue(fast.isCacheDismissed());
   }
 
   @Test
@@ -401,7 +407,7 @@ public class TestRoaringBitmap_FastRank {
     FastRankRoaringBitmap fast = prepareFastWithComputedCache();
 
     fast.flip(0L, 2);
-    Assert.assertTrue(fast.isCacheDismissed());
+    assertTrue(fast.isCacheDismissed());
   }
 
   @Test
@@ -409,7 +415,7 @@ public class TestRoaringBitmap_FastRank {
     FastRankRoaringBitmap fast = prepareFastWithComputedCache();
 
     fast.flip(0L, 2L);
-    Assert.assertTrue(fast.isCacheDismissed());
+    assertTrue(fast.isCacheDismissed());
   }
 
   @Test
@@ -417,7 +423,7 @@ public class TestRoaringBitmap_FastRank {
     FastRankRoaringBitmap fast = prepareFastWithComputedCache();
 
     fast.remove(0);
-    Assert.assertTrue(fast.isCacheDismissed());
+    assertTrue(fast.isCacheDismissed());
   }
 
   @Test
@@ -425,7 +431,7 @@ public class TestRoaringBitmap_FastRank {
     FastRankRoaringBitmap fast = prepareFastWithComputedCache();
 
     fast.remove(0L, 2);
-    Assert.assertTrue(fast.isCacheDismissed());
+    assertTrue(fast.isCacheDismissed());
   }
 
   @Test
@@ -433,7 +439,7 @@ public class TestRoaringBitmap_FastRank {
     FastRankRoaringBitmap fast = prepareFastWithComputedCache();
 
     fast.remove(0L, 2L);
-    Assert.assertTrue(fast.isCacheDismissed());
+    assertTrue(fast.isCacheDismissed());
   }
 
   @Test
@@ -441,7 +447,7 @@ public class TestRoaringBitmap_FastRank {
     FastRankRoaringBitmap fast = prepareFastWithComputedCache();
 
     fast.checkedAdd(2);
-    Assert.assertTrue(fast.isCacheDismissed());
+    assertTrue(fast.isCacheDismissed());
   }
 
   @Test
@@ -449,7 +455,7 @@ public class TestRoaringBitmap_FastRank {
     FastRankRoaringBitmap fast = prepareFastWithComputedCache();
 
     fast.checkedRemove(2);
-    Assert.assertTrue(fast.isCacheDismissed());
+    assertTrue(fast.isCacheDismissed());
   }
 
   @Test
@@ -457,7 +463,7 @@ public class TestRoaringBitmap_FastRank {
     FastRankRoaringBitmap fast = prepareFastWithComputedCache();
 
     fast.and(new RoaringBitmap());
-    Assert.assertTrue(fast.isCacheDismissed());
+    assertTrue(fast.isCacheDismissed());
   }
 
   @Test
@@ -465,7 +471,7 @@ public class TestRoaringBitmap_FastRank {
     FastRankRoaringBitmap fast = prepareFastWithComputedCache();
 
     fast.andNot(new RoaringBitmap());
-    Assert.assertTrue(fast.isCacheDismissed());
+    assertTrue(fast.isCacheDismissed());
   }
 
   @Test
@@ -473,7 +479,7 @@ public class TestRoaringBitmap_FastRank {
     FastRankRoaringBitmap fast = prepareFastWithComputedCache();
 
     fast.or(new RoaringBitmap());
-    Assert.assertTrue(fast.isCacheDismissed());
+    assertTrue(fast.isCacheDismissed());
   }
 
   @Test
@@ -481,7 +487,7 @@ public class TestRoaringBitmap_FastRank {
     FastRankRoaringBitmap fast = prepareFastWithComputedCache();
 
     fast.xor(new RoaringBitmap());
-    Assert.assertTrue(fast.isCacheDismissed());
+    assertTrue(fast.isCacheDismissed());
   }
 
   @Test
@@ -489,19 +495,19 @@ public class TestRoaringBitmap_FastRank {
     FastRankRoaringBitmap fast = new FastRankRoaringBitmap();
 
     // Check when empty
-    Assert.assertEquals(16, fast.getLongSizeInBytes());
+    assertEquals(16, fast.getLongSizeInBytes());
     
     fast.add(0);
     fast.add(1024);
     fast.add(Integer.MAX_VALUE);
 
-    Assert.assertEquals(34, fast.getLongSizeInBytes());
+    assertEquals(34, fast.getLongSizeInBytes());
     
     // Compute a rank: the cache is allocated
     fast.rank(1024);
     
     // Check the size is bigger once the cache is allocated
-    Assert.assertEquals(42, fast.getLongSizeInBytes());
+    assertEquals(42, fast.getLongSizeInBytes());
   }
 
 }

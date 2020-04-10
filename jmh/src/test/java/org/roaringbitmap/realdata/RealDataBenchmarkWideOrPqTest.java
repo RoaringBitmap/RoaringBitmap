@@ -1,24 +1,11 @@
 package org.roaringbitmap.realdata;
 
-import static org.junit.Assert.assertEquals;
-import static org.roaringbitmap.RealDataset.CENSUS1881;
-import static org.roaringbitmap.RealDataset.CENSUS1881_SRT;
-import static org.roaringbitmap.RealDataset.CENSUS_INCOME;
-import static org.roaringbitmap.RealDataset.CENSUS_INCOME_SRT;
-import static org.roaringbitmap.RealDataset.DIMENSION_003;
-import static org.roaringbitmap.RealDataset.DIMENSION_008;
-import static org.roaringbitmap.RealDataset.DIMENSION_033;
-import static org.roaringbitmap.RealDataset.USCENSUS2000;
-import static org.roaringbitmap.RealDataset.WEATHER_SEPT_85;
-import static org.roaringbitmap.RealDataset.WEATHER_SEPT_85_SRT;
-import static org.roaringbitmap.RealDataset.WIKILEAKS_NOQUOTES;
-import static org.roaringbitmap.RealDataset.WIKILEAKS_NOQUOTES_SRT;
+import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
 
-import org.junit.Test;
-
-import com.google.common.collect.ImmutableMap;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.roaringbitmap.RealDataset.*;
 
 
 public class RealDataBenchmarkWideOrPqTest extends RealDataBenchmarkSanityTest {
@@ -30,11 +17,10 @@ public class RealDataBenchmarkWideOrPqTest extends RealDataBenchmarkSanityTest {
           .put(CENSUS_INCOME_SRT, 199523).put(CENSUS1881_SRT, 656346)
           .put(WEATHER_SEPT_85_SRT, 1015367).put(WIKILEAKS_NOQUOTES_SRT, 236436).build();
 
-  @Test
-  public void test() throws Exception {
+  @Override
+  protected void doTest(String dataset, String type, boolean immutable) {
     int expected = EXPECTED_RESULTS.get(dataset);
     RealDataBenchmarkWideOrPq bench = new RealDataBenchmarkWideOrPq();
     assertEquals(expected, bench.wideOr_pq(bs));
   }
-
 }

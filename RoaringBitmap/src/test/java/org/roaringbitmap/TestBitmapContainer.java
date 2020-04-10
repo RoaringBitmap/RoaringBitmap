@@ -4,7 +4,9 @@
 
 package org.roaringbitmap;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -15,9 +17,9 @@ import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.Random;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
+@Execution(ExecutionMode.CONCURRENT)
 public class TestBitmapContainer {
   private static BitmapContainer emptyContainer() {
     return new BitmapContainer(new long[1], 0);
@@ -46,12 +48,14 @@ public class TestBitmapContainer {
     BitmapContainer bc3 = new BitmapContainer();
 
     for(int i = 100; i < 10000; ++i) {
-      if((i%2 ) == 0)
-        bc2 = (BitmapContainer) bc2.add((char) i);
-        else bc3 = (BitmapContainer) bc3.add((char) i);
+      if((i%2 ) == 0) {
+        bc2.add((char) i);
+      } else {
+        bc3.add((char) i);
+      }
     }
     bc = (BitmapContainer) bc.ixor(bc2);
-    assertTrue(bc.ixor(bc3).getCardinality() == 0);
+    assertEquals(0, bc.ixor(bc3).getCardinality());
   }
   
   @Test  
@@ -61,19 +65,21 @@ public class TestBitmapContainer {
     BitmapContainer bc3 = new BitmapContainer();
 
     for(int i = 100; i < 10000; ++i) {
-      if((i%2 ) == 0)
-        bc2 = (BitmapContainer) bc2.add((char) i);
-        else bc3 = (BitmapContainer) bc3.add((char) i);
+      if((i%2 ) == 0) {
+        bc2.add((char) i);
+      } else {
+        bc3.add((char) i);
+      }
     }
     RunContainer rc = new RunContainer();
     rc.iadd(0, 1<<16);
     bc = (BitmapContainer) bc.iand(rc);
     bc = (BitmapContainer) bc.iandNot(bc2);
-    assertTrue(bc.equals(bc3));
-    assertTrue(bc.hashCode() == bc3.hashCode());
-    assertTrue(bc.iandNot(bc3).getCardinality() == 0);
+    assertEquals(bc, bc3);
+    assertEquals(bc.hashCode(), bc3.hashCode());
+    assertEquals(0, bc.iandNot(bc3).getCardinality());
     bc3.clear();
-    assertTrue(bc3.getCardinality() == 0);
+    assertEquals(0, bc3.getCardinality());
   }
   
 
@@ -84,13 +90,15 @@ public class TestBitmapContainer {
     BitmapContainer bc3 = new BitmapContainer();
 
     for(int i = 100; i < 10000; ++i) {
-      if((i%2 ) == 0)
-        bc2 = (BitmapContainer) bc2.add((char) i);
-        else bc3 = (BitmapContainer) bc3.add((char) i);
+      if((i%2 ) == 0) {
+        bc2.add((char) i);
+      } else {
+        bc3.add((char) i);
+      }
     }
     bc = (BitmapContainer) bc.iand(bc2);
-    assertTrue(bc.equals(bc2));    
-    assertTrue(bc.iand(bc3).getCardinality() == 0);    
+    assertEquals(bc, bc2);
+    assertEquals(0, bc.iand(bc3).getCardinality());
   }
 
   
@@ -102,14 +110,16 @@ public class TestBitmapContainer {
     BitmapContainer bc3 = new BitmapContainer();
 
     for(int i = 100; i < 10000; ++i) {
-      if((i%2 ) == 0)
-        bc2 = (BitmapContainer) bc2.add((char) i);
-        else bc3 = (BitmapContainer) bc3.add((char) i);
+      if((i%2 ) == 0) {
+        bc2.add((char) i);
+      } else {
+        bc3.add((char) i);
+      }
     }
     bc2 = (BitmapContainer) bc2.ior(bc3);
-    assertTrue(bc.equals(bc2));        
+    assertEquals(bc, bc2);
     bc2 = (BitmapContainer) bc2.ior(bc);
-    assertTrue(bc.equals(bc2));       
+    assertEquals(bc, bc2);
     RunContainer rc = new RunContainer();
     rc.iadd(0, 1<<16);
     assertEquals(0, bc.iandNot(rc).getCardinality());
@@ -127,8 +137,8 @@ public class TestBitmapContainer {
     Container irepaired = iresult.repairAfterLazy();
     assertEquals(1 << 16, repaired.getCardinality());
     assertEquals(1 << 16, irepaired.getCardinality());
-    assertThat(repaired, instanceOf(RunContainer.class));
-    assertThat(irepaired, instanceOf(RunContainer.class));
+    assertTrue(repaired instanceof RunContainer);
+    assertTrue(irepaired instanceof RunContainer);
   }
 
   @Test
@@ -143,8 +153,8 @@ public class TestBitmapContainer {
     Container irepaired = iresult.repairAfterLazy();
     assertEquals(1 << 16, repaired.getCardinality());
     assertEquals(1 << 16, irepaired.getCardinality());
-    assertThat(repaired, instanceOf(RunContainer.class));
-    assertThat(irepaired, instanceOf(RunContainer.class));
+    assertTrue(repaired instanceof RunContainer);
+    assertTrue(irepaired instanceof RunContainer);
   }
 
   @Test
@@ -159,8 +169,8 @@ public class TestBitmapContainer {
     Container irepaired = iresult.repairAfterLazy();
     assertEquals(1 << 16, repaired.getCardinality());
     assertEquals(1 << 16, irepaired.getCardinality());
-    assertThat(repaired, instanceOf(RunContainer.class));
-    assertThat(irepaired, instanceOf(RunContainer.class));
+    assertTrue(repaired instanceof RunContainer);
+    assertTrue(irepaired instanceof RunContainer);
   }
 
   @Test
@@ -171,7 +181,7 @@ public class TestBitmapContainer {
         BitmapContainer bc = new BitmapContainer(start,end);
         BitmapContainer bc2 = new BitmapContainer();
         BitmapContainer bc3 = (BitmapContainer) bc2.add(start,end);
-        bc2 = (BitmapContainer) bc2.iadd(start,end);
+        bc2.iadd(start, end);
         assertEquals(bc.getCardinality(), end-start);
         assertEquals(bc2.getCardinality(), end-start);
         assertEquals(bc, bc2);
@@ -191,7 +201,7 @@ public class TestBitmapContainer {
         BitmapContainer bc = new BitmapContainer(start,end);
         BitmapContainer bc2 = new BitmapContainer();
         BitmapContainer bc3 = (BitmapContainer) bc2.add(start,end);
-        bc2 = (BitmapContainer) bc2.iadd(start,end);
+        bc2.iadd(start, end);
         assertEquals(bc.getCardinality(), end-start);
         assertEquals(bc2.getCardinality(), end-start);
         assertEquals(bc, bc2);
@@ -302,38 +312,46 @@ public class TestBitmapContainer {
 
   }
 
-  @Test(expected = ArrayIndexOutOfBoundsException.class)
+  @Test
   public void testNextTooLarge() {
-    emptyContainer().nextSetBit(Short.MAX_VALUE + 1);
+    assertThrows(ArrayIndexOutOfBoundsException.class,
+            () -> emptyContainer().nextSetBit(Short.MAX_VALUE + 1));
   }
 
-  @Test(expected = ArrayIndexOutOfBoundsException.class)
+  @Test
   public void testNextTooSmall() {
-    emptyContainer().nextSetBit(-1);
+    assertThrows(ArrayIndexOutOfBoundsException.class,
+            () -> emptyContainer().nextSetBit(-1));
   }
 
-  @Test(expected = ArrayIndexOutOfBoundsException.class)
+  @Test
   public void testPreviousTooLarge() {
-    emptyContainer().prevSetBit(Short.MAX_VALUE + 1);
+    assertThrows(ArrayIndexOutOfBoundsException.class,
+            () -> emptyContainer().prevSetBit(Short.MAX_VALUE + 1));
   }
 
 
-  @Test(expected = ArrayIndexOutOfBoundsException.class)
+  @Test
   public void testPreviousTooSmall() {
-    emptyContainer().prevSetBit(-1);
+    assertThrows(ArrayIndexOutOfBoundsException.class,
+            () -> emptyContainer().prevSetBit(-1));
   }
 
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void addInvalidRange() {
-    Container bc = new BitmapContainer();
-    bc.add(13,1);
+    assertThrows(IllegalArgumentException.class, () -> {
+      Container bc = new BitmapContainer();
+      bc.add(13, 1);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void iaddInvalidRange() {
-    Container bc = new BitmapContainer();
-    bc.iadd(13,1);
+    assertThrows(IllegalArgumentException.class, () -> {
+      Container bc = new BitmapContainer();
+      bc.iadd(13, 1);
+    });
   }
 
   @Test
@@ -546,7 +564,7 @@ public class TestBitmapContainer {
     BitmapContainer half = new BitmapContainer(1 << 15, 1 << 16);
     Container result = bc.or(half);
     assertEquals(1 << 16, result.getCardinality());
-    assertThat(result, instanceOf(RunContainer.class));
+    assertTrue(result instanceof RunContainer);
   }
 
   @Test
@@ -555,7 +573,7 @@ public class TestBitmapContainer {
     ArrayContainer half = new ArrayContainer(1 << 15, 1 << 16);
     Container result = bc.or(half);
     assertEquals(1 << 16, result.getCardinality());
-    assertThat(result, instanceOf(RunContainer.class));
+    assertTrue(result instanceof RunContainer);
   }
 
   @Test
@@ -566,8 +584,8 @@ public class TestBitmapContainer {
     Container iresult = bc.ior(bc2);
     assertEquals(1 << 16, result.getCardinality());
     assertEquals(1 << 16, iresult.getCardinality());
-    assertThat(result, instanceOf(RunContainer.class));
-    assertThat(iresult, instanceOf(RunContainer.class));
+    assertTrue(result instanceof RunContainer);
+    assertTrue(iresult instanceof RunContainer);
   }
 
   @Test
@@ -576,7 +594,7 @@ public class TestBitmapContainer {
     Container bc2 = Container.rangeOfOnes(3210, 1 << 16);
     Container iresult = bc.ior(bc2);
     assertEquals(1 << 16, iresult.getCardinality());
-    assertThat(iresult, instanceOf(RunContainer.class));
+    assertTrue(iresult instanceof RunContainer);
   }
 
   @Test
@@ -586,10 +604,12 @@ public class TestBitmapContainer {
     assertEquals(0, bc.getCardinality());
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void iremoveInvalidRange() {
-    Container ac = new BitmapContainer();
-    ac.iremove(13,1);
+    assertThrows(IllegalArgumentException.class, () -> {
+      Container ac = new BitmapContainer();
+      ac.iremove(13, 1);
+    });
   }
 
   @Test
@@ -643,17 +663,21 @@ public class TestBitmapContainer {
     }
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void selectInvalidPosition() {
-    Container bc = new BitmapContainer();
-    bc = bc.add(1,13);
-    bc.select(100);
+    assertThrows(IllegalArgumentException.class, () -> {
+      Container bc = new BitmapContainer();
+      bc = bc.add(1, 13);
+      bc.select(100);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void removeInvalidRange() {
-    Container ac = new BitmapContainer();
-    ac.remove(13,1);
+    assertThrows(IllegalArgumentException.class, () -> {
+      Container ac = new BitmapContainer();
+      ac.remove(13, 1);
+    });
   }
 
   @Test
@@ -680,14 +704,14 @@ public class TestBitmapContainer {
     }
   }
 
-  @Test(expected = NoSuchElementException.class)
+  @Test
   public void testFirst_Empty() {
-    new BitmapContainer().first();
+    assertThrows(NoSuchElementException.class, () -> new BitmapContainer().first());
   }
 
-  @Test(expected = NoSuchElementException.class)
+  @Test
   public void testLast_Empty() {
-    new BitmapContainer().last();
+    assertThrows(NoSuchElementException.class, () -> new BitmapContainer().last());
   }
 
   @Test

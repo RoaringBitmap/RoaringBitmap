@@ -1,7 +1,9 @@
 package org.roaringbitmap.buffer;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.roaringbitmap.CharIterator;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.RunContainer;
@@ -13,10 +15,10 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.util.*;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.roaringbitmap.buffer.MappeableArrayContainer.DEFAULT_MAX_SIZE;
 
+@Execution(ExecutionMode.CONCURRENT)
 public class TestRunContainer {
   private static ImmutableRoaringBitmap toMapped(MutableRoaringBitmap r) {
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -58,11 +60,11 @@ public class TestRunContainer {
     }
     assertEquals(m2.getCardinality(), count);
     assertEquals(mrb.getCardinality(), count);
-    Assert.assertTrue(m2.serializedSizeInBytes() < mrb.serializedSizeInBytes());
-    Assert.assertEquals(m2, mrb);
-    Assert.assertEquals(toMapped(m2), mrb);
-    Assert.assertEquals(toMapped(m2), toMapped(mrb));
-    Assert.assertEquals(m2, toMapped(mrb));
+    assertTrue(m2.serializedSizeInBytes() < mrb.serializedSizeInBytes());
+    assertEquals(m2, mrb);
+    assertEquals(toMapped(m2), mrb);
+    assertEquals(toMapped(m2), toMapped(mrb));
+    assertEquals(m2, toMapped(mrb));
   }
 
   public static MappeableContainer fillMeUp(MappeableContainer c, int[] values) {
@@ -403,7 +405,7 @@ public class TestRunContainer {
     MappeableContainer intersectionNOT = rc.andNot(bc);
     assertEquals(100, intersectionNOT.getCardinality());
     for (int k = 0; k < 100; ++k) {
-      assertTrue(" missing k=" + k, intersectionNOT.contains((char) (k * 10 + 5)));
+      assertTrue(intersectionNOT.contains((char) (k * 10 + 5)), " missing k=" + k);
     }
     assertEquals(200, bc.getCardinality());
     assertEquals(200, rc.getCardinality());
@@ -424,7 +426,7 @@ public class TestRunContainer {
     MappeableContainer intersectionNOT = rc.andNot(ac);
     assertEquals(100, intersectionNOT.getCardinality());
     for (int k = 0; k < 100; ++k) {
-      assertTrue(" missing k=" + k, intersectionNOT.contains((char) (k * 10 + 5)));
+      assertTrue(intersectionNOT.contains((char) (k * 10 + 5)), " missing k=" + k);
     }
     assertEquals(200, ac.getCardinality());
     assertEquals(200, rc.getCardinality());
@@ -513,16 +515,20 @@ public class TestRunContainer {
     assertFalse(rc.contains((char) 1));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void iaddInvalidRange1() {
-    MappeableContainer rc = new MappeableRunContainer();
-    rc.iadd(10, 9);
+    assertThrows(IllegalArgumentException.class, () -> {
+      MappeableContainer rc = new MappeableRunContainer();
+      rc.iadd(10, 9);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void iaddInvalidRange2() {
-    MappeableContainer rc = new MappeableRunContainer();
-    rc.iadd(0, 1 << 20);
+    assertThrows(IllegalArgumentException.class, () -> {
+      MappeableContainer rc = new MappeableRunContainer();
+      rc.iadd(0, 1 << 20);
+    });
   }
 
   @Test
@@ -1126,16 +1132,20 @@ public class TestRunContainer {
     assertEquals(12, rc.getSizeInBytes());
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void iremoveInvalidRange1() {
-    MappeableContainer rc = new MappeableRunContainer();
-    rc.iremove(10, 9);
+    assertThrows(IllegalArgumentException.class, () -> {
+      MappeableContainer rc = new MappeableRunContainer();
+      rc.iremove(10, 9);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void iremoveInvalidRange2() {
-    MappeableContainer rc = new MappeableRunContainer();
-    rc.remove(0, 1 << 20);
+    assertThrows(IllegalArgumentException.class, () -> {
+      MappeableContainer rc = new MappeableRunContainer();
+      rc.remove(0, 1 << 20);
+    });
   }
 
   @Test
@@ -1307,21 +1317,21 @@ public class TestRunContainer {
   public void RunContainerArg_ArrayANDNOT2() {
     MappeableArrayContainer ac = new MappeableArrayContainer(CharBuffer.wrap(new char[]{0, 2, 4, 8, 10, 15, 16, 48, 50, 61, 80, (char)-2}), 12);
     MappeableContainer rc = new MappeableRunContainer(CharBuffer.wrap(new char[]{7, 3, 17, 2, 20, 3, 30, 3, 36, 6, 60, 5, (char)-3, 2}), 7);
-    Assert.assertEquals(new MappeableArrayContainer(CharBuffer.wrap(new char[]{0, 2, 4, 15, 16, 48, 50, 80}), 8), ac.andNot(rc));
+    assertEquals(new MappeableArrayContainer(CharBuffer.wrap(new char[]{0, 2, 4, 15, 16, 48, 50, 80}), 8), ac.andNot(rc));
   }
 
   @Test
   public void FullRunContainerArg_ArrayANDNOT2() {
     MappeableArrayContainer ac = new MappeableArrayContainer(CharBuffer.wrap(new char[]{3}), 1);
     MappeableContainer rc = MappeableRunContainer.full();
-    Assert.assertEquals(new MappeableArrayContainer(), ac.andNot(rc));
+    assertEquals(new MappeableArrayContainer(), ac.andNot(rc));
   }
 
   @Test
   public void RunContainerArg_ArrayANDNOT3() {
     MappeableArrayContainer ac = new MappeableArrayContainer(CharBuffer.wrap(new char[]{5}), 1);
     MappeableContainer rc = new MappeableRunContainer(CharBuffer.wrap(new char[]{3, 10}), 1);
-    Assert.assertEquals(new MappeableArrayContainer(), ac.andNot(rc));
+    assertEquals(new MappeableArrayContainer(), ac.andNot(rc));
   }
 
   @Test
@@ -1797,7 +1807,7 @@ public class TestRunContainer {
   public void charRangeRank() {
     MappeableContainer container = new MappeableRunContainer();
     container = container.add(16, 32);
-    assertThat(container, instanceOf(MappeableRunContainer.class));
+    assertTrue(container instanceof MappeableRunContainer);
     // results in correct value: 16
     // assertEquals(16, container.toBitmapContainer().rank((char) 32));
     assertEquals(16, container.rank((char) 32));
@@ -1876,7 +1886,7 @@ public class TestRunContainer {
     rb1.runOptimize();
     MutableRoaringBitmap rb2 = MutableRoaringBitmap.bitmapOf(array2);
     MutableRoaringBitmap answer = MutableRoaringBitmap.andNot(rb1, rb2);
-    Assert.assertEquals(answer.getCardinality(), array1.length);
+    assertEquals(answer.getCardinality(), array1.length);
   }
 
 
@@ -2399,25 +2409,25 @@ public class TestRunContainer {
   @Test
   public void testEquals_FullRunContainerWithArrayContainer() {
     MappeableContainer full = new MappeableRunContainer().add(0, 1 << 16);
-    Assert.assertNotEquals(full, new MappeableArrayContainer().add(0, 10));
+    assertNotEquals(full, new MappeableArrayContainer().add(0, 10));
   }
 
   @Test
   public void testFullConstructor() {
-    Assert.assertTrue(MappeableRunContainer.full().isFull());
+    assertTrue(MappeableRunContainer.full().isFull());
   }
 
   @Test
   public void testRangeConstructor() {
     MappeableRunContainer full = new MappeableRunContainer(0, 1 << 16);
-    Assert.assertTrue(full.isFull());
-    Assert.assertEquals(65536, full.getCardinality());
+    assertTrue(full.isFull());
+    assertEquals(65536, full.getCardinality());
   }
 
   @Test
   public void testRangeConstructor2() {
     MappeableRunContainer c = new MappeableRunContainer(17, 1000);
-    Assert.assertEquals(983, c.getCardinality());
+    assertEquals(983, c.getCardinality());
   }
 
   @Test
@@ -2425,13 +2435,13 @@ public class TestRunContainer {
     MappeableRunContainer a = new MappeableRunContainer(17, 45679);
     MappeableRunContainer b = new MappeableRunContainer();
     b.iadd(17, 45679);
-    Assert.assertEquals(a, b);
+    assertEquals(a, b);
   }
 
   @Test
   public void testRangeConstructor4() {
     MappeableRunContainer c = new MappeableRunContainer(0, 45679);
-    Assert.assertEquals(45679, c.getCardinality());
+    assertEquals(45679, c.getCardinality());
   }
 
   @Test
@@ -2439,7 +2449,7 @@ public class TestRunContainer {
     MappeableRunContainer c = new MappeableRunContainer();
     c.add((char) 1);
     c.add((char) 17);
-    Assert.assertEquals(2, c.getCardinality());
+    assertEquals(2, c.getCardinality());
   }
 
   @Test

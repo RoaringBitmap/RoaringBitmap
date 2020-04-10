@@ -4,10 +4,9 @@
 
 package org.roaringbitmap.buffer;
 
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.RoaringBitmap;
 
@@ -22,8 +21,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 class ByteBufferBackedInputStream extends InputStream {
 
@@ -110,7 +109,7 @@ public class TestMemoryMapping {
 
   static File tmpfile;
 
-  @AfterClass
+  @AfterAll
   public static void clearFiles() {
     System.out.println("[TestMemoryMapping] Cleaning memory-mapped file.");
     out = null;
@@ -131,7 +130,7 @@ public class TestMemoryMapping {
     return true;
   }
 
-  @BeforeClass
+  @BeforeAll
   public static void initFiles() throws IOException {
     System.out.println("[TestMemoryMapping] Setting up memory-mapped file. (Can take some time.)");
     final ArrayList<Long> offsets = new ArrayList<Long>();
@@ -322,7 +321,7 @@ public class TestMemoryMapping {
   public void basic() {
     System.out.println("[TestMemoryMapping] basic tests");
     for (int k = 0; k < mappedbitmaps.size(); ++k) {
-      Assert.assertTrue(mappedbitmaps.get(k).equals(rambitmaps.get(k)));
+      assertTrue(mappedbitmaps.get(k).equals(rambitmaps.get(k)));
     }
   }
 
@@ -334,7 +333,7 @@ public class TestMemoryMapping {
           ImmutableRoaringBitmap.andNot(mappedbitmaps.get(k), mappedbitmaps.get(k + 1));
       final MutableRoaringBitmap rbram =
           ImmutableRoaringBitmap.andNot(rambitmaps.get(k), rambitmaps.get(k + 1));
-      Assert.assertTrue(rb.equals(rbram));
+      assertTrue(rb.equals(rbram));
     }
   }
 
@@ -346,7 +345,7 @@ public class TestMemoryMapping {
           ImmutableRoaringBitmap.and(mappedbitmaps.get(k), mappedbitmaps.get(k + 1));
       final MutableRoaringBitmap rbram =
           ImmutableRoaringBitmap.and(rambitmaps.get(k), rambitmaps.get(k + 1));
-      Assert.assertTrue(rb.equals(rbram));
+      assertTrue(rb.equals(rbram));
     }
 
     for (int k = 0; k < mappedbitmaps.size() - 4; k += 4) {
@@ -354,7 +353,7 @@ public class TestMemoryMapping {
           mappedbitmaps.get(k + 1), mappedbitmaps.get(k + 3), mappedbitmaps.get(k + 4));
       final MutableRoaringBitmap rbram = BufferFastAggregation.and(rambitmaps.get(k),
           rambitmaps.get(k + 1), rambitmaps.get(k + 3), rambitmaps.get(k + 4));
-      Assert.assertTrue(rb.equals(rbram));
+      assertTrue(rb.equals(rbram));
     }
   }
 
@@ -435,10 +434,10 @@ public class TestMemoryMapping {
       dos.close();
       ByteBuffer bb = ByteBuffer.wrap(bos.toByteArray());
       final ImmutableRoaringBitmap rrback1 = new ImmutableRoaringBitmap(bb);
-      Assert.assertEquals(rrback1.getLongSizeInBytes(), rr1.getLongSizeInBytes());
-      Assert.assertEquals(rrback1.serializedSizeInBytes(), rr1.serializedSizeInBytes());
+      assertEquals(rrback1.getLongSizeInBytes(), rr1.getLongSizeInBytes());
+      assertEquals(rrback1.serializedSizeInBytes(), rr1.serializedSizeInBytes());
       for(int k = 0; k < 1000000; k += 100) {
-        Assert.assertEquals(rrback1.contains(k), rr1.contains(k));
+        assertEquals(rrback1.contains(k), rr1.contains(k));
       }
     }
   }
@@ -462,7 +461,7 @@ public class TestMemoryMapping {
       newr.deserialize(new DataInputStream(bis));
       arr = null;
       RoaringBitmap rrasroaring = rr.toRoaringBitmap();
-      Assert.assertEquals(newr, rrasroaring);
+      assertEquals(newr, rrasroaring);
       System.out
           .println("[TestMemoryMapping] testing compat. bitmap " + k + " out of " + ms + ". ok.");
     }
@@ -481,10 +480,10 @@ public class TestMemoryMapping {
       dos.close();
       ByteBuffer bb = ByteBuffer.wrap(bos.toByteArray());
       ImmutableRoaringBitmap rrback = new ImmutableRoaringBitmap(bb);
-      Assert.assertTrue(rr.equals(rrback));
-      Assert.assertTrue(rr.equals(rrback.toMutableRoaringBitmap()));
-      Assert.assertTrue(rr.toMutableRoaringBitmap().equals(rrback));
-      Assert.assertTrue(rr.toMutableRoaringBitmap().equals(rambitmaps.get(k)));
+      assertTrue(rr.equals(rrback));
+      assertTrue(rr.equals(rrback.toMutableRoaringBitmap()));
+      assertTrue(rr.toMutableRoaringBitmap().equals(rrback));
+      assertTrue(rr.toMutableRoaringBitmap().equals(rambitmaps.get(k)));
     }
   }
 
@@ -500,11 +499,11 @@ public class TestMemoryMapping {
     dos.close();
     ByteBuffer bb = ByteBuffer.wrap(bos.toByteArray());
     ImmutableRoaringBitmap rrback1 = new ImmutableRoaringBitmap(bb);
-    Assert.assertTrue(rr1.equals(rrback1));
+    assertTrue(rr1.equals(rrback1));
     bb.position(bb.position() + rrback1.serializedSizeInBytes());
     ImmutableRoaringBitmap rrback2 = new ImmutableRoaringBitmap(bb);
-    Assert.assertTrue(rr1.equals(rrback1));
-    Assert.assertTrue(rr2.equals(rrback2));
+    assertTrue(rr1.equals(rrback1));
+    assertTrue(rr2.equals(rrback2));
   }
 
   @Test
@@ -521,21 +520,21 @@ public class TestMemoryMapping {
     dos.close();
     ByteBuffer bb = ByteBuffer.wrap(bos.toByteArray());
     ImmutableRoaringBitmap rrback1 = new ImmutableRoaringBitmap(bb);
-    Assert.assertTrue(rr1.equals(rrback1));
+    assertTrue(rr1.equals(rrback1));
     bb.position(bb.position() + rrback1.serializedSizeInBytes());
     ImmutableRoaringBitmap rrback2 = new ImmutableRoaringBitmap(bb);
-    Assert.assertTrue(rr1.equals(rrback1));
-    Assert.assertTrue(rr2.equals(rrback2));
+    assertTrue(rr1.equals(rrback1));
+    assertTrue(rr2.equals(rrback2));
     ImmutableRoaringBitmap rrback1c = rrback1.clone();
     ImmutableRoaringBitmap rrback2c = rrback2.clone();
-    Assert.assertTrue(rr1.equals(rrback1c));
-    Assert.assertTrue(rr2.equals(rrback2c));
-    Assert.assertTrue(rrback1.equals(rrback1c));
-    Assert.assertTrue(rrback2.equals(rrback2c));
-    Assert.assertEquals(rr1.hashCode(), rrback1.hashCode());
-    Assert.assertEquals(rr1.hashCode(), rrback1c.hashCode());
-    Assert.assertEquals(rr2.hashCode(), rrback2.hashCode());
-    Assert.assertEquals(rr2.hashCode(), rrback2c.hashCode());
+    assertTrue(rr1.equals(rrback1c));
+    assertTrue(rr2.equals(rrback2c));
+    assertTrue(rrback1.equals(rrback1c));
+    assertTrue(rrback2.equals(rrback2c));
+    assertEquals(rr1.hashCode(), rrback1.hashCode());
+    assertEquals(rr1.hashCode(), rrback1c.hashCode());
+    assertEquals(rr2.hashCode(), rrback2.hashCode());
+    assertEquals(rr2.hashCode(), rrback2c.hashCode());
 
   }
 
@@ -554,7 +553,7 @@ public class TestMemoryMapping {
       int oldvalue = -1;
       long t1 = System.nanoTime();
       for (int x : target) {
-        Assert.assertTrue(target.contains(x));
+        assertTrue(target.contains(x));
         if (x > oldvalue) {
           ++card1;
         }
@@ -562,14 +561,14 @@ public class TestMemoryMapping {
       }
       long t2 = System.nanoTime();
       System.out.println(" iterator one ns/ops = " + (t2 - t1) * 1.0 / truecard);
-      Assert.assertEquals(truecard, card1);
+      assertEquals(truecard, card1);
       long t3 = System.nanoTime();
       IntIterator i = target.getIntIterator();
       oldvalue = -1;
       int card2 = 0;
       while (i.hasNext()) {
         final int x = i.next();
-        Assert.assertTrue(target.contains(x));
+        assertTrue(target.contains(x));
         if (x > oldvalue) {
           ++card2;
         }
@@ -577,7 +576,7 @@ public class TestMemoryMapping {
       }
       long t4 = System.nanoTime();
       System.out.println(" iterator two ns/ops = " + (t4 - t3) * 1.0 / truecard);
-      Assert.assertEquals(truecard, card2);
+      assertEquals(truecard, card2);
       System.out.println("[TestMemoryMapping] testing copy via iterators using RoaringBitmap copy "
           + k + " out of " + ms + " ok");
     }
@@ -587,14 +586,14 @@ public class TestMemoryMapping {
       System.out.println("[TestMemoryMapping] testing copy via iterators " + k + " out of " + ms);
       final ImmutableRoaringBitmap target = mappedbitmaps.get(k);
       final ImmutableRoaringBitmap ramtarget = rambitmaps.get(k);
-      Assert.assertEquals(target, ramtarget);
+      assertEquals(target, ramtarget);
       final int truecard = target.getCardinality();
       System.out.println("Cardinality = " + truecard);
       int card1 = 0;
       int oldvalue = -1;
       long t1 = System.nanoTime();
       for (int x : target) {
-        Assert.assertTrue(ramtarget.contains(x));
+        assertTrue(ramtarget.contains(x));
         if (x > oldvalue) {
           ++card1;
         }
@@ -602,14 +601,14 @@ public class TestMemoryMapping {
       }
       long t2 = System.nanoTime();
       System.out.println(" iterator one ns/ops = " + (t2 - t1) * 1.0 / truecard);
-      Assert.assertEquals(truecard, card1);
+      assertEquals(truecard, card1);
       long t3 = System.nanoTime();
       IntIterator i = target.getIntIterator();
       oldvalue = -1;
       int card2 = 0;
       while (i.hasNext()) {
         final int x = i.next();
-        Assert.assertTrue(ramtarget.contains(x));
+        assertTrue(ramtarget.contains(x));
         if (x > oldvalue) {
           ++card2;
         }
@@ -617,7 +616,7 @@ public class TestMemoryMapping {
       }
       long t4 = System.nanoTime();
       System.out.println(" iterator two ns/ops = " + (t4 - t3) * 1.0 / truecard);
-      Assert.assertEquals(truecard, card2);
+      assertEquals(truecard, card2);
       System.out
           .println("[TestMemoryMapping] testing copy via iterators " + k + " out of " + ms + " ok");
     }
@@ -634,13 +633,13 @@ public class TestMemoryMapping {
     for (int x : rb) {
       copy1.add(x);
     }
-    Assert.assertTrue(copy1.equals(rb));
+    assertTrue(copy1.equals(rb));
     MutableRoaringBitmap copy2 = new MutableRoaringBitmap();
     IntIterator i = rb.getIntIterator();
     while (i.hasNext()) {
       copy2.add(i.next());
     }
-    Assert.assertTrue(copy2.equals(rb));
+    assertTrue(copy2.equals(rb));
     System.out.println("[TestMemoryMapping] testing a custom iterator copy  ok");
   }
 
@@ -652,7 +651,7 @@ public class TestMemoryMapping {
           mappedbitmaps.get(k + 1), mappedbitmaps.get(k + 3), mappedbitmaps.get(k + 4));
       final MutableRoaringBitmap rbram = BufferFastAggregation.or(rambitmaps.get(k),
           rambitmaps.get(k + 1), rambitmaps.get(k + 3), rambitmaps.get(k + 4));
-      Assert.assertTrue(rb.equals(rbram));
+      assertTrue(rb.equals(rbram));
     }
   }
 
@@ -664,7 +663,7 @@ public class TestMemoryMapping {
           mappedbitmaps.get(k + 1), mappedbitmaps.get(k + 3), mappedbitmaps.get(k + 4));
       final MutableRoaringBitmap rbram = BufferFastAggregation.xor(rambitmaps.get(k),
           rambitmaps.get(k + 1), rambitmaps.get(k + 3), rambitmaps.get(k + 4));
-      Assert.assertTrue(rb.equals(rbram));
+      assertTrue(rb.equals(rbram));
     }
   }
 }

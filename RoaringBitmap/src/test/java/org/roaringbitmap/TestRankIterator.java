@@ -1,44 +1,41 @@
 package org.roaringbitmap;
 
 import com.google.common.collect.Lists;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.roaringbitmap.RoaringBitmapWriter.writer;
 import static org.roaringbitmap.SeededTestData.randomBitmap;
 
-@RunWith(Parameterized.class)
+@Execution(ExecutionMode.CONCURRENT)
 public class TestRankIterator {
 
   @SuppressWarnings("unchecked")
-  @Parameterized.Parameters(name = "{index}: advance by {1}")
-  public static Collection<Object[]> parameters() throws CloneNotSupportedException {
+  public static Stream<Arguments> parameters() throws CloneNotSupportedException {
     FastRankRoaringBitmap fast = getBitmap();
     FastRankRoaringBitmap withFull = new FastRankRoaringBitmap(fast.highLowContainer.clone());
     withFull.add(0L, 262144L);
 
-    Assert.assertTrue(fast.isCacheDismissed());
+    assertTrue(fast.isCacheDismissed());
     return Lists.cartesianProduct(Arrays.asList(fast, withFull), computeAdvances())
-                .stream().map(List::toArray).collect(Collectors.toList());
+            .stream().map(list -> Arguments.of(list.get(0), list.get(1)));
   }
 
-  @Parameterized.Parameter
-  public FastRankRoaringBitmap bitmap;
-  @Parameterized.Parameter(1)
-  public Integer advance;
-
-  @Test
-  public void testAdvance() {
+  @ParameterizedTest(name = "{1}")
+  @MethodSource("parameters")
+  public void testAdvance(FastRankRoaringBitmap bitmap, Integer advance) {
     long start = System.nanoTime();
     if (advance == 0) {
       testBitmapRanksOnNext(bitmap);
@@ -57,7 +54,7 @@ public class TestRankIterator {
     while (iterator.hasNext()) {
       ++iterations;
       int rank = iterator.peekNextRank();
-      Assert.assertEquals(iterations, Util.toUnsignedLong(rank));
+      assertEquals(iterations, Util.toUnsignedLong(rank));
 
       iterator.next();
     }
@@ -69,7 +66,7 @@ public class TestRankIterator {
       int bit = iterator.peekNext();
       int rank = iterator.peekNextRank();
 
-      Assert.assertEquals(bm.rank(bit), rank);
+      assertEquals(bm.rank(bit), rank);
 
       if ((Util.toUnsignedLong(bit) + advance) < 0xffffffffL) {
         iterator.advanceIfNeeded(bit + advance);
