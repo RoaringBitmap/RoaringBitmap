@@ -1,7 +1,8 @@
-package org.roaringbitmap;
+package org.roaringbitmap.buffer;
 
 
 import org.junit.jupiter.api.Test;
+import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
