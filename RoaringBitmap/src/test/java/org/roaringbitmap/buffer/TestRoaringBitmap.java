@@ -2358,6 +2358,208 @@ public class TestRoaringBitmap {
   }
 
   @Test
+  public void orNot() {
+    MutableRoaringBitmap rb = new MutableRoaringBitmap();
+    MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
+
+    rb.add(2);
+    rb.add(1);
+    rb.add(1 << 16); // 65 536
+    rb.add(2 << 16); //131 072
+    rb.add(3 << 16); //196 608
+
+    rb2.add(1 << 16);// 65 536
+    rb2.add(3 << 16);//196 608
+
+    rb.orNot(rb2, (4 << 16) - 1);
+
+    assertEquals((4 << 16) - 1, rb.getCardinality());
+
+    final IntIterator iterator = rb.getIntIterator();
+
+    for (int i = 0; i < (4 << 16) - 1; ++i) {
+      assertTrue(iterator.hasNext(), "Error on iteration " + i);
+      assertEquals(i, iterator.next());
+    }
+    assertFalse(iterator.hasNext());
+  }
+
+
+  @Test
+  public void orNotRegressionTest() {
+    long len = 3L;
+    long orLen = 3L;
+
+    MutableRoaringBitmap one = new MutableRoaringBitmap();
+    MutableRoaringBitmap other = new MutableRoaringBitmap();
+    other.add(0L, len);
+
+    one.orNot(other, orLen);
+  }
+
+  @Test
+  public void orNotZeroRangeEndPreservesBitmap() {
+    MutableRoaringBitmap one = new MutableRoaringBitmap();
+    one.add(32);
+
+    MutableRoaringBitmap other = new MutableRoaringBitmap();
+    other.add(0L, 100);
+
+    one.orNot(other, 0);
+    assertEquals(one, MutableRoaringBitmap.bitmapOf(32));
+  }
+
+  @Test
+  public void orNotLimitLowerThanFirstPreservesBitmap() {
+    MutableRoaringBitmap one = new MutableRoaringBitmap();
+    one.add(32);
+
+    MutableRoaringBitmap other = new MutableRoaringBitmap();
+    other.add(0L, 100);
+
+    one.orNot(other, 10);
+    assertEquals(one, MutableRoaringBitmap.bitmapOf(32));
+  }
+
+
+  @Test
+  public void orNotLimitHigherThanFirstBitPreservesBitmap() {
+    MutableRoaringBitmap one = new MutableRoaringBitmap();
+    one.add(32);
+
+    MutableRoaringBitmap other = new MutableRoaringBitmap();
+    other.add(0L, 100);
+
+    one.orNot(other, 35);
+    assertEquals(one, MutableRoaringBitmap.bitmapOf(32));
+  }
+
+  @Test
+  public void orNotWithSparseBitmaps() {
+    MutableRoaringBitmap rb = new MutableRoaringBitmap();
+    MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
+
+    rb.add(0);
+    rb.add(1 << 16); // 65 536
+    rb.add(3 << 16); //196 608
+
+    rb2.add((4 << 16) - 1); //262 143
+
+    rb.orNot(rb2, 4 << 16);
+
+    assertEquals((4 << 16) - 1, rb.getCardinality());
+
+    final IntIterator iterator = rb.getIntIterator();
+
+    for (int i = 0; i < (4 << 16) - 1; ++i) {
+      assertTrue(iterator.hasNext(), "Error on iteration " + i);
+      assertEquals(i, iterator.next());
+    }
+    assertFalse(iterator.hasNext());
+  }
+
+  @Test
+  public void orNotWithOtherBiggerThanOriginal() {
+    MutableRoaringBitmap rb = new MutableRoaringBitmap();
+    rb.add(1);
+
+    MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
+    rb2.add(1 << 14); //16 384
+    rb2.add(3 << 16); //196 608
+
+    rb.orNot(rb2, (5 << 16));
+    assertEquals((5 << 16) - 2, rb.getCardinality());
+
+    final IntIterator iterator = rb.getIntIterator();
+    for (int i = 0; i < (5 << 16); ++i) {
+      if ((i != (1 << 14)) && (i != (3 << 16))) {
+        assertTrue(iterator.hasNext(), "Error on iteration " + i);
+        assertEquals(i, iterator.next(), "Error on iteration " + i);
+      }
+    }
+    assertFalse(iterator.hasNext());
+  }
+
+  @Test
+  public void orNotWithOtherBiggerThanOriginalAndEndRange() {
+    MutableRoaringBitmap rb = new MutableRoaringBitmap();
+    rb.add(1);
+
+    final MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
+    rb2.add(3 << 16); //196 608
+
+    rb.orNot(rb2, (2 << 16) + (2 << 14)); //131 072 + 32 768 = 163 840
+    assertEquals((2 << 16) + (2 << 14), rb.getCardinality());
+
+    final IntIterator iterator = rb.getIntIterator();
+    for (int i = 0; i < (2 << 16) + (2 << 14); ++i) {
+      assertTrue(iterator.hasNext(), "Error on iteration " + i);
+      assertEquals(i, iterator.next(), "Error on iteration " + i);
+    }
+    assertFalse(iterator.hasNext());
+  }
+
+  @Test
+  public void orNotWithOriginalBiggerThanOther() {
+    MutableRoaringBitmap rb = new MutableRoaringBitmap();
+
+    rb.add(1);
+    rb.add(1 << 16); // 65 536
+    rb.add(2 << 16); //131 072
+    rb.add(3 << 16); //196 608
+
+    MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
+
+    rb.orNot(rb2, (5 << 16));
+    assertEquals((5 << 16), rb.getCardinality());
+
+    final IntIterator iterator = rb.getIntIterator();
+    for (int i = 0; i < (5 << 16); ++i) {
+      assertTrue(iterator.hasNext(), "Error on iteration " + i);
+      assertEquals(i, iterator.next(), "Error on iteration " + i);
+    }
+    assertFalse(iterator.hasNext());
+  }
+
+  @Test
+  public void orNotWithOriginalBiggerThanOther2() {
+    MutableRoaringBitmap rb = new MutableRoaringBitmap();
+
+    rb.add(1);
+    rb.add((1 << 16) - 1); // 65 535
+    rb.add(1 << 16); // 65 536
+    rb.add(2 << 16); //131 072
+    rb.add(3 << 16); //196 608
+
+    MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
+
+    rb.orNot(rb2, (1 << 14));
+
+    // {[0, 2^14], 65 535, 65 536, 131 072, 196 608}
+    assertEquals((1 << 14) + 4, rb.getCardinality());
+
+    final IntIterator iterator = rb.getIntIterator();
+    for (int i = 0; i < (1 << 14); ++i) {
+      assertTrue(iterator.hasNext(), "Error on iteration " + i);
+      assertEquals(i, iterator.next(), "Error on iteration " + i);
+    }
+
+    assertTrue(iterator.hasNext());
+    assertEquals((1 << 16) - 1, iterator.next());
+
+    assertTrue(iterator.hasNext());
+    assertEquals(1 << 16, iterator.next());
+
+    assertTrue(iterator.hasNext());
+    assertEquals(2 << 16, iterator.next());
+
+    assertTrue(iterator.hasNext());
+    assertEquals(3 << 16, iterator.next());
+
+    assertFalse(iterator.hasNext());
+  }
+
+  @Test
   public void randomTest() {
     rTest(15);
     rTest(1024);

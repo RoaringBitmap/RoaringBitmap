@@ -306,6 +306,11 @@ public class TestMappeableArrayContainer {
   }
 
   @Test
+  public void isNotFull() {
+    assertFalse(new MappeableArrayContainer().add('a').isFull());
+  }
+
+  @Test
   public void testToString() {
     MappeableArrayContainer ac1 = new MappeableArrayContainer(5, 15);
     ac1.add((char) -3);

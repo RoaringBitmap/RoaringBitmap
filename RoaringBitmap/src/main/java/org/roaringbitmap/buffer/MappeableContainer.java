@@ -60,6 +60,12 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
   public abstract boolean isEmpty();
 
   /**
+   * Checks whether the container is full or not.
+   * @return true if the container is full.
+   */
+  public abstract boolean isFull();
+
+  /**
    * Computes the bitwise AND of this container with another (intersection). This container as well
    * as the provided container are left unaffected.
    * 
@@ -176,43 +182,6 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
 
   public abstract MappeableContainer andNot(MappeableRunContainer x);
 
-
-  /**
-   * Computes the bitwise ORNOT of this container with another. This container as well
-   * as the provided container are left unaffected.
-   *
-   * @param x other container
-   * @param endOfRange the exclusive end
-   * @return aggregated container
-   */
-  public MappeableContainer orNot(MappeableArrayContainer x, int endOfRange){
-    return or(x.not(0, endOfRange)).and(MappeableRunContainer.rangeOfOnes(0, endOfRange));
-  }
-
-  /**
-   * Computes the bitwise ORNOT of this container with another. This container as well
-   * as the provided container are left unaffected.
-   *
-   * @param x other container
-   * @param endOfRange the exclusive end
-   * @return aggregated container
-   */
-  public MappeableContainer orNot(MappeableBitmapContainer x, int endOfRange) {
-    return or(x.not(0, endOfRange)).and(MappeableRunContainer.rangeOfOnes(0, endOfRange));
-  }
-
-  /**
-   * Computes the bitwise ORNOT of this container with another. This container as well
-   * as the provided container are left unaffected.
-   *
-   * @param x other container
-   * @param endOfRange the exclusive end
-   * @return aggregated container
-   */
-  public MappeableContainer orNot(MappeableRunContainer x, int endOfRange) {
-    return or(x.not(0, endOfRange)).and(MappeableRunContainer.rangeOfOnes(0, endOfRange));
-  }
-
   /**
    * Computes the bitwise ORNOT of this container with another. This container as well
    * as the provided container are left unaffected.
@@ -222,14 +191,27 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * @return aggregated container
    */
   public MappeableContainer orNot(MappeableContainer x, int endOfRange) {
-    if (x instanceof MappeableArrayContainer) {
-      return orNot((MappeableArrayContainer) x, endOfRange);
-    } else if (x instanceof MappeableBitmapContainer) {
-      return orNot((MappeableBitmapContainer) x, endOfRange);
+    if (endOfRange < 0x10000) {
+      return or(x.not(0, endOfRange).iremove(endOfRange, 0x10000));
     }
-    return orNot((MappeableRunContainer) x, endOfRange);
+    return or(x.not(0, 0x10000));
   }
 
+  /**
+   * Computes the in-place bitwise ORNOT of this container with another. The current
+   * container is generally modified, whereas the provided container (x) is unaffected. May generate
+   * a new container.
+   *
+   * @param x other container
+   * @param endOfRange the exclusive end
+   * @return aggregated container
+   */
+  public MappeableContainer iorNot(MappeableContainer x, int endOfRange) {
+    if (endOfRange < 0x10000) {
+      return ior(x.not(0, endOfRange).iremove(endOfRange, 0x10000));
+    }
+    return ior(x.not(0, 0x10000));
+  }
 
   /**
    * Empties the container
