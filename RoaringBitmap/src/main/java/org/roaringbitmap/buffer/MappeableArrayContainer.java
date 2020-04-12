@@ -241,6 +241,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     return cardinality == 0;
   }
 
+  @Override
+  public boolean isFull() {
+    return false;
+  }
+
   private int advance(CharIterator it) {
     if (it.hasNext()) {
       return (it.next());

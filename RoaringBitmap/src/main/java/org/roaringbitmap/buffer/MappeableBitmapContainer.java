@@ -953,7 +953,8 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     return this;
   }
 
-  protected boolean isFull() {
+  @Override
+  public boolean isFull() {
     return this.cardinality == MAX_CAPACITY;
   }
 

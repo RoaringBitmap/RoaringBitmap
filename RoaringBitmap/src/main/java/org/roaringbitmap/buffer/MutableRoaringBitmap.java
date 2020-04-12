@@ -8,6 +8,7 @@ import org.roaringbitmap.*;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.util.Iterator;
 
 /**
@@ -900,6 +901,91 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
       intersectionSize += length1 - pos1;
     }
     getMappeableRoaringArray().resize(intersectionSize);
+  }
+
+  /**
+   * In-place bitwise ORNOT operation. The current bitmap is modified.
+   *
+   * @param other the other bitmap
+   * @param rangeEnd end point of the range (exclusive).
+   */
+  public void orNot(ImmutableRoaringBitmap other, long rangeEnd) {
+    rangeSanityCheck(0, rangeEnd);
+    int maxKey = (int)((rangeEnd - 1) >>> 16);
+    int lastRun = (rangeEnd & 0xFFFF) == 0 ? 0x10000 : (int)(rangeEnd & 0xFFFF);
+    int size = 0;
+    int pos1 = 0, pos2 = 0;
+    int length1 = highLowContainer.size(), length2 = other.highLowContainer.size();
+    int s1 = length1 > 0 ? highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
+    int s2 = length2 > 0 ? other.highLowContainer.getKeyAtIndex(pos2) : maxKey + 1;
+    int remainder = 0;
+    for (int i = highLowContainer.size() - 1;
+         i >= 0 && highLowContainer.getKeyAtIndex(i) > maxKey;
+         --i) {
+      ++remainder;
+    }
+    int correction = 0;
+    for (int i = 0; i < other.highLowContainer.size() - remainder; ++i) {
+      correction += other.highLowContainer.getContainerAtIndex(i).isFull() ? 1 : 0;
+      if (other.highLowContainer.getKeyAtIndex(i) >= maxKey) {
+        break;
+      }
+    }
+    // it's almost certain that the bitmap will grow, so make a conservative overestimate,
+    // this avoids temporary allocation, and can trim afterwards
+    int maxSize = Math.min(maxKey + 1 + remainder - correction
+            + highLowContainer.size(), 0x10000);
+    if (maxSize == 0) {
+      return;
+    }
+    char[] newKeys = new char[maxSize];
+    MappeableContainer[] newValues = new MappeableContainer[maxSize];
+    for (int key = 0; key <= maxKey && size < maxSize; ++key) {
+      if (key == s1 && key == s2) { // actually need to do an or not
+        newValues[size] = highLowContainer.getContainerAtIndex(pos1)
+                .iorNot(other.highLowContainer.getContainerAtIndex(pos2),
+                        key == maxKey ? lastRun : 0x10000);
+        ++pos1;
+        ++pos2;
+        s1 = pos1 < length1 ? highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
+        s2 = pos2 < length2 ? other.highLowContainer.getKeyAtIndex(pos2) : maxKey + 1;
+      } else if (key == s1) { // or in a hole
+        newValues[size] = highLowContainer.getContainerAtIndex(pos1)
+                .ior(key == maxKey
+                        ? MappeableRunContainer.rangeOfOnes(0, lastRun)
+                        : MappeableRunContainer.full());
+        ++pos1;
+        s1 = pos1 < length1 ? highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
+      } else if (key == s2) { // insert the complement
+        newValues[size] = other.highLowContainer.getContainerAtIndex(pos2)
+                .not(0, key == maxKey ? lastRun : 0x10000);
+        ++pos2;
+        s2 = pos2 < length2 ? other.highLowContainer.getKeyAtIndex(pos2) : maxKey + 1;
+      } else { // key missing from both
+        newValues[size] = key == maxKey
+                ? MappeableRunContainer.rangeOfOnes(0, lastRun)
+                : MappeableRunContainer.full();
+      }
+      // might have appended an empty container (rare case)
+      if (newValues[size].isEmpty()) {
+        newValues[size] = null;
+      } else {
+        newKeys[size] = (char)key;
+        ++size;
+      }
+    }
+    // copy over everything which will remain without being complemented
+    if (remainder > 0) {
+      System.arraycopy(((MutableRoaringArray)highLowContainer).keys,
+              highLowContainer.size() - remainder,
+              newKeys, size, remainder);
+      System.arraycopy(((MutableRoaringArray)highLowContainer).values,
+              highLowContainer.size() - remainder,
+              newValues, size, remainder);
+    }
+    ((MutableRoaringArray)highLowContainer).keys = newKeys;
+    ((MutableRoaringArray)highLowContainer).values = newValues;
+    ((MutableRoaringArray)highLowContainer).size = size + remainder;
   }
 
 
