@@ -185,52 +185,14 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    * as the provided container are left unaffected.
    *
    * @param x other container
-   * @param endOfRange the exclusive end
-   * @return aggregated container
-   */
-  public Container orNot(ArrayContainer x, int endOfRange){
-    return or(x.not(0, endOfRange)).and(RunContainer.rangeOfOnes(0, endOfRange));
-  }
-
-  /**
-   * Computes the bitwise ORNOT of this container with another. This container as well
-   * as the provided container are left unaffected.
-   *
-   * @param x other container
-   * @param endOfRange the exclusive end
-   * @return aggregated container
-   */
-  public Container orNot(BitmapContainer x, int endOfRange) {
-    return or(x.not(0, endOfRange)).and(RunContainer.rangeOfOnes(0, endOfRange));
-  }
-
-  /**
-   * Computes the bitwise ORNOT of this container with another. This container as well
-   * as the provided container are left unaffected.
-   *
-   * @param x other container
-   * @param endOfRange the exclusive end
-   * @return aggregated container
-   */
-  public Container orNot(RunContainer x, int endOfRange) {
-    return or(x.not(0, endOfRange)).and(RunContainer.rangeOfOnes(0, endOfRange));
-  }
-
-  /**
-   * Computes the bitwise ORNOT of this container with another. This container as well
-   * as the provided container are left unaffected.
-   *
-   * @param x other container
    * @param endOfRange end of range (size of the universe)
    * @return aggregated container
    */
   public Container orNot(Container x, int endOfRange) {
-    if (x instanceof ArrayContainer) {
-      return orNot((ArrayContainer) x, endOfRange);
-    } else if (x instanceof BitmapContainer) {
-      return orNot((BitmapContainer) x, endOfRange);
+    if (endOfRange < 0x10000) {
+      return or(x.not(0, endOfRange).iremove(endOfRange, 0x10000));
     }
-    return orNot((RunContainer) x, endOfRange);
+    return or(x.not(0, 0x10000));
   }
 
   /**

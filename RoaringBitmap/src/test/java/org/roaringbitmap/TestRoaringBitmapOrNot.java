@@ -400,4 +400,28 @@ public class TestRoaringBitmapOrNot {
     assertEquals(expected, actual);
   }
 
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testBigOrNotStatic() throws IOException {
+    byte[] bytes = Files.readAllBytes(Paths.get("src/test/resources/testdata/ornot-fuzz-failure.json"));
+    Map<String, Object> info = new ObjectMapper().readerFor(Map.class).readValue(bytes);
+    List<String> base64Bitmaps = (List<String>)info.get("bitmaps");
+    ByteBuffer lBuffer = ByteBuffer.wrap(Base64.getDecoder().decode(base64Bitmaps.get(0)));
+    ByteBuffer rBuffer = ByteBuffer.wrap(Base64.getDecoder().decode(base64Bitmaps.get(1)));
+    RoaringBitmap l = new RoaringBitmap();
+    l.deserialize(lBuffer);
+    RoaringBitmap r = new RoaringBitmap();
+    r.deserialize(rBuffer);
+
+    RoaringBitmap range = new RoaringBitmap();
+    long limit = toUnsignedLong(l.last()) + 1;
+    range.add(0, limit);
+    range.andNot(r);
+    RoaringBitmap expected = RoaringBitmap.or(l, range);
+
+    RoaringBitmap actual = RoaringBitmap.orNot(l, r, limit);
+    assertEquals(expected, actual);
+  }
+
 }
