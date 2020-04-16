@@ -1556,7 +1556,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     return BufferUtil.isBackedBySimpleArray(this.valueslength);
   }
 
-  protected boolean isFull() {
+  @Override
+  public boolean isFull() {
     return (this.nbrruns == 1) && (this.getValue(0) == 0) && (this.getLength(0) == 0xFFFF);
   }
 

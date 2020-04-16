@@ -1468,7 +1468,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     for (int key = 0; key <= maxKey && size < maxSize; ++key) {
       if (key == s1 && key == s2) { // actually need to do an or not
         newValues[size] = x1.highLowContainer.getContainerAtIndex(pos1)
-                .iorNot(x2.highLowContainer.getContainerAtIndex(pos2),
+                .orNot(x2.highLowContainer.getContainerAtIndex(pos2),
                         key == maxKey ? lastRun : 0x10000);
         ++pos1;
         ++pos2;
