@@ -1079,6 +1079,43 @@ public class TestMappeableBitmapContainer {
     assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 8)));
   }
 
+  @Test
+  public void testNonEmptyInRangeBadRange() {
+    MappeableBitmapContainer bc = new MappeableBitmapContainer();
+    assertFalse(bc.isNonEmptyInRange(1, 0));
+  }
+
+  @Test
+  public void testNonEmptyInRangeIntraWordEmpty() {
+    MappeableBitmapContainer bc = new MappeableBitmapContainer();
+    assertFalse(bc.isNonEmptyInRange(65, 70));
+  }
+
+  @Test
+  public void testNonEmptyInRangeIntraWordNonEmpty() {
+    MappeableContainer bc = new MappeableBitmapContainer().add((char)66);
+    assertTrue(((MappeableBitmapContainer)bc).isNonEmptyInRange(65, 70));
+  }
+
+  @Test
+  public void testNonEmptyInRangeNonEmptyInFirstWord() {
+    MappeableContainer bc = new MappeableBitmapContainer().add((char)66);
+    assertTrue(((MappeableBitmapContainer)bc).isNonEmptyInRange(65, 1000));
+  }
+
+  @Test
+  public void testNonEmptyInRangeNonEmptyInLastWord() {
+    MappeableContainer bc = new MappeableBitmapContainer().add((char)999);
+    assertTrue(((MappeableBitmapContainer)bc).isNonEmptyInRange(65, 1000));
+  }
+
+
+  @Test
+  public void testNonEmptyInRangeNonEmptyInMiddle() {
+    MappeableContainer bc = new MappeableBitmapContainer().add((char)600);
+    assertTrue(((MappeableBitmapContainer)bc).isNonEmptyInRange(65, 1000));
+  }
+
 
   private static long[] evenBits() {
     long[] bitmap = new long[1 << 10];

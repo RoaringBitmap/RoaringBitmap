@@ -7,6 +7,8 @@ package org.roaringbitmap;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.roaringbitmap.buffer.MappeableBitmapContainer;
+import org.roaringbitmap.buffer.MappeableContainer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -1260,6 +1262,43 @@ public class TestBitmapContainer {
     assertEquals(((1 << 15) | 6), container.nextAbsentValue((char)((1 << 15) | 6)));
     assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 7)));
     assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 8)));
+  }
+
+  @Test
+  public void testNonEmptyInRangeBadRange() {
+    BitmapContainer bc = new BitmapContainer();
+    assertFalse(bc.isNonEmptyInRange(1, 0));
+  }
+
+  @Test
+  public void testNonEmptyInRangeIntraWordEmpty() {
+    BitmapContainer bc = new BitmapContainer();
+    assertFalse(bc.isNonEmptyInRange(65, 70));
+  }
+
+  @Test
+  public void testNonEmptyInRangeIntraWordNonEmpty() {
+    Container bc = new BitmapContainer().add((char)66);
+    assertTrue(((BitmapContainer)bc).isNonEmptyInRange(65, 70));
+  }
+
+  @Test
+  public void testNonEmptyInRangeNonEmptyInFirstWord() {
+    Container bc = new BitmapContainer().add((char)66);
+    assertTrue(((BitmapContainer)bc).isNonEmptyInRange(65, 1000));
+  }
+
+  @Test
+  public void testNonEmptyInRangeNonEmptyInLastWord() {
+    Container bc = new BitmapContainer().add((char)999);
+    assertTrue(((BitmapContainer)bc).isNonEmptyInRange(65, 1000));
+  }
+
+
+  @Test
+  public void testNonEmptyInRangeNonEmptyInMiddle() {
+    Container bc = new BitmapContainer().add((char)600);
+    assertTrue(((BitmapContainer)bc).isNonEmptyInRange(65, 1000));
   }
 
   private static long[] evenBits() {
