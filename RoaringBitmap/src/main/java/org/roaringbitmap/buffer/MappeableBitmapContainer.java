@@ -403,16 +403,17 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     int firstword = start >>> 6;
     int endword = (end - 1) >>> 6;
     if (firstword == endword) {
-      return (bitmap.get(firstword) & ( (~0L << start) & (~0L >>> -end) )) > 0;
+      return (bitmap.get(firstword) & ( (~0L << start) & (~0L >>> -end) )) != 0;
     }
-    if ((bitmap.get(firstword) & (~0L << start)) == 0) {
-      for (int i = firstword + 1; i < endword; i++) {
-        if (bitmap.get(i) != 0) {
-          return true;
-        }
+    if ((bitmap.get(firstword) & (~0L << start)) != 0) {
+      return true;
+    }
+    for (int i = firstword + 1; i < endword; i++) {
+      if (bitmap.get(i) != 0) {
+        return true;
       }
     }
-    return (bitmap.get(endword) & (~0L >>> -end)) > 0;
+    return (bitmap.get(endword) & (~0L >>> -end)) != 0;
   }
 
   @Override
