@@ -1522,6 +1522,6 @@ public class TestImmutableRoaringBitmap {
 
   @Test
   public void invalidCookie() {
-    assertThrows(InvalidRoaringFormat.class, () -> new ImmutableRoaringBitmap(ByteBuffer.allocate(4)));
+    assertThrows(RuntimeException.class, () -> new ImmutableRoaringBitmap(ByteBuffer.allocate(8)));
   }
 }

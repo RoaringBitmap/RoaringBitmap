@@ -316,6 +316,25 @@ public final class BitmapContainer extends Container implements Cloneable {
     this.cardinality = oldCardinality - prevOnes + newOnes;
   }
 
+  boolean isNonEmptyInRange(int start, int end) {
+    if (start >= end) {
+      return false;
+    }
+    int firstword = start >>> 6;
+    int endword = (end - 1) >>> 6;
+    if (firstword == endword) {
+      return (bitmap[firstword] & ( (~0L << start) & (~0L >>> -end) )) > 0;
+    }
+    if ((bitmap[firstword] & (~0L << start)) == 0) {
+      for (int i = firstword + 1; i < endword; i++) {
+        if (bitmap[i] != 0) {
+          return true;
+        }
+      }
+    }
+    return (bitmap[endword] & (~0L >>> -end)) > 0;
+  }
+
   @Override
   public boolean contains(final char i) {
     return (bitmap[i >>> 6] & (1L << i)) != 0;

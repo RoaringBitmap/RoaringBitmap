@@ -1324,14 +1324,11 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   @Override
   public boolean intersects(MappeableBitmapContainer x) {
-    // possibly inefficient
     for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
-      int runStart = (this.getValue(rlepos));
-      int runEnd = runStart + (this.getLength(rlepos));
-      for (int runValue = runStart; runValue <= runEnd; ++runValue) {
-        if (x.contains((char) runValue)) {
-          return true;
-        }
+      int runStart = this.getValue(rlepos);
+      int runEnd = runStart + this.getLength(rlepos);
+      if (x.isNonEmptyInRange(runStart, runEnd + 1)) {
+        return true;
       }
     }
     return false;
@@ -2492,14 +2489,9 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     // could be implemented as return toBitmapOrArrayContainer().iand(x);
     int cardinality = 0;
     for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
-      int runStart = (this.getValue(rlepos));
-      int runEnd = runStart + (this.getLength(rlepos));
-      for (int runValue = runStart; runValue <= runEnd; ++runValue) {
-        if (x.contains((char) runValue)) {// it looks like contains() should be cheap enough if
-                                           // accessed sequentially
-          cardinality++;
-        }
-      }
+      int runStart = this.getValue(rlepos);
+      int runEnd = runStart + this.getLength(rlepos);
+      cardinality += x.cardinalityInRange(runStart, runEnd + 1);
     }
     return cardinality;
   }
