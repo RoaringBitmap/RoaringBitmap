@@ -1406,7 +1406,7 @@ public final class RunContainer extends Container implements Cloneable {
     for (int run = 0; run < this.nbrruns; ++run) {
       int runStart = this.getValue(run);
       int runEnd = runStart + this.getLength(run);
-      if (x.isNonEmptyInRange(runStart, runEnd + 1)) {
+      if (x.intersects(runStart, runEnd + 1)) {
         return true;
       }
     }

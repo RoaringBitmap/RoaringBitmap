@@ -7,6 +7,9 @@ package org.roaringbitmap;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -16,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.Random;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -887,6 +891,21 @@ public class TestBitmapContainer {
     assertFalse(container.intersects(11, lower16Bits(-1)));
   }
 
+  public static Stream<Arguments> bitmapsForRangeIntersection() {
+    return Stream.of(
+            Arguments.of(new BitmapContainer().add((char)60), 0, 61, true),
+            Arguments.of(new BitmapContainer().add((char)60), 0, 60, false),
+            Arguments.of(new BitmapContainer().add((char)1000), 0, 1001, true),
+            Arguments.of(new BitmapContainer().add((char)1000), 0, 1000, false),
+            Arguments.of(new BitmapContainer().add((char)1000), 0, 10000, true)
+    );
+  }
+
+  @ParameterizedTest
+  @MethodSource("bitmapsForRangeIntersection")
+  public void testIntersectsWithRangeUpperBoundaries(Container container, int min, int sup, boolean intersects) {
+    assertEquals(intersects, container.intersects(min, sup));
+  }
 
   @Test
   public void testIntersectsWithRangeHitScan() {
@@ -1260,43 +1279,6 @@ public class TestBitmapContainer {
     assertEquals(((1 << 15) | 6), container.nextAbsentValue((char)((1 << 15) | 6)));
     assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 7)));
     assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 8)));
-  }
-
-  @Test
-  public void testNonEmptyInRangeBadRange() {
-    BitmapContainer bc = new BitmapContainer();
-    assertFalse(bc.isNonEmptyInRange(1, 0));
-  }
-
-  @Test
-  public void testNonEmptyInRangeIntraWordEmpty() {
-    BitmapContainer bc = new BitmapContainer();
-    assertFalse(bc.isNonEmptyInRange(65, 70));
-  }
-
-  @Test
-  public void testNonEmptyInRangeIntraWordNonEmpty() {
-    Container bc = new BitmapContainer().add((char)66);
-    assertTrue(((BitmapContainer)bc).isNonEmptyInRange(65, 70));
-  }
-
-  @Test
-  public void testNonEmptyInRangeNonEmptyInFirstWord() {
-    Container bc = new BitmapContainer().add((char)66);
-    assertTrue(((BitmapContainer)bc).isNonEmptyInRange(65, 1000));
-  }
-
-  @Test
-  public void testNonEmptyInRangeNonEmptyInLastWord() {
-    Container bc = new BitmapContainer().add((char)999);
-    assertTrue(((BitmapContainer)bc).isNonEmptyInRange(65, 1000));
-  }
-
-
-  @Test
-  public void testNonEmptyInRangeNonEmptyInMiddle() {
-    Container bc = new BitmapContainer().add((char)600);
-    assertTrue(((BitmapContainer)bc).isNonEmptyInRange(65, 1000));
   }
 
   private static long[] evenBits() {

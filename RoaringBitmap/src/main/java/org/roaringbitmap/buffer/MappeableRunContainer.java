@@ -1327,7 +1327,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
       int runStart = this.getValue(rlepos);
       int runEnd = runStart + this.getLength(rlepos);
-      if (x.isNonEmptyInRange(runStart, runEnd + 1)) {
+      if (x.intersects(runStart, runEnd + 1)) {
         return true;
       }
     }

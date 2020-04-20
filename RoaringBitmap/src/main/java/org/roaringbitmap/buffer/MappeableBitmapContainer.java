@@ -396,26 +396,6 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     this.cardinality = oldCardinality - prevOnes + newOnes;
   }
 
-  boolean isNonEmptyInRange(int start, int end) {
-    if (start >= end) {
-      return false;
-    }
-    int firstword = start >>> 6;
-    int endword = (end - 1) >>> 6;
-    if (firstword == endword) {
-      return (bitmap.get(firstword) & ( (~0L << start) & (~0L >>> -end) )) != 0;
-    }
-    if ((bitmap.get(firstword) & (~0L << start)) != 0) {
-      return true;
-    }
-    for (int i = firstword + 1; i < endword; i++) {
-      if (bitmap.get(i) != 0) {
-        return true;
-      }
-    }
-    return (bitmap.get(endword) & (~0L >>> -end)) != 0;
-  }
-
   @Override
   public boolean contains(final char i) {
     return (bitmap.get(i >>> 6) & (1L << i)) != 0;
