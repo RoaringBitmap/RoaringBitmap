@@ -37,7 +37,7 @@ public class RoaringBitmapBatchIteratorTest {
                 new RoaringBitmap()
         ).flatMap(bitmap -> IntStream.concat(
                 IntStream.of(128, 256, 1024, 65536, 8192),
-                IntStream.range(0, 10).map(i -> ThreadLocalRandom.current().nextInt(0, 1 << 16))
+                IntStream.range(0, 10).map(i -> ThreadLocalRandom.current().nextInt(1, 1 << 16))
         ).mapToObj(i -> Arguments.of(bitmap, i)));
     }
 
