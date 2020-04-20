@@ -350,7 +350,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
     ByteBuffer buffer = bbf.order() == LITTLE_ENDIAN ? bbf : bbf.slice().order(LITTLE_ENDIAN);
     final int cookie = buffer.getInt();
     if ((cookie & 0xFFFF) != SERIAL_COOKIE && cookie != SERIAL_COOKIE_NO_RUNCONTAINER) {
-      throw new RuntimeException("I failed to find one of the right cookies. " + cookie);
+      throw new InvalidRoaringFormat("I failed to find one of the right cookies. " + cookie);
     }
     boolean hasRunContainers = (cookie & 0xFFFF) == SERIAL_COOKIE;
     this.size = hasRunContainers ? (cookie >>> 16) + 1 : buffer.getInt();
