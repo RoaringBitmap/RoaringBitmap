@@ -492,14 +492,9 @@ public final class RunContainer extends Container implements Cloneable {
     // could be implemented as return toBitmapOrArrayContainer().iand(x);
     int cardinality = 0;
     for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
-      int runStart = (this.getValue(rlepos));
-      int runEnd = runStart + (this.getLength(rlepos));
-      for (int runValue = runStart; runValue <= runEnd; ++runValue) {
-        if (x.contains((char) runValue)) {// it looks like contains() should be cheap enough if
-                                           // accessed sequentially
-          cardinality++;
-        }
-      }
+      int runStart = this.getValue(rlepos);
+      int runEnd = runStart + this.getLength(rlepos);
+      cardinality += x.cardinalityInRange(runStart, runEnd + 1);
     }
     return cardinality;
   }
@@ -745,8 +740,8 @@ public final class RunContainer extends Container implements Cloneable {
     }
     index = -index - 2; // points to preceding value, possibly -1
     if (index != -1) {// possible match
-      int offset = (x) - (getValue(index));
-      int le = (getLength(index));
+      int offset = x - getValue(index);
+      int le = getLength(index);
       return offset <= le;
     }
     return false;
@@ -1385,8 +1380,8 @@ public final class RunContainer extends Container implements Cloneable {
     }
     int rlepos = 0;
     int arraypos = 0;
-    int rleval = (this.getValue(rlepos));
-    int rlelength = (this.getLength(rlepos));
+    int rleval = this.getValue(rlepos);
+    int rlelength = this.getLength(rlepos);
     while (arraypos < x.cardinality) {
       int arrayval = (x.content[arraypos]);
       while (rleval + rlelength < arrayval) {// this will frequently be false
@@ -1394,8 +1389,8 @@ public final class RunContainer extends Container implements Cloneable {
         if (rlepos == this.nbrruns) {
           return false;
         }
-        rleval = (this.getValue(rlepos));
-        rlelength = (this.getLength(rlepos));
+        rleval = this.getValue(rlepos);
+        rlelength = this.getLength(rlepos);
       }
       if (rleval > arrayval) {
         arraypos = Util.advanceUntil(x.content, arraypos, x.cardinality, this.getValue(rlepos));
@@ -1408,14 +1403,11 @@ public final class RunContainer extends Container implements Cloneable {
 
   @Override
   public boolean intersects(BitmapContainer x) {
-    // TODO: this is probably not optimally fast
-    for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
-      int runStart = (this.getValue(rlepos));
-      int runEnd = runStart + (this.getLength(rlepos));
-      for (int runValue = runStart; runValue <= runEnd; ++runValue) {
-        if (x.contains((char) runValue)) {
-          return true;
-        }
+    for (int run = 0; run < this.nbrruns; ++run) {
+      int runStart = this.getValue(run);
+      int runEnd = runStart + this.getLength(run);
+      if (x.intersects(runStart, runEnd + 1)) {
+        return true;
       }
     }
     return false;
@@ -1425,11 +1417,11 @@ public final class RunContainer extends Container implements Cloneable {
   public boolean intersects(RunContainer x) {
     int rlepos = 0;
     int xrlepos = 0;
-    int start = (this.getValue(rlepos));
-    int end = start + (this.getLength(rlepos)) + 1;
-    int xstart = (x.getValue(xrlepos));
-    int xend = xstart + (x.getLength(xrlepos)) + 1;
-    while ((rlepos < this.nbrruns) && (xrlepos < x.nbrruns)) {
+    int start = this.getValue(rlepos);
+    int end = start + this.getLength(rlepos) + 1;
+    int xstart = x.getValue(xrlepos);
+    int xend = xstart + x.getLength(xrlepos) + 1;
+    while (rlepos < this.nbrruns && xrlepos < x.nbrruns) {
       if (end <= xstart) {
         if (ENABLE_GALLOPING_AND) {
           rlepos = skipAhead(this, rlepos, xstart); // skip over runs until we have end > xstart (or

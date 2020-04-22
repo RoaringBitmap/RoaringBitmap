@@ -5331,4 +5331,28 @@ public class TestRoaringBitmap {
         assertFalse(map.contains(30));
         assertTrue(map.contains(32));
     }
+
+    @Test
+    public void invalidCookieBuffer() {
+        assertThrows(IOException.class, () -> {
+            RoaringBitmap bitmap = new RoaringBitmap();
+            bitmap.deserialize(ByteBuffer.allocate(4));
+        });
+    }
+
+    @Test
+    public void invalidCookieDataInput() {
+        assertThrows(IOException.class, () -> {
+            RoaringBitmap bitmap = new RoaringBitmap();
+            bitmap.deserialize(new DataInputStream(new ByteArrayInputStream(new byte[4])));
+        });
+    }
+
+    @Test
+    public void invalidCookieDataInputWithBuffer() {
+        assertThrows(IOException.class, () -> {
+            RoaringBitmap bitmap = new RoaringBitmap();
+            bitmap.deserialize(new DataInputStream(new ByteArrayInputStream(new byte[4])), new byte[8]);
+        });
+    }
 }

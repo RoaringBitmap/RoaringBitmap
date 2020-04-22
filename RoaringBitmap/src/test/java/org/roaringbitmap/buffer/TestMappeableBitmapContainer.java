@@ -8,6 +8,9 @@ package org.roaringbitmap.buffer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.roaringbitmap.BitmapContainer;
 import org.roaringbitmap.CharIterator;
 import org.roaringbitmap.IntConsumer;
@@ -20,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.LongBuffer;
 import java.util.Arrays;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
@@ -723,6 +727,22 @@ public class TestMappeableBitmapContainer {
     assertFalse(container.intersects(11, lower16Bits(-1)));
   }
 
+  public static Stream<Arguments> bitmapsForRangeIntersection() {
+    return Stream.of(
+            Arguments.of(new MappeableBitmapContainer().add((char)60), 0, 61, true),
+            Arguments.of(new MappeableBitmapContainer().add((char)60), 0, 60, false),
+            Arguments.of(new MappeableBitmapContainer().add((char)1000), 0, 1001, true),
+            Arguments.of(new MappeableBitmapContainer().add((char)1000), 0, 1000, false),
+            Arguments.of(new MappeableBitmapContainer().add((char)1000), 0, 10000, true)
+    );
+  }
+
+  @ParameterizedTest
+  @MethodSource("bitmapsForRangeIntersection")
+  public void testIntersectsWithRangeUpperBoundaries(MappeableContainer container, int min, int sup, boolean intersects) {
+    assertEquals(intersects, container.intersects(min, sup));
+  }
+
 
   @Test
   public void testIntersectsWithRangeHitScan() {
@@ -1078,7 +1098,6 @@ public class TestMappeableBitmapContainer {
     assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 7)));
     assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 8)));
   }
-
 
   private static long[] evenBits() {
     long[] bitmap = new long[1 << 10];
