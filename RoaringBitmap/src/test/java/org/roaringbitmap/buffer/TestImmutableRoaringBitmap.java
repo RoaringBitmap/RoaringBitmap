@@ -8,10 +8,7 @@ package org.roaringbitmap.buffer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.roaringbitmap.IntConsumer;
-import org.roaringbitmap.IntIterator;
-import org.roaringbitmap.RoaringBitmapWriter;
-import org.roaringbitmap.SeededTestData;
+import org.roaringbitmap.*;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -1521,5 +1518,10 @@ public class TestImmutableRoaringBitmap {
         }
       }
     }
+  }
+
+  @Test
+  public void invalidCookie() {
+    assertThrows(InvalidRoaringFormat.class, () -> new ImmutableRoaringBitmap(ByteBuffer.allocate(8)));
   }
 }
