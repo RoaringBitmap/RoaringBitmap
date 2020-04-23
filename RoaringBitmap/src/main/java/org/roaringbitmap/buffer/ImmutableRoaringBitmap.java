@@ -1669,6 +1669,9 @@ public class ImmutableRoaringBitmap
   public long previousValue(int fromValue) {
     char key = highbits(fromValue);
     int containerIndex = highLowContainer.advanceUntil(key, -1);
+    if (containerIndex == highLowContainer.size()) {
+      return last();
+    }
     long prevSetBit = -1L;
     while (containerIndex != -1 && containerIndex < highLowContainer.size() && prevSetBit == -1L) {
       char containerKey = highLowContainer.getKeyAtIndex(containerIndex);
