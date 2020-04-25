@@ -5277,11 +5277,11 @@ public class TestRoaringBitmap {
         long b1 = Util.toUnsignedLong(bitmap.last());
         int b2 = bitset.previousSetBit(Integer.MAX_VALUE);
         int i = bitmap.getCardinality();
-        while (b1 != -1 && b2 != -1) {
+        while (b1 > 0 && b2 > 0) {
             assertEquals(b1, b2);
             b1 = bitmap.previousValue((int) (b1 - 1));
             b2 = bitset.previousSetBit(b2 - 1);
-            assertEquals(b1, b2, "mismatch at " + i);
+            assertEquals(b1, b2, "mismatch at " + i + "(bitset=" + b2 + ", rb=" + b1 + ")");
             --i;
         }
     }

@@ -65,7 +65,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     int lower = pos + 1;
 
     // special handling for a possibly common sequential case
-    if (lower >= size || (keys[lower]) >= (x)) {
+    if (lower >= size || keys[lower] >= x) {
       return lower;
     }
 
@@ -73,7 +73,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     // bootstrap an upper limit
 
     while (lower + spansize < size
-        && (keys[lower + spansize]) < (x)) {
+        && (keys[lower + spansize]) < x) {
       spansize *= 2; // hoping for compiler will reduce to shift
     }
     int upper = (lower + spansize < size) ? lower + spansize : size - 1;
@@ -84,13 +84,13 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       return upper;
     }
 
-    if ((keys[upper]) < (x)) {// means array has no item key >=
+    if (keys[upper] < x) {// means array has no item key >=
                                                                   // x
       return size;
     }
 
     // we know that the next-smallest span was too small
-    lower += (spansize / 2);
+    lower += spansize / 2;
 
     // else begin binary search
     // invariant: array[lower]<x && array[upper]>x
@@ -98,7 +98,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       int mid = (lower + upper) / 2;
       if (keys[mid] == x) {
         return mid;
-      } else if ((keys[mid]) < (x)) {
+      } else if (keys[mid] < x) {
         lower = mid;
       } else {
         upper = mid;
