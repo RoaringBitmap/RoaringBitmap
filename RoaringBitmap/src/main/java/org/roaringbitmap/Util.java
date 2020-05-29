@@ -428,6 +428,39 @@ public final class Util {
   }
 
   /**
+   * Intersects the bitmap with the array, returning the cardinality of the result
+   * @param bitmap the bitmap
+   * @param array the array
+   * @param length how much of the array to consume
+   * @return the size of the intersection
+   */
+  public static int intersect(long[] bitmap, char[] array, int length) {
+    int lastWordIndex = 0;
+    int wordIndex = 0;
+    long word = 0L;
+    int cardinality = 0;
+    for (int i = 0; i < length; ++i) {
+      wordIndex = array[i] >>> 6;
+      if (wordIndex != lastWordIndex) {
+        bitmap[lastWordIndex] &= word;
+        cardinality += Long.bitCount(bitmap[lastWordIndex]);
+        word = 0L;
+        Arrays.fill(bitmap, lastWordIndex + 1, wordIndex, 0L);
+        lastWordIndex = wordIndex;
+      }
+      word |= 1L << array[i];
+    }
+    if (word != 0L) {
+      bitmap[wordIndex] &= word;
+      cardinality += Long.bitCount(bitmap[lastWordIndex]);
+    }
+    if (wordIndex < bitmap.length) {
+      Arrays.fill(bitmap, wordIndex + 1, bitmap.length, 0L);
+    }
+    return cardinality;
+  }
+
+  /**
    * Given a word w, return the position of the jth true bit.
    *
    * @param w word

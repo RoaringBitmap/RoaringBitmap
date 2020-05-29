@@ -64,6 +64,17 @@ public class TestFastAggregation {
 
     private static class ExtendedRoaringBitmap extends RoaringBitmap {}
 
+
+    @Test
+    public void testWorkShyAnd() {
+        final RoaringBitmap b1 = RoaringBitmap.bitmapOf(1, 2, 0x10001, 0x20001, 0x30001);
+        final RoaringBitmap b2 = RoaringBitmap.bitmapOf(2, 3, 0x20002, 0x30001);
+        final RoaringBitmap bResult = FastAggregation.workShyAnd(b1, b2);
+        assertFalse(bResult.contains(1));
+        assertTrue(bResult.contains(2));
+        assertFalse(bResult.contains(3));
+    }
+
     @Test
     public void testAndWithIterator() {
         final RoaringBitmap b1 = RoaringBitmap.bitmapOf(1, 2);
