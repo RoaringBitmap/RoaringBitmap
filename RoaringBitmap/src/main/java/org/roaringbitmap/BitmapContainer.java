@@ -540,34 +540,48 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public Container iand(final ArrayContainer b2) {
-    return b2.and(this);// no inplace possible
+    if (-1 == cardinality) {
+      // actually we can avoid allocating in lazy mode
+      Util.intersect(bitmap, b2.content, b2.cardinality);
+      return this;
+    } else {
+      return b2.and(this);
+    }
   }
 
   @Override
   public Container iand(final BitmapContainer b2) {
-    int newCardinality = 0;
-    for (int k = 0; k < this.bitmap.length; ++k) {
-      newCardinality += Long.bitCount(this.bitmap[k] & b2.bitmap[k]);
-    }
-    if (newCardinality > ArrayContainer.DEFAULT_MAX_SIZE) {
-      for (int k = 0; k < this.bitmap.length; ++k) {
-        this.bitmap[k] = this.bitmap[k] & b2.bitmap[k];
+    if (-1 == cardinality) {
+      // in lazy mode, just intersect the bitmaps, can repair afterwards
+      for (int i = 0; i < bitmap.length; ++i) {
+        bitmap[i] &= b2.bitmap[i];
       }
-      this.cardinality = newCardinality;
       return this;
+    } else {
+      int newCardinality = 0;
+      for (int k = 0; k < this.bitmap.length; ++k) {
+        newCardinality += Long.bitCount(this.bitmap[k] & b2.bitmap[k]);
+      }
+      if (newCardinality > ArrayContainer.DEFAULT_MAX_SIZE) {
+        for (int k = 0; k < this.bitmap.length; ++k) {
+          this.bitmap[k] = this.bitmap[k] & b2.bitmap[k];
+        }
+        this.cardinality = newCardinality;
+        return this;
+      }
+      ArrayContainer ac = new ArrayContainer(newCardinality);
+      Util.fillArrayAND(ac.content, this.bitmap, b2.bitmap);
+      ac.cardinality = newCardinality;
+      return ac;
     }
-    ArrayContainer ac = new ArrayContainer(newCardinality);
-    Util.fillArrayAND(ac.content, this.bitmap, b2.bitmap);
-    ac.cardinality = newCardinality;
-    return ac;
   }
 
   @Override
   public Container iand(RunContainer x) {
     // could probably be replaced with return iand(x.toBitmapOrArrayContainer());
     final int card = x.getCardinality();
-    if (card <= ArrayContainer.DEFAULT_MAX_SIZE) {
-      // no point in doing it in-place
+    if (-1 != cardinality && card <= ArrayContainer.DEFAULT_MAX_SIZE) {
+      // no point in doing it in-place, unless it's a lazy operation
       ArrayContainer answer = new ArrayContainer(card);
       answer.cardinality = 0;
       for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
@@ -585,17 +599,20 @@ public final class BitmapContainer extends Container implements Cloneable {
       int end = (x.getValue(rlepos));
       int prevOnes = cardinalityInRange(start, end);
       Util.resetBitmapRange(this.bitmap, start, end);
-      updateCardinality(prevOnes, 0);
-      start = end + (x.getLength(rlepos)) + 1;
+      if (-1 != cardinality) {
+        updateCardinality(prevOnes, 0);
+      }
+      start = end + x.getLength(rlepos) + 1;
     }
-    int ones = cardinalityInRange(start, MAX_CAPACITY);
-    Util.resetBitmapRange(this.bitmap, start, MAX_CAPACITY);
-    updateCardinality(ones, 0);
-    if (getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE) {
-      return this;
-    } else {
-      return toArrayContainer();
+    if (-1 != cardinality) { // in lazy mode don't try to trim
+      int ones = cardinalityInRange(start, MAX_CAPACITY);
+      Util.resetBitmapRange(this.bitmap, start, MAX_CAPACITY);
+      updateCardinality(ones, 0);
+      if (getCardinality() <= ArrayContainer.DEFAULT_MAX_SIZE) {
+        return toArrayContainer();
+      }
     }
+    return this;
   }
 
   @Override

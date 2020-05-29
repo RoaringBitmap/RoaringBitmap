@@ -7,7 +7,6 @@ package org.roaringbitmap;
 import java.util.*;
 
 
-
 /**
  * Fast algorithms to aggregate many bitmaps.
  *
@@ -37,6 +36,9 @@ public final class FastAggregation {
    * @return aggregated bitmap
    */
   public static RoaringBitmap and(RoaringBitmap... bitmaps) {
+    if (bitmaps.length > 2) {
+      return workShyAnd(bitmaps);
+    }
     return naive_and(bitmaps);
   }
 
@@ -266,6 +268,70 @@ public final class FastAggregation {
       answer.and(bitmaps[k]);
     }
     return answer;
+  }
+
+  /**
+   * Computes the intersection by first intersecting the keys, avoids
+   * materialising containers.
+   *
+   * @param bitmaps the inputs
+   * @return the intersection of the bitmaps
+   */
+  public static RoaringBitmap workShyAnd(RoaringBitmap... bitmaps) {
+    long[] words = new long[1024];
+    RoaringBitmap first = bitmaps[0];
+    for (int i = 0; i < first.highLowContainer.size; ++i) {
+      char key = first.highLowContainer.keys[i];
+      words[key >>> 6] |= 1L << key;
+    }
+    int containersInResult = 0;
+    for (int i = 1; i < bitmaps.length; ++i) {
+      containersInResult = Util.intersect(words,
+              bitmaps[i].highLowContainer.keys, bitmaps[i].highLowContainer.size);
+    }
+    if (containersInResult == 0) {
+      return new RoaringBitmap();
+    }
+    char[] keys = new char[containersInResult];
+    int base = 0;
+    int pos = 0;
+    for (long word : words) {
+      while (word != 0L) {
+        keys[pos++] = (char)(base + Long.numberOfTrailingZeros(word));
+        word &= (word - 1);
+      }
+      base += 64;
+    }
+    Container[][] containers = new Container[containersInResult][bitmaps.length];
+    for (int i = 0; i < bitmaps.length; ++i) {
+      RoaringBitmap bitmap = bitmaps[i];
+      int position = 0;
+      for (int j = 0; j < bitmap.highLowContainer.size; ++j) {
+        char key = bitmap.highLowContainer.keys[j];
+        if ((words[key >>> 6] & (1L << key)) != 0) {
+          containers[position++][i] = bitmap.highLowContainer.values[j];
+        }
+      }
+    }
+
+    RoaringArray array =
+            new RoaringArray(keys, new Container[containersInResult], 0);
+    for (int i = 0; i < containersInResult; ++i) {
+      Container[] slice = containers[i];
+      Arrays.fill(words, -1L);
+      Container tmp = new BitmapContainer(words, -1);
+      for (Container container : slice) {
+        Container and = tmp.iand(container);
+        if (and != tmp) {
+          tmp = and;
+        }
+      }
+      tmp = tmp.repairAfterLazy();
+      if (!tmp.isEmpty()) {
+        array.append(keys[i], tmp instanceof BitmapContainer ? tmp.clone() : tmp);
+      }
+    }
+    return new RoaringBitmap(array);
   }
 
 
