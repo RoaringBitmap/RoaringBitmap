@@ -36,7 +36,10 @@ public final class FastAggregation {
    * @return aggregated bitmap
    */
   public static RoaringBitmap and(RoaringBitmap... bitmaps) {
-    return workShyAnd(bitmaps);
+    if (bitmaps.length > 2) {
+      return workShyAnd(bitmaps);
+    }
+    return naive_and(bitmaps);
   }
 
   /**
