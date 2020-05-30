@@ -26,7 +26,10 @@ public final class BufferFastAggregation {
    * @return aggregated bitmap
    */
   public static MutableRoaringBitmap and(ImmutableRoaringBitmap... bitmaps) {
-    return workShyAnd(bitmaps);
+    if (bitmaps.length > 2) {
+      return workShyAnd(bitmaps);
+    }
+    return naive_and(bitmaps);
   }
 
   /**

@@ -7,7 +7,6 @@ package org.roaringbitmap.buffer;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 
 /**
  * Generic interface for the array underlying roaring bitmap classes.
