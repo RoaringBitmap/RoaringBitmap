@@ -542,7 +542,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   public Container iand(final ArrayContainer b2) {
     if (-1 == cardinality) {
       // actually we can avoid allocating in lazy mode
-      Util.intersect(bitmap, b2.content, b2.cardinality);
+      Util.intersectArrayIntoBitmap(bitmap, b2.content, b2.cardinality);
       return this;
     } else {
       return b2.and(this);
@@ -596,15 +596,20 @@ public final class BitmapContainer extends Container implements Cloneable {
     }
     int start = 0;
     for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
-      int end = (x.getValue(rlepos));
-      int prevOnes = cardinalityInRange(start, end);
-      Util.resetBitmapRange(this.bitmap, start, end);
-      if (-1 != cardinality) {
+      int end = x.getValue(rlepos);
+      if (-1 == cardinality) {
+        Util.resetBitmapRange(this.bitmap, start, end);
+      } else {
+        int prevOnes = cardinalityInRange(start, end);
+        Util.resetBitmapRange(this.bitmap, start, end);
         updateCardinality(prevOnes, 0);
       }
       start = end + x.getLength(rlepos) + 1;
     }
-    if (-1 != cardinality) { // in lazy mode don't try to trim
+    if (-1 == cardinality) {
+      // in lazy mode don't try to trim
+      Util.resetBitmapRange(this.bitmap, start, MAX_CAPACITY);
+    } else {
       int ones = cardinalityInRange(start, MAX_CAPACITY);
       Util.resetBitmapRange(this.bitmap, start, MAX_CAPACITY);
       updateCardinality(ones, 0);

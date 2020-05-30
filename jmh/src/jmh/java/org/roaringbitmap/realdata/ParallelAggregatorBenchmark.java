@@ -71,6 +71,11 @@ public class ParallelAggregatorBenchmark {
   }
 
   @Benchmark
+  public RoaringBitmap fastAnd() {
+    return FastAggregation.workShyAnd(bitmaps);
+  }
+
+  @Benchmark
   public RoaringBitmap fastXor() {
     return FastAggregation.xor(bitmaps);
   }

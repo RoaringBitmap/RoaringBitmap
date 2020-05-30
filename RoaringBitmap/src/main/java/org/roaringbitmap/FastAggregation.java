@@ -36,10 +36,7 @@ public final class FastAggregation {
    * @return aggregated bitmap
    */
   public static RoaringBitmap and(RoaringBitmap... bitmaps) {
-    if (bitmaps.length > 2) {
-      return workShyAnd(bitmaps);
-    }
-    return naive_and(bitmaps);
+    return workShyAnd(bitmaps);
   }
 
   /**
@@ -244,7 +241,7 @@ public final class FastAggregation {
       return new RoaringBitmap();
     }
     RoaringBitmap answer = bitmaps.next().clone();
-    while (bitmaps.hasNext()) {
+    while (bitmaps.hasNext() && !answer.isEmpty()) {
       answer.and(bitmaps.next());
     }
     return answer;
@@ -264,7 +261,7 @@ public final class FastAggregation {
       return new RoaringBitmap();
     }
     RoaringBitmap answer = bitmaps[0].clone();
-    for (int k = 1; k < bitmaps.length; ++k) {
+    for (int k = 1; k < bitmaps.length && !answer.isEmpty(); ++k) {
       answer.and(bitmaps[k]);
     }
     return answer;
@@ -284,15 +281,15 @@ public final class FastAggregation {
       char key = first.highLowContainer.keys[i];
       words[key >>> 6] |= 1L << key;
     }
-    int containersInResult = 0;
-    for (int i = 1; i < bitmaps.length; ++i) {
-      containersInResult = Util.intersect(words,
+    int numContainers = first.highLowContainer.size;
+    for (int i = 1; i < bitmaps.length && numContainers > 0; ++i) {
+      numContainers = Util.intersectArrayIntoBitmap(words,
               bitmaps[i].highLowContainer.keys, bitmaps[i].highLowContainer.size);
     }
-    if (containersInResult == 0) {
+    if (numContainers == 0) {
       return new RoaringBitmap();
     }
-    char[] keys = new char[containersInResult];
+    char[] keys = new char[numContainers];
     int base = 0;
     int pos = 0;
     for (long word : words) {
@@ -302,7 +299,7 @@ public final class FastAggregation {
       }
       base += 64;
     }
-    Container[][] containers = new Container[containersInResult][bitmaps.length];
+    Container[][] containers = new Container[numContainers][bitmaps.length];
     for (int i = 0; i < bitmaps.length; ++i) {
       RoaringBitmap bitmap = bitmaps[i];
       int position = 0;
@@ -315,8 +312,8 @@ public final class FastAggregation {
     }
 
     RoaringArray array =
-            new RoaringArray(keys, new Container[containersInResult], 0);
-    for (int i = 0; i < containersInResult; ++i) {
+            new RoaringArray(keys, new Container[numContainers], 0);
+    for (int i = 0; i < numContainers; ++i) {
       Container[] slice = containers[i];
       Arrays.fill(words, -1L);
       Container tmp = new BitmapContainer(words, -1);

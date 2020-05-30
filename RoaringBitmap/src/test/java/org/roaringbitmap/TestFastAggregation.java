@@ -3,10 +3,16 @@ package org.roaringbitmap;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.roaringbitmap.SeededTestData.TestDataSet.testCase;
 
 
 @Execution(ExecutionMode.CONCURRENT)
@@ -178,6 +184,71 @@ public class TestFastAggregation {
         assertTrue(ebResult.contains(1));
         assertFalse(ebResult.contains(2));
         assertTrue(ebResult.contains(3));
+    }
+
+    public static Stream<Arguments> bitmaps() {
+        return Stream.of(
+                Arguments.of(Arrays.asList(
+                        testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build(),
+                        testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build(),
+                        testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build()
+                )),
+                Arguments.of(Arrays.asList(
+                        testCase().withBitmapAt(0).withRunAt(1).withArrayAt(2).build(),
+                        testCase().withBitmapAt(0).withRunAt(1).withArrayAt(2).build(),
+                        testCase().withBitmapAt(0).withRunAt(1).withArrayAt(2).build()
+                )),
+                Arguments.of(Arrays.asList(
+                        testCase().withArrayAt(0).withRunAt(1).withBitmapAt(2).build(),
+                        testCase().withArrayAt(0).withRunAt(1).withBitmapAt(2).build(),
+                        testCase().withArrayAt(0).withRunAt(1).withBitmapAt(2).build()
+                )),
+                Arguments.of(Arrays.asList(
+                        testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build(),
+                        testCase().withBitmapAt(0).withArrayAt(3).withRunAt(4).build(),
+                        testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build()
+                )),
+                Arguments.of(Arrays.asList(
+                        testCase().withArrayAt(0).withBitmapAt(1).withRunAt(2).build(),
+                        testCase().withRunAt(0).withArrayAt(1).withBitmapAt(2).build(),
+                        testCase().withBitmapAt(0).withRunAt(1).withArrayAt(2).build()
+                )),
+                Arguments.of(Arrays.asList(
+                        testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build(),
+                        testCase().withBitmapAt(0).withArrayAt(2).withRunAt(4).build(),
+                        testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build()
+                )),
+                Arguments.of(Arrays.asList(
+                        testCase().withArrayAt(0).withArrayAt(1).withArrayAt(2).build(),
+                        testCase().withBitmapAt(0).withBitmapAt(2).withBitmapAt(4).build(),
+                        testCase().withRunAt(0).withRunAt(1).withRunAt(2).build()
+                )),
+                Arguments.of(Arrays.asList(
+                        testCase().withArrayAt(0).withArrayAt(1).withArrayAt(2).build(),
+                        testCase().withBitmapAt(0).withBitmapAt(2).withArrayAt(4).build(),
+                        testCase().withRunAt(0).withRunAt(1).withArrayAt(2).build()
+                )),
+                Arguments.of(Arrays.asList(
+                        testCase().withArrayAt(0).withArrayAt(1).withBitmapAt(2).build(),
+                        testCase().withBitmapAt(0).withBitmapAt(2).withBitmapAt(4).build(),
+                        testCase().withRunAt(0).withRunAt(1).withBitmapAt(2).build()
+                )),
+                Arguments.of(Arrays.asList(
+                        testCase().withArrayAt(20).build(),
+                        testCase().withBitmapAt(0).withBitmapAt(1).withBitmapAt(4).build(),
+                        testCase().withRunAt(0).withRunAt(1).withBitmapAt(3).build()
+                ))
+        );
+    }
+
+
+    @MethodSource("bitmaps")
+    @ParameterizedTest(name = "testWorkShyAnd")
+    public void testWorkShyAnd(List<RoaringBitmap> list) {
+        RoaringBitmap[] bitmaps = list.toArray(new RoaringBitmap[0]);
+        RoaringBitmap result = FastAggregation.workShyAnd(bitmaps);
+        RoaringBitmap expected = FastAggregation.naive_and(bitmaps);
+        assertEquals(expected, result);
     }
 
 }
