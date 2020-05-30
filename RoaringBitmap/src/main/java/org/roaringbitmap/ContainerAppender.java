@@ -35,6 +35,7 @@ public class ContainerAppender<C extends WordStorage<C>,
 
 
   private final boolean doPartialSort;
+  private final boolean runCompress;
   private final Supplier<C> newContainer;
   private final Supplier<T> newUnderlying;
   private C container;
@@ -45,8 +46,12 @@ public class ContainerAppender<C extends WordStorage<C>,
    * Initialize an ContainerAppender with a receiving bitmap
    *
    */
-  ContainerAppender(boolean doPartialSort, Supplier<T> newUnderlying, Supplier<C> newContainer) {
+  ContainerAppender(boolean doPartialSort,
+                    boolean runCompress,
+                    Supplier<T> newUnderlying,
+                    Supplier<C> newContainer) {
     this.doPartialSort = doPartialSort;
+    this.runCompress = runCompress;
     this.newUnderlying = newUnderlying;
     this.underlying = newUnderlying.get();
     this.newContainer = newContainer;
@@ -125,7 +130,8 @@ public class ContainerAppender<C extends WordStorage<C>,
   private int appendToUnderlying() {
     if (!container.isEmpty()) {
       assert currentKey <= 0xFFFF;
-      underlying.append((char) currentKey, container.runOptimize());
+      underlying.append((char) currentKey,
+              runCompress ? container.runOptimize() : container);
       container = newContainer.get();
       return 1;
     }

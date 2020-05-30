@@ -21,6 +21,7 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
     protected int initialCapacity = RoaringArray.INITIAL_CAPACITY;
     protected boolean constantMemory;
     protected boolean partiallySortValues = false;
+    protected boolean runCompress = true;
     protected Supplier<C> containerSupplier;
     protected int expectedContainerSize = 16;
 
@@ -44,6 +45,17 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
      */
     public Wizard<C, T> optimiseForRuns() {
       containerSupplier = runSupplier();
+      return this;
+    }
+
+    /**
+     * By default the bitmap will be run-compressed on the fly,
+     * but it can be disabled (and run compressed at the end).
+     * @param runCompress whether to apply run compression on the fly.
+     * @return this
+     */
+    public Wizard<C, T> runCompress(boolean runCompress) {
+      this.runCompress = runCompress;
       return this;
     }
 
@@ -140,8 +152,8 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
     @Override
     public RoaringBitmapWriter<T> get() {
       int capacity = initialCapacity;
-      return new ContainerAppender<>(
-              partiallySortValues, () -> createUnderlying(capacity), containerSupplier);
+      return new ContainerAppender<>(partiallySortValues, runCompress,
+          () -> createUnderlying(capacity), containerSupplier);
     }
 
     private static void sanityCheck(int count) {
@@ -196,7 +208,7 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
       if (constantMemory) {
         int capacity = initialCapacity;
         return new ConstantMemoryContainerAppender<>(
-                partiallySortValues, () -> createUnderlying(capacity));
+                partiallySortValues, runCompress, () -> createUnderlying(capacity));
       }
       return super.get();
     }
