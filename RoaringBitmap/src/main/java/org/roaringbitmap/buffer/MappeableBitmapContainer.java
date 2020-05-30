@@ -601,7 +601,12 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   @Override
   public MappeableContainer iand(final MappeableArrayContainer b2) {
-    return b2.and(this);// no inplace possible
+    if (-1 == cardinality) {
+      BufferUtil.intersectArrayIntoBitmap(bitmap, b2.content, b2.cardinality);
+      return this;
+    } else {
+      return b2.and(this);// no inplace possible
+    }
   }
 
 
@@ -613,21 +618,28 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       long[] tb = this.bitmap.array();
       long[] tb2 = b2.bitmap.array();
       int len = this.bitmap.limit();
-      for (int k = 0; k < len; ++k) {
-        newCardinality += Long.bitCount(tb[k] & tb2[k]);
-      }
-      if (newCardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
+      if (-1 == cardinality) {
         for (int k = 0; k < len; ++k) {
           tb[k] &= tb2[k];
         }
-        this.cardinality = newCardinality;
         return this;
+      } else {
+        for (int k = 0; k < len; ++k) {
+          newCardinality += Long.bitCount(tb[k] & tb2[k]);
+        }
+        if (newCardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
+          for (int k = 0; k < len; ++k) {
+            tb[k] &= tb2[k];
+          }
+          this.cardinality = newCardinality;
+          return this;
+        }
+        final MappeableArrayContainer ac = new MappeableArrayContainer(newCardinality);
+        BufferUtil.fillArrayAND(ac.content.array(), this.bitmap, b2.bitmap);
+        ac.cardinality = newCardinality;
+        return ac;
       }
-      final MappeableArrayContainer ac = new MappeableArrayContainer(newCardinality);
-      BufferUtil.fillArrayAND(ac.content.array(), this.bitmap, b2.bitmap);
-      ac.cardinality = newCardinality;
-      return ac;
-    } else {
+    } else if (-1 != cardinality) {
       int newCardinality = 0;
       int len = this.bitmap.limit();
       for (int k = 0; k < len; ++k) {
@@ -644,14 +656,20 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       BufferUtil.fillArrayAND(ac.content.array(), this.bitmap, b2.bitmap);
       ac.cardinality = newCardinality;
       return ac;
+    } else { // lazy operation, direct buffer
+      int len = this.bitmap.limit();
+      for (int k = 0; k < len; ++k) {
+        this.bitmap.put(k, this.bitmap.get(k) & b2.bitmap.get(k));
+      }
+      return this;
     }
   }
 
   @Override
   public MappeableContainer iand(final MappeableRunContainer x) {
     final int card = x.getCardinality();
-    if (card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
-      // no point in doing it in-place
+    if (-1 != cardinality && card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
+      // no point in doing it in-place, unless it's a lazy operation
       MappeableArrayContainer answer = new MappeableArrayContainer(card);
       answer.cardinality = 0;
       for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
@@ -667,19 +685,26 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     int start = 0;
     for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
       int end = (x.getValue(rlepos));
-      int prevOnes = cardinalityInRange(start, end);
-      BufferUtil.resetBitmapRange(this.bitmap, start, end);
-      updateCardinality(prevOnes, 0);
+      if (-1 == cardinality) {
+        BufferUtil.resetBitmapRange(this.bitmap, start, end);
+      } else {
+        int prevOnes = cardinalityInRange(start, end);
+        BufferUtil.resetBitmapRange(this.bitmap, start, end);
+        updateCardinality(prevOnes, 0);
+      }
       start = end + (x.getLength(rlepos)) + 1;
     }
-    int ones = cardinalityInRange(start, MAX_CAPACITY);
-    BufferUtil.resetBitmapRange(this.bitmap, start, MAX_CAPACITY);
-    updateCardinality(ones, 0);
-    if (getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
-      return this;
+    if (-1 == cardinality) {
+      BufferUtil.resetBitmapRange(this.bitmap, start, MAX_CAPACITY);
     } else {
-      return toArrayContainer();
+      int ones = cardinalityInRange(start, MAX_CAPACITY);
+      BufferUtil.resetBitmapRange(this.bitmap, start, MAX_CAPACITY);
+      updateCardinality(ones, 0);
+      if (getCardinality() <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
+        return toArrayContainer();
+      }
     }
+    return this;
   }
 
   @Override
