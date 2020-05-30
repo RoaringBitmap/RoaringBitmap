@@ -429,12 +429,12 @@ public final class Util {
 
   /**
    * Intersects the bitmap with the array, returning the cardinality of the result
-   * @param bitmap the bitmap
-   * @param array the array
+   * @param bitmap the bitmap, modified
+   * @param array the array, not modified
    * @param length how much of the array to consume
-   * @return the size of the intersection
+   * @return the size of the intersection, i.e. how many bits still set in the bitmap
    */
-  public static int intersect(long[] bitmap, char[] array, int length) {
+  public static int intersectArrayIntoBitmap(long[] bitmap, char[] array, int length) {
     int lastWordIndex = 0;
     int wordIndex = 0;
     long word = 0L;
