@@ -4,6 +4,8 @@
 
 package org.roaringbitmap.buffer;
 
+import java.nio.CharBuffer;
+import java.nio.LongBuffer;
 import java.util.*;
 
 
@@ -24,7 +26,7 @@ public final class BufferFastAggregation {
    * @return aggregated bitmap
    */
   public static MutableRoaringBitmap and(ImmutableRoaringBitmap... bitmaps) {
-    return naive_and(bitmaps);
+    return workShyAnd(bitmaps);
   }
 
   /**
@@ -307,6 +309,80 @@ public final class BufferFastAggregation {
       answer.and(bitmaps[k]);
     }
     return answer;
+  }
+
+  /**
+   * Computes the intersection by first intersecting the keys, avoids
+   * materialising containers.
+   *
+   * @param bitmaps the inputs
+   * @return the intersection of the bitmaps
+   */
+  public static MutableRoaringBitmap workShyAnd(ImmutableRoaringBitmap... bitmaps) {
+    long[] words = new long[1024];
+    ImmutableRoaringBitmap first = bitmaps[0];
+    for (int i = 0; i < first.highLowContainer.size(); ++i) {
+      char key = first.highLowContainer.getKeyAtIndex(i);
+      words[key >>> 6] |= 1L << key;
+    }
+    int numContainers = first.highLowContainer.size();
+    for (int i = 1; i < bitmaps.length && numContainers > 0; ++i) {
+      final char[] keys;
+      if (bitmaps[i].highLowContainer instanceof MutableRoaringArray) {
+        keys = ((MutableRoaringArray) bitmaps[i].highLowContainer).keys;
+      } else {
+        keys = new char[bitmaps[i].highLowContainer.size()];
+        for (int j = 0; j < keys.length; ++j) {
+          keys[j] = bitmaps[i].highLowContainer.getKeyAtIndex(j);
+        }
+      }
+      numContainers = BufferUtil.intersectArrayIntoBitmap(words,
+              CharBuffer.wrap(keys),
+              bitmaps[i].highLowContainer.size());
+    }
+    if (numContainers == 0) {
+      return new MutableRoaringBitmap();
+    }
+    char[] keys = new char[numContainers];
+    int base = 0;
+    int pos = 0;
+    for (long word : words) {
+      while (word != 0L) {
+        keys[pos++] = (char)(base + Long.numberOfTrailingZeros(word));
+        word &= (word - 1);
+      }
+      base += 64;
+    }
+    MappeableContainer[][] containers = new MappeableContainer[numContainers][bitmaps.length];
+    for (int i = 0; i < bitmaps.length; ++i) {
+      ImmutableRoaringBitmap bitmap = bitmaps[i];
+      int position = 0;
+      for (int j = 0; j < bitmap.highLowContainer.size(); ++j) {
+        char key = bitmap.highLowContainer.getKeyAtIndex(j);
+        if ((words[key >>> 6] & (1L << key)) != 0) {
+          containers[position++][i] = bitmap.highLowContainer.getContainerAtIndex(j);
+        }
+      }
+    }
+
+    MutableRoaringArray array =
+            new MutableRoaringArray(keys, new MappeableContainer[numContainers], 0);
+    for (int i = 0; i < numContainers; ++i) {
+      MappeableContainer[] slice = containers[i];
+      Arrays.fill(words, -1L);
+      MappeableContainer tmp = new MappeableBitmapContainer(LongBuffer.wrap(words), -1);
+      for (MappeableContainer container : slice) {
+        MappeableContainer and = tmp.iand(container);
+        if (and != tmp) {
+          tmp = and;
+        }
+      }
+      tmp = tmp.repairAfterLazy();
+      if (!tmp.isEmpty()) {
+        array.append(keys[i], tmp instanceof MappeableBitmapContainer ? tmp.clone() : tmp);
+      }
+    }
+    return new MutableRoaringBitmap(array);
   }
 
 
