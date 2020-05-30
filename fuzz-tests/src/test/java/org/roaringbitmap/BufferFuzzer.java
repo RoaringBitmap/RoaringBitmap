@@ -1,8 +1,8 @@
 package org.roaringbitmap;
 
 import com.google.common.collect.ImmutableMap;
-
 import org.junit.jupiter.api.Test;
+import org.roaringbitmap.buffer.BufferFastAggregation;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
@@ -10,7 +10,6 @@ import java.util.BitSet;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.*;
 import java.util.stream.IntStream;
-
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -488,6 +487,21 @@ public class BufferFuzzer {
         }
       }
     });
+  }
+
+  @Test
+  public void testFastAggregationAnd() {
+    IntStream.range(0, ITERATIONS)
+            .parallel()
+            .forEach(i -> {
+              MutableRoaringBitmap[] bitmaps = new MutableRoaringBitmap[ThreadLocalRandom.current().nextInt(2, 20)];
+              for (int j = 0; j < bitmaps.length; ++j) {
+                bitmaps[j] = randomBitmap(512);
+              }
+              MutableRoaringBitmap naive = BufferFastAggregation.naive_and(bitmaps);
+              MutableRoaringBitmap workShy = BufferFastAggregation.workShyAnd(bitmaps);
+              assertEquals(naive, workShy);
+            });
   }
 
   private static MutableRoaringBitmap randomBitmap(int maxKeys) {

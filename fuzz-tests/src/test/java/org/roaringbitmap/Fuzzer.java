@@ -552,4 +552,19 @@ public class Fuzzer {
       }
     });
   }
+
+  @Test
+  public void testFastAggregationAnd() {
+    IntStream.range(0, ITERATIONS)
+            .parallel()
+            .forEach(i -> {
+              RoaringBitmap[] bitmaps = new RoaringBitmap[ThreadLocalRandom.current().nextInt(2, 20)];
+              for (int j = 0; j < bitmaps.length; ++j) {
+                bitmaps[j] = randomBitmap(512);
+              }
+              RoaringBitmap naive = FastAggregation.naive_and(bitmaps);
+              RoaringBitmap workShy = FastAggregation.workShyAnd(bitmaps);
+              assertEquals(naive, workShy);
+            });
+  }
 }
