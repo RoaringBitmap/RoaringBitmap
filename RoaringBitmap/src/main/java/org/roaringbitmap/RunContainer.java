@@ -14,8 +14,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 
-
-
 /**
  * This container takes the form of runs of consecutive values (effectively, run-length encoding).
  *
@@ -381,17 +379,18 @@ public final class RunContainer extends Container implements Cloneable {
 
   @Override
   public Container and(RunContainer x) {
-    RunContainer answer = new RunContainer(new char[2 * (this.nbrruns + x.nbrruns)], 0);
+    int maxRunsAfterIntersection = nbrruns + x.nbrruns;
+    RunContainer answer = new RunContainer(new char[2 * maxRunsAfterIntersection], 0);
     if (isEmpty()) {
       return answer;
     }
     int rlepos = 0;
     int xrlepos = 0;
-    int start = (this.getValue(rlepos));
-    int end = start + (this.getLength(rlepos)) + 1;
-    int xstart = (x.getValue(xrlepos));
-    int xend = xstart + (x.getLength(xrlepos)) + 1;
-    while ((rlepos < this.nbrruns) && (xrlepos < x.nbrruns)) {
+    int start = this.getValue(rlepos);
+    int end = start + this.getLength(rlepos) + 1;
+    int xstart = x.getValue(xrlepos);
+    int xend = xstart + x.getLength(xrlepos) + 1;
+    while (rlepos < this.nbrruns && xrlepos < x.nbrruns) {
       if (end <= xstart) {
         if (ENABLE_GALLOPING_AND) {
           rlepos = skipAhead(this, rlepos, xstart); // skip over runs until we have end > xstart (or
@@ -401,8 +400,8 @@ public final class RunContainer extends Container implements Cloneable {
         }
 
         if (rlepos < this.nbrruns) {
-          start = (this.getValue(rlepos));
-          end = start + (this.getLength(rlepos)) + 1;
+          start = this.getValue(rlepos);
+          end = start + this.getLength(rlepos) + 1;
         }
       } else if (xend <= start) {
         // exit the second run
@@ -413,8 +412,8 @@ public final class RunContainer extends Container implements Cloneable {
         }
 
         if (xrlepos < x.nbrruns) {
-          xstart = (x.getValue(xrlepos));
-          xend = xstart + (x.getLength(xrlepos)) + 1;
+          xstart = x.getValue(xrlepos);
+          xend = xstart + x.getLength(xrlepos) + 1;
         }
       } else {// they overlap
         final int lateststart = Math.max(start, xstart);
@@ -424,27 +423,27 @@ public final class RunContainer extends Container implements Cloneable {
           rlepos++;
           xrlepos++;
           if (rlepos < this.nbrruns) {
-            start = (this.getValue(rlepos));
-            end = start + (this.getLength(rlepos)) + 1;
+            start = this.getValue(rlepos);
+            end = start + this.getLength(rlepos) + 1;
           }
           if (xrlepos < x.nbrruns) {
-            xstart = (x.getValue(xrlepos));
-            xend = xstart + (x.getLength(xrlepos)) + 1;
+            xstart = x.getValue(xrlepos);
+            xend = xstart + x.getLength(xrlepos) + 1;
           }
         } else if (end < xend) {
           earliestend = end;
           rlepos++;
           if (rlepos < this.nbrruns) {
-            start = (this.getValue(rlepos));
-            end = start + (this.getLength(rlepos)) + 1;
+            start = this.getValue(rlepos);
+            end = start + this.getLength(rlepos) + 1;
           }
 
         } else {// end > xend
           earliestend = xend;
           xrlepos++;
           if (xrlepos < x.nbrruns) {
-            xstart = (x.getValue(xrlepos));
-            xend = xstart + (x.getLength(xrlepos)) + 1;
+            xstart = x.getValue(xrlepos);
+            xend = xstart + x.getLength(xrlepos) + 1;
           }
         }
         answer.valueslength[2 * answer.nbrruns] = (char) lateststart;

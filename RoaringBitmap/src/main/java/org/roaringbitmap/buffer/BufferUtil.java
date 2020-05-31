@@ -10,6 +10,7 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.LongBuffer;
+import java.util.Arrays;
 
 import static java.lang.Long.numberOfTrailingZeros;
 
@@ -664,6 +665,84 @@ public final class BufferUtil {
       }
     }
     return pos;
+  }
+
+
+  /**
+   * Intersects the bitmap with the array, returning the cardinality of the result
+   * @param bitmap the bitmap, modified
+   * @param array the array, not modified
+   * @param length how much of the array to consume
+   * @return the size of the intersection, i.e. how many bits still set in the bitmap
+   */
+  public static int intersectArrayIntoBitmap(long[] bitmap, CharBuffer array, int length) {
+    int lastWordIndex = 0;
+    int wordIndex = 0;
+    long word = 0L;
+    int cardinality = 0;
+    for (int i = 0; i < length; ++i) {
+      wordIndex = array.get(i) >>> 6;
+      if (wordIndex != lastWordIndex) {
+        bitmap[lastWordIndex] &= word;
+        cardinality += Long.bitCount(bitmap[lastWordIndex]);
+        word = 0L;
+        Arrays.fill(bitmap, lastWordIndex + 1, wordIndex, 0L);
+        lastWordIndex = wordIndex;
+      }
+      word |= 1L << array.get(i);
+    }
+    if (word != 0L) {
+      bitmap[wordIndex] &= word;
+      cardinality += Long.bitCount(bitmap[lastWordIndex]);
+    }
+    if (wordIndex < bitmap.length) {
+      Arrays.fill(bitmap, wordIndex + 1, bitmap.length, 0L);
+    }
+    return cardinality;
+  }
+
+  /**
+   * Intersects the bitmap with the array, returning the cardinality of the result
+   * @param bitmap the bitmap, modified
+   * @param array the array, not modified
+   * @param length how much of the array to consume
+   * @return the size of the intersection, i.e. how many bits still set in the bitmap
+   */
+  public static int intersectArrayIntoBitmap(LongBuffer bitmap, CharBuffer array, int length) {
+    if (isBackedBySimpleArray(bitmap)) {
+      return intersectArrayIntoBitmap(bitmap.array(), array, length);
+    }
+    int lastWordIndex = 0;
+    int wordIndex = 0;
+    long word = 0L;
+    int cardinality = 0;
+    for (int i = 0; i < length; ++i) {
+      wordIndex = array.get(i) >>> 6;
+      if (wordIndex != lastWordIndex) {
+        long lastWord = bitmap.get(lastWordIndex);
+        lastWord &= word;
+        bitmap.put(lastWordIndex, lastWord);
+        cardinality += Long.bitCount(lastWord);
+        word = 0L;
+        for (int j = lastWordIndex + 1; j < wordIndex; ++j) {
+          bitmap.put(j, 0L);
+        }
+        lastWordIndex = wordIndex;
+      }
+      word |= 1L << array.get(i);
+    }
+    if (word != 0L) {
+      long currentWord = bitmap.get(wordIndex);
+      currentWord &= word;
+      bitmap.put(wordIndex, currentWord);
+      cardinality += Long.bitCount(currentWord);
+    }
+    if (wordIndex < bitmap.limit()) {
+      for (int j = wordIndex + 1; j < bitmap.limit(); ++j) {
+        bitmap.put(j, 0L);
+      }
+    }
+    return cardinality;
   }
 
   protected static int unsignedExclusiveUnion2by2(final CharBuffer set1, final int length1,
