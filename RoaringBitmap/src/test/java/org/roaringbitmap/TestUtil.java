@@ -4,10 +4,16 @@ package org.roaringbitmap;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.roaringbitmap.SeededTestData.*;
+import static org.roaringbitmap.SeededTestData.sparseRegion;
 
 @Execution(ExecutionMode.CONCURRENT)
 public class TestUtil {
@@ -103,4 +109,42 @@ public class TestUtil {
         return result;
     }
 
+    public static Stream<Arguments> sets() {
+        return Stream.of(
+                Arguments.of(rleRegion().toArray(), rleRegion().toArray()),
+                Arguments.of(denseRegion().toArray(), rleRegion().toArray()),
+                Arguments.of(sparseRegion().toArray(), rleRegion().toArray()),
+                Arguments.of(rleRegion().toArray(), denseRegion().toArray()),
+                Arguments.of(denseRegion().toArray(), denseRegion().toArray()),
+                Arguments.of(sparseRegion().toArray(), denseRegion().toArray()),
+                Arguments.of(rleRegion().toArray(), sparseRegion().toArray()),
+                Arguments.of(denseRegion().toArray(), sparseRegion().toArray()),
+                Arguments.of(sparseRegion().toArray(), sparseRegion().toArray())
+        );
+    }
+
+
+    @MethodSource("sets")
+    @ParameterizedTest
+    public void testIntersectBitmapWithArray(int[] set1, int[] set2) {
+        long[] bitmap = new long[1024];
+        for (int i : set1) {
+            bitmap[i >>> 6] |= 1L << i;
+        }
+        long[] referenceBitmap = new long[1024];
+        char[] array = new char[set2.length];
+        int pos = 0;
+        for (int i : set2) {
+            referenceBitmap[i >>> 6] |= 1L << i;
+            array[pos++] = (char)i;
+        }
+        int expectedCardinality = 0;
+        for (int i = 0; i < 1024; ++i) {
+            referenceBitmap[i] &= bitmap[i];
+            expectedCardinality += Long.bitCount(referenceBitmap[i]);
+        }
+        int cardinality = Util.intersectArrayIntoBitmap(bitmap, array, array.length);
+        assertEquals(expectedCardinality, cardinality);
+        assertArrayEquals(referenceBitmap, bitmap);
+    }
 }
