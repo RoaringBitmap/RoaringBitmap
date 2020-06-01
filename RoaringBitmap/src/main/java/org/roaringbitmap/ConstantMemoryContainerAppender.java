@@ -34,7 +34,8 @@ import static org.roaringbitmap.Util.*;
 public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
         & AppendableStorage<Container>> implements RoaringBitmapWriter<T> {
 
-  private boolean doPartialSort;
+  private final boolean doPartialSort;
+  private final boolean runCompress;
   private static final int WORD_COUNT = 1 << 10;
   private final long[] bitmap;
   private final Supplier<T> newUnderlying;
@@ -46,12 +47,16 @@ public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
    * Initialize an ConstantMemoryContainerAppender with a receiving bitmap
    *
    * @param doPartialSort indicates whether to sort the upper 16 bits of input data in addMany
+   * @param runCompress whether to run compress appended containers
    * @param newUnderlying supplier of bitmaps where the data gets written
    */
-  ConstantMemoryContainerAppender(boolean doPartialSort, Supplier<T> newUnderlying) {
+  ConstantMemoryContainerAppender(boolean doPartialSort,
+                                  boolean runCompress,
+                                  Supplier<T> newUnderlying) {
     this.newUnderlying = newUnderlying;
     this.underlying = newUnderlying.get();
     this.doPartialSort = doPartialSort;
+    this.runCompress = runCompress;
     this.bitmap = new long[WORD_COUNT];
   }
 
@@ -125,8 +130,10 @@ public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
   }
 
   private Container chooseBestContainer() {
-    Container container = new BitmapContainer(bitmap, -1)
-            .repairAfterLazy().runOptimize();
+    Container container = new BitmapContainer(bitmap, -1).repairAfterLazy();
+    if (runCompress) {
+      container = container.runOptimize();
+    }
     return container instanceof BitmapContainer ? container.clone() : container;
   }
 
