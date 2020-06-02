@@ -442,11 +442,11 @@ public final class BufferFastAggregation {
     MutableRoaringArray array =
             new MutableRoaringArray(keys, new MappeableContainer[numContainers], 0);
     for (int i = 0; i < numContainers; ++i) {
-      char matching_key = keys[i];
+      char MatchingKey = keys[i];
       Arrays.fill(words, -1L);
       MappeableContainer tmp = new MappeableBitmapContainer(LongBuffer.wrap(words), -1);
       for(ImmutableRoaringBitmap bitmap: bitmaps) {
-        int idx = bitmap.highLowContainer.getIndex(matching_key);
+        int idx = bitmap.highLowContainer.getIndex(MatchingKey);
         if(idx < 0) {
           continue;
         }

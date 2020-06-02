@@ -379,11 +379,11 @@ public final class FastAggregation {
     RoaringArray array =
             new RoaringArray(keys, new Container[numContainers], 0);
     for (int i = 0; i < numContainers; ++i) {
-      char matching_key = keys[i];
+      char MatchingKey = keys[i];
       Arrays.fill(words, -1L);
       Container tmp = new BitmapContainer(words, -1);
       for(RoaringBitmap bitmap: bitmaps) {
-        int idx = bitmap.highLowContainer.getIndex(matching_key);
+        int idx = bitmap.highLowContainer.getIndex(MatchingKey);
         if(idx < 0) {
           continue;
         }
