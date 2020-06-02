@@ -30,7 +30,6 @@ public final class FastAggregation {
   /**
    * Compute the AND aggregate.
    *
-   * In practice, calls {#link naive_and}
    *
    * @param bitmaps input bitmaps
    * @return aggregated bitmap
@@ -44,8 +43,6 @@ public final class FastAggregation {
 
   /**
    * Compute the AND aggregate.
-   *
-   * In practice, calls {#link naive_and}
    *
    * @param aggregationBuffer a buffer for aggregation
    * @param bitmaps input bitmaps

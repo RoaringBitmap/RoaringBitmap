@@ -19,9 +19,7 @@ public final class BufferFastAggregation {
 
   /**
    * Compute the AND aggregate.
-   * 
-   * In practice, calls {#link naive_and}
-   * 
+   *
    * @param bitmaps input bitmaps
    * @return aggregated bitmap
    */
@@ -34,8 +32,6 @@ public final class BufferFastAggregation {
 
   /**
    * Compute the AND aggregate.
-   *
-   * In practice, calls {#link naive_and}
    *
    * @param aggregationBuffer a memory buffer for use in the aggregation.
    *                          Will be cleared after use.
