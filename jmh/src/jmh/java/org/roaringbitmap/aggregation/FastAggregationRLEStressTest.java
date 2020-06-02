@@ -81,12 +81,12 @@ public class FastAggregationRLEStressTest {
 
   @Benchmark
   public RoaringBitmap and(BitmapState state) {
-    return FastAggregation.and(state.bitmaps);
+    return FastAggregation.and(state.buffer, state.bitmaps);
   }
 
   @Benchmark
   public ImmutableRoaringBitmap andBuffer(BitmapState state) {
-    return BufferFastAggregation.and(state.bufferBitmaps);
+    return BufferFastAggregation.and(state.buffer, state.bufferBitmaps);
   }
 
   @Benchmark

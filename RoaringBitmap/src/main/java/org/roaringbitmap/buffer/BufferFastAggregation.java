@@ -27,7 +27,32 @@ public final class BufferFastAggregation {
    */
   public static MutableRoaringBitmap and(ImmutableRoaringBitmap... bitmaps) {
     if (bitmaps.length > 2) {
-      return workShyAnd(bitmaps);
+      return workShyAnd(new long[1024], bitmaps);
+    }
+    return naive_and(bitmaps);
+  }
+
+  /**
+   * Compute the AND aggregate.
+   *
+   * In practice, calls {#link naive_and}
+   *
+   * @param aggregationBuffer a memory buffer for use in the aggregation.
+   *                          Will be cleared after use.
+   * @param bitmaps input bitmaps
+   * @return aggregated bitmap
+   */
+  public static MutableRoaringBitmap and(long[] aggregationBuffer,
+                                         ImmutableRoaringBitmap... bitmaps) {
+    if (bitmaps.length > 2) {
+      if(aggregationBuffer.length < 1024) {
+        throw new IllegalArgumentException("buffer should have at least 1024 elements.");
+      }
+      try {
+        return workShyAnd(aggregationBuffer, bitmaps);
+      } finally {
+        Arrays.fill(aggregationBuffer, 0L);
+      }
     }
     return naive_and(bitmaps);
   }
@@ -318,11 +343,13 @@ public final class BufferFastAggregation {
    * Computes the intersection by first intersecting the keys, avoids
    * materialising containers.
    *
+   * @param aggregationBuffer a buffer for use in aggregations.
    * @param bitmaps the inputs
    * @return the intersection of the bitmaps
    */
-  public static MutableRoaringBitmap workShyAnd(ImmutableRoaringBitmap... bitmaps) {
-    long[] words = new long[1024];
+  static MutableRoaringBitmap workShyAnd(long[] aggregationBuffer,
+                                         ImmutableRoaringBitmap... bitmaps) {
+    long[] words = aggregationBuffer;
     ImmutableRoaringBitmap first = bitmaps[0];
     for (int i = 0; i < first.highLowContainer.size(); ++i) {
       char key = first.highLowContainer.getKeyAtIndex(i);
