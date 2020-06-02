@@ -37,7 +37,7 @@ This library is used by
 *   [Tablesaw](https://github.com/jtablesaw/tablesaw),
 *   [Apache Hivemall](http://hivemall.incubator.apache.org),
 *   [Gaffer](https://github.com/gchq/Gaffer),
-*   [LinkedIn Pinot](https://github.com/linkedin/pinot/wiki) and
+*   [Apache Pinot](https://pinot.apache.org/) and
 *   [Apache Druid](https://druid.apache.org/).
 
 
