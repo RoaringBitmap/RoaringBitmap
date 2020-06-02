@@ -335,6 +335,72 @@ public final class FastAggregation {
   }
 
 
+
+  /**
+   * Computes the intersection by first intersecting the keys, avoids
+   * materialising containers, limits memory usage.  You must provide a long[] array
+   * of length at least 1024, initialized with zeroes. We do not check whether the array
+   * is initialized with zeros: it is the caller's responsability.
+   * You should expect this function to be slower than workShyAnd and the reduction
+   * in memory usage might be small.
+   *
+   * @param buffer should be a 1024-long array
+   * @param bitmaps the inputs
+   * @return the intersection of the bitmaps
+   */
+  public static RoaringBitmap workAndMemoryShyAnd(long[] buffer, RoaringBitmap... bitmaps) {
+    if(buffer.length < 1024) {
+      throw new IllegalArgumentException("buffer should have at least 1024 elements.");
+    } 
+    long[] words = buffer;
+    RoaringBitmap first = bitmaps[0];
+    for (int i = 0; i < first.highLowContainer.size; ++i) {
+      char key = first.highLowContainer.keys[i];
+      words[key >>> 6] |= 1L << key;
+    }
+    int numContainers = first.highLowContainer.size;
+    for (int i = 1; i < bitmaps.length && numContainers > 0; ++i) {
+      numContainers = Util.intersectArrayIntoBitmap(words,
+              bitmaps[i].highLowContainer.keys, bitmaps[i].highLowContainer.size);
+    }
+    if (numContainers == 0) {
+      return new RoaringBitmap();
+    }
+    char[] keys = new char[numContainers];
+    int base = 0;
+    int pos = 0;
+    for (long word : words) {
+      while (word != 0L) {
+        keys[pos++] = (char)(base + Long.numberOfTrailingZeros(word));
+        word &= (word - 1);
+      }
+      base += 64;
+    }
+    RoaringArray array =
+            new RoaringArray(keys, new Container[numContainers], 0);
+    for (int i = 0; i < numContainers; ++i) {
+      char matching_key = keys[i];
+      Arrays.fill(words, -1L);
+      Container tmp = new BitmapContainer(words, -1);
+      for(RoaringBitmap bitmap: bitmaps) {
+        int idx = bitmap.highLowContainer.getIndex(matching_key);
+        if(idx < 0) {
+          continue;
+        }
+        Container container = bitmap.highLowContainer.getContainerAtIndex(idx);
+        Container and = tmp.iand(container);
+        if (and != tmp) {
+          tmp = and;
+        }
+      }
+      tmp = tmp.repairAfterLazy();
+      if (!tmp.isEmpty()) {
+        array.append(keys[i], tmp instanceof BitmapContainer ? tmp.clone() : tmp);
+      }
+    }
+    return new RoaringBitmap(array);
+  }
+
   /**
    * Compute overall OR between bitmaps two-by-two.
    *

@@ -249,6 +249,9 @@ public class TestFastAggregation {
         RoaringBitmap result = FastAggregation.workShyAnd(bitmaps);
         RoaringBitmap expected = FastAggregation.naive_and(bitmaps);
         assertEquals(expected, result);
+        long[] buffer = new long[1024];
+        result = FastAggregation.workAndMemoryShyAnd(buffer, bitmaps);
+        assertEquals(expected, result);
     }
 
 }

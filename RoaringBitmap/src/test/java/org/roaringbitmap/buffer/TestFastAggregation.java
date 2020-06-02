@@ -242,6 +242,9 @@ public class TestFastAggregation {
     MutableRoaringBitmap result = BufferFastAggregation.workShyAnd(bitmaps);
     MutableRoaringBitmap expected = BufferFastAggregation.naive_and(bitmaps);
     assertEquals(expected, result);
+    long[] buffer = new long[1024];
+    result = BufferFastAggregation.workAndMemoryShyAnd(buffer, bitmaps);
+    assertEquals(expected, result);
   }
 
   @MethodSource("bitmaps")
@@ -253,6 +256,9 @@ public class TestFastAggregation {
     }
     MutableRoaringBitmap result = BufferFastAggregation.workShyAnd(bitmaps);
     MutableRoaringBitmap expected = BufferFastAggregation.naive_and(bitmaps);
+    assertEquals(expected, result);
+    long[] buffer = new long[1024];
+    result = BufferFastAggregation.workAndMemoryShyAnd(buffer, bitmaps);
     assertEquals(expected, result);
   }
 }

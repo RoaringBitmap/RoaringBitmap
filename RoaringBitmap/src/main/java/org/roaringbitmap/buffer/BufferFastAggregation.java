@@ -388,7 +388,80 @@ public final class BufferFastAggregation {
     return new MutableRoaringBitmap(array);
   }
 
-
+  /**
+   * Computes the intersection by first intersecting the keys, avoids
+   * materialising containers, limits memory usage. You must provide a long[] array
+   * of length at least 1024, initialized with zeroes. We do not check whether the array
+   * is initialized with zeros: it is the caller's responsability. 
+   * You should expect this function to be slower than workShyAnd and the reduction
+   * in memory usage might be small.
+   *
+   * @param buffer should be a 1024-long array
+   * @param bitmaps the inputs
+   * @return the intersection of the bitmaps
+   */
+  public static MutableRoaringBitmap workAndMemoryShyAnd(long[] buffer, ImmutableRoaringBitmap... bitmaps) {
+    if(buffer.length < 1024) {
+      throw new IllegalArgumentException("buffer should have at least 1024 elements.");
+    } 
+    long[] words = buffer;
+    ImmutableRoaringBitmap first = bitmaps[0];
+    for (int i = 0; i < first.highLowContainer.size(); ++i) {
+      char key = first.highLowContainer.getKeyAtIndex(i);
+      words[key >>> 6] |= 1L << key;
+    }
+    int numContainers = first.highLowContainer.size();
+    for (int i = 1; i < bitmaps.length && numContainers > 0; ++i) {
+      final char[] keys;
+      if (bitmaps[i].highLowContainer instanceof MutableRoaringArray) {
+        keys = ((MutableRoaringArray) bitmaps[i].highLowContainer).keys;
+      } else {
+        keys = new char[bitmaps[i].highLowContainer.size()];
+        for (int j = 0; j < keys.length; ++j) {
+          keys[j] = bitmaps[i].highLowContainer.getKeyAtIndex(j);
+        }
+      }
+      numContainers = BufferUtil.intersectArrayIntoBitmap(words,
+              CharBuffer.wrap(keys),
+              bitmaps[i].highLowContainer.size());
+    }
+    if (numContainers == 0) {
+      return new MutableRoaringBitmap();
+    }
+    char[] keys = new char[numContainers];
+    int base = 0;
+    int pos = 0;
+    for (long word : words) {
+      while (word != 0L) {
+        keys[pos++] = (char)(base + Long.numberOfTrailingZeros(word));
+        word &= (word - 1);
+      }
+      base += 64;
+    }
+    MutableRoaringArray array =
+            new MutableRoaringArray(keys, new MappeableContainer[numContainers], 0);
+    for (int i = 0; i < numContainers; ++i) {
+      char matching_key = keys[i];
+      Arrays.fill(words, -1L);
+      MappeableContainer tmp = new MappeableBitmapContainer(LongBuffer.wrap(words), -1);
+      for(ImmutableRoaringBitmap bitmap: bitmaps) {
+        int idx = bitmap.highLowContainer.getIndex(matching_key);
+        if(idx < 0) {
+          continue;
+        }
+        MappeableContainer container = bitmap.highLowContainer.getContainerAtIndex(idx);
+        MappeableContainer and = tmp.iand(container);
+        if (and != tmp) {
+          tmp = and;
+        }
+      }
+      tmp = tmp.repairAfterLazy();
+      if (!tmp.isEmpty()) {
+        array.append(keys[i], tmp instanceof MappeableBitmapContainer ? tmp.clone() : tmp);
+      }
+    }
+    return new MutableRoaringBitmap(array);
+  }
 
   /**
    * Compute overall OR between bitmaps two-by-two.
