@@ -400,7 +400,8 @@ public final class BufferFastAggregation {
    * @param bitmaps the inputs
    * @return the intersection of the bitmaps
    */
-  public static MutableRoaringBitmap workAndMemoryShyAnd(long[] buffer, ImmutableRoaringBitmap... bitmaps) {
+  public static MutableRoaringBitmap workAndMemoryShyAnd(long[] buffer, 
+      ImmutableRoaringBitmap... bitmaps) {
     if(buffer.length < 1024) {
       throw new IllegalArgumentException("buffer should have at least 1024 elements.");
     } 
