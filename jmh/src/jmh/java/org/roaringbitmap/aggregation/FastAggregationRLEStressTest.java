@@ -7,12 +7,14 @@ import org.roaringbitmap.RoaringBitmapWriter;
 import org.roaringbitmap.buffer.BufferFastAggregation;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 
+import java.util.Arrays;
 import java.util.SplittableRandom;
 
 public class FastAggregationRLEStressTest {
 
   @State(Scope.Benchmark)
   public static class BitmapState {
+    public long[] buffer = new long[1024];
 
     public enum ConstructionStrategy {
       CONSTANT_MEMORY {
@@ -76,13 +78,27 @@ public class FastAggregationRLEStressTest {
     }
   }
 
+
   @Benchmark
   public RoaringBitmap and(BitmapState state) {
-    return FastAggregation.and(state.bitmaps);
+    return FastAggregation.and(state.buffer, state.bitmaps);
   }
 
   @Benchmark
   public ImmutableRoaringBitmap andBuffer(BitmapState state) {
-    return BufferFastAggregation.and(state.bufferBitmaps);
+    return BufferFastAggregation.and(state.buffer, state.bufferBitmaps);
   }
+
+  @Benchmark
+  public RoaringBitmap andMemoryShy(BitmapState state) {
+    Arrays.fill(state.buffer,0);
+    return FastAggregation.workAndMemoryShyAnd(state.buffer, state.bitmaps);
+  }
+
+  @Benchmark
+  public ImmutableRoaringBitmap andBufferMemoryShy(BitmapState state) {
+    Arrays.fill(state.buffer,0);
+    return BufferFastAggregation.workAndMemoryShyAnd(state.buffer, state.bufferBitmaps);
+  }
+
 }

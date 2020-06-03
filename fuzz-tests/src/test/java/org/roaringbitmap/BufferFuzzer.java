@@ -499,7 +499,7 @@ public class BufferFuzzer {
                 bitmaps[j] = randomBitmap(512);
               }
               MutableRoaringBitmap naive = BufferFastAggregation.naive_and(bitmaps);
-              MutableRoaringBitmap workShy = BufferFastAggregation.workShyAnd(bitmaps);
+              MutableRoaringBitmap workShy = BufferFastAggregation.and(bitmaps);
               assertEquals(naive, workShy);
             });
   }

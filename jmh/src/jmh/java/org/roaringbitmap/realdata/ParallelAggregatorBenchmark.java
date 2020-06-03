@@ -72,7 +72,7 @@ public class ParallelAggregatorBenchmark {
 
   @Benchmark
   public RoaringBitmap fastAnd() {
-    return FastAggregation.workShyAnd(bitmaps);
+    return FastAggregation.and(bitmaps);
   }
 
   @Benchmark
