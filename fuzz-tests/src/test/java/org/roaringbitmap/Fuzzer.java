@@ -563,7 +563,7 @@ public class Fuzzer {
                 bitmaps[j] = randomBitmap(512);
               }
               RoaringBitmap naive = FastAggregation.naive_and(bitmaps);
-              RoaringBitmap workShy = FastAggregation.workShyAnd(bitmaps);
+              RoaringBitmap workShy = FastAggregation.and(bitmaps);
               assertEquals(naive, workShy);
             });
   }

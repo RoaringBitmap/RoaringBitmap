@@ -75,7 +75,7 @@ public class TestFastAggregation {
     public void testWorkShyAnd() {
         final RoaringBitmap b1 = RoaringBitmap.bitmapOf(1, 2, 0x10001, 0x20001, 0x30001);
         final RoaringBitmap b2 = RoaringBitmap.bitmapOf(2, 3, 0x20002, 0x30001);
-        final RoaringBitmap bResult = FastAggregation.workShyAnd(b1, b2);
+        final RoaringBitmap bResult = FastAggregation.workShyAnd(new long[1024], b1, b2);
         assertFalse(bResult.contains(1));
         assertTrue(bResult.contains(2));
         assertFalse(bResult.contains(3));
@@ -246,8 +246,13 @@ public class TestFastAggregation {
     @ParameterizedTest(name = "testWorkShyAnd")
     public void testWorkShyAnd(List<RoaringBitmap> list) {
         RoaringBitmap[] bitmaps = list.toArray(new RoaringBitmap[0]);
-        RoaringBitmap result = FastAggregation.workShyAnd(bitmaps);
+        long[] buffer = new long[1024];
+        RoaringBitmap result = FastAggregation.and(buffer, bitmaps);
         RoaringBitmap expected = FastAggregation.naive_and(bitmaps);
+        assertEquals(expected, result);
+        result = FastAggregation.and(bitmaps);
+        assertEquals(expected, result);
+        result = FastAggregation.workAndMemoryShyAnd(buffer, bitmaps);
         assertEquals(expected, result);
     }
 
