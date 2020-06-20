@@ -397,7 +397,7 @@ public final class Util {
     return (int)(x & 0xFFFF);
   }
 
-  protected static int maxLowBitAsInteger() {
+  public static int maxLowBitAsInteger() {
     return 0xFFFF;
   }
 
@@ -1092,5 +1092,4 @@ public final class Util {
   private Util() {
 
   }
-
 }
