@@ -33,6 +33,6 @@ public class ArraysShim {
    */
   public static int mismatch​(byte[] a, int aFromIndex, int aToIndex,
       byte[] b, int bFromIndex, int bToIndex) {
-    return Arrays.mismatch(a, aFromIndex, aToIndex, b, bFromIndexm, bToIndex);
+    return Arrays.mismatch(a, aFromIndex, aToIndex, b, bFromIndex, bToIndex);
   }
 }
