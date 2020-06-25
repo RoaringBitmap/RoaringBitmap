@@ -3,11 +3,13 @@ package org.roaringbitmap.art;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import org.roaringbitmap.ArraysShim;
 
 /**
- * See: https://db.in.tum.de/~leis/papers/ART.pdf a cpu cache friend main memory data structure. At
- * our case, the LeafNode's key is always 48 bit size. The high 48 bit keys here are compared using
- * the byte dictionary comparison.
+ * See: https://db.in.tum.de/~leis/papers/ART.pdf a cpu cache friendly main memory data structure.
+ * At our case, the LeafNode's key is always 48 bit size. The high 48 bit keys here are compared
+ * using the byte dictionary comparison.
  */
 public class Art {
 
@@ -24,6 +26,7 @@ public class Art {
 
   /**
    * insert the 48 bit key and the corresponding containerIdx
+   *
    * @param key the high 48 bit of the long data
    * @param containerIdx the container index
    */
@@ -36,7 +39,6 @@ public class Art {
   }
 
   /**
-   *
    * @param key the high 48 bit of the long data
    * @return the key's corresponding containerIdx
    */
@@ -53,18 +55,23 @@ public class Art {
     while (node != null) {
       if (node.nodeType == NodeType.LEAF_NODE) {
         LeafNode leafNode = (LeafNode) node;
-        for (int i = depth; i < leafNode.key.length; i++) {
-          if (leafNode.key[i] != key[i]) {
-            return null;
-          }
+        byte[] leafNodeKeyBytes = leafNode.getKeyBytes();
+        if (depth == LeafNode.LEAF_NODE_KEY_LENGTH_IN_BYTES) {
+          return leafNode;
+        }
+        int mismatchIndex = ArraysShim
+            .mismatch​(leafNodeKeyBytes, depth, LeafNode.LEAF_NODE_KEY_LENGTH_IN_BYTES,
+                key, depth, key.length);
+        if (mismatchIndex != -1) {
+          return null;
         }
         return leafNode;
       }
       if (node.prefixLength > 0) {
-        for (int i = depth; i < node.prefixLength; i++) {
-          if (key[i] != node.prefix[i]) {
-            return null;
-          }
+        int mismatchIndex = ArraysShim.mismatch​(key, depth, key.length,
+            node.prefix, depth, node.prefixLength);
+        if (mismatchIndex != -1) {
+          return null;
         }
         //common prefix is the same ,then increase the depth
         depth += node.prefixLength;
@@ -99,10 +106,6 @@ public class Art {
     return Node.ILLEGAL_IDX;
   }
 
-  /**
-   * @return if found matched key, return a meaning toolkit which has the found
-   *containerIdx,otherwise, return a null object.
-   */
   protected Toolkit removeSpecifyKey(Node node, byte[] key, int dep) {
     if (node == null) {
       return null;
@@ -121,8 +124,9 @@ public class Art {
       }
     }
     if (node.prefixLength > 0) {
-      if (Node.prefixMismatch(node, key, dep) != node.prefixLength) {
-        //not found the matched key
+      int mismatchIndex = ArraysShim.mismatch​(node.prefix, 0,
+          node.prefixLength, key, dep, key.length);
+      if (mismatchIndex != -1) {
         return null;
       }
       dep += node.prefixLength;
@@ -169,12 +173,15 @@ public class Art {
   }
 
   private boolean leafMatch(LeafNode leafNode, byte[] key, int dep) {
-    for (int i = dep; i < leafNode.key.length; i++) {
-      if (leafNode.key[i] != key[i]) {
-        return false;
-      }
+    byte[] leafNodeKeyBytes = leafNode.getKeyBytes();
+    int mismatchIndex = ArraysShim
+        .mismatch​(leafNodeKeyBytes, dep, LeafNode.LEAF_NODE_KEY_LENGTH_IN_BYTES,
+            key, dep, key.length);
+    if (mismatchIndex == -1) {
+      return true;
+    } else {
+      return false;
     }
-    return true;
   }
 
   private Node insert(Node node, byte[] key, int depth, long containerIdx) {
@@ -184,14 +191,12 @@ public class Art {
     }
     if (node.nodeType == NodeType.LEAF_NODE) {
       LeafNode leafNode = (LeafNode) node;
-      byte[] prefix = leafNode.key;
-      int commonPrefix = commonPrefix(prefix, key, depth);
+      byte[] prefix = leafNode.getKeyBytes();
+      int commonPrefix = commonPrefixLength(prefix, key, depth);
       Node4 node4 = new Node4(commonPrefix);
       //copy common prefix
-      node4.prefixLength = commonPrefix;
-      for (int i = 0; i < commonPrefix; i++) {
-        node4.prefix[i] = key[depth + i];
-      }
+      node4.prefixLength = (byte) commonPrefix;
+      System.arraycopy(key, depth, node4.prefix, 0, commonPrefix);
       //generate two leaf nodes as the children of the fresh node4
       Node4.insert(node4, leafNode, prefix[depth + commonPrefix]);
       LeafNode anotherLeaf = new LeafNode(key, containerIdx);
@@ -202,22 +207,19 @@ public class Art {
     //to a inner node case
     if (node.prefixLength > 0) {
       //find the common prefix
-      int mismatchPos = findCommonPrefix(node, key, depth);
-      if (mismatchPos != node.prefixLength) {
+      int mismatchPos = ArraysShim.mismatch​(node.prefix, 0, node.prefixLength,
+          key, depth, key.length);
+      if (mismatchPos != -1) {
         Node4 node4 = new Node4(mismatchPos);
         //copy prefix
-        node4.prefixLength = mismatchPos;
-        for (int i = 0; i < mismatchPos; i++) {
-          node4.prefix[i] = node.prefix[i];
-        }
+        node4.prefixLength = (byte) mismatchPos;
+        System.arraycopy(node.prefix, 0, node4.prefix, 0, mismatchPos);
         //split the current internal node, spawn a fresh node4 and let the
         //current internal node as its children.
         Node4.insert(node4, node, node.prefix[mismatchPos]);
-        node.prefixLength = node.prefixLength - (mismatchPos + 1);
+        node.prefixLength = (byte) (node.prefixLength - (mismatchPos + (byte) 1));
         //move the remained common prefix of the initial internal node
-        for (int i = 0; i < node.prefixLength; i++) {
-          node.prefix[i] = node.prefix[mismatchPos + i + 1];
-        }
+        System.arraycopy(node.prefix, mismatchPos + 1, node.prefix, 0, node.prefixLength);
         LeafNode leafNode = new LeafNode(key, containerIdx);
         Node4.insert(node4, leafNode, key[mismatchPos + depth]);
         return node4;
@@ -240,27 +242,15 @@ public class Art {
     return freshOne;
   }
 
-  /**
-   * @return the position of the node's prefix that begin to differ from the key
-   */
-  private int findCommonPrefix(Node node, byte[] key, int depth) {
-    int pos = 0;
-    for (; pos < node.prefixLength; pos++) {
-      if (node.prefix[pos] != key[depth + pos]) {
-        break;
-      }
+  //find common prefix length
+  private int commonPrefixLength(byte[] key1, byte[] key2, int depth) {
+    int mismatchPos = ArraysShim.mismatch​(key1, depth, key1.length,
+        key2, depth, key2.length);
+    if (mismatchPos == -1) {
+      return key1.length - depth;
+    } else {
+      return mismatchPos;
     }
-    return pos;
-  }
-
-  private int commonPrefix(byte[] key1, byte[] key2, int depth) {
-    int commonPrefix = 0;
-    for (; commonPrefix < key2.length; commonPrefix++) {
-      if (key2[commonPrefix + depth] != key1[commonPrefix + depth]) {
-        break;
-      }
-    }
-    return commonPrefix;
   }
 
   public Node getRoot() {
@@ -273,6 +263,14 @@ public class Art {
 
   public void deserializeArt(DataInput dataInput) throws IOException {
     root = deserialize(dataInput);
+  }
+
+  public void serializeArt(ByteBuffer byteBuffer) throws IOException {
+    serialize(root, byteBuffer);
+  }
+
+  public void deserializeArt(ByteBuffer byteBuffer) throws IOException {
+    root = deserialize(byteBuffer);
   }
 
   public LeafNodeIterator leafNodeIterator(boolean reverse, Containers containers) {
@@ -297,6 +295,24 @@ public class Art {
     }
   }
 
+  private void serialize(Node node, ByteBuffer byteBuffer) throws IOException {
+    if (node.nodeType != NodeType.LEAF_NODE) {
+      //serialize the internal node itself first
+      node.serialize(byteBuffer);
+      //then all the internal node's children
+      int nexPos = node.getNextLargerPos(Node.ILLEGAL_IDX);
+      while (nexPos != Node.ILLEGAL_IDX) {
+        //serialize all the not null child node
+        Node child = node.getChild(nexPos);
+        serialize(child, byteBuffer);
+        nexPos = node.getNextLargerPos(nexPos);
+      }
+    } else {
+      //serialize the leaf node
+      node.serialize(byteBuffer);
+    }
+  }
+
   private Node deserialize(DataInput dataInput) throws IOException {
     Node oneNode = Node.deserialize(dataInput);
     if (oneNode == null) {
@@ -311,6 +327,27 @@ public class Art {
       Node[] children = new Node[count];
       for (int i = 0; i < count; i++) {
         Node child = deserialize(dataInput);
+        children[i] = child;
+      }
+      oneNode.replaceChildren(children);
+      return oneNode;
+    }
+  }
+
+  private Node deserialize(ByteBuffer byteBuffer) throws IOException {
+    Node oneNode = Node.deserialize(byteBuffer);
+    if (oneNode == null) {
+      return null;
+    }
+    if (oneNode.nodeType == NodeType.LEAF_NODE) {
+      return oneNode;
+    } else {
+      //internal node
+      int count = oneNode.count;
+      //all the not null child nodes
+      Node[] children = new Node[count];
+      for (int i = 0; i < count; i++) {
+        Node child = deserialize(byteBuffer);
         children[i] = child;
       }
       oneNode.replaceChildren(children);

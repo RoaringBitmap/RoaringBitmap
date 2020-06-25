@@ -359,6 +359,17 @@ public final class ArrayContainer extends Container implements Cloneable {
     }
   }
 
+  @Override
+  public void deserialize(ByteBuffer byteBuffer) throws IOException {
+    this.cardinality = 0xFFFF & byteBuffer.getChar();
+    if (this.content.length < this.cardinality) {
+      this.content = new char[this.cardinality];
+    }
+    for (int k = 0; k < this.cardinality; ++k) {
+      this.content[k] = byteBuffer.getChar();
+    }
+  }
+
   // in order
   private void emit(char val) {
     if (cardinality == content.length) {
@@ -1130,6 +1141,15 @@ public final class ArrayContainer extends Container implements Cloneable {
     // little endian
     for (int k = 0; k < this.cardinality; ++k) {
       out.writeShort(Character.reverseBytes(this.content[k]));
+    }
+  }
+
+  @Override
+  public void serialize(ByteBuffer byteBuffer) throws IOException {
+    byteBuffer.putShort((short) this.cardinality);
+    // little endian
+    for (int k = 0; k < this.cardinality; ++k) {
+      byteBuffer.putShort((short) this.content[k]);
     }
   }
 

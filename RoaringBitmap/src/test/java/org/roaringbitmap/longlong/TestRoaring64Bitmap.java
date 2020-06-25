@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import java.io.ByteArrayInputStream;
@@ -16,6 +15,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -52,7 +53,7 @@ public class TestRoaring64Bitmap {
       Assertions.assertTrue(source.contains(actual));
       i++;
     }
-    Assertions.assertTrue(total == i);
+    Assertions.assertEquals(total, i);
   }
 
   @Test
@@ -510,7 +511,7 @@ public class TestRoaring64Bitmap {
     map.addLong(-123);
     map.addLong(123);
     map.addLong(Long.MAX_VALUE);
-
+    long sizeInByteL = map.serializedSizeInBytes();
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
       oos.writeObject(map);
@@ -528,6 +529,16 @@ public class TestRoaring64Bitmap {
     assertEquals(123, clone.select(0));
     assertEquals(Long.MAX_VALUE, clone.select(1));
     assertEquals(-123, clone.select(2));
+    int sizeInByteInt = (int) sizeInByteL;
+    ByteBuffer byteBuffer = ByteBuffer.allocate(sizeInByteInt).order(ByteOrder.LITTLE_ENDIAN);
+    map.serialize(byteBuffer);
+    byteBuffer.flip();
+    Roaring64Bitmap anotherDeserMap = newDefaultCtor();
+    anotherDeserMap.deserialize(byteBuffer);
+    assertEquals(3, anotherDeserMap.getLongCardinality());
+    assertEquals(123, anotherDeserMap.select(0));
+    assertEquals(Long.MAX_VALUE, anotherDeserMap.select(1));
+    assertEquals(-123, anotherDeserMap.select(2));
   }
 
 

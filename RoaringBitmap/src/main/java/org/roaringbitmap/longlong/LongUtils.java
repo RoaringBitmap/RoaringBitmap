@@ -4,6 +4,7 @@ public class LongUtils {
 
   /**
    * get the high 48 bit parts of the input data
+   *
    * @param num the long number
    * @return the high 48 bit
    */
@@ -21,6 +22,7 @@ public class LongUtils {
 
   /**
    * get the low 16 bit parts of the input data
+   *
    * @param num the long number
    * @return the low 16 bit
    */
@@ -30,12 +32,13 @@ public class LongUtils {
 
   /**
    * reconstruct the long data
+   *
    * @param high the high 48 bit
    * @param low the low 16 bit
    * @return the long data
    */
   public static long toLong(byte[] high, char low) {
-    byte byte6 = (byte) (low >>> 8 & 0xff);
+    byte byte6 = (byte) (low >>> 8 & 0xFFL);
     byte byte7 = (byte) low;
     return (high[0] & 0xFFL) << 56
         | (high[1] & 0xFFL) << 48
@@ -48,46 +51,45 @@ public class LongUtils {
   }
 
   /**
-   * get little endian representation bytes
-   * @param v the long data
-   * @return the byte array
+   * to big endian bytes representation
    */
-  public static byte[] toLDBytes(long v) {
+  public static byte[] toBDBytes(long v) {
     byte[] work = new byte[8];
-    work[0] = (byte) v;
-    work[1] = (byte) (v >> 8);
-    work[2] = (byte) (v >> 16);
-    work[3] = (byte) (v >> 24);
-    work[4] = (byte) (v >> 32);
-    work[5] = (byte) (v >> 40);
-    work[6] = (byte) (v >> 48);
-    work[7] = (byte) (v >> 56);
+    work[7] = (byte) v;
+    work[6] = (byte) (v >> 8);
+    work[5] = (byte) (v >> 16);
+    work[4] = (byte) (v >> 24);
+    work[3] = (byte) (v >> 32);
+    work[2] = (byte) (v >> 40);
+    work[1] = (byte) (v >> 48);
+    work[0] = (byte) (v >> 56);
     return work;
   }
 
   /**
-   * get the long from the little endian representation bytes
+   * get the long from the big endian representation bytes
+   *
    * @param work the byte array
    * @return the long data
    */
-  public static long fromLDBytes(byte[] work) {
-    return (long) (work[7]) << 56
+  public static long fromBDBytes(byte[] work) {
+    return (long) (work[0]) << 56
         /* long cast needed or shift done modulo 32 */
-        | (long) (work[6] & 0xff) << 48
-        | (long) (work[5] & 0xff) << 40
-        | (long) (work[4] & 0xff) << 32
-        | (long) (work[3] & 0xff) << 24
-        | (long) (work[2] & 0xff) << 16
-        | (long) (work[1] & 0xff) << 8
-        | (long) (work[0] & 0xff);
+        | (long) (work[1] & 0xff) << 48
+        | (long) (work[2] & 0xff) << 40
+        | (long) (work[3] & 0xff) << 32
+        | (long) (work[4] & 0xff) << 24
+        | (long) (work[5] & 0xff) << 16
+        | (long) (work[6] & 0xff) << 8
+        | (long) (work[7] & 0xff);
   }
 
   /**
    * compare according to the dictionary order
+   *
    * @param a a byte array
    * @param b another byte array
-   * @return 1 indicates a greater than b,0 indicates equal,-1
-   * indicates a smaller than b
+   * @return 1 indicates a greater than b,0 indicates equal,-1 indicates a smaller than b
    */
   public static int compareHigh(byte[] a, byte[] b) {
     return compareTo(a, 0, a.length, b, 0, b.length);
@@ -95,9 +97,9 @@ public class LongUtils {
 
   private static int compareTo(byte[] buffer1, int offset1, int length1,
       byte[] buffer2, int offset2, int length2) {
-    if (buffer1 == buffer2 &&
-        offset1 == offset2 &&
-        length1 == length2) {
+    if (buffer1 == buffer2
+        && offset1 == offset2
+        && length1 == length2) {
       return 0;
     }
     int end1 = offset1 + length1;
@@ -110,5 +112,15 @@ public class LongUtils {
       }
     }
     return length1 - length2;
+  }
+
+  /**
+   * initialize a long value with the given fist 32 bit
+   *
+   * @param v first 32 bit value
+   * @return a long value
+   */
+  public static long initWithFirst4Byte(int v) {
+    return ((long) v) << 32;
   }
 }

@@ -3,19 +3,37 @@ package org.roaringbitmap.art;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import org.roaringbitmap.longlong.LongUtils;
 
 public class LeafNode extends Node {
-  //key are saved as the lazy expanding logic
-  byte[] key;
+
+  //key are saved as the lazy expanding logic,here we only care about the
+  //high 48 bit data,so only the high 48 bit is valuable
+  private long key;
   long containerIdx;
+  public static final int LEAF_NODE_KEY_LENGTH_IN_BYTES = 6;
 
   /**
    * constructor
+   *
    * @param key the 48 bit
    * @param containerIdx the corresponding container index
    */
   public LeafNode(byte[] key, long containerIdx) {
+    super(NodeType.LEAF_NODE, 0);
+    byte[] bytes = new byte[8];
+    System.arraycopy(key, 0, bytes, 0, LEAF_NODE_KEY_LENGTH_IN_BYTES);
+    this.key = LongUtils.fromBDBytes(bytes);
+    this.containerIdx = containerIdx;
+  }
+
+  /**
+   * constructor
+   * @param key a long value ,only the high 48 bit is valuable
+   * @param containerIdx the corresponding container index
+   */
+  public LeafNode(long key, long containerIdx) {
     super(NodeType.LEAF_NODE, 0);
     this.key = key;
     this.containerIdx = containerIdx;
@@ -23,25 +41,37 @@ public class LeafNode extends Node {
 
   @Override
   public void serializeNodeBody(DataOutput dataOutput) throws IOException {
-    dataOutput.writeInt(Integer.reverse(key.length));
-    dataOutput.write(key);
-    byte[] containerIdxBytes = LongUtils.toLDBytes(containerIdx);
-    dataOutput.write(containerIdxBytes);
+    byte[] keyBytes = LongUtils.highPart(key);
+    dataOutput.write(keyBytes);
+    dataOutput.writeLong(Long.reverseBytes(containerIdx));
+  }
+
+  @Override
+  public void serializeNodeBody(ByteBuffer byteBuffer) throws IOException {
+    byte[] keyBytes = LongUtils.highPart(key);
+    byteBuffer.put(keyBytes);
+    byteBuffer.putLong(containerIdx);
   }
 
   @Override
   public void deserializeNodeBody(DataInput dataInput) throws IOException {
-    int keyLen = Integer.reverse(dataInput.readInt());
-    this.key = new byte[keyLen];
-    dataInput.readFully(key);
-    byte[] littleEndianL = new byte[8];
-    dataInput.readFully(littleEndianL);
-    this.containerIdx = LongUtils.fromLDBytes(littleEndianL);
+    byte[] longBytes = new byte[8];
+    dataInput.readFully(longBytes, 0, LEAF_NODE_KEY_LENGTH_IN_BYTES);
+    this.key = LongUtils.fromBDBytes(longBytes);
+    this.containerIdx = Long.reverseBytes(dataInput.readLong());
+  }
+
+  @Override
+  public void deserializeNodeBody(ByteBuffer byteBuffer) throws IOException {
+    byte[] bytes = new byte[8];
+    byteBuffer.get(bytes, 0, 6);
+    this.key = LongUtils.fromBDBytes(bytes);
+    this.containerIdx = byteBuffer.getLong();
   }
 
   @Override
   public int serializeNodeBodySizeInBytes() {
-    return 4 + key.length + 8;
+    return LEAF_NODE_KEY_LENGTH_IN_BYTES + 8;
   }
 
   @Override
@@ -93,7 +123,7 @@ public class LeafNode extends Node {
     return containerIdx;
   }
 
-  public byte[] getKey() {
-    return key;
+  public byte[] getKeyBytes() {
+    return LongUtils.highPart(key);
   }
 }

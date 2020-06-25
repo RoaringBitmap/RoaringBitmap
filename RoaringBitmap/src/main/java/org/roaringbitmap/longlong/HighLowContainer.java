@@ -1,5 +1,7 @@
 package org.roaringbitmap.longlong;
 
+import static java.nio.ByteOrder.LITTLE_ENDIAN;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -106,20 +108,37 @@ public class HighLowContainer {
 
   /**
    * serialize into the ByteBuffer in little endian
-   * @param byteBuffer the ByteBuffer should be large enough to hold the data
+   * @param buffer the ByteBuffer should be large enough to hold the data
    * @throws IOException indicate exception happened
    */
-  public void serialize(ByteBuffer byteBuffer) throws IOException {
-    //TODO:
+  public void serialize(ByteBuffer buffer) throws IOException {
+    ByteBuffer byteBuffer = buffer.order() == LITTLE_ENDIAN ? buffer
+        : buffer.slice().order(LITTLE_ENDIAN);
+    if (art.isEmpty()) {
+      byteBuffer.put(EMPTY_TAG);
+      return;
+    } else {
+      byteBuffer.put(NOT_EMPTY_TAG);
+    }
+    art.serializeArt(byteBuffer);
+    containers.serialize(byteBuffer);
   }
 
   /**
    * deserialize from the input ByteBuffer in little endian
-   * @param byteBuffer the ByteBuffer
+   * @param buffer the ByteBuffer
    * @throws IOException indicate exception happened
    */
-  public void deserialize(ByteBuffer byteBuffer) throws IOException {
-    //TODO:
+  public void deserialize(ByteBuffer buffer) throws IOException {
+    ByteBuffer byteBuffer = buffer.order() == LITTLE_ENDIAN ? buffer
+        : buffer.slice().order(LITTLE_ENDIAN);
+    clear();
+    byte emptyTag = byteBuffer.get();
+    if (emptyTag == EMPTY_TAG) {
+      return;
+    }
+    art.deserializeArt(byteBuffer);
+    containers.deserialize(byteBuffer);
   }
 
   /**
@@ -127,7 +146,7 @@ public class HighLowContainer {
    * @return the size in bytes
    */
   public long serializedSizeInBytes() {
-    long totalSize = 1l;
+    long totalSize = 1L;
     if (art.isEmpty()) {
       return totalSize;
     }

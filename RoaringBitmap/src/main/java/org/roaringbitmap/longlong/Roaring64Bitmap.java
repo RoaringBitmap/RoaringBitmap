@@ -6,6 +6,7 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Objects;
 import org.roaringbitmap.ArrayContainer;
@@ -112,7 +113,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       if (left >= card) {
         left = left - card;
       } else {
-        byte[] high = leafNode.getKey();
+        byte[] high = leafNode.getKeyBytes();
         int leftAsUnsignedInt = (int) left;
         char low = container.select(leftAsUnsignedInt);
         return LongUtils.toLong(high, low);
@@ -361,7 +362,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
         if (charIterator != null && !charIterator.hasNext()) {
           if (keyIte.hasNext()) {
             LeafNode leafNode = keyIte.next();
-            high = leafNode.getKey();
+            high = leafNode.getKeyBytes();
             long containerIdx = leafNode.getContainerIdx();
             Container container = highLowContainer.getContainer(containerIdx);
             if (!reverse) {
@@ -380,7 +381,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
         if (charIterator == null) {
           if (keyIte.hasNext()) {
             LeafNode leafNode = keyIte.next();
-            high = leafNode.getKey();
+            high = leafNode.getKeyBytes();
             long containerIdx = leafNode.getContainerIdx();
             Container container = highLowContainer.getContainer(containerIdx);
             if (!reverse) {
@@ -488,6 +489,16 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
   }
 
   /**
+   * Serialize this bitmap, please make sure the size of the serialized bytes is
+   * smaller enough that ByteBuffer can hold it.
+   * @param byteBuffer the ByteBuffer
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public void serialize(ByteBuffer byteBuffer) throws IOException {
+    highLowContainer.serialize(byteBuffer);
+  }
+
+  /**
    * Deserialize (retrieve) this bitmap.
    *
    * Unlike RoaringBitmap, there is no specification for now: it may change from one java version to
@@ -499,6 +510,22 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   public void deserialize(DataInput in) throws IOException {
+    this.clear();
+    highLowContainer.deserialize(in);
+  }
+
+  /**
+   * Deserialize (retrieve) this bitmap.
+   *
+   * Unlike RoaringBitmap, there is no specification for now: it may change from one java version to
+   * another, and from one RoaringBitmap version to another.
+   *
+   * The current bitmap is overwritten.
+   *
+   * @param in the ByteBuffer stream
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public void deserialize(ByteBuffer in) throws IOException {
     this.clear();
     highLowContainer.deserialize(in);
   }

@@ -20,4 +20,19 @@ public class ArraysShim {
   public static boolean equals(char[] x, int xmin, int xmax, char[] y, int ymin, int ymax) {
     return Arrays.equals(x, xmin, xmax, y, ymin, ymax);
   }
+
+  /**
+   * Finds and returns the relative index of the first mismatch between two byte arrays over the
+   * specified ranges,otherwise return -1 if no mismatch is found. The index will be in the range of
+   * 0 (inclusive) up to the length (inclusive) of the smaller range.
+   *
+   * @param aFromIndex inclusive
+   * @param aToIndex exclusive
+   * @param bFromIndex inclusive
+   * @param bToIndex exclusive
+   */
+  public static int mismatch​(byte[] a, int aFromIndex, int aToIndex,
+      byte[] b, int bFromIndex, int bToIndex) {
+    return Arrays.mismatch(a, aFromIndex, aToIndex, b, bFromIndexm, bToIndex);
+  }
 }

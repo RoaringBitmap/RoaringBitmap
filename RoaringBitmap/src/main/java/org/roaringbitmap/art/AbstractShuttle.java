@@ -87,7 +87,7 @@ public abstract class AbstractShuttle implements Shuttle {
 
   @Override
   public void remove() {
-    byte[] currentLeafKey = getCurrentLeafNode().key;
+    byte[] currentLeafKey = getCurrentLeafNode().getKeyBytes();
     Toolkit toolkit = art.removeSpecifyKey(art.getRoot(), currentLeafKey, 0);
     if (containers != null) {
       containers.remove(toolkit.matchedContainerId);

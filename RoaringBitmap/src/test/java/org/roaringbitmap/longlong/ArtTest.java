@@ -24,7 +24,7 @@ public class ArtTest {
     boolean hasNext = leafNodeIterator.hasNext();
     Assertions.assertTrue(hasNext);
     LeafNode leafNode = leafNodeIterator.next();
-    Assertions.assertTrue(BytesUtil.same(leafNode.getKey(), key1));
+    Assertions.assertTrue(BytesUtil.same(leafNode.getKeyBytes(), key1));
     Assertions.assertTrue(leafNode.getContainerIdx() == 0);
     hasNext = leafNodeIterator.hasNext();
     Assertions.assertTrue(!hasNext);
@@ -43,12 +43,12 @@ public class ArtTest {
     boolean hasNext = leafNodeIterator.hasNext();
     Assertions.assertTrue(hasNext);
     LeafNode leafNode = leafNodeIterator.next();
-    Assertions.assertTrue(BytesUtil.same(leafNode.getKey(), key1));
+    Assertions.assertTrue(BytesUtil.same(leafNode.getKeyBytes(), key1));
     Assertions.assertTrue(leafNode.getContainerIdx() == 0);
     hasNext = leafNodeIterator.hasNext();
     Assertions.assertTrue(hasNext);
     leafNode = leafNodeIterator.next();
-    Assertions.assertTrue(BytesUtil.same(leafNode.getKey(), key2));
+    Assertions.assertTrue(BytesUtil.same(leafNode.getKeyBytes(), key2));
     Assertions.assertTrue(leafNode.getContainerIdx() == 1);
     hasNext = leafNodeIterator.hasNext();
     Assertions.assertTrue(!hasNext);
@@ -72,24 +72,24 @@ public class ArtTest {
     boolean hasNext = leafNodeIterator.hasNext();
     Assertions.assertTrue(hasNext);
     LeafNode leafNode = leafNodeIterator.next();
-    Assertions.assertTrue(BytesUtil.same(leafNode.getKey(), key1));
-    Assertions.assertTrue(leafNode.getContainerIdx() == 0);
+    Assertions.assertTrue(BytesUtil.same(leafNode.getKeyBytes(), key1));
+    Assertions.assertEquals(0, leafNode.getContainerIdx());
     hasNext = leafNodeIterator.hasNext();
     Assertions.assertTrue(hasNext);
     leafNode = leafNodeIterator.next();
-    Assertions.assertTrue(BytesUtil.same(leafNode.getKey(), key2));
-    Assertions.assertTrue(leafNode.getContainerIdx() == 1);
+    Assertions.assertTrue(BytesUtil.same(leafNode.getKeyBytes(), key2));
+    Assertions.assertEquals(1, leafNode.getContainerIdx());
     hasNext = leafNodeIterator.hasNext();
     Assertions.assertTrue(hasNext);
     long containerIdx = art.findByKey(key4);
-    Assertions.assertTrue(containerIdx == 3);
+    Assertions.assertEquals(3, containerIdx);
     containerIdx = art.findByKey(key5);
-    Assertions.assertTrue(containerIdx == 4);
+    Assertions.assertEquals(4, containerIdx);
     art.remove(key5);
     art.remove(key4);
     //shrink to node4
     long containerIdx4 = art.findByKey(key3);
-    Assertions.assertTrue(containerIdx4 == 2);
+    Assertions.assertEquals(2, containerIdx4);
   }
 
   //node48
@@ -124,7 +124,7 @@ public class ArtTest {
     Assertions.assertTrue(containerIdx == 0);
     key = new byte[]{1, 2, 3, 4, 5, 10};
     containerIdx = art.findByKey(key);
-    Assertions.assertTrue(containerIdx == 10);
+    Assertions.assertEquals(10, containerIdx);
     key = new byte[]{1, 2, 3, 4, 5, 16};
     containerIdx = art.findByKey(key);
     Assertions.assertTrue(containerIdx == 16);
@@ -139,6 +139,7 @@ public class ArtTest {
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(sizeInBytesI);
     DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
     art.serializeArt(dataOutputStream);
+    Assertions.assertEquals(sizeInBytesI, byteArrayOutputStream.toByteArray().length);
     Art deserArt = new Art();
     DataInputStream dataInputStream = new DataInputStream(
         new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));

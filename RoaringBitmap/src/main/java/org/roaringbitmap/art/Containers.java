@@ -3,6 +3,7 @@ package org.roaringbitmap.art;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,8 +15,8 @@ import org.roaringbitmap.RunContainer;
 import org.roaringbitmap.longlong.LongUtils;
 
 /**
- *To support the largest 2^48 different keys,we almost need 2^18 Container
- *arrays which holds 2^31 - 8 Container
+ * To support the largest 2^48 different keys,we almost need 2^18 Container arrays which holds 2^31
+ * - 8 Container
  */
 public class Containers {
 
@@ -49,6 +50,7 @@ public class Containers {
 
   /**
    * remove the container index Container
+   *
    * @param containerIdx the container index
    */
   public void remove(long containerIdx) {
@@ -60,6 +62,7 @@ public class Containers {
 
   /**
    * get the Container with the corresponding container index
+   *
    * @param idx the container index
    * @return the corresponding Container
    */
@@ -73,6 +76,7 @@ public class Containers {
 
   /**
    * add a Container
+   *
    * @param container a Container
    * @return the container index
    */
@@ -94,6 +98,7 @@ public class Containers {
 
   /**
    * a iterator of the Containers
+   *
    * @return a iterator
    */
   public ContainerIterator iterator() {
@@ -102,6 +107,7 @@ public class Containers {
 
   /**
    * replace the container index one with a fresh Container
+   *
    * @param containerIdx the container index to replace
    * @param freshContainer the fresh one
    */
@@ -113,6 +119,7 @@ public class Containers {
 
   /**
    * replace with a fresh Container
+   *
    * @param firstLevelIdx the first level array index
    * @param secondLevelIdx the second level array index
    * @param freshContainer a fresh container
@@ -123,6 +130,7 @@ public class Containers {
 
   /**
    * the number of all the holding containers
+   *
    * @return the container number
    */
   public long getContainerSize() {
@@ -173,10 +181,11 @@ public class Containers {
 
   /**
    * Report the number of bytes required for serialization.
+   *
    * @return The size in bytes
    */
   public long serializedSizeInBytes() {
-    long totalSize = 0l;
+    long totalSize = 0L;
     totalSize += 4;
     int firstLevelSize = containerArrays.size();
     for (int i = 0; i < firstLevelSize; i++) {
@@ -198,18 +207,19 @@ public class Containers {
 
   /**
    * Serialize the Containers
+   *
    * @param dataOutput The destination DataOutput
    * @throws IOException Signals that an I/O exception has occurred.
    */
   public void serialize(DataOutput dataOutput) throws IOException {
     int firstLevelSize = containerArrays.size();
-    dataOutput.writeInt(Integer.reverse(firstLevelSize));
+    dataOutput.writeInt(Integer.reverseBytes(firstLevelSize));
     for (int i = 0; i < firstLevelSize; i++) {
       Container[] containers = containerArrays.get(i);
       int secondLevelSize = containers.length;
       dataOutput.writeByte(NOT_TRIMMED_MARK);
       //TODO:serialize the trimmed related data
-      dataOutput.writeInt(Integer.reverse(secondLevelSize));
+      dataOutput.writeInt(Integer.reverseBytes(secondLevelSize));
       for (int j = 0; j < containers.length; j++) {
         Container container = containers[j];
         if (container != null) {
@@ -222,23 +232,56 @@ public class Containers {
         }
       }
     }
-    dataOutput.write(LongUtils.toLDBytes(containerSize));
-    dataOutput.writeInt(Integer.reverse(this.firstLevelIdx));
-    dataOutput.writeInt(Integer.reverse(this.secondLevelIdx));
+    dataOutput.writeLong(Long.reverseBytes(containerSize));
+    dataOutput.writeInt(Integer.reverseBytes(this.firstLevelIdx));
+    dataOutput.writeInt(Integer.reverseBytes(this.secondLevelIdx));
+  }
+
+  /**
+   * Serialize the Containers
+   *
+   * @param byteBuffer The destination ByteBuffer
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public void serialize(ByteBuffer byteBuffer) throws IOException {
+    int firstLevelSize = containerArrays.size();
+    byteBuffer.putInt(firstLevelSize);
+    for (int i = 0; i < firstLevelSize; i++) {
+      Container[] containers = containerArrays.get(i);
+      int secondLevelSize = containers.length;
+      byteBuffer.put(NOT_TRIMMED_MARK);
+      //TODO:serialize the trimmed related data
+      byteBuffer.putInt(secondLevelSize);
+      for (int j = 0; j < containers.length; j++) {
+        Container container = containers[j];
+        if (container != null) {
+          byteBuffer.put(NOT_NULL_MARK);
+          byte containerType = containerType(container);
+          byteBuffer.put(containerType);
+          container.serialize(byteBuffer);
+        } else {
+          byteBuffer.put(NULL_MARK);
+        }
+      }
+    }
+    byteBuffer.putLong(containerSize);
+    byteBuffer.putInt(this.firstLevelIdx);
+    byteBuffer.putInt(this.secondLevelIdx);
   }
 
   /**
    * Deserialize the byte stream to init this Containers
+   *
    * @param dataInput The DataInput
    * @throws IOException Signals that an I/O exception has occurred.
    */
   public void deserialize(DataInput dataInput) throws IOException {
-    int firstLevelSize = Integer.reverse(dataInput.readInt());
+    int firstLevelSize = Integer.reverseBytes(dataInput.readInt());
     ArrayList<Container[]> containersArray = new ArrayList<>(firstLevelSize);
     for (int i = 0; i < firstLevelSize; i++) {
       //TODO:deserialize the trimmed related data
       byte trimTag = dataInput.readByte();
-      int secondLevelSize = Integer.reverse(dataInput.readInt());
+      int secondLevelSize = Integer.reverseBytes(dataInput.readInt());
       Container[] containers = new Container[secondLevelSize];
       for (int j = 0; j < secondLevelSize; j++) {
         byte nullTag = dataInput.readByte();
@@ -256,11 +299,44 @@ public class Containers {
       containersArray.add(containers);
     }
     this.containerArrays = containersArray;
-    byte[] littleEndianL = new byte[8];
-    dataInput.readFully(littleEndianL);
-    this.containerSize = LongUtils.fromLDBytes(littleEndianL);
-    this.firstLevelIdx = Integer.reverse(dataInput.readInt());
-    this.secondLevelIdx = Integer.reverse(dataInput.readInt());
+    this.containerSize = Long.reverseBytes(dataInput.readLong());
+    this.firstLevelIdx = Integer.reverseBytes(dataInput.readInt());
+    this.secondLevelIdx = Integer.reverseBytes(dataInput.readInt());
+  }
+
+  /**
+   * Deserialize the byte stream to init this Containers
+   *
+   * @param byteBuffer The DataInput
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public void deserialize(ByteBuffer byteBuffer) throws IOException {
+    int firstLevelSize = byteBuffer.getInt();
+    ArrayList<Container[]> containersArray = new ArrayList<>(firstLevelSize);
+    for (int i = 0; i < firstLevelSize; i++) {
+      //TODO:deserialize the trimmed related data
+      byte trimTag = byteBuffer.get();
+      int secondLevelSize = byteBuffer.getInt();
+      Container[] containers = new Container[secondLevelSize];
+      for (int j = 0; j < secondLevelSize; j++) {
+        byte nullTag = byteBuffer.get();
+        if (nullTag == NULL_MARK) {
+          containers[j] = null;
+        } else if (nullTag == NOT_NULL_MARK) {
+          byte containerType = byteBuffer.get();
+          Container container = instanceContainer(containerType);
+          container.deserialize(byteBuffer);
+          containers[j] = container;
+        } else {
+          throw new RuntimeException("the null tag byte value:" + nullTag + " is not right!");
+        }
+      }
+      containersArray.add(containers);
+    }
+    this.containerArrays = containersArray;
+    this.containerSize = byteBuffer.getLong();
+    this.firstLevelIdx = byteBuffer.getInt();
+    this.secondLevelIdx = byteBuffer.getInt();
   }
 
   //TODO: remove allocated unused memory

@@ -915,6 +915,17 @@ public final class RunContainer extends Container implements Cloneable {
     }
   }
 
+  @Override
+  public void deserialize(ByteBuffer byteBuffer) throws IOException {
+    nbrruns = byteBuffer.getChar();
+    if (valueslength.length < 2 * nbrruns) {
+      valueslength = new char[2 * nbrruns];
+    }
+    for (int k = 0; k < 2 * nbrruns; ++k) {
+      this.valueslength[k] = byteBuffer.getChar();
+    }
+  }
+
   // not actually used anywhere, but potentially useful
   void ensureCapacity(int minNbRuns) {
     final int minCapacity = 2 * minNbRuns;
@@ -2108,6 +2119,11 @@ public final class RunContainer extends Container implements Cloneable {
   @Override
   public void serialize(DataOutput out) throws IOException {
     writeArray(out);
+  }
+
+  @Override
+  public void serialize(ByteBuffer byteBuffer) throws IOException {
+    writeArray(byteBuffer);
   }
 
   @Override

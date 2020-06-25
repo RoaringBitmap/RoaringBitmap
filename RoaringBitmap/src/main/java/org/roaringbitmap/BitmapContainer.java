@@ -415,6 +415,16 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
+  public void deserialize(ByteBuffer byteBuffer) throws IOException {
+    this.cardinality = 0;
+    for (int k = 0; k < bitmap.length; ++k) {
+      long w = byteBuffer.getLong();
+      bitmap[k] = w;
+      this.cardinality += Long.bitCount(w);
+    }
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (o instanceof BitmapContainer) {
       BitmapContainer srb = (BitmapContainer) o;
@@ -1262,6 +1272,14 @@ public final class BitmapContainer extends Container implements Cloneable {
     // little endian
     for (long w : bitmap) {
       out.writeLong(Long.reverseBytes(w));
+    }
+  }
+
+  @Override
+  public void serialize(ByteBuffer byteBuffer) throws IOException {
+    // little endian
+    for (long w : bitmap) {
+      byteBuffer.putLong(w);
     }
   }
 

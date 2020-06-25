@@ -23,7 +23,7 @@ public class KeyIterator implements Iterator<byte[]> {
 
   @Override
   public byte[] next() {
-    return current.getKey();
+    return current.getKeyBytes();
   }
 
   public long currentContainerIdx() {

@@ -264,6 +264,13 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
   public abstract void deserialize(DataInput in) throws IOException;
 
   /**
+   * Deserialize the container
+   * @param byteBuffer the ByteBuffer
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public abstract void deserialize(ByteBuffer byteBuffer) throws IOException;
+
+  /**
    * Fill the least significant 16 bits of the integer array, starting at index i, with the short
    * values from this container. The caller is responsible to allocate enough room. The most
    * significant 16 bits of each integer are given by the most significant bits of the provided
@@ -844,6 +851,13 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    * @throws IOException Signals that an I/O exception has occurred.
    */
   public abstract void serialize(DataOutput out) throws IOException;
+
+  /**
+   * Serialize the container
+   * @param byteBuffer the ByteBuffer
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public abstract void serialize(ByteBuffer byteBuffer) throws IOException;
 
   /**
    * Report the number of bytes required to serialize this container.
