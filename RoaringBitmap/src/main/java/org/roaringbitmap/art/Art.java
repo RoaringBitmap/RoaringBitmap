@@ -60,7 +60,7 @@ public class Art {
           return leafNode;
         }
         int mismatchIndex = ArraysShim
-            .mismatch​(leafNodeKeyBytes, depth, LeafNode.LEAF_NODE_KEY_LENGTH_IN_BYTES,
+            .mismatch(leafNodeKeyBytes, depth, LeafNode.LEAF_NODE_KEY_LENGTH_IN_BYTES,
                 key, depth, key.length);
         if (mismatchIndex != -1) {
           return null;
@@ -68,7 +68,7 @@ public class Art {
         return leafNode;
       }
       if (node.prefixLength > 0) {
-        int mismatchIndex = ArraysShim.mismatch​(key, depth, key.length,
+        int mismatchIndex = ArraysShim.mismatch(key, depth, key.length,
             node.prefix, depth, node.prefixLength);
         if (mismatchIndex != -1) {
           return null;
@@ -124,7 +124,7 @@ public class Art {
       }
     }
     if (node.prefixLength > 0) {
-      int mismatchIndex = ArraysShim.mismatch​(node.prefix, 0,
+      int mismatchIndex = ArraysShim.mismatch(node.prefix, 0,
           node.prefixLength, key, dep, key.length);
       if (mismatchIndex != -1) {
         return null;
@@ -175,7 +175,7 @@ public class Art {
   private boolean leafMatch(LeafNode leafNode, byte[] key, int dep) {
     byte[] leafNodeKeyBytes = leafNode.getKeyBytes();
     int mismatchIndex = ArraysShim
-        .mismatch​(leafNodeKeyBytes, dep, LeafNode.LEAF_NODE_KEY_LENGTH_IN_BYTES,
+        .mismatch(leafNodeKeyBytes, dep, LeafNode.LEAF_NODE_KEY_LENGTH_IN_BYTES,
             key, dep, key.length);
     if (mismatchIndex == -1) {
       return true;
@@ -207,7 +207,7 @@ public class Art {
     //to a inner node case
     if (node.prefixLength > 0) {
       //find the common prefix
-      int mismatchPos = ArraysShim.mismatch​(node.prefix, 0, node.prefixLength,
+      int mismatchPos = ArraysShim.mismatch(node.prefix, 0, node.prefixLength,
           key, depth, key.length);
       if (mismatchPos != -1) {
         Node4 node4 = new Node4(mismatchPos);
@@ -244,7 +244,7 @@ public class Art {
 
   //find common prefix length
   private int commonPrefixLength(byte[] key1, byte[] key2, int depth) {
-    int mismatchPos = ArraysShim.mismatch​(key1, depth, key1.length,
+    int mismatchPos = ArraysShim.mismatch(key1, depth, key1.length,
         key2, depth, key2.length);
     if (mismatchPos == -1) {
       return key1.length - depth;

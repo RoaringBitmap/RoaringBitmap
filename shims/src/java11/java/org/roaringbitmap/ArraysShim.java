@@ -31,7 +31,7 @@ public class ArraysShim {
    * @param bFromIndex inclusive
    * @param bToIndex exclusive
    */
-  public static int mismatch​(byte[] a, int aFromIndex, int aToIndex,
+  public static int mismatch(byte[] a, int aFromIndex, int aToIndex,
       byte[] b, int bFromIndex, int bToIndex) {
     return Arrays.mismatch(a, aFromIndex, aToIndex, b, bFromIndex, bToIndex);
   }

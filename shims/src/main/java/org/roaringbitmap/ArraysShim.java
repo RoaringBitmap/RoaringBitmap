@@ -40,7 +40,7 @@ public class ArraysShim {
    * @param bFromIndex inclusive
    * @param bToIndex exclusive
    */
-  public static int mismatch​(byte[] a, int aFromIndex, int aToIndex,
+  public static int mismatch(byte[] a, int aFromIndex, int aToIndex,
       byte[] b, int bFromIndex, int bToIndex) {
     int offset = 0;
     boolean foundMismatch = false;
