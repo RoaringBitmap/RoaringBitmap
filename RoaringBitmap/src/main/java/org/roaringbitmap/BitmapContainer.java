@@ -22,7 +22,7 @@ import static java.lang.Long.numberOfTrailingZeros;
  * Simple bitset-like container.
  */
 public final class BitmapContainer extends Container implements Cloneable {
-  protected static final int MAX_CAPACITY = 1 << 16;
+  public static final int MAX_CAPACITY = 1 << 16;
 
 
   private static final long serialVersionUID = 2L;
@@ -415,16 +415,6 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
-  public void deserialize(ByteBuffer byteBuffer) throws IOException {
-    this.cardinality = 0;
-    for (int k = 0; k < bitmap.length; ++k) {
-      long w = byteBuffer.getLong();
-      bitmap[k] = w;
-      this.cardinality += Long.bitCount(w);
-    }
-  }
-
-  @Override
   public boolean equals(Object o) {
     if (o instanceof BitmapContainer) {
       BitmapContainer srb = (BitmapContainer) o;
@@ -494,7 +484,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
-  protected int getArraySizeInBytes() {
+  public int getArraySizeInBytes() {
     return MAX_CAPACITY / 8;
   }
 
@@ -1276,14 +1266,6 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
-  public void serialize(ByteBuffer byteBuffer) throws IOException {
-    // little endian
-    for (long w : bitmap) {
-      byteBuffer.putLong(w);
-    }
-  }
-
-  @Override
   public int serializedSizeInBytes() {
     return serializedSizeInBytes(0);
   }
@@ -1340,12 +1322,12 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
-  protected void writeArray(DataOutput out) throws IOException {
+  public void writeArray(DataOutput out) throws IOException {
     serialize(out);
   }
 
   @Override
-  protected void writeArray(ByteBuffer buffer) {
+  public void writeArray(ByteBuffer buffer) {
     assert buffer.order() == ByteOrder.LITTLE_ENDIAN;
     LongBuffer buf = buffer.asLongBuffer();
     buf.put(bitmap);

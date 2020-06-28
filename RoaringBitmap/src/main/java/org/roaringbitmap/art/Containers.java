@@ -12,7 +12,6 @@ import org.roaringbitmap.BitmapContainer;
 import org.roaringbitmap.Container;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.RunContainer;
-import org.roaringbitmap.longlong.LongUtils;
 
 /**
  * To support the largest 2^48 different keys,we almost need 2^18 Container arrays which holds 2^31
@@ -195,7 +194,8 @@ public class Containers {
         Container container = containers[j];
         if (container != null) {
           totalSize += 2;
-          totalSize += container.serializedSizeInBytes();
+          totalSize += 4;
+          totalSize += container.getArraySizeInBytes();
         } else {
           totalSize += 1;
         }
@@ -226,7 +226,8 @@ public class Containers {
           dataOutput.writeByte(NOT_NULL_MARK);
           byte containerType = containerType(container);
           dataOutput.writeByte(containerType);
-          container.serialize(dataOutput);
+          dataOutput.writeInt(Integer.reverseBytes(container.getCardinality()));
+          container.writeArray(dataOutput);
         } else {
           dataOutput.writeByte(NULL_MARK);
         }
@@ -258,7 +259,8 @@ public class Containers {
           byteBuffer.put(NOT_NULL_MARK);
           byte containerType = containerType(container);
           byteBuffer.put(containerType);
-          container.serialize(byteBuffer);
+          byteBuffer.putInt(container.getCardinality());
+          container.writeArray(byteBuffer);
         } else {
           byteBuffer.put(NULL_MARK);
         }
@@ -289,8 +291,8 @@ public class Containers {
           containers[j] = null;
         } else if (nullTag == NOT_NULL_MARK) {
           byte containerType = dataInput.readByte();
-          Container container = instanceContainer(containerType);
-          container.deserialize(dataInput);
+          int cardinality = Integer.reverseBytes(dataInput.readInt());
+          Container container = instanceContainer(containerType, cardinality, dataInput);
           containers[j] = container;
         } else {
           throw new RuntimeException("the null tag byte value:" + nullTag + " is not right!");
@@ -324,8 +326,8 @@ public class Containers {
           containers[j] = null;
         } else if (nullTag == NOT_NULL_MARK) {
           byte containerType = byteBuffer.get();
-          Container container = instanceContainer(containerType);
-          container.deserialize(byteBuffer);
+          int cardinality = byteBuffer.getInt();
+          Container container = instanceContainer(containerType, cardinality, byteBuffer);
           containers[j] = container;
         } else {
           throw new RuntimeException("the null tag byte value:" + nullTag + " is not right!");
@@ -356,13 +358,52 @@ public class Containers {
     }
   }
 
-  private Container instanceContainer(byte containerType) {
+  private Container instanceContainer(byte containerType, int cardinality, DataInput dataInput)
+      throws IOException {
     if (containerType == 0) {
-      return new RunContainer();
+      int nbrruns = (Character.reverseBytes(dataInput.readChar()));
+      final char[] lengthsAndValues = new char[2 * nbrruns];
+
+      for (int j = 0; j < 2 * nbrruns; ++j) {
+        lengthsAndValues[j] = Character.reverseBytes(dataInput.readChar());
+      }
+      return new RunContainer(lengthsAndValues, nbrruns);
     } else if (containerType == 1) {
-      return new BitmapContainer();
+      final long[] bitmapArray = new long[BitmapContainer.MAX_CAPACITY / 64];
+      // little endian
+      for (int l = 0; l < bitmapArray.length; ++l) {
+        bitmapArray[l] = Long.reverseBytes(dataInput.readLong());
+      }
+      return new BitmapContainer(bitmapArray, cardinality);
     } else if (containerType == 2) {
-      return new ArrayContainer();
+      final char[] charArray = new char[cardinality];
+      for (int l = 0; l < charArray.length; ++l) {
+        charArray[l] = Character.reverseBytes(dataInput.readChar());
+      }
+      return new ArrayContainer(charArray);
+    } else {
+      throw new UnsupportedOperationException("Not supported container type:" + containerType);
+    }
+  }
+
+  private Container instanceContainer(byte containerType, int cardinality, ByteBuffer byteBuffer)
+      throws IOException {
+    if (containerType == 0) {
+      int nbrruns = byteBuffer.getChar();
+      final char[] lengthsAndValues = new char[2 * nbrruns];
+      byteBuffer.asCharBuffer().get(lengthsAndValues);
+      byteBuffer.position(byteBuffer.position() + lengthsAndValues.length * 2);
+      return new RunContainer(lengthsAndValues, nbrruns);
+    } else if (containerType == 1) {
+      final long[] bitmapArray = new long[BitmapContainer.MAX_CAPACITY / 64];
+      byteBuffer.asLongBuffer().get(bitmapArray);
+      byteBuffer.position(byteBuffer.position() + bitmapArray.length * 8);
+      return new BitmapContainer(bitmapArray, cardinality);
+    } else if (containerType == 2) {
+      final char[] charArray = new char[cardinality];
+      byteBuffer.asCharBuffer().get(charArray);
+      byteBuffer.position(byteBuffer.position() + charArray.length * 2);
+      return new ArrayContainer(charArray);
     } else {
       throw new UnsupportedOperationException("Not supported container type:" + containerType);
     }

@@ -263,12 +263,6 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    */
   public abstract void deserialize(DataInput in) throws IOException;
 
-  /**
-   * Deserialize the container
-   * @param byteBuffer the ByteBuffer
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  public abstract void deserialize(ByteBuffer byteBuffer) throws IOException;
 
   /**
    * Fill the least significant 16 bits of the integer array, starting at index i, with the short
@@ -298,7 +292,7 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    *
    * @return size in bytes
    */
-  protected abstract int getArraySizeInBytes();
+  public abstract int getArraySizeInBytes();
 
   /**
    * Computes the distinct number of char values in the container. Can be expected to run in
@@ -852,12 +846,6 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    */
   public abstract void serialize(DataOutput out) throws IOException;
 
-  /**
-   * Serialize the container
-   * @param byteBuffer the ByteBuffer
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  public abstract void serialize(ByteBuffer byteBuffer) throws IOException;
 
   /**
    * Report the number of bytes required to serialize this container.
@@ -885,14 +873,14 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    * @param out output stream
    * @throws IOException in case of failure
    */
-  protected abstract void writeArray(DataOutput out) throws IOException;
+  public abstract void writeArray(DataOutput out) throws IOException;
 
   /**
    * Write just the underlying array.
    *
    * @param buffer ByteBuffer to write to
    */
-  protected abstract void writeArray(ByteBuffer buffer);
+  public abstract void writeArray(ByteBuffer buffer);
 
 
   /**

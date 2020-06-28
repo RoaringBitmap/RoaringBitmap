@@ -915,17 +915,6 @@ public final class RunContainer extends Container implements Cloneable {
     }
   }
 
-  @Override
-  public void deserialize(ByteBuffer byteBuffer) throws IOException {
-    nbrruns = byteBuffer.getChar();
-    if (valueslength.length < 2 * nbrruns) {
-      valueslength = new char[2 * nbrruns];
-    }
-    for (int k = 0; k < 2 * nbrruns; ++k) {
-      this.valueslength[k] = byteBuffer.getChar();
-    }
-  }
-
   // not actually used anywhere, but potentially useful
   void ensureCapacity(int minNbRuns) {
     final int minCapacity = 2 * minNbRuns;
@@ -1011,7 +1000,7 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   @Override
-  protected int getArraySizeInBytes() {
+  public int getArraySizeInBytes() {
     return 2 + 4 * this.nbrruns; // "array" includes its size
   }
 
@@ -2121,10 +2110,6 @@ public final class RunContainer extends Container implements Cloneable {
     writeArray(out);
   }
 
-  @Override
-  public void serialize(ByteBuffer byteBuffer) throws IOException {
-    writeArray(byteBuffer);
-  }
 
   @Override
   public int serializedSizeInBytes() {
@@ -2414,7 +2399,7 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   @Override
-  protected void writeArray(DataOutput out) throws IOException {
+  public void writeArray(DataOutput out) throws IOException {
     out.writeShort(Character.reverseBytes((char) this.nbrruns));
     for (int k = 0; k < 2 * this.nbrruns; ++k) {
       out.writeShort(Character.reverseBytes(this.valueslength[k]));
@@ -2422,7 +2407,7 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   @Override
-  protected void writeArray(ByteBuffer buffer) {
+  public void writeArray(ByteBuffer buffer) {
     assert buffer.order() == ByteOrder.LITTLE_ENDIAN;
     CharBuffer buf = buffer.asCharBuffer();
     buf.put((char)nbrruns);

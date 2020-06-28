@@ -904,18 +904,6 @@ public class TestArrayContainer {
         assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 8)));
     }
 
-    @Test
-    public void testSerDeser() throws IOException {
-        ArrayContainer container = new ArrayContainer(new char[] { (char)((1 << 15) | 5), (char)((1 << 15) | 7)});
-        ByteBuffer byteBuffer = ByteBuffer.allocate(container.serializedSizeInBytes()).order(ByteOrder.LITTLE_ENDIAN);
-        container.serialize(byteBuffer);
-        byteBuffer.flip();
-        ArrayContainer deserOne = new ArrayContainer();
-        deserOne.deserialize(byteBuffer);
-        assertEquals(container.cardinality, deserOne.getCardinality());
-        assertEquals(container.select(0), deserOne.select(0));
-    }
-
     private static int lower16Bits(int x) {
         return ((char)x) & 0xFFFF;
     }

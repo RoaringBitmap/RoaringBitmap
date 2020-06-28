@@ -94,7 +94,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     this.content = bc.toShortArray();
   }
 
-  protected ArrayContainer(char[] newContent) {
+  public ArrayContainer(char[] newContent) {
     this.cardinality = newContent.length;
     this.content = newContent;
   }
@@ -359,17 +359,6 @@ public final class ArrayContainer extends Container implements Cloneable {
     }
   }
 
-  @Override
-  public void deserialize(ByteBuffer byteBuffer) throws IOException {
-    this.cardinality = 0xFFFF & byteBuffer.getChar();
-    if (this.content.length < this.cardinality) {
-      this.content = new char[this.cardinality];
-    }
-    for (int k = 0; k < this.cardinality; ++k) {
-      this.content[k] = byteBuffer.getChar();
-    }
-  }
-
   // in order
   private void emit(char val) {
     if (cardinality == content.length) {
@@ -426,7 +415,7 @@ public final class ArrayContainer extends Container implements Cloneable {
   }
 
   @Override
-  protected int getArraySizeInBytes() {
+  public int getArraySizeInBytes() {
     return cardinality * 2;
   }
 
@@ -1145,15 +1134,6 @@ public final class ArrayContainer extends Container implements Cloneable {
   }
 
   @Override
-  public void serialize(ByteBuffer byteBuffer) throws IOException {
-    byteBuffer.putShort((short) this.cardinality);
-    // little endian
-    for (int k = 0; k < this.cardinality; ++k) {
-      byteBuffer.putShort((short) this.content[k]);
-    }
-  }
-
-  @Override
   public int serializedSizeInBytes() {
     return serializedSizeInBytes(cardinality);
   }
@@ -1318,7 +1298,7 @@ public final class ArrayContainer extends Container implements Cloneable {
   }
 
   @Override
-  protected void writeArray(DataOutput out) throws IOException {
+  public void writeArray(DataOutput out) throws IOException {
     // little endian
     for (int k = 0; k < this.cardinality; ++k) {
       char v = this.content[k];
@@ -1327,7 +1307,7 @@ public final class ArrayContainer extends Container implements Cloneable {
   }
 
   @Override
-  protected void writeArray(ByteBuffer buffer) {
+  public void writeArray(ByteBuffer buffer) {
     assert buffer.order() == ByteOrder.LITTLE_ENDIAN;
     CharBuffer buf = buffer.asCharBuffer();
     buf.put(content, 0, cardinality);

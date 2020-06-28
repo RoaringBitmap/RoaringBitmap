@@ -3882,20 +3882,6 @@ public class TestRunContainer {
     assertFalse(rc.intersects(57, 215));
   }
 
-  @Test
-  public void testSerDeser() throws IOException {
-    RunContainer rc = new RunContainer(new char[]{23, 24}, 1);
-    ByteBuffer byteBuffer = ByteBuffer.allocate(rc.serializedSizeInBytes()).order(ByteOrder.LITTLE_ENDIAN);
-    rc.serialize(byteBuffer);
-    byteBuffer.flip();
-    RunContainer deserOne = new RunContainer();
-    deserOne.deserialize(byteBuffer);
-    assertFalse(rc.contains(48, 49));
-    assertFalse(deserOne.contains(48, 49));
-    assertEquals(rc.getCardinality(), deserOne.getCardinality());
-
-  }
-
   private static int lower16Bits(int x) {
     return ((char)x) & 0xFFFF;
   }
