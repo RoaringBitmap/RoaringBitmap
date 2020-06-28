@@ -42,25 +42,20 @@ public class ArraysShim {
    */
   public static int mismatch(byte[] a, int aFromIndex, int aToIndex,
       byte[] b, int bFromIndex, int bToIndex) {
-    int offset = 0;
+    int aLength = aToIndex - aFromIndex;
+    int bLength = bToIndex - bFromIndex;
+    int length = Math.min(aLength, bLength);
+    int i = 0;
     boolean foundMismatch = false;
-    for (; aFromIndex < aToIndex && bFromIndex < bToIndex; ) {
-      if (a[aFromIndex] != b[bFromIndex]) {
+    for (; i < length; i++) {
+      if (a[aFromIndex + i] != b[bFromIndex + i]) {
         foundMismatch = true;
         break;
       }
-      aFromIndex++;
-      bFromIndex++;
-      offset++;
     }
-    if (foundMismatch) {
-      return offset;
-    }
-    if (!foundMismatch & offset > 0) {
-      //match all
+    if (!foundMismatch && aLength == bLength) {
       return -1;
-    } else {
-      return 0;
     }
+    return (!foundMismatch && aLength != bLength) ? length : i;
   }
 }

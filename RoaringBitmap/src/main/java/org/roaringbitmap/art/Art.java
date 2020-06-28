@@ -61,16 +61,16 @@ public class Art {
         }
         int mismatchIndex = ArraysShim
             .mismatch(leafNodeKeyBytes, depth, LeafNode.LEAF_NODE_KEY_LENGTH_IN_BYTES,
-                key, depth, key.length);
+                key, depth, LeafNode.LEAF_NODE_KEY_LENGTH_IN_BYTES);
         if (mismatchIndex != -1) {
           return null;
         }
         return leafNode;
       }
       if (node.prefixLength > 0) {
-        int mismatchIndex = ArraysShim.mismatch(key, depth, key.length,
-            node.prefix, depth, node.prefixLength);
-        if (mismatchIndex != -1) {
+        int commonLength = commonPrefixLength(key, depth, key.length, node.prefix, 0,
+            node.prefixLength);
+        if (commonLength != node.prefixLength) {
           return null;
         }
         //common prefix is the same ,then increase the depth
@@ -125,7 +125,7 @@ public class Art {
     }
     if (node.prefixLength > 0) {
       int mismatchIndex = ArraysShim.mismatch(node.prefix, 0,
-          node.prefixLength, key, dep, key.length);
+          node.prefixLength, key, dep, node.prefixLength);
       if (mismatchIndex != -1) {
         return null;
       }
@@ -176,7 +176,7 @@ public class Art {
     byte[] leafNodeKeyBytes = leafNode.getKeyBytes();
     int mismatchIndex = ArraysShim
         .mismatch(leafNodeKeyBytes, dep, LeafNode.LEAF_NODE_KEY_LENGTH_IN_BYTES,
-            key, dep, key.length);
+            key, dep, LeafNode.LEAF_NODE_KEY_LENGTH_IN_BYTES);
     if (mismatchIndex == -1) {
       return true;
     } else {
@@ -192,7 +192,7 @@ public class Art {
     if (node.nodeType == NodeType.LEAF_NODE) {
       LeafNode leafNode = (LeafNode) node;
       byte[] prefix = leafNode.getKeyBytes();
-      int commonPrefix = commonPrefixLength(prefix, key, depth);
+      int commonPrefix = commonPrefixLength(prefix, depth, prefix.length, key, depth, key.length);
       Node4 node4 = new Node4(commonPrefix);
       //copy common prefix
       node4.prefixLength = (byte) commonPrefix;
@@ -206,10 +206,10 @@ public class Art {
     }
     //to a inner node case
     if (node.prefixLength > 0) {
-      //find the common prefix
+      //find the mismatch position
       int mismatchPos = ArraysShim.mismatch(node.prefix, 0, node.prefixLength,
           key, depth, key.length);
-      if (mismatchPos != -1) {
+      if (mismatchPos != node.prefixLength) {
         Node4 node4 = new Node4(mismatchPos);
         //copy prefix
         node4.prefixLength = (byte) mismatchPos;
@@ -243,14 +243,17 @@ public class Art {
   }
 
   //find common prefix length
-  private int commonPrefixLength(byte[] key1, byte[] key2, int depth) {
-    int mismatchPos = ArraysShim.mismatch(key1, depth, key1.length,
-        key2, depth, key2.length);
-    if (mismatchPos == -1) {
-      return key1.length - depth;
-    } else {
-      return mismatchPos;
+  private static int commonPrefixLength(byte[] key1, int aFromIndex, int aToIndex,
+      byte[] key2, int bFromIndex, int bToIndex) {
+    int aLength = aToIndex - aFromIndex;
+    int bLength = bToIndex - bFromIndex;
+    int minLength = Math.min(aLength, bLength);
+    int mismatchIndex = ArraysShim.mismatch(key1, aFromIndex, aToIndex, key2, bFromIndex, bToIndex);
+
+    if (aLength != bLength && mismatchIndex >= minLength) {
+      return minLength;
     }
+    return mismatchIndex;
   }
 
   public Node getRoot() {

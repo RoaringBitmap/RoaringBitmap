@@ -55,7 +55,7 @@ public class ArtTest {
     art.remove(key1);
     //shrink to leaf node
     long containerIdx2 = art.findByKey(key2);
-    Assertions.assertTrue(containerIdx2 == 1);
+    Assertions.assertEquals(1, containerIdx2);
   }
 
   //1 node16
