@@ -1,6 +1,9 @@
 package org.roaringbitmap;
 
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
@@ -3877,6 +3880,20 @@ public class TestRunContainer {
   public void testIntersects() {
     RunContainer rc = new RunContainer(new char[]{41, 15, 215, 0, 217, 2790, 3065, 170, 3269, 422, 3733, 43, 3833, 16, 3852, 7, 3662, 3, 3901, 2}, 10);
     assertFalse(rc.intersects(57, 215));
+  }
+
+  @Test
+  public void testSerDeser() throws IOException {
+    RunContainer rc = new RunContainer(new char[]{23, 24}, 1);
+    ByteBuffer byteBuffer = ByteBuffer.allocate(rc.serializedSizeInBytes()).order(ByteOrder.LITTLE_ENDIAN);
+    rc.serialize(byteBuffer);
+    byteBuffer.flip();
+    RunContainer deserOne = new RunContainer();
+    deserOne.deserialize(byteBuffer);
+    assertFalse(rc.contains(48, 49));
+    assertFalse(deserOne.contains(48, 49));
+    assertEquals(rc.getCardinality(), deserOne.getCardinality());
+
   }
 
   private static int lower16Bits(int x) {

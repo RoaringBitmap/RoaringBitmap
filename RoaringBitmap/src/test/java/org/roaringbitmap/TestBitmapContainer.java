@@ -4,6 +4,9 @@
 
 package org.roaringbitmap;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
@@ -1279,6 +1282,17 @@ public class TestBitmapContainer {
     assertEquals(((1 << 15) | 6), container.nextAbsentValue((char)((1 << 15) | 6)));
     assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 7)));
     assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 8)));
+  }
+
+  @Test
+  public void testSerDeser() throws IOException {
+    BitmapContainer container = new ArrayContainer(new char[] { (char)((1 << 15) | 5), (char)((1 << 15) | 7)}).toBitmapContainer();
+    ByteBuffer byteBuffer = ByteBuffer.allocate(container.serializedSizeInBytes()).order(ByteOrder.LITTLE_ENDIAN);
+    container.serialize(byteBuffer);
+    byteBuffer.flip();
+    BitmapContainer deserOne = new BitmapContainer();
+    deserOne.deserialize(byteBuffer);
+    assertEquals(container.cardinality, deserOne.cardinality);
   }
 
   private static long[] evenBits() {

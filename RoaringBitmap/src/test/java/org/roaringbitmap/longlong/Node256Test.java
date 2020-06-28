@@ -3,7 +3,9 @@ package org.roaringbitmap.longlong;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.roaringbitmap.art.LeafNode;
+import org.roaringbitmap.art.Node;
 import org.roaringbitmap.art.Node256;
+import org.roaringbitmap.art.Node48;
 
 public class Node256Test {
 
@@ -37,5 +39,21 @@ public class Node256Test {
     Assertions.assertEquals(121, pos121);
     int nextPos119 = node256.getNextSmallerPos(pos121);
     Assertions.assertEquals(119, nextPos119);
+  }
+
+  @Test
+  public void testShrinkToNode48() {
+    Node256 node256 = new Node256(0);
+    LeafNode leafNode = new LeafNode(0, 0);
+    for (int i = 0; i < 37; i++) {
+      node256 = Node256.insert(node256, leafNode, (byte) i);
+    }
+    int maxPos = node256.getMaxPos();
+    Node node = node256.remove(maxPos);
+    Assertions.assertTrue(node instanceof Node48);
+    Node48 node48 = (Node48) node;
+    LeafNode minLeafNode48 = (LeafNode) node48.getChild(node48.getMinPos());
+    LeafNode minLeafNode256 = (LeafNode) node256.getChild(node256.getMinPos());
+    Assertions.assertEquals(minLeafNode256, minLeafNode48);
   }
 }
