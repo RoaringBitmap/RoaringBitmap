@@ -56,13 +56,33 @@ public final class BufferFastAggregation {
   /**
    * Compute the AND aggregate.
    * 
-   * In practice, calls {#link naive_and}
+   * In practice, calls {#link workShyAnd}
    *
    * @param bitmaps input bitmaps (ImmutableRoaringBitmap or MutableRoaringBitmap)
    * @return aggregated bitmap
    */
-  public static MutableRoaringBitmap and(@SuppressWarnings("rawtypes") Iterator bitmaps) {
-    return naive_and(bitmaps);
+  public static MutableRoaringBitmap and(Iterator<? extends ImmutableRoaringBitmap> bitmaps) {
+    return and(new long[1024], bitmaps);
+  }
+
+  /**
+   * Compute the AND aggregate.
+   *
+   * In practice, calls {#link workShyAnd}
+   *
+   * @param bitmaps input bitmaps (ImmutableRoaringBitmap or MutableRoaringBitmap)
+   * @return aggregated bitmap
+   */
+  public static MutableRoaringBitmap and(long[] aggregationBuffer,
+                                         Iterator<? extends ImmutableRoaringBitmap> bitmaps) {
+    if (bitmaps.hasNext()) {
+      try {
+        return workShyAnd(aggregationBuffer, bitmaps);
+      } finally {
+        Arrays.fill(aggregationBuffer, 0L);
+      }
+    }
+    return new MutableRoaringBitmap();
   }
 
 
@@ -382,6 +402,88 @@ public final class BufferFastAggregation {
     MappeableContainer[][] containers = new MappeableContainer[numContainers][bitmaps.length];
     for (int i = 0; i < bitmaps.length; ++i) {
       ImmutableRoaringBitmap bitmap = bitmaps[i];
+      int position = 0;
+      for (int j = 0; j < bitmap.highLowContainer.size(); ++j) {
+        char key = bitmap.highLowContainer.getKeyAtIndex(j);
+        if ((words[key >>> 6] & (1L << key)) != 0) {
+          containers[position++][i] = bitmap.highLowContainer.getContainerAtIndex(j);
+        }
+      }
+    }
+
+    MutableRoaringArray array =
+            new MutableRoaringArray(keys, new MappeableContainer[numContainers], 0);
+    for (int i = 0; i < numContainers; ++i) {
+      MappeableContainer[] slice = containers[i];
+      Arrays.fill(words, -1L);
+      MappeableContainer tmp = new MappeableBitmapContainer(LongBuffer.wrap(words), -1);
+      for (MappeableContainer container : slice) {
+        MappeableContainer and = tmp.iand(container);
+        if (and != tmp) {
+          tmp = and;
+        }
+      }
+      tmp = tmp.repairAfterLazy();
+      if (!tmp.isEmpty()) {
+        array.append(keys[i], tmp instanceof MappeableBitmapContainer ? tmp.clone() : tmp);
+      }
+    }
+    return new MutableRoaringBitmap(array);
+  }
+
+  /**
+   * Computes the intersection by first intersecting the keys, avoids
+   * materialising containers.
+   *
+   * @param aggregationBuffer a buffer for use in aggregations.
+   * @param bitmaps the inputs
+   * @return the intersection of the bitmaps
+   */
+  static MutableRoaringBitmap workShyAnd(long[] aggregationBuffer,
+                                         Iterator<? extends ImmutableRoaringBitmap> bitmaps) {
+    long[] words = aggregationBuffer;
+    List<ImmutableRoaringBitmap> collected = new ArrayList<>();
+    ImmutableRoaringBitmap first = bitmaps.next();
+    collected.add(first);
+    for (int i = 0; i < first.highLowContainer.size(); ++i) {
+      char key = first.highLowContainer.getKeyAtIndex(i);
+      words[key >>> 6] |= 1L << key;
+    }
+    int bitmapCount = 1;
+    int numContainers = first.highLowContainer.size();
+    while (numContainers > 0 && bitmaps.hasNext()) {
+      final char[] keys;
+      ImmutableRoaringBitmap bitmap = bitmaps.next();
+      collected.add(bitmap);
+      ++bitmapCount;
+      if (bitmap.highLowContainer instanceof MutableRoaringArray) {
+        keys = ((MutableRoaringArray) bitmap.highLowContainer).keys;
+      } else {
+        keys = new char[bitmap.highLowContainer.size()];
+        for (int j = 0; j < keys.length; ++j) {
+          keys[j] = bitmap.highLowContainer.getKeyAtIndex(j);
+        }
+      }
+      numContainers = BufferUtil.intersectArrayIntoBitmap(words,
+              CharBuffer.wrap(keys),
+              bitmap.highLowContainer.size());
+    }
+    if (numContainers == 0) {
+      return new MutableRoaringBitmap();
+    }
+    char[] keys = new char[numContainers];
+    int base = 0;
+    int pos = 0;
+    for (long word : words) {
+      while (word != 0L) {
+        keys[pos++] = (char)(base + Long.numberOfTrailingZeros(word));
+        word &= (word - 1);
+      }
+      base += 64;
+    }
+    MappeableContainer[][] containers = new MappeableContainer[numContainers][bitmapCount];
+    for (int i = 0; i < bitmapCount; ++i) {
+      ImmutableRoaringBitmap bitmap = collected.get(i);
       int position = 0;
       for (int j = 0; j < bitmap.highLowContainer.size(); ++j) {
         char key = bitmap.highLowContainer.getKeyAtIndex(j);
