@@ -1372,7 +1372,7 @@ public final class BitmapContainer extends Container implements Cloneable {
       final long mask = 1L << vc;
       final long val = answer.bitmap[index];
       // TODO: check whether a branchy version could be faster
-      answer.cardinality += 1 - 2 * ((val & mask) >>> vc);
+      answer.cardinality += (int)(1 - 2 * ((val & mask) >>> vc));
       answer.bitmap[index] = val ^ mask;
     }
     if (answer.cardinality <= ArrayContainer.DEFAULT_MAX_SIZE) {
