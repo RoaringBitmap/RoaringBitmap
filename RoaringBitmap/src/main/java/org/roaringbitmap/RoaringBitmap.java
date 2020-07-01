@@ -453,40 +453,47 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
   /**
    * Set the specified values to true, within given boundaries. This can be expected to be slightly
-   * faster than calling "add" repeatedly. The provided integers values don't
-   * have to be in sorted order, but it may be preferable to sort them from a performance point of
-   * view.
+   * faster than calling "add" repeatedly on the values dat[offset], dat[offset+1],..., 
+   * dat[offset+n-1]. 
+   * The provided integers values don't have to be in sorted order, but it may be preferable 
+   * to sort them from a performance point of view. 
    *
    * @param dat set values
    * @param offset from which index the values should be set to true
    * @param n how many values should be set to true
    */
   public void addN(final int[] dat, final int offset, final int n) {
-    Container currentcont = null;
-    char currenthb = 0;
-    int currentcontainerindex = 0;
-    int j = 0;
-    if(j < n) {
-      int val = dat[j + offset];
-      currenthb = Util.highbits(val);
-      currentcontainerindex = highLowContainer.getIndex(currenthb);
-      if (currentcontainerindex >= 0) {
-        currentcont = highLowContainer.getContainerAtIndex(currentcontainerindex);
-        Container newcont = currentcont.add(Util.lowbits(val));
-        if(newcont != currentcont) {
-          highLowContainer.setContainerAtIndex(currentcontainerindex, newcont);
-          currentcont = newcont;
-        }
-      } else {
-        currentcontainerindex = - currentcontainerindex - 1;
-        final ArrayContainer newac = new ArrayContainer();
-        currentcont = newac.add(Util.lowbits(val));
-        highLowContainer.insertNewKeyValueAt(currentcontainerindex, currenthb, currentcont);
-      }
-      j++;
+    // let us validate the values first.
+    if((n < 0) || (offset < 0)) {
+      throw new IllegalArgumentException("Negative values do not make sense.");
     }
+    if(n == 0) {
+      return; // nothing to do
+    }
+    if(offset + n > dat.length) {
+      throw new IllegalArgumentException("Data source is too small.");
+    }
+    Container currentcont = null;
+    int j = 0;
+    int val = dat[j + offset];
+    char currenthb = Util.highbits(val);
+    int currentcontainerindex = highLowContainer.getIndex(currenthb);
+    if (currentcontainerindex >= 0) {
+      currentcont = highLowContainer.getContainerAtIndex(currentcontainerindex);
+      Container newcont = currentcont.add(Util.lowbits(val));
+      if(newcont != currentcont) {
+        highLowContainer.setContainerAtIndex(currentcontainerindex, newcont);
+        currentcont = newcont;
+      }
+    } else {
+      currentcontainerindex = - currentcontainerindex - 1;
+      final ArrayContainer newac = new ArrayContainer();
+      currentcont = newac.add(Util.lowbits(val));
+      highLowContainer.insertNewKeyValueAt(currentcontainerindex, currenthb, currentcont);
+    }
+    j++;
     for( ; j < n; ++j) {
-      int val = dat[j + offset];
+      val = dat[j + offset];
       char newhb = Util.highbits(val);
       if(currenthb == newhb) {// easy case
         // this could be quite frequent
