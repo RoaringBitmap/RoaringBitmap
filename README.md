@@ -51,7 +51,7 @@ Other platforms such as [Whoosh](https://pypi.python.org/pypi/Whoosh/), [Microso
 There is a serialized format specification for interoperability between implementations: https://github.com/RoaringBitmap/RoaringFormatSpec/
 We have interoperable [C/C++](https://github.com/RoaringBitmap/CRoaring), Java and [Go](https://github.com/RoaringBitmap/roaring) implementations.
 
-(c) 2013-2019 the RoaringBitmap authors
+(c) 2013-... the RoaringBitmap authors
 
 
 This code is licensed under Apache License, Version 2.0 (AL2.0).
