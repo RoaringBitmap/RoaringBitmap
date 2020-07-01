@@ -149,7 +149,7 @@ public class simplebenchmark {
             if(rb.contains(maxvalue / 2 )) ++ quartcount;
             if(rb.contains(3 * maxvalue / 4 )) ++ quartcount;
         }
-        if(quartcount == 0xFFFFFFFF) System.out.println(); // to defeat clever compilers
+        if(quartcount == 0) System.out.println(); // to defeat clever compilers
         stop = System.nanoTime();
         timings.add(stop - start);
         return timings;
@@ -191,7 +191,7 @@ public class simplebenchmark {
             if(rb.contains(maxvalue / 2 )) ++ quartcount;
             if(rb.contains(3 * maxvalue / 4 )) ++ quartcount;
         }
-        if(quartcount == 0xFFFFFFFF) System.out.println(); // to defeat clever compilers
+        if(quartcount == 0) System.out.println(); // to defeat clever compilers
         stop = System.nanoTime();
         timings.add(stop - start);
         return timings;

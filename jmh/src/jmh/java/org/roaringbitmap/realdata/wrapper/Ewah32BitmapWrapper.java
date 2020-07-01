@@ -71,7 +71,8 @@ final class Ewah32BitmapWrapper implements Bitmap {
     try {
       temp = (EWAHCompressedBitmap32) bitmap.clone();
     } catch (CloneNotSupportedException e) {
-    } ;
+      throw new RuntimeException("Can't happen");
+    }
 
     temp.setSizeInBits(rangeEnd, false);
     temp.not();
