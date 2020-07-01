@@ -22,7 +22,7 @@ import static java.lang.Long.numberOfTrailingZeros;
  * Simple bitset-like container.
  */
 public final class BitmapContainer extends Container implements Cloneable {
-  protected static final int MAX_CAPACITY = 1 << 16;
+  public static final int MAX_CAPACITY = 1 << 16;
 
 
   private static final long serialVersionUID = 2L;
@@ -484,7 +484,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
-  protected int getArraySizeInBytes() {
+  public int getArraySizeInBytes() {
     return MAX_CAPACITY / 8;
   }
 
@@ -1344,12 +1344,12 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
-  protected void writeArray(DataOutput out) throws IOException {
+  public void writeArray(DataOutput out) throws IOException {
     serialize(out);
   }
 
   @Override
-  protected void writeArray(ByteBuffer buffer) {
+  public void writeArray(ByteBuffer buffer) {
     assert buffer.order() == ByteOrder.LITTLE_ENDIAN;
     LongBuffer buf = buffer.asLongBuffer();
     buf.put(bitmap);

@@ -94,7 +94,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     this.content = bc.toShortArray();
   }
 
-  protected ArrayContainer(char[] newContent) {
+  public ArrayContainer(char[] newContent) {
     this.cardinality = newContent.length;
     this.content = newContent;
   }
@@ -415,7 +415,7 @@ public final class ArrayContainer extends Container implements Cloneable {
   }
 
   @Override
-  protected int getArraySizeInBytes() {
+  public int getArraySizeInBytes() {
     return cardinality * 2;
   }
 
@@ -1298,7 +1298,7 @@ public final class ArrayContainer extends Container implements Cloneable {
   }
 
   @Override
-  protected void writeArray(DataOutput out) throws IOException {
+  public void writeArray(DataOutput out) throws IOException {
     // little endian
     for (int k = 0; k < this.cardinality; ++k) {
       char v = this.content[k];
@@ -1307,7 +1307,7 @@ public final class ArrayContainer extends Container implements Cloneable {
   }
 
   @Override
-  protected void writeArray(ByteBuffer buffer) {
+  public void writeArray(ByteBuffer buffer) {
     assert buffer.order() == ByteOrder.LITTLE_ENDIAN;
     CharBuffer buf = buffer.asCharBuffer();
     buf.put(content, 0, cardinality);
