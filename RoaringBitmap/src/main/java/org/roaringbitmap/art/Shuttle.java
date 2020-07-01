@@ -15,9 +15,12 @@ public interface Shuttle {
 
   /**
    * get the current LeafNode after calling the method moveToNextLeaf
-   * @return
+   * @return the current visiting LeafNode
    */
   public LeafNode getCurrentLeafNode();
 
+  /**
+   * remove the current visiting LeafNode and its corresponding value container
+   */
   public void remove();
 }

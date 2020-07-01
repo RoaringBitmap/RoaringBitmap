@@ -35,10 +35,13 @@ public class ArraysShim {
    * specified ranges,otherwise return -1 if no mismatch is found. The index will be in the range of
    * 0 (inclusive) up to the length (inclusive) of the smaller range.
    *
+   * @param a one input byte array
    * @param aFromIndex inclusive
    * @param aToIndex exclusive
+   * @param b another input byte array
    * @param bFromIndex inclusive
    * @param bToIndex exclusive
+   * @return -1 if no mismatch found,otherwise the mismatch offset
    */
   public static int mismatch(byte[] a, int aFromIndex, int aToIndex,
       byte[] b, int bFromIndex, int bToIndex) {

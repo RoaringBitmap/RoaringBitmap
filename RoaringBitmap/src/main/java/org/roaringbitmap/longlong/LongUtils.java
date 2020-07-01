@@ -52,6 +52,8 @@ public class LongUtils {
 
   /**
    * to big endian bytes representation
+   * @param v a long value
+   * @return the input long value's big endian byte array representation
    */
   public static byte[] toBDBytes(long v) {
     byte[] work = new byte[8];

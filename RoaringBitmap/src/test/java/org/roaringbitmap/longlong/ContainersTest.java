@@ -5,6 +5,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.roaringbitmap.ArrayContainer;
@@ -21,10 +23,12 @@ public class ContainersTest {
     Containers containers = new Containers();
     ArrayContainer arrayContainer = new ArrayContainer();
     long cidx = containers.addContainer(arrayContainer);
+    long cidx0 = cidx;
     Container container = containers.getContainer(cidx);
     Assertions.assertTrue(container == arrayContainer);
     BitmapContainer bitmapContainer = new BitmapContainer();
     cidx = containers.addContainer(bitmapContainer);
+    long cidx1 = cidx;
     container = containers.getContainer(cidx);
     Assertions.assertTrue(container == bitmapContainer);
     RunContainer runContainer = new RunContainer();
@@ -42,9 +46,21 @@ public class ContainersTest {
     int i = 0;
     while (containerIterator.hasNext()) {
       containerIterator.next();
+      if (i == 0) {
+        long currentContainerIdx = containerIterator.getCurrentContainerIdx();
+        Assertions.assertEquals(cidx0, currentContainerIdx);
+        RunContainer rc = new RunContainer(new char[]{23, 24}, 1);
+        containerIterator.replace(rc);
+      }
       i++;
     }
     Assertions.assertTrue(i == 3);
+    Container replacedContainer = containers.getContainer(cidx0);
+    Assertions.assertEquals(23, replacedContainer.select(0));
+    ArrayContainer arrayContainer1 = new ArrayContainer(new char[]{10, 20, 30});
+    containers.replace(cidx1, arrayContainer1);
+    replacedContainer = containers.getContainer(cidx1);
+    Assertions.assertTrue(replacedContainer == arrayContainer1);
   }
 
   @Test
@@ -66,10 +82,21 @@ public class ContainersTest {
     DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream);
     deseredOne.deserialize(dataInputStream);
     long containerSize = deseredOne.getContainerSize();
-    Assertions.assertTrue(containerSize == 1);
+    Assertions.assertEquals(1, containerSize);
     Container container = containers.getContainer(containerIdx);
     Assertions.assertTrue(container instanceof ArrayContainer);
     ArrayContainer deseredArrayContainer = (ArrayContainer) container;
-    Assertions.assertTrue(deseredArrayContainer.getCardinality() == 20);
+    Assertions.assertEquals(20, deseredArrayContainer.getCardinality());
+
+    ByteBuffer byteBuffer = ByteBuffer.allocate(sizeInBytes).order(ByteOrder.LITTLE_ENDIAN);
+    containers.serialize(byteBuffer);
+    byteBuffer.flip();
+    Containers deserBBOne = new Containers();
+    deserBBOne.deserialize(byteBuffer);
+    containerSize = deserBBOne.getContainerSize();
+    Assertions.assertEquals(1, containerSize);
+    container = deserBBOne.getContainer(containerIdx);
+    Assertions.assertTrue(container instanceof ArrayContainer);
+    Assertions.assertEquals(20, container.getCardinality());
   }
 }

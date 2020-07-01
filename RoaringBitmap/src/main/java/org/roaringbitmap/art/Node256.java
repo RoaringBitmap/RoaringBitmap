@@ -1,9 +1,12 @@
 package org.roaringbitmap.art;
 
+import static java.lang.Long.numberOfTrailingZeros;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.LongBuffer;
 
 public class Node256 extends Node {
 
@@ -94,6 +97,9 @@ public class Node256 extends Node {
     if (pos == ILLEGAL_IDX) {
       pos = 256;
     }
+    if (pos == 0) {
+      return ILLEGAL_IDX;
+    }
     pos--;
     int longPos = pos >>> 6;
     long longVal = bitmapMask[longPos] & (LONG_MASK >>> -(pos + 1));
@@ -158,36 +164,58 @@ public class Node256 extends Node {
 
   @Override
   public void replaceChildren(Node[] children) {
-    for (int i = 0; i < 256; i++) {
-      if (children[i] != null) {
-        Node256.insert(this, children[i], (byte) i);
+    if (children.length == this.children.length) {
+      //short circuit path
+      this.children = children;
+      return;
+    }
+    int offset = 0;
+    int x = 0;
+    for (long longv : bitmapMask) {
+      int w = Long.bitCount(longv);
+      for (int i = 0; i < w; i++) {
+        int pos = x * 64 + numberOfTrailingZeros(longv);
+        this.children[pos] = children[offset + i];
+        longv &= (longv - 1);
       }
+      offset += w;
+      x++;
+    }
+  }
+
+
+  @Override
+  public void serializeNodeBody(DataOutput dataOutput) throws IOException {
+    for (long longv : bitmapMask) {
+      dataOutput.writeLong(Long.reverseBytes(longv));
     }
   }
 
   @Override
-  public void serializeNodeBody(DataOutput dataOutput) throws IOException {
-
-  }
-
-  @Override
   public void serializeNodeBody(ByteBuffer byteBuffer) throws IOException {
-
+    LongBuffer longBuffer = byteBuffer.asLongBuffer();
+    longBuffer.put(bitmapMask);
+    byteBuffer.position(byteBuffer.position() + 4 * 8);
   }
 
   @Override
   public void deserializeNodeBody(DataInput dataInput) throws IOException {
-
+    for (int i = 0; i < 4; i++) {
+      long longv = Long.reverseBytes(dataInput.readLong());
+      bitmapMask[i] = longv;
+    }
   }
 
   @Override
   public void deserializeNodeBody(ByteBuffer byteBuffer) throws IOException {
-
+    LongBuffer longBuffer = byteBuffer.asLongBuffer();
+    longBuffer.get(bitmapMask);
+    byteBuffer.position(byteBuffer.position() + 4 * 8);
   }
 
   @Override
   public int serializeNodeBodySizeInBytes() {
-    return 0;
+    return 4 * 8;
   }
 }
 

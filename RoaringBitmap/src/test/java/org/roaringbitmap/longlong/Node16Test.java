@@ -64,7 +64,32 @@ public class Node16Test {
     Node48 node48 = (Node48) node;
     int maxPos = node48.getMaxPos();
     Assertions.assertEquals(16, maxPos);
-    int pos = node48.getChildPos((byte)16);
+    int pos = node48.getChildPos((byte) 16);
     Assertions.assertEquals(maxPos, pos);
+  }
+
+  @Test
+  public void testVisit() {
+    Node16 node16 = new Node16(0);
+    LeafNode leafNode;
+    for (int i = 0; i < 15; i++) {
+      leafNode = new LeafNode(i, i);
+      node16 = (Node16) Node16.insert(node16, leafNode, (byte) i);
+    }
+    Assertions.assertEquals(0, node16.getMinPos());
+    Assertions.assertEquals(14, node16.getMaxPos());
+    int i = 0;
+    for (i = 0; i < 14; i++) {
+      int pos = node16.getNextLargerPos(i);
+      LeafNode leafNode1 = (LeafNode) node16.getChild(pos);
+      Assertions.assertEquals(i + 1, leafNode1.getContainerIdx());
+    }
+    i = 14;
+    for (; i >= 1; i--) {
+      int pos = node16.getNextSmallerPos(i);
+      LeafNode leafNode1 = (LeafNode) node16.getChild(pos);
+      Assertions.assertEquals(i - 1, leafNode1.getContainerIdx());
+    }
+    Assertions.assertEquals(-1, node16.getNextSmallerPos(i));
   }
 }

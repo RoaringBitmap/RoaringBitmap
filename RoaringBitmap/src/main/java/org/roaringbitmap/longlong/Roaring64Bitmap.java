@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Iterator;
 import java.util.Objects;
 import org.roaringbitmap.ArrayContainer;
@@ -53,7 +54,9 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     char low = LongUtils.lowPart(x);
     ContainerWithIndex containerWithIndex = highLowContainer.searchContainer(high);
     if (containerWithIndex != null) {
-      containerWithIndex.getContainer().add(low);
+      Container container = containerWithIndex.getContainer();
+      Container freshOne = container.add(low);
+      highLowContainer.replaceContainer(containerWithIndex.getContainerIdx(), freshOne);
     } else {
       ArrayContainer arrayContainer = new ArrayContainer();
       arrayContainer.add(low);
@@ -702,6 +705,26 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       char low = LongUtils.lowPart(x);
       Container freshOne = containerWithIndex.getContainer().flip(low);
       highLowContainer.replaceContainer(containerWithIndex.getContainerIdx(), freshOne);
+    }
+  }
+
+  //mainly used for benchmark
+  @Override
+  public Roaring64Bitmap clone() {
+    long sizeInBytesL = this.serializedSizeInBytes();
+    if (sizeInBytesL >= Integer.MAX_VALUE) {
+      throw new UnsupportedOperationException();
+    }
+    int sizeInBytesInt = (int) sizeInBytesL;
+    ByteBuffer byteBuffer = ByteBuffer.allocate(sizeInBytesInt).order(ByteOrder.LITTLE_ENDIAN);
+    try {
+      this.serialize(byteBuffer);
+      byteBuffer.flip();
+      Roaring64Bitmap freshOne = new Roaring64Bitmap();
+      freshOne.deserialize(byteBuffer);
+      return freshOne;
+    } catch (Exception e) {
+      throw new RuntimeException("fail to clone thorough the ser/deser", e);
     }
   }
 }

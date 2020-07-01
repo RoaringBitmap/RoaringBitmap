@@ -92,6 +92,7 @@ public class ContainerIterator implements Iterator<Container> {
 
   /**
    * replace current container
+   * @param container the fresh container which is to replace the current old one
    */
   public void replace(Container container) {
     int secondLevelArrIdx = currentSecondLevelArrIdx - 1;

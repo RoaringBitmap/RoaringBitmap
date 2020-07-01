@@ -88,6 +88,8 @@ public class Art {
 
   /**
    * a convenient method to traverse the key space in ascending order.
+   * @param containers input containers
+   * @return the key iterator
    */
   public KeyIterator iterator(Containers containers) {
     return new KeyIterator(this, containers);
@@ -95,7 +97,7 @@ public class Art {
 
   /**
    * remove the key from the art if it's there.
-   *
+   * @param key the high 48 bit key
    * @return the corresponding containerIdx or -1 indicating not exist
    */
   public long remove(byte[] key) {
@@ -217,9 +219,15 @@ public class Art {
         //split the current internal node, spawn a fresh node4 and let the
         //current internal node as its children.
         Node4.insert(node4, node, node.prefix[mismatchPos]);
-        node.prefixLength = (byte) (node.prefixLength - (mismatchPos + (byte) 1));
+        int nodeOriginalPrefixLength = node.prefixLength;
+        node.prefixLength = (byte) (nodeOriginalPrefixLength - (mismatchPos + (byte) 1));
         //move the remained common prefix of the initial internal node
-        System.arraycopy(node.prefix, mismatchPos + 1, node.prefix, 0, node.prefixLength);
+        if (node.prefixLength > 0) {
+          System.arraycopy(node.prefix, mismatchPos + 1, node.prefix, 0, node.prefixLength);
+        } else {
+          //TODO:to reduce the 0 prefix memory space,we could mark the prefix as null
+          node.prefix = new byte[0];
+        }
         LeafNode leafNode = new LeafNode(key, containerIdx);
         Node4.insert(node4, leafNode, key[mismatchPos + depth]);
         return node4;
@@ -261,18 +269,22 @@ public class Art {
   }
 
   public void serializeArt(DataOutput dataOutput) throws IOException {
+    dataOutput.writeLong(Long.reverseBytes(keySize));
     serialize(root, dataOutput);
   }
 
   public void deserializeArt(DataInput dataInput) throws IOException {
+    keySize = Long.reverseBytes(dataInput.readLong());
     root = deserialize(dataInput);
   }
 
   public void serializeArt(ByteBuffer byteBuffer) throws IOException {
+    byteBuffer.putLong(keySize);
     serialize(root, byteBuffer);
   }
 
   public void deserializeArt(ByteBuffer byteBuffer) throws IOException {
+    keySize = byteBuffer.getLong();
     root = deserialize(byteBuffer);
   }
 
@@ -359,7 +371,7 @@ public class Art {
   }
 
   public long serializeSizeInBytes() {
-    return serializeSizeInBytes(this.root);
+    return serializeSizeInBytes(this.root) + 8;
   }
 
   public long getKeySize() {

@@ -33,44 +33,55 @@ public abstract class Node {
 
   /**
    * get the position of a child corresponding to the input key 'k'
+   * @param k a key value of the byte range
+   * @return the child position corresponding to the key 'k'
    */
   public abstract int getChildPos(byte k);
 
   /**
    * get the child at the specified position in the node, the 'pos' range from 0 to count
+   * @param pos the position
+   * @return a Node corresponding to the input position
    */
   public abstract Node getChild(int pos);
 
   /**
    * replace the position child to the fresh one
+   * @param pos the position
+   * @param freshOne the fresh node to replace the old one
    */
   public abstract void replaceNode(int pos, Node freshOne);
 
   /**
    * get the position of the min element in current node.
+   * @return the minimum key's position
    */
   public abstract int getMinPos();
 
   /**
    * get the next position in the node
    *
-   * @param pos current position
+   * @param pos current position,-1 to start from the min one
+   * @return the next larger byte key's position which is close to 'pos' position,-1 for end
    */
   public abstract int getNextLargerPos(int pos);
 
   /**
    * get the max child's position
+   * @return the max byte key's position
    */
   public abstract int getMaxPos();
 
   /**
    * get the next smaller element's position
+   * @param pos the position,-1 to start from the largest one
+   * @return the next smaller key's position which is close to input 'pos' position,-1 for end
    */
   public abstract int getNextSmallerPos(int pos);
 
   /**
    * remove the specified position child
-   *
+   * @param pos the position to remove
    * @return an adaptive changed fresh node of the current node
    */
   public abstract Node remove(int pos);
@@ -143,28 +154,37 @@ public abstract class Node {
   /**
    * replace the node's children according to the given children parameter while doing the
    * deserialization phase.
+   * @param children all the not null children nodes in key byte ascending order,no null element
    */
-  public abstract void replaceChildren(Node[] children);
+  abstract void replaceChildren(Node[] children);
 
   /**
    * serialize the node's body content
+   * @param dataOutput the DataOutput
+   * @throws IOException exception indicates serialization errors
    */
-  public abstract void serializeNodeBody(DataOutput dataOutput) throws IOException;
+  abstract void serializeNodeBody(DataOutput dataOutput) throws IOException;
 
   /**
    * serialize the node's body content
+   * @param byteBuffer the ByteBuffer
+   * @throws IOException exception indicates serialization errors
    */
-  public abstract void serializeNodeBody(ByteBuffer byteBuffer) throws IOException;
+  abstract void serializeNodeBody(ByteBuffer byteBuffer) throws IOException;
 
   /**
    * deserialize the node's body content
+   * @param dataInput the DataInput
+   * @throws IOException exception indicates deserialization errors
    */
-  public abstract void deserializeNodeBody(DataInput dataInput) throws IOException;
+  abstract void deserializeNodeBody(DataInput dataInput) throws IOException;
 
   /**
    * deserialize the node's body content
+   * @param byteBuffer the ByteBuffer
+   * @throws IOException exception indicates deserialization errors
    */
-  public abstract void deserializeNodeBody(ByteBuffer byteBuffer) throws IOException;
+  abstract void deserializeNodeBody(ByteBuffer byteBuffer) throws IOException;
 
   /**
    * the serialized size except the common node header part
@@ -177,6 +197,9 @@ public abstract class Node {
    * insert the LeafNode as a child of the current internal node
    *
    * @param current current internal node
+   * @param childNode the leaf node
+   * @param key the key byte reference to the child leaf node
+   * @return an adaptive changed node of the input 'current' node
    */
   public static Node insertLeaf(Node current, LeafNode childNode, byte key) {
     switch (current.nodeType) {
@@ -195,6 +218,8 @@ public abstract class Node {
 
   /**
    * copy the prefix between two nodes
+   * @param src the source node
+   * @param dst the destination node
    */
   public static void copyPrefix(Node src, Node dst) {
     dst.prefixLength = src.prefixLength;
@@ -204,8 +229,11 @@ public abstract class Node {
   /**
    * search the position of the input byte key in the node's key byte array part
    *
+   * @param key the input key byte array
    * @param fromIndex inclusive
    * @param toIndex exclusive
+   * @param k the target key byte value
+   * @return the array offset of the target input key 'k' or -1 to not found
    */
   public static int binarySearch(byte[] key, int fromIndex, int toIndex,
       byte k) {
@@ -245,7 +273,7 @@ public abstract class Node {
     byteBuffer.putShort(this.count);
     byteBuffer.put(this.prefixLength);
     if (prefixLength > 0) {
-      byteBuffer.put(this.prefix);
+      byteBuffer.put(this.prefix, 0, prefixLength);
     }
   }
 

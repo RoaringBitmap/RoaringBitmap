@@ -11,6 +11,7 @@ import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -36,7 +37,7 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
-  public void test() {
+  public void test() throws Exception {
     Random random = new Random();
     Roaring64Bitmap roaring64Bitmap = new Roaring64Bitmap();
     Set<Long> source = new HashSet<>();
@@ -54,6 +55,52 @@ public class TestRoaring64Bitmap {
       i++;
     }
     Assertions.assertEquals(total, i);
+  }
+
+  @Test
+  public void testAllKindOfNodeTypesSerDeser() throws Exception {
+    Random random = new Random();
+    Roaring64Bitmap roaring64Bitmap = new Roaring64Bitmap();
+    Set<Long> source = new HashSet<>();
+    int total = 10000;
+    for (int i = 0; i < total; i++) {
+      long l = random.nextLong();
+      roaring64Bitmap.addLong(l);
+      source.add(l);
+    }
+    LongIterator longIterator = roaring64Bitmap.getLongIterator();
+    int i = 0;
+    while (longIterator.hasNext()) {
+      long actual = longIterator.next();
+      Assertions.assertTrue(source.contains(actual));
+      i++;
+    }
+    Assertions.assertEquals(total, i);
+    //test all kind of nodes's serialization/deserialization
+    long sizeL = roaring64Bitmap.serializedSizeInBytes();
+    if (sizeL > Integer.MAX_VALUE) {
+      return;
+    }
+    int sizeInt = (int) sizeL;
+    long select2 = roaring64Bitmap.select(2);
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(sizeInt);
+    DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
+    roaring64Bitmap.serialize(dataOutputStream);
+    ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+    DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream);
+    Roaring64Bitmap deserStreamOne = new Roaring64Bitmap();
+    deserStreamOne.deserialize(dataInputStream);
+    Assertions.assertEquals(select2, deserStreamOne.select(2));
+    deserStreamOne = null;
+    byteArrayInputStream = null;
+    byteArrayOutputStream = null;
+    ByteBuffer byteBuffer = ByteBuffer.allocate(sizeInt).order(ByteOrder.LITTLE_ENDIAN);
+    roaring64Bitmap.serialize(byteBuffer);
+    roaring64Bitmap = null;
+    byteBuffer.flip();
+    Roaring64Bitmap deserBBOne = new Roaring64Bitmap();
+    deserBBOne.deserialize(byteBuffer);
+    Assertions.assertEquals(select2, deserBBOne.select(2));
   }
 
   @Test

@@ -72,21 +72,10 @@ public class HighLowContainer {
 
   /**
    * @param reverse true ：ascending order, false: descending order
+   * @return the leaf node iterator
    */
   public LeafNodeIterator highKeyLeafNodeIterator(boolean reverse) {
     return art.leafNodeIterator(reverse, containers);
-  }
-
-  /**
-   * remove the key and the corresponding container value. Note:While you iterate the art using the
-   * KeyIterator or LeafNodeIterator calling the remove method will make the iterate go to wrong.
-   * The reason is the iterator using the stack to keep the node path,the remove method will cause
-   * the art node adaptive to another one,then make the iterate stack hold a stale node. So
-   * recommend you call the iterator's remove method.
-   */
-  public void remove(byte[] highPart) {
-    long containerIdx = art.remove(highPart);
-    containers.remove(containerIdx);
   }
 
   /**

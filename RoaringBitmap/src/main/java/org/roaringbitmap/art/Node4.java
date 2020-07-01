@@ -102,7 +102,6 @@ public class Node4 extends Node {
     count--;
     key = IntegerUtil.shiftLeftFromSpecifiedPosition(key, pos, count);
     for (; pos < count; pos++) {
-      //key[pos] = key[pos + 1];
       children[pos] = children[pos + 1];
     }
     if (count == 1) {
@@ -155,7 +154,13 @@ public class Node4 extends Node {
 
   @Override
   public void replaceChildren(Node[] children) {
-    this.children = children;
+    int pos = getNextLargerPos(ILLEGAL_IDX);
+    int offset = 0;
+    while (pos != ILLEGAL_IDX) {
+      this.children[pos] = children[offset];
+      pos = getNextLargerPos(pos);
+      offset++;
+    }
   }
 
   /**

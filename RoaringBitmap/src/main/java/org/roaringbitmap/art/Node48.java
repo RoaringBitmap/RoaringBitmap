@@ -5,6 +5,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.LongBuffer;
 import java.util.Arrays;
 import org.roaringbitmap.longlong.LongUtils;
 
@@ -234,10 +235,9 @@ public class Node48 extends Node {
 
   @Override
   public void serializeNodeBody(ByteBuffer byteBuffer) throws IOException {
-    for (int i = 0; i < 32; i++) {
-      long longv = childIndex[i];
-      byteBuffer.putLong(longv);
-    }
+    LongBuffer longBuffer = byteBuffer.asLongBuffer();
+    longBuffer.put(childIndex);
+    byteBuffer.position(byteBuffer.position() + 32 * 8);
   }
 
   @Override
@@ -249,9 +249,9 @@ public class Node48 extends Node {
 
   @Override
   public void deserializeNodeBody(ByteBuffer byteBuffer) throws IOException {
-    for (int i = 0; i < 32; i++) {
-      childIndex[i] = byteBuffer.getLong();
-    }
+    LongBuffer longBuffer = byteBuffer.asLongBuffer();
+    longBuffer.get(childIndex);
+    byteBuffer.position(byteBuffer.position() + 32 * 8);
   }
 
   @Override
@@ -261,13 +261,15 @@ public class Node48 extends Node {
 
   @Override
   public void replaceChildren(Node[] children) {
+    int step = 0;
     for (int i = 0; i < 32; i++) {
       long longv = childIndex[i];
       for (int j = 7; j >= 0; j--) {
         byte bytePos = (byte) (longv >>> (j * 8));
         int unsignedPos = Byte.toUnsignedInt(bytePos);
         if (bytePos != EMPTY_VALUE) {
-          this.children[unsignedPos] = children[unsignedPos];
+          this.children[unsignedPos] = children[step];
+          step++;
         }
       }
     }
