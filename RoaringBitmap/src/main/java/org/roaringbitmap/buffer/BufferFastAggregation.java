@@ -70,6 +70,7 @@ public final class BufferFastAggregation {
    *
    * In practice, calls {#link workShyAnd}
    *
+   * @param aggregationBuffer a buffer for use in aggregations
    * @param bitmaps input bitmaps (ImmutableRoaringBitmap or MutableRoaringBitmap)
    * @return aggregated bitmap
    */
