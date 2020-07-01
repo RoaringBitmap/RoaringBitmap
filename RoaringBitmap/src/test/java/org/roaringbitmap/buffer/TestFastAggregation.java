@@ -251,6 +251,17 @@ public class TestFastAggregation {
 
   @MethodSource("bitmaps")
   @ParameterizedTest(name = "testWorkShyAnd")
+  public void testWorkShyAndIterator(List<MutableRoaringBitmap> bitmaps) {
+    long[] buffer = new long[1024];
+    MutableRoaringBitmap result = BufferFastAggregation.and(buffer, bitmaps.iterator());
+    MutableRoaringBitmap expected = BufferFastAggregation.naive_and(bitmaps.iterator());
+    assertEquals(expected, result);
+    result = BufferFastAggregation.and(bitmaps.iterator());
+    assertEquals(expected, result);
+  }
+
+  @MethodSource("bitmaps")
+  @ParameterizedTest(name = "testWorkShyAnd")
   public void testWorkShyAndDirect(List<MutableRoaringBitmap> list) {
     ImmutableRoaringBitmap[] bitmaps = list.toArray(new ImmutableRoaringBitmap[0]);
     for (int i = 0; i < bitmaps.length; ++i) {
