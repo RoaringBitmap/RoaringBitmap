@@ -117,7 +117,7 @@ public class AllRunHorizontalOrBenchmark {
 
         for (int z = 0; z < 50; ++z) {
           int end = start + rand.nextInt(10000);
-          rb.add(start, end);
+          rb.add((long)start, (long)end);
           start = end + rand.nextInt(1000);
         }
         ConciseSet ccs = toConcise(rb.toArray());

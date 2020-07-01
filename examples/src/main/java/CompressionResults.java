@@ -27,9 +27,9 @@ public class CompressionResults {
   public static void testSuperDense() {
     System.out.println("Sparse case... universe = [0,"+universe_size+")");
     RoaringBitmap r = new RoaringBitmap();
-    int howmany = 100;
-    int gap = universe_size / howmany;
-    for (int i = 1; i < howmany; i++) {
+    long howmany = 100;
+    long gap = universe_size / howmany;
+    for (long i = 1; i < howmany; i++) {
       r.add(i * gap + 1,((i + 1) * gap));
     }
     System.out.println("Adding "+r.getCardinality()+" values partionned by "+howmany+" gaps of 1 ...");

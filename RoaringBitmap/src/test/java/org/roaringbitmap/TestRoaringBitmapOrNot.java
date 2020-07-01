@@ -354,7 +354,7 @@ public class TestRoaringBitmapOrNot {
   public void orNotNonEmptyAgainstFullBitmap() {
     RoaringBitmap rb = RoaringBitmap.bitmapOf(1, 0x10001, 0x20001);
     RoaringBitmap full = new RoaringBitmap();
-    full.add(0, 0x40000);
+    full.add((long)0, (long)0x40000);
     rb.orNot(full, 0x30000);
     assertEquals(RoaringBitmap.bitmapOf(1, 0x10001, 0x20001), rb);
   }

@@ -313,17 +313,42 @@ public class RoaringSerializer extends Serializer<RoaringBitmap> {
 64-bit integers (long)
 -----------------------
 
-Though Roaring Bitmaps were designed with the 32-bit case in mind, we have an extension to 64-bit integers:
+Though Roaring Bitmaps were designed with the 32-bit case in mind, we have extensions to 64-bit integers.
+We offer two classes for this purpose: `Roaring64NavigableMap` and `Roaring64Bitmap`.
 
-```
-      import org.roaringbitmap.longlong.*;
+The  `Roaring64NavigableMap` relies on a conventional red-black-tree. The keys are 32-bit integers representing
+the most significant 32~bits of  elements
+whereas the values of the tree are 32-bit Roaring bitmaps. The 32-bit Roaring bitmaps represent the least significant
+bits of a set of elements.
 
-      LongBitmapDataProvider r = Roaring64NavigableMap.bitmapOf(1,2,100,1000);
-      r.addLong(1234);
-      System.out.println(r.contains(1)); // true
-      System.out.println(r.contains(3)); // false
-      LongIterator i = r.getLongIterator();
-      while(i.hasNext()) System.out.println(i.next());
+ The newer `Roaring64Bitmap` approach relies on the ART data structure to hold the key/value pair. The key 
+ is made of the most significant 48~bits of elements whereas the values are 16-bit Roaring containers. It is inspired by
+ [The Adaptive Radix Tree: ARTful Indexing for Main-Memory Databases](https://db.in.tum.de/~leis/papers/ART.pdf) by Leis et al. (ICDE '13).
+
+```java
+    import org.roaringbitmap.longlong.*;
+
+    
+    // first Roaring64NavigableMap
+    LongBitmapDataProvider r = Roaring64NavigableMap.bitmapOf(1,2,100,1000);
+    r.addLong(1234);
+    System.out.println(r.contains(1)); // true
+    System.out.println(r.contains(3)); // false
+    LongIterator i = r.getLongIterator();
+    while(i.hasNext()) System.out.println(i.next());
+
+
+    // second Roaring64Bitmap
+    bitmap1 = new Roaring64Bitmap();
+    bitmap2 = new Roaring64Bitmap();
+    int k = 1 << 16;
+    long i = Long.MAX_VALUE / 2;
+    long base = i;
+    for (; i < base + 10000; ++i) {
+       bitmap1.add(i * k);
+       bitmap2.add(i * k);
+    }
+    b1.and(bitmap2);
 ```
 
 Prerequisites
