@@ -1,0 +1,20 @@
+name: Java 13 CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 13
+        uses: actions/setup-java@v1
+        with:
+          java-version: 13
+      - name: Build with Gradle
+        run: ./gradlew assemble
+      - name: Test with Gradle
+        run: ./gradlew test
+      - name: Style check
+        run: ./gradlew checkstyleMain

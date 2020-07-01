@@ -149,7 +149,7 @@ public class simplebenchmark {
             if(rb.contains(maxvalue / 2 )) ++ quartcount;
             if(rb.contains(3 * maxvalue / 4 )) ++ quartcount;
         }
-        if(quartcount == 0xFFFFFFFF) System.out.println(); // to defeat clever compilers
+        if(quartcount == 0) System.out.println(); // to defeat clever compilers
         stop = System.nanoTime();
         timings.add(stop - start);
         return timings;
@@ -191,7 +191,7 @@ public class simplebenchmark {
             if(rb.contains(maxvalue / 2 )) ++ quartcount;
             if(rb.contains(3 * maxvalue / 4 )) ++ quartcount;
         }
-        if(quartcount == 0xFFFFFFFF) System.out.println(); // to defeat clever compilers
+        if(quartcount == 0) System.out.println(); // to defeat clever compilers
         stop = System.nanoTime();
         timings.add(stop - start);
         return timings;
@@ -243,8 +243,7 @@ class ZipRealDataRetriever {
 
                     @Override
                     public int[] next() {
-                        try {
-                            BufferedReader buf = new BufferedReader(new InputStreamReader(zis));
+                        try (BufferedReader buf = new BufferedReader(new InputStreamReader(zis))) {
                             String oneLine = buf.readLine(); // a single, perhaps very long, line
                             String[] positions = oneLine.split(",");
                             int[] ans = new int[positions.length];

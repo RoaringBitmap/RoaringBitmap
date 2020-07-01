@@ -15,7 +15,7 @@ public class MemoryMappingExample {
                                 64, 1 << 30);
         System.out.println("Created the bitmap "+Bitmap1);
         MutableRoaringBitmap Bitmap2 = MutableRoaringBitmap.bitmapOf(0, 2, 55,
-                                654, 1 << 35);
+                                654, 1 << 31);
         System.out.println("Created the bitmap "+Bitmap2);
         int pos1 = 0; // bitmap 1 is at offset 0
         // If there were runs of consecutive values, you could
