@@ -68,7 +68,7 @@ final class ImmutableRoaringBitmapWrapper implements Bitmap {
   @Override
   public Bitmap flip(int rangeStart, int rangeEnd) {
     return new ImmutableRoaringBitmapWrapper(
-        ImmutableRoaringBitmap.flip(bitmap, rangeStart, rangeEnd));
+        ImmutableRoaringBitmap.flip(bitmap, (long)rangeStart, (long)rangeEnd));
   }
 
 

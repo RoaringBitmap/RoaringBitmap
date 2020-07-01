@@ -23,24 +23,24 @@ public class SerializeToDiskExample {
         for (int k = 700000; k < 800000; ++k) {
             rb.add(k);
         }
-        DataOutputStream out;
         String file1 = "bitmapwithoutruns.bin";
-        out = new DataOutputStream(new FileOutputStream(file1));
-        rb.serialize(out);
-        out.close();
+        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(file1))) {
+          rb.serialize(out);
+        }
         rb.runOptimize();
         String file2 = "bitmapwithruns.bin";
-        out = new DataOutputStream(new FileOutputStream(file2));
-        rb.serialize(out);
-        out.close();
-        // verify:
-        DataInputStream in;
-        in = new DataInputStream(new FileInputStream(file1));
+        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(file2))) {
+          rb.serialize(out);
+        }
+        // verify
         RoaringBitmap rbtest = new RoaringBitmap();
-        rbtest.deserialize(in);
+        try (DataInputStream in = new DataInputStream(new FileInputStream(file1))) {
+          rbtest.deserialize(in);
+        }
         if(!rbtest.equals(rb)) throw new RuntimeException("bug!");
-        in = new DataInputStream(new FileInputStream(file2));
-        rbtest.deserialize(in);
+        try (DataInputStream in = new DataInputStream(new FileInputStream(file2))) {
+          rbtest.deserialize(in);
+        }
         if(!rbtest.equals(rb)) throw new RuntimeException("bug!");
         System.out.println("Serialized bitmaps to "+file1+" and "+file2);
     }

@@ -353,7 +353,7 @@ public class TestImmutableRoaringBitmapOrNot {
     public void orNotNonEmptyAgainstFullBitmap() {
         MutableRoaringBitmap rb = MutableRoaringBitmap.bitmapOf(1, 0x10001, 0x20001);
         MutableRoaringBitmap full = new MutableRoaringBitmap();
-        full.add(0, 0x40000);
+        full.add((long)0, (long)0x40000);
         rb.orNot(full, 0x30000);
         assertEquals(MutableRoaringBitmap.bitmapOf(1, 0x10001, 0x20001), rb);
     }
