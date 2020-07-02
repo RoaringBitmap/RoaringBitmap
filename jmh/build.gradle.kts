@@ -1,8 +1,8 @@
 import java.net.URI
 
 plugins {
-    id("me.champeau.gradle.jmh") version "0.4.8"
-    id("com.github.johnrengelman.shadow") version "5.0.0"
+    id("me.champeau.gradle.jmh") version "0.5.0"
+    id("com.github.johnrengelman.shadow") version "6.0.0"
 }
 
 val deps: Map<String, String> by extra
@@ -15,6 +15,17 @@ repositories {
 
 dependencies {
     jmh(project(":real-roaring-dataset"))
+    val jmhVersion = "1.23"
+
+    testImplementation("org.openjdk.jmh", "jmh-kotlin-benchmark-archetype", jmhVersion)
+    testImplementation("org.openjdk.jmh", "jmh-core", jmhVersion)
+    testImplementation("org.openjdk.jmh", "jmh-generator-bytecode", jmhVersion)
+    testImplementation("org.openjdk.jmh", "jmh-generator-reflection", jmhVersion)
+    testImplementation("org.openjdk.jmh", "jmh-generator-annprocess", jmhVersion)
+
+    jmh("org.openjdk.jmh:jmh-core:$jmhVersion")
+    jmh("org.openjdk.jmh:jmh-generator-annprocess:$jmhVersion")
+    
     testImplementation("org.junit.jupiter:junit-jupiter-api:${deps["jupiter"]}")
     testImplementation("org.junit.jupiter:junit-jupiter-params:${deps["jupiter"]}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${deps["jupiter"]}")

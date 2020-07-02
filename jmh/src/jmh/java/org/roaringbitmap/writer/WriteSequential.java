@@ -27,7 +27,7 @@ public class WriteSequential {
       }
     }
     ;
-    abstract RoaringBitmapWriter newWriter();
+    abstract RoaringBitmapWriter<RoaringBitmap> newWriter();
   }
 
   @Param({"100", "1000", "10000", "100000", "1000000", "10000000"})

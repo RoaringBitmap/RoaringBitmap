@@ -55,8 +55,7 @@ public class ZipRealDataRangeRetriever<T> {
 
           @Override
           public int[][] next() {
-            try {
-              BufferedReader buf = new BufferedReader(new InputStreamReader(zis));
+            try (BufferedReader buf = new BufferedReader(new InputStreamReader(zis))) {
               String oneLine = buf.readLine(); // a single, perhaps very long, line
               String[] positions = oneLine.split(",");
               int[][] ans = new int[positions.length][2];
