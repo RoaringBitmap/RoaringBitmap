@@ -30,8 +30,9 @@ public class SerializationBenchmark {
   @Benchmark
   public int testDeserialize(BenchmarkState benchmarkState) throws IOException {
     benchmarkState.presoutbb.rewind();
-    ByteBufferBackedInputStream in = new ByteBufferBackedInputStream(benchmarkState.presoutbb);
-    benchmarkState.bitmap_b.deserialize(new DataInputStream(in));
+    try(ByteBufferBackedInputStream in = new ByteBufferBackedInputStream(benchmarkState.presoutbb)) {
+      benchmarkState.bitmap_b.deserialize(new DataInputStream(in));
+    }
     return benchmarkState.presoutbb.limit();
   }
 
@@ -39,8 +40,9 @@ public class SerializationBenchmark {
   @Benchmark
   public int testMutableDeserializeMutable(BenchmarkState benchmarkState) throws IOException {
     benchmarkState.presoutbb.rewind();
-    ByteBufferBackedInputStream in = new ByteBufferBackedInputStream(benchmarkState.presoutbb);
-    benchmarkState.bitmap_br.deserialize(new DataInputStream(in));
+    try(ByteBufferBackedInputStream in = new ByteBufferBackedInputStream(benchmarkState.presoutbb)) {
+      benchmarkState.bitmap_br.deserialize(new DataInputStream(in));
+    }
     return benchmarkState.presoutbb.limit();
   }
 
@@ -49,8 +51,9 @@ public class SerializationBenchmark {
   @Benchmark
   public int testSerialize(BenchmarkState benchmarkState) throws IOException {
     benchmarkState.outbb.rewind();
-    ByteBufferBackedOutputStream out = new ByteBufferBackedOutputStream(benchmarkState.outbb);
-    benchmarkState.bitmap_a.serialize(new DataOutputStream(out));
+    try(ByteBufferBackedOutputStream out = new ByteBufferBackedOutputStream(benchmarkState.outbb)) {
+      benchmarkState.bitmap_a.serialize(new DataOutputStream(out));
+    }
     return benchmarkState.outbb.limit();
   }
 
@@ -59,8 +62,9 @@ public class SerializationBenchmark {
   @Benchmark
   public int testMutableSerialize(BenchmarkState benchmarkState) throws IOException {
     benchmarkState.outbb.rewind();
-    ByteBufferBackedOutputStream out = new ByteBufferBackedOutputStream(benchmarkState.outbb);
-    benchmarkState.bitmap_ar.serialize(new DataOutputStream(out));
+    try(ByteBufferBackedOutputStream out = new ByteBufferBackedOutputStream(benchmarkState.outbb)) {
+      benchmarkState.bitmap_ar.serialize(new DataOutputStream(out));
+    }
     return benchmarkState.outbb.limit();
   }
 
