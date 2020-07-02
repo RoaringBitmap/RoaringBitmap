@@ -31,7 +31,7 @@ subprojects {
         options.isDeprecation = true
         options.isWarnings = true
         if (JavaVersion.current().isJava9Compatible) {
-          options.compilerArgs = listOf("--release", "8")
+          options.compilerArgs = listOf("--release", "8", "-Xlint:unchecked")
         }
     }
 

@@ -2220,12 +2220,17 @@ public final class RunContainer extends Container implements Cloneable {
       nbrruns++;
       return;
     }
+    // We have that val <= oldend.
     if (oldend == val) {
       // we merge
       valueslength[2 * (nbrruns - 1) + 1]++;
       return;
     }
+    // We have that val < oldend.
+
     int newend = val + 1;
+    // We have that newend = val + 1 and val < oldend.
+    // so newend <= oldend.
 
     if (val == getValue(nbrruns - 1)) {
       // we wipe out previous
@@ -2243,11 +2248,7 @@ public final class RunContainer extends Container implements Cloneable {
       setValue(nbrruns, (char) newend);
       setLength(nbrruns, (char) (oldend - newend - 1));
       nbrruns++;
-    } else if (oldend < newend) {
-      setValue(nbrruns, (char) oldend);
-      setLength(nbrruns, (char) (newend - oldend - 1));
-      nbrruns++;
-    }
+    } // otherwise newend == oldend
 
   }
 
