@@ -2136,7 +2136,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   // important: x2 should not have been computed lazily
   // this method is like lazyor except that it will convert
   // the current container to a bitset
-  protected void naivelazyor(RoaringBitmap  x2) {
+  public void naivelazyor(RoaringBitmap  x2) {
     int pos1 = 0, pos2 = 0;
     int length1 = highLowContainer.size();
     final int length2 = x2.highLowContainer.size();
@@ -2481,7 +2481,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   }
 
   // to be used with lazyor
-  protected void repairAfterLazy() {
+  public void repairAfterLazy() {
     for (int k = 0; k < highLowContainer.size(); ++k) {
       Container c = highLowContainer.getContainerAtIndex(k);
       highLowContainer.setContainerAtIndex(k, c.repairAfterLazy());

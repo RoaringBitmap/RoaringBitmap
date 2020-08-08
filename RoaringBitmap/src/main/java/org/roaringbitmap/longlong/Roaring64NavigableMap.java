@@ -692,6 +692,51 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     return RoaringIntPacking.highestHigh(signedLongs);
   }
 
+  // to be used with lazyor
+  public void repairAfterLazy() {
+    for (Entry<Integer, BitmapDataProvider> e2 : highToBitmap.entrySet()) {
+      BitmapDataProvider lowBitmap2 = e2.getValue();
+      if (lowBitmap2 instanceof RoaringBitmap) {
+        ((RoaringBitmap) lowBitmap2).repairAfterLazy();
+      } else {
+        throw new UnsupportedOperationException(
+                ".repairAfterLazy is not supported for " + lowBitmap2.getClass());
+      }
+    }
+  }
+  /**
+   * In-place bitwise OR (union) operation without maintaining cardinality.
+   * Don't forget to call repairAfterLazy() afterward. The current bitmap is modified.
+   *
+   * @param x2 other bitmap
+   */
+  public void naivelazyor(final Roaring64NavigableMap x2) {
+    boolean firstBucket = true;
+    for (Entry<Integer, BitmapDataProvider> e2 : x2.highToBitmap.entrySet()) {
+      // Keep object to prevent auto-boxing
+      Integer high = e2.getKey();
+
+      BitmapDataProvider lowBitmap1 = this.highToBitmap.get(high);
+
+      BitmapDataProvider lowBitmap2 = e2.getValue();
+
+      if ((lowBitmap1 == null || lowBitmap1 instanceof RoaringBitmap)
+              && lowBitmap2 instanceof RoaringBitmap) {
+        if (lowBitmap1 == null) {
+          // Clone to prevent future modification of this modifying the input Bitmap
+          RoaringBitmap lowBitmap2Clone = ((RoaringBitmap) lowBitmap2).clone();
+
+          pushBitmapForHigh(high, lowBitmap2Clone);
+        } else {
+          ((RoaringBitmap) lowBitmap1).naivelazyor((RoaringBitmap) lowBitmap2);
+        }
+      } else {
+        throw new UnsupportedOperationException(
+                ".naivelazyor is not between " + this.getClass() + " and " + lowBitmap2.getClass());
+      }
+    }
+  }
+
   /**
    * In-place bitwise OR (union) operation. The current bitmap is modified.
    *
