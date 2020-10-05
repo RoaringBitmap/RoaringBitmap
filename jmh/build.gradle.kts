@@ -9,6 +9,8 @@ val deps: Map<String, String> by extra
 
 repositories {
     maven {
+        // As of October 2020, this is busted (invalid certificate). Presumably, it is unmaintained.
+        // Thankfully, we can disable JMH entirely and avoid these dependencies.
         url = URI("https://metamx.artifactoryonline.com/artifactory/pub-libs-releases-local")
     }
 }

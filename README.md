@@ -465,6 +465,9 @@ application, you might be better served with a conventional bitset (e.g., Java's
 Benchmark
 -----------
 
+To ease maintenance of the library, the JMH benchmarks are normally omitted.
+To enable them, you need to go into `settings.gradle.kts` and uncomment the the jmh line.
+
 To run JMH benchmarks, use the following command:
 
          $ ./gradlew jmhJar

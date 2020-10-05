@@ -2,7 +2,7 @@ include(
         "RoaringBitmap",
         "shims",
         "fuzz-tests",
-        "jmh",
+        //"jmh",
         "real-roaring-dataset",
         "examples",
         "simplebenchmark"
