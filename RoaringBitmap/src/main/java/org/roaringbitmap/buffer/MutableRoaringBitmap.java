@@ -67,12 +67,15 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   private static final long serialVersionUID = 4L; // 3L; bumped by ofk for runcontainers
 
   /**
-   * Generate a new bitmap, but with
+   * Generate a copy of the provided bitmap, but with
    * all its values incremented by offset.
    * The parameter offset can be
    * negative. Values that would fall outside
    * of the valid 32-bit range are discarded
    * so that the result can have lower cardinality.
+   * 
+   * This method can be relatively expensive when
+   * offset is not divisible by 65536. Use sparingly.
    * 
    * @param x source bitmap
    * @param offset increment (can be negative)
@@ -83,7 +86,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     // between -0xFFFFFFFF up to +-0xFFFFFFFF
     long container_offset_long = offset < 0 
         ? (offset - (1<<16) + 1)  / (1<<16) : offset / (1 << 16);
-    if((container_offset_long <= -(1<<16) ) || (container_offset_long >= (1<<16) )) {
+    if((container_offset_long < -(1<<16) ) || (container_offset_long >= (1<<16) )) {
       return new MutableRoaringBitmap(); // it is necessarily going to be empty
     }
     // next cast is necessarily safe, the result is between -0xFFFF and 0xFFFF

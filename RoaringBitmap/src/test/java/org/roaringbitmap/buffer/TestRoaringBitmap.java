@@ -3773,6 +3773,29 @@ public class TestRoaringBitmap {
     }
   }
 
+
+  @Test
+  public void issue418() {
+      final MutableRoaringBitmap rb = new MutableRoaringBitmap();
+      rb.add(0);
+      assertEquals(rb.contains(0), true);
+      assertEquals(rb.getCardinality(), 1);
+      long vals[] = { 100, 0xFFFF0000L, 0xFFFF0001L };
+      for(long s : vals) {
+        MutableRoaringBitmap shifted = MutableRoaringBitmap.addOffset(rb, s);
+          System.out.println("moved "+shifted);
+          assertEquals(shifted.contains((int)s), true);
+          assertEquals(shifted.getCardinality(), 1);
+          System.out.println("moving back by "+(-s));
+
+          shifted = MutableRoaringBitmap.addOffset(shifted, -s);
+          System.out.println("back "+shifted);
+
+          assertEquals(shifted.contains(0), true);
+          assertEquals(shifted.getCardinality(), 1);
+      }
+  }
+  
   @Test
   public void addNegativeOffset() {
     final MutableRoaringBitmap rb = new MutableRoaringBitmap();

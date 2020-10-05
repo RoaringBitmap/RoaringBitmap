@@ -9,7 +9,7 @@ val deps: Map<String, String> by extra
 
 repositories {
     maven {
-        url = URI("https://metamx.artifactoryonline.com/artifactory/pub-libs-releases-local")
+        url = URI("https://metamx.jfrog.io/artifactory/pub-libs-releases-local")
     }
 }
 
