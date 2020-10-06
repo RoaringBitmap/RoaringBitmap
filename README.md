@@ -92,7 +92,7 @@ When should you use compressed bitmaps?
 ===================================
 
 An uncompressed BitSet can use a lot of memory. For example, if you take a BitSet
-and set the bit at position 1,000,000 to true and you have just over 100kB. That's over 100kB
+and set the bit at position 1,000,000 to true and you have just over 100kB. That is over 100kB
 to store the position of one bit. This is wasteful  even if you do not care about memory:
 suppose that you need to compute the intersection between this BitSet and another one
 that has a bit at position 1,000,001 to true, then you need to go through all these zeroes,
@@ -136,7 +136,7 @@ There is a big problem with these formats however that can hurt you badly in som
 Roaring solves this problem. It works in the following manner. It divides the data into chunks of 2<sup>16</sup> integers
 (e.g., [0, 2<sup>16</sup>), [2<sup>16</sup>, 2 x 2<sup>16</sup>), ...). Within a chunk, it can use an uncompressed bitmap, a simple list of integers,
 or a list of runs. Whatever format it uses, they all allow you to check for the present of any one value quickly
-(e.g., with a binary search). The net result is that Roaring can compute many operations much faster that run-length-encoded
+(e.g., with a binary search). The net result is that Roaring can compute many operations much faster than run-length-encoded
 formats like WAH, EWAH, Concise... Maybe surprisingly, Roaring also generally offers better compression ratios.
 
 
