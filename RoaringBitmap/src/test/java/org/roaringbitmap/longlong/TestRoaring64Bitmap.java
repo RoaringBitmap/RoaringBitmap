@@ -781,7 +781,7 @@ public class TestRoaring64Bitmap {
     assertEquals(123, left.select(0));
   }
   @Test
-  void testToArrayAfterAndHasEmptyContainer (){
+  void testToArrayAfterAndOptHasEmptyContainer (){
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
     bitmap.addLong(0);
 
