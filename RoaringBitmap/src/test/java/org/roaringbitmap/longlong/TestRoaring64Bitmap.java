@@ -1,12 +1,5 @@
 package org.roaringbitmap.longlong;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import java.io.ByteArrayInputStream;
@@ -32,6 +25,7 @@ import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.Util;
 
 import static org.junit.jupiter.api.Assertions.*;
+
 
 public class TestRoaring64Bitmap {
 
