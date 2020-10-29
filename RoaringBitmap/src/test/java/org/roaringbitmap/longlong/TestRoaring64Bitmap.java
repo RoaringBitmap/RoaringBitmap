@@ -31,7 +31,6 @@ import org.junit.jupiter.api.Test;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.Util;
 
-
 public class TestRoaring64Bitmap {
 
   private Roaring64Bitmap newDefaultCtor() {
