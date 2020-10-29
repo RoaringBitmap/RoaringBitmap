@@ -7,6 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import java.io.ByteArrayInputStream;
@@ -25,8 +28,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.opentest4j.AssertionFailedError;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.Util;
 
@@ -776,6 +782,37 @@ public class TestRoaring64Bitmap {
 
     assertEquals(1, left.getLongCardinality());
     assertEquals(123, left.select(0));
+  }
+  @Test
+  void testToArrayAfterAnd(){
+      Random random = new Random();
+      Roaring64Bitmap bitmap = new Roaring64Bitmap();
+      Set<Long> andResult = Sets.newHashSet();
+      for (long i = 0; i < 20000; i++) {
+          bitmap.addLong(random.nextInt(10000000));
+      }
+
+      Roaring64Bitmap bitmap2 = new Roaring64Bitmap();
+      for (long i = 1; i < 40000; i++) {
+          int value = random.nextInt(10000000);
+          bitmap2.addLong(value);
+          if(bitmap.contains(value)){
+              andResult.add((long)value);
+          }
+      }
+
+      //bit and
+      bitmap.and(bitmap2);
+
+      //to array
+      long[] toArrayList = bitmap.toArray();
+
+      assertEquals(toArrayList.length,andResult.size());
+      for (int index=0;index<toArrayList.length;index++){
+        if(!andResult.contains(toArrayList[index])){
+          throw new AssertionFailedError();
+        }
+      }
   }
 
   @Test

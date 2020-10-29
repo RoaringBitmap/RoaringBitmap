@@ -363,7 +363,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       public boolean hasNext() {
         hasNextCalled = true;
         if (charIterator != null && !charIterator.hasNext()) {
-          if (keyIte.hasNext()) {
+          while (keyIte.hasNext()) {
             LeafNode leafNode = keyIte.next();
             high = leafNode.getKeyBytes();
             long containerIdx = leafNode.getContainerIdx();
@@ -373,16 +373,17 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
             } else {
               charIterator = container.getReverseCharIterator();
             }
-            return true;
-          } else {
-            return false;
+            if(charIterator.hasNext()){
+              return true;
+            }
           }
+            return false;
         }
         if (charIterator != null && charIterator.hasNext()) {
           return true;
         }
         if (charIterator == null) {
-          if (keyIte.hasNext()) {
+          while (keyIte.hasNext()) {
             LeafNode leafNode = keyIte.next();
             high = leafNode.getKeyBytes();
             long containerIdx = leafNode.getContainerIdx();
@@ -392,10 +393,13 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
             } else {
               charIterator = container.getReverseCharIterator();
             }
-            return true;
-          } else {
-            return false;
+            if(charIterator.hasNext()){
+              return true;
+            }
+
           }
+            return false;
+
         }
         return false;
       }
