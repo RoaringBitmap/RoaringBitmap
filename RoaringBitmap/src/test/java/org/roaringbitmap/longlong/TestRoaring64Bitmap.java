@@ -778,6 +778,7 @@ public class TestRoaring64Bitmap {
     assertEquals(1, left.getLongCardinality());
     assertEquals(123, left.select(0));
   }
+
   @Test
   void testToArrayAfterAndOptHasEmptyContainer (){
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
