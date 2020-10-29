@@ -779,6 +779,19 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
+  void testToArrayAfterAndOptHasEmptyContainer (){
+    Roaring64Bitmap bitmap = new Roaring64Bitmap();
+    bitmap.addLong(0);
+
+    Roaring64Bitmap bitmap2 = new Roaring64Bitmap();
+    bitmap2.addLong(1);
+    //bit and
+    bitmap.and(bitmap2);
+    //to array
+    Assertions.assertDoesNotThrow(bitmap::toArray);
+  }
+
+  @Test
   public void testAndDifferentBucket() {
     Roaring64Bitmap left = newDefaultCtor();
     Roaring64Bitmap right = newDefaultCtor();
