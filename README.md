@@ -361,10 +361,7 @@ To build the project you need maven (version 3).
 Download
 ---------
 
-You can download releases from the Maven repository:
-http://central.maven.org/maven2/org/roaringbitmap/RoaringBitmap/
-
-or from github:
+You can download releases from github:
 https://github.com/RoaringBitmap/RoaringBitmap/releases
 
 Maven repository
