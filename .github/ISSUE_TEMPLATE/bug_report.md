@@ -16,3 +16,7 @@ If it is a bug you encountered while working with the library, you should produc
 **Java version:**
 
 Please tell us which Java version you are using.
+
+
+
+[For up-to-date releases, we recommend configuring maven and gradle to depend on the bintray repository](https://www.jfrog.com/confluence/display/BT/Maven+Repositories). Our experience with Maven Central at Sonatype is poor: releases disappear or are unexplicably delayed.
