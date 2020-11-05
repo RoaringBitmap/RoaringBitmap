@@ -380,6 +380,8 @@ If your project depends on roaring, you  can  specify the dependency in the Mave
 
 where you should replace the version number by the version you require.
 
+[For up-to-date releases, we recommend configuring maven and gradle to depend on the bintray repository](https://www.jfrog.com/confluence/display/BT/Maven+Repositories).
+
 Usage
 ------
 
