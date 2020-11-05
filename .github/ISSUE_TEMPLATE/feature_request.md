@@ -15,3 +15,7 @@ A clear and concise description of what you want to happen.
 
 
 Please note that this is a community-based project. Consider proposing a fix (code, documentation) as a pull request.
+
+
+
+[For up-to-date releases, we recommend configuring maven and gradle to depend on the bintray repository](https://www.jfrog.com/confluence/display/BT/Maven+Repositories). Our experience with Maven Central at Sonatype is poor: releases disappear or are unexplicably delayed.
