@@ -506,7 +506,7 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
-  public void testSerialization_ToBigEndianBuffer()throws IOException, ClassNotFoundException {
+  public void testSerialization_ToBigEndianBuffer() throws IOException, ClassNotFoundException {
     final Roaring64Bitmap map = newDefaultCtor();
     map.addLong(123);
     ByteBuffer buffer = ByteBuffer.allocate((int)map.serializedSizeInBytes()).order(ByteOrder.BIG_ENDIAN);
