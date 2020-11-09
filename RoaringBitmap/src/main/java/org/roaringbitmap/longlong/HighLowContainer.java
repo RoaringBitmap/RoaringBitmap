@@ -111,6 +111,9 @@ public class HighLowContainer {
     }
     art.serializeArt(byteBuffer);
     containers.serialize(byteBuffer);
+    if (byteBuffer != buffer) {
+      buffer.position(buffer.position() + byteBuffer.position());
+    }
   }
 
   /**
