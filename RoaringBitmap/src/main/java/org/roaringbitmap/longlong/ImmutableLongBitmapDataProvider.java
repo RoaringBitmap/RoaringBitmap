@@ -74,8 +74,10 @@ public interface ImmutableLongBitmapDataProvider {
    * @return an Ordered, Distinct, Sorted and Sized IntStream in ascending order
    */
   public default LongStream stream() {
-    int characteristics = Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SORTED | Spliterator.SIZED;
-    Spliterator.OfLong x = Spliterators.spliterator(new RoaringOfLong(getLongIterator()), getLongCardinality(), characteristics);
+    int characteristics = Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SORTED 
+        | Spliterator.SIZED;
+    Spliterator.OfLong x = Spliterators.spliterator(new RoaringOfLong(getLongIterator()), 
+        getLongCardinality(), characteristics);
     return StreamSupport.longStream(x, false);
   }
 
@@ -84,7 +86,8 @@ public interface ImmutableLongBitmapDataProvider {
    */
   public default LongStream reverseStream() {
     int characteristics = Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SIZED;
-    Spliterator.OfLong x = Spliterators.spliterator(new RoaringOfLong(getLongIterator()), getLongCardinality(), characteristics);
+    Spliterator.OfLong x = Spliterators.spliterator(new RoaringOfLong(getLongIterator()), 
+        getLongCardinality(), characteristics);
     return StreamSupport.longStream(x, false);
   }
   /**

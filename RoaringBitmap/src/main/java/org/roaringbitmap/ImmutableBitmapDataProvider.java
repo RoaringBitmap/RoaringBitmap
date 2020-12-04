@@ -79,8 +79,10 @@ public interface ImmutableBitmapDataProvider {
    * @return an Ordered, Distinct, Sorted and Sized IntStream in ascending order
    */
   public default IntStream stream() {
-    int characteristics = Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SORTED | Spliterator.SIZED;
-    Spliterator.OfInt x = Spliterators.spliterator(new RoaringOfInt(getIntIterator()), getCardinality(), characteristics);
+    int characteristics = Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SORTED 
+        | Spliterator.SIZED;
+    Spliterator.OfInt x = Spliterators.spliterator(new RoaringOfInt(getIntIterator()), 
+        getCardinality(), characteristics);
     return StreamSupport.intStream(x, false);
   }
 
@@ -89,7 +91,8 @@ public interface ImmutableBitmapDataProvider {
    */
   public default IntStream reverseStream() {
     int characteristics = Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SIZED;
-    Spliterator.OfInt x = Spliterators.spliterator(new RoaringOfInt(getReverseIntIterator()), getCardinality(), characteristics);
+    Spliterator.OfInt x = Spliterators.spliterator(new RoaringOfInt(getReverseIntIterator()), 
+        getCardinality(), characteristics);
     return StreamSupport.intStream(x, false);
   }
   
