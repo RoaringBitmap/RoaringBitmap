@@ -12,6 +12,11 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.PrimitiveIterator.OfInt;
+import java.util.Spliterator;
+import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
+import java.util.Spliterators;
 
 import static org.roaringbitmap.RoaringBitmapWriter.writer;
 import static org.roaringbitmap.Util.lowbitsAsInteger;
@@ -1918,7 +1923,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     return new RoaringReverseIntIterator();
   }
 
-
+  
   @Override
   public RoaringBatchIterator getBatchIterator() {
     return new RoaringBatchIterator(highLowContainer);
