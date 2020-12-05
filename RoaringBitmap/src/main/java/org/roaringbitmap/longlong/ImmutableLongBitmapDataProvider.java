@@ -6,6 +6,11 @@ package org.roaringbitmap.longlong;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.PrimitiveIterator;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.LongStream;
+import java.util.stream.StreamSupport;
 
 /**
  * Interface representing an immutable bitmap.
@@ -65,6 +70,26 @@ public interface ImmutableLongBitmapDataProvider {
   // RoaringBitmap proposes a PeekableLongIterator
   public LongIterator getReverseLongIterator();
 
+  /**
+   * @return an Ordered, Distinct, Sorted and Sized IntStream in ascending order
+   */
+  public default LongStream stream() {
+    int characteristics = Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SORTED 
+        | Spliterator.SIZED;
+    Spliterator.OfLong x = Spliterators.spliterator(new RoaringOfLong(getLongIterator()), 
+        getLongCardinality(), characteristics);
+    return StreamSupport.longStream(x, false);
+  }
+
+  /**
+   * @return an Ordered, Distinct and Sized IntStream providing bits in descending sorted order
+   */
+  public default LongStream reverseStream() {
+    int characteristics = Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SIZED;
+    Spliterator.OfLong x = Spliterators.spliterator(new RoaringOfLong(getLongIterator()), 
+        getLongCardinality(), characteristics);
+    return StreamSupport.longStream(x, false);
+  }
   /**
    * Estimate of the memory usage of this data structure.
    * 
@@ -143,4 +168,27 @@ public interface ImmutableLongBitmapDataProvider {
    */
   public long[] toArray();
 
+    /**
+   * An internal class to help provide streams.
+   * Sad but true the interface of IntIterator and PrimitiveIterator.OfInt
+   * Does not match. Otherwise it would be easier to just make IntIterator 
+   * implement PrimitiveIterator.OfInt. 
+   */
+  static final class RoaringOfLong implements PrimitiveIterator.OfLong {
+    private final LongIterator iterator;
+
+    public RoaringOfLong(LongIterator iterator) {
+      this.iterator = iterator;
+    }
+
+    @Override
+    public long nextLong() {
+      return iterator.next();
+    }
+
+    @Override
+    public boolean hasNext() {
+      return iterator.hasNext();
+    }
+  }
 }

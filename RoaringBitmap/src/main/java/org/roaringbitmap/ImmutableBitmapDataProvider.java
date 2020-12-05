@@ -8,6 +8,11 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.NoSuchElementException;
+import java.util.PrimitiveIterator;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 
 /**
  * Interface representing an immutable bitmap.
@@ -70,6 +75,27 @@ public interface ImmutableBitmapDataProvider {
    */
   IntIterator getReverseIntIterator();
 
+  /**
+   * @return an Ordered, Distinct, Sorted and Sized IntStream in ascending order
+   */
+  public default IntStream stream() {
+    int characteristics = Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SORTED 
+        | Spliterator.SIZED;
+    Spliterator.OfInt x = Spliterators.spliterator(new RoaringOfInt(getIntIterator()), 
+        getCardinality(), characteristics);
+    return StreamSupport.intStream(x, false);
+  }
+
+  /**
+   * @return an Ordered, Distinct and Sized IntStream providing bits in descending sorted order
+   */
+  public default IntStream reverseStream() {
+    int characteristics = Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SIZED;
+    Spliterator.OfInt x = Spliterators.spliterator(new RoaringOfInt(getReverseIntIterator()), 
+        getCardinality(), characteristics);
+    return StreamSupport.intStream(x, false);
+  }
+  
   /**
    * This iterator may be faster than others
    * @return iterator which works on batches of data.
@@ -272,4 +298,27 @@ public interface ImmutableBitmapDataProvider {
    */
   int[] toArray();
 
+  /**
+   * An internal class to help provide streams.
+   * Sad but true the interface of IntIterator and PrimitiveIterator.OfInt
+   * Does not match. Otherwise it would be easier to just make IntIterator 
+   * implement PrimitiveIterator.OfInt. 
+   */
+  static final class RoaringOfInt implements PrimitiveIterator.OfInt {
+    private final IntIterator iterator;
+
+    public RoaringOfInt(IntIterator iterator) {
+      this.iterator = iterator;
+    }
+
+    @Override
+    public int nextInt() {
+      return iterator.next();
+    }
+
+    @Override
+    public boolean hasNext() {
+      return iterator.hasNext();
+    }
+  }
 }
