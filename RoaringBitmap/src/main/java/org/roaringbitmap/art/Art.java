@@ -150,7 +150,8 @@ public class Art {
         return toolkit;
       } else {
         Toolkit toolkit = removeSpecifyKey(child, key, dep + 1);
-        if (toolkit != null && toolkit.needToVerifyReplacing && toolkit.freshMatchedParentNode != null && toolkit.freshMatchedParentNode
+        if (toolkit != null && toolkit.needToVerifyReplacing
+            && toolkit.freshMatchedParentNode != null && toolkit.freshMatchedParentNode
             != toolkit.originalMatchedParentNode) {
           //meaning find the matched key and the shrinking happened
           node.replaceNode(pos, toolkit.freshMatchedParentNode);
@@ -167,11 +168,12 @@ public class Art {
 
   class Toolkit {
 
-    Node freshMatchedParentNode;//indicating a fresh parent node while the original parent node shrunk and changed
+    Node freshMatchedParentNode;//indicating a fresh parent node while the original
+    // parent node shrunk and changed
     long matchedContainerId; //holding the matched key's corresponding container index id
     Node originalMatchedParentNode; //holding the matched key's leaf node's original old parent node
-    boolean needToVerifyReplacing = false; //indicate whether the shrinking node's parent node has replaced its
-    //corresponding child node
+    boolean needToVerifyReplacing = false; //indicate whether the shrinking node's parent
+    // node has replaced its corresponding child node
 
     Toolkit(Node freshMatchedParentNode, long matchedContainerId, Node originalMatchedParentNode) {
       this.freshMatchedParentNode = freshMatchedParentNode;
