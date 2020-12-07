@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import java.io.ByteArrayInputStream;
@@ -86,7 +87,8 @@ public class TestRoaring64Bitmap {
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(sizeInt);
     DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
     roaring64Bitmap.serialize(dataOutputStream);
-    ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+    ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(
+        byteArrayOutputStream.toByteArray());
     DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream);
     Roaring64Bitmap deserStreamOne = new Roaring64Bitmap();
     deserStreamOne.deserialize(dataInputStream);
@@ -509,11 +511,12 @@ public class TestRoaring64Bitmap {
   public void testSerialization_ToBigEndianBuffer() throws IOException, ClassNotFoundException {
     final Roaring64Bitmap map = newDefaultCtor();
     map.addLong(123);
-    ByteBuffer buffer = ByteBuffer.allocate((int) map.serializedSizeInBytes()).order(ByteOrder.BIG_ENDIAN);
+    ByteBuffer buffer = ByteBuffer.allocate((int) map.serializedSizeInBytes())
+        .order(ByteOrder.BIG_ENDIAN);
     map.serialize(buffer);
     assertEquals(map.serializedSizeInBytes(), buffer.position());
   }
-  
+
   @Test
   public void testSerialization_OneValue() throws IOException, ClassNotFoundException {
     final Roaring64Bitmap map = newDefaultCtor();
@@ -788,7 +791,7 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
-  void testToArrayAfterAndOptHasEmptyContainer (){
+  void testToArrayAfterAndOptHasEmptyContainer() {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
     bitmap.addLong(0);
 
@@ -1217,5 +1220,44 @@ public class TestRoaring64Bitmap {
     assertEquals(left.hashCode(), right.hashCode());
     assertEquals(left, right);
     assertEquals(right, left);
+  }
+
+  @Test
+  public void testIssue428() {
+    long input = 1353768194141061120L;
+
+    long[] compare = new long[]{
+        5192650370358181888L,
+        5193776270265024512L,
+        5194532734264934400L,
+        5194544828892839936L,
+        5194545653526560768L,
+        5194545688960040960L,
+        5194545692181266432L,
+        5194545705066168320L,
+        5194545722246037504L,
+        5194545928404467712L,
+        5194550326450978816L,
+        5194620695195156480L,
+        5206161169240293376L
+    };
+
+    Roaring64Bitmap inputRB = new Roaring64Bitmap();
+    inputRB.add(input);
+
+    Roaring64Bitmap compareRB = new Roaring64Bitmap();
+    compareRB.add(compare);
+    compareRB.and(inputRB);
+    assertEquals(0, compareRB.getIntCardinality());
+
+    compareRB = new Roaring64Bitmap();
+    compareRB.add(compare);
+    compareRB.or(inputRB);
+    assertEquals(14, compareRB.getIntCardinality());
+
+    compareRB = new Roaring64Bitmap();
+    compareRB.add(compare);
+    compareRB.andNot(inputRB);
+    assertEquals(13, compareRB.getIntCardinality());
   }
 }

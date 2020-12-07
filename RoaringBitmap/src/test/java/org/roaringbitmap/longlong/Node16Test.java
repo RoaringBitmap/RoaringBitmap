@@ -33,6 +33,7 @@ public class Node16Test {
 
     byte key = 4;
     Assertions.assertTrue(node16.getChildPos(key) == 4);
+    Assertions.assertTrue(node16.getChildKey(4) == key);
     for (int i = 5; i < 12; i++) {
       byte key1 = (byte) i;
       LeafNode leafNode = new LeafNode(i, i);
@@ -43,11 +44,14 @@ public class Node16Test {
     key = (byte) -2;
     node16 = (Node16) Node16.insert(node16, leafNode, key);
     Assertions.assertEquals(12, node16.getChildPos(key));
+    Assertions.assertEquals(key, node16.getChildKey(12));
     leafNode = new LeafNode(13, 13);
     byte key12 = (byte) 12;
     node16 = (Node16) Node16.insert(node16, leafNode, key12);
     Assertions.assertEquals(12, node16.getChildPos(key12));
+    Assertions.assertEquals(key12, node16.getChildKey(12));
     Assertions.assertEquals(13, node16.getChildPos(key));
+    Assertions.assertEquals(key, node16.getChildKey(13));
   }
 
   @Test

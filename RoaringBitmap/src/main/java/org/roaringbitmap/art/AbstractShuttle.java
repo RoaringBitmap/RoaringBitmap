@@ -48,6 +48,10 @@ public abstract class AbstractShuttle implements Shuttle {
     while (depth >= 0) {
       NodeEntry currentNodeEntry = stack[depth];
       if (currentNodeEntry.node.nodeType == NodeType.LEAF_NODE) {
+        //found current leaf node's next sibling node to benefit the removing operation
+        if (depth - 1 >= 0) {
+          findNextSiblingKeyOfLeafNode();
+        }
         return true;
       }
       //visit the next child node
@@ -58,7 +62,10 @@ public abstract class AbstractShuttle implements Shuttle {
         currentNodeEntry.position = pos;
         nextPos = pos;
         currentNodeEntry.visited = true;
-      } else {
+      } else if (currentNodeEntry.startFromNextSiblingPosition) {
+        nextPos = currentNodeEntry.position;
+        currentNodeEntry.startFromNextSiblingPosition = false;
+      } else  {
         pos = currentNodeEntry.position;
         nextPos = visitedNodeNextPosition(currentNodeEntry.node, pos);
       }
@@ -92,12 +99,16 @@ public abstract class AbstractShuttle implements Shuttle {
     if (containers != null) {
       containers.remove(toolkit.matchedContainerId);
     }
-    Node node = toolkit.matchedParentNode;
+    Node node = toolkit.freshMatchedParentNode;
     if (depth - 1 >= 0) {
       //update the parent node to a fresh node as the parent node may changed by the
       //art adaptive removing logic
       NodeEntry oldEntry = stack[depth - 1];
       oldEntry.node = node;
+      oldEntry.startFromNextSiblingPosition = true;
+      if (node.nodeType !=  NodeType.LEAF_NODE) {
+        oldEntry.position = node.getChildPos(oldEntry.leafNodeNextSiblingKey);
+      }
     }
   }
 
@@ -113,6 +124,9 @@ public abstract class AbstractShuttle implements Shuttle {
     }
     if (node.nodeType == NodeType.LEAF_NODE) {
       //leaf node's corresponding NodeEntry will not have the position member set.
+      if (depth - 1 >= 0) {
+        findNextSiblingKeyOfLeafNode();
+      }
       return;
     }
     if (depth == MAX_DEPTH) {
@@ -132,10 +146,20 @@ public abstract class AbstractShuttle implements Shuttle {
 
   protected abstract int boundaryNodePosition(Node node);
 
-  class NodeEntry {
+  private void findNextSiblingKeyOfLeafNode() {
+    Node parentNode = stack[depth - 1].node;
+    int nextSiblingPos = visitedNodeNextPosition(parentNode, stack[depth - 1].position);
+    if (nextSiblingPos != Node.ILLEGAL_IDX) {
+      byte nextSiblingKey = parentNode.getChildKey(nextSiblingPos);
+      stack[depth - 1].leafNodeNextSiblingKey = nextSiblingKey;
+    }
+  }
 
+  class NodeEntry {
     Node node = null;
     int position = Node.ILLEGAL_IDX;
     boolean visited = false;
+    boolean startFromNextSiblingPosition = false;
+    byte leafNodeNextSiblingKey;
   }
 }

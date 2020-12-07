@@ -39,6 +39,13 @@ public abstract class Node {
   public abstract int getChildPos(byte k);
 
   /**
+   * get the corresponding key byte of the requested position
+   * @param pos the position
+   * @return the corresponding key byte
+   */
+  public abstract byte getChildKey(int pos);
+
+  /**
    * get the child at the specified position in the node, the 'pos' range from 0 to count
    * @param pos the position
    * @return a Node corresponding to the input position
