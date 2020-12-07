@@ -33,6 +33,12 @@ public class Node48 extends Node {
   }
 
   @Override
+  public byte getChildKey(int pos) {
+
+    return (byte) pos;
+  }
+
+  @Override
   public Node getChild(int pos) {
     byte idx = childrenIdx(pos, childIndex);
     return children[(int) idx];

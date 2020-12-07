@@ -30,6 +30,11 @@ public class Node256 extends Node {
   }
 
   @Override
+  public byte getChildKey(int pos) {
+    return (byte) pos;
+  }
+
+  @Override
   public Node getChild(int pos) {
     return children[pos];
   }

@@ -29,6 +29,13 @@ public class Node4 extends Node {
   }
 
   @Override
+  public byte getChildKey(int pos) {
+    int shiftLeftLen = (3 - pos) * 8;
+    byte v = (byte) (key >> shiftLeftLen);
+    return v;
+  }
+
+  @Override
   public Node getChild(int pos) {
     return children[pos];
   }
