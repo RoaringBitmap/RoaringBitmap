@@ -1,6 +1,6 @@
 name: Java 14 CI
 
-on: [push]
+on: [push,pull_request]
 
 jobs:
   build:
