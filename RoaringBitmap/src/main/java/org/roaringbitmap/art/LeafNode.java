@@ -80,6 +80,11 @@ public class LeafNode extends Node {
   }
 
   @Override
+  public byte getChildKey(int pos) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public Node getChild(int pos) {
     throw new UnsupportedOperationException();
   }

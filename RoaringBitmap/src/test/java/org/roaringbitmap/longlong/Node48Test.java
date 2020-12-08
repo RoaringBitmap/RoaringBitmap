@@ -32,8 +32,10 @@ public class Node48Test {
       Assertions.assertEquals(i, nextPos);
       LeafNode leafNode1 = (LeafNode) node48.getChild(nextPos);
       Assertions.assertEquals(i, leafNode1.getContainerIdx());
-      int childPos = node48.getChildPos((byte) i);
+      byte key = (byte) i;
+      int childPos = node48.getChildPos(key);
       Assertions.assertEquals(i, childPos);
+      Assertions.assertEquals(key, node48.getChildKey(childPos));
       currentPos = nextPos;
     }
     int maxPos = node48.getMaxPos();

@@ -34,6 +34,7 @@ public class Node256Test {
     }
     node256 = (Node256) node256.remove(120);
     int pos119 = node256.getChildPos((byte) 119);
+    Assertions.assertEquals((byte) 119, node256.getChildKey(pos119));
     Assertions.assertEquals(119, pos119);
     int pos121 = node256.getNextLargerPos(pos119);
     Assertions.assertEquals(121, pos121);

@@ -24,16 +24,22 @@ public class Node4Test {
     Assertions.assertTrue(node4.getMaxPos() == 0);
     Assertions.assertTrue(node4.getMinPos() == 0);
     Assertions.assertTrue(node4.getChildPos(key1) == 0);
+    Assertions.assertTrue(node4.getChildKey(0) == key1);
+
     byte key2 = 1;
     node4 = (Node4) Node4.insert(node4, leafNode2, key2);
     Assertions.assertTrue(node4.getChildPos(key2) == 0);
     Assertions.assertTrue(node4.getChildPos(key1) == 1);
+    Assertions.assertTrue(node4.getChildKey(0) == key2);
+
     byte key3 = -1;
     node4 = (Node4) Node4.insert(node4, leafNode3, key3);
     Assertions.assertTrue(node4.getChildPos(key3) == 2);
+    Assertions.assertTrue(node4.getChildKey(2) == key3);
     node4 = (Node4) node4.remove(1);
     Assertions.assertTrue(node4.getChildPos(key2) == 0);
     Assertions.assertTrue(node4.getChildPos(key3) == 1);
+    Assertions.assertTrue(node4.getChildKey(1) == key3);
     Assertions.assertTrue(node4.getChildPos(key1) == Node.ILLEGAL_IDX);
 
     int bytesSize = node4.serializeSizeInBytes();

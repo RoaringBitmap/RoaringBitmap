@@ -120,6 +120,7 @@ public class Art {
         if (node == this.root) {
           this.root = null;
         }
+        keySize--;
         return new Toolkit(null, leafNode.getContainerIdx(), null);
       } else {
         return null;
@@ -144,14 +145,18 @@ public class Art {
           this.root = freshNode;
         }
         long matchedContainerIdx = ((LeafNode) child).getContainerIdx();
-        Toolkit toolkit = new Toolkit(freshNode, matchedContainerIdx, freshNode);
+        Toolkit toolkit = new Toolkit(freshNode, matchedContainerIdx, node);
+        toolkit.needToVerifyReplacing = true;
         return toolkit;
       } else {
         Toolkit toolkit = removeSpecifyKey(child, key, dep + 1);
-        if (toolkit != null && toolkit.freshEntry != null && toolkit.freshEntry != child) {
+        if (toolkit != null && toolkit.needToVerifyReplacing
+            && toolkit.freshMatchedParentNode != null && toolkit.freshMatchedParentNode
+            != toolkit.originalMatchedParentNode) {
           //meaning find the matched key and the shrinking happened
-          node.replaceNode(pos, toolkit.freshEntry);
-          return new Toolkit(child, toolkit.matchedContainerId, toolkit.freshEntry);
+          node.replaceNode(pos, toolkit.freshMatchedParentNode);
+          toolkit.needToVerifyReplacing = false;
+          return toolkit;
         }
         if (toolkit != null) {
           return toolkit;
@@ -163,14 +168,17 @@ public class Art {
 
   class Toolkit {
 
-    Node freshEntry;//indicating a fresh node while the original node shrunk and changed
+    Node freshMatchedParentNode;//indicating a fresh parent node while the original
+    // parent node shrunk and changed
     long matchedContainerId; //holding the matched key's corresponding container index id
-    Node matchedParentNode; //holding the matched key's leaf node's fresh parent node
+    Node originalMatchedParentNode; //holding the matched key's leaf node's original old parent node
+    boolean needToVerifyReplacing = false; //indicate whether the shrinking node's parent
+    // node has replaced its corresponding child node
 
-    Toolkit(Node freshEntry, long matchedContainerId, Node matchedParentNode) {
-      this.freshEntry = freshEntry;
+    Toolkit(Node freshMatchedParentNode, long matchedContainerId, Node originalMatchedParentNode) {
+      this.freshMatchedParentNode = freshMatchedParentNode;
       this.matchedContainerId = matchedContainerId;
-      this.matchedParentNode = matchedParentNode;
+      this.originalMatchedParentNode = originalMatchedParentNode;
     }
   }
 
