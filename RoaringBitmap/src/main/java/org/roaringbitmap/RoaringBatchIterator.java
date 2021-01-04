@@ -17,6 +17,9 @@ public final class RoaringBatchIterator implements BatchIterator {
 
   @Override
   public int nextBatch(int[] buffer) {
+    if (!hasNext()){
+      return 0;
+    }
     int consumed = 0;
     if (iterator.hasNext()) {
       consumed += iterator.next(key, buffer);
