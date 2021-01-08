@@ -1260,4 +1260,50 @@ public class TestRoaring64Bitmap {
     compareRB.andNot(inputRB);
     assertEquals(13, compareRB.getIntCardinality());
   }
+
+  @Test
+  public void shouldNotThrowNPE() {
+
+    long[] inputs = new long[]{5183829215128059904L};
+    long[] crossers = new long[]{4413527634823086080L, 4418031234450456576L, 4421408934170984448L,
+        4421690409147695104L, 4421479302915162112L, 4421426526357028864L, 4421413332217495552L,
+        4421416630752378880L, 4421416905630285824L, 4421417111788716032L, 4421417128968585216L,
+        4421417133263552512L, 4421417134337294336L};
+
+    Roaring64Bitmap refRB = new Roaring64Bitmap();
+    refRB.add(inputs);
+    Roaring64Bitmap crossRB = new Roaring64Bitmap();
+    crossRB.add(crossers);
+    crossRB.and(refRB);
+    assertEquals(0, crossRB.getIntCardinality());
+  }
+
+  @Test
+  public void shouldNotThrowAIOOB() {
+    long[] inputs = new long[]{5183829215128059904L};
+    long[] crossers = new long[]{4413527634823086080L, 4418031234450456576L, 4421408934170984448L,
+        4421127459194273792L, 4420916352961740800L, 4420863576403607552L, 4420850382264074240L,
+        4420847083729190912L, 4420847358607097856L, 4420847564765528064L, 4420847616305135616L,
+        4420847620600102912L, 4420847623821328384L};
+    Roaring64Bitmap referenceRB = new Roaring64Bitmap();
+    referenceRB.add(inputs);
+    Roaring64Bitmap crossRB = new Roaring64Bitmap();
+    crossRB.add(crossers);
+    crossRB.and(referenceRB);
+    assertEquals(0, crossRB.getIntCardinality());
+  }
+
+  @Test
+  public void shouldNotThrowIAE() {
+
+    long[] inputs = new long[]{5183829215128059904L};
+    long[] crossers = new long[]{4421416447812311717L, 4420658333523655893L, 4420658332008999025L};
+
+    Roaring64Bitmap referenceRB = new Roaring64Bitmap();
+    referenceRB.add(inputs);
+    Roaring64Bitmap crossRB = new Roaring64Bitmap();
+    crossRB.add(crossers);
+    crossRB.and(referenceRB);
+    assertEquals(0, crossRB.getIntCardinality());
+  }
 }
