@@ -36,6 +36,9 @@ public class ArraysShim {
    */
   public static int mismatch(byte[] a, int aFromIndex, int aToIndex,
       byte[] b, int bFromIndex, int bToIndex) {
+    if (bFromIndex > bToIndex) {
+      return -1;
+    }
     return Arrays.mismatch(a, aFromIndex, aToIndex, b, bFromIndex, bToIndex);
   }
 }

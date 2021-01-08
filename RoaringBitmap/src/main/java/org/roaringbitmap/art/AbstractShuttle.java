@@ -96,6 +96,9 @@ public abstract class AbstractShuttle implements Shuttle {
   public void remove() {
     byte[] currentLeafKey = getCurrentLeafNode().getKeyBytes();
     Toolkit toolkit = art.removeSpecifyKey(art.getRoot(), currentLeafKey, 0);
+    if (toolkit == null) {
+      return;
+    }
     if (containers != null) {
       containers.remove(toolkit.matchedContainerId);
     }
@@ -104,6 +107,7 @@ public abstract class AbstractShuttle implements Shuttle {
       //update the parent node to a fresh node as the parent node may changed by the
       //art adaptive removing logic
       NodeEntry oldEntry = stack[depth - 1];
+      oldEntry.visited = oldEntry.node == node;
       oldEntry.node = node;
       oldEntry.startFromNextSiblingPosition = true;
       if (node.nodeType !=  NodeType.LEAF_NODE) {
