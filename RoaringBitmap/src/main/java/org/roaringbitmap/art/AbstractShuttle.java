@@ -58,7 +58,7 @@ public abstract class AbstractShuttle implements Shuttle {
       int pos;
       int nextPos;
       if (!currentNodeEntry.visited) {
-        pos = currentNodeEntry.node.getMinPos();
+        pos = boundaryNodePosition(currentNodeEntry.node);
         currentNodeEntry.position = pos;
         nextPos = pos;
         currentNodeEntry.visited = true;
