@@ -153,8 +153,8 @@ public class Node16 extends Node {
     children[pos] = null;
     ByteBuffer byteBuffer = ByteBuffer.allocate(16).order(ByteOrder.BIG_ENDIAN);
     byte[] bytes = byteBuffer.putLong(firstV).putLong(secondV).array();
-    System.arraycopy(bytes, pos + 1, bytes, pos, count - pos);
-    System.arraycopy(children, pos + 1, children, pos, count - pos);
+    System.arraycopy(bytes, pos + 1, bytes, pos, (16 - pos - 1));
+    System.arraycopy(children, pos + 1, children, pos, (16 - pos - 1));
     firstV = byteBuffer.getLong(0);
     secondV = byteBuffer.getLong(8);
     count--;
