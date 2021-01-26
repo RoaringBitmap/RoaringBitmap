@@ -12,8 +12,8 @@ dependencies {
     testImplementation("com.fasterxml.jackson.core", "jackson-databind", "2.10.3")
 }
 
-
 tasks.test {
+    systemProperty("kryo.unsafe", "false")
     mustRunAfter(tasks.checkstyleMain)
     useJUnitPlatform()
     failFast = true
