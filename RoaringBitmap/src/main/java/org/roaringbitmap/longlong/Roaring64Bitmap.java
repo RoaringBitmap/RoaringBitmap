@@ -607,6 +607,10 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    * @param rangeEnd exclusive ending of range
    */
   public void add(final long rangeStart, final long rangeEnd) {
+    if (rangeEnd == 0 || Long.compareUnsigned(rangeStart, rangeEnd) >= 0) {
+      throw new IllegalArgumentException("Invalid range [" + rangeStart + "," + rangeEnd + ")");
+    }
+
     byte[] startHigh = LongUtils.highPart(rangeStart);
     int startLow = LongUtils.lowPart(rangeStart);
     byte[] endHigh = LongUtils.highPart(rangeEnd - 1);
