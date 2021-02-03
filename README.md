@@ -1,7 +1,6 @@
 RoaringBitmap
 =============
-
-[![Bintray](https://img.shields.io/bintray/v/roaringbitmap/maven/org.roaringbitmap%3ARoaringBitmap.svg)](https://bintray.com/roaringbitmap/maven/org.roaringbitmap%3ARoaringBitmap)
+[![](https://jitpack.io/v/RoaringBitmap/RoaringBitmap.svg)](https://jitpack.io/#RoaringBitmap/RoaringBitmap)
 [![][license img]][license]
 [![docs-badge][]][docs]
 ![Java 11 CI](https://github.com/RoaringBitmap/RoaringBitmap/workflows/Java%2011%20CI/badge.svg)
@@ -373,14 +372,14 @@ If your project depends on roaring, you  can  specify the dependency in the Mave
           <dependency>
             <groupId>org.roaringbitmap</groupId>
             <artifactId>RoaringBitmap</artifactId>
-            <version>0.9.7</version>
+            <version>0.8.0</version>
           </dependency>
         </dependencies>
 ```
 
 where you should replace the version number by the version you require.
 
-[For up-to-date releases, we recommend configuring maven and gradle to depend on the JCenter repository](https://stackoverflow.com/a/44549422/73007). Please consult the [bintray documentation](https://bintray.com/roaringbitmap/maven/org.roaringbitmap%3ARoaringBitmap).
+[For up-to-date releases, we recommend configuring maven and gradle to depend on the Jitpack repository](https://jitpack.io/#RoaringBitmap/RoaringBitmap). 
 
 Usage
 ------

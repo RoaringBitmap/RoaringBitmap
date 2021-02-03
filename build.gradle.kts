@@ -163,9 +163,12 @@ tasks {
 }
 
 release {
-    tagTemplate = "RoaringBitmap-\$version"
+    // for some odd reason, we used to have our tags be of the form RoaringBitmap-0.1.0
+    // instead of just 0.1.0 or v0.1.0.
+    tagTemplate = "\$version"
 }
 
 tasks.afterReleaseBuild {
-    dependsOn(tasks.named("bintrayUpload"))
+    // bintray is being sunsetted
+    //dependsOn(tasks.named("bintrayUpload"))
 }

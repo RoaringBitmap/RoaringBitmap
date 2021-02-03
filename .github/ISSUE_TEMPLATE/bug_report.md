@@ -17,10 +17,7 @@ If it is a bug you encountered while working with the library, you should produc
 
 Please report bugs after testing the latest version of the library. If you are using an older version of the library, please explain.
 
-[![Bintray](https://img.shields.io/bintray/v/roaringbitmap/maven/org.roaringbitmap%253ARoaringBitmap?label=report%20bugs%20after%20testing%20the%20latest%20version%20only%3A&style=flat-square)](https://bintray.com/roaringbitmap/maven/org.roaringbitmap%3ARoaringBitmap)
-
-
-[For up-to-date releases, we recommend configuring maven and gradle to depend on the bintray repository](https://stackoverflow.com/a/44549422/73007). Our experience with Maven Central at Sonatype is poor and the platform is considered legacy. Please consult the [bintray documentation](https://bintray.com/roaringbitmap/maven/org.roaringbitmap%3ARoaringBitmap) for help setting your build configuration.
+[For up-to-date releases, we recommend configuring maven and gradle to depend on the Jitpack repository](https://jitpack.io/#RoaringBitmap/RoaringBitmap). 
 
 
 

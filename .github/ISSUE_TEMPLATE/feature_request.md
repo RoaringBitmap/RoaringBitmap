@@ -18,4 +18,4 @@ Please note that this is a community-based project. Consider proposing a fix (co
 
 
 
-[For up-to-date releases, we recommend configuring maven and gradle to depend on the bintray repository](https://stackoverflow.com/a/44549422/73007). Our experience with Maven Central at Sonatype is poor: releases disappear or are unexplicably delayed.
+[For up-to-date releases, we recommend configuring maven and gradle to depend on the Jitpack repository](https://jitpack.io/#RoaringBitmap/RoaringBitmap). 
