@@ -211,7 +211,7 @@ public class TestRoaring64Bitmap {
   public void testAddInt() {
     Roaring64Bitmap map = newDefaultCtor();
     map.addInt(-1);
-    assertEquals(4294967295L, map.select(0));
+    assertEquals(0xFFFFFFFFL, map.select(0));
   }
 
   @Test
@@ -912,11 +912,11 @@ public class TestRoaring64Bitmap {
   @Test
   public void testInvalidIntMask() {
     Roaring64Bitmap map = new Roaring64Bitmap();
-    int a = 0xFFFF;  // -1 in two's compliment
+    int a = 0xFFFFFFFF;  // -1 in two's compliment
     map.addInt(a);
     assertEquals(map.getIntCardinality(), 1);
     long addedInt = map.getLongIterator().next();
-    assertEquals(0xFFFFL, addedInt);
+    assertEquals(0xFFFFFFFFL, addedInt);
   }
 
   @Test
