@@ -36,7 +36,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
   }
 
   public void addInt(int x) {
-    addLong(x);
+    addLong(Util.toUnsignedLong(x));
   }
 
   /**

@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.roaringbitmap.Util.toUnsignedLong;
 
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
@@ -210,7 +211,7 @@ public class TestRoaring64Bitmap {
   public void testAddInt() {
     Roaring64Bitmap map = newDefaultCtor();
     map.addInt(-1);
-    assertEquals(-1, map.select(0));
+    assertEquals(4294967295L, map.select(0));
   }
 
   @Test
@@ -909,6 +910,16 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
+  public void testInvalidIntMask() {
+    Roaring64Bitmap map = new Roaring64Bitmap();
+    int a = 0xFFFF;  // -1 in two's compliment
+    map.addInt(a);
+    assertEquals(map.getIntCardinality(), 1);
+    long addedInt = map.getLongIterator().next();
+    assertEquals(0xFFFFL, addedInt);
+  }
+
+  @Test
   public void testAddRangeSingleBucket() {
     Roaring64Bitmap map = newDefaultCtor();
 
@@ -925,7 +936,7 @@ public class TestRoaring64Bitmap {
   public void testAddRangeEndExcludingNextBitmapFirstLow() {
     Roaring64Bitmap map = newDefaultCtor();
 
-    long end = Util.toUnsignedLong(-1) + 1;
+    long end = toUnsignedLong(-1) + 1;
 
     map.add(end - 2, end);
     assertEquals(2, map.getLongCardinality());
@@ -985,7 +996,7 @@ public class TestRoaring64Bitmap {
   public void testRoaringBitmapSelectAboveIntegerMaxValue() {
     RoaringBitmap map = new RoaringBitmap();
 
-    long maxForRoaringBitmap = Util.toUnsignedLong(-1) + 1;
+    long maxForRoaringBitmap = toUnsignedLong(-1) + 1;
     map.add(0L, maxForRoaringBitmap);
 
     assertEquals(maxForRoaringBitmap, map.getLongCardinality());
@@ -1162,7 +1173,7 @@ public class TestRoaring64Bitmap {
 
     long[] bitmapAsLongArray = new long[bitmapAsIntArray.length];
     for (int i = 0; i < bitmapAsIntArray.length; i++) {
-      bitmapAsLongArray[i] = Util.toUnsignedLong(bitmapAsIntArray[i]);
+      bitmapAsLongArray[i] = toUnsignedLong(bitmapAsIntArray[i]);
     }
   }
 
