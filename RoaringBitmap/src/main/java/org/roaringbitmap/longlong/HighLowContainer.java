@@ -12,6 +12,7 @@ import org.roaringbitmap.art.ContainerIterator;
 import org.roaringbitmap.art.Containers;
 import org.roaringbitmap.art.KeyIterator;
 import org.roaringbitmap.art.LeafNodeIterator;
+import org.roaringbitmap.art.Node;
 
 public class HighLowContainer {
 
@@ -52,6 +53,17 @@ public class HighLowContainer {
   public void put(byte[] highPart, Container container) {
     long containerIdx = containers.addContainer(container);
     art.insert(highPart, containerIdx);
+  }
+
+  /**
+   * Attempt to remove the container that corresponds to the 48 bit key.
+   * @param highPart the 48 bit key
+   */
+  public void remove(byte[] highPart) {
+    long containerIdx = art.remove(highPart);
+    if (containerIdx != Node.ILLEGAL_IDX) {
+      containers.remove(containerIdx);
+    }
   }
 
   /**

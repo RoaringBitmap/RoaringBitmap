@@ -39,6 +39,17 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
+  public void testEquality() {
+    Roaring64Bitmap rb1 = new Roaring64Bitmap();
+    Roaring64Bitmap rb2 = new Roaring64Bitmap();
+    assertEquals(rb1, rb2);
+    rb1.addLong(1);
+    assertNotEquals(rb1, rb2);
+    rb1.removeLong(1);
+    assertEquals(rb1, rb2);
+  }
+
+  @Test
   public void test() throws Exception {
     Random random = new Random();
     Roaring64Bitmap roaring64Bitmap = new Roaring64Bitmap();
@@ -1214,7 +1225,9 @@ public class TestRoaring64Bitmap {
       long chunksSize = targetCardinality / chunks;
       for (int i = 0; i < chunksSize; i++) {
         long v = map.select(r.nextInt(map.getIntCardinality()));
+        assertTrue(map.contains(v));
         map.removeLong(v);
+        assertFalse(map.contains(v));
       }
       assertEquals(targetCardinality - chunksSize * (j + 1), map.getIntCardinality());
     }

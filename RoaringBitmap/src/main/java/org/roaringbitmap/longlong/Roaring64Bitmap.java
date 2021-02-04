@@ -653,7 +653,12 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       char low = LongUtils.lowPart(x);
       Container container = containerWithIdx.getContainer();
       Container freshContainer = container.remove(low);
-      highLowContainer.replaceContainer(containerWithIdx.getContainerIdx(), freshContainer);
+      if (freshContainer.isEmpty()) {
+        // Attempt to remove empty container to save memory
+        highLowContainer.remove(high);
+      } else {
+        highLowContainer.replaceContainer(containerWithIdx.getContainerIdx(), freshContainer);
+      }
     }
   }
 
