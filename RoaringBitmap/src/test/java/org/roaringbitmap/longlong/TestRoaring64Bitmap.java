@@ -920,6 +920,21 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
+  public void testAddInvalidRange() {
+    Roaring64Bitmap map = new Roaring64Bitmap();
+    // Zero edge-case
+    assertThrows(IllegalArgumentException.class, () -> map.add(0L, 0L));
+
+    // Same higher parts, different lower parts
+    assertThrows(IllegalArgumentException.class, () -> map.add(1L, 0L));
+    assertThrows(IllegalArgumentException.class, () -> map.add(-1, -2));
+
+    // Different higher parts
+    assertThrows(IllegalArgumentException.class, () -> map.add(Long.MAX_VALUE, 0L));
+    assertThrows(IllegalArgumentException.class, () -> map.add(Long.MIN_VALUE, Long.MAX_VALUE));
+  }
+
+  @Test
   public void testAddRangeSingleBucket() {
     Roaring64Bitmap map = newDefaultCtor();
 
