@@ -12,6 +12,7 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.NoSuchElementException;
+import java.util.function.IntConsumer;
 
 /**
  * Base container class.

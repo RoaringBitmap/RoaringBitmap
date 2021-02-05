@@ -15,6 +15,7 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.util.*;
+import java.util.function.IntConsumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 

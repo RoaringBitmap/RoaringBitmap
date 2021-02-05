@@ -1,12 +1,12 @@
 package org.roaringbitmap.realdata;
 
 import java.util.concurrent.TimeUnit;
+import java.util.function.IntConsumer;
 
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
-import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.realdata.state.RealDataBenchmarkState;
 import org.roaringbitmap.realdata.wrapper.Bitmap;
 

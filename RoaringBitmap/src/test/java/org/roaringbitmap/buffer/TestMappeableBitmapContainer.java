@@ -13,7 +13,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.roaringbitmap.BitmapContainer;
 import org.roaringbitmap.CharIterator;
-import org.roaringbitmap.IntConsumer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -23,6 +22,7 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.LongBuffer;
 import java.util.Arrays;
+import java.util.function.IntConsumer;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;

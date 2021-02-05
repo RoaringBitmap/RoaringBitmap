@@ -13,6 +13,7 @@ import java.io.ObjectOutput;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.util.Iterator;
+import java.util.function.IntConsumer;
 
 import static java.lang.Long.numberOfLeadingZeros;
 import static java.lang.Long.numberOfTrailingZeros;

@@ -12,6 +12,7 @@ import org.roaringbitmap.buffer.MutableRoaringBitmapSupplier;
 
 import java.io.*;
 import java.util.*;
+import java.util.function.LongConsumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 

@@ -8,6 +8,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.function.LongConsumer;
 import java.util.Iterator;
 import java.util.Objects;
 import org.roaringbitmap.ArrayContainer;

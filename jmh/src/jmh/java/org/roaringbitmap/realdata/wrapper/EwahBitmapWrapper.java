@@ -3,8 +3,7 @@ package org.roaringbitmap.realdata.wrapper;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
-
-import org.roaringbitmap.IntConsumer;
+import java.util.function.IntConsumer;
 
 import com.googlecode.javaewah.EWAHCompressedBitmap;
 import com.googlecode.javaewah.FastAggregation;

@@ -6,6 +6,7 @@ package org.roaringbitmap.longlong;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.function.LongConsumer;
 import java.util.PrimitiveIterator;
 import java.util.Spliterator;
 import java.util.Spliterators;

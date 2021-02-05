@@ -16,6 +16,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.function.IntConsumer;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;

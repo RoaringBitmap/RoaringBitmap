@@ -9,8 +9,7 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.PriorityQueue;
-
-import org.roaringbitmap.IntConsumer;
+import java.util.function.IntConsumer;
 
 import it.uniroma3.mat.extendedset.intset.ImmutableConciseSet;
 

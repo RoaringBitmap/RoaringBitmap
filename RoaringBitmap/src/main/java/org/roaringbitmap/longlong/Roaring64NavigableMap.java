@@ -9,6 +9,8 @@ import org.roaringbitmap.buffer.MutableRoaringBitmap;
 import java.io.*;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.IntConsumer;
+import java.util.function.LongConsumer;
 
 /**
  * Roaring64NavigableMap extends RoaringBitmap to the whole range of longs (or unsigned longs). It

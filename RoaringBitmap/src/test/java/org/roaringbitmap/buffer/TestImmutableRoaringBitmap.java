@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.function.IntConsumer;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;

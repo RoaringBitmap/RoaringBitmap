@@ -15,7 +15,7 @@ import java.nio.ByteOrder;
 import java.nio.CharBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
-
+import java.util.function.IntConsumer;
 
 
 /**

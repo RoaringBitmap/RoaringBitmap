@@ -2,7 +2,8 @@ package org.roaringbitmap.buffer;
 
 
 import org.junit.jupiter.api.Test;
-import org.roaringbitmap.IntConsumer;
+
+import java.util.function.IntConsumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
