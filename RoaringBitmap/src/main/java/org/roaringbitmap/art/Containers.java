@@ -341,11 +341,6 @@ public class Containers {
     this.secondLevelIdx = byteBuffer.getInt();
   }
 
-  //TODO: remove allocated unused memory
-  public void trim() {
-
-  }
-
   private byte containerType(Container container) {
     if (container instanceof RunContainer) {
       return 0;
