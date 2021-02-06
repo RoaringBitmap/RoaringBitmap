@@ -1,8 +1,10 @@
-import com.jfrog.bintray.gradle.BintrayExtension
+// https://jeroenmols.com/blog/2021/02/04/migratingjcenter/
+// import com.jfrog.bintray.gradle.BintrayExtension
 
 plugins {
     id("net.researchgate.release") version "2.8.0"
-    id("com.jfrog.bintray") version "1.8.4" apply false
+    // https://jeroenmols.com/blog/2021/02/04/migratingjcenter/
+    // id("com.jfrog.bintray") version "1.8.4" apply false
     id("com.github.kt3k.coveralls") version "2.8.4" apply false
 }
 
@@ -24,7 +26,9 @@ subprojects {
     apply(plugin = "com.github.kt3k.coveralls")
 
     repositories {
-        jcenter()
+        // https://jeroenmols.com/blog/2021/02/04/migratingjcenter/
+        // jcenter()
+        mavenCentral()
     }
 
     tasks.withType<JavaCompile> {
@@ -69,7 +73,8 @@ subprojects.filter { !listOf("jmh", "fuzz-tests", "examples", "simplebenchmark")
 subprojects.filter { listOf("RoaringBitmap", "shims").contains(it.name) }.forEach { project ->
     project.run {
         apply(plugin = "maven-publish")
-        apply(plugin = "com.jfrog.bintray")
+        // https://jeroenmols.com/blog/2021/02/04/migratingjcenter/
+        // apply(plugin = "com.jfrog.bintray")
 
         tasks {
             register<Jar>("sourceJar") {
@@ -85,7 +90,7 @@ subprojects.filter { listOf("RoaringBitmap", "shims").contains(it.name) }.forEac
 
         configure<PublishingExtension> {
             publications {
-                register<MavenPublication>("bintray") {
+                register<MavenPublication>("sonatype") {
                     groupId = project.group.toString()
                     artifactId = project.name
                     version = project.version.toString()
