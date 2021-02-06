@@ -18,3 +18,9 @@ tasks.test {
     useJUnitPlatform()
     failFast = true
 }
+
+// https://github.com/rwinch/gradle-publish-ossrh-sample#ossrh-requirements
+// java {
+//    withJavadocJar()
+//    withSourcesJar()
+//}

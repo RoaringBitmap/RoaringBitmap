@@ -1,12 +1,38 @@
 // https://jeroenmols.com/blog/2021/02/04/migratingjcenter/
 // import com.jfrog.bintray.gradle.BintrayExtension
 
+// This is a kotlin gradle file
+// https://outadoc.fr/2020/06/converting-gradle-to-gradle-kts/
+
 plugins {
+    // id("org.jetbrains.kotlin.jvm") version "1.2.41"
+
     id("net.researchgate.release") version "2.8.0"
     // https://jeroenmols.com/blog/2021/02/04/migratingjcenter/
     // id("com.jfrog.bintray") version "1.8.4" apply false
     id("com.github.kt3k.coveralls") version "2.8.4" apply false
+    // https://github.com/rwinch/gradle-publish-ossrh-sample#apply-plugins
+    id("java")
+    id("signing")
+
+    // https://issues.sonatype.org/browse/OSSRH-55639
+    `maven-publish`
+
+    // https://central.sonatype.org/pages/gradle.html
+    // 'maven' looks outdated compared to 'maven-publish'
+    // `maven`
+
+    // https://github.com/Codearte/gradle-nexus-staging-plugin/
+    id("io.codearte.nexus-staging") version "0.22.0"
+    id("de.marcphilipp.nexus-publish") version "0.4.0"
 }
+
+//fun Settings.property(key: String): String =
+//        javaClass.getMethod("getProperty", String::class.java).invoke(this, key) as String
+//fun Settings.hasProperty(key: String): Boolean =
+//        javaClass.getMethod("hasProperty", String::class.java).invoke(this, key) as Boolean
+//operator fun Settings.get(key: String) = if (hasProperty(key)) property(key) else null
+//val repoUrl = settings["repoUrl"]
 
 // some parts of the Kotlin DSL don't work inside a `subprojects` block yet, so we do them the old way
 // (without typesafe accessors)
@@ -73,9 +99,16 @@ subprojects.filter { !listOf("jmh", "fuzz-tests", "examples", "simplebenchmark")
 subprojects.filter { listOf("RoaringBitmap", "shims").contains(it.name) }.forEach { project ->
     project.run {
         apply(plugin = "maven-publish")
+        apply(plugin = "signing")
+
         // https://jeroenmols.com/blog/2021/02/04/migratingjcenter/
         // apply(plugin = "com.jfrog.bintray")
 
+        // Is this an alternative to the following?
+        // java {
+        //     withJavadocJar()
+        //     withSourcesJar()
+        //}
         tasks {
             register<Jar>("sourceJar") {
                 from(project.the<SourceSetContainer>()["main"].allJava)
@@ -88,9 +121,10 @@ subprojects.filter { listOf("RoaringBitmap", "shims").contains(it.name) }.forEac
             }
         }
 
-        configure<PublishingExtension> {
+        // https://docs.gradle.org/current/userguide/publishing_maven.html#publishing_maven
+        publishing {
             publications {
-                register<MavenPublication>("sonatype") {
+                create<MavenPublication>("mavenJava") {
                     groupId = project.group.toString()
                     artifactId = project.name
                     version = project.version.toString()
@@ -98,6 +132,19 @@ subprojects.filter { listOf("RoaringBitmap", "shims").contains(it.name) }.forEac
                     from(components["java"])
                     artifact(tasks["sourceJar"])
                     artifact(tasks["docJar"])
+
+                    // https://issues.sonatype.org/browse/OSSRH-55639
+                    repositories {
+                        maven {
+                            credentials {
+                                username = project.property("ossrhUsername").toString()
+                                password = project.property("ossrhPassword").toString()
+                            }
+                            val releasesRepoUrl = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+                            val snapshotsRepoUrl = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+                            url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
+                        }
+                    }
 
                     // requirements for maven central
                     // https://central.sonatype.org/pages/requirements.html
@@ -137,33 +184,34 @@ subprojects.filter { listOf("RoaringBitmap", "shims").contains(it.name) }.forEac
             }
         }
 
-        configure<BintrayExtension> {
-            user = rootProject.findProperty("bintrayUser")?.toString()
-            key = rootProject.findProperty("bintrayApiKey")?.toString()
-            setPublications("bintray")
 
-            with(pkg) {
-                repo = "maven"
-                setLicenses("Apache-2.0")
-                vcsUrl = "https://github.com/RoaringBitmap/RoaringBitmap"
-                // use "bintray package per artifact" to match the auto-gen'd pkg structure inherited from
-                // Maven Central's artifacts
-                name = "org.roaringbitmap:${project.name}"
-                userOrg = "roaringbitmap"
 
-                with(version) {
-                    name = project.version.toString()
-                    released = java.util.Date().toString()
-                    vcsTag = "RoaringBitmap-${project.version}"
-                }
-            }
+// https://docs.gradle.org/current/userguide/signing_plugin.html#sec:signatory_credentials
+// May be set in ${user.home}/gradle.properties
+// https://stackoverflow.com/questions/28289172/gradle-gradle-properties-file-not-being-read
+// export USER_HOME=$HOME
+// ./gradlew properties
+// See 'gpg --list-signatures' to get a 16-chars keyId
+// https://github.com/gradle/gradle/issues/1918
+// -> 16-chars is not a valid key
+// -> Take the last 8 characters of the 16-chars keyId (LAWL)
+// Or 'gpg2 --list-keys --keyid-format SHORT'
+// signing.keyId=YourKeyId
+// BenoitLacelle: I did not find how to input this in a interactive way
+// Except: '-Psigning.password=secret'
+// signing.password=YourPublicKeyPassword
+// You may need to to: 'gpg --keyring secring.gpg --export-secret-keys > ~/.gnupg/secring.gpg'
+// signing.secretKeyRingFile=PathToYourKeyRingFile
+// Unclear how this is needed. Probably for publishing, but not signing
+// ossrhUsername=your-jira-id
+// ossrhPassword=your-jira-password
+// ./gradlew signArchives -Psigning.secretKeyRingFile=/Users/blacelle/.gnupg/secring.gpg -Psigning.password=secret -Psigning.keyId=0x9502E68A
+        signing {
+            isRequired = true
+            // sign(tasks["sourceJar"], tasks["javadoc"])
+            // sign(publishing.publications["math"])
+            sign(configurations.archives.get())
         }
-    }
-}
-
-tasks {
-    create("build") {
-        // dummy build task to appease release plugin
     }
 }
 
@@ -173,7 +221,28 @@ release {
     tagTemplate = "\$version"
 }
 
-tasks.afterReleaseBuild {
-    // bintray is being sunsetted
-    //dependsOn(tasks.named("bintrayUpload"))
+// https://github.com/rwinch/gradle-publish-ossrh-sample#configure-nexus-staging-plugin
+nexusStaging {
+    if (project.hasProperty("ossrhUsername")) {
+        // https://stackoverflow.com/questions/58820891/how-to-define-gradle-project-properties-with-kotlin-dsl
+        username = project.extra["ossrhUsername"].toString()
+    }
+    if (project.hasProperty("ossrhPassword")) {
+        password = project.extra["ossrhPassword"].toString()
+    }
+    repositoryDescription = "Release ${project.group} ${project.version}"
+}
+
+// https://github.com/rwinch/gradle-publish-ossrh-sample#configure-nexus-publishing-plugin
+nexusPublishing {
+    repositories {
+        sonatype {
+            if (project.hasProperty("ossrhUsername")) {
+                username = project.extra["ossrhUsername"].toString()
+            }
+            if (project.hasProperty("ossrhPassword")) {
+                password = project.extra["ossrhPassword"].toString()
+            }
+        }
+    }
 }
