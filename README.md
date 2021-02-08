@@ -448,7 +448,7 @@ a very sparse set). For example, take the set 0, 65536, 131072, 196608, 262144 .
 If this is typical of your application, you might consider using a HashSet or
 a simple sorted array.
 
-2. You have dense set of small random values that never form runs of continuous
+2. You have dense set of random values that never form runs of continuous
 values. For example, consider the set 0,2,4,...,10000. If this is typical of your
 application, you might be better served with a conventional bitset (e.g., Java's BitSet class).
 
