@@ -1274,13 +1274,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
           pushBitmapForHigh(high, bitmap);
         }
 
-        if (bitmap instanceof RoaringBitmap) {
-          ((RoaringBitmap) bitmap).add(startLowAsLong, endLowAsLong);
-        } else if (bitmap instanceof MutableRoaringBitmap) {
-          ((MutableRoaringBitmap) bitmap).add(startLowAsLong, endLowAsLong);
-        } else {
-          throw new UnsupportedOperationException("TODO. Not for " + bitmap.getClass());
-        }
+        bitmap.add(startLowAsLong, endLowAsLong);
       }
     }
 
