@@ -12,11 +12,12 @@ plugins {
     // id("com.jfrog.bintray") version "1.8.4" apply false
     id("com.github.kt3k.coveralls") version "2.8.4" apply false
     // https://github.com/rwinch/gradle-publish-ossrh-sample#apply-plugins
-    id("java")
+    //id("java")
     id("signing")
 
     // https://issues.sonatype.org/browse/OSSRH-55639
-    `maven-publish`
+    // This plugin is applied by 'de.marcphilipp.nexus-publish'
+    // `maven-publish`
 
     // https://central.sonatype.org/pages/gradle.html
     // 'maven' looks outdated compared to 'maven-publish'
@@ -26,16 +27,6 @@ plugins {
     id("io.codearte.nexus-staging") version "0.22.0"
     id("de.marcphilipp.nexus-publish") version "0.4.0"
 }
-
-//fun Settings.property(key: String): String =
-//        javaClass.getMethod("getProperty", String::class.java).invoke(this, key) as String
-//fun Settings.hasProperty(key: String): Boolean =
-//        javaClass.getMethod("hasProperty", String::class.java).invoke(this, key) as Boolean
-//operator fun Settings.get(key: String) = if (hasProperty(key)) property(key) else null
-//val repoUrl = settings["repoUrl"]
-
-// some parts of the Kotlin DSL don't work inside a `subprojects` block yet, so we do them the old way
-// (without typesafe accessors)
 
 subprojects {
     // used in per-subproject dependencies
@@ -134,17 +125,18 @@ subprojects.filter { listOf("RoaringBitmap", "shims").contains(it.name) }.forEac
                     artifact(tasks["docJar"])
 
                     // https://issues.sonatype.org/browse/OSSRH-55639
-                    repositories {
-                        maven {
-                            credentials {
-                                username = project.property("ossrhUsername").toString()
-                                password = project.property("ossrhPassword").toString()
-                            }
-                            val releasesRepoUrl = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-                            val snapshotsRepoUrl = uri("https://oss.sonatype.org/content/repositories/snapshots/")
-                            url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
-                        }
-                    }
+                    // Looks not useful given nexusStaging and nexusPublishing at the bottom
+                    // repositories {
+                    //     maven {
+                    //         credentials {
+                    //             username = project.property("ossrhUsername").toString()
+                    //             password = project.property("ossrhPassword").toString()
+                    //         }
+                    //         val releasesRepoUrl = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+                    //         val snapshotsRepoUrl = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+                    //         url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
+                    //     }
+                    // }
 
                     // requirements for maven central
                     // https://central.sonatype.org/pages/requirements.html
@@ -184,7 +176,11 @@ subprojects.filter { listOf("RoaringBitmap", "shims").contains(it.name) }.forEac
             }
         }
 
-
+        // This should enable signing only on RELEASE versions, and if local environment has a signingKeyId
+        // https://docs.gradle.org/current/userguide/signing_plugin.html
+        tasks.withType<Sign>().configureEach {
+            onlyIf { project.extra["isReleaseVersion"] as Boolean && project.hasProperty("signing.keyId") }
+        }
 
 // https://docs.gradle.org/current/userguide/signing_plugin.html#sec:signatory_credentials
 // May be set in ${user.home}/gradle.properties
@@ -202,15 +198,12 @@ subprojects.filter { listOf("RoaringBitmap", "shims").contains(it.name) }.forEac
 // signing.password=YourPublicKeyPassword
 // You may need to to: 'gpg --keyring secring.gpg --export-secret-keys > ~/.gnupg/secring.gpg'
 // signing.secretKeyRingFile=PathToYourKeyRingFile
-// Unclear how this is needed. Probably for publishing, but not signing
-// ossrhUsername=your-jira-id
-// ossrhPassword=your-jira-password
 // ./gradlew signArchives -Psigning.secretKeyRingFile=/Users/blacelle/.gnupg/secring.gpg -Psigning.password=secret -Psigning.keyId=0x9502E68A
         signing {
             isRequired = true
-            // sign(tasks["sourceJar"], tasks["javadoc"])
-            // sign(publishing.publications["math"])
-            sign(configurations.archives.get())
+
+            // sign(configurations.archives.get())
+            sign(publishing.publications)
         }
     }
 }
@@ -234,15 +227,34 @@ nexusStaging {
 }
 
 // https://github.com/rwinch/gradle-publish-ossrh-sample#configure-nexus-publishing-plugin
+// ./gradlew publishToSonatype
 nexusPublishing {
     repositories {
         sonatype {
             if (project.hasProperty("ossrhUsername")) {
-                username = project.extra["ossrhUsername"].toString()
+                username.set(project.extra["ossrhUsername"].toString())
             }
             if (project.hasProperty("ossrhPassword")) {
-                password = project.extra["ossrhPassword"].toString()
+                password.set(project.extra["ossrhPassword"].toString())
             }
         }
     }
 }
+
+// ./gradlew publishMavenPublicationToLocalRepository
+// ./gradlew publishToMavenLocal
+//publishing {
+//    repositories {
+//        maven {
+//            name = "local"
+            // change URLs to point to your repos, e.g. http://my.org/repo
+//            val releasesRepoUrl = "$buildDir/repos/releases"
+//            val snapshotsRepoUrl = "$buildDir/repos/snapshots"
+//            if (version.toString().endsWith("SNAPSHOT")) {
+//                url = uri(snapshotsRepoUrl)
+//            } else {
+//                url = uri(releasesRepoUrl)
+//            }
+//        }
+//    }
+//}
