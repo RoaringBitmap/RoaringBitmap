@@ -62,7 +62,7 @@ import java.util.Iterator;
  * @see org.roaringbitmap.RoaringBitmap
  */
 public class MutableRoaringBitmap extends ImmutableRoaringBitmap
-    implements Cloneable, Serializable, Iterable<Integer>, Externalizable,
+    implements Cloneable, Serializable, Externalizable,
         BitmapDataProvider, AppendableStorage<MappeableContainer> {
   private static final long serialVersionUID = 4L; // 3L; bumped by ofk for runcontainers
 
@@ -1202,54 +1202,6 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     return (MutableRoaringArray) highLowContainer;
   }
 
-  /**
-   * iterate over the positions of the true values.
-   *
-   * @return the iterator
-   */
-  @Override
-  public Iterator<Integer> iterator() {
-    return new Iterator<Integer>() {
-      private int hs = 0;
-
-      private CharIterator iter;
-
-      private int pos = 0;
-
-      private int x;
-
-      @Override
-      public boolean hasNext() {
-        return pos < MutableRoaringBitmap.this.highLowContainer.size();
-      }
-
-      private Iterator<Integer> init() {
-        if (pos < MutableRoaringBitmap.this.highLowContainer.size()) {
-          iter = MutableRoaringBitmap.this.highLowContainer.getContainerAtIndex(pos)
-              .getCharIterator();
-          hs = (MutableRoaringBitmap.this.highLowContainer.getKeyAtIndex(pos)) << 16;
-        }
-        return this;
-      }
-
-      @Override
-      public Integer next() {
-        x = (iter.next()) | hs;
-        if (!iter.hasNext()) {
-          ++pos;
-          init();
-        }
-        return x;
-      }
-
-      @Override
-      public void remove() {
-         // todo: implement
-        throw new UnsupportedOperationException();
-      }
-
-    }.init();
-  }
 
   // call repairAfterLazy on result, eventually
   // important: x2 should not have been computed lazily

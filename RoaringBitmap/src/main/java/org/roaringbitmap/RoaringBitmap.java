@@ -12,8 +12,10 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.PrimitiveIterator.OfInt;
 import java.util.Spliterator;
+import java.util.function.Consumer;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 import java.util.Spliterators;
@@ -54,7 +56,7 @@ import static org.roaringbitmap.Util.lowbitsAsInteger;
  */
 
 
-public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>, Externalizable,
+public class RoaringBitmap implements Cloneable, Serializable, Externalizable,
     ImmutableBitmapDataProvider, BitmapDataProvider, AppendableStorage<Container> {
 
   private final class RoaringIntIterator implements PeekableIntIterator {
@@ -2044,56 +2046,6 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   public boolean isEmpty() {
     return highLowContainer.size() == 0;
   }
-
-
-  /**
-   * iterate over the positions of the true values.
-   *
-   * @return the iterator
-   */
-  @Override
-  public Iterator<Integer> iterator() {
-    return new Iterator<Integer>() {
-      private int hs = 0;
-
-      private CharIterator iter;
-
-      private int pos = 0;
-
-      private int x;
-
-      @Override
-      public boolean hasNext() {
-        return pos < RoaringBitmap.this.highLowContainer.size();
-      }
-
-      private Iterator<Integer> init() {
-        if (pos < RoaringBitmap.this.highLowContainer.size()) {
-          iter = RoaringBitmap.this.highLowContainer.getContainerAtIndex(pos).getCharIterator();
-          hs = RoaringBitmap.this.highLowContainer.getKeyAtIndex(pos) << 16;
-        }
-        return this;
-      }
-
-      @Override
-      public Integer next() {
-        x = iter.nextAsInt() | hs;
-        if (!iter.hasNext()) {
-          ++pos;
-          init();
-        }
-        return x;
-      }
-
-      @Override
-      public void remove() {
-        // todo: implement
-        throw new UnsupportedOperationException();
-      }
-
-    }.init();
-  }
-
 
   // don't forget to call repairAfterLazy() afterward
   // important: x2 should not have been computed lazily

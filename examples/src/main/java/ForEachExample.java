@@ -24,12 +24,9 @@ public class ForEachExample {
             rb.add(k);
         }
         final int[] count = {0};
-        rb.forEach(new IntConsumer() {
-            @Override
-            public void accept(int value) {
-                if((value % 1500) == 0) {
-                    count[0] ++;
-                }
+        rb.forEach(value -> {
+            if((value % 1500) == 0) {
+                count[0] ++;
             }
         });
         System.out.println("There are "+count[0]+" values divisible by 1500.");

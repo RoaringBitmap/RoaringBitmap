@@ -2907,41 +2907,6 @@ public class TestRoaringBitmap {
   }
 
   @Test
-  public void testIterator() {
-    MutableRoaringBitmap rb = new MutableRoaringBitmap();
-    for (int k = 0; k < 4000; ++k) {
-      rb.add(k);
-    }
-    for (int k = 0; k < 1000; ++k) {
-      rb.add(k * 100);
-    }
-    MutableRoaringBitmap copy1 = new MutableRoaringBitmap();
-    for (int x : rb) {
-      copy1.add(x);
-    }
-    assertTrue(copy1.equals(rb));
-    MutableRoaringBitmap copy2 = new MutableRoaringBitmap();
-    IntIterator i = rb.getIntIterator();
-    Iterator<Integer> is = rb.iterator();
-    while (i.hasNext()) {
-      if (!is.hasNext()) {
-        throw new RuntimeException("bug");
-      }
-      int x = i.next();
-      copy2.add(x);
-      int xs = is.next();
-      if (x != xs) {
-        throw new RuntimeException("values differ " + x + " " + xs);
-      }
-    }
-    if (is.hasNext()) {
-      throw new RuntimeException("bug: more data available");
-    }
-    assertTrue(copy2.equals(rb));
-  }
-
-
-  @Test
   public void testIteratorBigInts() {
     MutableRoaringBitmap rb = new MutableRoaringBitmap();
     for (int k = 0; k < 4000; ++k) {
@@ -2951,34 +2916,22 @@ public class TestRoaringBitmap {
       rb.add((1<<31)+k * 100);
     }
     MutableRoaringBitmap copy1 = new MutableRoaringBitmap();
-    for (int x : rb) {
-      copy1.add(x);
-    }
-    assertTrue(copy1.equals(rb));
+    rb.forEach(copy1::add);
+    assertEquals(rb, copy1);
     MutableRoaringBitmap copy2 = new MutableRoaringBitmap();
     IntIterator i = rb.getIntIterator();
-    Iterator<Integer> is = rb.iterator();
     while (i.hasNext()) {
-      if (!is.hasNext()) {
-        throw new RuntimeException("bug");
-      }
       int x = i.next();
       copy2.add(x);
-      int xs = is.next();
-      if (x != xs) {
-        throw new RuntimeException("values differ " + x + " " + xs);
-      }
     }
-    if (is.hasNext()) {
-      throw new RuntimeException("bug: more data available");
-    }
-    assertTrue(copy2.equals(rb));
+
+    assertEquals(rb, copy2);
   }
 
 
 
 
-  
+
   @Test
   public void testIteratorMapped() {
     MutableRoaringBitmap orb = new MutableRoaringBitmap();
@@ -2989,30 +2942,19 @@ public class TestRoaringBitmap {
       orb.add(k * 100);
     }
     MutableRoaringBitmap ocopy1 = new MutableRoaringBitmap();
-    for (int x : orb) {
-      ocopy1.add(x);
-    }
-    assertTrue(ocopy1.equals(orb));
+    orb.forEach(ocopy1::add);
+    assertEquals(orb, ocopy1);
+
     MutableRoaringBitmap copy2 = new MutableRoaringBitmap();
     IntIterator i = toMapped(orb).getIntIterator();
-    Iterator<Integer> is = toMapped(orb).iterator();
     while (i.hasNext()) {
-      if (!is.hasNext()) {
-        throw new RuntimeException("bug");
-      }
       int x = i.next();
       copy2.add(x);
-      int xs = is.next();
-      if (x != xs) {
-        throw new RuntimeException("values differ " + x + " " + xs);
-      }
     }
-    if (is.hasNext()) {
-      throw new RuntimeException("bug: more data available");
-    }
+
     assertTrue(copy2.equals(toMapped(orb)));
   }
- 
+
 
  @Test
   public void testIteratorMappedBigInts() {
@@ -3024,26 +2966,14 @@ public class TestRoaringBitmap {
       orb.add((1<<32)+k * 100);
     }
     MutableRoaringBitmap ocopy1 = new MutableRoaringBitmap();
-    for (int x : orb) {
-      ocopy1.add(x);
-    }
+    orb.forEach(ocopy1::add);
+
     assertTrue(ocopy1.equals(orb));
     MutableRoaringBitmap copy2 = new MutableRoaringBitmap();
     IntIterator i = toMapped(orb).getIntIterator();
-    Iterator<Integer> is = toMapped(orb).iterator();
     while (i.hasNext()) {
-      if (!is.hasNext()) {
-        throw new RuntimeException("bug");
-      }
       int x = i.next();
       copy2.add(x);
-      int xs = is.next();
-      if (x != xs) {
-        throw new RuntimeException("values differ " + x + " " + xs);
-      }
-    }
-    if (is.hasNext()) {
-      throw new RuntimeException("bug: more data available");
     }
     assertTrue(copy2.equals(toMapped(orb)));
   }

@@ -208,39 +208,20 @@ public class TestSerialization {
     presoutbb.position(presoutbb.position() + imrempty.serializedSizeInBytes());
     assertEquals(imrempty.isEmpty(), true);
     ImmutableRoaringBitmap imrb = new ImmutableRoaringBitmap(presoutbb);
-    int cksum1 = 0, cksum2 = 0, count1 = 0, count2 = 0;
-    for (int x : bitmap_a) { // or bitmap_a1 for a version without run
-      cksum1 += x;
-      ++count1;
-    }
-    for (int x : imrb) {
-      cksum2 += x;
-      ++count2;
-    }
+    int cksum1[] = {0}, cksum2[] = {0}, count1[] = {0}, count2[] = {0};
 
-    Iterator<Integer> it1, it2;
-    it1 = bitmap_a.iterator();
-    // it1 = bitmap_a1.iterator();
-    it2 = imrb.iterator();
-    int blabcount = 0;
-    int valcount = 0;
-    while (it1.hasNext() && it2.hasNext()) {
-      ++valcount;
-      int val1 = it1.next(), val2 = it2.next();
-      if (val1 != val2) {
-        if (++blabcount < 10) {
-          System.out
-              .println("disagree on " + valcount + " nonmatching values are " + val1 + " " + val2);
-        }
-      }
-    }
-    System.out.println("there were " + blabcount + " diffs");
-    if (it1.hasNext() != it2.hasNext()) {
-      System.out.println("one ran out earlier");
-    }
+    bitmap_a.forEach(x -> {
+      cksum1[0] += x;
+      ++count1[0];
+    });
 
-    assertEquals(count1, count2);
-    assertEquals(cksum1, cksum2);
+    imrb.forEach(x -> {
+      cksum2[0] += x;
+      ++count2[0];
+    });
+
+    assertEquals(count1[0], count2[0]);
+    assertEquals(cksum1[0], cksum2[0]);
   }
 
 
@@ -263,19 +244,19 @@ public class TestSerialization {
     }
     bb1.flip();
     ImmutableRoaringBitmap imrb = new ImmutableRoaringBitmap(bb1);
-    int cksum1 = 0, cksum2 = 0, count1 = 0, count2 = 0;
-    for (int x : bm1) {
-      cksum1 += x;
-      ++count1;
-    }
+    int cksum1[] = {0}, cksum2[] = {0}, count1[] = {0}, count2[] = {0};
+    bm1.forEach(val -> {
+      cksum1[0] += val;
+      ++count1[0];
+    });
 
-    for (int x : imrb) {
-      cksum2 += x;
-      ++count2;
-    }
+    imrb.forEach(val -> {
+      cksum2[0] += val;
+      ++count2[0];
+    });
 
-    assertEquals(count1, count2);
-    assertEquals(cksum1, cksum2);
+    assertEquals(count1[0], count2[0]);
+    assertEquals(cksum1[0], cksum2[0]);
   }
 
   @Test
@@ -283,13 +264,7 @@ public class TestSerialization {
     // did we build a mutable equal to the regular one?
     assertEquals(bitmap_emptyr.isEmpty(), true);
     assertEquals(bitmap_empty.isEmpty(), true);
-    int cksum1 = 0, cksum2 = 0;
-    for (int x : bitmap_a) {
-      cksum1 += x;
-    }
-    for (int x : bitmap_ar) {
-      cksum2 += x;
-    }
+    int cksum1 = bitmap_a.stream().sum(), cksum2 = bitmap_ar.stream().sum();
     assertEquals(cksum1, cksum2);
   }
 
@@ -304,13 +279,9 @@ public class TestSerialization {
     emptyt.deserialize(dis);
     assertEquals(emptyt.isEmpty(), true);
     mrb.deserialize(dis);
-    int cksum1 = 0, cksum2 = 0;
-    for (int x : bitmap_a) {
-      cksum1 += x;
-    }
-    for (int x : mrb) {
-      cksum2 += x;
-    }
+    int cksum1 = bitmap_a.stream().sum();
+    int cksum2 = mrb.stream().sum();
+
     assertEquals(cksum1, cksum2);
   }
 

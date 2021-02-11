@@ -77,14 +77,11 @@ public class TestStreams {
     final int[] data = takeSortedAndDistinct(source, 450000);
     RoaringBitmap bitmap = RoaringBitmap.bitmapOf(data);
 
-    final List<Integer> iteratorCopy = ImmutableList.copyOf(bitmap.iterator());
     final List<Integer> intIteratorCopy = bitmap.stream().mapToObj(Integer::valueOf).collect(Collectors.toList());
     final List<Integer> reverseIntIteratorCopy = bitmap.reverseStream().mapToObj(Integer::valueOf).collect(Collectors.toList());
 
-    assertEquals(bitmap.getCardinality(), iteratorCopy.size());
     assertEquals(bitmap.getCardinality(), intIteratorCopy.size());
     assertEquals(bitmap.getCardinality(), reverseIntIteratorCopy.size());
-    assertEquals(Ints.asList(data), iteratorCopy);
     assertEquals(Ints.asList(data), intIteratorCopy);
     assertEquals(Lists.reverse(Ints.asList(data)), reverseIntIteratorCopy);
   }
@@ -93,11 +90,9 @@ public class TestStreams {
   public void testSmallIteration() {
     RoaringBitmap bitmap = RoaringBitmap.bitmapOf(1, 2, 3);
 
-    final List<Integer> iteratorCopy = ImmutableList.copyOf(bitmap.iterator());
     final List<Integer> intIteratorCopy = bitmap.stream().mapToObj(Integer::valueOf).collect(Collectors.toList());
     final List<Integer> reverseIntIteratorCopy = bitmap.reverseStream().mapToObj(Integer::valueOf).collect(Collectors.toList());
 
-    assertEquals(ImmutableList.of(1, 2, 3), iteratorCopy);
     assertEquals(ImmutableList.of(1, 2, 3), intIteratorCopy);
     assertEquals(ImmutableList.of(3, 2, 1), reverseIntIteratorCopy);
     assertEquals(bitmap.last(), bitmap.reverseStream().max().getAsInt());

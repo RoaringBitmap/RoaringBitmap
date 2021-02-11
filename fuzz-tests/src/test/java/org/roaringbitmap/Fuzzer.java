@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableMap;
 import org.junit.jupiter.api.Test;
 
 import java.util.BitSet;
+import java.util.Iterator;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.*;
 import java.util.stream.IntStream;
@@ -533,25 +534,25 @@ public class Fuzzer {
             });
   }
 
-  @Test
-  public void absentValuesConsistentWithBitSet() {
-    int[] offsets = new int[]{0, 1, -1, 10, -10, 100, -100};
-    // Size limit to avoid out of memory errors; r.last() > 0 to avoid bitmaps with last > Integer.MAX_VALUE
-    verifyInvariance(r -> r.isEmpty() || (r.last() > 0 && r.last() < 1 << 30), bitmap -> {
-      BitSet reference = new BitSet();
-      bitmap.forEach((IntConsumer) reference::set);
+    @Test
+    public void absentValuesConsistentWithBitSet() {
+        int[] offsets = new int[]{0, 1, -1, 10, -10, 100, -100};
+        // Size limit to avoid out of memory errors; r.last() > 0 to avoid bitmaps with last > Integer.MAX_VALUE
+        verifyInvariance(r -> r.isEmpty() || (r.last() > 0 && r.last() < 1 << 30), bitmap -> {
+            BitSet reference = new BitSet();
+            bitmap.forEach(reference::set);
 
-      for (int next : bitmap) {
-        for (int offset : offsets) {
-          int pos = next + offset;
-          if (pos >= 0) {
-            assertEquals(reference.nextClearBit(pos), bitmap.nextAbsentValue(pos));
-            assertEquals(reference.previousClearBit(pos), bitmap.previousAbsentValue(pos));
-          }
-        }
-      }
-    });
-  }
+            bitmap.forEach(x -> {
+                for (int offset : offsets) {
+                    int pos = x + offset;
+                    if (pos >= 0) {
+                        assertEquals(reference.nextClearBit(pos), bitmap.nextAbsentValue(pos));
+                        assertEquals(reference.previousClearBit(pos), bitmap.previousAbsentValue(pos));
+                    }
+                }
+            });
+        });
+    }
 
   @Test
   public void testFastAggregationAnd() {

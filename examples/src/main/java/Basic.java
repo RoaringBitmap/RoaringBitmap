@@ -16,8 +16,6 @@ public class Basic {
         long cardinality = rr.getLongCardinality();
         System.out.println(cardinality);
         // a "forEach" is faster than this loop, but a loop is possible:
-        for(int i : rr) {
-          System.out.println(i);
-        }
+        rr.forEach(System.out::println);
   }
 }

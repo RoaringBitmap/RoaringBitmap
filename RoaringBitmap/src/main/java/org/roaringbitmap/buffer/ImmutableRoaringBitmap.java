@@ -70,8 +70,7 @@ import static org.roaringbitmap.buffer.MutableRoaringBitmap.rangeSanityCheck;
  *
  * @see MutableRoaringBitmap
  */
-public class ImmutableRoaringBitmap
-    implements Iterable<Integer>, Cloneable, ImmutableBitmapDataProvider {
+public class ImmutableRoaringBitmap implements Cloneable, ImmutableBitmapDataProvider {
 
   private final class ImmutableRoaringIntIterator implements PeekableIntIterator {
     private MappeableContainerPointer cp =
@@ -1451,54 +1450,6 @@ public class ImmutableRoaringBitmap
   @Override
   public boolean isEmpty() {
     return highLowContainer.size() == 0;
-  }
-
-  /**
-   * iterate over the positions of the true values.
-   *
-   * @return the iterator
-   */
-  @Override
-  public Iterator<Integer> iterator() {
-    return new Iterator<Integer>() {
-      int hs = 0;
-
-      CharIterator iter;
-
-      int pos = 0;
-
-      int x;
-
-      @Override
-      public boolean hasNext() {
-        return pos < ImmutableRoaringBitmap.this.highLowContainer.size();
-      }
-
-      public Iterator<Integer> init() {
-        if (pos < ImmutableRoaringBitmap.this.highLowContainer.size()) {
-          iter = ImmutableRoaringBitmap.this.highLowContainer.getContainerAtIndex(pos)
-              .getCharIterator();
-          hs = (ImmutableRoaringBitmap.this.highLowContainer.getKeyAtIndex(pos)) << 16;
-        }
-        return this;
-      }
-
-      @Override
-      public Integer next() {
-        x = iter.nextAsInt() | hs;
-        if (!iter.hasNext()) {
-          ++pos;
-          init();
-        }
-        return x;
-      }
-
-      @Override
-      public void remove() {
-        throw new RuntimeException("Cannot modify.");
-      }
-
-    }.init();
   }
 
   /**

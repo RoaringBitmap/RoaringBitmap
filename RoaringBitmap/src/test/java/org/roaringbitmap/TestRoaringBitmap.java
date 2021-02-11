@@ -2984,9 +2984,7 @@ public class TestRoaringBitmap {
             rb.add(k * 100);
         }
         RoaringBitmap copy1 = new RoaringBitmap();
-        for (int x : rb) {
-            copy1.add(x);
-        }
+        rb.forEach(copy1::add);
         assertEquals(copy1, rb);
         RoaringBitmap copy2 = new RoaringBitmap();
         IntIterator i = rb.getIntIterator();
@@ -3007,9 +3005,7 @@ public class TestRoaringBitmap {
             rb.add((1 << 31) + k * 100);
         }
         RoaringBitmap copy1 = new RoaringBitmap();
-        for (int x : rb) {
-            copy1.add(x);
-        }
+        rb.forEach(copy1::add);
         assertEquals(copy1, rb);
         RoaringBitmap copy2 = new RoaringBitmap();
         IntIterator i = rb.getIntIterator();
