@@ -407,6 +407,34 @@ public class TestRoaring64NavigableMap {
   }
 
   @Test
+  public void testEmptyAfterRemove() {
+    Roaring64NavigableMap rbm = new Roaring64NavigableMap();
+    Roaring64NavigableMap empty = new Roaring64NavigableMap();
+    rbm.addLong(1);
+    assertEquals(rbm.getHighToBitmap().size(), 1);
+    rbm.removeLong(1);
+    assertTrue(rbm.getHighToBitmap().isEmpty());
+    assertEquals(rbm, empty);
+  }
+
+  @Test
+  public void testNotEmptyAfterRemove() {
+    Roaring64NavigableMap rbm = new Roaring64NavigableMap();
+    rbm.addLong(1L);
+    assertEquals(rbm.getHighToBitmap().size(), 1);
+    rbm.addLong(3L * Integer.MAX_VALUE);
+    assertEquals(rbm.getHighToBitmap().size(), 2);
+
+    // This will remove a highToBitmap entry
+    rbm.removeLong(3L * Integer.MAX_VALUE);
+    assertEquals(rbm.getHighToBitmap().size(), 1);
+
+    // This shall create again a highToBitmap entry
+    rbm.addLong(3L * Integer.MAX_VALUE);
+    assertEquals(rbm.getHighToBitmap().size(), 2);
+  }
+
+  @Test
   public void testRemove_Signed() {
     Roaring64NavigableMap map = newSignedBuffered();
 

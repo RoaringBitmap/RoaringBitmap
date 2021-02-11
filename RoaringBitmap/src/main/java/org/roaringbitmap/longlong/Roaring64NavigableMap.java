@@ -1296,6 +1296,12 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
       int low = low(x);
       bitmap.remove(low);
 
+      if (bitmap.isEmpty()) {
+        // Remove the prefix from highToBitmap map
+        highToBitmap.remove(high);
+        latestAddedHigh = null;
+      }
+
       // Invalidate only if actually modified
       invalidateAboveHigh(high);
     }
