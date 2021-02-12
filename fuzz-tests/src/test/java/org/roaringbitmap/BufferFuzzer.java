@@ -7,6 +7,7 @@ import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 import java.util.BitSet;
+import java.util.Iterator;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.*;
 import java.util.stream.IntStream;
@@ -475,17 +476,16 @@ public class BufferFuzzer {
     // Size limit to avoid out of memory errors; r.last() > 0 to avoid bitmaps with last > Integer.MAX_VALUE
     verifyInvariance(r -> r.isEmpty() || (r.last() > 0 && r.last() < 1 << 30), bitmap -> {
       BitSet reference = new BitSet();
-      bitmap.forEach((IntConsumer) reference::set);
-
-      for (int next : bitmap) {
+      bitmap.forEach(reference::set);
+      bitmap.forEach(x -> {
         for (int offset : offsets) {
-          int pos = next + offset;
+          int pos = x + offset;
           if (pos >= 0) {
             assertEquals(reference.nextClearBit(pos), bitmap.nextAbsentValue(pos));
             assertEquals(reference.previousClearBit(pos), bitmap.previousAbsentValue(pos));
           }
         }
-      }
+      });
     });
   }
 

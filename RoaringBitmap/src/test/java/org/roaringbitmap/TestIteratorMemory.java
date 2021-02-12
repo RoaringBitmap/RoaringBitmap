@@ -107,13 +107,7 @@ public class TestIteratorMemory {
   public void measureBoxedIterationAllocation() {
     if (isThreadAllocatedMemorySupported(THREAD_MBEAN)) {
       long before = getThreadAllocatedBytes(THREAD_MBEAN, Thread.currentThread().getId());
-
-      Iterator<Integer> intIterator = bitmap_a.iterator();
-      long result = 0;
-      while (intIterator.hasNext()) {
-        result += intIterator.next();
-
-      }
+      long result = bitmap_a.stream().sum();
       // A small check for iterator consistency
       assertEquals(407, result % 1024);
 

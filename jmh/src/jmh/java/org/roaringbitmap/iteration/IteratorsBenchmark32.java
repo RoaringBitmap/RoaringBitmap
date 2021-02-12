@@ -23,13 +23,12 @@ public class IteratorsBenchmark32 {
 
   @Benchmark
   public int testBoxed_a(BenchmarkState benchmarkState) {
-    Iterator<Integer> intIterator = benchmarkState.bitmap_a.iterator();
-    int result = 0;
-    while (intIterator.hasNext()) {
-      result = intIterator.next();
+    int[] result = {0};
+    benchmarkState.bitmap_a.forEach(x -> {
+      result[0] = x;
+    });
 
-    }
-    return result;
+    return result[0];
   }
 
   @Benchmark
@@ -63,13 +62,12 @@ public class IteratorsBenchmark32 {
 
   @Benchmark
   public int testBoxed_b(BenchmarkState benchmarkState) {
-    Iterator<Integer> intIterator = benchmarkState.bitmap_b.iterator();
-    int result = 0;
-    while (intIterator.hasNext()) {
-      result = intIterator.next();
+    int[] result = {0};
+    benchmarkState.bitmap_b.forEach(x -> {
+      result[0] = x;
+    });
 
-    }
-    return result;
+    return result[0];
   }
 
 
@@ -104,13 +102,13 @@ public class IteratorsBenchmark32 {
 
   @Benchmark
   public int testBoxed_c(BenchmarkState benchmarkState) {
-    Iterator<Integer> intIterator = benchmarkState.bitmap_c.iterator();
-    int result = 0;
-    while (intIterator.hasNext()) {
-      result = intIterator.next();
+    int[] result = {0};
 
-    }
-    return result;
+    benchmarkState.bitmap_c.forEach(x -> {
+      result[0] = x;
+    });
+
+    return result[0];
   }
 
 

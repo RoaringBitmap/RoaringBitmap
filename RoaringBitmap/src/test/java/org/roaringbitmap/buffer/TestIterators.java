@@ -85,7 +85,6 @@ public class TestIterators {
 
   @Test
   public void testEmptyIteration() {
-    assertFalse(MutableRoaringBitmap.bitmapOf().iterator().hasNext());
     assertFalse(MutableRoaringBitmap.bitmapOf().getIntIterator().hasNext());
     assertFalse(MutableRoaringBitmap.bitmapOf().getReverseIntIterator().hasNext());
   }
@@ -97,14 +96,11 @@ public class TestIterators {
     final int[] data = takeSortedAndDistinct(source, 450000);
     MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(data);
 
-    final List<Integer> iteratorCopy = ImmutableList.copyOf(bitmap.iterator());
     final List<Integer> intIteratorCopy = asList(bitmap.getIntIterator());
     final List<Integer> reverseIntIteratorCopy = asList(bitmap.getReverseIntIterator());
 
-    assertEquals(bitmap.getCardinality(), iteratorCopy.size());
     assertEquals(bitmap.getCardinality(), intIteratorCopy.size());
     assertEquals(bitmap.getCardinality(), reverseIntIteratorCopy.size());
-    assertEquals(Ints.asList(data), iteratorCopy);
     assertEquals(Ints.asList(data), intIteratorCopy);
     assertEquals(Lists.reverse(Ints.asList(data)), reverseIntIteratorCopy);
   }
@@ -139,14 +135,11 @@ public class TestIterators {
     MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(data);
     bitmap.runOptimize(); // result should have some runcontainers and some non.
 
-    final List<Integer> iteratorCopy = ImmutableList.copyOf(bitmap.iterator());
     final List<Integer> intIteratorCopy = asList(bitmap.getIntIterator());
     final List<Integer> reverseIntIteratorCopy = asList(bitmap.getReverseIntIterator());
 
-    assertEquals(bitmap.getCardinality(), iteratorCopy.size());
     assertEquals(bitmap.getCardinality(), intIteratorCopy.size());
     assertEquals(bitmap.getCardinality(), reverseIntIteratorCopy.size());
-    assertEquals(Ints.asList(data), iteratorCopy);
     assertEquals(Ints.asList(data), intIteratorCopy);
     assertEquals(Lists.reverse(Ints.asList(data)), reverseIntIteratorCopy);
   }
@@ -155,11 +148,9 @@ public class TestIterators {
   public void testSmallIteration() {
     MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(1, 2, 3);
 
-    final List<Integer> iteratorCopy = ImmutableList.copyOf(bitmap.iterator());
     final List<Integer> intIteratorCopy = asList(bitmap.getIntIterator());
     final List<Integer> reverseIntIteratorCopy = asList(bitmap.getReverseIntIterator());
 
-    assertEquals(ImmutableList.of(1, 2, 3), iteratorCopy);
     assertEquals(ImmutableList.of(1, 2, 3), intIteratorCopy);
     assertEquals(ImmutableList.of(3, 2, 1), reverseIntIteratorCopy);
   }
@@ -169,11 +160,9 @@ public class TestIterators {
     MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(1, 2, 3);
     bitmap.runOptimize();
 
-    final List<Integer> iteratorCopy = ImmutableList.copyOf(bitmap.iterator());
     final List<Integer> intIteratorCopy = asList(bitmap.getIntIterator());
     final List<Integer> reverseIntIteratorCopy = asList(bitmap.getReverseIntIterator());
 
-    assertEquals(ImmutableList.of(1, 2, 3), iteratorCopy);
     assertEquals(ImmutableList.of(1, 2, 3), intIteratorCopy);
     assertEquals(ImmutableList.of(3, 2, 1), reverseIntIteratorCopy);
   }
@@ -268,19 +257,8 @@ public class TestIterators {
       dos.close();
       ByteBuffer bb = ByteBuffer.wrap(bos.toByteArray());
       ImmutableRoaringBitmap rrback1 = new ImmutableRoaringBitmap(bb);
-      int j = 0;
-
-      // we can iterate over the mutable bitmap
-      for (int i : bitmap) {
-          j += i;
-      }
-      
-      int jj = 0;
-
-      // we can iterate over the immutable bitmap
-      for (int i : rrback1) {
-          jj+= i;
-      }
+      int j = bitmap.stream().sum();
+      int jj = rrback1.stream().sum();
       assertEquals(j, jj);
 
   }
