@@ -1,7 +1,6 @@
 package org.roaringbitmap;
 
 
-
 public final class RunBatchIterator implements ContainerBatchIterator {
 
   private RunContainer runs;
@@ -15,7 +14,8 @@ public final class RunBatchIterator implements ContainerBatchIterator {
   @Override
   public int next(int key, int[] buffer) {
     int consumed = 0;
-    do {
+
+    while (consumed < buffer.length && run < runs.numberOfRuns()) {
       int runStart = (runs.getValue(run));
       int runLength = (runs.getLength(run));
       int chunkStart = runStart + cursor;
@@ -31,7 +31,8 @@ public final class RunBatchIterator implements ContainerBatchIterator {
       } else {
         cursor += chunk;
       }
-    } while (consumed < buffer.length && run != runs.numberOfRuns());
+    }
+
     return consumed;
   }
 
@@ -43,7 +44,7 @@ public final class RunBatchIterator implements ContainerBatchIterator {
   @Override
   public ContainerBatchIterator clone() {
     try {
-      return (ContainerBatchIterator)super.clone();
+      return (ContainerBatchIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       // won't happen
       throw new IllegalStateException(e);
@@ -59,5 +60,31 @@ public final class RunBatchIterator implements ContainerBatchIterator {
     this.runs = runs;
     this.run = 0;
     this.cursor = 0;
+  }
+
+  /**
+   * Advance iterator such that next value will be greater or equal to minVal
+   *
+   * @param minVal - expected minimal value
+   */
+  public void advanceIfNeeded(char minVal) {
+    for (int i = run; i < runs.numberOfRuns(); i++) {
+      int runStart = (runs.getValue(i));
+      int runLength = (runs.getLength(i));
+
+      int chunkStart = runStart + cursor;
+      int chunkEnd = chunkStart + runLength - cursor;
+
+      if (chunkStart >= minVal) {
+        break;
+      }
+
+      if (chunkEnd >= minVal) {
+        cursor = minVal - runStart;
+        break;
+      }
+
+      run++;
+    }
   }
 }

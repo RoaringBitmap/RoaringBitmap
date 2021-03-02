@@ -37,7 +37,7 @@ public final class BitmapBatchIterator implements ContainerBatchIterator {
   @Override
   public ContainerBatchIterator clone() {
     try {
-      return (ContainerBatchIterator)super.clone();
+      return (ContainerBatchIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       // won't happen
       throw new IllegalStateException(e);
@@ -53,5 +53,21 @@ public final class BitmapBatchIterator implements ContainerBatchIterator {
     this.bitmap = bitmap;
     word = bitmap.bitmap[0];
     this.wordIndex = 0;
+  }
+
+  /**
+   * Advance iterator such that next value will be greater or equal to minVal
+   *
+   * @param minVal - expected minimal value
+   */
+  public void advanceIfNeeded(char minVal) {
+    int newWordIndex = minVal >> 6;
+
+    if (wordIndex < newWordIndex) {
+      word = bitmap.bitmap[newWordIndex];
+      wordIndex = newWordIndex;
+    }
+
+    word &= ~0L << (minVal - (64 * wordIndex));
   }
 }

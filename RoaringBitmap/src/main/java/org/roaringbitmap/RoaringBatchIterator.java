@@ -2,24 +2,25 @@ package org.roaringbitmap;
 
 public final class RoaringBatchIterator implements BatchIterator {
 
-  private final RoaringArray highLowContainer;
-  private int index = 0;
+  private ContainerPointer containerPointer;
   private int key;
+
   private ContainerBatchIterator iterator;
   private ArrayBatchIterator arrayBatchIterator = null;
   private BitmapBatchIterator bitmapBatchIterator = null;
   private RunBatchIterator runBatchIterator = null;
 
   public RoaringBatchIterator(RoaringArray highLowContainer) {
-    this.highLowContainer = highLowContainer;
-    nextIterator();
+    this.containerPointer = highLowContainer.getContainerPointer();
+    nextContainer();
   }
 
   @Override
   public int nextBatch(int[] buffer) {
-    if (!hasNext()){
+    if (!hasNext()) {
       return 0;
     }
+
     int consumed = 0;
     if (iterator.hasNext()) {
       consumed += iterator.next(key, buffer);
@@ -27,7 +28,7 @@ public final class RoaringBatchIterator implements BatchIterator {
         return consumed;
       }
     }
-    ++index;
+
     nextIterator();
     if (null != iterator) {
       return nextBatch(buffer);
@@ -43,8 +44,9 @@ public final class RoaringBatchIterator implements BatchIterator {
   @Override
   public BatchIterator clone() {
     try {
-      RoaringBatchIterator it = (RoaringBatchIterator)super.clone();
+      RoaringBatchIterator it = (RoaringBatchIterator) super.clone();
       if (null != iterator) {
+        it.containerPointer = containerPointer.clone();
         it.iterator = iterator.clone();
       }
       return it;
@@ -58,16 +60,23 @@ public final class RoaringBatchIterator implements BatchIterator {
     if (null != iterator) {
       iterator.releaseContainer();
     }
-    if (index < highLowContainer.size()) {
-      Container container = highLowContainer.getContainerAtIndex(index);
+
+    containerPointer.advance();
+    nextContainer();
+  }
+
+  private void nextContainer() {
+    Container container = containerPointer.getContainer();
+    if (container != null) {
       if (container instanceof ArrayContainer) {
-        nextIterator((ArrayContainer)container);
+        nextIterator((ArrayContainer) container);
       } else if (container instanceof BitmapContainer) {
-        nextIterator((BitmapContainer)container);
-      } else if (container instanceof RunContainer){
-        nextIterator((RunContainer)container);
+        nextIterator((BitmapContainer) container);
+      } else if (container instanceof RunContainer) {
+        nextIterator((RunContainer) container);
       }
-      key = highLowContainer.getKeyAtIndex(index) << 16;
+
+      key = containerPointer.key() << 16;
     } else {
       iterator = null;
     }
@@ -98,5 +107,33 @@ public final class RoaringBatchIterator implements BatchIterator {
       runBatchIterator.wrap(run);
     }
     iterator = runBatchIterator;
+  }
+
+  /**
+   * Advance iterator such that next value will be greater or equal to minval if iterator wasn't
+   * exhausted.
+   *
+   * @param minval - expected minimal value
+   */
+  public void advanceIfNeeded(int minval) {
+    while (hasNext() && ((key >>> 16) < (minval >>> 16))) {
+      nextIterator();
+    }
+
+    if (hasNext() && ((key >>> 16) == (minval >>> 16))) {
+      advanceIteratorIfNeeded(minval);
+    }
+  }
+
+  private void advanceIteratorIfNeeded(int minval) {
+    if (iterator instanceof BitmapBatchIterator) {
+      ((BitmapBatchIterator) iterator).advanceIfNeeded(Util.lowbits(minval));
+    } else if (iterator instanceof ArrayBatchIterator) {
+      ((ArrayBatchIterator) iterator).advanceIfNeeded(Util.lowbits(minval));
+    } else if (iterator instanceof RunBatchIterator) {
+      ((RunBatchIterator) iterator).advanceIfNeeded(Util.lowbits(minval));
+    } else {
+      throw new IllegalArgumentException("Unsupported container type");
+    }
   }
 }

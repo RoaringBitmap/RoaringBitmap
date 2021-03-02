@@ -1,7 +1,6 @@
 package org.roaringbitmap;
 
 
-
 public final class ArrayBatchIterator implements ContainerBatchIterator {
 
   private int index = 0;
@@ -29,7 +28,7 @@ public final class ArrayBatchIterator implements ContainerBatchIterator {
   @Override
   public ContainerBatchIterator clone() {
     try {
-      return (ContainerBatchIterator)super.clone();
+      return (ContainerBatchIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       // won't happen
       throw new IllegalStateException(e);
@@ -44,5 +43,17 @@ public final class ArrayBatchIterator implements ContainerBatchIterator {
   void wrap(ArrayContainer array) {
     this.array = array;
     this.index = 0;
+  }
+
+  /**
+   * Advance iterator such that next value will be greater or equal to minVal
+   *
+   * @param minVal - expected minimal value
+   */
+  public void advanceIfNeeded(char minVal) {
+    int newIndex = Util.advanceUntil(array.content, index - 1, array.getCardinality(), minVal);
+    if (index < newIndex) {
+      index = newIndex;
+    }
   }
 }
