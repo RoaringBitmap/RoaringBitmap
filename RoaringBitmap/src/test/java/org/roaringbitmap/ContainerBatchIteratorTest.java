@@ -255,9 +255,7 @@ public class ContainerBatchIteratorTest {
 
   private int assertNextBit(ContainerBatchIterator it, int read) {
     int[] intbuffer = new int[1];
-    if (it.hasNext()) {
-      assertEquals(read, it.next(0, intbuffer));
-    }
+    assertEquals(read, it.next(0, intbuffer));
     return intbuffer[0];
   }
 
@@ -279,19 +277,19 @@ public class ContainerBatchIteratorTest {
 
   @ParameterizedTest
   @MethodSource("streamOfContainersImpl")
-  void testAdvanceIfNeededBetweenManySegments(Container container) {
-    container.iadd(100, 101);
-    container.iadd(200, 202);
+  void testAdvanceIfNeededSkipsMultipleRanges(Container container) {
+    container.iadd(90, 101);
+    container.iadd(200, 203);
     container.iadd(64000, 64071);
 
     ContainerBatchIterator it = createContainerBatchIterator(container);
     advanceIfNeeded(it, 100);
 
-    int[] result = new int[4];
+    int[] result = new int[3];
     int read = it.next(0, result);
 
-    assertEquals(read, 4);
-    assertArrayEquals(new int[]{100, 200, 201, 64000}, result);
+    assertEquals(read, 3);
+    assertArrayEquals(new int[]{100, 200, 201}, result);
 
     advanceIfNeeded(it, 64050);
     assertEquals(64050, assertNextBit(it, 1));
@@ -306,6 +304,28 @@ public class ContainerBatchIteratorTest {
 
     advanceIfNeeded(it, 5);
     assertEquals(20, assertNextBit(it, 1));
+
+    assertNextBit(it, 0);
+  }
+
+  @ParameterizedTest
+  @MethodSource("streamOfContainersImpl")
+  void testIterateOverSparseContainer(Container container) {
+    int[] bits = new int[]{5, 1000, 4096, 40000, 65535};
+
+    ContainerBatchIterator it = createContainerBatchIterator(container, bits);
+    for (int i = 0; i < 2; i++) {
+      advanceIfNeeded(it, bits[i]);
+      assertEquals(bits[i], assertNextBit(it, 1));
+    }
+
+    advanceIfNeeded(it, 4097);
+
+    int[] buf = new int[2];
+    int read = it.next(0, buf);
+
+    assertEquals(buf.length, read);
+    assertArrayEquals(Arrays.copyOfRange(bits, 3, 5), buf);
 
     assertNextBit(it, 0);
   }
