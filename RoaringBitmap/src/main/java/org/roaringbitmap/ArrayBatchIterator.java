@@ -51,9 +51,6 @@ public final class ArrayBatchIterator implements ContainerBatchIterator {
    * @param minVal - expected minimal value
    */
   public void advanceIfNeeded(char minVal) {
-    int newIndex = Util.advanceUntil(array.content, index - 1, array.getCardinality(), minVal);
-    if (index < newIndex) {
-      index = newIndex;
-    }
+    index = Util.advanceUntil(array.content, index - 1, array.getCardinality(), minVal);
   }
 }
