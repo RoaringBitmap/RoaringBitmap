@@ -75,7 +75,6 @@ public final class RoaringBatchIterator implements BatchIterator {
       } else if (container instanceof RunContainer) {
         nextIterator((RunContainer) container);
       }
-
       key = containerPointer.key() << 16;
     } else {
       iterator = null;
@@ -133,7 +132,8 @@ public final class RoaringBatchIterator implements BatchIterator {
     } else if (iterator instanceof RunBatchIterator) {
       ((RunBatchIterator) iterator).advanceIfNeeded(Util.lowbits(minval));
     } else {
-      throw new IllegalArgumentException("Unsupported container type");
+      String iteratorName = iterator != null ? iterator.getClass().getName() : null;
+      throw new IllegalArgumentException("Unsupported container iterator type: " + iteratorName);
     }
   }
 }
