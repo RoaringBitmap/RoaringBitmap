@@ -329,4 +329,20 @@ public class ContainerBatchIteratorTest {
 
     assertNextBit(it, 0);
   }
+
+  @ParameterizedTest
+  @MethodSource("streamOfContainersImpl")
+  void testAdvanceIfNeededToStalePositionDontClearCurrentBits(Container container) {
+    container.iadd(20, 40);
+    container.iadd(84, 104);
+
+    ContainerBatchIterator it = createContainerBatchIterator(container);
+
+    advanceIfNeeded(it, 84);
+    advanceIfNeeded(it, 30);
+
+    int[] buff = new int[20];
+    assertEquals(20, it.next(0, buff));
+    assertArrayEquals(IntStream.range(84, 104).toArray(), buff);
+  }
 }

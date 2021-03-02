@@ -68,6 +68,8 @@ public final class BitmapBatchIterator implements ContainerBatchIterator {
       wordIndex = newWordIndex;
     }
 
-    word &= 0xFFFFFFFFFFFFFFFFL << (minVal & 0x3F);
+    if ((64 * wordIndex) + numberOfTrailingZeros(word) < minVal) {
+      word &= 0xFFFFFFFFFFFFFFFFL << (minVal & 0x3F);
+    }
   }
 }
