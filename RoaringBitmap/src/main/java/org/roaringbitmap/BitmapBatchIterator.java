@@ -18,7 +18,7 @@ public final class BitmapBatchIterator implements ContainerBatchIterator {
     while (consumed < buffer.length) {
       while (word == 0) {
         ++wordIndex;
-        if (wordIndex == 1024) {
+        if (wordIndex >= 1024) {
           return consumed;
         }
         word = bitmap.bitmap[wordIndex];

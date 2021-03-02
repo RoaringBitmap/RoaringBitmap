@@ -4,6 +4,7 @@ package org.roaringbitmap;
 import static java.util.Arrays.copyOfRange;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
@@ -280,7 +281,7 @@ public class ContainerBatchIteratorTest {
   void testAdvanceIfNeededSkipsMultipleRanges(Container container) {
     container.iadd(90, 101);
     container.iadd(200, 203);
-    container.iadd(64000, 64071);
+    container.iadd(64000, 64070);
 
     ContainerBatchIterator it = createContainerBatchIterator(container);
     advanceIfNeeded(it, 100);
@@ -292,7 +293,15 @@ public class ContainerBatchIteratorTest {
     assertArrayEquals(new int[]{100, 200, 201}, result);
 
     advanceIfNeeded(it, 64050);
-    assertEquals(64050, assertNextBit(it, 1));
+
+    int[] result2 = new int[30];
+    int read2 = it.next(0, result2);
+
+    assertEquals(20, read2);
+    assertArrayEquals(IntStream.range(64050, 64070).toArray(),
+        Arrays.copyOfRange(result2, 0, 20));
+
+    assertFalse(it.hasNext());
   }
 
   @ParameterizedTest
@@ -310,7 +319,7 @@ public class ContainerBatchIteratorTest {
 
   @ParameterizedTest
   @MethodSource("streamOfContainersImpl")
-  void testIterateOverSparseContainer(Container container) {
+  void testAdvanceIfNeededOverSparseContainer(Container container) {
     int[] bits = new int[]{5, 1000, 4096, 40000, 65535};
 
     ContainerBatchIterator it = createContainerBatchIterator(container, bits);
@@ -344,5 +353,18 @@ public class ContainerBatchIteratorTest {
     int[] buff = new int[20];
     assertEquals(20, it.next(0, buff));
     assertArrayEquals(IntStream.range(84, 104).toArray(), buff);
+  }
+
+  @ParameterizedTest
+  @MethodSource("streamOfContainersImpl")
+  void testReadBeyondUpperBoundIsNOP(Container container) {
+    container.add(Character.MAX_VALUE);
+
+    ContainerBatchIterator it = createContainerBatchIterator(container);
+    assertEquals(Character.MAX_VALUE, assertNextBit(it, 1));
+
+    for (int k = 0; k < 8; k++) {
+      assertNextBit(it, 0);
+    }
   }
 }
