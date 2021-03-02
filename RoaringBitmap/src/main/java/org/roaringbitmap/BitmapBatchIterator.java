@@ -63,12 +63,12 @@ public final class BitmapBatchIterator implements ContainerBatchIterator {
   public void advanceIfNeeded(char minVal) {
     int newWordIndex = minVal >> 6;
 
-    if (wordIndex < newWordIndex) {
-      word = bitmap.bitmap[newWordIndex];
-      wordIndex = newWordIndex;
-    }
+    if (wordIndex <= newWordIndex) {
+      if (wordIndex < newWordIndex) {
+        word = bitmap.bitmap[newWordIndex];
+        wordIndex = newWordIndex;
+      }
 
-    if ((64 * wordIndex) + numberOfTrailingZeros(word) < minVal) {
       word &= 0xFFFFFFFFFFFFFFFFL << (minVal & 0x3F);
     }
   }
