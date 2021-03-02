@@ -357,6 +357,20 @@ public class ContainerBatchIteratorTest {
 
   @ParameterizedTest
   @MethodSource("streamOfContainersImpl")
+  void testAdvanceIfNeededDontGoBackInTimeForContiguousSegment(Container container) {
+    container.iadd(0, 5);
+
+    ContainerBatchIterator it = createContainerBatchIterator(container);
+
+    advanceIfNeeded(it, 2);
+    assertEquals(2, assertNextBit(it, 1));
+
+    advanceIfNeeded(it, 2);
+    assertEquals(3, assertNextBit(it, 1));
+  }
+
+  @ParameterizedTest
+  @MethodSource("streamOfContainersImpl")
   void testReadBeyondUpperBoundIsNOP(Container container) {
     container.add(Character.MAX_VALUE);
 
