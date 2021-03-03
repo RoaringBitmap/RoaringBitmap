@@ -85,6 +85,7 @@ public final class RunBatchIterator implements ContainerBatchIterator {
       }
 
       run++;
+      cursor = 0;
     }
   }
 }

@@ -381,4 +381,28 @@ public class ContainerBatchIteratorTest {
       assertNextBit(it, 0);
     }
   }
+
+  @ParameterizedTest
+  @MethodSource("streamOfContainersImpl")
+  void testAdvanceIfNeededProperlyMaintainCursor(Container container) {
+
+    container.iadd(10, 20);
+    container.iadd(30, 40);
+
+    ContainerBatchIterator it = createContainerBatchIterator(container);
+
+    int[] r1 = new int[5];
+    int read = it.next(0, r1);
+
+    assertEquals(5, read);
+    assertArrayEquals(IntStream.range(10, 15).toArray(), r1);
+
+    advanceIfNeeded(it, 30);
+
+    int[] r2 = new int[5];
+    int read2 = it.next(0, r2);
+
+    assertEquals(5, read2);
+    assertArrayEquals(IntStream.range(30, 35).toArray(), r2);
+  }
 }
