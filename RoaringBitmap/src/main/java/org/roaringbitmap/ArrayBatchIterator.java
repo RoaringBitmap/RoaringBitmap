@@ -14,9 +14,12 @@ public final class ArrayBatchIterator implements ContainerBatchIterator {
   public int next(int key, int[] buffer) {
     int consumed = 0;
     char[] data = array.content;
-    while (consumed < buffer.length && index < array.getCardinality()) {
+
+    int remainingBits = Math.min(array.getCardinality() - index, buffer.length);
+    for (int i = 0; i < remainingBits; i++) {
       buffer[consumed++] = key + (data[index++]);
     }
+
     return consumed;
   }
 
