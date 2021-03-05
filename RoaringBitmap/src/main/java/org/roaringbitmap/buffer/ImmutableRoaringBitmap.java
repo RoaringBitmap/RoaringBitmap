@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.function.IntConsumer;
 
 import static org.roaringbitmap.Util.toUnsignedLong;
 import static org.roaringbitmap.buffer.BufferUtil.*;

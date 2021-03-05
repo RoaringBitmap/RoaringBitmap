@@ -3,8 +3,8 @@ package org.roaringbitmap.realdata.wrapper;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.function.IntConsumer;
 
-import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.buffer.BufferFastAggregation;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 

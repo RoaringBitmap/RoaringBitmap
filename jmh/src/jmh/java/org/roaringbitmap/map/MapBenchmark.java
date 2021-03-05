@@ -3,6 +3,7 @@ package org.roaringbitmap.map;
 
 import java.util.BitSet;
 import java.util.concurrent.TimeUnit;
+import java.util.function.IntConsumer;
 
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -11,7 +12,6 @@ import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.roaringbitmap.BitSetUtil;
-import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.RoaringBitmap;
 
 
@@ -27,12 +27,7 @@ public class MapBenchmark {
   @Benchmark
   public RoaringBitmap testMap(BenchmarkState benchmarkState) {
     final RoaringBitmap answer = new RoaringBitmap();
-    benchmarkState.bitmap.forEach(new IntConsumer() {
-      @Override
-      public void accept(int value) {
-        answer.add(inttointmap(value));
-      }
-    });
+    benchmarkState.bitmap.forEach((IntConsumer) value -> answer.add(inttointmap(value)));
     return answer;
   }
 
@@ -41,12 +36,7 @@ public class MapBenchmark {
   @Benchmark
   public RoaringBitmap testMapViaBitset(BenchmarkState benchmarkState) {
     final BitSet altRes = new java.util.BitSet();
-    benchmarkState.bitmap.forEach(new IntConsumer() {
-      @Override
-      public void accept(int value) {
-        altRes.set(inttointmap(value));
-      }
-    });
+    benchmarkState.bitmap.forEach((IntConsumer) value -> altRes.set(inttointmap(value)));
     return BitSetUtil.bitmapOf(altRes);
   }
 

@@ -8,6 +8,7 @@ import org.roaringbitmap.*;
 import java.io.*;
 import java.nio.*;
 import java.util.*;
+import java.util.function.IntConsumer;
 
 public class ForEachExample {
 
@@ -24,12 +25,9 @@ public class ForEachExample {
             rb.add(k);
         }
         final int[] count = {0};
-        rb.forEach(new IntConsumer() {
-            @Override
-            public void accept(int value) {
-                if((value % 1500) == 0) {
-                    count[0] ++;
-                }
+        rb.forEach((IntConsumer) value -> {
+            if((value % 1500) == 0) {
+                count[0] ++;
             }
         });
         System.out.println("There are "+count[0]+" values divisible by 1500.");

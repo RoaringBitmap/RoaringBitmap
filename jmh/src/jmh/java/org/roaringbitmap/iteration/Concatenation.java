@@ -4,6 +4,7 @@ import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.*;
 
 import java.util.BitSet;
+import java.util.function.IntConsumer;
 import java.util.stream.IntStream;
 
 import static org.roaringbitmap.RoaringBitmapWriter.writer;

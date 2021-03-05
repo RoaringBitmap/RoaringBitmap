@@ -14,6 +14,7 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.function.IntConsumer;
 
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
 import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
