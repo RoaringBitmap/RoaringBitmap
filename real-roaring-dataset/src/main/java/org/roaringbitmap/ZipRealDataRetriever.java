@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -35,56 +37,32 @@ public class ZipRealDataRetriever {
    * @return an {@link Iterable} of int[], as read from the resource
    * @throws IOException something went wrong while reading the resource
    */
-  public Iterable<int[]> fetchBitPositions() throws IOException {
-    final ZipInputStream zis = getResourceAsStream();
+  public List<int[]> fetchBitPositions() throws IOException {
+    List<int[]> bitPositions = new ArrayList<>();
 
-    return new Iterable<int[]>() {
+    try (final ZipInputStream zis = getResourceAsStream()) {
+      BufferedReader buf = new BufferedReader(new InputStreamReader(zis));
 
-      @Override
-      public Iterator<int[]> iterator() {
-        return new Iterator<int[]>() {
+      while (true) {
+        ZipEntry nextEntry = zis.getNextEntry();
+        if (nextEntry == null) {
+          break;
+        }
 
-          ZipEntry nextEntry = nextEntry();
-          BufferedReader buf = new BufferedReader(new InputStreamReader(zis));
-
-          @Override
-          public boolean hasNext() {
-            return nextEntry != null;
+        try {
+          String oneLine = buf.readLine(); // a single, perhaps very long, line
+          String[] positions = oneLine.split(",");
+          int[] ans = new int[positions.length];
+          for (int i = 0; i < positions.length; i++) {
+            ans[i] = Integer.parseInt(positions[i]);
           }
-
-          @Override
-          public int[] next() {
-            try {
-              String oneLine = buf.readLine(); // a single, perhaps very long, line
-              String[] positions = oneLine.split(",");
-              int[] ans = new int[positions.length];
-              for (int i = 0; i < positions.length; i++) {
-                ans[i] = Integer.parseInt(positions[i]);
-              }
-              return ans;
-            } catch (IOException e) {
-              throw new RuntimeException(e);
-            } finally {
-              nextEntry = nextEntry();
-            }
-          }
-
-          @Override
-          public void remove() {
-            throw new UnsupportedOperationException();
-          }
-
-          private ZipEntry nextEntry() {
-            try {
-              return zis.getNextEntry();
-            } catch (IOException e) {
-              throw new RuntimeException(e);
-            }
-          }
-        };
+          bitPositions.add(ans);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
       }
-
-    };
+    }
+    return bitPositions;
   }
 
   private URL getResource() {

@@ -224,57 +224,34 @@ class ZipRealDataRetriever {
         this.dataset = dataset;
     }
 
+    public List<int[]> fetchBitPositions() throws IOException {
+        List<int[]> bitPositions = new ArrayList<>();
 
-    public Iterable<int[]> fetchBitPositions() throws IOException {
-        final ZipInputStream zis = getResourceAsStream();
+        try (final ZipInputStream zis = getResourceAsStream()) {
+        BufferedReader buf = new BufferedReader(new InputStreamReader(zis));
 
-        return new Iterable<int[]>() {
-
-            @Override
-            public Iterator<int[]> iterator() {
-                return new Iterator<int[]>() {
-
-                    ZipEntry nextEntry = nextEntry();
-
-                    @Override
-                    public boolean hasNext() {
-                        return nextEntry != null;
-                    }
-
-                    @Override
-                    public int[] next() {
-                        try (BufferedReader buf = new BufferedReader(new InputStreamReader(zis))) {
-                            String oneLine = buf.readLine(); // a single, perhaps very long, line
-                            String[] positions = oneLine.split(",");
-                            int[] ans = new int[positions.length];
-                            for (int i = 0; i < positions.length; i++) {
-                                ans[i] = Integer.parseInt(positions[i]);
-                            }
-                            return ans;
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        } finally {
-                            nextEntry = nextEntry();
-                        }
-                    }
-
-                    @Override
-                    public void remove() {
-                        throw new UnsupportedOperationException();
-                    }
-
-                    private ZipEntry nextEntry() {
-                        try {
-                            return zis.getNextEntry();
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                };
+        while (true) {
+            ZipEntry nextEntry = zis.getNextEntry();
+            if (nextEntry == null) {
+            break;
             }
 
-        };
+            try {
+            String oneLine = buf.readLine(); // a single, perhaps very long, line
+            String[] positions = oneLine.split(",");
+            int[] ans = new int[positions.length];
+            for (int i = 0; i < positions.length; i++) {
+                ans[i] = Integer.parseInt(positions[i]);
+            }
+            bitPositions.add(ans);
+            } catch (IOException e) {
+            throw new RuntimeException(e);
+            }
+        }
+        }
+        return bitPositions;
     }
+
     public String getName() {
         return new File(dataset).getName();
     }
