@@ -692,7 +692,9 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     return RoaringIntPacking.highestHigh(signedLongs);
   }
 
-  // to be used with lazyor
+  /**
+   * to be used with naivelazyor
+   */
   public void repairAfterLazy() {
     for (Entry<Integer, BitmapDataProvider> e2 : highToBitmap.entrySet()) {
       BitmapDataProvider lowBitmap2 = e2.getValue();
