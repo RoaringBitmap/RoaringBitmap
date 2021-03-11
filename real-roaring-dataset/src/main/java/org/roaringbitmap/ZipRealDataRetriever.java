@@ -45,6 +45,7 @@ public class ZipRealDataRetriever {
         return new Iterator<int[]>() {
 
           ZipEntry nextEntry = nextEntry();
+          BufferedReader buf = new BufferedReader(new InputStreamReader(zis));
 
           @Override
           public boolean hasNext() {
@@ -53,9 +54,7 @@ public class ZipRealDataRetriever {
 
           @Override
           public int[] next() {
-            try (
-                BufferedReader buf = new BufferedReader(new InputStreamReader(zis));
-            ) {
+            try {
               String oneLine = buf.readLine(); // a single, perhaps very long, line
               String[] positions = oneLine.split(",");
               int[] ans = new int[positions.length];
