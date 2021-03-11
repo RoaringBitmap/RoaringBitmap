@@ -33,15 +33,19 @@ public class ZipRealDataRetriever {
   }
 
   /**
-   * 
+   *
    * @return an {@link Iterable} of int[], as read from the resource
    * @throws IOException something went wrong while reading the resource
    */
   public List<int[]> fetchBitPositions() throws IOException {
     List<int[]> bitPositions = new ArrayList<>();
 
-    try (final ZipInputStream zis = getResourceAsStream()) {
-      BufferedReader buf = new BufferedReader(new InputStreamReader(zis));
+
+    try (
+      final ZipInputStream zis = getResourceAsStream();
+      final BufferedReader buf = new BufferedReader(new InputStreamReader(zis));
+    ) {
+
 
       while (true) {
         ZipEntry nextEntry = zis.getNextEntry();

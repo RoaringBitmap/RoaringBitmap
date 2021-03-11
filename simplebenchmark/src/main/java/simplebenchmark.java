@@ -227,8 +227,11 @@ class ZipRealDataRetriever {
     public List<int[]> fetchBitPositions() throws IOException {
         List<int[]> bitPositions = new ArrayList<>();
 
-        try (final ZipInputStream zis = getResourceAsStream()) {
-        BufferedReader buf = new BufferedReader(new InputStreamReader(zis));
+        try (
+            final ZipInputStream zis = getResourceAsStream();
+            final BufferedReader buf = new BufferedReader(new InputStreamReader(zis));
+        ) {
+
 
         while (true) {
             ZipEntry nextEntry = zis.getNextEntry();
