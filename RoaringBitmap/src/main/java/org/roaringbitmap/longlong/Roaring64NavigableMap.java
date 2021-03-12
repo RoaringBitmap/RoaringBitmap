@@ -5,6 +5,7 @@ package org.roaringbitmap.longlong;
 
 import org.roaringbitmap.*;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
+import org.roaringbitmap.buffer.MutableRoaringBitmapPrivate;
 
 import java.io.*;
 import java.util.*;
@@ -693,20 +694,6 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   }
 
   /**
-   * to be used with naivelazyor
-   */
-  public void repairAfterLazy() {
-    for (Entry<Integer, BitmapDataProvider> e2 : highToBitmap.entrySet()) {
-      BitmapDataProvider lowBitmap2 = e2.getValue();
-      if (lowBitmap2 instanceof RoaringBitmap) {
-        ((RoaringBitmap) lowBitmap2).repairAfterLazy();
-      } else {
-        throw new UnsupportedOperationException(
-                ".repairAfterLazy is not supported for " + lowBitmap2.getClass());
-      }
-    }
-  }
-  /**
    * In-place bitwise OR (union) operation without maintaining cardinality.
    * Don't forget to call repairAfterLazy() afterward. The current bitmap is modified.
    *
@@ -730,11 +717,40 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
           pushBitmapForHigh(high, lowBitmap2Clone);
         } else {
-          ((RoaringBitmap) lowBitmap1).naivelazyor((RoaringBitmap) lowBitmap2);
+          RoaringBitmapPrivate.naivelazyor((RoaringBitmap) lowBitmap1, (RoaringBitmap) lowBitmap2);
+        }
+      }else if ((lowBitmap1 == null || lowBitmap1 instanceof MutableRoaringBitmap)
+              && lowBitmap2 instanceof MutableRoaringBitmap) {
+        if (lowBitmap1 == null) {
+          // Clone to prevent future modification of this modifying the input Bitmap
+          BitmapDataProvider lowBitmap2Clone = ((MutableRoaringBitmap) lowBitmap2).clone();
+
+
+          pushBitmapForHigh(high, lowBitmap2Clone);
+        } else {
+          MutableRoaringBitmapPrivate.naivelazyor((MutableRoaringBitmap) lowBitmap1,
+                  (MutableRoaringBitmap) lowBitmap2);
         }
       } else {
         throw new UnsupportedOperationException(
                 ".naivelazyor is not between " + this.getClass() + " and " + lowBitmap2.getClass());
+      }
+    }
+  }
+
+  /**
+   * to be used with naivelazyor
+   */
+  public void repairAfterLazy() {
+    for (Entry<Integer, BitmapDataProvider> e2 : highToBitmap.entrySet()) {
+      BitmapDataProvider lowBitmap2 = e2.getValue();
+      if (lowBitmap2 instanceof RoaringBitmap) {
+        RoaringBitmapPrivate.repairAfterLazy((RoaringBitmap) lowBitmap2);
+      } else if(lowBitmap2 instanceof MutableRoaringBitmap){
+        MutableRoaringBitmapPrivate.repairAfterLazy((MutableRoaringBitmap) lowBitmap2);
+      } else {
+        throw new UnsupportedOperationException(
+                ".repairAfterLazy is not supported for " + lowBitmap2.getClass());
       }
     }
   }
