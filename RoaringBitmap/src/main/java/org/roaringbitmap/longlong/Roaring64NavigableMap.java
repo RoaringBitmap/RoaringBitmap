@@ -700,7 +700,6 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    * @param x2 other bitmap
    */
   public void naivelazyor(final Roaring64NavigableMap x2) {
-    boolean firstBucket = true;
     for (Entry<Integer, BitmapDataProvider> e2 : x2.highToBitmap.entrySet()) {
       // Keep object to prevent auto-boxing
       Integer high = e2.getKey();
@@ -709,49 +708,31 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
       BitmapDataProvider lowBitmap2 = e2.getValue();
 
-      if ((lowBitmap1 == null || lowBitmap1 instanceof RoaringBitmap)
+      if (lowBitmap1 == null){
+        // Clone to prevent future modification of this modifying the input Bitmap
+        BitmapDataProvider lowBitmap2Clone;
+        if (lowBitmap2 instanceof RoaringBitmap) {
+          lowBitmap2Clone = ((RoaringBitmap) lowBitmap2).clone();
+        } else if (lowBitmap2 instanceof MutableRoaringBitmap) {
+          lowBitmap2Clone = ((MutableRoaringBitmap) lowBitmap2).clone();
+        } else {
+          throw new UnsupportedOperationException(".naivelazyor is not between "
+                  + this.getClass() + " and " + lowBitmap2.getClass());
+        }
+
+        pushBitmapForHigh(high, lowBitmap2Clone);
+      } else if (lowBitmap1 instanceof RoaringBitmap
               && lowBitmap2 instanceof RoaringBitmap) {
-        if (lowBitmap1 == null) {
-          // Clone to prevent future modification of this modifying the input Bitmap
-          RoaringBitmap lowBitmap2Clone = ((RoaringBitmap) lowBitmap2).clone();
-
-          pushBitmapForHigh(high, lowBitmap2Clone);
-        } else {
-          RoaringBitmapPrivate.naivelazyor((RoaringBitmap) lowBitmap1, (RoaringBitmap) lowBitmap2);
-        }
-      }else if ((lowBitmap1 == null || lowBitmap1 instanceof MutableRoaringBitmap)
+        RoaringBitmapPrivate.naivelazyor((RoaringBitmap) lowBitmap1, (RoaringBitmap) lowBitmap2);
+      } else if (lowBitmap1 instanceof MutableRoaringBitmap
               && lowBitmap2 instanceof MutableRoaringBitmap) {
-        if (lowBitmap1 == null) {
-          // Clone to prevent future modification of this modifying the input Bitmap
-          BitmapDataProvider lowBitmap2Clone = ((MutableRoaringBitmap) lowBitmap2).clone();
-
-
-          pushBitmapForHigh(high, lowBitmap2Clone);
-        } else {
-          MutableRoaringBitmapPrivate.naivelazyor((MutableRoaringBitmap) lowBitmap1,
-                  (MutableRoaringBitmap) lowBitmap2);
-        }
+        MutableRoaringBitmapPrivate.naivelazyor((MutableRoaringBitmap) lowBitmap1,
+                (MutableRoaringBitmap) lowBitmap2);
       } else {
-        throw new UnsupportedOperationException(
-                ".naivelazyor is not between " + this.getClass() + " and " + lowBitmap2.getClass());
+        throw new UnsupportedOperationException(".naivelazyor is not between "
+                + lowBitmap1.getClass() + " and " + lowBitmap2.getClass());
       }
-    }
-  }
 
-  /**
-   * to be used with naivelazyor
-   */
-  public void repairAfterLazy() {
-    for (Entry<Integer, BitmapDataProvider> e2 : highToBitmap.entrySet()) {
-      BitmapDataProvider lowBitmap2 = e2.getValue();
-      if (lowBitmap2 instanceof RoaringBitmap) {
-        RoaringBitmapPrivate.repairAfterLazy((RoaringBitmap) lowBitmap2);
-      } else if(lowBitmap2 instanceof MutableRoaringBitmap){
-        MutableRoaringBitmapPrivate.repairAfterLazy((MutableRoaringBitmap) lowBitmap2);
-      } else {
-        throw new UnsupportedOperationException(
-                ".repairAfterLazy is not supported for " + lowBitmap2.getClass());
-      }
     }
   }
 
@@ -1131,6 +1112,22 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   @Override
   public ImmutableLongBitmapDataProvider limit(long x) {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  /**
+   * to be used with naivelazyor
+   */
+  public void repairAfterLazy() {
+    for (BitmapDataProvider lowBitmap : highToBitmap.values()) {
+      if (lowBitmap instanceof RoaringBitmap) {
+        RoaringBitmapPrivate.repairAfterLazy((RoaringBitmap) lowBitmap);
+      } else if(lowBitmap instanceof MutableRoaringBitmap){
+        MutableRoaringBitmapPrivate.repairAfterLazy((MutableRoaringBitmap) lowBitmap);
+      } else {
+        throw new UnsupportedOperationException(
+                ".repairAfterLazy is not supported for " + lowBitmap.getClass());
+      }
+    }
   }
 
   /**

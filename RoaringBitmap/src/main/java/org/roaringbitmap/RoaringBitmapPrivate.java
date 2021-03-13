@@ -3,7 +3,7 @@ package org.roaringbitmap;
 /**
  * This class enables accessing/executing not-public methods.
  * Its usage should be reserved to very specific cases, and
- * given should should not be considered as part of the official API.
+ * given should not be considered as part of the official API.
  */
 @Deprecated
 public class RoaringBitmapPrivate {
