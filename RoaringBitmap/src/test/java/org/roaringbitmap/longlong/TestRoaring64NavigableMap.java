@@ -1530,4 +1530,14 @@ public class TestRoaring64NavigableMap {
     map.select(16);
     assertEquals(264, map.getLongSizeInBytes());
   }
+
+  @Test
+  public void testLazyOr() {
+    Roaring64NavigableMap map1 = Roaring64NavigableMap.bitmapOf(1 << 16, 1 << 18, 1 << 19, 1 << 33);
+    map1.naivelazyor(Roaring64NavigableMap.bitmapOf(4, 7, 8, 9));
+    map1.naivelazyor(Roaring64NavigableMap.bitmapOf(1, 2, 3, 4, 5, 1 << 16, 1 << 17, 1 << 20));
+    map1.repairAfterLazy();
+    Roaring64NavigableMap map2 = Roaring64NavigableMap.bitmapOf(1, 2, 3, 4, 5, 7, 8, 9, 1 << 16, 1 << 17, 1 << 18, 1 << 19, 1 << 20 , 1 << 33);
+    assertEquals(map2, map1);
+  }
 }
