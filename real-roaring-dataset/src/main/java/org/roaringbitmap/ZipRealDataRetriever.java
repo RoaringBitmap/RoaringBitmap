@@ -42,8 +42,8 @@ public class ZipRealDataRetriever {
 
 
     try (
-      final ZipInputStream zis = getResourceAsStream();
-      final BufferedReader buf = new BufferedReader(new InputStreamReader(zis));
+        final ZipInputStream zis = getResourceAsStream();
+        final BufferedReader buf = new BufferedReader(new InputStreamReader(zis));
     ) {
 
 
