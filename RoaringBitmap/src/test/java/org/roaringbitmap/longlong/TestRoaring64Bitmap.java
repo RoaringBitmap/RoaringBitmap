@@ -24,13 +24,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.roaringbitmap.RoaringBitmap;
-import org.roaringbitmap.Util;
 
 public class TestRoaring64Bitmap {
 
@@ -1344,5 +1344,188 @@ public class TestRoaring64Bitmap {
     crossRB.add(crossers);
     crossRB.and(referenceRB);
     assertEquals(0, crossRB.getIntCardinality());
+  }
+  
+  
+  
+  
+  @Test
+  public void testSkips() {
+    final Random source = new Random(0xcb000a2b9b5bdfb6l);
+    final long[] data = takeSortedAndDistinct(source, 45000);
+    Roaring64Bitmap bitmap = Roaring64Bitmap.bitmapOf(data);
+    PeekableLongIterator pii = bitmap.getLongIterator();
+    for(int i = 0; i < data.length; ++i) {
+      pii.advanceIfNeeded(data[i]);
+      assertEquals(data[i], pii.peekNext());
+    }
+    pii = bitmap.getLongIterator();
+    for(int i = 0; i < data.length; ++i) {
+      pii.advanceIfNeeded(data[i]);
+      assertEquals(data[i], pii.next());
+    }
+    pii = bitmap.getLongIterator();
+    for(int i = 1; i < data.length; ++i) {
+      pii.advanceIfNeeded(data[i-1]);
+      pii.next();
+      assertEquals(data[i],pii.peekNext() );
+    }
+    bitmap.getLongIterator().advanceIfNeeded(-1);// should not crash
+  }
+  
+  @Test
+  public void testSkipsDense() {
+    Roaring64Bitmap bitmap = new Roaring64Bitmap();
+    int N = 100000;
+    for(long i = 0; i < N; ++i) {
+      bitmap.add(2 * i + Integer.MAX_VALUE);
+    }
+    for(long i = 0; i < N; ++i) {
+      PeekableLongIterator pii = bitmap.getLongIterator();
+      pii.advanceIfNeeded(2 * i + Integer.MAX_VALUE);
+      assertEquals(pii.peekNext(), 2 * i + Integer.MAX_VALUE);
+      assertEquals(pii.next(), 2 * i + Integer.MAX_VALUE);
+    }
+  }
+  
+  @Test
+  public void testSkipsMultipleHighPoints() {
+    Roaring64Bitmap bitmap = new Roaring64Bitmap();
+    
+    int N = 100000;
+    int H = 10;
+    for(long h = 0; h < H; ++h) {
+      long base = h << 16;
+      for(long i = 0; i < N; ++i) {
+        bitmap.add(2 * i + base);
+      }
+    }
+    for(long h = 0; h < H; ++h) {
+      long base = h << 16;
+      for(long i = 0; i < N; ++i) {
+        PeekableLongIterator pii = bitmap.getLongIterator();
+        pii.advanceIfNeeded(2 * i + base);
+        assertEquals(pii.peekNext(), 2 * i + base);
+        assertEquals(pii.next(), 2 * i + base);
+      }
+    }
+  }
+  
+
+  @Test
+  public void testSkipsRun() {
+    Roaring64Bitmap bitmap = new Roaring64Bitmap();
+    bitmap.add(4L, 100000L);
+    bitmap.runOptimize();
+    for(int i = 4; i < 100000; ++i) {
+      PeekableLongIterator pii = bitmap.getLongIterator();
+      pii.advanceIfNeeded(i);
+      assertEquals(pii.peekNext(), i);
+      assertEquals(pii.next(), i);
+    }
+  }
+  
+  @Test
+  public void testEmptySkips() {
+    Roaring64Bitmap bitmap = new Roaring64Bitmap();
+    PeekableLongIterator it = bitmap.getLongIterator();
+    it.advanceIfNeeded(0);
+  }
+  
+  
+  @Test
+  public void testSkipsReverse() {
+    final Random source = new Random(0xcb000a2b9b5bdfb6l);
+    final long[] data = takeSortedAndDistinct(source, 45000);
+    Roaring64Bitmap bitmap = Roaring64Bitmap.bitmapOf(data);
+    PeekableLongIterator pii = bitmap.getReverseLongIterator();
+    for(int i = data.length -1; i >= 0 ; --i) {
+      pii.advanceIfNeeded(data[i]);
+      assertEquals(data[i], pii.peekNext());
+    }
+    pii = bitmap.getReverseLongIterator();
+    for(int i = data.length -1; i >= 0 ; --i) {
+      pii.advanceIfNeeded(data[i]);
+      assertEquals(data[i], pii.next());
+    }
+    pii = bitmap.getReverseLongIterator();
+    for(int i = data.length -2; i >= 0 ; --i) {
+      pii.advanceIfNeeded(data[i+1]);
+      pii.next();
+      assertEquals(data[i],pii.peekNext() );
+    }
+    bitmap.getReverseLongIterator().advanceIfNeeded(-1);// should not crash
+  }
+  
+  @Test
+  public void testSkipsDenseReverse() {
+    Roaring64Bitmap bitmap = new Roaring64Bitmap();
+    int N = 100000;
+    for(long i = 0; i < N; ++i) {
+      bitmap.add(2 * i + Integer.MAX_VALUE);
+    }
+    for(long i = N - 1; i >= 0; --i) {
+      PeekableLongIterator pii = bitmap.getReverseLongIterator();
+      pii.advanceIfNeeded(2 * i + Integer.MAX_VALUE);
+      assertEquals(pii.peekNext(), 2 * i + Integer.MAX_VALUE);
+      assertEquals(pii.next(), 2 * i + Integer.MAX_VALUE);
+    }
+  }
+  
+  @Test
+  public void testSkipsMultipleHighPointsReverse() {
+    Roaring64Bitmap bitmap = new Roaring64Bitmap();
+    
+    int N = 100000;
+    int H = 10;
+    for(long h = 0; h < H; ++h) {
+      long base = h << 16;
+      for(long i = 0; i < N; ++i) {
+        bitmap.add(2 * i + base);
+      }
+    }
+    for(long h = 0; h < H; ++h) {
+      long base = h << 16;
+      for(long i = N - 1; i >= 0 ; --i) {
+        PeekableLongIterator pii = bitmap.getReverseLongIterator();
+        pii.advanceIfNeeded(2 * i + base);
+        assertEquals(pii.peekNext(), 2 * i + base);
+        assertEquals(pii.next(), 2 * i + base);
+      }
+    }
+  }
+  
+
+  @Test
+  public void testSkipsRunReverse() {
+    Roaring64Bitmap bitmap = new Roaring64Bitmap();
+    bitmap.add(4L, 100000L);
+    bitmap.runOptimize();
+    for(int i = 99999; i >= 4; --i) {
+      PeekableLongIterator pii = bitmap.getReverseLongIterator();
+      pii.advanceIfNeeded(i);
+      assertEquals(pii.peekNext(), i);
+      assertEquals(pii.next(), i);
+    }
+  }
+  
+  @Test
+  public void testEmptySkipsReverse() {
+    Roaring64Bitmap bitmap = new Roaring64Bitmap();
+    PeekableLongIterator it = bitmap.getReverseLongIterator();
+    it.advanceIfNeeded(0);
+  }
+  
+  private static long[] takeSortedAndDistinct(Random source, int count) {
+    LinkedHashSet<Long> longs = new LinkedHashSet<>(count);
+    for (int size = 0; size < count; size++) {
+      long next;
+      do {
+        next = Math.abs(source.nextLong());
+      } while (!longs.add(next));
+    }
+    long[] unboxed = Longs.toArray(longs);
+    Arrays.sort(unboxed);
+    return unboxed;
   }
 }

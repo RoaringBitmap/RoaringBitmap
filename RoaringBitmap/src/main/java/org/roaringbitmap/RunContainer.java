@@ -1025,7 +1025,7 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   @Override
-  public CharIterator getReverseCharIterator() {
+  public PeekableCharIterator getReverseCharIterator() {
     return new ReverseRunContainerCharIterator(this);
   }
 
@@ -2760,7 +2760,7 @@ class RunContainerCharRankIterator extends RunContainerCharIterator
 }
 
 
-final class ReverseRunContainerCharIterator implements CharIterator {
+final class ReverseRunContainerCharIterator implements PeekableCharIterator {
   int pos;
   private int le;
   private RunContainer parent;
@@ -2777,9 +2777,9 @@ final class ReverseRunContainerCharIterator implements CharIterator {
   }
 
   @Override
-  public CharIterator clone() {
+  public PeekableCharIterator clone() {
     try {
-      return (CharIterator) super.clone();
+      return (PeekableCharIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null;// will not happen
     }
@@ -2820,6 +2820,30 @@ final class ReverseRunContainerCharIterator implements CharIterator {
     return ans;
   }
 
+  @Override
+  public void advanceIfNeeded(char maxval) {
+    while (base > (maxval)) {
+      pos--;
+      le = 0;
+      if (pos >= 0) {
+        maxlength = (parent.getLength(pos));
+        base = (parent.getValue(pos));
+      } else {
+        return;
+      }
+    }
+    if (base + maxlength < (maxval)) {
+      return;
+    }
+    le = maxlength + base - (maxval);
+  }
+
+  
+  @Override
+  public char peekNext() {
+    return (char) (base + maxlength - le);
+  }
+  
   @Override
   public void remove() {
     throw new RuntimeException("Not implemented");// TODO
