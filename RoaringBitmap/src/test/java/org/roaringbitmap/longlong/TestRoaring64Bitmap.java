@@ -1494,7 +1494,6 @@ public class TestRoaring64Bitmap {
       }
     }
   }
-  
 
   @Test
   public void testSkipsRunReverse() {
