@@ -1092,23 +1092,6 @@ public final class Util {
     return ((long) x) & 0xffffffffL;
   }
   /**
-   * Checks whether the data is sorted by the 16-bit prefix.
-   * The resulting data is considered partially sorted if you just
-   * take into account the most significant 16 bits. The least
-   * significant 16 bits are ignored. Note that we treat int values
-   * as unsigned integers (from 0 to 2^32).
-   * @param array - the data
-   * @return whether it is sorted
-   */
-  public static boolean isPartialSorted(int[] array) {
-    for (int i = 0; i < array.length - 1; i++) {
-      if ((array[i] & 0xFFFF0000L) > (array[i + 1] & 0xFFFF0000L)) {
-        return false;
-      }
-    }
-    return true;
-  }
-  /**
    * Sorts the data by the 16 bit prefix using Radix sort.
    * The resulting data will be partially sorted if you just
    * take into account the most significant 16 bits. The least
@@ -1117,10 +1100,6 @@ public final class Util {
    * @param data - the data (sorted in place)
    */
   public static void partialRadixSort(int[] data) {
-    // It should be fast to check whether the data is already
-    // sorted, and if it is, it can be advantageous to skip
-    // sorting it. However, we lack relevant benchmarks.
-    // if(isPartialSorted(data)) { return; }
     final int radix = 8;
     int shift = 16;
     int mask = 0xFF0000;
