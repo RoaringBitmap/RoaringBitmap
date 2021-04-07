@@ -1119,8 +1119,8 @@ public final class Util {
   public static void partialRadixSort(int[] data) {
     // It should be fast to check whether the data is already
     // sorted, and if it is, it can be advantageous to skip
-    // sorting it.
-    if(isPartialSorted(data)) { return; }
+    // sorting it. However, we lack relevant benchmarks.
+    // if(isPartialSorted(data)) { return; }
     final int radix = 8;
     int shift = 16;
     int mask = 0xFF0000;
