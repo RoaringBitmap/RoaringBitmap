@@ -1149,6 +1149,8 @@ public final class Util {
       mask <<= radix;
       Arrays.fill(histogram, 0);
     }
+    // We need to check that primary == data.
+    //
     // The check is entirely deterministic in this case.
     // We go:
     //   shift = 16
