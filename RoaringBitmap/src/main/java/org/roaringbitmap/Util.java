@@ -1097,7 +1097,7 @@ public final class Util {
    * take into account the most significant 16 bits. The least
    * significant 16 bits are ignored. Note that we treat int values
    * as unsigned integers (from 0 to 2^32).
-   * @param data - the data
+   * @param array - the data
    * @return whether it is sorted
    */
   public static boolean isPartialSorted(int[] array) {
