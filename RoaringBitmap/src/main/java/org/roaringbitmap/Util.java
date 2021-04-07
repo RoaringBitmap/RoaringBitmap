@@ -1091,10 +1091,13 @@ public final class Util {
   public static long toUnsignedLong(int x) {
     return ((long) x) & 0xffffffffL;
   }
-
   /**
-   * Sorts the data by the 16 bit prefix.
-   * @param data - the data
+   * Sorts the data by the 16 bit prefix using Radix sort.
+   * The resulting data will be partially sorted if you just
+   * take into account the most significant 16 bits. The least
+   * significant 16 bits are unsorted. Note that we treat int values
+   * as unsigned integers (from 0 to 2^32).
+   * @param data - the data (sorted in place)
    */
   public static void partialRadixSort(int[] data) {
     final int radix = 8;
@@ -1102,23 +1105,46 @@ public final class Util {
     int mask = 0xFF0000;
     int[] copy = new int[data.length];
     int[] histogram = new int[(1 << radix) + 1];
+    // We want to avoid copying the data, see
+    // https://github.com/RoaringBitmap/RoaringBitmap/issues/470
+    int[] primary = data;
+    int[] secondary = copy;
     while (shift < 32) {
       for (int i = 0; i < data.length; ++i) {
-        ++histogram[((data[i] & mask) >>> shift) + 1];
+        ++histogram[((primary[i] & mask) >>> shift) + 1];
       }
       for (int i = 0; i < 1 << radix; ++i) {
         histogram[i + 1] += histogram[i];
       }
-      for (int i = 0; i < data.length; ++i) {
-        copy[histogram[(data[i] & mask) >>> shift]++] = data[i];
+      for (int i = 0; i < primary.length; ++i) {
+        secondary[histogram[(primary[i] & mask) >>> shift]++] = primary[i];
       }
-      System.arraycopy(copy, 0, data, 0, data.length);
+      // swap
+      int[] tmp = primary;
+      primary = secondary;
+      secondary = tmp;
+      //
       shift += radix;
       mask <<= radix;
       Arrays.fill(histogram, 0);
     }
+    // We need to check that primary == data.
+    //
+    // The check is entirely deterministic in this case.
+    // We go:
+    //   shift = 16
+    //       data == primary
+    //   shift = 24
+    //       data == secondary
+    //   // exit:
+    //   data == primary
+    //
+    // If unsure, we could do the following:
+    //
+    // if(data != primary) {
+    //    System.arraycopy(secondary, 0, data, 0, data.length);
+    // }
   }
-
   /**
    * Private constructor to prevent instantiation of utility class
    */
