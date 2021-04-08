@@ -11,12 +11,17 @@ package org.roaringbitmap;
  */
 public interface PeekableCharIterator extends CharIterator {
   /**
-   * If needed, advance as long as the next value is smaller than minval (as an unsigned
+   * If needed, 
+   * when iterating forward through the chars it will
+   * advance as long as the next value is smaller than val (as an unsigned
+   * short)
+   * when iterating in reverse through the chars it will
+   * advance as long as the next value is larger than val (as an unsigned
    * short)
    * 
-   * @param minval threshold
+   * @param val threshold
    */
-  public void advanceIfNeeded(char minval);
+  public void advanceIfNeeded(char val);
 
   /**
    * 
