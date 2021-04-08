@@ -1102,7 +1102,6 @@ public final class Util {
   public static void partialRadixSort(int[] data) {
     final int radix = 8;
     int shift = 16;
-    int mask = 0xFF0000;
     int[] copy = new int[data.length];
     int[] histogram = new int[(1 << radix) + 1];
     // We want to avoid copying the data, see
@@ -1111,13 +1110,13 @@ public final class Util {
     int[] secondary = copy;
     while (shift < 32) {
       for (int i = 0; i < data.length; ++i) {
-        ++histogram[((primary[i] & mask) >>> shift) + 1];
+        ++histogram[((primary[i] >>> shift) & 0xFF) + 1];
       }
       for (int i = 0; i < 1 << radix; ++i) {
         histogram[i + 1] += histogram[i];
       }
       for (int i = 0; i < primary.length; ++i) {
-        secondary[histogram[(primary[i] & mask) >>> shift]++] = primary[i];
+        secondary[histogram[(primary[i] >>> shift) & 0xFF]++] = primary[i];
       }
       // swap
       int[] tmp = primary;
@@ -1125,8 +1124,9 @@ public final class Util {
       secondary = tmp;
       //
       shift += radix;
-      mask <<= radix;
-      Arrays.fill(histogram, 0);
+      // We only need to reset the histogram if we are going
+      // to enter the loop again.
+      if(shift < 32) { Arrays.fill(histogram, 0); }
     }
     // We need to check that primary == data.
     //
