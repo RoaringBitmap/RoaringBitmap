@@ -1100,50 +1100,44 @@ public final class Util {
    * @param data - the data (sorted in place)
    */
   public static void partialRadixSort(int[] data) {
-    final int radix = 8;
-    int shift = 16;
-    int[] copy = new int[data.length];
-    int[] histogram = new int[(1 << radix) + 1];
-    // We want to avoid copying the data, see
-    // https://github.com/RoaringBitmap/RoaringBitmap/issues/470
-    int[] primary = data;
-    int[] secondary = copy;
-    while (shift < 32) {
-      for (int i = 0; i < data.length; ++i) {
-        ++histogram[((primary[i] >>> shift) & 0xFF) + 1];
-      }
-      for (int i = 0; i < 1 << radix; ++i) {
-        histogram[i + 1] += histogram[i];
-      }
-      for (int i = 0; i < primary.length; ++i) {
-        secondary[histogram[(primary[i] >>> shift) & 0xFF]++] = primary[i];
-      }
-      // swap
-      int[] tmp = primary;
-      primary = secondary;
-      secondary = tmp;
-      //
-      shift += radix;
-      // We only need to reset the histogram if we are going
-      // to enter the loop again.
-      if(shift < 32) { Arrays.fill(histogram, 0); }
+    int[] low = new int[257];
+    int[] high = new int[257];
+    for (int value : data) {
+      ++low[((value >>> 16) & 0xFF) + 1];
+      ++high[(value >>> 24) + 1];
     }
-    // We need to check that primary == data.
-    //
-    // The check is entirely deterministic in this case.
-    // We go:
-    //   shift = 16
-    //       data == primary
-    //   shift = 24
-    //       data == secondary
-    //   // exit:
-    //   data == primary
-    //
-    // If unsure, we could do the following:
-    //
-    // if(data != primary) {
-    //    System.arraycopy(secondary, 0, data, 0, data.length);
-    // }
+    // avoid passes over the data if it's not required
+    boolean sortLow = low[1] < data.length;
+    boolean sortHigh = high[1] < data.length;
+    if (!sortLow && !sortHigh) {
+      return;
+    }
+    int[] copy = new int[data.length];
+    if (sortLow) {
+      for (int i = 1; i < low.length; ++i) {
+        low[i] += low[i - 1];
+      }
+      for (int value : data) {
+        copy[low[(value >>> 16) & 0xFF]++] = value;
+      }
+    }
+    if (sortHigh) {
+      for (int i = 1; i < high.length; ++i) {
+        high[i] += high[i - 1];
+      }
+      if (sortLow) {
+        for (int value : copy) {
+          data[high[value >>> 24]++] = value;
+        }
+      } else {
+        for (int value : data) {
+          copy[high[value >>> 24]++] = value;
+        }
+        System.arraycopy(copy, 0, data, 0, data.length);
+      }
+    } else {
+      System.arraycopy(copy, 0, data, 0, data.length);
+    }
   }
   /**
    * Private constructor to prevent instantiation of utility class

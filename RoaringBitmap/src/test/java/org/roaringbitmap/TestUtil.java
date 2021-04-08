@@ -52,35 +52,70 @@ public class TestUtil {
     @Test
     public void testPartialRadixSortIsStableInSameKey() {
         int[] data = new int[] {25, 1, 0, 10};
-        int[] test = Arrays.copyOf(data, data.length);
-        Util.partialRadixSort(test);
-        assertArrayEquals(data, test);
+        for (int key : new int[]{0, 1 << 16, 1 << 17, 1 << 24, 1 << 25}) {
+            // clear the old key and prepend the new key
+            for (int i = 0; i < data.length; ++i) {
+                data[i] &= 0xFFFF;
+                data[i] |= key;
+            }
+            int[] test = Arrays.copyOf(data, data.length);
+            Util.partialRadixSort(test);
+            assertArrayEquals(data, test);
+        }
     }
 
     @Test
     public void testPartialRadixSortSortsKeysCorrectly() {
-        int key1 = 1 << 16;
-        int key2 = 1 << 17;
-        int[] data = new int[] {key2 | 25, key1 | 1, 0, key2 | 10, 25, key1 | 10, key1, 10};
-        // sort by keys, leave values stable
-        int[] expected = new int[] {0, 25, 10, key1 | 1, key1 | 10, key1, key2 | 25, key2 | 10};
-        int[] test = Arrays.copyOf(data, data.length);
-        Util.partialRadixSort(test);
-        assertArrayEquals(expected, test);
+        int[] keys = {
+                // the test expects the first key to be less than the second key,
+                // neither should have any of the lower 16 bits set
+                1 << 16, 1 << 25,
+                1 << 16, 1 << 17,
+                1 << 17, 1 << 18,
+                1 << 25, 1 << 26,
+                1 << 23, 1 << 25,
+                1 << 24, 1 << 25,
+                1 << 25, 1 << 27,
+                1 << 29, 1 << 30,
+        };
+        for (int i = 0; i < keys.length; i += 2) {
+            int key1 = keys[i];
+            int key2 = keys[i+1];
+            int[] data = new int[]{key2 | 25, key1 | 1, 0, key2 | 10, 25, key1 | 10, key1, 10};
+            // sort by keys, leave values stable
+            int[] expected = new int[]{0, 25, 10, key1 | 1, key1 | 10, key1, key2 | 25, key2 | 10};
+            int[] test = Arrays.copyOf(data, data.length);
+            Util.partialRadixSort(test);
+            assertArrayEquals(expected, test);
+        }
     }
 
     @Test
     public void testPartialRadixSortSortsKeysCorrectlyWithDuplicates() {
-        int key1 = 1 << 16;
-        int key2 = 1 << 17;
-        int[] data = new int[] {key2 | 25, key1 | 1, 0, key2 | 10, 25, key1 | 10, key1, 10,
-                                key2 | 25, key1 | 1, 0, key2 | 10, 25, key1 | 10, key1, 10};
-        // sort by keys, leave values stable
-        int[] expected = new int[] {0, 25, 10, 0, 25, 10, key1 | 1, key1 | 10,  key1, key1 | 1, key1 | 10,  key1,
-                                    key2 | 25, key2 | 10, key2 | 25, key2 | 10};
-        int[] test = Arrays.copyOf(data, data.length);
-        Util.partialRadixSort(test);
-        assertArrayEquals(expected, test);
+        int[] keys = {
+                // the test expects the first key to be less than the second key,
+                // neither should have any of the lower 16 bits set
+                1 << 16, 1 << 25,
+                1 << 16, 1 << 17,
+                1 << 17, 1 << 18,
+                1 << 25, 1 << 26,
+                1 << 23, 1 << 25,
+                1 << 24, 1 << 25,
+                1 << 25, 1 << 27,
+                1 << 29, 1 << 30,
+        };
+        for (int i = 0; i < keys.length; i += 2) {
+            int key1 = keys[i];
+            int key2 = keys[i + 1];
+            int[] data = new int[]{key2 | 25, key1 | 1, 0, key2 | 10, 25, key1 | 10, key1, 10,
+                    key2 | 25, key1 | 1, 0, key2 | 10, 25, key1 | 10, key1, 10};
+            // sort by keys, leave values stable
+            int[] expected = new int[]{0, 25, 10, 0, 25, 10, key1 | 1, key1 | 10, key1, key1 | 1, key1 | 10, key1,
+                    key2 | 25, key2 | 10, key2 | 25, key2 | 10};
+            int[] test = Arrays.copyOf(data, data.length);
+            Util.partialRadixSort(test);
+            assertArrayEquals(expected, test);
+        }
     }
 
     @Test
