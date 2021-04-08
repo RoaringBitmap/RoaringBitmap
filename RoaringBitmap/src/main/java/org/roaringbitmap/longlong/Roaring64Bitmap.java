@@ -349,132 +349,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
   @Override
   public PeekableLongIterator getLongIterator() {
     LeafNodeIterator leafNodeIterator = highLowContainer.highKeyLeafNodeIterator(false);
-    return toIterator(leafNodeIterator, false);
-  }
-
-  protected PeekableLongIterator toIterator(final LeafNodeIterator keyIte, boolean reverse) {
-    return new PeekableLongIterator() {
-      private byte[] high;
-      private PeekableCharIterator charIterator;
-      private boolean hasNextCalled = false;
-
-      @Override
-      public boolean hasNext() {
-        hasNextCalled = true;
-        if (charIterator != null && !charIterator.hasNext()) {
-          while (keyIte.hasNext()) {
-            LeafNode leafNode = keyIte.next();
-            high = leafNode.getKeyBytes();
-            long containerIdx = leafNode.getContainerIdx();
-            Container container = highLowContainer.getContainer(containerIdx);
-            if (!reverse) {
-              charIterator = container.getCharIterator();
-            } else {
-              charIterator = container.getReverseCharIterator();
-            }
-            if(charIterator.hasNext()){
-              return true;
-            }
-          }
-            return false;
-        }
-        if (charIterator != null && charIterator.hasNext()) {
-          return true;
-        }
-        if (charIterator == null) {
-          while (keyIte.hasNext()) {
-            LeafNode leafNode = keyIte.next();
-            high = leafNode.getKeyBytes();
-            long containerIdx = leafNode.getContainerIdx();
-            Container container = highLowContainer.getContainer(containerIdx);
-            if (!reverse) {
-              charIterator = container.getCharIterator();
-            } else {
-              charIterator = container.getReverseCharIterator();
-            }
-            if(charIterator.hasNext()){
-              return true;
-            }
-
-          }
-            return false;
-
-        }
-        return false;
-      }
-
-      @Override
-      public long next() {
-        boolean hasNext = true;
-        if (!hasNextCalled) {
-          hasNext = hasNext();
-          hasNextCalled = false;
-        }
-        if (hasNext) {
-          char low = charIterator.next();
-          hasNextCalled = false;
-          return LongUtils.toLong(high, low);
-        } else {
-          throw new IllegalStateException("empty");
-        }
-      }
-      
-      @Override
-      public void advanceIfNeeded(long minval) {
-        if((hasNextCalled || this.hasNext()) 
-            && (
-              (!reverse && this.peekNext() >= minval) 
-              || (reverse && this.peekNext() <= minval))) {
-          return;
-        }
-        //empty bitset
-        if(this.high == null) {
-          return;
-        }
-        byte[] high = LongUtils.highPart(minval);
-
-        //need to advance the iterator
-        while(LongUtils.compareHigh(this.high, high) != 0 && keyIte.hasNext()) {
-          LeafNode leafNode = keyIte.next();
-          this.high = leafNode.getKeyBytes();
-          if(LongUtils.compareHigh(this.high, high) == 0) {
-            long containerIdx = leafNode.getContainerIdx();
-            Container container = highLowContainer.getContainer(containerIdx);
-            if (!reverse) {
-              charIterator = container.getCharIterator();
-            } else {
-              charIterator = container.getReverseCharIterator();
-            }
-            if(!charIterator.hasNext()){
-              return;
-            }  
-          }
-        }
-
-        char low = LongUtils.lowPart(minval);
-        charIterator.advanceIfNeeded(low);
-      }
-      
-      @Override
-      public long peekNext() {
-        boolean hasNext = true;
-        if (!hasNextCalled) {
-          hasNext = hasNext();
-          hasNextCalled = true;
-        }
-        if (hasNext) {
-          char low = charIterator.peekNext();
-          return LongUtils.toLong(high, low);
-        } else {
-          throw new IllegalStateException("empty");
-        }
-      }
-
-      @Override
-      public PeekableLongIterator clone() {
-        throw new UnsupportedOperationException("TODO");
-      }
-    };
+    return new ForwardPeekableIterator(leafNodeIterator);
   }
 
   @Override
@@ -693,7 +568,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
   @Override
   public PeekableLongIterator getReverseLongIterator() {
     LeafNodeIterator leafNodeIterator = highLowContainer.highKeyLeafNodeIterator(true);
-    return toIterator(leafNodeIterator, true);
+    return new ReversePeekableIterator(leafNodeIterator);
   }
 
   @Override
@@ -789,6 +664,231 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       return freshOne;
     } catch (Exception e) {
       throw new RuntimeException("fail to clone thorough the ser/deser", e);
+    }
+  }
+  
+  private class ForwardPeekableIterator implements PeekableLongIterator {
+    private final LeafNodeIterator keyIte;
+    private byte[] high;
+    private PeekableCharIterator charIterator;
+    private boolean hasNextCalled = false;
+
+    public ForwardPeekableIterator(final LeafNodeIterator keyIte) {
+      this.keyIte = keyIte;
+    }
+
+    @Override
+    public boolean hasNext() {
+      hasNextCalled = true;
+      if (charIterator != null && !charIterator.hasNext()) {
+        while (keyIte.hasNext()) {
+          LeafNode leafNode = keyIte.next();
+          high = leafNode.getKeyBytes();
+          long containerIdx = leafNode.getContainerIdx();
+          Container container = highLowContainer.getContainer(containerIdx);
+          charIterator = container.getCharIterator();
+          if(charIterator.hasNext()){
+            return true;
+          }
+        }
+        return false;
+      }
+      if (charIterator != null && charIterator.hasNext()) {
+        return true;
+      }
+      if (charIterator == null) {
+        while (keyIte.hasNext()) {
+          LeafNode leafNode = keyIte.next();
+          high = leafNode.getKeyBytes();
+          long containerIdx = leafNode.getContainerIdx();
+          Container container = highLowContainer.getContainer(containerIdx);
+          charIterator = container.getCharIterator();
+          if(charIterator.hasNext()){
+            return true;
+          }
+
+        }
+        return false;
+
+      }
+      return false;
+    }
+
+    @Override
+    public long next() {
+      boolean hasNext = true;
+      if (!hasNextCalled) {
+        hasNext = hasNext();
+        hasNextCalled = false;
+      }
+      if (hasNext) {
+        char low = charIterator.next();
+        hasNextCalled = false;
+        return LongUtils.toLong(high, low);
+      } else {
+        throw new IllegalStateException("empty");
+      }
+    }
+
+    @Override
+    public void advanceIfNeeded(long minval) {
+      if((hasNextCalled || this.hasNext()) && this.peekNext() >= minval) {
+        return;
+      }
+      //empty bitset
+      if(this.high == null) {
+        return;
+      }
+      byte[] high = LongUtils.highPart(minval);
+
+      //need to advance the iterator
+      while(LongUtils.compareHigh(this.high, high) != 0 && keyIte.hasNext()) {
+        LeafNode leafNode = keyIte.next();
+        this.high = leafNode.getKeyBytes();
+        if(LongUtils.compareHigh(this.high, high) == 0) {
+          long containerIdx = leafNode.getContainerIdx();
+          Container container = highLowContainer.getContainer(containerIdx);
+          charIterator = container.getCharIterator();
+          if(!charIterator.hasNext()){
+            return;
+          }  
+        }
+      }
+
+      char low = LongUtils.lowPart(minval);
+      charIterator.advanceIfNeeded(low);
+    }
+
+    @Override
+    public long peekNext() {
+      boolean hasNext = true;
+      if (!hasNextCalled) {
+        hasNext = hasNext();
+        hasNextCalled = true;
+      }
+      if (hasNext) {
+        char low = charIterator.peekNext();
+        return LongUtils.toLong(high, low);
+      } else {
+        throw new IllegalStateException("empty");
+      }
+    }
+
+    @Override
+    public PeekableLongIterator clone() {
+      throw new UnsupportedOperationException("TODO");
+    }
+  }
+
+  private class ReversePeekableIterator implements PeekableLongIterator {
+    private final LeafNodeIterator keyIte;
+    private byte[] high;
+    private PeekableCharIterator charIterator;
+    private boolean hasNextCalled = false;
+      
+    public ReversePeekableIterator(final LeafNodeIterator keyIte) {
+      this.keyIte = keyIte;
+    }
+    @Override
+    public boolean hasNext() {
+      hasNextCalled = true;
+      if (charIterator != null && !charIterator.hasNext()) {
+        while (keyIte.hasNext()) {
+          LeafNode leafNode = keyIte.next();
+          high = leafNode.getKeyBytes();
+          long containerIdx = leafNode.getContainerIdx();
+          Container container = highLowContainer.getContainer(containerIdx);
+          charIterator = container.getReverseCharIterator();
+          if(charIterator.hasNext()){
+            return true;
+          }
+        }
+        return false;
+      }
+      if (charIterator != null && charIterator.hasNext()) {
+        return true;
+      }
+      if (charIterator == null) {
+        while (keyIte.hasNext()) {
+          LeafNode leafNode = keyIte.next();
+          high = leafNode.getKeyBytes();
+          long containerIdx = leafNode.getContainerIdx();
+          Container container = highLowContainer.getContainer(containerIdx);
+          charIterator = container.getReverseCharIterator();
+          if(charIterator.hasNext()){
+            return true;
+          }
+
+        }
+        return false;
+
+      }
+      return false;
+    }
+
+    @Override
+    public long next() {
+      boolean hasNext = true;
+      if (!hasNextCalled) {
+        hasNext = hasNext();
+        hasNextCalled = false;
+      }
+      if (hasNext) {
+        char low = charIterator.next();
+        hasNextCalled = false;
+        return LongUtils.toLong(high, low);
+      } else {
+        throw new IllegalStateException("empty");
+      }
+    }
+
+    @Override
+    public void advanceIfNeeded(long minval) {
+      if((hasNextCalled || this.hasNext()) && this.peekNext() <= minval) {
+        return;
+      }
+      //empty bitset
+      if(this.high == null) {
+        return;
+      }
+      byte[] high = LongUtils.highPart(minval);
+
+      //need to advance the iterator
+      while(LongUtils.compareHigh(this.high, high) != 0 && keyIte.hasNext()) {
+        LeafNode leafNode = keyIte.next();
+        this.high = leafNode.getKeyBytes();
+        if(LongUtils.compareHigh(this.high, high) == 0) {
+          long containerIdx = leafNode.getContainerIdx();
+          Container container = highLowContainer.getContainer(containerIdx);
+          charIterator = container.getReverseCharIterator();
+          if(!charIterator.hasNext()){
+            return;
+          }  
+        }
+      }
+
+      char low = LongUtils.lowPart(minval);
+      charIterator.advanceIfNeeded(low);
+    }
+
+    @Override
+    public long peekNext() {
+      boolean hasNext = true;
+      if (!hasNextCalled) {
+        hasNext = hasNext();
+        hasNextCalled = true;
+      }
+      if (hasNext) {
+        char low = charIterator.peekNext();
+        return LongUtils.toLong(high, low);
+      } else {
+        throw new IllegalStateException("empty");
+      }
+    }
+
+    @Override
+    public PeekableLongIterator clone() {
+      throw new UnsupportedOperationException("TODO");
     }
   }
 }
