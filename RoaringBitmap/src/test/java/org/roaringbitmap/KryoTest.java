@@ -19,7 +19,7 @@ public class KryoTest {
         kryo.register(RoaringBitmap.class, new RoaringSerializer());
         return kryo;
     }
-    
+
     public static void writeRoaringToFile(File f,
             RoaringBitmap roaring,
             Serializer<RoaringBitmap> serializer) throws FileNotFoundException {
@@ -38,7 +38,7 @@ public class KryoTest {
         inputMap.close();
         return roaring;
     }
-    
+
     @Test
     public void roaringTest() throws IOException {
         RoaringSerializer serializer = new RoaringSerializer();
@@ -76,7 +76,7 @@ class RoaringSerializer extends Serializer<RoaringBitmap> {
             throw new RuntimeException();
         }
     }
-    
+
     @Override
     public RoaringBitmap read(Kryo kryo, Input input, Class<? extends RoaringBitmap> type) {
         RoaringBitmap bitmap = new RoaringBitmap();
@@ -88,5 +88,5 @@ class RoaringSerializer extends Serializer<RoaringBitmap> {
         }
         return bitmap;
     }
-    
+
 }
