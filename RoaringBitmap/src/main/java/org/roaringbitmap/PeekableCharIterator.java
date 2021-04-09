@@ -19,9 +19,9 @@ public interface PeekableCharIterator extends CharIterator {
    * advance as long as the next value is larger than val (as an unsigned
    * short)
    * 
-   * @param val threshold
+   * @param thresholdVal threshold
    */
-  public void advanceIfNeeded(char val);
+  public void advanceIfNeeded(char thresholdVal);
 
   /**
    * 
