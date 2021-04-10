@@ -1376,11 +1376,11 @@ public class TestRoaring64Bitmap {
   @Test
   public void testSkipsDense() {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
-    int N = 100000;
-    for(long i = 0; i < N; ++i) {
+    int n = 100000;
+    for(long i = 0; i < n; ++i) {
       bitmap.add(2 * i + Integer.MAX_VALUE);
     }
-    for(long i = 0; i < N; ++i) {
+    for(long i = 0; i < n; ++i) {
       PeekableLongIterator pii = bitmap.getLongIterator();
       pii.advanceIfNeeded(2 * i + Integer.MAX_VALUE);
       assertEquals(pii.peekNext(), 2 * i + Integer.MAX_VALUE);
@@ -1392,17 +1392,17 @@ public class TestRoaring64Bitmap {
   public void testSkipsMultipleHighPoints() {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
     
-    int N = 100000;
-    int H = 10;
-    for(long h = 0; h < H; ++h) {
+    int n = 100000;
+    int numHighPoints = 10;
+    for(long h = 0; h < numHighPoints; ++h) {
       long base = h << 16;
-      for(long i = 0; i < N; ++i) {
+      for(long i = 0; i < n; ++i) {
         bitmap.add(2 * i + base);
       }
     }
-    for(long h = 0; h < H; ++h) {
+    for(long h = 0; h < numHighPoints; ++h) {
       long base = h << 16;
-      for(long i = 0; i < N; ++i) {
+      for(long i = 0; i < n; ++i) {
         PeekableLongIterator pii = bitmap.getLongIterator();
         pii.advanceIfNeeded(2 * i + base);
         assertEquals(pii.peekNext(), 2 * i + base);
@@ -1460,11 +1460,11 @@ public class TestRoaring64Bitmap {
   @Test
   public void testSkipsDenseReverse() {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
-    int N = 100000;
-    for(long i = 0; i < N; ++i) {
+    int n = 100000;
+    for(long i = 0; i < n; ++i) {
       bitmap.add(2 * i + Integer.MAX_VALUE);
     }
-    for(long i = N - 1; i >= 0; --i) {
+    for(long i = n - 1; i >= 0; --i) {
       PeekableLongIterator pii = bitmap.getReverseLongIterator();
       pii.advanceIfNeeded(2 * i + Integer.MAX_VALUE);
       assertEquals(pii.peekNext(), 2 * i + Integer.MAX_VALUE);
@@ -1476,17 +1476,17 @@ public class TestRoaring64Bitmap {
   public void testSkipsMultipleHighPointsReverse() {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
     
-    int N = 100000;
-    int H = 10;
-    for(long h = 0; h < H; ++h) {
+    int n = 100000;
+    int numHighPoints = 10;
+    for(long h = 0; h < numHighPoints; ++h) {
       long base = h << 16;
-      for(long i = 0; i < N; ++i) {
+      for(long i = 0; i < n; ++i) {
         bitmap.add(2 * i + base);
       }
     }
-    for(long h = 0; h < H; ++h) {
+    for(long h = 0; h < numHighPoints; ++h) {
       long base = h << 16;
-      for(long i = N - 1; i >= 0 ; --i) {
+      for(long i = n - 1; i >= 0 ; --i) {
         PeekableLongIterator pii = bitmap.getReverseLongIterator();
         pii.advanceIfNeeded(2 * i + base);
         assertEquals(pii.peekNext(), 2 * i + base);

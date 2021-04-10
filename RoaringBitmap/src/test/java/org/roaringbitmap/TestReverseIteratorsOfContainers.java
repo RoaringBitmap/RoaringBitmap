@@ -50,15 +50,15 @@ public class TestReverseIteratorsOfContainers {
   @ArgumentsSource(TestReverseIteratorsOfContainers.ContainerProvider.class)
   public void testSkipsDense(Converter converter) {
     Container container = new ArrayContainer();
-    int N = 30000;
-    for (char i = 0; i < N; ++i) {
+    int n = 30000;
+    for (char i = 0; i < n; ++i) {
       char c = (char) (2 * i);
       container = container.add(c);
     }
 
     container = converter.apply(container);
 
-    for (char i = 0; i < N; ++i) {
+    for (char i = 0; i < n; ++i) {
       PeekableCharIterator pii = container.getCharIterator();
       char c = (char) (2 * i);
       pii.advanceIfNeeded(c);
@@ -122,15 +122,15 @@ public class TestReverseIteratorsOfContainers {
   @ArgumentsSource(TestReverseIteratorsOfContainers.ContainerProvider.class)
   public void testSkipsDenseReverse(Converter converter) {
     Container container = new ArrayContainer();
-    char N = 30000;
-    for (char i = 0; i < N; ++i) {
+    char n = 30000;
+    for (char i = 0; i < n; ++i) {
       char c = (char) (2 * i);
       container = container.add(c);
     }
 
     container = converter.apply(container);
 
-    for (int i = N - 1; i >= 0; --i) {
+    for (int i = n - 1; i >= 0; --i) {
       PeekableCharIterator pii = container.getReverseCharIterator();
       char c = (char) (2 * i);
       pii.advanceIfNeeded(c);
