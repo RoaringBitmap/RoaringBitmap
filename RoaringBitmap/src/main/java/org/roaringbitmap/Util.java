@@ -153,6 +153,68 @@ public final class Util {
     return upper;
 
   }
+  
+  
+  /**
+   * Find the largest integer smaller than pos such that array[pos]&lt;= max. If none can be found,
+   * return length. Based on code by O. Kaser.
+   *
+   * @param array array to search within
+   * @param pos starting position of the search
+   * @param length length of the array to search
+   * @param max maximum value
+   * @return x less than pos such that array[pos] is at least as small as max, pos is is equal to
+   *         0 if it is not possible.
+   */
+  public static int reverseUntil(char[] array, int pos, int length, char max) {
+    int lower = pos - 1;
+
+    // special handling for a possibly common sequential case
+    if (lower <= 0 || (array[lower]) <= (int) (max)) {
+      return lower;
+    }
+
+    int spansize = 1; // could set larger
+    // bootstrap an upper limit
+
+    while (lower - spansize > 0
+        && (array[lower - spansize]) > (int) (max)) {
+      spansize *= 2; // hoping for compiler will reduce to
+    }
+    // shift
+    int upper = (lower - spansize > 0) ? lower - spansize : 0;
+
+    // maybe we are lucky (could be common case when the seek ahead
+    // expected
+    // to be small and sequential will otherwise make us look bad)
+    if (array[upper] == max) {
+      return upper;
+    }
+
+    if ((array[upper]) > (int) (max)) {
+      // means array has no item >= min pos = array.length;
+      return 0;
+    }
+
+    // we know that the next-smallest span was too small
+    lower -= (spansize >>> 1);
+
+    // else begin binary search
+    // invariant: array[lower]<min && array[upper]>min
+    while (lower - 1 != upper) {
+      int mid = (lower + upper) >>> 1;
+      char arraymid = array[mid];
+      if (arraymid == max) {
+        return mid;
+      } else if ((arraymid) > (int) (max)) {
+        lower = mid;
+      } else {
+        upper = mid;
+      }
+    }
+    return upper;
+
+  }
 
   /**
    * Find the smallest integer larger than pos such that array[pos]&gt;= min. If none can be found,

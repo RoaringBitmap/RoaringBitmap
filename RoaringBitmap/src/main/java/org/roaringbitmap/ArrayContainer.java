@@ -425,7 +425,7 @@ public final class ArrayContainer extends Container implements Cloneable {
   }
 
   @Override
-  public CharIterator getReverseCharIterator() {
+  public PeekableCharIterator getReverseCharIterator() {
     return new ReverseArrayContainerCharIterator(this);
   }
 
@@ -1472,7 +1472,7 @@ final class ArrayContainerCharIterator implements PeekableCharRankIterator {
 }
 
 
-final class ReverseArrayContainerCharIterator implements CharIterator {
+final class ReverseArrayContainerCharIterator implements PeekableCharIterator {
   int pos;
   private ArrayContainer parent;
 
@@ -1485,9 +1485,14 @@ final class ReverseArrayContainerCharIterator implements CharIterator {
   }
 
   @Override
-  public CharIterator clone() {
+  public void advanceIfNeeded(char maxval) {
+    pos = Util.reverseUntil(parent.content, pos + 1, parent.cardinality, maxval);
+  }
+
+  @Override
+  public PeekableCharIterator clone() {
     try {
-      return (CharIterator) super.clone();
+      return (PeekableCharIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null;// will not happen
     }
@@ -1508,6 +1513,10 @@ final class ReverseArrayContainerCharIterator implements CharIterator {
     return (parent.content[pos--]);
   }
 
+  @Override
+  public char peekNext() {
+    return parent.content[pos];
+  }
 
   @Override
   public void remove() {

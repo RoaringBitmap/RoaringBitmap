@@ -494,7 +494,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
-  public CharIterator getReverseCharIterator() {
+  public PeekableCharIterator getReverseCharIterator() {
     return new ReverseBitmapContainerCharIterator(this.bitmap);
   }
 
@@ -1610,7 +1610,7 @@ final class BitmapContainerCharRankIterator extends BitmapContainerCharIterator
   }
 }
 
-final class ReverseBitmapContainerCharIterator implements CharIterator {
+final class ReverseBitmapContainerCharIterator implements PeekableCharIterator {
 
   long word;
   int position;
@@ -1626,9 +1626,9 @@ final class ReverseBitmapContainerCharIterator implements CharIterator {
   }
 
   @Override
-  public CharIterator clone() {
+  public PeekableCharIterator clone() {
     try {
-      return (CharIterator) super.clone();
+      return (PeekableCharIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null;
     }
@@ -1657,6 +1657,30 @@ final class ReverseBitmapContainerCharIterator implements CharIterator {
   @Override
   public int nextAsInt() {
     return next();
+  }
+  
+  @Override
+  public void advanceIfNeeded(char maxval) {
+    if ((maxval) <= (position - 1) * 64) {
+      position = (maxval) / 64;
+      word = bitmap[position];
+      while (word == 0) {
+        --position;
+        if (position == 0) {
+          break;
+        }
+        word = bitmap[position];
+      }
+    }
+    while (hasNext() && ((peekNext()) > (maxval))) {
+      next(); // could be optimized
+    }
+  }
+
+  @Override
+  public char peekNext() {
+    int shift = Long.numberOfLeadingZeros(word) + 1;
+    return (char) ((position + 1) * 64 - shift);
   }
 
   @Override

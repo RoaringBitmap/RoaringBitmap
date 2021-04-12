@@ -14,7 +14,13 @@ package org.roaringbitmap.longlong;
  */
 public interface PeekableLongIterator extends LongIterator {
   /**
-   * If needed, advance as long as the next value is smaller than minval
+   * If needed, 
+   * 
+   * for a forwards iterator 
+   * advance as long as the next value is smaller than thresholdVal
+   * 
+   * For a reverse iterator 
+   * advance as long as the next value is greater than thresholdVal
    *
    *  The advanceIfNeeded method is used for performance reasons, to skip
    *  over unnecessary repeated calls to next.
@@ -42,9 +48,9 @@ public interface PeekableLongIterator extends LongIterator {
    *  implementation can "skip" over some data.
    *  
    * 
-   * @param minval threshold
+   * @param thresholdVal threshold
    */
-  public void advanceIfNeeded(long minval);
+  public void advanceIfNeeded(long thresholdVal);
 
   /**
    * 

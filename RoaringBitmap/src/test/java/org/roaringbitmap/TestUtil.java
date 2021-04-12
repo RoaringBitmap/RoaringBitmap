@@ -128,6 +128,18 @@ public class TestUtil {
     }
 
     @Test
+    public void testReverseUntil() {
+        char[] data = fromShorts(new short[]{1, 3, 16, 18, 21, 29, 30,-342});
+        assertEquals(0, Util.reverseUntil(data, data.length, data.length, (char) 0));
+        assertEquals(1, Util.reverseUntil(data, data.length, data.length, (char) 3));
+        assertEquals(4, Util.reverseUntil(data, data.length, data.length, (char) 28));
+        assertEquals(5, Util.reverseUntil(data, data.length, data.length, (char) 29));
+        assertEquals(6, Util.reverseUntil(data, data.length, data.length, (char) 30));
+        assertEquals(6, Util.reverseUntil(data, data.length, data.length, (char) 31));
+        assertEquals(7, Util.reverseUntil(data, data.length, data.length, (char) -342));
+    }
+
+    @Test
     public void testIterateUntil() {
         char[] data = fromShorts(new short[]{0, 3, 16, 18, 21, 29, 30,-342});
         assertEquals(1, Util.iterateUntil(data, 0, data.length, ((char) 3)));

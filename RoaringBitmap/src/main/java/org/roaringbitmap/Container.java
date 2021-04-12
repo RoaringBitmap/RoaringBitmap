@@ -336,7 +336,7 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    *
    * @return iterator
    */
-  public abstract CharIterator getReverseCharIterator();
+  public abstract PeekableCharIterator getReverseCharIterator();
 
   /**
    * Iterator to visit the char values in the container in ascending order.
