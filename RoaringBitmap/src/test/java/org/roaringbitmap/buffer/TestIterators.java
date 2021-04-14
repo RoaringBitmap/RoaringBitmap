@@ -73,6 +73,31 @@ public class TestIterators {
     return unboxed;
   }
 
+  // https://github.com/RoaringBitmap/RoaringBitmap/issues/475
+  @Test
+  public void testCorruptionInfiniteLoop() {
+    MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+    bitmap.add(Integer.MAX_VALUE - 0);
+    bitmap.add(Integer.MAX_VALUE - 1);
+    bitmap.add(Integer.MAX_VALUE - 2);
+    // Adding this one leads to the issue
+    bitmap.add(Integer.MAX_VALUE - 3);
+    System.out.println(bitmap);
+    bitmap.forEach((org.roaringbitmap.IntConsumer) e -> {
+      if (!bitmap.contains(e)) {
+        throw new IllegalStateException("Not expecting to find: " + e);
+      }
+    });
+
+    bitmap.runOptimize(); // This is the line causing the issue
+    System.out.println(bitmap);
+    bitmap.forEach((org.roaringbitmap.IntConsumer) e -> {
+      System.out.println("Checking  :: " + e);
+      if (!bitmap.contains(e)) {
+        throw new IllegalStateException("Not expecting to find: " + e);
+      }
+    });
+  }
 
   @Test
   public void testBitmapIteration() {

@@ -2443,7 +2443,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     for(int k = 0; k < this.nbrruns; ++k) {
       int base = (this.getValue(k) & 0xFFFF) | high;
       int le = this.getLength(k) & 0xFFFF;
-      for(int l = base; l <= base + le; ++l ) {
+      for(int l = base; l - le <= base; ++l) {
         ic.accept(l);
       }
     }
