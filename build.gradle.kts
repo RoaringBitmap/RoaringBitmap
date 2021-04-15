@@ -178,7 +178,7 @@ nexusPublishing {
         sonatype {
             // sonatypeUsername and sonatypePassword properties are used automatically
             // id found via clicking the desired profile in the web ui and noting the url fragment
-            stagingProfileId.set("TODO")
+            stagingProfileId.set("3a809bf4297e26")
         }
     }
     // these are not strictly required. The default timeouts are set to 1 minute. But Sonatype can be really slow.
