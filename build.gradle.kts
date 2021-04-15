@@ -1,9 +1,11 @@
-import com.jfrog.bintray.gradle.BintrayExtension
+import java.net.URI
+import java.time.Duration
 
 plugins {
-    id("net.researchgate.release") version "2.8.0"
-    id("com.jfrog.bintray") version "1.8.4" apply false
+    id("net.researchgate.release") version "2.8.1"
+    id("io.github.gradle-nexus.publish-plugin") version "1.0.0"
     id("com.github.kt3k.coveralls") version "2.8.4" apply false
+    id("com.github.ben-manes.versions") version "0.38.0"
 }
 
 // some parts of the Kotlin DSL don't work inside a `subprojects` block yet, so we do them the old way
@@ -24,27 +26,38 @@ subprojects {
     apply(plugin = "com.github.kt3k.coveralls")
 
     repositories {
-        jcenter()
+        mavenCentral()
     }
 
-    tasks.withType<JavaCompile> {
-        options.isDeprecation = true
-        options.isWarnings = true
-        if (JavaVersion.current().isJava9Compatible) {
-          options.compilerArgs = listOf("--release", "8", "-Xlint:unchecked")
-        }
-    }
-
-    configure<JavaPluginConvention> {
+    configure<JavaPluginExtension> {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
-        group = "org.roaringbitmap"
     }
 
-    tasks.named<JacocoReport>("jacocoTestReport") {
-        reports {
-            // used by coveralls
-            xml.isEnabled = true
+    group = "org.roaringbitmap"
+
+    tasks {
+        withType<JavaCompile> {
+            options.isDeprecation = true
+            options.isWarnings = true
+            if (JavaVersion.current().isJava9Compatible) {
+                options.compilerArgs = listOf("--release", "8", "-Xlint:unchecked")
+            }
+        }
+
+        named<JacocoReport>("jacocoTestReport") {
+            reports {
+                // used by coveralls
+                xml.isEnabled = true
+            }
+        }
+
+        withType<Javadoc> {
+            options {
+                // suppress javadoc's complaints about undocumented things
+                // we have to set a dummy "value" (here, `true`) to have the option actually used
+                (this as StandardJavadocDocletOptions).addBooleanOption("Xdoclint:none").value = true
+            }
         }
     }
 }
@@ -53,15 +66,17 @@ subprojects.filter { !listOf("jmh", "fuzz-tests", "examples", "simplebenchmark")
     it.run {
         apply(plugin = "checkstyle")
 
-        tasks.withType<Checkstyle> {
-            configFile = File(rootProject.projectDir, "RoaringBitmap/style/roaring_google_checks.xml")
-            isIgnoreFailures = false
-            isShowViolations = true
-        }
+        tasks {
+            withType<Checkstyle> {
+                configFile = File(rootProject.projectDir, "RoaringBitmap/style/roaring_google_checks.xml")
+                isIgnoreFailures = false
+                isShowViolations = true
+            }
 
-        // don't checkstyle source
-        tasks.named<Checkstyle>("checkstyleTest") {
-            exclude("**/**")
+            // don't checkstyle source
+            named<Checkstyle>("checkstyleTest") {
+                exclude("**/**")
+            }
         }
     }
 }
@@ -69,30 +84,21 @@ subprojects.filter { !listOf("jmh", "fuzz-tests", "examples", "simplebenchmark")
 subprojects.filter { listOf("RoaringBitmap", "shims").contains(it.name) }.forEach { project ->
     project.run {
         apply(plugin = "maven-publish")
-        apply(plugin = "com.jfrog.bintray")
+        apply(plugin = "signing")
 
-        tasks {
-            register<Jar>("sourceJar") {
-                from(project.the<SourceSetContainer>()["main"].allJava)
-                archiveClassifier.set("sources")
-            }
-
-            register<Jar>("docJar") {
-                from(project.tasks["javadoc"])
-                archiveClassifier.set("javadoc")
-            }
+        configure<JavaPluginExtension> {
+            withSourcesJar()
+            withJavadocJar()
         }
 
         configure<PublishingExtension> {
             publications {
-                register<MavenPublication>("bintray") {
+                register<MavenPublication>("sonatype") {
                     groupId = project.group.toString()
                     artifactId = project.name
                     version = project.version.toString()
 
                     from(components["java"])
-                    artifact(tasks["sourceJar"])
-                    artifact(tasks["docJar"])
 
                     // requirements for maven central
                     // https://central.sonatype.org/pages/requirements.html
@@ -130,34 +136,33 @@ subprojects.filter { listOf("RoaringBitmap", "shims").contains(it.name) }.forEac
                     }
                 }
             }
-        }
 
-        configure<BintrayExtension> {
-            user = rootProject.findProperty("bintrayUser")?.toString()
-            key = rootProject.findProperty("bintrayApiKey")?.toString()
-            setPublications("bintray")
-
-            with(pkg) {
-                repo = "maven"
-                setLicenses("Apache-2.0")
-                vcsUrl = "https://github.com/RoaringBitmap/RoaringBitmap"
-                // use "bintray package per artifact" to match the auto-gen'd pkg structure inherited from
-                // Maven Central's artifacts
-                name = "org.roaringbitmap:${project.name}"
-                userOrg = "roaringbitmap"
-
-                with(version) {
-                    name = project.version.toString()
-                    released = java.util.Date().toString()
-                    vcsTag = "RoaringBitmap-${project.version}"
+             // A safe throw-away place to publish to:
+            // ./gradlew publishSonatypePublicationToLocalDebugRepository -Pversion=foo
+            repositories {
+                maven {
+                    name = "localDebug"
+                    url = URI.create("file:///${project.buildDir}/repos/localDebug")
                 }
             }
+        }
+
+        // don't barf for devs without signing set up
+        if (project.hasProperty("signing.keyId")) {
+            configure<SigningExtension> {
+                sign(project.extensions.getByType<PublishingExtension>().publications["sonatype"])
+            }
+        }
+
+        // releasing should publish
+        rootProject.tasks.afterReleaseBuild {
+            dependsOn(provider { project.tasks.named("publishToSonatype") })
         }
     }
 }
 
 tasks {
-    create("build") {
+    register("build") {
         // dummy build task to appease release plugin
     }
 }
@@ -168,7 +173,16 @@ release {
     tagTemplate = "\$version"
 }
 
-tasks.afterReleaseBuild {
-    // bintray is being sunsetted
-    //dependsOn(tasks.named("bintrayUpload"))
+nexusPublishing {
+    repositories {
+        sonatype {
+            // sonatypeUsername and sonatypePassword properties are used automatically
+            // id found via clicking the desired profile in the web ui and noting the url fragment
+            stagingProfileId.set("3a809bf4297e26")
+        }
+    }
+    // these are not strictly required. The default timeouts are set to 1 minute. But Sonatype can be really slow.
+    // If you get the error "java.net.SocketTimeoutException: timeout", these lines will help.
+    connectTimeout.set(Duration.ofMinutes(3))
+    clientTimeout.set(Duration.ofMinutes(3))
 }
