@@ -178,7 +178,9 @@ nexusPublishing {
         sonatype {
             // sonatypeUsername and sonatypePassword properties are used automatically
             // id found via clicking the desired profile in the web ui and noting the url fragment
-            stagingProfileId.set("3a809bf4297e26")
+            stagingProfileId.set("144dd9b55bb0c2")
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
         }
     }
     // these are not strictly required. The default timeouts are set to 1 minute. But Sonatype can be really slow.
