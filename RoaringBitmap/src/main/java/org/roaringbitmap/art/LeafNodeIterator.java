@@ -1,6 +1,7 @@
 package org.roaringbitmap.art;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 public class LeafNodeIterator implements Iterator<LeafNode> {
 
@@ -56,6 +57,11 @@ public class LeafNodeIterator implements Iterator<LeafNode> {
 
   @Override
   public LeafNode next() {
+    if (consumedCurrent) {
+      if (!hasNext()) {
+        throw new NoSuchElementException();
+      }
+    }
     consumedCurrent = true;
     return current;
   }
