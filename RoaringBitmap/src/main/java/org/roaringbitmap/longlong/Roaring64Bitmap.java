@@ -352,6 +352,11 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     return new ForwardPeekableIterator(leafNodeIterator);
   }
 
+  // for testing only
+  LeafNodeIterator getLeafNodeIterator() {
+    return highLowContainer.highKeyLeafNodeIterator(false);
+  }
+
   @Override
   public boolean contains(long x) {
     byte[] high = LongUtils.highPart(x);

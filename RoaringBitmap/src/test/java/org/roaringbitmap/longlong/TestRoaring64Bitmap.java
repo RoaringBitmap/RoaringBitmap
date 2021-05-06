@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.function.Executable;
 import static org.roaringbitmap.Util.toUnsignedLong;
 
 import com.google.common.primitives.Ints;
@@ -20,17 +21,13 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.art.LeafNode;
+import org.roaringbitmap.art.LeafNodeIterator;
 
 public class TestRoaring64Bitmap {
 
@@ -1526,5 +1523,22 @@ public class TestRoaring64Bitmap {
     long[] unboxed = Longs.toArray(longs);
     Arrays.sort(unboxed);
     return unboxed;
+  }
+
+  @Test
+  public void leafNodeIteratorPeeking() {
+    final Random source = new Random(0xcb000a2b9b5bdfb6l);
+    final long[] data = takeSortedAndDistinct(source, 45000);
+    Roaring64Bitmap bitmap = Roaring64Bitmap.bitmapOf(data);
+    bitmap.runOptimize();
+
+    LeafNodeIterator lni = bitmap.getLeafNodeIterator();
+    lni.peekNext();
+    while (lni.hasNext()) {
+      LeafNode peeked = lni.peekNext();
+      LeafNode next = lni.next();
+      assertEquals(peeked, next);
+    }
+    assertThrows(NoSuchElementException.class, () -> lni.peekNext());
   }
 }
