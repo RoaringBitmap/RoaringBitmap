@@ -259,7 +259,7 @@ public class Art {
   }
 
   //find common prefix length
-  private static int commonPrefixLength(byte[] key1, int aFromIndex, int aToIndex,
+  static int commonPrefixLength(byte[] key1, int aFromIndex, int aToIndex,
       byte[] key2, int bFromIndex, int bToIndex) {
     int aLength = aToIndex - aFromIndex;
     int bLength = bToIndex - bFromIndex;

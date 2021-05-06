@@ -1,6 +1,7 @@
 package org.roaringbitmap.art;
 
 import org.roaringbitmap.art.Art.Toolkit;
+import org.roaringbitmap.longlong.LongUtils;
 
 /**
  * visit the art tree's space through a stack which records the deep first visiting paths.
@@ -23,6 +24,14 @@ public abstract class AbstractShuttle implements Shuttle {
   @Override
   public void initShuttle() {
     visitToLeaf(art.getRoot());
+  }
+
+  @Override
+  public void initShuttleFrom(long key) {
+    hasRun = false; // reset just in case
+    depth = -1;
+    byte[] high = LongUtils.highPart(key);
+    visitToLeafFrom(high, 0, art.getRoot());
   }
 
   @Override
@@ -148,7 +157,53 @@ public abstract class AbstractShuttle implements Shuttle {
     visitToLeaf(child);
   }
 
+  private void visitToLeafFrom(byte[] high, int keyDepth, Node node) {
+    if (node == null) {
+      return;
+    }
+    if (node == art.getRoot()) {
+      NodeEntry nodeEntry = new NodeEntry();
+      nodeEntry.node = node;
+      this.depth = 0;
+      stack[depth] = nodeEntry;
+    }
+    if (node.nodeType == NodeType.LEAF_NODE) {
+      //leaf node's corresponding NodeEntry will not have the position member set.
+      if (depth - 1 >= 0) {
+        findNextSiblingKeyOfLeafNode();
+      }
+      return;
+    }
+    if (depth == MAX_DEPTH) {
+      return;
+    }
+    if (node.prefixLength > 0) {
+      int commonLength = Art.commonPrefixLength(
+              high,
+              depth,
+              high.length,
+              node.prefix,
+              0,
+              node.prefixLength);
+      assert(commonLength == node.prefixLength);
+      //common prefix is the same ,then increase the depth
+      keyDepth += node.prefixLength;
+    }
+    //find next min child
+    int pos = fromNodePosition(high[keyDepth], node);
+    stack[depth].position = pos;
+    stack[depth].visited = true;
+    Node child = node.getChild(pos);
+    NodeEntry childNodeEntry = new NodeEntry();
+    childNodeEntry.node = child;
+    this.depth++;
+    stack[depth] = childNodeEntry;
+    visitToLeafFrom(high, keyDepth + 1, child);
+  }
+
   protected abstract int boundaryNodePosition(Node node);
+
+  protected abstract int fromNodePosition(byte key, Node node);
 
   private void findNextSiblingKeyOfLeafNode() {
     Node parentNode = stack[depth - 1].node;

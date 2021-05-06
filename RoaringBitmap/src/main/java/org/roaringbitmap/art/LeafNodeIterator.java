@@ -1,11 +1,9 @@
 package org.roaringbitmap.art;
 
+import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.roaringbitmap.PeekableIterator;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
-public class LeafNodeIterator implements PeekableIterator<LeafNode> {
+public class LeafNodeIterator implements Iterator<LeafNode> {
 
   private Shuttle shuttle;
   private boolean hasCurrent;
@@ -41,6 +39,28 @@ public class LeafNodeIterator implements PeekableIterator<LeafNode> {
     shuttle.initShuttle();
     calledHasNext = false;
   }
+
+  /**
+   * constructor
+   * @param art the ART
+   * @param reverse false: ascending order,true: the descending order
+   * @param containers the containers
+   * @param from starting upper/lower bound
+   */
+  public LeafNodeIterator(Art art, boolean reverse, Containers containers, long from) {
+    isEmpty = art.isEmpty();
+    if (isEmpty) {
+      return;
+    }
+    if (!reverse) {
+      shuttle = new ForwardShuttle(art, containers);
+    } else {
+      shuttle = new BackwardShuttle(art, containers);
+    }
+    shuttle.initShuttleFrom(from);
+    calledHasNext = false;
+  }
+
 
   private boolean advance() {
     boolean hasLeafNode = shuttle.moveToNextLeaf();
@@ -84,13 +104,11 @@ public class LeafNodeIterator implements PeekableIterator<LeafNode> {
     shuttle.remove();
   }
 
-  @Override
-  public void advanceIfNeeded(LeafNode minval) {
-    // TODO
-    throw new NotImplementedException();
+  public void seek(long boundval) {
+    shuttle.initShuttleFrom(boundval);
+    calledHasNext = false;
   }
 
-  @Override
   public LeafNode peekNext() {
     if (!calledHasNext) {
       hasNext();
