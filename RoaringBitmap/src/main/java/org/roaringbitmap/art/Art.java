@@ -300,6 +300,10 @@ public class Art {
     return new LeafNodeIterator(this, reverse, containers);
   }
 
+  public LeafNodeIterator leafNodeIteratorFrom(long bound, boolean reverse, Containers containers) {
+    return new LeafNodeIterator(this, reverse, containers, bound);
+  }
+
   private void serialize(Node node, DataOutput dataOutput) throws IOException {
     if (node.nodeType != NodeType.LEAF_NODE) {
       //serialize the internal node itself first

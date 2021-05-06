@@ -90,6 +90,10 @@ public class HighLowContainer {
     return art.leafNodeIterator(reverse, containers);
   }
 
+  public LeafNodeIterator highKeyLeafNodeIteratorFrom(long bound, boolean reverse) {
+    return art.leafNodeIteratorFrom(bound, reverse, containers);
+  }
+
   /**
    * replace the specified position one with a fresh container
    * @param containerIdx the position of the container
