@@ -19,7 +19,7 @@ public class TestMemory {
     for (int i = 0; i < N; i++) {
       bitmaps[i] = new MutableRoaringBitmap();
     }
-    final Random random = new Random();
+    final Random random = new Random(1234);
     for (int i = 0; i < M; i++) {
       final int x = random.nextInt(N);
       bitmaps[x].add(i);

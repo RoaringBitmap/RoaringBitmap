@@ -48,7 +48,7 @@ public class TestRoaring64Bitmap {
 
   @Test
   public void test() throws Exception {
-    Random random = new Random();
+    Random random = new Random(1234);
     Roaring64Bitmap roaring64Bitmap = new Roaring64Bitmap();
     Set<Long> source = new HashSet<>();
     int total = 1000000;
@@ -69,7 +69,7 @@ public class TestRoaring64Bitmap {
 
   @Test
   public void testAllKindOfNodeTypesSerDeser() throws Exception {
-    Random random = new Random();
+    Random random = new Random(1234);
     Roaring64Bitmap roaring64Bitmap = new Roaring64Bitmap();
     Set<Long> source = new HashSet<>();
     int total = 10000;
@@ -1202,7 +1202,7 @@ public class TestRoaring64Bitmap {
 
   @Test
   public void testRandomAddRemove() {
-    Random r = new Random();
+    Random r = new Random(1234);
 
     // We need to max the considered range of longs, else each long would be in a different bucket
     long max = Integer.MAX_VALUE * 20L;
