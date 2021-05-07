@@ -104,11 +104,22 @@ public class LeafNodeIterator implements Iterator<LeafNode> {
     shuttle.remove();
   }
 
+  /**
+   * Move this iterator to the leaf that contains `boundval`.
+   *
+   * If no leaf contains `boundval`, then move to the next largest (on forward iterators
+   * or next smallest (on backwards iterators).
+   */
   public void seek(long boundval) {
     shuttle.initShuttleFrom(boundval);
     calledHasNext = false;
   }
 
+  /**
+   * Return the next leaf without advancing the iterator.
+   *
+   * @return the next leaf
+   */
   public LeafNode peekNext() {
     if (!calledHasNext) {
       hasNext();

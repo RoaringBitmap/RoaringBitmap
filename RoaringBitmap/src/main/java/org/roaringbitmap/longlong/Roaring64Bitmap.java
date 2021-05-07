@@ -358,6 +358,12 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     return highLowContainer.highKeyLeafNodeIterator(false);
   }
 
+  /**
+   * Produce an iterator over the values in this bitmap starting from `minval`.
+   *
+   * @param minval the lower bound of the iterator returned
+   * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
+   */
   public PeekableLongIterator getLongIteratorFrom(long minval) {
     LeafNodeIterator leafNodeIterator = highLowContainer.highKeyLeafNodeIteratorFrom(minval, false);
     ForwardPeekableIterator fpi = new ForwardPeekableIterator(leafNodeIterator);
@@ -584,6 +590,12 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     return new ReversePeekableIterator(leafNodeIterator);
   }
 
+  /**
+   * Produce an iterator over the values in this bitmap starting from `maxval`.
+   *
+   * @param maxval the upper bound of the iterator returned
+   * @return a custom iterator over set bits, the bits are traversed in descending sorted order
+   */
   public PeekableLongIterator getReverseLongIteratorFrom(long maxval) {
     LeafNodeIterator leafNodeIterator = highLowContainer.highKeyLeafNodeIteratorFrom(maxval, true);
     ReversePeekableIterator rpi = new ReversePeekableIterator(leafNodeIterator);
