@@ -117,7 +117,7 @@ public class RoaringBitmapWriterRandomisedTest {
     }
 
     private static int[] randomArray(int size) {
-        Random random = new Random();
+        Random random = new Random(1234);
         int[] data = new int[size];
         int last = 0;
         int i = 0;

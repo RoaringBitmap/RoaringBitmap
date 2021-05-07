@@ -1079,14 +1079,15 @@ public class TestRunContainer {
 
   private void inot14once(int num, int rangeSize) {
     RunContainer container = new RunContainer();
+    Random generator = new Random(1234);
     BitSet checker = new BitSet();
     for (int i = 0; i < num; ++i) {
-      int val = (int) (Math.random() * 65536);
+      int val = (int) (generator.nextDouble() * 65536);
       checker.set(val);
       container.add((char) val);
     }
 
-    int rangeStart = (int) Math.random() * (65536 - rangeSize);
+    int rangeStart = (int) generator.nextDouble() * (65536 - rangeSize);
     int rangeEnd = rangeStart + rangeSize;
 
     // this test is not checking runcontainer flip if "add" has converted
@@ -2019,13 +2020,14 @@ public class TestRunContainer {
   private void not14once(int num, int rangeSize) {
     RunContainer container = new RunContainer();
     BitSet checker = new BitSet();
+    Random generator = new Random(1234);
     for (int i = 0; i < num; ++i) {
-      int val = (int) (Math.random() * 65536);
+      int val = (int) (generator.nextDouble() * 65536);
       checker.set(val);
       container.add((char) val);
     }
 
-    int rangeStart = (int) Math.random() * (65536 - rangeSize);
+    int rangeStart = (int) generator.nextDouble() * (65536 - rangeSize);
     int rangeEnd = rangeStart + rangeSize;
 
     assertTrue(container instanceof RunContainer);

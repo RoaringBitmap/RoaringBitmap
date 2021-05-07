@@ -1482,7 +1482,7 @@ public class TestRoaring64NavigableMap {
 
   @Test
   public void testRandomAddRemove() {
-    Random r = new Random();
+    Random r = new Random(1234);
 
     // We need to max the considered range of longs, else each long would be in a different bucket
     long max = Integer.MAX_VALUE * 20L;

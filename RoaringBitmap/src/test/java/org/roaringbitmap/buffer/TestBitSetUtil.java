@@ -39,7 +39,7 @@ public class TestBitSetUtil {
 
   @Test
   public void testFlipFlapBetweenRandomFullAndEmptyBitSet() {
-    final Random random = new Random();
+    final Random random = new Random(1234);
     final int nbitsPerBlock = 1024 * Long.SIZE;
     final int blocks = 50;
     final BitSet bitset = new BitSet(nbitsPerBlock * blocks);

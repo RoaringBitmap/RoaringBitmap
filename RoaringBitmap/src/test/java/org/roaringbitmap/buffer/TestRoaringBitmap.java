@@ -63,7 +63,7 @@ public class TestRoaringBitmap {
     
   @Test 
   public void binaryTest() throws IOException {
-    Random rand = new Random();
+    Random rand = new Random(1234);
     rand.setSeed(11111);
     for(int z = 0; z < 1000; ++z) {
       final MutableRoaringBitmap rr1 = new MutableRoaringBitmap();
