@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import org.roaringbitmap.longlong.LongUtils;
 
-public class LeafNode extends Node implements Comparable<LeafNode> {
+public class LeafNode extends Node {
 
   //key are saved as the lazy expanding logic,here we only care about the
   //high 48 bit data,so only the high 48 bit is valuable
@@ -130,10 +130,5 @@ public class LeafNode extends Node implements Comparable<LeafNode> {
 
   public byte[] getKeyBytes() {
     return LongUtils.highPart(key);
-  }
-
-  @Override
-  public int compareTo(LeafNode other) {
-    return Long.compare(this.key, other.key);
   }
 }
