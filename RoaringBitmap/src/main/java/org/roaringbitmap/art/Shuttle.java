@@ -8,6 +8,14 @@ public interface Shuttle {
   public void initShuttle();
 
   /**
+   * Call this instead of initShuttle, if the iterator should start from a bound
+   * (upper/lower depending on direction)
+   *
+   * @param key the upper/lower bound to start from
+   */
+  public void initShuttleFrom(long key);
+
+  /**
    *
    * @return true: has a LeafNode ,false: has no LeafNode
    */

@@ -18,4 +18,14 @@ public class ForwardShuttle extends AbstractShuttle {
   protected int boundaryNodePosition(Node node) {
     return node.getMinPos();
   }
+
+  @Override
+  protected int fromNodePosition(byte key, Node node) {
+    int pos = node.getChildPos(key);
+    if (pos == Node.ILLEGAL_IDX) {
+      return node.getNextLargerPos(pos);
+    } else {
+      return pos;
+    }
+  }
 }

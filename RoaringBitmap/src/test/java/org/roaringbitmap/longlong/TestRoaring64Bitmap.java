@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.function.Executable;
 import static org.roaringbitmap.Util.toUnsignedLong;
 
 import com.google.common.primitives.Ints;
@@ -20,17 +21,13 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.art.LeafNode;
+import org.roaringbitmap.art.LeafNodeIterator;
 
 public class TestRoaring64Bitmap {
 
@@ -1367,10 +1364,11 @@ public class TestRoaring64Bitmap {
     pii = bitmap.getLongIterator();
     for(int i = 1; i < data.length; ++i) {
       pii.advanceIfNeeded(data[i-1]);
-      pii.next();
-      assertEquals(data[i],pii.peekNext() );
+      assertEquals(data[i-1], pii.next());
+      assertEquals(data[i], pii.peekNext());
     }
-    bitmap.getLongIterator().advanceIfNeeded(-1);// should not crash
+    bitmap.getLongIterator().advanceIfNeeded(-1); // should not crash
+    bitmap.getLongIteratorFrom(-1); // should not crash
   }
   
   @Test
@@ -1380,11 +1378,22 @@ public class TestRoaring64Bitmap {
     for(long i = 0; i < n; ++i) {
       bitmap.add(2 * i + Integer.MAX_VALUE);
     }
+
+    // use advance
     for(long i = 0; i < n; ++i) {
       PeekableLongIterator pii = bitmap.getLongIterator();
-      pii.advanceIfNeeded(2 * i + Integer.MAX_VALUE);
-      assertEquals(pii.peekNext(), 2 * i + Integer.MAX_VALUE);
-      assertEquals(pii.next(), 2 * i + Integer.MAX_VALUE);
+      long expected = 2 * i + Integer.MAX_VALUE;
+      pii.advanceIfNeeded(expected);
+      assertEquals(expected, pii.peekNext());
+      assertEquals(expected, pii.next());
+    }
+
+    // use iterator from
+    for(long i = 0; i < n; ++i) {
+      long expected = 2 * i + Integer.MAX_VALUE;
+      PeekableLongIterator pii = bitmap.getLongIteratorFrom(expected);
+      assertEquals(expected, pii.peekNext());
+      assertEquals(expected, pii.next());
     }
   }
   
@@ -1402,11 +1411,22 @@ public class TestRoaring64Bitmap {
     }
     for(long h = 0; h < numHighPoints; ++h) {
       long base = h << 16;
+
+      // use advance
       for(long i = 0; i < n; ++i) {
         PeekableLongIterator pii = bitmap.getLongIterator();
-        pii.advanceIfNeeded(2 * i + base);
-        assertEquals(pii.peekNext(), 2 * i + base);
-        assertEquals(pii.next(), 2 * i + base);
+        long expected = 2 * i + base;
+        pii.advanceIfNeeded(expected);
+        assertEquals(expected, pii.peekNext());
+        assertEquals(expected, pii.next());
+      }
+
+      // use iterator from
+      for(long i = 0; i < n; ++i) {
+        long expected = 2 * i + base;
+        PeekableLongIterator pii = bitmap.getLongIteratorFrom(expected);
+        assertEquals(expected, pii.peekNext());
+        assertEquals(expected, pii.next());
       }
     }
   }
@@ -1417,11 +1437,18 @@ public class TestRoaring64Bitmap {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
     bitmap.add(4L, 100000L);
     bitmap.runOptimize();
+    // use advance
     for(int i = 4; i < 100000; ++i) {
       PeekableLongIterator pii = bitmap.getLongIterator();
       pii.advanceIfNeeded(i);
-      assertEquals(pii.peekNext(), i);
-      assertEquals(pii.next(), i);
+      assertEquals(i, pii.peekNext());
+      assertEquals(i, pii.next());
+    }
+    // use iterator from
+    for(int i = 4; i < 100000; ++i) {
+      PeekableLongIterator pii = bitmap.getLongIteratorFrom(i);
+      assertEquals(i, pii.peekNext());
+      assertEquals(i, pii.next());
     }
   }
   
@@ -1430,6 +1457,8 @@ public class TestRoaring64Bitmap {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
     PeekableLongIterator it = bitmap.getLongIterator();
     it.advanceIfNeeded(0);
+
+    bitmap.getLongIteratorFrom(0);
   }
   
   
@@ -1455,6 +1484,7 @@ public class TestRoaring64Bitmap {
       assertEquals(data[i],pii.peekNext() );
     }
     bitmap.getReverseLongIterator().advanceIfNeeded(-1);// should not crash
+    bitmap.getReverseLongIteratorFrom(-1);// should not crash
   }
   
   @Test
@@ -1464,11 +1494,21 @@ public class TestRoaring64Bitmap {
     for(long i = 0; i < n; ++i) {
       bitmap.add(2 * i + Integer.MAX_VALUE);
     }
+    // use advance
     for(long i = n - 1; i >= 0; --i) {
+      long expected = 2 * i + Integer.MAX_VALUE;
       PeekableLongIterator pii = bitmap.getReverseLongIterator();
-      pii.advanceIfNeeded(2 * i + Integer.MAX_VALUE);
-      assertEquals(pii.peekNext(), 2 * i + Integer.MAX_VALUE);
-      assertEquals(pii.next(), 2 * i + Integer.MAX_VALUE);
+      pii.advanceIfNeeded(expected);
+      assertEquals(expected, pii.peekNext());
+      assertEquals(expected, pii.next());
+    }
+
+    // use iterator from
+    for(long i = n - 1; i >= 0; --i) {
+      long expected = 2 * i + Integer.MAX_VALUE;
+      PeekableLongIterator pii = bitmap.getReverseLongIteratorFrom(expected);
+      assertEquals(expected, pii.peekNext());
+      assertEquals(expected, pii.next());
     }
   }
   
@@ -1486,11 +1526,22 @@ public class TestRoaring64Bitmap {
     }
     for(long h = 0; h < numHighPoints; ++h) {
       long base = h << 16;
+
+      // use advance
       for(long i = n - 1; i >= 0 ; --i) {
         PeekableLongIterator pii = bitmap.getReverseLongIterator();
-        pii.advanceIfNeeded(2 * i + base);
-        assertEquals(pii.peekNext(), 2 * i + base);
-        assertEquals(pii.next(), 2 * i + base);
+        long expected = 2 * i + base;
+        pii.advanceIfNeeded(expected);
+        assertEquals(expected, pii.peekNext());
+        assertEquals(expected, pii.next());
+      }
+
+      // use iterator from
+      for(long i = n - 1; i >= 0 ; --i) {
+        long expected = 2 * i + base;
+        PeekableLongIterator pii = bitmap.getReverseLongIteratorFrom(expected);
+        assertEquals(expected, pii.peekNext());
+        assertEquals(expected, pii.next());
       }
     }
   }
@@ -1500,11 +1551,20 @@ public class TestRoaring64Bitmap {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
     bitmap.add(4L, 100000L);
     bitmap.runOptimize();
+
+    // use advance
     for(int i = 99999; i >= 4; --i) {
       PeekableLongIterator pii = bitmap.getReverseLongIterator();
       pii.advanceIfNeeded(i);
-      assertEquals(pii.peekNext(), i);
-      assertEquals(pii.next(), i);
+      assertEquals(i, pii.peekNext());
+      assertEquals(i, pii.next());
+    }
+
+    // use iterator from
+    for(int i = 99999; i >= 4; --i) {
+      PeekableLongIterator pii = bitmap.getReverseLongIteratorFrom(i);
+      assertEquals(i, pii.peekNext());
+      assertEquals(i, pii.next());
     }
   }
   
@@ -1513,6 +1573,8 @@ public class TestRoaring64Bitmap {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
     PeekableLongIterator it = bitmap.getReverseLongIterator();
     it.advanceIfNeeded(0);
+
+    bitmap.getReverseLongIteratorFrom(0);
   }
   
   private static long[] takeSortedAndDistinct(Random source, int count) {
@@ -1526,5 +1588,22 @@ public class TestRoaring64Bitmap {
     long[] unboxed = Longs.toArray(longs);
     Arrays.sort(unboxed);
     return unboxed;
+  }
+
+  @Test
+  public void leafNodeIteratorPeeking() {
+    final Random source = new Random(0xcb000a2b9b5bdfb6l);
+    final long[] data = takeSortedAndDistinct(source, 45000);
+    Roaring64Bitmap bitmap = Roaring64Bitmap.bitmapOf(data);
+    bitmap.runOptimize();
+
+    LeafNodeIterator lni = bitmap.getLeafNodeIterator();
+    lni.peekNext();
+    while (lni.hasNext()) {
+      LeafNode peeked = lni.peekNext();
+      LeafNode next = lni.next();
+      assertEquals(peeked, next);
+    }
+    assertThrows(NoSuchElementException.class, () -> lni.peekNext());
   }
 }
