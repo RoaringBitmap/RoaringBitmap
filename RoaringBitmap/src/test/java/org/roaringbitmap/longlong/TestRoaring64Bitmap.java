@@ -907,6 +907,158 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
+  public void testFlip_SameContainer() {
+    Roaring64Bitmap map = newDefaultCtor();
+
+    map.addLong(0);
+    map.flip(1,2);
+
+    assertEquals(2, map.getLongCardinality());
+    assertEquals(1, map.select(1));
+  }
+
+  @Test
+  public void testFlip_MiddleContainer() {
+    Roaring64Bitmap map = newDefaultCtor();
+
+    map.addLong(0);
+    map.addLong(0x20001);
+
+    map.flip(0x10001,0x10002);
+
+    assertEquals(3, map.getLongCardinality());
+    assertEquals(0x10001, map.select(1));
+  }
+
+  @Test
+  public void testFlip_NextContainer() {
+    Roaring64Bitmap map = newDefaultCtor();
+
+    map.addLong(0);
+    map.flip(0x10001,0x10002);
+
+    assertEquals(2, map.getLongCardinality());
+    assertEquals(0x10001, map.select(1));
+  }
+
+  @Test
+  public void testFlip_ToEdgeContainer() {
+    Roaring64Bitmap map = newDefaultCtor();
+
+    map.addLong(0);
+    map.flip(0xFFFF,0x10000);
+
+    assertEquals(2, map.getLongCardinality());
+    assertEquals(0xFFFF, map.select(1));
+  }
+
+  @Test
+  public void testFlip_OverEdgeContainer() {
+    Roaring64Bitmap map = newDefaultCtor();
+
+    map.addLong(0);
+    map.flip(0xFFFF,0x10002);
+
+    assertEquals(4, map.getLongCardinality());
+    assertEquals(0x10001, map.select(3));
+  }
+
+  @Test
+  public void testFlip_PriorContainer() {
+    Roaring64Bitmap map = newDefaultCtor();
+
+    map.addLong(0x10001);
+    map.flip(1L,2L);
+
+    assertEquals(2, map.getLongCardinality());
+    assertEquals(1, map.select(0));
+    assertEquals(0x10001, map.select(1));
+  }
+
+  @Test
+  public void testFlip_SameNonZeroValues_NoChange() {
+    Roaring64Bitmap map = newDefaultCtor();
+
+    map.addLong(0);
+    map.flip(1L,1L);
+
+    assertEquals(1, map.getLongCardinality());
+    assertEquals(0, map.select(0));
+  }
+
+  @Test
+  public void testFlip_PositiveStartGreaterThanEnd_NoChange() {
+    Roaring64Bitmap map = newDefaultCtor();
+
+    map.addLong(0);
+    map.flip(2L,1L);
+
+    assertEquals(1, map.getLongCardinality());
+    assertEquals(0, map.select(0));
+  }
+
+  @Test
+  public void testFlip_NegStartGreaterThanEnd_NoChange() {
+    Roaring64Bitmap map = newDefaultCtor();
+
+    map.addLong(0);
+    map.flip(-1L,-3L);
+
+    assertEquals(1, map.getLongCardinality());
+    assertEquals(0, map.select(0));
+  }
+
+  @Test
+  public void testFlip_NegStartGreaterThanPosEnd_NoChange() {
+    Roaring64Bitmap map = newDefaultCtor();
+
+    map.addLong(0);
+    map.flip(-1L,0x7FffFFffFFffFFffL);
+
+    assertEquals(1, map.getLongCardinality());
+    assertEquals(0, map.select(0));
+  }
+
+  @Test
+  public void testFlip_RangeCrossingFromPosToNegInHexWorks() {
+    Roaring64Bitmap map = newDefaultCtor();
+
+    map.addLong(0);
+    map.flip(0x7FffFFffFFffFFffL, 0x8000000000000001L);
+
+    assertEquals(3, map.getLongCardinality());
+    assertEquals(0L, map.select(0));
+    assertEquals(0x7FffFFffFFffFFffL, map.select(1));
+    assertEquals(0x8000000000000000L, map.select(2));
+  }
+
+  @Test
+  public void testFlip_RangeCrossingFromPosToNegInDecWorks() {
+    Roaring64Bitmap map = newDefaultCtor();
+
+    map.addLong(0);
+    map.flip(9223372036854775807L, -9223372036854775807L);
+
+    assertEquals(3, map.getLongCardinality());
+    assertEquals(0L, map.select(0));
+    assertEquals(9223372036854775807L, map.select(1));
+    assertEquals(-9223372036854775808L, map.select(2));
+  }
+
+  @Test
+  public void testFlip_SmallRangesInNegWorks() {
+    Roaring64Bitmap map = newDefaultCtor();
+
+    map.addLong(0);
+    map.flip(-4294967297L, -4294967296L);
+
+    assertEquals(2, map.getLongCardinality());
+    assertEquals(0L, map.select(0));
+    assertEquals(-4294967297L, map.select(1));
+  }
+
+
+  @Test
   public void testToString() {
     Roaring64Bitmap map = newDefaultCtor();
 
