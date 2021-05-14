@@ -903,7 +903,7 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
 
 
   /**
-   * Computes the bitwise OR of this container with another (symmetric difference). This container
+   * Computes the bitwise XOR of this container with another (symmetric difference). This container
    * as well as the provided container are left unaffected.
    *
    * @param x other parameter
