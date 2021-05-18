@@ -299,6 +299,58 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
   }
 
   /**
+   * Complements the bits in the given range, from rangeStart (inclusive) rangeEnd (exclusive). The
+   * given bitmap is unchanged.
+   *
+   * @param rangeStart inclusive beginning of range, in [0, 0xffffffffffffffff]
+   * @param rangeEnd exclusive ending of range, in [0, 0xffffffffffffffff + 1]
+   */
+  public void flip(final long rangeStart, final long rangeEnd) {
+
+    if(rangeStart >= 0 && rangeEnd >= 0 && rangeStart >= rangeEnd){
+      // both numbers in positive range, and start is beyond end, nothing to do.
+      return;
+    } else if(rangeStart < 0 && rangeEnd < 0 && rangeStart >= rangeEnd){
+      // both numbers in negative range, and start is beyond end, nothing to do.
+      return;
+    } else if(rangeStart < 0 && rangeEnd > 0) {
+      // start is neg which is "higher" and end is above zero thus, nothing to do.
+      return;
+    }
+
+    byte[] hbStart = LongUtils.highPart(rangeStart);
+    char lbStart = LongUtils.lowPart(rangeStart);
+    char lbLast = LongUtils.lowPart(rangeEnd - 1L);
+
+    long shStart = LongUtils.rightShiftHighPart(rangeStart);
+    long shEnd = LongUtils.rightShiftHighPart(rangeEnd - 1L);
+
+    // TODO:this can be accelerated considerably
+    for (long hb = shStart; hb <= shEnd; ++hb) {
+      // first container may contain partial range
+      final int containerStart = (hb == shStart) ? lbStart : 0;
+      // last container may contain partial range
+      final int containerLast = (hb == shEnd) ? lbLast : LongUtils.maxLowBitAsInteger();
+
+      ContainerWithIndex cwi = highLowContainer.searchContainer(
+              LongUtils.highPartInPlace(LongUtils.leftShiftHighPart(hb), hbStart));
+
+      if (cwi != null) {
+        final long i = cwi.getContainerIdx();
+        final Container c = cwi.getContainer().inot(containerStart, containerLast + 1);
+        if (!c.isEmpty()) {
+          highLowContainer.replaceContainer(i, c);
+        } else {
+          highLowContainer.remove(hbStart);
+        }
+      } else {
+        Container newContainer = Container.rangeOfOnes(containerStart, containerLast + 1);
+        highLowContainer.put(hbStart, newContainer);
+      }
+    }
+  }
+
+  /**
    * {@link Roaring64NavigableMap} are serializable. However, contrary to RoaringBitmap, the
    * serialization format is not well-defined: for now, it is strongly coupled with Java standard
    * serialization. Just like the serialization may be incompatible between various Java versions,

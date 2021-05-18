@@ -125,4 +125,43 @@ public class LongUtils {
   public static long initWithFirst4Byte(int v) {
     return ((long) v) << 32;
   }
+
+  /**
+   * shift the long right by the container size amount so we can loop across containers by +1 steps
+   * @param num long being treated as unsigned long
+   * @return value shifted out of value space into container high part
+   */
+  public static long rightShiftHighPart(long num) {
+    return num >>> 16;
+  }
+
+  /**
+   * shift the long by left the container size amount so we use the value after have done our steps
+   * @param num uint48 to be shift back into uint64
+   * @return value shifted out of container high part back into value space
+   */
+  public static long leftShiftHighPart(long num) {
+    return num << 16;
+  }
+
+  public static int maxLowBitAsInteger() {
+    return 0xFFFF;
+  }
+
+  /**
+   * set the high 48 bit parts of the input number into the given byte array
+   *
+   * @param num the long number
+   * @param high48 the byte array
+   * @return the high 48 bit
+   */
+  public static byte[] highPartInPlace(long num, byte[] high48) {
+    high48[0] = (byte) ((num >>> 56) & 0xff);
+    high48[1] = (byte) ((num >>> 48) & 0xff);
+    high48[2] = (byte) ((num >>> 40) & 0xff);
+    high48[3] = (byte) ((num >>> 32) & 0xff);
+    high48[4] = (byte) ((num >>> 24) & 0xff);
+    high48[5] = (byte) ((num >>> 16) & 0xff);
+    return high48;
+  }
 }
