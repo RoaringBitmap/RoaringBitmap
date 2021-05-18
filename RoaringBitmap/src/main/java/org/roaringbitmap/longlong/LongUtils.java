@@ -127,20 +127,20 @@ public class LongUtils {
   }
 
   /**
-   * shift the long left by the container size amount so we can loop across containers by +1 steps
+   * shift the long right by the container size amount so we can loop across containers by +1 steps
    * @param num long being treated as unsigned long
    * @return value shifted out of value space into container high part
    */
-  public static long leftShiftHighPart(long num) {
+  public static long rightShiftHighPart(long num) {
     return num >>> 16;
   }
 
   /**
-   * shift the long by right the container size amount so we use the value after have done our steps
+   * shift the long by left the container size amount so we use the value after have done our steps
    * @param num uint48 to be shift back into uint64
    * @return value shifted out of container high part back into value space
    */
-  public static long rightShiftHighPart(long num) {
+  public static long leftShiftHighPart(long num) {
     return num << 16;
   }
 

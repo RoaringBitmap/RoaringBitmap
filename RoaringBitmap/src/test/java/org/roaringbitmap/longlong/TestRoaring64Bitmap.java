@@ -907,7 +907,7 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
-  public void testFlip_SameContainer() {
+  public void testFlipSameContainer() {
     Roaring64Bitmap map = newDefaultCtor();
 
     map.addLong(0);
@@ -918,7 +918,7 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
-  public void testFlip_MiddleContainer() {
+  public void testFlipMiddleContainer() {
     Roaring64Bitmap map = newDefaultCtor();
 
     map.addLong(0);
@@ -931,7 +931,7 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
-  public void testFlip_NextContainer() {
+  public void testFlipNextContainer() {
     Roaring64Bitmap map = newDefaultCtor();
 
     map.addLong(0);
@@ -942,7 +942,7 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
-  public void testFlip_ToEdgeContainer() {
+  public void testFlipToEdgeContainer() {
     Roaring64Bitmap map = newDefaultCtor();
 
     map.addLong(0);
@@ -953,7 +953,7 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
-  public void testFlip_OverEdgeContainer() {
+  public void testFlipOverEdgeContainer() {
     Roaring64Bitmap map = newDefaultCtor();
 
     map.addLong(0);
@@ -964,7 +964,7 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
-  public void testFlip_PriorContainer() {
+  public void testFlipPriorContainer() {
     Roaring64Bitmap map = newDefaultCtor();
 
     map.addLong(0x10001);
@@ -976,7 +976,7 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
-  public void testFlip_SameNonZeroValues_NoChange() {
+  public void testFlipSameNonZeroValuesNoChange() {
     Roaring64Bitmap map = newDefaultCtor();
 
     map.addLong(0);
@@ -987,7 +987,7 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
-  public void testFlip_PositiveStartGreaterThanEnd_NoChange() {
+  public void testFlipPositiveStartGreaterThanEndNoChange() {
     Roaring64Bitmap map = newDefaultCtor();
 
     map.addLong(0);
@@ -998,7 +998,7 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
-  public void testFlip_NegStartGreaterThanEnd_NoChange() {
+  public void testFlipNegStartGreaterThanEndNoChange() {
     Roaring64Bitmap map = newDefaultCtor();
 
     map.addLong(0);
@@ -1009,7 +1009,7 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
-  public void testFlip_NegStartGreaterThanPosEnd_NoChange() {
+  public void testFlipNegStartGreaterThanPosEndNoChange() {
     Roaring64Bitmap map = newDefaultCtor();
 
     map.addLong(0);
@@ -1020,7 +1020,7 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
-  public void testFlip_RangeCrossingFromPosToNegInHexWorks() {
+  public void testFlipRangeCrossingFromPosToNegInHexWorks() {
     Roaring64Bitmap map = newDefaultCtor();
 
     map.addLong(0);
@@ -1033,7 +1033,7 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
-  public void testFlip_RangeCrossingFromPosToNegInDecWorks() {
+  public void testFlipRangeCrossingFromPosToNegInDecWorks() {
     Roaring64Bitmap map = newDefaultCtor();
 
     map.addLong(0);
@@ -1046,7 +1046,7 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
-  public void testFlip_SmallRangesInNegWorks() {
+  public void testFlipSmallRangesInNegWorks() {
     Roaring64Bitmap map = newDefaultCtor();
 
     map.addLong(0);
@@ -1057,6 +1057,17 @@ public class TestRoaring64Bitmap {
     assertEquals(-4294967297L, map.select(1));
   }
 
+  @Test
+  public void testFlipEdgeOfLongWorks() {
+    Roaring64Bitmap map = newDefaultCtor();
+
+    map.addLong(0);
+    map.flip(-2L, 0L);
+
+    assertEquals(3, map.getLongCardinality());
+    assertEquals(0L, map.select(0));
+    assertEquals(-2L, map.select(1));
+  }
 
   @Test
   public void testToString() {

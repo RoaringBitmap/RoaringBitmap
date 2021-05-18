@@ -306,9 +306,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    * @param rangeEnd exclusive ending of range, in [0, 0xffffffffffffffff + 1]
    */
   public void flip(final long rangeStart, final long rangeEnd) {
-    //rangeSanityCheck(rangeStart, rangeEnd);
 
-    // I don't like these rangeEnd being v+1 as flip all bits would be [0,0) which seems like
     if(rangeStart >= 0 && rangeEnd >= 0 && rangeStart >= rangeEnd){
       // both numbers in positive range, and start is beyond end, nothing to do.
       return;
@@ -322,11 +320,10 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
 
     byte[] hbStart = LongUtils.highPart(rangeStart);
     char lbStart = LongUtils.lowPart(rangeStart);
-    byte[] hbLast = LongUtils.highPart(rangeEnd - 1L);
     char lbLast = LongUtils.lowPart(rangeEnd - 1L);
 
-    long shStart = LongUtils.leftShiftHighPart(rangeStart);
-    long shEnd = LongUtils.leftShiftHighPart(rangeEnd - 1L);
+    long shStart = LongUtils.rightShiftHighPart(rangeStart);
+    long shEnd = LongUtils.rightShiftHighPart(rangeEnd - 1L);
 
     // TODO:this can be accelerated considerably
     for (long hb = shStart; hb <= shEnd; ++hb) {
@@ -336,7 +333,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       final int containerLast = (hb == shEnd) ? lbLast : LongUtils.maxLowBitAsInteger();
 
       ContainerWithIndex cwi = highLowContainer.searchContainer(
-              LongUtils.highPartInPlace(LongUtils.rightShiftHighPart(hb), hbStart));
+              LongUtils.highPartInPlace(LongUtils.leftShiftHighPart(hb), hbStart));
 
       if (cwi != null) {
         final long i = cwi.getContainerIdx();
