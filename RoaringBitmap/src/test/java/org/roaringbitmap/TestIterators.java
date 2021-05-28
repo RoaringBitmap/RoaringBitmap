@@ -220,21 +220,73 @@ public class TestIterators {
 
     assertEquals(2000000, bitIt.peekNext());
     assertEquals(2000000, bitIt.next());
-    
+
     assertTrue(bitset.contains(2100000));
     bitIt.advanceIfNeeded(2100000);
     assertEquals(2100000, bitIt.peekNext());
     assertEquals(2100000, bitIt.next());
 
-    // advancing to a value not in ether range should go to the first value of second range
+    // advancing to a value not in either range should go to the first value of second range
     assertFalse(bitset.contains(2300000));
-    bitIt.advanceIfNeeded( 2300000);
+    bitIt.advanceIfNeeded(2300000);
 
     assertEquals(4000000, bitIt.peekNext());
 
-    assertTrue(bitset.contains( 4000000));
-    bitIt.advanceIfNeeded( 4000000);
+    assertTrue(bitset.contains(4000000));
+    bitIt.advanceIfNeeded(4000000);
     assertEquals(4000000, bitIt.peekNext());
     assertEquals(4000000, bitIt.next());
+  }
+
+  @Test
+  public void testSkipIntoFarAwayGaps() {
+    RoaringBitmap bitset = new RoaringBitmap();
+
+    bitset.add(2000000L, 2200000L);
+    bitset.add(4000000L, 4300000L);
+    bitset.add(6000000L, 6400000L);
+
+    PeekableIntIterator bitIt = bitset.getIntIterator();
+
+    assertEquals(2000000, bitIt.peekNext());
+    assertEquals(2000000, bitIt.next());
+
+    assertTrue(bitset.contains(2100000));
+    bitIt.advanceIfNeeded(2100000);
+    assertEquals(2100000, bitIt.peekNext());
+    assertEquals(2100000, bitIt.next());
+
+    // advancing to a value not in any range but beyond second range
+    // should go to the first value of third range
+    assertFalse(bitset.contains(4325376 - 5)); // same container
+    bitIt.advanceIfNeeded( 4325376 - 5);
+
+    assertEquals(6000000, bitIt.peekNext());
+
+    assertTrue(bitset.contains(6000000));
+    bitIt.advanceIfNeeded(6000000);
+    assertEquals(6000000, bitIt.peekNext());
+    assertEquals(6000000, bitIt.next());
+
+    // reset
+    bitIt = bitset.getIntIterator();
+
+    assertEquals(2000000, bitIt.peekNext());
+    assertEquals(2000000, bitIt.next());
+
+    bitIt.advanceIfNeeded(2100000);
+    assertEquals(2100000, bitIt.peekNext());
+    assertEquals(2100000, bitIt.next());
+
+    // advancing to a value not in any range but beyond second range
+    // should go to the first value of third range
+    assertFalse(bitset.contains(4325376 + 5)); // next container
+    bitIt.advanceIfNeeded( 4325376 + 5);
+
+    assertEquals(6000000, bitIt.peekNext());
+
+    bitIt.advanceIfNeeded(6000000);
+    assertEquals(6000000, bitIt.peekNext());
+    assertEquals(6000000, bitIt.next());
   }
 }

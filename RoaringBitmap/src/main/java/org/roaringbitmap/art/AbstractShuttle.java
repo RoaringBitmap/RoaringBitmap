@@ -1,5 +1,7 @@
 package org.roaringbitmap.art;
 
+import java.util.Arrays;
+
 import org.roaringbitmap.art.Art.Toolkit;
 import org.roaringbitmap.longlong.LongUtils;
 
@@ -32,6 +34,11 @@ public abstract class AbstractShuttle implements Shuttle {
     depth = -1;
     byte[] high = LongUtils.highPart(key);
     visitToLeafFrom(high, 0, art.getRoot());
+    // If the target container doesn't exist, we'll end up in the previous existing leaf here
+    if (!Arrays.equals(high, getCurrentLeafNode().getKeyBytes())) {
+      // Move the following leaf instead
+      moveToNextLeaf();
+    }
   }
 
   @Override
