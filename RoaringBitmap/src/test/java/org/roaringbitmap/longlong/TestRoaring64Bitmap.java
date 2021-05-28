@@ -1837,6 +1837,103 @@ public class TestRoaring64Bitmap {
     assertEquals(b3, bitIt.peekNext());
     assertEquals(b3, bitIt.next());
   }
+
+  @Test
+  public void testSkipIntoGapsReverse() {
+    Roaring64Bitmap bitset = new Roaring64Bitmap();
+    long b1 = 2000000000L;
+    long b1s = 18500L;
+    long b1e = b1 + b1s;
+    long b2 = 4000000000L;
+    long b2s = 100L;
+    long b2e = b2 + b2s;
+    long p2 = b2 + (b2s / 2);
+    long pgap = p2 - b1s;
+
+    bitset.add(b1, b1e);
+    bitset.add(b2, b2e);
+
+    PeekableLongIterator bitIt = bitset.getReverseLongIterator();
+
+    assertEquals(b2e - 1L, bitIt.peekNext());
+    assertEquals(b2e - 1L, bitIt.next());
+
+    assertTrue(bitset.contains(p2));
+    bitIt.advanceIfNeeded(p2);
+    assertEquals(p2, bitIt.peekNext());
+    assertEquals(p2, bitIt.next());
+
+    // advancing to a value not in either range should go to the first value of second range
+    assertFalse(bitset.contains(pgap));
+    bitIt.advanceIfNeeded(pgap);
+
+    assertTrue(bitset.contains(b1));
+    assertTrue(bitset.contains(b1e - 1L));
+    assertEquals(b1e - 1L, bitIt.peekNext());
+
+    assertTrue(bitset.contains(b2));
+    bitIt.advanceIfNeeded(b1e);
+    assertEquals(b1e - 1L, bitIt.peekNext());
+    assertEquals(b1e - 1L, bitIt.next());
+  }
+
+  @Test
+  public void testSkipIntoFarAwayGapsReverse() {
+    Roaring64Bitmap bitset = new Roaring64Bitmap();
+    long runLength = 18500L;
+    long b1 = 2000000000L;
+    long b1e = b1 + runLength;
+    long b2 = 4000000000L;
+    long b2e = b2 + runLength;
+    long p3 = b2 + (runLength / 2);
+    long pgapSameContainer = p3 - runLength;
+    long pgapNextContainer = p3 - 5 * runLength;
+    long b3 = 6000000000L;
+    long b3e = b3 + runLength;
+
+    bitset.add(b1, b1e);
+    bitset.add(b2, b2e);
+    bitset.add(b3, b3e);
+
+    PeekableLongIterator bitIt = bitset.getReverseLongIterator();
+
+    assertEquals(b3e - 1L, bitIt.peekNext());
+    assertEquals(b3e - 1L, bitIt.next());
+
+    assertTrue(bitset.contains(p3));
+    bitIt.advanceIfNeeded(p3);
+    assertEquals(p3, bitIt.peekNext());
+    assertEquals(p3, bitIt.next());
+
+    // advancing to a value not in any range but beyond second range
+    // should go to the first value of third range
+    assertFalse(bitset.contains(pgapSameContainer));
+    bitIt.advanceIfNeeded(pgapSameContainer);
+
+    assertTrue(bitset.contains(b1));
+    assertTrue(bitset.contains(b1e - 1L));
+    assertEquals(b1e - 1L, bitIt.peekNext());
+
+    assertTrue(bitset.contains(b1));
+    bitIt.advanceIfNeeded(b1e);
+    assertEquals(b1e - 1L, bitIt.peekNext());
+    assertEquals(b1e - 1L, bitIt.next());
+
+    // reset
+    bitIt = bitset.getReverseLongIterator();
+    bitIt.advanceIfNeeded(p3);
+
+    // advancing to a value not in any range but beyond second range
+    // should go to the first value of third range
+    assertFalse(bitset.contains(pgapNextContainer));
+    bitIt.advanceIfNeeded(pgapNextContainer);
+
+    assertEquals(b1e - 1L, bitIt.peekNext());
+
+    bitIt.advanceIfNeeded(b1e);
+    assertEquals(b1e - 1L, bitIt.peekNext());
+    assertEquals(b1e - 1L, bitIt.next());
+  }
   
   private static long[] takeSortedAndDistinct(Random source, int count) {
     LinkedHashSet<Long> longs = new LinkedHashSet<>(count);
