@@ -18,6 +18,7 @@ import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestIterators {
   private static List<Integer> asList(IntIterator ints) {
@@ -209,7 +210,7 @@ public class TestIterators {
   }
 
   @Test
-  public void testRoaringBitsetAdvance() {
+  public void testSkipIntoGaps() {
     RoaringBitmap bitset = new RoaringBitmap();
 
     bitset.add(2000000L, 2200000L);
@@ -217,25 +218,21 @@ public class TestIterators {
 
     PeekableIntIterator bitIt = bitset.getIntIterator();
 
-    // first value is first 2000000000L
     assertEquals(2000000, bitIt.peekNext());
     assertEquals(2000000, bitIt.next());
-
-    // second value is next 2100000000L
-    assert(bitset.contains(2100000));
+    
+    assertTrue(bitset.contains(2100000));
     bitIt.advanceIfNeeded(2100000);
     assertEquals(2100000, bitIt.peekNext());
     assertEquals(2100000, bitIt.next());
 
-    // advancing to a value not in ether range 2300000 should go to the first value of second range (aka the third value)
-    assert(!bitset.contains(2300000));
+    // advancing to a value not in ether range should go to the first value of second range
+    assertFalse(bitset.contains(2300000));
     bitIt.advanceIfNeeded( 2300000);
 
-    // this steps to 4000000  works
     assertEquals(4000000, bitIt.peekNext());
 
-    // third value 4000000
-    assert(bitset.contains( 4000000));
+    assertTrue(bitset.contains( 4000000));
     bitIt.advanceIfNeeded( 4000000);
     assertEquals(4000000, bitIt.peekNext());
     assertEquals(4000000, bitIt.next());
