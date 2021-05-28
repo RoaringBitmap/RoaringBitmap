@@ -1739,6 +1739,50 @@ public class TestRoaring64Bitmap {
 
     bitmap.getReverseLongIteratorFrom(0);
   }
+
+  @Test
+  public void testRoaring64BitsetAdvance() {
+    Roaring64Bitmap bitset = new Roaring64Bitmap();
+    long b1 = 2000000000L;
+    long b1s = 18500L;
+    long b1e = b1 + b1s;
+    long p2 = b1 + (b1s/2);
+    long pgap = p2 + b1s;
+    long b2 = 4000000000L;
+    long b2s = 100L;
+    long b2e = b2 + b2s;
+
+    bitset.add(b1, b1e);
+    bitset.add(b2, b2e);
+
+    PeekableLongIterator bitIt = bitset.getLongIterator();
+
+    // first value is first 2000000000L
+    assertEquals(b1, bitIt.peekNext());
+    assertEquals(b1, bitIt.next());
+
+    // second value is next 2100000000L
+    assertTrue(bitset.contains(p2));
+    bitIt.advanceIfNeeded(p2);
+    assertEquals(p2, bitIt.peekNext());
+    assertEquals(p2, bitIt.next());
+
+    // advancing to a value not in ether range 2300000000L should go to the first value of second range (aka the third value)
+    assertFalse(bitset.contains(pgap));
+    bitIt.advanceIfNeeded( pgap);
+
+    assertTrue(bitset.contains( b2));
+    assertTrue(bitset.contains( b2e-1L));
+    // this steps to 4000000000L  so the next fails. and returns something like: 4299962112
+    assertEquals(b2, bitIt.peekNext());
+
+    // third value 4273492378
+    assertTrue(bitset.contains( b2));
+    bitIt.advanceIfNeeded( b2);
+    assertEquals(b2, bitIt.peekNext());
+    assertEquals(b2, bitIt.next());
+
+  }
   
   private static long[] takeSortedAndDistinct(Random source, int count) {
     LinkedHashSet<Long> longs = new LinkedHashSet<>(count);

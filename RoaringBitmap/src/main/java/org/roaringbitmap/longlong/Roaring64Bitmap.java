@@ -764,6 +764,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     
     abstract PeekableCharIterator getIterator(Container container);
     abstract boolean compare(long next, long val);
+    abstract boolean compareHigh(byte[] next, byte[] val);
 
     @Override
     public boolean hasNext() {
@@ -838,7 +839,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
         if (keyIte.hasNext()) {
           LeafNode leafNode = keyIte.peekNext();
           this.high = leafNode.getKeyBytes();
-          if (Arrays.equals(this.high, minHigh)) {
+          if (compareHigh(this.high, minHigh)) {
             long containerIdx = leafNode.getContainerIdx();
             Container container = highLowContainer.getContainer(containerIdx);
             charIterator = getIterator(container);
@@ -863,10 +864,12 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
         }
       }
 
-      // advance inner
-      char low = LongUtils.lowPart(minval);
-      charIterator.advanceIfNeeded(low);
-      hasNextCalled = false;
+      if (Arrays.equals(this.high, minHigh)) {
+        // advance inner
+        char low = LongUtils.lowPart(minval);
+        charIterator.advanceIfNeeded(low);
+        hasNextCalled = false;
+      }
     }
 
     @Override
@@ -905,6 +908,11 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     boolean compare(long next, long val) {
       return next >= val;
     }
+
+    @Override
+    boolean compareHigh(byte[] next, byte[] val) {
+      return LongUtils.compareHigh(next, val) >= 0;
+    }
   }
 
   private class ReversePeekableIterator extends PeekableIterator {
@@ -920,6 +928,11 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     @Override
     boolean compare(long next, long val) {
       return next <= val;
+    }
+
+    @Override
+    boolean compareHigh(byte[] next, byte[] val) {
+      return LongUtils.compareHigh(next, val) <= 0;
     }
   }
 }

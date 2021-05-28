@@ -207,4 +207,37 @@ public class TestIterators {
     PeekableIntIterator it = bitmap.getIntIterator();
     it.advanceIfNeeded(0);
   }
+
+  @Test
+  public void testRoaringBitsetAdvance() {
+    RoaringBitmap bitset = new RoaringBitmap();
+
+    bitset.add(2000000L, 2200000L);
+    bitset.add(4000000L, 4300000L);
+
+    PeekableIntIterator bitIt = bitset.getIntIterator();
+
+    // first value is first 2000000000L
+    assertEquals(2000000, bitIt.peekNext());
+    assertEquals(2000000, bitIt.next());
+
+    // second value is next 2100000000L
+    assert(bitset.contains(2100000));
+    bitIt.advanceIfNeeded(2100000);
+    assertEquals(2100000, bitIt.peekNext());
+    assertEquals(2100000, bitIt.next());
+
+    // advancing to a value not in ether range 2300000 should go to the first value of second range (aka the third value)
+    assert(!bitset.contains(2300000));
+    bitIt.advanceIfNeeded( 2300000);
+
+    // this steps to 4000000  works
+    assertEquals(4000000, bitIt.peekNext());
+
+    // third value 4000000
+    assert(bitset.contains( 4000000));
+    bitIt.advanceIfNeeded( 4000000);
+    assertEquals(4000000, bitIt.peekNext());
+    assertEquals(4000000, bitIt.next());
+  }
 }
