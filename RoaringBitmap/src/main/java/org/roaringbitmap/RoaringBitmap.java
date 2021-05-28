@@ -12,16 +12,10 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.PrimitiveIterator.OfInt;
-import java.util.Spliterator;
-import java.util.stream.IntStream;
-import java.util.stream.StreamSupport;
-import java.util.Spliterators;
 
 import static org.roaringbitmap.RoaringBitmapWriter.writer;
 import static org.roaringbitmap.Util.lowbitsAsInteger;
-
-
+import org.roaringbitmap.longlong.LongUtils;
 
 /**
  * RoaringBitmap, a compressed alternative to the BitSet.
@@ -1891,6 +1885,85 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     for (int i = 0; i < this.highLowContainer.size(); i++) {
       this.highLowContainer.getContainerAtIndex(i).forEach(this.highLowContainer.keys[i], ic);
     }
+  }
+
+  /**
+   * Consume presence information for all values in the range [start, start + length).
+   *
+   * @param start Lower bound of values to consume.
+   * @param length Maximum number of values to consume.
+   * @param rrc Code to be executed for each present or absent value.
+   */
+  public void forAllInRange(int start, int length, final RelativeRangeConsumer rrc) {
+    final char startHigh = Util.highbits(start);
+    final int end = start + length;
+    final char endHigh =  Util.highbits(start + length);
+    int startIndex = highLowContainer.getContainerIndex(startHigh);
+    startIndex = startIndex < 0 ? -startIndex - 1 : startIndex;
+
+    int filledUntil = start;
+    for (int containerIndex = startIndex; containerIndex < highLowContainer.size(); containerIndex++) {
+      char containerKey = highLowContainer.getKeyAtIndex(containerIndex);
+      int containerStart = containerKey << 16;
+      int containerEnd = containerStart + BitmapContainer.MAX_CAPACITY;
+      if (endHigh < containerKey) {
+        if (filledUntil < containerKey) {
+          // fill missing values until end
+          rrc.acceptAllAbsent(filledUntil - start, length);
+        }
+        return;
+      }
+      // fill missing values until start of container
+      if (filledUntil < containerStart) {
+        rrc.acceptAllAbsent(filledUntil - start, containerStart - start);
+        filledUntil = containerStart;
+      }
+      // Inspect Container
+      Container container = highLowContainer.getContainerAtIndex(containerIndex);
+      int containerRangeStartOffset = filledUntil - start;
+
+      boolean startInContainer = containerStart < start;
+      boolean endInContainer = end < containerEnd;
+
+      if (startInContainer && endInContainer) {
+        // Only part of the container is in range
+        char containerRangeStart = LongUtils.lowPart(start);
+        char containerRangeEnd = LongUtils.lowPart(end);
+        container.forAllInRange(
+            LongUtils.lowPart(start),
+            LongUtils.lowPart(end),
+            rrc);
+        filledUntil += containerRangeEnd - containerRangeStart;
+      } else if (startInContainer) {//  && !endInContainer
+        // range begins within the container
+        char containerRangeStart = LongUtils.lowPart(start);
+        container.forAllFrom(containerRangeStart, rrc);
+        filledUntil += BitmapContainer.MAX_CAPACITY - containerRangeStart;
+      } else if (endInContainer) {// && !startInContainer
+        // range end within the container
+        char containerRangeEnd = LongUtils.lowPart(end);
+        container.forAllUntil(containerRangeStartOffset, containerRangeEnd, rrc);
+        filledUntil += containerRangeEnd;
+      } else {
+        container.forAll(containerRangeStartOffset, rrc);
+        filledUntil += BitmapContainer.MAX_CAPACITY;
+      }
+    }
+    // no more containers, but there may be missing values in between
+    if (filledUntil < end) {
+      rrc.acceptAllAbsent(filledUntil - start, length);
+    }
+  }
+
+  /**
+   * Consume each value present in the range [start, start + length).
+   *
+   * @param start Lower bound of values to consume.
+   * @param length Maximum number of values to consume.
+   * @param ic Code to be executed for each present value.
+   */
+  public void forEachInRange(int start, int length, final IntConsumer ic) {
+    forAllInRange(start, length, new IntConsumerRelativeRangeAdapter(start, ic));
   }
 
 

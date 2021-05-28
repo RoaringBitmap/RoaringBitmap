@@ -11,11 +11,8 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
-import org.roaringbitmap.ArrayContainer;
-import org.roaringbitmap.Container;
-import org.roaringbitmap.PeekableCharIterator;
-import org.roaringbitmap.RunContainer;
-import org.roaringbitmap.Util;
+
+import org.roaringbitmap.*;
 import org.roaringbitmap.art.ContainerIterator;
 import org.roaringbitmap.art.KeyIterator;
 import org.roaringbitmap.art.LeafNode;
@@ -171,6 +168,88 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
         lc.accept(v);
       }
     }
+  }
+
+  /**
+   * Consume presence information for all values in the range [start, start + length).
+   *
+   * @param start Lower bound of values to consume.
+   * @param length Maximum number of values to consume.
+   * @param rrc Code to be executed for each present or absent value.
+   */
+  public void forAllInRange(long start, int length, final RelativeRangeConsumer rrc) {
+    final LeafNodeIterator leafIterator = highLowContainer.highKeyLeafNodeIteratorFrom(start, false);
+    if (!leafIterator.hasNext()) {
+      rrc.acceptAllAbsent(0, length);
+      return; // nothing else to do
+    }
+    final long end = start + length;
+    final byte[] endHigh = LongUtils.highPart(end);
+    long filledUntil = start;
+
+    LeafNode node = leafIterator.next();
+    byte[] high = node.getKeyBytes();
+    while (LongUtils.compareHigh(high, endHigh) <= 0) {
+      // fill missing values until start of container
+      long containerStart = LongUtils.toLong(high, (char) 0);
+      if (filledUntil < containerStart) {
+        rrc.acceptAllAbsent((int) (filledUntil - start), (int) (containerStart - start));
+        filledUntil = containerStart;
+      }
+      // Inspect Container
+      long containerIdx = node.getContainerIdx();
+      Container container = highLowContainer.getContainer(containerIdx);
+      long containerEnd = LongUtils.toLong(high, Character.MAX_VALUE) + 1;
+      int containerRangeStartOffset = (int) (filledUntil - start);
+
+      boolean startInContainer = containerStart < start;
+      boolean endInContainer = end < containerEnd;
+
+      if (startInContainer && endInContainer) {
+        // Only part of the container is in range
+        char containerRangeStart = LongUtils.lowPart(start);
+        char containerRangeEnd = LongUtils.lowPart(end);
+        container.forAllInRange(
+            LongUtils.lowPart(start),
+            LongUtils.lowPart(end),
+            rrc);
+        filledUntil += containerRangeEnd - containerRangeStart;
+      } else if (startInContainer) {//  && !endInContainer
+        // range begins within the container
+        char containerRangeStart = LongUtils.lowPart(start);
+        container.forAllFrom(containerRangeStart, rrc);
+        filledUntil += BitmapContainer.MAX_CAPACITY - containerRangeStart;
+      } else if (endInContainer) {// && !startInContainer
+        // range end within the container
+        char containerRangeEnd = LongUtils.lowPart(end);
+        container.forAllUntil(containerRangeStartOffset, containerRangeEnd, rrc);
+        filledUntil += containerRangeEnd;
+      } else {
+        container.forAll(containerRangeStartOffset, rrc);
+        filledUntil += BitmapContainer.MAX_CAPACITY;
+      }
+      if (leafIterator.hasNext()) {
+        node = leafIterator.next();
+        high = node.getKeyBytes();
+      } else {
+        break;
+      }
+    }
+    // next container (if any) is beyond the end, but there may be missing values in between
+    if (filledUntil < end) {
+      rrc.acceptAllAbsent((int) (filledUntil - start), length);
+    }
+  }
+
+  /**
+   * Consume each value present in the range [start, start + length).
+   *
+   * @param start Lower bound of values to consume.
+   * @param length Maximum number of values to consume.
+   * @param lc Code to be executed for each present value.
+   */
+  public void forEachInRange(long start, int length, final LongConsumer lc) {
+    forAllInRange(start, length, new LongConsumerRelativeRangeAdapter(start, lc));
   }
 
   @Override
