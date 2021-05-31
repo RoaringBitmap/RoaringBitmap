@@ -1934,6 +1934,58 @@ public class TestRoaring64Bitmap {
     assertEquals(b1e - 1L, bitIt.peekNext());
     assertEquals(b1e - 1L, bitIt.next());
   }
+
+  @Test
+  public void testSimeonTake2() {
+    Roaring64Bitmap bitset = new Roaring64Bitmap();
+    bitset.add(2104959186L, 2147483614L);
+    bitset.add(4273492378L, 4294967214L);
+
+    PeekableLongIterator bitIt = bitset.getLongIterator();
+
+    //bitId: 2104959186 dimId: 21262214
+    bitIt.peekNext();
+    //dimIt.advanceIfNeeded(bitId) 2104959186
+    //bitId: 2104959186 dimId: 2104959186
+    bitIt.peekNext();
+    bitIt.next();
+
+    //bitId: 2104959187 dimId: 2126221400
+    bitIt.peekNext();
+    //bitIt.advanceIfNeeded(dimId) 2126221400
+    bitIt.advanceIfNeeded(2126221400L);
+
+    //bitId: 2126221400 dimId: 2126221400
+    bitIt.peekNext();
+    bitIt.next();
+
+    //bitId: 2126221401 dimId: 2168958450
+    bitIt.peekNext();
+
+    //bitIt.advanceIfNeeded(dimId) 2168958450
+    assertTrue(bitIt.hasNext());
+    long v1 = bitIt.peekNext();
+    assertTrue(v1 < 2168958450L );
+    bitIt.advanceIfNeeded(2168958450L);
+
+    assertTrue(bitIt.hasNext());
+    long v2 = bitIt.peekNext();
+
+    assertNotEquals(v1,v2);
+
+    //assertFalse(2168958450L > v2);
+    //bitId: 2105016320 dimId: 2168958450
+    assertNotEquals(2168958450L, bitIt.peekNext());
+
+    bitIt.advanceIfNeeded(2168958450L);
+
+    assertTrue(bitIt.hasNext());
+    long v3 = bitIt.peekNext();
+
+    System.out.println(String.format("v1 %d v2 %d v3 %d", v1, v2, v3));
+
+    assertNotEquals(v2,v3); // equaling 2105016320
+  }
   
   private static long[] takeSortedAndDistinct(Random source, int count) {
     LinkedHashSet<Long> longs = new LinkedHashSet<>(count);

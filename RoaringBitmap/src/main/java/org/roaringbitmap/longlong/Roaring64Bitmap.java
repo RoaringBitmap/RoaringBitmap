@@ -756,7 +756,6 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     private final LeafNodeIterator keyIte;
     private byte[] high;
     private PeekableCharIterator charIterator;
-    private boolean hasNextCalled = false;
 
     PeekableIterator(final LeafNodeIterator keyIte) {
       this.keyIte = keyIte;
@@ -768,50 +767,26 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
 
     @Override
     public boolean hasNext() {
-      hasNextCalled = true;
-      if (charIterator != null && !charIterator.hasNext()) {
-        while (keyIte.hasNext()) {
-          LeafNode leafNode = keyIte.next();
-          high = leafNode.getKeyBytes();
-          long containerIdx = leafNode.getContainerIdx();
-          Container container = highLowContainer.getContainer(containerIdx);
-          charIterator = getIterator(container);
-          if(charIterator.hasNext()){
-            return true;
-          }
-        }
-        return false;
-      }
       if (charIterator != null && charIterator.hasNext()) {
         return true;
       }
-      if (charIterator == null) {
-        while (keyIte.hasNext()) {
-          LeafNode leafNode = keyIte.next();
-          high = leafNode.getKeyBytes();
-          long containerIdx = leafNode.getContainerIdx();
-          Container container = highLowContainer.getContainer(containerIdx);
-          charIterator = getIterator(container);
-          if(charIterator.hasNext()){
-            return true;
-          }
-
+      while (keyIte.hasNext()) {
+        LeafNode leafNode = keyIte.next();
+        high = leafNode.getKeyBytes();
+        long containerIdx = leafNode.getContainerIdx();
+        Container container = highLowContainer.getContainer(containerIdx);
+        charIterator = getIterator(container);
+        if(charIterator.hasNext()){
+          return true;
         }
-        return false;
-
       }
       return false;
     }
 
     @Override
     public long next() {
-      boolean hasNext = true;
-      if (!hasNextCalled) {
-        hasNext = hasNext();
-      }
-      if (hasNext) {
+      if (hasNext()) {
         char low = charIterator.next();
-        hasNextCalled = false;
         return LongUtils.toLong(high, low);
       } else {
         throw new IllegalStateException("empty");
@@ -820,10 +795,8 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
 
     @Override
     public void advanceIfNeeded(long minval) {
-      if (!hasNextCalled) {
-        if (!hasNext()) {
-          return;
-        }
+      if (!hasNext()) {
+        return;
       }
       if(compare(this.peekNext(), minval)) {
         return;
@@ -861,7 +834,6 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
               // make sure we don't accidentally continue at the previous iterator position
               // after stepping to the end.
               charIterator = null;
-              hasNextCalled = false;
               return;
             }
           }
@@ -872,17 +844,12 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
         // advance inner
         char low = LongUtils.lowPart(minval);
         charIterator.advanceIfNeeded(low);
-        hasNextCalled = false;
       }
     }
 
     @Override
     public long peekNext() {
-      boolean hasNext = true;
-      if (!hasNextCalled) {
-        hasNext = hasNext();
-      }
-      if (hasNext) {
+      if (hasNext()) {
         char low = charIterator.peekNext();
         return LongUtils.toLong(high, low);
       } else {
