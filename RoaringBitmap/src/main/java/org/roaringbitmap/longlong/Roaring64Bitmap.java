@@ -858,6 +858,10 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
                 return;
               }
             } else {
+              // make sure we don't accidentally continue at the previous iterator position
+              // after stepping to the end.
+              charIterator = null;
+              hasNextCalled = false;
               return;
             }
           }
