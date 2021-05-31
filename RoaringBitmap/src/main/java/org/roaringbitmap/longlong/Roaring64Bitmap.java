@@ -903,7 +903,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     
     @Override
     boolean compare(long next, long val) {
-      return next >= val;
+      return (next>>>2) == (val>>>2) ? (next&0x3)>=(val&0x3) : (next>>>2) > (val>>>2);
     }
   }
 
@@ -919,7 +919,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     
     @Override
     boolean compare(long next, long val) {
-      return next <= val;
+      return (next>>>2) == (val>>>2) ? (next&0x3)<=(val&0x3) : (next>>>2) < (val>>>2);
     }
   }
 }
