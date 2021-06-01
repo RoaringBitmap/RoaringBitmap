@@ -1,7 +1,5 @@
 package org.roaringbitmap.art;
 
-import java.util.Arrays;
-
 import org.roaringbitmap.art.Art.Toolkit;
 import org.roaringbitmap.longlong.LongUtils;
 
@@ -25,24 +23,30 @@ public abstract class AbstractShuttle implements Shuttle {
 
   @Override
   public void initShuttle() {
-    visitToLeaf(art.getRoot());
+    visitToLeaf(art.getRoot(), false);
   }
 
   @Override
   public void initShuttleFrom(long key) {
-    hasRun = false; // reset just in case
-    depth = -1;
+    depth = -1; // reset
     byte[] high = LongUtils.highPart(key);
     visitToLeafFrom(high, 0, art.getRoot());
-    // If the target container doesn't exist, we'll end up in the previous existing leaf here
-    if (!Arrays.equals(high, getCurrentLeafNode().getKeyBytes())) {
+    // If the target container doesn't exist, we may end up in the previous existing leaf here
+    if (currentBeforeHigh(getCurrentLeafNode().getKeyBytes(), high)) {
       // Move the following leaf instead
+      hasRun = true; // make it actually move
       moveToNextLeaf();
     }
+    hasRun = false; // reset
   }
+
+  protected abstract boolean currentBeforeHigh(byte[] current, byte[] high);
 
   @Override
   public boolean moveToNextLeaf() {
+    if (depth < 0) {
+      return false;
+    }
     if (!hasRun) {
       hasRun = true;
       Node node = stack[depth].node;
@@ -51,9 +55,6 @@ public abstract class AbstractShuttle implements Shuttle {
       } else {
         return false;
       }
-    }
-    if (depth < 0) {
-      return false;
     }
     //skip the top leaf node
     Node node = stack[depth].node;
@@ -74,7 +75,7 @@ public abstract class AbstractShuttle implements Shuttle {
       int pos;
       int nextPos;
       if (!currentNodeEntry.visited) {
-        pos = boundaryNodePosition(currentNodeEntry.node);
+        pos = boundaryNodePosition(currentNodeEntry.node, false);
         currentNodeEntry.position = pos;
         nextPos = pos;
         currentNodeEntry.visited = true;
@@ -132,7 +133,7 @@ public abstract class AbstractShuttle implements Shuttle {
     }
   }
 
-  private void visitToLeaf(Node node) {
+  private void visitToLeaf(Node node, boolean inRunDirection) {
     if (node == null) {
       return;
     }
@@ -153,7 +154,7 @@ public abstract class AbstractShuttle implements Shuttle {
       return;
     }
     //find next min child
-    int pos = boundaryNodePosition(node);
+    int pos = boundaryNodePosition(node, inRunDirection);
     stack[depth].position = pos;
     stack[depth].visited = true;
     Node child = node.getChild(pos);
@@ -161,7 +162,7 @@ public abstract class AbstractShuttle implements Shuttle {
     childNodeEntry.node = child;
     this.depth++;
     stack[depth] = childNodeEntry;
-    visitToLeaf(child);
+    visitToLeaf(child, inRunDirection);
   }
 
   private void visitToLeafFrom(byte[] high, int keyDepth, Node node) {
@@ -184,20 +185,46 @@ public abstract class AbstractShuttle implements Shuttle {
     if (depth == MAX_DEPTH) {
       return;
     }
+
     if (node.prefixLength > 0) {
       int commonLength = Art.commonPrefixLength(
               high,
-              depth,
+              keyDepth,
               high.length,
               node.prefix,
               0,
               node.prefixLength);
-      assert(commonLength == node.prefixLength);
+      if (commonLength != node.prefixLength) {
+        byte nodeValue = node.prefix[commonLength];
+        byte highValue = high[keyDepth + commonLength];
+        boolean visitDirection = prefixMismatchIsInRunDirection(nodeValue, highValue);
+        // once we miss a single match, there's no point comparing parts of the key anymore
+        visitToLeaf(node, visitDirection);
+        return;
+      }
       //common prefix is the same ,then increase the depth
       keyDepth += node.prefixLength;
     }
-    //find next min child
-    int pos = fromNodePosition(high[keyDepth], node);
+    //find next child
+    SearchResult result = node.getNearestChildPos(high[keyDepth]);
+    int pos;
+    boolean continueAtBoundary = false;
+    boolean continueInRunDirection = false;
+    switch (result.outcome) {
+      case FOUND:
+        pos = result.getKeyPos();
+        break;
+      case NOT_FOUND:
+        pos = searchMissNextPosition(result);
+        continueAtBoundary = true;
+        if (pos == Node.ILLEGAL_IDX) {
+          pos = boundaryNodePosition(node, true);
+          continueInRunDirection = true;
+        }
+        break;
+      default:
+        throw new IllegalStateException("There only two possible search outcomes");
+    }
     stack[depth].position = pos;
     stack[depth].visited = true;
     Node child = node.getChild(pos);
@@ -205,12 +232,20 @@ public abstract class AbstractShuttle implements Shuttle {
     childNodeEntry.node = child;
     this.depth++;
     stack[depth] = childNodeEntry;
-    visitToLeafFrom(high, keyDepth + 1, child);
+    if (continueAtBoundary) {
+      // once we miss a single match, there's no point comparing parts of the key anymore
+      // we just descend as far in run direction as possible
+      visitToLeaf(child, continueInRunDirection);
+    } else {
+      visitToLeafFrom(high, keyDepth + 1, child);
+    }
   }
 
-  protected abstract int boundaryNodePosition(Node node);
+  protected abstract int boundaryNodePosition(Node node, boolean inRunDirection);
 
-  protected abstract int fromNodePosition(byte key, Node node);
+  protected abstract boolean prefixMismatchIsInRunDirection(byte nodeValue, byte highValue);
+
+  protected abstract int searchMissNextPosition(SearchResult result);
 
   private void findNextSiblingKeyOfLeafNode() {
     Node parentNode = stack[depth - 1].node;

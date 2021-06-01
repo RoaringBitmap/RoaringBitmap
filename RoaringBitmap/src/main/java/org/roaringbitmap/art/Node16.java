@@ -39,6 +39,40 @@ public class Node16 extends Node {
   }
 
   @Override
+  public SearchResult getNearestChildPos(byte k) {
+    byte[] firstBytes = LongUtils.toBDBytes(firstV);
+    if (count <= 8) {
+      return Node.binarySearchWithResult(firstBytes, 0, count, k);
+    } else {
+      SearchResult firstResult = Node.binarySearchWithResult(
+              firstBytes, 0, 8, k);
+      if (firstResult.outcome == SearchResult.Outcome.FOUND) {
+        return firstResult;
+      } else {
+        byte[] secondBytes = LongUtils.toBDBytes(secondV);
+        SearchResult secondResult = Node.binarySearchWithResult(
+                secondBytes, 0, (count - 8), k);
+        switch(secondResult.outcome) {
+          case FOUND:
+            return SearchResult.found(8 + secondResult.getKeyPos());
+          case NOT_FOUND:
+            if (secondResult.hasNextLargerPos()) {
+              return SearchResult.notFound(
+                      8 + secondResult.getNextSmallerPos(),
+                      8 + secondResult.getNextLargerPos());
+            } else {
+              return SearchResult.notFound(
+                      8 + secondResult.getNextSmallerPos(),
+                      Node.ILLEGAL_IDX); // don't map -1 into the legal range by adding 8!
+            }
+          default:
+            throw new IllegalStateException("There only two possible search outcomes");
+        }
+      }
+    }
+  }
+
+  @Override
   public byte getChildKey(int pos) {
     int posInLong;
     if (pos <= 7) {

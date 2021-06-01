@@ -17,7 +17,7 @@ public interface Shuttle {
 
   /**
    *
-   * @return true: has a LeafNode ,false: has no LeafNode
+   * @return true: has a LeafNode, false: has no LeafNode
    */
   public boolean moveToNextLeaf();
 

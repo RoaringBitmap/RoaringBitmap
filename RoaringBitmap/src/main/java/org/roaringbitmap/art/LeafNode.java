@@ -80,6 +80,11 @@ public class LeafNode extends Node {
   }
 
   @Override
+  public SearchResult getNearestChildPos(byte key) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public byte getChildKey(int pos) {
     throw new UnsupportedOperationException();
   }
