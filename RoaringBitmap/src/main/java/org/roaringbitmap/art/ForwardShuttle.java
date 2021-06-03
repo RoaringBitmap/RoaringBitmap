@@ -1,5 +1,7 @@
 package org.roaringbitmap.art;
 
+import org.roaringbitmap.longlong.LongUtils;
+
 /**
  * visit the leaf node space in ascending order.
  */
@@ -10,22 +12,31 @@ public class ForwardShuttle extends AbstractShuttle {
   }
 
   @Override
+  protected boolean currentBeforeHigh(byte[] current, byte[] high) {
+    return LongUtils.compareHigh(current, high) < 0;
+  }
+
+  @Override
   protected int visitedNodeNextPosition(Node node, int pos) {
     return node.getNextLargerPos(pos);
   }
 
   @Override
-  protected int boundaryNodePosition(Node node) {
-    return node.getMinPos();
+  protected int boundaryNodePosition(Node node, boolean inRunDirection) {
+    if (inRunDirection) {
+      return node.getMaxPos();
+    } else {
+      return node.getMinPos();
+    }
   }
 
   @Override
-  protected int fromNodePosition(byte key, Node node) {
-    int pos = node.getChildPos(key);
-    if (pos == Node.ILLEGAL_IDX) {
-      return node.getNextLargerPos(pos);
-    } else {
-      return pos;
-    }
+  protected boolean prefixMismatchIsInRunDirection(byte nodeValue, byte highValue) {
+    return nodeValue < highValue;
+  }
+
+  @Override
+  protected int searchMissNextPosition(SearchResult result) {
+    return result.getNextLargerPos();
   }
 }

@@ -30,6 +30,15 @@ public class Node256 extends Node {
   }
 
   @Override
+  public SearchResult getNearestChildPos(byte k) {
+    int pos = Byte.toUnsignedInt(k);
+    if (children[pos] != null) {
+      return SearchResult.found(pos);
+    }
+    return SearchResult.notFound(getNextSmallerPos(pos), getNextLargerPos(pos));
+  }
+
+  @Override
   public byte getChildKey(int pos) {
     return (byte) pos;
   }
