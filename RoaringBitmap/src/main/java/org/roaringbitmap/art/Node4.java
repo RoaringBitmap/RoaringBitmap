@@ -29,6 +29,12 @@ public class Node4 extends Node {
   }
 
   @Override
+  public SearchResult getNearestChildPos(byte k) {
+    byte[] firstBytes = IntegerUtil.toBDBytes(key);
+    return Node.binarySearchWithResult(firstBytes, 0, count, k);
+  }
+
+  @Override
   public byte getChildKey(int pos) {
     int shiftLeftLen = (3 - pos) * 8;
     byte v = (byte) (key >> shiftLeftLen);

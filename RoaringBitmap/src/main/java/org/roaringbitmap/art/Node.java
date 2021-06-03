@@ -39,6 +39,17 @@ public abstract class Node {
   public abstract int getChildPos(byte k);
 
   /**
+   * get the position of a child corresponding to the input key 'k' if present
+   *
+   * if 'k' is not in the child, return the positions of the neighbouring nodes instead
+   *
+   * @param key a key value of the byte range
+   * @return a result indicating whether or not the key was found and the positions of the
+   *     child corresponding to it or its neighbours
+   */
+  public abstract SearchResult getNearestChildPos(byte key);
+
+  /**
    * get the corresponding key byte of the requested position
    * @param pos the position
    * @return the corresponding key byte
@@ -262,6 +273,33 @@ public abstract class Node {
     }
     // key not found.
     return ILLEGAL_IDX;
+  }
+
+  static SearchResult binarySearchWithResult(byte[] key, int fromIndex, int toIndex,
+       byte k) {
+    int inputUnsignedByte = Byte.toUnsignedInt(k);
+    int low = fromIndex;
+    int high = toIndex - 1;
+
+    while (low != high) {
+      int mid = (low + high + 1) >>> 1; // ceil
+      int midVal = Byte.toUnsignedInt(key[mid]);
+
+      if (midVal > inputUnsignedByte) {
+        high = mid - 1;
+      } else {
+        low = mid;
+      }
+    }
+    int val = Byte.toUnsignedInt(key[low]);
+    if (val == inputUnsignedByte) {
+      return SearchResult.found(low);
+    } else if (val < inputUnsignedByte) {
+      int highIndex = low + 1;
+      return SearchResult.notFound(low, highIndex < toIndex ? highIndex : Node.ILLEGAL_IDX);
+    } else {
+      return SearchResult.notFound(low - 1, low); // low - 1 == ILLEGAL_IDX if low == 0
+    }
   }
 
   private void serializeHeader(DataOutput dataOutput) throws IOException {

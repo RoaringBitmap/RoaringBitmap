@@ -33,6 +33,16 @@ public class Node48 extends Node {
   }
 
   @Override
+  public SearchResult getNearestChildPos(byte k) {
+    int unsignedIdx = Byte.toUnsignedInt(k);
+    int childIdx = childrenIdx(unsignedIdx, childIndex);
+    if (childIdx != EMPTY_VALUE) {
+      return SearchResult.found(unsignedIdx);
+    }
+    return SearchResult.notFound(getNextSmallerPos(unsignedIdx), getNextLargerPos(unsignedIdx));
+  }
+
+  @Override
   public byte getChildKey(int pos) {
 
     return (byte) pos;
