@@ -877,7 +877,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     
     @Override
     boolean compare(long next, long val) {
-      return next >= val;
+      return Long.compareUnsigned(next, val) >= 0;
     }
 
     @Override
@@ -898,7 +898,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     
     @Override
     boolean compare(long next, long val) {
-      return next <= val;
+      return Long.compareUnsigned(next, val) <= 0;
     }
 
     @Override

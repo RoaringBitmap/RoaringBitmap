@@ -1936,7 +1936,35 @@ public class TestRoaring64Bitmap {
     assertEquals(b1e - 1L, bitIt.peekNext());
     assertEquals(b1e - 1L, bitIt.next());
   }
-  
+
+  @Test
+  public void testLongTreatedAsUnsignedOnAdvance() {
+    Roaring64Bitmap bitset = new Roaring64Bitmap();
+    bitset.add(Long.MAX_VALUE, Long.MIN_VALUE + 3);
+
+    PeekableLongIterator bitIt = bitset.getLongIterator();
+
+    bitIt.advanceIfNeeded(Long.MAX_VALUE);
+    assertEquals(Long.MAX_VALUE, bitIt.peekNext());
+
+    bitIt.advanceIfNeeded(Long.MIN_VALUE + 1);
+    assertEquals(Long.MIN_VALUE + 1, bitIt.peekNext());
+  }
+
+  @Test
+  public void testLongTreatedAsUnsignedOnAdvanceReverse() {
+    Roaring64Bitmap bitset = new Roaring64Bitmap();
+    bitset.add(Long.MAX_VALUE, Long.MIN_VALUE + 3);
+
+    PeekableLongIterator bitIt = bitset.getReverseLongIterator();
+
+    bitIt.advanceIfNeeded(Long.MIN_VALUE + 1);
+    assertEquals(Long.MIN_VALUE + 1, bitIt.peekNext());
+
+    bitIt.advanceIfNeeded(Long.MAX_VALUE);
+    assertEquals(Long.MAX_VALUE, bitIt.peekNext());
+  }
+
   private static long[] takeSortedAndDistinct(Random source, int count) {
     LinkedHashSet<Long> longs = new LinkedHashSet<>(count);
     for (int size = 0; size < count; size++) {
