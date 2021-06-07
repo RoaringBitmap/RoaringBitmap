@@ -14,6 +14,7 @@ public class TestRangeConsumer implements RelativeRangeConsumer {
 
   private Value[] buffer;
   final boolean validateBuffer;
+  private int numberOfValuesConsumed = 0;
 
   private TestRangeConsumer(Value[] buffer, boolean validateBuffer) {
     this.buffer = buffer;
@@ -33,12 +34,23 @@ public class TestRangeConsumer implements RelativeRangeConsumer {
     return new TestRangeConsumer(buffer, true);
   }
 
+  public static TestRangeConsumer validateContinuous(int size, Value value) {
+    Value[] buffer = new Value[size];
+    Arrays.fill(buffer, value);
+    return new TestRangeConsumer(buffer, true);
+  }
+
   public Value[] getBuffer() {
     return this.buffer;
   }
 
+  public int getNumberOfValuesConsumed() {
+    return this.numberOfValuesConsumed;
+  }
+
   @Override
   public void acceptPresent(final int relativePos) {
+    numberOfValuesConsumed++;
     if (validateBuffer) {
       assertEquals(buffer[relativePos], Value.PRESENT, () -> "Mismatch at position " + relativePos);
     } else {
@@ -48,6 +60,7 @@ public class TestRangeConsumer implements RelativeRangeConsumer {
 
   @Override
   public void acceptAbsent(final int relativePos) {
+    numberOfValuesConsumed++;
     if (validateBuffer) {
       assertEquals(buffer[relativePos], Value.ABSENT, () -> "Mismatch at position " + relativePos);
     } else {
@@ -57,6 +70,7 @@ public class TestRangeConsumer implements RelativeRangeConsumer {
 
   @Override
   public void acceptAllPresent(int relativeFrom, int relativeTo) {
+    numberOfValuesConsumed += relativeTo - relativeFrom;
     if (validateBuffer) {
       for (int i = relativeFrom; i < relativeTo; i++) {
         final int finalI = i;
@@ -69,6 +83,7 @@ public class TestRangeConsumer implements RelativeRangeConsumer {
 
   @Override
   public void acceptAllAbsent(int relativeFrom, int relativeTo) {
+    numberOfValuesConsumed += relativeTo - relativeFrom;
     if (validateBuffer) {
       for (int i = relativeFrom; i < relativeTo; i++) {
         final int finalI = i;

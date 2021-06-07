@@ -1,9 +1,5 @@
 package org.roaringbitmap;
 
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
@@ -3900,16 +3896,19 @@ public class TestRunContainer {
         ABSENT, ABSENT, ABSENT, PRESENT, PRESENT, ABSENT, ABSENT, PRESENT, PRESENT, ABSENT, PRESENT
     });
     container.forAllUntil(0, (char) 11, consumer);
+    assertEquals(11, consumer.getNumberOfValuesConsumed());
 
     TestRangeConsumer consumer2 = TestRangeConsumer.validate(new TestRangeConsumer.Value[] {
         PRESENT, ABSENT, ABSENT, PRESENT, PRESENT
     });
     container.forAllInRange((char) 4, (char) 8, consumer2);
+    assertEquals(5, consumer2.getNumberOfValuesConsumed());
 
     TestRangeConsumer consumer3 = TestRangeConsumer.validate(new TestRangeConsumer.Value[] {
         PRESENT, ABSENT, ABSENT, ABSENT, PRESENT, PRESENT
     });
     container.forAllFrom((char) 65530, consumer3);
+    assertEquals(6, consumer3.getNumberOfValuesConsumed());
 
     TestRangeConsumer consumer4 = TestRangeConsumer.ofSize(BitmapContainer.MAX_CAPACITY);
     container.forAll(0, consumer4);
