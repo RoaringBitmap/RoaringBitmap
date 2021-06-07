@@ -334,7 +334,8 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
   /**
    * Consume presence information for all values in this container.
    *
-   * @param offset First value in this container corresponds to this relativePos in the range consumer.
+   * @param offset First value in this container corresponds to this
+   *               relativePos in the range consumer.
    * @param rrc consumer
    */
   public abstract void forAll(int offset, final RelativeRangeConsumer rrc);
@@ -350,20 +351,28 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
   /**
    * Consume presence information for all values < endValue in this container.
    *
-   * @param offset First value in this container corresponds to this relativePos in the range consumer.
+   * @param offset First value in this container corresponds to this
+   *               relativePos in the range consumer.
    * @param endValue First value greater than last value to consume.
    * @param rrc consumer
    */
-  public abstract void forAllUntil(int offset, char endValue, final RelativeRangeConsumer rrc);
+  public abstract void forAllUntil(
+      int offset,
+      char endValue,
+      final RelativeRangeConsumer rrc);
 
   /**
-   * Consumer presence information for all values in the range [startValue, endValue) in this container.
+   * Consumer presence information for all values in the
+   * range [startValue, endValue) in this container.
    *
    * @param startValue First value to consume. Corresponds to relativePos=0 in the range consumer.
    * @param endValue First value greater than last value to consume.
    * @param rrc consumer
    */
-  public abstract void forAllInRange(char startValue, char endValue, final RelativeRangeConsumer rrc);
+  public abstract void forAllInRange(
+      char startValue,
+      char endValue,
+      final RelativeRangeConsumer rrc);
 
   /**
    * Iterator to visit the char values in the container in descending order.

@@ -178,7 +178,8 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    * @param rrc Code to be executed for each present or absent value.
    */
   public void forAllInRange(long start, int length, final RelativeRangeConsumer rrc) {
-    final LeafNodeIterator leafIterator = highLowContainer.highKeyLeafNodeIteratorFrom(start, false);
+    final LeafNodeIterator leafIterator =
+        highLowContainer.highKeyLeafNodeIteratorFrom(start, false);
     if (!leafIterator.hasNext()) {
       rrc.acceptAllAbsent(0, length);
       return; // nothing else to do
