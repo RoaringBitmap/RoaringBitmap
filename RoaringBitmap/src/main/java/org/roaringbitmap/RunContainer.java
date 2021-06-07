@@ -2520,8 +2520,8 @@ public final class RunContainer extends Container implements Cloneable {
         // fill in missing values until runStart
         rrc.acceptAllAbsent(offset + next, offset + runStart);
       }
-      rrc.acceptAllPresent(offset + runStart, offset + runStart + runLength);
-      next = runStart + runLength;
+      rrc.acceptAllPresent(offset + runStart, offset + runStart + runLength + 1);
+      next = runStart + runLength + 1;
     }
     if (next <= Character.MAX_VALUE) {
       // fill in the remaining values until end
@@ -2546,7 +2546,7 @@ public final class RunContainer extends Container implements Cloneable {
       if (runStart < next) { // next == startValue
         assert next == startValue; // TODO: remove
         // start is somewhere within the run
-        rrc.acceptAllPresent(0, runStart + runLength - startOffset);
+        rrc.acceptAllPresent(0, runStart + runLength + 1 - startOffset);
       } else {
         // start is before the run
         if (next < runStart) {
@@ -2554,9 +2554,9 @@ public final class RunContainer extends Container implements Cloneable {
           rrc.acceptAllAbsent(next - startOffset, runStart - startOffset);
         }
         // take whole run
-        rrc.acceptAllPresent(runStart - startOffset, runStart + runLength - startOffset);
+        rrc.acceptAllPresent(runStart - startOffset, runStart + runLength + 1 - startOffset);
       }
-      next = runStart + runLength;
+      next = runStart + runLength + 1;
     }
     if (next <= Character.MAX_VALUE) {
       // fill in the remaining values until end
@@ -2585,8 +2585,8 @@ public final class RunContainer extends Container implements Cloneable {
         rrc.acceptAllPresent(offset + runStart, offset + endValue);
         return;
       }
-      rrc.acceptAllPresent(offset + runStart, offset + runEnd);
-      next = runEnd;
+      rrc.acceptAllPresent(offset + runStart, offset + runEnd + 1); // runEnd is inclusive
+      next = runEnd + 1;
     }
     if (next < endValue) {
       // fill in the remaining values until end
@@ -2623,7 +2623,7 @@ public final class RunContainer extends Container implements Cloneable {
           rrc.acceptAllPresent(0, endValue - startOffset);
           return;
         }
-        rrc.acceptAllPresent(0, runStart + runLength - startOffset);
+        rrc.acceptAllPresent(0, runStart + runLength + 1 - startOffset);
       } else {
         // start is before the run
         if (next < runStart) {
@@ -2636,9 +2636,9 @@ public final class RunContainer extends Container implements Cloneable {
           return;
         }
         // take whole run
-        rrc.acceptAllPresent(runStart - startOffset, runStart + runLength - startOffset);
+        rrc.acceptAllPresent(runStart - startOffset, runStart + runLength + 1 - startOffset);
       }
-      next = runStart + runLength;
+      next = runStart + runLength + 1;
     }
     if (next < endValue) {
       // fill in the remaining values until end

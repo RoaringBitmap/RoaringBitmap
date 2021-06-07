@@ -1,9 +1,6 @@
 package org.roaringbitmap;
 
 import com.google.common.primitives.Ints;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
@@ -17,6 +14,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.roaringbitmap.TestRangeConsumer.Value.*;
 
 @Execution(ExecutionMode.CONCURRENT)
 public class TestArrayContainer {
@@ -902,6 +900,36 @@ public class TestArrayContainer {
         assertEquals(((1 << 15) | 6), container.nextAbsentValue((char)((1 << 15) | 6)));
         assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 7)));
         assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 8)));
+    }
+
+    @Test
+    public void testRangeConsumer() {
+        char[] entries = new char[] {3, 4, 7, 8, 10, 65530, 65534, 65535};
+        ArrayContainer container = new ArrayContainer(entries);
+
+        TestRangeConsumer consumer = TestRangeConsumer.validate(new TestRangeConsumer.Value[] {
+            ABSENT, ABSENT, ABSENT, PRESENT, PRESENT, ABSENT, ABSENT, PRESENT, PRESENT, ABSENT, PRESENT
+        });
+        container.forAllUntil(0, (char) 11, consumer);
+
+        TestRangeConsumer consumer2 = TestRangeConsumer.validate(new TestRangeConsumer.Value[] {
+            PRESENT, ABSENT, ABSENT, PRESENT, PRESENT
+        });
+        container.forAllInRange((char) 4, (char) 8, consumer2);
+
+        TestRangeConsumer consumer3 = TestRangeConsumer.validate(new TestRangeConsumer.Value[] {
+            PRESENT, ABSENT, ABSENT, ABSENT, PRESENT, PRESENT
+        });
+        container.forAllFrom((char) 65530, consumer3);
+
+        TestRangeConsumer consumer4 = TestRangeConsumer.ofSize(BitmapContainer.MAX_CAPACITY);
+        container.forAll(0, consumer4);
+        consumer4.assertAllAbsentExcept(entries, 0);
+
+        TestRangeConsumer consumer5 = TestRangeConsumer.ofSize(2 * BitmapContainer.MAX_CAPACITY);
+        consumer5.acceptAllAbsent(0, BitmapContainer.MAX_CAPACITY);
+        container.forAll(BitmapContainer.MAX_CAPACITY, consumer5);
+        consumer5.assertAllAbsentExcept(entries, BitmapContainer.MAX_CAPACITY);
     }
 
     private static int lower16Bits(int x) {

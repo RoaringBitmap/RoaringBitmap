@@ -1449,8 +1449,10 @@ public final class BitmapContainer extends Container implements Cloneable {
             if (nextPos < pos) {
               rrc.acceptAllAbsent(nextPos - startValue, pos - startValue);
               rrc.acceptPresent(pos - startValue);
+              nextPos = pos + 1;
             } else if (nextPos == pos) {
               rrc.acceptPresent(pos - startValue);
+              nextPos++;
             } // else just we out before startValue, so ignore
             word &= (word - 1);
           }
@@ -1492,8 +1494,10 @@ public final class BitmapContainer extends Container implements Cloneable {
             }
             if (nextPos < pos) {
               rrc.acceptAllAbsent(nextPos, pos);
+              nextPos = pos;
             }
             rrc.acceptPresent(pos);
+            nextPos++;
             word &= (word - 1);
           }
           if (nextPos < endValue) {
@@ -1537,8 +1541,11 @@ public final class BitmapContainer extends Container implements Cloneable {
             }
             if (nextPos < pos) {
               rrc.acceptAllAbsent(nextPos - startValue, pos - startValue);
+              rrc.acceptPresent(pos - startValue);
+              nextPos = pos + 1;
             } else if (nextPos == pos) {
               rrc.acceptPresent(pos - startValue);
+              nextPos++;
             }
             word &= (word - 1);
           }
@@ -1557,8 +1564,11 @@ public final class BitmapContainer extends Container implements Cloneable {
             int pos = wordStart + numberOfTrailingZeros(word);
             if (nextPos < pos) {
               rrc.acceptAllAbsent(nextPos - startValue, pos - startValue);
+              rrc.acceptPresent(pos - startValue);
+              nextPos = pos + 1;
             } else if (nextPos == pos) {
               rrc.acceptPresent(pos - startValue);
+              nextPos++;
             }
             word &= (word - 1);
           }
@@ -1584,8 +1594,10 @@ public final class BitmapContainer extends Container implements Cloneable {
             }
             if (nextPos < pos) {
               rrc.acceptAllAbsent(nextPos - startValue, pos - startValue);
+              nextPos = pos;
             }
             rrc.acceptPresent(pos - startValue);
+            nextPos++;
             word &= (word - 1);
           }
           if (nextPos < endValue) {
@@ -1614,8 +1626,10 @@ public final class BitmapContainer extends Container implements Cloneable {
         int pos = bufferWordStart + numberOfTrailingZeros(word);
         if (nextPos < pos) {
           rrc.acceptAllAbsent(nextPos, pos);
+          nextPos = pos;
         }
         rrc.acceptPresent(pos);
+        nextPos++;
         word &= (word - 1);
       }
       if (nextPos < bufferWordEnd) {

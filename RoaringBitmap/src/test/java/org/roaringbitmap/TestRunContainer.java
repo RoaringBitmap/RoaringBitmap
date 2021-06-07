@@ -16,6 +16,8 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.roaringbitmap.ArrayContainer.DEFAULT_MAX_SIZE;
+import static org.roaringbitmap.TestRangeConsumer.Value.ABSENT;
+import static org.roaringbitmap.TestRangeConsumer.Value.PRESENT;
 
 @Execution(ExecutionMode.CONCURRENT)
 public class TestRunContainer {
@@ -3882,6 +3884,41 @@ public class TestRunContainer {
   public void testIntersects() {
     RunContainer rc = new RunContainer(new char[]{41, 15, 215, 0, 217, 2790, 3065, 170, 3269, 422, 3733, 43, 3833, 16, 3852, 7, 3662, 3, 3901, 2}, 10);
     assertFalse(rc.intersects(57, 215));
+  }
+
+  @Test
+  public void testRangeConsumer() {
+    char[] entries = new char[] {3, 4, 7, 8, 10, 65530, 65534, 65535};
+    RunContainer container = new RunContainer();
+    container.iadd(3, 5);
+    container.iadd(7, 9);
+    container.add((char) 10);
+    container.add((char) 65530);
+    container.iadd(65534, 65536);
+
+    TestRangeConsumer consumer = TestRangeConsumer.validate(new TestRangeConsumer.Value[] {
+        ABSENT, ABSENT, ABSENT, PRESENT, PRESENT, ABSENT, ABSENT, PRESENT, PRESENT, ABSENT, PRESENT
+    });
+    container.forAllUntil(0, (char) 11, consumer);
+
+    TestRangeConsumer consumer2 = TestRangeConsumer.validate(new TestRangeConsumer.Value[] {
+        PRESENT, ABSENT, ABSENT, PRESENT, PRESENT
+    });
+    container.forAllInRange((char) 4, (char) 8, consumer2);
+
+    TestRangeConsumer consumer3 = TestRangeConsumer.validate(new TestRangeConsumer.Value[] {
+        PRESENT, ABSENT, ABSENT, ABSENT, PRESENT, PRESENT
+    });
+    container.forAllFrom((char) 65530, consumer3);
+
+    TestRangeConsumer consumer4 = TestRangeConsumer.ofSize(BitmapContainer.MAX_CAPACITY);
+    container.forAll(0, consumer4);
+    consumer4.assertAllAbsentExcept(entries, 0);
+
+    TestRangeConsumer consumer5 = TestRangeConsumer.ofSize(2 * BitmapContainer.MAX_CAPACITY);
+    consumer5.acceptAllAbsent(0, BitmapContainer.MAX_CAPACITY);
+    container.forAll(BitmapContainer.MAX_CAPACITY, consumer5);
+    consumer5.assertAllAbsentExcept(entries, BitmapContainer.MAX_CAPACITY);
   }
 
   private static int lower16Bits(int x) {
