@@ -2630,7 +2630,7 @@ public final class RunContainer extends Container implements Cloneable {
           // fill in missing values until runStart
           rrc.acceptAllAbsent(next - startOffset, runStart - startOffset);
         }
-        if (endValue < runEnd) {
+        if (endValue <= runEnd) {
           // we end within this run
           rrc.acceptAllPresent(runStart - startOffset, endValue - startOffset);
           return;

@@ -1469,26 +1469,28 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public void forAllUntil(int offset, char endValue, final RelativeRangeConsumer rrc) {
+    int bufferEndPos = offset + endValue;
     for (int wordIndex = 0; wordIndex < bitmap.length; wordIndex++) {
       long word = bitmap[wordIndex];
       int bufferWordStart = offset + wordIndex * 64;
       int bufferWordEnd = bufferWordStart + 64;
-      if (endValue < bufferWordEnd) {
+      assert bufferWordStart < bufferEndPos;
+      if (bufferEndPos < bufferWordEnd) {
         // we end on this word
-        // startValue is in the middle of the word
+
         // some special cases for efficiency
         if (word == 0) {
-          rrc.acceptAllAbsent(bufferWordStart, endValue);
+          rrc.acceptAllAbsent(bufferWordStart, bufferEndPos);
         } else if (word == -1) { // all 1s
-          rrc.acceptAllPresent(bufferWordStart, endValue);
+          rrc.acceptAllPresent(bufferWordStart, bufferEndPos);
         } else {
           int nextPos = bufferWordStart;
           while (word != 0) {
             int pos = bufferWordStart + numberOfTrailingZeros(word);
-            if (endValue <= pos) {
+            if (bufferEndPos <= pos) {
               // we've moved past the end
-              if (nextPos < endValue) {
-                rrc.acceptAllAbsent(nextPos, endValue);
+              if (nextPos < bufferEndPos) {
+                rrc.acceptAllAbsent(nextPos, bufferEndPos);
               }
               return;
             }
@@ -1500,9 +1502,10 @@ public final class BitmapContainer extends Container implements Cloneable {
             nextPos++;
             word &= (word - 1);
           }
-          if (nextPos < endValue) {
-            rrc.acceptAllAbsent(nextPos, endValue);
+          if (nextPos < bufferEndPos) {
+            rrc.acceptAllAbsent(nextPos, bufferEndPos);
           }
+          return;
         }
       } else {
         addWholeWordToRangeConsumer(word, bufferWordStart, bufferWordEnd, rrc);
@@ -1512,6 +1515,10 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public void forAllInRange(char startValue, char endValue, final RelativeRangeConsumer rrc) {
+    if (endValue <= startValue) {
+      throw new IllegalArgumentException(
+          "startValue (" + startValue + ") must be less than endValue (" + endValue + ")");
+    }
     int startIndex = startValue / 64;
     for (int wordIndex = startIndex; wordIndex < bitmap.length; wordIndex++) {
       long word = bitmap[wordIndex];
@@ -1532,7 +1539,7 @@ public final class BitmapContainer extends Container implements Cloneable {
           int nextPos = startValue;
           while (word != 0) {
             int pos = wordStart + numberOfTrailingZeros(word);
-            if (endValue <= pos) {
+            if (endValue < pos) {
               // we've moved past the end
               if (nextPos < endValue) {
                 rrc.acceptAllAbsent(nextPos - startValue, endValue - startValue);
@@ -1553,6 +1560,7 @@ public final class BitmapContainer extends Container implements Cloneable {
             rrc.acceptAllAbsent(nextPos - startValue, endValue - startValue);
           }
         }
+        return;
       } else if (startInWord) {
         if (wordAllZeroes) {
           rrc.acceptAllAbsent(0, 64 - startValue);
@@ -1604,6 +1612,7 @@ public final class BitmapContainer extends Container implements Cloneable {
             rrc.acceptAllAbsent(nextPos - startValue, endValue - startValue);
           }
         }
+        return;
       } else {
         addWholeWordToRangeConsumer(word, wordStart - startValue, wordEnd - startValue, rrc);
       }

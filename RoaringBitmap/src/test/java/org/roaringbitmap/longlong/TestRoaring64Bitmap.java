@@ -26,6 +26,9 @@ import java.util.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.ValidationRangeConsumer;
+import static org.roaringbitmap.ValidationRangeConsumer.Value.ABSENT;
+import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
 import org.roaringbitmap.art.LeafNode;
 import org.roaringbitmap.art.LeafNodeIterator;
 
@@ -1768,5 +1771,83 @@ public class TestRoaring64Bitmap {
       assertEquals(peeked, next);
     }
     assertThrows(NoSuchElementException.class, () -> lni.peekNext());
+  }
+
+  @Test
+  public void testForAllInRangeContinuous() {
+    Roaring64Bitmap bitmap = new Roaring64Bitmap();
+    bitmap.add(100L, 10000L);
+
+    ValidationRangeConsumer consumer = ValidationRangeConsumer.validateContinuous(9900, PRESENT);
+    bitmap.forAllInRange(100, 9900, consumer);
+    assertEquals(9900, consumer.getNumberOfValuesConsumed());
+
+    ValidationRangeConsumer consumer2 = ValidationRangeConsumer.validateContinuous(1000, ABSENT);
+    bitmap.forAllInRange(10001, 1000, consumer2);
+    assertEquals(1000, consumer2.getNumberOfValuesConsumed());
+
+    ValidationRangeConsumer consumer3 = ValidationRangeConsumer.validate(new ValidationRangeConsumer.Value[]{
+        ABSENT, ABSENT, PRESENT, PRESENT, PRESENT
+    });
+    bitmap.forAllInRange(98, 5, consumer3);
+    assertEquals(5, consumer3.getNumberOfValuesConsumed());
+
+    ValidationRangeConsumer consumer4 = ValidationRangeConsumer.validate(new ValidationRangeConsumer.Value[]{
+        PRESENT, PRESENT, ABSENT, ABSENT, ABSENT
+    });
+    bitmap.forAllInRange(9998, 5, consumer4);
+    assertEquals(5, consumer4.getNumberOfValuesConsumed());
+  }
+
+  @Test
+  public void testForAllInRangeDense() {
+    Roaring64Bitmap bitmap = new Roaring64Bitmap();
+    ValidationRangeConsumer.Value[] expected = new ValidationRangeConsumer.Value[100000];
+    Arrays.fill(expected, ABSENT);
+    for (int k = 0; k < 100000; k += 3) {
+      bitmap.add(k);
+      expected[k] = PRESENT;
+    }
+
+    ValidationRangeConsumer consumer = ValidationRangeConsumer.validate(expected);
+    bitmap.forAllInRange(0, 100000, consumer);
+    assertEquals(100000, consumer.getNumberOfValuesConsumed());
+
+    ValidationRangeConsumer.Value[] expectedSubRange = Arrays.copyOfRange(expected,2500, 6000);
+    ValidationRangeConsumer consumer2 = ValidationRangeConsumer.validate(expectedSubRange);
+    bitmap.forAllInRange(2500, 3500, consumer2);
+    assertEquals(3500, consumer2.getNumberOfValuesConsumed());
+
+    ValidationRangeConsumer consumer3 = ValidationRangeConsumer.validate(new ValidationRangeConsumer.Value[]{
+        expected[99997], expected[99998], expected[99999], ABSENT, ABSENT, ABSENT
+    });
+    bitmap.forAllInRange(99997, 6, consumer3);
+    assertEquals(6, consumer3.getNumberOfValuesConsumed());
+  }
+
+
+  @Test
+  public void testForAllInRangeSparse() {
+    Roaring64Bitmap bitmap = new Roaring64Bitmap();
+    ValidationRangeConsumer.Value[] expected = new ValidationRangeConsumer.Value[100000];
+    Arrays.fill(expected, ABSENT);
+    for (int k = 0; k < 100000; k += 3000) {
+      bitmap.add(k);
+      expected[k] = PRESENT;
+    }
+
+    ValidationRangeConsumer consumer = ValidationRangeConsumer.validate(expected);
+    bitmap.forAllInRange(0, 100000, consumer);
+    assertEquals(100000, consumer.getNumberOfValuesConsumed());
+
+    ValidationRangeConsumer.Value[] expectedSubRange = Arrays.copyOfRange(expected,2500, 6001);
+    ValidationRangeConsumer consumer2 = ValidationRangeConsumer.validate(expectedSubRange);
+    bitmap.forAllInRange(2500, 3500, consumer2);
+    assertEquals(3500, consumer2.getNumberOfValuesConsumed());
+
+    ValidationRangeConsumer consumer3 = ValidationRangeConsumer.ofSize(1000);
+    bitmap.forAllInRange(2500, 1000, consumer3);
+    consumer3.assertAllAbsentExcept(new int[] {3000 - 2500});
+    assertEquals(1000, consumer3.getNumberOfValuesConsumed());
   }
 }

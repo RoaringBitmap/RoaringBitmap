@@ -1426,7 +1426,9 @@ public final class ArrayContainer extends Container implements Cloneable {
       int value = content[k];
       if (endValue < value) {
         // value is already beyond the end
-        rrc.acceptAllAbsent(offset + next, offset + endValue);
+        if (next < endValue) {
+          rrc.acceptAllAbsent(offset + next, offset + endValue);
+        }
         return;
       }
       if (next < value) {
@@ -1450,19 +1452,16 @@ public final class ArrayContainer extends Container implements Cloneable {
     }
     int startOffset = startValue;
     int loc = Util.unsignedBinarySearch(content, 0, cardinality, startValue);
-    int startIndex;
-    if (loc >= 0) {
-      startIndex = loc;
-    } else {
-      // the value doesn't exist, this is the index of the nearest value
-      startIndex = -loc - 1;
-    }
+    // the value doesn't exist, this is the index of the nearest value
+    int startIndex = loc >= 0 ? loc : -loc - 1;
     int next = startValue;
     for (int k = startIndex; k < cardinality; k++) {
       int value = content[k];
-      if (endValue < value) {
+      if (endValue <= value) {
         // value is already beyond the end
-        rrc.acceptAllAbsent(next - startOffset, endValue - startOffset);
+        if (next < endValue) {
+          rrc.acceptAllAbsent(next - startOffset, endValue - startOffset);
+        }
         return;
       }
       if (next < value) {

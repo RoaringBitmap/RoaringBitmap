@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TestRangeConsumer implements RelativeRangeConsumer {
+public class ValidationRangeConsumer implements RelativeRangeConsumer {
 
   public enum Value {
     UNINITIALISED,
@@ -16,28 +16,28 @@ public class TestRangeConsumer implements RelativeRangeConsumer {
   final boolean validateBuffer;
   private int numberOfValuesConsumed = 0;
 
-  private TestRangeConsumer(Value[] buffer, boolean validateBuffer) {
+  private ValidationRangeConsumer(Value[] buffer, boolean validateBuffer) {
     this.buffer = buffer;
     this.validateBuffer = validateBuffer;
   }
 
-  public static TestRangeConsumer ofSize(int size) {
+  public static ValidationRangeConsumer ofSize(int size) {
     Value[] buffer = new Value[size];
     Arrays.fill(buffer, Value.UNINITIALISED);
-    return new TestRangeConsumer(buffer, false);
+    return new ValidationRangeConsumer(buffer, false);
   }
 
-  public static TestRangeConsumer validate(Value[] buffer) {
+  public static ValidationRangeConsumer validate(Value[] buffer) {
     for (Value b : buffer) {
       assertNotEquals(Value.UNINITIALISED, b, "Provide only fully initialised buffers!");
     }
-    return new TestRangeConsumer(buffer, true);
+    return new ValidationRangeConsumer(buffer, true);
   }
 
-  public static TestRangeConsumer validateContinuous(int size, Value value) {
+  public static ValidationRangeConsumer validateContinuous(int size, Value value) {
     Value[] buffer = new Value[size];
     Arrays.fill(buffer, value);
-    return new TestRangeConsumer(buffer, true);
+    return new ValidationRangeConsumer(buffer, true);
   }
 
   public Value[] getBuffer() {
@@ -70,6 +70,7 @@ public class TestRangeConsumer implements RelativeRangeConsumer {
 
   @Override
   public void acceptAllPresent(int relativeFrom, int relativeTo) {
+    assertTrue(relativeFrom < relativeTo, "Only consume [start, end} ranges!");
     numberOfValuesConsumed += relativeTo - relativeFrom;
     if (validateBuffer) {
       for (int i = relativeFrom; i < relativeTo; i++) {
@@ -83,6 +84,7 @@ public class TestRangeConsumer implements RelativeRangeConsumer {
 
   @Override
   public void acceptAllAbsent(int relativeFrom, int relativeTo) {
+    assertTrue(relativeFrom < relativeTo, "Only consume [start, end} ranges!");
     numberOfValuesConsumed += relativeTo - relativeFrom;
     if (validateBuffer) {
       for (int i = relativeFrom; i < relativeTo; i++) {

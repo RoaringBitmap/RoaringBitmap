@@ -4,9 +4,6 @@
 
 package org.roaringbitmap;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
@@ -25,8 +22,8 @@ import java.util.Random;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.roaringbitmap.TestRangeConsumer.Value.ABSENT;
-import static org.roaringbitmap.TestRangeConsumer.Value.PRESENT;
+import static org.roaringbitmap.ValidationRangeConsumer.Value.ABSENT;
+import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
 
 @Execution(ExecutionMode.CONCURRENT)
 public class TestBitmapContainer {
@@ -1291,29 +1288,29 @@ public class TestBitmapContainer {
     char[] entries = new char[] {3, 4, 7, 8, 10, 65530, 65534, 65535};
     BitmapContainer container = new ArrayContainer(entries).toBitmapContainer();
 
-    TestRangeConsumer consumer = TestRangeConsumer.validate(new TestRangeConsumer.Value[] {
+    ValidationRangeConsumer consumer = ValidationRangeConsumer.validate(new ValidationRangeConsumer.Value[] {
         ABSENT, ABSENT, ABSENT, PRESENT, PRESENT, ABSENT, ABSENT, PRESENT, PRESENT, ABSENT, PRESENT
     });
     container.forAllUntil(0, (char) 11, consumer);
     assertEquals(11, consumer.getNumberOfValuesConsumed());
 
-    TestRangeConsumer consumer2 = TestRangeConsumer.validate(new TestRangeConsumer.Value[] {
+    ValidationRangeConsumer consumer2 = ValidationRangeConsumer.validate(new ValidationRangeConsumer.Value[] {
         PRESENT, ABSENT, ABSENT, PRESENT, PRESENT
     });
-    container.forAllInRange((char) 4, (char) 8, consumer2);
+    container.forAllInRange((char) 4, (char) 9, consumer2);
     assertEquals(5, consumer2.getNumberOfValuesConsumed());
 
-    TestRangeConsumer consumer3 = TestRangeConsumer.validate(new TestRangeConsumer.Value[] {
+    ValidationRangeConsumer consumer3 = ValidationRangeConsumer.validate(new ValidationRangeConsumer.Value[] {
         PRESENT, ABSENT, ABSENT, ABSENT, PRESENT, PRESENT
     });
     container.forAllFrom((char) 65530, consumer3);
     assertEquals(6, consumer3.getNumberOfValuesConsumed());
 
-    TestRangeConsumer consumer4 = TestRangeConsumer.ofSize(BitmapContainer.MAX_CAPACITY);
+    ValidationRangeConsumer consumer4 = ValidationRangeConsumer.ofSize(BitmapContainer.MAX_CAPACITY);
     container.forAll(0, consumer4);
     consumer4.assertAllAbsentExcept(entries, 0);
 
-    TestRangeConsumer consumer5 = TestRangeConsumer.ofSize(2 * BitmapContainer.MAX_CAPACITY);
+    ValidationRangeConsumer consumer5 = ValidationRangeConsumer.ofSize(2 * BitmapContainer.MAX_CAPACITY);
     consumer5.acceptAllAbsent(0, BitmapContainer.MAX_CAPACITY);
     container.forAll(BitmapContainer.MAX_CAPACITY, consumer5);
     consumer5.assertAllAbsentExcept(entries, BitmapContainer.MAX_CAPACITY);
