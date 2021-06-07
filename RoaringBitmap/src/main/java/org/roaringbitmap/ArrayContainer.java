@@ -1424,7 +1424,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     int next = 0;
     for(int k = 0; k < cardinality; ++k) {
       int value = content[k];
-      if (endValue < value) {
+      if (endValue <= value) {
         // value is already beyond the end
         if (next < endValue) {
           rrc.acceptAllAbsent(offset + next, offset + endValue);
