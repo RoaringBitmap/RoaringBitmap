@@ -1412,7 +1412,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     for (int x = 0; x < bitmap.length; ++x) {
       long w = bitmap[x];
       while (w != 0) {
-        ic.accept((x * 64 + numberOfTrailingZeros(w)) | high);
+        ic.accept(((x << 6) + numberOfTrailingZeros(w)) | high);
         w &= (w - 1);
       }
     }
@@ -1422,7 +1422,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   public void forAll(int offset, final RelativeRangeConsumer rrc) {
     for (int wordIndex = 0; wordIndex < bitmap.length; wordIndex++) {
       long word = bitmap[wordIndex];
-      int bufferWordStart = offset + wordIndex * 64;
+      int bufferWordStart = offset + (wordIndex << 6);
       int bufferWordEnd = bufferWordStart + 64;
       addWholeWordToRangeConsumer(word, bufferWordStart, bufferWordEnd, rrc);
     }
@@ -1430,10 +1430,10 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public void forAllFrom(char startValue, final RelativeRangeConsumer rrc) {
-    int startIndex = startValue / 64;
+    int startIndex = startValue >>> 6;
     for (int wordIndex = startIndex; wordIndex < bitmap.length; wordIndex++) {
       long word = bitmap[wordIndex];
-      int wordStart = wordIndex * 64;
+      int wordStart = wordIndex << 6;
       int wordEnd = wordStart + 64;
       if (wordStart < startValue) {
         // startValue is in the middle of the word
@@ -1472,7 +1472,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     int bufferEndPos = offset + endValue;
     for (int wordIndex = 0; wordIndex < bitmap.length; wordIndex++) {
       long word = bitmap[wordIndex];
-      int bufferWordStart = offset + wordIndex * 64;
+      int bufferWordStart = offset + (wordIndex << 6);
       int bufferWordEnd = bufferWordStart + 64;
       assert bufferWordStart < bufferEndPos;
       if (bufferEndPos < bufferWordEnd) {
@@ -1519,10 +1519,10 @@ public final class BitmapContainer extends Container implements Cloneable {
       throw new IllegalArgumentException(
           "startValue (" + startValue + ") must be less than endValue (" + endValue + ")");
     }
-    int startIndex = startValue / 64;
+    int startIndex = startValue >>> 6;
     for (int wordIndex = startIndex; wordIndex < bitmap.length; wordIndex++) {
       long word = bitmap[wordIndex];
-      int wordStart = wordIndex * 64;
+      int wordStart = wordIndex << 6;
       int wordEnd = wordStart + 64;
 
       boolean startInWord = wordStart < startValue;

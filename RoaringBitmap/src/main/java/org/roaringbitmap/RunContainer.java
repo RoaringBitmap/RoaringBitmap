@@ -2513,7 +2513,7 @@ public final class RunContainer extends Container implements Cloneable {
   public void forAll(int offset, final RelativeRangeConsumer rrc) {
     int next = 0;
     for (int run = 0; run < nbrruns; run++) {
-      int runPos = run * 2;
+      int runPos = run << 1;
       char runStart = valueslength[runPos];
       char runLength = valueslength[runPos + 1];
       if (next < runStart) {
@@ -2534,7 +2534,7 @@ public final class RunContainer extends Container implements Cloneable {
     int startOffset = startValue;
     int next = startValue;
     for (int run = 0; run < nbrruns; run++) {
-      int runPos = run * 2;
+      int runPos = run << 1;
       char runStart = valueslength[runPos];
       char runLength = valueslength[runPos + 1];
       int runEnd = runStart + runLength;
@@ -2568,7 +2568,7 @@ public final class RunContainer extends Container implements Cloneable {
   public void forAllUntil(int offset, char endValue, final RelativeRangeConsumer rrc) {
     int next = 0;
     for (int run = 0; run < nbrruns; run++) {
-      int runPos = run * 2;
+      int runPos = run << 1;
       char runStart = valueslength[runPos];
       char runLength = valueslength[runPos + 1];
       if (endValue <= runStart) {
@@ -2603,7 +2603,7 @@ public final class RunContainer extends Container implements Cloneable {
     int startOffset = startValue;
     int next = startValue;
     for (int run = 0; run < nbrruns; run++) {
-      int runPos = run * 2;
+      int runPos = run << 1;
       char runStart = valueslength[runPos];
       char runLength = valueslength[runPos + 1];
       int runEnd = runStart + runLength;
