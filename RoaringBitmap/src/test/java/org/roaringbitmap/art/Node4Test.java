@@ -1,4 +1,4 @@
-package org.roaringbitmap.longlong;
+package org.roaringbitmap.art;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -7,9 +7,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.roaringbitmap.art.LeafNode;
-import org.roaringbitmap.art.Node;
-import org.roaringbitmap.art.Node4;
 
 public class Node4Test {
 
@@ -57,5 +54,114 @@ public class Node4Test {
 
     Node node = node4.remove(0);
     Assertions.assertTrue(node instanceof LeafNode);
+  }
+
+  @Test
+  public void testGetNearestChildPosWithOneItem() {
+    LeafNode ln1 = new LeafNode(0x0100,1);
+    byte key1 = 0x10;
+    int key1Pos = 0;
+
+    Node4 node = new Node4(0);
+
+    Node4.insert(node, ln1, key1);
+
+    // search for the key we just added returns the
+    SearchResult sr = node.getNearestChildPos(key1);
+    Assertions.assertEquals(SearchResult.Outcome.FOUND, sr.outcome);
+    Assertions.assertTrue(sr.hasKeyPos());
+    // With only 1 item in the list the pos, it seems safe to assume the pos is zero
+    Assertions.assertEquals(key1Pos, sr.getKeyPos());
+    // ether way, we should be able to get our key back.
+    Assertions.assertEquals(key1, node.getChildKey(sr.getKeyPos()));
+
+    // search key + 1
+    sr = node.getNearestChildPos((byte) (key1 + 1));
+    // which should not match anything
+    Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
+    Assertions.assertFalse(sr.hasKeyPos());
+    // given we are beyond the key1, the "smaller" should be that position
+    Assertions.assertEquals(key1Pos, sr.getNextSmallerPos());
+    // and the "larger" should be ILLEGAL_IDX
+    Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextLargerPos());
+
+    // search key - 1
+    sr = node.getNearestChildPos((byte) (key1 - 1));
+    // which should not match anything
+    Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
+    Assertions.assertFalse(sr.hasKeyPos());
+    // given we are before the key1, the "smaller" should be ILLEGAL_IDX
+    Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextSmallerPos());
+    // and the "larger" should be position of key1
+    Assertions.assertEquals(key1Pos, sr.getNextLargerPos());
+  }
+
+  @Test
+  public void testGetNearestChildPosWithTwoItems() {
+    LeafNode ln1 = new LeafNode(0x0100, 1);
+    LeafNode ln2 = new LeafNode(0x0100, 2);
+    byte key1 = 0x10;
+    byte key2 = 0x20;
+    int key1Pos = 0;
+    int key2Pos = 1;
+
+    Node4 node = new Node4(0);
+
+    Node4.insert(node, ln1, key1);
+    Node4.insert(node, ln2, key2);
+
+    // value checks
+    Assertions.assertTrue((key1 + 1) < (key2 - 1));
+    Assertions.assertTrue(node instanceof Node4);
+
+    // search for the first key we just added returns the
+    SearchResult sr = node.getNearestChildPos(key1);
+    Assertions.assertEquals(SearchResult.Outcome.FOUND, sr.outcome);
+    Assertions.assertEquals(key1Pos, sr.getKeyPos());
+
+    // search for the second key we just added returns the
+    sr = node.getNearestChildPos(key2);
+    Assertions.assertEquals(SearchResult.Outcome.FOUND, sr.outcome);
+    Assertions.assertEquals(key2Pos, sr.getKeyPos());
+
+    // search key1 + 1, aka in between
+    sr = node.getNearestChildPos((byte) (key1 + 1));
+    // which should not match anything
+    Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
+    Assertions.assertFalse(sr.hasKeyPos());
+    // given we are beyond the key1, the "smaller" should be that position
+    Assertions.assertEquals(key1Pos, sr.getNextSmallerPos());
+    // and the "larger" should be key2pos
+    Assertions.assertEquals(key2Pos, sr.getNextLargerPos());
+
+    // search key1 - 1
+    sr = node.getNearestChildPos((byte) (key1 - 1));
+    // which should not match anything
+    Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
+    Assertions.assertFalse(sr.hasKeyPos());
+    // given we are before the key1, the "smaller" should be ILLEGAL_IDX
+    Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextSmallerPos());
+    // and the "larger" should be key2pos
+    Assertions.assertEquals(key1Pos, sr.getNextLargerPos());
+
+    // search key2 - 1, aka in between again
+    sr = node.getNearestChildPos((byte) (key2 - 1));
+    // which should not match anything
+    Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
+    Assertions.assertFalse(sr.hasKeyPos());
+    // given we are before the key2, the "smaller" should be key1pos
+    Assertions.assertEquals(key1Pos, sr.getNextSmallerPos());
+    // and the "larger" should be key2pos
+    Assertions.assertEquals(key2Pos, sr.getNextLargerPos());
+
+    // search key2 + 1, after both
+    sr = node.getNearestChildPos((byte) (key2 + 1));
+    // which should not match anything
+    Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
+    Assertions.assertFalse(sr.hasKeyPos());
+    // given we are beyond the key2, the "smaller" should be key2pos
+    Assertions.assertEquals(key2Pos, sr.getNextSmallerPos());
+    // and the "larger" should be ILLEGAL_IDX
+    Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextLargerPos());
   }
 }
