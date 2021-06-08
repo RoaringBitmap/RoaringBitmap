@@ -99,4 +99,45 @@ public class Node16Test {
     // there is no illegal_idx valid prior to the first
     Assertions.assertEquals(Node.ILLEGAL_IDX, node16.getNextSmallerPos(0));
   }
+
+  @Test
+  public void testDenseNonZeroBasedKeysSearch() {
+    Node nodes = new Node16(0);
+    final int insertCount = 15;
+    final int lastValue = insertCount - 1;
+    final int keyOffset = 0x20;
+
+    // create the data
+    for (int i = 0; i < insertCount; i++) {
+      LeafNode leafNode = new LeafNode(i, i);
+      byte key = (byte) (i + keyOffset);
+      nodes = (Node16) Node16.insert(nodes, leafNode, key);
+    }
+    // check we are testing the correct thing
+    Assertions.assertTrue(nodes instanceof Node16);
+
+    // check that searching for each key, is FOUND
+    for (int i = 0; i < insertCount; i++) {
+      byte key = (byte) (i + keyOffset);
+      SearchResult sr = nodes.getNearestChildPos(key);
+
+      Assertions.assertEquals(SearchResult.Outcome.FOUND, sr.outcome);
+      Assertions.assertTrue(sr.hasKeyPos());
+      // the positions are zero based, even though the keys values are offset
+      Assertions.assertEquals(i, sr.getKeyPos());
+      Assertions.assertEquals(key, nodes.getChildKey(sr.getKeyPos()));
+    }
+
+    // search before the first value "keyOffset", and surprise, nothing will be found
+    SearchResult sr = nodes.getNearestChildPos((byte) (keyOffset - 1));
+    Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
+    Assertions.assertFalse(sr.hasKeyPos());
+    Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextSmallerPos());
+
+    // search after the last value aka "insertCount", and surprise, nothing will be found
+    sr = nodes.getNearestChildPos((byte) (keyOffset + insertCount));
+    Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
+    Assertions.assertFalse(sr.hasKeyPos());
+    Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextLargerPos());
+  }
 }
