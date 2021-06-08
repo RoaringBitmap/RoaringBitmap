@@ -1,12 +1,7 @@
-package org.roaringbitmap.longlong;
+package org.roaringbitmap.art;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.roaringbitmap.art.LeafNode;
-import org.roaringbitmap.art.Node;
-import org.roaringbitmap.art.Node16;
-import org.roaringbitmap.art.Node4;
-import org.roaringbitmap.art.Node48;
 
 public class Node16Test {
 
@@ -75,25 +70,33 @@ public class Node16Test {
   @Test
   public void testVisit() {
     Node16 node16 = new Node16(0);
-    LeafNode leafNode;
-    for (int i = 0; i < 15; i++) {
-      leafNode = new LeafNode(i, i);
+    final int insertCount = 15;
+    final int lastValue = insertCount - 1;
+
+    // create the data
+    for (int i = 0; i < insertCount; i++) {
+      LeafNode leafNode = new LeafNode(i, i);
       node16 = (Node16) Node16.insert(node16, leafNode, (byte) i);
     }
+
+    // check the range is as expected
     Assertions.assertEquals(0, node16.getMinPos());
-    Assertions.assertEquals(14, node16.getMaxPos());
-    int i = 0;
-    for (i = 0; i < 14; i++) {
+    Assertions.assertEquals(lastValue, node16.getMaxPos());
+
+    // the next larger position of each value is the + 1
+    for (int i = 0; i < lastValue; i++) {
       int pos = node16.getNextLargerPos(i);
-      LeafNode leafNode1 = (LeafNode) node16.getChild(pos);
-      Assertions.assertEquals(i + 1, leafNode1.getContainerIdx());
+      LeafNode leafNode = (LeafNode) node16.getChild(pos);
+      Assertions.assertEquals(i + 1, leafNode.getContainerIdx());
     }
-    i = 14;
-    for (; i >= 1; i--) {
+
+    // the next smaller position of each value is the -1
+    for (int i = lastValue; i >= 1; i--) {
       int pos = node16.getNextSmallerPos(i);
-      LeafNode leafNode1 = (LeafNode) node16.getChild(pos);
-      Assertions.assertEquals(i - 1, leafNode1.getContainerIdx());
+      LeafNode leafNode = (LeafNode) node16.getChild(pos);
+      Assertions.assertEquals(i - 1, leafNode.getContainerIdx());
     }
-    Assertions.assertEquals(-1, node16.getNextSmallerPos(i));
+    // there is no illegal_idx valid prior to the first
+    Assertions.assertEquals(Node.ILLEGAL_IDX, node16.getNextSmallerPos(0));
   }
 }
