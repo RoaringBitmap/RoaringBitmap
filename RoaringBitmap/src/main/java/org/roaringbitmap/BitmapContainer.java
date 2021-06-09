@@ -1474,7 +1474,9 @@ public final class BitmapContainer extends Container implements Cloneable {
       long word = bitmap[wordIndex];
       int bufferWordStart = offset + (wordIndex << 6);
       int bufferWordEnd = bufferWordStart + 64;
-      assert bufferWordStart < bufferEndPos;
+      if (bufferWordStart >= bufferEndPos) {
+        return;
+      }
       if (bufferEndPos < bufferWordEnd) {
         // we end on this word
 
@@ -1524,6 +1526,10 @@ public final class BitmapContainer extends Container implements Cloneable {
       long word = bitmap[wordIndex];
       int wordStart = wordIndex << 6;
       int wordEnd = wordStart + 64;
+
+      if (wordStart >= endValue) {
+        return;
+      }
 
       boolean startInWord = wordStart < startValue;
       boolean endInWord = endValue < wordEnd;
@@ -1586,9 +1592,9 @@ public final class BitmapContainer extends Container implements Cloneable {
         }
       } else if (endInWord) {
         if (wordAllZeroes) {
-          rrc.acceptAllAbsent(0, 64 - startValue);
+          rrc.acceptAllAbsent(wordStart - startValue, endValue - startValue);
         } else if (wordAllOnes) {
-          rrc.acceptAllPresent(0, 64 - startValue);
+          rrc.acceptAllPresent(wordStart - startValue, endValue - startValue);
         } else {
           int nextPos = wordStart;
           while (word != 0) {

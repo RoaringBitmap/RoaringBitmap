@@ -1315,16 +1315,32 @@ public class TestBitmapContainer {
     container.forAll(BitmapContainer.MAX_CAPACITY, consumer5);
     consumer5.assertAllAbsentExcept(entries, BitmapContainer.MAX_CAPACITY);
 
+    // Completely Empty
     container = new BitmapContainer();
     ValidationRangeConsumer consumer6 = ValidationRangeConsumer.ofSize(BitmapContainer.MAX_CAPACITY);
     container.forAll(0, consumer6);
     consumer6.assertAllAbsent();
 
+    // Completely Full
     container = new BitmapContainer();
     container.iadd(0, BitmapContainer.MAX_CAPACITY);
     ValidationRangeConsumer consumer7 = ValidationRangeConsumer.ofSize(BitmapContainer.MAX_CAPACITY);
     container.forAll(0, consumer7);
     consumer7.assertAllPresent();
+
+    int middle = BitmapContainer.MAX_CAPACITY / 2;
+    ValidationRangeConsumer consumer8 = ValidationRangeConsumer.ofSize(middle);
+    container.forAllFrom((char) middle, consumer8);
+    consumer8.assertAllPresent();
+
+    ValidationRangeConsumer consumer9 = ValidationRangeConsumer.ofSize(middle);
+    container.forAllUntil(0, (char) middle, consumer9);
+    consumer9.assertAllPresent();
+
+    int quarter = middle / 2;
+    ValidationRangeConsumer consumer10 = ValidationRangeConsumer.ofSize(middle);
+    container.forAllInRange((char) quarter, (char) (middle + quarter), consumer10);
+    consumer10.assertAllPresent();
   }
 
   private static long[] evenBits() {

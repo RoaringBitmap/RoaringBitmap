@@ -70,7 +70,7 @@ public class ValidationRangeConsumer implements RelativeRangeConsumer {
 
   @Override
   public void acceptAllPresent(int relativeFrom, int relativeTo) {
-    assertTrue(relativeFrom < relativeTo, "Only consume [start, end} ranges!");
+    assertTrue(relativeFrom < relativeTo, "Only consume [start, end) ranges!");
     numberOfValuesConsumed += relativeTo - relativeFrom;
     if (validateBuffer) {
       for (int i = relativeFrom; i < relativeTo; i++) {
@@ -84,7 +84,7 @@ public class ValidationRangeConsumer implements RelativeRangeConsumer {
 
   @Override
   public void acceptAllAbsent(int relativeFrom, int relativeTo) {
-    assertTrue(relativeFrom < relativeTo, "Only consume [start, end} ranges!");
+    assertTrue(relativeFrom < relativeTo, "Only consume [start, end) ranges!");
     numberOfValuesConsumed += relativeTo - relativeFrom;
     if (validateBuffer) {
       for (int i = relativeFrom; i < relativeTo; i++) {
