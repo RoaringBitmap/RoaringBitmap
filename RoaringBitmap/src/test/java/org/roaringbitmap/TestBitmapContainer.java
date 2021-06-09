@@ -1314,6 +1314,17 @@ public class TestBitmapContainer {
     consumer5.acceptAllAbsent(0, BitmapContainer.MAX_CAPACITY);
     container.forAll(BitmapContainer.MAX_CAPACITY, consumer5);
     consumer5.assertAllAbsentExcept(entries, BitmapContainer.MAX_CAPACITY);
+
+    container = new BitmapContainer();
+    ValidationRangeConsumer consumer6 = ValidationRangeConsumer.ofSize(BitmapContainer.MAX_CAPACITY);
+    container.forAll(0, consumer6);
+    consumer6.assertAllAbsent();
+
+    container = new BitmapContainer();
+    container.iadd(0, BitmapContainer.MAX_CAPACITY);
+    ValidationRangeConsumer consumer7 = ValidationRangeConsumer.ofSize(BitmapContainer.MAX_CAPACITY);
+    container.forAll(0, consumer7);
+    consumer7.assertAllPresent();
   }
 
   private static long[] evenBits() {

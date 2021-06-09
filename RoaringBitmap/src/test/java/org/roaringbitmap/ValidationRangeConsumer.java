@@ -133,4 +133,11 @@ public class ValidationRangeConsumer implements RelativeRangeConsumer {
       assertEquals(Value.ABSENT, buffer[i], () -> "Mismatch at position " + finalI);
     }
   }
+
+  public void assertAllPresent() {
+    for (int i = 0; i < buffer.length; i++) {
+      final int finalI = i;
+      assertEquals(Value.PRESENT, buffer[i], () -> "Mismatch at position " + finalI);
+    }
+  }
 }

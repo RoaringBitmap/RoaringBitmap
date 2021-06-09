@@ -3918,6 +3918,17 @@ public class TestRunContainer {
     consumer5.acceptAllAbsent(0, BitmapContainer.MAX_CAPACITY);
     container.forAll(BitmapContainer.MAX_CAPACITY, consumer5);
     consumer5.assertAllAbsentExcept(entries, BitmapContainer.MAX_CAPACITY);
+
+    container = new RunContainer();
+    ValidationRangeConsumer consumer6 = ValidationRangeConsumer.ofSize(BitmapContainer.MAX_CAPACITY);
+    container.forAll(0, consumer6);
+    consumer6.assertAllAbsent();
+
+    container = new RunContainer();
+    container.iadd(0, BitmapContainer.MAX_CAPACITY);
+    ValidationRangeConsumer consumer7 = ValidationRangeConsumer.ofSize(BitmapContainer.MAX_CAPACITY);
+    container.forAll(0, consumer7);
+    consumer7.assertAllPresent();
   }
 
   private static int lower16Bits(int x) {

@@ -36,6 +36,22 @@ public class TestForAllInRange {
     });
     bitmap.forAllInRange(9998, 5, consumer4);
     assertEquals(5, consumer4.getNumberOfValuesConsumed());
+
+    bitmap = new RoaringBitmap();
+    bitmap.add(0L, 1000000L);
+    ValidationRangeConsumer consumer5 = ValidationRangeConsumer.ofSize(1000000);
+    bitmap.forAllInRange(0, 1000000, consumer5);
+    consumer5.assertAllPresent();
+    bitmap.runOptimize();
+    ValidationRangeConsumer consumer6 = ValidationRangeConsumer.ofSize(1000000);
+    bitmap.forAllInRange(0, 1000000, consumer6);
+    consumer6.assertAllPresent();
+
+    bitmap = new RoaringBitmap();
+    bitmap.add(100L, 10000L);
+    ValidationRangeConsumer consumer7 = ValidationRangeConsumer.ofSize(1000000);
+    bitmap.forAllInRange(10000, 1000000, consumer7);
+    consumer7.assertAllAbsent();
   }
 
   @Test
