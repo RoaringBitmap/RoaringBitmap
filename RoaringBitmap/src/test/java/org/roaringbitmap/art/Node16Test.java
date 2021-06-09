@@ -140,4 +140,86 @@ public class Node16Test {
     Assertions.assertFalse(sr.hasKeyPos());
     Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextLargerPos());
   }
+
+  @Test
+  public void testSparseNonZeroBasedKeysSearch() {
+    Node nodes = new Node16(0);
+    final int insertCount = 15;
+    final int lastValue = insertCount - 1;
+
+    final int step = 3;
+    final int keyOffset = 0x20;
+
+    // create the data
+    for (int i = 0; i < insertCount; i++) {
+      LeafNode leafNode = new LeafNode(i, i);
+      byte key = (byte) ((i * step) + keyOffset);
+      nodes = Node16.insert(nodes, leafNode, key);
+    }
+    // check we are testing the correct thing
+    Assertions.assertTrue(nodes instanceof Node16);
+
+    // check that searching for each key, is FOUND
+    for (int i = 0; i < insertCount; i++) {
+      byte key = (byte) ((i * step) + keyOffset);
+      SearchResult sr = nodes.getNearestChildPos(key);
+
+      Assertions.assertEquals(SearchResult.Outcome.FOUND, sr.outcome);
+      Assertions.assertTrue(sr.hasKeyPos());
+      // the positions are zero based, even though the keys values are offset
+      int keyPos = sr.getKeyPos();
+      Assertions.assertEquals(i, keyPos);
+      Assertions.assertEquals(key, nodes.getChildKey(sr.getKeyPos()));
+
+      // search in the "gaps" before the key
+      {
+        byte bKey = (byte)(key - 1);
+        sr = nodes.getNearestChildPos(bKey);
+        Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
+        Assertions.assertFalse(sr.hasKeyPos());
+
+        // the value smaller than the first should be INVALID, and the rest should be the prior key
+        if (i == 0) {
+          Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextSmallerPos());
+        } else {
+          Assertions.assertEquals((((i - 1) * step) + keyOffset), nodes.getChildKey(sr.getNextSmallerPos()));
+        }
+        // the NextLarger of the "key-1" should be the key
+        Assertions.assertEquals(keyPos ,sr.getNextLargerPos());
+        Assertions.assertEquals(key, nodes.getChildKey(sr.getNextLargerPos()));
+      }
+
+      // search in the "gaps" after the key
+      {
+        byte aKey = (byte)(key + 1);
+
+        sr = nodes.getNearestChildPos(aKey);
+        Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
+        Assertions.assertFalse(sr.hasKeyPos());
+
+        // the next smaller pos than "key+1" should always be key
+        Assertions.assertEquals(keyPos, sr.getNextSmallerPos());
+        Assertions.assertEquals(key, nodes.getChildKey(sr.getNextSmallerPos()));
+
+        // the value larger than the last should be INVALID and the rest should be the next key
+        if (i == lastValue) {
+          Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextLargerPos());
+        } else {
+          Assertions.assertEquals(key+step, nodes.getChildKey(sr.getNextLargerPos()));
+        }
+      }
+    }
+
+    // search before the first value "keyOffset", and surprise, nothing will be found
+    SearchResult sr = nodes.getNearestChildPos((byte) (keyOffset - 1));
+    Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
+    Assertions.assertFalse(sr.hasKeyPos());
+    Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextSmallerPos());
+
+    // search after the last value aka "insertCount", and surprise, nothing will be found
+    sr = nodes.getNearestChildPos((byte) (keyOffset + (insertCount * step)));
+    Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
+    Assertions.assertFalse(sr.hasKeyPos());
+    Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextLargerPos());
+  }
 }

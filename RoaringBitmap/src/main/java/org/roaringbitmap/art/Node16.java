@@ -46,25 +46,35 @@ public class Node16 extends Node {
     } else {
       SearchResult firstResult = Node.binarySearchWithResult(
               firstBytes, 0, 8, k);
-      if (firstResult.outcome == SearchResult.Outcome.FOUND) {
+      // given the values are "in order" if we found a match or a value larger than
+      // the target we are done.
+      if (firstResult.outcome == SearchResult.Outcome.FOUND
+              || firstResult.hasNextLargerPos()) {
         return firstResult;
       } else {
         byte[] secondBytes = LongUtils.toBDBytes(secondV);
         SearchResult secondResult = Node.binarySearchWithResult(
                 secondBytes, 0, (count - 8), k);
+
         switch(secondResult.outcome) {
           case FOUND:
             return SearchResult.found(8 + secondResult.getKeyPos());
           case NOT_FOUND:
-            if (secondResult.hasNextLargerPos()) {
-              return SearchResult.notFound(
-                      8 + secondResult.getNextSmallerPos(),
-                      8 + secondResult.getNextLargerPos());
-            } else {
-              return SearchResult.notFound(
-                      8 + secondResult.getNextSmallerPos(),
-                      Node.ILLEGAL_IDX); // don't map -1 into the legal range by adding 8!
+            int lowPos = secondResult.getNextSmallerPos();
+            int highPos = secondResult.getNextLargerPos();
+            // don't map -1 into the legal range by adding 8!
+            if (lowPos>=0){ lowPos += 8;}
+            if (highPos>=0){ highPos += 8;}
+
+            if(firstResult.hasNextLargerPos() == false && secondResult.hasNextSmallerPos() == false)
+            {
+              // this happens when the result is in the gap of the two ranges, the correct
+              // "smaller value" is that of first result.
+              lowPos = firstResult.getNextSmallerPos();
             }
+
+            return SearchResult.notFound( lowPos, highPos);
+
           default:
             throw new IllegalStateException("There only two possible search outcomes");
         }

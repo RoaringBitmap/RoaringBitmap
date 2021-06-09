@@ -58,7 +58,7 @@ public class Node4Test {
 
   @Test
   public void testGetNearestChildPosWithOneItem() {
-    LeafNode ln1 = new LeafNode(0x0100,1);
+    LeafNode ln1 = new LeafNode(0x0100, 1);
     byte key1 = 0x10;
     int key1Pos = 0;
 
@@ -169,7 +169,6 @@ public class Node4Test {
   public void testDenseNonZeroBasedKeysSearch() {
     Node nodes = new Node4(0);
     final int insertCount = 3;
-    final int lastValue = insertCount - 1;
     final int keyOffset = 0x20;
 
     // create the data
@@ -201,6 +200,83 @@ public class Node4Test {
 
     // search after the last value aka "insertCount", and surprise, nothing will be found
     sr = nodes.getNearestChildPos((byte) (keyOffset + insertCount));
+    Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
+    Assertions.assertFalse(sr.hasKeyPos());
+    Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextLargerPos());
+  }
+
+  @Test
+  public void testSparseNonZeroBasedKeysSearch() {
+    Node nodes = new Node4(0);
+    final int insertCount = 3;
+    final int lastValue = insertCount - 1;
+
+    final int step = 3;
+    final int keyOffset = 0x20;
+
+    // create the data
+    for (int i = 0; i < insertCount; i++) {
+      LeafNode leafNode = new LeafNode(i, i);
+      byte key = (byte) ((i * step) + keyOffset);
+      nodes = Node4.insert(nodes, leafNode, key);
+    }
+    // check we are testing the correct thing
+    Assertions.assertTrue(nodes instanceof Node4);
+
+    // check that searching for each key, is FOUND
+    for (int i = 0; i < insertCount; i++) {
+      byte key = (byte) ((i * step) + keyOffset);
+      SearchResult sr = nodes.getNearestChildPos(key);
+
+      Assertions.assertEquals(SearchResult.Outcome.FOUND, sr.outcome);
+      Assertions.assertTrue(sr.hasKeyPos());
+      // the positions are zero based, even though the keys values are offset
+      Assertions.assertEquals(i, sr.getKeyPos());
+      Assertions.assertEquals(key, nodes.getChildKey(sr.getKeyPos()));
+
+      // search in the "gaps" before the key
+      {
+        key -= 1;
+        sr = nodes.getNearestChildPos(key);
+        Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
+        Assertions.assertFalse(sr.hasKeyPos());
+
+        // the value smaller than the first should be INVALID, and the rest should be the prior key
+        if (i == 0) {
+          Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextSmallerPos());
+        } else {
+          Assertions.assertEquals((((i - 1) * step) + keyOffset), nodes.getChildKey(sr.getNextSmallerPos()));
+        }
+        // the NextLarger of the "key-1" should be the key
+        Assertions.assertEquals(((i * step) + keyOffset), nodes.getChildKey(sr.getNextLargerPos()));
+      }
+
+      // search in the "gaps" after the key
+      {
+        key += 2;
+        sr = nodes.getNearestChildPos(key);
+        Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
+        Assertions.assertFalse(sr.hasKeyPos());
+
+        // the next smaller pos than "key+1" should always be key
+        Assertions.assertEquals(((i * step) + keyOffset), nodes.getChildKey(sr.getNextSmallerPos()));
+        // the value larger than the last should be INVALID and the rest should be the next key
+        if (i == lastValue) {
+          Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextLargerPos());
+        } else {
+          Assertions.assertEquals((((i + 1) * step) + keyOffset), nodes.getChildKey(sr.getNextLargerPos()));
+        }
+      }
+    }
+
+    // search before the first value "keyOffset", and surprise, nothing will be found
+    SearchResult sr = nodes.getNearestChildPos((byte) (keyOffset - 1));
+    Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
+    Assertions.assertFalse(sr.hasKeyPos());
+    Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextSmallerPos());
+
+    // search after the last value aka "insertCount", and surprise, nothing will be found
+    sr = nodes.getNearestChildPos((byte) (keyOffset + (insertCount * step)));
     Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
     Assertions.assertFalse(sr.hasKeyPos());
     Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextLargerPos());
