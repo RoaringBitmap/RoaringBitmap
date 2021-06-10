@@ -1,4 +1,4 @@
-package org.roaringbitmap.longlong;
+package org.roaringbitmap.art;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -7,11 +7,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.roaringbitmap.art.LeafNode;
-import org.roaringbitmap.art.Node;
-import org.roaringbitmap.art.Node16;
-import org.roaringbitmap.art.Node256;
-import org.roaringbitmap.art.Node48;
 
 public class Node48Test {
 
@@ -68,24 +63,92 @@ public class Node48Test {
   }
 
   @Test
-  public void testWithEmptyBytes() {
-    Node48 node48 = new Node48(0);
+  public void testWithOffsetBeforeBytes() {
+    Node48 nodes = new Node48(0);
     LeafNode leafNode = new LeafNode(0, 0);
-    byte key = 0;
-    for (int i = 0; i < 48; i++) {
-      if (i == 0) {
-        //jump to a larger value to create a gap
-        key = 40;
-      }
-      node48 = (Node48) Node48.insert(node48, leafNode, key);
-      key++;
+    int insertCount = 48;
+    int offset = 40;
+
+    // setup data
+    for (int i = 0; i < insertCount; i++) {
+      nodes = (Node48) Node48.insert(nodes, leafNode, (byte) (offset + i));
     }
-    int minPos = node48.getMinPos();
-    Assertions.assertEquals(40, minPos);
-    int currentPos = minPos;
-    for (int i = 1; i < 48; i++) {
-      int nextPos = node48.getNextLargerPos(currentPos);
-      Assertions.assertEquals(40 + i, nextPos);
+    // check we are testing the correct data structure
+    Assertions.assertTrue(nodes instanceof Node48);
+
+    // this is bad test, because it's checking the internal implementation which really
+    // should not matter, because the small nodes do not use this gappy method, therefore
+    // to rely on it is really fragile, thus it should not really be tested. But here we are.
+    Assertions.assertEquals(offset, nodes.getMinPos());
+
+    // The position of a value before the "first" value dose not exist thus ILLEGAL_IDX
+    Assertions.assertEquals(Node.ILLEGAL_IDX, nodes.getNextSmallerPos(nodes.getMinPos()));
+
+    // The position of a value after the "last" value dose not exist thus ILLEGAL_IDX
+    Assertions.assertEquals(Node.ILLEGAL_IDX, nodes.getNextLargerPos(nodes.getMaxPos()));
+
+    // so for each value in the inserted range the next of the prior should be the same as
+    // the location of found current.
+    int currentPos = nodes.getMinPos();
+    for (int i = 1; i < (insertCount - 1); i++) {
+      int nextPos = nodes.getNextLargerPos(currentPos);
+      Assertions.assertEquals(nodes.getChildPos((byte) (i + offset)), nextPos);
+      currentPos = nextPos;
+    }
+
+    // so for each value in the inserted range the next of the prior should be the same as
+    // the location of found current.
+    currentPos = nodes.getMaxPos();
+    for (int i = (insertCount - 2); i > 0; i--) {
+      int nextPos = nodes.getNextSmallerPos(currentPos);
+      Assertions.assertEquals(nodes.getChildPos((byte) (i + offset)), nextPos);
+      currentPos = nextPos;
+    }
+  }
+
+  @Test
+  public void testWithOffsetAndGapsBytes() {
+    Node48 nodes = new Node48(0);
+    LeafNode leafNode = new LeafNode(0, 0);
+    int insertCount = 48;
+    int step = 2;
+    int offset = 40;
+
+    // setup data
+    for (int i = 0; i < insertCount; i++) {
+      nodes = (Node48) Node48.insert(nodes, leafNode, (byte) (offset + (i*step)));
+    }
+    // check we are testing the correct data structure
+    Assertions.assertTrue(nodes instanceof Node48);
+
+    // this is bad test, because it's checking the internal implementation which really
+    // should not matter, because the small nodes do not use this gap method, therefore
+    // to rely on it is really fragile, thus it should not really be tested. But here we are.
+    Assertions.assertEquals(offset, nodes.getMinPos());
+
+    // The position of a value before the "first" value dose not exist thus ILLEGAL_IDX
+    Assertions.assertEquals(Node.ILLEGAL_IDX, nodes.getNextSmallerPos(nodes.getMinPos()));
+
+    // The position of a value after the "last" value dose not exist thus ILLEGAL_IDX
+    Assertions.assertEquals(Node.ILLEGAL_IDX, nodes.getNextLargerPos(nodes.getMaxPos()));
+
+    // so for each value in the inserted range the next of the prior should be the same as
+    // the location of found current.
+    int currentPos = nodes.getMinPos();
+    for (int i = 1; i < (insertCount - 1); i++) {
+      int nextPos = nodes.getNextLargerPos(currentPos);
+      int valKey = offset + i * step;
+      Assertions.assertEquals(nodes.getChildPos((byte) valKey), nextPos);
+      currentPos = nextPos;
+    }
+
+    // so for each value in the inserted range the next of the prior should be the same as
+    // the location of found current.
+    currentPos = nodes.getMaxPos();
+    for (int i = (insertCount - 2); i > 0; i--) {
+      int nextPos = nodes.getNextSmallerPos(currentPos);
+      int valKey = offset + i * step;
+      Assertions.assertEquals(nodes.getChildPos((byte) valKey), nextPos);
       currentPos = nextPos;
     }
   }

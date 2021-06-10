@@ -222,4 +222,85 @@ public class Node16Test {
     Assertions.assertFalse(sr.hasKeyPos());
     Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextLargerPos());
   }
+
+  @Test
+  public void testWithOffsetBeforeBytes() {
+    Node nodes = new Node16(0);
+    LeafNode leafNode = new LeafNode(0, 0);
+    int insertCount = 16;
+    int offset = 40;
+
+    // setup data
+    for (int i = 0; i < insertCount; i++) {
+      nodes = Node16.insert(nodes, leafNode, (byte) (offset + i));
+    }
+    // check we are testing the correct data structure
+    Assertions.assertTrue(nodes instanceof Node16);
+
+    // The position of a value before the "first" value dose not exist thus ILLEGAL_IDX
+    Assertions.assertEquals(Node.ILLEGAL_IDX, nodes.getNextSmallerPos(nodes.getMinPos()));
+
+    // The position of a value after the "last" value dose not exist thus ILLEGAL_IDX
+    Assertions.assertEquals(Node.ILLEGAL_IDX, nodes.getNextLargerPos(nodes.getMaxPos()));
+
+    // so for each value in the inserted range the next of the prior should be the same as
+    // the location of found current.
+    int currentPos = nodes.getMinPos();
+    for (int i = 1; i < (insertCount - 1); i++) {
+      int nextPos = nodes.getNextLargerPos(currentPos);
+      Assertions.assertEquals(nodes.getChildPos((byte) (i + offset)), nextPos);
+      currentPos = nextPos;
+    }
+
+    // so for each value in the inserted range the next of the prior should be the same as
+    // the location of found current.
+    currentPos = nodes.getMaxPos();
+    for (int i = (insertCount - 2); i > 0; i--) {
+      int nextPos = nodes.getNextSmallerPos(currentPos);
+      Assertions.assertEquals(nodes.getChildPos((byte) (i + offset)), nextPos);
+      currentPos = nextPos;
+    }
+  }
+
+  @Test
+  public void testWithOffsetAndGapsBytes() {
+    Node nodes = new Node16(0);
+    LeafNode leafNode = new LeafNode(0, 0);
+    int insertCount = 16;
+    int step = 2;
+    int offset = 40;
+
+    // setup data
+    for (int i = 0; i < insertCount; i++) {
+      nodes = Node16.insert(nodes, leafNode, (byte) (offset + (i*step)));
+    }
+    // check we are testing the correct data structure
+    Assertions.assertTrue(nodes instanceof Node16);
+
+    // The position of a value before the "first" value dose not exist thus ILLEGAL_IDX
+    Assertions.assertEquals(Node.ILLEGAL_IDX, nodes.getNextSmallerPos(nodes.getMinPos()));
+
+    // The position of a value after the "last" value dose not exist thus ILLEGAL_IDX
+    Assertions.assertEquals(Node.ILLEGAL_IDX, nodes.getNextLargerPos(nodes.getMaxPos()));
+
+    // so for each value in the inserted range the next of the prior should be the same as
+    // the location of found current.
+    int currentPos = nodes.getMinPos();
+    for (int i = 1; i < (insertCount - 1); i++) {
+      int nextPos = nodes.getNextLargerPos(currentPos);
+      int valKey = offset + i * step;
+      Assertions.assertEquals(nodes.getChildPos((byte) valKey), nextPos);
+      currentPos = nextPos;
+    }
+
+    // so for each value in the inserted range the next of the prior should be the same as
+    // the location of found current.
+    currentPos = nodes.getMaxPos();
+    for (int i = (insertCount - 2); i > 0; i--) {
+      int nextPos = nodes.getNextSmallerPos(currentPos);
+      int valKey = offset + i * step;
+      Assertions.assertEquals(nodes.getChildPos((byte) valKey), nextPos);
+      currentPos = nextPos;
+    }
+  }
 }

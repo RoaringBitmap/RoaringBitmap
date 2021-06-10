@@ -12,10 +12,13 @@ import org.roaringbitmap.longlong.LongUtils;
 public class Node48 extends Node {
 
   //the actual byte value of childIndex content won't be beyond 48
-  long[] childIndex = new long[32];
+  // 256 bytes packed into longs
+  static final int BYTES_PER_LONG = 8;
+  static final int LONGS_USED = 256 / BYTES_PER_LONG;
+  long[] childIndex = new long[LONGS_USED];
   Node[] children = new Node[48];
-  static final byte EMPTY_VALUE = -1;
-  static final long INIT_LONG_VALUE = -1L;
+  static final byte EMPTY_VALUE = (byte)0xFF;
+  static final long INIT_LONG_VALUE = 0xFFffFFffFFffFFffL;
 
   public Node48(int compressedPrefixSize) {
     super(NodeType.NODE48, compressedPrefixSize);
@@ -63,15 +66,15 @@ public class Node48 extends Node {
   @Override
   public int getMinPos() {
     int pos = 0;
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < LONGS_USED; i++) {
       long longv = childIndex[i];
       if (longv == INIT_LONG_VALUE) {
         //skip over empty bytes
         pos += 8;
         continue;
       } else {
-        for (int j = 0; j <= 7; j++) {
-          byte v = (byte) (longv >>> ((7 - j) * 8));
+        for (int j = 0; j < BYTES_PER_LONG; j++) {
+          byte v = (byte) (longv >>> ((7 - j) <<3));
           if (v != EMPTY_VALUE) {
             return pos;
           }
@@ -89,25 +92,22 @@ public class Node48 extends Node {
     }
     pos++;
     int i = pos >>> 3;
-    int offset = pos & (8 - 1);
-    for (; i < 32; i++) {
+    for (; i < LONGS_USED; i++) {
       long longv = childIndex[i];
-      if (offset == 0) {
-        if (longv == INIT_LONG_VALUE) {
-          //skip over empty bytes
-          pos += 8;
-          continue;
-        }
+      if (longv == INIT_LONG_VALUE) {
+        //skip over empty bytes
+        pos += BYTES_PER_LONG;
+        continue;
       }
-      for (int j = offset; j <= 7; j++) {
-        int shiftNum = (7 - j) * 8;
+
+      for (int j = pos & 0x7; j < BYTES_PER_LONG; j++) {
+        int shiftNum = (7 - j) << 3;
         byte v = (byte) (longv >>> shiftNum);
         if (v != EMPTY_VALUE) {
           return pos;
         }
         pos++;
       }
-      offset = 0;
     }
     return ILLEGAL_IDX;
   }
@@ -115,13 +115,13 @@ public class Node48 extends Node {
   @Override
   public int getMaxPos() {
     int pos = 255;
-    for (int i = 31; i >= 0; i--) {
+    for (int i = (LONGS_USED-1); i >= 0; i--) {
       long longv = childIndex[i];
       if (longv == INIT_LONG_VALUE) {
         pos -= 8;
         continue;
       } else {
-        for (int j = 0; j <= 7; j++) {
+        for (int j = 0; j < BYTES_PER_LONG; j++) {
           byte v = (byte) (longv >>> j * 8);
           if (v != EMPTY_VALUE) {
             return pos;
@@ -140,25 +140,21 @@ public class Node48 extends Node {
     }
     pos--;
     int i = pos >>> 3;
-    int offset = pos & (8 - 1);
-    for (; i < 32; i++) {
+    for (; i >= 0; i--) {
       long longv = childIndex[i];
-      if (offset == 0) {
-        if (longv == INIT_LONG_VALUE) {
-          //skip over empty bytes
-          pos -= 8;
-          continue;
-        }
+      if (longv == INIT_LONG_VALUE) {
+        //skip over empty bytes
+        pos -= BYTES_PER_LONG;
+        continue;
       }
-      for (int j = offset; j <= 7; j++) {
-        int shiftNum = j * 8;
+      for (int j = pos & 0x7; j >= 0; j--) {
+        int shiftNum = (7-j) << 3;
         byte v = (byte) (longv >>> shiftNum);
         if (v != EMPTY_VALUE) {
           return pos;
         }
         pos--;
       }
-      offset = 0;
     }
     return ILLEGAL_IDX;
   }
@@ -243,7 +239,7 @@ public class Node48 extends Node {
 
   @Override
   public void serializeNodeBody(DataOutput dataOutput) throws IOException {
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < LONGS_USED; i++) {
       long longv = childIndex[i];
       dataOutput.writeLong(Long.reverseBytes(longv));
     }
@@ -253,12 +249,12 @@ public class Node48 extends Node {
   public void serializeNodeBody(ByteBuffer byteBuffer) throws IOException {
     LongBuffer longBuffer = byteBuffer.asLongBuffer();
     longBuffer.put(childIndex);
-    byteBuffer.position(byteBuffer.position() + 32 * 8);
+    byteBuffer.position(byteBuffer.position() + LONGS_USED * BYTES_PER_LONG);
   }
 
   @Override
   public void deserializeNodeBody(DataInput dataInput) throws IOException {
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < LONGS_USED; i++) {
       childIndex[i] = Long.reverseBytes(dataInput.readLong());
     }
   }
@@ -267,18 +263,18 @@ public class Node48 extends Node {
   public void deserializeNodeBody(ByteBuffer byteBuffer) throws IOException {
     LongBuffer longBuffer = byteBuffer.asLongBuffer();
     longBuffer.get(childIndex);
-    byteBuffer.position(byteBuffer.position() + 32 * 8);
+    byteBuffer.position(byteBuffer.position() + LONGS_USED * BYTES_PER_LONG);
   }
 
   @Override
   public int serializeNodeBodySizeInBytes() {
-    return 256;
+    return LONGS_USED * BYTES_PER_LONG;
   }
 
   @Override
   public void replaceChildren(Node[] children) {
     int step = 0;
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < LONGS_USED; i++) {
       long longv = childIndex[i];
       for (int j = 7; j >= 0; j--) {
         byte bytePos = (byte) (longv >>> (j * 8));
