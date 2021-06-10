@@ -111,7 +111,7 @@ public class Node16Test {
     for (int i = 0; i < insertCount; i++) {
       LeafNode leafNode = new LeafNode(i, i);
       byte key = (byte) (i + keyOffset);
-      nodes = (Node16) Node16.insert(nodes, leafNode, key);
+      nodes = Node16.insert(nodes, leafNode, key);
     }
     // check we are testing the correct thing
     Assertions.assertTrue(nodes instanceof Node16);
@@ -182,7 +182,7 @@ public class Node16Test {
         if (i == 0) {
           Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextSmallerPos());
         } else {
-          Assertions.assertEquals((((i - 1) * step) + keyOffset), nodes.getChildKey(sr.getNextSmallerPos()));
+          Assertions.assertEquals((((i - 1) * step) + keyOffset), Byte.toUnsignedInt(nodes.getChildKey(sr.getNextSmallerPos())));
         }
         // the NextLarger of the "key-1" should be the key
         Assertions.assertEquals(keyPos ,sr.getNextLargerPos());
@@ -205,7 +205,7 @@ public class Node16Test {
         if (i == lastValue) {
           Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextLargerPos());
         } else {
-          Assertions.assertEquals(key+step, nodes.getChildKey(sr.getNextLargerPos()));
+          Assertions.assertEquals(Byte.toUnsignedInt(key)+step, Byte.toUnsignedInt(nodes.getChildKey(sr.getNextLargerPos())));
         }
       }
     }

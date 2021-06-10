@@ -231,13 +231,14 @@ public class Node4Test {
       Assertions.assertEquals(SearchResult.Outcome.FOUND, sr.outcome);
       Assertions.assertTrue(sr.hasKeyPos());
       // the positions are zero based, even though the keys values are offset
-      Assertions.assertEquals(i, sr.getKeyPos());
+      int keyPos = sr.getKeyPos();
+      Assertions.assertEquals(i, keyPos);
       Assertions.assertEquals(key, nodes.getChildKey(sr.getKeyPos()));
 
       // search in the "gaps" before the key
       {
-        key -= 1;
-        sr = nodes.getNearestChildPos(key);
+        byte bKey = (byte)(key - 1);
+        sr = nodes.getNearestChildPos(bKey);
         Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
         Assertions.assertFalse(sr.hasKeyPos());
 
@@ -245,26 +246,30 @@ public class Node4Test {
         if (i == 0) {
           Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextSmallerPos());
         } else {
-          Assertions.assertEquals((((i - 1) * step) + keyOffset), nodes.getChildKey(sr.getNextSmallerPos()));
+          Assertions.assertEquals((((i - 1) * step) + keyOffset), Byte.toUnsignedInt(nodes.getChildKey(sr.getNextSmallerPos())));
         }
         // the NextLarger of the "key-1" should be the key
-        Assertions.assertEquals(((i * step) + keyOffset), nodes.getChildKey(sr.getNextLargerPos()));
+        Assertions.assertEquals(keyPos ,sr.getNextLargerPos());
+        Assertions.assertEquals(key, nodes.getChildKey(sr.getNextLargerPos()));
       }
 
       // search in the "gaps" after the key
       {
-        key += 2;
-        sr = nodes.getNearestChildPos(key);
+        byte aKey = (byte)(key + 1);
+
+        sr = nodes.getNearestChildPos(aKey);
         Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
         Assertions.assertFalse(sr.hasKeyPos());
 
         // the next smaller pos than "key+1" should always be key
-        Assertions.assertEquals(((i * step) + keyOffset), nodes.getChildKey(sr.getNextSmallerPos()));
+        Assertions.assertEquals(keyPos, sr.getNextSmallerPos());
+        Assertions.assertEquals(key, nodes.getChildKey(sr.getNextSmallerPos()));
+
         // the value larger than the last should be INVALID and the rest should be the next key
         if (i == lastValue) {
           Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextLargerPos());
         } else {
-          Assertions.assertEquals((((i + 1) * step) + keyOffset), nodes.getChildKey(sr.getNextLargerPos()));
+          Assertions.assertEquals(Byte.toUnsignedInt(key)+step, Byte.toUnsignedInt(nodes.getChildKey(sr.getNextLargerPos())));
         }
       }
     }
