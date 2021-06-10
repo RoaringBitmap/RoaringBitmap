@@ -70,7 +70,7 @@ public class Node48 extends Node {
       long longv = childIndex[i];
       if (longv == INIT_LONG_VALUE) {
         //skip over empty bytes
-        pos += 8;
+        pos += BYTES_PER_LONG;
         continue;
       } else {
         for (int j = 0; j < BYTES_PER_LONG; j++) {
@@ -96,7 +96,7 @@ public class Node48 extends Node {
       long longv = childIndex[i];
       if (longv == INIT_LONG_VALUE) {
         //skip over empty bytes
-        pos += BYTES_PER_LONG;
+        pos = (pos + BYTES_PER_LONG) & 0xF8;
         continue;
       }
 
@@ -118,9 +118,12 @@ public class Node48 extends Node {
     for (int i = (LONGS_USED-1); i >= 0; i--) {
       long longv = childIndex[i];
       if (longv == INIT_LONG_VALUE) {
-        pos -= 8;
+        pos -= BYTES_PER_LONG;
         continue;
       } else {
+        // the zeroth value is stored in the MSB, but because we are searching from high to low
+        // across all bytes, we can avoid the "double negative" of starting at 7 and j-- to 0
+        // and then shifting by (7-j)*8
         for (int j = 0; j < BYTES_PER_LONG; j++) {
           byte v = (byte) (longv >>> j * 8);
           if (v != EMPTY_VALUE) {
@@ -144,9 +147,11 @@ public class Node48 extends Node {
       long longv = childIndex[i];
       if (longv == INIT_LONG_VALUE) {
         //skip over empty bytes
-        pos -= BYTES_PER_LONG;
+        pos -= Math.min(BYTES_PER_LONG,(pos&7) +1);
         continue;
       }
+      // because we are starting potentially at non aligned location, we need to start at 7
+      // (or less) and decrement to zero, and then unpack the long correctly.
       for (int j = pos & 0x7; j >= 0; j--) {
         int shiftNum = (7-j) << 3;
         byte v = (byte) (longv >>> shiftNum);

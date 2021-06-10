@@ -347,4 +347,22 @@ public class Node48Test {
     Assertions.assertFalse(sr.hasKeyPos());
     Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextLargerPos());
   }
+
+  @Test
+  public void testGetNextSmallerPosEdgeCase() {
+    Node nodes = new Node48(0);
+    LeafNode leafNode = new LeafNode(0,0);
+
+    nodes = Node48.insert(nodes, leafNode, (byte)67);
+    // check we are testing the correct thing
+    Assertions.assertTrue(nodes instanceof Node48);
+
+    Assertions.assertEquals(Node.ILLEGAL_IDX, nodes.getNextSmallerPos(66));
+    Assertions.assertNotEquals(Node.ILLEGAL_IDX, nodes.getNextSmallerPos(74));
+    Assertions.assertEquals(67, nodes.getChildKey(nodes.getNextSmallerPos(74)));
+
+    Assertions.assertEquals(Node.ILLEGAL_IDX, nodes.getNextLargerPos(68));
+    Assertions.assertNotEquals(Node.ILLEGAL_IDX, nodes.getNextLargerPos(60));
+    Assertions.assertEquals(67, nodes.getChildKey(nodes.getNextLargerPos(60)));
+  }
 }
