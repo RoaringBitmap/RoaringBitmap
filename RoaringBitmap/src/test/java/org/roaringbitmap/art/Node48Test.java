@@ -64,14 +64,14 @@ public class Node48Test {
 
   @Test
   public void testWithOffsetBeforeBytes() {
-    Node48 nodes = new Node48(0);
+    Node nodes = new Node48(0);
     LeafNode leafNode = new LeafNode(0, 0);
     int insertCount = 48;
     int offset = 40;
 
     // setup data
     for (int i = 0; i < insertCount; i++) {
-      nodes = (Node48) Node48.insert(nodes, leafNode, (byte) (offset + i));
+      nodes = Node48.insert(nodes, leafNode, (byte) (offset + i));
     }
     // check we are testing the correct data structure
     Assertions.assertTrue(nodes instanceof Node48);
@@ -108,7 +108,7 @@ public class Node48Test {
 
   @Test
   public void testWithOffsetAndGapsBytes() {
-    Node48 nodes = new Node48(0);
+    Node nodes = new Node48(0);
     LeafNode leafNode = new LeafNode(0, 0);
     int insertCount = 48;
     int step = 2;
@@ -116,7 +116,7 @@ public class Node48Test {
 
     // setup data
     for (int i = 0; i < insertCount; i++) {
-      nodes = (Node48) Node48.insert(nodes, leafNode, (byte) (offset + (i*step)));
+      nodes = Node48.insert(nodes, leafNode, (byte) (offset + (i*step)));
     }
     // check we are testing the correct data structure
     Assertions.assertTrue(nodes instanceof Node48);
