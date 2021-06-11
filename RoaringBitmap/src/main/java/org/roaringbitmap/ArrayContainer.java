@@ -1374,6 +1374,109 @@ public final class ArrayContainer extends Container implements Cloneable {
     }
   }
 
+  @Override
+  public void forAll(int offset, final RelativeRangeConsumer rrc) {
+    int next = 0;
+    for(int k = 0; k < cardinality; ++k) {
+      int value = content[k];
+      if (next < value) {
+        // fill in the missing values until value
+        rrc.acceptAllAbsent(offset + next, offset + value);
+      }
+      rrc.acceptPresent(offset + value);
+      next = value + 1;
+    }
+    if (next <= Character.MAX_VALUE) {
+      // fill in the remaining values until end
+      rrc.acceptAllAbsent(offset + next, offset + Character.MAX_VALUE + 1);
+    }
+  }
+
+  @Override
+  public void forAllFrom(char startValue, final RelativeRangeConsumer rrc) {
+    int startOffset = startValue;
+    int loc = Util.unsignedBinarySearch(content, 0, cardinality, startValue);
+    int startIndex;
+    if (loc >= 0) {
+      startIndex = loc;
+    } else {
+      // the value doesn't exist, this is the index of the nearest value
+      startIndex = -loc - 1;
+    }
+    int next = startValue;
+    for (int k = startIndex; k < cardinality; k++) {
+      int value = content[k];
+      if (next < value) {
+        // fill in the missing values until value
+        rrc.acceptAllAbsent(next - startOffset, value - startOffset);
+      }
+      rrc.acceptPresent(value - startOffset);
+      next = value + 1;
+    }
+    if (next <= Character.MAX_VALUE) {
+      // fill in the remaining values until end
+      rrc.acceptAllAbsent(next - startOffset, Character.MAX_VALUE + 1 - startOffset);
+    }
+  }
+
+  @Override
+  public void forAllUntil(int offset, char endValue, final RelativeRangeConsumer rrc) {
+    int next = 0;
+    for(int k = 0; k < cardinality; ++k) {
+      int value = content[k];
+      if (endValue <= value) {
+        // value is already beyond the end
+        if (next < endValue) {
+          rrc.acceptAllAbsent(offset + next, offset + endValue);
+        }
+        return;
+      }
+      if (next < value) {
+        // fill in the missing values until value
+        rrc.acceptAllAbsent(offset + next, offset + value);
+      }
+      rrc.acceptPresent(offset + value);
+      next = value + 1;
+    }
+    if (next < endValue) {
+      // fill in the remaining values until end
+      rrc.acceptAllAbsent(offset + next, offset + endValue);
+    }
+  }
+
+  @Override
+  public void forAllInRange(char startValue, char endValue, final RelativeRangeConsumer rrc) {
+    if (endValue <= startValue) {
+      throw new IllegalArgumentException(
+              "startValue (" + startValue + ") must be less than endValue (" + endValue + ")");
+    }
+    int startOffset = startValue;
+    int loc = Util.unsignedBinarySearch(content, 0, cardinality, startValue);
+    // the value doesn't exist, this is the index of the nearest value
+    int startIndex = loc >= 0 ? loc : -loc - 1;
+    int next = startValue;
+    for (int k = startIndex; k < cardinality; k++) {
+      int value = content[k];
+      if (endValue <= value) {
+        // value is already beyond the end
+        if (next < endValue) {
+          rrc.acceptAllAbsent(next - startOffset, endValue - startOffset);
+        }
+        return;
+      }
+      if (next < value) {
+        // fill in the missing values until value
+        rrc.acceptAllAbsent(next - startOffset, value - startOffset);
+      }
+      rrc.acceptPresent(value - startOffset);
+      next = value + 1;
+    }
+    if (next < endValue) {
+      // fill in the remaining values until end
+      rrc.acceptAllAbsent(next - startOffset, endValue - startOffset);
+    }
+  }
+
   protected Container lazyor(ArrayContainer value2) {
     final ArrayContainer value1 = this;
     int totalCardinality = value1.getCardinality() + value2.getCardinality();
