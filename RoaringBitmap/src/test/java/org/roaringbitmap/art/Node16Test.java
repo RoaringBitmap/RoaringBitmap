@@ -276,7 +276,7 @@ public class Node16Test {
 
     // setup data
     for (int i = 0; i < insertCount; i++) {
-      nodes = Node16.insert(nodes, leafNode, (byte) (offset + (i*step)));
+      nodes = Node16.insert(nodes, leafNode, (byte) (offset + (i * step)));
     }
     // check we are testing the correct data structure
     Assertions.assertTrue(nodes instanceof Node16);
