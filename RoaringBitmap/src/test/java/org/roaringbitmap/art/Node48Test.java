@@ -298,7 +298,7 @@ public class Node48Test {
 
       // search in the "gaps" before the key
       {
-        byte bKey = (byte)(key - 1);
+        byte bKey = (byte) (key - 1);
         sr = nodes.getNearestChildPos(bKey);
         Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
         Assertions.assertFalse(sr.hasKeyPos());
@@ -307,16 +307,18 @@ public class Node48Test {
         if (i == 0) {
           Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextSmallerPos());
         } else {
-          Assertions.assertEquals((((i - 1) * step) + keyOffset), Byte.toUnsignedInt(nodes.getChildKey(sr.getNextSmallerPos())));
+          int expect = Byte.toUnsignedInt(key) - step;
+          int result = Byte.toUnsignedInt(nodes.getChildKey(sr.getNextSmallerPos()));
+          Assertions.assertEquals(expect, result);
         }
         // the NextLarger of the "key-1" should be the key
-        Assertions.assertEquals(keyPos ,sr.getNextLargerPos());
+        Assertions.assertEquals(keyPos, sr.getNextLargerPos());
         Assertions.assertEquals(key, nodes.getChildKey(sr.getNextLargerPos()));
       }
 
       // search in the "gaps" after the key
       {
-        byte aKey = (byte)(key + 1);
+        byte aKey = (byte) (key + 1);
 
         sr = nodes.getNearestChildPos(aKey);
         Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
@@ -330,7 +332,9 @@ public class Node48Test {
         if (i == lastValue) {
           Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextLargerPos());
         } else {
-          Assertions.assertEquals(Byte.toUnsignedInt(key)+step, Byte.toUnsignedInt(nodes.getChildKey(sr.getNextLargerPos())));
+          int expected = Byte.toUnsignedInt(key) + step;
+          int result = Byte.toUnsignedInt(nodes.getChildKey(sr.getNextLargerPos()));
+          Assertions.assertEquals(expected, result);
         }
       }
     }
@@ -364,5 +368,28 @@ public class Node48Test {
     Assertions.assertEquals(Node.ILLEGAL_IDX, nodes.getNextLargerPos(68));
     Assertions.assertNotEquals(Node.ILLEGAL_IDX, nodes.getNextLargerPos(60));
     Assertions.assertEquals(67, nodes.getChildKey(nodes.getNextLargerPos(60)));
+  }
+
+  @Test
+  public void testSetOneByte() {
+    long[] longs = new long[Node48.LONGS_USED];
+
+    Node48.setOneByte(0,  (byte)0x67, longs);
+    Assertions.assertEquals(0x6700_0000_0000_0000L, longs[0]);
+    Node48.setOneByte(1,  (byte)0x23, longs);
+    Assertions.assertEquals(0x6723_0000_0000_0000L, longs[0]);
+    Node48.setOneByte(2,  (byte)0x14, longs);
+    Assertions.assertEquals(0x6723_1400_0000_0000L, longs[0]);
+    Node48.setOneByte(3,  (byte)0x98, longs);
+    Assertions.assertEquals(0x6723_1498_0000_0000L, longs[0]);
+
+    Node48.setOneByte(249,  (byte)0x67, longs);
+    Assertions.assertEquals(0x0067_0000_0000_0000L, longs[31]);
+    Node48.setOneByte(250,  (byte)0x23, longs);
+    Assertions.assertEquals(0x0067_2300_0000_0000L, longs[31]);
+    Node48.setOneByte(251,  (byte)0x14, longs);
+    Assertions.assertEquals(0x0067_2314_0000_0000L, longs[31]);
+    Node48.setOneByte(252,  (byte)0x98, longs);
+    Assertions.assertEquals(0x0067_2314_9800_0000L, longs[31]);
   }
 }

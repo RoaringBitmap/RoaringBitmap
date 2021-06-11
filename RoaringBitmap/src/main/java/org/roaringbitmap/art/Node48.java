@@ -15,6 +15,8 @@ public class Node48 extends Node {
   // 256 bytes packed into longs
   static final int BYTES_PER_LONG = 8;
   static final int LONGS_USED = 256 / BYTES_PER_LONG;
+  static final int INDEX_SHIFT = 3; // 2^3 == BYTES_PER_LONG
+  static final int POS_MASK = 0x7; // the mask to access the pos in the long for the byte
   long[] childIndex = new long[LONGS_USED];
   Node[] children = new Node[48];
   static final byte EMPTY_VALUE = (byte)0xFF;
@@ -74,7 +76,7 @@ public class Node48 extends Node {
         continue;
       } else {
         for (int j = 0; j < BYTES_PER_LONG; j++) {
-          byte v = (byte) (longv >>> ((7 - j) <<3));
+          byte v = (byte) (longv >>> ((BYTES_PER_LONG - 1 - j) << INDEX_SHIFT));
           if (v != EMPTY_VALUE) {
             return pos;
           }
@@ -91,7 +93,7 @@ public class Node48 extends Node {
       pos = -1;
     }
     pos++;
-    int i = pos >>> 3;
+    int i = pos >>> INDEX_SHIFT;
     for (; i < LONGS_USED; i++) {
       long longv = childIndex[i];
       if (longv == INIT_LONG_VALUE) {
@@ -100,8 +102,8 @@ public class Node48 extends Node {
         continue;
       }
 
-      for (int j = pos & 0x7; j < BYTES_PER_LONG; j++) {
-        int shiftNum = (7 - j) << 3;
+      for (int j = pos & POS_MASK; j < BYTES_PER_LONG; j++) {
+        int shiftNum = (BYTES_PER_LONG - 1 - j) << INDEX_SHIFT;
         byte v = (byte) (longv >>> shiftNum);
         if (v != EMPTY_VALUE) {
           return pos;
@@ -115,7 +117,7 @@ public class Node48 extends Node {
   @Override
   public int getMaxPos() {
     int pos = 255;
-    for (int i = (LONGS_USED-1); i >= 0; i--) {
+    for (int i = (LONGS_USED - 1); i >= 0; i--) {
       long longv = childIndex[i];
       if (longv == INIT_LONG_VALUE) {
         pos -= BYTES_PER_LONG;
@@ -125,7 +127,7 @@ public class Node48 extends Node {
         // across all bytes, we can avoid the "double negative" of starting at 7 and j-- to 0
         // and then shifting by (7-j)*8
         for (int j = 0; j < BYTES_PER_LONG; j++) {
-          byte v = (byte) (longv >>> j * 8);
+          byte v = (byte) (longv >>> (j << INDEX_SHIFT));
           if (v != EMPTY_VALUE) {
             return pos;
           }
@@ -142,18 +144,18 @@ public class Node48 extends Node {
       pos = 256;
     }
     pos--;
-    int i = pos >>> 3;
+    int i = pos >>> INDEX_SHIFT;
     for (; i >= 0; i--) {
       long longv = childIndex[i];
       if (longv == INIT_LONG_VALUE) {
         //skip over empty bytes
-        pos -= Math.min(BYTES_PER_LONG,(pos&7) +1);
+        pos -= Math.min(BYTES_PER_LONG,(pos & POS_MASK) + 1);
         continue;
       }
       // because we are starting potentially at non aligned location, we need to start at 7
       // (or less) and decrement to zero, and then unpack the long correctly.
-      for (int j = pos & 0x7; j >= 0; j--) {
-        int shiftNum = (7-j) << 3;
+      for (int j = pos & POS_MASK; j >= 0; j--) {
+        int shiftNum = (BYTES_PER_LONG - 1 - j) << INDEX_SHIFT;
         byte v = (byte) (longv >>> shiftNum);
         if (v != EMPTY_VALUE) {
           return pos;
@@ -185,12 +187,7 @@ public class Node48 extends Node {
       }
       node48.children[pos] = child;
       int unsignedByte = Byte.toUnsignedInt(key);
-      int longPosition = unsignedByte >>> 3;
-      int bytePosition = unsignedByte & (8 - 1);
-      long original = node48.childIndex[longPosition];
-      byte[] bytes = LongUtils.toBDBytes(original);
-      bytes[bytePosition] = (byte) pos;
-      node48.childIndex[longPosition] = LongUtils.fromBDBytes(bytes);
+      setOneByte(unsignedByte, (byte)pos, node48.childIndex);
       node48.count++;
       return node48;
     } else {
@@ -211,14 +208,8 @@ public class Node48 extends Node {
 
   @Override
   public Node remove(int pos) {
-    int longPos = pos >>> 3;
-    int bytePos = pos & (8 - 1);
-    long longVal = childIndex[longPos];
-    byte idx = (byte) ((longVal) >>> (7 - bytePos) * 8);
-    byte[] bytes = LongUtils.toBDBytes(longVal);
-    bytes[bytePos] = EMPTY_VALUE;
-    long newLong = LongUtils.fromBDBytes(bytes);
-    childIndex[longPos] = newLong;
+    byte idx = childrenIdx(pos, childIndex);
+    setOneByte(pos, EMPTY_VALUE, childIndex);
     children[idx] = null;
     count--;
     if (count <= 12) {
@@ -281,8 +272,8 @@ public class Node48 extends Node {
     int step = 0;
     for (int i = 0; i < LONGS_USED; i++) {
       long longv = childIndex[i];
-      for (int j = 7; j >= 0; j--) {
-        byte bytePos = (byte) (longv >>> (j * 8));
+      for (int j = BYTES_PER_LONG - 1; j >= 0; j--) {
+        byte bytePos = (byte) (longv >>> (j << INDEX_SHIFT));
         int unsignedPos = Byte.toUnsignedInt(bytePos);
         if (bytePos != EMPTY_VALUE) {
           this.children[unsignedPos] = children[step];
@@ -293,19 +284,19 @@ public class Node48 extends Node {
   }
 
   private static byte childrenIdx(int pos, long[] childIndex) {
-    int longPos = pos >>> 3;
-    int bytePos = pos & (8 - 1);
-    long longv = childIndex[longPos];
-    byte idx = (byte) ((longv) >>> (7 - bytePos) * 8);
+    int longPos = pos >>> INDEX_SHIFT;
+    int bytePos = pos & POS_MASK;
+    long longV = childIndex[longPos];
+    byte idx = (byte) ((longV) >>> ((BYTES_PER_LONG - 1 - bytePos) << INDEX_SHIFT));
     return idx;
   }
 
   static void setOneByte(int pos, byte v, long[] childIndex) {
-    int longPos = pos >>> 3;
-    int bytePos = pos & (8 - 1);
-    long preVal = childIndex[longPos];
-    byte[] bytes = LongUtils.toBDBytes(preVal);
-    bytes[bytePos] = v;
-    childIndex[longPos] = LongUtils.fromBDBytes(bytes);
+    final int longPos = pos >>> INDEX_SHIFT;
+    final int bytePos = pos & POS_MASK;
+    final int shift = (BYTES_PER_LONG - 1 - bytePos) << INDEX_SHIFT;
+    final long preVal = childIndex[longPos];
+    final long newVal = (preVal & ~(0xFFL << shift)) | (Byte.toUnsignedLong(v) << shift);
+    childIndex[longPos] = newVal;
   }
 }

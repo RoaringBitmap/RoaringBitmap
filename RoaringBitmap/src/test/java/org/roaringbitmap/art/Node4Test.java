@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 public class Node4Test {
 
   @Test
-  public void test1() throws IOException {
+  public void testTheBasics() throws IOException {
     LeafNode leafNode1 = new LeafNode(1, 1);
     LeafNode leafNode2 = new LeafNode(2, 2);
     LeafNode leafNode3 = new LeafNode(3, 3);
@@ -237,7 +237,7 @@ public class Node4Test {
 
       // search in the "gaps" before the key
       {
-        byte bKey = (byte)(key - 1);
+        byte bKey = (byte) (key - 1);
         sr = nodes.getNearestChildPos(bKey);
         Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
         Assertions.assertFalse(sr.hasKeyPos());
@@ -246,16 +246,18 @@ public class Node4Test {
         if (i == 0) {
           Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextSmallerPos());
         } else {
-          Assertions.assertEquals((((i - 1) * step) + keyOffset), Byte.toUnsignedInt(nodes.getChildKey(sr.getNextSmallerPos())));
+          int expected = Byte.toUnsignedInt(key) - step;
+          int result = Byte.toUnsignedInt(nodes.getChildKey(sr.getNextSmallerPos()));
+          Assertions.assertEquals(expected, result);
         }
         // the NextLarger of the "key-1" should be the key
-        Assertions.assertEquals(keyPos ,sr.getNextLargerPos());
+        Assertions.assertEquals(keyPos, sr.getNextLargerPos());
         Assertions.assertEquals(key, nodes.getChildKey(sr.getNextLargerPos()));
       }
 
       // search in the "gaps" after the key
       {
-        byte aKey = (byte)(key + 1);
+        byte aKey = (byte) (key + 1);
 
         sr = nodes.getNearestChildPos(aKey);
         Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
@@ -269,7 +271,9 @@ public class Node4Test {
         if (i == lastValue) {
           Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextLargerPos());
         } else {
-          Assertions.assertEquals(Byte.toUnsignedInt(key)+step, Byte.toUnsignedInt(nodes.getChildKey(sr.getNextLargerPos())));
+          int expected = Byte.toUnsignedInt(key) + step;
+          int result = Byte.toUnsignedInt(nodes.getChildKey(sr.getNextLargerPos()));
+          Assertions.assertEquals(expected, result);
         }
       }
     }
@@ -336,7 +340,7 @@ public class Node4Test {
 
     // setup data
     for (int i = 0; i < insertCount; i++) {
-      nodes = Node4.insert(nodes, leafNode, (byte) (offset + (i*step)));
+      nodes = Node4.insert(nodes, leafNode, (byte) (offset + (i * step)));
     }
     // check we are testing the correct data structure
     Assertions.assertTrue(nodes instanceof Node4);

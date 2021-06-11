@@ -182,7 +182,9 @@ public class Node16Test {
         if (i == 0) {
           Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextSmallerPos());
         } else {
-          Assertions.assertEquals((((i - 1) * step) + keyOffset), Byte.toUnsignedInt(nodes.getChildKey(sr.getNextSmallerPos())));
+          int expect = Byte.toUnsignedInt(key) - step;
+          int result = Byte.toUnsignedInt(nodes.getChildKey(sr.getNextSmallerPos()));
+          Assertions.assertEquals(  expect, result);
         }
         // the NextLarger of the "key-1" should be the key
         Assertions.assertEquals(keyPos ,sr.getNextLargerPos());
@@ -191,7 +193,7 @@ public class Node16Test {
 
       // search in the "gaps" after the key
       {
-        byte aKey = (byte)(key + 1);
+        byte aKey = (byte) (key + 1);
 
         sr = nodes.getNearestChildPos(aKey);
         Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
@@ -205,7 +207,9 @@ public class Node16Test {
         if (i == lastValue) {
           Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextLargerPos());
         } else {
-          Assertions.assertEquals(Byte.toUnsignedInt(key)+step, Byte.toUnsignedInt(nodes.getChildKey(sr.getNextLargerPos())));
+          int expect = Byte.toUnsignedInt(key) + step;
+          int result = Byte.toUnsignedInt(nodes.getChildKey(sr.getNextLargerPos()));
+          Assertions.assertEquals(expect, result);
         }
       }
     }
