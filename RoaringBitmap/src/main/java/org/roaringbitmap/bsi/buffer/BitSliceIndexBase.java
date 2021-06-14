@@ -399,11 +399,6 @@ public class BitSliceIndexBase {
      * this Function compose algorithm from O'Neil and Owen Kaser
      * the GE algorithm is from Owen since the performance is better.  others are from O'Neil
      *
-     * @param operation
-     * @param startOrValue, note:startOrValue >0
-     * @param end
-     * @param foundSet
-     * @return
      */
     public ImmutableRoaringBitmap compare(BitmapSliceIndex.Operation operation, int startOrValue, int end, ImmutableRoaringBitmap foundSet) {
         // todo whether we need this or not?
@@ -447,6 +442,7 @@ public class BitSliceIndexBase {
 
         Long sum = IntStream.range(0, this.bitCount())
                 .mapToLong(x -> (1 << x) * ImmutableRoaringBitmap.andCardinality(this.bA[x], foundSet))
+//        lgtm [java/integer-multiplication-cast-to-long]
                 .sum();
 
         return Pair.newPair(sum, count);
@@ -518,7 +514,8 @@ public class BitSliceIndexBase {
     }
 
     /**
-     * parallelIn search the given Set<Integer> values, we scan the bsi,if the value in values, we add it to result Bitmap
+     * parallelIn search the given Set<Integer> values, we scan the bsi,if the value in values,
+     * we add it to result Bitmap
      *
      * @param parallelism
      * @param foundSet
