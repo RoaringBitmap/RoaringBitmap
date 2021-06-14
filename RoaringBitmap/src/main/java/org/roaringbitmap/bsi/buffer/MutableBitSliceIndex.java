@@ -22,10 +22,10 @@ public class MutableBitSliceIndex extends BitSliceIndexBase implements BitmapSli
     /**
      * construct a new ImmutableBitSliceIndex from raw slice
      *
-     * @param maxValue
-     * @param minValue
-     * @param bA
-     * @param ebM
+     * @param maxValue max value for this bsi
+     * @param minValue min value for this bsi
+     * @param bA  bit slices for this bsi.using MutableRoaringBitmap array express
+     * @param ebM exits value bitmap,use MutableRoaringBitmap express
      */
     public MutableBitSliceIndex(int maxValue, int minValue, MutableRoaringBitmap[] bA, MutableRoaringBitmap ebM) {
         this.maxValue = maxValue;
@@ -76,8 +76,8 @@ public class MutableBitSliceIndex extends BitSliceIndexBase implements BitmapSli
     /**
      * auto expend the bA length.
      *
-     * @param newBitDepth
-     * @param oldBitDepth
+     * @param newBitDepth new bit depth
+     * @param oldBitDepth old bit depth
      */
     private void grow(int newBitDepth, int oldBitDepth) {
         MutableRoaringBitmap[] newBA = new MutableRoaringBitmap[newBitDepth];
@@ -135,8 +135,8 @@ public class MutableBitSliceIndex extends BitSliceIndexBase implements BitmapSli
     /**
      * SetValue sets a value for a given columnID.
      *
-     * @param columnId
-     * @param value
+     * @param columnId columnID
+     * @param value the value for columnID
      */
     public void setValue(int columnId, int value) {
         ensureCapacityInternal(0, value);
@@ -151,13 +151,6 @@ public class MutableBitSliceIndex extends BitSliceIndexBase implements BitmapSli
     }
 
 
-    /**
-     * add a value list<Pair<int,int>> to bsi. the max/min are optional which can be infer from the input list
-     *
-     * @param values:          value list, <columnId,value>
-     * @param currentMaxValue: the maxValue of current value list, optional
-     * @param currentMinValue: the maxValue of current value list, optional
-     */
     public void setValues(List<Pair<Integer, Integer>> values, Integer currentMaxValue, Integer currentMinValue) {
         OptionalInt maxValue = currentMaxValue != null ?
                 OptionalInt.of(currentMaxValue) : values.stream().mapToInt(Pair::getRight).max();
@@ -179,7 +172,6 @@ public class MutableBitSliceIndex extends BitSliceIndexBase implements BitmapSli
     /**
      * add tow bsi index
      *
-     * @param otherBsi
      */
     public void add(MutableBitSliceIndex otherBsi) {
 
@@ -198,7 +190,6 @@ public class MutableBitSliceIndex extends BitSliceIndexBase implements BitmapSli
      * merge API was designed for distributed computing
      * NOTE: current and other bsi have no intersection
      *
-     * @param otherBsi
      */
     public void merge(MutableBitSliceIndex otherBsi) {
 

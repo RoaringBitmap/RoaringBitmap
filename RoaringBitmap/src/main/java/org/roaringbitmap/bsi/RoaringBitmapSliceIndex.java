@@ -89,8 +89,8 @@ public class RoaringBitmapSliceIndex implements BitmapSliceIndex {
     public void runOptimize() {
         this.ebM.runOptimize();
 
-        for (int i = 0; i < this.bA.length; i++) {
-            bA[i].runOptimize();
+        for (RoaringBitmap integers : this.bA) {
+            integers.runOptimize();
         }
         this.runOptimized = true;
     }
@@ -288,11 +288,6 @@ public class RoaringBitmapSliceIndex implements BitmapSliceIndex {
         this.bA = newBA;
     }
 
-
-    /**
-     * @param values:          value list, <columnId,value>
-     * @param currentMaxValue: the maxValue of current value list, optional
-     */
     public void setValues(List<Pair<Integer, Integer>> values, Integer currentMaxValue, Integer currentMinValue) {
         int maxValue = currentMaxValue != null ? currentMaxValue : values.stream().mapToInt(Pair::getRight).max().getAsInt();
         int minValue = currentMinValue != null ? currentMinValue : values.stream().mapToInt(Pair::getRight).min().getAsInt();
@@ -307,7 +302,7 @@ public class RoaringBitmapSliceIndex implements BitmapSliceIndex {
      * merge API was designed for distributed computing
      * note: current and other bsi has no intersection
      *
-     * @param otherBsi
+     * @param otherBsi other bsi we need merge
      */
     public void merge(RoaringBitmapSliceIndex otherBsi) {
 
@@ -356,10 +351,10 @@ public class RoaringBitmapSliceIndex implements BitmapSliceIndex {
     /**
      * O'Neil range using a bit-sliced index
      *
-     * @param operation
-     * @param predicate
-     * @param foundSet
-     * @return ImmutableRoaringBitmap
+     * @param operation compare operation
+     * @param predicate the value we found filter
+     * @param foundSet  columnId set we want compare,using RoaringBitmap to express
+     * @return columnId set we found in this bsi with giving conditions, using RoaringBitmap to express
      * see https://github.com/lemire/BitSliceIndex/blob/master/src/main/java/org/roaringbitmap/circuits/comparator/BasicComparator.java
      */
     private RoaringBitmap oNeilCompare(BitmapSliceIndex.Operation operation, int predicate, RoaringBitmap foundSet) {
@@ -401,15 +396,16 @@ public class RoaringBitmapSliceIndex implements BitmapSliceIndex {
     }
 
     /**
-     * BSI Compare use single thread
+     * BSI Compare using single thread
      * this Function compose algorithm from O'Neil and Owen Kaser
      * the GE algorithm is from Owen since the performance is better.  others are from O'Neil
      *
      * @param operation
-     * @param startOrValue, note:startOrValue >0
-     * @param end
-     * @param foundSet
-     * @return
+     * @param startOrValue  the start or value of comparison, when the comparison operation is range, it's start,
+     *                      when others,it's value.
+     * @param end           the end value of comparison. when the comparison operation is not range,the end = 0
+     * @param foundSet      columnId set we want compare,using RoaringBitmap to express
+     * @return columnId set we found in this bsi with giving conditions, using RoaringBitmap to express
      */
     public RoaringBitmap compare(BitmapSliceIndex.Operation operation, int startOrValue, int end, RoaringBitmap foundSet) {
         // todo whether we need this or not?
