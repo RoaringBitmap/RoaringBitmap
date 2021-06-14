@@ -81,7 +81,7 @@ subprojects.filter { !listOf("jmh", "fuzz-tests", "examples", "simplebenchmark")
     }
 }
 
-subprojects.filter { listOf("RoaringBitmap", "shims").contains(it.name) }.forEach { project ->
+subprojects.filter { listOf("RoaringBitmap", "shims", "bsi").contains(it.name) }.forEach { project ->
     project.run {
         apply(plugin = "maven-publish")
         apply(plugin = "signing")
