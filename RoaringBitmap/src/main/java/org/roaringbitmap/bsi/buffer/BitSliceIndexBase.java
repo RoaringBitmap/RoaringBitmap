@@ -398,11 +398,12 @@ public class BitSliceIndexBase {
      * BSI Compare use single thread
      * this Function compose algorithm from O'Neil and Owen Kaser
      * the GE algorithm is from Owen since the performance is better.  others are from O'Neil
+     *
      * @param operation
-     * @param startOrValue  the start or value of comparison, when the comparison operation is range, it's start,
-     *                      when others,it's value.
-     * @param end           the end value of comparison. when the comparison operation is not range,the end = 0
-     * @param foundSet      columnId set we want compare,using RoaringBitmap to express
+     * @param startOrValue the start or value of comparison, when the comparison operation is range, it's start,
+     *                     when others,it's value.
+     * @param end          the end value of comparison. when the comparison operation is not range,the end = 0
+     * @param foundSet     columnId set we want compare,using RoaringBitmap to express
      * @return columnId set we found in this bsi with giving conditions, using RoaringBitmap to express
      */
     public ImmutableRoaringBitmap compare(BitmapSliceIndex.Operation operation, int startOrValue, int end, ImmutableRoaringBitmap foundSet) {
