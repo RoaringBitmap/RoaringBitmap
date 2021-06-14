@@ -1,6 +1,7 @@
 include(
         "RoaringBitmap",
         "shims",
+        "bsi",
         "fuzz-tests",
         "jmh",
         "real-roaring-dataset",
