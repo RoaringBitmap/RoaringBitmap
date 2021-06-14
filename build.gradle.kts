@@ -62,7 +62,7 @@ subprojects {
     }
 }
 
-subprojects.filter { !listOf("jmh", "fuzz-tests", "examples", "simplebenchmark").contains(it.name) }.forEach {
+subprojects.filter { !listOf("jmh", "fuzz-tests", "examples", "bsi", "simplebenchmark").contains(it.name) }.forEach {
     it.run {
         apply(plugin = "checkstyle")
 
