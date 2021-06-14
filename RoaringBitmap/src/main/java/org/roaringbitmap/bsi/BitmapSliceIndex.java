@@ -45,10 +45,10 @@ public interface BitmapSliceIndex {
      * set value for bsi, setValue will set each bit slice according to the input value
      * given that we have bsi as follow
      * ebm:    RB[1 1 1 1]
-     * slice0: RB[0 1 0 1]
-     * slice1: RB[1 0 1 0]
-     * slice1: RB[1 0 0 1]
-     * slice2: RB[0 0 0 1]   -------slice
+     * slice0: RB[0 1 0 1]   -
+     * slice1: RB[1 0 1 0]    |
+     * slice2: RB[1 0 0 1]    |--bA:bit slice Array
+     * slice3: RB[0 0 0 1]   -
      *            1 2 3 4
      *            |
      *            ---------------- columnId or rowId
