@@ -448,7 +448,7 @@ public class RoaringBitmapSliceIndex implements BitmapSliceIndex {
         long count = foundSet.getLongCardinality();
 
         Long sum = IntStream.range(0, this.bitCount())
-                .mapToLong(x -> (1 << x) * RoaringBitmap.andCardinality(this.bA[x], foundSet))
+                .mapToLong(x -> (long) (1 << x) * RoaringBitmap.andCardinality(this.bA[x], foundSet))
                 .sum();
 
         return Pair.newPair(sum, count);
