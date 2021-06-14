@@ -2510,6 +2510,143 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   @Override
+  public void forAll(int offset, final RelativeRangeConsumer rrc) {
+    int next = 0;
+    for (int run = 0; run < nbrruns; run++) {
+      int runPos = run << 1;
+      char runStart = valueslength[runPos];
+      char runLength = valueslength[runPos + 1];
+      if (next < runStart) {
+        // fill in missing values until runStart
+        rrc.acceptAllAbsent(offset + next, offset + runStart);
+      }
+      rrc.acceptAllPresent(offset + runStart, offset + runStart + runLength + 1);
+      next = runStart + runLength + 1;
+    }
+    if (next <= Character.MAX_VALUE) {
+      // fill in the remaining values until end
+      rrc.acceptAllAbsent(offset + next, offset + Character.MAX_VALUE + 1);
+    }
+  }
+
+  @Override
+  public void forAllFrom(char startValue, final RelativeRangeConsumer rrc) {
+    int startOffset = startValue;
+    int next = startValue;
+    for (int run = 0; run < nbrruns; run++) {
+      int runPos = run << 1;
+      char runStart = valueslength[runPos];
+      char runLength = valueslength[runPos + 1];
+      int runEnd = runStart + runLength;
+      if (runEnd < startValue) {
+        // skip forward
+        continue;
+      }
+
+      if (runStart < next) { // next == startValue
+        assert next == startValue; // TODO: remove
+        // start is somewhere within the run
+        rrc.acceptAllPresent(0, runStart + runLength + 1 - startOffset);
+      } else {
+        // start is before the run
+        if (next < runStart) {
+          // fill in missing values until runStart
+          rrc.acceptAllAbsent(next - startOffset, runStart - startOffset);
+        }
+        // take whole run
+        rrc.acceptAllPresent(runStart - startOffset, runStart + runLength + 1 - startOffset);
+      }
+      next = runStart + runLength + 1;
+    }
+    if (next <= Character.MAX_VALUE) {
+      // fill in the remaining values until end
+      rrc.acceptAllAbsent(next - startOffset, Character.MAX_VALUE + 1 - startOffset);
+    }
+  }
+
+  @Override
+  public void forAllUntil(int offset, char endValue, final RelativeRangeConsumer rrc) {
+    int next = 0;
+    for (int run = 0; run < nbrruns; run++) {
+      int runPos = run << 1;
+      char runStart = valueslength[runPos];
+      char runLength = valueslength[runPos + 1];
+      if (endValue <= runStart) {
+        // no more relevant values in this run or the following
+        break;
+      }
+      if (next < runStart) {
+        // fill in missing values until runStart
+        rrc.acceptAllAbsent(offset + next, offset + runStart);
+      }
+      int runEnd = runStart + runLength;
+      if (endValue < runEnd) {
+        // we end within this run
+        rrc.acceptAllPresent(offset + runStart, offset + endValue);
+        return;
+      }
+      rrc.acceptAllPresent(offset + runStart, offset + runEnd + 1); // runEnd is inclusive
+      next = runEnd + 1;
+    }
+    if (next < endValue) {
+      // fill in the remaining values until end
+      rrc.acceptAllAbsent(offset + next, offset + endValue);
+    }
+  }
+
+  @Override
+  public void forAllInRange(char startValue, char endValue, final RelativeRangeConsumer rrc) {
+    if (endValue <= startValue) {
+      throw new IllegalArgumentException(
+              "startValue (" + startValue + ") must be less than endValue (" + endValue + ")");
+    }
+    int startOffset = startValue;
+    int next = startValue;
+    for (int run = 0; run < nbrruns; run++) {
+      int runPos = run << 1;
+      char runStart = valueslength[runPos];
+      char runLength = valueslength[runPos + 1];
+      int runEnd = runStart + runLength;
+      if (runEnd < startValue) {
+        // skip forward
+        continue;
+      }
+      if (endValue <= runStart) {
+        // no more relevant values in this run or the following
+        break;
+      }
+      if (runStart < next) { // next == startValue
+        assert next == startValue; // TODO: remove
+        // start is somewhere within the run
+        if (endValue < runEnd) {
+          // we also end within this run
+          rrc.acceptAllPresent(0, endValue - startOffset);
+          return;
+        }
+        rrc.acceptAllPresent(0, runStart + runLength + 1 - startOffset);
+      } else {
+        // start is before the run
+        if (next < runStart) {
+          // fill in missing values until runStart
+          rrc.acceptAllAbsent(next - startOffset, runStart - startOffset);
+        }
+        if (endValue <= runEnd) {
+          // we end within this run
+          rrc.acceptAllPresent(runStart - startOffset, endValue - startOffset);
+          return;
+        }
+        // take whole run
+        rrc.acceptAllPresent(runStart - startOffset, runStart + runLength + 1 - startOffset);
+      }
+      next = runStart + runLength + 1;
+    }
+    if (next < endValue) {
+      // fill in the remaining values until end
+      rrc.acceptAllAbsent(next - startOffset, endValue - startOffset);
+    }
+  }
+
+  @Override
   public BitmapContainer toBitmapContainer() {
     int card = this.getCardinality();
     BitmapContainer answer = new BitmapContainer();

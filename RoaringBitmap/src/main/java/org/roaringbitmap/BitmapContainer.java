@@ -1412,8 +1412,243 @@ public final class BitmapContainer extends Container implements Cloneable {
     for (int x = 0; x < bitmap.length; ++x) {
       long w = bitmap[x];
       while (w != 0) {
-        ic.accept((x * 64 + numberOfTrailingZeros(w)) | high);
+        ic.accept(((x << 6) + numberOfTrailingZeros(w)) | high);
         w &= (w - 1);
+      }
+    }
+  }
+
+  @Override
+  public void forAll(int offset, final RelativeRangeConsumer rrc) {
+    for (int wordIndex = 0; wordIndex < bitmap.length; wordIndex++) {
+      long word = bitmap[wordIndex];
+      int bufferWordStart = offset + (wordIndex << 6);
+      int bufferWordEnd = bufferWordStart + 64;
+      addWholeWordToRangeConsumer(word, bufferWordStart, bufferWordEnd, rrc);
+    }
+  }
+
+  @Override
+  public void forAllFrom(char startValue, final RelativeRangeConsumer rrc) {
+    int startIndex = startValue >>> 6;
+    for (int wordIndex = startIndex; wordIndex < bitmap.length; wordIndex++) {
+      long word = bitmap[wordIndex];
+      int wordStart = wordIndex << 6;
+      int wordEnd = wordStart + 64;
+      if (wordStart < startValue) {
+        // startValue is in the middle of the word
+        // some special cases for efficiency
+        if (word == 0) {
+          rrc.acceptAllAbsent(0, wordEnd - startValue);
+        } else if (word == -1) { // all 1s
+          rrc.acceptAllPresent(0, wordEnd - startValue);
+        } else {
+          int nextPos = startValue;
+          while (word != 0) {
+            int pos = wordStart + numberOfTrailingZeros(word);
+            if (nextPos < pos) {
+              rrc.acceptAllAbsent(nextPos - startValue, pos - startValue);
+              rrc.acceptPresent(pos - startValue);
+              nextPos = pos + 1;
+            } else if (nextPos == pos) {
+              rrc.acceptPresent(pos - startValue);
+              nextPos++;
+            } // else just we out before startValue, so ignore
+            word &= (word - 1);
+          }
+          if (nextPos < wordEnd) {
+            rrc.acceptAllAbsent(nextPos - startValue, wordEnd - startValue);
+          }
+        }
+      } else {
+        // startValue is aligned with word
+        addWholeWordToRangeConsumer(word, wordStart - startValue, wordEnd - startValue, rrc);
+      }
+    }
+  }
+
+  @Override
+  public void forAllUntil(int offset, char endValue, final RelativeRangeConsumer rrc) {
+    int bufferEndPos = offset + endValue;
+    for (int wordIndex = 0; wordIndex < bitmap.length; wordIndex++) {
+      long word = bitmap[wordIndex];
+      int bufferWordStart = offset + (wordIndex << 6);
+      int bufferWordEnd = bufferWordStart + 64;
+      if (bufferWordStart >= bufferEndPos) {
+        return;
+      }
+      if (bufferEndPos < bufferWordEnd) {
+        // we end on this word
+
+        // some special cases for efficiency
+        if (word == 0) {
+          rrc.acceptAllAbsent(bufferWordStart, bufferEndPos);
+        } else if (word == -1) { // all 1s
+          rrc.acceptAllPresent(bufferWordStart, bufferEndPos);
+        } else {
+          int nextPos = bufferWordStart;
+          while (word != 0) {
+            int pos = bufferWordStart + numberOfTrailingZeros(word);
+            if (bufferEndPos <= pos) {
+              // we've moved past the end
+              if (nextPos < bufferEndPos) {
+                rrc.acceptAllAbsent(nextPos, bufferEndPos);
+              }
+              return;
+            }
+            if (nextPos < pos) {
+              rrc.acceptAllAbsent(nextPos, pos);
+              nextPos = pos;
+            }
+            rrc.acceptPresent(pos);
+            nextPos++;
+            word &= (word - 1);
+          }
+          if (nextPos < bufferEndPos) {
+            rrc.acceptAllAbsent(nextPos, bufferEndPos);
+          }
+          return;
+        }
+      } else {
+        addWholeWordToRangeConsumer(word, bufferWordStart, bufferWordEnd, rrc);
+      }
+    }
+  }
+
+  @Override
+  public void forAllInRange(char startValue, char endValue, final RelativeRangeConsumer rrc) {
+    if (endValue <= startValue) {
+      throw new IllegalArgumentException(
+          "startValue (" + startValue + ") must be less than endValue (" + endValue + ")");
+    }
+    int startIndex = startValue >>> 6;
+    for (int wordIndex = startIndex; wordIndex < bitmap.length; wordIndex++) {
+      long word = bitmap[wordIndex];
+      int wordStart = wordIndex << 6;
+      int wordEnd = wordStart + 64;
+
+      if (wordStart >= endValue) {
+        return;
+      }
+
+      boolean startInWord = wordStart < startValue;
+      boolean endInWord = endValue < wordEnd;
+      boolean wordAllZeroes = word == 0;
+      boolean wordAllOnes = word == -1;
+
+      if (startInWord && endInWord) {
+        if (wordAllZeroes) {
+          rrc.acceptAllAbsent(0, endValue - startValue);
+        } else if (wordAllOnes) {
+          rrc.acceptAllPresent(0, endValue - startValue);
+        } else {
+          int nextPos = startValue;
+          while (word != 0) {
+            int pos = wordStart + numberOfTrailingZeros(word);
+            if (endValue < pos) {
+              // we've moved past the end
+              if (nextPos < endValue) {
+                rrc.acceptAllAbsent(nextPos - startValue, endValue - startValue);
+              }
+              return;
+            }
+            if (nextPos < pos) {
+              rrc.acceptAllAbsent(nextPos - startValue, pos - startValue);
+              rrc.acceptPresent(pos - startValue);
+              nextPos = pos + 1;
+            } else if (nextPos == pos) {
+              rrc.acceptPresent(pos - startValue);
+              nextPos++;
+            }
+            word &= (word - 1);
+          }
+          if (nextPos < endValue) {
+            rrc.acceptAllAbsent(nextPos - startValue, endValue - startValue);
+          }
+        }
+        return;
+      } else if (startInWord) {
+        if (wordAllZeroes) {
+          rrc.acceptAllAbsent(0, 64 - startValue);
+        } else if (wordAllOnes) {
+          rrc.acceptAllPresent(0, 64 - startValue);
+        } else {
+          int nextPos = startValue;
+          while (word != 0) {
+            int pos = wordStart + numberOfTrailingZeros(word);
+            if (nextPos < pos) {
+              rrc.acceptAllAbsent(nextPos - startValue, pos - startValue);
+              rrc.acceptPresent(pos - startValue);
+              nextPos = pos + 1;
+            } else if (nextPos == pos) {
+              rrc.acceptPresent(pos - startValue);
+              nextPos++;
+            }
+            word &= (word - 1);
+          }
+          if (nextPos < wordEnd) {
+            rrc.acceptAllAbsent(nextPos - startValue, wordEnd - startValue);
+          }
+        }
+      } else if (endInWord) {
+        if (wordAllZeroes) {
+          rrc.acceptAllAbsent(wordStart - startValue, endValue - startValue);
+        } else if (wordAllOnes) {
+          rrc.acceptAllPresent(wordStart - startValue, endValue - startValue);
+        } else {
+          int nextPos = wordStart;
+          while (word != 0) {
+            int pos = wordStart + numberOfTrailingZeros(word);
+            if (endValue <= pos) {
+              // we've moved past the end
+              if (nextPos < endValue) {
+                rrc.acceptAllAbsent(nextPos - startValue, endValue - startValue);
+              }
+              return;
+            }
+            if (nextPos < pos) {
+              rrc.acceptAllAbsent(nextPos - startValue, pos - startValue);
+              nextPos = pos;
+            }
+            rrc.acceptPresent(pos - startValue);
+            nextPos++;
+            word &= (word - 1);
+          }
+          if (nextPos < endValue) {
+            rrc.acceptAllAbsent(nextPos - startValue, endValue - startValue);
+          }
+        }
+        return;
+      } else {
+        addWholeWordToRangeConsumer(word, wordStart - startValue, wordEnd - startValue, rrc);
+      }
+    }
+  }
+
+  private void addWholeWordToRangeConsumer(
+          long word,
+          int bufferWordStart,
+          int bufferWordEnd,
+          final RelativeRangeConsumer rrc) {
+    // some special cases for efficiency
+    if (word == 0) {
+      rrc.acceptAllAbsent(bufferWordStart, bufferWordEnd);
+    } else if (word == -1) { // all 1s
+      rrc.acceptAllPresent(bufferWordStart, bufferWordEnd);
+    } else {
+      int nextPos = bufferWordStart;
+      while (word != 0) {
+        int pos = bufferWordStart + numberOfTrailingZeros(word);
+        if (nextPos < pos) {
+          rrc.acceptAllAbsent(nextPos, pos);
+          nextPos = pos;
+        }
+        rrc.acceptPresent(pos);
+        nextPos++;
+        word &= (word - 1);
+      }
+      if (nextPos < bufferWordEnd) {
+        rrc.acceptAllAbsent(nextPos, bufferWordEnd);
       }
     }
   }
