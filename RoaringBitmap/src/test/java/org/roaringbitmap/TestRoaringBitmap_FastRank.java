@@ -510,4 +510,34 @@ public class TestRoaringBitmap_FastRank {
     assertEquals(42, fast.getLongSizeInBytes());
   }
 
+  // https://github.com/RoaringBitmap/RoaringBitmap/issues/498
+  @Test
+  public void testCacheIsNotReset() {
+    FastRankRoaringBitmap rankRoaringBitmap = new FastRankRoaringBitmap();
+    assertEquals(0, rankRoaringBitmap.rank(3));
+    rankRoaringBitmap.add(3);
+    rankRoaringBitmap.add(5);
+    assertEquals(3, rankRoaringBitmap.select(0));
+    assertEquals(5, rankRoaringBitmap.select(1));
+  }
+
+  // https://github.com/RoaringBitmap/RoaringBitmap/issues/499
+  @Test
+  public void testSelectExceptionOutOfBounds() {
+    // RoaringBitmap standard behavior
+    RoaringBitmap roaringBitmap = new RoaringBitmap();
+    roaringBitmap.add(3);
+    roaringBitmap.add(5);
+    assertEquals(5, roaringBitmap.select(roaringBitmap.getCardinality() - 1));
+    assertThrows(IllegalArgumentException.class, () -> roaringBitmap.select(roaringBitmap.getCardinality()));
+    assertThrows(IllegalArgumentException.class, () -> roaringBitmap.select(roaringBitmap.getCardinality() + 1));
+
+    // FastRankRoaringBitmap behavior has to be identical
+    FastRankRoaringBitmap rankRoaringBitmap = new FastRankRoaringBitmap();
+    rankRoaringBitmap.add(3);
+    rankRoaringBitmap.add(5);
+    assertEquals(5, rankRoaringBitmap.select(rankRoaringBitmap.getCardinality() - 1));
+    assertThrows(IllegalArgumentException.class, () -> rankRoaringBitmap.select(rankRoaringBitmap.getCardinality()));
+    assertThrows(IllegalArgumentException.class, () -> rankRoaringBitmap.select(rankRoaringBitmap.getCardinality() + 1));
+  }
 }
