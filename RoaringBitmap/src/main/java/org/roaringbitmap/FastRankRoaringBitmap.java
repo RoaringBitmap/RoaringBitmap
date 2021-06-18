@@ -35,7 +35,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
 
   private void resetCache() {
     // Reset the cache on any write operation
-    if (highToCumulatedCardinality != null && highToCumulatedCardinality.length >= 1) {
+    if (highToCumulatedCardinality != null) {
       // We tag the first bucket to indicate the cache is dismissed
       cumulatedCardinalitiesCacheIsValid = false;
     }
