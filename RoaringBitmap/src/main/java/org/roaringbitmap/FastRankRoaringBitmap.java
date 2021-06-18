@@ -35,10 +35,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
 
   private void resetCache() {
     // Reset the cache on any write operation
-    if (highToCumulatedCardinality != null && highToCumulatedCardinality.length >= 1) {
-      // We tag the first bucket to indicate the cache is dismissed
-      cumulatedCardinalitiesCacheIsValid = false;
-    }
+    cumulatedCardinalitiesCacheIsValid = false;
   }
 
   // VisibleForTesting
@@ -225,21 +222,28 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
           "select " + j + " when the cardinality is " + this.getCardinality());
     }
 
+    int maxCardinality = highToCumulatedCardinality[highToCumulatedCardinality.length - 1] - 1;
+    if (j == maxCardinality) {
+      // We select the total cardinality: we are selecting the last element of the last bucket
+      return this.last();
+    } else if (j > maxCardinality) {
+      throw new IllegalArgumentException(
+              "select " + j + " when the cardinality is " + this.getCardinality());
+    }
+
     int index = Arrays.binarySearch(highToCumulatedCardinality, j);
 
     int fixedIndex;
 
     long leftover = Util.toUnsignedLong(j);
 
-    if (index == highToCumulatedCardinality.length - 1) {
-      // We select the total cardinality: we are selecting the last element
-      return this.last();
-    } else if (index >= 0) {
-      // We selected a cumulated cardinality: we are selecting the last element of given bucket
+    if (index >= 0) {
+      // We selected exactly a cumulated cardinality:
+      // we are selecting the first element of next bucket
       int keycontrib = this.highLowContainer.getKeyAtIndex(index + 1) << 16;
 
       // If first bucket has cardinality 1 and we select 1: we actual select the first item of
-      // second bucket
+      // next bucket
       int output = keycontrib + this.highLowContainer.getContainerAtIndex(index + 1).first();
 
       return output;
