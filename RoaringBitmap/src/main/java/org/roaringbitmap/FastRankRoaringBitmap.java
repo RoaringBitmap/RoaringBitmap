@@ -223,7 +223,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
     }
 
     int maxCardinality = highToCumulatedCardinality[highToCumulatedCardinality.length - 1] - 1;
-    if (j == highToCumulatedCardinality[highToCumulatedCardinality.length - 1] - 1) {
+    if (j == maxCardinality) {
       // We select the total cardinality: we are selecting the last element of the last bucket
       return this.last();
     } else if (j > maxCardinality) {
