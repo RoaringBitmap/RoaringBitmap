@@ -238,7 +238,8 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
     long leftover = Util.toUnsignedLong(j);
 
     if (index >= 0) {
-      // We selected exactly a cumulated cardinality: we are selecting the first element of next bucket
+      // We selected exactly a cumulated cardinality:
+      // we are selecting the first element of next bucket
       int keycontrib = this.highLowContainer.getKeyAtIndex(index + 1) << 16;
 
       // If first bucket has cardinality 1 and we select 1: we actual select the first item of
