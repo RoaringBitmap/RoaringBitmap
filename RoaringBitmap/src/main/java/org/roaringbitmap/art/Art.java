@@ -128,7 +128,7 @@ public class Art {
     }
     if (node.prefixLength > 0) {
       int mismatchIndex = ArraysShim.mismatch(node.prefix, 0,
-          node.prefixLength, key, dep, node.prefixLength);
+          node.prefixLength, key, dep, dep + node.prefixLength);
       if (mismatchIndex != -1) {
         return null;
       }
