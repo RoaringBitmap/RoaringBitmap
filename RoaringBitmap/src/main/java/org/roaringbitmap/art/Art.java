@@ -127,9 +127,11 @@ public class Art {
       }
     }
     if (node.prefixLength > 0) {
-      int mismatchIndex = ArraysShim.mismatch(node.prefix, 0,
-          node.prefixLength, key, dep, node.prefixLength);
-      if (mismatchIndex != -1) {
+      int commonLength = commonPrefixLength(
+          key, dep, key.length,
+          node.prefix, 0, node.prefixLength
+      );
+      if (commonLength != node.prefixLength) {
         return null;
       }
       dep += node.prefixLength;

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.function.Executable;
@@ -800,6 +801,28 @@ public class TestRoaring64Bitmap {
 
     assertEquals(1, left.getLongCardinality());
     assertEquals(123, left.select(0));
+  }
+
+  @Test
+  public void testAndDisjoint() {
+    // There are no shared values between these maps.
+    final long[] leftData = new long[]{1076595327100L, 1074755534972L, 5060192403580L, 5060308664444L};
+    final long[] rightData = new long[]{3470563844L};
+
+    Roaring64Bitmap left = Roaring64Bitmap.bitmapOf(leftData);
+    Roaring64Bitmap right = Roaring64Bitmap.bitmapOf(rightData);
+
+    left.and(right);
+
+    Roaring64Bitmap swapLeft = Roaring64Bitmap.bitmapOf(rightData);
+    Roaring64Bitmap swapRight = Roaring64Bitmap.bitmapOf(leftData);
+
+    swapLeft.and(swapRight);
+
+    assertEquals(0, left.getLongCardinality());
+    assertEquals(0, swapLeft.getLongCardinality());
+    assertThrows(IllegalArgumentException.class, () -> left.select(0));
+    assertThrows(IllegalArgumentException.class, () -> swapLeft.select(0));
   }
 
   @Test
