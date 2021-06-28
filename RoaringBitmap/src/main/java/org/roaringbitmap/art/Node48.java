@@ -143,6 +143,9 @@ public class Node48 extends Node {
     if (pos == ILLEGAL_IDX) {
       pos = 256;
     }
+    if (pos == 0) {
+      return ILLEGAL_IDX;
+    }
     pos--;
     int i = pos >>> INDEX_SHIFT;
     for (; i >= 0; i--) {
