@@ -371,6 +371,15 @@ public class Node48Test {
   }
 
   @Test
+  public void testGetNextPosShouldNotThrowOnLegalInputs() {
+    Node node = new Node48(0);
+    for (int key = 0; key < 256; key++) {
+      Assertions.assertEquals(Node.ILLEGAL_IDX, node.getNextSmallerPos(key));
+      Assertions.assertEquals(Node.ILLEGAL_IDX, node.getNextLargerPos(key));
+    }
+  }
+
+  @Test
   public void testSetOneByte() {
     long[] longs = new long[Node48.LONGS_USED];
 
