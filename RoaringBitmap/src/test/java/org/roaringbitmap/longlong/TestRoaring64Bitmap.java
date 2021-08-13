@@ -8,25 +8,26 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.google.common.io.Files;
+import com.google.common.io.LineProcessor;
 import org.junit.jupiter.api.function.Executable;
 import static org.roaringbitmap.Util.toUnsignedLong;
 
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.RoaringBitmapWriter;
 import org.roaringbitmap.ValidationRangeConsumer;
 import static org.roaringbitmap.ValidationRangeConsumer.Value.ABSENT;
 import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
@@ -2097,5 +2098,61 @@ public class TestRoaring64Bitmap {
     bitmap.forAllInRange(2500, 1000, consumer3);
     consumer3.assertAllAbsentExcept(new int[] {3000 - 2500});
     assertEquals(1000, consumer3.getNumberOfValuesConsumed());
+  }
+
+  // https://github.com/RoaringBitmap/RoaringBitmap/issues/507
+  @Test
+  public void testIssue507_AIOOBWhileIterating() {
+    String classPathResource = "src/test/resources/testdata/testIssue507.txt";
+
+    Roaring64Bitmap original = new Roaring64Bitmap();
+    try {
+      Files.readLines(new File(classPathResource), StandardCharsets.UTF_8, new LineProcessor<Object>() {
+
+        @Override
+        public boolean processLine(String line) throws IOException {
+          String[] longs = line.split(",");
+
+          Stream.of(longs).mapToLong(Long::parseLong).forEach(original::add);
+          return true;
+        }
+
+        @Override
+        public Object getResult() {
+          return null;
+        }
+      });
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    System.out.println("Original cardinality: " + original.getLongCardinality());
+
+    Roaring64Bitmap clone = Roaring64Bitmap.bitmapOf();
+    try {
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      DataOutputStream dataOutputStream = new DataOutputStream(baos);
+      original.serialize(dataOutputStream);
+
+      DataInputStream dataInputStream = new DataInputStream(new ByteArrayInputStream(baos.toByteArray()));
+      clone.deserialize(dataInputStream);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+    System.out.println("Clone cardinality: " + clone.getLongCardinality());
+
+    PeekableLongIterator longIterator = clone.getLongIterator();
+
+    int manualCardinality = 0;
+
+    try {
+      while(longIterator.hasNext()) {
+        longIterator.next();
+        manualCardinality++;
+      }
+    } catch (RuntimeException e) {
+      throw new RuntimeException("Issue on manualCardinality=" + manualCardinality, e);
+    }
+
+    System.out.println("Manual Clone cardinality: " + manualCardinality);
   }
 }
