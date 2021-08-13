@@ -8,7 +8,7 @@ import org.roaringbitmap.longlong.LongUtils;
  */
 public abstract class AbstractShuttle implements Shuttle {
 
-  protected static final int MAX_DEPTH = 6;
+  protected static final int MAX_DEPTH = 7;
   protected NodeEntry[] stack = new NodeEntry[MAX_DEPTH];
   //started from 0
   protected int depth = -1;
