@@ -31,14 +31,15 @@ public class IntegerUtil {
   /**
    * set a specified position byte to another value to return a fresh integer
    * @param v the input integer value
-   * @param bv the byte value to replace
-   * @param pos the position of an 8 byte array to replace
+   * @param bv the byte value to insert
+   * @param pos the position of an 4 byte array to replace
    * @return a fresh integer after a specified position byte been replaced
    */
   public static int setByte(int v, byte bv, int pos) {
-    byte[] bytes = toBDBytes(v);
-    bytes[pos] = bv;
-    return fromBDBytes(bytes);
+    int i = ((3 - pos) << 3);
+    v &= ~(0xFF << i);
+    v |= (bv & 0xFF) << i;
+    return v;
   }
 
   /**
