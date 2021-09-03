@@ -552,6 +552,15 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   }
 
   /**
+   * @see #add(long, long)
+   */
+  public static RoaringBitmap bitmapOfRange(long min, long max) {
+    RoaringBitmap bitmap = new RoaringBitmap();
+    bitmap.add(min, max);
+    return bitmap;
+  }
+
+  /**
    * Complements the bits in the given range, from rangeStart (inclusive) rangeEnd (exclusive). The
    * given bitmap is unchanged.
    *

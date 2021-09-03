@@ -66,6 +66,20 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
   public abstract boolean isFull();
 
   /**
+   * Computes the union of this container with the bits present in the array,
+   * modifying the array.
+   * @param bits a 1024 element array to be interpreted as a bit set
+   */
+  public abstract void orInto(long[] bits);
+
+  /**
+   * Computes the intersection of this container with the bits present in the array,
+   * modifying the array.
+   * @param bits a 1024 element array to be interpreted as a bit set
+   */
+  public abstract void andInto(long[] bits);
+
+  /**
    * Computes the bitwise AND of this container with another (intersection). This container as well
    * as the provided container are left unaffected.
    * 

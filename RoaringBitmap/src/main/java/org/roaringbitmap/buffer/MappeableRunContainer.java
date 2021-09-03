@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
+import static org.roaringbitmap.Util.*;
 import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
 
 /**
@@ -1556,6 +1557,27 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   @Override
   public boolean isFull() {
     return (this.nbrruns == 1) && (this.getValue(0) == 0) && (this.getLength(0) == 0xFFFF);
+  }
+
+  @Override
+  public void orInto(long[] bits) {
+    for (int r = 0; r < numberOfRuns(); ++r) {
+      int start = this.valueslength.charAt(r << 1);
+      int length = this.valueslength.charAt((r << 1) + 1);
+      setBitmapRange(bits, start, start + length + 1);
+    }
+  }
+
+  @Override
+  public void andInto(long[] bits) {
+    int prev = 0;
+    for (int r = 0; r < numberOfRuns(); ++r) {
+      int start = this.valueslength.charAt(r << 1);
+      int length = this.valueslength.charAt((r << 1) + 1);
+      resetBitmapRange(bits, prev, start);
+      prev = start + length + 1;
+    }
+    resetBitmapRange(bits, prev, MAX_CAPACITY);
   }
 
   public static MappeableRunContainer full() {

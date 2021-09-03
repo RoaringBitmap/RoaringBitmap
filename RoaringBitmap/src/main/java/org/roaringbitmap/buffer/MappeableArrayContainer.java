@@ -16,6 +16,7 @@ import java.nio.CharBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
 
 
 /**
@@ -244,6 +245,26 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   @Override
   public boolean isFull() {
     return false;
+  }
+
+  @Override
+  public void orInto(long[] bits) {
+    for (int i = 0; i < this.getCardinality(); ++i) {
+      char value = content.get(i);
+      bits[value >>> 6] |= (1L << value);
+    }
+  }
+
+  @Override
+  public void andInto(long[] bits) {
+    int prev = 0;
+    for (int i = 0; i < this.getCardinality(); ++i) {
+      int value = content.get(i);
+      Util.resetBitmapRange(bits, prev, value);
+      bits[value >>> 6] &= (1L << value);
+      prev = value + 1;
+    }
+    Util.resetBitmapRange(bits, prev, MAX_CAPACITY);
   }
 
   private int advance(CharIterator it) {

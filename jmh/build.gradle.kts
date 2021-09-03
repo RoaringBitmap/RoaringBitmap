@@ -33,6 +33,7 @@ dependencies {
     // tests and benchmarks both need dependencies: javaEWAH, extendedset, etc.
     listOf(
             project(":RoaringBitmap"),
+            project(":bsi"),
             "com.google.guava:guava:${deps["guava"]}",
             "com.googlecode.javaewah:JavaEWAH:1.0.8",
             "it.uniroma3.mat:extendedset:1.3.4",
