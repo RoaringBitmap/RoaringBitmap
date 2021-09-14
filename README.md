@@ -347,6 +347,47 @@ bits of a set of elements.
     b1.and(bitmap2);
 ```
 
+Range Bitmaps
+-------------
+
+`RangeBitmap` is a succinct data structure supporting range queries.
+Each value added to the bitmap is associated with an incremental identifier,
+and queries produce a `RoaringBitmap` of the identifiers associated with values
+that satisfy the query. Every value added to the bitmap is stored separately, 
+so that if a value is added twice, it will be stored twice, and if that value 
+is less than some threshold, there will be at least two integers in the resultant
+`RoaringBitmap`.
+
+It is more efficient - in terms of both time and space - to 
+provide a maximum value. If you don't know the maximum value,
+provide a `Long.MAX_VALUE`. Unsigned order is used like elsewhere in
+the library.
+
+```java
+var appender = RangeBitmap.appender(1_000_000);
+appender.add(1L);
+appender.add(1L);
+appender.add(100_000L);
+RangeBitmap bitmap = appender.build();
+RoaringBitmap lessThan5 = bitmap.lt(5); // {0,1}
+RoaringBitmap greaterThanOrEqualTo1 = bitmap.gte(1); // {0, 1, 2}
+RoaringBitmap greaterThan1 = bitmap.gt(1); // {2}
+```
+
+`RangeBitmap` is can be written to disk and memory mapped:
+
+```java
+var appender = RangeBitmap.appender(1_000_000);
+appender.add(1L);
+appender.add(1L);
+appender.add(100_000L);
+ByteBuffer buffer = mapBuffer(appender.serializedSizeInBytes());
+appender.serialize(buffer);
+RangeBitmap bitmap = RangeBitmap.map(buffer);
+```
+
+The serialization format uses little endian byte order.
+
 Prerequisites
 -------------
 
