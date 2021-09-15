@@ -14,6 +14,7 @@ import java.util.function.IntFunction;
 
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
 import static org.roaringbitmap.Util.resetBitmapRange;
+import static org.roaringbitmap.Util.setBitmapRange;
 
 /**
  * A 2D bitmap which associates values with a row index and can perform range queries.
@@ -28,8 +29,9 @@ public final class RangeBitmap {
 
   /**
    * Append values to the RangeBitmap before sealing it.
-   * @param maxValue the maximum value to be appended, values larger than this
-   *                 value will be rejected.
+   *
+   * @param maxValue       the maximum value to be appended, values larger than this
+   *                       value will be rejected.
    * @param bufferSupplier provides ByteBuffers.
    * @return an appender.
    */
@@ -39,14 +41,23 @@ public final class RangeBitmap {
     return new Appender(maxValue, bufferSupplier, cleaner);
   }
 
+  /**
+   * Append values to the RangeBitmap before sealing it, defaults to on heap ByteBuffers.
+   *
+   * @param maxValue       the maximum value to be appended, values larger than this
+   *                       value will be rejected.
+   * @return an appender.
+   */
   public static Appender appender(long maxValue) {
     return appender(maxValue,
-        capacity -> ByteBuffer.allocate(capacity).order(LITTLE_ENDIAN), b -> {});
+        capacity -> ByteBuffer.allocate(capacity).order(LITTLE_ENDIAN), b -> {
+        });
   }
 
   /**
    * Maps the RangeBitmap from the buffer with minimal allocation.
    * The buffer must not be reused while the mapped RangeBitmap is live.
+   *
    * @param buffer a buffer containing a serialized RangeBitmap.
    * @return a RangeBitmap backed by the buffer.
    */
@@ -68,7 +79,7 @@ public final class RangeBitmap {
     int masksOffset = source.position();
     int containersOffset = masksOffset + (maxKey + 1) * (sliceCount >>> 3);
     return new RangeBitmap(mask, maxRid,
-        (ByteBuffer)source.position(buffer.position()), masksOffset, containersOffset);
+        (ByteBuffer) source.position(buffer.position()), masksOffset, containersOffset);
   }
 
   private final ByteBuffer buffer;
@@ -87,6 +98,7 @@ public final class RangeBitmap {
 
   /**
    * Returns a RoaringBitmap of rows which have a value less than or equal to the threshold.
+   *
    * @param threshold the inclusive maximum value.
    * @return a bitmap of matching rows.
    */
@@ -96,6 +108,7 @@ public final class RangeBitmap {
 
   /**
    * Returns a RoaringBitmap of rows which have a value less than the threshold.
+   *
    * @param threshold the exclusive maximum value.
    * @return a bitmap of matching rows.
    */
@@ -105,6 +118,7 @@ public final class RangeBitmap {
 
   /**
    * Returns a RoaringBitmap of rows which have a value greater than the threshold.
+   *
    * @param threshold the exclusive minimum value.
    * @return a bitmap of matching rows.
    */
@@ -114,6 +128,7 @@ public final class RangeBitmap {
 
   /**
    * Returns a RoaringBitmap of rows which have a value greater than or equal to the threshold.
+   *
    * @param threshold the inclusive minimum value.
    * @return a bitmap of matching rows.
    */
@@ -135,43 +150,55 @@ public final class RangeBitmap {
     boolean empty = true;
     while (remaining > 0) {
       long containerMask = this.buffer.getLong(mPos) & mask;
-      // the first slice is special: if the threshold includes this slice,
-      // fill the buffer, otherwise copy the slice
-      if ((threshold & 1) == 1) {
-        if (remaining >= 0x10000) {
-          Arrays.fill(bits, -1L);
-        } else {
-          Util.setBitmapRange(bits, 0, (int)remaining);
-          if (!empty) {
-            resetBitmapRange(bits, (int) remaining, 0x10000);
+      // most significant absent bit in the threshold for which there is no container;
+      // everything before this is wasted work, so we just skip over the containers
+      int skip = 64 - Long.numberOfLeadingZeros(((~threshold & ~containerMask) & mask));
+      int slice = 0;
+      if (skip > 0) {
+        for (; slice < skip; ++slice) {
+          if (((containerMask >>> slice) & 1) == 1) {
+            skipContainer(containers);
           }
         }
-        if ((containerMask & 1) == 1) {
-          skipContainer(containers);
-        }
-        empty = false;
-      } else {
         if (!empty) {
           Arrays.fill(bits, 0L);
           empty = true;
         }
-        if ((containerMask & 1) == 1) {
-          if ((threshold & 1) == 0) {
-            nextContainer(containers).orInto(bits);
-            empty = false;
+      } else {
+        // the first slice is special: if the threshold includes this slice,
+        // fill the buffer, otherwise copy the slice
+        if ((threshold & 1) == 1) {
+          if (remaining >= 0x10000) {
+            Arrays.fill(bits, -1L);
           } else {
+            setBitmapRange(bits, 0, (int) remaining);
+            if (!empty) {
+              resetBitmapRange(bits, (int) remaining, 0x10000);
+            }
+          }
+          if ((containerMask & 1) == 1) {
             skipContainer(containers);
           }
-        }
-      }
-      for (int i = 1; i < Long.bitCount(mask); ++i) {
-        switch ((int) (((threshold >>> i) & 1) | ((containerMask >>> (i - 1)) & 2))) {
-          case 0: // bit absent from threshold, no container
-            if (!empty) {
-              Arrays.fill(bits, 0L);
-              empty = true;
+          empty = false;
+        } else {
+          if (!empty) {
+            Arrays.fill(bits, 0L);
+            empty = true;
+          }
+          if ((containerMask & 1) == 1) {
+            if ((threshold & 1) == 0) {
+              nextContainer(containers).orInto(bits);
+              empty = false;
+            } else {
+              skipContainer(containers);
             }
-            break;
+          }
+        }
+        slice++;
+      }
+      for (; slice < Long.bitCount(mask); ++slice) {
+        switch ((int) (((threshold >>> slice) & 1) | ((containerMask >>> (slice - 1)) & 2))) {
+          case 0: // bit absent from threshold, no container
           case 1: // bit present in threshold but no container, nothing to include
             break;
           case 2: // bit present in container, absent from threshold, filter
@@ -189,7 +216,7 @@ public final class RangeBitmap {
         }
       }
       if (!upper) {
-        Util.flipBitmapRange(bits,0, Math.min(0x10000, (int)remaining));
+        Util.flipBitmapRange(bits, 0, Math.min(0x10000, (int) remaining));
         empty = false;
       }
       if (!empty) {
@@ -209,13 +236,13 @@ public final class RangeBitmap {
     int type = buffer.get();
     int size = buffer.getChar() & 0xFFFF;
     if (type == BITMAP) {
-      LongBuffer lb = ((ByteBuffer)buffer.slice()
+      LongBuffer lb = ((ByteBuffer) buffer.slice()
           .order(LITTLE_ENDIAN).limit(BITMAP_SIZE)).asLongBuffer();
       buffer.position(buffer.position() + BITMAP_SIZE);
       return new MappeableBitmapContainer(lb, size);
     } else {
       int skip = size << (type == RUN ? 2 : 1);
-      CharBuffer cb = ((ByteBuffer)buffer.slice().order(LITTLE_ENDIAN).limit(skip)).asCharBuffer();
+      CharBuffer cb = ((ByteBuffer) buffer.slice().order(LITTLE_ENDIAN).limit(skip)).asCharBuffer();
       buffer.position(buffer.position() + skip);
       return type == RUN
           ? new MappeableRunContainer(cb, size)
@@ -267,6 +294,7 @@ public final class RangeBitmap {
 
     /**
      * Converts the appender into an immutable range index.
+     *
      * @param supplier provides an appropriate ByteBuffer to store into
      * @return a queriable RangeBitmap
      */
@@ -284,6 +312,7 @@ public final class RangeBitmap {
 
     /**
      * Converts the appender into an immutable range index, using the supplied ByteBuffer.
+     *
      * @param buffer a little endian buffer which must have sufficient capacity for the appended
      *               values.
      * @return a queriable RangeBitmap
@@ -309,6 +338,7 @@ public final class RangeBitmap {
 
     /**
      * Returns the size of the RangeBitmap on disk.
+     *
      * @return the serialized size in bytes.
      */
     public int serializedSizeInBytes() {
@@ -331,8 +361,9 @@ public final class RangeBitmap {
      * Serializes the bitmap to the buffer without materialising it.
      * The user should call {@see serializedSizeInBytes} to size the
      * buffer appropriately.
-     *
+     * <p>
      * It is not guaranteed that all values will be written
+     *
      * @param buffer expected to be large enough to contain the bitmap.
      */
     public void serialize(ByteBuffer buffer) {
@@ -344,14 +375,14 @@ public final class RangeBitmap {
           ? buffer
           : buffer.slice().order(LITTLE_ENDIAN);
       target.putChar((char) COOKIE);
-      target.put((byte)2);
-      target.put((byte)Long.bitCount(rangeMask));
-      target.putChar((char)key);
+      target.put((byte) 2);
+      target.put((byte) Long.bitCount(rangeMask));
+      target.putChar((char) key);
       target.putInt(rid);
       int spaceForKeys = (key + 1) * (Long.bitCount(rangeMask) >>> 3);
-      target.put(((ByteBuffer)maskBuffer.slice()
+      target.put(((ByteBuffer) maskBuffer.slice()
           .order(LITTLE_ENDIAN).limit(spaceForKeys)));
-      target.put(((ByteBuffer)containers.slice()
+      target.put(((ByteBuffer) containers.slice()
           .order(LITTLE_ENDIAN).limit(serializedContainerSize)));
       if (buffer != target) {
         buffer.position(target.position());
@@ -360,6 +391,7 @@ public final class RangeBitmap {
 
     /**
      * Adds the value and associates it with the current row index.
+     *
      * @param value the value, will be rejected if greater than max value.
      */
     public void add(long value) {
