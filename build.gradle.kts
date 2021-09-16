@@ -3,7 +3,7 @@ import java.time.Duration
 
 plugins {
     id("net.researchgate.release") version "2.8.1"
-    id("io.github.gradle-nexus.publish-plugin") version "1.0.0"
+    id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
     id("com.github.kt3k.coveralls") version "2.8.4" apply false
     id("com.github.ben-manes.versions") version "0.38.0"
 }
