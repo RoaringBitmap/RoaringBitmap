@@ -261,7 +261,6 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     for (int i = 0; i < this.getCardinality(); ++i) {
       int value = content.get(i);
       Util.resetBitmapRange(bits, prev, value);
-      bits[value >>> 6] &= (1L << value);
       prev = value + 1;
     }
     Util.resetBitmapRange(bits, prev, MAX_CAPACITY);

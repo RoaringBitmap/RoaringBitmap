@@ -1562,8 +1562,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   @Override
   public void orInto(long[] bits) {
     for (int r = 0; r < numberOfRuns(); ++r) {
-      int start = this.valueslength.charAt(r << 1);
-      int length = this.valueslength.charAt((r << 1) + 1);
+      int start = this.valueslength.get(r << 1);
+      int length = this.valueslength.get((r << 1) + 1);
       setBitmapRange(bits, start, start + length + 1);
     }
   }
@@ -1572,8 +1572,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   public void andInto(long[] bits) {
     int prev = 0;
     for (int r = 0; r < numberOfRuns(); ++r) {
-      int start = this.valueslength.charAt(r << 1);
-      int length = this.valueslength.charAt((r << 1) + 1);
+      int start = this.valueslength.get(r << 1);
+      int length = this.valueslength.get((r << 1) + 1);
       resetBitmapRange(bits, prev, start);
       prev = start + length + 1;
     }

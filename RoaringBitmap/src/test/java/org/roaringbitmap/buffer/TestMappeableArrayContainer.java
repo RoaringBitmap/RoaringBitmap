@@ -10,6 +10,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.CharBuffer;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -674,6 +675,42 @@ public class TestMappeableArrayContainer {
     assertEquals(((1 << 15) | 6), container.nextAbsentValue((char)((1 << 15) | 6)));
     assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 7)));
     assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 8)));
+  }
+
+  @Test
+  public void testAndInto() {
+    long[] bits = new long[1024];
+    Arrays.fill(bits, 0xAAAAAAAAAAAAAAAAL);
+    MappeableArrayContainer container = new MappeableArrayContainer();
+    for (int i = 1; i < 64; i += 2) {
+      container.add((char) i);
+    }
+    container.andInto(bits);
+    assertEquals(0xAAAAAAAAAAAAAAAAL, bits[0]);
+    container = new MappeableArrayContainer();
+    for (int i = 0; i < 64; i += 2) {
+      container.add((char) i);
+    }
+    container.andInto(bits);
+    assertEquals(0L, bits[0]);
+  }
+
+  @Test
+  public void testOrInto() {
+    long[] bits = new long[1024];
+    Arrays.fill(bits, 0xAAAAAAAAAAAAAAAAL);
+    MappeableArrayContainer container = new MappeableArrayContainer();
+    for (int i = 1; i < 64; i += 2) {
+      container.add((char) i);
+    }
+    container.orInto(bits);
+    assertEquals(0xAAAAAAAAAAAAAAAAL, bits[0]);
+    container = new MappeableArrayContainer();
+    for (int i = 0; i < 64; i += 2) {
+      container.add((char) i);
+    }
+    container.orInto(bits);
+    assertEquals(-1L, bits[0]);
   }
 
   private static int lower16Bits(int x) {
