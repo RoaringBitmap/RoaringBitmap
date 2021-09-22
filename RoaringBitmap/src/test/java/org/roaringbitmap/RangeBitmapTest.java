@@ -10,8 +10,10 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.function.DoubleToLongFunction;
 import java.util.function.IntFunction;
 import java.util.function.LongSupplier;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
@@ -71,7 +73,6 @@ public class RangeBitmapTest {
     RangeBitmap range = appender.build();
     RoaringBitmap expected = new RoaringBitmap();
     assertEquals(expected, range.lt(0));
-    assertEquals(expected, range.lt(-1));
   }
 
   @Test
@@ -274,6 +275,64 @@ public class RangeBitmapTest {
     assertAll(IntStream.range(0, 7).mapToObj(i -> () -> assertEquals(all, RoaringBitmap.or((sut.lte((long) Math.pow(10, i))), sut.gt((long) Math.pow(10, i))))));
     assertAll(IntStream.range(0, 7).mapToObj(i -> () -> assertEquals(all, RoaringBitmap.or((sut.lt((long) Math.pow(10, i))), sut.gte((long) Math.pow(10, i))))));
     assertAll(IntStream.range(0, 7).mapToObj(i -> () -> assertEquals(RoaringBitmap.andNot(all, precomputed[i]), sut.gt((long) Math.pow(10, i)))));
+  }
+
+  @Test
+  public void testExtremeValues() {
+    RangeBitmap.Appender appender = RangeBitmap.appender(-1L);
+    appender.add(0L);
+    appender.add(Long.MIN_VALUE);
+    appender.add(-1L);
+    RangeBitmap bitmap = appender.build();
+    assertEquals(RoaringBitmap.bitmapOf(), bitmap.gt(-1L));
+    assertEquals(RoaringBitmap.bitmapOf(2), bitmap.gte(-1L));
+    assertEquals(RoaringBitmap.bitmapOf(0, 1, 2), bitmap.lte(-1L));
+    assertEquals(RoaringBitmap.bitmapOf(0, 1), bitmap.lte(-2L));
+    assertEquals(RoaringBitmap.bitmapOf(0, 1), bitmap.lt(-1L));
+    assertEquals(RoaringBitmap.bitmapOf(0, 1), bitmap.lt(-2L));
+    assertEquals(RoaringBitmap.bitmapOf(0, 1), bitmap.lte(Long.MIN_VALUE));
+    assertEquals(RoaringBitmap.bitmapOf(0), bitmap.lt(Long.MIN_VALUE));
+    assertEquals(RoaringBitmap.bitmapOf(2), bitmap.gt(Long.MIN_VALUE));
+    assertEquals(RoaringBitmap.bitmapOf(1, 2), bitmap.gte(Long.MIN_VALUE));
+    assertEquals(RoaringBitmap.bitmapOf(0), bitmap.lte(0));
+    assertEquals(RoaringBitmap.bitmapOf(), bitmap.lt(0));
+    assertEquals(RoaringBitmap.bitmapOf(0, 1, 2), bitmap.gte(0));
+    assertEquals(RoaringBitmap.bitmapOf(1, 2), bitmap.gt(0));
+  }
+
+  @Test
+  public void testIndexDoubleValues() {
+    // creates very large integer values so stresses edge cases in the top slice
+    DoubleToLongFunction encoder = value -> {
+      if (value == Double.NEGATIVE_INFINITY) {
+        return 0;
+      }
+      if (value == Double.POSITIVE_INFINITY || Double.isNaN(value)) {
+        return 0xFFFFFFFFFFFFFFFFL;
+      }
+      long bits = Double.doubleToLongBits(value);
+      if ((bits & Long.MIN_VALUE) == Long.MIN_VALUE) {
+        bits = bits == Long.MIN_VALUE ? Long.MIN_VALUE : ~bits;
+      } else {
+        bits ^= Long.MIN_VALUE;
+      }
+      return bits;
+    };
+    RangeBitmap.Appender appender = RangeBitmap.appender(-1L);
+    double[] doubles = IntStream.range(0, 200).mapToDouble(i -> Math.pow(-1, i) * Math.pow(10, i)).toArray();
+    Arrays.stream(doubles).mapToLong(encoder).forEach(appender::add);
+    RangeBitmap bitmap = appender.build();
+    for (double value : doubles) {
+      RoaringBitmap expected = new RoaringBitmap();
+      for (int j = 0; j < doubles.length; j++) {
+        if (doubles[j] <= value) {
+          expected.add(j);
+        }
+      }
+      RoaringBitmap answer = bitmap.lte(encoder.applyAsLong(value));
+      assertEquals(expected, answer);
+    }
+
   }
 
   public static class ReferenceImplementation {
