@@ -74,7 +74,7 @@ public final class RangeBitmap {
     }
     int sliceCount = source.get() & 0xFF;
     int maxKey = source.getChar();
-    long mask = (1L << sliceCount) - 1;
+    long mask = sliceCount == 64 ? -1L : (1L << sliceCount) - 1;
     long maxRid = source.getInt() & 0xFFFFFFFFL;
     int masksOffset = source.position();
     int containersOffset = masksOffset + (maxKey + 1) * (sliceCount >>> 3);
@@ -113,7 +113,7 @@ public final class RangeBitmap {
    * @return a bitmap of matching rows.
    */
   public RoaringBitmap lt(long threshold) {
-    return threshold <= 0 ? new RoaringBitmap() : lte(threshold - 1);
+    return threshold == 0 ? new RoaringBitmap() : lte(threshold - 1);
   }
 
   /**
@@ -133,7 +133,7 @@ public final class RangeBitmap {
    * @return a bitmap of matching rows.
    */
   public RoaringBitmap gte(long threshold) {
-    return threshold <= 0 ? RoaringBitmap.bitmapOfRange(0, max) : gt(threshold - 1);
+    return threshold == 0 ? RoaringBitmap.bitmapOfRange(0, max) : gt(threshold - 1);
   }
 
   private RoaringBitmap evaluateRange(long threshold, boolean upper) {
