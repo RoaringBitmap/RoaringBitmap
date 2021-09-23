@@ -77,7 +77,7 @@ public final class RangeBitmap {
     long mask = sliceCount == 64 ? -1L : (1L << sliceCount) - 1;
     long maxRid = source.getInt() & 0xFFFFFFFFL;
     int masksOffset = source.position();
-    int containersOffset = masksOffset + (maxKey + 1) * (sliceCount >>> 3);
+    int containersOffset = masksOffset + maxKey * (sliceCount >>> 3);
     return new RangeBitmap(mask, maxRid,
         (ByteBuffer) source.position(buffer.position()), masksOffset, containersOffset);
   }
@@ -353,7 +353,7 @@ public final class RangeBitmap {
           + slicesSize
           + maxKeySize
           + maxRidSize;
-      int keysSize = (key + 1) * (Long.bitCount(rangeMask) >>> 3);
+      int keysSize = key * (Long.bitCount(rangeMask) >>> 3);
       return headerSize + keysSize + serializedContainerSize;
     }
 
@@ -379,7 +379,7 @@ public final class RangeBitmap {
       target.put((byte) Long.bitCount(rangeMask));
       target.putChar((char) key);
       target.putInt(rid);
-      int spaceForKeys = (key + 1) * (Long.bitCount(rangeMask) >>> 3);
+      int spaceForKeys = key * (Long.bitCount(rangeMask) >>> 3);
       target.put(((ByteBuffer) maskBuffer.slice()
           .order(LITTLE_ENDIAN).limit(spaceForKeys)));
       target.put(((ByteBuffer) containers.slice()
