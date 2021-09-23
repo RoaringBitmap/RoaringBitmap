@@ -218,6 +218,21 @@ public class RangeBitmapTest {
   }
 
   @ParameterizedTest
+  @ValueSource(longs = {1L, 0xFL, 0xFFL, 0xFFFL, 0xFFFFL, 
+      0xFFFFFL, 0xFFFFFFL, 0xFFFFFFL, 0xFFFFFFFL, 0xFFFFFFFFL,
+      0xFFFFFFFFFL, 0xFFFFFFFFFFL, 0xFFFFFFFFFFFL,
+      0xFFFFFFFFFFFFL, 0xFFFFFFFFFFFFFL,  0xFFFFFFFFFFFFFFL,
+      0xFFFFFFFFFFFFFFFL, 0xFFFFFFFFFFFFFFFFL})
+  public void testSerializeEmpty(long maxValue) {
+    RangeBitmap.Appender appender = RangeBitmap.appender(maxValue);
+    ByteBuffer buffer = ByteBuffer.allocate(appender.serializedSizeInBytes());
+    appender.serialize(buffer);
+    buffer.flip();
+    RangeBitmap bitmap = RangeBitmap.map(buffer);
+    assertTrue(bitmap.lte(Long.MIN_VALUE).isEmpty());
+  }
+
+  @ParameterizedTest
   @MethodSource("distributions")
   public void testAppenderReuseAfterClear(LongSupplier dist) {
     RangeBitmap.Appender appender = RangeBitmap.appender(10_000_000);
