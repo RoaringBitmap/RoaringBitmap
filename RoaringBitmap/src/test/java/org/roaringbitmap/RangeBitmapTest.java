@@ -195,6 +195,28 @@ public class RangeBitmapTest {
     RangeBitmap bitmap = RangeBitmap.map(buffer);
   }
 
+  @Test
+  public void testSerializeBigSlices() {
+    Random random = new Random(42);
+    RangeBitmap.Appender appender = RangeBitmap.appender(-1L);
+    IntStream.range(0, 1_000_000)
+        .mapToDouble(i -> random.nextGaussian())
+        .mapToLong(value -> {
+          long bits = Double.doubleToLongBits(value);
+          if ((bits & Long.MIN_VALUE) == Long.MIN_VALUE) {
+            bits = bits == Long.MIN_VALUE ? Long.MIN_VALUE : ~bits;
+          } else {
+            bits ^= Long.MIN_VALUE;
+          }
+          return bits;
+        }).forEach(appender::add);
+    ByteBuffer buffer = ByteBuffer.allocate(appender.serializedSizeInBytes());
+    appender.serialize(buffer);
+    buffer.flip();
+    RangeBitmap bitmap = RangeBitmap.map(buffer);
+    assertFalse(bitmap.lte(Long.MIN_VALUE).isEmpty());
+  }
+
   @ParameterizedTest
   @MethodSource("distributions")
   public void testAppenderReuseAfterClear(LongSupplier dist) {
