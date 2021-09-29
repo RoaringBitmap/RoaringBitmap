@@ -107,6 +107,18 @@ public final class RangeBitmap {
   }
 
   /**
+   * Returns a RoaringBitmap of rows which have a value less than or equal to the threshold,
+   * and intersect with the context bitmap, which will not be modified.
+   *
+   * @param threshold the inclusive maximum value.
+   * @param context to be intersected with.
+   * @return a bitmap of matching rows.
+   */
+  public RoaringBitmap lte(long threshold, RoaringBitmap context) {
+    return evaluateRange(threshold, true, context);
+  }
+
+  /**
    * Returns a RoaringBitmap of rows which have a value less than the threshold.
    *
    * @param threshold the exclusive maximum value.
@@ -114,6 +126,18 @@ public final class RangeBitmap {
    */
   public RoaringBitmap lt(long threshold) {
     return threshold == 0 ? new RoaringBitmap() : lte(threshold - 1);
+  }
+
+  /**
+   * Returns a RoaringBitmap of rows which have a value less than the threshold,
+   * and intersect with the context bitmap, which will not be modified.
+   *
+   * @param threshold the exclusive maximum value.
+   * @param context to be intersected with.
+   * @return a bitmap of matching rows which intersect .
+   */
+  public RoaringBitmap lt(long threshold, RoaringBitmap context) {
+    return threshold == 0 ? new RoaringBitmap() : lte(threshold - 1, context);
   }
 
   /**
@@ -127,6 +151,18 @@ public final class RangeBitmap {
   }
 
   /**
+   * Returns a RoaringBitmap of rows which have a value greater than the threshold,
+   * and intersect with the context bitmap, which will not be modified.
+   *
+   * @param threshold the exclusive minimum value.
+   * @param context to be intersected with.
+   * @return a bitmap of matching rows.
+   */
+  public RoaringBitmap gt(long threshold, RoaringBitmap context) {
+    return evaluateRange(threshold, false, context);
+  }
+
+  /**
    * Returns a RoaringBitmap of rows which have a value greater than or equal to the threshold.
    *
    * @param threshold the inclusive minimum value.
@@ -134,6 +170,18 @@ public final class RangeBitmap {
    */
   public RoaringBitmap gte(long threshold) {
     return threshold == 0 ? RoaringBitmap.bitmapOfRange(0, max) : gt(threshold - 1);
+  }
+
+  /**
+   * Returns a RoaringBitmap of rows which have a value greater than or equal to the threshold,
+   * and intersect with the context bitmap, which will not be modified.
+   *
+   * @param threshold the inclusive minimum value.
+   * @param context to be intersected with.
+   * @return a bitmap of matching rows.
+   */
+  public RoaringBitmap gte(long threshold, RoaringBitmap context) {
+    return threshold == 0 ? context.clone() : gt(threshold - 1, context);
   }
 
   private RoaringBitmap evaluateRange(long threshold, boolean upper) {
@@ -150,71 +198,7 @@ public final class RangeBitmap {
     boolean empty = true;
     while (remaining > 0) {
       long containerMask = this.buffer.getLong(mPos) & mask;
-      // most significant absent bit in the threshold for which there is no container;
-      // everything before this is wasted work, so we just skip over the containers
-      int skip = 64 - Long.numberOfLeadingZeros(((~threshold & ~containerMask) & mask));
-      int slice = 0;
-      if (skip > 0) {
-        for (; slice < skip; ++slice) {
-          if (((containerMask >>> slice) & 1) == 1) {
-            skipContainer(containers);
-          }
-        }
-        if (!empty) {
-          Arrays.fill(bits, 0L);
-          empty = true;
-        }
-      } else {
-        // the first slice is special: if the threshold includes this slice,
-        // fill the buffer, otherwise copy the slice
-        if ((threshold & 1) == 1) {
-          if (remaining >= 0x10000) {
-            Arrays.fill(bits, -1L);
-          } else {
-            setBitmapRange(bits, 0, (int) remaining);
-            if (!empty) {
-              resetBitmapRange(bits, (int) remaining, 0x10000);
-            }
-          }
-          if ((containerMask & 1) == 1) {
-            skipContainer(containers);
-          }
-          empty = false;
-        } else {
-          if (!empty) {
-            Arrays.fill(bits, 0L);
-            empty = true;
-          }
-          if ((containerMask & 1) == 1) {
-            if ((threshold & 1) == 0) {
-              nextContainer(containers).orInto(bits);
-              empty = false;
-            } else {
-              skipContainer(containers);
-            }
-          }
-        }
-        slice++;
-      }
-      for (; slice < Long.bitCount(mask); ++slice) {
-        switch ((int) (((threshold >>> slice) & 1) | ((containerMask >>> (slice - 1)) & 2))) {
-          case 0: // bit absent from threshold, no container
-          case 1: // bit present in threshold but no container, nothing to include
-            break;
-          case 2: // bit present in container, absent from threshold, filter
-            if (empty) {
-              skipContainer(containers);
-            } else {
-              nextContainer(containers).andInto(bits);
-            }
-            break;
-          case 3: // both, include bits from slice
-            nextContainer(containers).orInto(bits);
-            empty = false;
-            break;
-          default:
-        }
-      }
+      empty = evaluateHorizontalSlice(containers, remaining, threshold, containerMask, empty, bits);
       if (!upper) {
         Util.flipBitmapRange(bits, 0, Math.min(0x10000, (int) remaining));
         empty = false;
@@ -230,6 +214,125 @@ public final class RangeBitmap {
       mPos += Long.bitCount(mask) >>> 3;
     }
     return new RoaringBitmap(output);
+  }
+
+  private RoaringBitmap evaluateRange(long threshold, boolean upper, RoaringBitmap context) {
+    if (context.isEmpty()) {
+      return new RoaringBitmap();
+    }
+    if (Long.numberOfLeadingZeros(threshold) < Long.numberOfLeadingZeros(mask)) {
+      return upper ? RoaringBitmap.bitmapOfRange(0, max) : new RoaringBitmap();
+    }
+    ByteBuffer containers = this.buffer.slice().order(LITTLE_ENDIAN);
+    containers.position(containersOffset);
+    RoaringArray contextArray = context.highLowContainer;
+    int contextPos = 0;
+    int maxContextKey = contextArray.keys[contextArray.size - 1];
+    RoaringArray output = new RoaringArray();
+    long[] bits = new long[1024];
+    long remaining = max;
+    int mPos = masksOffset;
+    boolean empty = true;
+    for (int prefix = 0; prefix <= maxContextKey && remaining > 0; prefix++) {
+      long containerMask = this.buffer.getLong(mPos) & mask;
+      if (prefix < contextArray.keys[contextPos]) {
+        for (int i = 0; i < Long.bitCount(containerMask); i++) {
+          skipContainer(containers);
+        }
+      } else {
+        empty = evaluateHorizontalSlice(containers,
+            remaining, threshold, containerMask, empty, bits);
+        if (!upper) {
+          Util.flipBitmapRange(bits, 0, Math.min(0x10000, (int) remaining));
+          empty = false;
+        }
+        if (!empty) {
+          Container toAppend = new BitmapContainer(bits, -1)
+              .iand(contextArray.values[contextPos])
+              .repairAfterLazy()
+              .runOptimize();
+          if (!toAppend.isEmpty()) {
+            output.append((char) prefix,
+                toAppend instanceof BitmapContainer ? toAppend.clone() : toAppend);
+          }
+        }
+        contextPos++;
+      }
+      remaining -= 0x10000;
+      mPos += Long.bitCount(mask) >>> 3;
+    }
+    return new RoaringBitmap(output);
+  }
+
+  private boolean evaluateHorizontalSlice(ByteBuffer containers,
+                                          long remaining,
+                                          long threshold,
+                                          long containerMask,
+                                          boolean empty,
+                                          long[] bits) {
+    // most significant absent bit in the threshold for which there is no container;
+    // everything before this is wasted work, so we just skip over the containers
+    int skip = 64 - Long.numberOfLeadingZeros(((~threshold & ~containerMask) & mask));
+    int slice = 0;
+    if (skip > 0) {
+      for (; slice < skip; ++slice) {
+        if (((containerMask >>> slice) & 1) == 1) {
+          skipContainer(containers);
+        }
+      }
+      if (!empty) {
+        Arrays.fill(bits, 0L);
+        empty = true;
+      }
+    } else {
+      // the first slice is special: if the threshold includes this slice,
+      // fill the buffer, otherwise copy the slice
+      if ((threshold & 1) == 1) {
+        if (remaining >= 0x10000) {
+          Arrays.fill(bits, -1L);
+        } else {
+          setBitmapRange(bits, 0, (int) remaining);
+          if (!empty) {
+            resetBitmapRange(bits, (int) remaining, 0x10000);
+          }
+        }
+        if ((containerMask & 1) == 1) {
+          skipContainer(containers);
+        }
+        empty = false;
+      } else {
+        if (!empty) {
+          Arrays.fill(bits, 0L);
+          empty = true;
+        }
+        if ((containerMask & 1) == 1) {
+          if ((threshold & 1) == 0) {
+            nextContainer(containers).orInto(bits);
+            empty = false;
+          } else {
+            skipContainer(containers);
+          }
+        }
+      }
+      slice++;
+    }
+    for (; slice < Long.bitCount(mask); ++slice) {
+      if ((containerMask >>> slice & 1) == 1) {
+        if ((threshold >>> slice & 1) == 1) {
+          // bit present in both both, include bits from slice
+          nextContainer(containers).orInto(bits);
+          empty = false;
+        } else {
+          // bit present in container, absent from threshold, filter
+          if (empty) {
+            skipContainer(containers);
+          } else {
+            nextContainer(containers).andInto(bits);
+          }
+        }
+      }
+    }
+    return empty;
   }
 
   private static MappeableContainer nextContainer(ByteBuffer buffer) {

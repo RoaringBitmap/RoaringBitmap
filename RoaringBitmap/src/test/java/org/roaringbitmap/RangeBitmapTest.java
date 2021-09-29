@@ -314,6 +314,41 @@ public class RangeBitmapTest {
     assertAll(IntStream.range(0, 7).mapToObj(i -> () -> assertEquals(RoaringBitmap.andNot(all, precomputed[i]), sut.gt((long) Math.pow(10, i)))));
   }
 
+
+  @ParameterizedTest
+  @MethodSource("distributions")
+  public void testContextualRangeEvaluationAgainstNonContextual(LongSupplier dist) {
+    long maxValue = 10_000_000;
+    RangeBitmap.Appender appender = RangeBitmap.appender(maxValue);
+    LongStream.range(0, 1_000_000)
+        .forEach(i -> {
+          long v = Math.min(dist.getAsLong(), maxValue);
+          appender.add(v);
+        });
+    RangeBitmap sut = appender.build();
+    IntStream.range(1, 8).forEach(i -> {
+      long min = (long) Math.pow(10, i - 1);
+      long max = (long) Math.pow(10, i);
+      RoaringBitmap lte = sut.lte(max);
+      RoaringBitmap gte = sut.gte(min);
+      RoaringBitmap expected = RoaringBitmap.and(lte, gte);
+      assertEquals(expected, sut.gte(min, lte));
+      assertEquals(expected, sut.lte(max, gte));
+      assertEquals(expected, sut.lt(max + 1, gte));
+      assertEquals(expected, sut.gt(min - 1, lte));
+    });
+  }
+
+  @Test
+  public void testContextualEvaluationOnEmptyRange() {
+    RangeBitmap empty = RangeBitmap.appender(10_000_000).build();
+    RoaringBitmap nonEmpty = RoaringBitmap.bitmapOfRange(0, 100_000);
+    assertEquals(new RoaringBitmap(), empty.lte(10, nonEmpty));
+    assertEquals(new RoaringBitmap(), empty.lt(10, nonEmpty));
+    assertEquals(new RoaringBitmap(), empty.gt(10, nonEmpty));
+    assertEquals(new RoaringBitmap(), empty.gte(10, nonEmpty));
+  }
+
   @Test
   public void testExtremeValues() {
     RangeBitmap.Appender appender = RangeBitmap.appender(-1L);

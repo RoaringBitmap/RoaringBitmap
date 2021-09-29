@@ -83,6 +83,19 @@ public class RangeBitmapBenchmark {
     return rangeBitmap.lte(threshold);
   }
 
+  @Benchmark
+  public RoaringBitmap rangeBitmapBetweenContextual() {
+    return rangeBitmap.gte(threshold - 1, rangeBitmap.lte(threshold + 1));
+  }
+
+  @Benchmark
+  public RoaringBitmap rangeBitmapBetweenNonContextual() {
+    RoaringBitmap gte = rangeBitmap.gte(threshold - 1);
+    RoaringBitmap lte = rangeBitmap.lte(threshold + 1);
+    gte.and(lte);
+    return gte;
+  }
+
   public static class Base2ReferenceImplementation {
 
     public static Builder builder() {
