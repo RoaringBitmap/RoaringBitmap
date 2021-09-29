@@ -198,68 +198,7 @@ public final class RangeBitmap {
     boolean empty = true;
     while (remaining > 0) {
       long containerMask = this.buffer.getLong(mPos) & mask;
-      // most significant absent bit in the threshold for which there is no container;
-      // everything before this is wasted work, so we just skip over the containers
-      int skip = 64 - Long.numberOfLeadingZeros(((~threshold & ~containerMask) & mask));
-      int slice = 0;
-      if (skip > 0) {
-        for (; slice < skip; ++slice) {
-          if (((containerMask >>> slice) & 1) == 1) {
-            skipContainer(containers);
-          }
-        }
-        if (!empty) {
-          Arrays.fill(bits, 0L);
-          empty = true;
-        }
-      } else {
-        // the first slice is special: if the threshold includes this slice,
-        // fill the buffer, otherwise copy the slice
-        if ((threshold & 1) == 1) {
-          if (remaining >= 0x10000) {
-            Arrays.fill(bits, -1L);
-          } else {
-            setBitmapRange(bits, 0, (int) remaining);
-            if (!empty) {
-              resetBitmapRange(bits, (int) remaining, 0x10000);
-            }
-          }
-          if ((containerMask & 1) == 1) {
-            skipContainer(containers);
-          }
-          empty = false;
-        } else {
-          if (!empty) {
-            Arrays.fill(bits, 0L);
-            empty = true;
-          }
-          if ((containerMask & 1) == 1) {
-            if ((threshold & 1) == 0) {
-              nextContainer(containers).orInto(bits);
-              empty = false;
-            } else {
-              skipContainer(containers);
-            }
-          }
-        }
-        slice++;
-      }
-      for (; slice < Long.bitCount(mask); ++slice) {
-        if ((containerMask >>> slice & 1) == 1) {
-          if ((threshold >>> slice & 1) == 1) {
-            // bit present in both both, include bits from slice
-            nextContainer(containers).orInto(bits);
-            empty = false;
-          } else {
-            // bit present in container, absent from threshold, filter
-            if (empty) {
-              skipContainer(containers);
-            } else {
-              nextContainer(containers).andInto(bits);
-            }
-          }
-        }
-      }
+      empty = evaluateHorizontalSlice(containers, remaining, threshold, containerMask, empty, bits);
       if (!upper) {
         Util.flipBitmapRange(bits, 0, Math.min(0x10000, (int) remaining));
         empty = false;
@@ -301,66 +240,8 @@ public final class RangeBitmap {
           skipContainer(containers);
         }
       } else {
-        int skip = 64 - Long.numberOfLeadingZeros(((~threshold & ~containerMask) & mask));
-        int slice = 0;
-        if (skip > 0) {
-          for (; slice < skip; ++slice) {
-            if (((containerMask >>> slice) & 1) == 1) {
-              skipContainer(containers);
-            }
-          }
-          if (!empty) {
-            Arrays.fill(bits, 0L);
-            empty = true;
-          }
-        } else {
-          // the first slice is special: if the threshold includes this slice,
-          // fill the buffer, otherwise copy the slice
-          if ((threshold & 1) == 1) {
-            if (remaining >= 0x10000) {
-              Arrays.fill(bits, -1L);
-            } else {
-              setBitmapRange(bits, 0, (int) remaining);
-              if (!empty) {
-                resetBitmapRange(bits, (int) remaining, 0x10000);
-              }
-            }
-            if ((containerMask & 1) == 1) {
-              skipContainer(containers);
-            }
-            empty = false;
-          } else {
-            if (!empty) {
-              Arrays.fill(bits, 0L);
-              empty = true;
-            }
-            if ((containerMask & 1) == 1) {
-              if ((threshold & 1) == 0) {
-                nextContainer(containers).orInto(bits);
-                empty = false;
-              } else {
-                skipContainer(containers);
-              }
-            }
-          }
-          slice++;
-        }
-        for (; slice < Long.bitCount(mask); ++slice) {
-          if ((containerMask >>> slice & 1) == 1) {
-            if ((threshold >>> slice & 1) == 1) {
-              // bit present in both both, include bits from slice
-              nextContainer(containers).orInto(bits);
-              empty = false;
-            } else {
-              // bit present in container, absent from threshold, filter
-              if (empty) {
-                skipContainer(containers);
-              } else {
-                nextContainer(containers).andInto(bits);
-              }
-            }
-          }
-        }
+        empty = evaluateHorizontalSlice(containers,
+            remaining, threshold, containerMask, empty, bits);
         if (!upper) {
           Util.flipBitmapRange(bits, 0, Math.min(0x10000, (int) remaining));
           empty = false;
@@ -381,6 +262,77 @@ public final class RangeBitmap {
       mPos += Long.bitCount(mask) >>> 3;
     }
     return new RoaringBitmap(output);
+  }
+
+  private boolean evaluateHorizontalSlice(ByteBuffer containers,
+                                          long remaining,
+                                          long threshold,
+                                          long containerMask,
+                                          boolean empty,
+                                          long[] bits) {
+    // most significant absent bit in the threshold for which there is no container;
+    // everything before this is wasted work, so we just skip over the containers
+    int skip = 64 - Long.numberOfLeadingZeros(((~threshold & ~containerMask) & mask));
+    int slice = 0;
+    if (skip > 0) {
+      for (; slice < skip; ++slice) {
+        if (((containerMask >>> slice) & 1) == 1) {
+          skipContainer(containers);
+        }
+      }
+      if (!empty) {
+        Arrays.fill(bits, 0L);
+        empty = true;
+      }
+    } else {
+      // the first slice is special: if the threshold includes this slice,
+      // fill the buffer, otherwise copy the slice
+      if ((threshold & 1) == 1) {
+        if (remaining >= 0x10000) {
+          Arrays.fill(bits, -1L);
+        } else {
+          setBitmapRange(bits, 0, (int) remaining);
+          if (!empty) {
+            resetBitmapRange(bits, (int) remaining, 0x10000);
+          }
+        }
+        if ((containerMask & 1) == 1) {
+          skipContainer(containers);
+        }
+        empty = false;
+      } else {
+        if (!empty) {
+          Arrays.fill(bits, 0L);
+          empty = true;
+        }
+        if ((containerMask & 1) == 1) {
+          if ((threshold & 1) == 0) {
+            nextContainer(containers).orInto(bits);
+            empty = false;
+          } else {
+            skipContainer(containers);
+          }
+        }
+      }
+      slice++;
+    }
+    for (; slice < Long.bitCount(mask); ++slice) {
+      if ((containerMask >>> slice & 1) == 1) {
+        if ((threshold >>> slice & 1) == 1) {
+          // bit present in both both, include bits from slice
+          nextContainer(containers).orInto(bits);
+          empty = false;
+        } else {
+          // bit present in container, absent from threshold, filter
+          if (empty) {
+            skipContainer(containers);
+          } else {
+            nextContainer(containers).andInto(bits);
+          }
+        }
+      }
+    }
+    return empty;
   }
 
   private static MappeableContainer nextContainer(ByteBuffer buffer) {
