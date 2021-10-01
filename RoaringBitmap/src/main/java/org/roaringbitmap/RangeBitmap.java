@@ -606,7 +606,7 @@ public final class RangeBitmap {
      * @return a mask with a multiple of 8 contiguous bits set.
      */
     private static long rangeMaxForLimit(long maxValue) {
-      int lz = Long.numberOfLeadingZeros(maxValue);
+      int lz = Long.numberOfLeadingZeros(maxValue | 1);
       return lz <= 8 ? -1L : (1L << ((64 - lz + 7) & -8)) - 1;
     }
   }

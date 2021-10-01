@@ -9,10 +9,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
-import java.util.function.DoubleToLongFunction;
-import java.util.function.IntFunction;
-import java.util.function.LongSupplier;
+import java.util.function.*;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
@@ -25,7 +22,7 @@ import static org.roaringbitmap.RangeBitmapTest.Distribution.*;
 public class RangeBitmapTest {
 
   @ParameterizedTest
-  @ValueSource(ints = {0xFFFF, 0x10001, 100_000, 0x110001, 1_000_000})
+  @ValueSource(ints = {0, 0xFFFF, 0x10001, 100_000, 0x110001, 1_000_000})
   public void testInsertContiguousValues(int size) {
     RangeBitmap.Appender appender = RangeBitmap.appender(size);
     LongStream.range(0, size).forEach(appender::add);
@@ -46,7 +43,7 @@ public class RangeBitmapTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {0xFFFF, 0x10001, 100_000, 0x110001, 1_000_000})
+  @ValueSource(ints = {0, 0xFFFF, 0x10001, 100_000, 0x110001, 1_000_000})
   public void testInsertReversedContiguousValues(int size) {
     RangeBitmap.Appender appender = RangeBitmap.appender(size);
     LongStream.range(0, size).map(i -> size - i).forEach(appender::add);
@@ -66,7 +63,7 @@ public class RangeBitmapTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {0xFFFF, 0x10001, 100_000, 0x110001, 1_000_000})
+  @ValueSource(ints = {0, 0xFFFF, 0x10001, 100_000, 0x110001, 1_000_000})
   public void testLessThanZeroEmpty(int size) {
     RangeBitmap.Appender appender = RangeBitmap.appender(size);
     LongStream.range(0, 10).forEach(appender::add);
@@ -89,7 +86,7 @@ public class RangeBitmapTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {0xFFFF, 0x10001, 100_000, 0x110001, 1_000_000})
+  @ValueSource(ints = {0, 0xFFFF, 0x10001, 100_000, 0x110001, 1_000_000})
   public void testInsertContiguousValuesAboveRangeReversed(int size) {
     RangeBitmap.Appender appender = RangeBitmap.appender(size);
     LongStream.range(0, size).map(i -> size - i).forEach(appender::add);
@@ -100,7 +97,7 @@ public class RangeBitmapTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {0xFFFF, 0x10001, 100_000, 0x110001, 1_000_000})
+  @ValueSource(ints = {0, 0xFFFF, 0x10001, 100_000, 0x110001, 1_000_000})
   public void monotonicLTEResultCardinality(int size) {
     RangeBitmap.Appender appender = RangeBitmap.appender(size);
     LongStream.range(0, size).forEach(appender::add);
@@ -114,7 +111,7 @@ public class RangeBitmapTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {0xFFFF, 0x10001, 100_000, 0x110001, 1_000_000})
+  @ValueSource(ints = {0, 0xFFFF, 0x10001, 100_000, 0x110001, 1_000_000})
   public void monotonicLTEResultCardinalityReversed(int size) {
     RangeBitmap.Appender appender = RangeBitmap.appender(size);
     LongStream.range(0, size).map(i -> size - i).forEach(appender::add);
@@ -128,7 +125,7 @@ public class RangeBitmapTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {0xFFFF, 0x10001, 100_000, 0x110001, 1_000_000})
+  @ValueSource(ints = {0, 0xFFFF, 0x10001, 100_000, 0x110001, 1_000_000})
   public void monotonicGTResultCardinality(int size) {
     RangeBitmap.Appender appender = RangeBitmap.appender(size);
     LongStream.range(0, size).forEach(appender::add);
@@ -142,7 +139,7 @@ public class RangeBitmapTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {0xFFFF, 0x10001, 100_000, 0x110001, 1_000_000})
+  @ValueSource(ints = {0, 0xFFFF, 0x10001, 100_000, 0x110001, 1_000_000})
   public void monotonicGTResultCardinalityReversed(int size) {
     RangeBitmap.Appender appender = RangeBitmap.appender(size);
     LongStream.range(0, size).map(i -> size - i).forEach(appender::add);
@@ -156,7 +153,7 @@ public class RangeBitmapTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {0xFFFF, 0x10000, 0x10001, 100_000, 0x110001, 1_000_000})
+  @ValueSource(ints = {0, 0xFFFF, 0x10000, 0x10001, 100_000, 0x110001, 1_000_000})
   public void unionOfComplementsMatchesAll(int size) {
     RangeBitmap.Appender appender = RangeBitmap.appender(size);
     LongStream.range(0, size).forEach(appender::add);
@@ -256,6 +253,19 @@ public class RangeBitmapTest {
     }
   }
 
+  @ParameterizedTest
+  @MethodSource("distributions")
+  public void testConstructRelativeToMinValue(LongSupplier dist) {
+    int[] values = IntStream.range(0, 1_000_000).map(i -> (int) dist.getAsLong()).toArray();
+    int min = IntStream.of(values).min().orElse(0);
+    int max = IntStream.of(values).max().orElse(Integer.MAX_VALUE) - min;
+    RangeBitmap.Appender appender = RangeBitmap.appender(max);
+    IntStream.of(values).map(i -> i - min).forEach(appender::add);
+    RangeBitmap bitmap = appender.build();
+    assertEquals(values.length, bitmap.lte(max).getCardinality());
+    assertEquals(values.length, bitmap.gte(0).getCardinality());
+  }
+
   public static Stream<Arguments> distributions() {
     return Stream.of(
         NORMAL.of(42, 1_000, 100),
@@ -264,7 +274,9 @@ public class RangeBitmapTest {
         UNIFORM.of(42, 0, 1_000_000),
         UNIFORM.of(42, 500_000, 10_000_000),
         EXP.of(42, 0.0001),
-        EXP.of(42, 0.9999)
+        EXP.of(42, 0.9999),
+        POINT.of(0, 0),
+        POINT.of(0, Long.MAX_VALUE)
     ).map(Arguments::of);
   }
 
@@ -501,9 +513,14 @@ public class RangeBitmapTest {
         SplittableRandom random = new SplittableRandom(seed);
         return () -> (long) -(Math.log(random.nextDouble()) / rate);
       }
+    },
+    POINT {
+      @Override
+      LongSupplier of(long seed, double... params) {
+        return () -> (long)params[0];
+      }
     };
 
     abstract LongSupplier of(long seed, double... params);
   }
-
 }
