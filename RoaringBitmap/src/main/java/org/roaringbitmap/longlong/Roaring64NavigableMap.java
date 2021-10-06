@@ -877,7 +877,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
           ((MutableRoaringBitmap) lowBitmap1).and((MutableRoaringBitmap) lowBitmap2);
         } else {
           throw new UnsupportedOperationException(
-              ".and is not between " + this.getClass() + " and " + lowBitmap1.getClass());
+              ".and(x, y) is not supported between " + lowBitmap2.getClass() + " and " + lowBitmap1.getClass());
         }
       }
 

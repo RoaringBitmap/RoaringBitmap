@@ -1539,4 +1539,17 @@ public class TestRoaring64NavigableMap {
     Roaring64NavigableMap map2 = Roaring64NavigableMap.bitmapOf(1, 2, 3, 4, 5, 7, 8, 9, 1 << 16, 1 << 17, 1 << 18, 1 << 19, 1 << 20 , 1 << 33);
     assertEquals(map2, map1);
   }
+
+  // https://github.com/RoaringBitmap/RoaringBitmap/issues/528
+  @Test
+  public void testAnd() {
+    // Based on RoaringBitmap
+    Roaring64NavigableMap x = new Roaring64NavigableMap();
+    x.add(123, 124);
+
+    // Based on MutableRoaringBitmap
+    Roaring64NavigableMap y = Roaring64NavigableMap.bitmapOf(4L);
+
+    x.and(y);
+  }
 }
