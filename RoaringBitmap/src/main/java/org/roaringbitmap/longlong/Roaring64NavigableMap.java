@@ -834,7 +834,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         }
       } else {
         throw new UnsupportedOperationException(
-            ".or is not between " + this.getClass() + " and " + lowBitmap2.getClass());
+            ".or is not between " + lowBitmap1.getClass() + " and " + lowBitmap2.getClass());
       }
 
       if (firstBucket) {
@@ -919,7 +919,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
           ((MutableRoaringBitmap) lowBitmap1).andNot((MutableRoaringBitmap) lowBitmap2);
         } else {
           throw new UnsupportedOperationException(
-              ".and is not between " + this.getClass() + " and " + lowBitmap1.getClass());
+              ".and is not between " + lowBitmap2.getClass() + " and " + lowBitmap1.getClass());
         }
       }
 
@@ -1202,8 +1202,12 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
     for (int i = 0; i < nbHighs; i++) {
       int high = in.readInt();
-      RoaringBitmap provider = new RoaringBitmap();
-      provider.deserialize(in);
+      BitmapDataProvider provider = newRoaringBitmap();
+      if (provider instanceof RoaringBitmap) {
+        ((RoaringBitmap) provider).deserialize(in);
+      } else if (provider instanceof MutableRoaringBitmap) {
+        ((MutableRoaringBitmap) provider).deserialize(in);
+      }
 
       highToBitmap.put(high, provider);
     }
@@ -1330,7 +1334,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         // Initialize the bitmap only if there is access data to write
         BitmapDataProvider bitmap = highToBitmap.get(high);
         if (bitmap == null) {
-          bitmap = new MutableRoaringBitmap();
+          bitmap = newRoaringBitmap();
           pushBitmapForHigh(high, bitmap);
         }
 
