@@ -51,6 +51,13 @@ public final class BitmapBatchIterator implements ContainerBatchIterator {
     bitmap = null;
   }
 
+  @Override
+  public void advanceIfNeeded(char target) {
+    wordIndex = target >>> 6;
+    word = bitmap.bitmap.get(wordIndex);
+    word &= -(1L << target);
+  }
+
   void wrap(MappeableBitmapContainer bitmap) {
     this.bitmap = bitmap;
     this.word = bitmap.bitmap.get(0);

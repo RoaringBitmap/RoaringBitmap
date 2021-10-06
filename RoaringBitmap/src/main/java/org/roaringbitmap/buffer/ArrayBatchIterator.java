@@ -4,6 +4,7 @@ import org.roaringbitmap.ContainerBatchIterator;
 
 import java.nio.CharBuffer;
 
+import static org.roaringbitmap.buffer.BufferUtil.unsignedBinarySearch;
 
 
 public final class ArrayBatchIterator implements ContainerBatchIterator {
@@ -43,6 +44,12 @@ public final class ArrayBatchIterator implements ContainerBatchIterator {
   @Override
   public void releaseContainer() {
     array = null;
+  }
+
+  @Override
+  public void advanceIfNeeded(char target) {
+    int position = unsignedBinarySearch(array.content, 0, array.getCardinality(), target);
+    this.index = position < 0 ? (-position - 1) : position;
   }
 
   public void wrap(MappeableArrayContainer array) {

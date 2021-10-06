@@ -5,12 +5,14 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.roaringbitmap.RoaringBitmapWriter.writer;
 import static org.roaringbitmap.SeededTestData.TestDataSet.testCase;
 
@@ -70,6 +72,74 @@ public class RoaringBitmapBatchIteratorTest {
         }
         assertEquals(bitmap, result);
         assertEquals(bitmap.getCardinality(), cardinality);
+    }
+
+    @ParameterizedTest(name="offset={1}")
+    @MethodSource("params")
+    public void testBatchIteratorAdvancedIfNeeded(RoaringBitmap bitmap, int batchSize) {
+        final int cardinality = bitmap.getCardinality();
+        if (cardinality < 2) {
+            return;
+        }
+        int midpoint = bitmap.select(cardinality / 2);
+        int[] buffer = new int[batchSize];
+        RoaringBitmap result = new RoaringBitmap();
+        RoaringBatchIterator it = bitmap.getBatchIterator();
+        it.advanceIfNeeded(midpoint);
+        int consumed = 0;
+        while (it.hasNext()) {
+            int batch = it.nextBatch(buffer);
+            for (int i = 0; i < batch; ++i) {
+                result.add(buffer[i]);
+            }
+            consumed += batch;
+        }
+        RoaringBitmap expected = bitmap.clone();
+        expected.remove(0, midpoint & 0xFFFFFFFFL);
+        assertEquals(expected, result);
+        assertEquals(expected.getCardinality(), consumed);
+    }
+
+    @ParameterizedTest(name="offset={1}")
+    @MethodSource("params")
+    public void testBatchIteratorAdvancedIfNeededToAbsentValue(RoaringBitmap bitmap, int batchSize) {
+        long firstAbsent = bitmap.nextAbsentValue(0);
+        int[] buffer = new int[batchSize];
+        RoaringBitmap result = new RoaringBitmap();
+        BatchIterator it = bitmap.getBatchIterator();
+        it.advanceIfNeeded((int) firstAbsent);
+        int consumed = 0;
+        while (it.hasNext()) {
+            int batch = it.nextBatch(buffer);
+            for (int i = 0; i < batch; ++i) {
+                result.add(buffer[i]);
+            }
+            consumed += batch;
+        }
+        RoaringBitmap expected = bitmap.clone();
+        expected.remove(0, firstAbsent & 0xFFFFFFFFL);
+        assertEquals(expected, result);
+        assertEquals(expected.getCardinality(), consumed);
+    }
+
+    @ParameterizedTest(name="offset={1}")
+    @MethodSource("params")
+    public void testBatchIteratorAdvancedIfNeededBeyondLastValue(RoaringBitmap bitmap, int batchSize) {
+        long advanceTo = bitmap.isEmpty() ? 0 : bitmap.last() + 1;
+        int[] buffer = new int[batchSize];
+        RoaringBitmap result = new RoaringBitmap();
+        BatchIterator it = bitmap.getBatchIterator();
+        it.advanceIfNeeded((int) advanceTo);
+        int consumed = 0;
+        while (it.hasNext()) {
+            int batch = it.nextBatch(buffer);
+            for (int i = 0; i < batch; ++i) {
+                result.add(buffer[i]);
+            }
+            consumed += batch;
+        }
+        assertEquals(0, consumed);
+        assertTrue(result.isEmpty());
     }
 
 }

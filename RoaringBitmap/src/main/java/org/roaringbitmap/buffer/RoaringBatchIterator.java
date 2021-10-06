@@ -43,6 +43,20 @@ public final class RoaringBatchIterator implements BatchIterator {
   }
 
   @Override
+  public void advanceIfNeeded(int target) {
+    while (key >>> 16 < target >>> 16) {
+      containerPointer.advance();
+      nextIterator();
+      if (null == iterator) {
+        return;
+      }
+    }
+    if (null != iterator) {
+      iterator.advanceIfNeeded((char) target);
+    }
+  }
+
+  @Override
   public BatchIterator clone() {
     try {
       RoaringBatchIterator it = (RoaringBatchIterator)super.clone();
