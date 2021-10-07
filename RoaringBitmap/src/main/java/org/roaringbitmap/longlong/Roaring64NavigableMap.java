@@ -1216,7 +1216,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
       } else if (provider instanceof MutableRoaringBitmap) {
         ((MutableRoaringBitmap) provider).deserialize(in);
       } else {
-        throw new UnsupportedEncodingException("Can not deserializing a " + provider.getClass());
+        throw new UnsupportedEncodingException("Can not deserialize a " + provider.getClass());
       }
 
       highToBitmap.put(high, provider);
