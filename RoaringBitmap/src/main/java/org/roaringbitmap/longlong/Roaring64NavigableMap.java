@@ -716,8 +716,8 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         } else if (lowBitmap2 instanceof MutableRoaringBitmap) {
           lowBitmap2Clone = ((MutableRoaringBitmap) lowBitmap2).clone();
         } else {
-          throw new UnsupportedOperationException(".naivelazyor is not between "
-                  + this.getClass() + " and " + lowBitmap2.getClass());
+          throw new UnsupportedOperationException(".naivelazyor(...) over "
+                  + getClassName(lowBitmap2));
         }
 
         pushBitmapForHigh(high, lowBitmap2Clone);
@@ -729,10 +729,18 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         MutableRoaringBitmapPrivate.naivelazyor((MutableRoaringBitmap) lowBitmap1,
                 (MutableRoaringBitmap) lowBitmap2);
       } else {
-        throw new UnsupportedOperationException(".naivelazyor is not between "
-                + lowBitmap1.getClass() + " and " + lowBitmap2.getClass());
+        throw new UnsupportedOperationException(".naivelazyor(...) over "
+                + getClassName(lowBitmap1) + " and " + getClassName(lowBitmap2));
       }
 
+    }
+  }
+
+  private String getClassName(BitmapDataProvider bitmap) {
+    if (bitmap == null) {
+      return "null";
+    } else {
+      return bitmap.getClass().getName();
     }
   }
 
@@ -779,7 +787,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         }
       } else {
         throw new UnsupportedOperationException(
-            ".or is not between " + this.getClass() + " and " + lowBitmap2.getClass());
+            ".or(...) over " + getClassName(lowBitmap1) + " and " + getClassName(lowBitmap2));
       }
 
       if (firstBucket) {
@@ -834,7 +842,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         }
       } else {
         throw new UnsupportedOperationException(
-            ".or is not between " + lowBitmap1.getClass() + " and " + lowBitmap2.getClass());
+            ".or(...) over " + getClassName(lowBitmap1) + " and " + getClassName(lowBitmap2));
       }
 
       if (firstBucket) {
@@ -877,7 +885,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
           ((MutableRoaringBitmap) lowBitmap1).and((MutableRoaringBitmap) lowBitmap2);
         } else {
           throw new UnsupportedOperationException(
-              ".and(x, y) is not supported between " + lowBitmap2.getClass() + " and " + lowBitmap1.getClass());
+              ".and(...) over " + getClassName(lowBitmap1) + " and " + getClassName(lowBitmap2));
         }
       }
 
@@ -919,7 +927,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
           ((MutableRoaringBitmap) lowBitmap1).andNot((MutableRoaringBitmap) lowBitmap2);
         } else {
           throw new UnsupportedOperationException(
-              ".and is not between " + lowBitmap2.getClass() + " and " + lowBitmap1.getClass());
+              ".and(...) over " + getClassName(lowBitmap1) + " and " + getClassName(lowBitmap2));
         }
       }
 
