@@ -167,6 +167,14 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     return sortedCumulatedCardinality;
   }
 
+  private static String getClassName(BitmapDataProvider bitmap) {
+    if (bitmap == null) {
+      return "null";
+    } else {
+      return bitmap.getClass().getName();
+    }
+  }
+
   /**
    * Add the value to the container (set the value to "true"), whether it already appears or not.
    *
@@ -305,7 +313,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     if (cardinality > Integer.MAX_VALUE) {
       // TODO: we should handle cardinality fitting in an unsigned int
       throw new UnsupportedOperationException(
-          "Can not call .getIntCardinality as the cardinality is bigger than Integer.MAX_VALUE");
+          "Cannot call .getIntCardinality as the cardinality is bigger than Integer.MAX_VALUE");
     }
 
     return (int) cardinality;
@@ -557,7 +565,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
           // No need to compute more than needed
           break;
         } else if (e.getValue().isEmpty()) {
-          // highToBitmap can not be modified as we iterate over it
+          // highToBitmap cannot be modified as we iterate over it
           if (latestAddedHigh != null && latestAddedHigh.getKey().intValue() == currentHigh) {
             // Dismiss the cached bitmap as it is removed from the NavigableMap
             latestAddedHigh = null;
@@ -733,14 +741,6 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
                 + getClassName(lowBitmap1) + " and " + getClassName(lowBitmap2));
       }
 
-    }
-  }
-
-  private String getClassName(BitmapDataProvider bitmap) {
-    if (bitmap == null) {
-      return "null";
-    } else {
-      return bitmap.getClass().getName();
     }
   }
 
@@ -1216,7 +1216,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
       } else if (provider instanceof MutableRoaringBitmap) {
         ((MutableRoaringBitmap) provider).deserialize(in);
       } else {
-        throw new UnsupportedEncodingException("Can not deserialize a " + provider.getClass());
+        throw new UnsupportedEncodingException("Cannot deserialize a " + provider.getClass());
       }
 
       highToBitmap.put(high, provider);
