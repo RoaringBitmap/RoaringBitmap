@@ -1,6 +1,8 @@
 package org.roaringbitmap;
 
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -18,78 +20,89 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Execution(ExecutionMode.CONCURRENT)
 public class ContainerBatchIteratorTest {
 
+    private static int[][] DATA;
+
+    @BeforeAll
+    public static void setup() {
+        DATA = Stream.of(IntStream.range(0, 20000).toArray(),
+            IntStream.range(0, 1 << 16).toArray(),
+            IntStream.range(0, 1 << 16).filter(i -> i < 500 || i > 2000).filter(i -> i < (1 << 15) || i > ((1 << 15) | (1 << 8))).toArray(),
+            IntStream.range(0, 1 << 16).filter(i -> ((i >>> 12) & 1) == 0).toArray(),
+            IntStream.range(0, 1 << 16).filter(i -> ((i >>> 11) & 1) == 0).toArray(),
+            IntStream.range(0, 1 << 16).filter(i -> ((i >>> 10) & 1) == 0).toArray(),
+            IntStream.range(0, 1 << 16).filter(i -> ((i >>> 9) & 1) == 0).toArray(),
+            IntStream.range(0, 1 << 16).filter(i -> ((i >>> 8) & 1) == 0).toArray(),
+            IntStream.range(0, 1 << 16).filter(i -> ((i >>> 7) & 1) == 0).toArray(),
+            IntStream.range(0, 1 << 16).filter(i -> ((i >>> 6) & 1) == 0).toArray(),
+            IntStream.range(0, 1 << 16).filter(i -> ((i >>> 5) & 1) == 0).toArray(),
+            IntStream.range(0, 1 << 16).filter(i -> ((i >>> 4) & 1) == 0).toArray(),
+            IntStream.range(0, 1 << 16).filter(i -> ((i >>> 3) & 1) == 0).toArray(),
+            IntStream.range(0, 1 << 16).filter(i -> ((i >>> 2) & 1) == 0).toArray(),
+            IntStream.range(0, 1 << 16).filter(i -> ((i >>> 1) & 1) == 0).toArray(),
+            IntStream.range(0, 1 << 16).filter(i -> (i & 1) == 0).toArray(),
+            IntStream.range(0, 1 << 16).filter(i -> (i & 1) == 0).toArray(),
+            IntStream.range(0, 1 << 16).filter(i -> (i % 3) == 0).toArray(),
+            IntStream.range(0, 1 << 16).filter(i -> (i % 5) == 0).toArray(),
+            IntStream.range(0, 1 << 16).filter(i -> (i % 7) == 0).toArray(),
+            IntStream.range(0, 1 << 16).filter(i -> (i % 9) == 0).toArray(),
+            IntStream.range(0, 1 << 16).filter(i -> (i % 271) == 0).toArray(),
+            IntStream.range(0, 1 << 16).filter(i -> (i % 1000) == 0).toArray(),
+            IntStream.empty().toArray(),
+            SeededTestData.sparseRegion().toArray(),
+            SeededTestData.sparseRegion().toArray(),
+            SeededTestData.sparseRegion().toArray(),
+            SeededTestData.sparseRegion().toArray(),
+            SeededTestData.sparseRegion().toArray(),
+            SeededTestData.sparseRegion().toArray(),
+            SeededTestData.sparseRegion().toArray(),
+            SeededTestData.sparseRegion().toArray(),
+            SeededTestData.sparseRegion().toArray(),
+            SeededTestData.sparseRegion().toArray(),
+            SeededTestData.sparseRegion().toArray(),
+            SeededTestData.sparseRegion().toArray(),
+            SeededTestData.sparseRegion().toArray(),
+            SeededTestData.sparseRegion().toArray(),
+            SeededTestData.sparseRegion().toArray(),
+            SeededTestData.denseRegion().toArray(),
+            SeededTestData.denseRegion().toArray(),
+            SeededTestData.denseRegion().toArray(),
+            SeededTestData.denseRegion().toArray(),
+            SeededTestData.denseRegion().toArray(),
+            SeededTestData.denseRegion().toArray(),
+            SeededTestData.denseRegion().toArray(),
+            SeededTestData.denseRegion().toArray(),
+            SeededTestData.denseRegion().toArray(),
+            SeededTestData.denseRegion().toArray(),
+            SeededTestData.denseRegion().toArray(),
+            SeededTestData.denseRegion().toArray(),
+            SeededTestData.denseRegion().toArray(),
+            SeededTestData.denseRegion().toArray(),
+            SeededTestData.denseRegion().toArray(),
+            SeededTestData.rleRegion().toArray(),
+            SeededTestData.rleRegion().toArray(),
+            SeededTestData.rleRegion().toArray(),
+            SeededTestData.rleRegion().toArray(),
+            SeededTestData.rleRegion().toArray(),
+            SeededTestData.rleRegion().toArray(),
+            SeededTestData.rleRegion().toArray(),
+            SeededTestData.rleRegion().toArray(),
+            SeededTestData.rleRegion().toArray(),
+            SeededTestData.rleRegion().toArray(),
+            SeededTestData.rleRegion().toArray(),
+            SeededTestData.rleRegion().toArray(),
+            SeededTestData.rleRegion().toArray(),
+            SeededTestData.rleRegion().toArray(),
+            SeededTestData.rleRegion().toArray()).toArray(int[][]::new);
+    }
+
+    @AfterAll
+    public static void clear() {
+        DATA = null;
+    }
+
 
     public static Stream<Arguments> params() {
-        return Stream.of(
-                IntStream.range(0, 20000).toArray(),
-                IntStream.range(0, 1 << 16).toArray(),
-                IntStream.range(0, 1 << 16).filter(i -> i < 500 || i > 2000).filter(i -> i < (1 << 15) || i > ((1 << 15) | (1 << 8))).toArray(),
-                IntStream.range(0, 1 << 16).filter(i -> ((i >>> 12) & 1) == 0).toArray(),
-                IntStream.range(0, 1 << 16).filter(i -> ((i >>> 11) & 1) == 0).toArray(),
-                IntStream.range(0, 1 << 16).filter(i -> ((i >>> 10) & 1) == 0).toArray(),
-                IntStream.range(0, 1 << 16).filter(i -> ((i >>> 9) & 1) == 0).toArray(),
-                IntStream.range(0, 1 << 16).filter(i -> ((i >>> 8) & 1) == 0).toArray(),
-                IntStream.range(0, 1 << 16).filter(i -> ((i >>> 7) & 1) == 0).toArray(),
-                IntStream.range(0, 1 << 16).filter(i -> ((i >>> 6) & 1) == 0).toArray(),
-                IntStream.range(0, 1 << 16).filter(i -> ((i >>> 5) & 1) == 0).toArray(),
-                IntStream.range(0, 1 << 16).filter(i -> ((i >>> 4) & 1) == 0).toArray(),
-                IntStream.range(0, 1 << 16).filter(i -> ((i >>> 3) & 1) == 0).toArray(),
-                IntStream.range(0, 1 << 16).filter(i -> ((i >>> 2) & 1) == 0).toArray(),
-                IntStream.range(0, 1 << 16).filter(i -> ((i >>> 1) & 1) == 0).toArray(),
-                IntStream.range(0, 1 << 16).filter(i -> (i & 1) == 0).toArray(),
-                IntStream.range(0, 1 << 16).filter(i -> (i & 1) == 0).toArray(),
-                IntStream.range(0, 1 << 16).filter(i -> (i % 3) == 0).toArray(),
-                IntStream.range(0, 1 << 16).filter(i -> (i % 5) == 0).toArray(),
-                IntStream.range(0, 1 << 16).filter(i -> (i % 7) == 0).toArray(),
-                IntStream.range(0, 1 << 16).filter(i -> (i % 9) == 0).toArray(),
-                IntStream.range(0, 1 << 16).filter(i -> (i % 271) == 0).toArray(),
-                IntStream.range(0, 1 << 16).filter(i -> (i % 1000) == 0).toArray(),
-                IntStream.empty().toArray(),
-                SeededTestData.sparseRegion().toArray(),
-                SeededTestData.sparseRegion().toArray(),
-                SeededTestData.sparseRegion().toArray(),
-                SeededTestData.sparseRegion().toArray(),
-                SeededTestData.sparseRegion().toArray(),
-                SeededTestData.sparseRegion().toArray(),
-                SeededTestData.sparseRegion().toArray(),
-                SeededTestData.sparseRegion().toArray(),
-                SeededTestData.sparseRegion().toArray(),
-                SeededTestData.sparseRegion().toArray(),
-                SeededTestData.sparseRegion().toArray(),
-                SeededTestData.sparseRegion().toArray(),
-                SeededTestData.sparseRegion().toArray(),
-                SeededTestData.sparseRegion().toArray(),
-                SeededTestData.sparseRegion().toArray(),
-                SeededTestData.denseRegion().toArray(),
-                SeededTestData.denseRegion().toArray(),
-                SeededTestData.denseRegion().toArray(),
-                SeededTestData.denseRegion().toArray(),
-                SeededTestData.denseRegion().toArray(),
-                SeededTestData.denseRegion().toArray(),
-                SeededTestData.denseRegion().toArray(),
-                SeededTestData.denseRegion().toArray(),
-                SeededTestData.denseRegion().toArray(),
-                SeededTestData.denseRegion().toArray(),
-                SeededTestData.denseRegion().toArray(),
-                SeededTestData.denseRegion().toArray(),
-                SeededTestData.denseRegion().toArray(),
-                SeededTestData.denseRegion().toArray(),
-                SeededTestData.denseRegion().toArray(),
-                SeededTestData.rleRegion().toArray(),
-                SeededTestData.rleRegion().toArray(),
-                SeededTestData.rleRegion().toArray(),
-                SeededTestData.rleRegion().toArray(),
-                SeededTestData.rleRegion().toArray(),
-                SeededTestData.rleRegion().toArray(),
-                SeededTestData.rleRegion().toArray(),
-                SeededTestData.rleRegion().toArray(),
-                SeededTestData.rleRegion().toArray(),
-                SeededTestData.rleRegion().toArray(),
-                SeededTestData.rleRegion().toArray(),
-                SeededTestData.rleRegion().toArray(),
-                SeededTestData.rleRegion().toArray(),
-                SeededTestData.rleRegion().toArray(),
-                SeededTestData.rleRegion().toArray())
+        return Stream.of(DATA)
                 .flatMap(array -> IntStream.concat(IntStream.of(
                         512, 1024, 2048, 4096, 8192, 65536
                 ), IntStream.range(0, 100).map(i -> ThreadLocalRandom.current().nextInt(1, 65536)))

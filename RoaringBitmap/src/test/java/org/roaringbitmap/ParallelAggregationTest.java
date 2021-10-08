@@ -5,6 +5,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.roaringbitmap.buffer.BufferFastAggregation;
+import org.roaringbitmap.buffer.BufferParallelAggregation;
+import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.IntStream;
@@ -204,6 +207,177 @@ public class ParallelAggregationTest {
     RoaringBitmap two = testCase().withBitmapAt(1).withRunAt((1 << 15) | 2).build();
     RoaringBitmap three = testCase().withArrayAt(3).withRunAt((1 << 15) | 3).build();
     assertEquals(FastAggregation.xor(one, two, three), ParallelAggregation.xor(one, two, three));
+  }
+
+  @Test
+  public void singleContainerOR_Buffer() {
+    ImmutableRoaringBitmap one = testCase().withRunAt(0).build().toMutableRoaringBitmap();
+    ImmutableRoaringBitmap two = testCase().withBitmapAt(0).build().toMutableRoaringBitmap();
+    ImmutableRoaringBitmap three = testCase().withArrayAt(0).build().toMutableRoaringBitmap();
+    assertEquals(BufferFastAggregation.or(one, two, three), BufferParallelAggregation.or(one, two, three));
+  }
+
+  @Test
+  public void twoContainerOR_Buffer() {
+    ImmutableRoaringBitmap one = testCase().withRunAt(0).withArrayAt(1).build().toMutableRoaringBitmap();
+    ImmutableRoaringBitmap two = testCase().withBitmapAt(1).build().toMutableRoaringBitmap();
+    ImmutableRoaringBitmap three = testCase().withArrayAt(1).build().toMutableRoaringBitmap();
+    assertEquals(BufferFastAggregation.or(one, two, three), BufferParallelAggregation.or(one, two, three));
+  }
+
+  @Test
+  public void disjointOR_Buffer() {
+    ImmutableRoaringBitmap one = testCase().withRunAt(0).withArrayAt(2).build().toMutableRoaringBitmap();
+    ImmutableRoaringBitmap two = testCase().withBitmapAt(1).build().toMutableRoaringBitmap();
+    ImmutableRoaringBitmap three = testCase().withArrayAt(3).build().toMutableRoaringBitmap();
+    assertEquals(BufferFastAggregation.or(one, two, three), BufferParallelAggregation.or(one, two, three));
+  }
+
+  @Test
+  public void disjointBigKeysOR_Buffer() {
+    ImmutableRoaringBitmap one = testCase().withRunAt(0).withArrayAt(2).withBitmapAt((1 << 15) | 1).build()
+        .toMutableRoaringBitmap();
+    ImmutableRoaringBitmap two = testCase().withBitmapAt(1).withRunAt((1 << 15) | 2).build()
+        .toMutableRoaringBitmap();
+    ImmutableRoaringBitmap three = testCase().withArrayAt(3).withRunAt((1 << 15) | 3).build()
+        .toMutableRoaringBitmap();
+    assertEquals(BufferFastAggregation.or(one, two, three), BufferParallelAggregation.or(one, two, three));
+  }
+
+  @Test
+  public void wideOr_Buffer() {
+    ImmutableRoaringBitmap[] input = IntStream.range(0, 20)
+        .mapToObj(i -> testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build().toMutableRoaringBitmap())
+        .toArray(ImmutableRoaringBitmap[]::new);
+    assertEquals(BufferFastAggregation.or(input), BufferParallelAggregation.or(input));
+  }
+
+  @Test
+  public void hugeOr1_Buffer() {
+    ImmutableRoaringBitmap[] input = IntStream.range(0, 513)
+        .mapToObj(i -> testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build().toMutableRoaringBitmap())
+        .toArray(ImmutableRoaringBitmap[]::new);
+    assertEquals(BufferFastAggregation.or(input), BufferParallelAggregation.or(input));
+  }
+
+
+  @Test
+  public void hugeOr2_Buffer() {
+    ImmutableRoaringBitmap[] input = IntStream.range(0, 1999)
+        .mapToObj(i -> testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build().toMutableRoaringBitmap())
+        .toArray(ImmutableRoaringBitmap[]::new);
+    assertEquals(BufferFastAggregation.or(input), BufferParallelAggregation.or(input));
+  }
+
+  @Test
+  public void hugeOr3_Buffer() {
+    ImmutableRoaringBitmap[] input = IntStream.range(0, 4096)
+        .mapToObj(i -> testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build().toMutableRoaringBitmap())
+        .toArray(ImmutableRoaringBitmap[]::new);
+    assertEquals(BufferFastAggregation.or(input), BufferParallelAggregation.or(input));
+  }
+
+  @Test
+  public void hugeOrNoParallelismAvailable1_Buffer() {
+    ImmutableRoaringBitmap[] input = IntStream.range(0, 513)
+        .mapToObj(i -> testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build().toMutableRoaringBitmap())
+        .toArray(ImmutableRoaringBitmap[]::new);
+    assertEquals(BufferFastAggregation.or(input),
+        NO_PARALLELISM_AVAILABLE.submit(() -> BufferParallelAggregation.or(input)).join());
+  }
+
+
+  @Test
+  public void hugeOrNoParallelismAvailable2_Buffer() {
+    ImmutableRoaringBitmap[] input = IntStream.range(0, 2000)
+        .mapToObj(i -> testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build().toMutableRoaringBitmap())
+        .toArray(ImmutableRoaringBitmap[]::new);
+    assertEquals(BufferFastAggregation.or(input),
+        NO_PARALLELISM_AVAILABLE.submit(() -> BufferParallelAggregation.or(input)).join());
+  }
+
+  @Test
+  public void hugeOrNoParallelismAvailable3_Buffer() {
+    ImmutableRoaringBitmap[] input = IntStream.range(0, 4096)
+        .mapToObj(i -> testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build().toMutableRoaringBitmap())
+        .toArray(ImmutableRoaringBitmap[]::new);
+    assertEquals(BufferFastAggregation.or(input),
+        NO_PARALLELISM_AVAILABLE.submit(() -> BufferParallelAggregation.or(input)).join());
+  }
+
+
+  @Test
+  public void hugeOrInFJP1_Buffer() {
+    ImmutableRoaringBitmap[] input = IntStream.range(0, 513)
+        .mapToObj(i -> testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build().toMutableRoaringBitmap())
+        .toArray(ImmutableRoaringBitmap[]::new);
+    assertEquals(BufferFastAggregation.or(input),
+        POOL.submit(() -> BufferParallelAggregation.or(input)).join());
+  }
+
+
+  @Test
+  public void hugeOrInFJP2_Buffer() {
+    ImmutableRoaringBitmap[] input = IntStream.range(0, 2000)
+        .mapToObj(i -> testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build().toMutableRoaringBitmap())
+        .toArray(ImmutableRoaringBitmap[]::new);
+    assertEquals(BufferFastAggregation.or(input),
+        POOL.submit(() -> BufferParallelAggregation.or(input)).join());
+  }
+
+  @Test
+  public void hugeOrInFJP3_Buffer() {
+    ImmutableRoaringBitmap[] input = IntStream.range(0, 4096)
+        .mapToObj(i -> testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build().toMutableRoaringBitmap())
+        .toArray(ImmutableRoaringBitmap[]::new);
+    assertEquals(BufferFastAggregation.or(input),
+        POOL.submit(() -> BufferParallelAggregation.or(input)).join());
+  }
+
+  @Test
+  public void singleContainerXOR_Buffer() {
+    ImmutableRoaringBitmap one = testCase().withRunAt(0).build().toMutableRoaringBitmap();
+    ImmutableRoaringBitmap two = testCase().withBitmapAt(0).build().toMutableRoaringBitmap();
+    ImmutableRoaringBitmap three = testCase().withArrayAt(0).build().toMutableRoaringBitmap();
+    assertEquals(BufferFastAggregation.xor(one, two, three), BufferParallelAggregation.xor(one, two, three));
+  }
+
+
+  @Test
+  public void missingMiddleContainerXOR_Buffer() {
+    ImmutableRoaringBitmap one = testCase().withRunAt(0).withBitmapAt(1).withArrayAt(2).build()
+        .toMutableRoaringBitmap();
+    ImmutableRoaringBitmap two = testCase().withBitmapAt(0).withArrayAt(2).build().toMutableRoaringBitmap();
+    ImmutableRoaringBitmap three = testCase().withArrayAt(0).withBitmapAt(1).withArrayAt(2).build()
+        .toMutableRoaringBitmap();
+    assertEquals(BufferFastAggregation.xor(one, two, three), BufferParallelAggregation.xor(one, two, three));
+  }
+
+  @Test
+  public void twoContainerXOR_Buffer() {
+    ImmutableRoaringBitmap one = testCase().withRunAt(0).withArrayAt(1).build().toMutableRoaringBitmap();
+    ImmutableRoaringBitmap two = testCase().withBitmapAt(1).build().toMutableRoaringBitmap();
+    ImmutableRoaringBitmap three = testCase().withArrayAt(1).build().toMutableRoaringBitmap();
+    assertEquals(BufferFastAggregation.xor(one, two, three), BufferParallelAggregation.xor(one, two, three));
+  }
+
+  @Test
+  public void disjointXOR_Buffer() {
+    ImmutableRoaringBitmap one = testCase().withRunAt(0).withArrayAt(2).build().toMutableRoaringBitmap();
+    ImmutableRoaringBitmap two = testCase().withBitmapAt(1).build().toMutableRoaringBitmap();
+    ImmutableRoaringBitmap three = testCase().withArrayAt(3).build().toMutableRoaringBitmap();
+    assertEquals(BufferFastAggregation.xor(one, two, three), BufferParallelAggregation.xor(one, two, three));
+  }
+
+  @Test
+  public void disjointBigKeysXOR_Buffer() {
+    ImmutableRoaringBitmap one = testCase().withRunAt(0).withArrayAt(2).withBitmapAt((1 << 15) | 1).build()
+        .toMutableRoaringBitmap();
+    ImmutableRoaringBitmap two = testCase().withBitmapAt(1).withRunAt((1 << 15) | 2).build()
+        .toMutableRoaringBitmap();
+    ImmutableRoaringBitmap three = testCase().withArrayAt(3).withRunAt((1 << 15) | 3).build()
+        .toMutableRoaringBitmap();
+    assertEquals(BufferFastAggregation.xor(one, two, three), BufferParallelAggregation.xor(one, two, three));
   }
 
 
