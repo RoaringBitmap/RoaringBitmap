@@ -1,6 +1,8 @@
 package org.roaringbitmap;
 
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -18,19 +20,30 @@ import static org.roaringbitmap.Util.toUnsignedLong;
 @Execution(ExecutionMode.CONCURRENT)
 public class RoaringBitmapWriterRandomisedTest {
 
+    private static int[][] ARRAYS;
+
+    @BeforeAll
+    public static void init() {
+        ARRAYS = new int[][] {
+            new int[]{0, 1, 2, 3},
+            randomArray(0),
+            randomArray(10),
+            randomArray(100),
+            randomArray(1000),
+            randomArray(10_000),
+            randomArray(100_000),
+            randomArray(1000_000),
+            randomArray(10_000_000)
+        };
+    }
+
+    @AfterAll
+    public static void clear() {
+        ARRAYS = null;
+    }
 
     public static Stream<Arguments> tests() {
-        return Stream.of(
-                Arguments.of(new int[]{0, 1, 2, 3}),
-                Arguments.of(randomArray(0)),
-                Arguments.of(randomArray(10)),
-                Arguments.of(randomArray(100)),
-                Arguments.of(randomArray(1000)),
-                Arguments.of(randomArray(10_000)),
-                Arguments.of(randomArray(100_000)),
-                Arguments.of(randomArray(1000_000)),
-                Arguments.of(randomArray(10_000_000))
-        );
+        return Stream.of(ARRAYS).map(Arguments::of);
     }
 
     @ParameterizedTest(name = "-")

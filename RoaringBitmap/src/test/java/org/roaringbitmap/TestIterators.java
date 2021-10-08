@@ -159,7 +159,6 @@ public class TestIterators {
     bitmap.add(Integer.MAX_VALUE - 2);
     // Adding this one leads to the issue
     bitmap.add(Integer.MAX_VALUE - 3);
-    System.out.println(bitmap);
     bitmap.forEach((org.roaringbitmap.IntConsumer) e -> {
       if (!bitmap.contains(e)) {
         throw new IllegalStateException("Not expecting to find: " + e);
@@ -167,9 +166,7 @@ public class TestIterators {
     });
 
     bitmap.runOptimize(); // This is the line causing the issue
-    System.out.println(bitmap);
     bitmap.forEach((org.roaringbitmap.IntConsumer) e -> {
-      System.out.println("Checking  :: " + e);
       if (!bitmap.contains(e)) {
         throw new IllegalStateException("Not expecting to find: " + e);
       }
