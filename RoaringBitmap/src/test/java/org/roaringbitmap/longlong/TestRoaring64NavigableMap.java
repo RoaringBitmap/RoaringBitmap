@@ -2,6 +2,7 @@ package org.roaringbitmap.longlong;
 
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.roaringbitmap.BitmapDataProvider;
@@ -1539,4 +1540,112 @@ public class TestRoaring64NavigableMap {
     Roaring64NavigableMap map2 = Roaring64NavigableMap.bitmapOf(1, 2, 3, 4, 5, 7, 8, 9, 1 << 16, 1 << 17, 1 << 18, 1 << 19, 1 << 20 , 1 << 33);
     assertEquals(map2, map1);
   }
+
+  // https://github.com/RoaringBitmap/RoaringBitmap/issues/528
+  @Test
+  public void testAnd_ImplicitRoaringBitmap() {
+    // Based on RoaringBitmap
+    Roaring64NavigableMap x = new Roaring64NavigableMap();
+    x.add(123, 124);
+    Assertions.assertTrue(x.getHighToBitmap().values().iterator().next() instanceof RoaringBitmap);
+
+    // Based on MutableRoaringBitmap
+    Roaring64NavigableMap y = Roaring64NavigableMap.bitmapOf(4L);
+    Assertions.assertTrue(y.getHighToBitmap().values().iterator().next() instanceof RoaringBitmap);
+
+    {
+      x.and(y);
+
+      BitmapDataProvider singleBitmap = x.getHighToBitmap().values().iterator().next();
+      Assertions.assertTrue(singleBitmap instanceof RoaringBitmap);
+      Assertions.assertTrue(singleBitmap.isEmpty());
+    }
+  }
+
+  @Test
+  public void testAnd_MutableRoaringBitmap() {
+    // Based on RoaringBitmap
+    Roaring64NavigableMap x = new Roaring64NavigableMap(new MutableRoaringBitmapSupplier());
+    x.add(0, 16);
+
+    // Based on MutableRoaringBitmap
+    Roaring64NavigableMap y = new Roaring64NavigableMap(new MutableRoaringBitmapSupplier());
+    y.add(8, 32);
+
+    Assertions.assertEquals(16L, x.getLongCardinality());
+    x.and(y);
+    Assertions.assertEquals(8L, x.getLongCardinality());
+  }
+
+  @Test
+  public void testAnd_IncompatibleImplementations() {
+    // Based on RoaringBitmap
+    Roaring64NavigableMap x = new Roaring64NavigableMap(new RoaringBitmapSupplier());
+    x.add(0, 16);
+
+    // Based on MutableRoaringBitmap
+    Roaring64NavigableMap y = new Roaring64NavigableMap(new MutableRoaringBitmapSupplier());
+    y.add(8, 32);
+
+    Assertions.assertThrows(UnsupportedOperationException.class, () -> x.and(y));
+  }
+
+  @Test
+  public void testAndNot_ImplicitRoaringBitmap() {
+    // Based on RoaringBitmap
+    Roaring64NavigableMap x = new Roaring64NavigableMap();
+    x.add(8, 16);
+
+    // Based on MutableRoaringBitmap
+    Roaring64NavigableMap y = new Roaring64NavigableMap();
+    y.add(12, 32);
+
+    {
+      x.andNot(y);
+
+      BitmapDataProvider singleBitmap = x.getHighToBitmap().values().iterator().next();
+      Assertions.assertTrue(singleBitmap instanceof RoaringBitmap);
+      Assertions.assertEquals(4L, singleBitmap.getLongCardinality());
+      Assertions.assertEquals(8L, singleBitmap.select(0));
+      Assertions.assertEquals(11L, singleBitmap.select(3));
+    }
+  }
+
+  @Test
+  public void testOr_ImplicitRoaringBitmap() {
+    // Based on RoaringBitmap
+    Roaring64NavigableMap x = new Roaring64NavigableMap();
+    x.add(123, 124);
+
+    // Based on MutableRoaringBitmap
+    Roaring64NavigableMap y = Roaring64NavigableMap.bitmapOf(4L);
+
+    {
+      x.or(y);
+
+      BitmapDataProvider singleBitmap = x.getHighToBitmap().values().iterator().next();
+      Assertions.assertTrue(singleBitmap instanceof RoaringBitmap);
+      Assertions.assertEquals(2L, singleBitmap.getLongCardinality());
+    }
+  }
+
+  @Test
+  public void testNaivelazyor_ImplicitRoaringBitmap() {
+    // Based on RoaringBitmap
+    Roaring64NavigableMap x = new Roaring64NavigableMap();
+    x.add(123, 124);
+
+    // Based on MutableRoaringBitmap
+    Roaring64NavigableMap y = Roaring64NavigableMap.bitmapOf(4L);
+
+    {
+      x.naivelazyor(y);
+      x.repairAfterLazy();
+
+      BitmapDataProvider singleBitmap = x.getHighToBitmap().values().iterator().next();
+      Assertions.assertTrue(singleBitmap instanceof RoaringBitmap);
+      Assertions.assertEquals(2L, singleBitmap.getLongCardinality());
+    }
+  }
+
 }
