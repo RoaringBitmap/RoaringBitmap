@@ -15,6 +15,6 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew assemble
       - name: Test with Gradle
-        run: ./gradlew test --stacktrace
+        run: ./gradlew test
       - name: Style check
         run: ./gradlew checkstyleMain
