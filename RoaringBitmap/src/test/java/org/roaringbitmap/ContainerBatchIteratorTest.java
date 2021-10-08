@@ -113,6 +113,28 @@ public class ContainerBatchIteratorTest {
         assertEquals(expectedValues.length, cardinality);
     }
 
+    @ParameterizedTest(name = "{1}")
+    @MethodSource("params")
+    public void testAdvanceIfNeeded(int[] expectedValues, int batchSize) {
+        if (expectedValues.length < 2) {
+            return;
+        }
+        int[] buffer = new int[batchSize];
+        Container container = createContainer(expectedValues);
+        ContainerBatchIterator it = container.getBatchIterator();
+        int cardinality = expectedValues.length / 2;
+        int advanceUntil = expectedValues[cardinality];
+        it.advanceIfNeeded((char) advanceUntil);
+        while (it.hasNext()) {
+            int from = cardinality;
+            cardinality += it.next(0, buffer);
+            assertArrayEquals(
+                copyOfRange(expectedValues, from, cardinality), copyOfRange(buffer, 0, cardinality - from),
+                "Failure with batch size " + batchSize + " and container type " + container.getContainerName());
+        }
+        assertEquals(expectedValues.length, cardinality);
+    }
+
     private Container createContainer(int[] expectedValues) {
         Container container = new ArrayContainer();
         for (int value : expectedValues) {

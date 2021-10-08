@@ -33,5 +33,42 @@ public interface BatchIterator extends Cloneable {
     return new BatchIntIterator(this, buffer);
   }
 
+  /**
+   * If needed, advance as long as the next value is smaller than minval
+   *
+   *  The advanceIfNeeded method is used for performance reasons, to skip
+   *  over unnecessary repeated calls to next.
+   *
+   *  Suppose for example that you wish to compute the intersection between
+   *  an ordered list of integers (e.g., int[] x = {1,4,5}) and a
+   *  BatchIterator.
+   *  You might do it as follows...
+   *     <pre><code>
+   *     int[] buffer = new int[128];
+   *     BatchIterator j = // get an iterator
+   *     int val = // first value from my other data structure
+   *     j.advanceIfNeeded(val);
+   *     while ( j.hasNext() ) {
+   *       int limit = j.nextBatch(buffer);
+   *       for (int i = 0; i < limit; i++) {
+   *         if (buffer[i] == val) {
+   *           // got it!
+   *           // do something here
+   *           val = // get next value?
+   *         }
+   *       }
+   *       j.advanceIfNeeded(val);
+   *     }
+   *     </code></pre>
+   *
+   *  The benefit of calling advanceIfNeeded is that each such call
+   *  can be much faster than repeated calls to "next". The underlying
+   *  implementation can "skip" over some data.
+   *
+   *
+   * @param target threshold
+   */
+  void advanceIfNeeded(int target);
+
 
 }

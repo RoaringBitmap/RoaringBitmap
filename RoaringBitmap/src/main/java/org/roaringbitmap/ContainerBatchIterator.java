@@ -29,4 +29,10 @@ public interface ContainerBatchIterator extends Cloneable {
    */
   void releaseContainer();
 
+  /**
+   * Advance until the value.
+   * @param target the value to advance to.
+   */
+  void advanceIfNeeded(char target);
+
 }
