@@ -17,4 +17,10 @@ tasks.test {
     mustRunAfter(tasks.checkstyleMain)
     useJUnitPlatform()
     failFast = true
+    testLogging {
+        // We exclude 'passed' events
+        events( "skipped", "failed")
+        showStackTraces = true
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
 }
