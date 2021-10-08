@@ -18,7 +18,8 @@ tasks.test {
     useJUnitPlatform()
     failFast = true
     testLogging {
-        events("passed", "skipped", "failed")
+        // We exclude 'passed' events
+        events( "skipped", "failed")
         showStackTraces = true
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
     }
