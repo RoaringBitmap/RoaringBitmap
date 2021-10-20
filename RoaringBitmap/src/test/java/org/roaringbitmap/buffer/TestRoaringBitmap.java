@@ -3894,4 +3894,25 @@ public class TestRoaringBitmap {
       bitmap.deserialize(new DataInputStream(new ByteArrayInputStream(new byte[4])));
     });
   }
+
+  @Test
+  public void testCardinalityExceeds() {
+    MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+    long runLength = 20_000L;
+    bitmap.add(0L, runLength);
+    for (int i = (1 << 16) + 1; i < 1 << 17; i+= 2) {
+      bitmap.add(i);
+    }
+    long bitmapCount = 1 << 15;
+    bitmap.add((1 << 17) | 1);
+    bitmap.add((1 << 17) | 2);
+    bitmap.add((1 << 17) | 3);
+    long arrayCount = 3;
+    bitmap.runOptimize();
+    assertFalse(bitmap.cardinalityExceeds(Integer.MAX_VALUE));
+    assertFalse(bitmap.cardinalityExceeds(runLength + bitmapCount + arrayCount));
+    assertTrue(bitmap.cardinalityExceeds(runLength + bitmapCount + 1));
+    assertTrue(bitmap.cardinalityExceeds(runLength + bitmapCount - 1));
+    assertTrue(bitmap.cardinalityExceeds(runLength - 1));
+  }
 }
