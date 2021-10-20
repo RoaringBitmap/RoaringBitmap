@@ -1289,6 +1289,22 @@ public class ImmutableRoaringBitmap
     return (int) getLongCardinality();
   }
 
+  /**
+   * Returns true if the bitmap's cardinality exceeds the threshold.
+   * @param threshold threshold
+   * @return true if the cardinality exceeds the threshold.
+   */
+  public boolean cardinalityExceeds(long threshold) {
+    long size = 0;
+    for (int i = 0; i < this.highLowContainer.size(); i++) {
+      size += this.highLowContainer.getContainerAtIndex(i).getCardinality();
+      if (size > threshold) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Override
   public void forEach(IntConsumer ic) {
     for (int i = 0; i < this.highLowContainer.size(); i++) {
