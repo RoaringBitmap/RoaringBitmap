@@ -69,7 +69,7 @@ public class RangeBitmapTest {
   @ValueSource(ints = {0, 0xFFFF, 0x10001, 100_000, 0x110001, 1_000_000})
   public void testLessThanZeroEmpty(int size) {
     RangeBitmap.Appender appender = RangeBitmap.appender(size);
-    LongStream.range(0, 10).forEach(appender::add);
+    LongStream.range(0, Math.min(size, 10)).forEach(appender::add);
     RangeBitmap range = appender.build();
     RoaringBitmap expected = new RoaringBitmap();
     assertEquals(expected, range.lt(0));
