@@ -75,11 +75,12 @@ public final class RangeBitmap {
     int sliceCount = source.get() & 0xFF;
     int maxKey = source.getChar();
     long mask = sliceCount == 64 ? -1L : (1L << sliceCount) - 1;
+    byte bytesPerMask = (byte) ((sliceCount + 7) >>> 3);
     long maxRid = source.getInt() & 0xFFFFFFFFL;
     int masksOffset = source.position();
-    int containersOffset = masksOffset + maxKey * (sliceCount >>> 3);
-    return new RangeBitmap(mask, maxRid,
-        (ByteBuffer) source.position(buffer.position()), masksOffset, containersOffset);
+    int containersOffset = masksOffset + maxKey * bytesPerMask;
+    return new RangeBitmap(mask, maxRid, (ByteBuffer) source.position(buffer.position()),
+        masksOffset, containersOffset, bytesPerMask);
   }
 
   private final ByteBuffer buffer;
@@ -87,13 +88,16 @@ public final class RangeBitmap {
   private final int containersOffset;
   private final long mask;
   private final long max;
+  private final byte bytesPerMask;
 
-  RangeBitmap(long mask, long max, ByteBuffer buffer, int masksOffset, int containersOffset) {
+  RangeBitmap(long mask, long max, ByteBuffer buffer, int masksOffset, int containersOffset,
+              byte bytesPerMask) {
     this.mask = mask;
     this.max = max;
     this.buffer = buffer;
     this.masksOffset = masksOffset;
     this.containersOffset = containersOffset;
+    this.bytesPerMask = bytesPerMask;
   }
 
   /**
@@ -211,7 +215,7 @@ public final class RangeBitmap {
       }
       key++;
       remaining -= 0x10000;
-      mPos += Long.bitCount(mask) >>> 3;
+      mPos += bytesPerMask;
     }
     return new RoaringBitmap(output);
   }
@@ -259,7 +263,7 @@ public final class RangeBitmap {
         contextPos++;
       }
       remaining -= 0x10000;
-      mPos += Long.bitCount(mask) >>> 3;
+      mPos += bytesPerMask;
     }
     return new RoaringBitmap(output);
   }
@@ -374,7 +378,8 @@ public final class RangeBitmap {
     Appender(long maxValue, IntFunction<ByteBuffer> bufferSupplier, Consumer<ByteBuffer> cleaner) {
       this.bufferSupplier = bufferSupplier;
       this.bufferCleaner = cleaner;
-      this.rangeMask = rangeMaxForLimit(maxValue);
+      this.rangeMask = rangeMask(maxValue);
+      this.bytesPerMask = bytesPerMask(maxValue);
       this.slice = new Container[Long.bitCount(rangeMask)];
       for (int i = 0; i < slice.length; ++i) {
         slice[i] = containerForSlice(i);
@@ -385,6 +390,7 @@ public final class RangeBitmap {
 
     private final IntFunction<ByteBuffer> bufferSupplier;
     private final Consumer<ByteBuffer> bufferCleaner;
+    private final byte bytesPerMask;
     private final long rangeMask;
     private final Container[] slice;
     private ByteBuffer maskBuffer;
@@ -456,7 +462,7 @@ public final class RangeBitmap {
           + slicesSize
           + maxKeySize
           + maxRidSize;
-      int keysSize = key * (Long.bitCount(rangeMask) >>> 3);
+      int keysSize = key * bytesPerMask;
       return headerSize + keysSize + serializedContainerSize;
     }
 
@@ -482,7 +488,7 @@ public final class RangeBitmap {
       target.put((byte) Long.bitCount(rangeMask));
       target.putChar((char) key);
       target.putInt(rid);
-      int spaceForKeys = key * (Long.bitCount(rangeMask) >>> 3);
+      int spaceForKeys = key * bytesPerMask;
       target.put(((ByteBuffer) maskBuffer.slice()
           .order(LITTLE_ENDIAN).limit(spaceForKeys)));
       target.put(((ByteBuffer) containers.slice()
@@ -533,9 +539,8 @@ public final class RangeBitmap {
         maskBuffer = growBuffer(maskBuffer, maskBufferGrowth());
         maskBuffer.position(0);
       }
-      int maskWidth = Long.bitCount(rangeMask);
       maskBuffer.putLong(bufferPos, mask);
-      bufferPos += maskWidth >>> 3;
+      bufferPos += bytesPerMask;
       for (Container container : slice) {
         if (!container.isEmpty()) {
           Container toSerialize = container.runOptimize();
@@ -575,7 +580,7 @@ public final class RangeBitmap {
 
     private int maskBufferGrowth() {
       // 8 containers is space for ~0.5M rows, * the size in bytes of each mask
-      return GROWTH * (Long.bitCount(rangeMask) >>> 3);
+      return GROWTH * bytesPerMask;
     }
 
     private int containerGrowth() {
@@ -605,9 +610,14 @@ public final class RangeBitmap {
      * @param maxValue the maximum value this bitmap should support.
      * @return a mask with a multiple of 8 contiguous bits set.
      */
-    private static long rangeMaxForLimit(long maxValue) {
+    private static long rangeMask(long maxValue) {
       int lz = Long.numberOfLeadingZeros(maxValue | 1);
-      return lz <= 8 ? -1L : (1L << ((64 - lz + 7) & -8)) - 1;
+      return lz == 0 ? -1L : (1L << (64 - lz)) - 1;
+    }
+
+    private static byte bytesPerMask(long maxValue) {
+      int lz = Long.numberOfLeadingZeros(maxValue | 1);
+      return (byte) ((64 - lz + 7) >>> 3);
     }
   }
 }
