@@ -2098,4 +2098,21 @@ public class TestRoaring64Bitmap {
     consumer3.assertAllAbsentExcept(new int[] {3000 - 2500});
     assertEquals(1000, consumer3.getNumberOfValuesConsumed());
   }
+
+  @Test
+  public void testIssue537() {
+    Roaring64Bitmap a = Roaring64Bitmap.bitmapOf(275846320L);
+    Roaring64Bitmap b = Roaring64Bitmap.bitmapOf(275846320L);
+    Roaring64Bitmap c = Roaring64Bitmap.bitmapOf(275845652L,275845746L,275846148L,275847372L,275847380L,275847388L,275847459L,275847528L,275847586L,
+                                                 275847588L,275847600L,275847607L,275847610L,275847613L,275847631L,275847664L,275847672L,275847677L,
+                                                 275847680L,275847742L,275847808L,275847811L,275847824L,275847830L,275847856L,275847861L,275847863L,
+                                                 275847872L,275847896L,275847923L,275847924L,275847975L,275847990L,275847995L,275848003L,275848080L,
+                                                 275848081L,275848084L,275848095L,275848100L,275848120L,275848129L,275848134L,275848163L,275848174L,
+                                                 275848206L,275848218L,275848231L,275848272L,275848281L,275848308L,275848344L,275848376L,275848382L,
+                                                 275848395L,275848400L,275848411L,275848426L,275848445L,275848449L,275848451L,275848454L,275848469L);
+    c.and(b);
+    assertFalse(c.contains(275846320L));
+    c.and(a);
+    assertFalse(c.contains(275846320L));
+  }
 }
