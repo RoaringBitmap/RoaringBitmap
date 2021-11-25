@@ -17,7 +17,7 @@ import java.util.NoSuchElementException;
  * Base container class.
  */
 public abstract class Container implements Iterable<Character>, Cloneable, Externalizable,
-        WordStorage<Container> {
+        WordStorage<Container>, AutoCloseable {
 
   /**
    * Create a container initialized with a range of consecutive values
@@ -190,9 +190,23 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    */
   public Container orNot(Container x, int endOfRange) {
     if (endOfRange < 0x10000) {
-      return or(x.not(0, endOfRange).iremove(endOfRange, 0x10000));
+      Container not = x.not(0, endOfRange);
+      Container removed = not.iremove(endOfRange, 0x10000);
+      if (not != removed) {
+        not.close();
+      }
+      Container answer = or(removed);
+      if (answer != removed) {
+        removed.close();
+      }
+      return answer;
     }
-    return or(x.not(0, 0x10000));
+    Container not = x.not(0, 0x10000);
+    Container answer = or(not);
+    if (not != answer) {
+      not.close();
+    }
+    return answer;
   }
 
   /**
@@ -1032,4 +1046,7 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
       throw new NoSuchElementException("Empty " + getContainerName());
     }
   }
+
+  @Override
+  public abstract void close();
 }

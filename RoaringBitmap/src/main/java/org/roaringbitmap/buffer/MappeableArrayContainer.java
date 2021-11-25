@@ -16,6 +16,7 @@ import java.nio.CharBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import static org.roaringbitmap.AllocationManager.allocateChars;
 import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
 
 
@@ -1571,7 +1572,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
    * @return copy of the content as a char array
    */
   public char[] toShortArray() {
-    char[] answer = new char[cardinality];
+    char[] answer = allocateChars(cardinality);
     content.rewind();
     content.get(answer);
     return answer;

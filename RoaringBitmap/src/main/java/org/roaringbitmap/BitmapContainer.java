@@ -16,12 +16,13 @@ import java.util.Iterator;
 
 import static java.lang.Long.bitCount;
 import static java.lang.Long.numberOfTrailingZeros;
+import static org.roaringbitmap.AllocationManager.*;
 
 
 /**
  * Simple bitset-like container.
  */
-public final class BitmapContainer extends Container implements Cloneable {
+public final class BitmapContainer extends Container implements Cloneable, AutoCloseable {
   public static final int MAX_CAPACITY = 1 << 16;
 
 
@@ -77,7 +78,7 @@ public final class BitmapContainer extends Container implements Cloneable {
    */
   public BitmapContainer() {
     this.cardinality = 0;
-    this.bitmap = new long[MAX_CAPACITY / 64];
+    this.bitmap = allocateLongs(MAX_CAPACITY / 64);
   }
 
 
@@ -91,13 +92,13 @@ public final class BitmapContainer extends Container implements Cloneable {
    */
   public BitmapContainer(final int firstOfRun, final int lastOfRun) {
     this.cardinality = lastOfRun - firstOfRun;
-    this.bitmap = new long[MAX_CAPACITY / 64];
+    this.bitmap = allocateLongs(MAX_CAPACITY / 64);
     Util.setBitmapRange(bitmap, firstOfRun, lastOfRun);
   }
 
   private BitmapContainer(int newCardinality, long[] newBitmap) {
     this.cardinality = newCardinality;
-    this.bitmap = Arrays.copyOf(newBitmap, newBitmap.length);
+    this.bitmap = copy(newBitmap);
   }
 
   /**
@@ -1022,8 +1023,12 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public Container not(final int firstOfRange, final int lastOfRange) {
-    BitmapContainer answer = clone();
-    return answer.inot(firstOfRange, lastOfRange);
+    BitmapContainer tmp = clone();
+    Container answer = tmp.inot(firstOfRange, lastOfRange);
+    if (tmp != answer) {
+      tmp.close();
+    }
+    return answer;
   }
 
   @Override
@@ -1109,6 +1114,7 @@ public final class BitmapContainer extends Container implements Cloneable {
       }
     }
     if (answer.isFull()) {
+      answer.close();
       return RunContainer.full();
     }
     return answer;
@@ -1122,7 +1128,11 @@ public final class BitmapContainer extends Container implements Cloneable {
   @Override
   public Container or(final BitmapContainer value2) {
     BitmapContainer value1 = this.clone();
-    return value1.ior(value2);
+    Container answer = value1.ior(value2);
+    if (answer != value1) {
+      value1.close();
+    }
+    return answer;
   }
 
   @Override
@@ -1376,6 +1386,7 @@ public final class BitmapContainer extends Container implements Cloneable {
       answer.bitmap[index] = val ^ mask;
     }
     if (answer.cardinality <= ArrayContainer.DEFAULT_MAX_SIZE) {
+      answer.close();
       return answer.toArrayContainer();
     }
     return answer;
@@ -1700,6 +1711,10 @@ public final class BitmapContainer extends Container implements Cloneable {
     return (i + 1) * 64 - Long.numberOfLeadingZeros(bitmap[i]) - 1;
   }
 
+  @Override
+  public void close() {
+    free(bitmap);
+  }
 }
 
 

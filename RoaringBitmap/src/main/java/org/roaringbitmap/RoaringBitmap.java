@@ -13,6 +13,8 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import static org.roaringbitmap.AllocationManager.allocateChars;
+import static org.roaringbitmap.AllocationManager.allocateContainers;
 import static org.roaringbitmap.RoaringBitmapWriter.writer;
 import static org.roaringbitmap.Util.lowbitsAsInteger;
 import org.roaringbitmap.longlong.LongUtils;
@@ -49,7 +51,7 @@ import org.roaringbitmap.longlong.LongUtils;
 
 
 public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>, Externalizable,
-    ImmutableBitmapDataProvider, BitmapDataProvider, AppendableStorage<Container> {
+    ImmutableBitmapDataProvider, BitmapDataProvider, AppendableStorage<Container>, AutoCloseable {
 
   private final class RoaringIntIterator implements PeekableIntIterator {
     private int hs = 0;
@@ -424,6 +426,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         final Container c = c1.andNot(c2);
         if (!c.isEmpty()) {
           answer.highLowContainer.append(s1, c);
+        } else if (c1 != c) {
+          c.close();
         }
         ++pos1;
         ++pos2;
@@ -1025,6 +1029,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
               .xor(x2.highLowContainer.getContainerAtIndex(pos2));
           if (!c.isEmpty()) {
             answer.highLowContainer.append(s1, c);
+          } else {
+            c.close();
           }
           pos1++;
           pos2++;
@@ -1224,6 +1230,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         final Container c = c1.iand(c2);
         if (!c.isEmpty()) {
           highLowContainer.replaceKeyAndContainerAtIndex(intersectionSize++, s1, c);
+        } else if (c1 != c) {
+          c.close();
         }
         ++pos1;
         ++pos2;
@@ -1297,6 +1305,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         final Container c = c1.iandNot(c2);
         if (!c.isEmpty()) {
           highLowContainer.replaceKeyAndContainerAtIndex(intersectionSize++, s1, c);
+        } else if (c != c1) {
+          c.close();
         }
         ++pos1;
         ++pos2;
@@ -1393,8 +1403,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     if (maxSize == 0) {
       return;
     }
-    char[] newKeys = new char[maxSize];
-    Container[] newValues = new Container[maxSize];
+    char[] newKeys = allocateChars(maxSize);
+    Container[] newValues = allocateContainers(maxSize);
     for (int key = 0; key <= maxKey && size < maxSize; ++key) {
       if (key == s1 && key == s2) { // actually need to do an or not
         newValues[size] = highLowContainer.getContainerAtIndex(pos1)
@@ -1412,17 +1422,25 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         ++pos1;
         s1 = pos1 < length1 ? highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
       } else if (key == s2) { // insert the complement
+        Container c = newValues[size];
+        if (c != null) {
+          c.close();
+        }
         newValues[size] = other.highLowContainer.getContainerAtIndex(pos2)
                 .not(0, key == maxKey ? lastRun : 0x10000);
         ++pos2;
         s2 = pos2 < length2 ? other.highLowContainer.getKeyAtIndex(pos2) : maxKey + 1;
       } else { // key missing from both
+        if (newValues[size] != null) {
+          newValues[size].close();
+        }
         newValues[size] = key == maxKey
                         ? RunContainer.rangeOfOnes(0, lastRun)
                         : RunContainer.full();
       }
       // might have appended an empty container (rare case)
       if (newValues[size].isEmpty()) {
+        newValues[size].close();
         newValues[size] = null;
       } else {
         newKeys[size] = (char)key;
@@ -1436,9 +1454,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       System.arraycopy(highLowContainer.values, highLowContainer.size - remainder,
               newValues, size, remainder);
     }
-    highLowContainer.keys = newKeys;
-    highLowContainer.values = newValues;
-    highLowContainer.size = size + remainder;
+    highLowContainer.close();
+    highLowContainer = new RoaringArray(newKeys, newValues, size + remainder);
   }
 
   /**
@@ -1481,10 +1498,13 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     if (maxSize == 0) {
       return new RoaringBitmap();
     }
-    char[] newKeys = new char[maxSize];
-    Container[] newValues = new Container[maxSize];
+    char[] newKeys = allocateChars(maxSize);
+    Container[] newValues = allocateContainers(maxSize);
     for (int key = 0; key <= maxKey && size < maxSize; ++key) {
       if (key == s1 && key == s2) { // actually need to do an or not
+        if (newValues[size] != null) {
+          newValues[size].close();
+        }
         newValues[size] = x1.highLowContainer.getContainerAtIndex(pos1)
                 .orNot(x2.highLowContainer.getContainerAtIndex(pos2),
                         key == maxKey ? lastRun : 0x10000);
@@ -1493,6 +1513,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         s1 = pos1 < length1 ? x1.highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
         s2 = pos2 < length2 ? x2.highLowContainer.getKeyAtIndex(pos2) : maxKey + 1;
       } else if (key == s1) { // or in a hole
+        if (newValues[size] != null) {
+          newValues[size].close();
+        }
         newValues[size] = x1.highLowContainer.getContainerAtIndex(pos1)
                 .ior(key == maxKey
                         ? RunContainer.rangeOfOnes(0, lastRun)
@@ -1500,17 +1523,24 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         ++pos1;
         s1 = pos1 < length1 ? x1.highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
       } else if (key == s2) { // insert the complement
+        if (newValues[size] != null) {
+          newValues[size].close();
+        }
         newValues[size] = x2.highLowContainer.getContainerAtIndex(pos2)
                 .not(0, key == maxKey ? lastRun : 0x10000);
         ++pos2;
         s2 = pos2 < length2 ? x2.highLowContainer.getKeyAtIndex(pos2) : maxKey + 1;
       } else { // key missing from both
+        if (newValues[size] != null) {
+          newValues[size].close();
+        }
         newValues[size] = key == maxKey
                 ? RunContainer.rangeOfOnes(0, lastRun)
                 : RunContainer.full();
       }
       // might have appended an empty container (rare case)
       if (newValues[size].isEmpty()) {
+        newValues[size].close();
         newValues[size] = null;
       } else {
         newKeys[size++] = (char)key;
@@ -1523,14 +1553,12 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       System.arraycopy(x1.highLowContainer.values, x1.highLowContainer.size - remainder,
               newValues, size, remainder);
       for (int i = size; i < size + remainder; ++i) {
-        newValues[i] = newValues[i].clone();
+        Container c = newValues[i];
+        newValues[i] = c.clone();
+        c.close();
       }
     }
-    RoaringBitmap result = new RoaringBitmap();
-    result.highLowContainer.keys = newKeys;
-    result.highLowContainer.values = newValues;
-    result.highLowContainer.size = size + remainder;
-    return result;
+    return new RoaringBitmap(new RoaringArray(newKeys, newValues, size + remainder));
   }
 
 
@@ -1593,6 +1621,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * reset to an empty bitmap; result occupies as much space a newly created bitmap.
    */
   public void clear() {
+    close();
     highLowContainer = new RoaringArray(); // lose references
   }
 
@@ -1600,6 +1629,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   public RoaringBitmap clone() {
     try {
       final RoaringBitmap x = (RoaringBitmap) super.clone();
+      x.highLowContainer.close();
       x.highLowContainer = highLowContainer.clone();
       return x;
     } catch (final CloneNotSupportedException e) {
@@ -1832,11 +1862,14 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       final int i = highLowContainer.getIndex((char) hb);
 
       if (i >= 0) {
-        final Container c =
-            highLowContainer.getContainerAtIndex(i).inot(containerStart, containerLast + 1);
+        Container c1 = highLowContainer.getContainerAtIndex(i);
+        Container c = c1.inot(containerStart, containerLast + 1);
         if (!c.isEmpty()) {
           highLowContainer.setContainerAtIndex(i, c);
         } else {
+          if (c1 != c) {
+            c.close();
+          }
           highLowContainer.removeAtIndex(i);
         }
       } else {
@@ -3080,12 +3113,15 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
       while (true) {
         if (s1 == s2) {
-          final Container c = highLowContainer.getContainerAtIndex(pos1)
-              .ixor(x2.highLowContainer.getContainerAtIndex(pos2));
+          Container c1 = highLowContainer.getContainerAtIndex(pos1);
+          final Container c = c1.ixor(x2.highLowContainer.getContainerAtIndex(pos2));
           if (!c.isEmpty()) {
             this.highLowContainer.setContainerAtIndex(pos1, c);
             pos1++;
           } else {
+            if (c != c1) {
+              c.close();
+            }
             highLowContainer.removeAtIndex(pos1);
             --length1;
           }
@@ -3151,6 +3187,11 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   public static RoaringBitmap xor(final Iterator<? extends RoaringBitmap> bitmaps,
           final int rangeStart, final int rangeEnd) {
     return xor(bitmaps, (long) rangeStart, (long) rangeEnd);
+  }
+
+  @Override
+  public void close() {
+    highLowContainer.close();
   }
 
 
