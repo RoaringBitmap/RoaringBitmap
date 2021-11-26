@@ -869,29 +869,25 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public Container ixor(BitmapContainer b2) {
-    int newCardinality = 0;
-    for (int k = 0; k < this.bitmap.length; ++k) {
-      newCardinality += Long.bitCount(this.bitmap[k] ^ b2.bitmap[k]);
+    // do this first because we have to compute the xor no matter what, and this loop gets
+    // vectorized and is faster than computing the cardinality or filling the array
+    for (int k = 0; k < this.bitmap.length & k < b2.bitmap.length; ++k) {
+      this.bitmap[k] ^= b2.bitmap[k];
     }
-    if (newCardinality > ArrayContainer.DEFAULT_MAX_SIZE) {
-      for (int k = 0; k < this.bitmap.length; ++k) {
-        this.bitmap[k] = this.bitmap[k] ^ b2.bitmap[k];
-      }
-      this.cardinality = newCardinality;
+    // now count the bits
+    computeCardinality();
+    if (cardinality > ArrayContainer.DEFAULT_MAX_SIZE) {
       return this;
     }
-    ArrayContainer ac = new ArrayContainer(newCardinality);
-    Util.fillArrayXOR(ac.content, this.bitmap, b2.bitmap);
-    ac.cardinality = newCardinality;
-    return ac;
+    return toArrayContainer();
   }
 
   @Override
   public Container ixor(RunContainer x) {
     // could probably be replaced with return ixor(x.toBitmapOrArrayContainer());
     for (int rlepos = 0; rlepos < x.nbrruns; ++rlepos) {
-      int start = (x.getValue(rlepos));
-      int end = start + (x.getLength(rlepos)) + 1;
+      int start = x.getValue(rlepos);
+      int end = start + x.getLength(rlepos) + 1;
       int prevOnes = cardinalityInRange(start, end);
       Util.flipBitmapRange(this.bitmap, start, end);
       updateCardinality(prevOnes, end - start - prevOnes);
@@ -1299,7 +1295,9 @@ public final class BitmapContainer extends Container implements Cloneable {
    */
   ArrayContainer toArrayContainer() {
     ArrayContainer ac = new ArrayContainer(cardinality);
-    ac.loadData(this);
+    if (cardinality != 0) {
+      ac.loadData(this);
+    }
     if (ac.getCardinality() != cardinality) {
       throw new RuntimeException("Internal error.");
     }
