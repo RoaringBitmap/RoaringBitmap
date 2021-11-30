@@ -780,12 +780,10 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public Container ior(final BitmapContainer b2) {
-    this.cardinality = 0;
-    for (int k = 0; k < this.bitmap.length; k++) {
-      long w = this.bitmap[k] | b2.bitmap[k];
-      this.bitmap[k] = w;
-      this.cardinality += Long.bitCount(w);
+    for (int k = 0; k < this.bitmap.length & k < b2.bitmap.length; k++) {
+      this.bitmap[k] |= b2.bitmap[k];
     }
+    computeCardinality();
     if (isFull()) {
       return RunContainer.full();
     }
