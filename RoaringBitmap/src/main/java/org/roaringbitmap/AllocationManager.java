@@ -119,7 +119,7 @@ public final class AllocationManager {
     RegisteredAllocator.ALLOCATOR.free(object);
   }
 
-  static final class DefaultAllocator implements Allocator {
+  public static class DefaultAllocator implements Allocator {
 
     @Override
     public char[] allocateChars(int size) {
