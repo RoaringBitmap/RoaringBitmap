@@ -2114,6 +2114,19 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     return (int) getLongSizeInBytes() ;
   }
 
+  /**
+   * Compute the hashCode() of this bitmap.
+   *
+   * For performance reasons, this method deliberately violates the
+   * Java contract regarding hashCode/equals in the following manner:
+   * If the two bitmaps are equal *and* they have the same
+   * hasRunCompression() result, then they have the same hashCode().
+   *
+   * Thus, for the Java contract to be satisfied, you should either
+   * call runOptimize() on all your bitmaps, or on none of your bitmaps.
+   *
+   * @return the hash code
+   */
   @Override
   public int hashCode() {
     return highLowContainer.hashCode();
