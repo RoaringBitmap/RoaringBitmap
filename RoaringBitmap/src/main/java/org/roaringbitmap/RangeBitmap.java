@@ -2,7 +2,6 @@ package org.roaringbitmap;
 
 import org.roaringbitmap.buffer.MappeableArrayContainer;
 import org.roaringbitmap.buffer.MappeableBitmapContainer;
-import org.roaringbitmap.buffer.MappeableContainer;
 import org.roaringbitmap.buffer.MappeableRunContainer;
 
 import java.nio.ByteBuffer;
@@ -44,8 +43,8 @@ public final class RangeBitmap {
   /**
    * Append values to the RangeBitmap before sealing it, defaults to on heap ByteBuffers.
    *
-   * @param maxValue       the maximum value to be appended, values larger than this
-   *                       value will be rejected.
+   * @param maxValue the maximum value to be appended, values larger than this
+   *                 value will be rejected.
    * @return an appender.
    */
   public static Appender appender(long maxValue) {
@@ -107,7 +106,7 @@ public final class RangeBitmap {
    * @return a bitmap of matching rows.
    */
   public RoaringBitmap lte(long threshold) {
-    return evaluateRange(threshold, true);
+    return new Evaluation().compute(threshold, true);
   }
 
   /**
@@ -115,11 +114,11 @@ public final class RangeBitmap {
    * and intersect with the context bitmap, which will not be modified.
    *
    * @param threshold the inclusive maximum value.
-   * @param context to be intersected with.
+   * @param context   to be intersected with.
    * @return a bitmap of matching rows.
    */
   public RoaringBitmap lte(long threshold, RoaringBitmap context) {
-    return evaluateRange(threshold, true, context);
+    return new Evaluation().compute(threshold, true, context);
   }
 
   /**
@@ -137,7 +136,7 @@ public final class RangeBitmap {
    * and intersect with the context bitmap, which will not be modified.
    *
    * @param threshold the exclusive maximum value.
-   * @param context to be intersected with.
+   * @param context   to be intersected with.
    * @return a bitmap of matching rows which intersect .
    */
   public RoaringBitmap lt(long threshold, RoaringBitmap context) {
@@ -151,7 +150,7 @@ public final class RangeBitmap {
    * @return a bitmap of matching rows.
    */
   public RoaringBitmap gt(long threshold) {
-    return evaluateRange(threshold, false);
+    return new Evaluation().compute(threshold, false);
   }
 
   /**
@@ -159,11 +158,11 @@ public final class RangeBitmap {
    * and intersect with the context bitmap, which will not be modified.
    *
    * @param threshold the exclusive minimum value.
-   * @param context to be intersected with.
+   * @param context   to be intersected with.
    * @return a bitmap of matching rows.
    */
   public RoaringBitmap gt(long threshold, RoaringBitmap context) {
-    return evaluateRange(threshold, false, context);
+    return new Evaluation().compute(threshold, false, context);
   }
 
   /**
@@ -181,190 +180,241 @@ public final class RangeBitmap {
    * and intersect with the context bitmap, which will not be modified.
    *
    * @param threshold the inclusive minimum value.
-   * @param context to be intersected with.
+   * @param context   to be intersected with.
    * @return a bitmap of matching rows.
    */
   public RoaringBitmap gte(long threshold, RoaringBitmap context) {
     return threshold == 0 ? context.clone() : gt(threshold - 1, context);
   }
 
-  private RoaringBitmap evaluateRange(long threshold, boolean upper) {
-    if (Long.numberOfLeadingZeros(threshold) < Long.numberOfLeadingZeros(mask)) {
-      return upper ? RoaringBitmap.bitmapOfRange(0, max) : new RoaringBitmap();
-    }
-    ByteBuffer containers = this.buffer.slice().order(LITTLE_ENDIAN);
-    containers.position(containersOffset);
-    RoaringArray output = new RoaringArray();
-    long[] bits = new long[1024];
-    long remaining = max;
-    int mPos = masksOffset;
-    char key = 0;
-    boolean empty = true;
-    while (remaining > 0) {
-      long containerMask = this.buffer.getLong(mPos) & mask;
-      empty = evaluateHorizontalSlice(containers, remaining, threshold, containerMask, empty, bits);
-      if (!upper) {
-        Util.flipBitmapRange(bits, 0, Math.min(0x10000, (int) remaining));
-        empty = false;
-      }
-      if (!empty) {
-        Container toAppend = new BitmapContainer(bits, -1).repairAfterLazy().runOptimize();
-        if (!toAppend.isEmpty()) {
-          output.append(key, toAppend instanceof BitmapContainer ? toAppend.clone() : toAppend);
-        }
-      }
-      key++;
-      remaining -= 0x10000;
-      mPos += bytesPerMask;
-    }
-    return new RoaringBitmap(output);
-  }
+  private final class Evaluation {
 
-  private RoaringBitmap evaluateRange(long threshold, boolean upper, RoaringBitmap context) {
-    if (context.isEmpty()) {
-      return new RoaringBitmap();
-    }
-    if (Long.numberOfLeadingZeros(threshold) < Long.numberOfLeadingZeros(mask)) {
-      return upper ? RoaringBitmap.bitmapOfRange(0, max) : new RoaringBitmap();
-    }
-    ByteBuffer containers = this.buffer.slice().order(LITTLE_ENDIAN);
-    containers.position(containersOffset);
-    RoaringArray contextArray = context.highLowContainer;
-    int contextPos = 0;
-    int maxContextKey = contextArray.keys[contextArray.size - 1];
-    RoaringArray output = new RoaringArray();
-    long[] bits = new long[1024];
-    long remaining = max;
-    int mPos = masksOffset;
-    boolean empty = true;
-    for (int prefix = 0; prefix <= maxContextKey && remaining > 0; prefix++) {
-      long containerMask = this.buffer.getLong(mPos) & mask;
-      if (prefix < contextArray.keys[contextPos]) {
-        for (int i = 0; i < Long.bitCount(containerMask); i++) {
-          skipContainer(containers);
-        }
-      } else {
-        empty = evaluateHorizontalSlice(containers,
-            remaining, threshold, containerMask, empty, bits);
+    private final long[] bits = new long[1024];
+    private final ByteBuffer buffer = RangeBitmap.this.buffer.slice().order(LITTLE_ENDIAN);
+
+    private int position = containersOffset;
+    private boolean empty = true;
+
+    public RoaringBitmap compute(long threshold, boolean upper) {
+      if (Long.numberOfLeadingZeros(threshold) < Long.numberOfLeadingZeros(mask)) {
+        return upper ? RoaringBitmap.bitmapOfRange(0, max) : new RoaringBitmap();
+      }
+      RoaringArray output = new RoaringArray();
+      long remaining = max;
+      int mPos = masksOffset;
+      char key = 0;
+      while (remaining > 0) {
+        long containerMask = buffer.getLong(mPos) & mask;
+        evaluateHorizontalSlice(remaining, threshold, containerMask);
         if (!upper) {
           Util.flipBitmapRange(bits, 0, Math.min(0x10000, (int) remaining));
           empty = false;
         }
         if (!empty) {
-          Container toAppend = new BitmapContainer(bits, -1)
-              .iand(contextArray.values[contextPos])
-              .repairAfterLazy()
-              .runOptimize();
+          Container toAppend = new BitmapContainer(bits, -1).repairAfterLazy().runOptimize();
           if (!toAppend.isEmpty()) {
-            output.append((char) prefix,
-                toAppend instanceof BitmapContainer ? toAppend.clone() : toAppend);
+            output.append(key, toAppend instanceof BitmapContainer ? toAppend.clone() : toAppend);
           }
         }
-        contextPos++;
+        key++;
+        remaining -= 0x10000;
+        mPos += bytesPerMask;
       }
-      remaining -= 0x10000;
-      mPos += bytesPerMask;
+      return new RoaringBitmap(output);
     }
-    return new RoaringBitmap(output);
-  }
 
-  private boolean evaluateHorizontalSlice(ByteBuffer containers,
-                                          long remaining,
-                                          long threshold,
-                                          long containerMask,
-                                          boolean empty,
-                                          long[] bits) {
-    // most significant absent bit in the threshold for which there is no container;
-    // everything before this is wasted work, so we just skip over the containers
-    int skip = 64 - Long.numberOfLeadingZeros(((~threshold & ~containerMask) & mask));
-    int slice = 0;
-    if (skip > 0) {
-      for (; slice < skip; ++slice) {
-        if (((containerMask >>> slice) & 1) == 1) {
-          skipContainer(containers);
-        }
+    private RoaringBitmap compute(long threshold, boolean upper, RoaringBitmap context) {
+      if (context.isEmpty()) {
+        return new RoaringBitmap();
       }
-      if (!empty) {
-        Arrays.fill(bits, 0L);
-        empty = true;
+      if (Long.numberOfLeadingZeros(threshold) < Long.numberOfLeadingZeros(mask)) {
+        return upper ? RoaringBitmap.bitmapOfRange(0, max) : new RoaringBitmap();
       }
-    } else {
-      // the first slice is special: if the threshold includes this slice,
-      // fill the buffer, otherwise copy the slice
-      if ((threshold & 1) == 1) {
-        if (remaining >= 0x10000) {
-          Arrays.fill(bits, -1L);
+      RoaringArray contextArray = context.highLowContainer;
+      int contextPos = 0;
+      int maxContextKey = contextArray.keys[contextArray.size - 1];
+      RoaringArray output = new RoaringArray();
+      long remaining = max;
+      int mPos = masksOffset;
+      for (int prefix = 0; prefix <= maxContextKey && remaining > 0; prefix++) {
+        long containerMask = buffer.getLong(mPos) & mask;
+        if (prefix < contextArray.keys[contextPos]) {
+          for (int i = 0; i < Long.bitCount(containerMask); i++) {
+            skipContainer();
+          }
         } else {
-          setBitmapRange(bits, 0, (int) remaining);
+          evaluateHorizontalSlice(remaining, threshold, containerMask);
+          if (!upper) {
+            Util.flipBitmapRange(bits, 0, Math.min(0x10000, (int) remaining));
+            empty = false;
+          }
           if (!empty) {
-            resetBitmapRange(bits, (int) remaining, 0x10000);
+            Container toAppend = new BitmapContainer(bits, -1)
+                .iand(contextArray.values[contextPos])
+                .repairAfterLazy()
+                .runOptimize();
+            if (!toAppend.isEmpty()) {
+              output.append((char) prefix,
+                  toAppend instanceof BitmapContainer ? toAppend.clone() : toAppend);
+            }
+          }
+          contextPos++;
+        }
+        remaining -= 0x10000;
+        mPos += bytesPerMask;
+      }
+      return new RoaringBitmap(output);
+    }
+
+    private void evaluateHorizontalSlice(long remaining, long threshold, long containerMask) {
+      // most significant absent bit in the threshold for which there is no container;
+      // everything before this is wasted work, so we just skip over the containers
+      int skip = 64 - Long.numberOfLeadingZeros(((~threshold & ~containerMask) & mask));
+      int slice = 0;
+      if (skip > 0) {
+        for (; slice < skip; ++slice) {
+          if (((containerMask >>> slice) & 1) == 1) {
+            skipContainer();
           }
         }
-        if ((containerMask & 1) == 1) {
-          skipContainer(containers);
-        }
-        empty = false;
-      } else {
         if (!empty) {
           Arrays.fill(bits, 0L);
           empty = true;
         }
-        if ((containerMask & 1) == 1) {
-          if ((threshold & 1) == 0) {
-            nextContainer(containers).orInto(bits);
-            empty = false;
+      } else {
+        // the first slice is special: if the threshold includes this slice,
+        // fill the buffer, otherwise copy the slice
+        if ((threshold & 1) == 1) {
+          if (remaining >= 0x10000) {
+            Arrays.fill(bits, -1L);
           } else {
-            skipContainer(containers);
+            setBitmapRange(bits, 0, (int) remaining);
+            if (!empty) {
+              resetBitmapRange(bits, (int) remaining, 0x10000);
+            }
           }
-        }
-      }
-      slice++;
-    }
-    for (; slice < Long.bitCount(mask); ++slice) {
-      if ((containerMask >>> slice & 1) == 1) {
-        if ((threshold >>> slice & 1) == 1) {
-          // bit present in both both, include bits from slice
-          nextContainer(containers).orInto(bits);
+          if ((containerMask & 1) == 1) {
+            skipContainer();
+          }
           empty = false;
         } else {
-          // bit present in container, absent from threshold, filter
-          if (empty) {
-            skipContainer(containers);
+          if (!empty) {
+            Arrays.fill(bits, 0L);
+            empty = true;
+          }
+          if ((containerMask & 1) == 1) {
+            if ((threshold & 1) == 0) {
+              orNextIntoBits();
+              empty = false;
+            } else {
+              skipContainer();
+            }
+          }
+        }
+        slice++;
+      }
+      for (; slice < Long.bitCount(mask); ++slice) {
+        if ((containerMask >>> slice & 1) == 1) {
+          if ((threshold >>> slice & 1) == 1) {
+            // bit present in both both, include bits from slice
+            orNextIntoBits();
+            empty = false;
           } else {
-            nextContainer(containers).andInto(bits);
+            // bit present in container, absent from threshold, filter
+            if (empty) {
+              skipContainer();
+            } else {
+              andNextIntoBits();
+            }
           }
         }
       }
     }
-    return empty;
-  }
 
-  private static MappeableContainer nextContainer(ByteBuffer buffer) {
-    int type = buffer.get();
-    int size = buffer.getChar() & 0xFFFF;
-    if (type == BITMAP) {
-      LongBuffer lb = ((ByteBuffer) buffer.slice()
-          .order(LITTLE_ENDIAN).limit(BITMAP_SIZE)).asLongBuffer();
-      buffer.position(buffer.position() + BITMAP_SIZE);
-      return new MappeableBitmapContainer(lb, size);
-    } else {
-      int skip = size << (type == RUN ? 2 : 1);
-      CharBuffer cb = ((ByteBuffer) buffer.slice().order(LITTLE_ENDIAN).limit(skip)).asCharBuffer();
-      buffer.position(buffer.position() + skip);
-      return type == RUN
-          ? new MappeableRunContainer(cb, size)
-          : new MappeableArrayContainer(cb, size);
+    private void andNextIntoBits() {
+      int type = buffer.get(position);
+      position++;
+      int size = buffer.getChar(position) & 0xFFFF;
+      position += Character.BYTES;
+      switch (type) {
+        case ARRAY: {
+          int skip = size << 1;
+          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
+              .limit(skip >>> 1);
+          MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
+          array.andInto(bits);
+          position += skip;
+        }
+        break;
+        case BITMAP: {
+          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer()
+              .limit(1024);
+          MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
+          bitmap.andInto(bits);
+          position += BITMAP_SIZE;
+        }
+        break;
+        case RUN: {
+          int skip = size << 2;
+          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
+              .limit(skip >>> 1);
+          MappeableRunContainer run = new MappeableRunContainer(cb, size);
+          run.andInto(bits);
+          position += skip;
+        }
+        break;
+        default:
+          throw new IllegalStateException("Unknown type " + type
+              + " (this is a bug, please report it.)");
+      }
     }
-  }
 
-  private static void skipContainer(ByteBuffer buffer) {
-    int type = buffer.get();
-    int size = buffer.getChar() & 0xFFFF;
-    if (type == BITMAP) {
-      buffer.position(buffer.position() + BITMAP_SIZE);
-    } else {
-      int skip = size << (type == RUN ? 2 : 1);
-      buffer.position(buffer.position() + skip);
+    private void orNextIntoBits() {
+      int type = buffer.get(position);
+      position++;
+      int size = buffer.getChar(position) & 0xFFFF;
+      position += Character.BYTES;
+      switch (type) {
+        case ARRAY: {
+          int skip = size << 1;
+          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
+              .limit(skip >>> 1);
+          MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
+          array.orInto(bits);
+          position += skip;
+        }
+        break;
+        case BITMAP: {
+          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer()
+              .limit(1024);
+          MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
+          bitmap.orInto(bits);
+          position += BITMAP_SIZE;
+        }
+        break;
+        case RUN: {
+          int skip = size << 2;
+          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
+              .limit(skip >>> 1);
+          MappeableRunContainer run = new MappeableRunContainer(cb, size);
+          run.orInto(bits);
+          position += skip;
+        }
+        break;
+        default:
+          throw new IllegalStateException("Unknown type " + type
+              + " (this is a bug, please report it.)");
+      }
+    }
+
+    private void skipContainer() {
+      int type = buffer.get(position);
+      int size = buffer.getChar(position + 1) & 0xFFFF;
+      if (type == BITMAP) {
+        position += 3 + BITMAP_SIZE;
+      } else {
+        position += 3 + (size << (type == RUN ? 2 : 1));
+      }
     }
   }
 
