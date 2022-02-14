@@ -271,7 +271,7 @@ public class RangeBitmapTest {
 
   public static Stream<Arguments> distributions() {
     return Stream.of(
-        NORMAL.of(42, 1_000, 100),
+       // NORMAL.of(42, 1_000, 100),
         NORMAL.of(42, 10_000, 10),
         NORMAL.of(42, 1_000_000, 1000),
         UNIFORM.of(42, 0, 1_000_000),
@@ -352,6 +352,57 @@ public class RangeBitmapTest {
       assertEquals(expected, sut.lt(max + 1, gte));
       assertEquals(expected, sut.gt(min - 1, lte));
     });
+  }
+
+
+  @ParameterizedTest
+  @MethodSource("distributions")
+  public void testDoubleEndedRangeEvaluationAgainstNonContextual(LongSupplier dist) {
+    long maxValue = 10_000_000;
+    RangeBitmap.Appender appender = RangeBitmap.appender(maxValue);
+    LongStream.range(0, 1_000_000)
+        .forEach(i -> {
+          long v = Math.min(dist.getAsLong(), maxValue);
+          appender.add(v);
+        });
+    RangeBitmap sut = appender.build();
+    IntStream.range(1, 8).forEach(i -> {
+      long min = (long) Math.pow(10, i - 1);
+      long max = (long) Math.pow(10, i);
+      RoaringBitmap lte = sut.lte(max);
+      RoaringBitmap gte = sut.gte(min);
+      RoaringBitmap expected = RoaringBitmap.and(lte, gte);
+      assertEquals(expected, sut.between(min, max));
+    });
+  }
+
+  @Test
+  public void testBetween1() {
+    long maxValue = 10;
+    RangeBitmap.Appender appender = RangeBitmap.appender(maxValue);
+    LongStream.range(0, maxValue).forEach(appender::add);
+    RangeBitmap sut = appender.build();
+    assertEquals(sut.between(0, 10), RoaringBitmap.bitmapOfRange(0, 10));
+    assertEquals(sut.between(1, 10), RoaringBitmap.bitmapOfRange(1, 10));
+    assertEquals(sut.between(1, 9), RoaringBitmap.bitmapOfRange(1, 10));
+    assertEquals(sut.between(1, 9), RoaringBitmap.bitmapOfRange(1, 10));
+    assertEquals(sut.between(2, 8), RoaringBitmap.bitmapOfRange(2, 9));
+    assertEquals(sut.between(3, 7), RoaringBitmap.bitmapOfRange(3, 8));
+  }
+
+  @Test
+  public void testBetween2() {
+    long maxValue = 10 + 0x10000;
+    RangeBitmap.Appender appender = RangeBitmap.appender(maxValue);
+    LongStream.range(0, maxValue).forEach(appender::add);
+    RangeBitmap sut = appender.build();
+    assertEquals(RoaringBitmap.bitmapOfRange(0, 11), sut.between(0, 10));
+    assertEquals(RoaringBitmap.bitmapOfRange(1, 11), sut.between(1, 10));
+    assertEquals(RoaringBitmap.bitmapOfRange(1, 10), sut.between(1, 9));
+    assertEquals(RoaringBitmap.bitmapOfRange(1, 10), sut.between(1, 9));
+    assertEquals(RoaringBitmap.bitmapOfRange(2, 9), sut.between(2, 8));
+    assertEquals(RoaringBitmap.bitmapOfRange(3, 8), sut.between(3, 7));
+    assertEquals(RoaringBitmap.bitmapOfRange(0x10000 - 5, 0x10000 + 6), sut.between(0x10000 - 5, 0x10000 + 5));
   }
 
   @Test

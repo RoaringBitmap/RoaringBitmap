@@ -2,6 +2,7 @@ package org.roaringbitmap;
 
 import org.roaringbitmap.buffer.MappeableArrayContainer;
 import org.roaringbitmap.buffer.MappeableBitmapContainer;
+import org.roaringbitmap.buffer.MappeableContainer;
 import org.roaringbitmap.buffer.MappeableRunContainer;
 
 import java.nio.ByteBuffer;
@@ -100,13 +101,30 @@ public final class RangeBitmap {
   }
 
   /**
+   * Returns a RoaringBitmap of rows which have a value in between the thresholds.
+   *
+   * @param min the inclusive minimum value.
+   * @param max the inclusive maximum value.
+   * @return a bitmap of matching rows.
+   */
+  public RoaringBitmap between(long min, long max) {
+    if (min == 0 || Long.numberOfLeadingZeros(min) < Long.numberOfLeadingZeros(mask)) {
+      return lte(max);
+    }
+    if (Long.numberOfLeadingZeros(max) < Long.numberOfLeadingZeros(mask)) {
+      return gte(min);
+    }
+    return new DoubleEvaluation().compute(min - 1, max);
+  }
+
+  /**
    * Returns a RoaringBitmap of rows which have a value less than or equal to the threshold.
    *
    * @param threshold the inclusive maximum value.
    * @return a bitmap of matching rows.
    */
   public RoaringBitmap lte(long threshold) {
-    return new Evaluation().compute(threshold, true);
+    return new SingleEvaluation().compute(threshold, true);
   }
 
   /**
@@ -118,7 +136,7 @@ public final class RangeBitmap {
    * @return a bitmap of matching rows.
    */
   public RoaringBitmap lte(long threshold, RoaringBitmap context) {
-    return new Evaluation().compute(threshold, true, context);
+    return new SingleEvaluation().compute(threshold, true, context);
   }
 
   /**
@@ -150,7 +168,7 @@ public final class RangeBitmap {
    * @return a bitmap of matching rows.
    */
   public RoaringBitmap gt(long threshold) {
-    return new Evaluation().compute(threshold, false);
+    return new SingleEvaluation().compute(threshold, false);
   }
 
   /**
@@ -162,7 +180,7 @@ public final class RangeBitmap {
    * @return a bitmap of matching rows.
    */
   public RoaringBitmap gt(long threshold, RoaringBitmap context) {
-    return new Evaluation().compute(threshold, false, context);
+    return new SingleEvaluation().compute(threshold, false, context);
   }
 
   /**
@@ -187,7 +205,7 @@ public final class RangeBitmap {
     return threshold == 0 ? context.clone() : gt(threshold - 1, context);
   }
 
-  private final class Evaluation {
+  private final class SingleEvaluation {
 
     private final long[] bits = new long[1024];
     private final ByteBuffer buffer = RangeBitmap.this.buffer.slice().order(LITTLE_ENDIAN);
@@ -414,6 +432,373 @@ public final class RangeBitmap {
         position += 3 + BITMAP_SIZE;
       } else {
         position += 3 + (size << (type == RUN ? 2 : 1));
+      }
+    }
+  }
+
+  private final class DoubleEvaluation {
+
+    private final ByteBuffer buffer = RangeBitmap.this.buffer.slice().order(LITTLE_ENDIAN);
+    private final Bits low = new Bits();
+    private final Bits high = new Bits();
+
+    private int position = containersOffset;
+
+    public RoaringBitmap compute(long lower, long upper) {
+      RoaringArray output = new RoaringArray();
+      long remaining = max;
+      int mPos = masksOffset;
+      char key = 0;
+      while (remaining > 0) {
+        long containerMask = buffer.getLong(mPos) & mask;
+        evaluateHorizontalSlice(containerMask, remaining, lower, upper);
+        if (!low.empty && !high.empty) {
+          if (low.full && high.full) {
+            output.append(key, RunContainer.full());
+          } else {
+            final long[] bits;
+            if (low.full) {
+              bits = high.bits;
+            } else if (high.full) {
+              bits = low.bits;
+            } else {
+              bits = low.bits;
+              for (int i = 0; i < bits.length & i < high.bits.length; i++) {
+                bits[i] &= high.bits[i];
+              }
+            }
+            Container toAppend = new BitmapContainer(bits, -1).repairAfterLazy().runOptimize();
+            if (!toAppend.isEmpty()) {
+              output.append(key, toAppend instanceof BitmapContainer ? toAppend.clone() : toAppend);
+            }
+          }
+        }
+        key++;
+        remaining -= 0x10000;
+        mPos += bytesPerMask;
+      }
+      return new RoaringBitmap(output);
+    }
+
+    private void evaluateHorizontalSlice(long containerMask, long remaining, long lower,
+                                         long upper) {
+      // most significant absent bit in the threshold for which there is no container;
+      // everything before this is wasted work, so we just skip over the containers
+      int skipLow = 64 - Long.numberOfLeadingZeros(((~lower & ~containerMask) & mask));
+      if (skipLow > 0) {
+        lower &= -(1L << skipLow);
+      }
+      int skipHigh = 64 - Long.numberOfLeadingZeros(((~upper & ~containerMask) & mask));
+      if (skipHigh > 0) {
+        upper &= -(1L << skipHigh);
+      }
+      int slice = 0;
+      if ((containerMask & 1) == 1) {
+        setupFirstSlice(upper, high, (int) remaining, skipHigh == 0);
+        setupFirstSlice(lower, low, (int) remaining, skipLow == 0);
+        skipContainer();
+      }
+      slice++;
+      for (; slice < Long.bitCount(mask); ++slice) {
+        if ((containerMask >>> slice & 1) == 1) {
+          int flags = (int) (((upper >>> slice) & 1) | (((lower >>> slice) & 1) << 1));
+          switch (flags) {
+            case 0: // both absent
+              andLowAndHigh();
+              break;
+            case 1: // upper present, lower absent
+              andLowOrHigh();
+              break;
+            case 2: // lower present, upper absent
+              orLowAndHigh();
+              break;
+            case 3: // both present
+              orLowOrHigh();
+              break;
+            default:
+          }
+        }
+      }
+      low.flip(0, Math.min((int) remaining, 0x10000));
+    }
+
+    private void setupFirstSlice(long threshold, Bits bits, int remaining, boolean copy) {
+      if ((threshold & 1) == 1) {
+        if (remaining >= 0x10000) {
+          bits.fill();
+        } else {
+          bits.reset(remaining);
+        }
+      } else {
+        bits.clear();
+        if (copy) {
+          orNextIntoBits(bits);
+        }
+      }
+    }
+
+    private void orLowOrHigh() {
+      int type = buffer.get(position);
+      position++;
+      int size = buffer.getChar(position) & 0xFFFF;
+      position += Character.BYTES;
+      switch (type) {
+        case ARRAY: {
+          int skip = size << 1;
+          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
+              .limit(skip >>> 1);
+          MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
+          low.or(array);
+          high.or(array);
+          position += skip;
+        }
+        break;
+        case BITMAP: {
+          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer()
+              .limit(1024);
+          MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
+          low.or(bitmap);
+          high.or(bitmap);
+          position += BITMAP_SIZE;
+        }
+        break;
+        case RUN: {
+          int skip = size << 2;
+          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
+              .limit(skip >>> 1);
+          MappeableRunContainer run = new MappeableRunContainer(cb, size);
+          low.or(run);
+          high.or(run);
+          position += skip;
+        }
+        break;
+        default:
+          throw new IllegalStateException("Unknown type " + type
+              + " (this is a bug, please report it.)");
+      }
+    }
+
+    private void orLowAndHigh() {
+      int type = buffer.get(position);
+      position++;
+      int size = buffer.getChar(position) & 0xFFFF;
+      position += Character.BYTES;
+      switch (type) {
+        case ARRAY: {
+          int skip = size << 1;
+          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
+              .limit(skip >>> 1);
+          MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
+          low.or(array);
+          high.and(array);
+          position += skip;
+        }
+        break;
+        case BITMAP: {
+          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer()
+              .limit(1024);
+          MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
+          low.or(bitmap);
+          high.and(bitmap);
+          position += BITMAP_SIZE;
+        }
+        break;
+        case RUN: {
+          int skip = size << 2;
+          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
+              .limit(skip >>> 1);
+          MappeableRunContainer run = new MappeableRunContainer(cb, size);
+          low.or(run);
+          high.and(run);
+          position += skip;
+        }
+        break;
+        default:
+          throw new IllegalStateException("Unknown type " + type
+              + " (this is a bug, please report it.)");
+      }
+    }
+
+    private void andLowOrHigh() {
+      int type = buffer.get(position);
+      position++;
+      int size = buffer.getChar(position) & 0xFFFF;
+      position += Character.BYTES;
+      switch (type) {
+        case ARRAY: {
+          int skip = size << 1;
+          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
+              .limit(skip >>> 1);
+          MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
+          low.and(array);
+          high.or(array);
+          position += skip;
+        }
+        break;
+        case BITMAP: {
+          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer()
+              .limit(1024);
+          MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
+          low.and(bitmap);
+          high.or(bitmap);
+          position += BITMAP_SIZE;
+        }
+        break;
+        case RUN: {
+          int skip = size << 2;
+          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
+              .limit(skip >>> 1);
+          MappeableRunContainer run = new MappeableRunContainer(cb, size);
+          low.and(run);
+          high.or(run);
+          position += skip;
+        }
+        break;
+        default:
+          throw new IllegalStateException("Unknown type " + type
+              + " (this is a bug, please report it.)");
+      }
+    }
+
+    private void andLowAndHigh() {
+      int type = buffer.get(position);
+      position++;
+      int size = buffer.getChar(position) & 0xFFFF;
+      position += Character.BYTES;
+      switch (type) {
+        case ARRAY: {
+          int skip = size << 1;
+          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
+              .limit(skip >>> 1);
+          MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
+          low.and(array);
+          low.and(array);
+          position += skip;
+        }
+        break;
+        case BITMAP: {
+          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer()
+              .limit(1024);
+          MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
+          low.and(bitmap);
+          high.and(bitmap);
+          position += BITMAP_SIZE;
+        }
+        break;
+        case RUN: {
+          int skip = size << 2;
+          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
+              .limit(skip >>> 1);
+          MappeableRunContainer run = new MappeableRunContainer(cb, size);
+          low.and(run);
+          high.and(run);
+          position += skip;
+        }
+        break;
+        default:
+          throw new IllegalStateException("Unknown type " + type
+              + " (this is a bug, please report it.)");
+      }
+    }
+    private void orNextIntoBits(Bits bits) {
+      int type = buffer.get(position);
+      int size = buffer.getChar(position + 1) & 0xFFFF;
+      switch (type) {
+        case ARRAY: {
+          int skip = size << 1;
+          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position + 3)).asCharBuffer()
+              .limit(skip >>> 1);
+          bits.or(new MappeableArrayContainer(cb, size));
+        }
+        break;
+        case BITMAP: {
+          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position + 3)).asLongBuffer()
+              .limit(1024);
+          bits.or(new MappeableBitmapContainer(lb, size));
+        }
+        break;
+        case RUN: {
+          int skip = size << 2;
+          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position + 3)).asCharBuffer()
+              .limit(skip >>> 1);
+          bits.or(new MappeableRunContainer(cb, size));
+        }
+        break;
+        default:
+          throw new IllegalStateException("Unknown type " + type
+              + " (this is a bug, please report it.)");
+      }
+    }
+
+    private void skipContainer() {
+      int type = buffer.get(position);
+      int size = buffer.getChar(position + 1) & 0xFFFF;
+      if (type == BITMAP) {
+        position += 3 + BITMAP_SIZE;
+      } else {
+        position += 3 + (size << (type == RUN ? 2 : 1));
+      }
+    }
+  }
+
+  private static final class Bits {
+    private final long[] bits = new long[1024];
+    private boolean empty = true;
+    private boolean full = false;
+
+    public void clear() {
+      if (!empty) {
+        Arrays.fill(bits, 0L);
+        empty = true;
+        full = false;
+      }
+    }
+
+    public void fill() {
+      if (!full) {
+        Arrays.fill(bits, -1L);
+        empty = false;
+        full = true;
+      }
+    }
+
+    public void reset(int boundary) {
+      if (!full) {
+        setBitmapRange(bits, 0, boundary);
+      }
+      if (!empty) {
+        resetBitmapRange(bits, boundary, 0x10000);
+      }
+      empty = false;
+      full = false;
+    }
+
+    public void flip(int from, int to) {
+      if (!full) {
+        Util.flipBitmapRange(bits, from, to);
+        if (empty) {
+          empty = false;
+          full = true;
+        }
+      } else {
+        full = false;
+        empty = true;
+      }
+    }
+
+    public void or(MappeableContainer container) {
+      if (container.isFull()) {
+        fill();
+      } else if (!full) {
+        container.orInto(bits);
+        empty = false;
+      }
+    }
+
+    public void and(MappeableContainer container) {
+      if (!empty & !container.isFull()) {
+        container.andInto(bits);
+        full = false;
       }
     }
   }
