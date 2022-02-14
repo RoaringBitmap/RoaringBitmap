@@ -89,6 +89,11 @@ public class RangeBitmapBenchmark {
   }
 
   @Benchmark
+  public RoaringBitmap rangeBitmapBetween() {
+    return rangeBitmap.between(threshold - 1, threshold + 1);
+  }
+
+  @Benchmark
   public RoaringBitmap rangeBitmapBetweenNonContextual() {
     RoaringBitmap gte = rangeBitmap.gte(threshold - 1);
     RoaringBitmap lte = rangeBitmap.lte(threshold + 1);
