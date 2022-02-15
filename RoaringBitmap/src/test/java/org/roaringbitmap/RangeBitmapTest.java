@@ -12,7 +12,6 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.*;
-import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
@@ -406,6 +405,87 @@ public class RangeBitmapTest {
   }
 
   @Test
+  public void testBetween3() {
+    long[] values = {-4616189618054758400L, 4601552919265804287L, -4586634745500139520L, 4571364728013586431L};
+    RangeBitmap.Appender appender = RangeBitmap.appender(-4586634745500139520L);
+    Arrays.stream(values).forEach(appender::add);
+    int numSequentialValues = 1 << 20;
+    LongStream.range(0, numSequentialValues).forEach(appender::add);
+    RangeBitmap sut = appender.build();
+    RoaringBitmap sequentialValues = RoaringBitmap.bitmapOfRange(4, numSequentialValues + 4);
+    assertEquals(RoaringBitmap.bitmapOf(0), sut.between(-4620693217682128896L, -4616189618054758400L));
+    assertEquals(RoaringBitmap.bitmapOfRange(5, 47), sut.between(1, 42));
+    assertEquals(RoaringBitmap.or(RoaringBitmap.bitmapOf(3), sequentialValues), sut.between(0, 4571364728013586431L));
+    assertEquals(RoaringBitmap.or(RoaringBitmap.bitmapOf(1, 3), sequentialValues), sut.between(0, 4601552919265804287L));
+    assertEquals(RoaringBitmap.bitmapOf(0), sut.between(Long.MAX_VALUE, -4616189618054758400L));
+    assertEquals(RoaringBitmap.bitmapOf(0, 2), sut.between(Long.MAX_VALUE, -4586634745500139520L));
+    assertEquals(RoaringBitmap.bitmapOfRange(0, numSequentialValues + 4), sut.between(0, 0xFFFFFFFFFFFFFFFFL));
+    assertEquals(RoaringBitmap.bitmapOfRange(0, 4), sut.between(4571364728013586431L, -4586634745500139520L));
+    assertEquals(RoaringBitmap.bitmapOf(0, 2), sut.between(Long.MAX_VALUE, 0xFFFFFFFFFFFFFFFFL));
+    assertEquals(RoaringBitmap.or(RoaringBitmap.bitmapOf(1, 3), sequentialValues), sut.between(0, Long.MAX_VALUE));
+    assertEquals(new RoaringBitmap(), sut.between(-42, 0xFFFFFFFFFFFFFFFFL));
+  }
+
+  @Test
+  public void testBetween4() {
+    long[] values = {-4616189618054758400L, 4601552919265804287L, -4586634745500139520L, 4571364728013586431L,
+        -4556648864387432448L, 4541763675970600959L, -4526534890170089472L, 4511741717132607487L,
+        -4496888740970496000L, 4481700220488384511L, -4466831549978902528L, 4452010031096791039L,
+        -4436860832214679552L, 4421918433705197567L, -4407127634823086080L, 4392016835940974591L,
+        -4377002437431492608L, 4362241638549381119L, -4347168339667269632L, 4332083628657787647L,
+        -4317352126650676160L, 4302315448862314671L, -4287162073302051438L, 4272459181524432137L,
+        -4257458266522935884L, 4242237835737300334L, -4227562883636919499L, 4212596893231971325L,
+        -4197310978827808127L, 4182663311568480478L, -4167731427214848790L, 4152444271493337051L,
+        -4137760542057730537L, 4122861964394837603L, -4107616442036749309L, 4092854650044723837L,
+        -4077988598447005469L, 4062783733670385380L, -4047945708713107023L, 4033111420850910690L,
+        -4017946260743693147L, 4003033789531285016L, -3988230520942059423L, 3973104134926055302L,
+        -3958118962292622004L, 3943345985962156897L, -3928257465269603386L, 3913201295154700195L,
+        -3898457901108180877L, 3883406358270559600L, -3868280854677658470L, 3853566349580304959L,
+        -3838550917929140944L, 3823357705861632449L, -3808671412628698674L, 3793691245808059326L,
+        -3778431912183317079L, 3763773169599230700L, -3748827441089650601L, 3733522980173203346L,
+        -3718871697978100924L, 3703959600631664618L, -3688697178669147109L, 3673967073435426414L,
+        -3659087819021747723L, 3643866450725177229L, -3629059369867805881L, 3614212188630648294L,
+        -3599030911804729185L, 3584148659439886491L, -3569332799664175299L, 3554190674665064179L,
+        -3539235012624956505L, 3524449740213939054L, -3509345849420695115L, 3494318498244586478L,
+        -3479563096306902762L, 3464496543605325988L, -3449399183507341415L, 3434672951953772672L,
+        -3419642862232339617L, 3404477134046585572L, -3389779389196254110L, 3374784907853867652L,
+        -3359552413957401235L, 3344882488153199927L, -3329922780618476166L, 3314625085832642195L,
+        -3299982327065677369L, 3285056578327499206L, -3269777092125304377L, 3255078982340978658L,
+        -3240186396490052060L, 3224948363896921682L, -3210172528595600116L, 3195312328376755120L,
+        -3180114777823726749L, 3165263038697213921L, -3150434465072198619L, 3135276447761457361L,
+        -3120350583805656195L, 3105552895526177699L, -3090433484897357453L, 3075435233412954391L,
+        -3060667706603726686L, 3045585997812719925L, -3030517055382416577L, 3015778983133980657L,
+        -3000734092543963630L, 2985596115986804532L, -2970886807957891842L, 2955877872642278850L,
+        -2940672479945612186L, 2925991261974827647L, -2911017439231874848L, 2895746210461470323L,
+        -2881092424188076561L, 2866152891066862228L, -2850856174385872187L, 2836190371749287492L,
+        -2821284324586802134L, 2806029465354223306L, -2791285180001867583L, 2776411833970953486L,
+        -2761197851152838739L, 2746376922523362867L, -2731535511191248833L, 2716361446746634160L,
+        -2701465671166845646L, 2686655446064028545L, -2671520364406035042L, 2656551496101331837L,
+        -2641771726300562525L, 2626674713770128755L, -2611634465851251049L, 2596884437556387778L,
+        -2581824601908336563L, 2566714647334991567L, -2551993663479489668L, 2536970133380640164L,
+        -2521792105902541959L, 2507099485757353896L, -2492111410296396691L, 2476866905372250427L,
+        -2462201984162915723L, 2447248532371775213L, -2431939108066722645L, 2417301236599432233L,
+        -2402381596985847092L, 2387109747189393536L, -2372397319144302929L, 2357510699235361700L,
+        -2342280124069713038L, 2327490306091863256L, -2312635931988238351L, 2297445664079235090L,
+        -2282580269995175180L, 2267757385935804494L, -2252606480582119011L, 2237667281706838269L,
+        -2222875149643809597L, 2207762684285551627L, -2192751410418844296L, 2177989309602243369L,
+        -2162914383302020084L, 2147832723701497720L, -2133099950273986391L, 2118061683210125099L,
+        -2102911287541423996L, 2088207154142320474L, -2073204687113968945L, 2057987166378687038L,
+        -2043311001757325518L, 2028343495701151489L, -2013060423143036769L, 1998411571781188921L,
+        -1983478207299406984L, 1968189201417707433L, -1953508941032453066L, 1938608917931913404L,
+        -1923361588776766700L, 1908603184529225747L, -1893735721371305496L, 1878529092144433054L,
+        -1863694375531377859L, 1848858709192421875L, -1833691825989254769L, 1818782585581752070L,
+        -1803977970823815880L, 1788849902096923513L, -1773867884546405676L, 1759093593598059126L,
+        -1744003429633153813L, 1728950340653910252L, -1714205662800866089L, 1699152515205088754L,
+        -1684030020533730232L, 1669314261719067301L, -1654297262921266511L, 1639106989253701968L,
+    };
+    RangeBitmap.Appender appender = RangeBitmap.appender(0xFFFFFFFFFFFFFFFFL);
+    Arrays.stream(values).forEach(appender::add);
+    RangeBitmap sut = appender.build();
+    assertEquals(RoaringBitmap.bitmapOf(0), sut.between(-4620693217682128896L, -4616189618054758400L));
+  }
+
+  @Test
   public void testContextualEvaluationOnEmptyRange() {
     RangeBitmap empty = RangeBitmap.appender(10_000_000).build();
     RoaringBitmap nonEmpty = RoaringBitmap.bitmapOfRange(0, 100_000);
@@ -438,27 +518,28 @@ public class RangeBitmapTest {
     assertEquals(RoaringBitmap.bitmapOf(1, 2), bitmap.gt(0));
   }
 
+  // creates very large integer values so stresses edge cases in the top slice
+  private static final DoubleToLongFunction DOUBLE_ENCODER = value -> {
+    if (value == Double.NEGATIVE_INFINITY) {
+      return 0;
+    }
+    if (value == Double.POSITIVE_INFINITY || Double.isNaN(value)) {
+      return 0xFFFFFFFFFFFFFFFFL;
+    }
+    long bits = Double.doubleToLongBits(value);
+    if ((bits & Long.MIN_VALUE) == Long.MIN_VALUE) {
+      bits = bits == Long.MIN_VALUE ? Long.MIN_VALUE : ~bits;
+    } else {
+      bits ^= Long.MIN_VALUE;
+    }
+    return bits;
+  };
+
   @Test
   public void testIndexDoubleValues() {
-    // creates very large integer values so stresses edge cases in the top slice
-    DoubleToLongFunction encoder = value -> {
-      if (value == Double.NEGATIVE_INFINITY) {
-        return 0;
-      }
-      if (value == Double.POSITIVE_INFINITY || Double.isNaN(value)) {
-        return 0xFFFFFFFFFFFFFFFFL;
-      }
-      long bits = Double.doubleToLongBits(value);
-      if ((bits & Long.MIN_VALUE) == Long.MIN_VALUE) {
-        bits = bits == Long.MIN_VALUE ? Long.MIN_VALUE : ~bits;
-      } else {
-        bits ^= Long.MIN_VALUE;
-      }
-      return bits;
-    };
     RangeBitmap.Appender appender = RangeBitmap.appender(-1L);
     double[] doubles = IntStream.range(0, 200).mapToDouble(i -> Math.pow(-1, i) * Math.pow(10, i)).toArray();
-    Arrays.stream(doubles).mapToLong(encoder).forEach(appender::add);
+    Arrays.stream(doubles).mapToLong(DOUBLE_ENCODER).forEach(appender::add);
     RangeBitmap bitmap = appender.build();
     for (double value : doubles) {
       RoaringBitmap expected = new RoaringBitmap();
@@ -467,10 +548,28 @@ public class RangeBitmapTest {
           expected.add(j);
         }
       }
-      RoaringBitmap answer = bitmap.lte(encoder.applyAsLong(value));
+      RoaringBitmap answer = bitmap.lte(DOUBLE_ENCODER.applyAsLong(value));
       assertEquals(expected, answer);
     }
+  }
 
+  @Test
+  public void testBetweenDoubleValues() {
+    RangeBitmap.Appender appender = RangeBitmap.appender(-1L);
+    double[] doubles = IntStream.range(0, 200).mapToDouble(i -> Math.pow(-1, i) * Math.pow(10, i)).toArray();
+    Arrays.stream(doubles).mapToLong(DOUBLE_ENCODER).forEach(appender::add);
+    RangeBitmap bitmap = appender.build();
+    for (double value : doubles) {
+      RoaringBitmap expected = new RoaringBitmap();
+      for (int j = 0; j < doubles.length; j++) {
+        if (doubles[j] <= value && doubles[j] >= value / 2) {
+          expected.add(j);
+        }
+      }
+      RoaringBitmap answer = bitmap.between(DOUBLE_ENCODER.applyAsLong(value / 2),
+          DOUBLE_ENCODER.applyAsLong(value));
+      assertEquals(expected, answer);
+    }
   }
 
   public static class ReferenceImplementation {
