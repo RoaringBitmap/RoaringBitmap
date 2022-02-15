@@ -672,7 +672,7 @@ public final class RangeBitmap {
               .limit(skip >>> 1);
           MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
           low.and(array);
-          low.and(array);
+          high.and(array);
           position += skip;
         }
         break;
