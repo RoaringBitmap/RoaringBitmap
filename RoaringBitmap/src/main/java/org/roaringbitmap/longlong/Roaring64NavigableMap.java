@@ -1177,7 +1177,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     out.writeInt(highToBitmap.size());
 
     for (Entry<Integer, BitmapDataProvider> entry : highToBitmap.entrySet()) {
-      out.writeInt(entry.getKey().intValue());
+      out.writeInt(Integer.reverseBytes(entry.getKey().intValue()));
       entry.getValue().serialize(out);
     }
   }
@@ -1209,7 +1209,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     }
 
     for (int i = 0; i < nbHighs; i++) {
-      int high = in.readInt();
+      int high = Integer.reverseBytes(in.readInt());
       BitmapDataProvider provider = newRoaringBitmap();
       if (provider instanceof RoaringBitmap) {
         ((RoaringBitmap) provider).deserialize(in);
