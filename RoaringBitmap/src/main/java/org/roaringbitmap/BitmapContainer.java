@@ -869,7 +869,8 @@ public final class BitmapContainer extends Container implements Cloneable {
   public Container ixor(BitmapContainer b2) {
     // do this first because we have to compute the xor no matter what, and this loop gets
     // vectorized and is faster than computing the cardinality or filling the array
-    for (int k = 0; k < this.bitmap.length & k < b2.bitmap.length; ++k) {
+    int overlap = Math.min(this.bitmap.length, b2.bitmap.length);
+    for (int k = 0; k < overlap; ++k) {
       this.bitmap[k] ^= b2.bitmap[k];
     }
     // now count the bits
