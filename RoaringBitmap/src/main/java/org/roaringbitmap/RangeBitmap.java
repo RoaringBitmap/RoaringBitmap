@@ -13,8 +13,7 @@ import java.util.function.Consumer;
 import java.util.function.IntFunction;
 
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
-import static org.roaringbitmap.Util.resetBitmapRange;
-import static org.roaringbitmap.Util.setBitmapRange;
+import static org.roaringbitmap.Util.*;
 
 /**
  * A 2D bitmap which associates values with a row index and can perform range queries.
@@ -118,6 +117,23 @@ public final class RangeBitmap {
   }
 
   /**
+   * Returns the number of rows which have a value in between the thresholds.
+   *
+   * @param min the inclusive minimum value.
+   * @param max the inclusive maximum value.
+   * @return the number of matching rows.
+   */
+  public long betweenCardinality(long min, long max) {
+    if (min == 0 || Long.numberOfLeadingZeros(min) < Long.numberOfLeadingZeros(mask)) {
+      return lteCardinality(max);
+    }
+    if (Long.numberOfLeadingZeros(max) < Long.numberOfLeadingZeros(mask)) {
+      return gteCardinality(min);
+    }
+    return new DoubleEvaluation().count(min - 1, max);
+  }
+
+  /**
    * Returns a RoaringBitmap of rows which have a value less than or equal to the threshold.
    *
    * @param threshold the inclusive maximum value.
@@ -137,6 +153,28 @@ public final class RangeBitmap {
    */
   public RoaringBitmap lte(long threshold, RoaringBitmap context) {
     return new SingleEvaluation().compute(threshold, true, context);
+  }
+
+  /**
+   * Returns the number of rows which have a value less than or equal to the threshold.
+   *
+   * @param threshold the inclusive maximum value.
+   * @return the number of matching rows.
+   */
+  public long lteCardinality(long threshold) {
+    return new SingleEvaluation().count(threshold, true);
+  }
+
+  /**
+   * Returns the number of rows which have a value less than or equal to the threshold,
+   * and intersect with the context bitmap, which will not be modified.
+   *
+   * @param threshold the inclusive maximum value.
+   * @param context   to be intersected with.
+   * @return the number of matching rows.
+   */
+  public long lteCardinality(long threshold, RoaringBitmap context) {
+    return new SingleEvaluation().count(threshold, true, context);
   }
 
   /**
@@ -162,6 +200,28 @@ public final class RangeBitmap {
   }
 
   /**
+   * Returns the number of rows which have a value less than the threshold.
+   *
+   * @param threshold the exclusive maximum value.
+   * @return the number of matching rows.
+   */
+  public long ltCardinality(long threshold) {
+    return threshold == 0 ? 0L : lteCardinality(threshold - 1);
+  }
+
+  /**
+   * Returns the number of rows which have a value less than the threshold,
+   * and intersect with the context bitmap, which will not be modified.
+   *
+   * @param threshold the exclusive maximum value.
+   * @param context   to be intersected with.
+   * @return the number of matching rows which intersect .
+   */
+  public long ltCardinality(long threshold, RoaringBitmap context) {
+    return threshold == 0 ? 0L : lteCardinality(threshold - 1, context);
+  }
+
+  /**
    * Returns a RoaringBitmap of rows which have a value greater than the threshold.
    *
    * @param threshold the exclusive minimum value.
@@ -184,6 +244,28 @@ public final class RangeBitmap {
   }
 
   /**
+   * Returns the number of rows which have a value greater than the threshold.
+   *
+   * @param threshold the exclusive minimum value.
+   * @return the number of matching rows.
+   */
+  public long gtCardinality(long threshold) {
+    return new SingleEvaluation().count(threshold, false);
+  }
+
+  /**
+   * Returns the number of rows which have a value greater than the threshold,
+   * and intersect with the context bitmap, which will not be modified.
+   *
+   * @param threshold the exclusive minimum value.
+   * @param context   to be intersected with.
+   * @return the number of matching rows.
+   */
+  public long gtCardinality(long threshold, RoaringBitmap context) {
+    return new SingleEvaluation().count(threshold, false, context);
+  }
+
+  /**
    * Returns a RoaringBitmap of rows which have a value greater than or equal to the threshold.
    *
    * @param threshold the inclusive minimum value.
@@ -203,6 +285,28 @@ public final class RangeBitmap {
    */
   public RoaringBitmap gte(long threshold, RoaringBitmap context) {
     return threshold == 0 ? context.clone() : gt(threshold - 1, context);
+  }
+
+  /**
+   * Returns the number of rows which have a value greater than or equal to the threshold.
+   *
+   * @param threshold the inclusive minimum value.
+   * @return the number of matching rows.
+   */
+  public long gteCardinality(long threshold) {
+    return threshold == 0 ? max : gtCardinality(threshold - 1);
+  }
+
+  /**
+   * Returns the number of rows which have a value greater than or equal to the threshold,
+   * and intersect with the context bitmap, which will not be modified.
+   *
+   * @param threshold the inclusive minimum value.
+   * @param context   to be intersected with.
+   * @return the number of matching rows.
+   */
+  public long gteCardinality(long threshold, RoaringBitmap context) {
+    return threshold == 0 ? context.getLongCardinality() : gtCardinality(threshold - 1, context);
   }
 
   private final class SingleEvaluation {
@@ -282,6 +386,59 @@ public final class RangeBitmap {
         mPos += bytesPerMask;
       }
       return new RoaringBitmap(output);
+    }
+
+    public long count(long threshold, boolean upper) {
+      if (Long.numberOfLeadingZeros(threshold) < Long.numberOfLeadingZeros(mask)) {
+        return upper ? max : 0L;
+      }
+      long count = 0;
+      long remaining = max;
+      int mPos = masksOffset;
+      while (remaining > 0) {
+        long containerMask = buffer.getLong(mPos) & mask;
+        evaluateHorizontalSlice(remaining, threshold, containerMask);
+        int remainder = Math.min((int) remaining, 0x10000);
+        int cardinality = cardinalityInBitmapRange(bits, 0, remainder);
+        count += upper ? cardinality : (remainder - cardinality);
+        remaining -= 0x10000;
+        mPos += bytesPerMask;
+      }
+      return count;
+    }
+
+    private long count(long threshold, boolean upper, RoaringBitmap context) {
+      if (context.isEmpty()) {
+        return 0L;
+      }
+      if (Long.numberOfLeadingZeros(threshold) < Long.numberOfLeadingZeros(mask)) {
+        return upper ? max : 0L;
+      }
+      RoaringArray contextArray = context.highLowContainer;
+      int contextPos = 0;
+      int maxContextKey = contextArray.keys[contextArray.size - 1];
+      long count = 0;
+      long remaining = max;
+      int mPos = masksOffset;
+      for (int prefix = 0; prefix <= maxContextKey && remaining > 0; prefix++) {
+        long containerMask = buffer.getLong(mPos) & mask;
+        if (prefix < contextArray.keys[contextPos]) {
+          for (int i = 0; i < Long.bitCount(containerMask); i++) {
+            skipContainer();
+          }
+        } else {
+          evaluateHorizontalSlice(remaining, threshold, containerMask);
+          Container container = contextArray.values[contextPos];
+          int cardinality = upper
+              ? container.andCardinality(new BitmapContainer(bits, -1))
+              : container.andNot(new BitmapContainer(bits, -1).repairAfterLazy()).getCardinality();
+          count += cardinality;
+          contextPos++;
+        }
+        remaining -= 0x10000;
+        mPos += bytesPerMask;
+      }
+      return count;
     }
 
     private void evaluateHorizontalSlice(long remaining, long threshold, long containerMask) {
@@ -478,6 +635,36 @@ public final class RangeBitmap {
         mPos += bytesPerMask;
       }
       return new RoaringBitmap(output);
+    }
+
+    public long count(long lower, long upper) {
+      long count = 0;
+      long remaining = max;
+      int mPos = masksOffset;
+      while (remaining > 0) {
+        long containerMask = buffer.getLong(mPos) & mask;
+        evaluateHorizontalSlice(containerMask, remaining, lower, upper);
+        if (!low.empty && !high.empty) {
+          int remainder = Math.min((int) remaining, 0x10000);
+          if (low.full && high.full) {
+            count += remainder;
+          } else {
+            if (low.full) {
+              count += Util.cardinalityInBitmapRange(high.bits, 0, remainder);
+            } else if (high.full) {
+              count += Util.cardinalityInBitmapRange(low.bits, 0, remainder);
+            } else {
+              for (int i = 0; i < low.bits.length & i < high.bits.length; i++) {
+                high.bits[i] &= low.bits[i];
+              }
+              count += Util.cardinalityInBitmapRange(high.bits, 0, remainder);
+            }
+          }
+        }
+        remaining -= 0x10000;
+        mPos += bytesPerMask;
+      }
+      return count;
     }
 
     private void evaluateHorizontalSlice(long containerMask, long remaining, long lower,
