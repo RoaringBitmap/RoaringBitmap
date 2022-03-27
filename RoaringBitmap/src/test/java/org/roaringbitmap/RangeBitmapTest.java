@@ -33,14 +33,18 @@ public class RangeBitmapTest {
     for (long upper = 1; upper < size; upper *= 10) {
       RoaringBitmap expected = RoaringBitmap.bitmapOfRange(0, upper + 1);
       assertEquals(expected, range.lte(upper));
+      assertEquals(expected.getCardinality(), range.lteCardinality(upper));
       expected.flip(expected.last());
       assertEquals(expected, range.lt(upper));
+      assertEquals(expected.getCardinality(), range.ltCardinality(upper));
     }
     for (long lower = 1; lower < size; lower *= 10) {
       RoaringBitmap expected = RoaringBitmap.bitmapOfRange(lower, size);
       assertEquals(expected, range.gte(lower));
+      assertEquals(expected.getCardinality(), range.gteCardinality(lower));
       expected.flip(expected.first());
       assertEquals(expected, range.gt(lower));
+      assertEquals(expected.getCardinality(), range.gtCardinality(lower));
     }
   }
 
@@ -53,14 +57,18 @@ public class RangeBitmapTest {
     for (long upper = 1; upper < size; upper *= 10) {
       RoaringBitmap expected = RoaringBitmap.bitmapOfRange(size - upper, size);
       assertEquals(expected, range.lte(upper));
+      assertEquals(expected.getCardinality(), range.lteCardinality(upper));
       expected.flip(expected.first());
       assertEquals(expected, range.lt(upper));
+      assertEquals(expected.getCardinality(), range.ltCardinality(upper));
     }
     for (long lower = 1; lower < size; lower *= 10) {
       RoaringBitmap expected = RoaringBitmap.bitmapOfRange(0, size + 1 - lower);
       assertEquals(expected, range.gte(lower));
+      assertEquals(expected.getCardinality(), range.gteCardinality(lower));
       expected.flip(expected.last());
       assertEquals(expected, range.gt(lower));
+      assertEquals(expected.getCardinality(), range.gtCardinality(lower));
     }
   }
 
@@ -72,6 +80,7 @@ public class RangeBitmapTest {
     RangeBitmap range = appender.build();
     RoaringBitmap expected = new RoaringBitmap();
     assertEquals(expected, range.lt(0));
+    assertEquals(expected.getCardinality(), range.ltCardinality(0));
   }
 
   @Test
@@ -81,10 +90,15 @@ public class RangeBitmapTest {
     RangeBitmap range = appender.build();
     RoaringBitmap expected = RoaringBitmap.bitmapOfRange(0, 1_000_000);
     assertEquals(expected, range.lte(999_999));
+    assertEquals(expected.getCardinality(), range.lteCardinality(999_999));
     assertEquals(expected, range.lte(1_000_000));
+    assertEquals(expected.getCardinality(), range.lteCardinality(1_000_000));
     assertEquals(expected, range.lt(1_000_000));
+    assertEquals(expected.getCardinality(), range.ltCardinality(1_000_000));
     assertEquals(expected, range.lte(1_000_000_000));
+    assertEquals(expected.getCardinality(), range.lteCardinality(1_000_000_000));
     assertEquals(expected, range.lt(1_000_000_000));
+    assertEquals(expected.getCardinality(), range.ltCardinality(1_000_000_000));
   }
 
   @ParameterizedTest
@@ -94,8 +108,11 @@ public class RangeBitmapTest {
     LongStream.range(0, size).map(i -> size - i).forEach(appender::add);
     RangeBitmap range = appender.build();
     assertEquals(RoaringBitmap.bitmapOfRange(0, size), range.lte(size));
+    assertEquals(size, range.lteCardinality(size));
     assertEquals(RoaringBitmap.bitmapOfRange(0, size), range.lte(size + 1));
+    assertEquals(size, range.lteCardinality(size + 1));
     assertEquals(RoaringBitmap.bitmapOfRange(0, size), range.lte(size * 10L));
+    assertEquals(size, range.lteCardinality(size * 10L));
   }
 
   @ParameterizedTest
@@ -108,6 +125,7 @@ public class RangeBitmapTest {
     for (int i = size - 2; i <= size + 2; ++i) {
       int resultCardinality = range.lte(i).getCardinality();
       assertTrue(resultCardinality >= cardinality);
+      assertEquals(resultCardinality, range.lteCardinality(i));
       cardinality = resultCardinality;
     }
   }
@@ -122,6 +140,7 @@ public class RangeBitmapTest {
     for (int i = size - 2; i <= size + 2; ++i) {
       int resultCardinality = range.lte(i).getCardinality();
       assertTrue(resultCardinality >= cardinality);
+      assertEquals(resultCardinality, range.lteCardinality(i));
       cardinality = resultCardinality;
     }
   }
@@ -136,6 +155,7 @@ public class RangeBitmapTest {
     for (int i = size - 2; i <= size + 2; ++i) {
       int resultCardinality = range.gt(i).getCardinality();
       assertTrue(resultCardinality <= cardinality);
+      assertEquals(resultCardinality, range.gtCardinality(i));
       cardinality = resultCardinality;
     }
   }
@@ -150,6 +170,7 @@ public class RangeBitmapTest {
     for (int i = size - 2; i <= size + 2; ++i) {
       int resultCardinality = range.gt(i).getCardinality();
       assertTrue(resultCardinality <= cardinality);
+      assertEquals(resultCardinality, range.gtCardinality(i));
       cardinality = resultCardinality;
     }
   }
@@ -163,6 +184,7 @@ public class RangeBitmapTest {
     RoaringBitmap all = RoaringBitmap.bitmapOfRange(0, size);
     for (int i = size - 2; i <= size + 2; ++i) {
       assertEquals(all, RoaringBitmap.or(range.gte(i), range.lt(i)));
+      assertEquals(all.getCardinality(), range.gteCardinality(i) + range.ltCardinality(i));
     }
   }
 
@@ -214,6 +236,7 @@ public class RangeBitmapTest {
     buffer.flip();
     RangeBitmap bitmap = RangeBitmap.map(buffer);
     assertFalse(bitmap.lte(Long.MIN_VALUE).isEmpty());
+    assertTrue(bitmap.lteCardinality(Long.MIN_VALUE) > 0);
   }
 
   @ParameterizedTest
@@ -229,6 +252,7 @@ public class RangeBitmapTest {
     buffer.flip();
     RangeBitmap bitmap = RangeBitmap.map(buffer);
     assertTrue(bitmap.lte(Long.MIN_VALUE).isEmpty());
+    assertEquals(0, bitmap.lteCardinality(Long.MIN_VALUE));
   }
 
   @ParameterizedTest
@@ -251,7 +275,9 @@ public class RangeBitmapTest {
     // check the bitmaps answer queries identically
     for (int upper = 1; upper < 1_000_000; upper *= 10) {
       assertEquals(first.lte(upper), second.lte(upper));
+      assertEquals(first.lteCardinality(upper), second.lteCardinality(upper));
       assertEquals(first.gt(upper), second.gt(upper));
+      assertEquals(first.gtCardinality(upper), second.gtCardinality(upper));
     }
   }
 
@@ -265,12 +291,14 @@ public class RangeBitmapTest {
     IntStream.of(values).map(i -> i - min).forEach(appender::add);
     RangeBitmap bitmap = appender.build();
     assertEquals(values.length, bitmap.lte(max).getCardinality());
+    assertEquals(values.length, bitmap.lteCardinality(max));
     assertEquals(values.length, bitmap.gte(0).getCardinality());
+    assertEquals(values.length, bitmap.gteCardinality(0));
   }
 
   public static Stream<Arguments> distributions() {
     return Stream.of(
-       // NORMAL.of(42, 1_000, 100),
+        NORMAL.of(42, 1_000, 100),
         NORMAL.of(42, 10_000, 10),
         NORMAL.of(42, 1_000_000, 1000),
         UNIFORM.of(42, 0, 1_000_000),
@@ -296,7 +324,12 @@ public class RangeBitmapTest {
         });
     ReferenceImplementation referenceImplementation = builder.seal();
     RangeBitmap sut = appender.build();
-    assertAll(LongStream.range(0, 7).map(i -> (long) Math.pow(10, i)).mapToObj(threshold -> () -> assertEquals(referenceImplementation.lessThanOrEqualTo(threshold), sut.lte(threshold))));
+    assertAll(LongStream.range(0, 7)
+        .map(i -> (long) Math.pow(10, i))
+        .mapToObj(threshold -> () -> {
+          assertEquals(referenceImplementation.lessThanOrEqualTo(threshold), sut.lte(threshold));
+          assertEquals(referenceImplementation.lessThanOrEqualTo(threshold).getCardinality(), sut.lteCardinality(threshold));
+        }));
   }
 
   @ParameterizedTest
@@ -322,10 +355,22 @@ public class RangeBitmapTest {
     RoaringBitmap[] precomputed = Arrays.stream(recorders).map(RoaringBitmapWriter::get).toArray(RoaringBitmap[]::new);
     RoaringBitmap all = RoaringBitmap.bitmapOfRange(0, 1_000_000);
     RangeBitmap sut = appender.build();
-    assertAll(IntStream.range(0, 7).mapToObj(i -> () -> assertEquals(precomputed[i], sut.lte((long) Math.pow(10, i)))));
-    assertAll(IntStream.range(0, 7).mapToObj(i -> () -> assertEquals(all, RoaringBitmap.or((sut.lte((long) Math.pow(10, i))), sut.gt((long) Math.pow(10, i))))));
-    assertAll(IntStream.range(0, 7).mapToObj(i -> () -> assertEquals(all, RoaringBitmap.or((sut.lt((long) Math.pow(10, i))), sut.gte((long) Math.pow(10, i))))));
-    assertAll(IntStream.range(0, 7).mapToObj(i -> () -> assertEquals(RoaringBitmap.andNot(all, precomputed[i]), sut.gt((long) Math.pow(10, i)))));
+    assertAll(IntStream.range(0, 7).mapToObj(i -> () -> {
+      assertEquals(precomputed[i], sut.lte((long) Math.pow(10, i)));
+      assertEquals(precomputed[i].getCardinality(), sut.lteCardinality((long) Math.pow(10, i)));
+    }));
+    assertAll(IntStream.range(0, 7).mapToObj(i -> () -> {
+      assertEquals(all, RoaringBitmap.or((sut.lte((long) Math.pow(10, i))), sut.gt((long) Math.pow(10, i))));
+      assertEquals(all.getCardinality(), sut.lteCardinality((long) Math.pow(10, i)) + sut.gtCardinality((long) Math.pow(10, i)));
+    }));
+    assertAll(IntStream.range(0, 7).mapToObj(i -> () -> {
+      assertEquals(all, RoaringBitmap.or((sut.lt((long) Math.pow(10, i))), sut.gte((long) Math.pow(10, i))));
+      assertEquals(all.getCardinality(), sut.ltCardinality((long) Math.pow(10, i)) + sut.gteCardinality((long) Math.pow(10, i)));
+    }));
+    assertAll(IntStream.range(0, 7).mapToObj(i -> () -> {
+      assertEquals(RoaringBitmap.andNot(all, precomputed[i]), sut.gt((long) Math.pow(10, i)));
+      assertEquals(RoaringBitmap.andNot(all, precomputed[i]).getCardinality(), sut.gtCardinality((long) Math.pow(10, i)));
+    }));
   }
 
 
@@ -347,9 +392,13 @@ public class RangeBitmapTest {
       RoaringBitmap gte = sut.gte(min);
       RoaringBitmap expected = RoaringBitmap.and(lte, gte);
       assertEquals(expected, sut.gte(min, lte));
+      assertEquals(expected.getCardinality(), sut.gteCardinality(min, lte), "" + i);
       assertEquals(expected, sut.lte(max, gte));
+      assertEquals(expected.getCardinality(), sut.lteCardinality(max, gte));
       assertEquals(expected, sut.lt(max + 1, gte));
+      assertEquals(expected.getCardinality(), sut.ltCardinality(max + 1, gte));
       assertEquals(expected, sut.gt(min - 1, lte));
+      assertEquals(expected.getCardinality(), sut.gtCardinality(min - 1, lte));
     });
   }
 
@@ -372,6 +421,7 @@ public class RangeBitmapTest {
       RoaringBitmap gte = sut.gte(min);
       RoaringBitmap expected = RoaringBitmap.and(lte, gte);
       assertEquals(expected, sut.between(min, max));
+      assertEquals(expected.getCardinality(), sut.betweenCardinality(min, max));
     });
   }
 
@@ -382,11 +432,17 @@ public class RangeBitmapTest {
     LongStream.range(0, maxValue).forEach(appender::add);
     RangeBitmap sut = appender.build();
     assertEquals(sut.between(0, 10), RoaringBitmap.bitmapOfRange(0, 10));
+    assertEquals(sut.betweenCardinality(0, 10), 10);
     assertEquals(sut.between(1, 10), RoaringBitmap.bitmapOfRange(1, 10));
+    assertEquals(sut.betweenCardinality(1, 10), 9);
     assertEquals(sut.between(1, 9), RoaringBitmap.bitmapOfRange(1, 10));
+    assertEquals(sut.betweenCardinality(1, 9), 9);
     assertEquals(sut.between(1, 9), RoaringBitmap.bitmapOfRange(1, 10));
+    assertEquals(sut.betweenCardinality(1, 9), 9);
     assertEquals(sut.between(2, 8), RoaringBitmap.bitmapOfRange(2, 9));
+    assertEquals(sut.betweenCardinality(2, 8), 7);
     assertEquals(sut.between(3, 7), RoaringBitmap.bitmapOfRange(3, 8));
+    assertEquals(sut.betweenCardinality(3, 7), 5);
   }
 
   @Test
@@ -396,12 +452,20 @@ public class RangeBitmapTest {
     LongStream.range(0, maxValue).forEach(appender::add);
     RangeBitmap sut = appender.build();
     assertEquals(RoaringBitmap.bitmapOfRange(0, 11), sut.between(0, 10));
+    assertEquals(11, sut.betweenCardinality(0, 10));
     assertEquals(RoaringBitmap.bitmapOfRange(1, 11), sut.between(1, 10));
+    assertEquals(10, sut.betweenCardinality(1, 10));
     assertEquals(RoaringBitmap.bitmapOfRange(1, 10), sut.between(1, 9));
+    assertEquals(9, sut.betweenCardinality(1, 9));
     assertEquals(RoaringBitmap.bitmapOfRange(1, 10), sut.between(1, 9));
+    assertEquals(9, sut.betweenCardinality(1, 9));
     assertEquals(RoaringBitmap.bitmapOfRange(2, 9), sut.between(2, 8));
+    assertEquals(7, sut.betweenCardinality(2, 8));
     assertEquals(RoaringBitmap.bitmapOfRange(3, 8), sut.between(3, 7));
+    assertEquals(5, sut.betweenCardinality(3, 7));
     assertEquals(RoaringBitmap.bitmapOfRange(0x10000 - 5, 0x10000 + 6), sut.between(0x10000 - 5, 0x10000 + 5));
+    assertEquals(11, RoaringBitmap.bitmapOfRange(0x10000 - 5, 0x10000 + 6).getCardinality());
+    assertEquals(11, sut.betweenCardinality(0x10000 - 5, 0x10000 + 5));
   }
 
   @Test
@@ -414,16 +478,27 @@ public class RangeBitmapTest {
     RangeBitmap sut = appender.build();
     RoaringBitmap sequentialValues = RoaringBitmap.bitmapOfRange(4, numSequentialValues + 4);
     assertEquals(RoaringBitmap.bitmapOf(0), sut.between(-4620693217682128896L, -4616189618054758400L));
+    assertEquals(1, sut.betweenCardinality(-4620693217682128896L, -4616189618054758400L));
     assertEquals(RoaringBitmap.bitmapOfRange(5, 47), sut.between(1, 42));
+    assertEquals(42, sut.betweenCardinality(1, 42));
     assertEquals(RoaringBitmap.or(RoaringBitmap.bitmapOf(3), sequentialValues), sut.between(0, 4571364728013586431L));
+    assertEquals(RoaringBitmap.or(RoaringBitmap.bitmapOf(3), sequentialValues).getCardinality(), sut.betweenCardinality(0, 4571364728013586431L));
     assertEquals(RoaringBitmap.or(RoaringBitmap.bitmapOf(1, 3), sequentialValues), sut.between(0, 4601552919265804287L));
+    assertEquals(RoaringBitmap.or(RoaringBitmap.bitmapOf(1, 3), sequentialValues).getCardinality(), sut.betweenCardinality(0, 4601552919265804287L));
     assertEquals(RoaringBitmap.bitmapOf(0), sut.between(Long.MAX_VALUE, -4616189618054758400L));
+    assertEquals(1, sut.betweenCardinality(Long.MAX_VALUE, -4616189618054758400L));
     assertEquals(RoaringBitmap.bitmapOf(0, 2), sut.between(Long.MAX_VALUE, -4586634745500139520L));
+    assertEquals(2, sut.betweenCardinality(Long.MAX_VALUE, -4586634745500139520L));
     assertEquals(RoaringBitmap.bitmapOfRange(0, numSequentialValues + 4), sut.between(0, 0xFFFFFFFFFFFFFFFFL));
+    assertEquals(RoaringBitmap.bitmapOfRange(0, numSequentialValues + 4).getCardinality(), sut.betweenCardinality(0, 0xFFFFFFFFFFFFFFFFL));
     assertEquals(RoaringBitmap.bitmapOfRange(0, 4), sut.between(4571364728013586431L, -4586634745500139520L));
+    assertEquals(4, sut.betweenCardinality(4571364728013586431L, -4586634745500139520L));
     assertEquals(RoaringBitmap.bitmapOf(0, 2), sut.between(Long.MAX_VALUE, 0xFFFFFFFFFFFFFFFFL));
+    assertEquals(2, sut.betweenCardinality(Long.MAX_VALUE, 0xFFFFFFFFFFFFFFFFL));
     assertEquals(RoaringBitmap.or(RoaringBitmap.bitmapOf(1, 3), sequentialValues), sut.between(0, Long.MAX_VALUE));
+    assertEquals(RoaringBitmap.orCardinality(RoaringBitmap.bitmapOf(1, 3), sequentialValues), sut.betweenCardinality(0, Long.MAX_VALUE));
     assertEquals(new RoaringBitmap(), sut.between(-42, 0xFFFFFFFFFFFFFFFFL));
+    assertEquals(0, sut.betweenCardinality(-42, 0xFFFFFFFFFFFFFFFFL));
   }
 
   @Test
@@ -483,6 +558,36 @@ public class RangeBitmapTest {
     Arrays.stream(values).forEach(appender::add);
     RangeBitmap sut = appender.build();
     assertEquals(RoaringBitmap.bitmapOf(0), sut.between(-4620693217682128896L, -4616189618054758400L));
+    assertEquals(1, sut.betweenCardinality(-4620693217682128896L, -4616189618054758400L));
+  }
+
+  @ParameterizedTest
+  @MethodSource("distributions")
+  public void testContextualBetweenCardinality(LongSupplier dist) {
+    long maxValue = 10_000_000;
+    RangeBitmap.Appender appender = RangeBitmap.appender(maxValue);
+    long[] thresholds = new long[256];
+    LongStream.range(0, 1_000_000)
+        .forEach(i -> {
+          long v = Math.min(dist.getAsLong(), maxValue);
+          thresholds[(int)i & 255] = v;
+          appender.add(v);
+        });
+    RangeBitmap sut = appender.build();
+    long numRows = sut.gteCardinality(0L);
+    RoaringBitmap context = new RoaringBitmap();
+    for (int i = 0; i < numRows; i += 4) {
+      context.add(i);
+    }
+    Arrays.sort(thresholds);
+    for (int i = 0; i < thresholds.length; i += 2) {
+      long min = thresholds[i];
+      long max = thresholds[i+1];
+      long contextualCardinality = sut.betweenCardinality(min, max, context);
+      RoaringBitmap bitmap = sut.between(min, max);
+      bitmap.and(context);
+      assertEquals(bitmap.getLongCardinality(), contextualCardinality);
+    }
   }
 
   @Test
@@ -490,9 +595,13 @@ public class RangeBitmapTest {
     RangeBitmap empty = RangeBitmap.appender(10_000_000).build();
     RoaringBitmap nonEmpty = RoaringBitmap.bitmapOfRange(0, 100_000);
     assertEquals(new RoaringBitmap(), empty.lte(10, nonEmpty));
+    assertEquals(0, empty.lteCardinality(10, nonEmpty));
     assertEquals(new RoaringBitmap(), empty.lt(10, nonEmpty));
+    assertEquals(0, empty.ltCardinality(10, nonEmpty));
     assertEquals(new RoaringBitmap(), empty.gt(10, nonEmpty));
+    assertEquals(0, empty.gtCardinality(10, nonEmpty));
     assertEquals(new RoaringBitmap(), empty.gte(10, nonEmpty));
+    assertEquals(0, empty.gteCardinality(10, nonEmpty));
   }
 
   @Test
@@ -503,19 +612,33 @@ public class RangeBitmapTest {
     appender.add(-1L);
     RangeBitmap bitmap = appender.build();
     assertEquals(RoaringBitmap.bitmapOf(), bitmap.gt(-1L));
+    assertEquals(0, bitmap.gtCardinality(-1L));
     assertEquals(RoaringBitmap.bitmapOf(2), bitmap.gte(-1L));
+    assertEquals(1, bitmap.gteCardinality(-1L));
     assertEquals(RoaringBitmap.bitmapOf(0, 1, 2), bitmap.lte(-1L));
+    assertEquals(3, bitmap.lteCardinality(-1L));
     assertEquals(RoaringBitmap.bitmapOf(0, 1), bitmap.lte(-2L));
+    assertEquals(2, bitmap.lteCardinality(-2L));
     assertEquals(RoaringBitmap.bitmapOf(0, 1), bitmap.lt(-1L));
+    assertEquals(2, bitmap.ltCardinality(-1L));
     assertEquals(RoaringBitmap.bitmapOf(0, 1), bitmap.lt(-2L));
+    assertEquals(2, bitmap.ltCardinality(-2L));
     assertEquals(RoaringBitmap.bitmapOf(0, 1), bitmap.lte(Long.MIN_VALUE));
+    assertEquals(2, bitmap.lteCardinality(Long.MIN_VALUE));
     assertEquals(RoaringBitmap.bitmapOf(0), bitmap.lt(Long.MIN_VALUE));
+    assertEquals(1, bitmap.ltCardinality(Long.MIN_VALUE));
     assertEquals(RoaringBitmap.bitmapOf(2), bitmap.gt(Long.MIN_VALUE));
+    assertEquals(1, bitmap.gtCardinality(Long.MIN_VALUE));
     assertEquals(RoaringBitmap.bitmapOf(1, 2), bitmap.gte(Long.MIN_VALUE));
+    assertEquals(2, bitmap.gteCardinality(Long.MIN_VALUE));
     assertEquals(RoaringBitmap.bitmapOf(0), bitmap.lte(0));
+    assertEquals(1, bitmap.lteCardinality(0));
     assertEquals(RoaringBitmap.bitmapOf(), bitmap.lt(0));
+    assertEquals(0, bitmap.ltCardinality(0));
     assertEquals(RoaringBitmap.bitmapOf(0, 1, 2), bitmap.gte(0));
+    assertEquals(3, bitmap.gteCardinality(0));
     assertEquals(RoaringBitmap.bitmapOf(1, 2), bitmap.gt(0));
+    assertEquals(2, bitmap.gtCardinality(0));
   }
 
   // creates very large integer values so stresses edge cases in the top slice
@@ -548,8 +671,10 @@ public class RangeBitmapTest {
           expected.add(j);
         }
       }
-      RoaringBitmap answer = bitmap.lte(DOUBLE_ENCODER.applyAsLong(value));
+      long threshold = DOUBLE_ENCODER.applyAsLong(value);
+      RoaringBitmap answer = bitmap.lte(threshold);
       assertEquals(expected, answer);
+      assertEquals(expected.getCardinality(), bitmap.lteCardinality(threshold));
     }
   }
 
@@ -566,9 +691,11 @@ public class RangeBitmapTest {
           expected.add(j);
         }
       }
-      RoaringBitmap answer = bitmap.between(DOUBLE_ENCODER.applyAsLong(value / 2),
-          DOUBLE_ENCODER.applyAsLong(value));
+      long min = DOUBLE_ENCODER.applyAsLong(value / 2);
+      long max = DOUBLE_ENCODER.applyAsLong(value);
+      RoaringBitmap answer = bitmap.between(min, max);
       assertEquals(expected, answer);
+      assertEquals(expected.getCardinality(), bitmap.betweenCardinality(min, max));
     }
   }
 

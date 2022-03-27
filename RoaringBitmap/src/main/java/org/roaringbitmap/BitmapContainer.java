@@ -302,8 +302,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   int cardinalityInRange(int start, int end) {
-    assert (cardinality != -1);
-    if (end - start > MAX_CAPACITY / 2) {
+    if (cardinality != -1 && end - start > MAX_CAPACITY / 2) {
       int before = Util.cardinalityInBitmapRange(bitmap, 0, start);
       int after = Util.cardinalityInBitmapRange(bitmap, end, MAX_CAPACITY);
       return cardinality - before - after;
