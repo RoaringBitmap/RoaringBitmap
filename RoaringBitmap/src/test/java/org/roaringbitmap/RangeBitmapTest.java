@@ -561,6 +561,35 @@ public class RangeBitmapTest {
     assertEquals(1, sut.betweenCardinality(-4620693217682128896L, -4616189618054758400L));
   }
 
+  @ParameterizedTest
+  @MethodSource("distributions")
+  public void testContextualBetweenCardinality(LongSupplier dist) {
+    long maxValue = 10_000_000;
+    RangeBitmap.Appender appender = RangeBitmap.appender(maxValue);
+    long[] thresholds = new long[256];
+    LongStream.range(0, 1_000_000)
+        .forEach(i -> {
+          long v = Math.min(dist.getAsLong(), maxValue);
+          thresholds[(int)i & 255] = v;
+          appender.add(v);
+        });
+    RangeBitmap sut = appender.build();
+    long numRows = sut.gteCardinality(0L);
+    RoaringBitmap context = new RoaringBitmap();
+    for (int i = 0; i < numRows; i += 4) {
+      context.add(i);
+    }
+    Arrays.sort(thresholds);
+    for (int i = 0; i < thresholds.length; i += 2) {
+      long min = thresholds[i];
+      long max = thresholds[i+1];
+      long contextualCardinality = sut.betweenCardinality(min, max, context);
+      RoaringBitmap bitmap = sut.between(min, max);
+      bitmap.and(context);
+      assertEquals(bitmap.getLongCardinality(), contextualCardinality);
+    }
+  }
+
   @Test
   public void testContextualEvaluationOnEmptyRange() {
     RangeBitmap empty = RangeBitmap.appender(10_000_000).build();

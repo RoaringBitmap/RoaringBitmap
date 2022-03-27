@@ -134,6 +134,24 @@ public final class RangeBitmap {
   }
 
   /**
+   * Returns the number of rows which have a value in between the thresholds.
+   *
+   * @param min the inclusive minimum value.
+   * @param max the inclusive maximum value.
+   * @param context to be intersected with.
+   * @return the number of matching rows.
+   */
+  public long betweenCardinality(long min, long max, RoaringBitmap context) {
+    if (min == 0 || Long.numberOfLeadingZeros(min) < Long.numberOfLeadingZeros(mask)) {
+      return lteCardinality(max, context);
+    }
+    if (Long.numberOfLeadingZeros(max) < Long.numberOfLeadingZeros(mask)) {
+      return gteCardinality(min, context);
+    }
+    return new DoubleEvaluation().count(min - 1, max, context);
+  }
+
+  /**
    * Returns a RoaringBitmap of rows which have a value less than or equal to the threshold.
    *
    * @param threshold the inclusive maximum value.
@@ -650,14 +668,53 @@ public final class RangeBitmap {
             count += remainder;
           } else {
             if (low.full) {
-              count += Util.cardinalityInBitmapRange(high.bits, 0, remainder);
+              count += cardinalityInBitmapRange(high.bits, 0, remainder);
             } else if (high.full) {
-              count += Util.cardinalityInBitmapRange(low.bits, 0, remainder);
+              count += cardinalityInBitmapRange(low.bits, 0, remainder);
             } else {
               for (int i = 0; i < low.bits.length & i < high.bits.length; i++) {
                 high.bits[i] &= low.bits[i];
               }
-              count += Util.cardinalityInBitmapRange(high.bits, 0, remainder);
+              count += cardinalityInBitmapRange(high.bits, 0, remainder);
+            }
+          }
+        }
+        remaining -= 0x10000;
+        mPos += bytesPerMask;
+      }
+      return count;
+    }
+
+    public long count(long lower, long upper, RoaringBitmap context) {
+      long count = 0;
+      long remaining = max;
+      int mPos = masksOffset;
+      RoaringArray contextArray = context.highLowContainer;
+      int contextPos = 0;
+      int maxContextKey = contextArray.keys[contextArray.size - 1];
+      for (int prefix = 0; prefix <= maxContextKey && remaining > 0; prefix++) {
+        long containerMask = buffer.getLong(mPos) & mask;
+        if (prefix < contextArray.keys[contextPos]) {
+          for (int i = 0; i < Long.bitCount(containerMask); i++) {
+            skipContainer();
+          }
+        } else {
+          evaluateHorizontalSlice(containerMask, remaining, lower, upper);
+          if (!low.empty && !high.empty) {
+            Container container = contextArray.values[contextPos];
+            if (low.full && high.full) {
+              count += container.getCardinality();
+            } else {
+              if (low.full) {
+                count += new BitmapContainer(high.bits, -1).andCardinality(container);
+              } else if (high.full) {
+                count += new BitmapContainer(low.bits, -1).andCardinality(container);
+              } else {
+                for (int i = 0; i < low.bits.length & i < high.bits.length; i++) {
+                  high.bits[i] &= low.bits[i];
+                }
+                count += new BitmapContainer(high.bits, -1).andCardinality(container);
+              }
             }
           }
         }
@@ -887,6 +944,7 @@ public final class RangeBitmap {
               + " (this is a bug, please report it.)");
       }
     }
+
     private void orNextIntoBits(Bits bits) {
       int type = buffer.get(position);
       int size = buffer.getChar(position + 1) & 0xFFFF;
