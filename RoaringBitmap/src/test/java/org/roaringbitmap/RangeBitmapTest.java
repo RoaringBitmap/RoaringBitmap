@@ -306,6 +306,7 @@ public class RangeBitmapTest {
         EXP.of(42, 0.0001),
         EXP.of(42, 0.9999),
         POINT.of(0, 0),
+        POINT.of(0, 1),
         POINT.of(0, Long.MAX_VALUE)
     ).map(Arguments::of);
   }
@@ -697,6 +698,33 @@ public class RangeBitmapTest {
       assertEquals(expected, answer);
       assertEquals(expected.getCardinality(), bitmap.betweenCardinality(min, max));
     }
+  }
+
+  @Test
+  public void extremelySmallBitmapTest() {
+    RangeBitmap.Appender accumulator = RangeBitmap.appender(1);
+    accumulator.add(1);
+    assertEquals(accumulator.build().gte(1).getCardinality(), 1);
+    assertEquals(accumulator.build().gteCardinality(1), 1);
+    assertEquals(accumulator.build().lte(1).getCardinality(), 1);
+    assertEquals(accumulator.build().lteCardinality(1), 1);
+    assertEquals(accumulator.build().between(1, 1).getCardinality(), 1);
+    assertEquals(accumulator.build().betweenCardinality(1, 1), 1);
+  }
+
+  @Test
+  public void testModulo65536() {
+    RangeBitmap.Appender accumulator = RangeBitmap.appender(1);
+    for (int i = 0; i <= 65536; i++) {
+      accumulator.add(1);
+    }
+    accumulator.build().gte(1);
+    assertEquals(accumulator.build().gte(1).getCardinality(), 65537);
+    assertEquals(accumulator.build().gteCardinality(1), 65537);
+    assertEquals(accumulator.build().lte(1).getCardinality(), 65537);
+    assertEquals(accumulator.build().lteCardinality(1), 65537);
+    assertEquals(accumulator.build().between(1, 1).getCardinality(), 65537);
+    assertEquals(accumulator.build().betweenCardinality(1, 1), 65537);
   }
 
   public static class ReferenceImplementation {

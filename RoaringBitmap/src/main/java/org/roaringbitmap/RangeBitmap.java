@@ -344,7 +344,7 @@ public final class RangeBitmap {
       int mPos = masksOffset;
       char key = 0;
       while (remaining > 0) {
-        long containerMask = buffer.getLong(mPos) & mask;
+        long containerMask = getContainerMask(buffer, mPos, mask, bytesPerMask);
         evaluateHorizontalSlice(remaining, threshold, containerMask);
         if (!upper) {
           Util.flipBitmapRange(bits, 0, Math.min(0x10000, (int) remaining));
@@ -377,7 +377,7 @@ public final class RangeBitmap {
       long remaining = max;
       int mPos = masksOffset;
       for (int prefix = 0; prefix <= maxContextKey && remaining > 0; prefix++) {
-        long containerMask = buffer.getLong(mPos) & mask;
+        long containerMask = getContainerMask(buffer, mPos, mask, bytesPerMask);
         if (prefix < contextArray.keys[contextPos]) {
           for (int i = 0; i < Long.bitCount(containerMask); i++) {
             skipContainer();
@@ -414,7 +414,7 @@ public final class RangeBitmap {
       long remaining = max;
       int mPos = masksOffset;
       while (remaining > 0) {
-        long containerMask = buffer.getLong(mPos) & mask;
+        long containerMask = getContainerMask(buffer, mPos, mask, bytesPerMask);
         evaluateHorizontalSlice(remaining, threshold, containerMask);
         int remainder = Math.min((int) remaining, 0x10000);
         int cardinality = cardinalityInBitmapRange(bits, 0, remainder);
@@ -439,7 +439,7 @@ public final class RangeBitmap {
       long remaining = max;
       int mPos = masksOffset;
       for (int prefix = 0; prefix <= maxContextKey && remaining > 0; prefix++) {
-        long containerMask = buffer.getLong(mPos) & mask;
+        long containerMask = getContainerMask(buffer, mPos, mask, bytesPerMask);
         if (prefix < contextArray.keys[contextPos]) {
           for (int i = 0; i < Long.bitCount(containerMask); i++) {
             skipContainer();
@@ -625,7 +625,7 @@ public final class RangeBitmap {
       int mPos = masksOffset;
       char key = 0;
       while (remaining > 0) {
-        long containerMask = buffer.getLong(mPos) & mask;
+        long containerMask = getContainerMask(buffer, mPos, mask, bytesPerMask);
         evaluateHorizontalSlice(containerMask, remaining, lower, upper);
         if (!low.empty && !high.empty) {
           if (low.full && high.full) {
@@ -660,7 +660,7 @@ public final class RangeBitmap {
       long remaining = max;
       int mPos = masksOffset;
       while (remaining > 0) {
-        long containerMask = buffer.getLong(mPos) & mask;
+        long containerMask = getContainerMask(buffer, mPos, mask, bytesPerMask);
         evaluateHorizontalSlice(containerMask, remaining, lower, upper);
         if (!low.empty && !high.empty) {
           int remainder = Math.min((int) remaining, 0x10000);
@@ -693,7 +693,7 @@ public final class RangeBitmap {
       int contextPos = 0;
       int maxContextKey = contextArray.keys[contextArray.size - 1];
       for (int prefix = 0; prefix <= maxContextKey && remaining > 0; prefix++) {
-        long containerMask = buffer.getLong(mPos) & mask;
+        long containerMask = getContainerMask(buffer, mPos, mask, bytesPerMask);
         if (prefix < contextArray.keys[contextPos]) {
           for (int i = 0; i < Long.bitCount(containerMask); i++) {
             skipContainer();
@@ -736,14 +736,12 @@ public final class RangeBitmap {
       if (skipHigh > 0) {
         upper &= -(1L << skipHigh);
       }
-      int slice = 0;
+      setupFirstSlice(upper, high, (int) remaining, skipHigh == 0);
+      setupFirstSlice(lower, low, (int) remaining, skipLow == 0);
       if ((containerMask & 1) == 1) {
-        setupFirstSlice(upper, high, (int) remaining, skipHigh == 0);
-        setupFirstSlice(lower, low, (int) remaining, skipLow == 0);
         skipContainer();
       }
-      slice++;
-      for (; slice < Long.bitCount(mask); ++slice) {
+      for (int slice = 1; slice < Long.bitCount(mask); ++slice) {
         if ((containerMask >>> slice & 1) == 1) {
           int flags = (int) (((upper >>> slice) & 1) | (((lower >>> slice) & 1) << 1));
           switch (flags) {
@@ -1048,6 +1046,22 @@ public final class RangeBitmap {
     }
   }
 
+  private static long getContainerMask(ByteBuffer buffer, int position, long mask,
+                                       int bytesPerMask) {
+    switch (bytesPerMask) {
+      case 0:
+      case 1:
+        return buffer.get(position) & mask;
+      case 2:
+        return buffer.getChar(position) & mask;
+      case 3:
+      case 4:
+        return buffer.getInt(position) & mask;
+      default:
+        return buffer.getLong(position) & mask;
+    }
+  }
+
   /**
    * Builder for constructing immutable RangeBitmaps
    */
@@ -1080,6 +1094,7 @@ public final class RangeBitmap {
     private int rid;
     private int key = 0;
     private int serializedContainerSize;
+    private boolean dirty;
 
     /**
      * Converts the appender into an immutable range index.
@@ -1201,13 +1216,14 @@ public final class RangeBitmap {
         throw new IllegalArgumentException(value + " too large");
       }
       rid++;
+      dirty = true;
       if (rid >>> 16 > key) {
         append();
       }
     }
 
     private boolean flush() {
-      if (mask != 0) {
+      if (dirty) {
         append();
         return true;
       }
@@ -1256,6 +1272,7 @@ public final class RangeBitmap {
       }
       mask = 0;
       key++;
+      dirty = false;
     }
 
     private int maskBufferGrowth() {
