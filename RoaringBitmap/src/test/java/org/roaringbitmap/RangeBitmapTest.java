@@ -306,6 +306,14 @@ public class RangeBitmapTest {
         EXP.of(42, 0.0001),
         EXP.of(42, 0.9999),
         POINT.of(0, 0),
+        POINT.of(0, 1),
+        POINT.of(0, 2),
+        POINT.of(0, 3),
+        POINT.of(0, 4),
+        POINT.of(0, 7),
+        POINT.of(0, 8),
+        POINT.of(0, 15),
+        POINT.of(0, 31),
         POINT.of(0, Long.MAX_VALUE)
     ).map(Arguments::of);
   }
@@ -699,6 +707,35 @@ public class RangeBitmapTest {
     }
   }
 
+  @ParameterizedTest
+  @ValueSource(longs = {1, 2, 3, 4, 7, 8, 15, 16,  31, 32, 63, 64})
+  public void extremelySmallBitmapTest(long value) {
+    RangeBitmap.Appender accumulator = RangeBitmap.appender(value);
+    accumulator.add(value);
+    assertEquals(accumulator.build().gte(value).getCardinality(), 1);
+    assertEquals(accumulator.build().gteCardinality(value), 1);
+    assertEquals(accumulator.build().lte(value).getCardinality(), 1);
+    assertEquals(accumulator.build().lteCardinality(value), 1);
+    assertEquals(accumulator.build().between(value, value).getCardinality(), 1);
+    assertEquals(accumulator.build().betweenCardinality(value, value), 1);
+  }
+
+  @ParameterizedTest
+  @ValueSource(longs = {1, 2, 3, 4, 7, 8, 15, 16,  31, 32, 63, 64})
+  public void testModulo65536(long value) {
+    int count = 65537;
+    RangeBitmap.Appender accumulator = RangeBitmap.appender(value);
+    for (int i = 0; i < count; i++) {
+      accumulator.add(value);
+    }
+    assertEquals(accumulator.build().gte(value).getCardinality(), count);
+    assertEquals(accumulator.build().gteCardinality(value), count);
+    assertEquals(accumulator.build().lte(value).getCardinality(), count);
+    assertEquals(accumulator.build().lteCardinality(value), count);
+    assertEquals(accumulator.build().between(value, value).getCardinality(), count);
+    assertEquals(accumulator.build().betweenCardinality(value, value), count);
+  }
+
   public static class ReferenceImplementation {
 
     public static Builder builder() {
@@ -714,7 +751,7 @@ public class RangeBitmapTest {
     private final RoaringBitmap[] bitmaps;
 
     public RoaringBitmap lessThanOrEqualTo(long threshold) {
-      if (63 - Long.numberOfLeadingZeros(threshold) > bitmaps.length) {
+      if (63 - Long.numberOfLeadingZeros(threshold) >= bitmaps.length) {
         return all();
       }
       RoaringBitmap bitmap = (threshold & 1) == 0 ? bitmaps[0].clone() : all();
