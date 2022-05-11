@@ -1,57 +1,44 @@
- package org.roaringbitmap.bsi;
+package org.roaringbitmap.bsi;
 
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import org.roaringbitmap.bsi.buffer.ImmutableBitSliceIndex;
-import org.roaringbitmap.bsi.buffer.MutableBitSliceIndex;
-import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
-import org.roaringbitmap.buffer.MutableRoaringBitmap;
+import org.junit.jupiter.api.*;
+import org.roaringbitmap.RoaringBitmap;
 
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * TestBase
- *
+ * RBBsiTest
+ * created by haihuang@alibaba-inc.com on 2021/6/6
  */
-public class BufferBSITestBase {
-
+public class RBBsiTest {
     private Map<Integer, Integer> testDataSet = new HashMap<>();
 
-    private MutableBitSliceIndex mBsi;
-
-    private ImmutableBitSliceIndex imBsi;
-
+    private RoaringBitmapSliceIndex bsi;
 
     @BeforeEach
     public void setup() {
         IntStream.range(1, 100).forEach(x -> testDataSet.put(x, x));
-        mBsi = new MutableBitSliceIndex(1, 99);
+        bsi = new RoaringBitmapSliceIndex(1, 99);
         testDataSet.forEach((k, v) -> {
-            mBsi.setValue(k, v);
+            bsi.setValue(k, v);
         });
-        imBsi = mBsi.toImmutableBitSliceIndex();
     }
 
     @Test
     public void testSetAndGet() {
         IntStream.range(1, 100).forEach(x -> {
-            Pair<Integer, Boolean> pair = mBsi.getValue(x);
+            Pair<Integer, Boolean> pair = bsi.getValue(x);
             Assertions.assertTrue(pair.getRight());
             Assertions.assertTrue(pair.getKey() == x);
         });
 
         IntStream.range(1, 100).forEach(x -> {
-            Pair<Integer, Boolean> pair = imBsi.getValue(x);
+            Pair<Integer, Boolean> pair = bsi.getValue(x);
             Assertions.assertTrue(pair.getRight());
             Assertions.assertTrue(pair.getKey() == x);
         });
@@ -59,9 +46,9 @@ public class BufferBSITestBase {
 
     @Test
     public void testMerge() {
-        MutableBitSliceIndex bsiA = new MutableBitSliceIndex();
+        RoaringBitmapSliceIndex bsiA = new RoaringBitmapSliceIndex();
         IntStream.range(1, 100).forEach(x -> bsiA.setValue(x, x));
-        MutableBitSliceIndex bsiB = new MutableBitSliceIndex();
+        RoaringBitmapSliceIndex bsiB = new RoaringBitmapSliceIndex();
         IntStream.range(100, 199).forEach(x -> bsiB.setValue(x, x));
         Assertions.assertEquals(bsiA.getExistenceBitmap().getLongCardinality(), 99);
         Assertions.assertEquals(bsiB.getExistenceBitmap().getLongCardinality(), 99);
@@ -76,14 +63,14 @@ public class BufferBSITestBase {
 
     @Test
     public void testClone() {
-        MutableBitSliceIndex bsi = new MutableBitSliceIndex(1, 99);
+        RoaringBitmapSliceIndex bsi = new RoaringBitmapSliceIndex(1, 99);
         List<Pair<Integer, Integer>> collect = testDataSet.entrySet()
                 .stream().map(x -> Pair.newPair(x.getKey(), x.getValue())).collect(Collectors.toList());
 
         bsi.setValues(collect, 99, 1);
 
         Assertions.assertEquals(bsi.getExistenceBitmap().getLongCardinality(), 99);
-        final MutableBitSliceIndex clone = bsi.clone();
+        final RoaringBitmapSliceIndex clone = bsi.clone();
 
         IntStream.range(1, 100).forEach(x -> {
             Pair<Integer, Boolean> bsiValue = clone.getValue(x);
@@ -95,9 +82,9 @@ public class BufferBSITestBase {
 
     @Test
     public void testAdd() {
-        MutableBitSliceIndex bsiA = new MutableBitSliceIndex();
+        RoaringBitmapSliceIndex bsiA = new RoaringBitmapSliceIndex();
         IntStream.range(1, 100).forEach(x -> bsiA.setValue(x, x));
-        MutableBitSliceIndex bsiB = new MutableBitSliceIndex();
+        RoaringBitmapSliceIndex bsiB = new RoaringBitmapSliceIndex();
         IntStream.range(1, 120).forEach(x -> bsiB.setValue(x, x));
 
         bsiA.add(bsiB);
@@ -117,14 +104,14 @@ public class BufferBSITestBase {
 
     @Test
     public void TestIO4Stream() throws IOException {
-        MutableBitSliceIndex bsi = new MutableBitSliceIndex(1, 99);
+        RoaringBitmapSliceIndex bsi = new RoaringBitmapSliceIndex(1, 99);
         IntStream.range(1, 100).forEach(x -> bsi.setValue(x, x));
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutputStream bdo = new DataOutputStream(bos);
         bsi.serialize(bdo);
         byte[] data = bos.toByteArray();
 
-        MutableBitSliceIndex newBsi = new MutableBitSliceIndex();
+        RoaringBitmapSliceIndex newBsi = new RoaringBitmapSliceIndex();
 
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         DataInputStream bdi = new DataInputStream(bis);
@@ -141,13 +128,13 @@ public class BufferBSITestBase {
 
     @Test
     public void testIO4Buffer() throws IOException {
-        MutableBitSliceIndex bsi = new MutableBitSliceIndex(1, 99);
+        RoaringBitmapSliceIndex bsi = new RoaringBitmapSliceIndex(1, 99);
         IntStream.range(1, 100).forEach(x -> bsi.setValue(x, x));
         ByteBuffer buffer = ByteBuffer.allocate(bsi.serializedSizeInBytes());
         bsi.serialize(buffer);
 
         byte[] data = buffer.array();
-        MutableBitSliceIndex newBsi = new MutableBitSliceIndex();
+        RoaringBitmapSliceIndex newBsi = new RoaringBitmapSliceIndex();
         newBsi.deserialize(ByteBuffer.wrap(data));
         Assertions.assertEquals(newBsi.getExistenceBitmap().getLongCardinality(), 99);
 
@@ -161,44 +148,20 @@ public class BufferBSITestBase {
 
     @Test
     public void testIOFromExternal() {
-        MutableBitSliceIndex bsi = new MutableBitSliceIndex(1, 99);
+        RoaringBitmapSliceIndex bsi = new RoaringBitmapSliceIndex(1, 99);
         IntStream.range(1, 100).forEach(x -> bsi.setValue(x, x));
 
-
-        ImmutableBitSliceIndex iBsi = bsi.toImmutableBitSliceIndex();
-
         IntStream.range(1, 100).forEach(x -> {
-            Pair<Integer, Boolean> bsiValue = iBsi.getValue(x);
+            Pair<Integer, Boolean> bsiValue = bsi.getValue(x);
             Assertions.assertTrue(bsiValue.getRight());
             Assertions.assertEquals((int) bsiValue.getKey(), x);
         });
     }
 
-    // non parallel operation test
-    @Test
-    public void testSum() {
-        MutableBitSliceIndex bsi = new MutableBitSliceIndex(1, 99);
-        IntStream.range(1, 100).forEach(x -> bsi.setValue(x, x));
-
-
-        ImmutableBitSliceIndex iBsi = bsi.toImmutableBitSliceIndex();
-
-        MutableRoaringBitmap foundSet = MutableRoaringBitmap.bitmapOf(IntStream.range(1, 51).toArray());
-
-        Pair<Long, Long> sumPair = iBsi.sum(foundSet);
-
-        System.out.println("sum:" + sumPair.toString());
-
-        int sum = IntStream.range(1, 51).sum();
-        long count = IntStream.range(1, 51).count();
-
-        Assertions.assertTrue(sumPair.getLeft().intValue() == sum && sumPair.getRight() == count);
-
-    }
 
     @Test
     public void testEQ() {
-        MutableBitSliceIndex bsi = new MutableBitSliceIndex(1, 99);
+        RoaringBitmapSliceIndex bsi = new RoaringBitmapSliceIndex(1, 99);
         IntStream.range(1, 100).forEach(x -> {
             if (x <= 50) {
                 bsi.setValue(x, 1);
@@ -208,7 +171,7 @@ public class BufferBSITestBase {
 
         });
 
-        ImmutableRoaringBitmap bitmap = bsi.toImmutableBitSliceIndex().rangeEQ(null, 1);
+        RoaringBitmap bitmap = bsi.compare(BitmapSliceIndex.Operation.EQ, 1, 0, null);
         Assertions.assertTrue(bitmap.getLongCardinality() == 50L);
 
     }
@@ -217,100 +180,57 @@ public class BufferBSITestBase {
     // parallel operation test
 
     @Test
-    public void testGT()  {
-        ImmutableRoaringBitmap result = imBsi.compare(BitmapSliceIndex.Operation.GT, 50, 0, null);
+    public void testGT() {
+        RoaringBitmap result = bsi.compare(BitmapSliceIndex.Operation.GT, 50, 0, null);
         Assertions.assertTrue(result.getLongCardinality() == 49);
         Assertions.assertArrayEquals(IntStream.range(51, 100).toArray(), result.toArray());
     }
 
 
     @Test
-    public void testGE()  {
-        ImmutableRoaringBitmap result = imBsi.compare(BitmapSliceIndex.Operation.GE, 50, 0, null);
+    public void testGE() {
+        RoaringBitmap result = bsi.compare(BitmapSliceIndex.Operation.GE, 50, 0, null);
         Assertions.assertTrue(result.getLongCardinality() == 50);
         Assertions.assertArrayEquals(IntStream.range(50, 100).toArray(), result.toArray());
     }
 
     @Test
-    public void testLT()  {
-        ImmutableRoaringBitmap result = imBsi.compare(BitmapSliceIndex.Operation.LT, 50, 0, null);
+    public void testLT() {
+        RoaringBitmap result = bsi.compare(BitmapSliceIndex.Operation.LT, 50, 0, null);
         Assertions.assertTrue(result.getLongCardinality() == 49);
         Assertions.assertArrayEquals(IntStream.range(1, 50).toArray(), result.toArray());
     }
 
 
     @Test
-    public void testLE()  {
-        ImmutableRoaringBitmap result = imBsi.compare(BitmapSliceIndex.Operation.LE, 50, 0, null);
+    public void testLE() {
+        RoaringBitmap result = bsi.compare(BitmapSliceIndex.Operation.LE, 50, 0, null);
         Assertions.assertTrue(result.getLongCardinality() == 50);
         Assertions.assertArrayEquals(IntStream.range(1, 51).toArray(), result.toArray());
     }
 
     @Test
-    public void testRANGE()  {
-        ImmutableRoaringBitmap result = imBsi.compare(BitmapSliceIndex.Operation.RANGE, 10, 20, null);
+    public void testRANGE() {
+        RoaringBitmap result = bsi.compare(BitmapSliceIndex.Operation.RANGE, 10, 20, null);
         Assertions.assertTrue(result.getLongCardinality() == 11);
         Assertions.assertArrayEquals(IntStream.range(10, 21).toArray(), result.toArray());
     }
 
     @Test
-    public void testIN() throws ExecutionException, InterruptedException {
+    public void testSum() {
+        RoaringBitmapSliceIndex bsi = new RoaringBitmapSliceIndex(1, 99);
+        IntStream.range(1, 100).forEach(x -> bsi.setValue(x, x));
 
-        Set<Integer> values = new HashSet<>();
-        int[] valArr = new int[20];
-        for (int i = 0; i < 20; i++) {
-            values.add(i + 1);
-            valArr[i] = i + 1;
-        }
+        RoaringBitmap foundSet = RoaringBitmap.bitmapOf(IntStream.range(1, 51).toArray());
 
+        Pair<Long, Long> sumPair = bsi.sum(foundSet);
 
-        ExecutorService pool = Executors.newFixedThreadPool(2);
-        ImmutableRoaringBitmap result = imBsi.parallelIn(2,
-                null, values, pool);
-        Assertions.assertTrue(result.getLongCardinality() == values.size());
-        Assertions.assertArrayEquals(valArr, result.toArray());
-        pool.shutdownNow();
-    }
+        System.out.println("sum:" + sumPair.toString());
 
+        int sum = IntStream.range(1, 51).sum();
+        long count = IntStream.range(1, 51).count();
 
-    @Test
-    public void testTransposeWithCount() throws ExecutionException, InterruptedException {
-        MutableBitSliceIndex bsi = new MutableBitSliceIndex(1, 99);
-        IntStream.range(1, 100).forEach(x -> {
-            if (x <= 30) {
-                bsi.setValue(x, 1);
-            } else if (x <= 60) {
-                bsi.setValue(x, 2);
-            } else {
-                bsi.setValue(x, 3);
-            }
-
-        });
-
-        ExecutorService pool = Executors.newFixedThreadPool(2);
-        ImmutableBitSliceIndex iBsi = bsi.toImmutableBitSliceIndex();
-
-        final MutableBitSliceIndex result = iBsi.parallelTransposeWithCount(null, 2, pool);
-
-        List<Pair<Integer, Integer>> pairs = result.toPairList();
-        pairs.forEach(System.out::println);
-
-
-        Assertions.assertEquals(30, (int) result.getValue(1).getKey());
-        Assertions.assertEquals(30, (int) result.getValue(2).getKey());
-        Assertions.assertEquals(39, (int) result.getValue(3).getKey());
-
-    }
-
-
-    @Test
-    public void testTopK() {
-        MutableBitSliceIndex bsi = new MutableBitSliceIndex(1, 100001);
-        IntStream.range(1, 100001).forEach(x -> bsi.setValue(x, x));
-        long start = System.currentTimeMillis();
-        MutableRoaringBitmap top = bsi.topK(null, 20);
-        long end = System.currentTimeMillis();
-        System.out.println(top.toString() + " \ntime cost:" + (end - start));
+        Assertions.assertTrue(sumPair.getLeft().intValue() == sum && sumPair.getRight() == count);
     }
 
 
