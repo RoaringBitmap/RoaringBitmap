@@ -432,6 +432,7 @@ Usage
 * ``./gradlew build`` will compile and run the  unit tests
 * ``./gradlew test `` will run the tests
 * ``./gradlew :roaringbitmap:test --tests TestIterators.testIndexIterator4`` run just the test `TestIterators.testIndexIterator4`
+* ``./gradlew  bsi:test --tests BufferBSITest.testEQ``  run just the test `BufferBSITest.testEQ` in the `bsi` submodule
 * ``./gradlew checkstyleMain`` will check that you abide by the code style and that the code compiles. We enforce a strict style so that there is no debate as to the proper way to format the code.
 
 
