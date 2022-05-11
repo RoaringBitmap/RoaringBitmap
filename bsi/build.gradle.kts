@@ -7,3 +7,16 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-params:${deps["jupiter"]}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${deps["jupiter"]}")
 }
+
+
+tasks.test {
+    systemProperty("kryo.unsafe", "false")
+    useJUnitPlatform()
+    failFast = true
+    testLogging {
+        // We exclude 'passed' events
+        events( "skipped", "failed")
+        showStackTraces = true
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+}

@@ -349,6 +349,11 @@ public class BitSliceIndexBase {
       eqBitmap = ImmutableRoaringBitmap.and(eqBitmap, foundSet);
     }
 
+    // https://github.com/RoaringBitmap/RoaringBitmap/issues/549
+    if((predicate >> (this.bA.length - 1)) != 0) {
+      return new MutableRoaringBitmap();
+    }
+
     for (int i = this.bA.length - 1; i >= 0; i--) {
       ImmutableRoaringBitmap slice = this.bA[i];
       int bit = (predicate >> i) & 1;
