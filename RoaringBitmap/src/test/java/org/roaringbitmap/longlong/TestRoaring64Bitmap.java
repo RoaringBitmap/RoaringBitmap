@@ -33,6 +33,7 @@ import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
 import org.roaringbitmap.art.LeafNode;
 import org.roaringbitmap.art.LeafNodeIterator;
 
+
 public class TestRoaring64Bitmap {
 
   private Roaring64Bitmap newDefaultCtor() {
@@ -2114,5 +2115,16 @@ public class TestRoaring64Bitmap {
     assertFalse(c.contains(275846320L));
     c.and(a);
     assertFalse(c.contains(275846320L));
+  }
+
+
+  @Test
+  public void testIssue558() {
+    Roaring64Bitmap rb = new Roaring64Bitmap();
+    Random random = new Random(1234);
+    for (int i = 0 ; i < 1000000; i++) {
+      rb.addLong(random.nextLong());
+      rb.removeLong(random.nextLong());
+    }
   }
 }
