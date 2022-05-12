@@ -33,7 +33,6 @@ import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
 import org.roaringbitmap.art.LeafNode;
 import org.roaringbitmap.art.LeafNodeIterator;
 
-
 public class TestRoaring64Bitmap {
 
   private Roaring64Bitmap newDefaultCtor() {
