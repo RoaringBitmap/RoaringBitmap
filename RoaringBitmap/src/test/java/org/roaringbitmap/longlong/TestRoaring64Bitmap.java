@@ -2115,4 +2115,15 @@ public class TestRoaring64Bitmap {
     c.and(a);
     assertFalse(c.contains(275846320L));
   }
+
+
+  @Test
+  public void testIssue558() {
+    Roaring64Bitmap rb = new Roaring64Bitmap();
+    Random random = new Random(1234);
+    for (int i = 0 ; i < 1000000; i++) {
+      rb.addLong(random.nextLong());
+      rb.removeLong(random.nextLong());
+    }
+  }
 }
