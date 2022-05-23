@@ -101,4 +101,46 @@ public class FastAggregationRLEStressTest {
     return BufferFastAggregation.workAndMemoryShyAnd(state.buffer, state.bufferBitmaps);
   }
 
+  @Benchmark
+  public int andCardinality(BitmapState state) {
+    return FastAggregation.andCardinality(state.bitmaps);
+  }
+
+  @Benchmark
+  public int andCardinalityMaterialize(BitmapState state) {
+    return FastAggregation.and(state.bitmaps).getCardinality();
+  }
+
+
+  @Benchmark
+  public int andCardinalityBuffer(BitmapState state) {
+    return BufferFastAggregation.andCardinality(state.bufferBitmaps);
+  }
+
+  @Benchmark
+  public int andCardinalityBufferMaterialize(BitmapState state) {
+    return BufferFastAggregation.and(state.bufferBitmaps).getCardinality();
+  }
+
+  @Benchmark
+  public int orCardinality(BitmapState state) {
+    return FastAggregation.orCardinality(state.bitmaps);
+  }
+
+  @Benchmark
+  public int orCardinalityMaterialize(BitmapState state) {
+    return FastAggregation.or(state.bitmaps).getCardinality();
+  }
+
+
+  @Benchmark
+  public int orCardinalityBuffer(BitmapState state) {
+    return BufferFastAggregation.orCardinality(state.bufferBitmaps);
+  }
+
+  @Benchmark
+  public int orCardinalityBufferMaterialize(BitmapState state) {
+    return BufferFastAggregation.or(state.bufferBitmaps).getCardinality();
+  }
+
 }
