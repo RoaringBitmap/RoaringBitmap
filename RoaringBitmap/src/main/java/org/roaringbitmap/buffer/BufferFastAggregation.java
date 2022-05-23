@@ -559,8 +559,8 @@ public final class BufferFastAggregation {
       char key = first.highLowContainer.getKeyAtIndex(i);
       words[key >>> 6] |= 1L << key;
     }
-    int numContainers = first.highLowContainer.size();
-    for (int i = 1; i < bitmaps.length && numContainers > 0; ++i) {
+    int numKeys = first.highLowContainer.size();
+    for (int i = 1; i < bitmaps.length && numKeys > 0; ++i) {
       final char[] keys;
       if (bitmaps[i].highLowContainer instanceof MutableRoaringArray) {
         keys = ((MutableRoaringArray) bitmaps[i].highLowContainer).keys;
@@ -570,32 +570,35 @@ public final class BufferFastAggregation {
           keys[j] = bitmaps[i].highLowContainer.getKeyAtIndex(j);
         }
       }
-      numContainers = BufferUtil.intersectArrayIntoBitmap(words,
+      numKeys = BufferUtil.intersectArrayIntoBitmap(words,
           CharBuffer.wrap(keys),
           bitmaps[i].highLowContainer.size());
     }
-    if (numContainers == 0) {
+    if (numKeys == 0) {
       return 0;
     }
-    MappeableContainer[][] containers = new MappeableContainer[numContainers][bitmaps.length];
-    for (int i = 0; i < bitmaps.length; ++i) {
-      ImmutableRoaringBitmap bitmap = bitmaps[i];
-      int position = 0;
-      for (int j = 0; j < bitmap.highLowContainer.size(); ++j) {
-        char key = bitmap.highLowContainer.getKeyAtIndex(j);
-        if ((words[key >>> 6] & (1L << key)) != 0) {
-          containers[position++][i] = bitmap.highLowContainer.getContainerAtIndex(j);
-        }
+    char[] keys = new char[numKeys];
+    int base = 0;
+    int pos = 0;
+    for (long word : words) {
+      while (word != 0L) {
+        keys[pos++] = (char)(base + Long.numberOfTrailingZeros(word));
+        word &= (word - 1);
       }
+      base += 64;
     }
 
-    int cardinality = 0;
     LongBuffer longBuffer = LongBuffer.wrap(words);
-    for (int i = 0; i < numContainers; ++i) {
-      MappeableContainer[] slice = containers[i];
+    int cardinality = 0;
+    for (char key : keys) {
       Arrays.fill(words, -1L);
       MappeableContainer tmp = new MappeableBitmapContainer(longBuffer, -1);
-      for (MappeableContainer container : slice) {
+      for (ImmutableRoaringBitmap bitmap : bitmaps) {
+        int index = bitmap.highLowContainer.getIndex(key);
+        if (index < 0) {
+          continue;
+        }
+        MappeableContainer container = bitmap.highLowContainer.getContainerAtIndex(index);
         MappeableContainer and = tmp.iand(container);
         if (and != tmp) {
           tmp = and;

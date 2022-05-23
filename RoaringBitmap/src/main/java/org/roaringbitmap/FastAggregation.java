@@ -400,39 +400,40 @@ public final class FastAggregation {
       char key = first.highLowContainer.keys[i];
       words[key >>> 6] |= 1L << key;
     }
-    int numContainers = first.highLowContainer.size;
-    for (int i = 1; i < bitmaps.length && numContainers > 0; ++i) {
-      numContainers = Util.intersectArrayIntoBitmap(words,
+    int numKeys = first.highLowContainer.size;
+    for (int i = 1; i < bitmaps.length && numKeys > 0; ++i) {
+      numKeys = Util.intersectArrayIntoBitmap(words,
           bitmaps[i].highLowContainer.keys, bitmaps[i].highLowContainer.size);
     }
-    if (numContainers == 0) {
+    if (numKeys == 0) {
       return 0;
     }
-    Container[][] containers = new Container[numContainers][bitmaps.length];
-    for (int i = 0; i < bitmaps.length; ++i) {
-      RoaringBitmap bitmap = bitmaps[i];
-      int position = 0;
-      for (int j = 0; j < bitmap.highLowContainer.size; ++j) {
-        char key = bitmap.highLowContainer.keys[j];
-        if ((words[key >>> 6] & (1L << key)) != 0) {
-          containers[position++][i] = bitmap.highLowContainer.values[j];
-        }
+    char[] keys = new char[numKeys];
+    int base = 0;
+    int pos = 0;
+    for (long word : words) {
+      while (word != 0L) {
+        keys[pos++] = (char)(base + Long.numberOfTrailingZeros(word));
+        word &= (word - 1);
       }
+      base += 64;
     }
-
     int cardinality = 0;
-    for (int i = 0; i < numContainers; ++i) {
-      Container[] slice = containers[i];
+    for (int i = 0; i < numKeys; i++) {
       Arrays.fill(words, -1L);
       Container tmp = new BitmapContainer(words, -1);
-      for (Container container : slice) {
+      for (RoaringBitmap bitmap : bitmaps) {
+        int index = bitmap.highLowContainer.getIndex(keys[i]);
+        if (index < 0) {
+          continue;
+        }
+        Container container = bitmap.highLowContainer.getContainerAtIndex(index);
         Container and = tmp.iand(container);
         if (and != tmp) {
           tmp = and;
         }
       }
-      tmp = tmp.repairAfterLazy();
-      cardinality += tmp.getCardinality();
+      cardinality += tmp.repairAfterLazy().getCardinality();
     }
     return cardinality;
   }
