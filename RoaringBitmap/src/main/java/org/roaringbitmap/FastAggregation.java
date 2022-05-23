@@ -63,6 +63,44 @@ public final class FastAggregation {
   }
 
   /**
+   * Compute cardinality of the AND aggregate.
+   *
+   * @param bitmaps input bitmaps
+   * @return aggregated cardinality
+   */
+  public static int andCardinality(RoaringBitmap... bitmaps) {
+    switch (bitmaps.length) {
+      case 0:
+        return 0;
+      case 1:
+        return bitmaps[0].getCardinality();
+      case 2:
+        return RoaringBitmap.andCardinality(bitmaps[0], bitmaps[1]);
+      default:
+        return workShyAndCardinality(bitmaps);
+    }
+  }
+
+  /**
+   * Compute cardinality of the OR aggregate.
+   *
+   * @param bitmaps input bitmaps
+   * @return aggregated cardinality
+   */
+  public static int orCardinality(RoaringBitmap... bitmaps) {
+    switch (bitmaps.length) {
+      case 0:
+        return 0;
+      case 1:
+        return bitmaps[0].getCardinality();
+      case 2:
+        return RoaringBitmap.orCardinality(bitmaps[0], bitmaps[1]);
+      default:
+        return horizontalOrCardinality(bitmaps);
+    }
+  }
+
+  /**
    * Calls naive_or.
    *
    * @param bitmaps input bitmaps
@@ -353,6 +391,94 @@ public final class FastAggregation {
       }
     }
     return new RoaringBitmap(array);
+  }
+
+  private static int workShyAndCardinality(RoaringBitmap... bitmaps) {
+    long[] words = new long[1024];
+    RoaringBitmap first = bitmaps[0];
+    for (int i = 0; i < first.highLowContainer.size; ++i) {
+      char key = first.highLowContainer.keys[i];
+      words[key >>> 6] |= 1L << key;
+    }
+    int numContainers = first.highLowContainer.size;
+    for (int i = 1; i < bitmaps.length && numContainers > 0; ++i) {
+      numContainers = Util.intersectArrayIntoBitmap(words,
+          bitmaps[i].highLowContainer.keys, bitmaps[i].highLowContainer.size);
+    }
+    if (numContainers == 0) {
+      return 0;
+    }
+    Container[][] containers = new Container[numContainers][bitmaps.length];
+    for (int i = 0; i < bitmaps.length; ++i) {
+      RoaringBitmap bitmap = bitmaps[i];
+      int position = 0;
+      for (int j = 0; j < bitmap.highLowContainer.size; ++j) {
+        char key = bitmap.highLowContainer.keys[j];
+        if ((words[key >>> 6] & (1L << key)) != 0) {
+          containers[position++][i] = bitmap.highLowContainer.values[j];
+        }
+      }
+    }
+
+    int cardinality = 0;
+    for (int i = 0; i < numContainers; ++i) {
+      Container[] slice = containers[i];
+      Arrays.fill(words, -1L);
+      Container tmp = new BitmapContainer(words, -1);
+      for (Container container : slice) {
+        Container and = tmp.iand(container);
+        if (and != tmp) {
+          tmp = and;
+        }
+      }
+      tmp = tmp.repairAfterLazy();
+      cardinality += tmp.getCardinality();
+    }
+    return cardinality;
+  }
+
+  private static int horizontalOrCardinality(RoaringBitmap... bitmaps) {
+    long[] words = new long[1024];
+    int minKey = Character.MAX_VALUE;
+    int maxKey = Character.MIN_VALUE;
+    for (RoaringBitmap bitmap : bitmaps) {
+      for (int i = 0; i < bitmap.highLowContainer.size(); i++) {
+        char key = bitmap.highLowContainer.getKeyAtIndex(i);
+        words[key >>> 6] |= 1L << key;
+        minKey = Math.min(minKey, key);
+        maxKey = Math.max(maxKey, key);
+      }
+    }
+    int numKeys = Util.cardinalityInBitmapRange(words, minKey, maxKey + 1);
+    char[] keys = new char[numKeys];
+    int base = 0;
+    int pos = 0;
+    for (long word : words) {
+      while (word != 0L) {
+        keys[pos++] = (char)(base + Long.numberOfTrailingZeros(word));
+        word &= (word - 1);
+      }
+      base += 64;
+    }
+
+    int cardinality = 0;
+    for (char key : keys) {
+      Arrays.fill(words, 0);
+      Container tmp = new BitmapContainer(words, -1);
+      for (RoaringBitmap bitmap : bitmaps) {
+        int index = bitmap.highLowContainer.getIndex(key);
+        if (index < 0) {
+          continue;
+        }
+        Container container = bitmap.highLowContainer.getContainerAtIndex(index);
+        Container or = tmp.lazyIOR(container);
+        if (or != tmp) {
+          tmp = or;
+        }
+      }
+      cardinality += tmp.repairAfterLazy().getCardinality();
+    }
+    return cardinality;
   }
 
 

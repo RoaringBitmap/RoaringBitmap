@@ -7,8 +7,6 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.roaringbitmap.FastAggregation;
-import org.roaringbitmap.RoaringBitmap;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -275,5 +273,29 @@ public class TestFastAggregation {
     assertEquals(expected, result);
     result = BufferFastAggregation.workAndMemoryShyAnd(buffer, bitmaps);
     assertEquals(expected, result);
+  }
+
+  @MethodSource("bitmaps")
+  @ParameterizedTest(name = "testAndCardinality")
+  public void testAndCardinality(List<ImmutableRoaringBitmap> list) {
+    ImmutableRoaringBitmap[] bitmaps = list.toArray(new ImmutableRoaringBitmap[0]);
+    for (int length = 0; length <= bitmaps.length; length++) {
+      ImmutableRoaringBitmap[] subset = Arrays.copyOf(bitmaps, length);
+      ImmutableRoaringBitmap and = BufferFastAggregation.and(subset);
+      int andCardinality = BufferFastAggregation.andCardinality(subset);
+      assertEquals(and.getCardinality(), andCardinality);
+    }
+  }
+
+  @MethodSource("bitmaps")
+  @ParameterizedTest(name = "testOrCardinality")
+  public void testOrCardinality(List<ImmutableRoaringBitmap> list) {
+    ImmutableRoaringBitmap[] bitmaps = list.toArray(new ImmutableRoaringBitmap[0]);
+    for (int length = 0; length <= bitmaps.length; length++) {
+      ImmutableRoaringBitmap[] subset = Arrays.copyOf(bitmaps, length);
+      ImmutableRoaringBitmap or = BufferFastAggregation.or(subset);
+      int andCardinality = BufferFastAggregation.orCardinality(subset);
+      assertEquals(or.getCardinality(), andCardinality);
+    }
   }
 }
