@@ -5309,6 +5309,13 @@ public class TestRoaringBitmap {
     }
 
     @Test
+    public void testPreviousValueRegression() {
+        // see https://github.com/RoaringBitmap/RoaringBitmap/issues/564
+        assertEquals(-1, RoaringBitmap.bitmapOf(27399807).previousValue(403042));
+        assertEquals(-1, RoaringBitmap.bitmapOf().previousValue(403042));
+    }
+
+    @Test
     public void testRangeCardinalityAtBoundary() {
         // See https://github.com/RoaringBitmap/RoaringBitmap/issues/285
         RoaringBitmap r = new RoaringBitmap();
