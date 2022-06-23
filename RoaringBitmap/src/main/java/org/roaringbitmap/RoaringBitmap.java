@@ -2708,10 +2708,16 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
   @Override
   public long previousValue(int fromValue) {
+    if (isEmpty()) {
+      return -1L;
+    }
     char key = Util.highbits(fromValue);
     int containerIndex = highLowContainer.advanceUntil(key, -1);
     if (containerIndex == highLowContainer.size()) {
       return last();
+    }
+    if (highLowContainer.getKeyAtIndex(containerIndex) > key) {
+      return -1L;
     }
     long prevSetBit = -1L;
     while (containerIndex != -1 && prevSetBit == -1L) {

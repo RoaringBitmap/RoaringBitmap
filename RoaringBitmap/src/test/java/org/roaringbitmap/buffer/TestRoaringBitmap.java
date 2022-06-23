@@ -3915,4 +3915,11 @@ public class TestRoaringBitmap {
     assertTrue(bitmap.cardinalityExceeds(runLength + bitmapCount - 1));
     assertTrue(bitmap.cardinalityExceeds(runLength - 1));
   }
+
+  @Test
+  public void testPreviousValueRegression() {
+    // see https://github.com/RoaringBitmap/RoaringBitmap/issues/564
+    assertEquals(-1, ImmutableRoaringBitmap.bitmapOf(27399807).previousValue(403042));
+    assertEquals(-1, ImmutableRoaringBitmap.bitmapOf().previousValue(403042));
+  }
 }
