@@ -5405,4 +5405,26 @@ public class TestRoaringBitmap {
         assertTrue(bitmap.cardinalityExceeds(runLength + bitmapCount - 1));
         assertTrue(bitmap.cardinalityExceeds(runLength - 1));
     }
+
+    @Test
+    public void testIssue566() {
+        RoaringBitmap roaringBitMap = new RoaringBitmap();
+        BitSet bitSet = new BitSet(5000);
+        double prob = 0.001;
+        Random random = new Random();
+        for (int i = 0; i < 5000; i++) {
+            if (random.nextDouble() < prob) {
+                bitSet.set(i);
+                roaringBitMap.add(i);
+            }
+        }
+        long roaringbits = roaringBitMap.getSizeInBytes() * 8;
+        long bitsetbits = bitSet.size();
+        System.out.println("[issue566] cardinality: "+ roaringBitMap.getCardinality());
+        System.out.println("[issue566] bitset bits: "+ bitsetbits);
+        System.out.println("[issue566] bitset bits per entry: " + bitsetbits * 1.0 / bitSet.cardinality());
+        System.out.println("[issue566] RoaringBitmap bits: " + roaringbits);
+        System.out.println("[issue566] RoaringBitmap bits per entry: " + roaringbits * 1.0 / roaringBitMap.getCardinality());
+        assertTrue(roaringbits < bitsetbits);
+    }
 }
