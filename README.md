@@ -122,7 +122,7 @@ There are many formats in this family:
 * Oracle's BBC (Byte-aligned Bitmap Code) is an obsolete format at this point: though it may provide good compression,
 it is likely much slower than more recent alternatives due to excessive branching.
 * WAH (Word Aligned Hybrid) is a patented variation on BBC that provides better performance.
-* Concise is a variation on the patented WAH. It some specific instances, it can compress
+* Concise is a variation on the patented WAH. In some specific instances, it can compress
 much better than WAH (up to 2x better), but it is generally slower.
 * EWAH (Enhanced Word Aligned Hybrid) is both free of patent, and it is faster than all the above. On the downside, it
 does not compress quite as well. It is faster because it allows some form of "skipping"
