@@ -37,6 +37,9 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   // negative long
   private boolean signedLongs = false;
 
+  // If true, the bytes of the map is compatible with C
+  private boolean isCCompatible = false;
+
   private BitmapDataProviderSupplier supplier;
 
   // By default, we cache cardinalities
@@ -1177,7 +1180,12 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     out.writeInt(highToBitmap.size());
 
     for (Entry<Integer, BitmapDataProvider> entry : highToBitmap.entrySet()) {
-      out.writeInt(entry.getKey().intValue());
+      //the sort of the bytes is the difference between java and c
+      Integer key = entry.getKey();
+      if (isCCompatible) {
+        key = Integer.reverseBytes(key);
+      }
+      out.writeInt(key);
       entry.getValue().serialize(out);
     }
   }
@@ -1209,7 +1217,11 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     }
 
     for (int i = 0; i < nbHighs; i++) {
+      //the sort of the bytes is the difference between java and c
       int high = in.readInt();
+      if (isCCompatible) {
+        high = Integer.reverseBytes(high);
+      }
       BitmapDataProvider provider = newRoaringBitmap();
       if (provider instanceof RoaringBitmap) {
         ((RoaringBitmap) provider).deserialize(in);
@@ -1442,5 +1454,13 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     }
 
     invalidateAboveHigh(high);
+  }
+
+  /**
+   * setter
+   * @param isCCompatible true if the bytes of the map need to be compatible with c
+   */
+  public void setCCompatible(boolean isCCompatible) {
+    this.isCCompatible = isCCompatible;
   }
 }
