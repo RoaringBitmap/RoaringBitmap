@@ -13,7 +13,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.roaringbitmap.RoaringBitmapWriter.writer;
 import static org.roaringbitmap.SeededTestData.TestDataSet.testCase;
 
@@ -168,6 +167,7 @@ public class RoaringBitmapBatchIteratorTest {
         assertEquals(batch[0], 8511);
         assertFalse(bi.hasNext());
     }
+
     @Test
     public void testTimelyTerminationAfterAdvanceIfNeeded() {
         RoaringBitmap bm = RoaringBitmap.bitmapOf(8511);
@@ -177,4 +177,17 @@ public class RoaringBitmapBatchIteratorTest {
         assertFalse(bi.hasNext());
     }
 
+    @Test
+    public void testBatchIteratorWithAdvanceIfNeeded() {
+        RoaringBitmap bitmap = RoaringBitmap.bitmapOf(3 << 16, (3 << 16) + 5, (3 << 16) + 10);
+        BatchIterator it = bitmap.getBatchIterator();
+        it.advanceIfNeeded(6);
+        assertTrue(it.hasNext());
+        int[] batch = new int[10];
+        int n = it.nextBatch(batch);
+        assertEquals(n, 3);
+        assertEquals(batch[0], 3 << 16);
+        assertEquals(batch[1], (3 << 16) + 5);
+        assertEquals(batch[2], (3 << 16) + 10);
+    }
 }

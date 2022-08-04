@@ -178,4 +178,18 @@ public class ImmutableRoaringBitmapBatchIteratorTest {
         bi.advanceIfNeeded(8512);
         assertFalse(bi.hasNext());
     }
+
+    @Test
+    public void testBatchIteratorWithAdvanceIfNeeded() {
+        MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(3 << 16, (3 << 16) + 5, (3 << 16) + 10);
+        BatchIterator it = bitmap.getBatchIterator();
+        it.advanceIfNeeded(6);
+        assertTrue(it.hasNext());
+        int[] batch = new int[10];
+        int n = it.nextBatch(batch);
+        assertEquals(n, 3);
+        assertEquals(batch[0], 3 << 16);
+        assertEquals(batch[1], (3 << 16) + 5);
+        assertEquals(batch[2], (3 << 16) + 10);
+    }
 }
