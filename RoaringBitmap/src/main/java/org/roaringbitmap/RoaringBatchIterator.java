@@ -17,20 +17,12 @@ public final class RoaringBatchIterator implements BatchIterator {
 
   @Override
   public int nextBatch(int[] buffer) {
-    if (!hasNext()){
-      return 0;
-    }
     int consumed = 0;
-    if (iterator.hasNext()) {
-      consumed += iterator.next(key, buffer);
-      if (consumed > 0) {
-        return consumed;
+    while (iterator != null && consumed == 0) {
+      consumed = iterator.next(key, buffer);
+      if (consumed == 0 || !iterator.hasNext()) {
+        nextContainer();
       }
-    }
-    ++index;
-    nextIterator();
-    if (null != iterator) {
-      return nextBatch(buffer);
     }
     return consumed;
   }
@@ -57,15 +49,22 @@ public final class RoaringBatchIterator implements BatchIterator {
   @Override
   public void advanceIfNeeded(int target) {
     while (key >>> 16 < target >>> 16) {
-      ++index;
-      nextIterator();
+      nextContainer();
       if (null == iterator) {
         return;
       }
     }
     if (null != iterator) {
       iterator.advanceIfNeeded((char) target);
+      if (!iterator.hasNext()) {
+        nextContainer();
+      }
     }
+  }
+
+  private void nextContainer() {
+    ++index;
+    nextIterator();
   }
 
   private void nextIterator() {
