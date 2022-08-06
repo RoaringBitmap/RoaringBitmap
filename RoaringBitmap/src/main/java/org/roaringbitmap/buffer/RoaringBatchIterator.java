@@ -57,6 +57,9 @@ public final class RoaringBatchIterator implements BatchIterator {
       if (null != containerPointer) {
         it.containerPointer = containerPointer.clone();
       }
+      it.arrayBatchIterator = null;
+      it.bitmapBatchIterator = null;
+      it.runBatchIterator = null;
       return it;
     } catch (CloneNotSupportedException e) {
       // won't happen
