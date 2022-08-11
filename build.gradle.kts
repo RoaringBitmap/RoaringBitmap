@@ -142,7 +142,7 @@ subprojects.filter { listOf("RoaringBitmap", "shims", "bsi").contains(it.name) }
             repositories {
                 maven {
                     name = "localDebug"
-                    url = URI.create("file:///${project.buildDir}/repos/localDebug")
+                    url = project.buildDir.toPath().resolve("repos").resolve("localDebug").toUri()
                 }
             }
         }
