@@ -2,6 +2,7 @@ package org.roaringbitmap;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -11,8 +12,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.roaringbitmap.RoaringBitmapWriter.writer;
 import static org.roaringbitmap.SeededTestData.TestDataSet.testCase;
 
@@ -41,6 +41,7 @@ public class RoaringBitmapBatchIteratorTest {
             RoaringBitmap.bitmapOf(IntStream.range(0,127).toArray()),
             RoaringBitmap.bitmapOf(IntStream.range(0,1024).toArray()),
             RoaringBitmap.bitmapOf(IntStream.concat(IntStream.range(0,256), IntStream.range(1 << 16, (1 << 16) | 256)).toArray()),
+            RoaringBitmap.bitmapOf(8511),
             new RoaringBitmap()
         };
     }
@@ -155,4 +156,38 @@ public class RoaringBitmapBatchIteratorTest {
         assertTrue(result.isEmpty());
     }
 
+    @Test
+    public void testTimelyTermination() {
+        RoaringBitmap bm = RoaringBitmap.bitmapOf(8511);
+        BatchIterator bi = bm.getBatchIterator();
+        int[] batch = new int[10];
+        assertTrue(bi.hasNext());
+        int n = bi.nextBatch(batch);
+        assertEquals(n, 1);
+        assertEquals(batch[0], 8511);
+        assertFalse(bi.hasNext());
+    }
+
+    @Test
+    public void testTimelyTerminationAfterAdvanceIfNeeded() {
+        RoaringBitmap bm = RoaringBitmap.bitmapOf(8511);
+        BatchIterator bi = bm.getBatchIterator();
+        assertTrue(bi.hasNext());
+        bi.advanceIfNeeded(8512);
+        assertFalse(bi.hasNext());
+    }
+
+    @Test
+    public void testBatchIteratorWithAdvanceIfNeeded() {
+        RoaringBitmap bitmap = RoaringBitmap.bitmapOf(3 << 16, (3 << 16) + 5, (3 << 16) + 10);
+        BatchIterator it = bitmap.getBatchIterator();
+        it.advanceIfNeeded(6);
+        assertTrue(it.hasNext());
+        int[] batch = new int[10];
+        int n = it.nextBatch(batch);
+        assertEquals(n, 3);
+        assertEquals(batch[0], 3 << 16);
+        assertEquals(batch[1], (3 << 16) + 5);
+        assertEquals(batch[2], (3 << 16) + 10);
+    }
 }
