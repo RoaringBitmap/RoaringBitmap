@@ -32,7 +32,7 @@ public class ForwardShuttle extends AbstractShuttle {
 
   @Override
   protected boolean prefixMismatchIsInRunDirection(byte nodeValue, byte highValue) {
-    return nodeValue < highValue;
+    return Byte.toUnsignedInt(nodeValue) < Byte.toUnsignedInt(highValue);
   }
 
   @Override
