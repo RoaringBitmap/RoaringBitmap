@@ -1,13 +1,12 @@
 package org.roaringbitmap.realdata.wrapper;
 
-
-import it.uniroma3.mat.extendedset.intset.IntSet.IntIterator;
+import io.druid.extendedset.intset.IntSet;
 
 final class ConciseSetIteratorWrapper implements BitmapIterator {
 
-  private final IntIterator iterator;
+  private final IntSet.IntIterator iterator;
 
-  ConciseSetIteratorWrapper(IntIterator iterator) {
+  ConciseSetIteratorWrapper(IntSet.IntIterator iterator) {
     this.iterator = iterator;
   }
 
