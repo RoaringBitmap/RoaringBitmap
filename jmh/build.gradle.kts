@@ -8,9 +8,7 @@ plugins {
 val deps: Map<String, String> by extra
 
 repositories {
-    maven {
-        url = URI("https://metamx.jfrog.io/artifactory/pub-libs-releases-local")
-    }
+    mavenCentral()
 }
 
 dependencies {
@@ -36,7 +34,7 @@ dependencies {
             project(":bsi"),
             "com.google.guava:guava:${deps["guava"]}",
             "com.googlecode.javaewah:JavaEWAH:1.0.8",
-            "it.uniroma3.mat:extendedset:1.3.4",
+            "io.druid:extendedset:0.12.3",
             "com.zaxxer:SparseBitSet:1.0",
             "me.lemire.integercompression:JavaFastPFOR:0.1.11"
     ).forEach {

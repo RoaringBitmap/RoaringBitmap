@@ -7,9 +7,8 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.PriorityQueue;
 
+import io.druid.extendedset.intset.ConciseSet;
 import org.roaringbitmap.IntConsumer;
-
-import it.uniroma3.mat.extendedset.intset.ConciseSet;
 
 final class ConciseSetWrapper implements Bitmap {
 

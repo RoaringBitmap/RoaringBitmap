@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+import io.druid.extendedset.intset.ConciseSet;
+import io.druid.extendedset.intset.ImmutableConciseSet;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -16,9 +18,6 @@ import org.roaringbitmap.RoaringBitmap;
 
 import com.googlecode.javaewah.EWAHCompressedBitmap;
 import com.googlecode.javaewah32.EWAHCompressedBitmap32;
-
-import it.uniroma3.mat.extendedset.intset.ConciseSet;
-import it.uniroma3.mat.extendedset.intset.ImmutableConciseSet;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
