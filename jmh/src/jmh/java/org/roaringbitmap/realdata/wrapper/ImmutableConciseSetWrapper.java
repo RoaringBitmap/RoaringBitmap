@@ -1,18 +1,17 @@
 package org.roaringbitmap.realdata.wrapper;
 
-
-import static it.uniroma3.mat.extendedset.intset.ImmutableConciseSet.intersection;
-import static it.uniroma3.mat.extendedset.intset.ImmutableConciseSet.union;
-
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.PriorityQueue;
 
+import io.druid.extendedset.intset.ImmutableConciseSet;
 import org.roaringbitmap.IntConsumer;
 
-import it.uniroma3.mat.extendedset.intset.ImmutableConciseSet;
+import static io.druid.extendedset.intset.ImmutableConciseSet.intersection;
+import static io.druid.extendedset.intset.ImmutableConciseSet.union;
+
 
 final class ImmutableConciseSetWrapper implements Bitmap {
 
@@ -149,7 +148,7 @@ final class ImmutableConciseSetWrapper implements Bitmap {
           while (pq.size() > 1) {
             ImmutableConciseSet x1 = pq.poll();
             ImmutableConciseSet x2 = pq.poll();
-            pq.add(ImmutableConciseSet.union(x1, x2));
+            pq.add(union(x1, x2));
           }
           bitmap = pq.poll();
         }
