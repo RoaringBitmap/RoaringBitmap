@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.function.Executable;
 import static org.roaringbitmap.Util.toUnsignedLong;
 
@@ -2125,5 +2126,48 @@ public class TestRoaring64Bitmap {
       rb.addLong(random.nextLong());
       rb.removeLong(random.nextLong());
     }
+  }
+
+  @Test
+  public void testIssue577Case1() {
+    Roaring64Bitmap bitmap = new Roaring64Bitmap();
+    bitmap.add(
+        45011744312L, 45008074636L, 41842920068L, 41829418930L, 40860008694L, 40232297287L,
+        40182908832L, 40171852270L, 39933922233L, 39794107638L);
+    long maxLong = bitmap.getReverseLongIterator().peekNext();
+    assertEquals(maxLong, 45011744312L);
+
+    bitmap.forEachInRange(46000000000L, 1000000000,
+        value -> fail("No values in this range, but got: " + value));
+  }
+
+  @Test
+  public void testIssue577Case2() {
+    Roaring64Bitmap bitmap = new Roaring64Bitmap();
+    bitmap.add(
+        30385375409L, 30399869293L, 34362979339L, 35541844320L, 36637965094L);
+
+    bitmap.forEachInRange(33000000000L, 1000000000,
+        value -> assertEquals(34362979339L, value));
+  }
+
+  @Test
+  public void testIssue577Case3() {
+    Roaring64Bitmap bitmap = new Roaring64Bitmap();
+    bitmap.add(
+        14510802367L, 26338197481L, 32716744974L, 32725817880L, 35679129730L);
+
+    final long[] expected = new long[]{32716744974L, 32725817880L};
+
+    bitmap.forEachInRange(32000000000L, 1000000000, new LongConsumer() {
+
+      int offset = 0;
+
+      @Override
+      public void accept(long value) {
+        assertEquals(expected[offset], value);
+        offset++;
+      }
+    });
   }
 }
