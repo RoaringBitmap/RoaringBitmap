@@ -2170,4 +2170,21 @@ public class TestRoaring64Bitmap {
       }
     });
   }
+
+
+
+  @Test
+  public void testIssue580() {
+    Roaring64Bitmap rb = Roaring64Bitmap.bitmapOf(3242766498713841665L, 3492544636360507394L,
+      3418218112527884289L, 3220956490660966402L, 3495344165583036418L, 3495023214002368514L,
+      3485108231289675778L);
+    LongIterator it = rb.getLongIterator();
+    int count = 0;
+    while(it.hasNext()) {
+        it.next();
+        count++;
+    }
+    assertEquals(count, 7);
+
+  }
 }
