@@ -17,14 +17,12 @@ If it is a bug you encountered while working with the library, you should produc
 
 Please report bugs after testing the latest version of the library. If you are using an older version of the library, please explain.
 
-[For up-to-date releases, we recommend configuring maven and gradle to depend on the Jitpack repository](https://jitpack.io/#RoaringBitmap/RoaringBitmap). 
-
+Make sure to compare your version against the latest available version at https://mvnrepository.com/artifact/org.roaringbitmap/RoaringBitmap
 
 
 **Java version:**
 
-Please tell us which Java version you are using.
-
+Please tell us which Java version you are using. 
 
 
 
