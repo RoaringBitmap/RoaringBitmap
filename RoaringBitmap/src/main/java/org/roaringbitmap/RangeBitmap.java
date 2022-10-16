@@ -729,11 +729,15 @@ public final class RangeBitmap {
       // most significant absent bit in the threshold for which there is no container;
       // everything before this is wasted work, so we just skip over the containers
       int skipLow = 64 - Long.numberOfLeadingZeros(((~lower & ~containerMask) & mask));
-      if (skipLow > 0) {
+      if (skipLow == 64) {
+        lower = 0L;
+      } else if (skipLow > 0) {
         lower &= -(1L << skipLow);
       }
       int skipHigh = 64 - Long.numberOfLeadingZeros(((~upper & ~containerMask) & mask));
-      if (skipHigh > 0) {
+      if (skipHigh == 64) {
+        upper = 0L;
+      } else if (skipHigh > 0) {
         upper &= -(1L << skipHigh);
       }
       setupFirstSlice(upper, high, (int) remaining, skipHigh == 0);
