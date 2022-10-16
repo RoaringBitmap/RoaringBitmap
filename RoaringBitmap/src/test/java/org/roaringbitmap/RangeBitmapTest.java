@@ -736,6 +736,25 @@ public class RangeBitmapTest {
     assertEquals(accumulator.build().betweenCardinality(value, value), count);
   }
 
+  @Test
+  public void regressionTestIssue586() {
+    // see https://github.com/RoaringBitmap/RoaringBitmap/issues/586
+    assertAll(
+            () -> regresssionTestIssue586(0x0FFFFFFFFFFFFFFL, 0xFFFFFFFFFFFFFF0L, 0xFFFFFFFFFFFFFF0L),
+            () -> regresssionTestIssue586(0x0FFFFFFFFFFFFFFFL, 0xFFFFFFFFFFFFFFF0L, 0xFFFFFFFFFFFFFFF0L),
+            () -> regresssionTestIssue586(0x0FFFFFFFFFFFFFFFL, 0xFFFFFFFFFFFFFFF1L, 0xFFFFFFFFFFFFFFF0L),
+            () -> regresssionTestIssue586(0, 10_000_000_000L, 10_000_000L)
+    );
+  }
+
+  private static void regresssionTestIssue586(long low, long high, long value) {
+    RangeBitmap.Appender appender = RangeBitmap.appender(0xFFFFFFFFFFFFFFFFL);
+    appender.add(value);
+    RangeBitmap rangeBitmap = appender.build();
+    assertEquals(rangeBitmap.gte(low, rangeBitmap.lte(high)), rangeBitmap.between(low, high));
+    assertEquals(1, rangeBitmap.between(low, high).getCardinality());
+  }
+
   public static class ReferenceImplementation {
 
     public static Builder builder() {
