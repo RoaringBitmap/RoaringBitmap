@@ -741,9 +741,12 @@ public final class RangeBitmap {
       if ((containerMask & 1) == 1) {
         skipContainer();
       }
-      for (int slice = 1; slice < Long.bitCount(mask); ++slice) {
-        if ((containerMask >>> slice & 1) == 1) {
-          int flags = (int) (((upper >>> slice) & 1) | (((lower >>> slice) & 1) << 1));
+      containerMask >>>= 1;
+      upper >>>= 1;
+      lower >>>= 1;
+      for (; containerMask != 0; containerMask >>>= 1, upper >>>= 1, lower >>>= 1) {
+        if ((containerMask & 1) == 1) {
+          int flags = (int) ((upper & 1) | ((lower & 1) << 1));
           switch (flags) {
             case 0: // both absent
               andLowAndHigh();
