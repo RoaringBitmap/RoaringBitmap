@@ -1249,7 +1249,7 @@ public class ImmutableRoaringBitmap
     while (pos < length && minKey > (highLowContainer.getKeyAtIndex(pos))) {
       ++pos;
     }
-    int offset = lowbitsAsInteger(minimum);
+    int offset = (minKey == highLowContainer.getKeyAtIndex(pos)) ? lowbitsAsInteger(minimum) : 0;
     int limit = lowbitsAsInteger(supremum);
     if (pos < length && supKey == (highLowContainer.getKeyAtIndex(pos))) {
       if (supKey > minKey) {

@@ -841,11 +841,15 @@ public class TestRange {
     assertEquals(rb1, rb2);
   }
 
-
-
-
-
-
-
+  @Test
+  public void regressionTestIssue588() {
+    // see https://github.com/RoaringBitmap/RoaringBitmap/issues/588
+     int valueInBitmap = 27470832;
+     int baseValue = 27597418;
+     int minValueThatWorks = 27459584;
+     ImmutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(valueInBitmap);
+     assertTrue(bitmap.intersects(minValueThatWorks, baseValue));
+     assertTrue(bitmap.intersects(minValueThatWorks-1, baseValue));
+  }
 
 }
