@@ -1182,10 +1182,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     int supKey = (int)(supremum >>> 16);
     int length = highLowContainer.size;
     char[] keys = highLowContainer.keys;
-    int offset = lowbitsAsInteger(minimum);
     int limit = lowbitsAsInteger(supremum);
     int index = Util.unsignedBinarySearch(keys, 0, length, (char)minKey);
     int pos = index >= 0 ? index : -index - 1;
+    int offset = index >= 0 ? lowbitsAsInteger(minimum) : 0;
     if (pos < length && supKey == (keys[pos])) {
       if (supKey > minKey) {
         offset = 0;
