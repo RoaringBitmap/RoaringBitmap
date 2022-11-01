@@ -133,25 +133,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
    */
   public Iterator<Long> iterator() {
-    final LongIterator it = getLongIterator();
-
-    return new Iterator<Long>() {
-
-      @Override
-      public boolean hasNext() {
-        return it.hasNext();
-      }
-
-      @Override
-      public Long next() {
-        return it.nextLong();
-      }
-
-      @Override
-      public void remove() {
-        throw new UnsupportedOperationException();
-      }
-    };
+    return getLongIterator();
   }
 
   @Override

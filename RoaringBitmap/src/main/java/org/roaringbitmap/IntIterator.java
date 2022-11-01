@@ -19,15 +19,4 @@ public interface IntIterator extends Cloneable, OfInt {
    * @return a clone of the current iterator
    */
   IntIterator clone();
-
-  /**
-   * @return whether there is another value
-   */
-  boolean hasNext();
-
-  /**
-   * @return next integer value
-   */
-  int nextInt();
-
 }
