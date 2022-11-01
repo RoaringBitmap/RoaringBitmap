@@ -144,7 +144,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
 
       @Override
       public Long next() {
-        return it.next();
+        return it.nextLong();
       }
 
       @Override
@@ -462,7 +462,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     final LongIterator i = this.getLongIterator();
     answer.append("{");
     if (i.hasNext()) {
-      answer.append(i.next());
+      answer.append(i.nextLong());
     }
     while (i.hasNext()) {
       answer.append(",");
@@ -471,7 +471,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
         answer.append("...");
         break;
       }
-      answer.append(i.next());
+      answer.append(i.nextLong());
     }
     answer.append("}");
     return answer.toString();
@@ -650,7 +650,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     LongIterator it = getLongIterator();
 
     while (it.hasNext()) {
-      array[pos++] = it.next();
+      array[pos++] = it.nextLong();
     }
     return array;
   }
@@ -868,7 +868,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     }
 
     @Override
-    public long next() {
+    public long nextLong() {
       if (hasNext()) {
         char low = charIterator.next();
         return LongUtils.toLong(high, low);

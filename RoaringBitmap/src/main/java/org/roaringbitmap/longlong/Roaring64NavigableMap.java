@@ -414,26 +414,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
    */
   public Iterator<Long> iterator() {
-    final LongIterator it = getLongIterator();
-
-    return new Iterator<Long>() {
-
-      @Override
-      public boolean hasNext() {
-        return it.hasNext();
-      }
-
-      @Override
-      public Long next() {
-        return it.next();
-      }
-
-      @Override
-      public void remove() {
-        // TODO?
-        throw new UnsupportedOperationException();
-      }
-    };
+    return getLongIterator();
   }
 
   @Override
@@ -970,9 +951,9 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     answer.append("{");
     if (i.hasNext()) {
       if (signedLongs) {
-        answer.append(i.next());
+        answer.append(i.nextLong());
       } else {
-        answer.append(RoaringIntPacking.toUnsignedString(i.next()));
+        answer.append(RoaringIntPacking.toUnsignedString(i.nextLong()));
       }
     }
     while (i.hasNext()) {
@@ -983,9 +964,9 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         break;
       }
       if (signedLongs) {
-        answer.append(i.next());
+        answer.append(i.nextLong());
       } else {
-        answer.append(RoaringIntPacking.toUnsignedString(i.next()));
+        answer.append(RoaringIntPacking.toUnsignedString(i.nextLong()));
       }
 
     }
@@ -1058,9 +1039,9 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
       }
 
       @Override
-      public long next() {
+      public long nextLong() {
         if (hasNext()) {
-          return RoaringIntPacking.pack(currentKey, currentIt.next());
+          return RoaringIntPacking.pack(currentKey, currentIt.nextInt());
         } else {
           throw new IllegalStateException("empty");
         }
@@ -1274,7 +1255,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     LongIterator it = getLongIterator();
 
     while (it.hasNext()) {
-      array[pos++] = it.next();
+      array[pos++] = it.nextLong();
     }
     return array;
   }

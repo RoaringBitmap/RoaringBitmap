@@ -321,7 +321,7 @@ public class BitSliceIndexBase {
       IntIterator i = F.getIntIterator();
       MutableRoaringBitmap turnoff = new MutableRoaringBitmap();
       while (i.hasNext() && n > 0) {
-        turnoff.add(i.next());
+        turnoff.add(i.nextInt());
         --n;
       }
       F.andNot(turnoff);

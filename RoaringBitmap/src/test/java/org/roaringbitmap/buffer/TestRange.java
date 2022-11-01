@@ -16,8 +16,8 @@ public class TestRange {
     rb.add(0);
     rb.flip(1L, 2L);
     IntIterator i = rb.getIntIterator();
-    assertEquals(0, i.next());
-    assertEquals(1, i.next());
+    assertEquals(0, i.nextInt());
+    assertEquals(1, i.nextInt());
     assertFalse(i.hasNext());
   }
   

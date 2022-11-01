@@ -15,7 +15,7 @@ public class PagedIterator {
         while(i.hasNext()) {
           // we print a page
           for(int k = 0; (k < pageSize) && i.hasNext() ; k++) {
-            System.out.print(i.next()+" ");
+            System.out.print(i.nextInt()+" ");
           }
           System.out.println();
         }

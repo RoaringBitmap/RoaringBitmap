@@ -39,7 +39,7 @@ public class IteratorsBenchmark64 {
     LongIterator intIterator = benchmarkState.bitmap_a.getLongIterator();
     long result = 0;
     while (intIterator.hasNext()) {
-      result = intIterator.next();
+      result = intIterator.nextLong();
 
     }
     return result;
@@ -63,7 +63,7 @@ public class IteratorsBenchmark64 {
     LongIterator intIterator = benchmarkState.bitmap_b.getLongIterator();
     long result = 0;
     while (intIterator.hasNext()) {
-      result = intIterator.next();
+      result = intIterator.nextLong();
 
     }
     return result;
@@ -87,7 +87,7 @@ public class IteratorsBenchmark64 {
     LongIterator intIterator = benchmarkState.bitmap_c.getLongIterator();
     long result = 0;
     while (intIterator.hasNext()) {
-      result = intIterator.next();
+      result = intIterator.nextLong();
 
     }
     return result;
@@ -100,7 +100,7 @@ public class IteratorsBenchmark64 {
     LongIterator intIterator = benchmarkState.bitmap_a.getReverseLongIterator();
     long result = 0;
     while (intIterator.hasNext()) {
-      result = intIterator.next();
+      result = intIterator.nextLong();
 
     }
     return result;
@@ -113,7 +113,7 @@ public class IteratorsBenchmark64 {
     LongIterator intIterator = benchmarkState.bitmap_b.getReverseLongIterator();
     long result = 0;
     while (intIterator.hasNext()) {
-      result = intIterator.next();
+      result = intIterator.nextLong();
 
     }
     return result;
@@ -126,7 +126,7 @@ public class IteratorsBenchmark64 {
     LongIterator intIterator = benchmarkState.bitmap_c.getReverseLongIterator();
     long result = 0;
     while (intIterator.hasNext()) {
-      result = intIterator.next();
+      result = intIterator.nextLong();
 
     }
     return result;

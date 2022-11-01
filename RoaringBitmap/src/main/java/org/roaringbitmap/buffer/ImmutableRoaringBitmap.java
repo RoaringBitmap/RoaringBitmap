@@ -109,7 +109,7 @@ public class ImmutableRoaringBitmap
     }
 
     @Override
-    public int next() {
+    public int nextInt() {
       int x = iter.nextAsInt() | hs;
       if (!iter.hasNext()) {
         cp.advance();
@@ -187,7 +187,7 @@ public class ImmutableRoaringBitmap
     }
 
     @Override
-    public int next() {
+    public int nextInt() {
       int x = iter.nextAsInt() | hs;
       if (!iter.hasNext()) {
         cp.previous();
@@ -1907,7 +1907,7 @@ public class ImmutableRoaringBitmap
     final IntIterator i = this.getIntIterator();
     answer.append("{");
     if (i.hasNext()) {
-      answer.append(i.next() & 0xFFFFFFFFL);
+      answer.append(i.nextInt() & 0xFFFFFFFFL);
     }
     while (i.hasNext()) {
       answer.append(",");
@@ -1916,7 +1916,7 @@ public class ImmutableRoaringBitmap
         answer.append("...");
         break;
       }
-      answer.append(i.next() & 0xFFFFFFFFL);
+      answer.append(i.nextInt() & 0xFFFFFFFFL);
     }
     answer.append("}");
     return answer.toString();

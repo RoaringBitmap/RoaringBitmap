@@ -56,7 +56,7 @@ public class TestRankIterator {
       int rank = iterator.peekNextRank();
       assertEquals(iterations, Util.toUnsignedLong(rank));
 
-      iterator.next();
+      iterator.nextInt();
     }
   }
 

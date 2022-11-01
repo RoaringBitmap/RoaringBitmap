@@ -8,6 +8,6 @@ public class Bitmap64 {
       System.out.println(r.contains(1)); // true
       System.out.println(r.contains(3)); // false
       LongIterator i = r.getLongIterator();
-      while(i.hasNext()) System.out.println(i.next());
+      while(i.hasNext()) System.out.println(i.nextLong());
   }
 }

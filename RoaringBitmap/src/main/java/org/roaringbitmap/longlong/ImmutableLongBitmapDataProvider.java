@@ -183,7 +183,7 @@ public interface ImmutableLongBitmapDataProvider {
 
     @Override
     public long nextLong() {
-      return iterator.next();
+      return iterator.nextLong();
     }
 
     @Override

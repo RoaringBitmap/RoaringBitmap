@@ -67,7 +67,7 @@ public class ImmutableRoaringBitmapBatchIteratorTest {
         RoaringBitmapWriter<MutableRoaringBitmap> w = bufferWriter().constantMemory()
                 .initialCapacity(bitmap.highLowContainer.size()).get();
         while (it.hasNext()) {
-            w.add(it.next());
+            w.add(it.nextInt());
         }
         MutableRoaringBitmap copy = w.get();
         assertEquals(bitmap, copy);

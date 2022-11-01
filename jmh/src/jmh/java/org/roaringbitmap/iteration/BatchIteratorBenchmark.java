@@ -38,7 +38,7 @@ public class BatchIteratorBenchmark {
     int blackhole = 0;
     PeekableIntIterator it = bitmap.getIntIterator();
     while (it.hasNext()) {
-      blackhole ^= it.next();
+      blackhole ^= it.nextInt();
     }
     return blackhole;
   }
@@ -61,7 +61,7 @@ public class BatchIteratorBenchmark {
     int blackhole = 0;
     IntIterator it = bitmap.getBatchIterator().asIntIterator(buffer);
     while (it.hasNext()) {
-      blackhole ^= it.next();
+      blackhole ^= it.nextInt();
     }
     return blackhole;
   }

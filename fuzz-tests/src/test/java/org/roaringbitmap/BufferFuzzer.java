@@ -406,7 +406,7 @@ public class BufferFuzzer {
               IntIterator it = and.getBatchIterator().asIntIterator(new int[16]);
               int removed = 0;
               while (it.hasNext()) {
-                l.remove(it.next());
+                l.remove(it.nextInt());
                 ++removed;
               }
               return removed == intersection;
@@ -456,7 +456,7 @@ public class BufferFuzzer {
               IntIterator it = and.getBatchIterator().asIntIterator(new int[16]);
               l.remove(first, last + 1);
               while (it.hasNext()) {
-                long next = toUnsignedLong(it.next());
+                long next = toUnsignedLong(it.nextInt());
                 if (l.intersects(first, next) || (first != next && !r.intersects(first, next))) {
                   return false;
                 }

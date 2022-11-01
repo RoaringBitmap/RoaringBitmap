@@ -32,7 +32,7 @@ public class TestRunContainer {
     IntIterator x = m2.getReverseIntIterator();
     int count = 0;
     while(x.hasNext()) {
-      x.next();
+      x.nextInt();
       count++;
     }
     assertEquals(m2.getCardinality(), count);

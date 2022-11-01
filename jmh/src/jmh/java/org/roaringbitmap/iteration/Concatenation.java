@@ -82,7 +82,7 @@ public class Concatenation {
       BitSetWithOffset bit = bitSets[i];
       PeekableIntIterator peekableIter = bit.bitmap.getIntIterator();
       while(peekableIter.hasNext()){
-        int currentBit = peekableIter.next();
+        int currentBit = peekableIter.nextInt();
         result.add(currentBit + bit.offset);
       }
     }

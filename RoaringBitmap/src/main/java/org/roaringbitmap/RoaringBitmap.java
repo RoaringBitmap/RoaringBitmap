@@ -81,7 +81,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     }
 
     @Override
-    public int next() {
+    public int nextInt() {
       final int x = iter.nextAsInt() | hs;
       if (!iter.hasNext()) {
         ++pos;
@@ -151,7 +151,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     }
 
     @Override
-    public int next() {
+    public int nextInt() {
       final int x = iter.nextAsInt() | hs;
       if (!iter.hasNext()) {
         --pos;
@@ -3053,7 +3053,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     final IntIterator i = this.getIntIterator();
     answer.append("{");
     if (i.hasNext()) {
-      answer.append(i.next() & 0xFFFFFFFFL);
+      answer.append(i.nextInt() & 0xFFFFFFFFL);
     }
     while (i.hasNext()) {
       answer.append(",");
@@ -3062,7 +3062,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         answer.append("...");
         break;
       }
-      answer.append(i.next() & 0xFFFFFFFFL);
+      answer.append(i.nextInt() & 0xFFFFFFFFL);
 
     }
     answer.append("}");

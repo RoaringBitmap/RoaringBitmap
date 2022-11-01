@@ -130,7 +130,7 @@ public class TestIteratorMemory {
       IntIterator intIterator = bitmap_a.getIntIterator();
       long result = 0;
       while (intIterator.hasNext()) {
-        result += intIterator.next();
+        result += intIterator.nextInt();
 
       }
       // A small check for iterator consistency
@@ -151,7 +151,7 @@ public class TestIteratorMemory {
 
       long result = 0;
       while (intIterator.hasNext()) {
-        result += intIterator.next();
+        result += intIterator.nextInt();
 
       }
       // A small check for iterator consistency

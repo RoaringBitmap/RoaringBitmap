@@ -313,7 +313,7 @@ public interface ImmutableBitmapDataProvider {
 
     @Override
     public int nextInt() {
-      return iterator.next();
+      return iterator.nextInt();
     }
 
     @Override
