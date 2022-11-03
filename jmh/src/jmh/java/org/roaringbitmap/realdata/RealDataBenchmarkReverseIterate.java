@@ -21,7 +21,7 @@ public class RealDataBenchmarkReverseIterate {
       Bitmap bitmap = bs.bitmaps.get(k);
       BitmapIterator i = bitmap.reverseIterator();
       while (i.hasNext()) {
-        total += i.next();
+        total += i.nextInt();
       }
     }
     return total;

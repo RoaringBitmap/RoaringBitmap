@@ -16,7 +16,7 @@ final class RoaringIteratorWrapper implements BitmapIterator {
   }
 
   @Override
-  public int next() {
+  public int nextInt() {
     return iterator.nextInt();
   }
 

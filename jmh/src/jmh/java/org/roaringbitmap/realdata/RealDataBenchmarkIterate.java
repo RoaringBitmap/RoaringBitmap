@@ -27,4 +27,16 @@ public class RealDataBenchmarkIterate {
     return total;
   }
 
+  @Benchmark
+  public int iterateInt(RealDataBenchmarkState bs) {
+    int total = 0;
+    for (int k = 0; k < bs.bitmaps.size(); ++k) {
+      Bitmap bitmap = bs.bitmaps.get(k);
+      BitmapIterator i = bitmap.iterator();
+      while (i.hasNext()) {
+        total += i.nextInt();
+      }
+    }
+    return total;
+  }
 }
