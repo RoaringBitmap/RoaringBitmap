@@ -5406,6 +5406,22 @@ public class TestRoaringBitmap {
         assertTrue(bitmap.cardinalityExceeds(runLength - 1));
     }
 
+
+    @Test
+    public void testWithYourself() {
+        RoaringBitmap b1 = RoaringBitmap.bitmapOf(1,2,3,4,5,6,7,8,9,10);
+        b1.runOptimize();
+        b1.or(b1);
+        assertTrue(b1.equals(RoaringBitmap.bitmapOf(1,2,3,4,5,6,7,8,9,10)));
+        b1.xor(b1);
+        assertTrue(b1.isEmpty());
+        b1 = RoaringBitmap.bitmapOf(1,2,3,4,5,6,7,8,9,10);
+        b1.and(b1);
+        assertTrue(b1.equals(RoaringBitmap.bitmapOf(1,2,3,4,5,6,7,8,9,10)));
+        b1.andNot(b1);
+        assertTrue(b1.isEmpty());
+    }
+
     @Test
     public void testIssue566() {
         RoaringBitmap roaringBitMap = new RoaringBitmap();

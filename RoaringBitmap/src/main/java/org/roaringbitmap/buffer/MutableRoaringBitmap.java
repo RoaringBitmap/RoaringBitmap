@@ -850,6 +850,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @param array other bitmap
    */
   public void and(final ImmutableRoaringBitmap array) {
+    if(array == this) { return; }
     int pos1 = 0, pos2 = 0, intersectionSize = 0;
     final int length1 = highLowContainer.size(), length2 = array.highLowContainer.size();
 
@@ -881,6 +882,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @param x2 other bitmap
    */
   public void andNot(final ImmutableRoaringBitmap x2) {
+    if(x2 == this) {
+      clear();
+      return;
+    }
     int pos1 = 0, pos2 = 0, intersectionSize = 0;
     final int length1 = highLowContainer.size(), length2 = x2.highLowContainer.size();
 
@@ -921,6 +926,9 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @param rangeEnd end point of the range (exclusive).
    */
   public void orNot(ImmutableRoaringBitmap other, long rangeEnd) {
+    if(other == this) {
+      throw new UnsupportedOperationException("orNot between a bitmap and itself?");
+    }
     rangeSanityCheck(0, rangeEnd);
     int maxKey = (int)((rangeEnd - 1) >>> 16);
     int lastRun = (rangeEnd & 0xFFFF) == 0 ? 0x10000 : (int)(rangeEnd & 0xFFFF);
@@ -1254,6 +1262,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   // call repairAfterLazy on result, eventually
   // important: x2 should not have been computed lazily
   protected void lazyor(final ImmutableRoaringBitmap x2) {
+    if(this == x2) { return; }
     int pos1 = 0, pos2 = 0;
     int length1 = highLowContainer.size();
     final int length2 = x2.highLowContainer.size();
@@ -1301,6 +1310,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   // this method is like lazyor except that it will convert
   // the current container to a bitset
   protected void naivelazyor(final ImmutableRoaringBitmap x2) {
+    if(this == x2) { return; }
     int pos1 = 0, pos2 = 0;
     int length1 = highLowContainer.size();
     final int length2 = x2.highLowContainer.size();
@@ -1354,6 +1364,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @param x2 other bitmap
    */
   public void or(final ImmutableRoaringBitmap x2) {
+    if(this == x2) { return; }
     int pos1 = 0, pos2 = 0;
     int length1 = highLowContainer.size();
     final int length2 = x2.highLowContainer.size();
@@ -1617,6 +1628,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @param x2 other bitmap
    */
   public void xor(final ImmutableRoaringBitmap x2) {
+    if(x2 == this) {
+      clear();
+      return;
+    }
     int pos1 = 0, pos2 = 0;
     int length1 = highLowContainer.size();
     final int length2 = x2.highLowContainer.size();

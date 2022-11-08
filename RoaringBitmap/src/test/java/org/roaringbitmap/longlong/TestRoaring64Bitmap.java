@@ -2172,6 +2172,20 @@ public class TestRoaring64Bitmap {
   }
 
 
+  @Test
+  public void testWithYourself() {
+    Roaring64Bitmap b1 = Roaring64Bitmap.bitmapOf(1,2,3,4,5,6,7,8,9,10);
+    b1.runOptimize();
+    b1.or(b1);
+    assertTrue(b1.equals(Roaring64Bitmap.bitmapOf(1,2,3,4,5,6,7,8,9,10)));
+    b1.xor(b1);
+    assertTrue(b1.isEmpty());
+    b1 = Roaring64Bitmap.bitmapOf(1,2,3,4,5,6,7,8,9,10);
+    b1.and(b1);
+    assertTrue(b1.equals(Roaring64Bitmap.bitmapOf(1,2,3,4,5,6,7,8,9,10)));
+    b1.andNot(b1);
+    assertTrue(b1.isEmpty());
+  }
 
   @Test
   public void testIssue580() {

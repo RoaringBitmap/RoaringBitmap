@@ -708,6 +708,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    * @param x2 other bitmap
    */
   public void naivelazyor(final Roaring64NavigableMap x2) {
+    if(this == x2) { return; }
     for (Entry<Integer, BitmapDataProvider> e2 : x2.highToBitmap.entrySet()) {
       // Keep object to prevent auto-boxing
       Integer high = e2.getKey();
@@ -750,6 +751,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    * @param x2 other bitmap
    */
   public void or(final Roaring64NavigableMap x2) {
+    if(this == x2) { return; }
     boolean firstBucket = true;
 
     for (Entry<Integer, BitmapDataProvider> e2 : x2.highToBitmap.entrySet()) {
@@ -806,6 +808,10 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    * @param x2 other bitmap
    */
   public void xor(final Roaring64NavigableMap x2) {
+    if(x2 == this) {
+      clear();
+      return;
+    }
     boolean firstBucket = true;
 
     for (Entry<Integer, BitmapDataProvider> e2 : x2.highToBitmap.entrySet()) {
@@ -861,6 +867,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    * @param x2 other bitmap
    */
   public void and(final Roaring64NavigableMap x2) {
+    if(x2 == this) { return; }
     boolean firstBucket = true;
 
     Iterator<Entry<Integer, BitmapDataProvider>> thisIterator = highToBitmap.entrySet().iterator();
@@ -906,6 +913,10 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    * @param x2 other bitmap
    */
   public void andNot(final Roaring64NavigableMap x2) {
+    if(x2 == this) {
+      clear();
+      return;
+    }
     boolean firstBucket = true;
 
     Iterator<Entry<Integer, BitmapDataProvider>> thisIterator = highToBitmap.entrySet().iterator();

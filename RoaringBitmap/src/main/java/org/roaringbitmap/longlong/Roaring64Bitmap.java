@@ -294,6 +294,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    * @param x2 other bitmap
    */
   public void or(final Roaring64Bitmap x2) {
+    if(this == x2) { return; }
     KeyIterator highIte2 = x2.highLowContainer.highKeyIterator();
     while (highIte2.hasNext()) {
       byte[] high = highIte2.next();
@@ -316,6 +317,10 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    * @param x2 other bitmap
    */
   public void xor(final Roaring64Bitmap x2) {
+    if(x2 == this) {
+      clear();
+      return;
+    }
     KeyIterator keyIterator = x2.highLowContainer.highKeyIterator();
     while (keyIterator.hasNext()) {
       byte[] high = keyIterator.next();
@@ -338,6 +343,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    * @param x2 other bitmap
    */
   public void and(final Roaring64Bitmap x2) {
+    if(x2 == this) { return; }
     KeyIterator thisIterator = highLowContainer.highKeyIterator();
     while (thisIterator.hasNext()) {
       byte[] highKey = thisIterator.next();
@@ -364,6 +370,10 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    * @param x2 other bitmap
    */
   public void andNot(final Roaring64Bitmap x2) {
+    if(x2 == this) {
+      clear();
+      return;
+    }
     KeyIterator thisKeyIterator = highLowContainer.highKeyIterator();
     while (thisKeyIterator.hasNext()) {
       byte[] high = thisKeyIterator.next();
