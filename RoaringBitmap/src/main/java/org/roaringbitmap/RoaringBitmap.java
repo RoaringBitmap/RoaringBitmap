@@ -1212,6 +1212,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @param x2 other bitmap
    */
   public void and(final RoaringBitmap x2) {
+    if(x2 == this) { return; }
     int pos1 = 0, pos2 = 0, intersectionSize = 0;
     final int length1 = highLowContainer.size(), length2 = x2.highLowContainer.size();
 
@@ -1285,6 +1286,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @param x2 other bitmap
    */
   public void andNot(final RoaringBitmap x2) {
+    if(x2 == this) {
+      clear();
+      return;
+    }
     int pos1 = 0, pos2 = 0, intersectionSize = 0;
     final int length1 = highLowContainer.size(), length2 = x2.highLowContainer.size();
 
@@ -1366,6 +1371,9 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @param rangeEnd end point of the range (exclusive).
    */
   public void orNot(final RoaringBitmap other, long rangeEnd) {
+    if(other == this) {
+      throw new UnsupportedOperationException("orNot between a bitmap and itself?");
+    }
     rangeSanityCheck(0, rangeEnd);
     int maxKey = (int)((rangeEnd - 1) >>> 16);
     int lastRun = (rangeEnd & 0xFFFF) == 0 ? 0x10000 : (int)(rangeEnd & 0xFFFF);
@@ -2211,6 +2219,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   // don't forget to call repairAfterLazy() afterward
   // important: x2 should not have been computed lazily
   protected void lazyor(final RoaringBitmap x2) {
+    if(this == x2) { return; }
     int pos1 = 0, pos2 = 0;
     int length1 = highLowContainer.size();
     final int length2 = x2.highLowContainer.size();
@@ -2258,6 +2267,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   // this method is like lazyor except that it will convert
   // the current container to a bitset
   protected void naivelazyor(RoaringBitmap  x2) {
+    if(this == x2) { return; }
     int pos1 = 0, pos2 = 0;
     int length1 = highLowContainer.size();
     final int length2 = x2.highLowContainer.size();
@@ -2333,6 +2343,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @param x2 other bitmap
    */
   public void or(final RoaringBitmap x2) {
+    if(this == x2) { return; }
     int pos1 = 0, pos2 = 0;
     int length1 = highLowContainer.size();
     final int length2 = x2.highLowContainer.size();
@@ -3089,6 +3100,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @param x2 other bitmap
    */
   public void xor(final RoaringBitmap x2) {
+    if(x2 == this) {
+      clear();
+      return;
+    }
     int pos1 = 0, pos2 = 0;
     int length1 = highLowContainer.size();
     final int length2 = x2.highLowContainer.size();

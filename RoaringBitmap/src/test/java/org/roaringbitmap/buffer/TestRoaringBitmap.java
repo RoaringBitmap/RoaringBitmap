@@ -3917,6 +3917,21 @@ public class TestRoaringBitmap {
   }
 
   @Test
+  public void testWithYourself() {
+    MutableRoaringBitmap b1 = MutableRoaringBitmap.bitmapOf(1,2,3,4,5,6,7,8,9,10);
+    b1.runOptimize();
+    b1.or(b1);
+    assertTrue(b1.equals(MutableRoaringBitmap.bitmapOf(1,2,3,4,5,6,7,8,9,10)));
+    b1.xor(b1);
+    assertTrue(b1.isEmpty());
+    b1 = MutableRoaringBitmap.bitmapOf(1,2,3,4,5,6,7,8,9,10);
+    b1.and(b1);
+    assertTrue(b1.equals(MutableRoaringBitmap.bitmapOf(1,2,3,4,5,6,7,8,9,10)));
+    b1.andNot(b1);
+    assertTrue(b1.isEmpty());
+  }
+
+  @Test
   public void testPreviousValueRegression() {
     // see https://github.com/RoaringBitmap/RoaringBitmap/issues/564
     assertEquals(-1, ImmutableRoaringBitmap.bitmapOf(27399807).previousValue(403042));
