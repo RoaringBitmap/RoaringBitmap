@@ -696,8 +696,20 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    *
    * @param rangeStart inclusive beginning of range
    * @param rangeEnd exclusive ending of range
+   * @deprecated as this may be confused with adding individual longs
    */
+  @Deprecated
   public void add(final long rangeStart, final long rangeEnd) {
+    addRange(rangeStart, rangeEnd);
+  }
+
+  /**
+   * Add to the current bitmap all longs in [rangeStart,rangeEnd).
+   *
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
+   */
+  public void addRange(final long rangeStart, final long rangeEnd) {
     if (rangeEnd == 0 || Long.compareUnsigned(rangeStart, rangeEnd) >= 0) {
       throw new IllegalArgumentException("Invalid range [" + rangeStart + "," + rangeEnd + ")");
     }

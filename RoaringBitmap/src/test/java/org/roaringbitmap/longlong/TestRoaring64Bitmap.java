@@ -2199,6 +2199,25 @@ public class TestRoaring64Bitmap {
         count++;
     }
     assertEquals(count, 7);
+  }
 
+  @Test
+  public void testAddExtremes() {
+    Roaring64Bitmap x = new Roaring64Bitmap();
+    x.addLong(0L);
+    x.addLong(Long.MAX_VALUE);
+    x.addLong(-1L);
+
+    Assertions.assertEquals(3L, x.getLongCardinality());
+    Assertions.assertArrayEquals(x.toArray(), new long[] {0, Long.MAX_VALUE, -1L});
+  }
+
+  @Test
+  public void testRangeAroundLongMax() {
+    Roaring64Bitmap x = new Roaring64Bitmap();
+    x.addRange(Long.MAX_VALUE - 1L, Long.MAX_VALUE + 3L);
+
+    Assertions.assertEquals(4L, x.getLongCardinality());
+    Assertions.assertArrayEquals(x.toArray(), new long[] {Long.MAX_VALUE - 1L, Long.MAX_VALUE, Long.MIN_VALUE, Long.MIN_VALUE + 1L});
   }
 }

@@ -1519,7 +1519,7 @@ public class TestRoaring64NavigableMap {
     // Add values so that the underlying Map holds multiple entries
     map.add(0);
     map.add(2L * Integer.MAX_VALUE);
-    map.add(8L * Integer.MAX_VALUE, 8L * Integer.MAX_VALUE + 1024);
+    map.addRange(8L * Integer.MAX_VALUE, 8L * Integer.MAX_VALUE + 1024);
     
     assertEquals(3, map.getHighToBitmap().size());
 
@@ -1546,7 +1546,7 @@ public class TestRoaring64NavigableMap {
   public void testAnd_ImplicitRoaringBitmap() {
     // Based on RoaringBitmap
     Roaring64NavigableMap x = new Roaring64NavigableMap();
-    x.add(123, 124);
+    x.addRange(123, 124);
     Assertions.assertTrue(x.getHighToBitmap().values().iterator().next() instanceof RoaringBitmap);
 
     // Based on MutableRoaringBitmap
@@ -1566,11 +1566,11 @@ public class TestRoaring64NavigableMap {
   public void testAnd_MutableRoaringBitmap() {
     // Based on RoaringBitmap
     Roaring64NavigableMap x = new Roaring64NavigableMap(new MutableRoaringBitmapSupplier());
-    x.add(0, 16);
+    x.addRange(0, 16);
 
     // Based on MutableRoaringBitmap
     Roaring64NavigableMap y = new Roaring64NavigableMap(new MutableRoaringBitmapSupplier());
-    y.add(8, 32);
+    y.addRange(8, 32);
 
     Assertions.assertEquals(16L, x.getLongCardinality());
     x.and(y);
@@ -1581,11 +1581,11 @@ public class TestRoaring64NavigableMap {
   public void testAnd_IncompatibleImplementations() {
     // Based on RoaringBitmap
     Roaring64NavigableMap x = new Roaring64NavigableMap(new RoaringBitmapSupplier());
-    x.add(0, 16);
+    x.addRange(0, 16);
 
     // Based on MutableRoaringBitmap
     Roaring64NavigableMap y = new Roaring64NavigableMap(new MutableRoaringBitmapSupplier());
-    y.add(8, 32);
+    y.addRange(8, 32);
 
     Assertions.assertThrows(UnsupportedOperationException.class, () -> x.and(y));
   }
@@ -1615,7 +1615,7 @@ public class TestRoaring64NavigableMap {
   public void testOr_ImplicitRoaringBitmap() {
     // Based on RoaringBitmap
     Roaring64NavigableMap x = new Roaring64NavigableMap();
-    x.add(123, 124);
+    x.addRange(123, 124);
 
     // Based on MutableRoaringBitmap
     Roaring64NavigableMap y = Roaring64NavigableMap.bitmapOf(4L);
@@ -1646,6 +1646,86 @@ public class TestRoaring64NavigableMap {
       Assertions.assertTrue(singleBitmap instanceof RoaringBitmap);
       Assertions.assertEquals(2L, singleBitmap.getLongCardinality());
     }
+  }
+
+  @Test
+  public void testAddExtremes() {
+    // Based on RoaringBitmap
+    Roaring64NavigableMap x = newDefaultCtor();
+    x.addLong(0L);
+    x.addLong(Long.MAX_VALUE);
+    x.addLong(-1L);
+
+    Assertions.assertEquals(3L, x.getLongCardinality());
+    Assertions.assertArrayEquals(x.toArray(), new long[] {0, Long.MAX_VALUE, -1L});
+  }
+
+  @Test
+  public void testAddExtremes_signed() {
+    Roaring64NavigableMap x = newSignedBuffered();
+    x.addLong(0L);
+    x.addLong(Long.MAX_VALUE);
+    x.addLong(-1L);
+
+    Assertions.assertEquals(3L, x.getLongCardinality());
+    Assertions.assertArrayEquals(x.toArray(), new long[] {-1L, 0, Long.MAX_VALUE});
+  }
+
+  @Test
+  public void testRangeExtremeEnd() {
+    Roaring64NavigableMap x = newDefaultCtor();
+    x.addRange(-3L, -1L);
+
+    Assertions.assertEquals(2L, x.getLongCardinality());
+    Assertions.assertArrayEquals(x.toArray(), new long[] {-3L, -2L});
+  }
+
+  @Test
+  public void testRangeExtremeEnd_signed() {
+    Roaring64NavigableMap x = newSignedBuffered();
+    x.addRange(-3L, -1L);
+
+    Assertions.assertEquals(2L, x.getLongCardinality());
+    Assertions.assertArrayEquals(x.toArray(), new long[] {-3L, -2L});
+  }
+
+  @Test
+  public void testRangeAroundIntegerMax() {
+    Roaring64NavigableMap x = newDefaultCtor();
+    x.addRange(Integer.MAX_VALUE - 1L, Integer.MAX_VALUE + 3L);
+
+    Assertions.assertEquals(4L, x.getLongCardinality());
+    Assertions.assertEquals(1L, x.getHighToBitmap().size());
+    Assertions.assertArrayEquals(x.toArray(), new long[] {Integer.MAX_VALUE - 1L, Integer.MAX_VALUE, Integer.MAX_VALUE + 1L, Integer.MAX_VALUE + 2L});
+  }
+
+  @Test
+  public void testRangeAround2TimesIntegerMax() {
+    Roaring64NavigableMap x = newDefaultCtor();
+    long rangeStart = 2L * Integer.MAX_VALUE;
+    x.addRange(rangeStart, rangeStart + 4L);
+
+    Assertions.assertEquals(4L, x.getLongCardinality());
+    Assertions.assertEquals(2L, x.getHighToBitmap().size());
+    Assertions.assertArrayEquals(x.toArray(), new long[] {rangeStart, rangeStart+1L, rangeStart+2L, rangeStart+3L});
+  }
+
+  @Test
+  public void testRangeAroundLongMax() {
+    Roaring64NavigableMap x = newDefaultCtor();
+    x.addRange(Long.MAX_VALUE - 1L, Long.MAX_VALUE + 3L);
+
+    Assertions.assertEquals(4L, x.getLongCardinality());
+    Assertions.assertArrayEquals(x.toArray(), new long[] {Long.MAX_VALUE - 1L, Long.MAX_VALUE, Long.MIN_VALUE, Long.MIN_VALUE + 1L});
+  }
+
+  @Test()
+  public void testRangeAroundLongMax_signed() {
+    Roaring64NavigableMap x = newSignedBuffered();
+
+    Assertions.assertThrows(IllegalArgumentException.class, () -> {
+        x.addRange(Long.MAX_VALUE - 1L, Long.MAX_VALUE + 3L);
+    });
   }
 
 }

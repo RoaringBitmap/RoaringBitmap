@@ -13,11 +13,11 @@ import java.util.Map.Entry;
 
 /**
  * Roaring64NavigableMap extends RoaringBitmap to the whole range of longs (or unsigned longs). It
- * enables a cardinality greater up to Long.MAX_VALUE
+ * enables a greater cardinality, up to 2*Long.MAX_VALUE-1
  *
- * Longs are added by default in unsigned sorted order (i.e. -1L is the greater long to be added
+ * Longs are added by default in unsigned sorted order (i.e. -1L is the greatest long to be added
  * while 0 has no previous value). It can be configured to signed sorted order (in which case, 0 is
- * preceded by 1). That is, they are treated as unsigned integers (see Java 8's
+ * preceded by -1). That is, they are treated as unsigned integers (see Java 8's
  * Integer.toUnsignedLong function). Up to 4294967296 integers can be stored.
  *
  *
@@ -33,8 +33,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
   // If true, we handle longs a plain java longs: -1 if right before 0
   // If false, we handle longs as unsigned longs: 0 has no predecessor and Long.MAX_VALUE + 1L is
-  // expressed as a
-  // negative long
+  // expressed as a negative long
   private boolean signedLongs = false;
 
   private BitmapDataProviderSupplier supplier;
@@ -55,8 +54,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   private transient int[] sortedHighs = new int[0];
 
   // We guess consecutive .addLong will be on proximate longs: we remember the bitmap attached to
-  // this bucket in order
-  // to skip the indirection
+  // this bucket in order to skip the indirection
   private transient Map.Entry<Integer, BitmapDataProvider> latestAddedHigh = null;
 
   private static final boolean DEFAULT_ORDER_IS_SIGNED = false;
@@ -172,6 +170,27 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
       return "null";
     } else {
       return bitmap.getClass().getName();
+    }
+  }
+
+  @Override
+  public Roaring64NavigableMap clone() {
+    try {
+      final Roaring64NavigableMap x = (Roaring64NavigableMap) super.clone();
+
+      NavigableMap<Integer, BitmapDataProvider> previousHighToBitmaps = highToBitmap;
+      if (signedLongs) {
+        highToBitmap = new TreeMap<>();
+      } else {
+        highToBitmap = new TreeMap<>(RoaringIntPacking.unsignedComparator());
+      }
+      previousHighToBitmaps.forEach((high, bitmap) -> highToBitmap.put(high, bitmap.clone()));
+
+      resetPerfHelpers();
+
+      return x;
+    } catch (final CloneNotSupportedException e) {
+      throw new RuntimeException("shouldn't happen with clone", e);
     }
   }
 
@@ -1321,15 +1340,32 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    *
    * @param rangeStart inclusive beginning of range
    * @param rangeEnd exclusive ending of range
+   * @deprecated as this may be confused with adding individual longs
    */
+  @Deprecated
   public void add(final long rangeStart, final long rangeEnd) {
+    addRange(rangeStart, rangeEnd);
+  }
+
+  /**
+   * Add to the current bitmap all longs in [rangeStart,rangeEnd).
+   *
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
+   */
+  public void addRange(final long rangeStart, final long rangeEnd) {
     int startHigh = high(rangeStart);
     int startLow = low(rangeStart);
 
     int endHigh = high(rangeEnd);
     int endLow = low(rangeEnd);
 
-    for (int high = startHigh; high <= endHigh; high++) {
+    int compareHigh = compare(startHigh, endHigh);
+    if (compareHigh > 0 || compareHigh == 0 && Util.toUnsignedLong(startLow) >= Util.toUnsignedLong(endLow)) {
+      throw new IllegalArgumentException("Invalid range [" + rangeStart + "," + rangeEnd + ")");
+    }
+
+    for (int high = startHigh; compare(high, endHigh) <= 0; high++) {
       final int currentStartLow;
       if (startHigh == high) {
         // The whole range starts in this bucket
@@ -1360,6 +1396,10 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         }
 
         bitmap.add(startLowAsLong, endLowAsLong);
+      }
+
+      if (high == highestHigh()) {
+        break;
       }
     }
 
@@ -1453,5 +1493,15 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     }
 
     invalidateAboveHigh(high);
+  }
+
+  /**
+   * Add all long computed as the ints in the bitmap, bit-or with 'high << 32'
+   * @param high
+   * @param bitmap
+   */
+  public void add(int high, BitmapDataProvider bitmap) {
+    getHighToBitmap().put(high, bitmap);
+    resetPerfHelpers();
   }
 }
