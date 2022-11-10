@@ -2,6 +2,7 @@ package org.roaringbitmap.longlong;
 
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
+import org.apache.commons.lang3.SerializationUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -685,20 +686,15 @@ public class TestRoaring64NavigableMap {
     assertEquals(Long.MAX_VALUE, map.select(1));
   }
 
+  private Roaring64NavigableMap clone(Roaring64NavigableMap map) throws IOException, ClassNotFoundException {
+    return SerializationUtils.clone(map);
+  }
+
   @Test
   public void testSerialization_Empty() throws IOException, ClassNotFoundException {
     final Roaring64NavigableMap map = newDefaultCtor();
 
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-      oos.writeObject(map);
-    }
-
-    final Roaring64NavigableMap clone;
-    try (ObjectInputStream ois =
-        new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
-      clone = (Roaring64NavigableMap) ois.readObject();
-    }
+    final Roaring64NavigableMap clone = clone(map);
 
     // Check the test has not simply copied the ref
     assertNotSame(map, clone);
@@ -710,16 +706,7 @@ public class TestRoaring64NavigableMap {
     final Roaring64NavigableMap map = newDefaultCtor();
     map.addLong(123);
 
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-      oos.writeObject(map);
-    }
-
-    final Roaring64NavigableMap clone;
-    try (ObjectInputStream ois =
-        new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
-      clone = (Roaring64NavigableMap) ois.readObject();
-    }
+    final Roaring64NavigableMap clone = clone(map);
 
     // Check the test has not simply copied the ref
     assertNotSame(map, clone);
@@ -733,16 +720,7 @@ public class TestRoaring64NavigableMap {
     final Roaring64NavigableMap map = newUnsignedHeap();
     map.addLong(123);
 
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-      oos.writeObject(map);
-    }
-
-    final Roaring64NavigableMap clone;
-    try (ObjectInputStream ois =
-        new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
-      clone = (Roaring64NavigableMap) ois.readObject();
-    }
+    final Roaring64NavigableMap clone = clone(map);
 
     // Check the test has not simply copied the ref
     assertNotSame(map, clone);
@@ -758,16 +736,7 @@ public class TestRoaring64NavigableMap {
     map.addLong(123);
     map.addLong(Long.MAX_VALUE);
 
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-      oos.writeObject(map);
-    }
-
-    final Roaring64NavigableMap clone;
-    try (ObjectInputStream ois =
-        new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
-      clone = (Roaring64NavigableMap) ois.readObject();
-    }
+    final Roaring64NavigableMap clone = clone(map);
 
     // Check the test has not simply copied the ref
     assertNotSame(map, clone);
@@ -776,7 +745,7 @@ public class TestRoaring64NavigableMap {
     assertEquals(123, clone.select(1));
     assertEquals(Long.MAX_VALUE, clone.select(2));
   }
-  
+
   @Test
   public void testSerialization_MultipleBuckets_Unsigned() throws IOException, ClassNotFoundException {
     final Roaring64NavigableMap map = newUnsignedHeap();
@@ -784,16 +753,7 @@ public class TestRoaring64NavigableMap {
     map.addLong(123);
     map.addLong(Long.MAX_VALUE);
 
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-      oos.writeObject(map);
-    }
-
-    final Roaring64NavigableMap clone;
-    try (ObjectInputStream ois =
-        new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
-      clone = (Roaring64NavigableMap) ois.readObject();
-    }
+    final Roaring64NavigableMap clone = clone(map);
 
     // Check the test has not simply copied the ref
     assertNotSame(map, clone);
@@ -815,6 +775,18 @@ public class TestRoaring64NavigableMap {
     }
 
     assertEquals(baos.toByteArray().length, map.serializedSizeInBytes());
+  }
+
+  @Test
+  public void testSupplierIsTransient_defaultIsImmutable() throws IOException, ClassNotFoundException, NoSuchFieldException {
+    Roaring64NavigableMap map = new Roaring64NavigableMap(new MutableRoaringBitmapSupplier());
+    map.add(0);
+
+    final Roaring64NavigableMap clone = clone(map);
+
+    // Demonstrate we fallback to RoaringBitmapSupplier as default
+    Assertions.assertTrue(map.getHighToBitmap().firstEntry().getValue() instanceof MutableRoaringBitmapSupplier);
+    Assertions.assertTrue(clone.getHighToBitmap().firstEntry().getValue() instanceof RoaringBitmapSupplier);
   }
 
   @Test
