@@ -173,27 +173,6 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     }
   }
 
-  @Override
-  public Roaring64NavigableMap clone() {
-    try {
-      final Roaring64NavigableMap x = (Roaring64NavigableMap) super.clone();
-
-      NavigableMap<Integer, BitmapDataProvider> previousHighToBitmaps = highToBitmap;
-      if (signedLongs) {
-        highToBitmap = new TreeMap<>();
-      } else {
-        highToBitmap = new TreeMap<>(RoaringIntPacking.unsignedComparator());
-      }
-      previousHighToBitmaps.forEach((high, bitmap) -> highToBitmap.put(high, bitmap.clone()));
-
-      resetPerfHelpers();
-
-      return x;
-    } catch (final CloneNotSupportedException e) {
-      throw new RuntimeException("shouldn't happen with clone", e);
-    }
-  }
-
   /**
    * Add the value to the container (set the value to "true"), whether it already appears or not.
    *
@@ -1361,7 +1340,8 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     int endLow = low(rangeEnd);
 
     int compareHigh = compare(startHigh, endHigh);
-    if (compareHigh > 0 || compareHigh == 0 && Util.toUnsignedLong(startLow) >= Util.toUnsignedLong(endLow)) {
+    if (compareHigh > 0
+            || compareHigh == 0 && Util.toUnsignedLong(startLow) >= Util.toUnsignedLong(endLow)) {
       throw new IllegalArgumentException("Invalid range [" + rangeStart + "," + rangeEnd + ")");
     }
 
@@ -1493,15 +1473,5 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     }
 
     invalidateAboveHigh(high);
-  }
-
-  /**
-   * Add all long computed as the ints in the bitmap, bit-or with 'high << 32'
-   * @param high
-   * @param bitmap
-   */
-  public void add(int high, BitmapDataProvider bitmap) {
-    getHighToBitmap().put(high, bitmap);
-    resetPerfHelpers();
   }
 }
