@@ -9,6 +9,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -24,8 +25,7 @@ public class RoaringBitmapBatchIteratorTest {
         128, 256, 1024, 8192, 5, 127, 1023
     };
 
-    @BeforeAll
-    public static void beforeAll() {
+    private static void initBitmaps() {
         BITMAPS = new RoaringBitmap[] {
             testCase().withArrayAt(0).withArrayAt(2).withArrayAt(4).withArrayAt((1 << 15) | (1 << 14)).build(),
             testCase().withRunAt(0).withRunAt(2).withRunAt(4).withRunAt((1 << 15) | (1 << 14)).build(),
@@ -44,6 +44,24 @@ public class RoaringBitmapBatchIteratorTest {
             RoaringBitmap.bitmapOf(8511),
             new RoaringBitmap()
         };
+    }
+
+    @BeforeAll
+    public static void beforeAll() throws InterruptedException {
+        int tryIndex = 0;
+        int maxTryIndex = 3;
+        while (++tryIndex < maxTryIndex) {
+            try {
+                initBitmaps();
+            } catch (OutOfMemoryError e) {
+                if (tryIndex == maxTryIndex) {
+                    throw e;
+                }
+                e.printStackTrace();
+                System.out.println("RoaringBitmapBatchIteratorTest.beforeAll Issue on try #" + tryIndex + ". Sleeping 5s for other tests to complete");
+                TimeUnit.SECONDS.sleep(5);
+            }
+        }
     }
 
     @AfterAll

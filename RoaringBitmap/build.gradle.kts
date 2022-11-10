@@ -22,7 +22,12 @@ tasks.test {
         events( "skipped", "failed")
         showStackTraces = true
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-        // Helps investigating OOM
-        showStandardStreams = true
+        // Helps investigating OOM. But too verbose to be activated by default
+        // showStandardStreams = true
+
+        // Define the memory requirements of tests, to prevent issues in CI while OK locally
+        minHeapSize = "1G"
+        maxHeapSize = "1G"
+        jvmArgs = listOf("-XX:MaxPermSize=256m")
     }
 }
