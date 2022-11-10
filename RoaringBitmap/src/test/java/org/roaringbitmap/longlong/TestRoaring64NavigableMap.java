@@ -10,6 +10,7 @@ import org.roaringbitmap.BitmapDataProvider;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.RoaringBitmapSupplier;
 import org.roaringbitmap.Util;
+import org.roaringbitmap.buffer.MutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmapSupplier;
 
 import java.io.*;
@@ -785,8 +786,8 @@ public class TestRoaring64NavigableMap {
     final Roaring64NavigableMap clone = clone(map);
 
     // Demonstrate we fallback to RoaringBitmapSupplier as default
-    Assertions.assertTrue(map.getHighToBitmap().firstEntry().getValue() instanceof MutableRoaringBitmapSupplier);
-    Assertions.assertTrue(clone.getHighToBitmap().firstEntry().getValue() instanceof RoaringBitmapSupplier);
+    Assertions.assertTrue(map.getHighToBitmap().firstEntry().getValue() instanceof MutableRoaringBitmap);
+    Assertions.assertTrue(clone.getHighToBitmap().firstEntry().getValue() instanceof RoaringBitmap);
   }
 
   @Test
