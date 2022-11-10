@@ -26,8 +26,7 @@ tasks.test {
         // showStandardStreams = true
 
         // Define the memory requirements of tests, to prevent issues in CI while OK locally
-        minHeapSize = "1G"
-        maxHeapSize = "1G"
-        jvmArgs = listOf("-XX:MaxPermSize=256m")
+        minHeapSize = "2G"
+        maxHeapSize = "2G"
     }
 }
