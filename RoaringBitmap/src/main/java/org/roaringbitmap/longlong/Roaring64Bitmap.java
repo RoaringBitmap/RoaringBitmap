@@ -530,12 +530,50 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
 
   @Override
   public int getSizeInBytes() {
-    throw new UnsupportedOperationException();
+    return (int) getLongSizeInBytes();
   }
 
+
+  /**
+   * Estimate of the memory usage of this data structure. This can be expected to be within 1% of
+   * the true memory usage in common usage scenarios.
+   * If exact measures are needed, we recommend using dedicated libraries
+   * such as ehcache-sizeofengine.
+   *
+   * In adversarial cases, this estimate may be 10x the actual memory usage. For example, if
+   * you insert a single random value in a bitmap, then over a 100 bytes may be used by the JVM
+   * whereas this function may return an estimate of 32 bytes.
+   *
+   * The same will be true in the "sparse" scenario where you have a small set of
+   * random-looking integers spanning a wide range of values.
+   *
+   * These are considered adversarial cases because, as a general rule,
+   * if your data looks like a set
+   * of random integers, Roaring bitmaps are probably not the right data structure.
+   *
+   * Note that you can serialize your Roaring Bitmaps to disk and then construct
+   * ImmutableRoaringBitmap instances from a ByteBuffer. In such cases, the Java heap
+   * usage will be significantly less than
+   * what is reported.
+   *
+   * If your main goal is to compress arrays of integers, there are other libraries
+   * that are maybe more appropriate
+   * such as JavaFastPFOR.
+   *
+   * Note, however, that in general, random integers (as produced by random number
+   * generators or hash functions) are not compressible.
+   * Trying to compress random data is an adversarial use case.
+   *
+   * @see <a href="https://github.com/lemire/JavaFastPFOR">JavaFastPFOR</a>
+   *
+   *
+   * @return estimated memory usage.
+   */
   @Override
   public long getLongSizeInBytes() {
-    throw new UnsupportedOperationException();
+    // 'serializedSizeInBytes' is a better than nothing estimation of the memory footprint
+    // It would generally be an optimistic estimator (by underestimating the size in memory)
+    return serializedSizeInBytes();
   }
 
   @Override

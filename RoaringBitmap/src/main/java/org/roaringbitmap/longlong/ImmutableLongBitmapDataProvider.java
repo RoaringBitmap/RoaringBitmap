@@ -24,7 +24,7 @@ public interface ImmutableLongBitmapDataProvider {
    * @param x long value
    * @return whether the long value is included.
    */
-  public boolean contains(long x);
+  boolean contains(long x);
 
   /**
    * Returns the number of distinct integers added to the bitmap (e.g., number of bits set). This
@@ -32,7 +32,7 @@ public interface ImmutableLongBitmapDataProvider {
    *
    * @return the cardinality
    */
-  public long getLongCardinality();
+  long getLongCardinality();
 
   /**
    * Visit all values in the bitmap and pass them to the consumer.
@@ -54,7 +54,7 @@ public interface ImmutableLongBitmapDataProvider {
    * 
    * @param lc the consumer
    */
-  public void forEach(LongConsumer lc);
+  void forEach(LongConsumer lc);
 
   /**
    * For better performance, consider the Use the {@link #forEach forEach} method.
@@ -62,18 +62,18 @@ public interface ImmutableLongBitmapDataProvider {
    * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
    */
   // RoaringBitmap proposes a PeekableLongIterator
-  public LongIterator getLongIterator();
+  LongIterator getLongIterator();
 
   /**
    * @return a custom iterator over set bits, the bits are traversed in descending sorted order
    */
   // RoaringBitmap proposes a PeekableLongIterator
-  public LongIterator getReverseLongIterator();
+  LongIterator getReverseLongIterator();
 
   /**
    * @return an Ordered, Distinct, Sorted and Sized IntStream in ascending order
    */
-  public default LongStream stream() {
+  default LongStream stream() {
     int characteristics = Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SORTED 
         | Spliterator.SIZED;
     Spliterator.OfLong x = Spliterators.spliterator(new RoaringOfLong(getLongIterator()), 
@@ -84,7 +84,7 @@ public interface ImmutableLongBitmapDataProvider {
   /**
    * @return an Ordered, Distinct and Sized IntStream providing bits in descending sorted order
    */
-  public default LongStream reverseStream() {
+  default LongStream reverseStream() {
     int characteristics = Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SIZED;
     Spliterator.OfLong x = Spliterators.spliterator(new RoaringOfLong(getLongIterator()), 
         getLongCardinality(), characteristics);
@@ -97,21 +97,21 @@ public interface ImmutableLongBitmapDataProvider {
    *
    * @return estimated memory usage.
    */
-  public int getSizeInBytes();
+  int getSizeInBytes();
 
   /**
    * Estimate of the memory usage of this data structure. Provides full 64-bit number.
    *
    * @return estimated memory usage.
    */
-  public long getLongSizeInBytes();
+  long getLongSizeInBytes();
 
   /**
    * Checks whether the bitmap is empty.
    *
    * @return true if this bitmap contains no set bit
    */
-  public boolean isEmpty();
+  boolean isEmpty();
 
   /**
    * Create a new bitmap of the same class, containing at most maxcardinality integers.
@@ -119,7 +119,7 @@ public interface ImmutableLongBitmapDataProvider {
    * @param x maximal cardinality
    * @return a new bitmap with cardinality no more than maxcardinality
    */
-  public ImmutableLongBitmapDataProvider limit(long x);
+  ImmutableLongBitmapDataProvider limit(long x);
 
   /**
    * Rank returns the number of integers that are smaller or equal to x (Rank(infinity) would be
@@ -131,7 +131,7 @@ public interface ImmutableLongBitmapDataProvider {
    *
    * @return the rank
    */
-  public long rankLong(long x);
+  long rankLong(long x);
 
   /**
    * Return the jth value stored in this bitmap.
@@ -140,7 +140,7 @@ public interface ImmutableLongBitmapDataProvider {
    *
    * @return the value
    */
-  public long select(long j);
+  long select(long j);
 
   /**
    * Serialize this bitmap.
@@ -150,7 +150,7 @@ public interface ImmutableLongBitmapDataProvider {
    * @param out the DataOutput stream
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public void serialize(DataOutput out) throws IOException;
+  void serialize(DataOutput out) throws IOException;
 
   /**
    * Report the number of bytes required to serialize this bitmap. This is the number of bytes
@@ -159,14 +159,14 @@ public interface ImmutableLongBitmapDataProvider {
    *
    * @return the size in bytes
    */
-  public long serializedSizeInBytes();
+  long serializedSizeInBytes();
 
   /**
    * Return the set values as an array. The integer values are in sorted order.
    *
    * @return array representing the set values.
    */
-  public long[] toArray();
+  long[] toArray();
 
     /**
    * An internal class to help provide streams.
@@ -174,7 +174,7 @@ public interface ImmutableLongBitmapDataProvider {
    * Does not match. Otherwise it would be easier to just make IntIterator 
    * implement PrimitiveIterator.OfInt. 
    */
-  static final class RoaringOfLong implements PrimitiveIterator.OfLong {
+  final class RoaringOfLong implements PrimitiveIterator.OfLong {
     private final LongIterator iterator;
 
     public RoaringOfLong(LongIterator iterator) {

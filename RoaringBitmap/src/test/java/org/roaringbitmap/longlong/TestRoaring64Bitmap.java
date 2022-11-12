@@ -9,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+
+import org.apache.commons.lang3.SerializationUtils;
 import org.junit.jupiter.api.function.Executable;
 import static org.roaringbitmap.Util.toUnsignedLong;
 
@@ -505,16 +507,9 @@ public class TestRoaring64Bitmap {
   public void testSerializationEmpty() throws IOException, ClassNotFoundException {
     final Roaring64Bitmap map = newDefaultCtor();
 
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-      oos.writeObject(map);
-    }
+    TestRoaring64NavigableMap.checkSerializeBytes(map);
 
-    final Roaring64Bitmap clone;
-    try (ObjectInputStream ois =
-        new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
-      clone = (Roaring64Bitmap) ois.readObject();
-    }
+    final Roaring64Bitmap clone = SerializationUtils.clone(map);
 
     // Check the test has not simply copied the ref
     assertNotSame(map, clone);
@@ -522,7 +517,7 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
-  public void testSerialization_ToBigEndianBuffer() throws IOException, ClassNotFoundException {
+  public void testSerialization_ToBigEndianBuffer() throws IOException {
     final Roaring64Bitmap map = newDefaultCtor();
     map.addLong(123);
     ByteBuffer buffer = ByteBuffer.allocate((int) map.serializedSizeInBytes())
@@ -536,16 +531,9 @@ public class TestRoaring64Bitmap {
     final Roaring64Bitmap map = newDefaultCtor();
     map.addLong(123);
 
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-      oos.writeObject(map);
-    }
+    TestRoaring64NavigableMap.checkSerializeBytes(map);
 
-    final Roaring64Bitmap clone;
-    try (ObjectInputStream ois =
-        new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
-      clone = (Roaring64Bitmap) ois.readObject();
-    }
+    final Roaring64Bitmap clone = SerializationUtils.clone(map);
 
     // Check the test has not simply copied the ref
     assertNotSame(map, clone);
@@ -559,16 +547,9 @@ public class TestRoaring64Bitmap {
     final Roaring64Bitmap map = newDefaultCtor();
     map.addLong(123);
 
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-      oos.writeObject(map);
-    }
+    TestRoaring64NavigableMap.checkSerializeBytes(map);
 
-    final Roaring64Bitmap clone;
-    try (ObjectInputStream ois =
-        new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
-      clone = (Roaring64Bitmap) ois.readObject();
-    }
+    final Roaring64Bitmap clone = SerializationUtils.clone(map);
 
     // Check the test has not simply copied the ref
     assertNotSame(map, clone);
@@ -584,17 +565,10 @@ public class TestRoaring64Bitmap {
     map.addLong(-123);
     map.addLong(123);
     map.addLong(Long.MAX_VALUE);
-    long sizeInByteL = map.serializedSizeInBytes();
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-      oos.writeObject(map);
-    }
 
-    final Roaring64Bitmap clone;
-    try (ObjectInputStream ois =
-        new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
-      clone = (Roaring64Bitmap) ois.readObject();
-    }
+    TestRoaring64NavigableMap.checkSerializeBytes(map);
+
+    final Roaring64Bitmap clone = SerializationUtils.clone(map);
 
     // Check the test has not simply copied the ref
     assertNotSame(map, clone);
@@ -602,7 +576,7 @@ public class TestRoaring64Bitmap {
     assertEquals(123, clone.select(0));
     assertEquals(Long.MAX_VALUE, clone.select(1));
     assertEquals(-123, clone.select(2));
-    int sizeInByteInt = (int) sizeInByteL;
+    int sizeInByteInt = map.getSizeInBytes();
     ByteBuffer byteBuffer = ByteBuffer.allocate(sizeInByteInt).order(ByteOrder.LITTLE_ENDIAN);
     map.serialize(byteBuffer);
     byteBuffer.flip();
@@ -1427,11 +1401,7 @@ public class TestRoaring64Bitmap {
     map.addLong(123);
     map.addLong(Long.MAX_VALUE);
 
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (DataOutputStream oos = new DataOutputStream(baos)) {
-      map.serialize(oos);
-    }
-    assertEquals(baos.toByteArray().length, map.serializedSizeInBytes());
+    TestRoaring64NavigableMap.checkSerializeBytes(map);
   }
 
   @Test
@@ -2200,5 +2170,14 @@ public class TestRoaring64Bitmap {
     }
     assertEquals(count, 7);
 
+  }
+
+  @Test
+  public void testRangeExtremeEnd() {
+    Roaring64Bitmap x = newDefaultCtor();
+    x.add(-3L, -1L);
+
+    Assertions.assertEquals(2L, x.getLongCardinality());
+    Assertions.assertArrayEquals(x.toArray(), new long[] {-3L, -2L});
   }
 }
