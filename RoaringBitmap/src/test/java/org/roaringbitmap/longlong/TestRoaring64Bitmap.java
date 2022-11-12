@@ -2220,4 +2220,13 @@ public class TestRoaring64Bitmap {
     Assertions.assertEquals(4L, x.getLongCardinality());
     Assertions.assertArrayEquals(x.toArray(), new long[] {Long.MAX_VALUE - 1L, Long.MAX_VALUE, Long.MIN_VALUE, Long.MIN_VALUE + 1L});
   }
+
+  @Test
+  public void testRangeExtremeEnd() {
+    Roaring64Bitmap x = newDefaultCtor();
+    x.add(-3L, -1L);
+
+    Assertions.assertEquals(2L, x.getLongCardinality());
+    Assertions.assertArrayEquals(x.toArray(), new long[] {-3L, -2L});
+  }
 }

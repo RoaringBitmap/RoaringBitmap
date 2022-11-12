@@ -17,6 +17,11 @@ tasks.test {
     mustRunAfter(tasks.checkstyleMain)
     useJUnitPlatform()
     failFast = true
+
+    // Define the memory requirements of tests, to prevent issues in CI while OK locally
+    minHeapSize = "2G"
+    maxHeapSize = "2G"
+    
     testLogging {
         // We exclude 'passed' events
         events( "skipped", "failed")
@@ -24,9 +29,5 @@ tasks.test {
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
         // Helps investigating OOM. But too verbose to be activated by default
         // showStandardStreams = true
-
-        // Define the memory requirements of tests, to prevent issues in CI while OK locally
-        minHeapSize = "2G"
-        maxHeapSize = "2G"
     }
 }
