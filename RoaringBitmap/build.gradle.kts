@@ -21,11 +21,13 @@ tasks.test {
     // Define the memory requirements of tests, to prevent issues in CI while OK locally
     minHeapSize = "2G"
     maxHeapSize = "2G"
-    
+
     testLogging {
         // We exclude 'passed' events
         events( "skipped", "failed")
         showStackTraces = true
+        showExceptions = true
+        showCauses = true
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
         // Helps investigating OOM. But too verbose to be activated by default
         // showStandardStreams = true
