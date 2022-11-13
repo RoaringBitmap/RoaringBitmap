@@ -2227,6 +2227,6 @@ public class TestRoaring64Bitmap {
     x.addRange(-3L, -1L);
 
     Assertions.assertEquals(2L, x.getLongCardinality());
-    Assertions.assertArrayEquals(x.toArray(), new long[] {-3L, -2L});
+    Assertions.assertArrayEquals(new long[] {-3L, -2L}, x.toArray());
   }
 }

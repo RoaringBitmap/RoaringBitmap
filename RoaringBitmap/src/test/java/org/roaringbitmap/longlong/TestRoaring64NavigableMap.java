@@ -1657,7 +1657,7 @@ public class TestRoaring64NavigableMap {
     x.addLong(-1L);
 
     Assertions.assertEquals(3L, x.getLongCardinality());
-    Assertions.assertArrayEquals(x.toArray(), new long[] {0, Long.MAX_VALUE, -1L});
+    Assertions.assertArrayEquals(new long[] {0, Long.MAX_VALUE, -1L}, x.toArray());
   }
 
   @Test
@@ -1668,7 +1668,7 @@ public class TestRoaring64NavigableMap {
     x.addLong(-1L);
 
     Assertions.assertEquals(3L, x.getLongCardinality());
-    Assertions.assertArrayEquals(x.toArray(), new long[] {-1L, 0, Long.MAX_VALUE});
+    Assertions.assertArrayEquals(new long[] {-1L, 0, Long.MAX_VALUE}, x.toArray());
   }
 
   @Test
@@ -1677,7 +1677,7 @@ public class TestRoaring64NavigableMap {
     x.addRange(-3L, -1L);
 
     Assertions.assertEquals(2L, x.getLongCardinality());
-    Assertions.assertArrayEquals(x.toArray(), new long[] {-3L, -2L});
+    Assertions.assertArrayEquals(new long[] {-3L, -2L}, x.toArray());
   }
 
   @Test
@@ -1686,7 +1686,7 @@ public class TestRoaring64NavigableMap {
     x.addRange(-3L, -1L);
 
     Assertions.assertEquals(2L, x.getLongCardinality());
-    Assertions.assertArrayEquals(x.toArray(), new long[] {-3L, -2L});
+    Assertions.assertArrayEquals(new long[] {-3L, -2L}, x.toArray());
   }
 
   @Test
@@ -1696,7 +1696,7 @@ public class TestRoaring64NavigableMap {
 
     Assertions.assertEquals(4L, x.getLongCardinality());
     Assertions.assertEquals(1L, x.getHighToBitmap().size());
-    Assertions.assertArrayEquals(x.toArray(), new long[] {Integer.MAX_VALUE - 1L, Integer.MAX_VALUE, Integer.MAX_VALUE + 1L, Integer.MAX_VALUE + 2L});
+    Assertions.assertArrayEquals(new long[] {Integer.MAX_VALUE - 1L, Integer.MAX_VALUE, Integer.MAX_VALUE + 1L, Integer.MAX_VALUE + 2L}, x.toArray());
   }
 
   @Test
@@ -1707,7 +1707,7 @@ public class TestRoaring64NavigableMap {
 
     Assertions.assertEquals(4L, x.getLongCardinality());
     Assertions.assertEquals(2L, x.getHighToBitmap().size());
-    Assertions.assertArrayEquals(x.toArray(), new long[] {rangeStart, rangeStart+1L, rangeStart+2L, rangeStart+3L});
+    Assertions.assertArrayEquals(new long[] {rangeStart, rangeStart+1L, rangeStart+2L, rangeStart+3L}, x.toArray());
   }
 
   @Test
@@ -1716,7 +1716,7 @@ public class TestRoaring64NavigableMap {
     x.addRange(Long.MAX_VALUE - 1L, Long.MAX_VALUE + 3L);
 
     Assertions.assertEquals(4L, x.getLongCardinality());
-    Assertions.assertArrayEquals(x.toArray(), new long[] {Long.MAX_VALUE - 1L, Long.MAX_VALUE, Long.MIN_VALUE, Long.MIN_VALUE + 1L});
+    Assertions.assertArrayEquals(new long[] {Long.MAX_VALUE - 1L, Long.MAX_VALUE, Long.MIN_VALUE, Long.MIN_VALUE + 1L}, x.toArray());
   }
 
   @Test()
