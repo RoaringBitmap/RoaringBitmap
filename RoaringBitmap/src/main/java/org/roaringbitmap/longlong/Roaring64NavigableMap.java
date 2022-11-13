@@ -30,7 +30,8 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   // The initial format of Roaring64NavigableMap
   // 1: a boolean indicating if we process signed or unsigned longs
   // 2: an int indicating the umber of highToLow buckets
-  // 3: loop over buckets: an int representating the high part, then the lowParts as standard RoaringBitmaps format
+  // 3: loop over buckets: an int representating the high part,
+  // then the lowParts as standard RoaringBitmaps format
   public static final int SERIALIZATION_MODE_LEGACY = 0;
 
   // The format of Roaring64NavigableMap in CRoaring
@@ -39,7 +40,8 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   // https://github.com/RoaringBitmap/CRoaring/commit/efcb83dcdf332f02cde058a48574f5b7b14f73fb
   // 1: a boolean indicating if we process signed or unsigned longs
   // 2: an int indicating the umber of highToLow buckets
-  // 3: loop over buckets: an int representating the high part, then the lowParts as standard RoaringBitmaps format
+  // 3: loop over buckets: an int representating the high part,
+  // then the lowParts as standard RoaringBitmaps format
   public static final int SERIALIZATION_MODE_PORTABLE = 1;
 
   // As of RoaringBitmap 0.X, we stick to the legacy format for retrocompatibility
@@ -1207,6 +1209,20 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     }
   }
 
+  /**
+   * Serialize this bitmap.
+   *
+   * This format was introduced before converting with CRoaring portable format. It remains useful
+   * when considering signed longs. It is the default in 0.x
+   *
+   * Consider calling {@link #runOptimize} before serialization to improve compression.
+   *
+   * The current bitmap is not modified.
+   *
+   * @param out the DataOutput stream
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  @Deprecated
   public void serializeLegacy(DataOutput out) throws IOException {
     out.writeBoolean(signedLongs);
 
@@ -1218,6 +1234,18 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     }
   }
 
+  /**
+   * Serialize this bitmap.
+   *
+   * The format is the same as CRoaring (and GoRoaring?).
+   *
+   * Consider calling {@link #runOptimize} before serialization to improve compression.
+   *
+   * The current bitmap is not modified.
+   *
+   * @param out the DataOutput stream
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   public void serializePortable(DataOutput out) throws IOException {
     out.writeLong(Long.reverseBytes(highToBitmap.size()));
 
@@ -1226,7 +1254,6 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
       entry.getValue().serialize(out);
     }
   }
-
 
   /**
    * Deserialize (retrieve) this bitmap.
@@ -1247,6 +1274,17 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     }
   }
 
+  /**
+   * Deserialize (retrieve) this bitmap.
+   *
+   * This format was introduced before converting with CRoaring portable format. It remains useful
+   * when considering signed longs. It is the default in 0.x
+   *
+   * The current bitmap is overwritten.
+   *
+   * @param in the DataInput stream
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   public void deserializeLegacy(DataInput in) throws IOException {
     this.clear();
 
@@ -1278,6 +1316,16 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     resetPerfHelpers();
   }
 
+  /**
+   * Deserialize (retrieve) this bitmap.
+   *
+   * The format is the same as CRoaring (and GoRoaring?).
+   *
+   * The current bitmap is overwritten.
+   *
+   * @param in the DataInput stream
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   public void deserializePortable(DataInput in) throws IOException {
     this.clear();
 
