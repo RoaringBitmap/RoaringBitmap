@@ -2224,7 +2224,7 @@ public class TestRoaring64Bitmap {
   @Test
   public void testRangeExtremeEnd() {
     Roaring64Bitmap x = newDefaultCtor();
-    x.add(-3L, -1L);
+    x.addRange(-3L, -1L);
 
     Assertions.assertEquals(2L, x.getLongCardinality());
     Assertions.assertArrayEquals(x.toArray(), new long[] {-3L, -2L});

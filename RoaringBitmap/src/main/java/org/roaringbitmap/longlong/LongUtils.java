@@ -164,4 +164,13 @@ public class LongUtils {
     high48[5] = (byte) ((num >>> 16) & 0xff);
     return high48;
   }
+
+  public static boolean isMaxHigh(byte[] high48) {
+    return high48[0] == -1 &&
+            high48[1] == -1 &&
+            high48[2] == -1 &&
+            high48[3] == -1 &&
+            high48[4] == -1 &&
+            high48[5] == -1;
+  }
 }
