@@ -165,6 +165,13 @@ public class LongUtils {
     return high48;
   }
 
+  /**
+   * checks if given high48 is the maximum possible one
+   * (e.g. it is the case for -1L, which is the maximum unsigned long)
+   *
+   * @param high48 the byte array
+   * @return true if this the maximum high part
+   */
   public static boolean isMaxHigh(byte[] high48) {
     return high48[0] == -1 &&
             high48[1] == -1 &&
