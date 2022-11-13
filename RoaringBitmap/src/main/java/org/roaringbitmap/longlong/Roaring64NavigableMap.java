@@ -1219,10 +1219,10 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   }
 
   public void serializePortable(DataOutput out) throws IOException {
-    out.writeLong(highToBitmap.size());
+    out.writeLong(Long.reverseBytes(highToBitmap.size()));
 
     for (Entry<Integer, BitmapDataProvider> entry : highToBitmap.entrySet()) {
-      out.writeInt(entry.getKey().intValue());
+      out.writeInt(Integer.reverseBytes(entry.getKey().intValue()));
       entry.getValue().serialize(out);
     }
   }

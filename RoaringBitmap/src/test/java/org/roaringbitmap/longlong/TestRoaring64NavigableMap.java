@@ -1,5 +1,6 @@
 package org.roaringbitmap.longlong;
 
+import com.google.common.io.ByteStreams;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import org.junit.jupiter.api.Assertions;
@@ -1658,6 +1659,14 @@ public class TestRoaring64NavigableMap {
     // https://github.com/RoaringBitmap/CRoaring/blob/master/tests/cpp_unit_util.cpp#L20
     Assertions.assertEquals(0, bitmap.getLongCardinality());
     Assertions.assertEquals(0, bitmap.getHighToBitmap().size());
+
+    {
+      byte[] reference = ByteStreams.toByteArray(TestAdversarialInputs.openInputstream("/testdata/64mapempty.bin"));
+
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      bitmap.serialize(new DataOutputStream(baos));
+      Assertions.assertArrayEquals(reference, baos.toByteArray());
+    }
   }
 
   @Test
@@ -1675,6 +1684,14 @@ public class TestRoaring64NavigableMap {
     Assertions.assertEquals(1, bitmap.getHighToBitmap().size());
     Assertions.assertEquals(0, bitmap.select(0));
     Assertions.assertEquals(9, bitmap.select(9));
+
+    {
+      byte[] reference = ByteStreams.toByteArray(TestAdversarialInputs.openInputstream("/testdata/64map32bitvals.bin"));
+
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      bitmap.serialize(new DataOutputStream(baos));
+      Assertions.assertArrayEquals(reference, baos.toByteArray());
+    }
   }
 
   @Test
@@ -1695,6 +1712,14 @@ public class TestRoaring64NavigableMap {
     Assertions.assertEquals((9L << 32) + 0L, bitmap.select(90));
     Assertions.assertEquals((9L << 32) + 1L, bitmap.select(91));
     Assertions.assertEquals((9L << 32) + 9L, bitmap.select(99));
+
+    {
+      byte[] reference = ByteStreams.toByteArray(TestAdversarialInputs.openInputstream("/testdata/64mapspreadvals.bin"));
+
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      bitmap.serialize(new DataOutputStream(baos));
+      Assertions.assertArrayEquals(reference, baos.toByteArray());
+    }
   }
 
   @Test
@@ -1716,5 +1741,13 @@ public class TestRoaring64NavigableMap {
     Assertions.assertEquals(((maxInt - 0L) << 32) + (maxInt - 10), bitmap.select(110));
     Assertions.assertEquals(((maxInt - 0L) << 32) + (maxInt - 9), bitmap.select(111));
     Assertions.assertEquals(((maxInt - 0L) << 32) + (maxInt - 0), bitmap.select(120));
+
+    {
+      byte[] reference = ByteStreams.toByteArray(TestAdversarialInputs.openInputstream("/testdata/64maphighvals.bin"));
+
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      bitmap.serialize(new DataOutputStream(baos));
+      Assertions.assertArrayEquals(reference, baos.toByteArray());
+    }
   }
 }
