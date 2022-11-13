@@ -1454,4 +1454,24 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
     invalidateAboveHigh(high);
   }
+
+  private void assertNonEmpty() {
+    if(isEmpty()) {
+      throw new NoSuchElementException("Empty " + this.getClass().getSimpleName());
+    }
+  }
+
+  @Override
+  public long first() {
+    Map.Entry<Integer, BitmapDataProvider> firstEntry = highToBitmap.firstEntry();
+
+    return RoaringIntPacking.pack(firstEntry.getKey(), firstEntry.getValue().first());
+  }
+
+  @Override
+  public long last() {
+    Map.Entry<Integer, BitmapDataProvider> lastEntry = highToBitmap.lastEntry();
+
+    return RoaringIntPacking.pack(lastEntry.getKey(), lastEntry.getValue().last());
+  }
 }

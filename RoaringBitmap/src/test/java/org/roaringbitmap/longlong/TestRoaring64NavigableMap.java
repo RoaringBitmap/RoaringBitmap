@@ -1648,4 +1648,39 @@ public class TestRoaring64NavigableMap {
     }
   }
 
+  @Test
+  public void testFirstLast_32b() {
+    Roaring64NavigableMap rb = newDefaultCtor();
+
+    rb.add(2);
+    rb.add(4);
+    rb.add(8);
+    assertEquals(2, rb.first());
+    assertEquals(8, rb.last());
+  }
+
+  @Test
+  public void testFirstLast_64b() {
+    Roaring64NavigableMap rb = newDefaultCtor();
+
+    rb.add(-128);
+    rb.add(-64);
+    rb.add(-32);
+    assertEquals(-128, rb.first());
+    assertEquals(-32, rb.last());
+  }
+
+  @Test
+  public void testFirstLast_32_64b() {
+    Roaring64NavigableMap rb = newDefaultCtor();
+
+    rb.add(2);
+    rb.add(4);
+    rb.add(8);
+    rb.add(-128);
+    rb.add(-64);
+    rb.add(-32);
+    assertEquals(2, rb.first());
+    assertEquals(-32, rb.last());
+  }
 }
