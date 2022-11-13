@@ -17,53 +17,34 @@ public class TestAdversarialInputs {
 
 	public static Stream<Arguments> badFiles() {
 		return IntStream.rangeClosed(1, 7)
-				.mapToObj(i -> Arguments.of("testdata/crashproneinput" + 3 + ".bin"));
+				.mapToObj(i -> Arguments.of("/testdata/crashproneinput" + i + ".bin"));
 	}
 
-	// copy to a temporary file
-	private File copy(String resourceName) throws IOException {
-		// old-school Java, could be improved
-        File tmpfile = File.createTempFile("RoaringBitmapTestAdversarialInputs", "bin");
-        tmpfile.deleteOnExit();
-        OutputStream resStreamOut = null;
-        InputStream stream = null;
-        try {
-        	    ClassLoader classLoader = getClass().getClassLoader();
-            stream = classLoader.getResourceAsStream(resourceName);
-            if(stream == null) {
-                throw new IOException("Cannot get resource \"" + resourceName + "\".");
-            }
-            int readBytes;
-            byte[] buffer = new byte[4096];
-            resStreamOut = new FileOutputStream(tmpfile);
-            while ((readBytes = stream.read(buffer)) > 0) {
-                resStreamOut.write(buffer, 0, readBytes);
-            }
-        } finally {
-            if(stream != null) stream.close();
-            if(resStreamOut != null) resStreamOut.close();
-        }
-        return tmpfile;
+	// open a stream without copying files
+	public static InputStream openInputstream(String resourceName) throws IOException {
+		InputStream resourceAsStream = TestAdversarialInputs.class.getResourceAsStream(resourceName);
+		if(resourceAsStream == null) {
+			throw new IOException("Cannot get resource \"" + resourceName + "\".");
+		}
+		return resourceAsStream;
     }
 
 	@Test
 	public void testInputGoodFile1() throws IOException {
-		File file = copy("testdata/bitmapwithruns.bin");
+		InputStream inputStream = openInputstream("/testdata/bitmapwithruns.bin");
 		RoaringBitmap rb = new RoaringBitmap();
 		// should not throw an exception
-		rb.deserialize(new DataInputStream(new FileInputStream(file)));
+		rb.deserialize(new DataInputStream(inputStream));
 		assertEquals(rb.getCardinality(), 200100);
-		file.delete();
 	}
 
 	@Test
 	public void testInputGoodFile2() throws IOException {
-		File file = copy("testdata/bitmapwithoutruns.bin");
+		InputStream inputStream = openInputstream("/testdata/bitmapwithoutruns.bin");
 		RoaringBitmap rb = new RoaringBitmap();
 		// should not throw an exception
-		rb.deserialize(new DataInputStream(new FileInputStream(file)));
+		rb.deserialize(new DataInputStream(inputStream));
 		assertEquals(rb.getCardinality(), 200100);
-		file.delete();
 	}
 
 	@ParameterizedTest
@@ -74,10 +55,9 @@ public class TestAdversarialInputs {
 
 
 	private void deserialize(String fileName) throws IOException {
-		File file = copy(fileName);
+		InputStream inputStream = openInputstream(fileName);
 		RoaringBitmap rb = new RoaringBitmap();
 		// should not work
-		rb.deserialize(new DataInputStream(new FileInputStream(file)));
-		file.delete();
+		rb.deserialize(new DataInputStream(inputStream));
 	}
 }

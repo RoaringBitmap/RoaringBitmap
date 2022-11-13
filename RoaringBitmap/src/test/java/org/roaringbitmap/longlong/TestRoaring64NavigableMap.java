@@ -5,10 +5,7 @@ import com.google.common.primitives.Longs;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.roaringbitmap.BitmapDataProvider;
-import org.roaringbitmap.RoaringBitmap;
-import org.roaringbitmap.RoaringBitmapSupplier;
-import org.roaringbitmap.Util;
+import org.roaringbitmap.*;
 import org.roaringbitmap.buffer.MutableRoaringBitmapSupplier;
 
 import java.io.*;
@@ -1648,4 +1645,76 @@ public class TestRoaring64NavigableMap {
     }
   }
 
+  @Test
+  public void testSerialization_empty() throws IOException, ClassNotFoundException {
+    // This example binary comes from https://github.com/RoaringBitmap/CRoaring/tree/master/tests/testdata
+    InputStream inputStream = TestAdversarialInputs.openInputstream("/testdata/64mapempty.bin");
+
+    Roaring64NavigableMap bitmap = new Roaring64NavigableMap();
+
+    Roaring64NavigableMap.SERIALIZATION_MODE = Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE;
+    bitmap.deserialize(new DataInputStream(inputStream));
+
+    // https://github.com/RoaringBitmap/CRoaring/blob/master/tests/cpp_unit_util.cpp#L20
+    Assertions.assertEquals(0, bitmap.getLongCardinality());
+    Assertions.assertEquals(0, bitmap.getHighToBitmap().size());
+  }
+
+  @Test
+  public void testSerialization_64map32bitvals() throws IOException, ClassNotFoundException {
+    // This example binary comes from https://github.com/RoaringBitmap/CRoaring/tree/master/tests/testdata
+    InputStream inputStream = TestAdversarialInputs.openInputstream("/testdata/64map32bitvals.bin");
+
+    Roaring64NavigableMap bitmap = new Roaring64NavigableMap();
+
+    Roaring64NavigableMap.SERIALIZATION_MODE = Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE;
+    bitmap.deserialize(new DataInputStream(inputStream));
+
+    // https://github.com/RoaringBitmap/CRoaring/blob/master/tests/cpp_unit_util.cpp#L27
+    Assertions.assertEquals(10, bitmap.getLongCardinality());
+    Assertions.assertEquals(1, bitmap.getHighToBitmap().size());
+    Assertions.assertEquals(0, bitmap.select(0));
+    Assertions.assertEquals(9, bitmap.select(9));
+  }
+
+  @Test
+  public void testSerialization_spreadvals() throws IOException, ClassNotFoundException {
+    // This example binary comes from https://github.com/RoaringBitmap/CRoaring/tree/master/tests/testdata
+    InputStream inputStream = TestAdversarialInputs.openInputstream("/testdata/64mapspreadvals.bin");
+
+    Roaring64NavigableMap bitmap = new Roaring64NavigableMap();
+
+    Roaring64NavigableMap.SERIALIZATION_MODE = Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE;
+    bitmap.deserialize(new DataInputStream(inputStream));
+
+    // https://github.com/RoaringBitmap/CRoaring/blob/master/tests/cpp_unit_util.cpp#L36
+    Assertions.assertEquals(100, bitmap.getLongCardinality());
+    Assertions.assertEquals(10, bitmap.getHighToBitmap().size());
+    Assertions.assertEquals(0, bitmap.select(0));
+    Assertions.assertEquals(9, bitmap.select(9));
+    Assertions.assertEquals((9L << 32) + 0L, bitmap.select(90));
+    Assertions.assertEquals((9L << 32) + 1L, bitmap.select(91));
+    Assertions.assertEquals((9L << 32) + 9L, bitmap.select(99));
+  }
+
+  @Test
+  public void testSerialization_highvals() throws IOException, ClassNotFoundException {
+    // This example binary comes from https://github.com/RoaringBitmap/CRoaring/tree/master/tests/testdata
+    InputStream inputStream = TestAdversarialInputs.openInputstream("/testdata/64maphighvals.bin");
+
+    Roaring64NavigableMap bitmap = new Roaring64NavigableMap();
+
+    Roaring64NavigableMap.SERIALIZATION_MODE = Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE;
+    bitmap.deserialize(new DataInputStream(inputStream));
+
+    // https://github.com/RoaringBitmap/CRoaring/blob/master/tests/cpp_unit_util.cpp#L46
+    long maxInt = Util.toUnsignedLong(-1);
+    Assertions.assertEquals(121, bitmap.getLongCardinality());
+    Assertions.assertEquals(11, bitmap.getHighToBitmap().size());
+    Assertions.assertEquals(((maxInt - 10L) << 32) + (maxInt - 10), bitmap.select(0));
+    Assertions.assertEquals(((maxInt - 10L) << 32) + (maxInt - 0), bitmap.select(10));
+    Assertions.assertEquals(((maxInt - 0L) << 32) + (maxInt - 10), bitmap.select(110));
+    Assertions.assertEquals(((maxInt - 0L) << 32) + (maxInt - 9), bitmap.select(111));
+    Assertions.assertEquals(((maxInt - 0L) << 32) + (maxInt - 0), bitmap.select(120));
+  }
 }

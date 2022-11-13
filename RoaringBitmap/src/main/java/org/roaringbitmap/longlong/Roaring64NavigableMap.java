@@ -27,6 +27,24 @@ import java.util.Map.Entry;
 // @Beta: this class is still in early stage. Its API may change and has not proofed itself as
 // bug-proof
 public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProvider {
+  // The initial format of Roaring64NavigableMap
+  // 1: a boolean indicating if we process signed or unsigned longs
+  // 2: an int indicating the umber of highToLow buckets
+  // 3: loop over buckets: an int representating the high part, then the lowParts as standard RoaringBitmaps format
+  public static final int SERIALIZATION_MODE_LEGACY = 0;
+
+  // The format of Roaring64NavigableMap in CRoaring
+  // https://github.com/RoaringBitmap/CRoaring/blob/master/cpp/roaring64map.hh#L959
+  // https://github.com/RoaringBitmap/CRoaring/blob/master/cpp/roaring64map.hh#L991
+  // https://github.com/RoaringBitmap/CRoaring/commit/efcb83dcdf332f02cde058a48574f5b7b14f73fb
+  // 1: a boolean indicating if we process signed or unsigned longs
+  // 2: an int indicating the umber of highToLow buckets
+  // 3: loop over buckets: an int representating the high part, then the lowParts as standard RoaringBitmaps format
+  public static final int SERIALIZATION_MODE_PORTABLE = 1;
+
+  // As of RoaringBitmap 0.X, we stick to the legacy format for retrocompatibility
+  // RoaringBitmap 1.X shall switch to the portable format by default
+  public static int SERIALIZATION_MODE = SERIALIZATION_MODE_LEGACY;
 
   // Not final to enable initialization in Externalizable.readObject
   private NavigableMap<Integer, BitmapDataProvider> highToBitmap;
@@ -1182,10 +1200,26 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    */
   @Override
   public void serialize(DataOutput out) throws IOException {
-    // TODO: Should we transport the performance tweak 'doCacheCardinalities'?
+    if (SERIALIZATION_MODE == SERIALIZATION_MODE_PORTABLE) {
+      serializePortable(out);
+    } else {
+      serializeLegacy(out);
+    }
+  }
+
+  public void serializeLegacy(DataOutput out) throws IOException {
     out.writeBoolean(signedLongs);
 
     out.writeInt(highToBitmap.size());
+
+    for (Entry<Integer, BitmapDataProvider> entry : highToBitmap.entrySet()) {
+      out.writeInt(entry.getKey().intValue());
+      entry.getValue().serialize(out);
+    }
+  }
+
+  public void serializePortable(DataOutput out) throws IOException {
+    out.writeLong(highToBitmap.size());
 
     for (Entry<Integer, BitmapDataProvider> entry : highToBitmap.entrySet()) {
       out.writeInt(entry.getKey().intValue());
@@ -1206,6 +1240,14 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    * @throws IOException Signals that an I/O exception has occurred.
    */
   public void deserialize(DataInput in) throws IOException {
+    if (SERIALIZATION_MODE == SERIALIZATION_MODE_PORTABLE) {
+      deserializePortable(in);
+    } else {
+      deserializeLegacy(in);
+    }
+  }
+
+  public void deserializeLegacy(DataInput in) throws IOException {
     this.clear();
 
     signedLongs = in.readBoolean();
@@ -1221,6 +1263,35 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
     for (int i = 0; i < nbHighs; i++) {
       int high = in.readInt();
+      BitmapDataProvider provider = newRoaringBitmap();
+      if (provider instanceof RoaringBitmap) {
+        ((RoaringBitmap) provider).deserialize(in);
+      } else if (provider instanceof MutableRoaringBitmap) {
+        ((MutableRoaringBitmap) provider).deserialize(in);
+      } else {
+        throw new UnsupportedEncodingException("Cannot deserialize a " + provider.getClass());
+      }
+
+      highToBitmap.put(high, provider);
+    }
+
+    resetPerfHelpers();
+  }
+
+  public void deserializePortable(DataInput in) throws IOException {
+    this.clear();
+
+    // Portable format handles only unsigned longs
+    signedLongs = false;
+
+    // Read from LittleEndian to BigEndian
+    long nbHighs = Long.reverseBytes(in.readLong());
+
+    // Other NavigableMap may accept a target capacity
+    highToBitmap = new TreeMap<>(RoaringIntPacking.unsignedComparator());
+
+    for (int i = 0; i < nbHighs; i++) {
+      int high = Integer.reverseBytes(in.readInt());
       BitmapDataProvider provider = newRoaringBitmap();
       if (provider instanceof RoaringBitmap) {
         ((RoaringBitmap) provider).deserialize(in);

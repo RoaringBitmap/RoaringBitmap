@@ -5,49 +5,37 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.roaringbitmap.TestAdversarialInputs;
 
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.stream.IntStream;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
-public class TestAdversarialInputs {
+public class TestBufferAdversarialInputs {
 
 	public static Stream<Arguments> badFiles() {
-		return IntStream.rangeClosed(1, 8)
-				.mapToObj(i -> Arguments.of("testdata/crashproneinput" + 3 + ".bin"));
+		return TestAdversarialInputs.badFiles();
 	}
 
 	// copy to a temporary file
-	private File copy(String resourceName) throws IOException {
-		// old-school Java, could be improved
-        File tmpfile = File.createTempFile("RoaringBitmapTestAdversarialInputs", "bin");
-        tmpfile.deleteOnExit();
-        OutputStream resStreamOut = null;
-        InputStream stream = null;
-        try {
-        	    ClassLoader classLoader = getClass().getClassLoader();
-            stream = classLoader.getResourceAsStream(resourceName);
-            if(stream == null) {
-                throw new IOException("Cannot get resource \"" + resourceName + "\".");
-            }
-            int readBytes;
-            byte[] buffer = new byte[4096];
-            resStreamOut = new FileOutputStream(tmpfile);
-            while ((readBytes = stream.read(buffer)) > 0) {
-                resStreamOut.write(buffer, 0, readBytes);
-            }
-        } finally {
-            if(stream != null) stream.close();
-            if(resStreamOut != null) resStreamOut.close();
-        }
-        return tmpfile;
-    }
+	protected static File copy(String resourceName) throws IOException {
+		File tmpFile = File.createTempFile(TestBufferAdversarialInputs.class.getName(), "bin");
+		tmpFile.deleteOnExit();
+
+		try (InputStream input = TestAdversarialInputs.openInputstream(resourceName)) {
+			Files.copy(input, tmpFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		}
+
+		return tmpFile;
+	}
 
 	public ByteBuffer memoryMap(String resourceName) throws IOException {
 		File tmpfile = copy(resourceName);
@@ -61,7 +49,7 @@ public class TestAdversarialInputs {
 
 	@Test
 	public void testInputGoodFile1() throws IOException {
-		File file = copy("testdata/bitmapwithruns.bin");
+		File file = copy("/testdata/bitmapwithruns.bin");
 		MutableRoaringBitmap rb = new MutableRoaringBitmap();
 		// should not throw an exception
 		rb.deserialize(new DataInputStream(new FileInputStream(file)));
@@ -71,14 +59,14 @@ public class TestAdversarialInputs {
 
 	@Test
 	public void testInputGoodFile1Mapped() throws IOException {
-		ByteBuffer bb = memoryMap("testdata/bitmapwithruns.bin");
+		ByteBuffer bb = memoryMap("/testdata/bitmapwithruns.bin");
 		ImmutableRoaringBitmap rb = new ImmutableRoaringBitmap(bb);
 		assertEquals(rb.getCardinality(), 200100);
 	}
 
 	@Test
 	public void testInputGoodFile2() throws IOException {
-		File file = copy("testdata/bitmapwithoutruns.bin");
+		File file = copy("/testdata/bitmapwithoutruns.bin");
 		MutableRoaringBitmap rb = new MutableRoaringBitmap();
 		// should not throw an exception
 		rb.deserialize(new DataInputStream(new FileInputStream(file)));
@@ -88,7 +76,7 @@ public class TestAdversarialInputs {
 
 	@Test
 	public void testInputGoodFile2Mapped() throws IOException {
-		ByteBuffer bb = memoryMap("testdata/bitmapwithoutruns.bin");
+		ByteBuffer bb = memoryMap("/testdata/bitmapwithoutruns.bin");
 		ImmutableRoaringBitmap rb = new ImmutableRoaringBitmap(bb);
 		assertEquals(rb.getCardinality(), 200100);
 	}
@@ -102,11 +90,12 @@ public class TestAdversarialInputs {
 	@ParameterizedTest
 	@MethodSource("badFiles")
 	public void testInputBadFileMap(String file) {
-		assertThrows(IndexOutOfBoundsException.class, () -> map(file));
+		if (file.endsWith("7.bin")) {
+			assertThrows(IllegalArgumentException.class, () -> map(file));
+		} else {
+			assertThrows(IndexOutOfBoundsException.class, () -> map(file));
+		}
 	}
-
-
-
 
 	private void deserialize(String fileName) throws IOException {
 		File file = copy(fileName);
