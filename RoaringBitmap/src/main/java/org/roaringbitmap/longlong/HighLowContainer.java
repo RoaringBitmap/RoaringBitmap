@@ -126,7 +126,7 @@ public class HighLowContainer {
     long containerIdx = firstNode.getContainerIdx();
     Container container = getContainer(containerIdx);
     byte[] high = firstNode.getKeyBytes();
-    int low = container.first();
+    char low = (char) container.first();
     return LongUtils.toLong(high, low);
   }
 
@@ -142,7 +142,7 @@ public class HighLowContainer {
     long containerIdx = firstNode.getContainerIdx();
     Container container = getContainer(containerIdx);
     byte[] high = firstNode.getKeyBytes();
-    int low = container.last();
+    char low = (char) container.last();
     return LongUtils.toLong(high, low);
   }
 
