@@ -37,7 +37,7 @@ public class LongUtils {
    * @param low the low 16 bit
    * @return the long data
    */
-  public static long toLong(byte[] high, int low) {
+  public static long toLong(byte[] high, char low) {
     byte byte6 = (byte) (low >>> 8 & 0xFFL);
     byte byte7 = (byte) low;
     return (high[0] & 0xFFL) << 56
