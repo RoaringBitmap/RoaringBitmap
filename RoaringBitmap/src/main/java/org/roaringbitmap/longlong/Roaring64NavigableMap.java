@@ -36,7 +36,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   // expressed as a negative long
   private boolean signedLongs = false;
 
-  private BitmapDataProviderSupplier supplier;
+  private transient BitmapDataProviderSupplier supplier;
 
   // By default, we cache cardinalities
   private transient boolean doCacheCardinalities = true;
@@ -1473,5 +1473,25 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     }
 
     invalidateAboveHigh(high);
+  }
+
+  private void assertNonEmpty() {
+    if(isEmpty()) {
+      throw new NoSuchElementException("Empty " + this.getClass().getSimpleName());
+    }
+  }
+
+  @Override
+  public long first() {
+    assertNonEmpty();
+    Map.Entry<Integer, BitmapDataProvider> firstEntry = highToBitmap.firstEntry();
+    return RoaringIntPacking.pack(firstEntry.getKey(), firstEntry.getValue().first());
+  }
+
+  @Override
+  public long last() {
+    assertNonEmpty();
+    Map.Entry<Integer, BitmapDataProvider> lastEntry = highToBitmap.lastEntry();
+    return RoaringIntPacking.pack(lastEntry.getKey(), lastEntry.getValue().last());
   }
 }

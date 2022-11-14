@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 
 import org.roaringbitmap.*;
@@ -125,6 +126,28 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
   private long throwSelectInvalidIndex(long j) {
     throw new IllegalArgumentException(
         "select " + j + " when the cardinality is " + this.getLongCardinality());
+  }
+
+  /**
+   * Get the first (smallest) integer in this RoaringBitmap,
+   * that is, returns the minimum of the set.
+   * @return the first (smallest) integer
+   * @throws NoSuchElementException if empty
+   */
+  @Override
+  public long first() {
+    return highLowContainer.first();
+  }
+
+  /**
+   * Get the last (largest) integer in this RoaringBitmap,
+   * that is, returns the maximum of the set.
+   * @return the last (largest) integer
+   * @throws NoSuchElementException if empty
+   */
+  @Override
+  public long last() {
+    return highLowContainer.last();
   }
 
   /**
