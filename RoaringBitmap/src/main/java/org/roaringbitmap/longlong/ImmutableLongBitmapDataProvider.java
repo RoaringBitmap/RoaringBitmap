@@ -6,6 +6,7 @@ package org.roaringbitmap.longlong;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.NoSuchElementException;
 import java.util.PrimitiveIterator;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -141,6 +142,22 @@ public interface ImmutableLongBitmapDataProvider {
    * @return the value
    */
   public long select(long j);
+
+  /**
+   * Get the first (smallest) integer in this RoaringBitmap,
+   * that is, return the minimum of the set.
+   * @return the first (smallest) integer
+   * @throws NoSuchElementException if empty
+   */
+  long first();
+
+  /**
+   * Get the last (largest) integer in this RoaringBitmap,
+   * that is, return the maximum of the set.
+   * @return the last (largest) integer
+   * @throws NoSuchElementException if empty
+   */
+  long last();
 
   /**
    * Serialize this bitmap.
