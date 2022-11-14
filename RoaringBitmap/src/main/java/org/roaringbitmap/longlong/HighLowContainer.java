@@ -6,13 +6,10 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.NoSuchElementException;
+
 import org.roaringbitmap.Container;
-import org.roaringbitmap.art.Art;
-import org.roaringbitmap.art.ContainerIterator;
-import org.roaringbitmap.art.Containers;
-import org.roaringbitmap.art.KeyIterator;
-import org.roaringbitmap.art.LeafNodeIterator;
-import org.roaringbitmap.art.Node;
+import org.roaringbitmap.art.*;
 
 public class HighLowContainer {
 
@@ -109,6 +106,45 @@ public class HighLowContainer {
    */
   public boolean isEmpty() {
     return art.isEmpty();
+  }
+
+  private void assertNonEmpty() {
+    if(isEmpty()) {
+      throw new NoSuchElementException("Empty " + this.getClass().getSimpleName());
+    }
+  }
+
+  /**
+   * Gets the first value in the array
+   * @return the first value in the array
+   * @throws NoSuchElementException if empty
+   */
+  public long first() {
+    assertNonEmpty();
+
+    LeafNode firstNode = art.first();
+    long containerIdx = firstNode.getContainerIdx();
+    Container container = getContainer(containerIdx);
+    byte[] high = firstNode.getKeyBytes();
+    char low = (char) container.first();
+    return LongUtils.toLong(high, low);
+  }
+
+
+  /**
+   * Gets the last value in the array
+   * @return the last value in the array
+   * @throws NoSuchElementException if empty
+   */
+  public long last() {
+    assertNonEmpty();
+
+    LeafNode lastNode = art.last();
+    long containerIdx = lastNode.getContainerIdx();
+    Container container = getContainer(containerIdx);
+    byte[] high = lastNode.getKeyBytes();
+    char low = (char) container.last();
+    return LongUtils.toLong(high, low);
   }
 
   /**
