@@ -110,7 +110,18 @@ public class HighLowContainer {
 
   private void assertNonEmpty() {
     if(isEmpty()) {
-      throw new NoSuchElementException("Empty HighLowContainer");
+      throw new NoSuchElementException("Empty " + this.getClass().getSimpleName());
+    }
+  }
+
+  private LeafNode getExtremeNode(Node root, boolean reverse) {
+    Node parent = root;
+    while (true) {
+      if (parent instanceof LeafNode) {
+        return (LeafNode) parent;
+      } else {
+        parent = parent.getChild(reverse ? parent.getMaxPos() : parent.getMinPos());
+      }
     }
   }
 
@@ -122,13 +133,14 @@ public class HighLowContainer {
   public long first() {
     assertNonEmpty();
 
-    LeafNode firstNode = highKeyLeafNodeIterator(false).next();
+    LeafNode firstNode = getExtremeNode(art.getRoot(), false);
     long containerIdx = firstNode.getContainerIdx();
     Container container = getContainer(containerIdx);
     byte[] high = firstNode.getKeyBytes();
     char low = (char) container.first();
     return LongUtils.toLong(high, low);
   }
+
 
   /**
    * Gets the last value in the array
@@ -138,10 +150,10 @@ public class HighLowContainer {
   public long last() {
     assertNonEmpty();
 
-    LeafNode firstNode = highKeyLeafNodeIterator(true).next();
-    long containerIdx = firstNode.getContainerIdx();
+    LeafNode lastNode = getExtremeNode(art.getRoot(), true);
+    long containerIdx = lastNode.getContainerIdx();
     Container container = getContainer(containerIdx);
-    byte[] high = firstNode.getKeyBytes();
+    byte[] high = lastNode.getKeyBytes();
     char low = (char) container.last();
     return LongUtils.toLong(high, low);
   }
