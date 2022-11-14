@@ -1360,11 +1360,16 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   public long serializedSizeInBytes() {
     long nbBytes = 0L;
 
-    // .writeBoolean for signedLongs boolean
-    nbBytes += 1;
+    if (SERIALIZATION_MODE == SERIALIZATION_MODE_PORTABLE) {
+      // .writeLong for number of different high values
+      nbBytes += 8;
+    } else {
+      // .writeBoolean for signedLongs boolean
+      nbBytes += 1;
 
-    // .writeInt for number of different high values
-    nbBytes += 4;
+      // .writeInt for number of different high values
+      nbBytes += 4;
+    }
 
     for (Entry<Integer, BitmapDataProvider> entry : highToBitmap.entrySet()) {
       // .writeInt for high

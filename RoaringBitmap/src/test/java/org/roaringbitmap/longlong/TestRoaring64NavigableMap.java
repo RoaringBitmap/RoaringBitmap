@@ -1646,10 +1646,21 @@ public class TestRoaring64NavigableMap {
     }
   }
 
+  private void checkConsistencyWithResource(String resourceName, Roaring64NavigableMap bitmap) throws IOException {
+    byte[] reference = ByteStreams.toByteArray(TestAdversarialInputs.openInputstream(resourceName));
+
+    Assertions.assertEquals(reference.length, bitmap.serializedSizeInBytes());
+
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    bitmap.serialize(new DataOutputStream(baos));
+    Assertions.assertArrayEquals(reference, baos.toByteArray());
+  }
+
   @Test
   public void testSerialization_empty() throws IOException, ClassNotFoundException {
     // This example binary comes from https://github.com/RoaringBitmap/CRoaring/tree/master/tests/testdata
-    InputStream inputStream = TestAdversarialInputs.openInputstream("/testdata/64mapempty.bin");
+    String resourceName = "/testdata/64mapempty.bin";
+    InputStream inputStream = TestAdversarialInputs.openInputstream(resourceName);
 
     Roaring64NavigableMap bitmap = new Roaring64NavigableMap();
 
@@ -1660,19 +1671,14 @@ public class TestRoaring64NavigableMap {
     Assertions.assertEquals(0, bitmap.getLongCardinality());
     Assertions.assertEquals(0, bitmap.getHighToBitmap().size());
 
-    {
-      byte[] reference = ByteStreams.toByteArray(TestAdversarialInputs.openInputstream("/testdata/64mapempty.bin"));
-
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      bitmap.serialize(new DataOutputStream(baos));
-      Assertions.assertArrayEquals(reference, baos.toByteArray());
-    }
+    checkConsistencyWithResource(resourceName, bitmap);
   }
 
   @Test
   public void testSerialization_64map32bitvals() throws IOException, ClassNotFoundException {
     // This example binary comes from https://github.com/RoaringBitmap/CRoaring/tree/master/tests/testdata
-    InputStream inputStream = TestAdversarialInputs.openInputstream("/testdata/64map32bitvals.bin");
+    String resourceName = "/testdata/64map32bitvals.bin";
+    InputStream inputStream = TestAdversarialInputs.openInputstream(resourceName);
 
     Roaring64NavigableMap bitmap = new Roaring64NavigableMap();
 
@@ -1685,19 +1691,14 @@ public class TestRoaring64NavigableMap {
     Assertions.assertEquals(0, bitmap.select(0));
     Assertions.assertEquals(9, bitmap.select(9));
 
-    {
-      byte[] reference = ByteStreams.toByteArray(TestAdversarialInputs.openInputstream("/testdata/64map32bitvals.bin"));
-
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      bitmap.serialize(new DataOutputStream(baos));
-      Assertions.assertArrayEquals(reference, baos.toByteArray());
-    }
+    checkConsistencyWithResource(resourceName, bitmap);
   }
 
   @Test
   public void testSerialization_spreadvals() throws IOException, ClassNotFoundException {
     // This example binary comes from https://github.com/RoaringBitmap/CRoaring/tree/master/tests/testdata
-    InputStream inputStream = TestAdversarialInputs.openInputstream("/testdata/64mapspreadvals.bin");
+    String resourceName = "/testdata/64mapspreadvals.bin";
+    InputStream inputStream = TestAdversarialInputs.openInputstream(resourceName);
 
     Roaring64NavigableMap bitmap = new Roaring64NavigableMap();
 
@@ -1713,19 +1714,14 @@ public class TestRoaring64NavigableMap {
     Assertions.assertEquals((9L << 32) + 1L, bitmap.select(91));
     Assertions.assertEquals((9L << 32) + 9L, bitmap.select(99));
 
-    {
-      byte[] reference = ByteStreams.toByteArray(TestAdversarialInputs.openInputstream("/testdata/64mapspreadvals.bin"));
-
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      bitmap.serialize(new DataOutputStream(baos));
-      Assertions.assertArrayEquals(reference, baos.toByteArray());
-    }
+    checkConsistencyWithResource(resourceName, bitmap);
   }
 
   @Test
   public void testSerialization_highvals() throws IOException, ClassNotFoundException {
     // This example binary comes from https://github.com/RoaringBitmap/CRoaring/tree/master/tests/testdata
-    InputStream inputStream = TestAdversarialInputs.openInputstream("/testdata/64maphighvals.bin");
+    String resourceName = "/testdata/64maphighvals.bin";
+    InputStream inputStream = TestAdversarialInputs.openInputstream(resourceName);
 
     Roaring64NavigableMap bitmap = new Roaring64NavigableMap();
 
@@ -1742,12 +1738,6 @@ public class TestRoaring64NavigableMap {
     Assertions.assertEquals(((maxInt - 0L) << 32) + (maxInt - 9), bitmap.select(111));
     Assertions.assertEquals(((maxInt - 0L) << 32) + (maxInt - 0), bitmap.select(120));
 
-    {
-      byte[] reference = ByteStreams.toByteArray(TestAdversarialInputs.openInputstream("/testdata/64maphighvals.bin"));
-
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      bitmap.serialize(new DataOutputStream(baos));
-      Assertions.assertArrayEquals(reference, baos.toByteArray());
-    }
+    checkConsistencyWithResource(resourceName, bitmap);
   }
 }
