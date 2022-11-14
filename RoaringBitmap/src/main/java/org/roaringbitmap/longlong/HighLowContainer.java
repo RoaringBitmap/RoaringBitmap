@@ -114,17 +114,6 @@ public class HighLowContainer {
     }
   }
 
-  private LeafNode getExtremeNode(Node root, boolean reverse) {
-    Node parent = root;
-    while (true) {
-      if (parent instanceof LeafNode) {
-        return (LeafNode) parent;
-      } else {
-        parent = parent.getChild(reverse ? parent.getMaxPos() : parent.getMinPos());
-      }
-    }
-  }
-
   /**
    * Gets the first value in the array
    * @return the first value in the array
@@ -133,7 +122,7 @@ public class HighLowContainer {
   public long first() {
     assertNonEmpty();
 
-    LeafNode firstNode = getExtremeNode(art.getRoot(), false);
+    LeafNode firstNode = art.first();
     long containerIdx = firstNode.getContainerIdx();
     Container container = getContainer(containerIdx);
     byte[] high = firstNode.getKeyBytes();
@@ -150,7 +139,7 @@ public class HighLowContainer {
   public long last() {
     assertNonEmpty();
 
-    LeafNode lastNode = getExtremeNode(art.getRoot(), true);
+    LeafNode lastNode = art.last();
     long containerIdx = lastNode.getContainerIdx();
     Container container = getContainer(containerIdx);
     byte[] high = lastNode.getKeyBytes();

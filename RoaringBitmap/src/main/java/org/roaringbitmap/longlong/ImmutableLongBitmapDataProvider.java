@@ -145,7 +145,7 @@ public interface ImmutableLongBitmapDataProvider {
 
   /**
    * Get the first (smallest) integer in this RoaringBitmap,
-   * that is, returns the minimum of the set.
+   * that is, return the minimum of the set.
    * @return the first (smallest) integer
    * @throws NoSuchElementException if empty
    */
@@ -153,7 +153,7 @@ public interface ImmutableLongBitmapDataProvider {
 
   /**
    * Get the last (largest) integer in this RoaringBitmap,
-   * that is, returns the maximum of the set.
+   * that is, return the maximum of the set.
    * @return the last (largest) integer
    * @throws NoSuchElementException if empty
    */
