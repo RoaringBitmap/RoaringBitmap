@@ -37,7 +37,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   // negative long
   private boolean signedLongs = false;
 
-  private BitmapDataProviderSupplier supplier;
+  private transient BitmapDataProviderSupplier supplier;
 
   // By default, we cache cardinalities
   private transient boolean doCacheCardinalities = true;
