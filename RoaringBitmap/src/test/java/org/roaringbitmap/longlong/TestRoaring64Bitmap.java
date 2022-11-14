@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -32,7 +31,6 @@ import static org.roaringbitmap.ValidationRangeConsumer.Value.ABSENT;
 import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
 import org.roaringbitmap.art.LeafNode;
 import org.roaringbitmap.art.LeafNodeIterator;
-import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 public class TestRoaring64Bitmap {
 
@@ -2213,12 +2211,12 @@ public class TestRoaring64Bitmap {
 
   @Test
   public void testEmptyFirst() {
-    assertThrows(NoSuchElementException.class, () -> new MutableRoaringBitmap().first());
+    assertThrows(NoSuchElementException.class, () -> newDefaultCtor().first());
   }
 
   @Test
   public void testEmptyLast() {
-    assertThrows(NoSuchElementException.class, () -> new MutableRoaringBitmap().last());
+    assertThrows(NoSuchElementException.class, () -> newDefaultCtor().last());
   }
 
   @Test

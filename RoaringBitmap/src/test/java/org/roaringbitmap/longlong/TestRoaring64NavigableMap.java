@@ -1649,6 +1649,17 @@ public class TestRoaring64NavigableMap {
   }
 
   @Test
+  public void testEmptyFirst() {
+    assertThrows(NoSuchElementException.class, () -> newDefaultCtor().first());
+  }
+
+  @Test
+  public void testEmptyLast() {
+    assertThrows(NoSuchElementException.class, () -> newDefaultCtor().last());
+  }
+
+
+  @Test
   public void testFirstLast_32b() {
     Roaring64NavigableMap rb = newDefaultCtor();
 
