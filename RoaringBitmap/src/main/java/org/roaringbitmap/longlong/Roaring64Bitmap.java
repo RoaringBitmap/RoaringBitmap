@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 
 import org.roaringbitmap.*;
@@ -125,6 +126,28 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
   private long throwSelectInvalidIndex(long j) {
     throw new IllegalArgumentException(
         "select " + j + " when the cardinality is " + this.getLongCardinality());
+  }
+
+  /**
+   * Get the first (smallest) integer in this RoaringBitmap,
+   * that is, returns the minimum of the set.
+   * @return the first (smallest) integer
+   * @throws NoSuchElementException if empty
+   */
+  @Override
+  public long first() {
+    return highLowContainer.first();
+  }
+
+  /**
+   * Get the last (largest) integer in this RoaringBitmap,
+   * that is, returns the maximum of the set.
+   * @return the last (largest) integer
+   * @throws NoSuchElementException if empty
+   */
+  @Override
+  public long last() {
+    return highLowContainer.last();
   }
 
   /**
@@ -734,8 +757,20 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    *
    * @param rangeStart inclusive beginning of range
    * @param rangeEnd exclusive ending of range
+   * @deprecated as this may be confused with adding individual longs
    */
+  @Deprecated
   public void add(final long rangeStart, final long rangeEnd) {
+    addRange(rangeStart, rangeEnd);
+  }
+
+  /**
+   * Add to the current bitmap all longs in [rangeStart,rangeEnd).
+   *
+   * @param rangeStart inclusive beginning of range
+   * @param rangeEnd exclusive ending of range
+   */
+  public void addRange(final long rangeStart, final long rangeEnd) {
     if (rangeEnd == 0 || Long.compareUnsigned(rangeStart, rangeEnd) >= 0) {
       throw new IllegalArgumentException("Invalid range [" + rangeStart + "," + rangeEnd + ")");
     }
@@ -761,6 +796,10 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       } else {
         Container freshContainer = Container.rangeOfOnes(containerStart, containerLast + 1);
         highLowContainer.put(startHighKey, freshContainer);
+      }
+
+      if (LongUtils.isMaxHigh(startHighKey)) {
+        break;
       }
       //increase the high
       rangeStartVal = rangeStartVal + (containerLast - containerStart) + 1;

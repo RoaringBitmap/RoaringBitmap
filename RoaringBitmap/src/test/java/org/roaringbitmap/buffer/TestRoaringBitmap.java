@@ -6,6 +6,7 @@ package org.roaringbitmap.buffer;
 
 
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
@@ -3936,5 +3937,16 @@ public class TestRoaringBitmap {
     // see https://github.com/RoaringBitmap/RoaringBitmap/issues/564
     assertEquals(-1, ImmutableRoaringBitmap.bitmapOf(27399807).previousValue(403042));
     assertEquals(-1, ImmutableRoaringBitmap.bitmapOf().previousValue(403042));
+  }
+
+  @Test
+  public void testRangeExtremeEnd() {
+    RoaringBitmap x = new RoaringBitmap();
+    long rangeStart =  (1L << 32) - 2;
+    long rangeEnd = (1L << 32);
+    x.add(rangeStart, rangeEnd);
+
+    Assertions.assertEquals(2L, x.getLongCardinality());
+    Assertions.assertArrayEquals(new int[] {-2, -1}, x.toArray());
   }
 }

@@ -2,6 +2,7 @@ package org.roaringbitmap.longlong;
 
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
+import org.apache.commons.lang3.SerializationUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -9,6 +10,7 @@ import org.roaringbitmap.BitmapDataProvider;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.RoaringBitmapSupplier;
 import org.roaringbitmap.Util;
+import org.roaringbitmap.buffer.MutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmapSupplier;
 
 import java.io.*;
@@ -694,20 +696,15 @@ public class TestRoaring64NavigableMap {
     assertEquals(Long.MAX_VALUE, map.select(1));
   }
 
+  private Roaring64NavigableMap clone(Roaring64NavigableMap map) throws IOException, ClassNotFoundException {
+    return SerializationUtils.clone(map);
+  }
+
   @Test
   public void testSerialization_Empty() throws IOException, ClassNotFoundException {
     final Roaring64NavigableMap map = newDefaultCtor();
 
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-      oos.writeObject(map);
-    }
-
-    final Roaring64NavigableMap clone;
-    try (ObjectInputStream ois =
-        new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
-      clone = (Roaring64NavigableMap) ois.readObject();
-    }
+    final Roaring64NavigableMap clone = clone(map);
 
     // Check the test has not simply copied the ref
     assertNotSame(map, clone);
@@ -719,16 +716,7 @@ public class TestRoaring64NavigableMap {
     final Roaring64NavigableMap map = newDefaultCtor();
     map.addLong(123);
 
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-      oos.writeObject(map);
-    }
-
-    final Roaring64NavigableMap clone;
-    try (ObjectInputStream ois =
-        new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
-      clone = (Roaring64NavigableMap) ois.readObject();
-    }
+    final Roaring64NavigableMap clone = clone(map);
 
     // Check the test has not simply copied the ref
     assertNotSame(map, clone);
@@ -742,16 +730,7 @@ public class TestRoaring64NavigableMap {
     final Roaring64NavigableMap map = newUnsignedHeap();
     map.addLong(123);
 
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-      oos.writeObject(map);
-    }
-
-    final Roaring64NavigableMap clone;
-    try (ObjectInputStream ois =
-        new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
-      clone = (Roaring64NavigableMap) ois.readObject();
-    }
+    final Roaring64NavigableMap clone = clone(map);
 
     // Check the test has not simply copied the ref
     assertNotSame(map, clone);
@@ -767,16 +746,7 @@ public class TestRoaring64NavigableMap {
     map.addLong(123);
     map.addLong(Long.MAX_VALUE);
 
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-      oos.writeObject(map);
-    }
-
-    final Roaring64NavigableMap clone;
-    try (ObjectInputStream ois =
-        new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
-      clone = (Roaring64NavigableMap) ois.readObject();
-    }
+    final Roaring64NavigableMap clone = clone(map);
 
     // Check the test has not simply copied the ref
     assertNotSame(map, clone);
@@ -785,7 +755,7 @@ public class TestRoaring64NavigableMap {
     assertEquals(123, clone.select(1));
     assertEquals(Long.MAX_VALUE, clone.select(2));
   }
-  
+
   @Test
   public void testSerialization_MultipleBuckets_Unsigned() throws IOException, ClassNotFoundException {
     final Roaring64NavigableMap map = newUnsignedHeap();
@@ -793,16 +763,7 @@ public class TestRoaring64NavigableMap {
     map.addLong(123);
     map.addLong(Long.MAX_VALUE);
 
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-      oos.writeObject(map);
-    }
-
-    final Roaring64NavigableMap clone;
-    try (ObjectInputStream ois =
-        new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
-      clone = (Roaring64NavigableMap) ois.readObject();
-    }
+    final Roaring64NavigableMap clone = clone(map);
 
     // Check the test has not simply copied the ref
     assertNotSame(map, clone);
@@ -827,6 +788,18 @@ public class TestRoaring64NavigableMap {
     map.addLong(Long.MAX_VALUE);
 
     checkSerializeBytes(map);
+  }
+
+  @Test
+  public void testSupplierIsTransient_defaultIsImmutable() throws IOException, ClassNotFoundException, NoSuchFieldException {
+    Roaring64NavigableMap map = new Roaring64NavigableMap(new MutableRoaringBitmapSupplier());
+    map.add(0);
+
+    final Roaring64NavigableMap clone = clone(map);
+
+    // Demonstrate we fallback to RoaringBitmapSupplier as default
+    Assertions.assertTrue(map.getHighToBitmap().firstEntry().getValue() instanceof MutableRoaringBitmap);
+    Assertions.assertTrue(clone.getHighToBitmap().firstEntry().getValue() instanceof RoaringBitmap);
   }
 
   @Test
@@ -1531,7 +1504,7 @@ public class TestRoaring64NavigableMap {
     // Add values so that the underlying Map holds multiple entries
     map.add(0);
     map.add(2L * Integer.MAX_VALUE);
-    map.add(8L * Integer.MAX_VALUE, 8L * Integer.MAX_VALUE + 1024);
+    map.addRange(8L * Integer.MAX_VALUE, 8L * Integer.MAX_VALUE + 1024);
     
     assertEquals(3, map.getHighToBitmap().size());
 
@@ -1558,7 +1531,7 @@ public class TestRoaring64NavigableMap {
   public void testAnd_ImplicitRoaringBitmap() {
     // Based on RoaringBitmap
     Roaring64NavigableMap x = new Roaring64NavigableMap();
-    x.add(123, 124);
+    x.addRange(123, 124);
     Assertions.assertTrue(x.getHighToBitmap().values().iterator().next() instanceof RoaringBitmap);
 
     // Based on MutableRoaringBitmap
@@ -1578,11 +1551,11 @@ public class TestRoaring64NavigableMap {
   public void testAnd_MutableRoaringBitmap() {
     // Based on RoaringBitmap
     Roaring64NavigableMap x = new Roaring64NavigableMap(new MutableRoaringBitmapSupplier());
-    x.add(0, 16);
+    x.addRange(0, 16);
 
     // Based on MutableRoaringBitmap
     Roaring64NavigableMap y = new Roaring64NavigableMap(new MutableRoaringBitmapSupplier());
-    y.add(8, 32);
+    y.addRange(8, 32);
 
     Assertions.assertEquals(16L, x.getLongCardinality());
     x.and(y);
@@ -1593,11 +1566,11 @@ public class TestRoaring64NavigableMap {
   public void testAnd_IncompatibleImplementations() {
     // Based on RoaringBitmap
     Roaring64NavigableMap x = new Roaring64NavigableMap(new RoaringBitmapSupplier());
-    x.add(0, 16);
+    x.addRange(0, 16);
 
     // Based on MutableRoaringBitmap
     Roaring64NavigableMap y = new Roaring64NavigableMap(new MutableRoaringBitmapSupplier());
-    y.add(8, 32);
+    y.addRange(8, 32);
 
     Assertions.assertThrows(UnsupportedOperationException.class, () -> x.and(y));
   }
@@ -1627,7 +1600,7 @@ public class TestRoaring64NavigableMap {
   public void testOr_ImplicitRoaringBitmap() {
     // Based on RoaringBitmap
     Roaring64NavigableMap x = new Roaring64NavigableMap();
-    x.add(123, 124);
+    x.addRange(123, 124);
 
     // Based on MutableRoaringBitmap
     Roaring64NavigableMap y = Roaring64NavigableMap.bitmapOf(4L);
@@ -1660,4 +1633,130 @@ public class TestRoaring64NavigableMap {
     }
   }
 
+  @Test
+  public void testAddExtremes() {
+    // Based on RoaringBitmap
+    Roaring64NavigableMap x = newDefaultCtor();
+    x.addLong(0L);
+    x.addLong(Long.MAX_VALUE);
+    x.addLong(-1L);
+
+    Assertions.assertEquals(3L, x.getLongCardinality());
+    Assertions.assertArrayEquals(new long[] {0, Long.MAX_VALUE, -1L}, x.toArray());
+  }
+
+  @Test
+  public void testAddExtremes_signed() {
+    Roaring64NavigableMap x = newSignedBuffered();
+    x.addLong(0L);
+    x.addLong(Long.MAX_VALUE);
+    x.addLong(-1L);
+
+    Assertions.assertEquals(3L, x.getLongCardinality());
+    Assertions.assertArrayEquals(new long[] {-1L, 0, Long.MAX_VALUE}, x.toArray());
+  }
+
+  @Test
+  public void testRangeExtremeEnd() {
+    Roaring64NavigableMap x = newDefaultCtor();
+    x.addRange(-3L, -1L);
+
+    Assertions.assertEquals(2L, x.getLongCardinality());
+    Assertions.assertArrayEquals(new long[] {-3L, -2L}, x.toArray());
+  }
+
+  @Test
+  public void testRangeExtremeEnd_signed() {
+    Roaring64NavigableMap x = newSignedBuffered();
+    x.addRange(-3L, -1L);
+
+    Assertions.assertEquals(2L, x.getLongCardinality());
+    Assertions.assertArrayEquals(new long[] {-3L, -2L}, x.toArray());
+  }
+
+  @Test
+  public void testRangeAroundIntegerMax() {
+    Roaring64NavigableMap x = newDefaultCtor();
+    x.addRange(Integer.MAX_VALUE - 1L, Integer.MAX_VALUE + 3L);
+
+    Assertions.assertEquals(4L, x.getLongCardinality());
+    Assertions.assertEquals(1L, x.getHighToBitmap().size());
+    Assertions.assertArrayEquals(new long[] {Integer.MAX_VALUE - 1L, Integer.MAX_VALUE, Integer.MAX_VALUE + 1L, Integer.MAX_VALUE + 2L}, x.toArray());
+  }
+
+  @Test
+  public void testRangeAround2TimesIntegerMax() {
+    Roaring64NavigableMap x = newDefaultCtor();
+    long rangeStart = 2L * Integer.MAX_VALUE;
+    x.addRange(rangeStart, rangeStart + 4L);
+
+    Assertions.assertEquals(4L, x.getLongCardinality());
+    Assertions.assertEquals(2L, x.getHighToBitmap().size());
+    Assertions.assertArrayEquals(new long[] {rangeStart, rangeStart+1L, rangeStart+2L, rangeStart+3L}, x.toArray());
+  }
+
+  @Test
+  public void testRangeAroundLongMax() {
+    Roaring64NavigableMap x = newDefaultCtor();
+    x.addRange(Long.MAX_VALUE - 1L, Long.MAX_VALUE + 3L);
+
+    Assertions.assertEquals(4L, x.getLongCardinality());
+    Assertions.assertArrayEquals(new long[] {Long.MAX_VALUE - 1L, Long.MAX_VALUE, Long.MIN_VALUE, Long.MIN_VALUE + 1L}, x.toArray());
+  }
+
+  @Test()
+  public void testRangeAroundLongMax_signed() {
+    Roaring64NavigableMap x = newSignedBuffered();
+
+    Assertions.assertThrows(IllegalArgumentException.class, () -> {
+        x.addRange(Long.MAX_VALUE - 1L, Long.MAX_VALUE + 3L);
+    });
+  }
+
+  @Test
+  public void testEmptyFirst() {
+    assertThrows(NoSuchElementException.class, () -> newDefaultCtor().first());
+  }
+
+  @Test
+  public void testEmptyLast() {
+    assertThrows(NoSuchElementException.class, () -> newDefaultCtor().last());
+  }
+
+
+  @Test
+  public void testFirstLast_32b() {
+    Roaring64NavigableMap rb = newDefaultCtor();
+
+    rb.add(2);
+    rb.add(4);
+    rb.add(8);
+    assertEquals(2, rb.first());
+    assertEquals(8, rb.last());
+  }
+
+  @Test
+  public void testFirstLast_64b() {
+    Roaring64NavigableMap rb = newDefaultCtor();
+
+    rb.add(-128);
+    rb.add(-64);
+    rb.add(-32);
+    assertEquals(-128, rb.first());
+    assertEquals(-32, rb.last());
+  }
+
+  @Test
+  public void testFirstLast_32_64b() {
+    Roaring64NavigableMap rb = newDefaultCtor();
+
+    rb.add(2);
+    rb.add(4);
+    rb.add(8);
+    rb.add(-128);
+    rb.add(-64);
+    rb.add(-32);
+    assertEquals(2, rb.first());
+    assertEquals(-32, rb.last());
+  }
 }

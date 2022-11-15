@@ -5,13 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import org.apache.commons.lang3.SerializationUtils;
-import org.junit.jupiter.api.function.Executable;
 import static org.roaringbitmap.Util.toUnsignedLong;
 
 import com.google.common.primitives.Ints;
@@ -21,8 +19,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.*;
@@ -40,6 +36,19 @@ public class TestRoaring64Bitmap {
 
   private Roaring64Bitmap newDefaultCtor() {
     return new Roaring64Bitmap();
+  }
+
+  private Set<Long> getSourceForAllKindsOfNodeTypes() {
+    Random random = new Random(1234);
+    Set<Long> source = new HashSet<>();
+    int total = 10000;
+    for (int i = 0; i < total; i++) {
+      while (!source.add(random.nextLong())) {
+        // Retry adding a different long which is not in the Set
+      }
+    }
+    Assertions.assertEquals(total, source.size());
+    return source;
   }
 
   @Test
@@ -76,15 +85,11 @@ public class TestRoaring64Bitmap {
 
   @Test
   public void testAllKindOfNodeTypesSerDeser() throws Exception {
-    Random random = new Random(1234);
+    Set<Long> source = getSourceForAllKindsOfNodeTypes();
+
     Roaring64Bitmap roaring64Bitmap = new Roaring64Bitmap();
-    Set<Long> source = new HashSet<>();
-    int total = 10000;
-    for (int i = 0; i < total; i++) {
-      long l = random.nextLong();
-      roaring64Bitmap.addLong(l);
-      source.add(l);
-    }
+    source.forEach(roaring64Bitmap::addLong);
+
     LongIterator longIterator = roaring64Bitmap.getLongIterator();
     int i = 0;
     while (longIterator.hasNext()) {
@@ -92,7 +97,7 @@ public class TestRoaring64Bitmap {
       Assertions.assertTrue(source.contains(actual));
       i++;
     }
-    Assertions.assertEquals(total, i);
+    Assertions.assertEquals(source.size(), i);
     //test all kind of nodes's serialization/deserialization
     long sizeL = roaring64Bitmap.serializedSizeInBytes();
     if (sizeL > Integer.MAX_VALUE) {
@@ -2169,15 +2174,90 @@ public class TestRoaring64Bitmap {
         count++;
     }
     assertEquals(count, 7);
+  }
 
+  @Test
+  public void testAddExtremes() {
+    Roaring64Bitmap x = new Roaring64Bitmap();
+    x.addLong(0L);
+    x.addLong(Long.MAX_VALUE);
+    x.addLong(-1L);
+
+    Assertions.assertEquals(3L, x.getLongCardinality());
+    Assertions.assertArrayEquals(x.toArray(), new long[] {0, Long.MAX_VALUE, -1L});
+  }
+
+  @Test
+  public void testRangeAroundLongMax() {
+    Roaring64Bitmap x = new Roaring64Bitmap();
+    x.addRange(Long.MAX_VALUE - 1L, Long.MAX_VALUE + 3L);
+
+    Assertions.assertEquals(4L, x.getLongCardinality());
+    Assertions.assertArrayEquals(x.toArray(), new long[] {Long.MAX_VALUE - 1L, Long.MAX_VALUE, Long.MIN_VALUE, Long.MIN_VALUE + 1L});
   }
 
   @Test
   public void testRangeExtremeEnd() {
     Roaring64Bitmap x = newDefaultCtor();
-    x.add(-3L, -1L);
+    x.addRange(-3L, -1L);
 
     Assertions.assertEquals(2L, x.getLongCardinality());
-    Assertions.assertArrayEquals(x.toArray(), new long[] {-3L, -2L});
+    Assertions.assertArrayEquals(new long[] {-3L, -2L}, x.toArray());
+  }
+
+  @Test
+  public void testEmptyFirst() {
+    assertThrows(NoSuchElementException.class, () -> newDefaultCtor().first());
+  }
+
+  @Test
+  public void testEmptyLast() {
+    assertThrows(NoSuchElementException.class, () -> newDefaultCtor().last());
+  }
+
+  @Test
+  public void testFirstLast_32b() {
+    Roaring64Bitmap rb = newDefaultCtor();
+
+    rb.add(2);
+    rb.add(4);
+    rb.add(8);
+    assertEquals(2, rb.first());
+    assertEquals(8, rb.last());
+  }
+
+  @Test
+  public void testFirstLast_64b() {
+    Roaring64Bitmap rb = newDefaultCtor();
+
+    rb.add(-128);
+    rb.add(-64);
+    rb.add(-32);
+    assertEquals(-128, rb.first());
+    assertEquals(-32, rb.last());
+  }
+
+  @Test
+  public void testFirstLast_32_64b() {
+    Roaring64Bitmap rb = newDefaultCtor();
+
+    rb.add(2);
+    rb.add(4);
+    rb.add(8);
+    rb.add(-128);
+    rb.add(-64);
+    rb.add(-32);
+    assertEquals(2, rb.first());
+    assertEquals(-32, rb.last());
+  }
+
+  @Test
+  public void testFirstLast_AllKindsOfNodeTypes() {
+    Roaring64Bitmap rb = newDefaultCtor();
+    Set<Long> source = getSourceForAllKindsOfNodeTypes();
+    source.forEach(rb::addLong);
+
+    assertEquals(source.stream().min((l,r) -> Long.compareUnsigned(l, r)).get(), rb.first());
+    assertEquals(source.stream().max((l,r) -> Long.compareUnsigned(l, r)).get(), rb.last());
   }
 }

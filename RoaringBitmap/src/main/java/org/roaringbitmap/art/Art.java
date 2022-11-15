@@ -278,6 +278,28 @@ public class Art {
     return root;
   }
 
+
+  private LeafNode getExtremeLeaf(boolean reverse) {
+    Node parent = getRoot();
+    for (int depth = 0 ; depth < AbstractShuttle.MAX_DEPTH ; depth++) {
+      if (parent.nodeType == NodeType.LEAF_NODE) {
+        break;
+      }
+
+      int childIndex = reverse ? parent.getMaxPos() : parent.getMinPos();
+      parent = parent.getChild(childIndex);
+    }
+    return (LeafNode) parent;
+  }
+
+  public LeafNode first() {
+    return getExtremeLeaf(false);
+  }
+
+  public LeafNode last() {
+    return getExtremeLeaf(true);
+  }
+
   public void serializeArt(DataOutput dataOutput) throws IOException {
     dataOutput.writeLong(Long.reverseBytes(keySize));
     serialize(root, dataOutput);
