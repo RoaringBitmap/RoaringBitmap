@@ -34,7 +34,9 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   // then the lowParts as standard RoaringBitmaps format
   public static final int SERIALIZATION_MODE_LEGACY = 0;
 
-  // The format of Roaring64NavigableMap in CRoaring
+  // The format of Roaring64NavigableMap as defined in
+  // https://github.com/RoaringBitmap/RoaringFormatSpec#extention-for-64-bit-implementations
+  // It is compatible with CRoaring and GoRoaring
   // https://github.com/RoaringBitmap/CRoaring/blob/master/cpp/roaring64map.hh#L959
   // https://github.com/RoaringBitmap/CRoaring/blob/master/cpp/roaring64map.hh#L991
   // https://github.com/RoaringBitmap/CRoaring/commit/efcb83dcdf332f02cde058a48574f5b7b14f73fb
@@ -1190,8 +1192,9 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   /**
    * Serialize this bitmap.
    *
-   * Unlike RoaringBitmap, there is no specification for now: it may change from onve java version
-   * to another, and from one RoaringBitmap version to another.
+   * If SERIALIZATION_MODE is set to SERIALIZATION_MODE_PORTABLE, this will rely on the specification at
+   * https://github.com/RoaringBitmap/RoaringFormatSpec#extention-for-64-bit-implementations.
+   * As of 0.x, this is **not** the default behavior.
    *
    * Consider calling {@link #runOptimize} before serialization to improve compression.
    *
@@ -1237,7 +1240,9 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   /**
    * Serialize this bitmap.
    *
-   * The format is the same as CRoaring (and GoRoaring?).
+   * If SERIALIZATION_MODE is set to SERIALIZATION_MODE_PORTABLE, this will rely on the specification at
+   * https://github.com/RoaringBitmap/RoaringFormatSpec#extention-for-64-bit-implementations.
+   * As of 0.x, this is **not** the default behavior.
    *
    * Consider calling {@link #runOptimize} before serialization to improve compression.
    *
@@ -1257,9 +1262,9 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
   /**
    * Deserialize (retrieve) this bitmap.
-   * 
-   * Unlike RoaringBitmap, there is no specification for now: it may change from one java version to
-   * another, and from one RoaringBitmap version to another.
+   *
+   * If SERIALIZATION_MODE is set to SERIALIZATION_MODE_PORTABLE, this will rely on the specification at
+   * SERIALIZATION_MODE_PORTABLE. As of 0.x, this is **not** the default behavior.
    *
    * The current bitmap is overwritten.
    *
@@ -1319,7 +1324,8 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   /**
    * Deserialize (retrieve) this bitmap.
    *
-   * The format is the same as CRoaring (and GoRoaring?).
+   * The format is specified at https://github.com/RoaringBitmap/RoaringFormatSpec#extention-for-64-bit-implementations.
+   * it is the same as CRoaring (and GoRoaring).
    *
    * The current bitmap is overwritten.
    *
