@@ -187,9 +187,9 @@ public interface ImmutableLongBitmapDataProvider {
 
     /**
    * An internal class to help provide streams.
-   * Sad but true the interface of IntIterator and PrimitiveIterator.OfInt
-   * Does not match. Otherwise it would be easier to just make IntIterator 
-   * implement PrimitiveIterator.OfInt. 
+   * Sad but true the interface of LongIterator and PrimitiveIterator.OfLong
+   * Does not match. Otherwise it would be easier to just make LongIterator
+   * implement PrimitiveIterator.OfLong.
    */
   final class RoaringOfLong implements PrimitiveIterator.OfLong {
     private final LongIterator iterator;
