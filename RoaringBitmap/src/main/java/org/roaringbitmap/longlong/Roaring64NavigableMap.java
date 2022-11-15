@@ -1192,7 +1192,8 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   /**
    * Serialize this bitmap.
    *
-   * If SERIALIZATION_MODE is set to SERIALIZATION_MODE_PORTABLE, this will rely on the specification at
+   * If SERIALIZATION_MODE is set to SERIALIZATION_MODE_PORTABLE, this will rely on the
+   * specification at
    * https://github.com/RoaringBitmap/RoaringFormatSpec#extention-for-64-bit-implementations.
    * As of 0.x, this is **not** the default behavior.
    *
@@ -1240,9 +1241,9 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   /**
    * Serialize this bitmap.
    *
-   * If SERIALIZATION_MODE is set to SERIALIZATION_MODE_PORTABLE, this will rely on the specification at
+   * The format is specified at
    * https://github.com/RoaringBitmap/RoaringFormatSpec#extention-for-64-bit-implementations.
-   * As of 0.x, this is **not** the default behavior.
+   * It is the compatible with CRoaring (and GoRoaring).
    *
    * Consider calling {@link #runOptimize} before serialization to improve compression.
    *
@@ -1263,8 +1264,10 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   /**
    * Deserialize (retrieve) this bitmap.
    *
-   * If SERIALIZATION_MODE is set to SERIALIZATION_MODE_PORTABLE, this will rely on the specification at
-   * SERIALIZATION_MODE_PORTABLE. As of 0.x, this is **not** the default behavior.
+   * If SERIALIZATION_MODE is set to SERIALIZATION_MODE_PORTABLE, this will rely on the
+   * specification at
+   * https://github.com/RoaringBitmap/RoaringFormatSpec#extention-for-64-bit-implementations.
+   * As of 0.x, this is **not** the default behavior.
    *
    * The current bitmap is overwritten.
    *
@@ -1324,8 +1327,9 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   /**
    * Deserialize (retrieve) this bitmap.
    *
-   * The format is specified at https://github.com/RoaringBitmap/RoaringFormatSpec#extention-for-64-bit-implementations.
-   * it is the same as CRoaring (and GoRoaring).
+   * The format is specified at
+   * https://github.com/RoaringBitmap/RoaringFormatSpec#extention-for-64-bit-implementations.
+   * It is the compatible with CRoaring (and GoRoaring).
    *
    * The current bitmap is overwritten.
    *
