@@ -47,7 +47,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   public static final int SERIALIZATION_MODE_PORTABLE = 1;
 
   // As of RoaringBitmap 0.X, we stick to the legacy format for retrocompatibility
-  // RoaringBitmap 1.X shall switch to the portable format by default
+  // RoaringBitmap 1.X may switch to the portable format by default
   public static int SERIALIZATION_MODE = SERIALIZATION_MODE_LEGACY;
 
   // Not final to enable initialization in Externalizable.readObject
