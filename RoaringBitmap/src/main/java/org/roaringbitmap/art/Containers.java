@@ -27,10 +27,6 @@ public class Containers {
   private static final int MAX_JVM_ARRAY_OFFSET = MAX_JVM_ARRAY_LENGTH - 1;
   private static final byte NULL_MARK = 0;
   private static final byte NOT_NULL_MARK = 1;
-  //TODO: when the containerArrays is dense enough we hold the remained not null
-  //containerIdx in this dense bitmap,and shrink the real containerArrays to hold
-  //all the not null containers.
-  private List<RoaringBitmap> denseContainerIdxList;
   private static final byte TRIMMED_MARK = -1;
   private static final byte NOT_TRIMMED_MARK = -2;
 

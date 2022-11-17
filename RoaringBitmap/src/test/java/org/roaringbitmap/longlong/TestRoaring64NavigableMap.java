@@ -63,6 +63,15 @@ public class TestRoaring64NavigableMap {
         Arrays.copyOf(bitmap.getSortedCumulatedCardinality(), expectedCardinalities.length));
   }
 
+  public static void checkSerializeBytes(ImmutableLongBitmapDataProvider bitmap) throws IOException {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (DataOutputStream oos = new DataOutputStream(baos)) {
+      bitmap.serialize(oos);
+    }
+
+    assertEquals(baos.toByteArray().length, bitmap.serializedSizeInBytes());
+  }
+
   @Test
   public void testHelperCtor() {
     // RoaringIntPacking is not supposed to be instantiated. Add test for coverage
@@ -763,17 +772,20 @@ public class TestRoaring64NavigableMap {
   }
 
   @Test
-  public void testSerializationSizeInBytes() throws IOException, ClassNotFoundException {
+  public void testSerializationSizeInBytes_singleBucket() throws IOException, ClassNotFoundException {
     final Roaring64NavigableMap map = newDefaultCtor();
     map.addLong(123);
-    // map.addLong(Long.MAX_VALUE);
 
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (DataOutputStream oos = new DataOutputStream(baos)) {
-      map.serialize(oos);
-    }
+    checkSerializeBytes(map);
+  }
 
-    assertEquals(baos.toByteArray().length, map.serializedSizeInBytes());
+  @Test
+  public void testSerializationSizeInBytes_multipleBuckets() throws IOException, ClassNotFoundException {
+    final Roaring64NavigableMap map = newDefaultCtor();
+    map.addLong(123);
+    map.addLong(Long.MAX_VALUE);
+
+    checkSerializeBytes(map);
   }
 
   @Test
