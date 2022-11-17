@@ -314,12 +314,12 @@ public class RoaringSerializer extends Serializer<RoaringBitmap> {
 Though Roaring Bitmaps were designed with the 32-bit case in mind, we have extensions to 64-bit integers.
 We offer two classes for this purpose: `Roaring64NavigableMap` and `Roaring64Bitmap`.
 
-The  `Roaring64NavigableMap` relies on a conventional red-black-tree. The keys are 32-bit integers representing
+The `Roaring64NavigableMap` relies on a conventional red-black-tree. The keys are 32-bit integers representing
 the most significant 32~bits of  elements
 whereas the values of the tree are 32-bit Roaring bitmaps. The 32-bit Roaring bitmaps represent the least significant
 bits of a set of elements.
 
- The newer `Roaring64Bitmap` approach relies on the ART data structure to hold the key/value pair. The key 
+The newer `Roaring64Bitmap` approach relies on the ART data structure to hold the key/value pair. The key 
  is made of the most significant 48~bits of elements whereas the values are 16-bit Roaring containers. It is inspired by
  [The Adaptive Radix Tree: ARTful Indexing for Main-Memory Databases](https://db.in.tum.de/~leis/papers/ART.pdf) by Leis et al. (ICDE '13).
 
@@ -348,6 +348,13 @@ bits of a set of elements.
     }
     b1.and(bitmap2);
 ```
+
+The serialization of 64-bit Roaring bitmaps is specified: see
+https://github.com/RoaringBitmap/RoaringFormatSpec#extention-for-64-bit-implementations
+
+However, it is implemented only by `Roaring64NavigableMap`, by switching:
+
+    Roaring64NavigableMap.SERIALIZATION_MODE = Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE
 
 Range Bitmaps
 -------------
