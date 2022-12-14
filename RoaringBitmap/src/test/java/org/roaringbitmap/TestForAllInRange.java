@@ -16,10 +16,6 @@ import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
 
 public class TestForAllInRange {
 
-  static int POS_NEG_BOUNDARY = Integer.MAX_VALUE;
-  static int CONTAINER_BOUNDARY = BitmapContainer.MAX_CAPACITY;
-  static int CONTAINER_BOUNDARY_MINUS_FIVE = CONTAINER_BOUNDARY - 5;
-
   private int uAdd(int l, int r) {
     UnsignedInteger result = UnsignedInteger.fromIntBits(l).plus(UnsignedInteger.fromIntBits(r));
     return result.intValue();
