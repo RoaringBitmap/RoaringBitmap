@@ -1923,70 +1923,92 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   /**
    * Consume presence information for all values in the range [start, start + length).
    *
-   * @param start Lower bound of values to consume.
+   * @param uStart Lower bound of values to consume.
    * @param length Maximum number of values to consume.
    * @param rrc Code to be executed for each present or absent value.
    */
-  public void forAllInRange(int start, int length, final RelativeRangeConsumer rrc) {
-    final char startHigh = Util.highbits(start);
-    final int end = start + length;
-    final char endHigh =  Util.highbits(start + length);
+  public void forAllInRange(int uStart, int length, final RelativeRangeConsumer rrc) {
+    final char startHigh = Util.highbits(uStart);
+    final int uEnd = uStart + length;
+    final char endHigh =  Util.highbits(uEnd);
     int startIndex = highLowContainer.getContainerIndex(startHigh);
     startIndex = startIndex < 0 ? -startIndex - 1 : startIndex;
 
-    int filledUntil = start;
+    int uFilledUntil = uStart;
     for (int containerIndex = startIndex;
          containerIndex < highLowContainer.size();
          containerIndex++) {
-      char containerKey = highLowContainer.getKeyAtIndex(containerIndex);
-      int containerStart = containerKey << 16;
-      int containerEnd = containerStart + BitmapContainer.MAX_CAPACITY;
+      final char containerKey = highLowContainer.getKeyAtIndex(containerIndex);
+      final int uContainerStart = containerKey << 16;
+      final int uContainerEnd = uContainerStart + BitmapContainer.MAX_CAPACITY;
       if (endHigh < containerKey) {
-        if (filledUntil < containerKey) {
-          // fill missing values until end
-          rrc.acceptAllAbsent(filledUntil - start, length);
+        if (Integer.compareUnsigned(uFilledUntil, uContainerStart) < 0) {
+          // Fill missing values until end.
+          final int fillFromRelative = uFilledUntil - uStart;
+          // This should always result in a non-negative number, since unsigned
+          // `uFilledUntil >= uStart`.
+          assert(fillFromRelative >= 0);
+          rrc.acceptAllAbsent(fillFromRelative, length);
         }
         return;
       }
-      // fill missing values until start of container
-      if (filledUntil < containerStart) {
-        rrc.acceptAllAbsent(filledUntil - start, containerStart - start);
-        filledUntil = containerStart;
+      // Fill missing values until start of container.
+      if (Integer.compareUnsigned(uFilledUntil, uContainerStart) < 0) {
+        final int fillFromRelative = uFilledUntil - uStart;
+        final int fillToRelative = uContainerStart - uStart;
+        // These should always result in a non-negative number, since unsigned
+        // `uFilledUntil >= uStart`.
+        assert(fillFromRelative >= 0);
+        assert(fillToRelative >= 0);
+        rrc.acceptAllAbsent(fillFromRelative, fillToRelative);
+        uFilledUntil = uContainerStart;
       }
       // Inspect Container
       Container container = highLowContainer.getContainerAtIndex(containerIndex);
-      int containerRangeStartOffset = filledUntil - start;
+      final int containerRangeStartOffset = uFilledUntil - uStart;
+      // These should always result in a non-negative number, since unsigned
+      // `uFilledUntil >= uStart`.
+      assert(containerRangeStartOffset >= 0);
 
-      boolean startInContainer = containerStart < start;
-      boolean endInContainer = end < containerEnd;
+      final boolean startInContainer = Integer.compareUnsigned(uContainerStart, uStart) < 0;
+      final boolean endInContainer = Integer.compareUnsigned(uEnd, uContainerEnd) < 0;
 
       if (startInContainer && endInContainer) {
-        // Only part of the container is in range
-        char containerRangeStart = LongUtils.lowPart(start);
-        char containerRangeEnd = LongUtils.lowPart(end);
+        // Only the range is entirely within this container.
+        final char containerRangeStart = LongUtils.lowPart(uStart);
+        final char containerRangeEnd = LongUtils.lowPart(uEnd);
         container.forAllInRange(
-            LongUtils.lowPart(start),
-            LongUtils.lowPart(end),
+            containerRangeStart,
+            containerRangeEnd,
             rrc);
-        filledUntil += containerRangeEnd - containerRangeStart;
+        return;
       } else if (startInContainer) {//  && !endInContainer
-        // range begins within the container
-        char containerRangeStart = LongUtils.lowPart(start);
+        // Range begins within the container.
+        final char containerRangeStart = LongUtils.lowPart(uStart);
         container.forAllFrom(containerRangeStart, rrc);
-        filledUntil += BitmapContainer.MAX_CAPACITY - containerRangeStart;
+        final int numValuesAdded = BitmapContainer.MAX_CAPACITY - (int) containerRangeStart;
+        // Must be non-negative, since both are basically char-sized values.
+        assert(numValuesAdded >= 0);
+        uFilledUntil += numValuesAdded;
       } else if (endInContainer) {// && !startInContainer
-        // range end within the container
-        char containerRangeEnd = LongUtils.lowPart(end);
+        // Range ends within the container.
+        final char containerRangeEnd = LongUtils.lowPart(uEnd);
         container.forAllUntil(containerRangeStartOffset, containerRangeEnd, rrc);
-        filledUntil += containerRangeEnd;
+        uFilledUntil += (int) containerRangeEnd;
       } else {
+        // The entire container is within range.
         container.forAll(containerRangeStartOffset, rrc);
-        filledUntil += BitmapContainer.MAX_CAPACITY;
+        uFilledUntil += BitmapContainer.MAX_CAPACITY;
       }
     }
-    // no more containers, but there may be missing values in between
-    if (filledUntil < end) {
-      rrc.acceptAllAbsent(filledUntil - start, length);
+    // No more containers, but there may be missing values in between.
+    if (Integer.compareUnsigned(uFilledUntil, uEnd) < 0) {
+      final int fillFromRelative = uFilledUntil - uStart;
+      final int fillToRelative = length;
+      // These should always result in a non-negative number, since unsigned
+      // `uFilledUntil >= uStart`.
+      assert(fillFromRelative >= 0);
+      rrc.acceptAllAbsent(fillFromRelative, fillToRelative);
     }
   }
 
