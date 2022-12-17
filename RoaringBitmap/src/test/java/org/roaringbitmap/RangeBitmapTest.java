@@ -9,16 +9,29 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
+import java.util.SplittableRandom;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.*;
+import java.util.function.Consumer;
+import java.util.function.DoubleToLongFunction;
+import java.util.function.IntFunction;
+import java.util.function.LongSupplier;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.roaringbitmap.RangeBitmapTest.Distribution.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.roaringbitmap.RangeBitmapTest.Distribution.EXP;
+import static org.roaringbitmap.RangeBitmapTest.Distribution.NORMAL;
+import static org.roaringbitmap.RangeBitmapTest.Distribution.POINT;
+import static org.roaringbitmap.RangeBitmapTest.Distribution.UNIFORM;
 
 @Execution(ExecutionMode.CONCURRENT)
 public class RangeBitmapTest {
@@ -37,6 +50,7 @@ public class RangeBitmapTest {
       expected.flip(expected.last());
       assertEquals(expected, range.lt(upper));
       assertEquals(expected.getCardinality(), range.ltCardinality(upper));
+      assertEquals(RoaringBitmap.bitmapOf((int) upper), range.eq(upper));
     }
     for (long lower = 1; lower < size; lower *= 10) {
       RoaringBitmap expected = RoaringBitmap.bitmapOfRange(lower, size);
@@ -45,6 +59,7 @@ public class RangeBitmapTest {
       expected.flip(expected.first());
       assertEquals(expected, range.gt(lower));
       assertEquals(expected.getCardinality(), range.gtCardinality(lower));
+      assertEquals(RoaringBitmap.bitmapOf((int) lower), range.eq(lower));
     }
   }
 
@@ -647,6 +662,14 @@ public class RangeBitmapTest {
     assertEquals(3, bitmap.gteCardinality(0));
     assertEquals(RoaringBitmap.bitmapOf(1, 2), bitmap.gt(0));
     assertEquals(2, bitmap.gtCardinality(0));
+    assertEquals(RoaringBitmap.bitmapOf(), bitmap.eq(2L));
+    assertEquals(RoaringBitmap.bitmapOf(0, 1, 2), bitmap.neq(2L));
+    assertEquals(RoaringBitmap.bitmapOf(0), bitmap.eq(0L));
+    assertEquals(RoaringBitmap.bitmapOf(1), bitmap.eq(Long.MIN_VALUE));
+    assertEquals(RoaringBitmap.bitmapOf(2), bitmap.eq(-1L));
+    assertEquals(RoaringBitmap.bitmapOf(1, 2), bitmap.neq(0L));
+    assertEquals(RoaringBitmap.bitmapOf(0, 2), bitmap.neq(Long.MIN_VALUE));
+    assertEquals(RoaringBitmap.bitmapOf(0, 1), bitmap.neq(-1L));
   }
 
   // creates very large integer values so stresses edge cases in the top slice
@@ -764,6 +787,135 @@ public class RangeBitmapTest {
     RangeBitmap rangeBitmap = appender.build();
     assertEquals(rangeBitmap.gte(low, rangeBitmap.lte(high)), rangeBitmap.between(low, high));
     assertEquals(1, rangeBitmap.between(low, high).getCardinality());
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {2, 10, 100, 1000})
+  public void testEq(int max) {
+    RangeBitmap.Appender appender = RangeBitmap.appender(max);
+    RoaringBitmap[] expected = new RoaringBitmap[max];
+    Arrays.setAll(expected, i -> new RoaringBitmap());
+    for (int i = 0; i < 100_000; i++) {
+      appender.add(i % max);
+      expected[i % max].add(i);
+    }
+    RangeBitmap bitmap = appender.build();
+    for (int offset = 0; offset < max; offset++) {
+      assertEquals(expected[offset], bitmap.eq(offset));
+      assertEquals(expected[offset].getLongCardinality(), bitmap.eqCardinality(offset));
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {2, 10, 100, 1000})
+  public void testEqWithContext(int max) {
+    RangeBitmap.Appender appender = RangeBitmap.appender(max);
+    RoaringBitmap[] expected = new RoaringBitmap[max];
+    Arrays.setAll(expected, i -> new RoaringBitmap());
+    int maxRow = 100_000;
+    for (int i = 0; i < maxRow; i++) {
+      appender.add(i % max);
+      expected[i % max].add(i);
+    }
+    RangeBitmap bitmap = appender.build();
+    for (int offset = 0; offset < max; offset++) {
+      assertEquals(expected[offset], bitmap.eq(offset, expected[offset]));
+      assertEquals(expected[offset].getLongCardinality(), bitmap.eqCardinality(offset, expected[offset]));
+      assertTrue(bitmap.eq(offset, expected[(offset + 1) % max]).isEmpty());
+      assertEquals(0L, bitmap.eqCardinality(offset, expected[(offset + 1) % max]));
+      assertTrue(bitmap.eq(offset, new RoaringBitmap()).isEmpty());
+      assertEquals(0L, bitmap.eqCardinality(offset, new RoaringBitmap()));
+      assertTrue(bitmap.eq(offset, RoaringBitmap.bitmapOf(maxRow + 1)).isEmpty());
+      assertEquals(0L, bitmap.eqCardinality(offset, RoaringBitmap.bitmapOf(maxRow + 1)));
+      RoaringBitmap overlapOnlyWithLast = RoaringBitmap.bitmapOfRange(expected[offset].last(), 2 * maxRow);
+      assertEquals(RoaringBitmap.bitmapOf(expected[offset].last()), bitmap.eq(offset, overlapOnlyWithLast));
+      assertEquals(1L, bitmap.eqCardinality(offset, overlapOnlyWithLast));
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {2, 10, 100, 1000})
+  public void testNeq(int max) {
+    RangeBitmap.Appender appender = RangeBitmap.appender(max);
+    RoaringBitmap[] expected = new RoaringBitmap[max];
+    Arrays.setAll(expected, i -> new RoaringBitmap());
+    for (int i = 0; i < 100_000; i++) {
+      appender.add(i % max);
+      expected[i % max].add(i);
+    }
+    for (RoaringBitmap bitmap : expected) {
+      bitmap.flip(0, 100_000L);
+    }
+    RangeBitmap bitmap = appender.build();
+    for (int offset = 0; offset < max; offset++) {
+      assertEquals(expected[offset], bitmap.neq(offset));
+      assertEquals(expected[offset].getLongCardinality(), bitmap.neqCardinality(offset));
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {2, 10, 100, 1000})
+  public void testNeqWithContext(int max) {
+    RangeBitmap.Appender appender = RangeBitmap.appender(max);
+    RoaringBitmap[] expected = new RoaringBitmap[max];
+    Arrays.setAll(expected, i -> new RoaringBitmap());
+    int maxRow = 100_000;
+    for (int i = 0; i < maxRow; i++) {
+      appender.add(i % max);
+      expected[i % max].add(i);
+    }
+    for (RoaringBitmap bitmap : expected) {
+      bitmap.flip(0L, maxRow);
+    }
+    RangeBitmap bitmap = appender.build();
+    for (int offset = 0; offset < max; offset++) {
+      assertEquals(expected[offset], bitmap.neq(offset, expected[offset]));
+      assertEquals(expected[offset].getLongCardinality(), bitmap.neqCardinality(offset, expected[offset]));
+      assertTrue(bitmap.neq(offset, new RoaringBitmap()).isEmpty());
+      assertEquals(0L, bitmap.neqCardinality(offset, new RoaringBitmap()));
+      assertTrue(bitmap.neq(offset, RoaringBitmap.bitmapOf(maxRow + 1)).isEmpty());
+      assertEquals(0L, bitmap.neqCardinality(offset, RoaringBitmap.bitmapOf(maxRow + 1)));
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("distributions")
+  public void testEqualsNotEqualsRandom(LongSupplier dist) {
+    RangeBitmap.Appender appender = RangeBitmap.appender(Long.MAX_VALUE);
+    Map<Long, RoaringBitmap> valuesToTest = new HashMap<>();
+    int max = 100_000;
+    for (int i = 0; i < max; i++) {
+      long value = dist.getAsLong();
+      appender.add(value);
+      valuesToTest.computeIfAbsent(value, l -> new RoaringBitmap()).add(i);
+    }
+    RangeBitmap bitmap = appender.build();
+    for (Map.Entry<Long, RoaringBitmap> entry : valuesToTest.entrySet()) {
+      assertEquals(entry.getValue(), bitmap.eq(entry.getKey()));
+      entry.getValue().flip(0L, max);
+      assertEquals(entry.getValue(), bitmap.neq(entry.getKey()));
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("distributions")
+  public void testEqualsNotEqualsRandomWithContext(LongSupplier dist) {
+    RangeBitmap.Appender appender = RangeBitmap.appender(Long.MAX_VALUE);
+    Map<Long, RoaringBitmap> valuesToTest = new HashMap<>();
+    int max = 100_000;
+    for (int i = 0; i < max; i++) {
+      long value = dist.getAsLong();
+      appender.add(value);
+      valuesToTest.computeIfAbsent(value, l -> new RoaringBitmap()).add(i);
+    }
+    RangeBitmap bitmap = appender.build();
+    for (Map.Entry<Long, RoaringBitmap> entry : valuesToTest.entrySet()) {
+      assertEquals(entry.getValue(), bitmap.eq(entry.getKey(), entry.getValue()));
+      assertTrue(bitmap.neq(entry.getKey(), entry.getValue()).isEmpty());
+      entry.getValue().flip(0L, max);
+      assertEquals(entry.getValue(), bitmap.neq(entry.getKey(), entry.getValue()));
+      assertTrue(bitmap.eq(entry.getKey(), entry.getValue()).isEmpty());
+    }
   }
 
   public static class ReferenceImplementation {

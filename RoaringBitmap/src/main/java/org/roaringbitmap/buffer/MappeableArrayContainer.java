@@ -266,6 +266,14 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     Util.resetBitmapRange(bits, prev, MAX_CAPACITY);
   }
 
+  @Override
+  public void removeFrom(long[] bits) {
+    for (int i = 0; i < this.getCardinality(); ++i) {
+      int value = content.get(i);
+      bits[value >>> 6] &= ~(1L << value);
+    }
+  }
+
   private int advance(CharIterator it) {
     if (it.hasNext()) {
       return (it.next());

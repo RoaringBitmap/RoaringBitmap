@@ -80,6 +80,13 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
   public abstract void andInto(long[] bits);
 
   /**
+   * Computes the intersection of the negation of this container with the bits present in the array,
+   * modifying the array.
+   * @param bits a 1024 element array to be interpreted as a bit set
+   */
+  public abstract void removeFrom(long[] bits);
+
+  /**
    * Computes the bitwise AND of this container with another (intersection). This container as well
    * as the provided container are left unaffected.
    * 
