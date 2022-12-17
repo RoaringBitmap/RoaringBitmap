@@ -13,7 +13,9 @@ import java.util.function.Consumer;
 import java.util.function.IntFunction;
 
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
-import static org.roaringbitmap.Util.*;
+import static org.roaringbitmap.Util.cardinalityInBitmapRange;
+import static org.roaringbitmap.Util.resetBitmapRange;
+import static org.roaringbitmap.Util.setBitmapRange;
 
 /**
  * A 2D bitmap which associates values with a row index and can perform range queries.
@@ -158,7 +160,7 @@ public final class RangeBitmap {
    * @return a bitmap of matching rows.
    */
   public RoaringBitmap lte(long threshold) {
-    return new SingleEvaluation().compute(threshold, true);
+    return new SingleEvaluation().computeRange(threshold, true);
   }
 
   /**
@@ -170,7 +172,7 @@ public final class RangeBitmap {
    * @return a bitmap of matching rows.
    */
   public RoaringBitmap lte(long threshold, RoaringBitmap context) {
-    return new SingleEvaluation().compute(threshold, true, context);
+    return new SingleEvaluation().computeRange(threshold, true, context);
   }
 
   /**
@@ -180,7 +182,7 @@ public final class RangeBitmap {
    * @return the number of matching rows.
    */
   public long lteCardinality(long threshold) {
-    return new SingleEvaluation().count(threshold, true);
+    return new SingleEvaluation().countRange(threshold, true);
   }
 
   /**
@@ -192,7 +194,7 @@ public final class RangeBitmap {
    * @return the number of matching rows.
    */
   public long lteCardinality(long threshold, RoaringBitmap context) {
-    return new SingleEvaluation().count(threshold, true, context);
+    return new SingleEvaluation().countRange(threshold, true, context);
   }
 
   /**
@@ -246,7 +248,7 @@ public final class RangeBitmap {
    * @return a bitmap of matching rows.
    */
   public RoaringBitmap gt(long threshold) {
-    return new SingleEvaluation().compute(threshold, false);
+    return new SingleEvaluation().computeRange(threshold, false);
   }
 
   /**
@@ -258,7 +260,7 @@ public final class RangeBitmap {
    * @return a bitmap of matching rows.
    */
   public RoaringBitmap gt(long threshold, RoaringBitmap context) {
-    return new SingleEvaluation().compute(threshold, false, context);
+    return new SingleEvaluation().computeRange(threshold, false, context);
   }
 
   /**
@@ -268,7 +270,7 @@ public final class RangeBitmap {
    * @return the number of matching rows.
    */
   public long gtCardinality(long threshold) {
-    return new SingleEvaluation().count(threshold, false);
+    return new SingleEvaluation().countRange(threshold, false);
   }
 
   /**
@@ -280,7 +282,7 @@ public final class RangeBitmap {
    * @return the number of matching rows.
    */
   public long gtCardinality(long threshold, RoaringBitmap context) {
-    return new SingleEvaluation().count(threshold, false, context);
+    return new SingleEvaluation().countRange(threshold, false, context);
   }
 
   /**
@@ -327,6 +329,92 @@ public final class RangeBitmap {
     return threshold == 0 ? context.getLongCardinality() : gtCardinality(threshold - 1, context);
   }
 
+  /**
+   * Returns a RoaringBitmap of rows which have a value equal to the value.
+   *
+   * @param value the value to filter by.
+   * @return a bitmap of matching rows.
+   */
+  public RoaringBitmap eq(long value) {
+    return new SingleEvaluation().computePoint(value, false);
+  }
+
+  /**
+   * Returns a RoaringBitmap of rows which have a value equal to the value.
+   *
+   * @param value the value to filter by.
+   * @param context to be intersected with.
+   * @return a bitmap of matching rows.
+   */
+  public RoaringBitmap eq(long value, RoaringBitmap context) {
+    return new SingleEvaluation().computePoint(value, false, context);
+  }
+
+  /**
+   * Returns the number of rows which have a value equal to the value.
+   *
+   * @param value the inclusive minimum value.
+   * @return the number of matching rows.
+   */
+  public long eqCardinality(long value) {
+    return new SingleEvaluation().countPoint(value, false);
+  }
+
+  /**
+   * Returns the number of rows which have a value equal to the value,
+   * and intersect with the context bitmap, which will not be modified.
+   *
+   * @param value the inclusive minimum value.
+   * @param context   to be intersected with.
+   * @return the number of matching rows.
+   */
+  public long eqCardinality(long value, RoaringBitmap context) {
+    return new SingleEvaluation().countPoint(value, false, context);
+  }
+
+  /**
+   * Returns a RoaringBitmap of rows which have a value not equal to the value.
+   *
+   * @param value the value to filter by.
+   * @return a bitmap of matching rows.
+   */
+  public RoaringBitmap neq(long value) {
+    return new SingleEvaluation().computePoint(value, true);
+  }
+
+  /**
+   * Returns a RoaringBitmap of rows which have a value not equal to the value.
+   *
+   * @param value the value to filter by.
+   * @param context to be intersected with.
+   * @return a bitmap of matching rows.
+   */
+  public RoaringBitmap neq(long value, RoaringBitmap context) {
+    return new SingleEvaluation().computePoint(value, true, context);
+  }
+
+  /**
+   * Returns the number of rows which have a value not equal to the value.
+   *
+   * @param value the inclusive minimum value.
+   * @return the number of matching rows.
+   */
+  public long neqCardinality(long value) {
+    return new SingleEvaluation().countPoint(value, true);
+  }
+
+  /**
+   * Returns the number of rows which have a value not equal to the value,
+   * and intersect with the context bitmap, which will not be modified.
+   *
+   * @param value the inclusive minimum value.
+   * @param context   to be intersected with.
+   * @return the number of matching rows.
+   */
+  public long neqCardinality(long value, RoaringBitmap context) {
+    return new SingleEvaluation().countPoint(value, true, context);
+  }
+
   private final class SingleEvaluation {
 
     private final long[] bits = new long[1024];
@@ -335,7 +423,136 @@ public final class RangeBitmap {
     private int position = containersOffset;
     private boolean empty = true;
 
-    public RoaringBitmap compute(long threshold, boolean upper) {
+    public RoaringBitmap computePoint(long value, boolean negate) {
+      if (Long.numberOfLeadingZeros(value) < Long.numberOfLeadingZeros(mask)) {
+        return negate ? RoaringBitmap.bitmapOfRange(0, max) : new RoaringBitmap();
+      }
+      RoaringArray output = new RoaringArray();
+      long remaining = max;
+      int mPos = masksOffset;
+      char key = 0;
+      while (remaining > 0) {
+        long containerMask = getContainerMask(buffer, mPos, mask, bytesPerMask);
+        int limit = Math.min((int) remaining, 0x10000);
+        evaluateHorizontalSlicePoint(limit, value, containerMask);
+        if (negate) {
+          Util.flipBitmapRange(bits, 0, limit);
+          empty = false;
+        }
+        if (!empty) {
+          Container toAppend = new BitmapContainer(bits, -1).repairAfterLazy().runOptimize();
+          if (!toAppend.isEmpty()) {
+            output.append(key, toAppend instanceof BitmapContainer ? toAppend.clone() : toAppend);
+          }
+        }
+        key++;
+        remaining -= 0x10000;
+        mPos += bytesPerMask;
+      }
+      return new RoaringBitmap(output);
+    }
+
+    public RoaringBitmap computePoint(long value, boolean negate, RoaringBitmap context) {
+      if (context.isEmpty()) {
+        return new RoaringBitmap();
+      }
+      if (Long.numberOfLeadingZeros(value) < Long.numberOfLeadingZeros(mask)) {
+        return negate ? context.clone() : new RoaringBitmap();
+      }
+      RoaringArray output = new RoaringArray();
+      RoaringArray contextArray = context.highLowContainer;
+      int contextPos = 0;
+      int maxContextKey = contextArray.keys[contextArray.size - 1];
+      long remaining = max;
+      int mPos = masksOffset;
+      for (int prefix = 0; prefix <= maxContextKey && remaining > 0; prefix++) {
+        long containerMask = getContainerMask(buffer, mPos, mask, bytesPerMask);
+        if (prefix < contextArray.keys[contextPos]) {
+          for (int i = 0; i < Long.bitCount(containerMask); i++) {
+            skipContainer();
+          }
+        } else {
+          int limit = Math.min((int) remaining, 0x10000);
+          evaluateHorizontalSlicePoint(limit, value, containerMask);
+          if (negate) {
+            Util.flipBitmapRange(bits, 0, limit);
+            empty = false;
+          }
+          if (!empty) {
+            Container toAppend = new BitmapContainer(bits, -1)
+                    .iand(contextArray.values[contextPos])
+                    .repairAfterLazy()
+                    .runOptimize();
+            if (!toAppend.isEmpty()) {
+              output.append((char) prefix,
+                      toAppend instanceof BitmapContainer ? toAppend.clone() : toAppend);
+            }
+          }
+          contextPos++;
+        }
+        remaining -= 0x10000;
+        mPos += bytesPerMask;
+      }
+      return new RoaringBitmap(output);
+    }
+
+    public long countPoint(long value, boolean negate) {
+      if (Long.numberOfLeadingZeros(value) < Long.numberOfLeadingZeros(mask)) {
+        return negate ? max : 0L;
+      }
+      long count = 0;
+      long remaining = max;
+      int mPos = masksOffset;
+      while (remaining > 0) {
+        long containerMask = getContainerMask(buffer, mPos, mask, bytesPerMask);
+        int limit = Math.min((int) remaining, 0x10000);
+        evaluateHorizontalSlicePoint(limit, value, containerMask);
+        int cardinality = cardinalityInBitmapRange(bits, 0, limit);
+        count += negate ? (limit - cardinality) : cardinality;
+        remaining -= 0x10000;
+        mPos += bytesPerMask;
+      }
+      return count;
+    }
+
+    private long countPoint(long threshold, boolean negate, RoaringBitmap context) {
+      if (context.isEmpty()) {
+        return 0L;
+      }
+      if (Long.numberOfLeadingZeros(threshold) < Long.numberOfLeadingZeros(mask)) {
+        return negate ? context.getLongCardinality() : 0L;
+      }
+      RoaringArray contextArray = context.highLowContainer;
+      int contextPos = 0;
+      int maxContextKey = contextArray.keys[contextArray.size - 1];
+      long count = 0;
+      long remaining = max;
+      int mPos = masksOffset;
+      for (int prefix = 0; prefix <= maxContextKey && remaining > 0; prefix++) {
+        int limit = Math.min(0x10000, (int) remaining);
+        long containerMask = getContainerMask(buffer, mPos, mask, bytesPerMask);
+        if (prefix < contextArray.keys[contextPos]) {
+          for (int i = 0; i < Long.bitCount(containerMask); i++) {
+            skipContainer();
+          }
+        } else {
+          evaluateHorizontalSlicePoint(limit, threshold, containerMask);
+          if (negate) {
+            Util.flipBitmapRange(bits, 0, limit);
+            empty = false;
+          }
+          Container container = contextArray.values[contextPos];
+          int cardinality = container.andCardinality(new BitmapContainer(bits, -1));
+          count += cardinality;
+          contextPos++;
+        }
+        remaining -= 0x10000;
+        mPos += bytesPerMask;
+      }
+      return count;
+    }
+
+    public RoaringBitmap computeRange(long threshold, boolean upper) {
       if (Long.numberOfLeadingZeros(threshold) < Long.numberOfLeadingZeros(mask)) {
         return upper ? RoaringBitmap.bitmapOfRange(0, max) : new RoaringBitmap();
       }
@@ -345,7 +562,7 @@ public final class RangeBitmap {
       char key = 0;
       while (remaining > 0) {
         long containerMask = getContainerMask(buffer, mPos, mask, bytesPerMask);
-        evaluateHorizontalSlice(remaining, threshold, containerMask);
+        evaluateHorizontalSliceRange(remaining, threshold, containerMask);
         if (!upper) {
           Util.flipBitmapRange(bits, 0, Math.min(0x10000, (int) remaining));
           empty = false;
@@ -363,12 +580,12 @@ public final class RangeBitmap {
       return new RoaringBitmap(output);
     }
 
-    private RoaringBitmap compute(long threshold, boolean upper, RoaringBitmap context) {
+    private RoaringBitmap computeRange(long threshold, boolean upper, RoaringBitmap context) {
       if (context.isEmpty()) {
         return new RoaringBitmap();
       }
       if (Long.numberOfLeadingZeros(threshold) < Long.numberOfLeadingZeros(mask)) {
-        return upper ? RoaringBitmap.bitmapOfRange(0, max) : new RoaringBitmap();
+        return upper ? context.clone() : new RoaringBitmap();
       }
       RoaringArray contextArray = context.highLowContainer;
       int contextPos = 0;
@@ -383,7 +600,7 @@ public final class RangeBitmap {
             skipContainer();
           }
         } else {
-          evaluateHorizontalSlice(remaining, threshold, containerMask);
+          evaluateHorizontalSliceRange(remaining, threshold, containerMask);
           if (!upper) {
             Util.flipBitmapRange(bits, 0, Math.min(0x10000, (int) remaining));
             empty = false;
@@ -406,7 +623,7 @@ public final class RangeBitmap {
       return new RoaringBitmap(output);
     }
 
-    public long count(long threshold, boolean upper) {
+    public long countRange(long threshold, boolean upper) {
       if (Long.numberOfLeadingZeros(threshold) < Long.numberOfLeadingZeros(mask)) {
         return upper ? max : 0L;
       }
@@ -415,7 +632,7 @@ public final class RangeBitmap {
       int mPos = masksOffset;
       while (remaining > 0) {
         long containerMask = getContainerMask(buffer, mPos, mask, bytesPerMask);
-        evaluateHorizontalSlice(remaining, threshold, containerMask);
+        evaluateHorizontalSliceRange(remaining, threshold, containerMask);
         int remainder = Math.min((int) remaining, 0x10000);
         int cardinality = cardinalityInBitmapRange(bits, 0, remainder);
         count += upper ? cardinality : (remainder - cardinality);
@@ -425,12 +642,12 @@ public final class RangeBitmap {
       return count;
     }
 
-    private long count(long threshold, boolean upper, RoaringBitmap context) {
+    private long countRange(long threshold, boolean upper, RoaringBitmap context) {
       if (context.isEmpty()) {
         return 0L;
       }
       if (Long.numberOfLeadingZeros(threshold) < Long.numberOfLeadingZeros(mask)) {
-        return upper ? max : 0L;
+        return upper ? context.getLongCardinality() : 0L;
       }
       RoaringArray contextArray = context.highLowContainer;
       int contextPos = 0;
@@ -445,7 +662,7 @@ public final class RangeBitmap {
             skipContainer();
           }
         } else {
-          evaluateHorizontalSlice(remaining, threshold, containerMask);
+          evaluateHorizontalSliceRange(remaining, threshold, containerMask);
           Container container = contextArray.values[contextPos];
           int cardinality = upper
               ? container.andCardinality(new BitmapContainer(bits, -1))
@@ -459,7 +676,7 @@ public final class RangeBitmap {
       return count;
     }
 
-    private void evaluateHorizontalSlice(long remaining, long threshold, long containerMask) {
+    private void evaluateHorizontalSliceRange(long remaining, long threshold, long containerMask) {
       // most significant absent bit in the threshold for which there is no container;
       // everything before this is wasted work, so we just skip over the containers
       int skip = 64 - Long.numberOfLeadingZeros(((~threshold & ~containerMask) & mask));
@@ -519,6 +736,42 @@ public final class RangeBitmap {
             } else {
               andNextIntoBits();
             }
+          }
+        }
+      }
+    }
+
+    private void evaluateHorizontalSlicePoint(int limit, long value, long containerMask) {
+      // this could be skipped if the last slice resulted in a full bitset
+      setBitmapRange(bits, 0, limit);
+      resetBitmapRange(bits, limit, 0x10000);
+      empty = false;
+      // for each i
+      //  - if the bit i is not set in the value, intersect the container with the bits
+      //  - if the bit i is set in value, remove the container from the bits
+      for (int slice = 0; slice < Long.bitCount(mask); slice++) {
+        if (((value >>> slice) & 1) == 1) {
+          // bit present, need to remove the container values from bits (bits &= ~container)
+          if (((containerMask >>> slice) & 1) == 1) {
+            if (empty) {
+              skipContainer();
+            } else {
+              removeNextFromBits();
+            }
+          }
+        } else {
+          // bit not present, need to intersect the container bits (bits &= container)
+          if (((containerMask >>> slice) & 1) == 1) {
+            if (empty) {
+              skipContainer();
+            } else {
+              andNextIntoBits();
+            }
+          } else if (!empty) {
+            // there's no container so we can just clear the bits
+            // but it can be skipped if the bits are already known to be empty
+            resetBitmapRange(bits, 0, limit);
+            empty = true;
           }
         }
       }
@@ -597,6 +850,44 @@ public final class RangeBitmap {
         default:
           throw new IllegalStateException("Unknown type " + type
               + " (this is a bug, please report it.)");
+      }
+    }
+
+    private void removeNextFromBits() {
+      int type = buffer.get(position);
+      position++;
+      int size = buffer.getChar(position) & 0xFFFF;
+      position += Character.BYTES;
+      switch (type) {
+        case ARRAY: {
+          int skip = size << 1;
+          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
+                  .limit(skip >>> 1);
+          MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
+          array.removeFrom(bits);
+          position += skip;
+        }
+        break;
+        case BITMAP: {
+          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer()
+                  .limit(1024);
+          MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
+          bitmap.removeFrom(bits);
+          position += BITMAP_SIZE;
+        }
+        break;
+        case RUN: {
+          int skip = size << 2;
+          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
+                  .limit(skip >>> 1);
+          MappeableRunContainer run = new MappeableRunContainer(cb, size);
+          run.removeFrom(bits);
+          position += skip;
+        }
+        break;
+        default:
+          throw new IllegalStateException("Unknown type " + type
+                  + " (this is a bug, please report it.)");
       }
     }
 

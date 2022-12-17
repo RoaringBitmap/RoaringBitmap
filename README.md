@@ -381,6 +381,8 @@ RangeBitmap bitmap = appender.build();
 RoaringBitmap lessThan5 = bitmap.lt(5); // {0,1}
 RoaringBitmap greaterThanOrEqualTo1 = bitmap.gte(1); // {0, 1, 2}
 RoaringBitmap greaterThan1 = bitmap.gt(1); // {2}
+RoaringBitmap equalTo1 = bitmap.eq(1); // {0, 1}
+RoaringBitmap notEqualTo1 = bitmap.neq(1); // {2}
 ```
 
 `RangeBitmap` is can be written to disk and memory mapped:
