@@ -334,6 +334,10 @@ public final class BufferFastAggregation {
 
   /**
    * Compute overall AND between bitmaps two-by-two.
+   *
+   * Performance hint: if you have very large and tiny bitmaps,
+   * it may be beneficial performance-wise to put a tiny bitmap
+   * in first position.
    * 
    * This function runs in linear time with respect to the number of bitmaps.
    *
@@ -357,6 +361,10 @@ public final class BufferFastAggregation {
 
   /**
    * Compute overall AND between bitmaps two-by-two.
+   *
+   * Performance hint: if you have very large and tiny bitmaps,
+   * it may be beneficial performance-wise to put a tiny bitmap
+   * in first position.
    * 
    * This function runs in linear time with respect to the number of bitmaps.
    *
@@ -377,6 +385,10 @@ public final class BufferFastAggregation {
 
   /**
    * Compute overall AND between bitmaps two-by-two.
+   *
+   * Performance hint: if you have very large and tiny bitmaps,
+   * it may be beneficial performance-wise to put a tiny bitmap
+   * in first position.
    * 
    * This function runs in linear time with respect to the number of bitmaps.
    *
