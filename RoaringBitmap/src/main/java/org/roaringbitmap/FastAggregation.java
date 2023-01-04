@@ -35,7 +35,7 @@ public final class FastAggregation {
    * @return aggregated bitmap
    */
   public static RoaringBitmap and(RoaringBitmap... bitmaps) {
-    if (bitmaps.length > 2) {
+    if (bitmaps.length > 10) {
       return workShyAnd(new long[1024], bitmaps);
     }
     return naive_and(bitmaps);
@@ -49,7 +49,7 @@ public final class FastAggregation {
    * @return aggregated bitmap
    */
   public static RoaringBitmap and(long[] aggregationBuffer, RoaringBitmap... bitmaps) {
-    if (bitmaps.length > 2) {
+    if (bitmaps.length > 10) {
       if(aggregationBuffer.length < 1024) {
         throw new IllegalArgumentException("buffer should have at least 1024 elements.");
       }
@@ -329,9 +329,18 @@ public final class FastAggregation {
     if (bitmaps.length == 0) {
       return new RoaringBitmap();
     }
-    RoaringBitmap answer = bitmaps[0].clone();
-    for (int k = 1; k < bitmaps.length && !answer.isEmpty(); ++k) {
-      answer.and(bitmaps[k]);
+    RoaringBitmap smallest = bitmaps[0];
+    for (int i = 1; i < bitmaps.length; i++) {
+      RoaringBitmap bitmap = bitmaps[i];
+      if (bitmap.highLowContainer.size() < smallest.highLowContainer.size()) {
+        smallest = bitmap;
+      }
+    }
+    RoaringBitmap answer = smallest.clone();
+    for (int k = 0; k < bitmaps.length && !answer.isEmpty(); ++k) {
+      if (bitmaps[k] != smallest) {
+        answer.and(bitmaps[k]);
+      }
     }
     return answer;
   }

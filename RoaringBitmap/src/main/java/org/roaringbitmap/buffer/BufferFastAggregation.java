@@ -26,7 +26,7 @@ public final class BufferFastAggregation {
    * @return aggregated bitmap
    */
   public static MutableRoaringBitmap and(ImmutableRoaringBitmap... bitmaps) {
-    if (bitmaps.length > 2) {
+    if (bitmaps.length > 10) {
       return workShyAnd(new long[1024], bitmaps);
     }
     return naive_and(bitmaps);
@@ -42,7 +42,7 @@ public final class BufferFastAggregation {
    */
   public static MutableRoaringBitmap and(long[] aggregationBuffer,
                                          ImmutableRoaringBitmap... bitmaps) {
-    if (bitmaps.length > 2) {
+    if (bitmaps.length > 10) {
       if(aggregationBuffer.length < 1024) {
         throw new IllegalArgumentException("buffer should have at least 1024 elements.");
       }
@@ -348,9 +348,18 @@ public final class BufferFastAggregation {
     MutableRoaringBitmap answer;
 
     if (bitmaps.length > 0) {
-      answer = (bitmaps[0]).toMutableRoaringBitmap();
-      for (int k = 1; k < bitmaps.length; ++k) {
-        answer = ImmutableRoaringBitmap.and(answer, bitmaps[k]);
+      ImmutableRoaringBitmap smallest = bitmaps[0];
+      for (int i = 1; i < bitmaps.length; i++) {
+        ImmutableRoaringBitmap bitmap = bitmaps[i];
+        if (bitmap.highLowContainer.size() < smallest.highLowContainer.size()) {
+          smallest = bitmap;
+        }
+      }
+      answer = smallest.toMutableRoaringBitmap();
+      for (ImmutableRoaringBitmap bitmap : bitmaps) {
+        if (bitmap != smallest) {
+          answer.and(bitmap);
+        }
       }
     } else {
       answer = new MutableRoaringBitmap();
