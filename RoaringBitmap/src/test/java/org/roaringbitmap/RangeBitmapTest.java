@@ -1,5 +1,6 @@
 package org.roaringbitmap;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
@@ -916,6 +917,20 @@ public class RangeBitmapTest {
       assertEquals(entry.getValue(), bitmap.neq(entry.getKey(), entry.getValue()));
       assertTrue(bitmap.eq(entry.getKey(), entry.getValue()).isEmpty());
     }
+  }
+
+  @Test
+  @Disabled("expensive - run on an ad hoc basis")
+  public void triggerBufferOverflow() {
+    RangeBitmap.Appender appender = RangeBitmap.appender(1);
+    while (appender.serializedSizeInBytes() < (128 << 20)) {
+      for (int i = 0; i < 0x10000; i++) {
+        appender.add(i & 1);
+      }
+    }
+    RangeBitmap bitmap = appender.build();
+    System.err.println(bitmap.eqCardinality(0));
+    System.err.println(bitmap.eqCardinality(1));
   }
 
   public static class ReferenceImplementation {

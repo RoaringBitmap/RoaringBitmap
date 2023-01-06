@@ -1544,7 +1544,9 @@ public final class RangeBitmap {
               : (toSerialize instanceof RunContainer) ? RUN : ARRAY;
           int required = serializedSize + (type == BITMAP ? 3 : 1);
           if (containers.capacity() - serializedContainerSize < required) {
-            containers = growBuffer(containers, containerGrowth() * 1024);
+            int growthFactor = 8192 * slice.length;
+            int newSize = Math.max(growthFactor, (required + 8191) & -8192);
+            containers = growBuffer(containers, newSize);
           }
           containers.put(serializedContainerSize, (byte) type);
           if (type == BITMAP) {
