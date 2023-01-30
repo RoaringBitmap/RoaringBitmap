@@ -1928,9 +1928,22 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @param rrc Code to be executed for each present or absent value.
    */
   public void forAllInRange(int uStart, int length, final RelativeRangeConsumer rrc) {
+    if (length < 0) {
+      throw new IllegalArgumentException("length must be >= 0 but was " + length);
+    } else if (length == 0) {
+      // Nothing to do.
+      return;
+    }
     final char startHigh = Util.highbits(uStart);
-    final int uEnd = uStart + length;
-    final char endHigh =  Util.highbits(uEnd);
+    final long startL = Integer.toUnsignedLong(uStart);
+    final long endInclusiveL = startL + (long) (length - 1);
+    if (endInclusiveL > LongUtils.MAX_UNSIGNED_INT) {
+      final long remainingLength = LongUtils.MAX_UNSIGNED_INT - startL + 1L;
+      throw new IllegalArgumentException("Cannot read past the end of the unsigned integer range. "
+          + remainingLength + " values remaining; requested " + length);
+    }
+    final int uEndInclusive = (int) endInclusiveL;
+    final char endHigh =  Util.highbits(uEndInclusive);
     int startIndex = highLowContainer.getContainerIndex(startHigh);
     startIndex = startIndex < 0 ? -startIndex - 1 : startIndex;
 
@@ -1940,7 +1953,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
          containerIndex++) {
       final char containerKey = highLowContainer.getKeyAtIndex(containerIndex);
       final int uContainerStart = containerKey << 16;
-      final int uContainerEnd = uContainerStart + BitmapContainer.MAX_CAPACITY;
+      final int uContainerEndInclusive = uContainerStart + (BitmapContainer.MAX_CAPACITY - 1);
       if (endHigh < containerKey) {
         if (Integer.compareUnsigned(uFilledUntil, uContainerStart) < 0) {
           // Fill missing values until end.
@@ -1971,12 +1984,15 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       assert(containerRangeStartOffset >= 0);
 
       final boolean startInContainer = Integer.compareUnsigned(uContainerStart, uStart) < 0;
-      final boolean endInContainer = Integer.compareUnsigned(uEnd, uContainerEnd) < 0;
+      final boolean endInContainer = Integer.compareUnsigned(uEndInclusive, uContainerEndInclusive) < 0;
 
       if (startInContainer && endInContainer) {
         // Only the range is entirely within this container.
         final char containerRangeStart = LongUtils.lowPart(uStart);
-        final char containerRangeEnd = LongUtils.lowPart(uEnd);
+        final int uEndExclusive = uEndInclusive + 1;
+        // This block should only be entered when this addition is legal.
+        assert(Integer.compareUnsigned(uEndInclusive, uEndExclusive) < 0);
+        final char containerRangeEnd = LongUtils.lowPart(uEndExclusive);
         container.forAllInRange(
             containerRangeStart,
             containerRangeEnd,
@@ -1989,20 +2005,33 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         final int numValuesAdded = BitmapContainer.MAX_CAPACITY - (int) containerRangeStart;
         // Must be non-negative, since both are basically char-sized values.
         assert(numValuesAdded >= 0);
+        final int uOldFilledUntil = uFilledUntil;
         uFilledUntil += numValuesAdded;
+        if (Integer.compareUnsigned(uFilledUntil, uOldFilledUntil) < 0) {
+          // Wrapped the fill counter, so we must have completed the filling.
+          return;
+        }
       } else if (endInContainer) {// && !startInContainer
         // Range ends within the container.
-        final char containerRangeEnd = LongUtils.lowPart(uEnd);
+        final int uEndExclusive = uEndInclusive + 1;
+        // This block should only be entered when this addition is legal.
+        assert(Integer.compareUnsigned(uEndInclusive, uEndExclusive) < 0);
+        final char containerRangeEnd = LongUtils.lowPart(uEndExclusive);
         container.forAllUntil(containerRangeStartOffset, containerRangeEnd, rrc);
         uFilledUntil += (int) containerRangeEnd;
       } else {
         // The entire container is within range.
         container.forAll(containerRangeStartOffset, rrc);
+        final int uOldFilledUntil = uFilledUntil;
         uFilledUntil += BitmapContainer.MAX_CAPACITY;
+        if (Integer.compareUnsigned(uFilledUntil, uOldFilledUntil) < 0) {
+          // Wrapped the fill counter, so we must have completed the filling.
+          return;
+        }
       }
     }
     // No more containers, but there may be missing values in between.
-    if (Integer.compareUnsigned(uFilledUntil, uEnd) < 0) {
+    if (Integer.compareUnsigned(uFilledUntil, uEndInclusive) <= 0) {
       final int fillFromRelative = uFilledUntil - uStart;
       final int fillToRelative = length;
       // These should always result in a non-negative number, since unsigned

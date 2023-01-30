@@ -2,6 +2,8 @@ package org.roaringbitmap.longlong;
 
 public class LongUtils {
 
+  public static final long MAX_UNSIGNED_INT = Integer.toUnsignedLong(0xFFFFFFFF);
+
   /**
    * get the high 48 bit parts of the input data
    *

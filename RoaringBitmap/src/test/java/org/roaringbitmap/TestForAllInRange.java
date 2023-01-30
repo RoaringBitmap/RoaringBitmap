@@ -3,7 +3,7 @@ package org.roaringbitmap;
 import java.util.Arrays;
 
 import com.google.common.primitives.UnsignedInteger;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -121,5 +121,67 @@ public class TestForAllInRange {
     bitmap.forAllInRange(uAdd(offset, 2500), 1000, consumer3);
     consumer3.assertAllAbsentExcept(new int[] {3000 - 2500});
     assertEquals(1000, consumer3.getNumberOfValuesConsumed());
+  }
+
+  @Test
+  public void readToEnd() {
+    RoaringBitmap bitmap = new RoaringBitmap();
+    bitmap.add(0xFFFFFFFE);
+    bitmap.add(0xFFFFFFFF);
+
+    ValidationRangeConsumer consumer = ValidationRangeConsumer.validateContinuous(2, PRESENT);
+    bitmap.forAllInRange(0xFFFFFFFE, 2, consumer);
+    assertEquals(2, consumer.getNumberOfValuesConsumed());
+
+    RoaringBitmap emptyBitmap = new RoaringBitmap();
+
+    ValidationRangeConsumer consumer2 = ValidationRangeConsumer.validateContinuous(2, ABSENT);
+    emptyBitmap.forAllInRange(0xFFFFFFFE, 2, consumer2);
+    assertEquals(2, consumer2.getNumberOfValuesConsumed());
+
+    RoaringBitmap emptyLastContainerBitmap = new RoaringBitmap();
+    bitmap.add(0xFFFFFEFE);
+    bitmap.add(0xFFFFFEFF);
+
+    ValidationRangeConsumer consumer3 = ValidationRangeConsumer.validateContinuous(2, ABSENT);
+    emptyLastContainerBitmap.forAllInRange(0xFFFFFFFE, 2, consumer3);
+    assertEquals(2, consumer3.getNumberOfValuesConsumed());
+  }
+  @Test
+  public void readPastEnd() {
+    final RoaringBitmap bitmap = new RoaringBitmap();
+    bitmap.add(0xFFFFFFFE);
+    bitmap.add(0xFFFFFFFF);
+
+    assertThrows(IllegalArgumentException.class, () -> {
+        bitmap.forAllInRange(0xFFFFFFFE, 3, ValidationRangeConsumer.ofSize(3));
+    });
+  }
+
+  @Test
+  public void readToJustBeforeEndEnd() {
+    RoaringBitmap bitmap = new RoaringBitmap();
+    bitmap.add(0xFFFFFFFD);
+    bitmap.add(0xFFFFFFFE);
+    bitmap.add(0xFFFFFFFF);
+
+    ValidationRangeConsumer consumer = ValidationRangeConsumer.validateContinuous(2, PRESENT);
+    bitmap.forAllInRange(0xFFFFFFFD, 2, consumer);
+    assertEquals(2, consumer.getNumberOfValuesConsumed());
+
+    RoaringBitmap emptyBitmap = new RoaringBitmap();
+
+    ValidationRangeConsumer consumer2 = ValidationRangeConsumer.validateContinuous(2, ABSENT);
+    emptyBitmap.forAllInRange(0xFFFFFFFD, 2, consumer2);
+    assertEquals(2, consumer2.getNumberOfValuesConsumed());
+
+    RoaringBitmap emptyLastContainerBitmap = new RoaringBitmap();
+    bitmap.add(0xFFFFFEFD);
+    bitmap.add(0xFFFFFEFE);
+    bitmap.add(0xFFFFFEFF);
+
+    ValidationRangeConsumer consumer3 = ValidationRangeConsumer.validateContinuous(2, ABSENT);
+    emptyLastContainerBitmap.forAllInRange(0xFFFFFFFD, 2, consumer3);
+    assertEquals(2, consumer3.getNumberOfValuesConsumed());
   }
 }

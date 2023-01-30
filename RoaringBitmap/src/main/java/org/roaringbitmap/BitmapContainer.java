@@ -1520,14 +1520,14 @@ public final class BitmapContainer extends Container implements Cloneable {
     for (int wordIndex = startIndex; wordIndex < bitmap.length; wordIndex++) {
       long word = bitmap[wordIndex];
       int wordStart = wordIndex << 6;
-      int wordEnd = wordStart + 64;
+      int wordEndExclusive = wordStart + 64;
 
       if (wordStart >= endValue) {
         return;
       }
 
       boolean startInWord = wordStart < startValue;
-      boolean endInWord = endValue < wordEnd;
+      boolean endInWord = endValue < wordEndExclusive;
       boolean wordAllZeroes = word == 0;
       boolean wordAllOnes = word == -1;
 
@@ -1540,7 +1540,7 @@ public final class BitmapContainer extends Container implements Cloneable {
           int nextPos = startValue;
           while (word != 0) {
             int pos = wordStart + numberOfTrailingZeros(word);
-            if (endValue < pos) {
+            if (endValue <= pos) {
               // we've moved past the end
               if (nextPos < endValue) {
                 rrc.acceptAllAbsent(nextPos - startValue, endValue - startValue);
@@ -1581,8 +1581,8 @@ public final class BitmapContainer extends Container implements Cloneable {
             }
             word &= (word - 1);
           }
-          if (nextPos < wordEnd) {
-            rrc.acceptAllAbsent(nextPos - startValue, wordEnd - startValue);
+          if (nextPos < wordEndExclusive) {
+            rrc.acceptAllAbsent(nextPos - startValue, wordEndExclusive - startValue);
           }
         }
       } else if (endInWord) {
@@ -1615,7 +1615,7 @@ public final class BitmapContainer extends Container implements Cloneable {
         }
         return;
       } else {
-        addWholeWordToRangeConsumer(word, wordStart - startValue, wordEnd - startValue, rrc);
+        addWholeWordToRangeConsumer(word, wordStart - startValue, wordEndExclusive - startValue, rrc);
       }
     }
   }
