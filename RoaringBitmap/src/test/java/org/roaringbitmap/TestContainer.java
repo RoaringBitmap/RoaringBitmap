@@ -1146,6 +1146,7 @@ public class TestContainer {
     testForAllMaterialization(new char[]{1});
     testForAllMaterialization(new char[]{Character.MAX_VALUE});
     testForAllMaterialization(new char[]{0, 2, 5, 7});
+    testForAllMaterialization(new char[]{49, 63, 65, 32768, 3280});
     testForAllMaterialization(new char[]{0, Character.MAX_VALUE});
     testForAllMaterialization(new char[]{Character.MAX_VALUE - 1, Character.MAX_VALUE});
     testForAllMaterialization(new char[]{Character.MAX_VALUE - 1});
@@ -1173,12 +1174,13 @@ public class TestContainer {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {0, 1, 50, 65534, 65535})
+  @ValueSource(ints = {0, 1, 50, 63, 64, 65, 32768, 3280, 65534, 65535})
   public void forAllFrom(int start) {
     testForAllFromMaterialization((char) start, new char[0]);
     testForAllFromMaterialization((char) start, new char[]{0});
     testForAllFromMaterialization((char) start, new char[]{1});
     testForAllFromMaterialization((char) start, new char[]{0, 2, 5, 7});
+    testForAllFromMaterialization((char) start, new char[]{49, 63, 65, 32768, 3280});
     testForAllFromMaterialization((char) start, new char[]{0, Character.MAX_VALUE});
     testForAllFromMaterialization((char) start, new char[]{Character.MAX_VALUE - 1, Character.MAX_VALUE});
     testForAllFromMaterialization((char) start, new char[]{Character.MAX_VALUE - 1});
@@ -1206,12 +1208,13 @@ public class TestContainer {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {0, 1, 50, 65534, 65535})
+  @ValueSource(ints = {0, 1, 50, 63, 64, 65, 32768, 3280, 65534, 65535})
   public void forAllUntil(int end) {
     testForAllUntilMaterialization((char) end, new char[0]);
     testForAllUntilMaterialization((char) end, new char[]{0});
     testForAllUntilMaterialization((char) end, new char[]{1});
     testForAllUntilMaterialization((char) end, new char[]{0, 2, 5, 7});
+    testForAllUntilMaterialization((char) end, new char[]{49, 63, 65, 32768, 3280});
     testForAllUntilMaterialization((char) end, new char[]{0, Character.MAX_VALUE});
     testForAllUntilMaterialization((char) end, new char[]{Character.MAX_VALUE - 1, Character.MAX_VALUE});
     testForAllUntilMaterialization((char) end, new char[]{Character.MAX_VALUE - 1});
@@ -1245,7 +1248,7 @@ public class TestContainer {
   }
 
   private static Stream<Arguments> provideArgsForAllInRange() {
-    int[] baseArgs = IntStream.of(0, 1, 50, 65534, 65535).toArray();
+    int[] baseArgs = IntStream.of(0, 1, 50, 63, 64, 65, 32768, 3280, 65534, 65535).toArray();
     List<Arguments> cartesianProduct = new ArrayList<>();
     for (int start : baseArgs) {
       for (int end : baseArgs) {
@@ -1263,9 +1266,33 @@ public class TestContainer {
     testForAllInRangeMaterialization((char) start, (char) end, new char[]{0});
     testForAllInRangeMaterialization((char) start, (char) end, new char[]{1});
     testForAllInRangeMaterialization((char) start, (char) end, new char[]{0, 2, 5, 7});
+    testForAllInRangeMaterialization((char) start, (char) end, new char[]{49, 63, 65, 32768, 3280});
     testForAllInRangeMaterialization((char) start, (char) end, new char[]{0, Character.MAX_VALUE});
     testForAllInRangeMaterialization((char) start, (char) end, new char[]{Character.MAX_VALUE - 1, Character.MAX_VALUE});
     testForAllInRangeMaterialization((char) start, (char) end, new char[]{Character.MAX_VALUE - 1});
     testForAllInRangeMaterialization((char) start, (char) end, allValues());
+  }
+
+  @Test
+  public void debugMe() {
+    char start = 65;
+    char end = 32768;
+    char[] data = new char[0];
+
+    Container container = new BitmapContainer();
+
+    ValidationRangeConsumer.Value[] expected = new ValidationRangeConsumer.Value[end - start];
+    Arrays.fill(expected, ABSENT);
+    for (char c : data) {
+      container = container.add(c);
+      int relativePos = c - start;
+      if (relativePos >= 0 && c < end) { // Otherwise it's out of range.
+        expected[relativePos] = PRESENT;
+      }
+    }
+    assertEquals(container.getCardinality(), data.length);
+    ValidationRangeConsumer consumer = ValidationRangeConsumer.validate(expected);
+    container.forAllInRange(start, end, consumer);
+    assertEquals(expected.length, consumer.getNumberOfValuesConsumed());
   }
 }

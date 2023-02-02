@@ -2018,7 +2018,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         assert(Integer.compareUnsigned(uEndInclusive, uEndExclusive) < 0);
         final char containerRangeEnd = LongUtils.lowPart(uEndExclusive);
         container.forAllUntil(containerRangeStartOffset, containerRangeEnd, rrc);
-        uFilledUntil += (int) containerRangeEnd;
+        return;
       } else {
         // The entire container is within range.
         container.forAll(containerRangeStartOffset, rrc);

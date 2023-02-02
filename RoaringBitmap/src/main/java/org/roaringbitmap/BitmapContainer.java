@@ -1564,9 +1564,9 @@ public final class BitmapContainer extends Container implements Cloneable {
         return;
       } else if (startInWord) {
         if (wordAllZeroes) {
-          rrc.acceptAllAbsent(0, 64 - startValue);
+          rrc.acceptAllAbsent(0, 64 - (startValue - wordStart));
         } else if (wordAllOnes) {
-          rrc.acceptAllPresent(0, 64 - startValue);
+          rrc.acceptAllPresent(0, 64 - (startValue - wordStart));
         } else {
           int nextPos = startValue;
           while (word != 0) {
