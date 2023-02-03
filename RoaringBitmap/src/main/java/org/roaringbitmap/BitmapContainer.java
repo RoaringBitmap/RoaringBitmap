@@ -1615,7 +1615,11 @@ public final class BitmapContainer extends Container implements Cloneable {
         }
         return;
       } else {
-        addWholeWordToRangeConsumer(word, wordStart - startValue, wordEndExclusive - startValue, rrc);
+        addWholeWordToRangeConsumer(
+            word,
+            wordStart - startValue,
+            wordEndExclusive - startValue,
+            rrc);
       }
     }
   }

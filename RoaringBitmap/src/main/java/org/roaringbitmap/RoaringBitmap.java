@@ -1988,7 +1988,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       assert(containerRangeStartOffset >= 0);
 
       final boolean startInContainer = Integer.compareUnsigned(uContainerStart, uStart) < 0;
-      final boolean endInContainer = Integer.compareUnsigned(uEndInclusive, uContainerEndInclusive) < 0;
+      final boolean endInContainer =
+          Integer.compareUnsigned(uEndInclusive, uContainerEndInclusive) < 0;
 
       if (startInContainer && endInContainer) {
         // Only the range is entirely within this container.
