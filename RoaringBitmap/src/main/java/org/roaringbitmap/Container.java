@@ -349,6 +349,13 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    */
   public abstract void forAllFrom(char startValue, final RelativeRangeConsumer rrc);
 
+  /*
+   * Design Note
+   * It might seem like a bad idea to make `endValue` exclusive, since it gives no way for this
+   * method to read the last value in a `Container` if it's `Character.MAX_VALUE`,
+   * but that is what the `forAll` method is for.
+   * These methods are separate on purpose, so that the logic of each becomes simpler to follow.
+   */
   /**
    * Consume presence information for all values smaller than endValue
    * in this container.

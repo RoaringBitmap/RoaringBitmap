@@ -2579,8 +2579,9 @@ public final class RunContainer extends Container implements Cloneable {
         // fill in missing values until runStart
         rrc.acceptAllAbsent(offset + next, offset + runStart);
       }
-      int runEnd = runStart + runLength;
-      if (endValue < runEnd) {
+      char runEnd = (char) (runStart + runLength);
+      // endValue is exclusive, but runEnd is inclusive.
+      if (endValue <= runEnd) {
         // we end within this run
         rrc.acceptAllPresent(offset + runStart, offset + endValue);
         return;
@@ -2616,14 +2617,13 @@ public final class RunContainer extends Container implements Cloneable {
         break;
       }
       if (runStart < next) { // next == startValue
-        assert next == startValue; // TODO: remove
         // start is somewhere within the run
-        if (endValue < runEnd) {
+        if (endValue <= runEnd) {
           // we also end within this run
           rrc.acceptAllPresent(0, endValue - startOffset);
           return;
         }
-        rrc.acceptAllPresent(0, runStart + runLength + 1 - startOffset);
+        rrc.acceptAllPresent(0, runEnd + 1 - startOffset);
       } else {
         // start is before the run
         if (next < runStart) {

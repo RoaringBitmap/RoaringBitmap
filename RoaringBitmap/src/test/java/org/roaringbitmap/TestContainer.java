@@ -9,8 +9,16 @@ import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import static org.roaringbitmap.ValidationRangeConsumer.Value.ABSENT;
+import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
 
 
 /**
@@ -1098,5 +1106,193 @@ public class TestContainer {
 
     Container result = ac.xor(ac1.getCharIterator());
     assertTrue(checkContent(result, new char[] {3, 4}));
+  }
+
+  private Container getContainerInstance(Class<?> ct) {
+    try {
+      return (Container) ct.getDeclaredConstructor().newInstance();
+    } catch (Exception e) {
+      fail(e);
+      throw new RuntimeException("unreachable code");
+    }
+  }
+
+  private void testForAllMaterialization(char[] data) {
+    for (Class<?> ct1 : CONTAINER_TYPES) {
+      Container container = getContainerInstance(ct1);
+      ValidationRangeConsumer.Value[] expected = new ValidationRangeConsumer.Value[Character.MAX_VALUE + 1];
+      Arrays.fill(expected, ABSENT);
+      for (char c : data) {
+        container = container.add(c);
+        expected[c] = PRESENT;
+      }
+      assertEquals(container.getCardinality(), data.length);
+      ValidationRangeConsumer consumer = ValidationRangeConsumer.validate(expected);
+      container.forAll(0, consumer);
+      assertEquals(expected.length, consumer.getNumberOfValuesConsumed());
+    }
+  }
+
+  private char[] allValues() {
+    char[] allValues = new char[Character.MAX_VALUE + 1];
+    IntStream.rangeClosed(0, Character.MAX_VALUE).forEach(i -> allValues[i] = (char) i);
+    return allValues;
+  }
+
+  @Test
+  public void forAll() {
+    testForAllMaterialization(new char[0]);
+    testForAllMaterialization(new char[]{0});
+    testForAllMaterialization(new char[]{1});
+    testForAllMaterialization(new char[]{Character.MAX_VALUE});
+    testForAllMaterialization(new char[]{0, 2, 5, 7});
+    testForAllMaterialization(new char[]{49, 63, 65, 32768, 3280});
+    testForAllMaterialization(new char[]{0, Character.MAX_VALUE});
+    testForAllMaterialization(new char[]{Character.MAX_VALUE - 1, Character.MAX_VALUE});
+    testForAllMaterialization(new char[]{Character.MAX_VALUE - 1});
+    testForAllMaterialization(allValues());
+  }
+
+  // start is inclusive
+  private void testForAllFromMaterialization(char start, char[] data) {
+    for (Class<?> ct1 : CONTAINER_TYPES) {
+      Container container = getContainerInstance(ct1);
+      ValidationRangeConsumer.Value[] expected = new ValidationRangeConsumer.Value[Character.MAX_VALUE + 1 - start];
+      Arrays.fill(expected, ABSENT);
+      for (char c : data) {
+        container = container.add(c);
+        int relativePos = c - start;
+        if (relativePos >= 0) { // Otherwise it's out of range.
+          expected[relativePos] = PRESENT;
+        }
+      }
+      assertEquals(container.getCardinality(), data.length);
+      ValidationRangeConsumer consumer = ValidationRangeConsumer.validate(expected);
+      container.forAllFrom(start, consumer);
+      assertEquals(expected.length, consumer.getNumberOfValuesConsumed());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {0, 1, 50, 63, 64, 65, 32768, 3280, 65534, 65535})
+  public void forAllFrom(int start) {
+    testForAllFromMaterialization((char) start, new char[0]);
+    testForAllFromMaterialization((char) start, new char[]{0});
+    testForAllFromMaterialization((char) start, new char[]{1});
+    testForAllFromMaterialization((char) start, new char[]{0, 2, 5, 7});
+    testForAllFromMaterialization((char) start, new char[]{49, 63, 65, 32768, 3280});
+    testForAllFromMaterialization((char) start, new char[]{0, Character.MAX_VALUE});
+    testForAllFromMaterialization((char) start, new char[]{Character.MAX_VALUE - 1, Character.MAX_VALUE});
+    testForAllFromMaterialization((char) start, new char[]{Character.MAX_VALUE - 1});
+    testForAllFromMaterialization((char) start, allValues());
+  }
+
+  // end is exclusive
+  private void testForAllUntilMaterialization(char end, char[] data) {
+    for (Class<?> ct1 : CONTAINER_TYPES) {
+      Container container = getContainerInstance(ct1);
+      // End is an exclusive boundary, since there is `forAll` consume the entire container.
+      ValidationRangeConsumer.Value[] expected = new ValidationRangeConsumer.Value[end];
+      Arrays.fill(expected, ABSENT);
+      for (char c : data) {
+        container = container.add(c);
+        if (c < end) { // Otherwise it's out of range.
+          expected[c] = PRESENT;
+        }
+      }
+      assertEquals(container.getCardinality(), data.length);
+      ValidationRangeConsumer consumer = ValidationRangeConsumer.validate(expected);
+      container.forAllUntil(0, end, consumer);
+      assertEquals(expected.length, consumer.getNumberOfValuesConsumed());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {0, 1, 50, 63, 64, 65, 32768, 3280, 65534, 65535})
+  public void forAllUntil(int end) {
+    testForAllUntilMaterialization((char) end, new char[0]);
+    testForAllUntilMaterialization((char) end, new char[]{0});
+    testForAllUntilMaterialization((char) end, new char[]{1});
+    testForAllUntilMaterialization((char) end, new char[]{0, 2, 5, 7});
+    testForAllUntilMaterialization((char) end, new char[]{49, 63, 65, 32768, 3280});
+    testForAllUntilMaterialization((char) end, new char[]{0, Character.MAX_VALUE});
+    testForAllUntilMaterialization((char) end, new char[]{Character.MAX_VALUE - 1, Character.MAX_VALUE});
+    testForAllUntilMaterialization((char) end, new char[]{Character.MAX_VALUE - 1});
+    testForAllUntilMaterialization((char) end, allValues());
+  }
+
+  // start is inclusive
+  private void testForAllInRangeMaterialization(char start, char end, char[] data) {
+    for (Class<?> ct1 : CONTAINER_TYPES) {
+      if (start < end) {
+        Container container = getContainerInstance(ct1);
+        ValidationRangeConsumer.Value[] expected = new ValidationRangeConsumer.Value[end - start];
+        Arrays.fill(expected, ABSENT);
+        for (char c : data) {
+          container = container.add(c);
+          int relativePos = c - start;
+          if (relativePos >= 0 && c < end) { // Otherwise it's out of range.
+            expected[relativePos] = PRESENT;
+          }
+        }
+        assertEquals(container.getCardinality(), data.length);
+        ValidationRangeConsumer consumer = ValidationRangeConsumer.validate(expected);
+        container.forAllInRange(start, end, consumer);
+        assertEquals(expected.length, consumer.getNumberOfValuesConsumed());
+      } else {
+        final Container container = getContainerInstance(ct1);
+        final ValidationRangeConsumer consumer = ValidationRangeConsumer.ofSize(0);
+        assertThrows(IllegalArgumentException.class, () -> container.forAllInRange(start, end, consumer));
+      }
+    }
+  }
+
+  private static Stream<Arguments> provideArgsForAllInRange() {
+    int[] baseArgs = IntStream.of(0, 1, 50, 63, 64, 65, 32768, 3280, 65534, 65535).toArray();
+    List<Arguments> cartesianProduct = new ArrayList<>();
+    for (int start : baseArgs) {
+      for (int end : baseArgs) {
+        if (start <= end) {
+          cartesianProduct.add(Arguments.of(start, end));
+        }
+      }
+    }
+    return cartesianProduct.stream();
+  }
+  @ParameterizedTest
+  @MethodSource("provideArgsForAllInRange")
+  public void forAllInRange(int start, int end) {
+    testForAllInRangeMaterialization((char) start, (char) end, new char[0]);
+    testForAllInRangeMaterialization((char) start, (char) end, new char[]{0});
+    testForAllInRangeMaterialization((char) start, (char) end, new char[]{1});
+    testForAllInRangeMaterialization((char) start, (char) end, new char[]{0, 2, 5, 7});
+    testForAllInRangeMaterialization((char) start, (char) end, new char[]{49, 63, 65, 32768, 3280});
+    testForAllInRangeMaterialization((char) start, (char) end, new char[]{0, Character.MAX_VALUE});
+    testForAllInRangeMaterialization((char) start, (char) end, new char[]{Character.MAX_VALUE - 1, Character.MAX_VALUE});
+    testForAllInRangeMaterialization((char) start, (char) end, new char[]{Character.MAX_VALUE - 1});
+    testForAllInRangeMaterialization((char) start, (char) end, allValues());
+  }
+
+  @Test
+  public void debugMe() {
+    char start = 65;
+    char end = 32768;
+    char[] data = new char[0];
+
+    Container container = new BitmapContainer();
+
+    ValidationRangeConsumer.Value[] expected = new ValidationRangeConsumer.Value[end - start];
+    Arrays.fill(expected, ABSENT);
+    for (char c : data) {
+      container = container.add(c);
+      int relativePos = c - start;
+      if (relativePos >= 0 && c < end) { // Otherwise it's out of range.
+        expected[relativePos] = PRESENT;
+      }
+    }
+    assertEquals(container.getCardinality(), data.length);
+    ValidationRangeConsumer consumer = ValidationRangeConsumer.validate(expected);
+    container.forAllInRange(start, end, consumer);
+    assertEquals(expected.length, consumer.getNumberOfValuesConsumed());
   }
 }
