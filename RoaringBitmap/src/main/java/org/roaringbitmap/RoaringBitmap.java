@@ -1951,6 +1951,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     for (int containerIndex = startIndex;
          containerIndex < highLowContainer.size();
          containerIndex++) {
+      if (Integer.compareUnsigned(uEndInclusive, uFilledUntil) < 0) {
+        // We are done, no need to look at the next container.
+        return;
+      }
       final char containerKey = highLowContainer.getKeyAtIndex(containerIndex);
       final int uContainerStart = containerKey << 16;
       final int uContainerEndInclusive = uContainerStart + (BitmapContainer.MAX_CAPACITY - 1);
