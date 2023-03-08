@@ -110,7 +110,7 @@ Keep in mind that random-looking data is usually not compressible. E.g., if you 
 32-bit random integers, it is not mathematically possible to use far less than 32 bits per integer,
 and attempts at compression can be counterproductive.
 
-How does Roaring compares with the alternatives?
+How does Roaring compare with the alternatives?
 ==================================================
 
 
