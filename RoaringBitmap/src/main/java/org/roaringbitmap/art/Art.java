@@ -16,6 +16,8 @@ public class Art {
   private Node root;
   private long keySize = 0;
 
+  private static byte[] EMPTY_BYTES = new byte[0];
+
   public Art() {
     root = null;
   }
@@ -205,6 +207,10 @@ public class Art {
       LeafNode leafNode = (LeafNode) node;
       byte[] prefix = leafNode.getKeyBytes();
       int commonPrefix = commonPrefixLength(prefix, depth, prefix.length, key, depth, key.length);
+      //The leaf node maybe was shrunk from some other node type before and
+      // contained an old prefixLength,so we reset it to 0 here.
+      leafNode.prefixLength = 0;
+      leafNode.prefix = EMPTY_BYTES;
       Node4 node4 = new Node4(commonPrefix);
       //copy common prefix
       node4.prefixLength = (byte) commonPrefix;
