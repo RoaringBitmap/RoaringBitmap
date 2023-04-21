@@ -1,6 +1,7 @@
 ### SUMMARY
 - Describe your changes, including rationale and design decisions
 - If your pull request includes new functionality, then you must have corresponding new tests.
+- We require all Java files to be ASCII-only to avoid compatibility problems.
 
 ### Automated Checks
 
