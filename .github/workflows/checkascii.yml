@@ -13,4 +13,4 @@ jobs:
         uses: actions/checkout@v2
       - name: Check ASCII
         run: |
-          find . -type f -type f -name '*.java' | xargs file  | grep -qv ASCII || exit 0  && exit 1
+          find . -type f  -name '*.java' | xargs file  | grep -qv ASCII || exit 0  && exit 1
