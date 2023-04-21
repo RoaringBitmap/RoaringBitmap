@@ -50,7 +50,7 @@ public interface BatchIterator extends Cloneable {
    *     j.advanceIfNeeded(val);
    *     while ( j.hasNext() ) {
    *       int limit = j.nextBatch(buffer);
-   *       for (int i = 0; i < limit; i++) {
+   *       for (int i = 0; i &lt; limit; i++) {
    *         if (buffer[i] == val) {
    *           // got it!
    *           // do something here
