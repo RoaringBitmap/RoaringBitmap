@@ -80,7 +80,7 @@ public class HighLowContainer {
   }
 
   /**
-   * @param reverse true ：ascending order, false: descending order
+   * @param reverse true ascending order, false: descending order
    * @return the leaf node iterator
    */
   public LeafNodeIterator highKeyLeafNodeIterator(boolean reverse) {

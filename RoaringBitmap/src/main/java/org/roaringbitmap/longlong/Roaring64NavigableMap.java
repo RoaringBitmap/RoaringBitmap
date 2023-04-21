@@ -199,7 +199,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    * Add the value to the container (set the value to "true"), whether it already appears or not.
    *
    * Java lacks native unsigned longs but the x argument is considered to be unsigned. Within
-   * bitmaps, numbers are ordered according to {@link Long#compareUnsigned}. We order the numbers
+   * bitmaps, numbers are ordered according to{@link Long#compareUnsigned}. We order the numbers
    * like 0, 1, ..., 9223372036854775807, -9223372036854775808, -9223372036854775807,..., -1.
    *
    * @param x long value
@@ -233,7 +233,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    * not.
    *
    * Javac lacks native unsigned integers but the x argument is considered to be unsigned. Within
-   * bitmaps, numbers are ordered according to {@link Integer#compareUnsigned}. We order the numbers
+   * bitmaps, numbers are ordered according to{@link Integer#compareUnsigned}. We order the numbers
    * like 0, 1, ..., 2147483647, -2147483648, -2147483647,..., -1.
    *
    * @param x integer value

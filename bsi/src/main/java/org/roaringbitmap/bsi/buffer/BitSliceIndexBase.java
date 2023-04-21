@@ -92,7 +92,7 @@ public class BitSliceIndexBase {
    * @param parallelism
    * @param foundSet
    * @param pool    threadPool to exec
-   * @return
+   * @return a list of completable futures
    */
   protected <R> List<CompletableFuture<R>> parallelExec(Function<int[], R> func,
                               int parallelism,
@@ -289,7 +289,7 @@ public class BitSliceIndexBase {
   //  }                         -- we know at this point that COUNT(G) <= k
   //  F = G OR E                      -- might be too many rows in F; check below
   //  if ((n = (COUNT(F) - k) > 0)            -- if n too many rows in F
-  //   {turn off n bits from E in F};           -- throw out some ties to return exactly k rows ♦
+  //   {turn off n bits from E in F};           -- throw out some ties to return exactly k rows 
   public MutableRoaringBitmap topK(ImmutableRoaringBitmap foundSet, int k) {
     ImmutableRoaringBitmap fixedFoundSet = foundSet == null ? this.ebM : foundSet;
     if (k > fixedFoundSet.getLongCardinality() || k < 0) {
@@ -339,7 +339,7 @@ public class BitSliceIndexBase {
    *
    * @param foundSet
    * @param predicate
-   * @return
+   * @return the computed immutable bitmap
    */
   public ImmutableRoaringBitmap rangeEQ(ImmutableRoaringBitmap foundSet, int predicate) {
     // Start with set of columns with values set.
@@ -371,7 +371,7 @@ public class BitSliceIndexBase {
    *
    * @param foundSet
    * @param predicate
-   * @return
+   * @return the computed immutable bitmap
    */
   public ImmutableRoaringBitmap rangeNEQ(ImmutableRoaringBitmap foundSet, int predicate) {
     ImmutableRoaringBitmap eqBitmap = rangeEQ(foundSet, predicate);
@@ -500,7 +500,7 @@ public class BitSliceIndexBase {
    * contains the number of times a particular value appeared in the input BSI as an integer count.
    *
    * @param foundSet
-   * @return
+   * @return the transpose
    */
   public MutableBitSliceIndex parallelTransposeWithCount(ImmutableRoaringBitmap foundSet,
                                int parallelism,
@@ -531,7 +531,7 @@ public class BitSliceIndexBase {
    * @param foundSet
    * @param values
    * @param pool
-   * @return
+   * @return the computed immutable bitmap
    * @throws ExecutionException
    * @throws InterruptedException
    */

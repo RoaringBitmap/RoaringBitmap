@@ -1406,7 +1406,7 @@ public final class RangeBitmap {
     }
 
     /**
-     * {@see #build(IntFunction)}
+     * see build(IntFunction)
      */
     public RangeBitmap build() {
       return build(capacity -> ByteBuffer.allocate(capacity).order(LITTLE_ENDIAN));
@@ -1461,7 +1461,7 @@ public final class RangeBitmap {
 
     /**
      * Serializes the bitmap to the buffer without materialising it.
-     * The user should call {@see serializedSizeInBytes} to size the
+     * The user should call serializedSizeInBytes to size the
      * buffer appropriately.
      * <p>
      * It is not guaranteed that all values will be written

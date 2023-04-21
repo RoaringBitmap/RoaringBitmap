@@ -29,12 +29,12 @@ public class TestRoaringBitmapOrNot {
 
     rb.add(2);
     rb.add(1);
-    rb.add(1 << 16); // 65 536
-    rb.add(2 << 16); //131 072
-    rb.add(3 << 16); //196 608
+    rb.add(1 << 16); // 65536
+    rb.add(2 << 16); //131072
+    rb.add(3 << 16); //196608
 
-    rb2.add(1 << 16);// 65 536
-    rb2.add(3 << 16);//196 608
+    rb2.add(1 << 16);// 65536
+    rb2.add(3 << 16);//196608
 
     rb.orNot(rb2, (4 << 16) - 1);
 
@@ -55,10 +55,10 @@ public class TestRoaringBitmapOrNot {
     final RoaringBitmap rb2 = new RoaringBitmap();
 
     rb.add(0);
-    rb.add(1 << 16); // 65 536
-    rb.add(3 << 16); //196 608
+    rb.add(1 << 16); // 65536
+    rb.add(3 << 16); //196608
 
-    rb2.add((4 << 16) - 1); //262 143
+    rb2.add((4 << 16) - 1); //262143
 
     rb.orNot(rb2, 4 << 16);
 
@@ -79,8 +79,8 @@ public class TestRoaringBitmapOrNot {
     rb.add(2 << 16);
 
     final RoaringBitmap rb2 = new RoaringBitmap();
-    rb2.add(1 << 14); //16 384
-    rb2.add(3 << 16); //196 608
+    rb2.add(1 << 14); //16384
+    rb2.add(3 << 16); //196608
 
     rb.orNot(rb2, (5 << 16));
     assertEquals((5 << 16) - 2, rb.getCardinality());
@@ -101,9 +101,9 @@ public class TestRoaringBitmapOrNot {
     rb.add(1);
 
     final RoaringBitmap rb2 = new RoaringBitmap();
-    rb2.add(3 << 16); //196 608
+    rb2.add(3 << 16); //196608
 
-    rb.orNot(rb2, (2 << 16) + (2 << 14)); //131 072 + 32 768 = 163 840
+    rb.orNot(rb2, (2 << 16) + (2 << 14)); //131072 + 32768 = 163840
     assertEquals((2 << 16) + (2 << 14), rb.getCardinality());
 
     final IntIterator iterator = rb.getIntIterator();
@@ -119,9 +119,9 @@ public class TestRoaringBitmapOrNot {
     final RoaringBitmap rb = new RoaringBitmap();
 
     rb.add(1);
-    rb.add(1 << 16); // 65 536
-    rb.add(2 << 16); //131 072
-    rb.add(3 << 16); //196 608
+    rb.add(1 << 16); // 65536
+    rb.add(2 << 16); //131072
+    rb.add(3 << 16); //196608
 
     final RoaringBitmap rb2 = new RoaringBitmap();
 
@@ -141,16 +141,16 @@ public class TestRoaringBitmapOrNot {
     final RoaringBitmap rb = new RoaringBitmap();
 
     rb.add(1);
-    rb.add((1 << 16) - 1); // 65 535
-    rb.add(1 << 16); // 65 536
-    rb.add(2 << 16); //131 072
-    rb.add(3 << 16); //196 608
+    rb.add((1 << 16) - 1); // 65535
+    rb.add(1 << 16); // 65536
+    rb.add(2 << 16); //131072
+    rb.add(3 << 16); //196608
 
     final RoaringBitmap rb2 = new RoaringBitmap();
 
     rb.orNot(rb2, (1 << 14));
 
-    // {[0, 2^14], 65 535, 65 536, 131 072, 196 608}
+    // {[0, 2^14], 65535, 65536, 131072, 196608}
     assertEquals((1 << 14) + 4, rb.getCardinality());
 
     final IntIterator iterator = rb.getIntIterator();
@@ -178,15 +178,15 @@ public class TestRoaringBitmapOrNot {
   public void orNot7() {
     final RoaringBitmap rb = new RoaringBitmap();
 
-    rb.add(1 << 16); // 65 536
-    rb.add(2 << 16); //131 072
-    rb.add(3 << 16); //196 608
+    rb.add(1 << 16); // 65536
+    rb.add(2 << 16); //131072
+    rb.add(3 << 16); //196608
 
     final RoaringBitmap rb2 = new RoaringBitmap();
 
     rb.orNot(rb2, (1 << 14));
 
-    // {[0, 2^14], 65 536, 131 072, 196 608}
+    // {[0, 2^14], 65536, 131072, 196608}
     assertEquals((1 << 14) + 3, rb.getCardinality());
 
     final IntIterator iterator = rb.getIntIterator();
@@ -214,16 +214,16 @@ public class TestRoaringBitmapOrNot {
   public void orNot9() {
     final RoaringBitmap rb1 = new RoaringBitmap();
 
-    rb1.add(1 << 16); // 65 536
-    rb1.add(2 << 16); //131 072
-    rb1.add(3 << 16); //196 608
+    rb1.add(1 << 16); // 65536
+    rb1.add(2 << 16); //131072
+    rb1.add(3 << 16); //196608
 
 
     {
       final RoaringBitmap rb2 = new RoaringBitmap();
       final RoaringBitmap answer1 = RoaringBitmap.orNot(rb1, rb2, (1 << 14));
 
-      // {[0, 2^14] | {65 536} {131 072} {196 608}}
+      // {[0, 2^14] | {65536} {131072} {196608}}
       assertEquals((1 << 14) + 3, answer1.getCardinality());
 
       final IntIterator iterator1 = answer1.getIntIterator();
@@ -240,7 +240,7 @@ public class TestRoaringBitmapOrNot {
       final RoaringBitmap rb2 = new RoaringBitmap();
       final RoaringBitmap answer = RoaringBitmap.orNot(rb1, rb2, (2 << 16));
 
-      // {[0, 2^16] | 131 072, 196608}
+      // {[0, 2^16] | 131072, 196608}
       assertEquals((2 << 16) + 2, answer.getCardinality());
 
       final IntIterator iterator = answer.getIntIterator();

@@ -41,7 +41,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    * Add the value to the container (set the value to "true"), whether it already appears or not.
    *
    * Java lacks native unsigned longs but the x argument is considered to be unsigned. Within
-   * bitmaps, numbers are ordered according to {@link Long#toUnsignedString}. We order the numbers
+   * bitmaps, numbers are ordered according to{@link Long#toUnsignedString}. We order the numbers
    * like 0, 1, ..., 9223372036854775807, -9223372036854775808, -9223372036854775807,..., -1.
    *
    * @param x long value

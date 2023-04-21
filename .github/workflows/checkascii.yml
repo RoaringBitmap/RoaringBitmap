@@ -1,0 +1,16 @@
+name: Check ASCII
+
+on:
+  - push
+  - pull_request
+
+
+jobs:
+  check-ascii:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Check ASCII
+        run: |
+          find . -type f -type f -name '*.java' | xargs file  | grep -qv ASCII || exit 0  && exit 1

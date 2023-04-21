@@ -201,7 +201,7 @@ public class MutableBitSliceIndex extends BitSliceIndexBase implements BitmapSli
 
     // todo whether we need this
     if (MutableRoaringBitmap.intersects(this.ebM, otherBsi.ebM)) {
-      throw new IllegalArgumentException("merge can be used only in bsiA ∩ bsiB  is null");
+      throw new IllegalArgumentException("merge can be used only in bsiA  bsiB  is null");
     }
 
     int bitDepth = Integer.max(this.bitCount(), otherBsi.bitCount());
