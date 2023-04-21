@@ -1,5 +1,7 @@
 package org.roaringbitmap.longlong;
 
+import org.apache.commons.lang3.SerializationUtils;
+
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -8,8 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
-
-import org.apache.commons.lang3.SerializationUtils;
 import static org.roaringbitmap.Util.toUnsignedLong;
 
 import com.google.common.primitives.Ints;
@@ -2259,5 +2259,26 @@ public class TestRoaring64Bitmap {
 
     assertEquals(source.stream().min((l,r) -> Long.compareUnsigned(l, r)).get(), rb.first());
     assertEquals(source.stream().max((l,r) -> Long.compareUnsigned(l, r)).get(), rb.last());
+  }
+
+ @Test
+  public void testIssue619() {
+    long[] CLEANER_VALUES = {140664568792144l};
+    long[] ADDRESS_SPACE_VALUES = {140662937752432l};
+    Roaring64Bitmap addressSpace = new Roaring64Bitmap();
+    Roaring64Bitmap cleaner = new Roaring64Bitmap();
+    int iteration = 0;
+    cleaner.add(CLEANER_VALUES);
+    while (true) {
+      addressSpace.add(ADDRESS_SPACE_VALUES);
+      addressSpace.add(CLEANER_VALUES);
+      if (iteration == 33) {
+        //This test case can safely break here.
+        break;
+      }
+      addressSpace.andNot(cleaner);
+      iteration++;
+    }
+    assertEquals(2, addressSpace.getIntCardinality());
   }
 }

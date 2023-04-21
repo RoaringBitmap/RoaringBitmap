@@ -118,7 +118,7 @@ public class Node4 extends Node {
       children[pos] = children[pos + 1];
     }
     if (count == 1) {
-      //shrink to leaf node
+      //shrink to the child node
       Node child = children[0];
       byte newLength = (byte) (child.prefixLength + this.prefixLength + 1);
       byte[] newPrefix = new byte[newLength];
