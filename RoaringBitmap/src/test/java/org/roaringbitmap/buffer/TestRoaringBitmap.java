@@ -3941,7 +3941,7 @@ public class TestRoaringBitmap {
 
   @Test
   public void testRangeExtremeEnd() {
-    RoaringBitmap x = new RoaringBitmap();
+    MutableRoaringBitmap x = new MutableRoaringBitmap();
     long rangeStart =  (1L << 32) - 2;
     long rangeEnd = (1L << 32);
     x.add(rangeStart, rangeEnd);
@@ -3949,4 +3949,20 @@ public class TestRoaringBitmap {
     Assertions.assertEquals(2L, x.getLongCardinality());
     Assertions.assertArrayEquals(new int[] {-2, -1}, x.toArray());
   }
+  @Test
+  public void issue623() {
+    MutableRoaringBitmap r = new MutableRoaringBitmap();
+    r.add(65535);
+    r.add(65535+1);
+    assertTrue(r.contains(65535));
+    assertTrue(r.contains(65535 + 1));
+    assertTrue(r.contains(65535L, 65535L + 1));
+    for (long i = 1; i <= 10_000_000; i++) {
+      r.add(i, i + 1);
+    }
+    for (long i = 1; i <= 10_000_000; i++) {
+      assertTrue(r.contains(i, i + 1));
+    }
+  }
+
 }

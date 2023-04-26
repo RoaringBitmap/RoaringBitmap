@@ -443,9 +443,9 @@ Usage
 * Get java
 
 * ``./gradlew assemble`` will compile
-* ``./gradlew build`` will compile and run the  unit tests
+* ``./gradlew build`` will compile and run the unit tests
 * ``./gradlew test `` will run the tests
-* ``./gradlew :roaringbitmap:test --tests TestIterators.testIndexIterator4`` run just the test `TestIterators.testIndexIterator4`
+* ``./gradlew :roaringbitmap:test --tests TestIterators.testIndexIterator4`` runs just the test `TestIterators.testIndexIterator4`; `./gradlew -i :roaringbitmap:test --tests TestRoaringBitmap.issue623` runs just the test `issue623` in the class ` TestRoaringBitmap` while printing out to the console.
 * ``./gradlew  bsi:test --tests BufferBSITest.testEQ``  run just the test `BufferBSITest.testEQ` in the `bsi` submodule
 * ``./gradlew checkstyleMain`` will check that you abide by the code style and that the code compiles. We enforce a strict style so that there is no debate as to the proper way to format the code.
 

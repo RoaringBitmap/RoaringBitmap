@@ -1117,8 +1117,8 @@ public class ImmutableRoaringBitmap
     if (!highLowContainer.getContainerAtIndex(begin).contains(min, 1 << 16)) {
       return false;
     }
-    if (end < len && !highLowContainer.getContainerAtIndex(end)
-            .contains(0, (supremum & 0xFFFF) == 0 ? 0x10000 : sup)) {
+    if (sup != 0 && end < len && !highLowContainer.getContainerAtIndex(end)
+            .contains(0, sup)) {
       return false;
     }
     for (int i = begin + 1; i < end; ++i) {
