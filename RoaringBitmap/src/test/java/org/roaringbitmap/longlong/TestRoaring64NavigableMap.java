@@ -1141,7 +1141,7 @@ public class TestRoaring64NavigableMap {
   public void testAddRange_SingleBucket_NotBuffer() {
     Roaring64NavigableMap map = newUnsignedHeap();
 
-    map.add(5L, 12L);
+    map.addRange(5L, 12L);
     assertEquals(7L, map.getLongCardinality());
 
     assertEquals(5L, map.select(0));
@@ -1153,7 +1153,7 @@ public class TestRoaring64NavigableMap {
   public void testAddRange_SingleBucket_Buffer() {
     Roaring64NavigableMap map = newSignedBuffered();
 
-    map.add(5L, 12L);
+    map.addRange(5L, 12L);
     assertEquals(7L, map.getLongCardinality());
 
     assertEquals(5L, map.select(0));
@@ -1168,7 +1168,7 @@ public class TestRoaring64NavigableMap {
 
     long end = Util.toUnsignedLong(-1) + 1;
 
-    map.add(end - 2, end);
+    map.addRange(end - 2, end);
     assertEquals(2, map.getLongCardinality());
 
     assertEquals(end - 2, map.select(0));
@@ -1184,7 +1184,7 @@ public class TestRoaring64NavigableMap {
 
     long from = RoaringIntPacking.pack(0, -1 - enableTrim);
     long to = from + 2 * enableTrim;
-    map.add(from, to);
+    map.addRange(from, to);
     int nbItems = (int) (to - from);
     assertEquals(nbItems, map.getLongCardinality());
 
@@ -1212,7 +1212,7 @@ public class TestRoaring64NavigableMap {
     long outOfSingleRoaring = outOfRoaringBitmapRange - 3;
 
     // This should fill entirely one bitmap,and add one in the next bitmap
-    map.add(0, outOfSingleRoaring);
+    map.addRange(0, outOfSingleRoaring);
     assertEquals(outOfSingleRoaring, map.getLongCardinality());
 
     assertEquals(outOfSingleRoaring, map.getLongCardinality());
@@ -1577,11 +1577,11 @@ public class TestRoaring64NavigableMap {
   public void testAndNot_ImplicitRoaringBitmap() {
     // Based on RoaringBitmap
     Roaring64NavigableMap x = new Roaring64NavigableMap();
-    x.add(8, 16);
+    x.addRange(8, 16);
 
     // Based on MutableRoaringBitmap
     Roaring64NavigableMap y = new Roaring64NavigableMap();
-    y.add(12, 32);
+    y.addRange(12, 32);
 
     {
       x.andNot(y);
@@ -1616,7 +1616,7 @@ public class TestRoaring64NavigableMap {
   public void testNaivelazyor_ImplicitRoaringBitmap() {
     // Based on RoaringBitmap
     Roaring64NavigableMap x = new Roaring64NavigableMap();
-    x.add(123, 124);
+    x.addRange(123, 124);
 
     // Based on MutableRoaringBitmap
     Roaring64NavigableMap y = Roaring64NavigableMap.bitmapOf(4L);

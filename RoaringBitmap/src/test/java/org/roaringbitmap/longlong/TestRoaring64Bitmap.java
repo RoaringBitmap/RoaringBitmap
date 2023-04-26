@@ -1100,22 +1100,22 @@ public class TestRoaring64Bitmap {
   public void testAddInvalidRange() {
     Roaring64Bitmap map = new Roaring64Bitmap();
     // Zero edge-case
-    assertThrows(IllegalArgumentException.class, () -> map.add(0L, 0L));
+    assertThrows(IllegalArgumentException.class, () -> map.addRange(0L, 0L));
 
     // Same higher parts, different lower parts
-    assertThrows(IllegalArgumentException.class, () -> map.add(1L, 0L));
-    assertThrows(IllegalArgumentException.class, () -> map.add(-1, -2));
+    assertThrows(IllegalArgumentException.class, () -> map.addRange(1L, 0L));
+    assertThrows(IllegalArgumentException.class, () -> map.addRange(-1, -2));
 
     // Different higher parts
-    assertThrows(IllegalArgumentException.class, () -> map.add(Long.MAX_VALUE, 0L));
-    assertThrows(IllegalArgumentException.class, () -> map.add(Long.MIN_VALUE, Long.MAX_VALUE));
+    assertThrows(IllegalArgumentException.class, () -> map.addRange(Long.MAX_VALUE, 0L));
+    assertThrows(IllegalArgumentException.class, () -> map.addRange(Long.MIN_VALUE, Long.MAX_VALUE));
   }
 
   @Test
   public void testAddRangeSingleBucket() {
     Roaring64Bitmap map = newDefaultCtor();
 
-    map.add(5L, 12L);
+    map.addRange(5L, 12L);
     assertEquals(7L, map.getLongCardinality());
 
     assertEquals(5L, map.select(0));
@@ -1130,7 +1130,7 @@ public class TestRoaring64Bitmap {
 
     long end = toUnsignedLong(-1) + 1;
 
-    map.add(end - 2, end);
+    map.addRange(end - 2, end);
     assertEquals(2, map.getLongCardinality());
 
     assertEquals(end - 2, map.select(0));
@@ -1146,7 +1146,7 @@ public class TestRoaring64Bitmap {
 
     long from = RoaringIntPacking.pack(0, -1 - enableTrim);
     long to = from + 2 * enableTrim;
-    map.add(from, to);
+    map.addRange(from, to);
     int nbItems = (int) (to - from);
     assertEquals(nbItems, map.getLongCardinality());
 
@@ -1174,7 +1174,7 @@ public class TestRoaring64Bitmap {
     long outOfSingleRoaring = outOfRoaringBitmapRange - 3;
 
     // This should fill entirely one bitmap,and add one in the next bitmap
-    map.add(0, outOfSingleRoaring);
+    map.addRange(0, outOfSingleRoaring);
     assertEquals(outOfSingleRoaring, map.getLongCardinality());
 
     assertEquals(outOfSingleRoaring, map.getLongCardinality());
@@ -1600,7 +1600,7 @@ public class TestRoaring64Bitmap {
   @Test
   public void testSkipsRun() {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
-    bitmap.add(4L, 100000L);
+    bitmap.addRange(4L, 100000L);
     bitmap.runOptimize();
     // use advance
     for(int i = 4; i < 100000; ++i) {
@@ -1714,7 +1714,7 @@ public class TestRoaring64Bitmap {
   @Test
   public void testSkipsRunReverse() {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
-    bitmap.add(4L, 100000L);
+    bitmap.addRange(4L, 100000L);
     bitmap.runOptimize();
 
     // use advance
@@ -1754,8 +1754,8 @@ public class TestRoaring64Bitmap {
     long b2s = 100L;
     long b2e = b2 + b2s;
 
-    bitset.add(b1, b1e);
-    bitset.add(b2, b2e);
+    bitset.addRange(b1, b1e);
+    bitset.addRange(b2, b2e);
 
     PeekableLongIterator bitIt = bitset.getLongIterator();
 
@@ -1797,9 +1797,9 @@ public class TestRoaring64Bitmap {
     long b3 = 6000000000L;
     long b3e = b3 + runLength;
 
-    bitset.add(b1, b1e);
-    bitset.add(b2, b2e);
-    bitset.add(b3, b3e);
+    bitset.addRange(b1, b1e);
+    bitset.addRange(b2, b2e);
+    bitset.addRange(b3, b3e);
 
     PeekableLongIterator bitIt = bitset.getLongIterator();
 
@@ -1853,8 +1853,8 @@ public class TestRoaring64Bitmap {
     long p2 = b2 + (b2s / 2);
     long pgap = p2 - b1s;
 
-    bitset.add(b1, b1e);
-    bitset.add(b2, b2e);
+    bitset.addRange(b1, b1e);
+    bitset.addRange(b2, b2e);
 
     PeekableLongIterator bitIt = bitset.getReverseLongIterator();
 
@@ -1895,9 +1895,9 @@ public class TestRoaring64Bitmap {
     long b3 = 6000000000L;
     long b3e = b3 + runLength;
 
-    bitset.add(b1, b1e);
-    bitset.add(b2, b2e);
-    bitset.add(b3, b3e);
+    bitset.addRange(b1, b1e);
+    bitset.addRange(b2, b2e);
+    bitset.addRange(b3, b3e);
 
     PeekableLongIterator bitIt = bitset.getReverseLongIterator();
 
@@ -1942,7 +1942,7 @@ public class TestRoaring64Bitmap {
   @Test
   public void testLongTreatedAsUnsignedOnAdvance() {
     Roaring64Bitmap bitset = new Roaring64Bitmap();
-    bitset.add(Long.MAX_VALUE, Long.MIN_VALUE + 3);
+    bitset.addRange(Long.MAX_VALUE, Long.MIN_VALUE + 3);
 
     PeekableLongIterator bitIt = bitset.getLongIterator();
 
@@ -1956,7 +1956,7 @@ public class TestRoaring64Bitmap {
   @Test
   public void testLongTreatedAsUnsignedOnAdvanceReverse() {
     Roaring64Bitmap bitset = new Roaring64Bitmap();
-    bitset.add(Long.MAX_VALUE, Long.MIN_VALUE + 3);
+    bitset.addRange(Long.MAX_VALUE, Long.MIN_VALUE + 3);
 
     PeekableLongIterator bitIt = bitset.getReverseLongIterator();
 
@@ -2000,7 +2000,7 @@ public class TestRoaring64Bitmap {
   @Test
   public void testForAllInRangeContinuous() {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
-    bitmap.add(100L, 10000L);
+    bitmap.addRange(100L, 10000L);
 
     ValidationRangeConsumer consumer = ValidationRangeConsumer.validateContinuous(9900, PRESENT);
     bitmap.forAllInRange(100, 9900, consumer);

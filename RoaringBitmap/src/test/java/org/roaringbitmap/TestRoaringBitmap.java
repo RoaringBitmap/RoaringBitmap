@@ -5443,4 +5443,19 @@ public class TestRoaringBitmap {
         System.out.println("[issue566] RoaringBitmap bits per entry: " + roaringbits * 1.0 / roaringBitMap.getCardinality());
         assertTrue(roaringbits < bitsetbits);
     }
+    @Test
+    public void issue623() {
+        RoaringBitmap r = new RoaringBitmap();
+        r.add(65535);
+        r.add(65535+1);
+        assertTrue(r.contains(65535));
+        assertTrue(r.contains(65535 + 1));
+        assertTrue(r.contains(65535L, 65535L + 1));
+        for (long i = 1; i <= 10_000_000; i++) {
+            r.add(i, i + 1);
+        }
+        for (long i = 1; i <= 10_000_000; i++) {
+            assertTrue(r.contains(i, i + 1));
+        }
+    }
 }
