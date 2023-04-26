@@ -3,7 +3,6 @@ RoaringBitmap
 [![](https://jitpack.io/v/RoaringBitmap/RoaringBitmap.svg)](https://jitpack.io/#RoaringBitmap/RoaringBitmap)
 [![][license img]][license]
 [![docs-badge][]][docs]
-![Java 8 CI](https://github.com/RoaringBitmap/RoaringBitmap/workflows/Java%208%20CI/badge.svg)
 ![Java 11 CI](https://github.com/RoaringBitmap/RoaringBitmap/workflows/Java%2011%20CI/badge.svg)
 ![Java 12 CI](https://github.com/RoaringBitmap/RoaringBitmap/workflows/Java%2012%20CI/badge.svg)
 ![Java 13 CI](https://github.com/RoaringBitmap/RoaringBitmap/workflows/Java%2013%20CI/badge.svg)
