@@ -426,9 +426,9 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
         if (buffer.length < (BitmapContainer.MAX_CAPACITY / 64) * 8) {
           // We have been provided a rather small buffer
           
-          for (int iBlock = 0 ; iBlock <= bitmapArray.length / buffer.length / 8; iBlock++) {
+          for (int iBlock = 0 ; iBlock <= 8 * bitmapArray.length / buffer.length ; iBlock++) {
             int start = buffer.length * iBlock;
-            int end = Math.min(buffer.length * (iBlock +1 ) - 1, 8 * bitmapArray.length);
+            int end = Math.min(buffer.length * (iBlock +1 ), 8 * bitmapArray.length);
             
             in.readFully(buffer, 0, end - start);
             
@@ -438,7 +438,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
             
             LongBuffer asLongBuffer = asByteBuffer.asLongBuffer();
             asLongBuffer.rewind();
-            asLongBuffer.get(bitmapArray, start, (end - start) / 8); 
+            asLongBuffer.get(bitmapArray, start / 8, (end - start) / 8);
           }
           
         } else {
@@ -472,9 +472,9 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
             lengthsAndValues[j] = Character.reverseBytes(in.readChar());
           }
         } else {
-          for (int iBlock = 0 ; iBlock <= lengthsAndValues.length / buffer.length / 2; iBlock++) {
+          for (int iBlock = 0 ; iBlock <= 2 * lengthsAndValues.length / buffer.length ; iBlock++) {
             int start = buffer.length * iBlock;
-            int end = Math.min(buffer.length * (iBlock +1 ) - 1, 2 * lengthsAndValues.length);
+            int end = Math.min(buffer.length * (iBlock +1 ), 2 * lengthsAndValues.length);
             
             in.readFully(buffer, 0, end - start);
 
@@ -484,7 +484,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
             
             CharBuffer asCharBuffer = asByteBuffer.asCharBuffer();
             asCharBuffer.rewind();
-            asCharBuffer.get(lengthsAndValues, start, (end - start) / 2);
+            asCharBuffer.get(lengthsAndValues, start / 2, (end - start) / 2);
           }
         }
         
@@ -504,9 +504,9 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
             charArray[j] = Character.reverseBytes(in.readChar());
           }
         } else {
-          for (int iBlock = 0 ; iBlock <= charArray.length / buffer.length / 2; iBlock++) {
+          for (int iBlock = 0 ; iBlock <= 2 * charArray.length / buffer.length ; iBlock++) {
             int start = buffer.length * iBlock;
-            int end = Math.min(buffer.length * (iBlock +1 ) - 1, 2 * charArray.length);
+            int end = Math.min(buffer.length * (iBlock +1 ) , 2 * charArray.length);
             
             in.readFully(buffer, 0, end - start);
 
@@ -516,7 +516,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
             
             CharBuffer asCharBuffer = asByteBuffer.asCharBuffer();
             asCharBuffer.rewind();
-            asCharBuffer.get(charArray, start, (end - start) / 2);
+            asCharBuffer.get(charArray, start / 2, (end - start) / 2);
           }
         }
         
