@@ -197,6 +197,7 @@ public class TestSerialization {
     DataInputStream dis = new DataInputStream(in);
     bitmap_empty.deserialize(dis, buffer);
     bitmap_b.deserialize(dis, buffer);
+    assertEquals(bitmap_a, bitmap_b);
   }
 
 
