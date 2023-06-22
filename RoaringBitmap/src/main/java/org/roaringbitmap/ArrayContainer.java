@@ -1278,14 +1278,14 @@ public final class ArrayContainer extends Container implements Cloneable {
     if (this.cardinality == 0) {
       return "{}";
     }
-    StringBuilder sb = new StringBuilder();
-    sb.append("{");
+    StringBuilder sb = new StringBuilder("{}".length() + "-123456789,".length() * cardinality);
+    sb.append('{');
     for (int i = 0; i < this.cardinality - 1; i++) {
       sb.append((int)(this.content[i]));
-      sb.append(",");
+      sb.append(',');
     }
     sb.append((int)(this.content[this.cardinality - 1]));
-    sb.append("}");
+    sb.append('}');
     return sb.toString();
   }
 
