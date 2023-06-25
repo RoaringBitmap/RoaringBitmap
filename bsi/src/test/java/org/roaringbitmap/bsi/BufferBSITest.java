@@ -212,6 +212,11 @@ public class BufferBSITest {
         Assertions.assertTrue(bitmap.getLongCardinality() == 50L);
         ImmutableRoaringBitmap bitmap129 = bsi.toImmutableBitSliceIndex().rangeEQ(null, 129);
         Assertions.assertTrue(bitmap129.getLongCardinality() == 0L);
+
+
+        ImmutableRoaringBitmap bitmap99 = bsi.toImmutableBitSliceIndex().rangeEQ(null, 99);
+        Assertions.assertTrue(bitmap99.getLongCardinality() == 1L);
+        Assertions.assertTrue(bitmap99.contains(99));
     }
 
 

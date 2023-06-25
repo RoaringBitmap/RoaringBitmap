@@ -350,7 +350,7 @@ public class BitSliceIndexBase {
     }
 
     // https://github.com/RoaringBitmap/RoaringBitmap/issues/549
-    if((predicate >> (this.bA.length - 1)) != 0) {
+    if((predicate >> (this.bA.length)) != 0) {
       return new MutableRoaringBitmap();
     }
 
