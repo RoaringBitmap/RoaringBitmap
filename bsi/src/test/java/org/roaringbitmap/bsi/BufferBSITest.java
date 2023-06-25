@@ -114,6 +114,24 @@ public class BufferBSITest {
         });
     }
 
+    @Test
+    public void testAddAndEvaluate() {
+        MutableBitSliceIndex bsiA = new MutableBitSliceIndex();
+        IntStream.range(1, 100).forEach(x -> bsiA.setValue(x, x));
+        MutableBitSliceIndex bsiB = new MutableBitSliceIndex();
+        IntStream.range(1, 120).forEach(x -> bsiB.setValue(120 - x, x));
+
+        bsiA.add(bsiB);
+
+        ImmutableRoaringBitmap result = bsiA.compare(BitmapSliceIndex.Operation.EQ, 120, 0, null);
+        Assertions.assertTrue(result.getLongCardinality() == 99);
+        Assertions.assertArrayEquals(result.toArray(), IntStream.range(1, 100).toArray());
+
+        result = bsiA.compare(BitmapSliceIndex.Operation.RANGE, 1, 20, null);
+        Assertions.assertTrue(result.getLongCardinality() == 20);
+        Assertions.assertArrayEquals(result.toArray(), IntStream.range(100, 120).toArray());
+    }
+
 
     @Test
     public void TestIO4Stream() throws IOException {
@@ -213,10 +231,37 @@ public class BufferBSITest {
         ImmutableRoaringBitmap bitmap129 = bsi.toImmutableBitSliceIndex().rangeEQ(null, 129);
         Assertions.assertTrue(bitmap129.getLongCardinality() == 0L);
 
-
         ImmutableRoaringBitmap bitmap99 = bsi.toImmutableBitSliceIndex().rangeEQ(null, 99);
         Assertions.assertTrue(bitmap99.getLongCardinality() == 1L);
         Assertions.assertTrue(bitmap99.contains(99));
+    }
+
+    @Test
+    public void testNotEQ() {
+        MutableBitSliceIndex bsi = new MutableBitSliceIndex();
+        bsi.setValue(1, 99);
+        bsi.setValue(2, 1);
+        bsi.setValue(3, 50);
+
+        ImmutableRoaringBitmap result = bsi.compare(BitmapSliceIndex.Operation.NEQ, 99, 0, null);
+        Assertions.assertTrue(result.getLongCardinality() == 2);
+        Assertions.assertArrayEquals(new int[]{2, 3}, result.toArray());
+
+        result = bsi.compare(BitmapSliceIndex.Operation.NEQ, 100, 0, null);
+        Assertions.assertTrue(result.getLongCardinality() == 3);
+        Assertions.assertArrayEquals(new int[]{1, 2, 3}, result.toArray());
+
+        bsi = new MutableBitSliceIndex();
+        bsi.setValue(1, 99);
+        bsi.setValue(2, 99);
+        bsi.setValue(3, 99);
+
+        result = bsi.compare(BitmapSliceIndex.Operation.NEQ, 99, 0, null);
+        Assertions.assertTrue(result.isEmpty());
+
+        result = bsi.compare(BitmapSliceIndex.Operation.NEQ, 1, 0, null);
+        Assertions.assertTrue(result.getLongCardinality() == 3);
+        Assertions.assertArrayEquals(new int[]{1, 2, 3}, result.toArray());
     }
 
 
@@ -227,6 +272,13 @@ public class BufferBSITest {
         ImmutableRoaringBitmap result = imBsi.compare(BitmapSliceIndex.Operation.GT, 50, 0, null);
         Assertions.assertTrue(result.getLongCardinality() == 49);
         Assertions.assertArrayEquals(IntStream.range(51, 100).toArray(), result.toArray());
+
+        result = imBsi.compare(BitmapSliceIndex.Operation.GT, 0, 0, null);
+        Assertions.assertTrue(result.getLongCardinality() == 99);
+        Assertions.assertArrayEquals(IntStream.range(1, 100).toArray(), result.toArray());
+
+        result = imBsi.compare(BitmapSliceIndex.Operation.GT, 99, 0, null);
+        Assertions.assertTrue(result.isEmpty());
     }
 
 
@@ -235,6 +287,13 @@ public class BufferBSITest {
         ImmutableRoaringBitmap result = imBsi.compare(BitmapSliceIndex.Operation.GE, 50, 0, null);
         Assertions.assertTrue(result.getLongCardinality() == 50);
         Assertions.assertArrayEquals(IntStream.range(50, 100).toArray(), result.toArray());
+
+        result = imBsi.compare(BitmapSliceIndex.Operation.GE, 1, 0, null);
+        Assertions.assertTrue(result.getLongCardinality() == 99);
+        Assertions.assertArrayEquals(IntStream.range(1, 100).toArray(), result.toArray());
+
+        result = imBsi.compare(BitmapSliceIndex.Operation.GE, 100, 0, null);
+        Assertions.assertTrue(result.isEmpty());
     }
 
     @Test
@@ -242,6 +301,13 @@ public class BufferBSITest {
         ImmutableRoaringBitmap result = imBsi.compare(BitmapSliceIndex.Operation.LT, 50, 0, null);
         Assertions.assertTrue(result.getLongCardinality() == 49);
         Assertions.assertArrayEquals(IntStream.range(1, 50).toArray(), result.toArray());
+
+        result = imBsi.compare(BitmapSliceIndex.Operation.LT, Integer.MAX_VALUE, 0, null);
+        Assertions.assertTrue(result.getLongCardinality() == 99);
+        Assertions.assertArrayEquals(IntStream.range(1, 100).toArray(), result.toArray());
+
+        result = imBsi.compare(BitmapSliceIndex.Operation.LT, 1, 0, null);
+        Assertions.assertTrue(result.isEmpty());
     }
 
 
@@ -250,6 +316,13 @@ public class BufferBSITest {
         ImmutableRoaringBitmap result = imBsi.compare(BitmapSliceIndex.Operation.LE, 50, 0, null);
         Assertions.assertTrue(result.getLongCardinality() == 50);
         Assertions.assertArrayEquals(IntStream.range(1, 51).toArray(), result.toArray());
+
+        result = imBsi.compare(BitmapSliceIndex.Operation.LE, Integer.MAX_VALUE, 0, null);
+        Assertions.assertTrue(result.getLongCardinality() == 99);
+        Assertions.assertArrayEquals(IntStream.range(1, 100).toArray(), result.toArray());
+
+        result = imBsi.compare(BitmapSliceIndex.Operation.LE, 0, 0, null);
+        Assertions.assertTrue(result.isEmpty());
     }
 
     @Test
@@ -257,6 +330,29 @@ public class BufferBSITest {
         ImmutableRoaringBitmap result = imBsi.compare(BitmapSliceIndex.Operation.RANGE, 10, 20, null);
         Assertions.assertTrue(result.getLongCardinality() == 11);
         Assertions.assertArrayEquals(IntStream.range(10, 21).toArray(), result.toArray());
+
+        result = imBsi.compare(BitmapSliceIndex.Operation.RANGE, 1, 200, null);
+        Assertions.assertTrue(result.getLongCardinality() == 99);
+        Assertions.assertArrayEquals(IntStream.range(1, 100).toArray(), result.toArray());
+
+        result = imBsi.compare(BitmapSliceIndex.Operation.RANGE, 1000, 2000, null);
+        Assertions.assertTrue(result.isEmpty());
+    }
+
+    @Test
+    public void testValueZero() {
+        MutableBitSliceIndex bsi = new MutableBitSliceIndex();
+        bsi.setValue(0, 0);
+        bsi.setValue(1, 0);
+        bsi.setValue(2, 1);
+
+        ImmutableRoaringBitmap result = bsi.compare(BitmapSliceIndex.Operation.EQ, 0, 0, null);
+        Assertions.assertTrue(result.getLongCardinality() == 2);
+        Assertions.assertArrayEquals(new int[]{0, 1}, result.toArray());
+
+        result = bsi.compare(BitmapSliceIndex.Operation.EQ, 1, 0, null);
+        Assertions.assertTrue(result.getLongCardinality() == 1);
+        Assertions.assertArrayEquals(new int[]{2}, result.toArray());
     }
 
     @Test
