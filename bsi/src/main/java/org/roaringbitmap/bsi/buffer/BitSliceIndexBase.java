@@ -4,6 +4,7 @@ package org.roaringbitmap.bsi.buffer;
 import org.roaringbitmap.BatchIterator;
 import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.bsi.BitmapSliceIndex;
 import org.roaringbitmap.bsi.Pair;
 import org.roaringbitmap.buffer.BufferFastAggregation;
@@ -350,8 +351,9 @@ public class BitSliceIndexBase {
     }
 
     // https://github.com/RoaringBitmap/RoaringBitmap/issues/549
-    if((predicate >> (this.bA.length - 1)) != 0) {
-      return new MutableRoaringBitmap();
+    ImmutableRoaringBitmap result = compareUsingMinMax(BitmapSliceIndex.Operation.EQ, predicate, 0, foundSet);
+    if (result != null) {
+      return result;
     }
 
     for (int i = this.bA.length - 1; i >= 0; i--) {
@@ -412,11 +414,10 @@ public class BitSliceIndexBase {
    * @return columnId set we found in this bsi with giving conditions, using RoaringBitmap to express
    */
   public ImmutableRoaringBitmap compare(BitmapSliceIndex.Operation operation, int startOrValue, int end, ImmutableRoaringBitmap foundSet) {
-    // todo whether we need this or not?
-    if (startOrValue > this.maxValue || (end > 0 && end < this.minValue)) {
-      return new MutableRoaringBitmap();
+    ImmutableRoaringBitmap result = compareUsingMinMax(operation, startOrValue, end, foundSet);
+    if (result != null) {
+      return result;
     }
-    startOrValue = startOrValue == 0 ? 1 : startOrValue;
 
     switch (operation) {
       case EQ:
@@ -443,6 +444,72 @@ public class BitSliceIndexBase {
       default:
         throw new IllegalArgumentException("not support operation!");
     }
+  }
+
+  private ImmutableRoaringBitmap compareUsingMinMax(BitmapSliceIndex.Operation operation, int startOrValue, int end, ImmutableRoaringBitmap foundSet) {
+    ImmutableRoaringBitmap all = foundSet == null ? this.ebM.clone() : ImmutableRoaringBitmap.and(this.ebM, foundSet);
+    ImmutableRoaringBitmap empty = new MutableRoaringBitmap();
+
+    switch (operation) {
+      case LT:
+        if (startOrValue > maxValue) {
+          return all;
+        } else if (startOrValue <= minValue) {
+          return empty;
+        }
+
+        break;
+      case LE:
+        if (startOrValue >= maxValue) {
+          return all;
+        } else if (startOrValue < minValue) {
+          return empty;
+        }
+
+        break;
+      case GT:
+        if (startOrValue < minValue) {
+          return all;
+        } else if (startOrValue >= maxValue) {
+          return empty;
+        }
+
+        break;
+      case GE:
+        if (startOrValue <= minValue) {
+          return all;
+        } else if (startOrValue > maxValue) {
+          return empty;
+        }
+
+        break;
+      case EQ:
+        if (minValue == maxValue && minValue == startOrValue) {
+          return all;
+        } else if (startOrValue < minValue || startOrValue > maxValue) {
+          return empty;
+        }
+
+        break;
+      case NEQ:
+        if (minValue == maxValue) {
+          return minValue == startOrValue ? empty : all;
+        }
+
+        break;
+      case RANGE:
+        if (startOrValue <= minValue && end >= maxValue) {
+          return all;
+        } else if (startOrValue > maxValue || end < minValue) {
+          return empty;
+        }
+
+        break;
+      default:
+        return null;
+    }
+
+    return null;
   }
 
   public Pair<Long, Long> sum(ImmutableRoaringBitmap foundSet) {
