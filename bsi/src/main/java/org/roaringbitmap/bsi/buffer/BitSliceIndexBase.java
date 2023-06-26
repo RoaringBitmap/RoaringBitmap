@@ -351,8 +351,9 @@ public class BitSliceIndexBase {
     }
 
     // https://github.com/RoaringBitmap/RoaringBitmap/issues/549
-    if((predicate >> (this.bA.length)) != 0) {
-      return new MutableRoaringBitmap();
+    ImmutableRoaringBitmap result = compareUsingMinMax(BitmapSliceIndex.Operation.EQ, predicate, 0, foundSet);
+    if (result != null) {
+      return result;
     }
 
     for (int i = this.bA.length - 1; i >= 0; i--) {
