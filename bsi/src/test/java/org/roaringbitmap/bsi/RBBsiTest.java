@@ -67,7 +67,7 @@ public class RBBsiTest {
         List<Pair<Integer, Integer>> collect = testDataSet.entrySet()
                 .stream().map(x -> Pair.newPair(x.getKey(), x.getValue())).collect(Collectors.toList());
 
-        bsi.setValues(collect, 99, 1);
+        bsi.setValues(collect);
 
         Assertions.assertEquals(bsi.getExistenceBitmap().getLongCardinality(), 99);
         final RoaringBitmapSliceIndex clone = bsi.clone();
