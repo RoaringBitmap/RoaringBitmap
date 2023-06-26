@@ -15,7 +15,7 @@ import java.util.Iterator;
  * MutableRoaringBitmap, a compressed alternative to the BitSet. It is similar to
  * org.roaringbitmap.RoaringBitmap, but it differs in that it can interact with
  * ImmutableRoaringBitmap objects in the sense that MutableRoaringBitmap is
- * derived from MutableRoaringBitmap.
+ * derived from ImmutableRoaringBitmap.
  *
  * A MutableRoaringBitmap is an instance of an ImmutableRoaringBitmap (where methods like
  * "serialize" are implemented). That is, they both share the same core (immutable) methods, but a
