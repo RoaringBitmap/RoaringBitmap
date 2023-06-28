@@ -148,7 +148,6 @@ public class Node16 extends Node {
       //first
       byte[] bytes = LongUtils.toBDBytes(currentNode16.firstV);
       bytes[currentNode16.count] = key;
-      currentNode16.firstV = LongUtils.fromBDBytes(bytes);
       currentNode16.children[currentNode16.count] = child;
       currentNode16.count++;
       sortSmallByteArray(bytes, currentNode16.children, 0, currentNode16.count - 1);
