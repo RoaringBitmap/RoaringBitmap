@@ -782,11 +782,10 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     long rangeStartVal = rangeStart;
     byte[] startHighKey = startHigh;
     for (; LongUtils.compareHigh(startHighKey, endHigh) <= 0; ) {
-      final int containerStart =
-          (LongUtils.equalsHigh(startHighKey, startHigh)) ? startLow : 0;
+      boolean areHighEqual = LongUtils.equalsHigh(startHighKey, startHigh);
+      final int containerStart = areHighEqual ? startLow : 0;
       // last container may contain partial range
-      final int containerLast = (LongUtils.equalsHigh(startHighKey, endHigh)) ? endLow
-          : Util.maxLowBitAsInteger();
+      final int containerLast = areHighEqual ? endLow : Util.maxLowBitAsInteger();
       ContainerWithIndex containerWithIndex = highLowContainer.searchContainer(startHighKey);
       if (containerWithIndex != null) {
         long containerIdx = containerWithIndex.getContainerIdx();
