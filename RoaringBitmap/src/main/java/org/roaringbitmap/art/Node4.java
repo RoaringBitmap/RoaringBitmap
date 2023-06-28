@@ -19,7 +19,7 @@ public class Node4 extends Node {
   @Override
   public int getChildPos(byte k) {
     for (int i = 0; i < count; i++) {
-      int shiftLeftLen = (3 - i) * 8;
+      int shiftLeftLen = (i ^ 3) << 3;
       byte v = (byte) (key >> shiftLeftLen);
       if (v == k) {
         return i;
@@ -36,9 +36,8 @@ public class Node4 extends Node {
 
   @Override
   public byte getChildKey(int pos) {
-    int shiftLeftLen = (3 - pos) * 8;
-    byte v = (byte) (key >> shiftLeftLen);
-    return v;
+    int shiftLeftLen = (pos ^ 3) << 3;
+    return (byte) (key >> shiftLeftLen);
   }
 
   @Override
