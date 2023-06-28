@@ -300,7 +300,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
         byte[] key = keyIterator.next();
         long containerIdx = keyIterator.currentContainerIdx();
         Container container = highLowContainer.getContainer(containerIdx);
-        if (LongUtils.compareHigh(key, high) == 0) {
+        if (LongUtils.equalsHigh(key, high)) {
           result += container.rank(low);
           break;
         } else {
@@ -783,9 +783,9 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     byte[] startHighKey = startHigh;
     for (; LongUtils.compareHigh(startHighKey, endHigh) <= 0; ) {
       final int containerStart =
-          (LongUtils.compareHigh(startHighKey, startHigh) == 0) ? startLow : 0;
+          (LongUtils.equalsHigh(startHighKey, startHigh)) ? startLow : 0;
       // last container may contain partial range
-      final int containerLast = (LongUtils.compareHigh(startHighKey, endHigh) == 0) ? endLow
+      final int containerLast = (LongUtils.equalsHigh(startHighKey, endHigh)) ? endLow
           : Util.maxLowBitAsInteger();
       ContainerWithIndex containerWithIndex = highLowContainer.searchContainer(startHighKey);
       if (containerWithIndex != null) {
