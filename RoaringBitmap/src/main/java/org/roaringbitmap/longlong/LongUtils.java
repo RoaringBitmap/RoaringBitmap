@@ -95,16 +95,14 @@ public class LongUtils {
    * @param b another byte array
    * @return positive indicates a greater than b,0 indicates equal,negative indicates a smaller than b
    */
-  // TODO can be replaced by Arrays.compare(a, b) when switched to Java 9 or higher
   public static int compareHigh(byte[] a, byte[] b) {
-    if (a == b) {
-      return 0;
-    }
-    for (int i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) {
-        return Byte.toUnsignedInt(a[i]) - Byte.toUnsignedInt(b[i]);
-      }
-    }
+    if (a == b) { return 0; }
+    if (a[0] != b[0]) { return Byte.toUnsignedInt(a[0]) - Byte.toUnsignedInt(b[0]); }
+    if (a[1] != b[1]) { return Byte.toUnsignedInt(a[1]) - Byte.toUnsignedInt(b[1]); }
+    if (a[2] != b[2]) { return Byte.toUnsignedInt(a[2]) - Byte.toUnsignedInt(b[2]); }
+    if (a[3] != b[3]) { return Byte.toUnsignedInt(a[3]) - Byte.toUnsignedInt(b[3]); }
+    if (a[4] != b[4]) { return Byte.toUnsignedInt(a[4]) - Byte.toUnsignedInt(b[4]); }
+    if (a[5] != b[5]) { return Byte.toUnsignedInt(a[5]) - Byte.toUnsignedInt(b[5]); }
     return 0;
   }
 
