@@ -50,9 +50,13 @@ public class IntegerUtil {
    * @return a fresh integer value
    */
   public static int shiftLeftFromSpecifiedPosition(int v, int pos, int count) {
-    byte[] initialVal = toBDBytes(v);
-    System.arraycopy(initialVal, pos + 1, initialVal, pos, count);
-    return fromBDBytes(initialVal);
+    if (count != 0) {
+      int shiftToLeft = (4 - count) << 3;
+      int shiftToRight = shiftToLeft - (pos << 3);
+      int maskShifted = 0xFFFFFFFF >>> shiftToLeft << shiftToRight;
+      v = (v & ~maskShifted) | (v << 8 & maskShifted);
+    }
+    return v;
   }
 
   /**
