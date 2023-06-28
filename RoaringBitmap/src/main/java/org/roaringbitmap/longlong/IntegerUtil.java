@@ -36,7 +36,7 @@ public class IntegerUtil {
    * @return a fresh integer after a specified position byte been replaced
    */
   public static int setByte(int v, byte bv, int pos) {
-    int i = ((3 - pos) << 3);
+    int i = ((pos ^ 3) << 3);
     v &= ~(0xFF << i);
     v |= (bv & 0xFF) << i;
     return v;

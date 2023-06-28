@@ -119,7 +119,7 @@ public class Node256 extends Node {
     long longVal = bitmapMask[longPos] & (LONG_MASK >>> -(pos + 1));
     while (true) {
       if (longVal != 0) {
-        return (longPos + 1) * 64 - 1 - Long.numberOfLeadingZeros(longVal);
+        return longPos * 64 + (63 ^ Long.numberOfLeadingZeros(longVal));
       }
       if (longPos-- == 0) {
         return ILLEGAL_IDX;

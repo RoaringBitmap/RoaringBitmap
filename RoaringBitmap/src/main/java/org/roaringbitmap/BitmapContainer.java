@@ -1696,7 +1696,7 @@ public final class BitmapContainer extends Container implements Cloneable {
       --i; // seek backward
     }
     // sizeof(long) * #words from start - number of bits after the last bit set
-    return (i + 1) * 64 - Long.numberOfLeadingZeros(bitmap[i]) - 1;
+    return i * 64 + (63 ^ Long.numberOfLeadingZeros(bitmap[i]));
   }
 
 }
