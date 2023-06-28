@@ -1546,7 +1546,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     for (--x; x >= 0; --x) {
       long X = bitmap.get(x);
       if (X != 0) {
-        return x * 64 + 63 - Long.numberOfLeadingZeros(X);
+        return x * 64 + (63 ^ Long.numberOfLeadingZeros(X));
       }
     }
     return -1;
@@ -1568,7 +1568,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     for (--x; x >= 0; --x) {
       long map = ~bitmap.get(x);
       if (map != 0L) {
-        return x * 64 + 63 - Long.numberOfLeadingZeros(map);
+        return x * 64 + (63 ^ Long.numberOfLeadingZeros(map));
       }
     }
     return -1;

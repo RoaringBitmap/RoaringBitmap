@@ -99,7 +99,7 @@ public class Node256 extends Node {
       if (v == 64) {
         continue;
       } else {
-        int res = i * 64 + (63 - v);
+        int res = i * 64 + (63 ^ v);
         return res;
       }
     }

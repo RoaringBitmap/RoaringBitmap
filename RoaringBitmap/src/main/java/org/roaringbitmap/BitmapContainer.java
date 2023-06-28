@@ -1138,7 +1138,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     }
     for (--x; x >= 0; --x) {
       if (bitmap[x] != 0) {
-        return x * 64 + 63 - Long.numberOfLeadingZeros(bitmap[x]);
+        return x * 64 + (63 ^ Long.numberOfLeadingZeros(bitmap[x]));
       }
     }
     return -1;
@@ -1160,7 +1160,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     for (--x; x >= 0; --x) {
       long map = ~bitmap[x];
       if (map != 0) {
-        return x * 64 + 63 - Long.numberOfLeadingZeros(map);
+        return x * 64 + (63 ^ Long.numberOfLeadingZeros(map));
       }
     }
     return -1;

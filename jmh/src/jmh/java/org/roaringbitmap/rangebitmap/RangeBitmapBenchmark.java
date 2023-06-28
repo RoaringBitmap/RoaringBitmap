@@ -116,7 +116,7 @@ public class RangeBitmapBenchmark {
     private final RoaringBitmap[] bitmaps;
 
     public RoaringBitmap lessThanOrEqualTo(long threshold) {
-      if (63 - Long.numberOfLeadingZeros(threshold) > bitmaps.length) {
+      if ((63 ^ Long.numberOfLeadingZeros(threshold)) > bitmaps.length) {
         return all();
       }
       RoaringBitmap bitmap = (threshold & 1) == 0 ? bitmaps[0].clone() : all();
