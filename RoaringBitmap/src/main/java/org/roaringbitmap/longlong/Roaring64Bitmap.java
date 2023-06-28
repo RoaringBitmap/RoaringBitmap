@@ -286,8 +286,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     if (containerWithIndex == null) {
       while (keyIterator.hasNext()) {
         byte[] highKey = keyIterator.next();
-        int res = LongUtils.compareHigh(highKey, high);
-        if (res > 0) {
+        if (LongUtils.compareHigh(highKey, high) > 0) {
           break;
         } else {
           long containerIdx = keyIterator.currentContainerIdx();
