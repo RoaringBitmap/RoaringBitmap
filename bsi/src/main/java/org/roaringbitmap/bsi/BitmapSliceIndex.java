@@ -75,8 +75,14 @@ public interface BitmapSliceIndex {
    * currentMaxValue/currentMinValue are optional,it's can be compute from input value list.
    * and avoiding bsi expend slice array capacity.
    */
+  @Deprecated
   void setValues(List<Pair<Integer, Integer>> values, Integer currentMaxValue, Integer currentMinValue);
 
+  /**
+   * Set a batch of values.
+   * @param values
+   */
+  void setValues(List<Pair<Integer, Integer>> values);
 
   void serialize(ByteBuffer buffer) throws IOException;
 
