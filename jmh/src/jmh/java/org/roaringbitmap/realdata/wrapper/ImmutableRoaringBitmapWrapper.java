@@ -23,7 +23,7 @@ final class ImmutableRoaringBitmapWrapper implements Bitmap {
 
   @Override
   public int last() {
-    return bitmap.getReverseIntIterator().next();
+    return bitmap.getReverseIntIterator().nextInt();
   }
 
   @Override

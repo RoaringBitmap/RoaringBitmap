@@ -69,7 +69,7 @@ public class BufferIntIteratorFlyweight implements PeekableIntIterator {
   }
 
   @Override
-  public int next() {
+  public int nextInt() {
     int x = iter.nextAsInt() | hs;
     if (!iter.hasNext()) {
       ++pos;

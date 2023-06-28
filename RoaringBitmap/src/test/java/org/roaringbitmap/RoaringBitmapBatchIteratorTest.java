@@ -82,7 +82,7 @@ public class RoaringBitmapBatchIteratorTest {
         RoaringBitmapWriter<RoaringBitmap> w = writer().constantMemory()
                 .initialCapacity(bitmap.highLowContainer.size).get();
         while (it.hasNext()) {
-            w.add(it.next());
+            w.add(it.nextInt());
         }
         RoaringBitmap copy = w.get();
         assertEquals(bitmap, copy);

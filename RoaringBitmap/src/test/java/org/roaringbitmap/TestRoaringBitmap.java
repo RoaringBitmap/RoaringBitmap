@@ -101,7 +101,7 @@ public class TestRoaringBitmap {
         PeekableIntIterator it = bitmap.getIntIterator();
         it.advanceIfNeeded(100620278);
         assertTrue(it.hasNext());
-        assertEquals(101993170, it.next());
+        assertEquals(101993170, it.nextInt());
         assertFalse(it.hasNext());
     }
 
@@ -116,7 +116,7 @@ public class TestRoaringBitmap {
         it.wrap(bitmap);
         it.advanceIfNeeded(100620278);
         assertTrue(it.hasNext());
-        assertEquals(101993170, it.next());
+        assertEquals(101993170, it.nextInt());
         assertFalse(it.hasNext());
     }
 
@@ -899,9 +899,9 @@ public class TestRoaringBitmap {
 
         final IntIterator i = rb.getIntIterator();
         assertTrue(i.hasNext());
-        assertEquals(1, i.next());
+        assertEquals(1, i.nextInt());
         assertTrue(i.hasNext());
-        assertEquals(2 << 16, i.next());
+        assertEquals(2 << 16, i.nextInt());
         assertFalse(i.hasNext());
     }
 
@@ -2347,7 +2347,7 @@ public class TestRoaringBitmap {
 
         for (int i = 0; i < (4 << 16) - 1; ++i) {
             assertTrue(iterator.hasNext(), "Error on iteration " + i);
-            assertEquals(i, iterator.next());
+            assertEquals(i, iterator.nextInt());
         }
         assertFalse(iterator.hasNext());
     }
@@ -2421,7 +2421,7 @@ public class TestRoaringBitmap {
 
         for (int i = 0; i < (4 << 16) - 1; ++i) {
             assertTrue(iterator.hasNext(), "Error on iteration " + i);
-            assertEquals(i, iterator.next());
+            assertEquals(i, iterator.nextInt());
         }
         assertFalse(iterator.hasNext());
     }
@@ -2442,7 +2442,7 @@ public class TestRoaringBitmap {
         for (int i = 0; i < (5 << 16); ++i) {
             if ((i != (1 << 14)) && (i != (3 << 16))) {
                 assertTrue(iterator.hasNext(), "Error on iteration " + i);
-                assertEquals(i, iterator.next(), "Error on iteration " + i);
+                assertEquals(i, iterator.nextInt(), "Error on iteration " + i);
             }
         }
         assertFalse(iterator.hasNext());
@@ -2462,7 +2462,7 @@ public class TestRoaringBitmap {
         final IntIterator iterator = rb.getIntIterator();
         for (int i = 0; i < (2 << 16) + (2 << 14); ++i) {
             assertTrue(iterator.hasNext(), "Error on iteration " + i);
-            assertEquals(i, iterator.next(), "Error on iteration " + i);
+            assertEquals(i, iterator.nextInt(), "Error on iteration " + i);
         }
         assertFalse(iterator.hasNext());
     }
@@ -2484,7 +2484,7 @@ public class TestRoaringBitmap {
         final IntIterator iterator = rb.getIntIterator();
         for (int i = 0; i < (5 << 16); ++i) {
             assertTrue(iterator.hasNext(), "Error on iteration " + i);
-            assertEquals(i, iterator.next(), "Error on iteration " + i);
+            assertEquals(i, iterator.nextInt(), "Error on iteration " + i);
         }
         assertFalse(iterator.hasNext());
     }
@@ -2509,20 +2509,20 @@ public class TestRoaringBitmap {
         final IntIterator iterator = rb.getIntIterator();
         for (int i = 0; i < (1 << 14); ++i) {
             assertTrue(iterator.hasNext(), "Error on iteration " + i);
-            assertEquals(i, iterator.next(), "Error on iteration " + i);
+            assertEquals(i, iterator.nextInt(), "Error on iteration " + i);
         }
 
         assertTrue(iterator.hasNext());
-        assertEquals((1 << 16) - 1, iterator.next());
+        assertEquals((1 << 16) - 1, iterator.nextInt());
 
         assertTrue(iterator.hasNext());
-        assertEquals(1 << 16, iterator.next());
+        assertEquals(1 << 16, iterator.nextInt());
 
         assertTrue(iterator.hasNext());
-        assertEquals(2 << 16, iterator.next());
+        assertEquals(2 << 16, iterator.nextInt());
 
         assertTrue(iterator.hasNext());
-        assertEquals(3 << 16, iterator.next());
+        assertEquals(3 << 16, iterator.nextInt());
 
         assertFalse(iterator.hasNext());
     }
@@ -2991,7 +2991,7 @@ public class TestRoaringBitmap {
         RoaringBitmap copy2 = new RoaringBitmap();
         IntIterator i = rb.getIntIterator();
         while (i.hasNext()) {
-            copy2.add(i.next());
+            copy2.add(i.nextInt());
         }
         assertEquals(copy2, rb);
     }
@@ -3014,7 +3014,7 @@ public class TestRoaringBitmap {
         RoaringBitmap copy2 = new RoaringBitmap();
         IntIterator i = rb.getIntIterator();
         while (i.hasNext()) {
-            copy2.add(i.next());
+            copy2.add(i.nextInt());
         }
         assertEquals(copy2, rb);
     }
@@ -4541,7 +4541,7 @@ public class TestRoaringBitmap {
                 Set<Integer> actualResultSet = new TreeSet<>();
                 IntIterator intIterator = result.getIntIterator();
                 while (intIterator.hasNext()) {
-                    actualResultSet.add(intIterator.next());
+                    actualResultSet.add(intIterator.nextInt());
                 }
                 assertEquals(expectedResultSet, actualResultSet);
             }
@@ -4591,7 +4591,7 @@ public class TestRoaringBitmap {
                 Set<Integer> actualResultSet = new TreeSet<>();
                 IntIterator intIterator = result.getIntIterator();
                 while (intIterator.hasNext()) {
-                    actualResultSet.add(intIterator.next());
+                    actualResultSet.add(intIterator.nextInt());
                 }
                 assertEquals(expectedResultSet, actualResultSet);
             }
@@ -4640,7 +4640,7 @@ public class TestRoaringBitmap {
                 Set<Integer> actualResultSet = new TreeSet<>();
                 IntIterator intIterator = result.getIntIterator();
                 while (intIterator.hasNext()) {
-                    actualResultSet.add(intIterator.next());
+                    actualResultSet.add(intIterator.nextInt());
                 }
                 assertEquals(expectedResultSet, actualResultSet);
             }
@@ -4688,7 +4688,7 @@ public class TestRoaringBitmap {
                 Set<Integer> actualResultSet = new TreeSet<>();
                 IntIterator intIterator = result.getIntIterator();
                 while (intIterator.hasNext()) {
-                    actualResultSet.add(intIterator.next());
+                    actualResultSet.add(intIterator.nextInt());
                 }
                 assertEquals(expectedResultSet, actualResultSet);
             }
@@ -4742,7 +4742,7 @@ public class TestRoaringBitmap {
                 Set<Integer> actualResultSet = new TreeSet<>();
                 IntIterator intIterator = result.getIntIterator();
                 while (intIterator.hasNext()) {
-                    actualResultSet.add(intIterator.next());
+                    actualResultSet.add(intIterator.nextInt());
                 }
                 assertEquals(expectedResultSet, actualResultSet);
             }
@@ -4796,7 +4796,7 @@ public class TestRoaringBitmap {
                 Set<Integer> actualResultSet = new TreeSet<>();
                 IntIterator intIterator = result.getIntIterator();
                 while (intIterator.hasNext()) {
-                    actualResultSet.add(intIterator.next());
+                    actualResultSet.add(intIterator.nextInt());
                 }
                 assertEquals(expectedResultSet, actualResultSet);
             }
@@ -4846,7 +4846,7 @@ public class TestRoaringBitmap {
                 Set<Integer> actualResultSet = new TreeSet<>();
                 IntIterator intIterator = result.getIntIterator();
                 while (intIterator.hasNext()) {
-                    actualResultSet.add(intIterator.next());
+                    actualResultSet.add(intIterator.nextInt());
                 }
                 assertEquals(expectedResultSet, actualResultSet);
             }
@@ -4896,7 +4896,7 @@ public class TestRoaringBitmap {
                 Set<Integer> actualResultSet = new TreeSet<>();
                 IntIterator intIterator = result.getIntIterator();
                 while (intIterator.hasNext()) {
-                    actualResultSet.add(intIterator.next());
+                    actualResultSet.add(intIterator.nextInt());
                 }
                 assertEquals(expectedResultSet, actualResultSet);
             }
@@ -5185,8 +5185,8 @@ public class TestRoaringBitmap {
             IntIterator i = rb.getIntIterator();
             IntIterator j = rboff.getIntIterator();
             while (i.hasNext() && j.hasNext()) {
-                int val1 = i.next() + offset;
-                int val2 = j.next();
+                int val1 = i.nextInt() + offset;
+                int val2 = j.nextInt();
                 assertEquals(val1, val2);
             }
             assertEquals(i.hasNext(), j.hasNext());
@@ -5196,7 +5196,7 @@ public class TestRoaringBitmap {
             IntIterator i = rb.getIntIterator();
             IntIterator j = rboff.getIntIterator();
             while (i.hasNext() && j.hasNext()) {
-                assertEquals(i.next() + offset, j.next());
+                assertEquals(i.nextInt() + offset, j.nextInt());
             }
             assertEquals(i.hasNext(), j.hasNext());
         }
@@ -5241,8 +5241,8 @@ public class TestRoaringBitmap {
             IntIterator i = rb.getIntIterator();
             IntIterator j = rboff.getIntIterator();
             while (i.hasNext() && j.hasNext()) {
-                int val1 = i.next();
-                int val2 = j.next();
+                int val1 = i.nextInt();
+                int val2 = j.nextInt();
                 if (val1 != val2)
                     assertEquals(val1, val2);
             }
@@ -5254,7 +5254,7 @@ public class TestRoaringBitmap {
             IntIterator i = rb.getIntIterator();
             IntIterator j = rboff.getIntIterator();
             while (i.hasNext() && j.hasNext()) {
-                assertEquals(i.next(), j.next());
+                assertEquals(i.nextInt(), j.nextInt());
             }
             assertEquals(i.hasNext(), j.hasNext());
         }

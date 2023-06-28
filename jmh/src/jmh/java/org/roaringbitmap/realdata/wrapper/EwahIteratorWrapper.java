@@ -16,7 +16,7 @@ final class EwahIteratorWrapper implements BitmapIterator {
   }
 
   @Override
-  public int next() {
+  public int nextInt() {
     return iterator.next();
   }
 

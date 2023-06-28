@@ -28,7 +28,7 @@ public class TestIterators {
       if (!(size < values.length)) {
         values = Arrays.copyOf(values, values.length * 2);
       }
-      values[size++] = ints.next();
+      values[size++] = ints.nextInt();
     }
     return Ints.asList(Arrays.copyOf(values, size));
   }
@@ -46,7 +46,7 @@ public class TestIterators {
       }
 
       @Override
-      public int next() {
+      public int nextInt() {
         return shorts.next();
       }
     });
@@ -124,12 +124,12 @@ public class TestIterators {
     pii = bitmap.getIntIterator();
     for(int i = 0; i < data.length; ++i) {
       pii.advanceIfNeeded(data[i]);
-      assertEquals(data[i], pii.next());
+      assertEquals(data[i], pii.nextInt());
     }
     pii = bitmap.getIntIterator();
     for(int i = 1; i < data.length; ++i) {
       pii.advanceIfNeeded(data[i-1]);
-      pii.next();
+      pii.nextInt();
       assertEquals(data[i],pii.peekNext() );
     }
     bitmap.getIntIterator().advanceIfNeeded(-1);// should not crash
@@ -146,7 +146,7 @@ public class TestIterators {
       PeekableIntIterator pii = bitmap.getIntIterator();
       pii.advanceIfNeeded(2 * i);
       assertEquals(pii.peekNext(), 2 * i);
-      assertEquals(pii.next(), 2 * i);
+      assertEquals(pii.nextInt(), 2 * i);
     }
   }
 
@@ -182,7 +182,7 @@ public class TestIterators {
       PeekableIntIterator pii = bitmap.getIntIterator();
       pii.advanceIfNeeded(i);
       assertEquals(pii.peekNext(), i);
-      assertEquals(pii.next(), i);
+      assertEquals(pii.nextInt(), i);
     }
   }
   
@@ -195,7 +195,7 @@ public class TestIterators {
       PeekableIntIterator it = b.getIntIterator();
       it.advanceIfNeeded(4096);
       while (it.hasNext()) {
-          it.next();
+          it.nextInt();
       }
   }
 
@@ -216,12 +216,12 @@ public class TestIterators {
     PeekableIntIterator bitIt = bitset.getIntIterator();
 
     assertEquals(2000000, bitIt.peekNext());
-    assertEquals(2000000, bitIt.next());
+    assertEquals(2000000, bitIt.nextInt());
 
     assertTrue(bitset.contains(2100000));
     bitIt.advanceIfNeeded(2100000);
     assertEquals(2100000, bitIt.peekNext());
-    assertEquals(2100000, bitIt.next());
+    assertEquals(2100000, bitIt.nextInt());
 
     // advancing to a value not in either range should go to the first value of second range
     assertFalse(bitset.contains(2300000));
@@ -232,7 +232,7 @@ public class TestIterators {
     assertTrue(bitset.contains(4000000));
     bitIt.advanceIfNeeded(4000000);
     assertEquals(4000000, bitIt.peekNext());
-    assertEquals(4000000, bitIt.next());
+    assertEquals(4000000, bitIt.nextInt());
   }
 
   @Test
@@ -246,12 +246,12 @@ public class TestIterators {
     PeekableIntIterator bitIt = bitset.getIntIterator();
 
     assertEquals(2000000, bitIt.peekNext());
-    assertEquals(2000000, bitIt.next());
+    assertEquals(2000000, bitIt.nextInt());
 
     assertTrue(bitset.contains(2100000));
     bitIt.advanceIfNeeded(2100000);
     assertEquals(2100000, bitIt.peekNext());
-    assertEquals(2100000, bitIt.next());
+    assertEquals(2100000, bitIt.nextInt());
 
     // advancing to a value not in any range but beyond second range
     // should go to the first value of third range
@@ -263,17 +263,17 @@ public class TestIterators {
     assertTrue(bitset.contains(6000000));
     bitIt.advanceIfNeeded(6000000);
     assertEquals(6000000, bitIt.peekNext());
-    assertEquals(6000000, bitIt.next());
+    assertEquals(6000000, bitIt.nextInt());
 
     // reset
     bitIt = bitset.getIntIterator();
 
     assertEquals(2000000, bitIt.peekNext());
-    assertEquals(2000000, bitIt.next());
+    assertEquals(2000000, bitIt.nextInt());
 
     bitIt.advanceIfNeeded(2100000);
     assertEquals(2100000, bitIt.peekNext());
-    assertEquals(2100000, bitIt.next());
+    assertEquals(2100000, bitIt.nextInt());
 
     // advancing to a value not in any range but beyond second range
     // should go to the first value of third range
@@ -284,6 +284,6 @@ public class TestIterators {
 
     bitIt.advanceIfNeeded(6000000);
     assertEquals(6000000, bitIt.peekNext());
-    assertEquals(6000000, bitIt.next());
+    assertEquals(6000000, bitIt.nextInt());
   }
 }

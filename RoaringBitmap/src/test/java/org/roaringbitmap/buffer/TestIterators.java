@@ -35,7 +35,7 @@ public class TestIterators {
       if (!(size < values.length)) {
         values = Arrays.copyOf(values, values.length * 2);
       }
-      values[size++] = ints.next();
+      values[size++] = ints.nextInt();
     }
     return Ints.asList(Arrays.copyOf(values, size));
   }
@@ -53,7 +53,7 @@ public class TestIterators {
       }
 
       @Override
-      public int next() {
+      public int nextInt() {
         return shorts.next();
       }
     });
@@ -214,12 +214,12 @@ public class TestIterators {
     pii = bitmap.getIntIterator();
     for(int i = 0; i < data.length; ++i) {
       pii.advanceIfNeeded(data[i]);
-      assertEquals(data[i], pii.next());
+      assertEquals(data[i], pii.nextInt());
     }
     pii = bitmap.getIntIterator();
     for(int i = 1; i < data.length; ++i) {
       pii.advanceIfNeeded(data[i-1]);
-      pii.next();
+      pii.nextInt();
       assertEquals(data[i],pii.peekNext() );
     }
     bitmap.getIntIterator().advanceIfNeeded(-1);
@@ -236,7 +236,7 @@ public class TestIterators {
       PeekableIntIterator pii = bitmap.getIntIterator();
       pii.advanceIfNeeded(2 * i);
       assertEquals(pii.peekNext(), 2 * i);
-      assertEquals(pii.next(), 2 * i);
+      assertEquals(pii.nextInt(), 2 * i);
     }
   }
 
@@ -249,7 +249,7 @@ public class TestIterators {
     PeekableIntIterator it = b.getIntIterator();
     it.advanceIfNeeded(4096);
     while (it.hasNext()) {
-      it.next();
+      it.nextInt();
     }
   }
 
@@ -263,7 +263,7 @@ public class TestIterators {
       PeekableIntIterator pii = bitmap.getIntIterator();
       pii.advanceIfNeeded(i);
       assertEquals(pii.peekNext(), i);
-      assertEquals(pii.next(), i);
+      assertEquals(pii.nextInt(), i);
     }
   }
   

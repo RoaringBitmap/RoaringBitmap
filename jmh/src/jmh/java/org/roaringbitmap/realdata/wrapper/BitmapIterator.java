@@ -1,9 +1,9 @@
 package org.roaringbitmap.realdata.wrapper;
 
-public interface BitmapIterator {
+import java.util.PrimitiveIterator.OfInt;
+
+public interface BitmapIterator extends OfInt{
 
   boolean hasNext();
-
-  int next();
 
 }

@@ -38,7 +38,7 @@ public class IteratorsBenchmark32 {
     IntIterator intIterator = benchmarkState.bitmap_a.getIntIterator();
     int result = 0;
     while (intIterator.hasNext()) {
-      result = intIterator.next();
+      result = intIterator.nextInt();
 
     }
     return result;
@@ -54,7 +54,7 @@ public class IteratorsBenchmark32 {
 
     int result = 0;
     while (intIterator.hasNext()) {
-      result = intIterator.next();
+      result = intIterator.nextInt();
 
     }
     return result;
@@ -79,7 +79,7 @@ public class IteratorsBenchmark32 {
     IntIterator intIterator = benchmarkState.bitmap_b.getIntIterator();
     int result = 0;
     while (intIterator.hasNext()) {
-      result = intIterator.next();
+      result = intIterator.nextInt();
 
     }
     return result;
@@ -95,7 +95,7 @@ public class IteratorsBenchmark32 {
 
     int result = 0;
     while (intIterator.hasNext()) {
-      result = intIterator.next();
+      result = intIterator.nextInt();
 
     }
     return result;
@@ -120,7 +120,7 @@ public class IteratorsBenchmark32 {
     IntIterator intIterator = benchmarkState.bitmap_c.getIntIterator();
     int result = 0;
     while (intIterator.hasNext()) {
-      result = intIterator.next();
+      result = intIterator.nextInt();
 
     }
     return result;
@@ -136,7 +136,7 @@ public class IteratorsBenchmark32 {
 
     int result = 0;
     while (intIterator.hasNext()) {
-      result = intIterator.next();
+      result = intIterator.nextInt();
 
     }
     return result;
@@ -149,7 +149,7 @@ public class IteratorsBenchmark32 {
     IntIterator intIterator = benchmarkState.bitmap_a.getReverseIntIterator();
     int result = 0;
     while (intIterator.hasNext()) {
-      result = intIterator.next();
+      result = intIterator.nextInt();
 
     }
     return result;
@@ -165,7 +165,7 @@ public class IteratorsBenchmark32 {
 
     int result = 0;
     while (intIterator.hasNext()) {
-      result = intIterator.next();
+      result = intIterator.nextInt();
 
     }
     return result;
@@ -178,7 +178,7 @@ public class IteratorsBenchmark32 {
     IntIterator intIterator = benchmarkState.bitmap_b.getReverseIntIterator();
     int result = 0;
     while (intIterator.hasNext()) {
-      result = intIterator.next();
+      result = intIterator.nextInt();
 
     }
     return result;
@@ -194,7 +194,7 @@ public class IteratorsBenchmark32 {
 
     int result = 0;
     while (intIterator.hasNext()) {
-      result = intIterator.next();
+      result = intIterator.nextInt();
 
     }
     return result;
@@ -207,7 +207,7 @@ public class IteratorsBenchmark32 {
     IntIterator intIterator = benchmarkState.bitmap_c.getReverseIntIterator();
     int result = 0;
     while (intIterator.hasNext()) {
-      result = intIterator.next();
+      result = intIterator.nextInt();
 
     }
     return result;
@@ -223,7 +223,7 @@ public class IteratorsBenchmark32 {
 
     int result = 0;
     while (intIterator.hasNext()) {
-      result = intIterator.next();
+      result = intIterator.nextInt();
 
     }
     return result;

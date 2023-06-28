@@ -939,7 +939,7 @@ public class TestImmutableRoaringBitmap {
         Set<Integer> actualResultSet = new TreeSet<>();
         IntIterator intIterator = result.getIntIterator();
         while (intIterator.hasNext()) {
-          actualResultSet.add(intIterator.next());
+          actualResultSet.add(intIterator.nextInt());
         }
         assertEquals(expectedResultSet, actualResultSet);
       }
@@ -988,7 +988,7 @@ public class TestImmutableRoaringBitmap {
         Set<Integer> actualResultSet = new TreeSet<>();
         IntIterator intIterator = result.getIntIterator();
         while (intIterator.hasNext()) {
-          actualResultSet.add(intIterator.next());
+          actualResultSet.add(intIterator.nextInt());
         }
         assertEquals(expectedResultSet, actualResultSet);
       }
@@ -1042,7 +1042,7 @@ public class TestImmutableRoaringBitmap {
         Set<Integer> actualResultSet = new TreeSet<>();
         IntIterator intIterator = result.getIntIterator();
         while (intIterator.hasNext()) {
-          actualResultSet.add(intIterator.next());
+          actualResultSet.add(intIterator.nextInt());
         }
         assertEquals(expectedResultSet, actualResultSet);
       }
@@ -1091,7 +1091,7 @@ public class TestImmutableRoaringBitmap {
         Set<Integer> actualResultSet = new TreeSet<>();
         IntIterator intIterator = result.getIntIterator();
         while (intIterator.hasNext()) {
-          actualResultSet.add(intIterator.next());
+          actualResultSet.add(intIterator.nextInt());
         }
         assertEquals(expectedResultSet, actualResultSet);
       }

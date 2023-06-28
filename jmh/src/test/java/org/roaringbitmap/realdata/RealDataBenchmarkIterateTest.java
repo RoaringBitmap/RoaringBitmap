@@ -23,5 +23,6 @@ public class RealDataBenchmarkIterateTest extends RealDataBenchmarkSanityTest {
     int expected = EXPECTED_RESULTS.get(dataset);
     RealDataBenchmarkIterate bench = new RealDataBenchmarkIterate();
     assertEquals(expected, bench.iterate(bs));
+    assertEquals(expected, bench.iterateInt(bs));    
   }
 }

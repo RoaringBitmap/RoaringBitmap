@@ -76,7 +76,7 @@ public class TestRoaring64Bitmap {
     LongIterator longIterator = roaring64Bitmap.getLongIterator();
     int i = 0;
     while (longIterator.hasNext()) {
-      long actual = longIterator.next();
+      long actual = longIterator.nextLong();
       Assertions.assertTrue(source.contains(actual));
       i++;
     }
@@ -93,7 +93,7 @@ public class TestRoaring64Bitmap {
     LongIterator longIterator = roaring64Bitmap.getLongIterator();
     int i = 0;
     while (longIterator.hasNext()) {
-      long actual = longIterator.next();
+      long actual = longIterator.nextLong();
       Assertions.assertTrue(source.contains(actual));
       i++;
     }
@@ -150,7 +150,7 @@ public class TestRoaring64Bitmap {
 
     LongIterator iterator = map.getLongIterator();
     assertTrue(iterator.hasNext());
-    assertEquals(0, iterator.next());
+    assertEquals(0, iterator.nextLong());
     assertEquals(0, map.select(0));
     assertTrue(map.contains(0));
     assertFalse(iterator.hasNext());
@@ -173,7 +173,7 @@ public class TestRoaring64Bitmap {
 
     LongIterator iterator = map.getLongIterator();
     assertTrue(iterator.hasNext());
-    assertEquals(-1, iterator.next());
+    assertEquals(-1, iterator.nextLong());
     assertEquals(-1, map.select(0));
     assertTrue(map.contains(-1));
     assertFalse(iterator.hasNext());
@@ -198,11 +198,11 @@ public class TestRoaring64Bitmap {
 
     LongIterator iterator = map.getLongIterator();
     assertTrue(iterator.hasNext());
-    assertEquals(123, iterator.next());
+    assertEquals(123, iterator.nextLong());
     assertEquals(123, map.select(0));
     assertTrue(map.contains(123));
     assertTrue(iterator.hasNext());
-    assertEquals(234, iterator.next());
+    assertEquals(234, iterator.nextLong());
     assertEquals(234, map.select(1));
     assertTrue(map.contains(234));
     assertFalse(iterator.hasNext());
@@ -239,14 +239,14 @@ public class TestRoaring64Bitmap {
     Roaring64Bitmap map = newDefaultCtor();
     map.addLong(0);
     assertTrue(map.getLongIterator().hasNext());
-    assertEquals(0, map.getLongIterator().next());
+    assertEquals(0, map.getLongIterator().nextLong());
   }
 
   @Test
   public void testIterator_NextWithoutHasNext_Empty() {
     assertThrows(IllegalStateException.class, () -> {
       Roaring64Bitmap map = newDefaultCtor();
-      map.getLongIterator().next();
+      map.getLongIterator().nextLong();
     });
   }
 
@@ -256,7 +256,7 @@ public class TestRoaring64Bitmap {
     map.addLong(Long.MAX_VALUE);
     LongIterator iterator = map.getLongIterator();
     assertTrue(iterator.hasNext());
-    assertEquals(Long.MAX_VALUE, iterator.next());
+    assertEquals(Long.MAX_VALUE, iterator.nextLong());
     assertEquals(Long.MAX_VALUE, map.select(0));
     assertFalse(iterator.hasNext());
     assertEquals(1, map.getLongCardinality());
@@ -276,7 +276,7 @@ public class TestRoaring64Bitmap {
     map.addLong(Long.MIN_VALUE);
     LongIterator iterator = map.getLongIterator();
     assertTrue(iterator.hasNext());
-    assertEquals(Long.MIN_VALUE, iterator.next());
+    assertEquals(Long.MIN_VALUE, iterator.nextLong());
     assertEquals(Long.MIN_VALUE, map.select(0));
     assertFalse(iterator.hasNext());
     assertEquals(1, map.getLongCardinality());
@@ -298,13 +298,13 @@ public class TestRoaring64Bitmap {
     map.addLong(1);
     map.addLong(Long.MAX_VALUE);
     LongIterator iterator = map.getLongIterator();
-    assertEquals(0, iterator.next());
+    assertEquals(0, iterator.nextLong());
     assertEquals(0, map.select(0));
-    assertEquals(1, iterator.next());
+    assertEquals(1, iterator.nextLong());
     assertEquals(1, map.select(1));
-    assertEquals(Long.MAX_VALUE, iterator.next());
+    assertEquals(Long.MAX_VALUE, iterator.nextLong());
     assertEquals(Long.MAX_VALUE, map.select(2));
-    assertEquals(Long.MIN_VALUE, iterator.next());
+    assertEquals(Long.MIN_VALUE, iterator.nextLong());
     assertEquals(Long.MIN_VALUE, map.select(3));
     assertFalse(iterator.hasNext());
     assertEquals(4, map.getLongCardinality());
@@ -335,9 +335,9 @@ public class TestRoaring64Bitmap {
     map.addLong(234);
     LongIterator iterator = map.getReverseLongIterator();
     assertTrue(iterator.hasNext());
-    assertEquals(234, iterator.next());
+    assertEquals(234, iterator.nextLong());
     assertTrue(iterator.hasNext());
-    assertEquals(123, iterator.next());
+    assertEquals(123, iterator.nextLong());
     assertFalse(iterator.hasNext());
   }
 
@@ -349,9 +349,9 @@ public class TestRoaring64Bitmap {
     map.addLong(Long.MAX_VALUE);
     LongIterator iterator = map.getReverseLongIterator();
     assertTrue(iterator.hasNext());
-    assertEquals(Long.MAX_VALUE, iterator.next());
+    assertEquals(Long.MAX_VALUE, iterator.nextLong());
     assertTrue(iterator.hasNext());
-    assertEquals(123, iterator.next());
+    assertEquals(123, iterator.nextLong());
     assertFalse(iterator.hasNext());
   }
 
@@ -492,8 +492,8 @@ public class TestRoaring64Bitmap {
     map.addLong(positive);
     map.addLong(negative);
     LongIterator it = map.getLongIterator();
-    long first = it.next();
-    long last = it.next();
+    long first = it.nextLong();
+    long last = it.nextLong();
     assertEquals(positive, first);
     assertEquals(negative, last);
   }
@@ -1092,7 +1092,7 @@ public class TestRoaring64Bitmap {
     int a = 0xFFFFFFFF;  // -1 in two's compliment
     map.addInt(a);
     assertEquals(map.getIntCardinality(), 1);
-    long addedInt = map.getLongIterator().next();
+    long addedInt = map.getLongIterator().nextLong();
     assertEquals(0xFFFFFFFFL, addedInt);
   }
 
@@ -1524,12 +1524,12 @@ public class TestRoaring64Bitmap {
     pii = bitmap.getLongIterator();
     for(int i = 0; i < data.length; ++i) {
       pii.advanceIfNeeded(data[i]);
-      assertEquals(data[i], pii.next());
+      assertEquals(data[i], pii.nextLong());
     }
     pii = bitmap.getLongIterator();
     for(int i = 1; i < data.length; ++i) {
       pii.advanceIfNeeded(data[i-1]);
-      assertEquals(data[i-1], pii.next());
+      assertEquals(data[i-1], pii.nextLong());
       assertEquals(data[i], pii.peekNext());
     }
     bitmap.getLongIterator().advanceIfNeeded(-1); // should not crash
@@ -1550,7 +1550,7 @@ public class TestRoaring64Bitmap {
       long expected = 2 * i + Integer.MAX_VALUE;
       pii.advanceIfNeeded(expected);
       assertEquals(expected, pii.peekNext());
-      assertEquals(expected, pii.next());
+      assertEquals(expected, pii.nextLong());
     }
 
     // use iterator from
@@ -1558,7 +1558,7 @@ public class TestRoaring64Bitmap {
       long expected = 2 * i + Integer.MAX_VALUE;
       PeekableLongIterator pii = bitmap.getLongIteratorFrom(expected);
       assertEquals(expected, pii.peekNext());
-      assertEquals(expected, pii.next());
+      assertEquals(expected, pii.nextLong());
     }
   }
   
@@ -1583,7 +1583,7 @@ public class TestRoaring64Bitmap {
         long expected = 2 * i + base;
         pii.advanceIfNeeded(expected);
         assertEquals(expected, pii.peekNext());
-        assertEquals(expected, pii.next());
+        assertEquals(expected, pii.nextLong());
       }
 
       // use iterator from
@@ -1591,7 +1591,7 @@ public class TestRoaring64Bitmap {
         long expected = 2 * i + base;
         PeekableLongIterator pii = bitmap.getLongIteratorFrom(expected);
         assertEquals(expected, pii.peekNext());
-        assertEquals(expected, pii.next());
+        assertEquals(expected, pii.nextLong());
       }
     }
   }
@@ -1607,13 +1607,13 @@ public class TestRoaring64Bitmap {
       PeekableLongIterator pii = bitmap.getLongIterator();
       pii.advanceIfNeeded(i);
       assertEquals(i, pii.peekNext());
-      assertEquals(i, pii.next());
+      assertEquals(i, pii.nextLong());
     }
     // use iterator from
     for(int i = 4; i < 100000; ++i) {
       PeekableLongIterator pii = bitmap.getLongIteratorFrom(i);
       assertEquals(i, pii.peekNext());
-      assertEquals(i, pii.next());
+      assertEquals(i, pii.nextLong());
     }
   }
   
@@ -1640,12 +1640,12 @@ public class TestRoaring64Bitmap {
     pii = bitmap.getReverseLongIterator();
     for(int i = data.length -1; i >= 0 ; --i) {
       pii.advanceIfNeeded(data[i]);
-      assertEquals(data[i], pii.next());
+      assertEquals(data[i], pii.nextLong());
     }
     pii = bitmap.getReverseLongIterator();
     for(int i = data.length -2; i >= 0 ; --i) {
       pii.advanceIfNeeded(data[i+1]);
-      pii.next();
+      pii.nextLong();
       assertEquals(data[i],pii.peekNext() );
     }
     bitmap.getReverseLongIterator().advanceIfNeeded(-1);// should not crash
@@ -1665,7 +1665,7 @@ public class TestRoaring64Bitmap {
       PeekableLongIterator pii = bitmap.getReverseLongIterator();
       pii.advanceIfNeeded(expected);
       assertEquals(expected, pii.peekNext());
-      assertEquals(expected, pii.next());
+      assertEquals(expected, pii.nextLong());
     }
 
     // use iterator from
@@ -1673,7 +1673,7 @@ public class TestRoaring64Bitmap {
       long expected = 2 * i + Integer.MAX_VALUE;
       PeekableLongIterator pii = bitmap.getReverseLongIteratorFrom(expected);
       assertEquals(expected, pii.peekNext());
-      assertEquals(expected, pii.next());
+      assertEquals(expected, pii.nextLong());
     }
   }
   
@@ -1698,7 +1698,7 @@ public class TestRoaring64Bitmap {
         long expected = 2 * i + base;
         pii.advanceIfNeeded(expected);
         assertEquals(expected, pii.peekNext());
-        assertEquals(expected, pii.next());
+        assertEquals(expected, pii.nextLong());
       }
 
       // use iterator from
@@ -1706,7 +1706,7 @@ public class TestRoaring64Bitmap {
         long expected = 2 * i + base;
         PeekableLongIterator pii = bitmap.getReverseLongIteratorFrom(expected);
         assertEquals(expected, pii.peekNext());
-        assertEquals(expected, pii.next());
+        assertEquals(expected, pii.nextLong());
       }
     }
   }
@@ -1722,14 +1722,14 @@ public class TestRoaring64Bitmap {
       PeekableLongIterator pii = bitmap.getReverseLongIterator();
       pii.advanceIfNeeded(i);
       assertEquals(i, pii.peekNext());
-      assertEquals(i, pii.next());
+      assertEquals(i, pii.nextLong());
     }
 
     // use iterator from
     for(int i = 99999; i >= 4; --i) {
       PeekableLongIterator pii = bitmap.getReverseLongIteratorFrom(i);
       assertEquals(i, pii.peekNext());
-      assertEquals(i, pii.next());
+      assertEquals(i, pii.nextLong());
     }
   }
   
@@ -1760,12 +1760,12 @@ public class TestRoaring64Bitmap {
     PeekableLongIterator bitIt = bitset.getLongIterator();
 
     assertEquals(b1, bitIt.peekNext());
-    assertEquals(b1, bitIt.next());
+    assertEquals(b1, bitIt.nextLong());
 
     assertTrue(bitset.contains(p2));
     bitIt.advanceIfNeeded(p2);
     assertEquals(p2, bitIt.peekNext());
-    assertEquals(p2, bitIt.next());
+    assertEquals(p2, bitIt.nextLong());
 
     // advancing to a value not in either range should go to the first value of second range
     assertFalse(bitset.contains(pgap));
@@ -1778,7 +1778,7 @@ public class TestRoaring64Bitmap {
     assertTrue(bitset.contains(b2));
     bitIt.advanceIfNeeded(b2);
     assertEquals(b2, bitIt.peekNext());
-    assertEquals(b2, bitIt.next());
+    assertEquals(b2, bitIt.nextLong());
   }
 
   @Test
@@ -1804,12 +1804,12 @@ public class TestRoaring64Bitmap {
     PeekableLongIterator bitIt = bitset.getLongIterator();
 
     assertEquals(b1, bitIt.peekNext());
-    assertEquals(b1, bitIt.next());
+    assertEquals(b1, bitIt.nextLong());
 
     assertTrue(bitset.contains(p2));
     bitIt.advanceIfNeeded(p2);
     assertEquals(p2, bitIt.peekNext());
-    assertEquals(p2, bitIt.next());
+    assertEquals(p2, bitIt.nextLong());
 
     // advancing to a value not in any range but beyond second range
     // should go to the first value of third range
@@ -1823,7 +1823,7 @@ public class TestRoaring64Bitmap {
     assertTrue(bitset.contains(b3));
     bitIt.advanceIfNeeded(b3);
     assertEquals(b3, bitIt.peekNext());
-    assertEquals(b3, bitIt.next());
+    assertEquals(b3, bitIt.nextLong());
 
     // reset
     bitIt = bitset.getLongIterator();
@@ -1838,7 +1838,7 @@ public class TestRoaring64Bitmap {
 
     bitIt.advanceIfNeeded(b3);
     assertEquals(b3, bitIt.peekNext());
-    assertEquals(b3, bitIt.next());
+    assertEquals(b3, bitIt.nextLong());
   }
 
   @Test
@@ -1859,12 +1859,12 @@ public class TestRoaring64Bitmap {
     PeekableLongIterator bitIt = bitset.getReverseLongIterator();
 
     assertEquals(b2e - 1L, bitIt.peekNext());
-    assertEquals(b2e - 1L, bitIt.next());
+    assertEquals(b2e - 1L, bitIt.nextLong());
 
     assertTrue(bitset.contains(p2));
     bitIt.advanceIfNeeded(p2);
     assertEquals(p2, bitIt.peekNext());
-    assertEquals(p2, bitIt.next());
+    assertEquals(p2, bitIt.nextLong());
 
     // advancing to a value not in either range should go to the first value of second range
     assertFalse(bitset.contains(pgap));
@@ -1877,7 +1877,7 @@ public class TestRoaring64Bitmap {
     assertTrue(bitset.contains(b2));
     bitIt.advanceIfNeeded(b1e);
     assertEquals(b1e - 1L, bitIt.peekNext());
-    assertEquals(b1e - 1L, bitIt.next());
+    assertEquals(b1e - 1L, bitIt.nextLong());
   }
 
   @Test
@@ -1902,12 +1902,12 @@ public class TestRoaring64Bitmap {
     PeekableLongIterator bitIt = bitset.getReverseLongIterator();
 
     assertEquals(b3e - 1L, bitIt.peekNext());
-    assertEquals(b3e - 1L, bitIt.next());
+    assertEquals(b3e - 1L, bitIt.nextLong());
 
     assertTrue(bitset.contains(p3));
     bitIt.advanceIfNeeded(p3);
     assertEquals(p3, bitIt.peekNext());
-    assertEquals(p3, bitIt.next());
+    assertEquals(p3, bitIt.nextLong());
 
     // advancing to a value not in any range but beyond second range
     // should go to the first value of third range
@@ -1921,7 +1921,7 @@ public class TestRoaring64Bitmap {
     assertTrue(bitset.contains(b1));
     bitIt.advanceIfNeeded(b1e);
     assertEquals(b1e - 1L, bitIt.peekNext());
-    assertEquals(b1e - 1L, bitIt.next());
+    assertEquals(b1e - 1L, bitIt.nextLong());
 
     // reset
     bitIt = bitset.getReverseLongIterator();
@@ -1936,7 +1936,7 @@ public class TestRoaring64Bitmap {
 
     bitIt.advanceIfNeeded(b1e);
     assertEquals(b1e - 1L, bitIt.peekNext());
-    assertEquals(b1e - 1L, bitIt.next());
+    assertEquals(b1e - 1L, bitIt.nextLong());
   }
 
   @Test
@@ -2170,7 +2170,7 @@ public class TestRoaring64Bitmap {
     LongIterator it = rb.getLongIterator();
     int count = 0;
     while(it.hasNext()) {
-        it.next();
+        it.nextLong();
         count++;
     }
     assertEquals(count, 7);

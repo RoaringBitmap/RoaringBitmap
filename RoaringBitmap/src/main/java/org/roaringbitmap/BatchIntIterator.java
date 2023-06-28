@@ -38,7 +38,7 @@ public class BatchIntIterator implements IntIterator {
   }
 
   @Override
-  public int next() {
+  public int nextInt() {
     return buffer[i++];
   }
 

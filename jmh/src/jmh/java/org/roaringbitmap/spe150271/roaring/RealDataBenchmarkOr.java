@@ -28,7 +28,7 @@ public class RealDataBenchmarkOr {
     for (int k = 0; k + 1 < bs.bitmaps.size(); ++k) {
       BitmapIterator i = bs.bitmaps.get(k).or(bs.bitmaps.get(k + 1)).iterator();
       if (i.hasNext()) {
-        total += i.next();
+        total += i.nextInt();
       }
     }
     return total;

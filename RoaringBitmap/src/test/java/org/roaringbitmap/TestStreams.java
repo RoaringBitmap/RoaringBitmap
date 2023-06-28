@@ -28,7 +28,7 @@ public class TestStreams {
       if (!(size < values.length)) {
         values = Arrays.copyOf(values, values.length * 2);
       }
-      values[size++] = ints.next();
+      values[size++] = ints.nextInt();
     }
     return Ints.asList(Arrays.copyOf(values, size));
   }
@@ -46,7 +46,7 @@ public class TestStreams {
       }
 
       @Override
-      public int next() {
+      public int nextInt() {
         return shorts.next();
       }
     });

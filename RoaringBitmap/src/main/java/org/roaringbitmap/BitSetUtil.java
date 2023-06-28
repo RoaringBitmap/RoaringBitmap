@@ -109,7 +109,7 @@ public class BitSetUtil {
     }
     final IntIterator it = bitmap.getIntIterator();
     while (it.hasNext()) {
-      int val = it.next();
+      int val = it.nextInt();
       if (!bitset.get(val)) {
         return false;
       }

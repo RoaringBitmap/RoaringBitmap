@@ -16,7 +16,12 @@ final class ConciseSetIteratorWrapper implements BitmapIterator {
   }
 
   @Override
-  public int next() {
+  public Integer next() {
+    return iterator.next();
+  }
+  
+  @Override
+  public int nextInt() {
     return iterator.next();
   }
 

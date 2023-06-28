@@ -567,7 +567,7 @@ public class TestMemoryMapping {
       oldvalue = -1;
       int card2 = 0;
       while (i.hasNext()) {
-        final int x = i.next();
+        final int x = i.nextInt();
         assertTrue(target.contains(x));
         if (x > oldvalue) {
           ++card2;
@@ -607,7 +607,7 @@ public class TestMemoryMapping {
       oldvalue = -1;
       int card2 = 0;
       while (i.hasNext()) {
-        final int x = i.next();
+        final int x = i.nextInt();
         assertTrue(ramtarget.contains(x));
         if (x > oldvalue) {
           ++card2;
@@ -637,7 +637,7 @@ public class TestMemoryMapping {
     MutableRoaringBitmap copy2 = new MutableRoaringBitmap();
     IntIterator i = rb.getIntIterator();
     while (i.hasNext()) {
-      copy2.add(i.next());
+      copy2.add(i.nextInt());
     }
     assertTrue(copy2.equals(rb));
     System.out.println("[TestMemoryMapping] testing a custom iterator copy  ok");

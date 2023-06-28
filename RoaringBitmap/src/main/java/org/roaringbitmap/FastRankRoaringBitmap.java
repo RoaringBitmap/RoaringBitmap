@@ -326,7 +326,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
     }
 
     @Override
-    public int next() {
+    public int nextInt() {
       final int x = iter.nextAsInt() | hs;
       if (!iter.hasNext()) {
         ++pos;
