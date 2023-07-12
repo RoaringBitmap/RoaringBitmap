@@ -1590,7 +1590,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (this.cardinality == 0) {
       return "{}";
     }
-    final StringBuilder sb = new StringBuilder("{}".length() + "-123456789,".length() * cardinality);
+    final StringBuilder sb = new StringBuilder("{}".length() + "-123456789,".length()
+        * cardinality);
     sb.append('{');
     for (int i = 0; i < this.cardinality - 1; i++) {
       sb.append((int)(this.content.get(i)));

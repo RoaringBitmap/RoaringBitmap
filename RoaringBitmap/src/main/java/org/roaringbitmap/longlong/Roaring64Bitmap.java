@@ -491,7 +491,8 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    */
   @Override
   public String toString() {
-    final StringBuilder answer = new StringBuilder("{}".length() + "-1234567890123456789,".length() * 256);
+    final StringBuilder answer = new StringBuilder("{}".length() + "-1234567890123456789,".length()
+        * 256);
     final LongIterator i = this.getLongIterator();
     answer.append('{');
     if (i.hasNext()) {
