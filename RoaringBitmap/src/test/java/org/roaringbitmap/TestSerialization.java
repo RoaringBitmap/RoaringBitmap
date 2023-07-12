@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Random;
+import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -448,7 +449,34 @@ public class TestSerialization {
     bitmap_a.serialize(dos);
   }
 
+  // Encode the RoaringBitmap to a string representation
+  public static String encodeToString(RoaringBitmap bitmap) throws IOException {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream(bitmap.serializedSizeInBytes());
+    bitmap.serialize(new DataOutputStream(baos));
+    return Base64.getEncoder().encodeToString(baos.toByteArray());
+  }
 
+  // Decode the string representation and reconstruct the RoaringBitmap
+  public static RoaringBitmap decodeFromString(String encodedString) throws IOException {
+    byte[] decodedBytes = Base64.getDecoder().decode(encodedString);
+    ByteArrayInputStream in = new ByteArrayInputStream(decodedBytes);
+    DataInputStream dis = new DataInputStream(in);
+    RoaringBitmap r = new RoaringBitmap();
+    r.deserialize(dis);
+    return r;
+  }
+
+  @Test
+  public void testStringification() throws IOException {
+    RoaringBitmap bitmap = new RoaringBitmap();
+    bitmap.add(1);
+    bitmap.add(3);
+    bitmap.add(5);
+    String encodedString = encodeToString(bitmap);
+    RoaringBitmap decoded = decodeFromString(encodedString);
+    assertEquals(bitmap, decoded);
+    outbb.rewind();
+  }
 
 }
 
