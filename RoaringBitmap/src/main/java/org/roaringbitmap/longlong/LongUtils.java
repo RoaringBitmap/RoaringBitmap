@@ -93,7 +93,7 @@ public class LongUtils {
    *
    * @param a a byte array
    * @param b another byte array
-   * @return positive indicates a greater than b,0 indicates equal,negative indicates a smaller than b
+   * @return positive indicates a greater than b, 0 indicates equal,negative otherwise
    */
   public static int compareHigh(byte[] a, byte[] b) {
     if (a == b) { return 0; }
@@ -106,6 +106,13 @@ public class LongUtils {
     return 0;
   }
 
+  /**
+   * Equality test according to the dictionary order.
+   *
+   * @param a a byte array
+   * @param b another byte array
+   * @return true if first six bytes of both given array are equal
+   */
   public static boolean equalsHigh(byte[] a, byte[] b) {
     return (a == b)
             || ((a[0] == b[0])
