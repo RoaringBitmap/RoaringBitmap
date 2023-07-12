@@ -28,7 +28,7 @@ public class BitSetUtil {
     for (int i = from, socket = 0; i < to; ++i, socket += Long.SIZE) {
       long word = words[i];
       while (word != 0) {
-        long t = word & -word;
+        long t = word & (word - 1);
         content[index++] = (char) (socket + Long.bitCount(t - 1));
         word ^= t;
       }
