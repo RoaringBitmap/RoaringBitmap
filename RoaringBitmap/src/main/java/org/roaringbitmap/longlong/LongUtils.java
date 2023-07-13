@@ -39,16 +39,26 @@ public class LongUtils {
    * @return the long data
    */
   public static long toLong(byte[] high, char low) {
-    byte byte6 = (byte) (low >>> 8 & 0xFFL);
-    byte byte7 = (byte) low;
-    return (high[0] & 0xFFL) << 56
-        | (high[1] & 0xFFL) << 48
-        | (high[2] & 0xFFL) << 40
-        | (high[3] & 0xFFL) << 32
-        | (high[4] & 0xFFL) << 24
-        | (high[5] & 0xFFL) << 16
-        | (byte6 & 0xFFL) << 8
-        | (byte7 & 0xFFL);
+    return toLong(high) << 16 | low;
+  }
+
+  /**
+   * Reconstruct the long data.
+   *
+   * @param high the high 48 bit
+   * @return the long data
+   */
+  public static long toLong(byte[] high) {
+    return (high[0] & 0xFFL) << 40
+        | (high[1] & 0xFFL) << 32
+        | (high[2] & 0xFFL) << 24
+        | (high[3] & 0xFFL) << 16
+        | (high[4] & 0xFFL) << 8
+        | (high[5] & 0xFFL);
+  }
+
+  public static long toLong(long high, char low) {
+    return high << 16 | low;
   }
 
   /**
@@ -87,38 +97,6 @@ public class LongUtils {
         | (long) (work[7] & 0xff);
   }
 
-  /**
-   * compare according to the dictionary order
-   *
-   * @param a a byte array
-   * @param b another byte array
-   * @return positive indicates a greater than b, 0 indicates equal,negative otherwise
-   */
-  public static int compareHigh(byte[] a, byte[] b) {
-    if (a[0] != b[0]) { return Byte.toUnsignedInt(a[0]) - Byte.toUnsignedInt(b[0]); }
-    if (a[1] != b[1]) { return Byte.toUnsignedInt(a[1]) - Byte.toUnsignedInt(b[1]); }
-    if (a[2] != b[2]) { return Byte.toUnsignedInt(a[2]) - Byte.toUnsignedInt(b[2]); }
-    if (a[3] != b[3]) { return Byte.toUnsignedInt(a[3]) - Byte.toUnsignedInt(b[3]); }
-    if (a[4] != b[4]) { return Byte.toUnsignedInt(a[4]) - Byte.toUnsignedInt(b[4]); }
-    if (a[5] != b[5]) { return Byte.toUnsignedInt(a[5]) - Byte.toUnsignedInt(b[5]); }
-    return 0;
-  }
-
-  /**
-   * Equality test according to the dictionary order.
-   *
-   * @param a a byte array
-   * @param b another byte array
-   * @return true if first six bytes of both given array are equal
-   */
-  public static boolean equalsHigh(byte[] a, byte[] b) {
-    return ((a[0] == b[0])
-            && (a[1] == b[1])
-            && (a[2] == b[2])
-            && (a[3] == b[3])
-            && (a[4] == b[4])
-            && (a[5] == b[5]));
-  }
   /**
    * initialize a long value with the given fist 32 bit
    *
@@ -172,15 +150,10 @@ public class LongUtils {
    * checks if given high48 is the maximum possible one
    * (e.g. it is the case for -1L, which is the maximum unsigned long)
    *
-   * @param high48 the byte array
+   * @param key long
    * @return true if this the maximum high part
    */
-  public static boolean isMaxHigh(byte[] high48) {
-    return high48[0] == -1
-            && high48[1] == -1
-            && high48[2] == -1
-            && high48[3] == -1
-            && high48[4] == -1
-            && high48[5] == -1;
+  public static boolean isMaxHigh(long key) {
+    return key == ~0 >>> 16;
   }
 }

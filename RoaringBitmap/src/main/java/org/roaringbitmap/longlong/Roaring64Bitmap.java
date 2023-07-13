@@ -208,12 +208,12 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       return; // nothing else to do
     }
     final long end = start + length;
-    final byte[] endHigh = LongUtils.highPart(end);
+    final long endHigh = LongUtils.rightShiftHighPart(end);
     long filledUntil = start;
 
     LeafNode node = leafIterator.next();
-    byte[] high = node.getKeyBytes();
-    while (LongUtils.compareHigh(high, endHigh) <= 0) {
+    long high = node.getKey();
+    while (high <= endHigh) {
       // fill missing values until start of container
       long containerStart = LongUtils.toLong(high, (char) 0);
       if (filledUntil < containerStart) {
@@ -254,7 +254,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       }
       if (leafIterator.hasNext()) {
         node = leafIterator.next();
-        high = node.getKeyBytes();
+        high = node.getKey();
       } else {
         break;
       }
@@ -279,14 +279,15 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
   @Override
   public long rankLong(long id) {
     long result = 0;
-    byte[] high = LongUtils.highPart(id);
+    long high = LongUtils.rightShiftHighPart(id);
+    byte[] highBytes = LongUtils.highPart(id);
     char low = LongUtils.lowPart(id);
-    ContainerWithIndex containerWithIndex = highLowContainer.searchContainer(high);
+    ContainerWithIndex containerWithIndex = highLowContainer.searchContainer(highBytes);
     KeyIterator keyIterator = highLowContainer.highKeyIterator();
     if (containerWithIndex == null) {
       while (keyIterator.hasNext()) {
-        byte[] highKey = keyIterator.next();
-        if (LongUtils.compareHigh(highKey, high) > 0) {
+        long highKey = keyIterator.nextKey();
+        if (highKey > high) {
           break;
         } else {
           long containerIdx = keyIterator.currentContainerIdx();
@@ -296,10 +297,10 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       }
     } else {
       while (keyIterator.hasNext()) {
-        byte[] key = keyIterator.next();
+        long key = keyIterator.nextKey();
         long containerIdx = keyIterator.currentContainerIdx();
         Container container = highLowContainer.getContainer(containerIdx);
-        if (LongUtils.equalsHigh(key, high)) {
+        if (key == high) {
           result += container.rank(low);
           break;
         } else {
@@ -774,18 +775,20 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       throw new IllegalArgumentException("Invalid range [" + rangeStart + "," + rangeEnd + ")");
     }
 
-    byte[] startHigh = LongUtils.highPart(rangeStart);
+    long startHigh = LongUtils.rightShiftHighPart(rangeStart);
     int startLow = LongUtils.lowPart(rangeStart);
-    byte[] endHigh = LongUtils.highPart(rangeEnd - 1);
+    long endHigh = LongUtils.rightShiftHighPart(rangeEnd - 1);
     int endLow = LongUtils.lowPart(rangeEnd - 1);
+
     long rangeStartVal = rangeStart;
-    byte[] startHighKey = startHigh;
-    for (; LongUtils.compareHigh(startHighKey, endHigh) <= 0; ) {
-      boolean areHighEqual = LongUtils.equalsHigh(startHighKey, startHigh);
+    long startHighKey = LongUtils.rightShiftHighPart(rangeStart);
+    byte[] startHighKeyBytes = LongUtils.highPart(rangeStart);
+    while (startHighKey <= endHigh) {
+      boolean areHighEqual = startHighKey == startHigh;
       final int containerStart = areHighEqual ? startLow : 0;
       // last container may contain partial range
       final int containerLast = areHighEqual ? endLow : Util.maxLowBitAsInteger();
-      ContainerWithIndex containerWithIndex = highLowContainer.searchContainer(startHighKey);
+      ContainerWithIndex containerWithIndex = highLowContainer.searchContainer(startHighKeyBytes);
       if (containerWithIndex != null) {
         long containerIdx = containerWithIndex.getContainerIdx();
         Container freshContainer = highLowContainer.getContainer(containerIdx)
@@ -793,7 +796,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
         highLowContainer.replaceContainer(containerIdx, freshContainer);
       } else {
         Container freshContainer = Container.rangeOfOnes(containerStart, containerLast + 1);
-        highLowContainer.put(startHighKey, freshContainer);
+        highLowContainer.put(startHighKeyBytes, freshContainer);
       }
 
       if (LongUtils.isMaxHigh(startHighKey)) {
@@ -801,7 +804,8 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       }
       //increase the high
       rangeStartVal = rangeStartVal + (containerLast - containerStart) + 1;
-      startHighKey = LongUtils.highPart(rangeStartVal);
+      startHighKey = LongUtils.rightShiftHighPart(rangeStartVal);
+      startHighKeyBytes = LongUtils.highPart(rangeStartVal);
     }
   }
 
@@ -932,7 +936,6 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     
     abstract PeekableCharIterator getIterator(Container container);
     abstract boolean compare(long next, long val);
-    abstract boolean compareHigh(byte[] next, byte[] val);
 
     @Override
     public boolean hasNext() {
@@ -975,13 +978,14 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
         return;
       }
 
-      byte[] minHigh = LongUtils.highPart(minval);
-      if (!Arrays.equals(this.high, minHigh)) {
+      long minHigh = LongUtils.rightShiftHighPart(minval);
+      long high = LongUtils.toLong(this.high);
+      if (minHigh != high) {
         // advance outer
         if (keyIte.hasNext()) {
           LeafNode leafNode = keyIte.next();
           this.high = leafNode.getKeyBytes();
-          if (compareHigh(this.high, minHigh)) {
+          if (compare(leafNode.getKey(), minHigh)) {
             long containerIdx = leafNode.getContainerIdx();
             Container container = highLowContainer.getContainer(containerIdx);
             charIterator = getIterator(container);
@@ -1009,7 +1013,8 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
         }
       }
 
-      if (Arrays.equals(this.high, minHigh)) {
+      byte[] minHighBytes = LongUtils.highPart(minval);
+      if (Arrays.equals(this.high, minHighBytes)) {
         // advance inner
         char low = LongUtils.lowPart(minval);
         charIterator.advanceIfNeeded(low);
@@ -1048,11 +1053,6 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     boolean compare(long next, long val) {
       return Long.compareUnsigned(next, val) >= 0;
     }
-
-    @Override
-    boolean compareHigh(byte[] next, byte[] val) {
-      return LongUtils.compareHigh(next, val) >= 0;
-    }
   }
 
   private class ReversePeekableIterator extends PeekableIterator {
@@ -1068,11 +1068,6 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     @Override
     boolean compare(long next, long val) {
       return Long.compareUnsigned(next, val) <= 0;
-    }
-
-    @Override
-    boolean compareHigh(byte[] next, byte[] val) {
-      return LongUtils.compareHigh(next, val) <= 0;
     }
   }
 }
