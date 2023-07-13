@@ -915,7 +915,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   public int getCardinality() {
     int sum = nbrruns; // lengths are stored -1
     int limit = nbrruns * 2;
-    if (isArrayBacked() || !valueslength.isReadOnly()) {
+    if (isArrayBacked()) {
       char[] vl = valueslength.array();
       for (int k = 1; k < limit; k += 2) {
         sum += vl[k];
