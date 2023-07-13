@@ -423,10 +423,10 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    */
   public void flip(final long rangeStart, final long rangeEnd) {
 
-    if(rangeStart >= 0 && rangeEnd >= 0 && rangeStart >= rangeEnd){
+    if(rangeEnd >= 0 && rangeStart >= rangeEnd){
       // both numbers in positive range, and start is beyond end, nothing to do.
       return;
-    } else if(rangeStart < 0 && rangeEnd < 0 && rangeStart >= rangeEnd){
+    } else if(rangeStart < 0 && rangeStart >= rangeEnd){
       // both numbers in negative range, and start is beyond end, nothing to do.
       return;
     } else if(rangeStart < 0 && rangeEnd > 0) {
