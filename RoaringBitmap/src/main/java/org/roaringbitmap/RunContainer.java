@@ -1007,8 +1007,8 @@ public final class RunContainer extends Container implements Cloneable {
   @Override
   public int getCardinality() {
     int sum = nbrruns;// lengths are returned -1
-    for (int k = 0; k < nbrruns; ++k) {
-      sum = sum + (getLength(k))/* + 1 */;
+    for (int k = 1; k < nbrruns * 2; k++) {
+      sum += valueslength[k];
     }
     return sum;
   }
