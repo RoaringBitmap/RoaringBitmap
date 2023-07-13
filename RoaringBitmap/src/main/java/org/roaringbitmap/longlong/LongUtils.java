@@ -96,7 +96,6 @@ public class LongUtils {
    * @return positive indicates a greater than b, 0 indicates equal,negative otherwise
    */
   public static int compareHigh(byte[] a, byte[] b) {
-    if (a == b) { return 0; }
     if (a[0] != b[0]) { return Byte.toUnsignedInt(a[0]) - Byte.toUnsignedInt(b[0]); }
     if (a[1] != b[1]) { return Byte.toUnsignedInt(a[1]) - Byte.toUnsignedInt(b[1]); }
     if (a[2] != b[2]) { return Byte.toUnsignedInt(a[2]) - Byte.toUnsignedInt(b[2]); }
@@ -114,8 +113,7 @@ public class LongUtils {
    * @return true if first six bytes of both given array are equal
    */
   public static boolean equalsHigh(byte[] a, byte[] b) {
-    return (a == b)
-            || ((a[0] == b[0])
+    return ((a[0] == b[0])
             && (a[1] == b[1])
             && (a[2] == b[2])
             && (a[3] == b[3])
