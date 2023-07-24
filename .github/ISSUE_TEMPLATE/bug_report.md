@@ -11,7 +11,27 @@ assignees: ''
 A clear and concise description of what the bug is.
 
 **To Reproduce**
-If it is a bug you encountered while working with the library, you should produce a code sample that allows us to reproduce the problem... If we cannot reproduce the problem, it might be hard for us to fix it...
+If it is a bug you encountered while working with the library, you should produce a code sample that allows us to reproduce the problem. Your code should be complete and immediately executable:
+
+For example, this is a good example:
+```Java
+import java.io.IOException;
+
+import org.roaringbitmap.RoaringBitmap;
+
+public class Main {
+    public static void main(String[] args) throws IOException {
+
+        RoaringBitmap s1 = RoaringBitmap.bitmapOf(-587409880, 605467000);
+        RoaringBitmap s2 = RoaringBitmap.bitmapOf(-587409880, 347844183);
+
+        System.out.println(RoaringBitmap.andNotCardinality(s1, s2));
+        System.out.println(RoaringBitmap.andNot(s1, s2).getCardinality());
+    }
+}
+```
+
+If you fail to provide the necessary information for us to reproduce the issue, we may reject your bug report.
 
 **RoaringBitmap version:**
 
