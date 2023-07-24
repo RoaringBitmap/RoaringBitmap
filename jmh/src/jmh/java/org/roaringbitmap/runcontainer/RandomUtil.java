@@ -20,7 +20,7 @@ public class RandomUtil {
     int[] ans = new int[N];
     HashSet<Integer> s = new HashSet<Integer>();
     while (s.size() < N)
-      s.add(new Integer(rand.nextInt(Max)));
+      s.add(rand.nextInt(Max));
     Iterator<Integer> i = s.iterator();
     for (int k = 0; k < N; ++k)
       ans[k] = i.next().intValue();
