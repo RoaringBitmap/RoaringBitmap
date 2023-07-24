@@ -182,25 +182,8 @@ public class Node4 extends Node {
    * @param node4 node14 or node16
    */
   private static void insertionSort(Node4 node4) {
-    node4.key = sortSmallByteArray(node4.key, node4.children, 0, node4.count - 1);
-  }
-
-  private static int sortSmallByteArray(int intKey, Node[] children, int left, int right) {
-    byte[] key = IntegerUtil.toBDBytes(intKey);
-    for (int i = left, j = i; i < right; j = ++i) {
-      byte ai = key[i + 1];
-      Node child = children[i + 1];
-      int unsignedByteAi = Byte.toUnsignedInt(ai);
-      while (unsignedByteAi < Byte.toUnsignedInt(key[j])) {
-        key[j + 1] = key[j];
-        children[j + 1] = children[j];
-        if (j-- == left) {
-          break;
-        }
-      }
-      key[j + 1] = ai;
-      children[j + 1] = child;
-    }
-    return IntegerUtil.fromBDBytes(key);
+    byte[] key = IntegerUtil.toBDBytes(node4.key);
+    byte[] sortedKey = Node.sortSmallByteArray(key, node4.children, 0, node4.count - 1);
+    node4.key = IntegerUtil.fromBDBytes(sortedKey);
   }
 }

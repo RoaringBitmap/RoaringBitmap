@@ -150,8 +150,8 @@ public class Node16 extends Node {
       bytes[currentNode16.count] = key;
       currentNode16.firstV = LongUtils.fromBDBytes(bytes);
       currentNode16.children[currentNode16.count] = child;
+      sortSmallByteArray(bytes, currentNode16.children, 0, currentNode16.count);
       currentNode16.count++;
-      sortSmallByteArray(bytes, currentNode16.children, 0, currentNode16.count - 1);
       currentNode16.firstV = LongUtils.fromBDBytes(bytes);
       return currentNode16;
     } else if (currentNode16.count < 16) {
@@ -161,9 +161,8 @@ public class Node16 extends Node {
       byteBuffer.putLong(currentNode16.secondV);
       byteBuffer.put(currentNode16.count, key);
       currentNode16.children[currentNode16.count] = child;
+      sortSmallByteArray(byteBuffer.array(), currentNode16.children, 0, currentNode16.count);
       currentNode16.count++;
-      sortSmallByteArray(byteBuffer.array(), currentNode16.children, 0,
-          currentNode16.count - 1);
       currentNode16.firstV = byteBuffer.getLong(0);
       currentNode16.secondV = byteBuffer.getLong(8);
       return currentNode16;
@@ -253,26 +252,6 @@ public class Node16 extends Node {
       this.children[pos] = children[offset];
       pos = this.getNextLargerPos(pos);
       offset++;
-    }
-  }
-
-  /**
-   * sort the small arrays through the insertion sort alg.
-   */
-  private static void sortSmallByteArray(byte[] key, Node[] children, int left, int right) {
-    for (int i = left, j = i; i < right; j = ++i) {
-      byte ai = key[i + 1];
-      Node child = children[i + 1];
-      int unsignedByteAi = Byte.toUnsignedInt(ai);
-      while (unsignedByteAi < Byte.toUnsignedInt(key[j])) {
-        key[j + 1] = key[j];
-        children[j + 1] = children[j];
-        if (j-- == left) {
-          break;
-        }
-      }
-      key[j + 1] = ai;
-      children[j + 1] = child;
     }
   }
 }
