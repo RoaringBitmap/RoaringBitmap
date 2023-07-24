@@ -1320,16 +1320,16 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
+    StringBuilder sb = new StringBuilder("{}".length() + "-123456789,".length() * 256);
     final CharIterator i = this.getCharIterator();
-    sb.append("{");
+    sb.append('{');
     while (i.hasNext()) {
       sb.append((int)(i.next()));
       if (i.hasNext()) {
-        sb.append(",");
+        sb.append(',');
       }
     }
-    sb.append("}");
+    sb.append('}');
     return sb.toString();
   }
 

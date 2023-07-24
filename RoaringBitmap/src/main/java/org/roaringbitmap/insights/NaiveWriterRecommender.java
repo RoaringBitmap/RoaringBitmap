@@ -15,7 +15,7 @@ public class NaiveWriterRecommender {
     if (s.containerCount() == 0) {
       return "Empty statistics, cannot recommend.";
     }
-    StringBuilder sb = new StringBuilder();
+    StringBuilder sb = new StringBuilder(600);
     containerCountRecommendations(s, sb);
     double acFraction = s.containerFraction(s.getArrayContainersStats().getContainersCount());
     if (acFraction > ArrayContainersDomination) {

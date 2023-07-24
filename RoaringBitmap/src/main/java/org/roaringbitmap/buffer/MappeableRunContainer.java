@@ -2327,14 +2327,14 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
+    StringBuilder sb = new StringBuilder("[]".length() + "-123456789,".length() * nbrruns);
     for (int k = 0; k < this.nbrruns; ++k) {
-      sb.append("[");
+      sb.append('[');
       sb.append((int)(this.getValue(k)));
-      sb.append(",");
+      sb.append(',');
       sb.append((this.getValue(k))
           + (this.getLength(k)));
-      sb.append("]");
+      sb.append(']');
     }
     return sb.toString();
   }

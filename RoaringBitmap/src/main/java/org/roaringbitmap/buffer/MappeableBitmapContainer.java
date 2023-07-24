@@ -1761,16 +1761,16 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   @Override
   public String toString() {
-    final StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder("{}".length() + "-123456789,".length() * 256);
     final CharIterator i = this.getCharIterator();
-    sb.append("{");
+    sb.append('{');
     while (i.hasNext()) {
       sb.append((int)(i.next()));
       if (i.hasNext()) {
-        sb.append(",");
+        sb.append(',');
       }
     }
-    sb.append("}");
+    sb.append('}');
     return sb.toString();
   }
 

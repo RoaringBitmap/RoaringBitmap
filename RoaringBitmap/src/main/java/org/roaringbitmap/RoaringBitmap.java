@@ -3103,23 +3103,22 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   @Override
   public String toString() {
-    final StringBuilder answer = new StringBuilder();
+    final StringBuilder answer = new StringBuilder("{}".length() + "-123456789,".length() * 256);
     final IntIterator i = this.getIntIterator();
-    answer.append("{");
+    answer.append('{');
     if (i.hasNext()) {
       answer.append(i.next() & 0xFFFFFFFFL);
     }
     while (i.hasNext()) {
-      answer.append(",");
+      answer.append(',');
       // to avoid using too much memory, we limit the size
       if(answer.length() > 0x80000) {
-        answer.append("...");
+        answer.append('.').append('.').append('.');
         break;
       }
       answer.append(i.next() & 0xFFFFFFFFL);
-
     }
-    answer.append("}");
+    answer.append('}');
     return answer.toString();
   }
 
