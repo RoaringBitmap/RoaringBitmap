@@ -914,14 +914,15 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   @Override
   public int getCardinality() {
     int sum = nbrruns; // lengths are stored -1
+    int limit = nbrruns * 2;
     if (isArrayBacked()) {
       char[] vl = valueslength.array();
-      for (int k = 0; k < nbrruns; ++k) {
-        sum = sum + (vl[2 * k + 1])/* + 1 */;
+      for (int k = 1; k < limit; k += 2) {
+        sum += vl[k];
       }
     } else {
-      for (int k = 0; k < nbrruns; ++k) {
-        sum = sum + (getLength(k))/* + 1 */;
+      for (int k = 1; k < limit; k += 2) {
+        sum += valueslength.get(k);
       }
     }
     return sum;
