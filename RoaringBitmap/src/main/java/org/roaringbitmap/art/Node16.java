@@ -168,10 +168,8 @@ public class Node16 extends Node {
       return currentNode16;
     } else {
       Node48 node48 = new Node48(currentNode16.prefixLength);
-      byte[] firtBytes = LongUtils.toBDBytes(currentNode16.firstV);
       for (int i = 0; i < 8; i++) {
-        byte v = firtBytes[i];
-        int unsignedIdx = Byte.toUnsignedInt(v);
+        int unsignedIdx = Byte.toUnsignedInt((byte) (currentNode16.firstV >>> ((7 - i) << 3)));
         //i won't be beyond 48
         Node48.setOneByte(unsignedIdx, (byte) i, node48.childIndex);
         node48.children[i] = currentNode16.children[i];
