@@ -376,7 +376,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       if (0 < nbrruns) {
         if (getValue(0) == k + 1) {
           incrementLength(0);
-          decrementValue(0);
+          decrementValue();
           return this;
         }
       }
@@ -805,8 +805,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   }
 
 
-  private void decrementValue(int index) {
-    valueslength.put(2 * index, (char) (valueslength.get(2 * index) - 1));
+  private void decrementValue() {
+    valueslength.put(0, (char) (valueslength.get(0) - 1));
   }
 
   // not thread safe!
