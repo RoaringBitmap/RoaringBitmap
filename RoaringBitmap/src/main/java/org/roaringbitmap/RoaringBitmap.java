@@ -911,6 +911,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         while (s1 < s2 && pos1 < length1) {
           cardinality += x1.highLowContainer.getContainerAtIndex(pos1).getCardinality();
           ++pos1;
+          // If executed in the last digit, the array will be out of bounds
+          if (pos1 == length1) {
+            break;
+          }
           s1 = x1.highLowContainer.getKeyAtIndex(pos1);
         }
       } else {
