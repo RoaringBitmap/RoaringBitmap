@@ -1,6 +1,8 @@
 package org.roaringbitmap;
 
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.BitSet;
 
@@ -69,6 +71,75 @@ public class BitSetUtil {
       }
     }
     return ans;
+  }
+
+  // To avoid memory allocation, reuse ThreadLocal buffers
+  private static final ThreadLocal<long[]> WORD_BLOCK = ThreadLocal.withInitial(() ->
+      new long[BLOCK_LENGTH]);
+
+  /**
+   * Efficiently generate a RoaringBitmap from an uncompressed byte array or ByteBuffer
+   * This method tries to minimise all kinds of memory allocation
+   *
+   * @param bb the uncompressed bitmap
+   * @param fastRank if set, returned bitmap is of type
+   *                 {@link org.roaringbitmap.FastRankRoaringBitmap}
+   * @return roaring bitmap
+   */
+  public static RoaringBitmap bitmapOf(ByteBuffer bb, boolean fastRank) {
+
+    bb = bb.slice().order(ByteOrder.LITTLE_ENDIAN);
+    final RoaringBitmap ans = fastRank ? new FastRankRoaringBitmap() : new RoaringBitmap();
+
+    // split buffer into blocks of long[], reuse a ThreadLocal array for blocks
+    final long[] words = WORD_BLOCK.get();
+    int containerIndex = 0;
+    int blockLength = 0, blockCardinality = 0, offset = 0;
+    long word;
+    while (bb.remaining() >= 8) {
+      word = bb.getLong();
+
+      // Add read long to block
+      words[blockLength++] = word;
+      blockCardinality += Long.bitCount(word);
+
+      // When block is full, add block to bitmap
+      if (blockLength == BLOCK_LENGTH) {
+        // Each block becomes a single container, if any bit is set
+        containerIndex = addBlock(ans, words, containerIndex, blockLength,
+            blockCardinality, offset);
+        offset += (blockLength * Long.SIZE);
+        blockLength = blockCardinality = 0;
+      }
+    }
+
+    if (bb.remaining() > 0) {
+      // Read remaining (less than 8) bytes
+      word = 0;
+      for (int remaining = bb.remaining(), j = 0; j < remaining; j++) {
+        word |= (bb.get() & 0xffL) << (8 * j);
+      }
+
+      // Add last word to block, only if any bit is set
+      if (word != 0) {
+        words[blockLength++] = word;
+        blockCardinality += Long.bitCount(word);
+      }
+    }
+
+    // Add block to map, if any bit is set
+    addBlock(ans, words, containerIndex, blockLength, blockCardinality, offset);
+    return ans;
+  }
+
+  private static int addBlock(RoaringBitmap ans, long[] words, int containerIndex, int blockLength,
+    int blockCardinality, int offset) {
+    if (blockCardinality > 0) {
+      ans.highLowContainer.insertNewKeyValueAt(containerIndex++, Util.highbits(offset),
+          BitSetUtil.containerOf(0, blockLength, blockCardinality, words));
+      Arrays.fill(words, 0); // Zero-out thread local buffer after use
+    }
+    return containerIndex;
   }
 
   private static int cardinality(final int from, final int to, final long[] words) {
