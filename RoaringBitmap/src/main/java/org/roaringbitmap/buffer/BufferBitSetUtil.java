@@ -125,8 +125,9 @@ public class BufferBitSetUtil {
       if (blockLength == BLOCK_LENGTH) {
         // Each block becomes a single container, if any bit is set
         if (blockCardinality > 0) {
-          ((MutableRoaringArray) ans.highLowContainer).insertNewKeyValueAt(containerIndex++, BufferUtil.highbits(offset),
-              BufferBitSetUtil.containerOf(0, blockLength, blockCardinality, wordsBuffer));
+          ((MutableRoaringArray) ans.highLowContainer).insertNewKeyValueAt(containerIndex++,
+              BufferUtil.highbits(offset), BufferBitSetUtil.containerOf(0, blockLength,
+                  blockCardinality, wordsBuffer));
         }
         /*
             Offset can overflow when bitsets size is more than Integer.MAX_VALUE - 64
@@ -154,7 +155,8 @@ public class BufferBitSetUtil {
 
     // Add block to map, if any bit is set
     if (blockCardinality > 0) {
-      ((MutableRoaringArray) ans.highLowContainer).insertNewKeyValueAt(containerIndex, BufferUtil.highbits(offset),
+      ((MutableRoaringArray) ans.highLowContainer).insertNewKeyValueAt(containerIndex,
+          BufferUtil.highbits(offset),
           BufferBitSetUtil.containerOf(0, blockLength, blockCardinality, wordsBuffer));
     }
     return ans;
