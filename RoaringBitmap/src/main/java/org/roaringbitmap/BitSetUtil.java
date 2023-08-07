@@ -16,7 +16,7 @@ public class BitSetUtil {
 
   // a block consists has a maximum of 1024 words, each representing 64 bits,
   // thus representing at maximum 65536 bits
-  static final private int BLOCK_LENGTH = BitmapContainer.MAX_CAPACITY / Long.SIZE; //
+  public static final int BLOCK_LENGTH = BitmapContainer.MAX_CAPACITY / Long.SIZE; //
   // 64-bit
   // word
 
@@ -72,10 +72,6 @@ public class BitSetUtil {
     return ans;
   }
 
-  // To avoid memory allocation, reuse ThreadLocal buffers
-  private static final ThreadLocal<long[]> WORD_BLOCK = ThreadLocal.withInitial(() ->
-      new long[BLOCK_LENGTH]);
-
   /**
    * Efficiently generate a RoaringBitmap from an uncompressed byte array or ByteBuffer
    * This method tries to minimise all kinds of memory allocation
@@ -86,12 +82,32 @@ public class BitSetUtil {
    * @return roaring bitmap
    */
   public static RoaringBitmap bitmapOf(ByteBuffer bb, boolean fastRank) {
+    return bitmapOf(bb, fastRank, new long[BLOCK_LENGTH]);
+  }
+
+  /**
+   * Efficiently generate a RoaringBitmap from an uncompressed byte array or ByteBuffer
+   * This method tries to minimise all kinds of memory allocation
+   * <br>
+   * You can provide a cached wordsBuffer for avoiding 8 KB of extra allocation on every call
+   *   No reference is kept to the wordsBuffer, so it can be cached as a ThreadLocal
+   *
+   * @param bb the uncompressed bitmap
+   * @param fastRank if set, returned bitmap is of type
+   *                 {@link org.roaringbitmap.FastRankRoaringBitmap}
+   * @param wordsBuffer buffer of length {@link BitSetUtil#BLOCK_LENGTH}
+   * @return roaring bitmap
+   */
+  public static RoaringBitmap bitmapOf(ByteBuffer bb, boolean fastRank, long[] wordsBuffer) {
+
+    if (wordsBuffer.length != BLOCK_LENGTH) {
+      throw new IllegalArgumentException("wordsBuffer length should be " + BLOCK_LENGTH);
+    }
 
     bb = bb.slice().order(ByteOrder.LITTLE_ENDIAN);
     final RoaringBitmap ans = fastRank ? new FastRankRoaringBitmap() : new RoaringBitmap();
 
-    // split buffer into blocks of long[], reuse a ThreadLocal array for blocks
-    final long[] words = WORD_BLOCK.get();
+    // split buffer into blocks of long[]
     int containerIndex = 0;
     int blockLength = 0, blockCardinality = 0, offset = 0;
     long word;
@@ -99,7 +115,7 @@ public class BitSetUtil {
       word = bb.getLong();
 
       // Add read long to block
-      words[blockLength++] = word;
+      wordsBuffer[blockLength++] = word;
       blockCardinality += Long.bitCount(word);
 
       // When block is full, add block to bitmap
@@ -107,8 +123,12 @@ public class BitSetUtil {
         // Each block becomes a single container, if any bit is set
         if (blockCardinality > 0) {
           ans.highLowContainer.insertNewKeyValueAt(containerIndex++, Util.highbits(offset),
-              BitSetUtil.containerOf(0, blockLength, blockCardinality, words));
+              BitSetUtil.containerOf(0, blockLength, blockCardinality, wordsBuffer));
         }
+        /*
+            Offset can overflow when bitsets size is more than Integer.MAX_VALUE - 64
+            It's harmless though, as it will happen after the last block is added
+         */
         offset += (BLOCK_LENGTH * Long.SIZE);
         blockLength = blockCardinality = 0;
       }
@@ -124,7 +144,7 @@ public class BitSetUtil {
 
       // Add last word to block, only if any bit is set
       if (word != 0) {
-        words[blockLength++] = word;
+        wordsBuffer[blockLength++] = word;
         blockCardinality += Long.bitCount(word);
       }
     }
@@ -132,7 +152,7 @@ public class BitSetUtil {
     // Add block to map, if any bit is set
     if (blockCardinality > 0) {
       ans.highLowContainer.insertNewKeyValueAt(containerIndex, Util.highbits(offset),
-          BitSetUtil.containerOf(0, blockLength, blockCardinality, words));
+          BitSetUtil.containerOf(0, blockLength, blockCardinality, wordsBuffer));
     }
     return ans;
   }

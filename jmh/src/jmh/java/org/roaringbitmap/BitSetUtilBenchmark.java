@@ -13,30 +13,34 @@ import java.util.zip.GZIPInputStream;
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 public class BitSetUtilBenchmark {
 
-  @Benchmark
-  public long BitSetToRoaringByAddingBitByBit(Data d) {
-    long bogus = 0;
-    for (int i = 0; i < d.bitsets.length; i++) {
-      bogus += bitmapTheNaiveWay(d.bitsets[i]).getCardinality();
-    }
-    return bogus;
-  }
+//  @Benchmark
+//  public long BitSetToRoaringByAddingBitByBit(Data d) {
+//    long bogus = 0;
+//    for (int i = 0; i < d.bitsets.length; i++) {
+//      bogus += bitmapTheNaiveWay(d.bitsets[i]).getCardinality();
+//    }
+//    return bogus;
+//  }
+//
+//
+//  @Benchmark
+//  public long BitSetToRoaringUsingBitSetUtil(Data d) {
+//    long bogus = 0;
+//    for (int i = 0; i < d.bitsets.length; i++) {
+//      bogus += BitSetUtil.bitmapOf(d.bitsets[i]).getCardinality();
+//    }
+//    return bogus;
+//  }
 
-
-  @Benchmark
-  public long BitSetToRoaringUsingBitSetUtil(Data d) {
-    long bogus = 0;
-    for (int i = 0; i < d.bitsets.length; i++) {
-      bogus += BitSetUtil.bitmapOf(d.bitsets[i]).getCardinality();
-    }
-    return bogus;
-  }
+  private static final ThreadLocal<long[]> WORD_BLOCK = ThreadLocal.withInitial(() ->
+      new long[BitSetUtil.BLOCK_LENGTH]);
 
   /*
     Given an uncompressed bitset represented as a byte array (basically, as read on wire)
     Below benchmarks the perf difference you will get when:
     1. ByteArrayToRoaring - Directly convert the byte array to a roaring bitmap by wrapping it in a ByteBuffer
     2. ByteArrayToBitsetToRoaring - Convert the byte array to a BitSet and then create the bitmap using it
+    3. ByteArrayToRoaringWithCachedBuffer - Directly convert and use a cached reused buffer
    */
 
   @Benchmark
@@ -45,6 +49,16 @@ public class BitSetUtilBenchmark {
     for (int i = 0; i < d.bitsetsAsBytes.length; i++) {
       ByteBuffer bb = ByteBuffer.wrap(d.bitsetsAsBytes[i]);
       bogus += BitSetUtil.bitmapOf(bb, false).getCardinality();
+    }
+    return bogus;
+  }
+
+  @Benchmark
+  public long ByteArrayToRoaringWithCachedBuffer(Data d) {
+    long bogus = 0;
+    for (int i = 0; i < d.bitsetsAsBytes.length; i++) {
+      ByteBuffer bb = ByteBuffer.wrap(d.bitsetsAsBytes[i]);
+      bogus += BitSetUtil.bitmapOf(bb, false, WORD_BLOCK.get()).getCardinality();
     }
     return bogus;
   }
@@ -120,7 +134,7 @@ public class BitSetUtilBenchmark {
            wordSize = 8192 represents 524288 bits (~64kb)
            wordSize = 131072 represents 8388608 bits (~8.3 million, ~1mb)
          */
-        final int minTotalWordSize = 64;
+        final int minTotalWordSize = 512;
         // Try to keep size of bitsets created below 1 gb
         final int bitsetCnt = Math.min((1024 * 1024 * 1024) / (minTotalWordSize * 8), dos.readInt());
 
