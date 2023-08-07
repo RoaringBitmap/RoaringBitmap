@@ -105,15 +105,18 @@ public class BitSetUtil {
       // When block is full, add block to bitmap
       if (blockLength == BLOCK_LENGTH) {
         // Each block becomes a single container, if any bit is set
-        containerIndex = addBlock(ans, words, containerIndex, blockLength,
-            blockCardinality, offset);
-        offset += (blockLength * Long.SIZE);
+        if (blockCardinality > 0) {
+          ans.highLowContainer.insertNewKeyValueAt(containerIndex++, Util.highbits(offset),
+              BitSetUtil.containerOf(0, blockLength, blockCardinality, words));
+        }
+        offset += (BLOCK_LENGTH * Long.SIZE);
         blockLength = blockCardinality = 0;
       }
     }
 
     if (bb.remaining() > 0) {
       // Read remaining (less than 8) bytes
+      // We can do this in while loop also, it will probably slow things down a bit though
       word = 0;
       for (int remaining = bb.remaining(), j = 0; j < remaining; j++) {
         word |= (bb.get() & 0xffL) << (8 * j);
@@ -127,17 +130,11 @@ public class BitSetUtil {
     }
 
     // Add block to map, if any bit is set
-    addBlock(ans, words, containerIndex, blockLength, blockCardinality, offset);
-    return ans;
-  }
-
-  private static int addBlock(RoaringBitmap ans, long[] words, int containerIndex, int blockLength,
-    int blockCardinality, int offset) {
     if (blockCardinality > 0) {
-      ans.highLowContainer.insertNewKeyValueAt(containerIndex++, Util.highbits(offset),
+      ans.highLowContainer.insertNewKeyValueAt(containerIndex, Util.highbits(offset),
           BitSetUtil.containerOf(0, blockLength, blockCardinality, words));
     }
-    return containerIndex;
+    return ans;
   }
 
   private static int cardinality(final int from, final int to, final long[] words) {
