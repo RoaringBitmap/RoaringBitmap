@@ -3,7 +3,6 @@ package org.roaringbitmap;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Arrays;
 import java.util.BitSet;
 
 
@@ -137,7 +136,6 @@ public class BitSetUtil {
     if (blockCardinality > 0) {
       ans.highLowContainer.insertNewKeyValueAt(containerIndex++, Util.highbits(offset),
           BitSetUtil.containerOf(0, blockLength, blockCardinality, words));
-      Arrays.fill(words, 0); // Zero-out thread local buffer after use
     }
     return containerIndex;
   }
@@ -160,8 +158,9 @@ public class BitSetUtil {
       return arrayContainerOf(from, to, blockCardinality, words);
     } else {
       // otherwise use bitmap container
-      return new BitmapContainer(Arrays.copyOfRange(words, from, from + BLOCK_LENGTH),
-          blockCardinality);
+      long[] container = new long[BLOCK_LENGTH];
+      System.arraycopy(words, from, container, 0, to - from);
+      return new BitmapContainer(container, blockCardinality);
     }
   }
 
