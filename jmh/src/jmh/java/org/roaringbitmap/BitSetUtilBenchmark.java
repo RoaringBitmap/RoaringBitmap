@@ -13,24 +13,24 @@ import java.util.zip.GZIPInputStream;
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 public class BitSetUtilBenchmark {
 
-//  @Benchmark
-//  public long BitSetToRoaringByAddingBitByBit(Data d) {
-//    long bogus = 0;
-//    for (int i = 0; i < d.bitsets.length; i++) {
-//      bogus += bitmapTheNaiveWay(d.bitsets[i]).getCardinality();
-//    }
-//    return bogus;
-//  }
-//
-//
-//  @Benchmark
-//  public long BitSetToRoaringUsingBitSetUtil(Data d) {
-//    long bogus = 0;
-//    for (int i = 0; i < d.bitsets.length; i++) {
-//      bogus += BitSetUtil.bitmapOf(d.bitsets[i]).getCardinality();
-//    }
-//    return bogus;
-//  }
+  @Benchmark
+  public long BitSetToRoaringByAddingBitByBit(Data d) {
+    long bogus = 0;
+    for (int i = 0; i < d.bitsets.length; i++) {
+      bogus += bitmapTheNaiveWay(d.bitsets[i]).getCardinality();
+    }
+    return bogus;
+  }
+
+
+  @Benchmark
+  public long BitSetToRoaringUsingBitSetUtil(Data d) {
+    long bogus = 0;
+    for (int i = 0; i < d.bitsets.length; i++) {
+      bogus += BitSetUtil.bitmapOf(d.bitsets[i]).getCardinality();
+    }
+    return bogus;
+  }
 
   private static final ThreadLocal<long[]> WORD_BLOCK = ThreadLocal.withInitial(() ->
       new long[BitSetUtil.BLOCK_LENGTH]);
