@@ -4,9 +4,6 @@ RoaringBitmap
 [![][license img]][license]
 [![docs-badge][]][docs]
 ![Java 11 CI](https://github.com/RoaringBitmap/RoaringBitmap/workflows/Java%2011%20CI/badge.svg)
-![Java 12 CI](https://github.com/RoaringBitmap/RoaringBitmap/workflows/Java%2012%20CI/badge.svg)
-![Java 13 CI](https://github.com/RoaringBitmap/RoaringBitmap/workflows/Java%2013%20CI/badge.svg)
-![Java 14 CI](https://github.com/RoaringBitmap/RoaringBitmap/workflows/Java%2014%20CI/badge.svg)
 
 Bitsets, also called bitmaps, are commonly used as fast data structures.
 Unfortunately, they can use too much memory. To compensate, we often use
@@ -36,8 +33,8 @@ This library is used by
 *   [Tablesaw](https://github.com/jtablesaw/tablesaw),
 *   [Apache Hivemall](http://hivemall.incubator.apache.org),
 *   [Gaffer](https://github.com/gchq/Gaffer),
-*   [Apache Pinot](https://pinot.apache.org/) and
-*   [Apache Druid](https://druid.apache.org/).
+*   [Apache Pinot](https://pinot.apache.org/),
+*   [Apache Druid](https://druid.apache.org/),
 *   [SirixDB](https://sirix.io)
 *   [EvitaDB](https://evitadb.io/)
 *   [Apache Iceberg](https://iceberg.apache.org/)
