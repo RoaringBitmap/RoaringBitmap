@@ -1,11 +1,13 @@
 package org.roaringbitmap.buffer;
 
 
+import org.roaringbitmap.BitSetUtil;
 import org.roaringbitmap.IntIterator;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.CharBuffer;
 import java.nio.LongBuffer;
-import java.util.Arrays;
 import java.util.BitSet;
 
 import static java.lang.Long.numberOfTrailingZeros;
@@ -77,6 +79,89 @@ public class BufferBitSetUtil {
     return ans;
   }
 
+  /**
+   * Efficiently generate a RoaringBitmap from an uncompressed byte array or ByteBuffer
+   * This method tries to minimise all kinds of memory allocation
+   *
+   * @param bb the uncompressed bitmap
+   * @return roaring bitmap
+   */
+  public static MutableRoaringBitmap bitmapOf(ByteBuffer bb) {
+    return bitmapOf(bb, new long[BLOCK_LENGTH]);
+  }
+
+  /**
+   * Efficiently generate a RoaringBitmap from an uncompressed byte array or ByteBuffer
+   * This method tries to minimise all kinds of memory allocation
+   * <br>
+   * You can provide a cached wordsBuffer for avoiding 8 KB of extra allocation on every call
+   *   No reference is kept to the wordsBuffer, so it can be cached as a ThreadLocal
+   *
+   * @param bb the uncompressed bitmap
+   * @param wordsBuffer buffer of length {@link BitSetUtil#BLOCK_LENGTH}
+   * @return roaring bitmap
+   */
+  public static MutableRoaringBitmap bitmapOf(ByteBuffer bb, long[] wordsBuffer) {
+
+    if (wordsBuffer.length != BLOCK_LENGTH) {
+      throw new IllegalArgumentException("wordsBuffer length should be " + BLOCK_LENGTH);
+    }
+
+    bb = bb.slice().order(ByteOrder.LITTLE_ENDIAN);
+    final MutableRoaringBitmap ans = new MutableRoaringBitmap();
+
+    // split buffer into blocks of long[]
+    int containerIndex = 0;
+    int blockLength = 0, blockCardinality = 0, offset = 0;
+    long word;
+    while (bb.remaining() >= 8) {
+      word = bb.getLong();
+
+      // Add read long to block
+      wordsBuffer[blockLength++] = word;
+      blockCardinality += Long.bitCount(word);
+
+      // When block is full, add block to bitmap
+      if (blockLength == BLOCK_LENGTH) {
+        // Each block becomes a single container, if any bit is set
+        if (blockCardinality > 0) {
+          ((MutableRoaringArray) ans.highLowContainer).insertNewKeyValueAt(containerIndex++,
+              BufferUtil.highbits(offset), BufferBitSetUtil.containerOf(0, blockLength,
+                  blockCardinality, wordsBuffer));
+        }
+        /*
+            Offset can overflow when bitsets size is more than Integer.MAX_VALUE - 64
+            It's harmless though, as it will happen after the last block is added
+         */
+        offset += (BLOCK_LENGTH * Long.SIZE);
+        blockLength = blockCardinality = 0;
+      }
+    }
+
+    if (bb.remaining() > 0) {
+      // Read remaining (less than 8) bytes
+      // We can do this in while loop also, it will probably slow things down a bit though
+      word = 0;
+      for (int remaining = bb.remaining(), j = 0; j < remaining; j++) {
+        word |= (bb.get() & 0xffL) << (8 * j);
+      }
+
+      // Add last word to block, only if any bit is set
+      if (word != 0) {
+        wordsBuffer[blockLength++] = word;
+        blockCardinality += Long.bitCount(word);
+      }
+    }
+
+    // Add block to map, if any bit is set
+    if (blockCardinality > 0) {
+      ((MutableRoaringArray) ans.highLowContainer).insertNewKeyValueAt(containerIndex,
+          BufferUtil.highbits(offset),
+          BufferBitSetUtil.containerOf(0, blockLength, blockCardinality, wordsBuffer));
+    }
+    return ans;
+  }
+
   private static int cardinality(final int from, final int to, final long[] words) {
     int sum = 0;
     for (int i = from; i < to; i++) {
@@ -95,8 +180,9 @@ public class BufferBitSetUtil {
       return arrayContainerOf(from, to, blockCardinality, words);
     } else {
       // otherwise use bitmap container
-      return new MappeableBitmapContainer(
-          LongBuffer.wrap(Arrays.copyOfRange(words, from, from + BLOCK_LENGTH)), blockCardinality);
+      long[] container = new long[BLOCK_LENGTH];
+      System.arraycopy(words, from, container, 0, to - from);
+      return new MappeableBitmapContainer(LongBuffer.wrap(container), blockCardinality);
     }
   }
 
