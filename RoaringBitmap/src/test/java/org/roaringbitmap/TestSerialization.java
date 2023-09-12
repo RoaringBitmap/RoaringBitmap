@@ -478,5 +478,34 @@ public class TestSerialization {
     outbb.rewind();
   }
 
+  @Test
+  public void testDeserializeSmallData() throws IOException {
+    RoaringBitmap source = RoaringBitmap.bitmapOf(25286760);
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    source.serialize(new DataOutputStream(outputStream));
+    boolean expected = source.intersects(26244001, 27293761);
+
+    ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+    RoaringBitmap target = new RoaringBitmap();
+    target.deserialize(new DataInputStream(inputStream));
+
+    boolean actual = target.intersects(26244001, 27293761);
+    assertEquals(actual, expected);
+  }
+
+  @Test
+  public void testDeserializeSmallDataMutable() throws IOException {
+    MutableRoaringBitmap source = MutableRoaringBitmap.bitmapOf(25286760);
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    source.serialize(new DataOutputStream(outputStream));
+    boolean expected = source.intersects(26244001, 27293761);
+
+    ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+    MutableRoaringBitmap target = new MutableRoaringBitmap();
+    target.deserialize(new DataInputStream(inputStream));
+
+    boolean actual = target.intersects(26244001, 27293761);
+    assertEquals(actual, expected);
+  }
 }
 
