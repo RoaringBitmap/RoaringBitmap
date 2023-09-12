@@ -270,8 +270,9 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
       throw new InvalidRoaringFormat("Size too large");
     }
     if ((this.keys == null) || (this.keys.length < this.size)) {
-      this.keys = new char[this.size];
-      this.values = new MappeableContainer[this.size];
+      int capacity = getNewCapacity(0, 0);
+      this.keys = new char[capacity];
+      this.values = new MappeableContainer[capacity];
     }
 
     byte[] bitmapOfRunContainers = null;
@@ -359,8 +360,9 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
       throw new InvalidRoaringFormat("Size too large");
     }
     if ((this.keys == null) || (this.keys.length < this.size)) {
-      this.keys = new char[this.size];
-      this.values = new MappeableContainer[this.size];
+      int capacity = getNewCapacity(0, 0);
+      this.keys = new char[capacity];
+      this.values = new MappeableContainer[capacity];
     }
 
 
@@ -421,14 +423,17 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
   protected void extendArray(int k) {
     // size + 1 could overflow
     if (this.size + k > this.keys.length) {
-      int newCapacity;
-      if (this.keys.length < 1024) {
-        newCapacity = 2 * (this.size + k);
-      } else {
-        newCapacity = 5 * (this.size + k) / 4;
-      }
+      int newCapacity = getNewCapacity(k, this.keys.length);
       this.keys = Arrays.copyOf(this.keys, newCapacity);
       this.values = Arrays.copyOf(this.values, newCapacity);
+    }
+  }
+
+  private int getNewCapacity(int additionalSize, int keysLength) {
+    if (keysLength < 1024) {
+      return 2 * (this.size + additionalSize);
+    } else {
+      return 5 * (this.size + additionalSize) / 4;
     }
   }
 
