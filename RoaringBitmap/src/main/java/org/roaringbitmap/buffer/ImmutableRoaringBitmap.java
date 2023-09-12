@@ -1249,9 +1249,14 @@ public class ImmutableRoaringBitmap
     while (pos < length && minKey > (highLowContainer.getKeyAtIndex(pos))) {
       ++pos;
     }
+    // it is possible for pos == length to be true
+    if(pos == length) {
+      return false;
+    }
+    // we have that pos < length.
     int offset = (minKey == highLowContainer.getKeyAtIndex(pos)) ? lowbitsAsInteger(minimum) : 0;
     int limit = lowbitsAsInteger(supremum);
-    if (pos < length && supKey == (highLowContainer.getKeyAtIndex(pos))) {
+    if (supKey == (highLowContainer.getKeyAtIndex(pos))) {
       if (supKey > minKey) {
         offset = 0;
       }
