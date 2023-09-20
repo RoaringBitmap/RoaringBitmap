@@ -4,7 +4,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import org.roaringbitmap.ArraysShim;
+import java.util.Arrays;
 
 /**
  * See: https://db.in.tum.de/~leis/papers/ART.pdf a cpu cache friendly main memory data structure.
@@ -61,7 +61,7 @@ public class Art {
         if (depth == LeafNode.LEAF_NODE_KEY_LENGTH_IN_BYTES) {
           return leafNode;
         }
-        int mismatchIndex = ArraysShim
+        int mismatchIndex = Arrays
             .mismatch(leafNodeKeyBytes, depth, LeafNode.LEAF_NODE_KEY_LENGTH_IN_BYTES,
                 key, depth, LeafNode.LEAF_NODE_KEY_LENGTH_IN_BYTES);
         if (mismatchIndex != -1) {
@@ -188,7 +188,7 @@ public class Art {
 
   private boolean leafMatch(LeafNode leafNode, byte[] key, int dep) {
     byte[] leafNodeKeyBytes = leafNode.getKeyBytes();
-    int mismatchIndex = ArraysShim
+    int mismatchIndex = Arrays
         .mismatch(leafNodeKeyBytes, dep, LeafNode.LEAF_NODE_KEY_LENGTH_IN_BYTES,
             key, dep, LeafNode.LEAF_NODE_KEY_LENGTH_IN_BYTES);
     if (mismatchIndex == -1) {
@@ -225,7 +225,7 @@ public class Art {
     //to a inner node case
     if (node.prefixLength > 0) {
       //find the mismatch position
-      int mismatchPos = ArraysShim.mismatch(node.prefix, 0, node.prefixLength,
+      int mismatchPos = Arrays.mismatch(node.prefix, 0, node.prefixLength,
           key, depth, key.length);
       if (mismatchPos != node.prefixLength) {
         Node4 node4 = new Node4(mismatchPos);
@@ -272,7 +272,7 @@ public class Art {
     int aLength = aToIndex - aFromIndex;
     int bLength = bToIndex - bFromIndex;
     int minLength = Math.min(aLength, bLength);
-    int mismatchIndex = ArraysShim.mismatch(key1, aFromIndex, aToIndex, key2, bFromIndex, bToIndex);
+    int mismatchIndex = Arrays.mismatch(key1, aFromIndex, aToIndex, key2, bFromIndex, bToIndex);
 
     if (aLength != bLength && mismatchIndex >= minLength) {
       return minLength;

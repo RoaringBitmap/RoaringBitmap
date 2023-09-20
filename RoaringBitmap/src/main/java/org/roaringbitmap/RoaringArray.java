@@ -4,7 +4,6 @@
 
 package org.roaringbitmap;
 
-
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -636,7 +635,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       if (srb.size != this.size) {
         return false;
       }
-      if (ArraysShim.equals(keys, 0, size, srb.keys, 0, srb.size)) {
+      if (Arrays.equals(keys, 0, size, srb.keys, 0, srb.size)) {
         for (int i = 0; i < size; ++i) {
           if (!values[i].equals(srb.values[i])) {
             return false;

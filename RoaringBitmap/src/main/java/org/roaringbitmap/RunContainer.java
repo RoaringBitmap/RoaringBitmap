@@ -954,7 +954,7 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   private boolean equals(RunContainer rc) {
-    return ArraysShim.equals(valueslength, 0, 2 * nbrruns,
+    return Arrays.equals(valueslength, 0, 2 * nbrruns,
             rc.valueslength, 0, 2 * rc.nbrruns);
   }
 

@@ -1,5 +1,7 @@
 import java.net.URI
 import java.time.Duration
+import java.net.URI
+import java.time.Duration
 
 plugins {
     id("net.researchgate.release") version "2.8.1"
@@ -27,8 +29,8 @@ subprojects {
     }
 
     configure<JavaPluginExtension> {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
     group = "org.roaringbitmap"
@@ -37,9 +39,7 @@ subprojects {
         withType<JavaCompile> {
             options.isDeprecation = true
             options.isWarnings = true
-            if (JavaVersion.current().isJava9Compatible) {
-                options.compilerArgs = listOf("--release", "8", "-Xlint:unchecked")
-            }
+            options.compilerArgs = listOf("--release", "11", "-Xlint:unchecked")
         }
 
         withType<Javadoc> {
@@ -58,6 +58,7 @@ subprojects.filter { !listOf("jmh", "fuzz-tests", "examples", "bsi", "simplebenc
 
         tasks {
             withType<Checkstyle> {
+                exclude("module-info.java")
                 configFile = File(rootProject.projectDir, "RoaringBitmap/style/roaring_google_checks.xml")
                 isIgnoreFailures = false
                 isShowViolations = true
@@ -71,7 +72,7 @@ subprojects.filter { !listOf("jmh", "fuzz-tests", "examples", "bsi", "simplebenc
     }
 }
 
-subprojects.filter { listOf("RoaringBitmap", "shims", "bsi").contains(it.name) }.forEach { project ->
+subprojects.filter { listOf("RoaringBitmap", "bsi").contains(it.name) }.forEach { project ->
     project.run {
         apply(plugin = "maven-publish")
         apply(plugin = "signing")
