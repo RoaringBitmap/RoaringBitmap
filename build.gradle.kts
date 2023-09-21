@@ -1,7 +1,5 @@
 import java.net.URI
 import java.time.Duration
-import java.net.URI
-import java.time.Duration
 
 plugins {
     id("net.researchgate.release") version "2.8.1"
