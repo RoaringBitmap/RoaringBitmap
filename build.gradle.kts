@@ -26,20 +26,14 @@ subprojects {
         mavenCentral()
     }
 
-    configure<JavaPluginExtension> {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-
     group = "org.roaringbitmap"
 
     tasks {
         withType<JavaCompile> {
             options.isDeprecation = true
             options.isWarnings = true
-            if (JavaVersion.current().isJava9Compatible) {
-                options.compilerArgs = listOf("--release", "8", "-Xlint:unchecked")
-            }
+            options.compilerArgs = listOf("-Xlint:unchecked")
+            options.release.set(8)
         }
 
         withType<Javadoc> {
@@ -48,6 +42,14 @@ subprojects {
                 // we have to set a dummy "value" (here, `true`) to have the option actually used
                 (this as StandardJavadocDocletOptions).addBooleanOption("Xdoclint:none").value = true
             }
+        }
+
+        withType<Test> {
+            val javaToolchains  = project.extensions.getByType<JavaToolchainService>()
+            javaLauncher.set(javaToolchains.launcherFor {
+                languageVersion.set(
+                    JavaLanguageVersion.of((project.properties["testOnJava"] ?: "11").toString()))
+            })
         }
     }
 }
@@ -61,6 +63,9 @@ subprojects.filter { !listOf("jmh", "fuzz-tests", "examples", "bsi", "simplebenc
                 configFile = File(rootProject.projectDir, "RoaringBitmap/style/roaring_google_checks.xml")
                 isIgnoreFailures = false
                 isShowViolations = true
+
+                // Skip checkstyle on module-info.java since it breaks.
+                exclude("module-info.java")
             }
 
             // don't checkstyle source
@@ -71,7 +76,7 @@ subprojects.filter { !listOf("jmh", "fuzz-tests", "examples", "bsi", "simplebenc
     }
 }
 
-subprojects.filter { listOf("RoaringBitmap", "shims", "bsi").contains(it.name) }.forEach { project ->
+subprojects.filter { listOf("RoaringBitmap", "bsi").contains(it.name) }.forEach { project ->
     project.run {
         apply(plugin = "maven-publish")
         apply(plugin = "signing")
