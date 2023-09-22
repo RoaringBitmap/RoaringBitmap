@@ -1,0 +1,28 @@
+name: Java 8, 11, 17 CI
+
+on: [push,pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDKs 8, 11, 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: |
+            8
+            11
+            17
+      - name: Build with Gradle
+        run: ./gradlew assemble
+      - name: Style check
+        run: ./gradlew checkstyleMain
+      - name: Test with Java 8
+        run: ./gradlew test -PtestOnJava=8 --stacktrace
+      - name: Test with Java 11
+        run: ./gradlew test -PtestOnJava=11 --stacktrace
+      - name: Test with Java 17
+        run: ./gradlew test -PtestOnJava=17 --stacktrace
