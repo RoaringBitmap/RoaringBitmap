@@ -1,6 +1,5 @@
 RoaringBitmap
 =============
-[![](https://jitpack.io/v/RoaringBitmap/RoaringBitmap.svg)](https://jitpack.io/#RoaringBitmap/RoaringBitmap)
 [![][license img]][license]
 [![docs-badge][]][docs]
 ![Java 11 CI](https://github.com/RoaringBitmap/RoaringBitmap/workflows/Java%2011%20CI/badge.svg)
