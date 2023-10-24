@@ -910,8 +910,12 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       } else if (s1 < s2) {
         while (s1 < s2 && pos1 < length1) {
           cardinality += x1.highLowContainer.getContainerAtIndex(pos1).getCardinality();
-          s1 = x1.highLowContainer.getKeyAtIndex(pos1);
           ++pos1;
+          // If executed in the last digit, the array will be out of bounds
+          if (pos1 == length1) {
+            break;
+          }
+          s1 = x1.highLowContainer.getKeyAtIndex(pos1);
         }
       } else {
         pos2 = x2.highLowContainer.advanceUntil(s1, pos2);
@@ -3103,23 +3107,22 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   @Override
   public String toString() {
-    final StringBuilder answer = new StringBuilder();
+    final StringBuilder answer = new StringBuilder("{}".length() + "-123456789,".length() * 256);
     final IntIterator i = this.getIntIterator();
-    answer.append("{");
+    answer.append('{');
     if (i.hasNext()) {
       answer.append(i.next() & 0xFFFFFFFFL);
     }
     while (i.hasNext()) {
-      answer.append(",");
+      answer.append(',');
       // to avoid using too much memory, we limit the size
       if(answer.length() > 0x80000) {
-        answer.append("...");
+        answer.append('.').append('.').append('.');
         break;
       }
       answer.append(i.next() & 0xFFFFFFFFL);
-
     }
-    answer.append("}");
+    answer.append('}');
     return answer.toString();
   }
 

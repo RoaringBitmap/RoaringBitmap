@@ -1007,8 +1007,8 @@ public final class RunContainer extends Container implements Cloneable {
   @Override
   public int getCardinality() {
     int sum = nbrruns;// lengths are returned -1
-    for (int k = 0; k < nbrruns; ++k) {
-      sum = sum + (getLength(k))/* + 1 */;
+    for (int k = 1; k < nbrruns * 2; k += 2) {
+      sum += valueslength[k];
     }
     return sum;
   }
@@ -2369,13 +2369,13 @@ public final class RunContainer extends Container implements Cloneable {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
+    StringBuilder sb = new StringBuilder("[]".length() + "-123456789,".length() * nbrruns);
     for (int k = 0; k < this.nbrruns; ++k) {
-      sb.append("[");
+      sb.append('[');
       sb.append((int)(this.getValue(k)));
-      sb.append(",");
+      sb.append(',');
       sb.append((this.getValue(k)) + (this.getLength(k)));
-      sb.append("]");
+      sb.append(']');
     }
     return sb.toString();
   }
