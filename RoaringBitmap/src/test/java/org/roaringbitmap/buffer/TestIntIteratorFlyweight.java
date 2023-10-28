@@ -105,7 +105,7 @@ public class TestIntIteratorFlyweight {
 
 
   @Test
-  public void testIterationFromBitmap() {
+  public void testIterationFromBitmap() {//
     final Random source = new Random(0xcb000a2b9b5bdfb6l);
     final int[] data = takeSortedAndDistinct(source, 450000);
     MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(data);
@@ -117,12 +117,13 @@ public class TestIntIteratorFlyweight {
     BufferIntIteratorFlyweight iter2 = new BufferIntIteratorFlyweight(bitmap);
     PeekableIntIterator j = bitmap.getIntIterator();
     for(int k = 0; k < data.length; k+=3) {
+      //System.out.println(k);
       iter2.advanceIfNeeded(data[k]);
       iter2.advanceIfNeeded(data[k]);
       j.advanceIfNeeded(data[k]);
       j.advanceIfNeeded(data[k]);
-      assertEquals(j.peekNext(),data[k]);
-      assertEquals(iter2.peekNext(),data[k]);
+      assertEquals(data[k], j.peekNext());
+      assertEquals(data[k], iter2.peekNext());
     }
 
 
