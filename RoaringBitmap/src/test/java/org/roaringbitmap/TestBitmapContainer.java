@@ -10,6 +10,9 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.roaringbitmap.buffer.MappeableArrayContainer;
+import org.roaringbitmap.buffer.MappeableBitmapContainer;
+import org.roaringbitmap.buffer.MappeableRunContainer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -1341,6 +1344,104 @@ public class TestBitmapContainer {
     ValidationRangeConsumer consumer10 = ValidationRangeConsumer.ofSize(middle);
     container.forAllInRange((char) quarter, (char) (middle + quarter), consumer10);
     consumer10.assertAllPresent();
+  }
+
+  @SuppressWarnings({"AssertBetweenInconvertibleTypes"})
+  @Test
+  void testEquals() {
+    BitmapContainer bc = new BitmapContainer();
+    bc.add((char) 1);
+    bc.add((char) 10_000);
+    ArrayContainer ac = new ArrayContainer();
+    ac.add((char) 1);
+    ac.add((char) 10_000);
+    RunContainer rc = new RunContainer();
+    rc.add((char) 1);
+    rc.add((char) 10_000);
+
+    assertEquals(bc, ac);
+    assertEquals(ac, bc);
+    assertEquals(bc, rc);
+    assertEquals(rc, bc);
+    assertEquals(ac, rc);
+    assertEquals(rc, ac);
+
+    // different cardinalities
+    ac.add((char) 500);
+    bc.add((char) 600);
+    bc.add((char) 700);
+    assertNotEquals(bc, ac);
+    assertNotEquals(ac, bc);
+    assertNotEquals(bc, rc);
+    assertNotEquals(rc, bc);
+    assertNotEquals(ac, rc);
+    assertNotEquals(rc, ac);
+
+    // equal cardinalities
+    ac.add((char) 600);
+    ac.add((char) 700);
+    bc.add((char) 500);
+    rc.add((char) 500);
+    rc.add((char) 600);
+    rc.add((char) 700);
+    ac.add((char) 5000);
+    bc.add((char) 6000);
+    rc.add((char) 7000);
+    assertNotEquals(bc, ac);
+    assertNotEquals(ac, bc);
+    assertNotEquals(bc, rc);
+    assertNotEquals(rc, bc);
+    assertNotEquals(ac, rc);
+    assertNotEquals(rc, ac);
+  }
+
+  @SuppressWarnings({"AssertBetweenInconvertibleTypes"})
+  @Test
+  void testMappeableEquals() {
+    MappeableBitmapContainer bc = new MappeableBitmapContainer();
+    bc.add((char) 1);
+    bc.add((char) 10_000);
+    MappeableArrayContainer ac = new MappeableArrayContainer();
+    ac.add((char) 1);
+    ac.add((char) 10_000);
+    MappeableRunContainer rc = new MappeableRunContainer();
+    rc.add((char) 1);
+    rc.add((char) 10_000);
+
+    assertEquals(ac, bc);
+    assertEquals(bc, ac);
+    assertEquals(bc, rc);
+    assertEquals(rc, bc);
+    assertEquals(ac, rc);
+    assertEquals(rc, ac);
+
+    // different cardinalities
+    ac.add((char) 500);
+    bc.add((char) 600);
+    bc.add((char) 700);
+    assertNotEquals(bc, ac);
+    assertNotEquals(ac, bc);
+    assertNotEquals(bc, rc);
+    assertNotEquals(rc, bc);
+    assertNotEquals(ac, rc);
+    assertNotEquals(rc, ac);
+
+    // equal cardinalities
+    ac.add((char) 600);
+    ac.add((char) 700);
+    bc.add((char) 500);
+    rc.add((char) 500);
+    rc.add((char) 600);
+    rc.add((char) 700);
+    ac.add((char) 5000);
+    bc.add((char) 6000);
+    rc.add((char) 7000);
+    assertNotEquals(bc, ac);
+    assertNotEquals(ac, bc);
+    assertNotEquals(bc, rc);
+    assertNotEquals(rc, bc);
+    assertNotEquals(ac, rc);
+    assertNotEquals(rc, ac);
   }
 
   private static long[] evenBits() {
