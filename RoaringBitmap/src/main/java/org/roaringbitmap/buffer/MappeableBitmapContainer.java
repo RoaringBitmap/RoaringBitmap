@@ -447,6 +447,19 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
     } else if (o instanceof MappeableRunContainer) {
       return o.equals(this);
+    } else if (o instanceof MappeableArrayContainer) {
+      MappeableArrayContainer ac = (MappeableArrayContainer) o;
+      if (ac.getCardinality() != this.getCardinality()) {
+        return false;
+      }
+      PeekableCharIterator it = ac.getCharIterator();
+      while (it.hasNext()) {
+        char value = it.next();
+        if (!contains(value)) {
+          return false;
+        }
+      }
+      return true;
     }
     return false;
   }

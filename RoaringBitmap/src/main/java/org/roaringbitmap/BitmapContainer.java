@@ -423,6 +423,19 @@ public final class BitmapContainer extends Container implements Cloneable {
       return Arrays.equals(this.bitmap, srb.bitmap);
     } else if (o instanceof RunContainer) {
       return o.equals(this);
+    } else if (o instanceof ArrayContainer) {
+      ArrayContainer ac = (ArrayContainer) o;
+      if (ac.getCardinality() != this.getCardinality()) {
+        return false;
+      }
+      PeekableCharIterator it = ac.getCharIterator();
+      while (it.hasNext()) {
+        char value = it.next();
+        if (!contains(value)) {
+          return false;
+        }
+      }
+      return true;
     }
     return false;
   }

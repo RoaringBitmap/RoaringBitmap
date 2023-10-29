@@ -375,6 +375,8 @@ public final class ArrayContainer extends Container implements Cloneable {
       return ArraysShim.equals(this.content, 0, cardinality, srb.content, 0, srb.cardinality);
     } else if (o instanceof RunContainer) {
       return o.equals(this);
+    } else if (o instanceof BitmapContainer) {
+      return o.equals(this);
     }
     return false;
   }

@@ -449,6 +449,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       return true;
     } else if (o instanceof MappeableRunContainer) {
       return o.equals(this);
+    } else if (o instanceof MappeableBitmapContainer) {
+      return o.equals(this);
     }
     return false;
   }
