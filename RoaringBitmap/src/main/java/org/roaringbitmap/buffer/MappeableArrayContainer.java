@@ -85,7 +85,6 @@ public final class MappeableArrayContainer extends MappeableContainer implements
    * @param lastOfRun last index (range is exclusive)
    */
   public MappeableArrayContainer(final int firstOfRun, final int lastOfRun) {
-    // TODO: this can be optimized for performance
     final int valuesInRange = lastOfRun - firstOfRun;
     content = CharBuffer.allocate(valuesInRange);
     char[] sarray = content.array();

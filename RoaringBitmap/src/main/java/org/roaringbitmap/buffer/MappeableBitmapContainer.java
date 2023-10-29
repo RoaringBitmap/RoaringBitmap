@@ -81,7 +81,6 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
    * @param lastOfRun last index (range is exclusive)
    */
   public MappeableBitmapContainer(final int firstOfRun, final int lastOfRun) {
-    // TODO: this can be optimized for performance
     this.cardinality = lastOfRun - firstOfRun;
     this.bitmap = LongBuffer.allocate(MAX_CAPACITY / 64);
     Util.setBitmapRange(bitmap.array(), firstOfRun, lastOfRun);
