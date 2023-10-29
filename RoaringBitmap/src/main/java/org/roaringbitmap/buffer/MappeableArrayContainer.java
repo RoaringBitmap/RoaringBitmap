@@ -185,10 +185,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
           if (cardinality >= DEFAULT_MAX_SIZE) {
             return toBitmapContainer().add(x);
           }
-          if (cardinality >= sarray.length) {
-            increaseCapacity();
-            sarray = content.array();
-          }
+          increaseCapacity();
+          sarray = content.array();
           // insertion : shift the elements > x by one
           // position to
           // the right
@@ -204,9 +202,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         if (cardinality >= DEFAULT_MAX_SIZE) {
           return toBitmapContainer().add(x);
         }
-        if (cardinality >= content.limit()) {
-          increaseCapacity();
-        }
+        increaseCapacity();
         content.put(cardinality++, x);
       }
 
@@ -219,9 +215,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
           a.add(x);
           return a;
         }
-        if (cardinality >= this.content.limit()) {
-          increaseCapacity();
-        }
+        increaseCapacity();
         // insertion : shift the elements > x by one
         // position to
         // the right
@@ -509,9 +503,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
           a.add(x);
           return a;
         }
-        if (cardinality >= content.limit()) {
-          increaseCapacity();
-        }
+         increaseCapacity();
         // insertion : shift the elements > x by one position to
         // the right
         // and put x in it's appropriate place
