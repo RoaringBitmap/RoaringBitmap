@@ -376,7 +376,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       if (0 < nbrruns) {
         if (getValue(0) == k + 1) {
           incrementLength(0);
-          decrementValue(0);
+          decrementValue();
           return this;
         }
       }
@@ -805,8 +805,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   }
 
 
-  private void decrementValue(int index) {
-    valueslength.put(2 * index, (char) (valueslength.get(2 * index) - 1));
+  private void decrementValue() {
+    valueslength.put(0, (char) (valueslength.get(0) - 1));
   }
 
   // not thread safe!
@@ -914,14 +914,15 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   @Override
   public int getCardinality() {
     int sum = nbrruns; // lengths are stored -1
+    int limit = nbrruns * 2;
     if (isArrayBacked()) {
       char[] vl = valueslength.array();
-      for (int k = 0; k < nbrruns; ++k) {
-        sum = sum + (vl[2 * k + 1])/* + 1 */;
+      for (int k = 1; k < limit; k += 2) {
+        sum += vl[k];
       }
     } else {
-      for (int k = 0; k < nbrruns; ++k) {
-        sum = sum + (getLength(k))/* + 1 */;
+      for (int k = 1; k < limit; k += 2) {
+        sum += valueslength.get(k);
       }
     }
     return sum;
@@ -2326,14 +2327,14 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
+    StringBuilder sb = new StringBuilder("[]".length() + "-123456789,".length() * nbrruns);
     for (int k = 0; k < this.nbrruns; ++k) {
-      sb.append("[");
+      sb.append('[');
       sb.append((int)(this.getValue(k)));
-      sb.append(",");
+      sb.append(',');
       sb.append((this.getValue(k))
           + (this.getLength(k)));
-      sb.append("]");
+      sb.append(']');
     }
     return sb.toString();
   }

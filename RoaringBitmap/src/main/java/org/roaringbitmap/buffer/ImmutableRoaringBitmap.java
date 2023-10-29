@@ -1249,9 +1249,14 @@ public class ImmutableRoaringBitmap
     while (pos < length && minKey > (highLowContainer.getKeyAtIndex(pos))) {
       ++pos;
     }
+    // it is possible for pos == length to be true
+    if(pos == length) {
+      return false;
+    }
+    // we have that pos < length.
     int offset = (minKey == highLowContainer.getKeyAtIndex(pos)) ? lowbitsAsInteger(minimum) : 0;
     int limit = lowbitsAsInteger(supremum);
-    if (pos < length && supKey == (highLowContainer.getKeyAtIndex(pos))) {
+    if (supKey == (highLowContainer.getKeyAtIndex(pos))) {
       if (supKey > minKey) {
         offset = 0;
       }
@@ -1903,22 +1908,22 @@ public class ImmutableRoaringBitmap
    */
   @Override
   public String toString() {
-    final StringBuilder answer = new StringBuilder();
+    final StringBuilder answer = new StringBuilder("{}".length() + "-123456789,".length() * 256);
     final IntIterator i = this.getIntIterator();
-    answer.append("{");
+    answer.append('{');
     if (i.hasNext()) {
       answer.append(i.next() & 0xFFFFFFFFL);
     }
     while (i.hasNext()) {
-      answer.append(",");
+      answer.append(',');
       // to avoid using too much memory, we limit the size
       if(answer.length() > 0x80000) {
-        answer.append("...");
+        answer.append('.').append('.').append('.');
         break;
       }
       answer.append(i.next() & 0xFFFFFFFFL);
     }
-    answer.append("}");
+    answer.append('}');
     return answer.toString();
   }
 

@@ -32,6 +32,27 @@ public abstract class Node {
   }
 
   /**
+   * sort the small arrays through the insertion sort alg.
+   */
+  protected static byte[] sortSmallByteArray(byte[] key, Node[] children, int left, int right) {//x
+    for (int i = left, j = i; i < right; j = ++i) {
+      byte ai = key[i + 1];
+      Node child = children[i + 1];
+      int unsignedByteAi = Byte.toUnsignedInt(ai);
+      while (unsignedByteAi < Byte.toUnsignedInt(key[j])) {
+        key[j + 1] = key[j];
+        children[j + 1] = children[j];
+        if (j-- == left) {
+          break;
+        }
+      }
+      key[j + 1] = ai;
+      children[j + 1] = child;
+    }
+    return key;
+  }
+
+  /**
    * get the position of a child corresponding to the input key 'k'
    * @param k a key value of the byte range
    * @return the child position corresponding to the key 'k'

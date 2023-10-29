@@ -996,9 +996,10 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    */
   @Override
   public String toString() {
-    final StringBuilder answer = new StringBuilder();
+    final StringBuilder answer = new StringBuilder("{}".length() + "-1234567890123456789,".length()
+        * 256);
     final LongIterator i = this.getLongIterator();
-    answer.append("{");
+    answer.append('{');
     if (i.hasNext()) {
       if (signedLongs) {
         answer.append(i.next());
@@ -1007,10 +1008,10 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
       }
     }
     while (i.hasNext()) {
-      answer.append(",");
+      answer.append(',');
       // to avoid using too much memory, we limit the size
       if (answer.length() > 0x80000) {
-        answer.append("...");
+        answer.append('.').append('.').append('.');
         break;
       }
       if (signedLongs) {
