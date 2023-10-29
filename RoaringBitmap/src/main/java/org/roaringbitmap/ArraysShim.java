@@ -53,6 +53,9 @@ public class ArraysShim {
         return i;
       }
     }
+    if (aLength != bLength) {
+      return length;
+    }
     return -1;
   }
 }
