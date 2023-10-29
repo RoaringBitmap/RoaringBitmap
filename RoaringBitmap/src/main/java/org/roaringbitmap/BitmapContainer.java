@@ -1770,14 +1770,6 @@ class BitmapContainerCharIterator implements PeekableCharIterator {
 
   @Override
   public void advanceIfNeeded(char minval) {
-    if (minval == 59 + 15 * 64) {
-      advanceIfNeededOld(minval);
-    } else {
-      advanceIfNeededNew(minval);
-    }
-  }
-
-  public void advanceIfNeededNew(char minval) {
     if (!hasNext()) {
       return;
     }
@@ -1801,25 +1793,6 @@ class BitmapContainerCharIterator implements PeekableCharIterator {
   public char peekNext() {
     return (char) (x * 64 + numberOfTrailingZeros(w));
   }
-
-  // TODO remove this before merge
-  public void advanceIfNeededOld(char minval) {
-    if ((minval) >= (x + 1) * 64) {
-      x = (minval) / 64;
-      w = bitmap[x];
-      while (w == 0) {
-        ++x;
-        if (x == bitmap.length) {
-          return;
-        }
-        w = bitmap[x];
-      }
-    }
-    while (hasNext() && ((peekNext()) < (minval))) {
-      next(); // could be optimized
-    }
-  }
-
 }
 
 final class BitmapContainerCharRankIterator extends BitmapContainerCharIterator

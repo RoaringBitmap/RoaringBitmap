@@ -47,14 +47,8 @@ public class AdvanceIfNeededBenchmark {
     }
 
     @Benchmark
-    public MutableRoaringBitmap original() {
+    public MutableRoaringBitmap advanceIfNeeded() {
         it.advanceIfNeeded((char) (59 + 15 * 64));
-        return c2;
-    }
-
-    @Benchmark
-    public MutableRoaringBitmap optimized() {
-        it.advanceIfNeeded((char) (60 + 15 * 64));
         return c2;
     }
 }
