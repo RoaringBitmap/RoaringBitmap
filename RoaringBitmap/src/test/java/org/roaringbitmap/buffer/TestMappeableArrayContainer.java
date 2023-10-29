@@ -69,6 +69,33 @@ public class TestMappeableArrayContainer {
   }
 
   @Test
+  public void removePresentValueFromReadOnlyContainer() {
+    MappeableContainer ac = newArrayContainer(1, 4);
+
+    ac.remove((char) 2);
+
+    assertEquals(2, ac.getCardinality());
+    assertFalse(ac.contains((char) 0));
+    assertTrue(ac.contains((char) 1));
+    assertFalse(ac.contains((char) 2));
+    assertTrue(ac.contains((char) 3));
+    assertFalse(ac.contains((char) 4));
+  }
+
+  @Test
+  public void removeNotPresentValueFromReadOnlyContainer() {
+    MappeableContainer ac = newArrayContainer(1, 3);
+
+    ac.remove((char) 3);
+
+    assertEquals(2, ac.getCardinality());
+    assertFalse(ac.contains((char) 0));
+    assertTrue(ac.contains((char) 1));
+    assertTrue(ac.contains((char) 2));
+    assertFalse(ac.contains((char) 3));
+  }
+
+  @Test
   public void removeInvalidRange() {
     assertThrows(IllegalArgumentException.class, () -> {
       MappeableContainer ac = new MappeableArrayContainer();
@@ -122,32 +149,80 @@ public class TestMappeableArrayContainer {
   }
 
   @Test
-  public void flip() {
+  public void flipIncreasedCapacityInReadOnlyContainer() {
     MappeableContainer ac = newArrayContainer(1, 2, 3, 5);
     ac = ac.flip((char) 4);
     assertEquals(5, ac.getCardinality());
     for (int i = 1; i <= 5; i++) {
-      assertTrue(ac.contains((char) i));
+      assertTrue(ac.contains((char) i), i + " should be present");
     }
   }
 
   @Test
-  public void flip2() {
+  public void flipPresentNotLastValueInReadOnlyContainer() {
     MappeableContainer ac = newArrayContainer(1, 2, 3, 4, 5);
-    ac = ac.flip((char) 5);
+    ac = ac.flip((char) 1);
     assertEquals(4, ac.getCardinality());
-    for (int i = 1; i <= 4; i++) {
-      assertTrue(ac.contains((char) i));
+    assertFalse(ac.contains((char) 1));
+    for (int i = 2; i <= 5; i++) {
+      assertTrue(ac.contains((char) i), i + " should be present");
     }
   }
 
   @Test
-  public void flip3() {
+  public void flipMissingValueInReadOnlyContainerConvertedToBitmapContainer() {
     MappeableContainer ac = newArrayContainer(1, 5000);
     ac = ac.flip((char) 7000);
     assertEquals(5000, ac.getCardinality());
     for (int i = 1; i < 5000; i++) {
-      assertTrue(ac.contains((char) i));
+      assertTrue(ac.contains((char) i), i + " should be present");
+    }
+    for (int i = 5000; i < 7000; i++) {
+      assertFalse(ac.contains((char) i), i + " should not be present");
+    }
+    assertTrue(ac.contains((char) 7000));
+  }
+
+  @Test
+  public void flipMissingValueInReadOnlyContainerIncreasedCapacity() {
+    MappeableContainer ac = newArrayContainer(1, 2, 3, 5);
+    ac = ac.clone();// not to have container backed by read only buffer
+
+    ac = ac.flip((char) 4);
+
+    assertEquals(5, ac.getCardinality());
+    for (int i = 1; i <= 5; i++) {
+      assertTrue(ac.contains((char) i), i + " should be present");
+    }
+  }
+
+  @Test
+  public void flipPresentValue() {
+    MappeableContainer ac = newArrayContainer(1, 2, 3, 4, 5);
+    ac = ac.clone();// not to have container backed by read only buffer
+
+    ac = ac.flip((char) 1);
+
+    assertEquals(4, ac.getCardinality());
+    assertFalse(ac.contains((char) 1));
+    for (int i = 2; i <= 5; i++) {
+      assertTrue(ac.contains((char) i), i + " should be present");
+    }
+  }
+
+  @Test
+  public void flipMissingValueAndConvertToBitmapContainer() {
+    MappeableContainer ac = TestMappeableArrayContainer.newArrayContainer(1, 5000);
+    ac = ac.clone();// not to have container backed by read only buffer
+
+    ac = ac.flip((char) 7000);
+
+    assertEquals(5000, ac.getCardinality());
+    for (int i = 1; i < 5000; i++) {
+      assertTrue(ac.contains((char) i), i + " should be present");
+    }
+    for (int i = 5000; i < 7000; i++) {
+      assertFalse(ac.contains((char) i), i + " should not be present");
     }
     assertTrue(ac.contains((char) 7000));
   }
