@@ -1,24 +1,43 @@
 package org.roaringbitmap;
 
 
+import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.BitSet;
 
 
 /***
- *
  * This class provides convenience functions to manipulate BitSet and RoaringBitmap objects.
  *
  */
 public class BitSetUtil {
-  // todo: add a method to convert a RoaringBitmap to a BitSet using BitSet.valueOf
-
   // a block consists has a maximum of 1024 words, each representing 64 bits,
   // thus representing at maximum 65536 bits
-  public static final int BLOCK_LENGTH = BitmapContainer.MAX_CAPACITY / Long.SIZE; //
-  // 64-bit
-  // word
+  public static final int BLOCK_LENGTH = BitmapContainer.MAX_CAPACITY / Long.SIZE;
+
+  /**
+   * Converts an immutable roaring bitmap to JDK bit set.
+   *
+   * @param bitmap original bitmap
+   * @return bit set equivalent to roaring bitmap
+   */
+  public static BitSet bitSetOf(ImmutableRoaringBitmap bitmap) {
+    // TODO optimize by iterating by containers and
+    // for RunContainer use:  bitSet.set(from, to);
+    // for BitmapContainer use:
+    // MappeableBitmapContainer bc = (MappeableBitmapContainer)
+    //    bitmap.getContainerPointer().getContainer();
+    // BitSet bitSet2 = BitSet.valueOf(bc.toLongArray());
+    // bitSet2.and(bitSet2);
+    BitSet bitSet = new BitSet();
+    PeekableIntIterator it = bitmap.getIntIterator();
+    while (it.hasNext()) {
+      bitSet.set(it.next());
+    }
+    return bitSet;
+  }
 
   private static ArrayContainer arrayContainerOf(final int from, final int to,
       final int cardinality, final long[] words) {

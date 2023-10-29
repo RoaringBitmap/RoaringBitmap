@@ -3,6 +3,7 @@ package org.roaringbitmap.buffer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.roaringbitmap.BitSetUtil;
 
 import java.nio.ByteBuffer;
 import java.util.BitSet;
@@ -27,7 +28,7 @@ public class TestBitSetUtil {
   }
 
 
-  private void assertEqualBitsets(final BitSet bitset, final MutableRoaringBitmap bitmap) {
+  private void assertEqualBitsets(final BitSet bitset, final ImmutableRoaringBitmap bitmap) {
     assertTrue(BufferBitSetUtil.equals(bitset, bitmap));
   }
 
@@ -234,4 +235,10 @@ public class TestBitSetUtil {
     return ByteBuffer.wrap(bitset.toByteArray());
   }
 
+  @Test
+  public void bitSetOf() {
+    ImmutableRoaringBitmap bitmap = ImmutableRoaringBitmap.bitmapOf(1, 2, 4);
+    BitSet bitset = BitSetUtil.bitSetOf(bitmap);
+    assertEqualBitsets(bitset, bitmap);
+  }
 }
