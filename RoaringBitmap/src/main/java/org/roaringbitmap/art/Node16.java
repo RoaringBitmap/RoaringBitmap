@@ -151,7 +151,6 @@ public class Node16 extends Node {
       currentNode16.children[currentNode16.count] = child;
       sortSmallByteArray(bytes, currentNode16.children, 0, currentNode16.count);
       currentNode16.count++;
-      currentNode16.firstV = LongUtils.fromBDBytes(bytes);
       return currentNode16;
     } else if (currentNode16.count < 16) {
       //second
