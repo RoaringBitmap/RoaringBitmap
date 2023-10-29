@@ -833,15 +833,15 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       return equals((MappeableRunContainer) o);
     } else if (o instanceof MappeableArrayContainer) {
       return equals((MappeableArrayContainer) o);
-    } else if (o instanceof MappeableContainer) {
-      if (((MappeableContainer) o).getCardinality() != this.getCardinality()) {
+    } else if (o instanceof MappeableBitmapContainer) {
+      MappeableBitmapContainer bc = (MappeableBitmapContainer) o;
+      if (bc.getCardinality() != this.getCardinality()) {
         return false; // should be a frequent branch if they differ
       }
-      // next bit could be optimized if needed:
-      CharIterator me = this.getCharIterator();
-      CharIterator you = ((MappeableContainer) o).getCharIterator();
-      while (me.hasNext()) {
-        if (me.next() != you.next()) {
+      for (char i = 0; i < nbrruns; ++i) {
+        char runStart = getValue(i);
+        int length = getLength(i);
+        if (!bc.contains(runStart, runStart + length + 1)) {
           return false;
         }
       }

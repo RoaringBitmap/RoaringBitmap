@@ -936,15 +936,15 @@ public final class RunContainer extends Container implements Cloneable {
       return equals((RunContainer) o);
     } else if (o instanceof ArrayContainer) {
       return equals((ArrayContainer) o);
-    } else if (o instanceof Container) {
-      if (((Container) o).getCardinality() != this.getCardinality()) {
+    } else if (o instanceof BitmapContainer) {
+      BitmapContainer bc = (BitmapContainer) o;
+      if (bc.getCardinality() != this.getCardinality()) {
         return false; // should be a frequent branch if they differ
       }
-      // next bit could be optimized if needed:
-      CharIterator me = this.getCharIterator();
-      CharIterator you = ((Container) o).getCharIterator();
-      while (me.hasNext()) {
-        if (me.next() != you.next()) {
+      for (char i = 0; i < nbrruns; ++i) {
+        char runStart = getValue(i);
+        int length = (getLength(i));
+        if (!bc.contains(runStart, runStart + length + 1)) {
           return false;
         }
       }
