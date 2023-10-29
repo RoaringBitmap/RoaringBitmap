@@ -503,7 +503,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
           a.add(x);
           return a;
         }
-         increaseCapacity();
+        increaseCapacity();
         // insertion : shift the elements > x by one position to
         // the right
         // and put x in it's appropriate place
