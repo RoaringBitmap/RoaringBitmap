@@ -521,9 +521,15 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         content.put(-loc - 1, x);
         ++cardinality;
       } else {
-        for (int k = loc + 1; k < cardinality; --k) {
-          content.put(k - 1, content.get(k));
+        // buffer is read only, we must make mutable copy
+        final CharBuffer newContent = CharBuffer.allocate(content.capacity() - 1);
+        for (int k = 0; k < loc; k++) {
+          newContent.put(k, content.get(k));
         }
+        for (int k = loc + 1; k < cardinality; k++) {
+          newContent.put(k - 1, content.get(k));
+        }
+        content = newContent;
         --cardinality;
       }
       return this;
@@ -1408,14 +1414,18 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     } else {
       final int loc = BufferUtil.unsignedBinarySearch(content, 0, cardinality, x);
       if (loc >= 0) {
-        // insertion
-        for (int k = loc + 1; k < cardinality; --k) {
-          content.put(k - 1, content.get(k));
+        // buffer is read only, we must make mutable copy
+        final CharBuffer newContent = CharBuffer.allocate(content.capacity() - 1);
+        for (int k = 0; k < loc; k++) {
+          newContent.put(k, content.get(k));
         }
+        for (int k = loc + 1; k < cardinality; k++) {
+          newContent.put(k - 1, content.get(k));
+        }
+        content = newContent;
         --cardinality;
       }
       return this;
-
     }
   }
 
