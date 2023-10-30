@@ -1086,8 +1086,8 @@ public final class RunContainer extends Container implements Cloneable {
     }
 
     int bIndex = unsignedInterleavedBinarySearch(this.valueslength, 0, this.nbrruns, (char) begin);
-    int eIndex = unsignedInterleavedBinarySearch(this.valueslength, Math.abs(bIndex) - 1,
-        this.nbrruns, (char) (end - 1));
+    int eIndex = unsignedInterleavedBinarySearch(this.valueslength,
+        bIndex >= 0 ? bIndex : -bIndex - 1, this.nbrruns, (char) (end - 1));
 
     if (bIndex >= 0 && eIndex >= 0) {
       mergeValuesLength(bIndex, eIndex);
@@ -1574,8 +1574,8 @@ public final class RunContainer extends Container implements Cloneable {
     }
 
     int bIndex = unsignedInterleavedBinarySearch(this.valueslength, 0, this.nbrruns, (char) begin);
-    int eIndex = unsignedInterleavedBinarySearch(this.valueslength, Math.abs(bIndex) - 1,
-        this.nbrruns, (char) (end - 1));
+    int eIndex = unsignedInterleavedBinarySearch(this.valueslength,
+        bIndex >= 0 ? bIndex : -bIndex - 1, this.nbrruns, (char) (end - 1));
 
     // note, eIndex is looking for (end-1)
 
