@@ -79,11 +79,7 @@ public final class BufferFastAggregation {
   public static MutableRoaringBitmap and(long[] aggregationBuffer,
                                          Iterator<? extends ImmutableRoaringBitmap> bitmaps) {
     if (bitmaps.hasNext()) {
-      try {
         return workShyAnd(aggregationBuffer, bitmaps);
-      } finally {
-        Arrays.fill(aggregationBuffer, 0L);
-      }
     }
     return new MutableRoaringBitmap();
   }
