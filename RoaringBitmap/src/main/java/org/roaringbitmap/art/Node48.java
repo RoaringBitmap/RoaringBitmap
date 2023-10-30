@@ -89,9 +89,6 @@ public class Node48 extends Node {
 
   @Override
   public int getNextLargerPos(int pos) {
-    if (pos == ILLEGAL_IDX) {
-      pos = -1;
-    }
     pos++;
     int i = pos >>> INDEX_SHIFT;
     for (; i < LONGS_USED; i++) {
