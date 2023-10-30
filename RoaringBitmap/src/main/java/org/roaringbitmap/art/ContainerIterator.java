@@ -64,7 +64,6 @@ public class ContainerIterator implements Iterator<Container> {
         if (container != null) {
           currentContainer = container;
           consumedCurrent = false;
-          this.currentSecondLevelArrIteOver = false;
           currentSecondLevelArrIdx++;
           foundOneContainer = true;
           break;
