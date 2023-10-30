@@ -131,7 +131,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) (end - 1));
+    int indexend = BufferUtil.unsignedBinarySearch(content, indexstart, cardinality,
+        (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {
@@ -589,7 +590,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) (end - 1));
+    int indexend = BufferUtil.unsignedBinarySearch(content, indexstart, cardinality,
+        (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {
@@ -780,7 +782,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       startIndex = -startIndex - 1;
     }
     int lastIndex =
-        BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) (lastOfRange - 1));
+        BufferUtil.unsignedBinarySearch(content, startIndex, cardinality, (char) (lastOfRange - 1));
     if (lastIndex < 0) {
       lastIndex = -lastIndex - 1 - 1;
     }
@@ -941,7 +943,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) (end - 1));
+    int indexend = BufferUtil.unsignedBinarySearch(content, indexstart, cardinality,
+        (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {
@@ -1071,7 +1074,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       startIndex = -startIndex - 1;
     }
     int lastIndex =
-        BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) (lastOfRange - 1));
+        BufferUtil.unsignedBinarySearch(content, startIndex, cardinality, (char) (lastOfRange - 1));
     if (lastIndex < 0) {
       lastIndex = -lastIndex - 2;
     }
@@ -1377,7 +1380,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) (end - 1));
+    int indexend = BufferUtil.unsignedBinarySearch(content, indexstart, cardinality,
+        (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {

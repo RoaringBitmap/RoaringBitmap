@@ -112,7 +112,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = Util.unsignedBinarySearch(content, 0, cardinality, (char) (end - 1));
+    int indexend = Util.unsignedBinarySearch(content, indexstart, cardinality, (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {
@@ -473,7 +473,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = Util.unsignedBinarySearch(content, 0, cardinality, (char) (end - 1));
+    int indexend = Util.unsignedBinarySearch(content, indexstart, cardinality, (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {
@@ -639,7 +639,8 @@ public final class ArrayContainer extends Container implements Cloneable {
     if (startIndex < 0) {
       startIndex = -startIndex - 1;
     }
-    int lastIndex = Util.unsignedBinarySearch(content, 0, cardinality, (char) (lastOfRange - 1));
+    int lastIndex = Util.unsignedBinarySearch(content, startIndex, cardinality,
+        (char) (lastOfRange - 1));
     if (lastIndex < 0) {
       lastIndex = -lastIndex - 1 - 1;
     }
@@ -769,7 +770,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = Util.unsignedBinarySearch(content, 0, cardinality, (char) (end - 1));
+    int indexend = Util.unsignedBinarySearch(content, indexstart, cardinality, (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {
@@ -886,7 +887,8 @@ public final class ArrayContainer extends Container implements Cloneable {
     if (startIndex < 0) {
       startIndex = -startIndex - 1;
     }
-    int lastIndex = Util.unsignedBinarySearch(content, 0, cardinality, (char) (lastOfRange - 1));
+    int lastIndex = Util.unsignedBinarySearch(content, startIndex, cardinality,
+        (char) (lastOfRange - 1));
     if (lastIndex < 0) {
       lastIndex = -lastIndex - 2;
     }
@@ -1068,7 +1070,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = Util.unsignedBinarySearch(content, 0, cardinality, (char) (end - 1));
+    int indexend = Util.unsignedBinarySearch(content, indexstart, cardinality, (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {
