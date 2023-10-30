@@ -94,7 +94,18 @@ tasks.named<Jar>("jar") {
     dependsOn(tasks.named("compileJava11Java"))
 }
 
+val allocationManagerTest = task<Test>("allocationManagerTest") {
+    // test needs to run in its own fork to ensure registration succeeds
+    filter {
+        //include specific method in any of the tests
+        includeTestsMatching("org.roaringbitmap.AllocationManagerTest")
+    }
+    useJUnitPlatform()
+    failFast = true
+}
+
 tasks.test {
+    dependsOn(allocationManagerTest)
     systemProperty("kryo.unsafe", "false")
     mustRunAfter(tasks.checkstyleMain)
     useJUnitPlatform()
@@ -106,12 +117,17 @@ tasks.test {
 
     testLogging {
         // We exclude 'passed' events
-        events( "skipped", "failed")
+        events("skipped", "failed")
         showStackTraces = true
         showExceptions = true
         showCauses = true
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
         // Helps investigating OOM. But too verbose to be activated by default
         // showStandardStreams = true
+    }
+    filter {
+        // must not run this test as registration of the allocation manager will fail,
+        // but if it succeeded it would cause other tests to fail
+        excludeTestsMatching("org.roaringbitmap.AllocationManagerTest")
     }
 }

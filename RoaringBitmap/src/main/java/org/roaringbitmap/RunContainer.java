@@ -10,8 +10,9 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.CharBuffer;
-import java.util.Arrays;
 import java.util.Iterator;
+
+import static org.roaringbitmap.AllocationManager.*;
 
 
 /**
@@ -109,7 +110,7 @@ public final class RunContainer extends Container implements Cloneable {
 
   protected RunContainer(ArrayContainer arr, int nbrRuns) {
     this.nbrruns = nbrRuns;
-    valueslength = new char[2 * nbrRuns];
+    valueslength = allocateChars(2 * nbrRuns);
     if (nbrRuns == 0) {
       return;
     }
@@ -143,13 +144,15 @@ public final class RunContainer extends Container implements Cloneable {
    */
   public RunContainer(final int firstOfRun, final int lastOfRun) {
     this.nbrruns = 1;
-    this.valueslength = new char[]{(char) firstOfRun, (char) (lastOfRun - 1 - firstOfRun)};
+    this.valueslength = allocateChars(2);
+    valueslength[0] = (char) firstOfRun;
+    valueslength[1] = (char) (lastOfRun - 1 - firstOfRun);
   }
 
   // convert a bitmap container to a run container somewhat efficiently.
   protected RunContainer(BitmapContainer bc, int nbrRuns) {
     this.nbrruns = nbrRuns;
-    valueslength = new char[2 * nbrRuns];
+    valueslength = allocateChars(2 * nbrRuns);
     if (nbrRuns == 0) {
       return;
     }
@@ -202,13 +205,13 @@ public final class RunContainer extends Container implements Cloneable {
    * @param capacity The capacity of the container
    */
   public RunContainer(final int capacity) {
-    valueslength = new char[2 * capacity];
+    valueslength = allocateChars(2 * capacity);
   }
 
 
   private RunContainer(int nbrruns, char[] valueslength) {
     this.nbrruns = nbrruns;
-    this.valueslength = Arrays.copyOf(valueslength, valueslength.length);
+    this.valueslength = copy(valueslength, valueslength.length);
   }
 
 
@@ -380,7 +383,7 @@ public final class RunContainer extends Container implements Cloneable {
   @Override
   public Container and(RunContainer x) {
     int maxRunsAfterIntersection = nbrruns + x.nbrruns;
-    RunContainer answer = new RunContainer(new char[2 * maxRunsAfterIntersection], 0);
+    RunContainer answer = new RunContainer(allocateChars(2 * maxRunsAfterIntersection), 0);
     if (isEmpty()) {
       return answer;
     }
@@ -635,7 +638,7 @@ public final class RunContainer extends Container implements Cloneable {
 
   @Override
   public Container andNot(RunContainer x) {
-    RunContainer answer = new RunContainer(new char[2 * (this.nbrruns + x.nbrruns)], 0);
+    RunContainer answer = new RunContainer(allocateChars(2 * (this.nbrruns + x.nbrruns)), 0);
     int rlepos = 0;
     int xrlepos = 0;
     int start = (this.getValue(rlepos));
@@ -880,8 +883,9 @@ public final class RunContainer extends Container implements Cloneable {
             : newCapacity < 64 ? newCapacity * 2
                 : newCapacity < 1024 ? newCapacity * 3 / 2 : newCapacity * 5 / 4;
       }
-      char[] newvalueslength = new char[newCapacity];
+      char[] newvalueslength = allocateChars(newCapacity);
       copyValuesLength(this.valueslength, 0, newvalueslength, offset, nbrruns);
+      free(valueslength);
       this.valueslength = newvalueslength;
     } else {
       // efficient case where we just copy
@@ -907,7 +911,7 @@ public final class RunContainer extends Container implements Cloneable {
   public void deserialize(DataInput in) throws IOException {
     nbrruns = Character.reverseBytes(in.readChar());
     if (valueslength.length < 2 * nbrruns) {
-      valueslength = new char[2 * nbrruns];
+      valueslength = extend(valueslength, 2 * nbrruns);
     }
     for (int k = 0; k < 2 * nbrruns; ++k) {
       this.valueslength[k] = Character.reverseBytes(in.readChar());
@@ -924,8 +928,9 @@ public final class RunContainer extends Container implements Cloneable {
             : newCapacity < 64 ? newCapacity * 2
                 : newCapacity < 1024 ? newCapacity * 3 / 2 : newCapacity * 5 / 4;
       }
-      char[] nv = new char[newCapacity];
+      char[] nv = allocateChars(newCapacity);
       copyValuesLength(valueslength, 0, nv, 0, nbrruns);
+      free(valueslength);
       valueslength = nv;
     }
   }
@@ -1249,9 +1254,7 @@ public final class RunContainer extends Container implements Cloneable {
         : valueslength.length < 64 ? valueslength.length * 2
             : valueslength.length < 1024 ? valueslength.length * 3 / 2
                 : valueslength.length * 5 / 4;
-    char[] nv = new char[newCapacity];
-    System.arraycopy(valueslength, 0, nv, 0, 2 * nbrruns);
-    valueslength = nv;
+    valueslength = extend(valueslength, newCapacity);
   }
 
 
@@ -1717,7 +1720,7 @@ public final class RunContainer extends Container implements Cloneable {
     if (x.isEmpty()) {
       return this;
     }
-    RunContainer answer = new RunContainer(new char[2 * (this.nbrruns + x.cardinality)], 0);
+    RunContainer answer = new RunContainer(allocateChars(2 * (this.nbrruns + x.cardinality)), 0);
     int rlepos = 0;
     int xrlepos = 0;
     int start = (this.getValue(rlepos));
@@ -1780,7 +1783,8 @@ public final class RunContainer extends Container implements Cloneable {
       return full();
     }
     // TODO: should optimize for the frequent case where we have a single run
-    RunContainer answer = new RunContainer(new char[2 * (this.nbrruns + x.getCardinality())], 0);
+    RunContainer answer = new RunContainer(
+        allocateChars(2 * (this.nbrruns + x.getCardinality())), 0);
     int rlepos = 0;
     PeekableCharIterator i = x.getCharIterator();
 
@@ -1828,7 +1832,8 @@ public final class RunContainer extends Container implements Cloneable {
     if (this.nbrruns == 0) {
       return x;
     }
-    RunContainer answer = new RunContainer(new char[2 * (this.nbrruns + x.getCardinality())], 0);
+    RunContainer answer = new RunContainer(allocateChars(
+        2 * (this.nbrruns + x.getCardinality())), 0);
     int rlepos = 0;
     CharIterator i = x.getCharIterator();
     char cv = i.next();
@@ -1876,7 +1881,7 @@ public final class RunContainer extends Container implements Cloneable {
       }
     }
 
-    RunContainer rc = new RunContainer(Arrays.copyOf(valueslength, 2 * (r+1)), r+1);
+    RunContainer rc = new RunContainer(copy(valueslength, 2 * (r+1)), r+1);
     rc.setLength(r ,
         (char) ((rc.getLength(r)) - cardinality + maxcardinality));
     return rc;
@@ -1931,7 +1936,12 @@ public final class RunContainer extends Container implements Cloneable {
   @Override
   public Container or(ArrayContainer x) {
     // we guess that, often, the result will still be efficiently expressed as a run container
-    return lazyor(x).repairAfterLazy();
+    Container or = lazyor(x);
+    Container answer = or.repairAfterLazy();
+    if (or != answer) {
+      or.close();
+    }
+    return answer;
   }
 
   @Override
@@ -1949,6 +1959,7 @@ public final class RunContainer extends Container implements Cloneable {
       answer.updateCardinality(prevOnesInRange, end - start);
     }
     if (answer.isFull()) {
+      answer.close();
       return full();
     }
     return answer;
@@ -1964,7 +1975,7 @@ public final class RunContainer extends Container implements Cloneable {
     }
     // we really ought to optimize the rest of the code for the frequent case where there is a
     // single run
-    RunContainer answer = new RunContainer(new char[2 * (this.nbrruns + x.nbrruns)], 0);
+    RunContainer answer = new RunContainer(allocateChars(2 * (this.nbrruns + x.nbrruns)), 0);
     int rlepos = 0;
     int xrlepos = 0;
 
@@ -1986,6 +1997,7 @@ public final class RunContainer extends Container implements Cloneable {
       rlepos++;
     }
     if (answer.isFull()) {
+      answer.close();
       return full();
     }
     return answer.toBitmapIfNeeded();
@@ -2304,6 +2316,7 @@ public final class RunContainer extends Container implements Cloneable {
     if (sizeAsBitmapContainer > sizeAsRunContainer) {
       return this;
     }
+    this.close();
     return toBitmapContainer();
   }
 
@@ -2386,7 +2399,7 @@ public final class RunContainer extends Container implements Cloneable {
     if (valueslength.length == 2 * nbrruns) {
       return;
     }
-    valueslength = Arrays.copyOf(valueslength, 2 * nbrruns);
+    valueslength = extend(valueslength, 2 * nbrruns);
   }
 
 
@@ -2427,7 +2440,12 @@ public final class RunContainer extends Container implements Cloneable {
     // if the cardinality of the array is small, guess that the output will still be a run container
     final int arbitrary_threshold = 32; // 32 is arbitrary here
     if (x.getCardinality() < arbitrary_threshold) {
-      return lazyxor(x).repairAfterLazy();
+      Container tmp = lazyxor(x);
+      Container answer = tmp.repairAfterLazy();
+      if (tmp != answer) {
+        tmp.close();
+      }
+      return answer;
     }
     // otherwise, we expect the output to be either an array or bitmap
     final int card = getCardinality();
@@ -2436,7 +2454,12 @@ public final class RunContainer extends Container implements Cloneable {
       return x.xor(this.getCharIterator());
     }
     // otherwise, we generate a bitmap (even if runcontainer would be better)
-    return toBitmapOrArrayContainer(card).ixor(x);
+    Container tmp = toBitmapOrArrayContainer(card);
+    Container answer = tmp.ixor(x);
+    if (tmp != answer) {
+      tmp.close();
+    }
+    return answer;
   }
 
   @Override
@@ -2453,6 +2476,7 @@ public final class RunContainer extends Container implements Cloneable {
     if (answer.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE) {
       return answer;
     } else {
+      answer.close();
       return answer.toArrayContainer();
     }
   }
@@ -2465,7 +2489,7 @@ public final class RunContainer extends Container implements Cloneable {
     if (this.nbrruns == 0) {
       return x.clone();
     }
-    RunContainer answer = new RunContainer(new char[2 * (this.nbrruns + x.nbrruns)], 0);
+    RunContainer answer = new RunContainer(allocateChars(2 * (this.nbrruns + x.nbrruns)), 0);
     int rlepos = 0;
     int xrlepos = 0;
 
@@ -2494,7 +2518,11 @@ public final class RunContainer extends Container implements Cloneable {
         }
       }
     }
-    return answer.toEfficientContainer();
+    Container tmp = answer.toEfficientContainer();
+    if (tmp != answer) {
+      answer.close();
+    }
+    return tmp;
   }
 
   @Override
@@ -2733,6 +2761,11 @@ public final class RunContainer extends Container implements Cloneable {
     int start = (getValue(index));
     int length = (getLength(index));
     return start + length;
+  }
+
+  @Override
+  public void close() {
+    free(valueslength);
   }
 
 }

@@ -14,7 +14,7 @@ import java.nio.CharBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 
-
+import static org.roaringbitmap.AllocationManager.*;
 
 
 /**
@@ -54,7 +54,7 @@ public final class ArrayContainer extends Container implements Cloneable {
    * @param capacity The capacity of the container
    */
   public ArrayContainer(final int capacity) {
-    content = new char[capacity];
+    content = allocateChars(capacity);
   }
 
   /**
@@ -66,7 +66,7 @@ public final class ArrayContainer extends Container implements Cloneable {
    */
   public ArrayContainer(final int firstOfRun, final int lastOfRun) {
     final int valuesInRange = lastOfRun - firstOfRun;
-    this.content = new char[valuesInRange];
+    this.content = allocateChars(valuesInRange);
     for (int i = 0; i < valuesInRange; ++i) {
       content[i] = (char) (firstOfRun + i);
     }
@@ -81,7 +81,7 @@ public final class ArrayContainer extends Container implements Cloneable {
    */
   public ArrayContainer(int newCard, char[] newContent) {
     this.cardinality = newCard;
-    this.content = Arrays.copyOf(newContent, newCard);
+    this.content = copy(newContent, newCard);
   }
 
   /**
@@ -352,7 +352,7 @@ public final class ArrayContainer extends Container implements Cloneable {
   public void deserialize(DataInput in) throws IOException {
     this.cardinality = 0xFFFF & Character.reverseBytes(in.readChar());
     if (this.content.length < this.cardinality) {
-      this.content = new char[this.cardinality];
+      this.content = extend(this.content, this.cardinality);
     }
     for (int k = 0; k < this.cardinality; ++k) {
       this.content[k] = Character.reverseBytes(in.readChar());
@@ -508,7 +508,7 @@ public final class ArrayContainer extends Container implements Cloneable {
      * is cardinality and equation holds true , hence "<" equation holds true always
      */
     if (newcardinality >= this.content.length) {
-      char[] destination = new char[calculateCapacity(newcardinality)];
+      char[] destination = allocateChars(calculateCapacity(newcardinality));
       // if b > 0, we copy from 0 to b. Do nothing otherwise.
       System.arraycopy(content, 0, destination, 0, indexstart);
       // set values from b to e
@@ -521,6 +521,7 @@ public final class ArrayContainer extends Container implements Cloneable {
        */
       System.arraycopy(content, indexend, destination, indexstart + rangelength, cardinality
           - indexend);
+      free(content);
       this.content = destination;
     } else {
       System
@@ -608,7 +609,7 @@ public final class ArrayContainer extends Container implements Cloneable {
         && !allowIllegalSize) {
       newCapacity = ArrayContainer.DEFAULT_MAX_SIZE;
     }
-    this.content = Arrays.copyOf(this.content, newCapacity);
+    this.content = extend(this.content, newCapacity);
   }
 
   private int calculateCapacity(int min) {
@@ -656,7 +657,7 @@ public final class ArrayContainer extends Container implements Cloneable {
         if (newCardinality > DEFAULT_MAX_SIZE) {
           return toBitmapContainer().inot(firstOfRange, lastOfRange);
         }
-        content = Arrays.copyOf(content, newCardinality);
+        content = extend(content, newCardinality);
       }
       // slide right the contents after the range
       System.arraycopy(content, lastIndex + 1, content, lastIndex + 1 + cardinalityChange,
@@ -724,18 +725,21 @@ public final class ArrayContainer extends Container implements Cloneable {
         bc.cardinality += Long.bitCount(k);
       }
       if (bc.cardinality <= DEFAULT_MAX_SIZE) {
+        bc.close();
         return bc.toArrayContainer();
       } else if (bc.isFull()) {
+        bc.close();
         return RunContainer.full();
       }
       return bc;
     }
     if (totalCardinality >= content.length) {
       int newCapacity = calculateCapacity(totalCardinality);
-      char[] destination = new char[newCapacity];
+      char[] destination = allocateChars(newCapacity);
       cardinality =
           Util.unsignedUnion2by2(content, 0, cardinality, value2.content, 0, value2.cardinality,
               destination);
+      free(content);
       this.content = destination;
     } else {
       System.arraycopy(content, 0, content, value2.cardinality, cardinality);
@@ -897,7 +901,12 @@ public final class ArrayContainer extends Container implements Cloneable {
     final int newCardinality = cardinality + cardinalityChange;
 
     if (newCardinality > DEFAULT_MAX_SIZE) {
-      return toBitmapContainer().not(firstOfRange, lastOfRange);
+      Container tmp = toBitmapContainer();
+      Container answer = tmp.not(firstOfRange, lastOfRange);
+      if (answer != tmp) {
+        tmp.close();
+      }
+      return answer;
     }
 
     ArrayContainer answer = new ArrayContainer(newCardinality);
@@ -967,8 +976,10 @@ public final class ArrayContainer extends Container implements Cloneable {
         bc.cardinality += Long.bitCount(k);
       }
       if (bc.cardinality <= DEFAULT_MAX_SIZE) {
+        bc.close();
         return bc.toArrayContainer();
       } else if (bc.isFull()) {
+        bc.close();
         return RunContainer.full();
       }
       return bc;
@@ -1035,7 +1046,11 @@ public final class ArrayContainer extends Container implements Cloneable {
     }
 
     if (ac.cardinality > DEFAULT_MAX_SIZE) {
-      return ac.toBitmapContainer();
+      try {
+        return ac.toBitmapContainer();
+      } finally {
+        ac.close();
+      }
     } else {
       return ac;
     }
@@ -1257,6 +1272,11 @@ public final class ArrayContainer extends Container implements Cloneable {
   }
 
   @Override
+  public void close() {
+    free(content);
+  }
+
+  @Override
   public MappeableContainer toMappeableContainer() {
     return new MappeableArrayContainer(this);
   }
@@ -1294,7 +1314,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     if (this.content.length == this.cardinality) {
       return;
     }
-    this.content = Arrays.copyOf(this.content, this.cardinality);
+    this.content = extend(this.content, this.cardinality);
   }
 
   @Override
@@ -1341,6 +1361,7 @@ public final class ArrayContainer extends Container implements Cloneable {
         bc.cardinality += Long.bitCount(k);
       }
       if (bc.cardinality <= DEFAULT_MAX_SIZE) {
+        bc.close();
         return bc.toArrayContainer();
       }
       return bc;
