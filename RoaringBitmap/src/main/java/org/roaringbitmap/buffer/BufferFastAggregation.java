@@ -556,7 +556,10 @@ public final class BufferFastAggregation {
       Arrays.fill(words, -1L);
       MappeableContainer tmp = new MappeableBitmapContainer(LongBuffer.wrap(words), -1);
       for (MappeableContainer container : slice) {
-        tmp = tmp.iand(container);
+        MappeableContainer and = tmp.iand(container);
+        if (and != tmp) {
+          tmp = and;
+        }
       }
       tmp = tmp.repairAfterLazy();
       if (!tmp.isEmpty()) {

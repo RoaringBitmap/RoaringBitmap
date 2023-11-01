@@ -445,7 +445,10 @@ public final class FastAggregation {
           continue;
         }
         Container container = bitmap.highLowContainer.getContainerAtIndex(index);
-        tmp = tmp.iand(container);
+        Container and = tmp.iand(container);
+        if (and != tmp) {
+          tmp = and;
+        }
       }
       cardinality += tmp.repairAfterLazy().getCardinality();
     }
