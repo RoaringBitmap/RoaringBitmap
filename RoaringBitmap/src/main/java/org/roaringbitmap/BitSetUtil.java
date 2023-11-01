@@ -18,25 +18,37 @@ public class BitSetUtil {
   public static final int BLOCK_LENGTH = BitmapContainer.MAX_CAPACITY / Long.SIZE;
 
   /**
-   * Converts an immutable roaring bitmap to JDK bit set.
+   * Converts an immutable roaring bitmap to JDK bit set. It returns one bit set if bitmap contains
+   * values under Integer.MAX_VALUE only, greater values if present are returned in second bit set
+   * shifted to be non-negative.
    *
    * @param bitmap original bitmap
-   * @return bit set equivalent to roaring bitmap
+   * @return bit sets equivalent to roaring bitmap
    */
-  public static BitSet bitSetOf(ImmutableRoaringBitmap bitmap) {
-    // TODO optimize by iterating by containers and
-    // for RunContainer use:  bitSet.set(from, to);
+  public static BitSet[] bitSetOf(ImmutableRoaringBitmap bitmap) {
+    // TODO could be optimized
+    // for RunContainer use:
+    //    bitSet.set(from, to);
     // for BitmapContainer use:
     // MappeableBitmapContainer bc = (MappeableBitmapContainer)
     //    bitmap.getContainerPointer().getContainer();
-    // BitSet bitSet2 = BitSet.valueOf(bc.toLongArray());
-    // bitSet2.and(bitSet2);
-    BitSet bitSet = new BitSet();
+    //    BitSet bitSet2 = BitSet.valueOf(bc.toLongArray());
+    //    bitSet.and(bitSet2);
+    BitSet bitSetPositive = new BitSet();
+    BitSet bitSetNegative = new BitSet();
     PeekableIntIterator it = bitmap.getIntIterator();
     while (it.hasNext()) {
-      bitSet.set(it.next());
+      int value = it.next();
+      if (value >= 0) {
+        bitSetPositive.set(value);
+      } else {
+        bitSetNegative.set(value - Integer.MIN_VALUE);
+      }
     }
-    return bitSet;
+    if (bitSetNegative.isEmpty()) {
+      return new BitSet[]{bitSetPositive};
+    }
+    return new BitSet[]{bitSetPositive, bitSetNegative};
   }
 
   private static ArrayContainer arrayContainerOf(final int from, final int to,

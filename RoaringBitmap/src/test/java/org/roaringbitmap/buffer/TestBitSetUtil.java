@@ -9,6 +9,7 @@ import java.nio.ByteBuffer;
 import java.util.BitSet;
 import java.util.Random;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Execution(ExecutionMode.CONCURRENT)
@@ -236,9 +237,19 @@ public class TestBitSetUtil {
   }
 
   @Test
-  public void bitSetOf() {
+  public void bitSetOfPositiveOnly() {
     ImmutableRoaringBitmap bitmap = ImmutableRoaringBitmap.bitmapOf(1, 2, 4);
-    BitSet bitset = BitSetUtil.bitSetOf(bitmap);
-    assertEqualBitsets(bitset, bitmap);
+    BitSet[] bitset = BitSetUtil.bitSetOf(bitmap);
+    assertEquals(1, bitset.length);
+    assertEqualBitsets(bitset[0], bitmap);
+  }
+
+  @Test
+  public void bitSetOfNegativeAlso() {
+    ImmutableRoaringBitmap bitmap = ImmutableRoaringBitmap.bitmapOf(1, 2, 4, -1);
+    BitSet[] bitset = BitSetUtil.bitSetOf(bitmap);
+    assertEquals(2, bitset.length);
+    assertEqualBitsets(bitset[0], ImmutableRoaringBitmap.bitmapOf(1, 2, 4));
+    assertEqualBitsets(bitset[1], ImmutableRoaringBitmap.bitmapOf(-1 - Integer.MIN_VALUE));
   }
 }
