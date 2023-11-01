@@ -1003,8 +1003,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     int bIndex =
         bufferedUnsignedInterleavedBinarySearch(this.valueslength, 0, this.nbrruns, (char) begin);
-    int eIndex = bufferedUnsignedInterleavedBinarySearch(this.valueslength, 0, this.nbrruns,
-        (char) (end - 1));
+    int eIndex = bufferedUnsignedInterleavedBinarySearch(this.valueslength,
+          bIndex >= 0 ? bIndex : -bIndex - 1, this.nbrruns, (char) (end - 1));
 
     if (bIndex >= 0 && eIndex >= 0) {
       mergeValuesLength(bIndex, eIndex);
@@ -1476,8 +1476,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     int bIndex =
         bufferedUnsignedInterleavedBinarySearch(this.valueslength, 0, this.nbrruns, (char) begin);
-    int eIndex = bufferedUnsignedInterleavedBinarySearch(this.valueslength, 0, this.nbrruns,
-        (char) (end - 1));
+    int eIndex = bufferedUnsignedInterleavedBinarySearch(this.valueslength,
+          bIndex >= 0 ? bIndex : -bIndex - 1, this.nbrruns, (char) (end - 1));
 
     if (bIndex >= 0) {
       if (eIndex < 0) {
