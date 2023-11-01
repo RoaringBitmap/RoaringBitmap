@@ -46,11 +46,9 @@ public final class BufferFastAggregation {
       if(aggregationBuffer.length < 1024) {
         throw new IllegalArgumentException("buffer should have at least 1024 elements.");
       }
-      try {
-        return workShyAnd(aggregationBuffer, bitmaps);
-      } finally {
-        Arrays.fill(aggregationBuffer, 0L);
-      }
+      MutableRoaringBitmap result = workShyAnd(aggregationBuffer, bitmaps);
+      Arrays.fill(aggregationBuffer, 0L);
+      return result;
     }
     return naive_and(bitmaps);
   }
@@ -79,7 +77,9 @@ public final class BufferFastAggregation {
   public static MutableRoaringBitmap and(long[] aggregationBuffer,
                                          Iterator<? extends ImmutableRoaringBitmap> bitmaps) {
     if (bitmaps.hasNext()) {
-      return workShyAnd(aggregationBuffer, bitmaps);
+      MutableRoaringBitmap result = workShyAnd(aggregationBuffer, bitmaps);
+      Arrays.fill(aggregationBuffer, 0L);
+      return result;
     }
     return new MutableRoaringBitmap();
   }
