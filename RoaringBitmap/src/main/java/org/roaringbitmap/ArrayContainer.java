@@ -556,9 +556,11 @@ public final class ArrayContainer extends Container implements Cloneable {
 
   @Override
   public Container iand(RunContainer x) {
+    PeekableCharIterator it = x.getCharIterator();
     int removed = 0;
     for (int i = 0; i < cardinality; i++) {
-      if (x.contains(content[i])) {
+      it.advanceIfNeeded(content[i]);
+      if (it.peekNext() == content[i]) {
         content[i - removed] = content[i];
       } else {
         removed++;
