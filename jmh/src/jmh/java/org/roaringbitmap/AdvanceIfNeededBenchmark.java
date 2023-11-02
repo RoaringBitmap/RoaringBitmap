@@ -23,7 +23,7 @@ public class AdvanceIfNeededBenchmark {
         for (int size = 0; size < count; size++) {
             int next;
             do {
-                next = Math.abs(source.nextInt());
+                next = source.nextInt(1000000);
             } while (!ints.add(next));
         }
         // we add a range of continuous values
