@@ -274,8 +274,8 @@ public class Node48 extends Node {
       long longv = childIndex[i];
       for (int j = BYTES_PER_LONG - 1; j >= 0; j--) {
         byte bytePos = (byte) (longv >>> (j << INDEX_SHIFT));
-        int unsignedPos = Byte.toUnsignedInt(bytePos);
         if (bytePos != EMPTY_VALUE) {
+          int unsignedPos = Byte.toUnsignedInt(bytePos);
           this.children[unsignedPos] = children[step];
           step++;
         }
