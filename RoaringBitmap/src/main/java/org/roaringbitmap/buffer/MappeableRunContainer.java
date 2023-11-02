@@ -779,7 +779,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     if (oldCapacity < minCapacity) {
       int newCapacity = oldCapacity;
       while ((newCapacity = computeNewCapacity(newCapacity)) < minCapacity) {
-      };
+      }
       return Optional.of(CharBuffer.allocate(newCapacity));
     }
     return Optional.empty();
