@@ -182,11 +182,12 @@ public class Node256 extends Node {
     int offset = 0;
     int x = 0;
     for (long longv : bitmapMask) {
-      int w = Long.bitCount(longv);
-      for (int i = 0; i < w; i++) {
+      int w = 0;
+      while (longv != 0) {
         int pos = x * 64 + numberOfTrailingZeros(longv);
-        this.children[pos] = children[offset + i];
+        this.children[pos] = children[offset + w];
         longv &= (longv - 1);
+        w++;
       }
       offset += w;
       x++;
