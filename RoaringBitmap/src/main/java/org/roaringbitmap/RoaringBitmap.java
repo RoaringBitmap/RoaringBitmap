@@ -389,7 +389,6 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       if (s1 == s2) {
         final Container c1 = x1.highLowContainer.getContainerAtIndex(pos1);
         final Container c2 = x2.highLowContainer.getContainerAtIndex(pos2);
-        // TODO: could be made faster if we did not have to materialize container
         answer += c1.andCardinality(c2);
         ++pos1;
         ++pos2;

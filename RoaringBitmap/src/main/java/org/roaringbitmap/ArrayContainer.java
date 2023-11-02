@@ -112,7 +112,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = Util.unsignedBinarySearch(content, 0, cardinality, (char) (end - 1));
+    int indexend = Util.unsignedBinarySearch(content, indexstart, cardinality, (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {
@@ -473,7 +473,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = Util.unsignedBinarySearch(content, 0, cardinality, (char) (end - 1));
+    int indexend = Util.unsignedBinarySearch(content, indexstart, cardinality, (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {
@@ -595,10 +595,7 @@ public final class ArrayContainer extends Container implements Cloneable {
   // temporarily allow an illegally large size, as long as the operation creating
   // the illegal container does not return it.
   private void increaseCapacity(boolean allowIllegalSize) {
-    int newCapacity = (this.content.length == 0) ? DEFAULT_INIT_SIZE
-        : this.content.length < 64 ? this.content.length * 2
-            : this.content.length < 1067 ? this.content.length * 3 / 2
-                : this.content.length * 5 / 4;
+    int newCapacity = computeCapacity(this.content.length);
     // never allocate more than we will ever need
     if (newCapacity > ArrayContainer.DEFAULT_MAX_SIZE && !allowIllegalSize) {
       newCapacity = ArrayContainer.DEFAULT_MAX_SIZE;
@@ -610,13 +607,14 @@ public final class ArrayContainer extends Container implements Cloneable {
     }
     this.content = Arrays.copyOf(this.content, newCapacity);
   }
-
+  private int computeCapacity(int oldCapacity) {
+    return oldCapacity == 0 ? DEFAULT_INIT_SIZE
+        : oldCapacity < 64 ? oldCapacity * 2
+        : oldCapacity < 1024 ? oldCapacity * 3 / 2
+        : oldCapacity * 5 / 4;
+  }
   private int calculateCapacity(int min) {
-    int newCapacity =
-        (this.content.length == 0) ? DEFAULT_INIT_SIZE
-            : this.content.length < 64 ? this.content.length * 2
-                : this.content.length < 1024 ? this.content.length * 3 / 2
-                    : this.content.length * 5 / 4;
+    int newCapacity = computeCapacity(this.content.length);
     if (newCapacity < min) {
       newCapacity = min;
     }
@@ -639,7 +637,8 @@ public final class ArrayContainer extends Container implements Cloneable {
     if (startIndex < 0) {
       startIndex = -startIndex - 1;
     }
-    int lastIndex = Util.unsignedBinarySearch(content, 0, cardinality, (char) (lastOfRange - 1));
+    int lastIndex = Util.unsignedBinarySearch(content, startIndex, cardinality,
+        (char) (lastOfRange - 1));
     if (lastIndex < 0) {
       lastIndex = -lastIndex - 1 - 1;
     }
@@ -769,7 +768,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = Util.unsignedBinarySearch(content, 0, cardinality, (char) (end - 1));
+    int indexend = Util.unsignedBinarySearch(content, indexstart, cardinality, (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {
@@ -886,7 +885,8 @@ public final class ArrayContainer extends Container implements Cloneable {
     if (startIndex < 0) {
       startIndex = -startIndex - 1;
     }
-    int lastIndex = Util.unsignedBinarySearch(content, 0, cardinality, (char) (lastOfRange - 1));
+    int lastIndex = Util.unsignedBinarySearch(content, startIndex, cardinality,
+        (char) (lastOfRange - 1));
     if (lastIndex < 0) {
       lastIndex = -lastIndex - 2;
     }
@@ -1068,7 +1068,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = Util.unsignedBinarySearch(content, 0, cardinality, (char) (end - 1));
+    int indexend = Util.unsignedBinarySearch(content, indexstart, cardinality, (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {
