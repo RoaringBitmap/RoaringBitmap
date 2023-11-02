@@ -1,7 +1,5 @@
 package org.roaringbitmap.art;
 
-import org.roaringbitmap.longlong.LongUtils;
-
 /**
  * visit the leaf node space in ascending order.
  */
@@ -12,8 +10,8 @@ public class ForwardShuttle extends AbstractShuttle {
   }
 
   @Override
-  protected boolean currentBeforeHigh(byte[] current, byte[] high) {
-    return LongUtils.compareHigh(current, high) < 0;
+  protected boolean currentBeforeHigh(long current, long high) {
+    return current < high;
   }
 
   @Override
