@@ -1803,15 +1803,18 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         break;
       }
     }
-
-    CharBuffer newBuf = CharBuffer.allocate(2 * (r + 1));
-    for (int i = 0; i < 2 * (r + 1); ++i) {
-      newBuf.put(valueslength.get(i)); // could be optimized
+    CharBuffer newBuf;
+    if (BufferUtil.isBackedBySimpleArray(valueslength)) {
+      char[] newArray = Arrays.copyOf(valueslength.array(), 2 * (r + 1));
+      newBuf = CharBuffer.wrap(newArray);
+    } else {
+      newBuf = CharBuffer.allocate(2 * (r + 1));
+      for (int i = 0; i < 2 * (r + 1); i++) {
+        newBuf.put(valueslength.get(i));
+      }
     }
     MappeableRunContainer rc = new MappeableRunContainer(newBuf, r + 1);
-
-    rc.setLength(r,
-        (char) ((rc.getLength(r)) - cardinality + maxcardinality));
+    rc.setLength(r, (char) (rc.getLength(r) - cardinality + maxcardinality));
     return rc;
   }
 
