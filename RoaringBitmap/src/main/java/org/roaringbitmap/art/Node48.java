@@ -267,8 +267,11 @@ public class Node48 extends Node {
     return LONGS_USED * BYTES_PER_LONG;
   }
 
-  @Override
-  public void replaceChildren(Node[] children) {
+  /** TODO Only for performance comparison, should be removed before merge
+   *
+   * @param children ...
+   */
+  void replaceChildrenOriginal(Node[] children) {
     int step = 0;
     for (int i = 0; i < LONGS_USED; i++) {
       long longv = childIndex[i];
@@ -278,6 +281,23 @@ public class Node48 extends Node {
           int unsignedPos = Byte.toUnsignedInt(bytePos);
           this.children[unsignedPos] = children[step];
           step++;
+        }
+      }
+    }
+  }
+  @Override
+  void replaceChildren(Node[] children) {
+    int step = 0;
+    for (int i = 0; i < LONGS_USED; i++) {
+      long longv = Long.reverseBytes(childIndex[i]);
+      if (longv != INIT_LONG_VALUE) {
+        for (int j = 0; j < BYTES_PER_LONG; j++) {
+          long currentByte = longv & 0xFF;
+          if (currentByte != 0xFF) {
+            this.children[(int) currentByte] = children[step];
+            step++;
+          }
+          longv >>>= 8;
         }
       }
     }
