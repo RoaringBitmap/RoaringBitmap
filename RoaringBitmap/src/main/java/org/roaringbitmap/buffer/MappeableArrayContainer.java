@@ -682,10 +682,20 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
 
-  // Note it is never inplace, may wish to fix
   @Override
   public MappeableContainer iand(final MappeableRunContainer value2) {
-    return value2.and(this);
+    PeekableCharIterator it = value2.getCharIterator();
+    int removed = 0;
+    for (int i = 0; i < cardinality; i++) {
+      it.advanceIfNeeded(content.get(i));
+      if (it.peekNext() == content.get(i)) {
+        content.put(i - removed, content.get(i));
+      } else {
+        removed++;
+      }
+    }
+    cardinality -= removed;
+    return this;
   }
 
   @Override
@@ -722,8 +732,19 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
   @Override
-  public MappeableContainer iandNot(final MappeableRunContainer value2) { // not inplace, revisit?
-    return andNot(value2);
+  public MappeableContainer iandNot(final MappeableRunContainer value2) {
+    PeekableCharIterator it = value2.getCharIterator();
+    int removed = 0;
+    for (int i = 0; i < cardinality; i++) {
+      it.advanceIfNeeded(content.get(i));
+      if (it.peekNext() != content.get(i)) {
+        content.put(i - removed, content.get(i));
+      } else {
+        removed++;
+      }
+    }
+    cardinality -= removed;
+    return this;
   }
 
   private void increaseCapacity() {
