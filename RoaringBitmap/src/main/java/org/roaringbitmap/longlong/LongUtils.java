@@ -154,6 +154,6 @@ public class LongUtils {
    * @return true if this the maximum high part
    */
   public static boolean isMaxHigh(long key) {
-    return key == ~0 >>> 16;
+    return (key & 0xFF_FF_FF_FF_FF_FFL) == 0xFF_FF_FF_FF_FF_FFL;
   }
 }
