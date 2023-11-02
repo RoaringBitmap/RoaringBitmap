@@ -10,8 +10,6 @@ import java.nio.CharBuffer;
 import java.nio.LongBuffer;
 import java.util.BitSet;
 
-import static java.lang.Long.numberOfTrailingZeros;
-
 
 /***
  *
@@ -29,17 +27,7 @@ public class BufferBitSetUtil {
 
   private static MappeableArrayContainer arrayContainerOf(final int from, final int to,
       final int cardinality, final long[] words) {
-    // precondition: cardinality is max 4096
-    final char[] content = new char[cardinality];
-    int index = 0;
-
-    for (int i = from, socket = 0; i < to; ++i, socket += Long.SIZE) {
-      long word = words[i];
-      while (word != 0) {
-        content[index++] = (char) (socket + numberOfTrailingZeros(word));
-        word &= (word - 1);
-      }
-    }
+    char[] content = BitSetUtil.arrayContainerBufferOf(from, to, cardinality, words);
     return new MappeableArrayContainer(CharBuffer.wrap(content), cardinality);
   }
 
