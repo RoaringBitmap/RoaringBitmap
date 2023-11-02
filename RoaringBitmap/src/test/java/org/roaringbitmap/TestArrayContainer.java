@@ -4,11 +4,13 @@ import com.google.common.primitives.Ints;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.roaringbitmap.buffer.MappeableArrayContainer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.CharBuffer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -28,13 +30,101 @@ public class TestArrayContainer {
     }
 
     @Test
-    public void testRemove() {
+    public void testRemoveAtTheEnd() {
         ArrayContainer ac1 = new ArrayContainer(5, 15);
-        ac1.remove((char)14);
+        ac1.remove((char) 14);
         ArrayContainer ac2 = new ArrayContainer(5, 14);
         assertEquals(ac1, ac2);
     }
 
+    @Test
+    public void removeInTheMiddle() {
+        Container ac = new ArrayContainer(1, 4);
+
+        ac.remove((char) 2);
+
+        assertEquals(2, ac.getCardinality());
+        assertFalse(ac.contains((char) 0));
+        assertTrue(ac.contains((char) 1));
+        assertFalse(ac.contains((char) 2));
+        assertTrue(ac.contains((char) 3));
+        assertFalse(ac.contains((char) 4));
+    }
+
+    @Test
+    public void removeNotPresentValue() {
+        Container ac = new ArrayContainer(1, 3);
+
+        ac.remove((char) 4);
+
+        assertEquals(2, ac.getCardinality());
+        assertFalse(ac.contains((char) 0));
+        assertTrue(ac.contains((char) 1));
+        assertTrue(ac.contains((char) 2));
+        assertFalse(ac.contains((char) 3));
+    }
+
+    @Test
+    public void flipIncreasedCapacity() {
+        Container ac = newArrayContainer(1, 2, 3, 5);
+        ac = ac.flip((char) 4);
+        assertEquals(5, ac.getCardinality());
+        for (int i = 1; i <= 5; i++) {
+            assertTrue(ac.contains((char) i), i + " should be present");
+        }
+    }
+
+    @Test
+    public void flipPresentValue() {
+        Container ac = new ArrayContainer(1, 6);
+
+        ac = ac.flip((char) 2);
+
+        assertEquals(4, ac.getCardinality());
+        assertTrue(ac.contains((char) 1));
+        assertFalse(ac.contains((char) 2));
+        for (int i = 3; i <= 5; i++) {
+            assertTrue(ac.contains((char) i), i + " should be present");
+        }
+    }
+
+
+    @Test
+    public void flipPresentLastValue() {
+        Container ac = new ArrayContainer(1, 6);
+
+        ac = ac.flip((char) 5);
+
+        assertEquals(4, ac.getCardinality());
+        for (int i = 1; i <= 4; i++) {
+            assertTrue(ac.contains((char) i), i + " should be present");
+        }
+        assertFalse(ac.contains((char) 5));
+    }
+
+    @Test
+    public void flipMissingValueAndConvertToBitmapContainer() {
+        Container ac = new ArrayContainer(1, 5000);
+
+        ac = ac.flip((char) 7000);
+
+        assertEquals(5000, ac.getCardinality());
+        for (int i = 1; i < 5000; i++) {
+            assertTrue(ac.contains((char) i), i + " should be present");
+        }
+        for (int i = 5000; i < 7000; i++) {
+            assertFalse(ac.contains((char) i), i + " should not be present");
+        }
+        assertTrue(ac.contains((char) 7000));
+    }
+
+    static ArrayContainer newArrayContainer(int... values) {
+        CharBuffer buffer = CharBuffer.allocate(values.length);
+        for (int value : values) {
+            buffer.put((char) value);
+        }
+        return new ArrayContainer(new MappeableArrayContainer(buffer.asReadOnlyBuffer(), values.length));
+    }
     @Test
     public void arrayContainersNeverFull() {
         assertFalse(new ArrayContainer(5, 15).isFull());
