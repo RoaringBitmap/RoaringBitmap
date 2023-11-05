@@ -401,37 +401,4 @@ public class Node48Test {
     Node48.setOneByte(252,  (byte)0x98, longs);
     Assertions.assertEquals(0x0067_2314_9800_0000L, longs[31]);
   }
-
-  @Test
-  public void replaceChildrenFast() {
-    Node48 node = new Node48(0);
-    for (int i = 0; i < 30; i += 3) {
-      Node48.insert(node, new Node4(0), (byte) i);
-    }
-    short originalCount = node.count;
-
-    Node48 anotherNode = new Node48(0);
-    for (int i = 0; i < 30; i += 3) {
-      Node48.insert(anotherNode, new Node4(0), (byte) i);
-    }
-    Node[] children = anotherNode.children;
-
-    int N = 1000_0000;
-    long start = System.currentTimeMillis();
-    for (int i = 0; i < N; i++) {
-      node.replaceChildren(children);
-    }
-    long end = System.currentTimeMillis();
-    System.out.println(end - start + " ms - optimized");
-    Assertions.assertEquals(originalCount, node.count);
-
-
-    start = System.currentTimeMillis();
-    for (int i = 0; i < N; i++) {
-      node.replaceChildrenOriginal(children);
-    }
-    end = System.currentTimeMillis();
-    System.out.println(end - start + " ms - original");
-    Assertions.assertEquals(originalCount, node.count);
-  }
 }
