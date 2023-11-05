@@ -237,19 +237,30 @@ public class TestBitSetUtil {
   }
 
   @Test
-  public void bitSetOfPositiveOnly() {
-    ImmutableRoaringBitmap bitmap = ImmutableRoaringBitmap.bitmapOf(1, 2, 4);
-    BitSet[] bitset = BitSetUtil.bitSetOf(bitmap);
-    assertEquals(1, bitset.length);
-    assertEqualBitsets(bitset[0], bitmap);
+  public void bitSetOfPositiveValues() {
+    ImmutableRoaringBitmap original = ImmutableRoaringBitmap.bitmapOf(0, 1, 2, 4);
+    BitSet[] bitset = BitSetUtil.bitSetOf(original);
+    assertEquals(2, bitset.length);
+    assertEqualBitsets(bitset[0], original);
+    assertTrue(bitset[1].isEmpty());
   }
 
   @Test
-  public void bitSetOfNegativeAlso() {
-    ImmutableRoaringBitmap bitmap = ImmutableRoaringBitmap.bitmapOf(1, 2, 4, -1);
+  public void bitSetOfNegativeValues() {
+    ImmutableRoaringBitmap bitmap = ImmutableRoaringBitmap.bitmapOf(-1, -5);
     BitSet[] bitset = BitSetUtil.bitSetOf(bitmap);
     assertEquals(2, bitset.length);
-    assertEqualBitsets(bitset[0], ImmutableRoaringBitmap.bitmapOf(1, 2, 4));
+    assertTrue(bitset[0].isEmpty());
+    assertEqualBitsets(bitset[1], ImmutableRoaringBitmap.bitmapOf(-1 - Integer.MIN_VALUE,
+        -5 - Integer.MIN_VALUE));
+  }
+
+  @Test
+  public void bitSetOfBothPositiveAndNegativeValues() {
+    ImmutableRoaringBitmap bitmap = ImmutableRoaringBitmap.bitmapOf(0, 1, 2, 4, -1);
+    BitSet[] bitset = BitSetUtil.bitSetOf(bitmap);
+    assertEquals(2, bitset.length);
+    assertEqualBitsets(bitset[0], ImmutableRoaringBitmap.bitmapOf(0, 1, 2, 4));
     assertEqualBitsets(bitset[1], ImmutableRoaringBitmap.bitmapOf(-1 - Integer.MIN_VALUE));
   }
 }

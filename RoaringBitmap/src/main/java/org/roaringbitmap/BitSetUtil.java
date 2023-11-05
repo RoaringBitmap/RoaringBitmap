@@ -18,9 +18,9 @@ public class BitSetUtil {
   public static final int BLOCK_LENGTH = BitmapContainer.MAX_CAPACITY / Long.SIZE;
 
   /**
-   * Converts an immutable roaring bitmap to JDK bit set. It returns one bit set if bitmap contains
-   * values under Integer.MAX_VALUE only, greater values if present are returned in second bit set
-   * shifted to be non-negative.
+   * Converts an immutable roaring bitmap to JDK bit set. As JDK bit set implementation does not
+   * support unsigned integers, two bit sets are returned, one for values under Integer.MAX_VALUE,
+   * the second for values above having the highest bit not set.
    *
    * @param bitmap original bitmap
    * @return bit sets equivalent to roaring bitmap
@@ -42,11 +42,10 @@ public class BitSetUtil {
       if (value >= 0) {
         bitSetPositive.set(value);
       } else {
-        bitSetNegative.set(value - Integer.MIN_VALUE);
+        // alternatively can be used: value - Integer.MIN_VALUE
+        int nonNegative = value & 0x7F_FF_FF_FF;
+        bitSetNegative.set(nonNegative);
       }
-    }
-    if (bitSetNegative.isEmpty()) {
-      return new BitSet[]{bitSetPositive};
     }
     return new BitSet[]{bitSetPositive, bitSetNegative};
   }
