@@ -840,7 +840,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   @Override
   public MappeableContainer ior(final MappeableArrayContainer value2) {
     final int totalCardinality = getCardinality() + value2.getCardinality();
-    if (totalCardinality > DEFAULT_MAX_SIZE) {// it could be a bitmap!
+    if (totalCardinality > DEFAULT_MAX_SIZE) {
       return toBitmapContainer().lazyIOR(value2).repairAfterLazy();
     }
     if (totalCardinality >= content.limit()) {
@@ -1115,51 +1115,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   public MappeableContainer or(final MappeableArrayContainer value2) {
     final MappeableArrayContainer value1 = this;
     final int totalCardinality = value1.getCardinality() + value2.getCardinality();
-    if (totalCardinality > DEFAULT_MAX_SIZE) {// it could be a bitmap!
-      final MappeableBitmapContainer bc = new MappeableBitmapContainer();
-      if (!BufferUtil.isBackedBySimpleArray(bc.bitmap)) {
-        throw new RuntimeException("Should not happen. Internal bug.");
-      }
-      long[] bitArray = bc.bitmap.array();
-      if (BufferUtil.isBackedBySimpleArray(value2.content)) {
-        char[] sarray = value2.content.array();
-        for (int k = 0; k < value2.cardinality; ++k) {
-          char v = sarray[k];
-          final int i = (v) >>> 6;
-          bitArray[i] |= (1L << v);
-        }
-      } else {
-        for (int k = 0; k < value2.cardinality; ++k) {
-          char v2 = value2.content.get(k);
-          final int i = (v2) >>> 6;
-          bitArray[i] |= (1L << v2);
-        }
-      }
-      if (BufferUtil.isBackedBySimpleArray(this.content)) {
-        char[] sarray = this.content.array();
-        for (int k = 0; k < this.cardinality; ++k) {
-          char v = sarray[k];
-          final int i = (v) >>> 6;
-          bitArray[i] |= (1L << v);
-        }
-      } else {
-        for (int k = 0; k < this.cardinality; ++k) {
-          char v = this.content.get(k);
-          final int i = (v) >>> 6;
-          bitArray[i] |= (1L << v);
-        }
-      }
-      bc.cardinality = 0;
-      int len = bc.bitmap.limit();
-      for (int index = 0; index < len; ++index) {
-        bc.cardinality += Long.bitCount(bitArray[index]);
-      }
-      if (bc.cardinality <= DEFAULT_MAX_SIZE) {
-        return bc.toArrayContainer();
-      } else if (bc.isFull()) {
-        return MappeableRunContainer.full();
-      }
-      return bc;
+    if (totalCardinality > DEFAULT_MAX_SIZE) {
+      return toBitmapContainer().lazyIOR(value2).repairAfterLazy();
     }
     final MappeableArrayContainer answer = new MappeableArrayContainer(totalCardinality);
     if (BufferUtil.isBackedBySimpleArray(value1.content)
@@ -1184,42 +1141,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   protected MappeableContainer lazyor(final MappeableArrayContainer value2) {
     final MappeableArrayContainer value1 = this;
     final int totalCardinality = value1.getCardinality() + value2.getCardinality();
-    if (totalCardinality > ARRAY_LAZY_LOWERBOUND) {// it could be a bitmap!
-      final MappeableBitmapContainer bc = new MappeableBitmapContainer();
-      if (!BufferUtil.isBackedBySimpleArray(bc.bitmap)) {
-        throw new RuntimeException("Should not happen. Internal bug.");
-      }
-      long[] bitArray = bc.bitmap.array();
-      if (BufferUtil.isBackedBySimpleArray(value2.content)) {
-        char[] sarray = value2.content.array();
-        for (int k = 0; k < value2.cardinality; ++k) {
-          char v = sarray[k];
-          final int i = (v) >>> 6;
-          bitArray[i] |= (1L << v);
-        }
-      } else {
-        for (int k = 0; k < value2.cardinality; ++k) {
-          char v2 = value2.content.get(k);
-          final int i = (v2) >>> 6;
-          bitArray[i] |= (1L << v2);
-        }
-      }
-      if (BufferUtil.isBackedBySimpleArray(this.content)) {
-        char[] sarray = this.content.array();
-        for (int k = 0; k < this.cardinality; ++k) {
-          char v = sarray[k];
-          final int i = (v) >>> 6;
-          bitArray[i] |= (1L << v);
-        }
-      } else {
-        for (int k = 0; k < this.cardinality; ++k) {
-          char v = this.content.get(k);
-          final int i = (v) >>> 6;
-          bitArray[i] |= (1L << v);
-        }
-      }
-      bc.cardinality = -1;
-      return bc;
+    if (totalCardinality > ARRAY_LAZY_LOWERBOUND) {
+      return toBitmapContainer().lazyIOR(value2);
     }
     final MappeableArrayContainer answer = new MappeableArrayContainer(totalCardinality);
     if (BufferUtil.isBackedBySimpleArray(value1.content)
@@ -1624,50 +1547,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   public MappeableContainer xor(final MappeableArrayContainer value2) {
     final MappeableArrayContainer value1 = this;
     final int totalCardinality = value1.getCardinality() + value2.getCardinality();
-    if (totalCardinality > DEFAULT_MAX_SIZE) {// it could be a bitmap!
-      final MappeableBitmapContainer bc = new MappeableBitmapContainer();
-      if (!BufferUtil.isBackedBySimpleArray(bc.bitmap)) {
-        throw new RuntimeException("Should not happen. Internal bug.");
-      }
-      long[] bitArray = bc.bitmap.array();
-      if (BufferUtil.isBackedBySimpleArray(value2.content)) {
-        char[] sarray = value2.content.array();
-        for (int k = 0; k < value2.cardinality; ++k) {
-          char v = sarray[k];
-          final int i = (v) >>> 6;
-          bitArray[i] ^= (1L << v);
-        }
-      } else {
-        for (int k = 0; k < value2.cardinality; ++k) {
-          char v2 = value2.content.get(k);
-          final int i = (v2) >>> 6;
-          bitArray[i] ^= (1L << v2);
-        }
-      }
-      if (BufferUtil.isBackedBySimpleArray(this.content)) {
-        char[] sarray = this.content.array();
-        for (int k = 0; k < this.cardinality; ++k) {
-          char v = sarray[k];
-          final int i = (v) >>> 6;
-          bitArray[i] ^= (1L << v);
-        }
-      } else {
-        for (int k = 0; k < this.cardinality; ++k) {
-          char v = this.content.get(k);
-          final int i = (v) >>> 6;
-          bitArray[i] ^= (1L << v);
-        }
-      }
-
-      bc.cardinality = 0;
-      int len = bc.bitmap.limit();
-      for (int index = 0; index < len; ++index) {
-        bc.cardinality += Long.bitCount(bitArray[index]);
-      }
-      if (bc.cardinality <= DEFAULT_MAX_SIZE) {
-        return bc.toArrayContainer();
-      }
-      return bc;
+    if (totalCardinality > DEFAULT_MAX_SIZE) {
+      return toBitmapContainer().xor(value2);
     }
     final MappeableArrayContainer answer = new MappeableArrayContainer(totalCardinality);
     if (BufferUtil.isBackedBySimpleArray(value1.content)
