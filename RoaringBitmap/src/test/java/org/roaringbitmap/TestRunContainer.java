@@ -3948,6 +3948,13 @@ public class TestRunContainer {
     consumer10.assertAllPresent();
   }
 
+  @Test
+  public void iorWithFullContainer() {
+    Container container = new ArrayContainer(new char[] {1, 3, 4, (char)-1});
+    container = container.ior(RunContainer.full());
+    assertEquals(RunContainer.full(), container);
+  }
+
   private static int lower16Bits(int x) {
     return ((char)x) & 0xFFFF;
   }

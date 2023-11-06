@@ -969,10 +969,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         s1 = pos1 < length1 ? highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
         s2 = pos2 < length2 ? other.highLowContainer.getKeyAtIndex(pos2) : maxKey + 1;
       } else if (key == s1) { // or in a hole
-        newValues[size] = highLowContainer.getContainerAtIndex(pos1)
-                .ior(key == maxKey
-                        ? MappeableRunContainer.rangeOfOnes(0, lastRun)
-                        : MappeableRunContainer.full());
+        newValues[size] = key == maxKey
+            ? highLowContainer.getContainerAtIndex(pos1).ior(
+            MappeableRunContainer.rangeOfOnes(0, lastRun))
+            : MappeableRunContainer.full();
         ++pos1;
         s1 = pos1 < length1 ? highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
       } else if (key == s2) { // insert the complement
