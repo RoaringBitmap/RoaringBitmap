@@ -1019,15 +1019,26 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     final int i = highLowContainer.getIndex(hb);
     if (i >= 0) {
       MappeableContainer C = highLowContainer.getContainerAtIndex(i);
-      int oldcard = C.getCardinality();
-      C = C.add(BufferUtil.lowbits(x));
-      getMappeableRoaringArray().setContainerAtIndex(i, C);
-      return C.getCardinality() > oldcard;
+      char lowX = BufferUtil.lowbits(x);
+      MappeableContainer newCont;
+      if (C instanceof MappeableRunContainer) { // do not compute cardinality
+        if (!C.contains(lowX)) {
+          newCont = C.add(lowX);
+          getMappeableRoaringArray().setContainerAtIndex(i, newCont);
+          return true;
+        }
+      } else { // it is faster to use getCardinality() than contains() for other container types
+        int oldCard = C.getCardinality();
+        newCont = C.add(lowX);
+        getMappeableRoaringArray().setContainerAtIndex(i, newCont);
+        return newCont.getCardinality() > oldCard;
+      }
     } else {
       final MappeableArrayContainer newac = new MappeableArrayContainer();
       getMappeableRoaringArray().insertNewKeyValueAt(-i - 1, hb, newac.add(BufferUtil.lowbits(x)));
       return true;
     }
+    return false;
   }
 
   /**

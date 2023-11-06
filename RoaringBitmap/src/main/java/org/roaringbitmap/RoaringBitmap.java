@@ -1558,13 +1558,22 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     final int i = highLowContainer.getIndex(hb);
     if (i >= 0) {
       Container c = highLowContainer.getContainerAtIndex(i);
-      int oldCard = c.getCardinality();
       // we need to keep the newContainer if a switch between containers type
       // occur, in order to get the new cardinality
-      Container newCont = c.add(Util.lowbits(x));
-      highLowContainer.setContainerAtIndex(i, newCont);
-      if (newCont.getCardinality() > oldCard) {
-        return true;
+      Container newCont;
+      if (c instanceof RunContainer) { // do not compute cardinality
+        if (!c.contains(Util.lowbits(x))) {
+          newCont = c.add(Util.lowbits(x));
+          highLowContainer.setContainerAtIndex(i, newCont);
+          return true;
+        }
+      } else { // it is faster to use getCardinality() than contains() for other container types
+        int oldCard = c.getCardinality();
+        newCont = c.add(Util.lowbits(x));
+        highLowContainer.setContainerAtIndex(i, newCont);
+        if (newCont.getCardinality() > oldCard) {
+          return true;
+        }
       }
     } else {
       final ArrayContainer newac = new ArrayContainer();
