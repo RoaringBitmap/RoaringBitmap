@@ -478,6 +478,9 @@ public final class BufferFastAggregation {
       Arrays.fill(words, -1L);
       MappeableContainer tmp = new MappeableBitmapContainer(LongBuffer.wrap(words), -1);
       for (MappeableContainer container : slice) {
+        // We only assign to 'tmp' when 'tmp != tmp.iand(container)'
+        // as a garbage-collection optimization: we want to avoid
+        // the write barrier. (Richard Startin)
         MappeableContainer and = tmp.iand(container);
         if (and != tmp) {
           tmp = and;
@@ -560,6 +563,9 @@ public final class BufferFastAggregation {
       Arrays.fill(words, -1L);
       MappeableContainer tmp = new MappeableBitmapContainer(LongBuffer.wrap(words), -1);
       for (MappeableContainer container : slice) {
+        // We only assign to 'tmp' when 'tmp != tmp.iand(container)'
+        // as a garbage-collection optimization: we want to avoid
+        // the write barrier. (Richard Startin)
         MappeableContainer and = tmp.iand(container);
         if (and != tmp) {
           tmp = and;
@@ -620,6 +626,9 @@ public final class BufferFastAggregation {
           continue;
         }
         MappeableContainer container = bitmap.highLowContainer.getContainerAtIndex(index);
+        // We only assign to 'tmp' when 'tmp != tmp.iand(container)'
+        // as a garbage-collection optimization: we want to avoid
+        // the write barrier. (Richard Startin)
         MappeableContainer and = tmp.iand(container);
         if (and != tmp) {
           tmp = and;
@@ -738,6 +747,9 @@ public final class BufferFastAggregation {
           continue;
         }
         MappeableContainer container = bitmap.highLowContainer.getContainerAtIndex(idx);
+        // We only assign to 'tmp' when 'tmp != tmp.iand(container)'
+        // as a garbage-collection optimization: we want to avoid
+        // the write barrier. (Richard Startin)
         MappeableContainer and = tmp.iand(container);
         if (and != tmp) {
           tmp = and;
