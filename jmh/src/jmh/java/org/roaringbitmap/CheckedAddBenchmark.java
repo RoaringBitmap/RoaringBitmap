@@ -12,40 +12,78 @@ import java.util.concurrent.TimeUnit;
 public class CheckedAddBenchmark {
 
   private static final int valuesCount = 10_000_000;
+
   @Param({"HALF_DUPLICATED", "UNIQUE"})
-  public String inputData;
+  public InputDataType inputData;
 
   @Param({"RUN", "BITMAP"})
-  public String containerType;
+  public ContainerType containerType;
 
   public RoaringBitmap bitmap;
 
   public int[] a;
 
+  public enum InputDataType {
+    @SuppressWarnings("unused")
+    HALF_DUPLICATED {
+      @Override
+      public int getValue(int i) {
+        // leads to pairs of same value, resulting bitmap has half size, it does not affect
+        // benchmark results
+        return i >> 2;
+      }
+    },
+    @SuppressWarnings("unused")
+    UNIQUE {
+      @Override
+      public int getValue(int i) {
+        return i;
+      }
+    };
+
+    protected abstract int getValue(int i);
+
+    public int[] getValues() {
+      int[] a = new int[valuesCount];
+      for (int i = 0; i < valuesCount; i++) {
+        a[i] = getValue(i);
+      }
+      return a;
+    }
+  }
+
+  public enum ContainerType {
+    @SuppressWarnings("unused")
+    RUN {
+      @Override
+      public RoaringBitmap createBitmap(int[] values) {
+        RoaringBitmap bitmap = RoaringBitmap.bitmapOf(values);
+        bitmap.runOptimize();
+        if (!(bitmap.getContainerPointer().getContainer() instanceof RunContainer)) {
+          throw new IllegalStateException("Container is not run!!!");
+        }
+        return bitmap;
+      }
+    },
+    @SuppressWarnings("unused")
+    BITMAP {
+      @Override
+      public RoaringBitmap createBitmap(int[] values) {
+        RoaringBitmap bitmap = RoaringBitmap.bitmapOf(values);
+        if (!(bitmap.getContainerPointer().getContainer() instanceof BitmapContainer)) {
+          throw new IllegalStateException("Container is not bitmap!!!");
+        }
+        return bitmap;
+      }
+    };
+
+    public abstract RoaringBitmap createBitmap(int[] values);
+  }
+
   @Setup(Level.Invocation)
   public void setUp() {
-    a = new int[valuesCount];
-    if (inputData.equals("HALF_DUPLICATED")) {
-      for (int i = 0; i < valuesCount; i++) {
-        a[i] = i >> 2;
-      }
-    }
-    if (inputData.equals("UNIQUE")) {
-      for (int i = 0; i < valuesCount; i++) {
-        a[i] = i;
-      }
-    }
-    bitmap = RoaringBitmap.bitmapOf(a);
-    if (containerType.equals("RUN")) {
-      bitmap.runOptimize();
-      if (!(bitmap.getContainerPointer().getContainer() instanceof RunContainer)) {
-        throw new IllegalStateException("Container is not run for " + inputData + " " + containerType);
-      }
-    } else {
-      if (!(bitmap.getContainerPointer().getContainer() instanceof BitmapContainer)) {
-        throw new IllegalStateException("Container is not bitmap for " + inputData + " " + containerType);
-      }
-    }
+    a = inputData.getValues();
+    bitmap = containerType.createBitmap(a);
   }
 
   @Benchmark
@@ -76,11 +114,14 @@ public class CheckedAddBenchmark {
       // occur, in order to get the new cardinality
       Container newCont = c.add(Util.lowbits(x));
       bitmap.highLowContainer.setContainerAtIndex(i, newCont);
+
+      //noinspection RedundantIfStatement
       if (newCont.getCardinality() > oldCard) {
         return true;
       }
     } else {
-      final ArrayContainer newac = new ArrayContainer();
+      @SuppressWarnings("SpellCheckingInspection") final ArrayContainer newac =
+          new ArrayContainer();
       bitmap.highLowContainer.insertNewKeyValueAt(-i - 1, hb, newac.add(Util.lowbits(x)));
       return true;
     }
