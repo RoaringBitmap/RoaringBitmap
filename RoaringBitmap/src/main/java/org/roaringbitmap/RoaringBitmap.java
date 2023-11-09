@@ -557,8 +557,31 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @see #add(long, long)
    */
   public static RoaringBitmap bitmapOfRange(long min, long max) {
-    RoaringBitmap bitmap = new RoaringBitmap();
-    bitmap.add(min, max);
+    rangeSanityCheck(min, max);
+    if (min >= max) {
+      return new RoaringBitmap();
+    }
+    final int hbStart = Util.highbits(min);
+    final int hbLast = Util.highbits(max - 1);
+    final int lbStart = Util.lowbits(min);
+    final int lbLast = Util.lowbits(max - 1) + 1;
+
+    RoaringArray array = new RoaringArray(hbLast - hbStart + 1);
+    RoaringBitmap bitmap = new RoaringBitmap(array);
+
+    int firstEnd = hbStart < hbLast ? 1 << 16 : lbLast;
+    Container firstContainer = RunContainer.rangeOfOnes(lbStart, firstEnd);
+    bitmap.append((char) hbStart, firstContainer);
+    if (hbStart < hbLast) {
+      int i = hbStart + 1;
+      while (i < hbLast) {
+        Container runContainer = RunContainer.rangeOfOnes(0, 1 << 16);
+        bitmap.append((char) i, runContainer);
+        i++;
+      }
+      Container lastContainer = RunContainer.rangeOfOnes(0, lbLast);
+      bitmap.append((char) hbLast, lastContainer);
+    }
     return bitmap;
   }
 
