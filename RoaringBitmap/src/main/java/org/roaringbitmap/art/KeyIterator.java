@@ -26,6 +26,10 @@ public class KeyIterator implements Iterator<byte[]> {
     return current.getKeyBytes();
   }
 
+  public long nextKey() {
+    return current.getKey();
+  }
+
   public long currentContainerIdx() {
     return current.getContainerIdx();
   }

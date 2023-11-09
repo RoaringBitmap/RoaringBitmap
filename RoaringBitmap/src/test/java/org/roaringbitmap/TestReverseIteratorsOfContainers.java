@@ -134,8 +134,8 @@ public class TestReverseIteratorsOfContainers {
       PeekableCharIterator pii = container.getReverseCharIterator();
       char c = (char) (2 * i);
       pii.advanceIfNeeded(c);
-      assertEquals(pii.peekNext(), 2 * i);
-      assertEquals(pii.next(), 2 * i);
+      assertEquals(2 * i, pii.peekNext());
+      assertEquals(2 * i, pii.next());
     }
   }
 

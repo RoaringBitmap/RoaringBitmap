@@ -224,11 +224,14 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       for(int pos = 0; pos < x.highLowContainer.size(); pos++) {
         int key = (x.highLowContainer.getKeyAtIndex(pos));
         key += container_offset;
+        if (key + 1 < 0 || key > 0xFFFF) {
+          continue;
+        }
         Container c = x.highLowContainer.getContainerAtIndex(pos);
         Container[] offsetted = Util.addOffset(c,
                 (char)in_container_offset);
-        boolean keyok = (key >= 0) && (key <= 0xFFFF);
-        boolean keypok = (key + 1 >= 0) && (key + 1 <= 0xFFFF);
+        boolean keyok = key >= 0;
+        boolean keypok = key + 1 <= 0xFFFF;
         if( !offsetted[0].isEmpty() && keyok) {
           int current_size = answer.highLowContainer.size();
           int lastkey = 0;
@@ -389,7 +392,6 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       if (s1 == s2) {
         final Container c1 = x1.highLowContainer.getContainerAtIndex(pos1);
         final Container c2 = x2.highLowContainer.getContainerAtIndex(pos2);
-        // TODO: could be made faster if we did not have to materialize container
         answer += c1.andCardinality(c2);
         ++pos1;
         ++pos2;
