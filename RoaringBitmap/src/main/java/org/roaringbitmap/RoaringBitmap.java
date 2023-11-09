@@ -562,14 +562,14 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       return new RoaringBitmap();
     }
     final int hbStart = Util.highbits(min);
-    final int hbLast = Util.highbits(max - 1);
     final int lbStart = Util.lowbits(min);
-    final int lbLast = Util.lowbits(max - 1) + 1;
+    final int hbLast = Util.highbits(max - 1);
+    final int lbLast = Util.lowbits(max - 1);
 
     RoaringArray array = new RoaringArray(hbLast - hbStart + 1);
     RoaringBitmap bitmap = new RoaringBitmap(array);
 
-    int firstEnd = hbStart < hbLast ? 1 << 16 : lbLast;
+    int firstEnd = hbStart < hbLast ? 1 << 16 : lbLast + 1;
     Container firstContainer = RunContainer.rangeOfOnes(lbStart, firstEnd);
     bitmap.append((char) hbStart, firstContainer);
     if (hbStart < hbLast) {
@@ -579,7 +579,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         bitmap.append((char) i, runContainer);
         i++;
       }
-      Container lastContainer = RunContainer.rangeOfOnes(0, lbLast);
+      Container lastContainer = RunContainer.rangeOfOnes(0, lbLast + 1);
       bitmap.append((char) hbLast, lastContainer);
     }
     return bitmap;
