@@ -511,7 +511,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
 
       @Override
       public boolean hasContainer() {
-        return 0 <= k & k < MutableRoaringArray.this.size;
+        return 0 <= k && k < MutableRoaringArray.this.size;
       }
 
       @Override

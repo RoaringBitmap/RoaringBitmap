@@ -929,7 +929,7 @@ public final class RangeBitmap {
               bits = low.bits;
             } else {
               bits = low.bits;
-              for (int i = 0; i < bits.length & i < high.bits.length; i++) {
+              for (int i = 0; i < Math.min(bits.length, high.bits.length); i++) {
                 bits[i] &= high.bits[i];
               }
             }
@@ -963,7 +963,7 @@ public final class RangeBitmap {
             } else if (high.full) {
               count += cardinalityInBitmapRange(low.bits, 0, remainder);
             } else {
-              for (int i = 0; i < low.bits.length & i < high.bits.length; i++) {
+              for (int i = 0; i < Math.min(low.bits.length, high.bits.length); i++) {
                 high.bits[i] &= low.bits[i];
               }
               count += cardinalityInBitmapRange(high.bits, 0, remainder);
@@ -1001,7 +1001,7 @@ public final class RangeBitmap {
               } else if (high.full) {
                 count += new BitmapContainer(low.bits, -1).andCardinality(container);
               } else {
-                for (int i = 0; i < low.bits.length & i < high.bits.length; i++) {
+                for (int i = 0; i < Math.min(low.bits.length, high.bits.length); i++) {
                   high.bits[i] &= low.bits[i];
                 }
                 count += new BitmapContainer(high.bits, -1).andCardinality(container);
@@ -1337,7 +1337,7 @@ public final class RangeBitmap {
     }
 
     public void and(MappeableContainer container) {
-      if (!empty & !container.isFull()) {
+      if (!empty && !container.isFull()) {
         container.andInto(bits);
         full = false;
       }
