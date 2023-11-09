@@ -1994,7 +1994,7 @@ public class TestRoaringBitmap {
             rb.add(i);
         }
 
-        for (int i = 1 << 31 + 3 * 65536; i < (1 << 31) + 4 * 65536; i += 5) {
+        for (int i = (1 << 31) + 3 * 65536; i < (1 << 31) + 4 * 65536; i += 5) {
             hs.add(i);
             rb2.add(i);
         }
