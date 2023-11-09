@@ -85,7 +85,6 @@ public final class MappeableArrayContainer extends MappeableContainer implements
    * @param lastOfRun last index (range is exclusive)
    */
   public MappeableArrayContainer(final int firstOfRun, final int lastOfRun) {
-    // TODO: this can be optimized for performance
     final int valuesInRange = lastOfRun - firstOfRun;
     content = CharBuffer.allocate(valuesInRange);
     char[] sarray = content.array();
@@ -131,7 +130,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) (end - 1));
+    int indexend = BufferUtil.unsignedBinarySearch(content, indexstart, cardinality,
+        (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {
@@ -589,7 +589,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) (end - 1));
+    int indexend = BufferUtil.unsignedBinarySearch(content, indexstart, cardinality,
+        (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {
@@ -682,10 +683,20 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
 
-  // Note it is never inplace, may wish to fix
   @Override
   public MappeableContainer iand(final MappeableRunContainer value2) {
-    return value2.and(this);
+    PeekableCharIterator it = value2.getCharIterator();
+    int removed = 0;
+    for (int i = 0; i < cardinality; i++) {
+      it.advanceIfNeeded(content.get(i));
+      if (it.peekNext() == content.get(i)) {
+        content.put(i - removed, content.get(i));
+      } else {
+        removed++;
+      }
+    }
+    cardinality -= removed;
+    return this;
   }
 
   @Override
@@ -722,8 +733,19 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
   @Override
-  public MappeableContainer iandNot(final MappeableRunContainer value2) { // not inplace, revisit?
-    return andNot(value2);
+  public MappeableContainer iandNot(final MappeableRunContainer value2) {
+    PeekableCharIterator it = value2.getCharIterator();
+    int removed = 0;
+    for (int i = 0; i < cardinality; i++) {
+      it.advanceIfNeeded(content.get(i));
+      if (it.peekNext() != content.get(i)) {
+        content.put(i - removed, content.get(i));
+      } else {
+        removed++;
+      }
+    }
+    cardinality -= removed;
+    return this;
   }
 
   private void increaseCapacity() {
@@ -734,9 +756,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   // the illegal container does not return it.
   // not thread safe!
   private void increaseCapacity(boolean allowIllegalSize) {
-    int len = this.content.limit();
-    int newCapacity = (len == 0) ? DEFAULT_INIT_SIZE
-        : len < 64 ? len * 2 : this.content.limit() < 1067 ? len * 3 / 2 : len * 5 / 4;
+    int newCapacity = calculateCapacity();
     // do not allocate more than we will ever need
     if (newCapacity > MappeableArrayContainer.DEFAULT_MAX_SIZE && !allowIllegalSize) {
       newCapacity = MappeableArrayContainer.DEFAULT_MAX_SIZE;
@@ -752,10 +772,15 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     this.content = newContent;
   }
 
-  private int calculateCapacity(int min){
+  private int calculateCapacity() {
     int len = this.content.limit();
     int newCapacity = (len == 0) ? DEFAULT_INIT_SIZE
-        : len < 64 ? len * 2 : len < 1024 ? len * 3 / 2 : len * 5 / 4;
+        : len < 64 ? len * 2 : len < 1067 ? len * 3 / 2 : len * 5 / 4;
+    return newCapacity;
+  }
+
+  private int calculateCapacity(int min){
+    int newCapacity = calculateCapacity();
     if (newCapacity < min) {
       newCapacity = min;
     }
@@ -780,7 +805,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       startIndex = -startIndex - 1;
     }
     int lastIndex =
-        BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) (lastOfRange - 1));
+        BufferUtil.unsignedBinarySearch(content, startIndex, cardinality, (char) (lastOfRange - 1));
     if (lastIndex < 0) {
       lastIndex = -lastIndex - 1 - 1;
     }
@@ -941,7 +966,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) (end - 1));
+    int indexend = BufferUtil.unsignedBinarySearch(content, indexstart, cardinality,
+        (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {
@@ -1071,7 +1097,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       startIndex = -startIndex - 1;
     }
     int lastIndex =
-        BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) (lastOfRange - 1));
+        BufferUtil.unsignedBinarySearch(content, startIndex, cardinality, (char) (lastOfRange - 1));
     if (lastIndex < 0) {
       lastIndex = -lastIndex - 2;
     }
@@ -1377,7 +1403,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) (end - 1));
+    int indexend = BufferUtil.unsignedBinarySearch(content, indexstart, cardinality,
+        (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {

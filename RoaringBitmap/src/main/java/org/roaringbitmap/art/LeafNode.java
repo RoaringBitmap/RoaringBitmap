@@ -136,4 +136,8 @@ public class LeafNode extends Node {
   public byte[] getKeyBytes() {
     return LongUtils.highPart(key);
   }
+
+  public long getKey() {
+    return key >>> 16;
+  }
 }

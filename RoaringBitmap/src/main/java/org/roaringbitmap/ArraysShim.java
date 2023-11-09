@@ -48,17 +48,14 @@ public class ArraysShim {
     int aLength = aToIndex - aFromIndex;
     int bLength = bToIndex - bFromIndex;
     int length = Math.min(aLength, bLength);
-    int i = 0;
-    boolean foundMismatch = false;
-    for (; i < length; i++) {
+    for (int i = 0; i < length; i++) {
       if (a[aFromIndex + i] != b[bFromIndex + i]) {
-        foundMismatch = true;
-        break;
+        return i;
       }
     }
-    if (!foundMismatch && aLength == bLength) {
-      return -1;
+    if (aLength != bLength) {
+      return length;
     }
-    return (!foundMismatch && aLength != bLength) ? length : i;
+    return -1;
   }
 }

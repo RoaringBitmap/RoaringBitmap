@@ -3965,4 +3965,19 @@ public class TestRoaringBitmap {
     }
   }
 
+
+
+    @Test
+    public void test1235() {
+        MutableRoaringBitmap r = MutableRoaringBitmap.bitmapOf(1, 2, 3, 5);
+        r.flip(4);
+        assertEquals(r,  MutableRoaringBitmap.bitmapOf(1, 2, 3, 4, 5));
+    }
+
+    @Test
+    public void test2345() {
+        MutableRoaringBitmap r = MutableRoaringBitmap.bitmapOf(1, 2, 3, 4, 5);
+        r.flip(1);
+        assertEquals(r,  MutableRoaringBitmap.bitmapOf(2, 3, 4, 5));
+    }
 }

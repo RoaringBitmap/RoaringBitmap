@@ -30,9 +30,10 @@ public abstract class AbstractShuttle implements Shuttle {
   public void initShuttleFrom(long key) {
     depth = -1; // reset
     byte[] high = LongUtils.highPart(key);
+    long highAsLong = LongUtils.rightShiftHighPart(key);
     visitToLeafFrom(high, 0, art.getRoot());
     // If the target container doesn't exist, we may end up in the previous existing leaf here
-    if (currentBeforeHigh(getCurrentLeafNode().getKeyBytes(), high)) {
+    if (currentBeforeHigh(getCurrentLeafNode().getKey(), highAsLong)) {
       // Move the following leaf instead
       hasRun = true; // make it actually move
       moveToNextLeaf();
@@ -40,7 +41,7 @@ public abstract class AbstractShuttle implements Shuttle {
     hasRun = false; // reset
   }
 
-  protected abstract boolean currentBeforeHigh(byte[] current, byte[] high);
+  protected abstract boolean currentBeforeHigh(long current, long high);
 
   @Override
   public boolean moveToNextLeaf() {
