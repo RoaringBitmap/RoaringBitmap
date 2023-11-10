@@ -397,6 +397,9 @@ public final class FastAggregation {
       Arrays.fill(words, -1L);
       Container tmp = new BitmapContainer(words, -1);
       for (Container container : slice) {
+        // We only assign to 'tmp' when 'tmp != tmp.iand(container)'
+        // as a garbage-collection optimization: we want to avoid
+        // the write barrier. (Richard Startin)
         Container and = tmp.iand(container);
         if (and != tmp) {
           tmp = and;
@@ -445,6 +448,9 @@ public final class FastAggregation {
           continue;
         }
         Container container = bitmap.highLowContainer.getContainerAtIndex(index);
+        // We only assign to 'tmp' when 'tmp != tmp.iand(container)'
+        // as a garbage-collection optimization: we want to avoid
+        // the write barrier. (Richard Startin)
         Container and = tmp.iand(container);
         if (and != tmp) {
           tmp = and;
@@ -553,6 +559,9 @@ public final class FastAggregation {
           continue;
         }
         Container container = bitmap.highLowContainer.getContainerAtIndex(idx);
+        // We only assign to 'tmp' when 'tmp != tmp.iand(container)'
+        // as a garbage-collection optimization: we want to avoid
+        // the write barrier. (Richard Startin)
         Container and = tmp.iand(container);
         if (and != tmp) {
           tmp = and;

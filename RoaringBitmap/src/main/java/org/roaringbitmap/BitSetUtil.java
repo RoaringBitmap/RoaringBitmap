@@ -7,6 +7,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.BitSet;
 
+import static java.lang.Long.numberOfTrailingZeros;
+
 
 /***
  * This class provides convenience functions to manipulate BitSet and RoaringBitmap objects.
@@ -50,8 +52,18 @@ public class BitSetUtil {
     return new BitSet[]{bitSetPositive, bitSetNegative};
   }
 
-  private static ArrayContainer arrayContainerOf(final int from, final int to,
-      final int cardinality, final long[] words) {
+  /**
+   * Creates array container's content char buffer.
+   *
+   * @param from        first value of the range
+   * @param to          last value of the range
+   * @param cardinality new buffer cardinality, expected to be less than 4096 and more than present
+   *                    values in given bitmap
+   * @param words       bitmap
+   * @return array container's content char buffer
+   */
+  public static char[] arrayContainerBufferOf(final int from, final int to, final int cardinality,
+                                              final long[] words) {
     // precondition: cardinality is max 4096
     final char[] content = new char[cardinality];
     int index = 0;
@@ -59,12 +71,16 @@ public class BitSetUtil {
     for (int i = from, socket = 0; i < to; ++i, socket += Long.SIZE) {
       long word = words[i];
       while (word != 0) {
-        long t = word & -word;
-        content[index++] = (char) (socket + Long.bitCount(t - 1));
-        word ^= t;
+        content[index++] = (char) (socket + numberOfTrailingZeros(word));
+        word &= (word - 1);
       }
     }
-    return new ArrayContainer(content);
+    return content;
+  }
+
+  private static ArrayContainer arrayContainerOf(final int from, final int to,
+                                                 final int cardinality, final long[] words) {
+    return new ArrayContainer(arrayContainerBufferOf(from, to, cardinality, words));
   }
 
 
