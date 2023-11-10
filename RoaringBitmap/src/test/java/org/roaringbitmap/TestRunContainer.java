@@ -3165,7 +3165,7 @@ public class TestRunContainer {
     rc.add((char) 13);
     assertTrue(rc.contains((char) 13));
 
-    rc.ensureCapacity(10);
+    rc.ensureCapacity(0, 10);
     assertTrue(rc.contains((char) 13));
   }
 

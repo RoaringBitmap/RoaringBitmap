@@ -34,7 +34,7 @@ public class TestIntIteratorFlyweight {
   }
 
   private static int[] takeSortedAndDistinct(Random source, int count) {
-    LinkedHashSet<Integer> ints = new LinkedHashSet<Integer>(count);
+    LinkedHashSet<Integer> ints = new LinkedHashSet<>(count);
     for (int size = 0; size < count; size++) {
       int next;
       do {
@@ -43,8 +43,7 @@ public class TestIntIteratorFlyweight {
     }
     // we add a range of continuous values
     for(int k = 1000; k < 10000; ++k) {
-      if(!ints.contains(k))
-        ints.add(k);
+      ints.add(k);
     }
     int[] unboxed = Ints.toArray(ints);
     Arrays.sort(unboxed);
@@ -69,7 +68,7 @@ public class TestIntIteratorFlyweight {
 
   @Test
   public void testIteration() {
-    final Random source = new Random(0xcb000a2b9b5bdfb6l);
+    final Random source = new Random(0xcb000a2b9b5bdfb6L);
     final int[] data = takeSortedAndDistinct(source, 450000);
     MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(data);
 
@@ -106,7 +105,7 @@ public class TestIntIteratorFlyweight {
 
   @Test
   public void testIterationFromBitmap() {
-    final Random source = new Random(0xcb000a2b9b5bdfb6l);
+    final Random source = new Random(0xcb000a2b9b5bdfb6L);
     final int[] data = takeSortedAndDistinct(source, 450000);
     MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(data);
 
@@ -121,8 +120,8 @@ public class TestIntIteratorFlyweight {
       iter2.advanceIfNeeded(data[k]);
       j.advanceIfNeeded(data[k]);
       j.advanceIfNeeded(data[k]);
-      assertEquals(j.peekNext(),data[k]);
-      assertEquals(iter2.peekNext(),data[k]);
+      assertEquals(data[k], j.peekNext());
+      assertEquals(data[k], iter2.peekNext());
     }
 
 
@@ -142,7 +141,7 @@ public class TestIntIteratorFlyweight {
 
   @Test
   public void testIterationFromBitmapClone() {
-    final Random source = new Random(0xcb000a2b9b5bdfb6l);
+    final Random source = new Random(0xcb000a2b9b5bdfb6L);
     final int[] data = takeSortedAndDistinct(source, 450000);
     MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(data);
 
@@ -162,11 +161,11 @@ public class TestIntIteratorFlyweight {
 
   @Test
   public void testIteration1() {
-    final Random source = new Random(0xcb000a2b9b5bdfb6l);
+    final Random source = new Random(0xcb000a2b9b5bdfb6L);
     final int[] data1 = takeSortedAndDistinct(source, 450000);
     final int[] data = Arrays.copyOf(data1, data1.length + 50000);
 
-    LinkedHashSet<Integer> data1Members = new LinkedHashSet<Integer>();
+    LinkedHashSet<Integer> data1Members = new LinkedHashSet<>();
     for (int i : data1) {
       data1Members.add(i);
     }
