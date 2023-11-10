@@ -14,6 +14,7 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Optional;
 
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
 import static org.roaringbitmap.Util.*;
@@ -762,22 +763,33 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   // Push all values length to the end of the array (resize array if needed)
   private void copyToOffset(int offset) {
-    final int minCapacity = 2 * (offset + nbrruns);
-    if (valueslength.capacity() < minCapacity) {
+    int minCapacity = 2 * (offset + nbrruns);
+    Optional<CharBuffer> newvalueslength = computeNewCapacity(valueslength.capacity(), minCapacity);
+    if (newvalueslength.isPresent()) {
       // expensive case where we need to reallocate
-      int newCapacity = valueslength.capacity();
-      while (newCapacity < minCapacity) {
-        newCapacity = (newCapacity == 0) ? DEFAULT_INIT_SIZE
-            : newCapacity < 64 ? newCapacity * 2
-                : newCapacity < 1024 ? newCapacity * 3 / 2 : newCapacity * 5 / 4;
-      }
-      CharBuffer newvalueslength = CharBuffer.allocate(newCapacity);
-      copyValuesLength(this.valueslength, 0, newvalueslength, offset, nbrruns);
-      this.valueslength = newvalueslength;
+      copyValuesLength(this.valueslength, 0, newvalueslength.get(), offset, nbrruns);
+      this.valueslength = newvalueslength.get();
     } else {
       // efficient case where we just copy
       copyValuesLength(this.valueslength, 0, this.valueslength, offset, nbrruns);
     }
+  }
+
+  private static Optional<CharBuffer> computeNewCapacity(int oldCapacity, int minCapacity) {
+    if (oldCapacity < minCapacity) {
+      int newCapacity = oldCapacity;
+      while ((newCapacity = computeNewCapacity(newCapacity)) < minCapacity) {
+      }
+      return Optional.of(CharBuffer.allocate(newCapacity));
+    }
+    return Optional.empty();
+  }
+
+  private static int computeNewCapacity(int oldCapacity) {
+    return oldCapacity == 0 ? DEFAULT_INIT_SIZE
+        : oldCapacity < 64 ? oldCapacity * 2
+        : oldCapacity < 1024 ? oldCapacity * 3 / 2
+        : oldCapacity * 5 / 4;
   }
 
   private void copyValuesLength(CharBuffer src, int srcIndex, CharBuffer dst, int dstIndex,
@@ -812,18 +824,11 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   // not thread safe!
   // not actually used anywhere, but potentially useful
   private void ensureCapacity(int minNbRuns) {
-    final int minCapacity = 2 * minNbRuns;
-    if (valueslength.capacity() < minCapacity) {
-      int newCapacity = valueslength.capacity();
-      while (newCapacity < minCapacity) {
-        newCapacity = (newCapacity == 0) ? DEFAULT_INIT_SIZE
-            : newCapacity < 64 ? newCapacity * 2
-                : newCapacity < 1024 ? newCapacity * 3 / 2 : newCapacity * 5 / 4;
-      }
-      final CharBuffer nv = CharBuffer.allocate(newCapacity);
+    Optional<CharBuffer> nv = computeNewCapacity(valueslength.capacity(), 2 * minNbRuns);
+    if (nv.isPresent()) {
       valueslength.rewind();
-      nv.put(valueslength);
-      valueslength = nv;
+      nv.get().put(valueslength);
+      valueslength = nv.get();
     }
   }
 
@@ -1003,8 +1008,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     int bIndex =
         bufferedUnsignedInterleavedBinarySearch(this.valueslength, 0, this.nbrruns, (char) begin);
-    int eIndex = bufferedUnsignedInterleavedBinarySearch(this.valueslength, 0, this.nbrruns,
-        (char) (end - 1));
+    int eIndex = bufferedUnsignedInterleavedBinarySearch(this.valueslength,
+          bIndex >= 0 ? bIndex : -bIndex - 1, this.nbrruns, (char) (end - 1));
 
     if (bIndex >= 0 && eIndex >= 0) {
       mergeValuesLength(bIndex, eIndex);
@@ -1165,11 +1170,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   // not thread safe!
   private void increaseCapacity() {
-    int newCapacity = (valueslength.capacity() == 0) ? DEFAULT_INIT_SIZE
-        : valueslength.capacity() < 64 ? valueslength.capacity() * 2
-            : valueslength.capacity() < 1024 ? valueslength.capacity() * 3 / 2
-                : valueslength.capacity() * 5 / 4;
-
+    int newCapacity = computeNewCapacity(valueslength.capacity());
     final CharBuffer nv = CharBuffer.allocate(newCapacity);
     valueslength.rewind();
     nv.put(valueslength);
@@ -1476,8 +1477,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
     int bIndex =
         bufferedUnsignedInterleavedBinarySearch(this.valueslength, 0, this.nbrruns, (char) begin);
-    int eIndex = bufferedUnsignedInterleavedBinarySearch(this.valueslength, 0, this.nbrruns,
-        (char) (end - 1));
+    int eIndex = bufferedUnsignedInterleavedBinarySearch(this.valueslength,
+          bIndex >= 0 ? bIndex : -bIndex - 1, this.nbrruns, (char) (end - 1));
 
     if (bIndex >= 0) {
       if (eIndex < 0) {
@@ -1802,15 +1803,18 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         break;
       }
     }
-
-    CharBuffer newBuf = CharBuffer.allocate(2 * (r + 1));
-    for (int i = 0; i < 2 * (r + 1); ++i) {
-      newBuf.put(valueslength.get(i)); // could be optimized
+    CharBuffer newBuf;
+    if (BufferUtil.isBackedBySimpleArray(valueslength)) {
+      char[] newArray = Arrays.copyOf(valueslength.array(), 2 * (r + 1));
+      newBuf = CharBuffer.wrap(newArray);
+    } else {
+      newBuf = CharBuffer.allocate(2 * (r + 1));
+      for (int i = 0; i < 2 * (r + 1); i++) {
+        newBuf.put(valueslength.get(i));
+      }
     }
     MappeableRunContainer rc = new MappeableRunContainer(newBuf, r + 1);
-
-    rc.setLength(r,
-        (char) ((rc.getLength(r)) - cardinality + maxcardinality));
+    rc.setLength(r, (char) (rc.getLength(r) - cardinality + maxcardinality));
     return rc;
   }
 
