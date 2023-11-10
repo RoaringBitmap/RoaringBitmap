@@ -11,7 +11,7 @@ public class LongUtils {
    * @return the high 48 bit
    */
   public static byte[] highPart(long num) {
-    byte[] high48 = new byte[]{
+    return new byte[]{
         (byte) ((num >>> 56) & 0xff),
         (byte) ((num >>> 48) & 0xff),
         (byte) ((num >>> 40) & 0xff),
@@ -19,7 +19,6 @@ public class LongUtils {
         (byte) ((num >>> 24) & 0xff),
         (byte) ((num >>> 16) & 0xff)
     };
-    return high48;
   }
 
   /**
@@ -40,16 +39,26 @@ public class LongUtils {
    * @return the long data
    */
   public static long toLong(byte[] high, char low) {
-    byte byte6 = (byte) (low >>> 8 & 0xFFL);
-    byte byte7 = (byte) low;
-    return (high[0] & 0xFFL) << 56
-        | (high[1] & 0xFFL) << 48
-        | (high[2] & 0xFFL) << 40
-        | (high[3] & 0xFFL) << 32
-        | (high[4] & 0xFFL) << 24
-        | (high[5] & 0xFFL) << 16
-        | (byte6 & 0xFFL) << 8
-        | (byte7 & 0xFFL);
+    return toLong(high) << 16 | low;
+  }
+
+  /**
+   * Reconstruct the long data.
+   *
+   * @param high the high 48 bit
+   * @return the long data
+   */
+  public static long toLong(byte[] high) {
+    return (high[0] & 0xFFL) << 40
+        | (high[1] & 0xFFL) << 32
+        | (high[2] & 0xFFL) << 24
+        | (high[3] & 0xFFL) << 16
+        | (high[4] & 0xFFL) << 8
+        | (high[5] & 0xFFL);
+  }
+
+  public static long toLong(long high, char low) {
+    return high << 16 | low;
   }
 
   /**
@@ -86,36 +95,6 @@ public class LongUtils {
         | (long) (work[5] & 0xff) << 16
         | (long) (work[6] & 0xff) << 8
         | (long) (work[7] & 0xff);
-  }
-
-  /**
-   * compare according to the dictionary order
-   *
-   * @param a a byte array
-   * @param b another byte array
-   * @return 1 indicates a greater than b,0 indicates equal,-1 indicates a smaller than b
-   */
-  public static int compareHigh(byte[] a, byte[] b) {
-    return compareTo(a, 0, a.length, b, 0, b.length);
-  }
-
-  private static int compareTo(byte[] buffer1, int offset1, int length1,
-      byte[] buffer2, int offset2, int length2) {
-    if (buffer1 == buffer2
-        && offset1 == offset2
-        && length1 == length2) {
-      return 0;
-    }
-    int end1 = offset1 + length1;
-    int end2 = offset2 + length2;
-    for (int i = offset1, j = offset2; i < end1 && j < end2; i++, j++) {
-      int a = (buffer1[i] & 0xff);
-      int b = (buffer2[j] & 0xff);
-      if (a != b) {
-        return a - b;
-      }
-    }
-    return length1 - length2;
   }
 
   /**
@@ -171,15 +150,10 @@ public class LongUtils {
    * checks if given high48 is the maximum possible one
    * (e.g. it is the case for -1L, which is the maximum unsigned long)
    *
-   * @param high48 the byte array
+   * @param key long
    * @return true if this the maximum high part
    */
-  public static boolean isMaxHigh(byte[] high48) {
-    return high48[0] == -1
-            && high48[1] == -1
-            && high48[2] == -1
-            && high48[3] == -1
-            && high48[4] == -1
-            && high48[5] == -1;
+  public static boolean isMaxHigh(long key) {
+    return (key & 0xFF_FF_FF_FF_FF_FFL) == 0xFF_FF_FF_FF_FF_FFL;
   }
 }

@@ -169,10 +169,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public Container and(final BitmapContainer value2) {
-    int newCardinality = 0;
-    for (int k = 0; k < this.bitmap.length; ++k) {
-      newCardinality += Long.bitCount(this.bitmap[k] & value2.bitmap[k]);
-    }
+    int newCardinality = andCardinality(value2);
     if (newCardinality > ArrayContainer.DEFAULT_MAX_SIZE) {
       final BitmapContainer answer = new BitmapContainer();
       for (int k = 0; k < answer.bitmap.length; ++k) {
@@ -557,10 +554,7 @@ public final class BitmapContainer extends Container implements Cloneable {
       }
       return this;
     } else {
-      int newCardinality = 0;
-      for (int k = 0; k < this.bitmap.length; ++k) {
-        newCardinality += Long.bitCount(this.bitmap[k] & b2.bitmap[k]);
-      }
+      int newCardinality = andCardinality(b2);
       if (newCardinality > ArrayContainer.DEFAULT_MAX_SIZE) {
         for (int k = 0; k < this.bitmap.length; ++k) {
           this.bitmap[k] = this.bitmap[k] & b2.bitmap[k];
@@ -1770,19 +1764,22 @@ class BitmapContainerCharIterator implements PeekableCharIterator {
 
   @Override
   public void advanceIfNeeded(char minval) {
-    if ((minval) >= (x + 1) * 64) {
-      x = (minval) / 64;
-      w = bitmap[x];
+    if (!hasNext()) {
+      return;
+    }
+    if (minval >= x * 64) {
+      if (minval >= (x + 1) * 64) {
+        x = minval / 64;
+        w = bitmap[x];
+      }
+      w &= ~0L << (minval & 63);
       while (w == 0) {
-        ++x;
-        if (x == bitmap.length) {
+        x++;
+        if (!hasNext()) {
           return;
         }
         w = bitmap[x];
       }
-    }
-    while (hasNext() && ((peekNext()) < (minval))) {
-      next(); // could be optimized
     }
   }
 
@@ -1813,28 +1810,29 @@ final class BitmapContainerCharRankIterator extends BitmapContainerCharIterator
 
   @Override
   public void advanceIfNeeded(char minval) {
-    if ((minval) >= (x + 1) * 64) {
-
-      int nextX = (minval) / 64;
-      nextRank += bitCount(w);
-      for(x = x + 1; x < nextX; ++x) {
-        w = bitmap[x];
+    if (!hasNext()) {
+      return;
+    }
+    if (minval >= x * 64) {
+      if (minval >= (x + 1) * 64) {
+        int nextX = minval / 64;
         nextRank += bitCount(w);
+        for(x = x + 1; x < nextX; x++) {
+          w = bitmap[x];
+          nextRank += bitCount(w);
+        }
+        w = bitmap[nextX];
       }
-
-      x = nextX;
-      w = bitmap[x];
-
+      nextRank += bitCount(w);
+      w &= ~0L << (minval & 63);
+      nextRank -= bitCount(w);
       while (w == 0) {
         ++x;
-        if (x == bitmap.length) {
+        if (!hasNext()) {
           return;
         }
         w = bitmap[x];
       }
-    }
-    while (hasNext() && ((peekNext()) < (minval))) {
-      next(); // could be optimized
     }
   }
 
@@ -1895,19 +1893,22 @@ final class ReverseBitmapContainerCharIterator implements PeekableCharIterator {
   
   @Override
   public void advanceIfNeeded(char maxval) {
-    if ((maxval) <= (position - 1) * 64) {
-      position = (maxval) / 64;
-      word = bitmap[position];
-      while (word == 0) {
-        --position;
-        if (position == 0) {
-          break;
-        }
-        word = bitmap[position];
+    if (maxval < (position + 1) * 64) {
+      if (maxval < position * 64) {
+        position = maxval / 64;
       }
-    }
-    while (hasNext() && ((peekNext()) > (maxval))) {
-      next(); // could be optimized
+      long currentWord = bitmap[position];
+      currentWord &= ~0L >>> (63 - (maxval & 63));
+      if (position > 0) {
+        while (currentWord == 0) {
+          position--;
+          if (position == 0) {
+            break;
+          }
+          currentWord = bitmap[position];
+        }
+      }
+      word = currentWord;
     }
   }
 
