@@ -81,7 +81,6 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
    * @param lastOfRun last index (range is exclusive)
    */
   public MappeableBitmapContainer(final int firstOfRun, final int lastOfRun) {
-    // TODO: this can be optimized for performance
     this.cardinality = lastOfRun - firstOfRun;
     this.bitmap = LongBuffer.allocate(MAX_CAPACITY / 64);
     Util.setBitmapRange(bitmap.array(), firstOfRun, lastOfRun);
@@ -2191,21 +2190,23 @@ final class MappeableBitmapContainerCharIterator implements PeekableCharIterator
 
   @Override
   public void advanceIfNeeded(char minval) {
-    if (minval >= (x + 1) * 64) {
-      x = minval >>> 6;
-      w = parent.bitmap.get(x);
+    if (!hasNext()) {
+      return;
+    }
+    if (minval >= x * 64) {
+      if (minval >= (x + 1) * 64) {
+        x = minval / 64;
+        w = parent.bitmap.get(x);
+      }
+      w &= ~0L << (minval & 63);
       while (w == 0) {
-        ++x;
+        x++;
         if (x == len) {
           return;
         }
         w = parent.bitmap.get(x);
       }
     }
-    while (hasNext() && (peekNext() < minval)) {
-      next(); // could be optimized
-    }
-
   }
 
   @Override
