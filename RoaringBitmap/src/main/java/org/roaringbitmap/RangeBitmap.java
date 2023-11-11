@@ -679,7 +679,7 @@ public final class RangeBitmap {
     private void evaluateHorizontalSliceRange(long remaining, long threshold, long containerMask) {
       // most significant absent bit in the threshold for which there is no container;
       // everything before this is wasted work, so we just skip over the containers
-      int skip = 64 - Long.numberOfLeadingZeros(((~threshold & ~containerMask) & mask));
+      int skip = 64 - Long.numberOfLeadingZeros((~(threshold | containerMask) & mask));
       int slice = 0;
       if (skip > 0) {
         for (; slice < skip; ++slice) {
@@ -1019,13 +1019,13 @@ public final class RangeBitmap {
                                          long upper) {
       // most significant absent bit in the threshold for which there is no container;
       // everything before this is wasted work, so we just skip over the containers
-      int skipLow = 64 - Long.numberOfLeadingZeros(((~lower & ~containerMask) & mask));
+      int skipLow = 64 - Long.numberOfLeadingZeros((~(lower | containerMask) & mask));
       if (skipLow == 64) {
         lower = 0L;
       } else if (skipLow > 0) {
         lower &= -(1L << skipLow);
       }
-      int skipHigh = 64 - Long.numberOfLeadingZeros(((~upper & ~containerMask) & mask));
+      int skipHigh = 64 - Long.numberOfLeadingZeros((~(upper | containerMask) & mask));
       if (skipHigh == 64) {
         upper = 0L;
       } else if (skipHigh > 0) {
