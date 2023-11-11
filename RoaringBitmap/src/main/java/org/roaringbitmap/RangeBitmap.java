@@ -1609,7 +1609,7 @@ public final class RangeBitmap {
      */
     private static long rangeMask(long maxValue) {
       int lz = Long.numberOfLeadingZeros(maxValue | 1);
-      return lz == 0 ? -1L : (1L << (64 - lz)) - 1;
+      return -1L >>> lz;
     }
 
     private static byte bytesPerMask(long maxValue) {

@@ -1054,4 +1054,31 @@ public class RangeBitmapTest {
 
     abstract LongSupplier of(long seed, double... params);
   }
+
+  private static long rangeMaskOriginal(long maxValue) {
+    int lz = Long.numberOfLeadingZeros(maxValue | 1);
+    return lz == 0 ? -1L : (1L << (64 - lz)) - 1;
+  }
+
+  private static long rangeMaskOptimized(long maxValue) {
+    int lz = Long.numberOfLeadingZeros(maxValue | 1);
+    return -1L >>> lz;
+  }
+
+  @Test
+  public void rangeMaskRandom() {
+    Random r = new Random(0);
+    for (int i = 0; i < 10_000; i++) {
+      long value = r.nextLong();
+      assertEquals(rangeMaskOriginal(value), rangeMaskOptimized(value));
+    }
+  }
+  @Test
+  public void rangeMaskExpressionSimplification() {
+    for (int lz = 0; lz < 64; lz++) {
+      long original = lz == 0 ? -1L : (1L << (64 - lz)) - 1;
+      long simplified = -1L >>> lz;
+      assertEquals(Long.toBinaryString(original), Long.toBinaryString(simplified), "lz=" + lz);
+    }
+  }
 }
