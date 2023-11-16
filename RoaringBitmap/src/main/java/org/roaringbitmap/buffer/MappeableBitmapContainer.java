@@ -1700,7 +1700,17 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     int leftover = j;
     if (BufferUtil.isBackedBySimpleArray(this.bitmap)) {
       long[] b = this.bitmap.array();
-
+      if (//cardinality != -1 && // omitted as (-1>>>1) > j as j < (1<<16)
+          cardinality >>> 1 < j && j < cardinality) {
+        int rightover = cardinality - j;
+        for (int k = b.length - 1; k >= 0; --k) {
+          int w = Long.bitCount(b[k]);
+          if (w >= rightover) {
+            return (char) (k * 64 + Util.select(b[k], w - rightover));
+          }
+          rightover -= w;
+        }
+      }
       for (int k = 0; k < b.length; ++k) {
         int w = Long.bitCount(b[k]);
         if (w > leftover) {
@@ -1710,6 +1720,17 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       }
     } else {
       int len = this.bitmap.limit();
+      if (//cardinality != -1 && // (-1>>>1) > j as j < (1<<16)
+          cardinality >>> 1 < j && j < cardinality) {
+        int rightover = cardinality - j;
+        for (int k = len - 1; k >= 0; --k) {
+          int w = Long.bitCount(bitmap.get(k));
+          if (w >= rightover) {
+            return (char) (k * 64 + Util.select(bitmap.get(k), w - rightover));
+          }
+          rightover -= w;
+        }
+      }
       for (int k = 0; k < len; ++k) {
         long X = bitmap.get(k);
         int w = Long.bitCount(X);

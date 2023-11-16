@@ -1255,13 +1255,25 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public char select(int j) {
-    int leftover = j;
-    for (int k = 0; k < bitmap.length; ++k) {
-      int w = Long.bitCount(bitmap[k]);
-      if (w > leftover) {
-        return (char) (k * 64 + Util.select(bitmap[k], leftover));
+    if (//cardinality != -1 && // omitted as (-1>>>1) > j as j < (1<<16)
+        cardinality >>> 1 < j && j < cardinality) {
+      int rightover = cardinality - j;
+      for (int k = bitmap.length - 1; k >= 0; --k) {
+        int w = Long.bitCount(bitmap[k]);
+        if (w >= rightover) {
+          return (char) (k * 64 + Util.select(bitmap[k], w - rightover));
+        }
+        rightover -= w;
       }
-      leftover -= w;
+    } else {
+      int leftover = j;
+      for (int k = 0; k < bitmap.length; ++k) {
+        int w = Long.bitCount(bitmap[k]);
+        if (w > leftover) {
+          return (char) (k * 64 + Util.select(bitmap[k], leftover));
+        }
+        leftover -= w;
+      }
     }
     throw new IllegalArgumentException("Insufficient cardinality.");
   }
