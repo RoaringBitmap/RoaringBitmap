@@ -1704,19 +1704,25 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
           cardinality >>> 1 < j && j < cardinality) {
         int rightover = cardinality - j;
         for (int k = b.length - 1; k >= 0; --k) {
-          int w = Long.bitCount(b[k]);
-          if (w >= rightover) {
-            return (char) (k * 64 + Util.select(b[k], w - rightover));
+          long w = b[k];
+          if (w != 0) {
+            int bits = Long.bitCount(w);
+            if (bits >= rightover) {
+              return (char) (k * 64 + Util.select(w, bits - rightover));
+            }
+            rightover -= bits;
           }
-          rightover -= w;
         }
       }
       for (int k = 0; k < b.length; ++k) {
-        int w = Long.bitCount(b[k]);
-        if (w > leftover) {
-          return (char) (k * 64 + Util.select(b[k], leftover));
+        long w = b[k];
+        if (w != 0) {
+          int bits = Long.bitCount(w);
+          if (bits > leftover) {
+            return (char) (k * 64 + Util.select(w, leftover));
+          }
+          leftover -= bits;
         }
-        leftover -= w;
       }
     } else {
       int len = this.bitmap.limit();
