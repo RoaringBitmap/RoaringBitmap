@@ -1419,10 +1419,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         s1 = pos1 < length1 ? highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
         s2 = pos2 < length2 ? other.highLowContainer.getKeyAtIndex(pos2) : maxKey + 1;
       } else if (key == s1) { // or in a hole
-        newValues[size] = highLowContainer.getContainerAtIndex(pos1)
-                .ior(key == maxKey
-                  ? RunContainer.rangeOfOnes(0, lastRun)
-                  : RunContainer.full());
+        newValues[size] = key == maxKey
+            ? highLowContainer.getContainerAtIndex(pos1).ior(
+            RunContainer.rangeOfOnes(0, lastRun))
+            : RunContainer.full();
         ++pos1;
         s1 = pos1 < length1 ? highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
       } else if (key == s2) { // insert the complement
@@ -1507,10 +1507,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         s1 = pos1 < length1 ? x1.highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
         s2 = pos2 < length2 ? x2.highLowContainer.getKeyAtIndex(pos2) : maxKey + 1;
       } else if (key == s1) { // or in a hole
-        newValues[size] = x1.highLowContainer.getContainerAtIndex(pos1)
-                .ior(key == maxKey
-                        ? RunContainer.rangeOfOnes(0, lastRun)
-                        : RunContainer.full());
+        newValues[size] = key == maxKey
+            ? x1.highLowContainer.getContainerAtIndex(pos1).ior(
+            RunContainer.rangeOfOnes(0, lastRun))
+            : RunContainer.full();
         ++pos1;
         s1 = pos1 < length1 ? x1.highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
       } else if (key == s2) { // insert the complement
