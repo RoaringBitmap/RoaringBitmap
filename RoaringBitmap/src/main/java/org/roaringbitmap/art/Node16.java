@@ -243,12 +243,6 @@ public class Node16 extends Node {
 
   @Override
   public void replaceChildren(Node[] children) {
-    int pos = this.getNextLargerPos(ILLEGAL_IDX);
-    int offset = 0;
-    while (pos != ILLEGAL_IDX) {
-      this.children[pos] = children[offset];
-      pos = this.getNextLargerPos(pos);
-      offset++;
-    }
+    System.arraycopy(children, 0, this.children, 0, count);
   }
 }
