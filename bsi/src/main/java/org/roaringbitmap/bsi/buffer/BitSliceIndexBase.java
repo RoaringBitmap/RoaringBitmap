@@ -318,14 +318,11 @@ public class BitSliceIndexBase {
     MutableRoaringBitmap F = ImmutableRoaringBitmap.or(G, E);
     long n = F.getLongCardinality() - k;
     if (n > 0) {
-      // TODO: make faster
       IntIterator i = F.getIntIterator();
-      MutableRoaringBitmap turnoff = new MutableRoaringBitmap();
       while (i.hasNext() && n > 0) {
-        turnoff.add(i.next());
+        F.remove(i.next());
         --n;
       }
-      F.andNot(turnoff);
     }
 
     if (F.getCardinality() != k)
