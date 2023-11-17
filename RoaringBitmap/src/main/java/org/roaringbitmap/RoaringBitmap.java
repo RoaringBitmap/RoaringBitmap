@@ -1640,8 +1640,12 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   @Override
   public boolean contains(final int x) {
     final char hb = Util.highbits(x);
-    final Container c = highLowContainer.getContainer(hb);
-    return c != null && c.contains(Util.lowbits(x));
+    int index = highLowContainer.getContainerIndex(hb);
+    if (index < 0) {
+      return false;
+    }
+    final Container c = highLowContainer.getContainerAtIndex(index);
+    return c.contains(Util.lowbits(x));
   }
 
   /**

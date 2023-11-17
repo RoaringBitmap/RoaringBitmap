@@ -663,15 +663,6 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     }
   }
 
-  // involves a binary search
-  protected Container getContainer(char x) {
-    int i = getContainerIndex(x);
-    if (i < 0) {
-      return null;
-    }
-    return this.values[i];
-  }
-
   protected int getContainerIndex(char x) {
     int i = this.binarySearch(0, size, x);
     return i;
