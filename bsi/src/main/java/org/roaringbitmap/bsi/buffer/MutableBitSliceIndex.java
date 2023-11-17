@@ -121,7 +121,7 @@ public class MutableBitSliceIndex extends BitSliceIndexBase implements BitmapSli
   public void addDigit(MutableRoaringBitmap foundSet, int i) {
     MutableRoaringBitmap carry = MutableRoaringBitmap.and(this.bA[i], foundSet);
     this.getMutableSlice(i).xor(foundSet);
-    if (carry.getCardinality() > 0) {
+    if (!carry.isEmpty()) {
       if (i + 1 >= this.bitCount()) {
         grow(this.bitCount() + 1);
       }
