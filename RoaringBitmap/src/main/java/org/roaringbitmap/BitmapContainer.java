@@ -1284,6 +1284,22 @@ public final class BitmapContainer extends Container implements Cloneable {
     throw new IllegalArgumentException("Insufficient cardinality.");
   }
 
+  /** TODO For comparison only, should be removed before merge.
+   *
+   * @param j ...
+   * @return ...
+   */
+  public char selectOneSide(int j) {
+    int leftover = j;
+    for (int k = 0; k < bitmap.length; ++k) {
+      int w = Long.bitCount(bitmap[k]);
+      if (w > leftover) {
+        return (char) (k * 64 + Util.select(bitmap[k], leftover));
+      }
+      leftover -= w;
+    }
+    throw new IllegalArgumentException("Insufficient cardinality.");
+  }
   @Override
   public void serialize(DataOutput out) throws IOException {
     // little endian
