@@ -1575,7 +1575,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     final MappeableArrayContainer value1 = this;
     final int totalCardinality = value1.getCardinality() + value2.getCardinality();
     if (totalCardinality > DEFAULT_MAX_SIZE) {
-      return toBitmapContainer().xor(value2);
+      return toBitmapContainer().ixor(value2);
     }
     final MappeableArrayContainer answer = new MappeableArrayContainer(totalCardinality);
     if (BufferUtil.isBackedBySimpleArray(value1.content)
