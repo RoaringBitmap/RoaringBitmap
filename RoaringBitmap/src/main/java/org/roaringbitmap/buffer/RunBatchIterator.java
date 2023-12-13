@@ -62,11 +62,11 @@ public final class RunBatchIterator implements ContainerBatchIterator {
     do {
       int runStart = runs.getValue(run);
       int runLength = runs.getLength(run);
-      int offset = target - runStart;
       if (runStart > target) {
         cursor = 0;
         break;
       }
+      int offset = target - runStart;
       if (offset <= runLength) {
         cursor = offset;
         break;

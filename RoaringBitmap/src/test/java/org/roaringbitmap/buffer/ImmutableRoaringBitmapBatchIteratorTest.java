@@ -198,8 +198,8 @@ public class ImmutableRoaringBitmapBatchIteratorTest {
     @ParameterizedTest
     @ValueSource(ints = {10, 11, 12, 13, 14, 15, 18, 20, 21, 23, 24})
     public void testBatchIteratorWithAdvancedIfNeededWithZeroLengthRun(int number) {
-       MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(10, 11, 12, 13, 14, 15, 18, 20, 21, 22, 23, 24);
-       bitmap.runOptimize();
+        MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(10, 11, 12, 13, 14, 15, 18, 20, 21, 22, 23, 24);
+        bitmap.runOptimize();
         BatchIterator it = bitmap.getBatchIterator();
         it.advanceIfNeeded(number);
         assertTrue(it.hasNext());

@@ -208,4 +208,5 @@ public class RoaringBitmapBatchIteratorTest {
         assertEquals(batch[1], (3 << 16) + 5);
         assertEquals(batch[2], (3 << 16) + 10);
     }
+
 }
