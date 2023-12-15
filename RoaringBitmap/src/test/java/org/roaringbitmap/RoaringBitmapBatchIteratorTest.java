@@ -8,7 +8,10 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -207,6 +210,21 @@ public class RoaringBitmapBatchIteratorTest {
         assertEquals(batch[0], 3 << 16);
         assertEquals(batch[1], (3 << 16) + 5);
         assertEquals(batch[2], (3 << 16) + 10);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {10, 11, 12, 13, 14, 15, 18, 20, 21, 23, 24})
+    public void testBatchIteratorWithAdvancedIfNeededWithZeroLengthRun(int number) {
+        RoaringBitmap bitmap = RoaringBitmap.bitmapOf(10, 11, 12, 13, 14, 15, 18, 20, 21, 22, 23, 24);
+        bitmap.runOptimize();
+        BatchIterator it = bitmap.getBatchIterator();
+        it.advanceIfNeeded(number);
+        assertTrue(it.hasNext());
+        int[] batch = new int[10];
+        int n = it.nextBatch(batch);
+        int i = Arrays.binarySearch(batch, 0, n, number);
+        assertTrue(i >= 0, "key " + number + " not found");
+        assertEquals(batch[i], number);
     }
 
 }
