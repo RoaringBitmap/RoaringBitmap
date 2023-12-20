@@ -1162,6 +1162,10 @@ public final class Util {
    * @param data - the data (sorted in place)
    */
   public static void partialRadixSort(int[] data) {
+    partialRadixSortWithLength(data, data.length);
+  }
+
+  public static void partialRadixSortWithLength(int[] data, int length) {
     int[] low = new int[257];
     int[] high = new int[257];
     for (int value : data) {
@@ -1169,12 +1173,12 @@ public final class Util {
       ++high[(value >>> 24) + 1];
     }
     // avoid passes over the data if it's not required
-    boolean sortLow = low[1] < data.length;
-    boolean sortHigh = high[1] < data.length;
+    boolean sortLow = low[1] < length;
+    boolean sortHigh = high[1] < length;
     if (!sortLow && !sortHigh) {
       return;
     }
-    int[] copy = new int[data.length];
+    int[] copy = new int[length];
     if (sortLow) {
       for (int i = 1; i < low.length; ++i) {
         low[i] += low[i - 1];
@@ -1195,10 +1199,10 @@ public final class Util {
         for (int value : data) {
           copy[high[value >>> 24]++] = value;
         }
-        System.arraycopy(copy, 0, data, 0, data.length);
+        System.arraycopy(copy, 0, data, 0, length);
       }
     } else {
-      System.arraycopy(copy, 0, data, 0, data.length);
+      System.arraycopy(copy, 0, data, 0, length);
     }
   }
   /**
