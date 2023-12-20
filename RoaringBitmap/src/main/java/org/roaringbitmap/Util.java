@@ -1153,6 +1153,7 @@ public final class Util {
   public static long toUnsignedLong(int x) {
     return ((long) x) & 0xffffffffL;
   }
+
   /**
    * Sorts the data by the 16 bit prefix using Radix sort.
    * The resulting data will be partially sorted if you just
@@ -1165,6 +1166,17 @@ public final class Util {
     partialRadixSortWithLength(data, data.length);
   }
 
+  /**
+   * Sorts the data by the 16 bit prefix using Radix sort.
+   * The resulting data will be partially sorted if you just
+   * take into account the most significant 16 bits. The least
+   * significant 16 bits are unsorted. Note that we treat int values
+   * as unsigned integers (from 0 to 2^32).
+   * Note that the length argument passed in is not checked.
+   *
+   * @param data - the data (sorted in place)
+   * @param length - the size of the data that needs to be sorted
+   */
   public static void partialRadixSortWithLength(int[] data, int length) {
     int[] low = new int[257];
     int[] high = new int[257];
