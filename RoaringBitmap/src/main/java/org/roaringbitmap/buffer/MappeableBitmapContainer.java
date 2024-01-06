@@ -1713,15 +1713,16 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
             rightover -= bits;
           }
         }
-      }
-      for (int k = 0; k < b.length; ++k) {
-        long w = b[k];
-        if (w != 0) {
-          int bits = Long.bitCount(w);
-          if (bits > leftover) {
-            return (char) (k * 64 + Util.select(w, leftover));
+      } else {
+        for (int k = 0; k < b.length; ++k) {
+          long w = b[k];
+          if (w != 0) {
+            int bits = Long.bitCount(w);
+            if (bits > leftover) {
+              return (char) (k * 64 + Util.select(w, leftover));
+            }
+            leftover -= bits;
           }
-          leftover -= bits;
         }
       }
     } else {
@@ -1736,14 +1737,15 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
           }
           rightover -= w;
         }
-      }
-      for (int k = 0; k < len; ++k) {
-        long X = bitmap.get(k);
-        int w = Long.bitCount(X);
-        if (w > leftover) {
-          return (char) (k * 64 + Util.select(X, leftover));
+      } else {
+        for (int k = 0; k < len; ++k) {
+          long X = bitmap.get(k);
+          int w = Long.bitCount(X);
+          if (w > leftover) {
+            return (char) (k * 64 + Util.select(X, leftover));
+          }
+          leftover -= w;
         }
-        leftover -= w;
       }
     }
     throw new IllegalArgumentException("Insufficient cardinality.");
