@@ -75,7 +75,7 @@ public final class RangeBitmap {
     }
     int sliceCount = source.get() & 0xFF;
     int maxKey = source.getChar();
-    long mask = sliceCount == 64 ? -1L : (1L << sliceCount) - 1;
+    long mask = -1L >>> (64 - sliceCount);
     byte bytesPerMask = (byte) ((sliceCount + 7) >>> 3);
     long maxRid = source.getInt() & 0xFFFFFFFFL;
     int masksOffset = source.position();

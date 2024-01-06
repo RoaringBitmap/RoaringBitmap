@@ -1081,4 +1081,29 @@ public class RangeBitmapTest {
       assertEquals(Long.toBinaryString(original), Long.toBinaryString(simplified), "lz=" + lz);
     }
   }
+
+  private static long rangeMaskOriginal2(long sliceCount) {
+    return sliceCount == 64 ? -1L : (1L << sliceCount) - 1;
+  }
+
+  private static long rangeMaskSimplified2(long sliceCount) {
+    return -1L >>> (64 - sliceCount);
+  }
+
+  @Test
+  public void rangeMaskRandom2() {
+    Random r = new Random(0);
+    for (int i = 0; i < 10_000; i++) {
+      long value = (r.nextLong() & 63) + 1; // 1-64 are valid only
+      assertEquals(rangeMaskOriginal2(value), rangeMaskSimplified2(value), "" + value);
+    }
+  }
+  @Test
+  public void rangeMaskExpressionSimplification2() {
+    for (int sliceCount = 1; sliceCount <= 64; sliceCount++) {
+      long original = sliceCount == 64 ? -1L : (1L << sliceCount) - 1;
+      long simplified = -1L >>> (64 - sliceCount);
+      assertEquals(Long.toBinaryString(original), Long.toBinaryString(simplified), "sliceCount=" + sliceCount);
+    }
+  }
 }
