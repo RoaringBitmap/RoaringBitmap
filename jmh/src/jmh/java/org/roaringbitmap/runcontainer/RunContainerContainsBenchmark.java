@@ -22,12 +22,19 @@ public class RunContainerContainsBenchmark {
     bc = new MappeableBitmapContainer();
     Random r = new Random(0);
     int begin, end = 0;
-    for (int i = 0; i < 9; i++) {
+    for (int i = 0; i < 1; i++) {
       begin = end + r.nextInt(10);
-      end = begin + r.nextInt(100);
+      end = begin + r.nextInt(100) + 1;
       rc.add(begin, end);
-      bc.add((char) (begin & 0xFFFF + r.nextInt(end - begin)));
+      System.out.println("range added:" + begin + " " + end);
+
+      bc.add((char) (begin + r.nextInt(end - begin - 1)));
+      bc.add((char) (begin + r.nextInt(end - begin - 1)));
+      bc.add((char) (begin + r.nextInt(end - begin - 1)));
+      bc.add((char) (begin + r.nextInt(end - begin - 1)));
     }
+    System.out.println("BC: " + bc.toString());
+    System.out.println("RC: " + rc.toString());
     System.out.println(rc.contains(bc) + " " + rc.contains2(bc));
     System.err.println("================================");
   }
