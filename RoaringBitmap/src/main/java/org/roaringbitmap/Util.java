@@ -1207,4 +1207,23 @@ public final class Util {
   private Util() {
 
   }
+
+  /**
+   * Fill the array with set bits
+   *
+   * @param bitmap source bitmap
+   * @param array container (should be sufficiently large)
+   */
+  public static void fillArray(long[] bitmap, final char[] array) {
+    int pos = 0;
+    int base = 0;
+    for (int k = 0; k < bitmap.length; ++k) {
+      long bitset = bitmap[k];
+      while (bitset != 0) {
+        array[pos++] = (char) (base + numberOfTrailingZeros(bitset));
+        bitset &= (bitset - 1);
+      }
+      base += 64;
+    }
+  }
 }

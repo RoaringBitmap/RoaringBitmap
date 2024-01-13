@@ -852,7 +852,7 @@ public final class ArrayContainer extends Container implements Cloneable {
 
   void loadData(final BitmapContainer bitmapContainer) {
     this.cardinality = bitmapContainer.cardinality;
-    bitmapContainer.fillArray(content);
+    Util.fillArray(bitmapContainer.bitmap, content);
   }
 
   // for use in inot range known to be nonempty
