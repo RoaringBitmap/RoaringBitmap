@@ -6,6 +6,7 @@ import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.bsi.BitmapSliceIndex;
+import org.roaringbitmap.bsi.BitmapSliceIndex.Operation;
 import org.roaringbitmap.bsi.Pair;
 import org.roaringbitmap.buffer.BufferFastAggregation;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
@@ -199,15 +200,21 @@ public class BitSliceIndexBase {
     for (int i = this.bitCount() - 1; i >= 0; i--) {
       int bit = (predicate >> i) & 1;
       if (bit == 1) {
-        LT = ImmutableRoaringBitmap.or(LT, ImmutableRoaringBitmap.andNot(EQ, this.bA[i]));
+        if (operation == Operation.LT || operation == Operation.LE) {
+          LT = ImmutableRoaringBitmap.or(LT, ImmutableRoaringBitmap.andNot(EQ, this.bA[i]));
+        }
         EQ = ImmutableRoaringBitmap.and(EQ, this.bA[i]);
       } else {
-        GT = ImmutableRoaringBitmap.or(GT, ImmutableRoaringBitmap.and(EQ, this.bA[i]));
+        if (operation == Operation.GT || operation == Operation.GE) {
+          GT = ImmutableRoaringBitmap.or(GT, ImmutableRoaringBitmap.and(EQ, this.bA[i]));
+        }
         EQ = ImmutableRoaringBitmap.andNot(EQ, this.bA[i]);
       }
 
     }
-    EQ = ImmutableRoaringBitmap.and(fixedFoundSet, EQ);
+    if (operation != Operation.LT && operation != Operation.GT) {
+      EQ = ImmutableRoaringBitmap.and(fixedFoundSet, EQ);
+    }
     switch (operation) {
       case EQ:
         return EQ;
