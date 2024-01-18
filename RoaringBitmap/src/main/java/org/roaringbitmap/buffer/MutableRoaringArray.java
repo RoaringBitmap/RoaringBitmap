@@ -394,7 +394,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
       if (isBitmap[k]) {
         long[] array = new long[MappeableBitmapContainer.MAX_CAPACITY / 64];
         buffer.asLongBuffer().get(array);
-        container = new MappeableBitmapContainer(cardinalities[k], LongBuffer.wrap(array));
+        container = new MappeableBitmapContainer(LongBuffer.wrap(array), cardinalities[k]);
         buffer.position(buffer.position() + 1024 * 8);
       } else if (bitmapOfRunContainers != null
               && ((bitmapOfRunContainers[k / 8] & (1 << (k & 7))) != 0)) {
