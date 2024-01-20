@@ -31,16 +31,16 @@ public final class Util {
    */
   public static  Container[] addOffset(Container source, char offsets) {
     if(source instanceof ArrayContainer) {
-      return addOffset((ArrayContainer) source, offsets);
+      return addOffsetArray((ArrayContainer) source, offsets);
     } else if (source instanceof BitmapContainer) {
-      return addOffset((BitmapContainer) source, offsets);
+      return addOffsetBitmap((BitmapContainer) source, offsets);
     } else if (source instanceof RunContainer) {
-      return addOffset((RunContainer) source, offsets);
+      return addOffsetRun((RunContainer) source, offsets);
     }
     throw new RuntimeException("unknown container type");
   }
 
-  private static Container[] addOffset(ArrayContainer source, char offsets) {
+  private static Container[] addOffsetArray(ArrayContainer source, char offsets) {
     int splitIndex;
     if (source.first() + offsets > 0xFFFF) {
       splitIndex = 0;
@@ -78,7 +78,7 @@ public final class Util {
     return new Container[]{low, high};
   }
 
-  private static Container[] addOffset(BitmapContainer source, char offsets) {
+  private static Container[] addOffsetBitmap(BitmapContainer source, char offsets) {
     BitmapContainer c = source;
     BitmapContainer low = new BitmapContainer();
     BitmapContainer high = new BitmapContainer();
@@ -104,7 +104,7 @@ public final class Util {
     return new Container[] {low.repairAfterLazy(), high.repairAfterLazy()};
   }
 
-  private static Container[] addOffset(RunContainer source, char offsets) {
+  private static Container[] addOffsetRun(RunContainer source, char offsets) {
     RunContainer input = source;
     RunContainer low = new RunContainer();
     RunContainer high = new RunContainer();

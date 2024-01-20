@@ -31,19 +31,18 @@ public final class BufferUtil {
    * @return return an array made of two containers
    */
   public static  MappeableContainer[] addOffset(MappeableContainer source, char offsets) {
-    // could be a whole lot faster, this is a simple implementation
     if(source instanceof MappeableArrayContainer) {
-      return addOffset((MappeableArrayContainer) source, offsets);
+      return addOffsetArray((MappeableArrayContainer) source, offsets);
     } else if (source instanceof MappeableBitmapContainer) {
-      return addOffset((MappeableBitmapContainer) source, offsets);
+      return addOffsetBitmap((MappeableBitmapContainer) source, offsets);
     } else if (source instanceof MappeableRunContainer) {
-      return addOffset((MappeableRunContainer) source, offsets);
+      return addOffsetRun((MappeableRunContainer) source, offsets);
     }
     throw new RuntimeException("unknown container type"); // never happens
   }
 
-  private static MappeableContainer[] addOffset(MappeableArrayContainer source,
-                                                char offsets) {
+  private static MappeableContainer[] addOffsetArray(MappeableArrayContainer source,
+                                                     char offsets) {
     int splitIndex;
     if (source.first() + offsets > 0xFFFF) {
       splitIndex = 0;
@@ -80,8 +79,8 @@ public final class BufferUtil {
     return new MappeableContainer[]{low, high};
   }
 
-  private static MappeableContainer[] addOffset(MappeableBitmapContainer source,
-                                                char offsets) {
+  private static MappeableContainer[] addOffsetBitmap(MappeableBitmapContainer source,
+                                                      char offsets) {
     MappeableBitmapContainer c = source;
     MappeableBitmapContainer low = new MappeableBitmapContainer();
     MappeableBitmapContainer high = new MappeableBitmapContainer();
@@ -113,8 +112,7 @@ public final class BufferUtil {
     return new MappeableContainer[]{low.repairAfterLazy(), high.repairAfterLazy()};
   }
 
-  private static MappeableContainer[] addOffset(MappeableRunContainer source,
-                                                char offsets) {
+  private static MappeableContainer[] addOffsetRun(MappeableRunContainer source, char offsets) {
     MappeableRunContainer c = source;
     MappeableRunContainer low = new MappeableRunContainer();
     MappeableRunContainer high = new MappeableRunContainer();
