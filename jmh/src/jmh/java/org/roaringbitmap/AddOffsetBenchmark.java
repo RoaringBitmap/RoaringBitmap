@@ -119,10 +119,10 @@ public class AddOffsetBenchmark {
   }
 
   @Benchmark
-  public Container[] optimizedFieldIncrement() {
+  public Container[] localVariableForCardinality() {
     if (container instanceof ArrayContainer) {
       // only for comparison with optimized version
-      return addOffsetIncrementField((ArrayContainer) container, offsets);
+      return addOffsetLocalVariableForCardinality((ArrayContainer) container, offsets);
     } else {
       return new Container[0];
     }
@@ -198,7 +198,7 @@ public class AddOffsetBenchmark {
     throw new RuntimeException("unknown container type"); // never happens
   }
 
-  private static Container[] addOffsetIncrementField(ArrayContainer source, char offsets) {
+  private static Container[] addOffsetLocalVariableForCardinality(ArrayContainer source, char offsets) {
     ArrayContainer low;
     ArrayContainer high;
     if (source.first() + offsets > 0xFFFF) {
@@ -225,14 +225,20 @@ public class AddOffsetBenchmark {
       }
       low = new ArrayContainer(splitIndex);
       high = new ArrayContainer(source.cardinality - splitIndex);
+
+      int lowCardinality = 0;
       for (int k = 0; k < splitIndex; k++) {
         int val = source.content[k] + offsets;
-        low.content[low.cardinality++] = (char) val;
+        low.content[lowCardinality++] = (char) val;
       }
+      low.cardinality = lowCardinality;
+
+      int highCardinality = 0;
       for (int k = splitIndex; k < source.cardinality; k++) {
         int val = source.content[k] + offsets;
-        high.content[high.cardinality++] = (char) val;
+        high.content[highCardinality++] = (char) val;
       }
+      high.cardinality = highCardinality;
     }
     return new Container[]{low, high};
   }
