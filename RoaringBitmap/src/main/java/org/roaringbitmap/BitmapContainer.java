@@ -1257,15 +1257,15 @@ public final class BitmapContainer extends Container implements Cloneable {
   public char select(int j) {
     if (//cardinality != -1 && // omitted as (-1>>>1) > j as j < (1<<16)
         cardinality >>> 1 < j && j < cardinality) {
-      int rightover = cardinality - j;
+      int leftover = cardinality - j;
       for (int k = bitmap.length - 1; k >= 0; --k) {
         long w = bitmap[k];
         if (w != 0) {
           int bits = Long.bitCount(w);
-          if (bits >= rightover) {
-            return (char) (k * 64 + Util.select(w, bits - rightover));
+          if (bits >= leftover) {
+            return (char) (k * 64 + Util.select(w, bits - leftover));
           }
-          rightover -= bits;
+          leftover -= bits;
         }
       }
     } else {
