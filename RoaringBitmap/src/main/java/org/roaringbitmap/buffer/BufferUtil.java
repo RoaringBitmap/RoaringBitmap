@@ -31,6 +31,7 @@ public final class BufferUtil {
    * @return return an array made of two containers
    */
   public static  MappeableContainer[] addOffset(MappeableContainer source, char offsets) {
+    // could be a whole lot faster, this is a simple implementation
     if(source instanceof MappeableArrayContainer) {
       return addOffset((MappeableArrayContainer) source, offsets);
     } else if (source instanceof MappeableBitmapContainer) {
@@ -62,15 +63,19 @@ public final class BufferUtil {
         ? new MappeableArrayContainer()
         : new MappeableArrayContainer(source.cardinality - splitIndex);
 
+    int lowCardinality = 0;
     for (int k = 0; k < splitIndex; k++) {
       int val = source.content.get(k) + offsets;
-      low.content.put(low.cardinality++, (char) val);
+      low.content.put(lowCardinality++, (char) val);
     }
+    low.cardinality = lowCardinality;
 
+    int highCardinality = 0;
     for (int k = splitIndex; k < source.cardinality; k++) {
       int val = source.content.get(k) + offsets;
-      high.content.put(high.cardinality++, (char) val);
+      high.content.put(highCardinality++, (char) val);
     }
+    high.cardinality = highCardinality;
 
     return new MappeableContainer[]{low, high};
   }

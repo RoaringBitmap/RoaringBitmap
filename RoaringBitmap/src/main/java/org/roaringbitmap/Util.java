@@ -61,14 +61,19 @@ public final class Util {
         ? new ArrayContainer()
         : new ArrayContainer(source.cardinality - splitIndex);
 
+    int lowCardinality = 0;
     for (int k = 0; k < splitIndex; k++) {
       int val = source.content[k] + offsets;
-      low.content[low.cardinality++] = (char) val;
+      low.content[lowCardinality++] = (char) val;
     }
+    low.cardinality = lowCardinality;
+
+    int highCardinality = 0;
     for (int k = splitIndex; k < source.cardinality; k++) {
       int val = source.content[k] + offsets;
-      high.content[high.cardinality++] = (char) val;
+      high.content[highCardinality++] = (char) val;
     }
+    high.cardinality = highCardinality;
 
     return new Container[]{low, high};
   }
