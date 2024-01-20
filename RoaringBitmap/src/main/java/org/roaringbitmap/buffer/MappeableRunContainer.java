@@ -2776,6 +2776,13 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     return true;
   }
 
+  /**
+   * It exists for performance comparison with original implementation only. It should be deleted
+   * before merge to master branch.
+   *
+   * @param bitmapContainer container
+   * @return true if given container is subset of this container
+   */
   public boolean contains2(MappeableBitmapContainer bitmapContainer) {
     final int cardinality = getCardinality();
     if (bitmapContainer.getCardinality() != -1 && bitmapContainer.getCardinality() > cardinality) {
