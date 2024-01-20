@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.bsi.buffer.ImmutableBitSliceIndex;
 import org.roaringbitmap.bsi.buffer.MutableBitSliceIndex;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
@@ -404,6 +406,22 @@ public class BufferBSITest {
 
     }
 
+    @Test
+    public void removeTopValuesWhenIterating() {
+        RoaringBitmap expected = new RoaringBitmap();
+        expected.add(210, 1000);
+        RoaringBitmap bitmap = new RoaringBitmap();
+        bitmap.add(10, 1000);
+
+        IntIterator it = bitmap.getIntIterator();
+        int n = 200;
+        while (it.hasNext() && n > 0) {
+            bitmap.remove(it.next());
+            --n;
+        }
+
+        Assertions.assertEquals(expected, bitmap);
+    }
 
     @Test
     public void testTopK() {

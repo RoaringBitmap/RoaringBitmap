@@ -1419,10 +1419,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         s1 = pos1 < length1 ? highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
         s2 = pos2 < length2 ? other.highLowContainer.getKeyAtIndex(pos2) : maxKey + 1;
       } else if (key == s1) { // or in a hole
-        newValues[size] = highLowContainer.getContainerAtIndex(pos1)
-                .ior(key == maxKey
-                  ? RunContainer.rangeOfOnes(0, lastRun)
-                  : RunContainer.full());
+        newValues[size] = key == maxKey
+            ? highLowContainer.getContainerAtIndex(pos1).ior(
+            RunContainer.rangeOfOnes(0, lastRun))
+            : RunContainer.full();
         ++pos1;
         s1 = pos1 < length1 ? highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
       } else if (key == s2) { // insert the complement
@@ -1507,10 +1507,10 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
         s1 = pos1 < length1 ? x1.highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
         s2 = pos2 < length2 ? x2.highLowContainer.getKeyAtIndex(pos2) : maxKey + 1;
       } else if (key == s1) { // or in a hole
-        newValues[size] = x1.highLowContainer.getContainerAtIndex(pos1)
-                .ior(key == maxKey
-                        ? RunContainer.rangeOfOnes(0, lastRun)
-                        : RunContainer.full());
+        newValues[size] = key == maxKey
+            ? x1.highLowContainer.getContainerAtIndex(pos1).ior(
+            RunContainer.rangeOfOnes(0, lastRun))
+            : RunContainer.full();
         ++pos1;
         s1 = pos1 < length1 ? x1.highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
       } else if (key == s2) { // insert the complement
@@ -1560,13 +1560,22 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     final int i = highLowContainer.getIndex(hb);
     if (i >= 0) {
       Container c = highLowContainer.getContainerAtIndex(i);
-      int oldCard = c.getCardinality();
       // we need to keep the newContainer if a switch between containers type
       // occur, in order to get the new cardinality
-      Container newCont = c.add(Util.lowbits(x));
-      highLowContainer.setContainerAtIndex(i, newCont);
-      if (newCont.getCardinality() > oldCard) {
-        return true;
+      Container newCont;
+      if (c instanceof RunContainer) { // do not compute cardinality
+        if (!c.contains(Util.lowbits(x))) {
+          newCont = c.add(Util.lowbits(x));
+          highLowContainer.setContainerAtIndex(i, newCont);
+          return true;
+        }
+      } else { // it is faster to use getCardinality() than contains() for other container types
+        int oldCard = c.getCardinality();
+        newCont = c.add(Util.lowbits(x));
+        highLowContainer.setContainerAtIndex(i, newCont);
+        if (newCont.getCardinality() > oldCard) {
+          return true;
+        }
       }
     } else {
       final ArrayContainer newac = new ArrayContainer();
@@ -1631,8 +1640,12 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   @Override
   public boolean contains(final int x) {
     final char hb = Util.highbits(x);
-    final Container c = highLowContainer.getContainer(hb);
-    return c != null && c.contains(Util.lowbits(x));
+    int index = highLowContainer.getContainerIndex(hb);
+    if (index < 0) {
+      return false;
+    }
+    final Container c = highLowContainer.getContainerAtIndex(index);
+    return c.contains(Util.lowbits(x));
   }
 
   /**

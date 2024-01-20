@@ -268,16 +268,18 @@ public class Node48 extends Node {
   }
 
   @Override
-  public void replaceChildren(Node[] children) {
+  void replaceChildren(Node[] children) {
     int step = 0;
     for (int i = 0; i < LONGS_USED; i++) {
-      long longv = childIndex[i];
-      for (int j = BYTES_PER_LONG - 1; j >= 0; j--) {
-        byte bytePos = (byte) (longv >>> (j << INDEX_SHIFT));
-        int unsignedPos = Byte.toUnsignedInt(bytePos);
-        if (bytePos != EMPTY_VALUE) {
-          this.children[unsignedPos] = children[step];
-          step++;
+      long longv = Long.reverseBytes(childIndex[i]);
+      if (longv != INIT_LONG_VALUE) {
+        for (int j = 0; j < BYTES_PER_LONG; j++) {
+          long currentByte = longv & 0xFF;
+          if (currentByte != 0xFF) {
+            this.children[(int) currentByte] = children[step];
+            step++;
+          }
+          longv >>>= 8;
         }
       }
     }
