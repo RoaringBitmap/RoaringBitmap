@@ -85,7 +85,7 @@ public class RoaringBitmapSliceIndex implements BitmapSliceIndex {
   private void addDigit(RoaringBitmap foundSet, int i) {
     RoaringBitmap carry = RoaringBitmap.and(this.bA[i], foundSet);
     this.bA[i].xor(foundSet);
-    if (carry.getCardinality() > 0) {
+    if (!carry.isEmpty()) {
       if (i + 1 >= this.bitCount()) {
         grow(this.bitCount() + 1);
       }
