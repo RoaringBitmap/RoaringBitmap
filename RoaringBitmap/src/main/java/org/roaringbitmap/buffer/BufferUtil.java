@@ -1064,6 +1064,50 @@ public final class BufferUtil {
   }
 
   /**
+   * It makes intersection of the containers' keys between given bitmaps.
+   *
+   * @param words bitmap buffer
+   * @param bitmaps bitmaps
+   * @return keys intersection
+   */
+  static char[] intersectKeys(long[] words, ImmutableRoaringBitmap[] bitmaps) {
+    ImmutableRoaringBitmap first = bitmaps[0];
+    for (int i = 0; i < first.highLowContainer.size(); ++i) {
+      char key = first.highLowContainer.getKeyAtIndex(i);
+      words[key >>> 6] |= 1L << key;
+    }
+    int numContainers = first.highLowContainer.size();
+    for (int i = 1; i < bitmaps.length && numContainers > 0; ++i) {
+      final char[] keys;
+      if (bitmaps[i].highLowContainer instanceof MutableRoaringArray) {
+        keys = ((MutableRoaringArray) bitmaps[i].highLowContainer).keys;
+      } else {
+        keys = new char[bitmaps[i].highLowContainer.size()];
+        for (int j = 0; j < keys.length; ++j) {
+          keys[j] = bitmaps[i].highLowContainer.getKeyAtIndex(j);
+        }
+      }
+      numContainers = BufferUtil.intersectArrayIntoBitmap(words,
+          CharBuffer.wrap(keys),
+          bitmaps[i].highLowContainer.size());
+    }
+    if (numContainers == 0) {
+      return new char[0];
+    }
+    char[] keys = new char[numContainers];
+    int base = 0;
+    int pos = 0;
+    for (long word : words) {
+      while (word != 0L) {
+        keys[pos++] = (char)(base + Long.numberOfTrailingZeros(word));
+        word &= (word - 1);
+      }
+      base += 64;
+    }
+    return keys;
+  }
+
+  /**
    * Private constructor to prevent instantiation of utility class
    */
   private BufferUtil() {
