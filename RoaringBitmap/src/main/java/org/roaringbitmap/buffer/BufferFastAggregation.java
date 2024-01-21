@@ -507,16 +507,8 @@ public final class BufferFastAggregation {
     if (numContainers == 0) {
       return new MutableRoaringBitmap();
     }
-    char[] keys = new char[numContainers];
-    int base = 0;
-    int pos = 0;
-    for (long word : words) {
-      while (word != 0L) {
-        keys[pos++] = (char)(base + Long.numberOfTrailingZeros(word));
-        word &= (word - 1);
-      }
-      base += 64;
-    }
+    char[] keys = Util.bitmapToArray(words, 0, words.length, numContainers);
+
     MappeableContainer[][] containers = new MappeableContainer[numContainers][bitmapCount];
     for (int i = 0; i < bitmapCount; ++i) {
       ImmutableRoaringBitmap bitmap = collected.get(i);
@@ -596,16 +588,7 @@ public final class BufferFastAggregation {
       }
     }
     int numKeys = Util.cardinalityInBitmapRange(words, minKey, maxKey + 1);
-    char[] keys = new char[numKeys];
-    int base = 0;
-    int pos = 0;
-    for (long word : words) {
-      while (word != 0L) {
-        keys[pos++] = (char)(base + Long.numberOfTrailingZeros(word));
-        word &= (word - 1);
-      }
-      base += 64;
-    }
+    char[] keys = Util.bitmapToArray(words, 0, words.length, numKeys);
 
     LongBuffer longBuffer = LongBuffer.wrap(words);
     int cardinality = 0;

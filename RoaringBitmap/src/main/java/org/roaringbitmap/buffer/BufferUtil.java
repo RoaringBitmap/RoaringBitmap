@@ -1094,17 +1094,7 @@ public final class BufferUtil {
     if (numContainers == 0) {
       return new char[0];
     }
-    char[] keys = new char[numContainers];
-    int base = 0;
-    int pos = 0;
-    for (long word : words) {
-      while (word != 0L) {
-        keys[pos++] = (char)(base + Long.numberOfTrailingZeros(word));
-        word &= (word - 1);
-      }
-      base += 64;
-    }
-    return keys;
+    return Util.bitmapToArray(words, 0, words.length, numContainers);
   }
 
   /**
