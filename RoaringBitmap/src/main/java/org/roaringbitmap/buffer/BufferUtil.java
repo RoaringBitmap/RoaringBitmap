@@ -4,6 +4,7 @@
 
 package org.roaringbitmap.buffer;
 
+import org.roaringbitmap.BitSetUtil;
 import org.roaringbitmap.Util;
 
 import java.nio.Buffer;
@@ -1094,7 +1095,7 @@ public final class BufferUtil {
     if (numContainers == 0) {
       return new char[0];
     }
-    return Util.bitmapToArray(words, 0, words.length, numContainers);
+    return BitSetUtil.arrayContainerBufferOf(0, words.length, numContainers, words);
   }
 
   /**

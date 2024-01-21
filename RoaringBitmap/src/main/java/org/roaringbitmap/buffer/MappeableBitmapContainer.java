@@ -459,8 +459,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     int pos = 0;
     if (BufferUtil.isBackedBySimpleArray(bitmap)) {
       long[] b = bitmap.array();
-      int base = 0;
-      Util.bitmapToArray(b, 0, b.length, array);
+      BitSetUtil.arrayContainerBufferOf(0, b.length, array, b);
     } else {
       int len = this.bitmap.limit();
       int base = 0;

@@ -1223,26 +1223,7 @@ public final class Util {
     if (numContainers == 0) {
       return new char[0];
     }
-    return Util.bitmapToArray(words, 0, words.length, numContainers);
-  }
-
-  public static char[] bitmapToArray(long[] words, int from, int to, int cardinality) {
-    char[] keys = new char[cardinality];
-    return bitmapToArray(words, from, to, keys);
-  }
-
-  public static char[] bitmapToArray(long[] words, int from, int to, char[] values) {
-    int base = 0;
-    int pos = 0;
-    for (int i = from; i < to; i++) {
-      long word = words[i];
-      while (word != 0L) {
-        values[pos++] = (char) (base + numberOfTrailingZeros(word));
-        word &= (word - 1);
-      }
-      base += 64;
-    }
-    return values;
+    return BitSetUtil.arrayContainerBufferOf(0, words.length, numContainers, words);
   }
 
   /**

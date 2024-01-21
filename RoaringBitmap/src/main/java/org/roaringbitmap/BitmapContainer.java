@@ -431,7 +431,7 @@ public final class BitmapContainer extends Container implements Cloneable {
    * @param array container (should be sufficiently large)
    */
   void fillArray(final char[] array) {
-    Util.bitmapToArray(bitmap, 0, bitmap.length, array);
+    BitSetUtil.arrayContainerBufferOf(0, bitmap.length, array, bitmap);
   }
 
   @Override

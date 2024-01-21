@@ -438,7 +438,7 @@ public final class FastAggregation {
       }
     }
     int numKeys = Util.cardinalityInBitmapRange(words, minKey, maxKey + 1);
-    char[] keys = Util.bitmapToArray(words, 0, words.length, numKeys);
+    char[] keys = BitSetUtil.arrayContainerBufferOf(0, words.length, numKeys, words);
 
     int cardinality = 0;
     for (char key : keys) {

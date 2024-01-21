@@ -4,6 +4,7 @@
 
 package org.roaringbitmap.buffer;
 
+import org.roaringbitmap.BitSetUtil;
 import org.roaringbitmap.Util;
 
 import java.nio.CharBuffer;
@@ -507,7 +508,7 @@ public final class BufferFastAggregation {
     if (numContainers == 0) {
       return new MutableRoaringBitmap();
     }
-    char[] keys = Util.bitmapToArray(words, 0, words.length, numContainers);
+    char[] keys = BitSetUtil.arrayContainerBufferOf(0, words.length, numContainers, words);
 
     MappeableContainer[][] containers = new MappeableContainer[numContainers][bitmapCount];
     for (int i = 0; i < bitmapCount; ++i) {
@@ -588,7 +589,7 @@ public final class BufferFastAggregation {
       }
     }
     int numKeys = Util.cardinalityInBitmapRange(words, minKey, maxKey + 1);
-    char[] keys = Util.bitmapToArray(words, 0, words.length, numKeys);
+    char[] keys = BitSetUtil.arrayContainerBufferOf(0, words.length, numKeys, words);
 
     LongBuffer longBuffer = LongBuffer.wrap(words);
     int cardinality = 0;
