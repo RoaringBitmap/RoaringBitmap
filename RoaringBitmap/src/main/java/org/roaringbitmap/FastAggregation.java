@@ -355,29 +355,11 @@ public final class FastAggregation {
    */
   public static RoaringBitmap workShyAnd(long[] buffer, RoaringBitmap... bitmaps) {
     long[] words = buffer;
-    RoaringBitmap first = bitmaps[0];
-    for (int i = 0; i < first.highLowContainer.size; ++i) {
-      char key = first.highLowContainer.keys[i];
-      words[key >>> 6] |= 1L << key;
-    }
-    int numContainers = first.highLowContainer.size;
-    for (int i = 1; i < bitmaps.length && numContainers > 0; ++i) {
-      numContainers = Util.intersectArrayIntoBitmap(words,
-              bitmaps[i].highLowContainer.keys, bitmaps[i].highLowContainer.size);
-    }
-    if (numContainers == 0) {
+    char[] keys = Util.intersectKeys(words, bitmaps);
+    if (keys.length == 0) {
       return new RoaringBitmap();
     }
-    char[] keys = new char[numContainers];
-    int base = 0;
-    int pos = 0;
-    for (long word : words) {
-      while (word != 0L) {
-        keys[pos++] = (char)(base + Long.numberOfTrailingZeros(word));
-        word &= (word - 1);
-      }
-      base += 64;
-    }
+    int numContainers = keys.length;
     Container[][] containers = new Container[numContainers][bitmaps.length];
     for (int i = 0; i < bitmaps.length; ++i) {
       RoaringBitmap bitmap = bitmaps[i];
@@ -415,29 +397,11 @@ public final class FastAggregation {
 
   private static int workShyAndCardinality(RoaringBitmap... bitmaps) {
     long[] words = new long[1024];
-    RoaringBitmap first = bitmaps[0];
-    for (int i = 0; i < first.highLowContainer.size; ++i) {
-      char key = first.highLowContainer.keys[i];
-      words[key >>> 6] |= 1L << key;
-    }
-    int numKeys = first.highLowContainer.size;
-    for (int i = 1; i < bitmaps.length && numKeys > 0; ++i) {
-      numKeys = Util.intersectArrayIntoBitmap(words,
-          bitmaps[i].highLowContainer.keys, bitmaps[i].highLowContainer.size);
-    }
-    if (numKeys == 0) {
+    char[] keys = Util.intersectKeys(words, bitmaps);
+    if (keys.length == 0) {
       return 0;
     }
-    char[] keys = new char[numKeys];
-    int base = 0;
-    int pos = 0;
-    for (long word : words) {
-      while (word != 0L) {
-        keys[pos++] = (char)(base + Long.numberOfTrailingZeros(word));
-        word &= (word - 1);
-      }
-      base += 64;
-    }
+    int numKeys = keys.length;
     int cardinality = 0;
     for (int i = 0; i < numKeys; i++) {
       Arrays.fill(words, -1L);
@@ -524,29 +488,12 @@ public final class FastAggregation {
       throw new IllegalArgumentException("buffer should have at least 1024 elements.");
     } 
     long[] words = buffer;
-    RoaringBitmap first = bitmaps[0];
-    for (int i = 0; i < first.highLowContainer.size; ++i) {
-      char key = first.highLowContainer.keys[i];
-      words[key >>> 6] |= 1L << key;
-    }
-    int numContainers = first.highLowContainer.size;
-    for (int i = 1; i < bitmaps.length && numContainers > 0; ++i) {
-      numContainers = Util.intersectArrayIntoBitmap(words,
-              bitmaps[i].highLowContainer.keys, bitmaps[i].highLowContainer.size);
-    }
-    if (numContainers == 0) {
+    char[] keys = Util.intersectKeys(words, bitmaps);
+    if (keys.length == 0) {
       return new RoaringBitmap();
     }
-    char[] keys = new char[numContainers];
-    int base = 0;
-    int pos = 0;
-    for (long word : words) {
-      while (word != 0L) {
-        keys[pos++] = (char)(base + Long.numberOfTrailingZeros(word));
-        word &= (word - 1);
-      }
-      base += 64;
-    }
+    int numContainers = keys.length;
+
     RoaringArray array =
             new RoaringArray(keys, new Container[numContainers], 0);
     for (int i = 0; i < numContainers; ++i) {
