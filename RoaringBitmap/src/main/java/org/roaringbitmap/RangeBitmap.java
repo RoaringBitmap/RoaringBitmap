@@ -75,7 +75,7 @@ public final class RangeBitmap {
     }
     int sliceCount = source.get() & 0xFF;
     int maxKey = source.getChar();
-    long mask = sliceCount == 64 ? -1L : (1L << sliceCount) - 1;
+    long mask = -1L >>> (64 - sliceCount);
     byte bytesPerMask = (byte) ((sliceCount + 7) >>> 3);
     long maxRid = source.getInt() & 0xFFFFFFFFL;
     int masksOffset = source.position();
@@ -1609,7 +1609,7 @@ public final class RangeBitmap {
      */
     private static long rangeMask(long maxValue) {
       int lz = Long.numberOfLeadingZeros(maxValue | 1);
-      return lz == 0 ? -1L : (1L << (64 - lz)) - 1;
+      return -1L >>> lz;
     }
 
     private static byte bytesPerMask(long maxValue) {
