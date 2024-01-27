@@ -142,4 +142,26 @@ public class TestUtil {
       assertEquals(bitmap.get(i), referenceBitmap.get(i), "mismatch at " + i);
     }
   }
+
+  @Test
+  public void bitmapOfRange() {
+    assertBitmapRange(0, 10);// begin of first container
+    assertBitmapRange(0, 1 << 16 - 1);// early full container
+    assertBitmapRange(0, 1 << 16);// full first container
+    assertBitmapRange(0, 1 << 16 + 1);// full first container + one value the second
+    assertBitmapRange(10, 1 << 16);// without first several integers
+    assertBitmapRange(1 << 16, (1 << 16) * 2);// full second container
+    assertBitmapRange(10, 100);// some integers inside interval
+    assertBitmapRange((1 << 16) - 5, (1 << 16) + 7); // first to second container
+    assertBitmapRange(0, 100_000); // more than one container
+    assertBitmapRange(100_000, 200_000);// second to third container
+    assertBitmapRange(200_000, 400_000);// more containers inside
+  }
+
+  private static void assertBitmapRange(int start, int end) {
+    MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOfRange(start, end);
+    assertEquals(end - start, bitmap.getCardinality());
+    assertEquals(start, bitmap.first());
+    assertEquals(end - 1, bitmap.last());
+  }
 }

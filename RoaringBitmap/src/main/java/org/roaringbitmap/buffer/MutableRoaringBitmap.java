@@ -400,6 +400,37 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   }
 
 
+  /**
+   * @see #add(long, long)
+   */
+  public static MutableRoaringBitmap bitmapOfRange(long min, long max) {
+    rangeSanityCheck(min, max);
+    if (min >= max) {
+      return new MutableRoaringBitmap();
+    }
+    final int hbStart = BufferUtil.highbits(min);
+    final int lbStart = BufferUtil.lowbits(min);
+    final int hbLast = BufferUtil.highbits(max - 1);
+    final int lbLast = BufferUtil.lowbits(max - 1);
+
+    MutableRoaringArray array = new MutableRoaringArray(hbLast - hbStart + 1);
+    MutableRoaringBitmap bitmap = new MutableRoaringBitmap(array);
+
+    int firstEnd = hbStart < hbLast ? 1 << 16 : lbLast + 1;
+    MappeableContainer firstContainer = MappeableContainer.rangeOfOnes(lbStart, firstEnd);
+    bitmap.append((char) hbStart, firstContainer);
+    if (hbStart < hbLast) {
+      int i = hbStart + 1;
+      while (i < hbLast) {
+        MappeableContainer runContainer = MappeableContainer. rangeOfOnes(0, 1 << 16);
+        bitmap.append((char) i, runContainer);
+        i++;
+      }
+      MappeableContainer lastContainer = MappeableContainer.rangeOfOnes(0, lbLast + 1);
+      bitmap.append((char) hbLast, lastContainer);
+    }
+    return bitmap;
+  }
 
   protected static void rangeSanityCheck(final long rangeStart, final long rangeEnd) {
     if (rangeStart < 0 || rangeStart > (1L << 32)-1) {
