@@ -192,8 +192,10 @@ public class BitSliceIndexBase {
                         ImmutableRoaringBitmap foundSet) {
     ImmutableRoaringBitmap fixedFoundSet = foundSet == null ? this.ebM : foundSet;
 
-    MutableRoaringBitmap GT = new MutableRoaringBitmap();
-    MutableRoaringBitmap LT = new MutableRoaringBitmap();
+    MutableRoaringBitmap GT = operation == Operation.GT || operation == Operation.GE
+        ? new MutableRoaringBitmap() : null;
+    MutableRoaringBitmap LT = operation == Operation.LT || operation == Operation.LE
+        ? new MutableRoaringBitmap() : null;
     ImmutableRoaringBitmap EQ = this.ebM;
 
 
