@@ -31,74 +31,108 @@ public final class BufferUtil {
    * @return return an array made of two containers
    */
   public static  MappeableContainer[] addOffset(MappeableContainer source, char offsets) {
-    // could be a whole lot faster, this is a simple implementation
     if(source instanceof MappeableArrayContainer) {
-      MappeableArrayContainer c = (MappeableArrayContainer) source;
-      MappeableArrayContainer low = new MappeableArrayContainer(c.cardinality);
-      MappeableArrayContainer high = new MappeableArrayContainer(c.cardinality);
-      for(int k = 0; k < c.cardinality; k++) {
-        int val = (c.content.get(k));
-        val += (int) (offsets);
-        if(val <= 0xFFFF) {
-          low.content.put(low.cardinality++, (char) val);
-        } else {
-          high.content.put(high.cardinality++, (char) val);
-        }
-      }
-      return new MappeableContainer[] {low, high};
+      return addOffsetArray((MappeableArrayContainer) source, offsets);
     } else if (source instanceof MappeableBitmapContainer) {
-      MappeableBitmapContainer c = (MappeableBitmapContainer) source;
-      MappeableBitmapContainer low = new MappeableBitmapContainer();
-      MappeableBitmapContainer high = new MappeableBitmapContainer();
-      low.cardinality = -1;
-      high.cardinality = -1;
-      final int b = (int) (offsets) >>> 6;
-      final int i = (int) (offsets) % 64;
-      if(i == 0) {
-        for(int k = 0; k < 1024 - b; k++) {
-          low.bitmap.put(b + k, c.bitmap.get(k));
-        }
-        for(int k = 1024 - b; k < 1024 ; k++) {
-          high.bitmap.put(k - (1024 - b),c.bitmap.get(k));
-        }
-      } else {
-        low.bitmap.put(b + 0, c.bitmap.get(0) << i);
-        for(int k = 1; k < 1024 - b; k++) {
-          low.bitmap.put(b + k, (c.bitmap.get(k) << i) 
-              | (c.bitmap.get(k - 1) >>> (64-i)));
-        }
-        for(int k = 1024 - b; k < 1024 ; k++) {
-          high.bitmap.put(k - (1024 - b),
-               (c.bitmap.get(k) << i) 
-               | (c.bitmap.get(k - 1) >>> (64-i)));
-        }
-        high.bitmap.put(b,  (c.bitmap.get(1024 - 1) >>> (64-i)));
-      }
-      return new MappeableContainer[] {low.repairAfterLazy(), high.repairAfterLazy()};
+      return addOffsetBitmap((MappeableBitmapContainer) source, offsets);
     } else if (source instanceof MappeableRunContainer) {
-      MappeableRunContainer c = (MappeableRunContainer) source;
-      MappeableRunContainer low = new MappeableRunContainer();
-      MappeableRunContainer high = new MappeableRunContainer();
-      for(int k = 0 ; k < c.nbrruns; k++) {
-        int val =  (c.getValue(k));
-        val += (int) (offsets);
-        int finalval =  val + (c.getLength(k));
-        if(val <= 0xFFFF) {
-          if(finalval <= 0xFFFF) {
-            low.smartAppend((char)val,c.getLength(k));
-          } else {
-            low.smartAppend((char)val,(char)(0xFFFF-val));
-            high.smartAppend((char) 0,(char)finalval);
-          }
-        } else {
-          high.smartAppend((char)val,c.getLength(k));
-        }
-      }
-      return new MappeableContainer[] {low, high};
+      return addOffsetRun((MappeableRunContainer) source, offsets);
     }
     throw new RuntimeException("unknown container type"); // never happens
   }
 
+  private static MappeableContainer[] addOffsetArray(MappeableArrayContainer source,
+                                                     char offsets) {
+    int splitIndex;
+    if (source.first() + offsets > 0xFFFF) {
+      splitIndex = 0;
+    } else if (source.last() + offsets < 0xFFFF) {
+      splitIndex = source.cardinality;
+    } else {
+      splitIndex = BufferUtil.unsignedBinarySearch(source.content, 0, source.cardinality,
+          (char) (0x10000 - offsets));
+      if (splitIndex < 0) {
+        splitIndex = -splitIndex - 1;
+      }
+    }
+    MappeableArrayContainer low = splitIndex == 0
+        ? new MappeableArrayContainer()
+        : new MappeableArrayContainer(splitIndex);
+    MappeableArrayContainer high = source.cardinality - splitIndex == 0
+        ? new MappeableArrayContainer()
+        : new MappeableArrayContainer(source.cardinality - splitIndex);
+
+    int lowCardinality = 0;
+    for (int k = 0; k < splitIndex; k++) {
+      int val = source.content.get(k) + offsets;
+      low.content.put(lowCardinality++, (char) val);
+    }
+    low.cardinality = lowCardinality;
+
+    int highCardinality = 0;
+    for (int k = splitIndex; k < source.cardinality; k++) {
+      int val = source.content.get(k) + offsets;
+      high.content.put(highCardinality++, (char) val);
+    }
+    high.cardinality = highCardinality;
+
+    return new MappeableContainer[]{low, high};
+  }
+
+  private static MappeableContainer[] addOffsetBitmap(MappeableBitmapContainer source,
+                                                      char offsets) {
+    MappeableBitmapContainer c = source;
+    MappeableBitmapContainer low = new MappeableBitmapContainer();
+    MappeableBitmapContainer high = new MappeableBitmapContainer();
+    low.cardinality = -1;
+    high.cardinality = -1;
+    final int b = (int) offsets >>> 6;
+    final int i = (int) offsets % 64;
+    if (i == 0) {
+      for (int k = 0; k < 1024 - b; k++) {
+        low.bitmap.put(b + k, c.bitmap.get(k));
+      }
+      for (int k = 1024 - b; k < 1024; k++) {
+        high.bitmap.put(k - (1024 - b), c.bitmap.get(k));
+      }
+    } else {
+      //noinspection PointlessArithmeticExpression
+      low.bitmap.put(b + 0, c.bitmap.get(0) << i);
+      for (int k = 1; k < 1024 - b; k++) {
+        low.bitmap.put(b + k, (c.bitmap.get(k) << i)
+            | (c.bitmap.get(k - 1) >>> (64 - i)));
+      }
+      for (int k = 1024 - b; k < 1024; k++) {
+        high.bitmap.put(k - (1024 - b),
+            (c.bitmap.get(k) << i)
+                | (c.bitmap.get(k - 1) >>> (64 - i)));
+      }
+      high.bitmap.put(b, (c.bitmap.get(1024 - 1) >>> (64 - i)));
+    }
+    return new MappeableContainer[]{low.repairAfterLazy(), high.repairAfterLazy()};
+  }
+
+  private static MappeableContainer[] addOffsetRun(MappeableRunContainer source, char offsets) {
+    MappeableRunContainer c = source;
+    MappeableRunContainer low = new MappeableRunContainer();
+    MappeableRunContainer high = new MappeableRunContainer();
+    for (int k = 0; k < c.nbrruns; k++) {
+      int val = c.getValue(k);
+      val += offsets;
+      int finalval = val + c.getLength(k);
+      if (val <= 0xFFFF) {
+        if (finalval <= 0xFFFF) {
+          low.smartAppend((char) val, c.getLength(k));
+        } else {
+          low.smartAppend((char) val, (char) (0xFFFF - val));
+          high.smartAppend((char) 0, (char) finalval);
+        }
+      } else {
+        high.smartAppend((char) val, c.getLength(k));
+      }
+    }
+    return new MappeableContainer[]{low, high};
+  }
   /**
    * Find the smallest integer larger than pos such that array[pos]&gt;= min. If none can be found,
    * return length. Based on code by O. Kaser.
