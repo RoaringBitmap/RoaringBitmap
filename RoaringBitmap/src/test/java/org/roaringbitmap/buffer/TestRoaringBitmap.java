@@ -1993,14 +1993,14 @@ public class TestRoaringBitmap {
   @Test
   public void flipTestBigInt() {
     final MutableRoaringBitmap rb = new MutableRoaringBitmap();
-    rb.add( Integer.MAX_VALUE + 100000);
-    rb.add( Integer.MAX_VALUE + 100002);
+    rb.add((int) (Integer.MAX_VALUE + 100000L));
+    rb.add((int) (Integer.MAX_VALUE + 100002L));
     final MutableRoaringBitmap rb2 = MutableRoaringBitmap.flip(rb, Integer.MAX_VALUE+100001L , 
                                                      Integer.MAX_VALUE+200000L);
     assertEquals(99999, rb2.getCardinality());
-    assertTrue(rb2.contains(Integer.MAX_VALUE+100000));
-    assertFalse(rb2.contains(Integer.MAX_VALUE+100002));
-    assertTrue(rb2.contains(Integer.MAX_VALUE+199999));
+    assertTrue(rb2.contains((int) (Integer.MAX_VALUE + 100000L)));
+    assertFalse(rb2.contains((int) (Integer.MAX_VALUE + 100002L)));
+    assertTrue(rb2.contains((int) (Integer.MAX_VALUE + 199999L)));
   }
 
 
@@ -3019,10 +3019,10 @@ public class TestRoaringBitmap {
   public void testIteratorMappedBigInts() {
     MutableRoaringBitmap orb = new MutableRoaringBitmap();
     for (int k = 0; k < 4000; ++k) {
-        orb.add((1<<32)+k);
+      orb.add((1 << 31) + k);
     }
     for (int k = 0; k < 1000; ++k) {
-      orb.add((1<<32)+k * 100);
+      orb.add((1 << 31) + k * 100);
     }
     MutableRoaringBitmap ocopy1 = new MutableRoaringBitmap();
     for (int x : orb) {
