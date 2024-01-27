@@ -468,9 +468,7 @@ public final class RangeBitmap {
       for (int prefix = 0; prefix <= maxContextKey && remaining > 0; prefix++) {
         long containerMask = getContainerMask(buffer, mPos, mask, bytesPerMask);
         if (prefix < contextArray.keys[contextPos]) {
-          for (int i = 0; i < Long.bitCount(containerMask); i++) {
-            skipContainer();
-          }
+          skipContainers(containerMask);
         } else {
           int limit = Math.min((int) remaining, 0x10000);
           evaluateHorizontalSlicePoint(limit, value, containerMask);
@@ -532,9 +530,7 @@ public final class RangeBitmap {
         int limit = Math.min(0x10000, (int) remaining);
         long containerMask = getContainerMask(buffer, mPos, mask, bytesPerMask);
         if (prefix < contextArray.keys[contextPos]) {
-          for (int i = 0; i < Long.bitCount(containerMask); i++) {
-            skipContainer();
-          }
+          skipContainers(containerMask);
         } else {
           evaluateHorizontalSlicePoint(limit, threshold, containerMask);
           if (negate) {
@@ -596,9 +592,7 @@ public final class RangeBitmap {
       for (int prefix = 0; prefix <= maxContextKey && remaining > 0; prefix++) {
         long containerMask = getContainerMask(buffer, mPos, mask, bytesPerMask);
         if (prefix < contextArray.keys[contextPos]) {
-          for (int i = 0; i < Long.bitCount(containerMask); i++) {
-            skipContainer();
-          }
+          skipContainers(containerMask);
         } else {
           evaluateHorizontalSliceRange(remaining, threshold, containerMask);
           if (!upper) {
@@ -658,9 +652,7 @@ public final class RangeBitmap {
       for (int prefix = 0; prefix <= maxContextKey && remaining > 0; prefix++) {
         long containerMask = getContainerMask(buffer, mPos, mask, bytesPerMask);
         if (prefix < contextArray.keys[contextPos]) {
-          for (int i = 0; i < Long.bitCount(containerMask); i++) {
-            skipContainer();
-          }
+          skipContainers(containerMask);
         } else {
           evaluateHorizontalSliceRange(remaining, threshold, containerMask);
           Container container = contextArray.values[contextPos];
@@ -898,6 +890,12 @@ public final class RangeBitmap {
         position += 3 + BITMAP_SIZE;
       } else {
         position += 3 + (size << (type == RUN ? 2 : 1));
+      }
+    }
+
+    private void skipContainers(long mask) {
+      for (int i = 0; i < Long.bitCount(mask); i++) {
+        skipContainer();
       }
     }
   }
