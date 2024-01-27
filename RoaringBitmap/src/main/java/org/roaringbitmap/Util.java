@@ -1203,7 +1203,7 @@ public final class Util {
   }
 
   /**
-   * It makes intersection of the containers' keys between given bitmaps.
+   * It computes the intersection of the containers' keys between given bitmaps.
    *
    * @param words bitmap buffer
    * @param bitmaps bitmaps
