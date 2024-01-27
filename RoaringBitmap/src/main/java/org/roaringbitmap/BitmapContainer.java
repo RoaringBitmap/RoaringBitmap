@@ -941,13 +941,11 @@ public final class BitmapContainer extends Container implements Cloneable {
       }
       return ac;
     }
-    BitmapContainer bc = new BitmapContainer(maxcardinality, this.bitmap);
+    long[] newBitmap = new long[MAX_CAPACITY / 64];
+    BitmapContainer bc = new BitmapContainer(newBitmap, maxcardinality);
     int s = (select(maxcardinality));
     int usedwords = (s + 63) / 64;
-    int todelete = this.bitmap.length - usedwords;
-    for (int k = 0; k < todelete; ++k) {
-      bc.bitmap[bc.bitmap.length - 1 - k] = 0;
-    }
+    System.arraycopy(this.bitmap, 0, newBitmap, 0, usedwords);
     int lastword = s % 64;
     if (lastword != 0) {
       bc.bitmap[s / 64] &= (0xFFFFFFFFFFFFFFFFL >>> (64 - lastword));

@@ -1249,13 +1249,18 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       }
       return ac;
     }
-    MappeableBitmapContainer bc = new MappeableBitmapContainer(maxcardinality, this.bitmap);
+    LongBuffer newBitmap = LongBuffer.allocate(MAX_CAPACITY / 64);
+    MappeableBitmapContainer bc = new MappeableBitmapContainer(newBitmap, maxcardinality);
     int s = (select(maxcardinality));
     int usedwords = (s + 63) >>> 6;
-    int len = this.bitmap.limit();
-    int todelete = len - usedwords;
-    for (int k = 0; k < todelete; ++k) {
-      bc.bitmap.put(len - 1 - k, 0);
+    if (this.isArrayBacked()) {
+      long[] source = this.bitmap.array();
+      long[] dest = newBitmap.array();
+      System.arraycopy(source, 0, dest, 0, usedwords);
+    } else {
+      for (int k = 0; k < usedwords; ++k) {
+        bc.bitmap.put(k, this.bitmap.get(k));
+      }
     }
     int lastword = s % 64;
     if (lastword != 0) {
