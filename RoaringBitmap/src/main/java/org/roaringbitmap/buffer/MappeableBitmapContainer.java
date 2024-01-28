@@ -1240,13 +1240,18 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
       }
       return ac;
     }
-    MappeableBitmapContainer bc = new MappeableBitmapContainer(maxcardinality, this.bitmap);
+    LongBuffer newBitmap = LongBuffer.allocate(MAX_CAPACITY / 64);
+    MappeableBitmapContainer bc = new MappeableBitmapContainer(newBitmap, maxcardinality);
     int s = (select(maxcardinality));
     int usedwords = (s + 63) >>> 6;
-    int len = this.bitmap.limit();
-    int todelete = len - usedwords;
-    for (int k = 0; k < todelete; ++k) {
-      bc.bitmap.put(len - 1 - k, 0);
+    if (this.isArrayBacked()) {
+      long[] source = this.bitmap.array();
+      long[] dest = newBitmap.array();
+      System.arraycopy(source, 0, dest, 0, usedwords);
+    } else {
+      for (int k = 0; k < usedwords; ++k) {
+        bc.bitmap.put(k, this.bitmap.get(k));
+      }
     }
     int lastword = s % 64;
     if (lastword != 0) {
@@ -1688,6 +1693,67 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   @Override
   public char select(int j) {
+    if (BufferUtil.isBackedBySimpleArray(this.bitmap)) {
+      long[] b = this.bitmap.array();
+      if (//cardinality != -1 && // omitted as (-1>>>1) > j as j < (1<<16)
+          cardinality >>> 1 < j && j < cardinality) {
+        int leftover = cardinality - j;
+        for (int k = b.length - 1; k >= 0; --k) {
+          long w = b[k];
+          if (w != 0) {
+            int bits = Long.bitCount(w);
+            if (bits >= leftover) {
+              return (char) (k * 64 + Util.select(w, bits - leftover));
+            }
+            leftover -= bits;
+          }
+        }
+      } else {
+        int leftover = j;
+        for (int k = 0; k < b.length; ++k) {
+          long w = b[k];
+          if (w != 0) {
+            int bits = Long.bitCount(w);
+            if (bits > leftover) {
+              return (char) (k * 64 + Util.select(w, leftover));
+            }
+            leftover -= bits;
+          }
+        }
+      }
+    } else {
+      int len = this.bitmap.limit();
+      if (//cardinality != -1 && // (-1>>>1) > j as j < (1<<16)
+          cardinality >>> 1 < j && j < cardinality) {
+        int leftover = cardinality - j;
+        for (int k = len - 1; k >= 0; --k) {
+          int w = Long.bitCount(bitmap.get(k));
+          if (w >= leftover) {
+            return (char) (k * 64 + Util.select(bitmap.get(k), w - leftover));
+          }
+          leftover -= w;
+        }
+      } else {
+        int leftover = j;
+        for (int k = 0; k < len; ++k) {
+          long X = bitmap.get(k);
+          int w = Long.bitCount(X);
+          if (w > leftover) {
+            return (char) (k * 64 + Util.select(X, leftover));
+          }
+          leftover -= w;
+        }
+      }
+    }
+    throw new IllegalArgumentException("Insufficient cardinality.");
+  }
+
+  /** TODO For comparison only, should be removed before merge.
+   *
+   * @param j ...
+   * @return ...
+   */
+  public char selectOneSide(int j) {
     int leftover = j;
     if (BufferUtil.isBackedBySimpleArray(this.bitmap)) {
       long[] b = this.bitmap.array();
@@ -1712,7 +1778,6 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     }
     throw new IllegalArgumentException("Insufficient cardinality.");
   }
-
   @Override
   public int serializedSizeInBytes() {
     return serializedSizeInBytes(0);

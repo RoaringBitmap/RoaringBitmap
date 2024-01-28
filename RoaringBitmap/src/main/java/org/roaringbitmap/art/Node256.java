@@ -57,13 +57,11 @@ public class Node256 extends Node {
   public int getMinPos() {
     for (int i = 0; i < 4; i++) {
       long longVal = bitmapMask[i];
-      int v = Long.numberOfTrailingZeros(longVal);
-      if (v == 64) {
+      if (longVal == 0) {
         continue;
-      } else {
-        int res = i * 64 + v;
-        return res;
       }
+      int v = Long.numberOfTrailingZeros(longVal);
+      return i * 64 + v;
     }
     return ILLEGAL_IDX;
   }
@@ -95,13 +93,11 @@ public class Node256 extends Node {
   public int getMaxPos() {
     for (int i = 3; i >= 0; i--) {
       long longVal = bitmapMask[i];
-      int v = Long.numberOfLeadingZeros(longVal);
-      if (v == 64) {
+      if (longVal == 0) {
         continue;
-      } else {
-        int res = i * 64 + (63 - v);
-        return res;
       }
+      int v = Long.numberOfLeadingZeros(longVal);
+      return i * 64 + (63 - v);
     }
     return ILLEGAL_IDX;
   }
@@ -186,11 +182,12 @@ public class Node256 extends Node {
     int offset = 0;
     int x = 0;
     for (long longv : bitmapMask) {
-      int w = Long.bitCount(longv);
-      for (int i = 0; i < w; i++) {
+      int w = 0;
+      while (longv != 0) {
         int pos = x * 64 + numberOfTrailingZeros(longv);
-        this.children[pos] = children[offset + i];
+        this.children[pos] = children[offset + w];
         longv &= (longv - 1);
+        w++;
       }
       offset += w;
       x++;

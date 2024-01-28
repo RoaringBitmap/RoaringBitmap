@@ -275,7 +275,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
       @Override
       public boolean hasContainer() {
-        return 0 <= k & k < ImmutableRoaringArray.this.size;
+        return 0 <= k && k < ImmutableRoaringArray.this.size;
       }
 
       @Override

@@ -30,67 +30,99 @@ public final class Util {
    * @return return an array made of two containers
    */
   public static  Container[] addOffset(Container source, char offsets) {
-    // could be a whole lot faster, this is a simple implementation
     if(source instanceof ArrayContainer) {
-      ArrayContainer c = (ArrayContainer) source;
-      ArrayContainer low = new ArrayContainer(c.cardinality);
-      ArrayContainer high = new ArrayContainer(c.cardinality);
-      for(int k = 0; k < c.cardinality; k++) {
-        int val =  c.content[k];
-        val += (int) (offsets);
-        if(val <= 0xFFFF) {
-          low.content[low.cardinality++] = (char) val;
-        } else {
-          high.content[high.cardinality++] = (char) val;
-        }
-      }
-      return new Container[] {low, high};
+      return addOffsetArray((ArrayContainer) source, offsets);
     } else if (source instanceof BitmapContainer) {
-      BitmapContainer c = (BitmapContainer) source;
-      BitmapContainer low = new BitmapContainer();
-      BitmapContainer high = new BitmapContainer();
-      low.cardinality = -1;
-      high.cardinality = -1;
-      final int b = (int) (offsets) >>> 6;
-      final int i = (int) (offsets) % 64;
-      if(i == 0) {
-        System.arraycopy(c.bitmap, 0, low.bitmap, b, 1024 - b);
-        System.arraycopy(c.bitmap, 1024 - b, high.bitmap, 0, b );
-      } else {
-        low.bitmap[b + 0] = c.bitmap[0] << i;
-        for(int k = 1; k < 1024 - b; k++) {
-          low.bitmap[b + k] = (c.bitmap[k] << i) | (c.bitmap[k - 1] >>> (64-i));
-        }
-        for(int k = 1024 - b; k < 1024 ; k++) {
-          high.bitmap[k - (1024 - b)] =
-             (c.bitmap[k] << i)
-             | (c.bitmap[k - 1] >>> (64-i));
-        }
-        high.bitmap[b] =  (c.bitmap[1024 - 1] >>> (64-i));
-      }
-      return new Container[] {low.repairAfterLazy(), high.repairAfterLazy()};
+      return addOffsetBitmap((BitmapContainer) source, offsets);
     } else if (source instanceof RunContainer) {
-      RunContainer input = (RunContainer) source;
-      RunContainer low = new RunContainer();
-      RunContainer high = new RunContainer();
-      for(int k = 0 ; k < input.nbrruns; k++) {
-        int val =  (input.getValue(k));
-        val += (int) (offsets);
-        int finalval =  val + (input.getLength(k));
-        if(val <= 0xFFFF) {
-          if(finalval <= 0xFFFF) {
-            low.smartAppend((char)val,input.getLength(k));
-          } else {
-            low.smartAppend((char)val,(char)(0xFFFF-val));
-            high.smartAppend((char) 0,(char)finalval);
-          }
-        } else {
-          high.smartAppend((char)val,input.getLength(k));
-        }
-      }
-      return new Container[] {low, high};
+      return addOffsetRun((RunContainer) source, offsets);
     }
-    throw new RuntimeException("unknown container type"); // never happens
+    throw new RuntimeException("unknown container type");
+  }
+
+  private static Container[] addOffsetArray(ArrayContainer source, char offsets) {
+    int splitIndex;
+    if (source.first() + offsets > 0xFFFF) {
+      splitIndex = 0;
+    } else if (source.last() + offsets < 0xFFFF) {
+      splitIndex = source.cardinality;
+    } else {
+      splitIndex = Util.unsignedBinarySearch(source.content, 0, source.cardinality,
+          (char) (0x10000 - offsets));
+      if (splitIndex < 0) {
+        splitIndex = -splitIndex - 1;
+      }
+    }
+
+    ArrayContainer low = splitIndex == 0
+        ? new ArrayContainer()
+        : new ArrayContainer(splitIndex);
+    ArrayContainer high = source.cardinality - splitIndex == 0
+        ? new ArrayContainer()
+        : new ArrayContainer(source.cardinality - splitIndex);
+
+    int lowCardinality = 0;
+    for (int k = 0; k < splitIndex; k++) {
+      int val = source.content[k] + offsets;
+      low.content[lowCardinality++] = (char) val;
+    }
+    low.cardinality = lowCardinality;
+
+    int highCardinality = 0;
+    for (int k = splitIndex; k < source.cardinality; k++) {
+      int val = source.content[k] + offsets;
+      high.content[highCardinality++] = (char) val;
+    }
+    high.cardinality = highCardinality;
+
+    return new Container[]{low, high};
+  }
+
+  private static Container[] addOffsetBitmap(BitmapContainer source, char offsets) {
+    BitmapContainer c = source;
+    BitmapContainer low = new BitmapContainer();
+    BitmapContainer high = new BitmapContainer();
+    low.cardinality = -1;
+    high.cardinality = -1;
+    final int b = (int) offsets >>> 6;
+    final int i = (int) offsets % 64;
+    if(i == 0) {
+      System.arraycopy(c.bitmap, 0, low.bitmap, b, 1024 - b);
+      System.arraycopy(c.bitmap, 1024 - b, high.bitmap, 0, b);
+    } else {
+      low.bitmap[b] = c.bitmap[0] << i;
+      for(int k = 1; k < 1024 - b; k++) {
+        low.bitmap[b + k] = (c.bitmap[k] << i) | (c.bitmap[k - 1] >>> (64 - i));
+      }
+      for(int k = 1024 - b; k < 1024 ; k++) {
+        high.bitmap[k - (1024 - b)] =
+            (c.bitmap[k] << i)
+                | (c.bitmap[k - 1] >>> (64 - i));
+      }
+      high.bitmap[b] = c.bitmap[1024 - 1] >>> (64 - i);
+    }
+    return new Container[] {low.repairAfterLazy(), high.repairAfterLazy()};
+  }
+
+  private static Container[] addOffsetRun(RunContainer source, char offsets) {
+    RunContainer input = source;
+    RunContainer low = new RunContainer();
+    RunContainer high = new RunContainer();
+    for(int k = 0 ; k < input.nbrruns; k++) {
+      int val =  input.getValue(k) + offsets;
+      int finalval = val + input.getLength(k);
+      if(val <= 0xFFFF) {
+        if(finalval <= 0xFFFF) {
+          low.smartAppend((char) val, input.getLength(k));
+        } else {
+          low.smartAppend((char) val, (char) (0xFFFF - val));
+          high.smartAppend((char) 0, (char) finalval);
+        }
+      } else {
+        high.smartAppend((char) val, input.getLength(k));
+      }
+    }
+    return new Container[]{low, high};
   }
 
   /**
@@ -1231,5 +1263,24 @@ public final class Util {
    */
   private Util() {
 
+  }
+
+  /**
+   * Fill the array with set bits
+   *
+   * @param bitmap source bitmap
+   * @param array container (should be sufficiently large)
+   */
+  public static void fillArray(long[] bitmap, final char[] array) {
+    int pos = 0;
+    int base = 0;
+    for (int k = 0; k < bitmap.length; ++k) {
+      long bitset = bitmap[k];
+      while (bitset != 0) {
+        array[pos++] = (char) (base + numberOfTrailingZeros(bitset));
+        bitset &= (bitset - 1);
+      }
+      base += 64;
+    }
   }
 }

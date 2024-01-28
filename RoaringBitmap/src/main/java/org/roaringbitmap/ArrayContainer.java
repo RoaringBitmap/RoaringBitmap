@@ -725,28 +725,8 @@ public final class ArrayContainer extends Container implements Cloneable {
   @Override
   public Container ior(final ArrayContainer value2) {
     int totalCardinality = this.getCardinality() + value2.getCardinality();
-    if (totalCardinality > DEFAULT_MAX_SIZE) {// it could be a bitmap!
-      BitmapContainer bc = new BitmapContainer();
-      for (int k = 0; k < value2.cardinality; ++k) {
-        char v = value2.content[k];
-        final int i = (v) >>> 6;
-        bc.bitmap[i] |= (1L << v);
-      }
-      for (int k = 0; k < this.cardinality; ++k) {
-        char v = this.content[k];
-        final int i = (v) >>> 6;
-        bc.bitmap[i] |= (1L << v);
-      }
-      bc.cardinality = 0;
-      for (long k : bc.bitmap) {
-        bc.cardinality += Long.bitCount(k);
-      }
-      if (bc.cardinality <= DEFAULT_MAX_SIZE) {
-        return bc.toArrayContainer();
-      } else if (bc.isFull()) {
-        return RunContainer.full();
-      }
-      return bc;
+    if (totalCardinality > DEFAULT_MAX_SIZE) {
+      return toBitmapContainer().lazyIOR(value2).repairAfterLazy();
     }
     if (totalCardinality >= content.length) {
       int newCapacity = calculateCapacity(totalCardinality);
@@ -852,7 +832,7 @@ public final class ArrayContainer extends Container implements Cloneable {
 
   void loadData(final BitmapContainer bitmapContainer) {
     this.cardinality = bitmapContainer.cardinality;
-    bitmapContainer.fillArray(content);
+    Util.fillArray(bitmapContainer.bitmap, content);
   }
 
   // for use in inot range known to be nonempty
@@ -969,28 +949,8 @@ public final class ArrayContainer extends Container implements Cloneable {
   public Container or(final ArrayContainer value2) {
     final ArrayContainer value1 = this;
     int totalCardinality = value1.getCardinality() + value2.getCardinality();
-    if (totalCardinality > DEFAULT_MAX_SIZE) {// it could be a bitmap!
-      BitmapContainer bc = new BitmapContainer();
-      for (int k = 0; k < value2.cardinality; ++k) {
-        char v = value2.content[k];
-        final int i = (v) >>> 6;
-        bc.bitmap[i] |= (1L << v);
-      }
-      for (int k = 0; k < this.cardinality; ++k) {
-        char v = this.content[k];
-        final int i = (v) >>> 6;
-        bc.bitmap[i] |= (1L << v);
-      }
-      bc.cardinality = 0;
-      for (long k : bc.bitmap) {
-        bc.cardinality += Long.bitCount(k);
-      }
-      if (bc.cardinality <= DEFAULT_MAX_SIZE) {
-        return bc.toArrayContainer();
-      } else if (bc.isFull()) {
-        return RunContainer.full();
-      }
-      return bc;
+    if (totalCardinality > DEFAULT_MAX_SIZE) {
+      return toBitmapContainer().lazyIOR(value2).repairAfterLazy();
     }
     ArrayContainer answer = new ArrayContainer(totalCardinality);
     answer.cardinality =
@@ -1343,26 +1303,8 @@ public final class ArrayContainer extends Container implements Cloneable {
   public Container xor(final ArrayContainer value2) {
     final ArrayContainer value1 = this;
     final int totalCardinality = value1.getCardinality() + value2.getCardinality();
-    if (totalCardinality > DEFAULT_MAX_SIZE) {// it could be a bitmap!
-      BitmapContainer bc = new BitmapContainer();
-      for (int k = 0; k < value2.cardinality; ++k) {
-        char v = value2.content[k];
-        final int i = (v) >>> 6;
-        bc.bitmap[i] ^= (1L << v);
-      }
-      for (int k = 0; k < this.cardinality; ++k) {
-        char v = this.content[k];
-        final int i = (v) >>> 6;
-        bc.bitmap[i] ^= (1L << v);
-      }
-      bc.cardinality = 0;
-      for (long k : bc.bitmap) {
-        bc.cardinality += Long.bitCount(k);
-      }
-      if (bc.cardinality <= DEFAULT_MAX_SIZE) {
-        return bc.toArrayContainer();
-      }
-      return bc;
+    if (totalCardinality > DEFAULT_MAX_SIZE) {
+      return toBitmapContainer().ixor(value2);
     }
     ArrayContainer answer = new ArrayContainer(totalCardinality);
     answer.cardinality = Util.unsignedExclusiveUnion2by2(value1.content, value1.getCardinality(),
@@ -1499,20 +1441,8 @@ public final class ArrayContainer extends Container implements Cloneable {
   protected Container lazyor(ArrayContainer value2) {
     final ArrayContainer value1 = this;
     int totalCardinality = value1.getCardinality() + value2.getCardinality();
-    if (totalCardinality > ARRAY_LAZY_LOWERBOUND) {// it could be a bitmap!
-      BitmapContainer bc = new BitmapContainer();
-      for (int k = 0; k < value2.cardinality; ++k) {
-        char v = value2.content[k];
-        final int i = (v) >>> 6;
-        bc.bitmap[i] |= (1L << v);
-      }
-      for (int k = 0; k < this.cardinality; ++k) {
-        char v = this.content[k];
-        final int i = (v) >>> 6;
-        bc.bitmap[i] |= (1L << v);
-      }
-      bc.cardinality = -1;
-      return bc;
+    if (totalCardinality > ARRAY_LAZY_LOWERBOUND) {
+      return toBitmapContainer().lazyIOR(value2);
     }
     ArrayContainer answer = new ArrayContainer(totalCardinality);
     answer.cardinality =

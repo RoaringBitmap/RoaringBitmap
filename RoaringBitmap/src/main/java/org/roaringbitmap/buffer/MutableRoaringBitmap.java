@@ -972,10 +972,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         s1 = pos1 < length1 ? highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
         s2 = pos2 < length2 ? other.highLowContainer.getKeyAtIndex(pos2) : maxKey + 1;
       } else if (key == s1) { // or in a hole
-        newValues[size] = highLowContainer.getContainerAtIndex(pos1)
-                .ior(key == maxKey
-                        ? MappeableRunContainer.rangeOfOnes(0, lastRun)
-                        : MappeableRunContainer.full());
+        newValues[size] = key == maxKey
+            ? highLowContainer.getContainerAtIndex(pos1).ior(
+            MappeableRunContainer.rangeOfOnes(0, lastRun))
+            : MappeableRunContainer.full();
         ++pos1;
         s1 = pos1 < length1 ? highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
       } else if (key == s2) { // insert the complement
@@ -1022,15 +1022,26 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     final int i = highLowContainer.getIndex(hb);
     if (i >= 0) {
       MappeableContainer C = highLowContainer.getContainerAtIndex(i);
-      int oldcard = C.getCardinality();
-      C = C.add(BufferUtil.lowbits(x));
-      getMappeableRoaringArray().setContainerAtIndex(i, C);
-      return C.getCardinality() > oldcard;
+      char lowX = BufferUtil.lowbits(x);
+      MappeableContainer newCont;
+      if (C instanceof MappeableRunContainer) { // do not compute cardinality
+        if (!C.contains(lowX)) {
+          newCont = C.add(lowX);
+          getMappeableRoaringArray().setContainerAtIndex(i, newCont);
+          return true;
+        }
+      } else { // it is faster to use getCardinality() than contains() for other container types
+        int oldCard = C.getCardinality();
+        newCont = C.add(lowX);
+        getMappeableRoaringArray().setContainerAtIndex(i, newCont);
+        return newCont.getCardinality() > oldCard;
+      }
     } else {
       final MappeableArrayContainer newac = new MappeableArrayContainer();
       getMappeableRoaringArray().insertNewKeyValueAt(-i - 1, hb, newac.add(BufferUtil.lowbits(x)));
       return true;
     }
+    return false;
   }
 
   /**

@@ -394,7 +394,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
       if (isBitmap[k]) {
         long[] array = new long[MappeableBitmapContainer.MAX_CAPACITY / 64];
         buffer.asLongBuffer().get(array);
-        container = new MappeableBitmapContainer(cardinalities[k], LongBuffer.wrap(array));
+        container = new MappeableBitmapContainer(LongBuffer.wrap(array), cardinalities[k]);
         buffer.position(buffer.position() + 1024 * 8);
       } else if (bitmapOfRunContainers != null
               && ((bitmapOfRunContainers[k / 8] & (1 << (k & 7))) != 0)) {
@@ -437,17 +437,6 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
     return getContainerAtIndex(i).getCardinality();
   }
 
-  // retired method (inefficient)
-  // involves a binary search
-  /*@Override
-  public MappeableContainer getContainer(char x) {
-    final int i = this.binarySearch(0, size, x);
-    if (i < 0) {
-      return null;
-    }
-    return this.values[i];
-  }*/
-  
   @Override
   public int getContainerIndex(char x) {
     return this.binarySearch(0, size, x);
@@ -511,7 +500,7 @@ public final class MutableRoaringArray implements Cloneable, Externalizable, Poi
 
       @Override
       public boolean hasContainer() {
-        return 0 <= k & k < MutableRoaringArray.this.size;
+        return 0 <= k && k < MutableRoaringArray.this.size;
       }
 
       @Override

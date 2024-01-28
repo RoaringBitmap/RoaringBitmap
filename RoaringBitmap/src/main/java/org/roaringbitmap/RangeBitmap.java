@@ -75,7 +75,7 @@ public final class RangeBitmap {
     }
     int sliceCount = source.get() & 0xFF;
     int maxKey = source.getChar();
-    long mask = sliceCount == 64 ? -1L : (1L << sliceCount) - 1;
+    long mask = -1L >>> (64 - sliceCount);
     byte bytesPerMask = (byte) ((sliceCount + 7) >>> 3);
     long maxRid = source.getInt() & 0xFFFFFFFFL;
     int masksOffset = source.position();
@@ -468,9 +468,7 @@ public final class RangeBitmap {
       for (int prefix = 0; prefix <= maxContextKey && remaining > 0; prefix++) {
         long containerMask = getContainerMask(buffer, mPos, mask, bytesPerMask);
         if (prefix < contextArray.keys[contextPos]) {
-          for (int i = 0; i < Long.bitCount(containerMask); i++) {
-            skipContainer();
-          }
+          skipContainers(containerMask);
         } else {
           int limit = Math.min((int) remaining, 0x10000);
           evaluateHorizontalSlicePoint(limit, value, containerMask);
@@ -532,9 +530,7 @@ public final class RangeBitmap {
         int limit = Math.min(0x10000, (int) remaining);
         long containerMask = getContainerMask(buffer, mPos, mask, bytesPerMask);
         if (prefix < contextArray.keys[contextPos]) {
-          for (int i = 0; i < Long.bitCount(containerMask); i++) {
-            skipContainer();
-          }
+          skipContainers(containerMask);
         } else {
           evaluateHorizontalSlicePoint(limit, threshold, containerMask);
           if (negate) {
@@ -596,9 +592,7 @@ public final class RangeBitmap {
       for (int prefix = 0; prefix <= maxContextKey && remaining > 0; prefix++) {
         long containerMask = getContainerMask(buffer, mPos, mask, bytesPerMask);
         if (prefix < contextArray.keys[contextPos]) {
-          for (int i = 0; i < Long.bitCount(containerMask); i++) {
-            skipContainer();
-          }
+          skipContainers(containerMask);
         } else {
           evaluateHorizontalSliceRange(remaining, threshold, containerMask);
           if (!upper) {
@@ -658,9 +652,7 @@ public final class RangeBitmap {
       for (int prefix = 0; prefix <= maxContextKey && remaining > 0; prefix++) {
         long containerMask = getContainerMask(buffer, mPos, mask, bytesPerMask);
         if (prefix < contextArray.keys[contextPos]) {
-          for (int i = 0; i < Long.bitCount(containerMask); i++) {
-            skipContainer();
-          }
+          skipContainers(containerMask);
         } else {
           evaluateHorizontalSliceRange(remaining, threshold, containerMask);
           Container container = contextArray.values[contextPos];
@@ -679,7 +671,7 @@ public final class RangeBitmap {
     private void evaluateHorizontalSliceRange(long remaining, long threshold, long containerMask) {
       // most significant absent bit in the threshold for which there is no container;
       // everything before this is wasted work, so we just skip over the containers
-      int skip = 64 - Long.numberOfLeadingZeros(((~threshold & ~containerMask) & mask));
+      int skip = 64 - Long.numberOfLeadingZeros((~(threshold | containerMask) & mask));
       int slice = 0;
       if (skip > 0) {
         for (; slice < skip; ++slice) {
@@ -900,6 +892,12 @@ public final class RangeBitmap {
         position += 3 + (size << (type == RUN ? 2 : 1));
       }
     }
+
+    private void skipContainers(long mask) {
+      for (int i = 0; i < Long.bitCount(mask); i++) {
+        skipContainer();
+      }
+    }
   }
 
   private final class DoubleEvaluation {
@@ -929,7 +927,7 @@ public final class RangeBitmap {
               bits = low.bits;
             } else {
               bits = low.bits;
-              for (int i = 0; i < bits.length & i < high.bits.length; i++) {
+              for (int i = 0; i < Math.min(bits.length, high.bits.length); i++) {
                 bits[i] &= high.bits[i];
               }
             }
@@ -963,7 +961,7 @@ public final class RangeBitmap {
             } else if (high.full) {
               count += cardinalityInBitmapRange(low.bits, 0, remainder);
             } else {
-              for (int i = 0; i < low.bits.length & i < high.bits.length; i++) {
+              for (int i = 0; i < Math.min(low.bits.length, high.bits.length); i++) {
                 high.bits[i] &= low.bits[i];
               }
               count += cardinalityInBitmapRange(high.bits, 0, remainder);
@@ -1001,7 +999,7 @@ public final class RangeBitmap {
               } else if (high.full) {
                 count += new BitmapContainer(low.bits, -1).andCardinality(container);
               } else {
-                for (int i = 0; i < low.bits.length & i < high.bits.length; i++) {
+                for (int i = 0; i < Math.min(low.bits.length, high.bits.length); i++) {
                   high.bits[i] &= low.bits[i];
                 }
                 count += new BitmapContainer(high.bits, -1).andCardinality(container);
@@ -1019,13 +1017,13 @@ public final class RangeBitmap {
                                          long upper) {
       // most significant absent bit in the threshold for which there is no container;
       // everything before this is wasted work, so we just skip over the containers
-      int skipLow = 64 - Long.numberOfLeadingZeros(((~lower & ~containerMask) & mask));
+      int skipLow = 64 - Long.numberOfLeadingZeros((~(lower | containerMask) & mask));
       if (skipLow == 64) {
         lower = 0L;
       } else if (skipLow > 0) {
         lower &= -(1L << skipLow);
       }
-      int skipHigh = 64 - Long.numberOfLeadingZeros(((~upper & ~containerMask) & mask));
+      int skipHigh = 64 - Long.numberOfLeadingZeros((~(upper | containerMask) & mask));
       if (skipHigh == 64) {
         upper = 0L;
       } else if (skipHigh > 0) {
@@ -1337,7 +1335,7 @@ public final class RangeBitmap {
     }
 
     public void and(MappeableContainer container) {
-      if (!empty & !container.isFull()) {
+      if (!empty && !container.isFull()) {
         container.andInto(bits);
         full = false;
       }
@@ -1609,7 +1607,7 @@ public final class RangeBitmap {
      */
     private static long rangeMask(long maxValue) {
       int lz = Long.numberOfLeadingZeros(maxValue | 1);
-      return lz == 0 ? -1L : (1L << (64 - lz)) - 1;
+      return -1L >>> lz;
     }
 
     private static byte bytesPerMask(long maxValue) {
