@@ -998,7 +998,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (!BufferUtil.isBackedBySimpleArray(this.content)) {
       throw new RuntimeException("Should not happen. Internal bug.");
     }
-    bitmapContainer.fillArray(content.array());
+    Util.fillArray(bitmapContainer.bitmap.array(), content.array());
   }
 
   // for use in inot range known to be nonempty

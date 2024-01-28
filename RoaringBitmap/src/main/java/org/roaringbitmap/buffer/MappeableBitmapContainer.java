@@ -450,39 +450,6 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     return false;
   }
 
-  /**
-   * Fill the array with set bits
-   * 
-   * @param array container (should be sufficiently large)
-   */
-  void fillArray(final char[] array) {
-    int pos = 0;
-    if (BufferUtil.isBackedBySimpleArray(bitmap)) {
-      long[] b = bitmap.array();
-      int base = 0;
-      for (int k = 0; k < b.length; ++k) {
-        long bitset = b[k];
-        while (bitset != 0) {
-          array[pos++] = (char) (base + numberOfTrailingZeros(bitset));
-          bitset &= (bitset - 1);
-        }
-        base += 64;
-      }
-
-    } else {
-      int len = this.bitmap.limit();
-      int base = 0;
-      for (int k = 0; k < len; ++k) {
-        long bitset = bitmap.get(k);
-        while (bitset != 0) {
-          array[pos++] = (char) (base + numberOfLeadingZeros(bitset));
-          bitset &= (bitset - 1);
-        }
-        base += 64;
-      }
-    }
-  }
-
   @Override
   public void fillLeastSignificant16bits(int[] x, int i, int mask) {
     int pos = i;
