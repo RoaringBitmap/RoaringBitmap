@@ -2737,19 +2737,31 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     }
     final int runCount = numberOfRuns();
     char ib = 0, ir = 0;
+    int start = getValue(0);
+    int stop = start + getLength(0);
     while(ib < MappeableBitmapContainer.MAX_CAPACITY / 64 && ir < runCount) {
       long w = bitmapContainer.bitmap.get(ib);
-      while (w != 0 && ir < runCount) {
-        int start = (getValue(ir));
-        int stop = start+ (getLength(ir));
-        long t = w & -w;
+      while (true) {
         long r = ib * 64 + Long.numberOfTrailingZeros(w);
         if (r < start) {
           return false;
-        } else if(r > stop) {
+        } else if (r > stop) {
           ++ir;
+          if (ir == runCount) {
+            break;
+          }
+          w &= w - 1;
+          start = getValue(ir);
+          stop = start + getLength(ir);
+
+        } else if (ib * 64 + 64 < stop) {
+          ib = (char) (stop / 64);
+          w = bitmapContainer.bitmap.get(ib);
         } else {
-          w ^= t;
+          w &= w - 1;
+          if (w == 0) {
+            break;
+          }
         }
       }
       if(w == 0) {
