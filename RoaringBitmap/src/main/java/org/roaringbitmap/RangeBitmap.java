@@ -1288,16 +1288,14 @@ public final class RangeBitmap {
     public void clear() {
       if (!empty) {
         Arrays.fill(bits, 0L);
-        empty = true;
-        full = false;
+        makeEmpty();
       }
     }
 
     public void fill() {
       if (!full) {
         Arrays.fill(bits, -1L);
-        empty = false;
-        full = true;
+        makeFull();
       }
     }
 
@@ -1308,20 +1306,18 @@ public final class RangeBitmap {
       if (!empty) {
         resetBitmapRange(bits, boundary, 0x10000);
       }
-      empty = false;
-      full = false;
+      makeNonEmpty();
+      makeNonFull();
     }
 
     public void flip(int from, int to) {
+      Util.flipBitmapRange(bits, from, to);
       if (!full) {
-        Util.flipBitmapRange(bits, from, to);
         if (empty) {
-          empty = false;
-          full = true;
+          makeFull();
         }
       } else {
-        full = false;
-        empty = true;
+        makeEmpty();
       }
     }
 
@@ -1330,15 +1326,33 @@ public final class RangeBitmap {
         fill();
       } else if (!full) {
         container.orInto(bits);
-        empty = false;
+        makeNonEmpty();
       }
     }
 
     public void and(MappeableContainer container) {
       if (!empty && !container.isFull()) {
         container.andInto(bits);
-        full = false;
+        makeNonFull();
       }
+    }
+
+    private void makeEmpty() {
+      this.empty = true;
+      this.full = false;
+    }
+
+    private void makeNonEmpty() {
+      this.empty = false;
+    }
+
+    private void makeFull() {
+      this.full = true;
+      this.empty = false;
+    }
+
+    private void makeNonFull() {
+      this.full = false;
     }
   }
 
