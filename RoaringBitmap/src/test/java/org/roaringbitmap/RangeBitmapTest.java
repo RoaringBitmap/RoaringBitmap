@@ -9,7 +9,10 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,8 +46,25 @@ import static org.roaringbitmap.RangeBitmapTest.Distribution.UNIFORM;
 @Execution(ExecutionMode.CONCURRENT)
 public class RangeBitmapTest {
 
+  @Test
+  public void betweenRegressionTest() throws IOException {
+    String[] lines = new String(Files.readAllBytes(Paths.get("src/test/resources/testdata/rangebitmap_regression.txt"))).split(",");
+    RangeBitmap.Appender appender = RangeBitmap.appender(2175288L);
+    for (String line : lines) {
+        appender.add(Long.parseLong(line));
+    }
+    RangeBitmap bitmap = appender.build();
+    for (int i = 0; i < 4; i++) {
+      long lowerTs = 263501 + i;
+      RoaringBitmap eqLower = bitmap.eq(lowerTs); // eq
+      RoaringBitmap eqUpper = bitmap.eq(lowerTs + 1); // eq
+      // [x,y] both inclusive, so it should be union of the two above
+      RoaringBitmap range = bitmap.between(lowerTs, lowerTs + 1);
+      assertEquals(RoaringBitmap.or(eqLower, eqUpper), range);
+    }
+  }
+
   @ParameterizedTest
-  @Disabled("expensive - run on an ad hoc basis")
   @ValueSource(ints = {0, 0xFFFF, 0x10001, 100_000, 0x110001, 1_000_000})
   public void testInsertContiguousValues(int size) {
     RangeBitmap.Appender appender = RangeBitmap.appender(size);
@@ -72,7 +92,6 @@ public class RangeBitmapTest {
   }
 
   @ParameterizedTest
-  @Disabled("expensive - run on an ad hoc basis")
   @ValueSource(ints = {0, 0xFFFF, 0x10001, 100_000, 0x110001, 1_000_000})
   public void testInsertReversedContiguousValues(int size) {
     RangeBitmap.Appender appender = RangeBitmap.appender(size);
@@ -281,7 +300,6 @@ public class RangeBitmapTest {
 
   @ParameterizedTest
   @MethodSource("distributions")
-  @Disabled("expensive - run on an ad hoc basis")
   public void testAppenderReuseAfterClear(LongSupplier dist) {
     RangeBitmap.Appender appender = RangeBitmap.appender(10_000_000);
     long[] values = new long[100_000];
@@ -308,7 +326,6 @@ public class RangeBitmapTest {
 
   @ParameterizedTest
   @MethodSource("distributions")
-  @Disabled("expensive - run on an ad hoc basis")
   public void testConstructRelativeToMinValue(LongSupplier dist) {
     int[] values = IntStream.range(0, 1_000_000).map(i -> (int) dist.getAsLong()).toArray();
     int min = IntStream.of(values).min().orElse(0);
@@ -346,7 +363,6 @@ public class RangeBitmapTest {
 
   @ParameterizedTest
   @MethodSource("distributions")
-  @Disabled("expensive - run on an ad hoc basis")
   public void testAgainstReferenceImplementation(LongSupplier dist) {
     long maxValue = 10_000_000;
     ReferenceImplementation.Builder builder = ReferenceImplementation.builder();
@@ -370,7 +386,6 @@ public class RangeBitmapTest {
   @ParameterizedTest
   @MethodSource("distributions")
   @SuppressWarnings("unchecked")
-  @Disabled("expensive - run on an ad hoc basis")
   public void testAgainstPrecomputed(LongSupplier dist) {
     long maxValue = 10_000_000;
     ReferenceImplementation.Builder builder = ReferenceImplementation.builder();
@@ -412,7 +427,6 @@ public class RangeBitmapTest {
 
   @ParameterizedTest
   @MethodSource("distributions")
-  @Disabled("expensive - run on an ad hoc basis")
   public void testContextualRangeEvaluationAgainstNonContextual(LongSupplier dist) {
     long maxValue = 10_000_000;
     RangeBitmap.Appender appender = RangeBitmap.appender(maxValue);
@@ -442,7 +456,6 @@ public class RangeBitmapTest {
 
   @ParameterizedTest
   @MethodSource("distributions")
-  @Disabled("expensive - run on an ad hoc basis")
   public void testDoubleEndedRangeEvaluationAgainstNonContextual(LongSupplier dist) {
     long maxValue = 10_000_000;
     RangeBitmap.Appender appender = RangeBitmap.appender(maxValue);
@@ -601,7 +614,6 @@ public class RangeBitmapTest {
 
   @ParameterizedTest
   @MethodSource("distributions")
-  @Disabled("expensive - run on an ad hoc basis")
   public void testContextualBetweenCardinality(LongSupplier dist) {
     long maxValue = 10_000_000;
     RangeBitmap.Appender appender = RangeBitmap.appender(maxValue);
