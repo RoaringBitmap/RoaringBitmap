@@ -209,4 +209,23 @@ public class ImmutableRoaringBitmapBatchIteratorTest {
         assertTrue(i >= 0, "key " + number + " not found");
         assertEquals(batch[i], number);
     }
+
+    @Test
+    public void testBatchIteratorFillsBufferAcrossContainers() {
+        MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(3 << 4, 3 << 8, 3 << 12, 3 << 16, 3 << 20, 3 << 24, 3 << 28);
+        assertEquals(5, bitmap.highLowContainer.size());
+        BatchIterator it = bitmap.getBatchIterator();
+        int[] batch = new int[3];
+        int n = it.nextBatch(batch);
+        assertEquals(3, n);
+        assertArrayEquals(new int[]{3 << 4, 3 << 8, 3 << 12}, batch);
+        n = it.nextBatch(batch);
+        assertEquals(3, n);
+        assertArrayEquals(new int[]{3 << 16, 3 << 20, 3 << 24}, batch);
+        n = it.nextBatch(batch);
+        assertEquals(1, n);
+        assertArrayEquals(new int[]{3 << 28}, Arrays.copyOfRange(batch, 0, 1));
+        n = it.nextBatch(batch);
+        assertEquals(0, n);
+    }
 }
