@@ -43,16 +43,14 @@ public class CloneBatchIteratorTest {
 
     int[] buffer = new int[8];
 
-    assertEquals(3, it2.nextBatch(buffer));
+    assertEquals(5, it2.nextBatch(buffer));
     assertArrayEquals(c1, Arrays.copyOfRange(buffer, 0, 3));
-    assertEquals(2, it2.nextBatch(buffer));
-    assertArrayEquals(c2, Arrays.copyOfRange(buffer, 0, 2));
+    assertArrayEquals(c2, Arrays.copyOfRange(buffer, 3, 5));
     assertEquals(0, it2.nextBatch(buffer));
 
-    assertEquals(3, it1.nextBatch(buffer));
+    assertEquals(5, it1.nextBatch(buffer));
     assertArrayEquals(c1, Arrays.copyOfRange(buffer, 0, 3));
-    assertEquals(2, it1.nextBatch(buffer));
-    assertArrayEquals(c2, Arrays.copyOfRange(buffer, 0, 2));
+    assertArrayEquals(c2, Arrays.copyOfRange(buffer, 3, 5));
     assertEquals(0, it1.nextBatch(buffer));
   }
 }

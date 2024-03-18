@@ -13,6 +13,17 @@ public interface ContainerBatchIterator extends Cloneable {
   int next(int key, int[] buffer, int offset);
 
   /**
+   * Fills the buffer with values prefixed by the key,
+   * and returns how much of the buffer was used.
+   * @param key the prefix of the values
+   * @param buffer the buffer to write values onto
+   * @return how many values were written.
+   */
+  default int next(int key, int[] buffer) {
+    return next(key, buffer, 0);
+  }
+
+  /**
    * Whether the underlying container is exhausted or not
    * @return true if there is data remaining
    */

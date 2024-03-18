@@ -21,7 +21,8 @@ public final class RunBatchIterator implements ContainerBatchIterator {
       int runStart = (runs.getValue(run));
       int runLength = (runs.getLength(run));
       int chunkStart = runStart + cursor;
-      int chunkEnd = chunkStart + Math.min(runLength - cursor, buffer.length - offset - consumed - 1);
+      int usableBufferLength = buffer.length - offset - consumed;
+      int chunkEnd = chunkStart + Math.min(runLength - cursor, usableBufferLength - 1);
       int chunk = chunkEnd - chunkStart + 1;
       for (int i = 0; i < chunk; ++i) {
         buffer[offset + consumed + i] = key + chunkStart + i;
