@@ -15,9 +15,9 @@ public final class BitmapBatchIterator implements ContainerBatchIterator {
   }
 
   @Override
-  public int next(int key, int[] buffer) {
+  public int next(int key, int[] buffer, int offset) {
     int consumed = 0;
-    while (consumed < buffer.length) {
+    while ((offset + consumed) < buffer.length) {
       while (word == 0) {
         ++wordIndex;
         if (wordIndex == 1024) {
@@ -25,7 +25,7 @@ public final class BitmapBatchIterator implements ContainerBatchIterator {
         }
         word = bitmap.bitmap.get(wordIndex);
       }
-      buffer[consumed++] = key + (64 * wordIndex) + numberOfTrailingZeros(word);
+      buffer[offset + consumed++] = key + (64 * wordIndex) + numberOfTrailingZeros(word);
       word &= (word - 1);
     }
     return consumed;

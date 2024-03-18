@@ -7,9 +7,10 @@ public interface ContainerBatchIterator extends Cloneable {
    * and returns how much of the buffer was used.
    * @param key the prefix of the values
    * @param buffer the buffer to write values onto
+   * @param offset the offset into the buffer to write values onto
    * @return how many values were written.
    */
-  int next(int key, int[] buffer);
+  int next(int key, int[] buffer, int offset);
 
   /**
    * Whether the underlying container is exhausted or not
