@@ -13,11 +13,11 @@ public final class ArrayBatchIterator implements ContainerBatchIterator {
   }
 
   @Override
-  public int next(int key, int[] buffer) {
+  public int next(int key, int[] buffer, int offset) {
     int consumed = 0;
     char[] data = array.content;
-    while (consumed < buffer.length && index < array.getCardinality()) {
-      buffer[consumed++] = key + (data[index++]);
+    while ((offset + consumed) < buffer.length && index < array.getCardinality()) {
+      buffer[offset + consumed++] = key + (data[index++]);
     }
     return consumed;
   }

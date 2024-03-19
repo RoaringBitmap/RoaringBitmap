@@ -13,16 +13,17 @@ public final class RunBatchIterator implements ContainerBatchIterator {
   }
 
   @Override
-  public int next(int key, int[] buffer) {
+  public int next(int key, int[] buffer, int offset) {
     int consumed = 0;
     do {
       int runStart = (runs.getValue(run));
       int runLength = (runs.getLength(run));
       int chunkStart = runStart + cursor;
-      int chunkEnd = chunkStart + Math.min(runLength - cursor, buffer.length - consumed - 1);
+      int usableBufferLength = buffer.length - offset - consumed;
+      int chunkEnd = chunkStart + Math.min(runLength - cursor, usableBufferLength - 1);
       int chunk = chunkEnd - chunkStart + 1;
       for (int i = 0; i < chunk; ++i) {
-        buffer[consumed + i] = key + chunkStart + i;
+        buffer[offset + consumed + i] = key + chunkStart + i;
       }
       consumed += chunk;
       if (runStart + runLength == chunkEnd) {
@@ -31,7 +32,7 @@ public final class RunBatchIterator implements ContainerBatchIterator {
       } else {
         cursor += chunk;
       }
-    } while (consumed < buffer.length && run != runs.numberOfRuns());
+    } while ((offset + consumed) < buffer.length && run != runs.numberOfRuns());
     return consumed;
   }
 
