@@ -4,6 +4,7 @@
 
 package org.roaringbitmap.buffer;
 
+import org.roaringbitmap.BitSetUtil;
 import org.roaringbitmap.Util;
 
 import java.nio.Buffer;
@@ -1095,6 +1096,40 @@ public final class BufferUtil {
       }
     }
     // return pos;
+  }
+
+  /**
+   * It computes the intersection of the containers' keys between given bitmaps.
+   *
+   * @param words bitmap buffer
+   * @param bitmaps bitmaps
+   * @return keys intersection
+   */
+  static char[] intersectKeys(long[] words, ImmutableRoaringBitmap[] bitmaps) {
+    ImmutableRoaringBitmap first = bitmaps[0];
+    for (int i = 0; i < first.highLowContainer.size(); ++i) {
+      char key = first.highLowContainer.getKeyAtIndex(i);
+      words[key >>> 6] |= 1L << key;
+    }
+    int numContainers = first.highLowContainer.size();
+    for (int i = 1; i < bitmaps.length && numContainers > 0; ++i) {
+      final char[] keys;
+      if (bitmaps[i].highLowContainer instanceof MutableRoaringArray) {
+        keys = ((MutableRoaringArray) bitmaps[i].highLowContainer).keys;
+      } else {
+        keys = new char[bitmaps[i].highLowContainer.size()];
+        for (int j = 0; j < keys.length; ++j) {
+          keys[j] = bitmaps[i].highLowContainer.getKeyAtIndex(j);
+        }
+      }
+      numContainers = BufferUtil.intersectArrayIntoBitmap(words,
+          CharBuffer.wrap(keys),
+          bitmaps[i].highLowContainer.size());
+    }
+    if (numContainers == 0) {
+      return new char[0];
+    }
+    return BitSetUtil.arrayContainerBufferOf(0, words.length, numContainers, words);
   }
 
   /**
