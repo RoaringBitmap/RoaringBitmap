@@ -14,52 +14,37 @@ import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.util.Iterator;
 
-import static java.lang.Long.numberOfLeadingZeros;
 import static java.lang.Long.numberOfTrailingZeros;
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
-
+import static org.roaringbitmap.BitmapContainer.BLOCKSIZE;
+import static org.roaringbitmap.BitmapContainer.MAXRUNS;
+import static org.roaringbitmap.BitmapContainer.MAX_CAPACITY;
+import static org.roaringbitmap.BitmapContainer.MAX_CAPACITY_BYTE;
+import static org.roaringbitmap.BitmapContainer.MAX_CAPACITY_LONG;
+import static org.roaringbitmap.BitmapContainer.USE_BRANCHLESS;
 
 /**
  * Simple bitset-like container. Unlike org.roaringbitmap.BitmapContainer, this class uses a
  * LongBuffer to store data.
  */
 public final class MappeableBitmapContainer extends MappeableContainer implements Cloneable {
-  protected static final int MAX_CAPACITY = 1 << 16;
 
-  
-  private static final long serialVersionUID = 2L;
-
-  // bail out early when the number of runs is excessive, without
-  // an exact count (just a decent lower bound)
-  private static final int BLOCKSIZE = 128;
-  // 64 words can have max 32 runs per word, max 2k runs
-
-  /**
-   * optimization flag: whether the cardinality of the bitmaps is maintained through branchless
-   * operation
-   */
-  private static final boolean USE_BRANCHLESS = true;
-
-
-  // the parameter is for overloading and symmetry with ArrayContainer
   protected static int serializedSizeInBytes(int unusedCardinality) {
-    return MAX_CAPACITY / 8;
+    return MAX_CAPACITY_BYTE;
   }
+
+  private static final long serialVersionUID = 2L;
 
   LongBuffer bitmap;
 
   int cardinality;
-
-  // nruns value for which RunContainer.serializedSizeInBytes ==
-  // BitmapContainer.getArraySizeInBytes()
-  private final int MAXRUNS = (getArraySizeInBytes() - 2) / 4;
 
   /**
    * Create a bitmap container with all bits set to false
    */
   public MappeableBitmapContainer() {
     this.cardinality = 0;
-    this.bitmap = LongBuffer.allocate(MAX_CAPACITY / 64);
+    this.bitmap = LongBuffer.allocate(MAX_CAPACITY_LONG);
   }
 
   /**
@@ -82,7 +67,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
    */
   public MappeableBitmapContainer(final int firstOfRun, final int lastOfRun) {
     this.cardinality = lastOfRun - firstOfRun;
-    this.bitmap = LongBuffer.allocate(MAX_CAPACITY / 64);
+    this.bitmap = LongBuffer.allocate(MAX_CAPACITY_LONG);
     Util.setBitmapRange(bitmap.array(), firstOfRun, lastOfRun);
   }
 
@@ -103,9 +88,9 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
    * @param initCardinality cardinality (number of values stored)
    */
   public MappeableBitmapContainer(final LongBuffer array, final int initCardinality) {
-    if (array.limit() != MAX_CAPACITY / 64) {
+    if (array.limit() != MAX_CAPACITY_LONG) {
       throw new RuntimeException("Mismatch between buffer and storage requirements: "
-          + array.limit() + " vs. " + MAX_CAPACITY / 64);
+          + array.limit() + " vs. " + MAX_CAPACITY_LONG);
     }
     this.cardinality = initCardinality;
     this.bitmap = array;
@@ -504,10 +489,8 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   @Override
   protected int getArraySizeInBytes() {
-    return MAX_CAPACITY / 8;
+    return MAX_CAPACITY_BYTE;
   }
-
-
 
   @Override
   public int getCardinality() {
@@ -1754,9 +1737,10 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     }
     throw new IllegalArgumentException("Insufficient cardinality.");
   }
+
   @Override
   public int serializedSizeInBytes() {
-    return serializedSizeInBytes(0);
+    return MAX_CAPACITY_BYTE;
   }
 
   /**
@@ -2157,7 +2141,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
 
 final class MappeableBitmapContainerCharIterator implements PeekableCharIterator {
-  private final static int len = MappeableBitmapContainer.MAX_CAPACITY >>> 6;// hard coded for speed
+  private final static int len = MAX_CAPACITY >>> 6;// hard coded for speed
   private long w;
   int x;
 
@@ -2250,7 +2234,7 @@ final class MappeableBitmapContainerCharIterator implements PeekableCharIterator
 
 final class ReverseMappeableBitmapContainerCharIterator implements CharIterator {
 
-  private final static int len = MappeableBitmapContainer.MAX_CAPACITY >>> 6;// hard coded for speed
+  private final static int len = MAX_CAPACITY >>> 6;// hard coded for speed
   private long w;
   int x;
 
