@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.util.BitSet;
 import java.util.Random;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
@@ -27,7 +28,9 @@ public class TestBitSetUtil {
 
 
   private void assertEqualBitsets(final BitSet bitset, final RoaringBitmap bitmap) {
-    assertTrue(BitSetUtil.equals(bitset, bitmap));
+    assertTrue(BitSetUtil.equals(bitset, bitmap), "bitset and bitmap do not match");
+    assertEquals(bitset, BitSetUtil.bitsetOf(bitmap), "bitsetOf doesn't match");
+    assertEquals(bitset, BitSet.valueOf(BitSetUtil.toByteArray(bitmap)), "toByteArray doesn't match");
   }
 
   @Test
