@@ -24,13 +24,18 @@ import static java.lang.Long.numberOfTrailingZeros;
 public final class BitmapContainer extends Container implements Cloneable {
   public static final int MAX_CAPACITY = 1 << 16;
 
-
   private static final long serialVersionUID = 2L;
 
   // bail out early when the number of runs is excessive, without
   // an exact count (just a decent lower bound)
   private static final int BLOCKSIZE = 128;
   // 64 words can have max 32 runs per word, max 2k runs
+
+  private static final int ARRAY_SIZE_IN_BYTES = MAX_CAPACITY / 8;
+
+  // nruns value for which RunContainer.serializedSizeInBytes ==
+  // BitmapContainer.getArraySizeInBytes()
+  private static final int MAXRUNS = (ARRAY_SIZE_IN_BYTES - 2) / 4;
 
   /**
    * optimization flag: whether the cardinality of the bitmaps is maintained through branchless
@@ -59,17 +64,13 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   // the parameter is for overloading and symmetry with ArrayContainer
-  protected static int serializedSizeInBytes(int unusedCardinality) {
+  static int serializedSizeInBytes(int unusedCardinality) {
     return MAX_CAPACITY / 8;
   }
 
   final long[] bitmap;
 
   int cardinality;
-
-  // nruns value for which RunContainer.serializedSizeInBytes ==
-  // BitmapContainer.getArraySizeInBytes()
-  private final int MAXRUNS = (getArraySizeInBytes() - 2) / 4;
 
 
   /**
