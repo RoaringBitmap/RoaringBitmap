@@ -17,31 +17,33 @@ import java.util.Iterator;
 import static java.lang.Long.bitCount;
 import static java.lang.Long.numberOfTrailingZeros;
 
-
 /**
  * Simple bitset-like container.
  */
 public final class BitmapContainer extends Container implements Cloneable {
+
   public static final int MAX_CAPACITY = 1 << 16;
 
-  private static final long serialVersionUID = 2L;
+  public static final int MAX_CAPACITY_LONG = MAX_CAPACITY / Long.SIZE;
 
-  // bail out early when the number of runs is excessive, without
-  // an exact count (just a decent lower bound)
-  private static final int BLOCKSIZE = 128;
-  // 64 words can have max 32 runs per word, max 2k runs
-
-  private static final int ARRAY_SIZE_IN_BYTES = MAX_CAPACITY / 8;
+  public static final int MAX_CAPACITY_BYTE = MAX_CAPACITY / Byte.SIZE;
 
   // nruns value for which RunContainer.serializedSizeInBytes ==
   // BitmapContainer.getArraySizeInBytes()
-  private static final int MAXRUNS = (ARRAY_SIZE_IN_BYTES - 2) / 4;
+  public static final int MAXRUNS = (MAX_CAPACITY_BYTE - 2) / 4;
 
   /**
    * optimization flag: whether the cardinality of the bitmaps is maintained through branchless
    * operations
    */
-  private static final boolean USE_BRANCHLESS = true;
+  public static final boolean USE_BRANCHLESS = true;
+
+  // bail out early when the number of runs is excessive, without
+  // an exact count (just a decent lower bound)
+  public static final int BLOCKSIZE = 128;
+  // 64 words can have max 32 runs per word, max 2k runs
+
+  private static final long serialVersionUID = 2L;
 
   /**
    * Return a bitmap iterator over this array
@@ -464,7 +466,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public int getArraySizeInBytes() {
-    return MAX_CAPACITY / 8;
+    return MAX_CAPACITY_BYTE;
   }
 
   @Override

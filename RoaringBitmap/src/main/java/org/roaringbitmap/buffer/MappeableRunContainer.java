@@ -17,8 +17,10 @@ import java.util.Iterator;
 import java.util.Optional;
 
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
-import static org.roaringbitmap.Util.*;
-import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
+import static org.roaringbitmap.BitmapContainer.MAX_CAPACITY;
+import static org.roaringbitmap.BitmapContainer.MAX_CAPACITY_LONG;
+import static org.roaringbitmap.Util.resetBitmapRange;
+import static org.roaringbitmap.Util.setBitmapRange;
 
 /**
  * This container takes the form of runs of consecutive values (effectively, run-length encoding).
@@ -2063,7 +2065,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   @Override
   public int serializedSizeInBytes() {
-    return serializedSizeInBytes(nbrruns);
+    return MappeableBitmapContainer.serializedSizeInBytes(nbrruns);
   }
 
 
@@ -2234,7 +2236,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   // convert to bitmap *if needed* (useful if you know it can't be an array)
   private MappeableContainer toBitmapIfNeeded() {
     int sizeAsRunContainer = MappeableRunContainer.serializedSizeInBytes(this.nbrruns);
-    int sizeAsBitmapContainer = MappeableBitmapContainer.serializedSizeInBytes(0);
+    int sizeAsBitmapContainer = serializedSizeInBytes(0);
     if (sizeAsBitmapContainer > sizeAsRunContainer) {
       return this;
     }
@@ -2739,7 +2741,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     char ib = 0, ir = 0;
     int start = getValue(0);
     int stop = start + getLength(0);
-    while(ib < MappeableBitmapContainer.MAX_CAPACITY / 64 && ir < runCount) {
+    while(ib < MAX_CAPACITY_LONG && ir < runCount) {
       long w = bitmapContainer.bitmap.get(ib);
       while (true) {
         long r = ib * 64 + Long.numberOfTrailingZeros(w);
@@ -2770,8 +2772,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         return false;
       }
     }
-    if(ib < MappeableBitmapContainer.MAX_CAPACITY / 64) {
-      for(; ib < MappeableBitmapContainer.MAX_CAPACITY / 64 ; ib++) {
+    if(ib < MAX_CAPACITY_LONG) {
+      for(; ib < MAX_CAPACITY_LONG ; ib++) {
         if(bitmapContainer.bitmap.get(ib) != 0) {
           return false;
         }
