@@ -31,6 +31,22 @@ public class BitSetUtil {
   }
 
   /**
+   * Convert a {@link RoaringBitmap} to a {@link BitSet} without copying to an intermediate array.
+   */
+  public static BitSet bitsetOfWithoutCopy(RoaringBitmap bitmap) {
+    if (bitmap.isEmpty()) {
+      return new BitSet(0);
+    }
+    int last = bitmap.last();
+    if (last < 0) {
+      throw new IllegalArgumentException("bitmap has negative bits set");
+    }
+    BitSet bitSet = new BitSet(last);
+    bitmap.forEach((IntConsumer) bitSet::set);
+    return bitSet;
+  }
+
+  /**
    * Returns an array of long, given a {@link RoaringBitmap}.
    * <p>
    * See {@link BitSet#toByteArray()}.
@@ -53,7 +69,11 @@ public class BitSetUtil {
       return new long[0];
     }
 
-    int lastBit = Math.max(bitmap.last(), Long.SIZE);
+    int last = bitmap.last();
+    if (last < 0) {
+      throw new IllegalArgumentException("bitmap has negative bits set");
+    }
+    int lastBit = Math.max(last, Long.SIZE);
     int remainder = lastBit % Long.SIZE;
     int numBits = remainder > 0 ? lastBit - remainder : lastBit;
     int wordsInUse = numBits / Long.SIZE + 1;
