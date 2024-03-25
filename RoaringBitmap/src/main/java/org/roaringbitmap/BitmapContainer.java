@@ -1707,6 +1707,9 @@ public final class BitmapContainer extends Container implements Cloneable {
     return (i + 1) * 64 - Long.numberOfLeadingZeros(bitmap[i]) - 1;
   }
 
+  public void copyBitmapTo(long[] words, int position, int length) {
+    System.arraycopy(bitmap, 0, words, position, length);
+  }
 }
 
 
