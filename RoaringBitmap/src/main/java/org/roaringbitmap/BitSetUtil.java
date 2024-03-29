@@ -47,7 +47,7 @@ public class BitSetUtil {
   }
 
   /**
-   * Returns an array of long, given a {@link RoaringBitmap}.
+   * Returns an array of little-endian ordered bytes, given a {@link RoaringBitmap}.
    * <p>
    * See {@link BitSet#toByteArray()}.
    */
@@ -60,9 +60,9 @@ public class BitSetUtil {
   }
 
   /**
-   * Returns an array of little-endian ordered bytes, given a {@link RoaringBitmap}.
+   * Returns an array of long, given a {@link RoaringBitmap}.
    * <p>
-   * See {@link BitSet#toByteArray()}.
+   * See {@link BitSet#toLongArray()}.
    */
   public static long[] toLongArray(RoaringBitmap bitmap) {
     if (bitmap.isEmpty()) {
