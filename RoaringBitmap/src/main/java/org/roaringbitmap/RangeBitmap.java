@@ -1,13 +1,6 @@
 package org.roaringbitmap;
 
-import org.roaringbitmap.buffer.MappeableArrayContainer;
-import org.roaringbitmap.buffer.MappeableBitmapContainer;
-import org.roaringbitmap.buffer.MappeableContainer;
-import org.roaringbitmap.buffer.MappeableRunContainer;
-
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
@@ -776,29 +769,18 @@ public final class RangeBitmap {
       position += Character.BYTES;
       switch (type) {
         case ARRAY: {
-          int skip = size << 1;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
-          array.andInto(bits);
-          position += skip;
+          andIntoArray(buffer, bits, position, size);
+          position += (size << 1);
         }
         break;
         case BITMAP: {
-          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer()
-              .limit(1024);
-          MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
-          bitmap.andInto(bits);
+          andIntoBitmap(buffer, bits, position);
           position += BITMAP_SIZE;
         }
         break;
         case RUN: {
-          int skip = size << 2;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableRunContainer run = new MappeableRunContainer(cb, size);
-          run.andInto(bits);
-          position += skip;
+          andIntoRuns(buffer, bits, position, size);
+          position += (size << 2);
         }
         break;
         default:
@@ -814,29 +796,18 @@ public final class RangeBitmap {
       position += Character.BYTES;
       switch (type) {
         case ARRAY: {
-          int skip = size << 1;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
-          array.orInto(bits);
-          position += skip;
+          orIntoArray(buffer, bits, position, size);
+          position += (size << 1);
         }
         break;
         case BITMAP: {
-          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer()
-              .limit(1024);
-          MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
-          bitmap.orInto(bits);
+          orIntoBitmap(buffer, bits, position);
           position += BITMAP_SIZE;
         }
         break;
         case RUN: {
-          int skip = size << 2;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableRunContainer run = new MappeableRunContainer(cb, size);
-          run.orInto(bits);
-          position += skip;
+          orIntoRuns(buffer, bits, position, size);
+          position += (size << 2);
         }
         break;
         default:
@@ -852,29 +823,18 @@ public final class RangeBitmap {
       position += Character.BYTES;
       switch (type) {
         case ARRAY: {
-          int skip = size << 1;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-                  .limit(skip >>> 1);
-          MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
-          array.removeFrom(bits);
-          position += skip;
+          removeFromArray(buffer, bits, position, size);
+          position += (size << 1);
         }
         break;
         case BITMAP: {
-          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer()
-                  .limit(1024);
-          MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
-          bitmap.removeFrom(bits);
+          removeFromBitmap(buffer, bits, position);
           position += BITMAP_SIZE;
         }
         break;
         case RUN: {
-          int skip = size << 2;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-                  .limit(skip >>> 1);
-          MappeableRunContainer run = new MappeableRunContainer(cb, size);
-          run.removeFrom(bits);
-          position += skip;
+          removeFromRuns(buffer, bits, position, size);
+          position += (size << 2);
         }
         break;
         default:
@@ -1082,31 +1042,21 @@ public final class RangeBitmap {
       position += Character.BYTES;
       switch (type) {
         case ARRAY: {
-          int skip = size << 1;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
-          low.or(array);
-          high.or(array);
-          position += skip;
+          low.orWithArray(buffer, position, size);
+          high.orWithArray(buffer, position, size);
+          position += (size << 1);
         }
         break;
         case BITMAP: {
-          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer()
-              .limit(1024);
-          MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
-          low.or(bitmap);
-          high.or(bitmap);
+          low.orWithBitmap(buffer, position);
+          high.orWithBitmap(buffer, position);
           position += BITMAP_SIZE;
         }
         break;
         case RUN: {
           int skip = size << 2;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableRunContainer run = new MappeableRunContainer(cb, size);
-          low.or(run);
-          high.or(run);
+          low.orWithRuns(buffer, position, size);
+          high.orWithRuns(buffer, position, size);
           position += skip;
         }
         break;
@@ -1123,32 +1073,21 @@ public final class RangeBitmap {
       position += Character.BYTES;
       switch (type) {
         case ARRAY: {
-          int skip = size << 1;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
-          low.or(array);
-          high.and(array);
-          position += skip;
+          low.orWithArray(buffer, position, size);
+          high.andWithArray(buffer, position, size);
+          position += (size << 1);
         }
         break;
         case BITMAP: {
-          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer()
-              .limit(1024);
-          MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
-          low.or(bitmap);
-          high.and(bitmap);
+          low.orWithBitmap(buffer, position);
+          high.andWithBitmap(buffer, position);
           position += BITMAP_SIZE;
         }
         break;
         case RUN: {
-          int skip = size << 2;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableRunContainer run = new MappeableRunContainer(cb, size);
-          low.or(run);
-          high.and(run);
-          position += skip;
+          low.orWithRuns(buffer, position, size);
+          high.andWithRuns(buffer, position, size);
+          position += (size << 2);
         }
         break;
         default:
@@ -1164,32 +1103,21 @@ public final class RangeBitmap {
       position += Character.BYTES;
       switch (type) {
         case ARRAY: {
-          int skip = size << 1;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
-          low.and(array);
-          high.or(array);
-          position += skip;
+          low.andWithArray(buffer, position, size);
+          high.orWithArray(buffer, position, size);
+          position += (size << 1);
         }
         break;
         case BITMAP: {
-          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer()
-              .limit(1024);
-          MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
-          low.and(bitmap);
-          high.or(bitmap);
+          low.andWithBitmap(buffer, position);
+          high.orWithBitmap(buffer, position);
           position += BITMAP_SIZE;
         }
         break;
         case RUN: {
-          int skip = size << 2;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableRunContainer run = new MappeableRunContainer(cb, size);
-          low.and(run);
-          high.or(run);
-          position += skip;
+          low.andWithRuns(buffer, position, size);
+          high.orWithRuns(buffer, position, size);
+          position += (size << 2);
         }
         break;
         default:
@@ -1205,32 +1133,21 @@ public final class RangeBitmap {
       position += Character.BYTES;
       switch (type) {
         case ARRAY: {
-          int skip = size << 1;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
-          low.and(array);
-          high.and(array);
-          position += skip;
+          low.andWithArray(buffer, position, size);
+          high.andWithArray(buffer, position, size);
+          position += (size << 1);
         }
         break;
         case BITMAP: {
-          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer()
-              .limit(1024);
-          MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
-          low.and(bitmap);
-          high.and(bitmap);
+          low.andWithBitmap(buffer, position);
+          high.andWithBitmap(buffer, position);
           position += BITMAP_SIZE;
         }
         break;
         case RUN: {
-          int skip = size << 2;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableRunContainer run = new MappeableRunContainer(cb, size);
-          low.and(run);
-          high.and(run);
-          position += skip;
+          low.andWithRuns(buffer, position, size);
+          high.andWithRuns(buffer, position, size);
+          position += (size << 2);
         }
         break;
         default:
@@ -1244,23 +1161,15 @@ public final class RangeBitmap {
       int size = buffer.getChar(position + 1) & 0xFFFF;
       switch (type) {
         case ARRAY: {
-          int skip = size << 1;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position + 3)).asCharBuffer()
-              .limit(skip >>> 1);
-          bits.or(new MappeableArrayContainer(cb, size));
+          bits.orWithArray(buffer, position + 3, size);
         }
         break;
         case BITMAP: {
-          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position + 3)).asLongBuffer()
-              .limit(1024);
-          bits.or(new MappeableBitmapContainer(lb, size));
+          bits.orWithBitmap(buffer, position + 3);
         }
         break;
         case RUN: {
-          int skip = size << 2;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position + 3)).asCharBuffer()
-              .limit(skip >>> 1);
-          bits.or(new MappeableRunContainer(cb, size));
+          bits.orWithRuns(buffer, position + 3, size);
         }
         break;
         default:
@@ -1277,6 +1186,77 @@ public final class RangeBitmap {
       } else {
         position += 3 + (size << (type == RUN ? 2 : 1));
       }
+    }
+  }
+
+  private static void andIntoArray(ByteBuffer buffer, long[] bits, int position, int cardinality) {
+    int prev = 0;
+    for (int i = 0; i < cardinality; i++) {
+      int value = buffer.getChar(position + (i << 1));
+      Util.resetBitmapRange(bits, prev, value);
+      prev = value + 1;
+    }
+    Util.resetBitmapRange(bits, prev, 0x10000);
+  }
+
+  private static void orIntoArray(ByteBuffer buffer, long[] bits, int position,
+                                  int cardinality) {
+    for (int i = 0; i < cardinality; i++) {
+      char value = buffer.getChar(position + (i << 1));
+      bits[value >>> 6] |= (1L << value);
+    }
+  }
+
+  private static void removeFromArray(ByteBuffer buffer, long[] bits, int position,
+                                      int cardinality) {
+    for (int i = 0; i < cardinality; ++i) {
+      int value = buffer.getChar(position + (i << 1));
+      bits[value >>> 6] &= ~(1L << value);
+    }
+  }
+
+  private static void andIntoBitmap(ByteBuffer buffer, long[] bits, int position) {
+    for (int i = 0; i < bits.length; ++i) {
+      bits[i] &= buffer.getLong(position + (i << 3));
+    }
+  }
+
+  private static void orIntoBitmap(ByteBuffer buffer, long[] bits, int position) {
+    for (int i = 0; i < bits.length; ++i) {
+      bits[i] |= buffer.getLong(position + (i << 3));
+    }
+  }
+
+  private static void removeFromBitmap(ByteBuffer buffer, long[] bits, int position) {
+    for (int i = 0; i < bits.length; i++) {
+      bits[i] &= ~buffer.getLong(position + (i << 3));
+    }
+  }
+
+  private static void andIntoRuns(ByteBuffer buffer, long[] bits, int position, int numRuns) {
+    int prev = 0;
+    for (int r = 0; r < numRuns; ++r) {
+      int start = buffer.getChar(position + (r << 2));
+      int length = buffer.getChar(position + (r << 2) + 2);
+      resetBitmapRange(bits, prev, start);
+      prev = start + length + 1;
+    }
+    resetBitmapRange(bits, prev, 0x10000);
+  }
+
+  private static void orIntoRuns(ByteBuffer buffer, long[] bits, int position, int numRuns) {
+    for (int r = 0; r < numRuns; r++) {
+      int start = buffer.getChar(position + (r << 2));
+      int length = buffer.getChar(position + (r << 2) + 2);
+      setBitmapRange(bits, start, start + length + 1);
+    }
+  }
+
+  private static void removeFromRuns(ByteBuffer buffer, long[] bits, int position, int numRuns) {
+    for (int r = 0; r < numRuns; r++) {
+      int start = buffer.getChar(position + (r << 2));
+      int length = buffer.getChar(position + (r << 2) + 2);
+      resetBitmapRange(bits, start, start + length + 1);
     }
   }
 
@@ -1321,18 +1301,44 @@ public final class RangeBitmap {
       }
     }
 
-    public void or(MappeableContainer container) {
-      if (container.isFull()) {
-        fill();
-      } else if (!full) {
-        container.orInto(bits);
+    public void orWithArray(ByteBuffer buffer, int position, int size) {
+      if (!full) {
+        orIntoArray(buffer, bits, position, size);
         makeNonEmpty();
       }
     }
 
-    public void and(MappeableContainer container) {
-      if (!empty && !container.isFull()) {
-        container.andInto(bits);
+    public void orWithBitmap(ByteBuffer buffer, int position) {
+      if (!full) {
+        orIntoBitmap(buffer, bits, position);
+        makeNonEmpty();
+      }
+    }
+
+    public void orWithRuns(ByteBuffer buffer, int position, int numRuns) {
+      if (!full) {
+        orIntoRuns(buffer, bits, position, numRuns);
+        makeNonEmpty();
+      }
+    }
+
+    public void andWithArray(ByteBuffer buffer, int position, int cardinality) {
+      if (!empty) {
+        andIntoArray(buffer, bits, position, cardinality);
+        makeNonFull();
+      }
+    }
+
+    public void andWithBitmap(ByteBuffer buffer, int position) {
+      if (!empty) {
+        andIntoBitmap(buffer, bits, position);
+        makeNonFull();
+      }
+    }
+
+    public void andWithRuns(ByteBuffer buffer, int position, int numRuns) {
+      if (!empty) {
+        andIntoRuns(buffer, bits, position, numRuns);
         makeNonFull();
       }
     }

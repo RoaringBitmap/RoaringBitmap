@@ -950,27 +950,6 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   }
 
   @Override
-  public void orInto(long[] bits) {
-    for (int i = 0; i < bits.length; ++i) {
-      bits[i] |= bitmap.get(i);
-    }
-  }
-
-  @Override
-  public void andInto(long[] bits) {
-    for (int i = 0; i < bits.length; ++i) {
-      bits[i] &= bitmap.get(i);
-    }
-  }
-
-  @Override
-  public void removeFrom(long[] bits) {
-    for (int i = 0; i < bits.length; ++i) {
-      bits[i] &= ~bitmap.get(i);
-    }
-  }
-
-  @Override
   public MappeableContainer ior(final MappeableRunContainer x) {
     if (BufferUtil.isBackedBySimpleArray(this.bitmap)) {
       long[] b = this.bitmap.array();

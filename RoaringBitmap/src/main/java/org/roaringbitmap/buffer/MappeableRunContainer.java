@@ -1561,36 +1561,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     return (this.nbrruns == 1) && (this.getValue(0) == 0) && (this.getLength(0) == 0xFFFF);
   }
 
-  @Override
-  public void orInto(long[] bits) {
-    for (int r = 0; r < numberOfRuns(); ++r) {
-      int start = this.valueslength.get(r << 1);
-      int length = this.valueslength.get((r << 1) + 1);
-      setBitmapRange(bits, start, start + length + 1);
-    }
-  }
-
-  @Override
-  public void andInto(long[] bits) {
-    int prev = 0;
-    for (int r = 0; r < numberOfRuns(); ++r) {
-      int start = this.valueslength.get(r << 1);
-      int length = this.valueslength.get((r << 1) + 1);
-      resetBitmapRange(bits, prev, start);
-      prev = start + length + 1;
-    }
-    resetBitmapRange(bits, prev, MAX_CAPACITY);
-  }
-
-  @Override
-  public void removeFrom(long[] bits) {
-    for (int r = 0; r < numberOfRuns(); ++r) {
-      int start = this.valueslength.get(r << 1);
-      int length = this.valueslength.get((r << 1) + 1);
-      resetBitmapRange(bits, start, start + length + 1);
-    }
-  }
-
   public static MappeableRunContainer full() {
     return new MappeableRunContainer(0, 1 << 16);
   }

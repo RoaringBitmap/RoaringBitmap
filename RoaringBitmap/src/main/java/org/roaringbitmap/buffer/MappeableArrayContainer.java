@@ -247,33 +247,6 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     return false;
   }
 
-  @Override
-  public void orInto(long[] bits) {
-    for (int i = 0; i < this.getCardinality(); ++i) {
-      char value = content.get(i);
-      bits[value >>> 6] |= (1L << value);
-    }
-  }
-
-  @Override
-  public void andInto(long[] bits) {
-    int prev = 0;
-    for (int i = 0; i < this.getCardinality(); ++i) {
-      int value = content.get(i);
-      Util.resetBitmapRange(bits, prev, value);
-      prev = value + 1;
-    }
-    Util.resetBitmapRange(bits, prev, MAX_CAPACITY);
-  }
-
-  @Override
-  public void removeFrom(long[] bits) {
-    for (int i = 0; i < this.getCardinality(); ++i) {
-      int value = content.get(i);
-      bits[value >>> 6] &= ~(1L << value);
-    }
-  }
-
   private int advance(CharIterator it) {
     if (it.hasNext()) {
       return (it.next());
