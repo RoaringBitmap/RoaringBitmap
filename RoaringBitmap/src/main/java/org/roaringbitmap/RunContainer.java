@@ -2646,13 +2646,15 @@ public final class RunContainer extends Container implements Cloneable {
 
   @Override
   public BitmapContainer toBitmapContainer() {
-    int card = this.getCardinality();
+    int card = 0;
     BitmapContainer answer = new BitmapContainer();
     for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
       int start = (this.getValue(rlepos));
       int end = start + (this.getLength(rlepos)) + 1;
+      card += end - start;
       Util.setBitmapRange(answer.bitmap, start, end);
     }
+    assert card == this.getCardinality();
     answer.cardinality = card;
     return answer;
   }
