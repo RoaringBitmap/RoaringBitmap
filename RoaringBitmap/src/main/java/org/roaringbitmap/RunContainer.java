@@ -1550,7 +1550,7 @@ public final class RunContainer extends Container implements Cloneable {
       this.smartAppend(x.getValue(xrlepos), x.getLength(xrlepos));
       ++xrlepos;
     }
-    return this.toBitmapIfNeeded();
+    return this.toEfficientContainer();
   }
 
   @Override
@@ -1986,7 +1986,7 @@ public final class RunContainer extends Container implements Cloneable {
     if (answer.isFull()) {
       return full();
     }
-    return answer.toBitmapIfNeeded();
+    return answer.toEfficientContainer();
   }
 
   // Prepend a value length with all values starting from a given value
