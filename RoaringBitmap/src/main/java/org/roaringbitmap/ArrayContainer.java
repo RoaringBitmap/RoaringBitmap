@@ -1130,6 +1130,14 @@ public final class ArrayContainer extends Container implements Cloneable {
   }
 
   @Override
+  public void copyBitmapTo(long[] dest, int position) {
+    for (int k = 0; k < cardinality; ++k) {
+      final char x = content[k];
+      dest[position + x/64] |= 1L << x;
+    }
+  }
+
+  @Override
   public int nextValue(char fromValue) {
     int index = Util.advanceUntil(content, -1, cardinality, fromValue);
     if (index == cardinality) {

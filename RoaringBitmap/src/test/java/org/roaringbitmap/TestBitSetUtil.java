@@ -31,6 +31,10 @@ public class TestBitSetUtil {
     assertEquals(bitset, BitSetUtil.bitsetOf(bitmap), "bitsetOf doesn't match");
     assertEquals(bitset, BitSetUtil.bitsetOfWithoutCopy(bitmap), "bitsetOfWithoutCopy doesn't match");
     assertEquals(bitset, BitSet.valueOf(BitSetUtil.toByteArray(bitmap)), "toByteArray doesn't match");
+
+    RoaringBitmap runBitmap = bitmap.clone();
+    runBitmap.runOptimize();
+    assertEquals(bitset, BitSetUtil.bitsetOf(runBitmap), "bitsetOf doesn't match for run optimized bitmap");
   }
 
   @Test

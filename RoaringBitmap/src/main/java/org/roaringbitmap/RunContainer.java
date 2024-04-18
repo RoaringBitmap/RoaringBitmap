@@ -2660,6 +2660,16 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   @Override
+  public void copyBitmapTo(long[] dest, int position) {
+    int offset = position * Long.SIZE;
+    for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
+      int start = offset + this.getValue(rlepos);
+      int end = start + this.getLength(rlepos) + 1;
+      Util.setBitmapRange(dest, start, end);
+    }
+  }
+
+  @Override
   public int nextValue(char fromValue) {
     int index = unsignedInterleavedBinarySearch(valueslength, 0, nbrruns, fromValue);
     int effectiveIndex = index >= 0 ? index : -index - 2;

@@ -987,6 +987,17 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
   public abstract BitmapContainer toBitmapContainer();
 
   /**
+   * Copy the current container to a destination {@code long[]}. Equivalent to calling
+   * {@link #toBitmapContainer()} and copying the result to the given position. The destination
+   * array should be sized to accomodate the maximum number of words required to represent
+   * the container bitmap.
+   *
+   * @param dest the destination array
+   * @param position the position to copy to
+   */
+  public abstract void copyBitmapTo(long[] dest, int position);
+
+  /**
    * Gets the first value greater than or equal to the lower bound, or -1 if no such value exists.
    * @param fromValue the lower bound (inclusive)
    * @return the next value
