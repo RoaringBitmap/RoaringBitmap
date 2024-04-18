@@ -2295,16 +2295,6 @@ public final class RunContainer extends Container implements Cloneable {
     }
   }
 
-  // convert to bitmap *if needed* (useful if you know it can't be an array)
-  private Container toBitmapIfNeeded() {
-    int sizeAsRunContainer = RunContainer.serializedSizeInBytes(this.nbrruns);
-    int sizeAsBitmapContainer = BitmapContainer.serializedSizeInBytes(0);
-    if (sizeAsBitmapContainer > sizeAsRunContainer) {
-      return this;
-    }
-    return toBitmapContainer();
-  }
-
   /**
    * Convert the container to either a Bitmap or an Array Container, depending on the cardinality.
    *
