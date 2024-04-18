@@ -40,7 +40,7 @@ This library is used by
 
 
 The YouTube SQL Engine, [Google Procella](https://research.google/pubs/pub48388/), uses Roaring bitmaps for indexing. [Apache Lucene](http://lucene.apache.org/) uses  Roaring bitmaps, though they have their own [independent implementation](https://svn.apache.org/viewvc/lucene/dev/branches/branch_5x/lucene/core/src/java/org/apache/lucene/util/RoaringDocIdSet.java?view=markup&pathrev=1629606). Derivatives of Lucene such as Solr and Elastic also use Roaring bitmaps.
-Other platforms such as [Whoosh](https://pypi.python.org/pypi/Whoosh/), [Microsoft Visual Studio Team Services (VSTS)](https://www.visualstudio.com/team-services/) and [Pilosa](https://github.com/pilosa/pilosa) also use Roaring bitmaps with their own implementations. You find Roaring bitmaps in [InfluxDB](https://www.influxdata.com), [Bleve](http://www.blevesearch.com), [Cloud Torrent](https://github.com/jpillora/cloud-torrent), and so forth.
+Other platforms such as [Whoosh](https://pypi.python.org/pypi/Whoosh/), [Microsoft Visual Studio Team Services (VSTS)](https://www.visualstudio.com/team-services/) and [Pilosa](https://github.com/pilosa/pilosa) also use Roaring bitmaps with their own implementations. You find Roaring bitmaps in [InfluxDB](https://www.influxdata.com), [Bleve](http://www.blevesearch.com), [Cloud Torrent](https://github.com/jpillora/cloud-torrent), [Redpanda](https://github.com/redpanda-data/redpanda), and so forth.
 
 
 [There is a serialized format specification for interoperability between implementations](https://github.com/RoaringBitmap/RoaringFormatSpec/).
