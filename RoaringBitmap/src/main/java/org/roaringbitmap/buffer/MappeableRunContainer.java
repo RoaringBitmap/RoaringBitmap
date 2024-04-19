@@ -1456,7 +1456,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       this.smartAppend(vl, x.getValue(xrlepos), x.getLength(xrlepos));
       ++xrlepos;
     }
-    return this.toBitmapIfNeeded();
+    return this.toEfficientContainer();
   }
 
   @Override
@@ -1940,7 +1940,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     if (answer.isFull()) {
       return full();
     }
-    return answer.toBitmapIfNeeded();
+    return answer.toEfficientContainer();
   }
 
   // Prepend a value length with all values starting from a given value
@@ -2228,17 +2228,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
       setLength(nbrruns, (char) (newend - oldend - 1));
       nbrruns++;
     }
-  }
-
-
-  // convert to bitmap *if needed* (useful if you know it can't be an array)
-  private MappeableContainer toBitmapIfNeeded() {
-    int sizeAsRunContainer = MappeableRunContainer.serializedSizeInBytes(this.nbrruns);
-    int sizeAsBitmapContainer = MappeableBitmapContainer.serializedSizeInBytes(0);
-    if (sizeAsBitmapContainer > sizeAsRunContainer) {
-      return this;
-    }
-    return toBitmapContainer();
   }
 
   /**
