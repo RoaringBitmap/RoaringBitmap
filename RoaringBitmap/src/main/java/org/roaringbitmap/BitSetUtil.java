@@ -85,10 +85,14 @@ public class BitSetUtil {
     for (int i = 0; i <= numContainers; i++) {
       char key = Util.lowbits(i);
       if (key == pointer.key()) {
-        BitmapContainer container = pointer.getContainer().toBitmapContainer();
+        Container container = pointer.getContainer();
         int remaining = wordsInUse - position;
         int length = Math.min(BLOCK_LENGTH, remaining);
-        container.copyBitmapTo(words, position, length);
+        if (container instanceof BitmapContainer) {
+          ((BitmapContainer)container).copyBitmapTo(words, position, length);
+        } else {
+          container.copyBitmapTo(words, position);
+        }
         position += length;
         pointer.advance();
         if (pointer.getContainer() == null) {

@@ -1666,6 +1666,15 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
+  public void copyBitmapTo(long[] words, int position) {
+    System.arraycopy(bitmap, 0, words, position, bitmap.length);
+  }
+
+  public void copyBitmapTo(long[] words, int position, int length) {
+    System.arraycopy(bitmap, 0, words, position, length);
+  }
+
+  @Override
   public int nextValue(char fromValue) {
     return nextSetBit((fromValue));
   }
@@ -1705,10 +1714,6 @@ public final class BitmapContainer extends Container implements Cloneable {
     }
     // sizeof(long) * #words from start - number of bits after the last bit set
     return (i + 1) * 64 - Long.numberOfLeadingZeros(bitmap[i]) - 1;
-  }
-
-  public void copyBitmapTo(long[] words, int position, int length) {
-    System.arraycopy(bitmap, 0, words, position, length);
   }
 }
 
