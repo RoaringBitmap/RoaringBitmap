@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 import java.util.BitSet;
 import java.util.Random;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 public class TestBitSetUtil {
@@ -27,7 +27,14 @@ public class TestBitSetUtil {
 
 
   private void assertEqualBitsets(final BitSet bitset, final RoaringBitmap bitmap) {
-    assertTrue(BitSetUtil.equals(bitset, bitmap));
+    assertTrue(BitSetUtil.equals(bitset, bitmap), "bitset and bitmap do not match");
+    assertEquals(bitset, BitSetUtil.bitsetOf(bitmap), "bitsetOf doesn't match");
+    assertEquals(bitset, BitSetUtil.bitsetOfWithoutCopy(bitmap), "bitsetOfWithoutCopy doesn't match");
+    assertEquals(bitset, BitSet.valueOf(BitSetUtil.toByteArray(bitmap)), "toByteArray doesn't match");
+
+    RoaringBitmap runBitmap = bitmap.clone();
+    runBitmap.runOptimize();
+    assertEquals(bitset, BitSetUtil.bitsetOf(runBitmap), "bitsetOf doesn't match for run optimized bitmap");
   }
 
   @Test
@@ -234,6 +241,16 @@ public class TestBitSetUtil {
     final BitSet bitset = randomBitset(new Random(238), 0, 50);
     final RoaringBitmap bitmap = BitSetUtil.bitmapOf(toByteBuffer(bitset), true);
     Assertions.assertTrue(bitmap instanceof FastRankRoaringBitmap);
+  }
+
+  @Test
+  public void testBitmapOfNegative() {
+    final RoaringBitmap bitmap = new RoaringBitmap();
+    bitmap.add(-1);
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+      BitSetUtil.bitsetOf(bitmap);
+    });
+    assertEquals("bitmap has negative bits set", exception.getMessage());
   }
 
   private static ByteBuffer toByteBuffer(BitSet bitset) {

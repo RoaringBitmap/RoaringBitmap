@@ -41,7 +41,7 @@ public class CloneBatchIteratorTest {
     BatchIterator it1 = bitmap.getBatchIterator();
     BatchIterator it2 = it1.clone();
 
-    int[] buffer = new int[8];
+    int[] buffer = new int[3];
 
     assertEquals(3, it2.nextBatch(buffer));
     assertArrayEquals(c1, Arrays.copyOfRange(buffer, 0, 3));

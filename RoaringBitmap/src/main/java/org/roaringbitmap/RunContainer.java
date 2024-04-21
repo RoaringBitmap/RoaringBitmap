@@ -1550,7 +1550,7 @@ public final class RunContainer extends Container implements Cloneable {
       this.smartAppend(x.getValue(xrlepos), x.getLength(xrlepos));
       ++xrlepos;
     }
-    return this.toBitmapIfNeeded();
+    return this.toEfficientContainer();
   }
 
   @Override
@@ -1986,7 +1986,7 @@ public final class RunContainer extends Container implements Cloneable {
     if (answer.isFull()) {
       return full();
     }
-    return answer.toBitmapIfNeeded();
+    return answer.toEfficientContainer();
   }
 
   // Prepend a value length with all values starting from a given value
@@ -2293,16 +2293,6 @@ public final class RunContainer extends Container implements Cloneable {
       setLength(nbrruns, (char) (newend - oldend - 1));
       nbrruns++;
     }
-  }
-
-  // convert to bitmap *if needed* (useful if you know it can't be an array)
-  private Container toBitmapIfNeeded() {
-    int sizeAsRunContainer = RunContainer.serializedSizeInBytes(this.nbrruns);
-    int sizeAsBitmapContainer = BitmapContainer.serializedSizeInBytes(0);
-    if (sizeAsBitmapContainer > sizeAsRunContainer) {
-      return this;
-    }
-    return toBitmapContainer();
   }
 
   /**
@@ -2646,15 +2636,27 @@ public final class RunContainer extends Container implements Cloneable {
 
   @Override
   public BitmapContainer toBitmapContainer() {
-    int card = this.getCardinality();
+    int card = 0;
     BitmapContainer answer = new BitmapContainer();
     for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
       int start = (this.getValue(rlepos));
       int end = start + (this.getLength(rlepos)) + 1;
+      card += end - start;
       Util.setBitmapRange(answer.bitmap, start, end);
     }
+    assert card == this.getCardinality();
     answer.cardinality = card;
     return answer;
+  }
+
+  @Override
+  public void copyBitmapTo(long[] dest, int position) {
+    int offset = position * Long.SIZE;
+    for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
+      int start = offset + this.getValue(rlepos);
+      int end = start + this.getLength(rlepos) + 1;
+      Util.setBitmapRange(dest, start, end);
+    }
   }
 
   @Override

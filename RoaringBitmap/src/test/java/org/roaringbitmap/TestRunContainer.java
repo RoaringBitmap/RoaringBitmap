@@ -3955,6 +3955,18 @@ public class TestRunContainer {
     assertEquals(RunContainer.full(), container);
   }
 
+  @Test
+  public void toBitmapContainer() {
+    Container rc = new RunContainer().add((char)1).add(5, 7).add(10, 21);
+    BitmapContainer bitmapContainer = rc.toBitmapContainer();
+
+    assertTrue(bitmapContainer.contains((char) 1));
+    assertTrue(bitmapContainer.contains(5, 7));
+    assertTrue(bitmapContainer.contains(10, 21));
+
+    assertEquals(rc.getCardinality(), bitmapContainer.getCardinality());
+  }
+
   private static int lower16Bits(int x) {
     return ((char)x) & 0xFFFF;
   }

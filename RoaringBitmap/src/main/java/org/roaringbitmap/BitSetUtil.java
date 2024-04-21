@@ -14,13 +14,98 @@ import static java.lang.Long.numberOfTrailingZeros;
  *
  */
 public class BitSetUtil {
-  // todo: add a method to convert a RoaringBitmap to a BitSet using BitSet.valueOf
 
   // a block consists has a maximum of 1024 words, each representing 64 bits,
   // thus representing at maximum 65536 bits
   public static final int BLOCK_LENGTH = BitmapContainer.MAX_CAPACITY / Long.SIZE; //
   // 64-bit
   // word
+
+  /**
+   * Convert a {@link RoaringBitmap} to a {@link BitSet}.
+   * <p>
+   * Equivalent to calling {@code BitSet.valueOf(BitSetUtil.toLongArray(bitmap))}.
+   */
+  public static BitSet bitsetOf(RoaringBitmap bitmap) {
+    return BitSet.valueOf(toLongArray(bitmap));
+  }
+
+  /**
+   * Convert a {@link RoaringBitmap} to a {@link BitSet} without copying to an intermediate array.
+   */
+  public static BitSet bitsetOfWithoutCopy(RoaringBitmap bitmap) {
+    if (bitmap.isEmpty()) {
+      return new BitSet(0);
+    }
+    int last = bitmap.last();
+    if (last < 0) {
+      throw new IllegalArgumentException("bitmap has negative bits set");
+    }
+    BitSet bitSet = new BitSet(last);
+    bitmap.forEach((IntConsumer) bitSet::set);
+    return bitSet;
+  }
+
+  /**
+   * Returns an array of little-endian ordered bytes, given a {@link RoaringBitmap}.
+   * <p>
+   * See {@link BitSet#toByteArray()}.
+   */
+  public static byte[] toByteArray(RoaringBitmap bitmap) {
+    long[] words = toLongArray(bitmap);
+    ByteBuffer buffer = ByteBuffer.allocate(words.length * Long.SIZE)
+            .order(ByteOrder.LITTLE_ENDIAN);
+    buffer.asLongBuffer().put(words);
+    return buffer.array();
+  }
+
+  /**
+   * Returns an array of long, given a {@link RoaringBitmap}.
+   * <p>
+   * See {@link BitSet#toLongArray()}.
+   */
+  public static long[] toLongArray(RoaringBitmap bitmap) {
+    if (bitmap.isEmpty()) {
+      return new long[0];
+    }
+
+    int last = bitmap.last();
+    if (last < 0) {
+      throw new IllegalArgumentException("bitmap has negative bits set");
+    }
+    int lastBit = Math.max(last, Long.SIZE);
+    int remainder = lastBit % Long.SIZE;
+    int numBits = remainder > 0 ? lastBit - remainder : lastBit;
+    int wordsInUse = numBits / Long.SIZE + 1;
+    long[] words = new long[wordsInUse];
+
+    ContainerPointer pointer = bitmap.getContainerPointer();
+    int numContainers = Math.max(words.length / BLOCK_LENGTH, 1);
+    int position = 0;
+    for (int i = 0; i <= numContainers; i++) {
+      char key = Util.lowbits(i);
+      if (key == pointer.key()) {
+        Container container = pointer.getContainer();
+        int remaining = wordsInUse - position;
+        int length = Math.min(BLOCK_LENGTH, remaining);
+        if (container instanceof BitmapContainer) {
+          ((BitmapContainer)container).copyBitmapTo(words, position, length);
+        } else {
+          container.copyBitmapTo(words, position);
+        }
+        position += length;
+        pointer.advance();
+        if (pointer.getContainer() == null) {
+          break;
+        }
+      } else {
+        position += BLOCK_LENGTH;
+      }
+    }
+    assert pointer.getContainer() == null;
+    assert position == wordsInUse;
+    return words;
+  }
 
   /**
    * Creates array container's content char buffer.

@@ -802,6 +802,25 @@ public class TestContainer {
   }
 
   @Test
+  public void or6() {
+    System.out.println("or6");
+    RunContainer rc1 = new RunContainer();
+    for (int i = 0; i < 6144; i += 6) {
+      rc1.iadd(i, i+1);
+    }
+
+    RunContainer rc2 = new RunContainer();
+
+    for (int i = 3; i < 6144; i += 6) {
+      rc2.iadd(i, i+1);
+    }
+
+    Container result = rc1.or(rc2);
+    assertTrue(result.getCardinality() < ArrayContainer.DEFAULT_MAX_SIZE);
+    assertTrue(result instanceof ArrayContainer);
+  }
+
+  @Test
   public void testXorContainer() throws Exception {
     Container rc1 = new RunContainer(new char[] {10, 12, 90, 10}, 2);
     Container rc2 = new RunContainer(new char[]{1, 10, 40, 400, 900, 10}, 3);

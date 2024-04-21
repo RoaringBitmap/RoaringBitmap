@@ -1,4 +1,4 @@
-name: Java 8, 11, 17 CI
+name: Java 8, 11, 17, 21 CI
 
 on: [push,pull_request]
 
@@ -8,7 +8,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDKs 8, 11, 17
+      - name: Set up JDKs 8, 11, 17, 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -16,6 +16,7 @@ jobs:
             8
             11
             17
+            21
       - name: Build with Gradle
         run: ./gradlew assemble
       - name: Style check
@@ -26,3 +27,5 @@ jobs:
         run: ./gradlew test -PtestOnJava=11 --stacktrace
       - name: Test with Java 17
         run: ./gradlew test -PtestOnJava=17 --stacktrace
+      - name: Test with Java 21
+        run: ./gradlew test -PtestOnJava=21 --stacktrace
