@@ -235,7 +235,7 @@ public interface ImmutableBitmapDataProvider {
    *
    * @param  fromValue the lower bound (inclusive)
    * @return the smallest absent value larger than or equal to the specified
-   *       value.
+   *       value or {@code -1} if there is no such value.
    */
   long nextAbsentValue(int fromValue);
 
@@ -246,7 +246,7 @@ public interface ImmutableBitmapDataProvider {
    *
    * @param  fromValue the lower bound (inclusive)
    * @return the smallest absent value larger than or equal to the specified
-   *       value.
+   *       value or {@code -1} if there is no such value.
    */
   long previousAbsentValue(int fromValue);
 

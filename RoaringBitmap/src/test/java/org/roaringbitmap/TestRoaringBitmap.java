@@ -5301,6 +5301,34 @@ public class TestRoaringBitmap {
     }
 
     @Test
+    public void testPreviousValueLimit() {
+        RoaringBitmap bitmap = new RoaringBitmap();
+        bitmap.add(1);
+        assertEquals(-1l, bitmap.previousValue(0));
+    }
+
+    @Test
+    public void testPreviousAbsentValueLimit() {
+        RoaringBitmap bitmap = new RoaringBitmap();
+        bitmap.add(0);
+        assertEquals(-1L, bitmap.previousAbsentValue(0));
+    }
+
+    @Test
+    public void testNextValueLimit() {
+        RoaringBitmap bitmap = new RoaringBitmap();
+        bitmap.add(0xffffffff-1);
+        assertEquals(-1L, bitmap.nextValue(0xffffffff));
+    }
+
+    @Test
+    public void testNextAbsentValueLimit() {
+        RoaringBitmap bitmap = new RoaringBitmap();
+        bitmap.add(-1);
+        assertEquals(-1L, bitmap.nextAbsentValue(-1));
+    }
+
+    @Test
     public void testPreviousValue() {
         RoaringBitmap bitmap = SeededTestData.TestDataSet.testCase()
                 .withRunAt(0)
