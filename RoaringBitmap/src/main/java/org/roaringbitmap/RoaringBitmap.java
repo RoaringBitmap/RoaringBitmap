@@ -2845,10 +2845,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   @Override
   public long nextAbsentValue(int fromValue) {
     long nextAbsentBit = computeNextAbsentValue(fromValue);
-    if(nextAbsentBit == 4294967296L) {
-      if(contains(-1)) {
-        return -1L;
-      }
+    if(nextAbsentBit == 0x100000000L) {
+      return -1L;
     }
     return nextAbsentBit;
   }
