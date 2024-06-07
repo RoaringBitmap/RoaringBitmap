@@ -3980,4 +3980,32 @@ public class TestRoaringBitmap {
         r.flip(1);
         assertEquals(r,  MutableRoaringBitmap.bitmapOf(2, 3, 4, 5));
     }
+
+    @Test
+    public void testPreviousValueLimit() {
+        MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+        bitmap.add(1);
+        assertEquals(-1l, bitmap.previousValue(0));
+    }
+
+    @Test
+    public void testPreviousAbsentValueLimit() {
+        MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+        bitmap.add(0);
+        assertEquals(-1L, bitmap.previousAbsentValue(0));
+    }
+
+    @Test
+    public void testNextValueLimit() {
+        MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+        bitmap.add(0xffffffff-1);
+        assertEquals(-1L, bitmap.nextValue(0xffffffff));
+    }
+
+    @Test
+    public void testNextAbsentValueLimit() {
+        MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+        bitmap.add(-1);
+        assertEquals(-1L, bitmap.nextAbsentValue(-1));
+    }
 }

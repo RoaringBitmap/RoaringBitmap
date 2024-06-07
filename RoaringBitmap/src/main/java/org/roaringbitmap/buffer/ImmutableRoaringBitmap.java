@@ -1729,9 +1729,9 @@ public class ImmutableRoaringBitmap
   @Override
   public long nextAbsentValue(int fromValue) {
     long nextAbsentBit = computeNextAbsentValue(fromValue);
-    assert nextAbsentBit <= 0xFFFFFFFFL;
-    assert nextAbsentBit >= Util.toUnsignedLong(fromValue);
-    assert !contains((int) nextAbsentBit);
+    if(nextAbsentBit == 0x100000000L) {
+      return -1L;
+    }
     return nextAbsentBit;
   }
 
