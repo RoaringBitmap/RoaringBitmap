@@ -318,6 +318,20 @@ public class TestMappeableArrayContainer {
     ac1.add((char) -17);
     assertEquals("{5,6,7,8,9,10,11,12,13,14,65519,65533}", ac1.toString());
   }
+
+  @Test
+  public void testContainsRunContainer_Issue723Case1() {
+    MappeableContainer ac = new MappeableArrayContainer().add(0,10);
+    MappeableContainer subset = new MappeableRunContainer().add(5,6);
+    assertTrue(ac.contains(subset));
+  }
+
+  @Test
+  public void testContainsRunContainer_Issue723Case2() {
+    MappeableContainer ac = new MappeableArrayContainer().add(0,10);
+    MappeableContainer rc = new MappeableRunContainer().add(5,11);
+    assertFalse(ac.contains(rc));
+  }
   
   @Test
   public void iorNotIncreaseCapacity() {

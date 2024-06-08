@@ -1651,7 +1651,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     for (int i = 0; i < runContainer.numberOfRuns(); ++i) {
       int start = (runContainer.getValue(i));
       int length = (runContainer.getLength(i));
-      if (!contains(start, start + length)) {
+      if (!contains(start, start + length + 1)) {
         return false;
       }
     }

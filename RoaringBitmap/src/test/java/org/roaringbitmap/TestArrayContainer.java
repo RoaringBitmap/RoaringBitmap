@@ -322,6 +322,20 @@ public class TestArrayContainer {
     }
 
     @Test
+    public void testContainsRunContainer_Issue723Case1() {
+        Container ac = new ArrayContainer().add(0,10);
+        Container subset = new RunContainer().add(5,6);
+        assertTrue(ac.contains(subset));
+    }
+
+    @Test
+    public void testContainsRunContainer_Issue723Case2() {
+        Container ac = new ArrayContainer().add(0,10);
+        Container rc = new RunContainer().add(5,11);
+        assertFalse(ac.contains(rc));
+    }
+
+    @Test
     public void testContainsArrayContainer_EmptyContainsEmpty() {
         Container ac = new ArrayContainer();
         Container subset = new ArrayContainer();
