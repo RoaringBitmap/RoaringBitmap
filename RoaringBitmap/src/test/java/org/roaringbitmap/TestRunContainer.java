@@ -1,6 +1,5 @@
 package org.roaringbitmap;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
@@ -3337,6 +3336,13 @@ public class TestRunContainer {
   }
 
   @Test
+  public void testContainsBitmapContainer_IncludeProperSubsetMultiWordRun() {
+    Container rc = new RunContainer().add(0,80);
+    Container subset = new BitmapContainer().add(0,79);
+    assertTrue(rc.contains(subset));
+  }
+
+  @Test
   public void testContainsBitmapContainer_ExcludeShiftedSet() {
     Container rc = new RunContainer().add(0,10);
     Container subset = new BitmapContainer().add(2,12);
@@ -3363,6 +3369,20 @@ public class TestRunContainer {
     Container disjoint = new BitmapContainer().add(20, 40);
     assertFalse(rc.contains(disjoint));
     assertFalse(disjoint.contains(rc));
+  }
+
+  @Test
+  public void testContainsBitmapContainer_Issue721Case1() {
+    Container rc = new RunContainer().add(0,60).add(63,64).add(66,67);
+    Container subset = new BitmapContainer().add(63,64);
+    assertTrue(rc.contains(subset));
+  }
+
+  @Test
+  public void testContainsBitmapContainer_Issue721Case2() {
+    Container rc = new RunContainer().add(0,10).add(12,13);
+    Container disjoint = new BitmapContainer().add(11,12);
+    assertFalse(rc.contains(disjoint));
   }
 
   @Test

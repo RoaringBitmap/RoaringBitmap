@@ -2739,7 +2739,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
           if (ir == runCount) {
             break;
           }
-          w &= w - 1;
           start = getValue(ir);
           stop = start + getLength(ir);
 

@@ -830,7 +830,6 @@ public final class RunContainer extends Container implements Cloneable {
           if (ir == runCount) {
             break;
           }
-          w &= w - 1;
           start = getValue(ir);
           stop = start + getLength(ir);
         } else if (ib * 64 + 64 < stop) {
