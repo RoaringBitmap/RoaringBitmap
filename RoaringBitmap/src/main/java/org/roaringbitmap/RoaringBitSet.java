@@ -36,18 +36,16 @@ public class RoaringBitSet extends BitSet {
   }
 
   @Override
-  @SuppressWarnings("deprecation")
   public void set(int fromIndex, int toIndex) {
-    roaringBitmap.add(fromIndex, toIndex);
+    roaringBitmap.add((long) fromIndex, (long) toIndex);
   }
 
   @Override
-  @SuppressWarnings("deprecation")
   public void set(int fromIndex, int toIndex, boolean value) {
     if (value) {
-      roaringBitmap.add(fromIndex, toIndex);
+      roaringBitmap.add((long) fromIndex, (long) toIndex);
     } else {
-      roaringBitmap.remove(fromIndex, toIndex);
+      roaringBitmap.remove((long) fromIndex, (long) toIndex);
     }
   }
 
@@ -57,9 +55,8 @@ public class RoaringBitSet extends BitSet {
   }
 
   @Override
-  @SuppressWarnings("deprecation")
   public void clear(int fromIndex, int toIndex) {
-    roaringBitmap.remove(fromIndex, toIndex);
+    roaringBitmap.remove((long) fromIndex, (long) toIndex);
   }
 
   @Override
@@ -204,15 +201,13 @@ public class RoaringBitSet extends BitSet {
   }
 
   @Override
-  @SuppressWarnings("deprecation")
   public void flip(int bitIndex) {
-    roaringBitmap.flip(bitIndex, bitIndex + 1);
+    roaringBitmap.flip((long) bitIndex, (long) bitIndex + 1);
   }
 
   @Override
-  @SuppressWarnings("deprecation")
   public void flip(int fromIndex, int toIndex) {
-    roaringBitmap.flip(fromIndex, toIndex);
+    roaringBitmap.flip((long) fromIndex, (long) toIndex);
   }
 
   @Override

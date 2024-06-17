@@ -296,7 +296,6 @@ public class RoaringBitSetTest {
       RoaringBitSet b2 = new RoaringBitSet();
 
       // Set some random bits in first set and remember them
-      int nextBitToSet = 0;
       for (int x = 0; x < 10; x++)
         b1.set(generator.nextInt(255));
 
@@ -330,7 +329,6 @@ public class RoaringBitSetTest {
       RoaringBitSet b2 = new RoaringBitSet();
 
       // Set some random bits in first set and remember them
-      int nextBitToSet = 0;
       for (int x = 0; x < 10; x++)
         b1.set(generator.nextInt(255));
 
@@ -392,7 +390,6 @@ public class RoaringBitSetTest {
       b3.or(b2);
 
       // Verify the set bits of b3 from the history
-      int historyIndex = 0;
       for (int x = 0; x < 20; x++) {
         if (!b3.get(history[x]))
           failCount++;
@@ -420,7 +417,6 @@ public class RoaringBitSetTest {
       RoaringBitSet b2 = new RoaringBitSet();
 
       // Set some random bits in first set and remember them
-      int nextBitToSet = 0;
       for (int x = 0; x < 10; x++)
         b1.set(generator.nextInt(255));
 
