@@ -2237,6 +2237,13 @@ public class TestRunContainer {
   }
 
   @Test
+  public void testContainsBitmapContainer_IncludeProperSubsetMultiWordRun() {
+    MappeableContainer rc = new MappeableRunContainer().add(0,80);
+    MappeableContainer subset = new MappeableBitmapContainer().add(0,79);
+    assertTrue(rc.contains(subset));
+  }
+
+  @Test
   public void testContainsMappeableBitmapContainer_ExcludeShiftedSet() {
     MappeableContainer rc = new MappeableRunContainer().add(0,10);
     MappeableContainer subset = new MappeableBitmapContainer().add(2,12);
@@ -2263,6 +2270,20 @@ public class TestRunContainer {
     MappeableContainer disjoint = new MappeableBitmapContainer().add(20, 40);
     assertFalse(rc.contains(disjoint));
     assertFalse(disjoint.contains(rc));
+  }
+
+  @Test
+  public void testContainsMappeableBitmapContainer_Issue721Case1() {
+    MappeableContainer rc = new MappeableRunContainer().add(0,60).add(63,64).add(66,67);
+    MappeableContainer subset = new MappeableBitmapContainer().add(63,64);
+    assertTrue(rc.contains(subset));
+  }
+
+  @Test
+  public void testContainsMappeableBitmapContainer_Issue721Case2() {
+    MappeableContainer rc = new MappeableRunContainer().add(0,10).add(12,13);
+    MappeableContainer disjoint = new MappeableBitmapContainer().add(11,12);
+    assertFalse(rc.contains(disjoint));
   }
 
   @Test
