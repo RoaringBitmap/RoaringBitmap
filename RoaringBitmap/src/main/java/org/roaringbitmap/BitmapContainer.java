@@ -28,7 +28,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   private static final int MAX_CAPACITY_LONG = MAX_CAPACITY / Long.SIZE;
 
-  private static final long serialVersionUID = 2L;
+  private static final long serialVersionUID = 3L;
 
   // bail out early when the number of runs is excessive, without
   // an exact count (just a decent lower bound)
