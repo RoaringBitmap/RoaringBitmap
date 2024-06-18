@@ -24,8 +24,11 @@ import static java.lang.Long.numberOfTrailingZeros;
 public final class BitmapContainer extends Container implements Cloneable {
   public static final int MAX_CAPACITY = 1 << 16;
 
+  private static final int MAX_CAPACITY_BYTE = MAX_CAPACITY / Byte.SIZE;
 
-  private static final long serialVersionUID = 2L;
+  private static final int MAX_CAPACITY_LONG = MAX_CAPACITY / Long.SIZE;
+
+  private static final long serialVersionUID = 3L;
 
   // bail out early when the number of runs is excessive, without
   // an exact count (just a decent lower bound)
@@ -69,7 +72,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   // nruns value for which RunContainer.serializedSizeInBytes ==
   // BitmapContainer.getArraySizeInBytes()
-  private final int MAXRUNS = (getArraySizeInBytes() - 2) / 4;
+  private static final int MAXRUNS = (MAX_CAPACITY_BYTE - 2) / 4;
 
 
   /**
@@ -77,7 +80,7 @@ public final class BitmapContainer extends Container implements Cloneable {
    */
   public BitmapContainer() {
     this.cardinality = 0;
-    this.bitmap = new long[MAX_CAPACITY / 64];
+    this.bitmap = new long[MAX_CAPACITY_LONG];
   }
 
 
@@ -463,7 +466,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public int getArraySizeInBytes() {
-    return MAX_CAPACITY / 8;
+    return MAX_CAPACITY_BYTE;
   }
 
   @Override

@@ -24,10 +24,13 @@ import static java.nio.ByteOrder.LITTLE_ENDIAN;
  * LongBuffer to store data.
  */
 public final class MappeableBitmapContainer extends MappeableContainer implements Cloneable {
-  protected static final int MAX_CAPACITY = 1 << 16;
+  public static final int MAX_CAPACITY = 1 << 16;
 
+  private static final int MAX_CAPACITY_BYTE = MAX_CAPACITY / Byte.SIZE;
+
+  private static final int MAX_CAPACITY_LONG = MAX_CAPACITY / Long.SIZE;
   
-  private static final long serialVersionUID = 2L;
+  private static final long serialVersionUID = 3L;
 
   // bail out early when the number of runs is excessive, without
   // an exact count (just a decent lower bound)
@@ -52,7 +55,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   // nruns value for which RunContainer.serializedSizeInBytes ==
   // BitmapContainer.getArraySizeInBytes()
-  private final int MAXRUNS = (getArraySizeInBytes() - 2) / 4;
+  private static final int MAXRUNS = (MAX_CAPACITY_BYTE - 2) / 4;
 
   /**
    * Create a bitmap container with all bits set to false
@@ -504,7 +507,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   @Override
   protected int getArraySizeInBytes() {
-    return MAX_CAPACITY / 8;
+    return MAX_CAPACITY_BYTE;
   }
 
 
