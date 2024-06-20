@@ -72,6 +72,7 @@ public class RoaringBitSet extends BitSet {
 
   @Override
   public BitSet get(int fromIndex, int toIndex) {
+    checkRange(fromIndex, toIndex);
     return new RoaringBitSet(
             RoaringBitmap.addOffset(
                     // get the subset of the bitmap for the given range
@@ -81,6 +82,17 @@ public class RoaringBitSet extends BitSet {
                     -fromIndex
             )
     );
+  }
+
+  // similar as BitSet#checkRange
+  private static void checkRange(int fromIndex, int toIndex) {
+    if (fromIndex < 0) {
+      throw new IndexOutOfBoundsException("fromIndex < 0: " + fromIndex);
+    } else if (toIndex < 0) {
+      throw new IndexOutOfBoundsException("toIndex < 0: " + toIndex);
+    } else if (fromIndex > toIndex) {
+      throw new IndexOutOfBoundsException("fromIndex: " + fromIndex + " > toIndex: " + toIndex);
+    }
   }
 
   @Override
