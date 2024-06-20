@@ -2132,7 +2132,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    *
    * For better performance, consider using the {@link #forEach forEach} method.
    *
-   * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
+   * @return a custom iterator over set bits, the bits are traversed in unsigned integer ascending
+   *     sorted order
    */
   @Override
   public PeekableIntIterator getIntIterator() {
@@ -2140,9 +2141,6 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   }
 
   /**
-   * For better performance, consider using the {@link #forEach forEach} method when unsigned
-   * integer ascending sorted order is sufficient.
-   *
    * @return a custom iterator over set bits, the bits are traversed in signed integer ascending
    *     sorted order
    */

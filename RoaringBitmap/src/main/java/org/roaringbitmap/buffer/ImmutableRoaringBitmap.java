@@ -1375,9 +1375,6 @@ public class ImmutableRoaringBitmap
   }
 
   /**
-   * For better performance, consider the Use the {@link #forEach forEach} method when unsigned
-   * integer ascending sorted order is sufficient.
-   *
    * @return a custom iterator over set bits, the bits are traversed in signed integer ascending
    *     sorted order
    */
