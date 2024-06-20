@@ -1,6 +1,7 @@
 package org.roaringbitmap;
 
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.stream.IntStream;
 
 /**
@@ -71,9 +72,15 @@ public class RoaringBitSet extends BitSet {
 
   @Override
   public BitSet get(int fromIndex, int toIndex) {
-    BitSet bitSet = BitSetUtil.bitsetOf(roaringBitmap);
-    bitSet = bitSet.get(fromIndex, toIndex);
-    return new RoaringBitSet(fromBitSet(bitSet));
+    return new RoaringBitSet(
+            RoaringBitmap.addOffset(
+                    // get the subset of the bitmap for the given range
+                    RoaringBitmap.or(Collections.singleton(roaringBitmap).iterator(),
+                            (long) fromIndex, (long) toIndex),
+                    // shift the bits to start from index 0
+                    -fromIndex
+            )
+    );
   }
 
   @Override
