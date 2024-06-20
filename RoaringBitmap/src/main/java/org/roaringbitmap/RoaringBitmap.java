@@ -65,7 +65,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     private RoaringIntIterator(final boolean signedIntSort) {
       char index = 0;
       if (signedIntSort) {
-        // skip to starting at positive signed integers
+        // skip to starting at negative signed integers
         final int containerSize = RoaringBitmap.this.highLowContainer.size();
         while (index < containerSize
             && RoaringBitmap.this.highLowContainer.getKeyAtIndex(index) < (1 << 15)) {

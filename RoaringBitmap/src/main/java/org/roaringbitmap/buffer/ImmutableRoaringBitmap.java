@@ -92,7 +92,7 @@ public class ImmutableRoaringBitmap
       char index = 0;
       if (signedIntSort) {
         wrap = true;
-        // skip to starting at positive signed integers
+        // skip to starting at negative signed integers
         final int containerSize = ImmutableRoaringBitmap.this.highLowContainer.size();
         while (index < containerSize
             && ImmutableRoaringBitmap.this.highLowContainer.getKeyAtIndex(index) < (1 << 15)) {
