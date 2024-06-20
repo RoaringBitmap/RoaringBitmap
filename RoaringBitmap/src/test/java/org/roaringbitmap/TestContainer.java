@@ -36,7 +36,7 @@ public class TestContainer {
     assertEquals(new ArrayContainer().getContainerName(), Container.ContainerNames[1]);
     assertEquals(new RunContainer().getContainerName(), Container.ContainerNames[2]);
   }
-  
+
   public static boolean checkContent(Container c, char[] s) {
     CharIterator si = c.getCharIterator();
     int ctr = 0;

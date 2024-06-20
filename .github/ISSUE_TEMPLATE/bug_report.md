@@ -42,7 +42,7 @@ Make sure to compare your version against the latest available version at https:
 
 **Java version:**
 
-Please tell us which Java version you are using. 
+Please tell us which Java version you are using.
 
 
 

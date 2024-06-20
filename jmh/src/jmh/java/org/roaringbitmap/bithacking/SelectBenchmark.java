@@ -112,7 +112,7 @@ public class SelectBenchmark {
 
   /**
    * Given a word w, return the position of the jth true bit.
-   * 
+   *
    * @param w word
    * @param j index
    * @return position of jth true bit in w
@@ -129,7 +129,7 @@ public class SelectBenchmark {
 
   /**
    * Given a word w, return the position of the jth true bit.
-   * 
+   *
    * @param w word
    * @param j index
    * @return position of jth true bit in w
@@ -147,7 +147,7 @@ public class SelectBenchmark {
 
   /**
    * Given a word w, return the position of the jth true bit.
-   * 
+   *
    * @param w word
    * @param j index
    * @return position of jth true bit in w

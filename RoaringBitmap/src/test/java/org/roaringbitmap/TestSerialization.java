@@ -109,7 +109,7 @@ public class TestSerialization {
   static ByteBuffer outbb;
 
   static ByteBuffer presoutbb;
-  
+
   // Very small buffer to higher to chance to encounter edge-case
   byte[] buffer = new byte[16];
 
@@ -347,7 +347,7 @@ public class TestSerialization {
       bitmap_a.add(k); // bitmap density and too many little runs
       bitmap_ar.add(k);
       bitmap_am.add(k);
-      bitmap_amr.add(k);    
+      bitmap_amr.add(k);
     }
 
     bitmap_ar.runOptimize();

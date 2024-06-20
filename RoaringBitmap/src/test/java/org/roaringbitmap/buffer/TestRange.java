@@ -20,7 +20,7 @@ public class TestRange {
     assertEquals(1, i.next());
     assertFalse(i.hasNext());
   }
-  
+
   @Test
   @SuppressWarnings( "deprecation" )
   public void testDeprecatedMemberFlip() {

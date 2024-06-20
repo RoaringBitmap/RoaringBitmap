@@ -86,7 +86,7 @@ public class ImmutableBitSliceIndex extends BitSliceIndexBase implements BitmapS
 
 
   @Override
-  public void setValues(List<Pair<Integer, Integer>> values, 
+  public void setValues(List<Pair<Integer, Integer>> values,
       Integer currentMaxValue, Integer currentMinValue) {
     throw new UnsupportedOperationException("ImmutableBSI don't support setValues");
   }

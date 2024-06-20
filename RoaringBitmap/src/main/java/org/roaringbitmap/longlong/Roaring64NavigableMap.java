@@ -91,9 +91,9 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   }
 
   /**
-   * 
+   *
    * By default, use RoaringBitmap as underlyings {@link BitmapDataProvider}
-   * 
+   *
    * @param signedLongs true if longs has to be ordered as plain java longs. False to handle them as
    *        unsigned 64bits long (as RoaringBitmap with unsigned integers)
    */
@@ -103,7 +103,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
   /**
    * By default, use RoaringBitmap as underlyings {@link BitmapDataProvider}
-   * 
+   *
    * @param signedLongs true if longs has to be ordered as plain java longs. False to handle them as
    *        unsigned 64bits long (as RoaringBitmap with unsigned integers)
    * @param cacheCardinalities true if cardinalities have to be cached. It will prevent many
@@ -115,7 +115,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
   /**
    * By default, longs are managed as unsigned longs and cardinalities are cached.
-   * 
+   *
    * @param supplier provide the logic to instantiate new {@link BitmapDataProvider}, typically
    *        instantiated once per high.
    */
@@ -125,7 +125,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
   /**
    * By default, we activating cardinalities caching.
-   * 
+   *
    * @param signedLongs true if longs has to be ordered as plain java longs. False to handle them as
    *        unsigned 64bits long (as RoaringBitmap with unsigned integers)
    * @param supplier provide the logic to instantiate new {@link BitmapDataProvider}, typically
@@ -136,7 +136,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   }
 
   /**
-   * 
+   *
    * @param signedLongs true if longs has to be ordered as plain java longs. False to handle them as
    *        unsigned 64bits long (as RoaringBitmap with unsigned integers)
    * @param cacheCardinalities true if cardinalities have to be cached. It will prevent many
@@ -322,9 +322,9 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   }
 
   /**
-   * 
+   *
    * @return the cardinality as an int
-   * 
+   *
    * @throws UnsupportedOperationException if the cardinality does not fit in an int
    */
   public int getIntCardinality() throws UnsupportedOperationException {
@@ -539,7 +539,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   }
 
   /**
-   * 
+   *
    * @param high for which high bucket should we compute the cardinality
    * @return the highest validatedIndex
    */
@@ -1126,10 +1126,10 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   @Override
   public long getLongSizeInBytes() {
     long size = 8;
-      
+
     // Size of containers
     size += highToBitmap.values().stream().mapToLong(p -> p.getLongSizeInBytes()).sum();
-    
+
     // Size of Map data-structure: we consider each TreeMap entry costs 40 bytes
     // http://java-performance.info/memory-consumption-of-java-data-types-2/
     size += 8L + 40L * highToBitmap.size();
@@ -1140,7 +1140,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     // The cache impacts the size in heap
     size += 8L * sortedCumulatedCardinality.length;
     size += 4L * sortedHighs.length;
-    
+
     return size;
   }
 
@@ -1172,7 +1172,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
   /**
    * Use a run-length encoding where it is estimated as more space efficient
-   * 
+   *
    * @return whether a change was applied
    */
   public boolean runOptimize() {

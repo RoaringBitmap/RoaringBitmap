@@ -157,7 +157,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
 
 
-  @Override 
+  @Override
   public int getContainerIndex(char x) {
     return unsignedBinarySearch(x);
   }

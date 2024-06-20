@@ -1112,13 +1112,13 @@ public class TestImmutableRoaringBitmap {
       rb1.add(200000L, 400000L);  // two normal positive ranges
       rb2.add(300000L, 500000L);  // full overlap is on 300000 to 399999
 
-      MutableRoaringBitmap result = ImmutableRoaringBitmap.and(list.iterator(), 350000L,  450000L); 
+      MutableRoaringBitmap result = ImmutableRoaringBitmap.and(list.iterator(), 350000L,  450000L);
       MutableRoaringBitmap resultInt = ImmutableRoaringBitmap.and(list.iterator(), 350000,  450000);
 
     assertEquals(result, resultInt);
       assertEquals(50000, result.getCardinality());
 
-      
+
       // empty ranges get empty result
       resultInt = ImmutableRoaringBitmap.and(list.iterator(), 300000, 200000);
       result = ImmutableRoaringBitmap.and(list.iterator(), 300000L, 200000L);
@@ -1141,14 +1141,14 @@ public class TestImmutableRoaringBitmap {
       rb1.add(200000L, 400000L);  // two normal positive ranges
       rb2.add(300000L, 500000L);  // full union is 200000 to 499999
 
-      MutableRoaringBitmap result = ImmutableRoaringBitmap.or(list.iterator(), 250000L,  550000L); 
+      MutableRoaringBitmap result = ImmutableRoaringBitmap.or(list.iterator(), 250000L,  550000L);
       MutableRoaringBitmap resultInt = ImmutableRoaringBitmap.or(list.iterator(), 250000,  550000);
 
 
     assertEquals(result, resultInt);
       assertEquals(250000, result.getCardinality());
 
-      
+
       // empty ranges get empty result
       resultInt = ImmutableRoaringBitmap.or(list.iterator(), 300000, 200000);
       result = ImmutableRoaringBitmap.or(list.iterator(), 300000L, 200000L);
@@ -1171,13 +1171,13 @@ public class TestImmutableRoaringBitmap {
       rb1.add(200000L, 400000L);  // two normal positive ranges
       rb2.add(300000L, 500000L);  // full andNOToverlap is on 200000 to 299999
 
-      MutableRoaringBitmap result = ImmutableRoaringBitmap.andNot(rb1, rb2, 250000L,  450000L); 
+      MutableRoaringBitmap result = ImmutableRoaringBitmap.andNot(rb1, rb2, 250000L,  450000L);
       MutableRoaringBitmap resultInt = ImmutableRoaringBitmap.andNot(rb1, rb2, 250000,  450000);
 
     assertEquals(result, resultInt);
       assertEquals(50000, result.getCardinality());
 
-      
+
       // empty ranges get empty result
       resultInt = ImmutableRoaringBitmap.andNot(rb1, rb2, 300000, 200000);
       result = ImmutableRoaringBitmap.andNot(rb1, rb2, 300000L, 200000L);
@@ -1200,13 +1200,13 @@ public class TestImmutableRoaringBitmap {
       rb1.add(200000L, 400000L);  // two normal positive ranges
       rb2.add(300000L, 500000L);  // full XOR is 200000 to 299999, 400000-4999999
 
-      MutableRoaringBitmap result = ImmutableRoaringBitmap.xor(list.iterator(), 250000L,  450000L); 
+      MutableRoaringBitmap result = ImmutableRoaringBitmap.xor(list.iterator(), 250000L,  450000L);
       MutableRoaringBitmap resultInt = ImmutableRoaringBitmap.xor(list.iterator(), 250000,  450000);
 
     assertEquals(result, resultInt);
       assertEquals(100000, result.getCardinality());
 
-      
+
       // empty ranges get empty result
       resultInt = ImmutableRoaringBitmap.xor(list.iterator(), 300000, 200000);
       result = ImmutableRoaringBitmap.xor(list.iterator(), 300000L, 200000L);

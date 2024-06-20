@@ -82,7 +82,7 @@ When the bitset approach is applicable, it can be orders of
 magnitude faster than other possible implementation of a set (e.g., as a hash set)
 while using several times less memory.
 
-However, a bitset, even a compressed one is not always applicable. For example, if 
+However, a bitset, even a compressed one is not always applicable. For example, if
 you have 1000 random-looking integers, then a simple array might be the best representation.
 We refer to this case as the "sparse" scenario.
 
@@ -157,7 +157,7 @@ Software: Practice and Experience 46 (5), 2016. [arXiv:1402.6407](http://arxiv.o
 Code sample
 -------------
 
-```java        
+```java
 import org.roaringbitmap.RoaringBitmap;
 
 public class Basic {
@@ -317,14 +317,14 @@ the most significant 32~bits of  elements
 whereas the values of the tree are 32-bit Roaring bitmaps. The 32-bit Roaring bitmaps represent the least significant
 bits of a set of elements.
 
-The newer `Roaring64Bitmap` approach relies on the ART data structure to hold the key/value pair. The key 
+The newer `Roaring64Bitmap` approach relies on the ART data structure to hold the key/value pair. The key
  is made of the most significant 48~bits of elements whereas the values are 16-bit Roaring containers. It is inspired by
  [The Adaptive Radix Tree: ARTful Indexing for Main-Memory Databases](https://db.in.tum.de/~leis/papers/ART.pdf) by Leis et al. (ICDE '13).
 
 ```java
     import org.roaringbitmap.longlong.*;
 
-    
+
     // first Roaring64NavigableMap
     LongBitmapDataProvider r = Roaring64NavigableMap.bitmapOf(1,2,100,1000);
     r.addLong(1234);
@@ -360,12 +360,12 @@ Range Bitmaps
 `RangeBitmap` is a succinct data structure supporting range queries.
 Each value added to the bitmap is associated with an incremental identifier,
 and queries produce a `RoaringBitmap` of the identifiers associated with values
-that satisfy the query. Every value added to the bitmap is stored separately, 
-so that if a value is added twice, it will be stored twice, and if that value 
+that satisfy the query. Every value added to the bitmap is stored separately,
+so that if a value is added twice, it will be stored twice, and if that value
 is less than some threshold, there will be at least two integers in the resultant
 `RoaringBitmap`.
 
-It is more efficient - in terms of both time and space - to 
+It is more efficient - in terms of both time and space - to
 provide a maximum value. If you don't know the maximum value,
 provide a `Long.MAX_VALUE`. Unsigned order is used like elsewhere in
 the library.
@@ -430,7 +430,7 @@ If your project depends on roaring, you  can  specify the dependency in the Mave
 
 where you should replace the version number by the version you require.
 
-[For up-to-date releases, we recommend configuring maven and gradle to depend on the Jitpack repository](https://jitpack.io/#RoaringBitmap/RoaringBitmap). 
+[For up-to-date releases, we recommend configuring maven and gradle to depend on the Jitpack repository](https://jitpack.io/#RoaringBitmap/RoaringBitmap).
 
 Usage
 ------

@@ -10,7 +10,7 @@ public class ImmutableRoaringBitmapExample {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(bos);
         // If there were runs of consecutive values, you could
-        // call rr1.runOptimize(); or rr2.runOptimize(); to improve compression 
+        // call rr1.runOptimize(); or rr2.runOptimize(); to improve compression
         rr1.serialize(dos);
         rr2.serialize(dos);
         dos.close();

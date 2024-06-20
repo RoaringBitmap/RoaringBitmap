@@ -10,9 +10,9 @@ import org.roaringbitmap.IntIterator;
 /**
  * Fast iterator minimizing the stress on the garbage collector. You can create one reusable
  * instance of this class and then {@link #wrap(ImmutableRoaringBitmap)}
- * 
+ *
  * This iterator enumerates the stored values in reverse (starting from the end).
- * 
+ *
  * @author Borislav Ivanov
  **/
 public class BufferReverseIntIteratorFlyweight implements IntIterator {
@@ -45,7 +45,7 @@ public class BufferReverseIntIteratorFlyweight implements IntIterator {
 
   /**
    * Creates an instance that is ready for iteration.
-   * 
+   *
    * @param r bitmap to be iterated over
    */
   public BufferReverseIntIteratorFlyweight(ImmutableRoaringBitmap r) {
@@ -105,7 +105,7 @@ public class BufferReverseIntIteratorFlyweight implements IntIterator {
 
   /**
    * Prepares a bitmap for iteration
-   * 
+   *
    * @param r bitmap to be iterated over
    */
   public void wrap(ImmutableRoaringBitmap r) {

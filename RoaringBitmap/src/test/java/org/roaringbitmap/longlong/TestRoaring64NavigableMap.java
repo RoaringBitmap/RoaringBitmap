@@ -1503,12 +1503,12 @@ public class TestRoaring64NavigableMap {
     map.add(0);
     map.add(2L * Integer.MAX_VALUE);
     map.addRange(8L * Integer.MAX_VALUE, 8L * Integer.MAX_VALUE + 1024);
-    
+
     assertEquals(3, map.getHighToBitmap().size());
 
     // Size with multiple entries
     assertEquals(228, map.getLongSizeInBytes());
-    
+
     // Select does allocate some cache
     map.select(16);
     assertEquals(264, map.getLongSizeInBytes());

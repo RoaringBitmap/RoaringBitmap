@@ -13,7 +13,7 @@ import java.util.*;
 
 /**
  * Fast algorithms to aggregate many bitmaps.
- * 
+ *
  * @author Daniel Lemire
  */
 public final class BufferFastAggregation {
@@ -57,7 +57,7 @@ public final class BufferFastAggregation {
 
   /**
    * Compute the AND aggregate.
-   * 
+   *
    * In practice, calls {#link workShyAnd}
    *
    * @param bitmaps input bitmaps (ImmutableRoaringBitmap or MutableRoaringBitmap)
@@ -91,9 +91,9 @@ public final class BufferFastAggregation {
 
   /**
    * Compute the AND aggregate.
-   * 
+   *
    * In practice, calls {#link naive_and}
-   * 
+   *
    * @param bitmaps input bitmaps
    * @return aggregated bitmap
    */
@@ -141,7 +141,7 @@ public final class BufferFastAggregation {
 
   /**
    * Convenience method converting one type of iterator into another, to avoid unnecessary warnings.
-   * 
+   *
    * @param i input bitmaps
    * @return an iterator over the provided iterator, with a different type
    */
@@ -177,9 +177,9 @@ public final class BufferFastAggregation {
 
   /**
    * Minimizes memory usage while computing the or aggregate on a moderate number of bitmaps.
-   * 
+   *
    * This function runs in linearithmic (O(n log n)) time with respect to the number of bitmaps.
-   * 
+   *
    * @param bitmaps input bitmaps
    * @return aggregated bitmap
    * @see #or(ImmutableRoaringBitmap...)
@@ -237,7 +237,7 @@ public final class BufferFastAggregation {
 
   /**
    * Calls naive_or.
-   * 
+   *
    * @param bitmaps input bitmaps (ImmutableRoaringBitmap or MutableRoaringBitmap)
    * @return aggregated bitmap
    */
@@ -248,9 +248,9 @@ public final class BufferFastAggregation {
 
   /**
    * Minimizes memory usage while computing the or aggregate on a moderate number of bitmaps.
-   * 
+   *
    * This function runs in linearithmic (O(n log n)) time with respect to the number of bitmaps.
-   * 
+   *
    * @param bitmaps input bitmaps
    * @return aggregated bitmap
    * @see #or(ImmutableRoaringBitmap...)
@@ -262,9 +262,9 @@ public final class BufferFastAggregation {
 
   /**
    * Minimizes memory usage while computing the xor aggregate on a moderate number of bitmaps.
-   * 
+   *
    * This function runs in linearithmic (O(n log n)) time with respect to the number of bitmaps.
-   * 
+   *
    * @param bitmaps input bitmaps
    * @return aggregated bitmap
    * @see #xor(ImmutableRoaringBitmap...)
@@ -320,9 +320,9 @@ public final class BufferFastAggregation {
 
   /**
    * Minimizes memory usage while computing the xor aggregate on a moderate number of bitmaps.
-   * 
+   *
    * This function runs in linearithmic (O(n log n)) time with respect to the number of bitmaps.
-   * 
+   *
    * @param bitmaps input bitmaps
    * @return aggregated bitmap
    * @see #xor(ImmutableRoaringBitmap...)
@@ -338,7 +338,7 @@ public final class BufferFastAggregation {
    * Performance hint: if you have very large and tiny bitmaps,
    * it may be beneficial performance-wise to put a tiny bitmap
    * in first position.
-   * 
+   *
    * This function runs in linear time with respect to the number of bitmaps.
    *
    * @param bitmaps input bitmaps
@@ -374,7 +374,7 @@ public final class BufferFastAggregation {
    * Performance hint: if you have very large and tiny bitmaps,
    * it may be beneficial performance-wise to put a tiny bitmap
    * in first position.
-   * 
+   *
    * This function runs in linear time with respect to the number of bitmaps.
    *
    * @param bitmaps input bitmaps (ImmutableRoaringBitmap or MutableRoaringBitmap)
@@ -398,7 +398,7 @@ public final class BufferFastAggregation {
    * Performance hint: if you have very large and tiny bitmaps,
    * it may be beneficial performance-wise to put a tiny bitmap
    * in first position.
-   * 
+   *
    * This function runs in linear time with respect to the number of bitmaps.
    *
    * @param bitmaps input bitmaps
@@ -688,7 +688,7 @@ public final class BufferFastAggregation {
    * Computes the intersection by first intersecting the keys, avoids
    * materialising containers, limits memory usage. You must provide a long[] array
    * of length at least 1024, initialized with zeroes. We do not check whether the array
-   * is initialized with zeros: it is the caller's responsability. 
+   * is initialized with zeros: it is the caller's responsability.
    * You should expect this function to be slower than workShyAnd and the reduction
    * in memory usage might be small.
    *
@@ -696,11 +696,11 @@ public final class BufferFastAggregation {
    * @param bitmaps the inputs
    * @return the intersection of the bitmaps
    */
-  public static MutableRoaringBitmap workAndMemoryShyAnd(long[] buffer, 
+  public static MutableRoaringBitmap workAndMemoryShyAnd(long[] buffer,
       ImmutableRoaringBitmap... bitmaps) {
     if(buffer.length < 1024) {
       throw new IllegalArgumentException("buffer should have at least 1024 elements.");
-    } 
+    }
     long[] words = buffer;
     ImmutableRoaringBitmap first = bitmaps[0];
     for (int i = 0; i < first.highLowContainer.size(); ++i) {
@@ -765,7 +765,7 @@ public final class BufferFastAggregation {
 
   /**
    * Compute overall OR between bitmaps two-by-two.
-   * 
+   *
    * This function runs in linear time with respect to the number of bitmaps.
    *
    * @param bitmaps input bitmaps
@@ -782,7 +782,7 @@ public final class BufferFastAggregation {
 
   /**
    * Compute overall OR between bitmaps two-by-two.
-   * 
+   *
    * This function runs in linear time with respect to the number of bitmaps.
    *
    * @param bitmaps input bitmaps (ImmutableRoaringBitmap or MutableRoaringBitmap)
@@ -818,7 +818,7 @@ public final class BufferFastAggregation {
 
   /**
    * Compute overall XOR between bitmaps two-by-two.
-   * 
+   *
    * This function runs in linear time with respect to the number of bitmaps.
    *
    * @param bitmaps input bitmaps
@@ -834,7 +834,7 @@ public final class BufferFastAggregation {
 
   /**
    * Compute overall XOR between bitmaps two-by-two.
-   * 
+   *
    * This function runs in linear time with respect to the number of bitmaps.
    *
    * @param bitmaps input bitmaps (ImmutableRoaringBitmap or MutableRoaringBitmap)
@@ -851,7 +851,7 @@ public final class BufferFastAggregation {
 
   /**
    * Compute overall XOR between bitmaps two-by-two.
-   * 
+   *
    * This function runs in linear time with respect to the number of bitmaps.
    *
    * @param bitmaps input bitmaps
@@ -899,9 +899,9 @@ public final class BufferFastAggregation {
 
   /**
    * Uses a priority queue to compute the or aggregate.
-   * 
+   *
    * This function runs in linearithmic (O(n log n)) time with respect to the number of bitmaps.
-   * 
+   *
    * @param bitmaps input bitmaps
    * @return aggregated bitmap
    * @see #horizontal_or(ImmutableRoaringBitmap...)
@@ -958,9 +958,9 @@ public final class BufferFastAggregation {
 
   /**
    * Uses a priority queue to compute the or aggregate.
-   * 
+   *
    * This function runs in linearithmic (O(n log n)) time with respect to the number of bitmaps.
-   * 
+   *
    * @param bitmaps input bitmaps
    * @return aggregated bitmap
    * @see #horizontal_or(ImmutableRoaringBitmap...)
@@ -1022,9 +1022,9 @@ public final class BufferFastAggregation {
 
   /**
    * Uses a priority queue to compute the xor aggregate.
-   * 
+   *
    * This function runs in linearithmic (O(n log n)) time with respect to the number of bitmaps.
-   * 
+   *
    * @param bitmaps input bitmaps
    * @return aggregated bitmap
    * @see #horizontal_xor(ImmutableRoaringBitmap...)
@@ -1053,7 +1053,7 @@ public final class BufferFastAggregation {
 
   /**
    * Compute overall XOR between bitmaps.
-   * 
+   *
    *
    * @param bitmaps input bitmaps
    * @return aggregated bitmap
@@ -1076,7 +1076,7 @@ public final class BufferFastAggregation {
 
   /**
    * Compute overall XOR between bitmaps.
-   * 
+   *
    *
    * @param bitmaps input bitmaps
    * @return aggregated bitmap

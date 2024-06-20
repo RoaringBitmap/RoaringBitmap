@@ -6,7 +6,7 @@ package org.roaringbitmap;
 /**
  * A {@link BitmapDataProviderSupplier} providing {@link RoaringBitmap} as
  * {@link BitmapDataProvider}
- * 
+ *
  * @author Benoit Lacelle
  *
  */

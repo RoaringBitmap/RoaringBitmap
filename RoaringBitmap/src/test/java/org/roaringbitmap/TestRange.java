@@ -755,7 +755,7 @@ public class TestRange {
 
     /* nb on 20 April 2016, all unit tests above [then] were switched from
      * the original int-range functions to the wrapper int-range functions
-     * without test errors.  Then all code above switched use longs for 
+     * without test errors.  Then all code above switched use longs for
      * range endpoints, again without test errors.
      *
      * Below, check the deprecated versions for undocumented behaviours that
@@ -864,13 +864,13 @@ public class TestRange {
       rb1.add(200000L, 400000L);  // two normal positive ranges
       rb2.add(300000L, 500000L);  // full overlap is on 300000 to 399999
 
-      RoaringBitmap result = RoaringBitmap.and(list.iterator(), 350000L,  450000L); 
+      RoaringBitmap result = RoaringBitmap.and(list.iterator(), 350000L,  450000L);
       RoaringBitmap resultInt = RoaringBitmap.and(list.iterator(), 350000,  450000);
 
     assertEquals(result, resultInt);
       assertEquals(50000, result.getCardinality());
 
-      
+
       // empty ranges get empty result
       resultInt = RoaringBitmap.and(list.iterator(), 300000, 200000);
       result = RoaringBitmap.and(list.iterator(), 300000L, 200000L);
@@ -893,13 +893,13 @@ public class TestRange {
       rb1.add(200000L, 400000L);  // two normal positive ranges
       rb2.add(300000L, 500000L);  // full union is 200000 to 499999
 
-      RoaringBitmap result = RoaringBitmap.or(list.iterator(), 250000L,  550000L); 
+      RoaringBitmap result = RoaringBitmap.or(list.iterator(), 250000L,  550000L);
       RoaringBitmap resultInt = RoaringBitmap.or(list.iterator(), 250000,  550000);
 
     assertEquals(result, resultInt);
       assertEquals(250000, result.getCardinality());
 
-      
+
       // empty ranges get empty result
       resultInt = RoaringBitmap.or(list.iterator(), 300000, 200000);
       result = RoaringBitmap.or(list.iterator(), 300000L, 200000L);
@@ -922,13 +922,13 @@ public class TestRange {
       rb1.add(200000L, 400000L);  // two normal positive ranges
       rb2.add(300000L, 500000L);  // full andNOToverlap is on 200000 to 299999
 
-      RoaringBitmap result = RoaringBitmap.andNot(rb1, rb2, 250000L,  450000L); 
+      RoaringBitmap result = RoaringBitmap.andNot(rb1, rb2, 250000L,  450000L);
       RoaringBitmap resultInt = RoaringBitmap.andNot(rb1, rb2, 250000,  450000);
 
     assertEquals(result, resultInt);
       assertEquals(50000, result.getCardinality());
 
-      
+
       // empty ranges get empty result
       resultInt = RoaringBitmap.andNot(rb1, rb2, 300000, 200000);
       result = RoaringBitmap.andNot(rb1, rb2, 300000L, 200000L);
@@ -951,13 +951,13 @@ public class TestRange {
       rb1.add(200000L, 400000L);  // two normal positive ranges
       rb2.add(300000L, 500000L);  // full XOR is 200000 to 299999, 400000-4999999
 
-      RoaringBitmap result = RoaringBitmap.xor(list.iterator(), 250000L,  450000L); 
+      RoaringBitmap result = RoaringBitmap.xor(list.iterator(), 250000L,  450000L);
       RoaringBitmap resultInt = RoaringBitmap.xor(list.iterator(), 250000,  450000);
 
     assertEquals(result, resultInt);
       assertEquals(100000, result.getCardinality());
 
-      
+
       // empty ranges get empty result
       resultInt = RoaringBitmap.xor(list.iterator(), 300000, 200000);
       result = RoaringBitmap.xor(list.iterator(), 300000L, 200000L);

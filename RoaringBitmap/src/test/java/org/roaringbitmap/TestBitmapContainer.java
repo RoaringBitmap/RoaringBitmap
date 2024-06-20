@@ -47,7 +47,7 @@ public class TestBitmapContainer {
     assertEquals("{5,6,7,8,9,10,11,12,13,14,65517,65533}", bc2.toString());
   }
 
-  @Test  
+  @Test
   public void testXOR() {
     BitmapContainer bc = new BitmapContainer(100,10000);
     BitmapContainer bc2 = new BitmapContainer();
@@ -63,8 +63,8 @@ public class TestBitmapContainer {
     bc = (BitmapContainer) bc.ixor(bc2);
     assertEquals(0, bc.ixor(bc3).getCardinality());
   }
-  
-  @Test  
+
+  @Test
   public void testANDNOT() {
     BitmapContainer bc = new BitmapContainer(100,10000);
     BitmapContainer bc2 = new BitmapContainer();
@@ -87,9 +87,9 @@ public class TestBitmapContainer {
     bc3.clear();
     assertEquals(0, bc3.getCardinality());
   }
-  
 
-  @Test  
+
+  @Test
   public void testAND() {
     BitmapContainer bc = new BitmapContainer(100,10000);
     BitmapContainer bc2 = new BitmapContainer();
@@ -107,9 +107,9 @@ public class TestBitmapContainer {
     assertEquals(0, bc.iand(bc3).getCardinality());
   }
 
-  
 
-  @Test  
+
+  @Test
   public void testOR() {
     BitmapContainer bc = new BitmapContainer(100,10000);
     BitmapContainer bc2 = new BitmapContainer();
@@ -195,7 +195,7 @@ public class TestBitmapContainer {
         assertEquals(0,bc2.remove(start, end).getCardinality());
         assertEquals(bc2.getCardinality(), end-start);
         assertEquals(0,bc2.not(start, end).getCardinality());
-      }  
+      }
     }
   }
 
@@ -215,7 +215,7 @@ public class TestBitmapContainer {
         assertEquals(0,bc2.remove(start, end).getCardinality());
         assertEquals(bc2.getCardinality(), end-start);
         assertEquals(0,bc2.not(start, end).getCardinality());
-      }  
+      }
     }
   }
 
@@ -307,10 +307,10 @@ public class TestBitmapContainer {
       /*
        * the unrolled guys are commented out, did not help performance and slated for removal
        * soon...
-       * 
+       *
        * assertTrue(bc.numberOfRunsLowerBoundUnrolled2(1) > 1);
        * assertTrue(bc.numberOfRunsLowerBoundUnrolled2(100) <= bc.numberOfRuns());
-       * 
+       *
        * assertEquals(bc.numberOfRunsLowerBound(100000),
        * bc.numberOfRunsLowerBoundUnrolled2(100000));
        */

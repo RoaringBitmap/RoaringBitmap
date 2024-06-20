@@ -7,7 +7,7 @@ import org.roaringbitmap.longlong.Roaring64NavigableMap;
 
 /**
  * Enable customizing the {@link BitmapDataProvider} used by {@link Roaring64NavigableMap}
- * 
+ *
  * @author Benoit Lacelle
  *
  */

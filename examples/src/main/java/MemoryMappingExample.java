@@ -6,7 +6,7 @@ import java.nio.channels.FileChannel;
 
 
 public class MemoryMappingExample {
-    
+
     public static void main(String[] args) throws IOException {
         File tmpfile = File.createTempFile("roaring", "bin");
         tmpfile.deleteOnExit();
@@ -19,14 +19,14 @@ public class MemoryMappingExample {
         System.out.println("Created the bitmap "+Bitmap2);
         int pos1 = 0; // bitmap 1 is at offset 0
         // If there were runs of consecutive values, you could
-        // call Bitmap1.runOptimize(); to improve compression 
+        // call Bitmap1.runOptimize(); to improve compression
         Bitmap1.serialize(new DataOutputStream(fos));
         int pos2 = Bitmap1.serializedSizeInBytes(); // bitmap 2 will be right after it
         // If there were runs of consecutive values, you could
-        // call Bitmap2.runOptimize(); to improve compression 
+        // call Bitmap2.runOptimize(); to improve compression
         Bitmap2.serialize(new DataOutputStream(fos));
         long totalcount = fos.getChannel().position();
-        if(totalcount != Bitmap1.serializedSizeInBytes() + Bitmap2.serializedSizeInBytes()) 
+        if(totalcount != Bitmap1.serializedSizeInBytes() + Bitmap2.serializedSizeInBytes())
            throw new RuntimeException("This will not happen.");
         System.out.println("Serialized total count = "+totalcount+" bytes");
         fos.close();

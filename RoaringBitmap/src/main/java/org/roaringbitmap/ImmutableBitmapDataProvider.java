@@ -35,7 +35,7 @@ public interface ImmutableBitmapDataProvider {
    * @return the cardinality
    */
   int getCardinality();
-  
+
   /**
    * Returns the number of distinct integers added to the bitmap (e.g., number of bits set).
    * This returns a full 64-bit result.
@@ -46,8 +46,8 @@ public interface ImmutableBitmapDataProvider {
 
   /**
    * Visit all values in the bitmap and pass them to the consumer.
-   * 
-   * * Usage: 
+   *
+   * * Usage:
    * <pre>
    * {@code
    *  bitmap.forEach(new IntConsumer() {
@@ -55,7 +55,7 @@ public interface ImmutableBitmapDataProvider {
    *    {@literal @}Override
    *    public void accept(int value) {
    *      // do something here
-   *      
+   *
    *    }});
    *   }
    * }
@@ -79,9 +79,9 @@ public interface ImmutableBitmapDataProvider {
    * @return an Ordered, Distinct, Sorted and Sized IntStream in ascending order
    */
   public default IntStream stream() {
-    int characteristics = Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SORTED 
+    int characteristics = Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SORTED
         | Spliterator.SIZED;
-    Spliterator.OfInt x = Spliterators.spliterator(new RoaringOfInt(getIntIterator()), 
+    Spliterator.OfInt x = Spliterators.spliterator(new RoaringOfInt(getIntIterator()),
         getCardinality(), characteristics);
     return StreamSupport.intStream(x, false);
   }
@@ -91,11 +91,11 @@ public interface ImmutableBitmapDataProvider {
    */
   public default IntStream reverseStream() {
     int characteristics = Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SIZED;
-    Spliterator.OfInt x = Spliterators.spliterator(new RoaringOfInt(getReverseIntIterator()), 
+    Spliterator.OfInt x = Spliterators.spliterator(new RoaringOfInt(getReverseIntIterator()),
         getCardinality(), characteristics);
     return StreamSupport.intStream(x, false);
   }
-  
+
   /**
    * This iterator may be faster than others
    * @return iterator which works on batches of data.
@@ -104,13 +104,13 @@ public interface ImmutableBitmapDataProvider {
 
   /**
    * Estimate of the memory usage of this data structure.
-   * 
+   *
    * Internally, this is computed as a 64-bit counter.
    *
    * @return estimated memory usage.
    */
   int getSizeInBytes();
-  
+
   /**
    * Estimate of the memory usage of this data structure. Provides
    * full 64-bit number.
@@ -138,26 +138,26 @@ public interface ImmutableBitmapDataProvider {
    * Rank returns the number of integers that are smaller or equal to x (rank(infinity) would be
    * getCardinality()).  If you provide the smallest value as a parameter, this function will
    * return 1. If provide a value smaller than the smallest value, it will return 0.
-   * 
+   *
    * The value is internally computed as a 64-bit number.
-   * 
+   *
    * @param x upper limit
    *
    * @return the rank
-   * @see <a href="https://en.wikipedia.org/wiki/Ranking#Ranking_in_statistics">Ranking in statistics</a> 
+   * @see <a href="https://en.wikipedia.org/wiki/Ranking#Ranking_in_statistics">Ranking in statistics</a>
    */
   int rank(int x);
-  
+
   /**
    * Rank returns the number of integers that are smaller or equal to x (rankLong(infinity) would be
    * getLongCardinality()).  If you provide the smallest value as a parameter, this function will
    * return 1. If provide a value smaller than the smallest value, it will return 0.
    * Same as "rank" but produces a full 64-bit value.
-   * 
+   *
    * @param x upper limit
    *
    * @return the rank
-   * @see <a href="https://en.wikipedia.org/wiki/Ranking#Ranking_in_statistics">Ranking in statistics</a> 
+   * @see <a href="https://en.wikipedia.org/wiki/Ranking#Ranking_in_statistics">Ranking in statistics</a>
    */
   long rankLong(int x);
 
@@ -165,8 +165,8 @@ public interface ImmutableBitmapDataProvider {
   * Computes the number of values in the interval [start,end) where
   * start is included and end excluded.
   * rangeCardinality(0,0x100000000) provides the total cardinality (getLongCardinality).
-  * The answer is a 64-bit value between 1 and 0x100000000. 
-  * 
+  * The answer is a 64-bit value between 1 and 0x100000000.
+  *
   * @param start lower limit (included)
   * @param end upper limit (excluded)
   * @return the number of elements in [start,end), between 0 and 0x100000000.
@@ -174,8 +174,8 @@ public interface ImmutableBitmapDataProvider {
   long rangeCardinality(long start, long end);
 
   /**
-   * Return the jth value stored in this bitmap. The provided value 
-   * needs to be smaller than the cardinality otherwise an 
+   * Return the jth value stored in this bitmap. The provided value
+   * needs to be smaller than the cardinality otherwise an
    * IllegalArgumentException
    * exception is thrown. The smallest value is at index 0.
    * Note that this function differs in convention from the rank function which
@@ -184,7 +184,7 @@ public interface ImmutableBitmapDataProvider {
    * @param j index of the value
    *
    * @return the value
-   * @see <a href="https://en.wikipedia.org/wiki/Selection_algorithm">Selection algorithm</a> 
+   * @see <a href="https://en.wikipedia.org/wiki/Selection_algorithm">Selection algorithm</a>
    */
   int select(int j);
 
@@ -215,7 +215,7 @@ public interface ImmutableBitmapDataProvider {
    *       or {@code -1} if there is no such value
    */
   long nextValue(int fromValue);
-  
+
   /**
    * Returns the first value less than or equal to the provided value
    * (interpreted as an unsigned integer). If no such
@@ -263,11 +263,11 @@ public interface ImmutableBitmapDataProvider {
   /**
    * Serialize this bitmap to a ByteBuffer.
    * This is the preferred method
-   * to serialize to a byte array (byte[]) or to a String 
+   * to serialize to a byte array (byte[]) or to a String
    * (via Base64.getEncoder().encodeToString)..
    *
-   *  
-   * Irrespective of the endianess of the provided buffer, data is 
+   *
+   * Irrespective of the endianess of the provided buffer, data is
    * written using LITTlE_ENDIAN as per the RoaringBitmap specification.
    *
    * The current bitmap is not modified.
@@ -301,8 +301,8 @@ public interface ImmutableBitmapDataProvider {
   /**
    * An internal class to help provide streams.
    * Sad but true the interface of IntIterator and PrimitiveIterator.OfInt
-   * Does not match. Otherwise it would be easier to just make IntIterator 
-   * implement PrimitiveIterator.OfInt. 
+   * Does not match. Otherwise it would be easier to just make IntIterator
+   * implement PrimitiveIterator.OfInt.
    */
   static final class RoaringOfInt implements PrimitiveIterator.OfInt {
     private final IntIterator iterator;

@@ -11,7 +11,7 @@ package org.roaringbitmap.longlong;
 public interface LongIterator extends Cloneable {
   /**
    * Creates a copy of the iterator.
-   * 
+   *
    * @return a clone of the current iterator
    */
   LongIterator clone();

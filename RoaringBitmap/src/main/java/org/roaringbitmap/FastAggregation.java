@@ -522,7 +522,7 @@ public final class FastAggregation {
   public static RoaringBitmap workAndMemoryShyAnd(long[] buffer, RoaringBitmap... bitmaps) {
     if(buffer.length < 1024) {
       throw new IllegalArgumentException("buffer should have at least 1024 elements.");
-    } 
+    }
     long[] words = buffer;
     RoaringBitmap first = bitmaps[0];
     for (int i = 0; i < first.highLowContainer.size; ++i) {

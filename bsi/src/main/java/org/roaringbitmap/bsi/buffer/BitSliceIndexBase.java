@@ -299,7 +299,7 @@ public class BitSliceIndexBase {
   //  }                         -- we know at this point that COUNT(G) <= k
   //  F = G OR E                      -- might be too many rows in F; check below
   //  if ((n = (COUNT(F) - k) > 0)            -- if n too many rows in F
-  //   {turn off n bits from E in F};           -- throw out some ties to return exactly k rows 
+  //   {turn off n bits from E in F};           -- throw out some ties to return exactly k rows
   public MutableRoaringBitmap topK(ImmutableRoaringBitmap foundSet, int k) {
     ImmutableRoaringBitmap fixedFoundSet = foundSet == null ? this.ebM : foundSet;
     if (k > fixedFoundSet.getLongCardinality() || k < 0) {
@@ -597,7 +597,7 @@ public class BitSliceIndexBase {
   }
 
   /**
-   * parallelIn search the given Set values, 
+   * parallelIn search the given Set values,
    * we scan the bsi,if the value in values, we add it to result Bitmap
    *
    * @param parallelism

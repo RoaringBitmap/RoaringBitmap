@@ -185,8 +185,8 @@ public final class Util {
     return upper;
 
   }
-  
-  
+
+
   /**
    * Find the largest integer smaller than pos such that array[pos]&lt;= max. If none can be found,
    * return length. Based on code by O. Kaser.

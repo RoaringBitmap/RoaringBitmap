@@ -10,7 +10,7 @@ import org.roaringbitmap.PeekableIntIterator;
 /**
  * Fast iterator minimizing the stress on the garbage collector. You can create one reusable
  * instance of this class and then {@link #wrap(ImmutableRoaringBitmap)}
- * 
+ *
  * For better performance, consider the {@link ImmutableRoaringBitmap#forEach} method.
  *
  * @author Borislav Ivanov
@@ -43,7 +43,7 @@ public class BufferIntIteratorFlyweight implements PeekableIntIterator {
 
   /**
    * Creates an instance that is ready for iteration.
-   * 
+   *
    * @param r bitmap to be iterated over
    */
   public BufferIntIteratorFlyweight(ImmutableRoaringBitmap r) {
@@ -100,7 +100,7 @@ public class BufferIntIteratorFlyweight implements PeekableIntIterator {
 
   /**
    * Prepares a bitmap for iteration
-   * 
+   *
    * @param r bitmap to be iterated over
    */
   public void wrap(ImmutableRoaringBitmap r) {

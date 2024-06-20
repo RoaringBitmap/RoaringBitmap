@@ -933,7 +933,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     PeekableIterator(final LeafNodeIterator keyIte) {
       this.keyIte = keyIte;
     }
-    
+
     abstract PeekableCharIterator getIterator(Container container);
     abstract boolean compare(long next, long val);
 
@@ -1043,12 +1043,12 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     public ForwardPeekableIterator(final LeafNodeIterator keyIte) {
       super(keyIte);
     }
-    
+
     @Override
     PeekableCharIterator getIterator(Container container) {
       return container.getCharIterator();
     }
-    
+
     @Override
     boolean compare(long next, long val) {
       return Long.compareUnsigned(next, val) >= 0;
@@ -1059,12 +1059,12 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     public ReversePeekableIterator(final LeafNodeIterator keyIte) {
       super(keyIte);
     }
-    
+
     @Override
     PeekableCharIterator getIterator(Container container) {
       return container.getReverseCharIterator();
     }
-    
+
     @Override
     boolean compare(long next, long val) {
       return Long.compareUnsigned(next, val) <= 0;

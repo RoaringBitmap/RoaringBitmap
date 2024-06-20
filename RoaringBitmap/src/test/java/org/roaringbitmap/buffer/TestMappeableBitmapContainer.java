@@ -52,8 +52,8 @@ public class TestMappeableBitmapContainer {
     String s = bc2.toString();
     assertEquals("{5,6,7,8,9,10,11,12,13,14,65517,65533}", s);
   }
-  
-  @Test  
+
+  @Test
   public void testXOR() {
     MappeableBitmapContainer bc = new MappeableBitmapContainer(100,10000);
     MappeableBitmapContainer bc2 = new MappeableBitmapContainer();
@@ -69,8 +69,8 @@ public class TestMappeableBitmapContainer {
     bc = (MappeableBitmapContainer) bc.ixor(bc2);
     assertEquals(0, bc.ixor(bc3).getCardinality());
   }
-  
-  @Test  
+
+  @Test
   public void testANDNOT() {
     MappeableBitmapContainer bc = new MappeableBitmapContainer(100,10000);
     MappeableBitmapContainer bc2 = new MappeableBitmapContainer();
@@ -90,14 +90,14 @@ public class TestMappeableBitmapContainer {
     bc3.clear();
     assertEquals(0, bc3.getCardinality());
   }
-  
 
-  @Test  
+
+  @Test
   public void testAND() {
     MappeableBitmapContainer bc = new MappeableBitmapContainer(100,10000);
     MappeableBitmapContainer bc2 = new MappeableBitmapContainer();
     MappeableBitmapContainer bc3 = new MappeableBitmapContainer();
-    
+
 
     for(int i = 100; i < 10000; ++i) {
       if((i%2 ) == 0) {
@@ -114,9 +114,9 @@ public class TestMappeableBitmapContainer {
     assertEquals(0, bc.iand(bc3).getCardinality());
   }
 
-  
 
-  @Test  
+
+  @Test
   public void testOR() {
     MappeableBitmapContainer bc = new MappeableBitmapContainer(100,10000);
     MappeableBitmapContainer bc2 = new MappeableBitmapContainer();
@@ -145,7 +145,7 @@ public class TestMappeableBitmapContainer {
     bc.bitmap = array;
   }
 
-  @Test  
+  @Test
   public void testXORNoArray() {
     MappeableBitmapContainer bc = new MappeableBitmapContainer(100,10000);
     MappeableBitmapContainer bc2 = new MappeableBitmapContainer();
@@ -163,8 +163,8 @@ public class TestMappeableBitmapContainer {
     bc = (MappeableBitmapContainer) bc.ixor(bc2);
     assertEquals(0, bc.ixor(bc3).getCardinality());
   }
-  
-  @Test  
+
+  @Test
   public void testANDNOTNoArray() {
     MappeableBitmapContainer bc = new MappeableBitmapContainer(100,10000);
     MappeableBitmapContainer bc2 = new MappeableBitmapContainer();
@@ -182,9 +182,9 @@ public class TestMappeableBitmapContainer {
     bc = (MappeableBitmapContainer) bc.iandNot(bc2);
     assertEquals(bc, bc3);
   }
-  
 
-  @Test  
+
+  @Test
   public void testANDNoArray() {
     MappeableBitmapContainer bc = new MappeableBitmapContainer(100,10000);
     MappeableBitmapContainer bc2 = new MappeableBitmapContainer();
@@ -206,9 +206,9 @@ public class TestMappeableBitmapContainer {
     assertEquals(0, bc.iand(bc3).getCardinality());
   }
 
-  
 
-  @Test  
+
+  @Test
   public void testORNoArray() {
     MappeableBitmapContainer bc = new MappeableBitmapContainer(100,10000);
     MappeableBitmapContainer bc2 = new MappeableBitmapContainer();
@@ -228,7 +228,7 @@ public class TestMappeableBitmapContainer {
     bc2 = (MappeableBitmapContainer) bc2.ior(bc);
     assertEquals(bc, bc2);
   }
-  
+
   @Test
   public void runConstructorForBitmap() {
     System.out.println("runConstructorForBitmap");
@@ -248,10 +248,10 @@ public class TestMappeableBitmapContainer {
         assertEquals(bc2.getCardinality(), end-start);
         assertEquals(0,bc2.not(start, end).getCardinality());
 
-      }  
+      }
     }
   }
-  
+
   @Test
   public void runConstructorForBitmap2() {
     System.out.println("runConstructorForBitmap2");
@@ -270,7 +270,7 @@ public class TestMappeableBitmapContainer {
         assertEquals(0,bc2.remove(start, end).getCardinality());
         assertEquals(bc2.getCardinality(), end-start);
         assertEquals(0,bc2.not(start, end).getCardinality());
-      }  
+      }
     }
   }
 

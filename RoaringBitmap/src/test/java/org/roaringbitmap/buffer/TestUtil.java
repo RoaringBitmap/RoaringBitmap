@@ -21,7 +21,7 @@ import static org.roaringbitmap.SeededTestData.sparseRegion;
 
 @Execution(ExecutionMode.CONCURRENT)
 public class TestUtil {
-  
+
     @Test
     public void testCopy() {
       CharBuffer sb = CharBuffer.allocate(64);

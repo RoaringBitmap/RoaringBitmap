@@ -12,7 +12,7 @@ public class TestForEach {
   public void testContinuous() {
     MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
     bitmap.add(100L, 10000L);
-  
+
     final MutableInteger cardinality = new MutableInteger();
     bitmap.forEach(new IntConsumer() {
       int expected = 100;
@@ -29,7 +29,7 @@ public class TestForEach {
     MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
     for(int k = 0; k < 100000; k+=3)
       bitmap.add(k);
-  
+
     final MutableInteger cardinality = new MutableInteger();
     bitmap.forEach(new IntConsumer() {
       int expected = 0;
@@ -41,14 +41,14 @@ public class TestForEach {
       }});
     assertEquals(cardinality.value, bitmap.getCardinality());
   }
-  
+
 
   @Test
   public void testSparse() {
     MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
     for(int k = 0; k < 100000; k+=3000)
       bitmap.add(k);
-  
+
     final MutableInteger cardinality = new MutableInteger();
     bitmap.forEach(new IntConsumer() {
       int expected = 0;

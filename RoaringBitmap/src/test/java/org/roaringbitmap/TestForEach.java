@@ -24,7 +24,7 @@ public class TestForEach {
     });
     assertEquals(cardinality.value, bitmap.getCardinality());
   }
-  
+
   @Test
   public void testDense() {
     RoaringBitmap bitmap = new RoaringBitmap();

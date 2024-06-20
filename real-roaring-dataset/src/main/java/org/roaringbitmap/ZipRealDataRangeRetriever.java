@@ -32,7 +32,7 @@ public class ZipRealDataRangeRetriever<T> {
   }
 
   /**
-   * 
+   *
    * Returns next range from file
    * @return some Iterable
    * @throws IOException it can happen
