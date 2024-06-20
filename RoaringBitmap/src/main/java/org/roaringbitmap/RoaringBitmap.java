@@ -3034,6 +3034,67 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     return bitmapsIterator;
   }
 
+  /**
+   * Creates a copy of the bitmap, limited to the values in the specified range, rangeStart (inclusive) and rangeEnd (exclusive).
+   *
+   * @param rangeStart inclusive
+   * @param rangeEnd exclusive
+   * @return new bitmap
+   */
+  public RoaringBitmap selectRange(final long rangeStart, final long rangeEnd) {
+    final int hbStart = (Util.highbits(rangeStart));
+    final int lbStart = (Util.lowbits(rangeStart));
+    final int hbLast = (Util.highbits(rangeEnd - 1));
+    final int lbLast = (Util.lowbits(rangeEnd - 1));
+    RoaringBitmap answer = new RoaringBitmap();
+
+    assert(rangeStart >= 0 && rangeEnd >= 0);
+
+    if (rangeEnd <= rangeStart) {
+      return answer;
+    }
+
+    if (hbStart == hbLast) {
+      final int i = this.highLowContainer.getIndex((char) hbStart);
+      if (i >= 0) {
+        final Container c = this.highLowContainer.getContainerAtIndex(i).remove(0, lbStart)
+            .iremove(lbLast + 1, Util.maxLowBitAsInteger() + 1);
+        if (!c.isEmpty()) {
+          answer.highLowContainer.append((char) hbStart, c);
+        }
+      }
+      return answer;
+    }
+    int ifirst = this.highLowContainer.getIndex((char) hbStart);
+    int ilast = this.highLowContainer.getIndex((char) hbLast);
+    if (ifirst >= 0) {
+      final Container c = this.highLowContainer.getContainerAtIndex(ifirst).remove(0, lbStart);
+      if (!c.isEmpty()) {
+        answer.highLowContainer.append((char) hbStart, c.clone());
+      }
+    }
+
+    // revised to loop on ints
+    for (int hb = hbStart + 1; hb <= hbLast - 1; ++hb) {
+      final int i = this.highLowContainer.getIndex((char)hb);
+      final int j = answer.highLowContainer.getIndex((char) hb);
+      assert j < 0;
+
+      if (i >= 0) {
+        final Container c = this.highLowContainer.getContainerAtIndex(i);
+        answer.highLowContainer.insertNewKeyValueAt(-j - 1, (char)hb, c.clone())  ;
+      }
+    }
+
+    if (ilast >= 0) {
+      final Container c = this.highLowContainer.getContainerAtIndex(ilast).remove(lbLast + 1,
+          Util.maxLowBitAsInteger() + 1);
+      if (!c.isEmpty()) {
+        answer.highLowContainer.append((char) hbLast, c);
+      }
+    }
+    return answer;
+  }
 
   /**
    *
@@ -3045,8 +3106,6 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    * @param rangeEnd exclusive
    * @return new bitmap
    */
-
-  // had formerly failed if rangeEnd==0
   private static RoaringBitmap selectRangeWithoutCopy(RoaringBitmap rb, final long rangeStart,
       final long rangeEnd) {
     final int hbStart = (Util.highbits(rangeStart));

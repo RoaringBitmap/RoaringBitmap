@@ -4008,4 +4008,15 @@ public class TestRoaringBitmap {
         bitmap.add(-1);
         assertEquals(-1L, bitmap.nextAbsentValue(-1));
     }
+
+    @Test
+    public void testSelectRange() {
+        MutableRoaringBitmap r = MutableRoaringBitmap.bitmapOfRange(1, 1000000);
+        for(int i = 1; i <= 1000000; i+= 1000) {
+            for(int j = i; j <= 1000000; j+= 1000) {
+                MutableRoaringBitmap rr = r.selectRange(i, j);
+                assertEquals(rr, MutableRoaringBitmap.bitmapOfRange(i, j));
+            }
+        }
+    }
 }
