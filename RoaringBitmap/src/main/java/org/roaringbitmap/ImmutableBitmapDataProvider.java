@@ -72,8 +72,6 @@ public interface ImmutableBitmapDataProvider {
   PeekableIntIterator getIntIterator();
 
   /**
-   * For better performance, consider using the {@link #forEach forEach} method when unsigned
-   *     integer ascending sorted order is sufficient.
    * @return a custom iterator over set bits, the bits are traversed in signed integer ascending
    *     sorted order
    */
