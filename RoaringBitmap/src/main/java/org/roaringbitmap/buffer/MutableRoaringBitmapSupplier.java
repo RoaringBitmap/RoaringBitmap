@@ -9,7 +9,7 @@ import org.roaringbitmap.BitmapDataProviderSupplier;
 /**
  * A {@link BitmapDataProviderSupplier} providing {@link MutableRoaringBitmap} as
  * {@link BitmapDataProvider}
- * 
+ *
  * @author Benoit Lacelle
  *
  */

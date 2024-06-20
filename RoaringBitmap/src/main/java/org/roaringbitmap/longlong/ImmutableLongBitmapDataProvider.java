@@ -37,9 +37,9 @@ public interface ImmutableLongBitmapDataProvider {
 
   /**
    * Visit all values in the bitmap and pass them to the consumer.
-   * 
+   *
    * * Usage:
-   * 
+   *
    * <pre>
    * {@code
    *  bitmap.forEach(new LongConsumer() {
@@ -47,19 +47,19 @@ public interface ImmutableLongBitmapDataProvider {
    *    {@literal @}Override
    *    public void accept(long value) {
    *      // do something here
-   *      
+   *
    *    }});
    *   }
    * }
    * </pre>
-   * 
+   *
    * @param lc the consumer
    */
   void forEach(LongConsumer lc);
 
   /**
    * For better performance, consider the Use the {@link #forEach forEach} method.
-   * 
+   *
    * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
    */
   // RoaringBitmap proposes a PeekableLongIterator
@@ -75,9 +75,9 @@ public interface ImmutableLongBitmapDataProvider {
    * @return an Ordered, Distinct, Sorted and Sized IntStream in ascending order
    */
   default LongStream stream() {
-    int characteristics = Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SORTED 
+    int characteristics = Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SORTED
         | Spliterator.SIZED;
-    Spliterator.OfLong x = Spliterators.spliterator(new RoaringOfLong(getLongIterator()), 
+    Spliterator.OfLong x = Spliterators.spliterator(new RoaringOfLong(getLongIterator()),
         getLongCardinality(), characteristics);
     return StreamSupport.longStream(x, false);
   }
@@ -87,13 +87,13 @@ public interface ImmutableLongBitmapDataProvider {
    */
   default LongStream reverseStream() {
     int characteristics = Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SIZED;
-    Spliterator.OfLong x = Spliterators.spliterator(new RoaringOfLong(getLongIterator()), 
+    Spliterator.OfLong x = Spliterators.spliterator(new RoaringOfLong(getLongIterator()),
         getLongCardinality(), characteristics);
     return StreamSupport.longStream(x, false);
   }
   /**
    * Estimate of the memory usage of this data structure.
-   * 
+   *
    * Internally, this is computed as a 64-bit counter.
    *
    * @return estimated memory usage.
@@ -125,9 +125,9 @@ public interface ImmutableLongBitmapDataProvider {
   /**
    * Rank returns the number of integers that are smaller or equal to x (Rank(infinity) would be
    * GetCardinality()).
-   * 
+   *
    * The value is a full 64-bit value.
-   * 
+   *
    * @param x upper limit
    *
    * @return the rank

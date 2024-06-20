@@ -58,7 +58,7 @@ public class TestMappeableArrayContainer {
     ac = ac.iadd(1, 20);
     assertEquals(79, ac.getCardinality());
   }
-  
+
   @Test
   public void remove() {
     MappeableContainer ac = new MappeableArrayContainer();
@@ -332,7 +332,7 @@ public class TestMappeableArrayContainer {
     MappeableContainer rc = new MappeableRunContainer().add(5,11);
     assertFalse(ac.contains(rc));
   }
-  
+
   @Test
   public void iorNotIncreaseCapacity() {
     MappeableArrayContainer ac1 = new MappeableArrayContainer();
@@ -340,13 +340,13 @@ public class TestMappeableArrayContainer {
     ac1.add((char) 128);
     ac1.add((char) 256);
     ac2.add((char) 1024);
-    
+
     ac1.ior(ac2);
     assertTrue(ac1.contains((char) 128));
     assertTrue(ac1.contains((char) 256));
     assertTrue(ac1.contains((char) 1024));
   }
-  
+
   @Test
   public void iorIncreaseCapacity() {
     MappeableArrayContainer ac1 = new MappeableArrayContainer();
@@ -356,7 +356,7 @@ public class TestMappeableArrayContainer {
     ac1.add((char) 512);
     ac1.add((char) 513);
     ac2.add((char) 1024);
-    
+
     ac1.ior(ac2);
     assertTrue(ac1.contains((char) 128));
     assertTrue(ac1.contains((char) 256));
@@ -364,7 +364,7 @@ public class TestMappeableArrayContainer {
     assertTrue(ac1.contains((char) 513));
     assertTrue(ac1.contains((char) 1024));
   }
-  
+
   @Test
   public void iorSanityCheck() {
     MappeableContainer ac = new MappeableArrayContainer().add(0, 10);

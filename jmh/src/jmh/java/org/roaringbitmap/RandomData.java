@@ -5,7 +5,7 @@ import java.util.SplittableRandom;
 import java.util.stream.IntStream;
 
 public class RandomData {
-  
+
   private static final SplittableRandom RANDOM = new SplittableRandom(0);
 
   private static final ThreadLocal<long[]> bits = ThreadLocal.withInitial(() -> new long[1 << 10]);

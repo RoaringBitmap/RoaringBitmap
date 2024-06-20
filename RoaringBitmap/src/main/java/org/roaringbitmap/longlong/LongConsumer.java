@@ -6,16 +6,16 @@ package org.roaringbitmap.longlong;
 /**
  * An LongConsumer receives the long values contained in a data structure. Each value is visited
  * once.
- * 
+ *
  * Usage:
- * 
+ *
  * <pre>
  * {@code
  *  bitmap.forEach(new LongConsumer() {
  *
  *    public void accept(long value) {
  *      // do something here
- *      
+ *
  *    }});
  *   }
  * }
@@ -24,7 +24,7 @@ package org.roaringbitmap.longlong;
 public interface LongConsumer {
   /**
    * Receives the long
-   * 
+   *
    * @param value the long value
    */
   void accept(long value);

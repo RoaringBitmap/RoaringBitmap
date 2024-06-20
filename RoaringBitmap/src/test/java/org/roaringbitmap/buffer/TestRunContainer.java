@@ -1488,10 +1488,10 @@ public class TestRunContainer {
    * @Test public void safeSerialization() throws Exception { MappeableRunContainer container = new
    * MappeableRunContainer(); container.add((char) 0); container.add((char) 2);
    * container.add((char) 55); container.add((char) 64); container.add((char) 256);
-   * 
+   *
    * ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutputStream out = new
    * ObjectOutputStream(bos); out.writeObject(container);
-   * 
+   *
    * ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray()); ObjectInputStream in =
    * new ObjectInputStream(bis); MappeableRunContainer newContainer = (MappeableRunContainer)
    * in.readObject(); assertEquals(container, newContainer);

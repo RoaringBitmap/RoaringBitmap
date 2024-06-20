@@ -496,16 +496,16 @@ public class TestRoaringBitmap_FastRank {
 
     // Check when empty
     assertEquals(16, fast.getLongSizeInBytes());
-    
+
     fast.add(0);
     fast.add(1024);
     fast.add(Integer.MAX_VALUE);
 
     assertEquals(34, fast.getLongSizeInBytes());
-    
+
     // Compute a rank: the cache is allocated
     fast.rank(1024);
-    
+
     // Check the size is bigger once the cache is allocated
     assertEquals(42, fast.getLongSizeInBytes());
   }

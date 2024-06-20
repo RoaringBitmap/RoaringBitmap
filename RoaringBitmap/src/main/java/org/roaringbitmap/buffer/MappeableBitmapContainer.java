@@ -29,7 +29,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   private static final int MAX_CAPACITY_BYTE = MAX_CAPACITY / Byte.SIZE;
 
   private static final int MAX_CAPACITY_LONG = MAX_CAPACITY / Long.SIZE;
-  
+
   private static final long serialVersionUID = 3L;
 
   // bail out early when the number of runs is excessive, without
@@ -67,7 +67,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   /**
    * Creates a new bitmap container from a non-mappeable one. This copies the data.
-   * 
+   *
    * @param bc the original container
    */
   public MappeableBitmapContainer(BitmapContainer bc) {
@@ -79,7 +79,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
    * Create a bitmap container with a run of ones from firstOfRun to lastOfRun, inclusive caller
    * must ensure that the range isn't so small that an ArrayContainer should have been created
    * instead
-   * 
+   *
    * @param firstOfRun first index
    * @param lastOfRun last index (range is exclusive)
    */
@@ -101,7 +101,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   /**
    * Construct a new BitmapContainer backed by the provided LongBuffer.
-   * 
+   *
    * @param array LongBuffer where the data is stored
    * @param initCardinality cardinality (number of values stored)
    */
@@ -406,11 +406,11 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   long bitValue(final char i) {
     return (bitmap.get(i >>> 6) >>> i) & 1;
   }
-  
-  
+
+
   /**
    * Checks whether the container contains the value i.
-   * 
+   *
    * @param buf underlying buffer
    * @param position position of the container in the buffer
    * @param i index
@@ -1266,7 +1266,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   /**
    * Find the index of the next set bit greater or equal to i, returns -1 if none found.
-   * 
+   *
    * @param i starting index
    * @return index of the next set bit
    */
@@ -1361,7 +1361,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   /**
    * Computes the number of runs
-   * 
+   *
    * @return the number of runs
    */
   private int numberOfRunsAdjustment() {
@@ -1403,7 +1403,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   /**
    * Counts how many runs there is in the bitmap, up to a maximum
-   * 
+   *
    * @param mustNotExceed maximum of runs beyond which counting is pointless
    * @return estimated number of courses
    */
@@ -1764,7 +1764,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   /**
    * Copies the data to an array container
-   * 
+   *
    * @return the array container
    */
   MappeableArrayContainer toArrayContainer() {

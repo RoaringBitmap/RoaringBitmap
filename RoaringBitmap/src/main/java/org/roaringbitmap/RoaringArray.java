@@ -368,7 +368,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       throw new IllegalArgumentException(
           "We need a buffer with a length multiple of 8. was length=" + buffer.length);
     }
-    
+
     this.clear();
     // little endian
     final int cookie = Integer.reverseBytes(in.readInt());
@@ -416,39 +416,39 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       Container val;
       if (isBitmap[k]) {
         final long[] bitmapArray = new long[BitmapContainer.MAX_CAPACITY / 64];
-        
+
         if (buffer == null) {
           // a buffer to load a Container in a single .readFully
           // We initialize it with the length of a BitmapContainer
           buffer = new byte[(BitmapContainer.MAX_CAPACITY / 64) * 8];
         }
-        
+
         if (buffer.length < (BitmapContainer.MAX_CAPACITY / 64) * 8) {
           // We have been provided a rather small buffer
-          
+
           for (int iBlock = 0 ; iBlock <= 8 * bitmapArray.length / buffer.length ; iBlock++) {
             int start = buffer.length * iBlock;
             int end = Math.min(buffer.length * (iBlock +1 ), 8 * bitmapArray.length);
-            
+
             in.readFully(buffer, 0, end - start);
-            
+
             // little endian
             ByteBuffer asByteBuffer = ByteBuffer.wrap(buffer);
             asByteBuffer.order(LITTLE_ENDIAN);
-            
+
             LongBuffer asLongBuffer = asByteBuffer.asLongBuffer();
             asLongBuffer.rewind();
             asLongBuffer.get(bitmapArray, start / 8, (end - start) / 8);
           }
-          
+
         } else {
           // Read the whole bitmapContainer in a single pass
           in.readFully(buffer, 0, bitmapArray.length * 8);
-          
+
           // little endian
           ByteBuffer asByteBuffer = ByteBuffer.wrap(buffer);
           asByteBuffer.order(LITTLE_ENDIAN);
-          
+
           LongBuffer asLongBuffer = asByteBuffer.asLongBuffer();
           asLongBuffer.rewind();
           asLongBuffer.get(bitmapArray);
@@ -459,13 +459,13 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
         // cf RunContainer.writeArray()
         int nbrruns = (Character.reverseBytes(in.readChar()));
         final char[] lengthsAndValues = new char[2 * nbrruns];
-        
+
         if (buffer == null && lengthsAndValues.length > (BitmapContainer.MAX_CAPACITY / 64) * 8) {
           // a buffer to load a Container in a single .readFully
           // We initialize it with the length of a BitmapContainer
           buffer = new byte[(BitmapContainer.MAX_CAPACITY / 64) * 8];
         }
-        
+
         if (buffer == null) {
           // The RunContainer is small: skip the buffer allocation
           for (int j = 0; j < lengthsAndValues.length; ++j) {
@@ -475,19 +475,19 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
           for (int iBlock = 0 ; iBlock <= 2 * lengthsAndValues.length / buffer.length ; iBlock++) {
             int start = buffer.length * iBlock;
             int end = Math.min(buffer.length * (iBlock +1 ), 2 * lengthsAndValues.length);
-            
+
             in.readFully(buffer, 0, end - start);
 
             // little endian
             ByteBuffer asByteBuffer = ByteBuffer.wrap(buffer);
             asByteBuffer.order(LITTLE_ENDIAN);
-            
+
             CharBuffer asCharBuffer = asByteBuffer.asCharBuffer();
             asCharBuffer.rewind();
             asCharBuffer.get(lengthsAndValues, start / 2, (end - start) / 2);
           }
         }
-        
+
         val = new RunContainer(lengthsAndValues, nbrruns);
       } else {
         final char[] charArray = new char[cardinalities[k]];
@@ -497,7 +497,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
           // We initialize it with the length of a BitmapContainer
           buffer = new byte[(BitmapContainer.MAX_CAPACITY / 64) * 8];
         }
-        
+
         if (buffer == null) {
           // The ArrayContainer is small: skip the buffer allocation
           for (int j = 0; j < charArray.length; ++j) {
@@ -507,38 +507,38 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
           for (int iBlock = 0 ; iBlock <= 2 * charArray.length / buffer.length ; iBlock++) {
             int start = buffer.length * iBlock;
             int end = Math.min(buffer.length * (iBlock +1 ) , 2 * charArray.length);
-            
+
             in.readFully(buffer, 0, end - start);
 
             // little endian
             ByteBuffer asByteBuffer = ByteBuffer.wrap(buffer);
             asByteBuffer.order(LITTLE_ENDIAN);
-            
+
             CharBuffer asCharBuffer = asByteBuffer.asCharBuffer();
             asCharBuffer.rewind();
             asCharBuffer.get(charArray, start / 2, (end - start) / 2);
           }
         }
-        
+
         val = new ArrayContainer(charArray);
       }
       this.keys[k] = keys[k];
       this.values[k] = val;
     }
   }
-  
+
   /**
    * Deserialize (retrieve) this bitmap. See format specification at
    * https://github.com/RoaringBitmap/RoaringFormatSpec
    *
    * The current bitmap is overwritten.
-   * 
+   *
    * It is not necessary that limit() on the input ByteBuffer indicates the end of the serialized
    * data.
-   * 
+   *
    * After loading this RoaringBitmap, you can advance to the rest of the data (if there
    * is more) by setting bbf.position(bbf.position() + bitmap.serializedSizeInBytes());
-   * 
+   *
    * Note that the input ByteBuffer is effectively copied (with the slice operation) so you should
    * expect the provided ByteBuffer position/mark/limit/order to remain unchanged.
    *
@@ -546,7 +546,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
    */
   public void deserialize(ByteBuffer bbf) {
     this.clear();
-    
+
     // slice not to mutate the input ByteBuffer
     ByteBuffer buffer = bbf.slice();
     buffer.order(LITTLE_ENDIAN);
@@ -559,7 +559,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     // TODO For now, we consider the limit is already set by the caller
     // int theLimit = size > 0 ? computeSerializedSizeInBytes() : headerSize(hasRunContainers);
     // buffer.limit(theLimit);
-    
+
     // logically we cannot have more than (1<<16) containers.
     if(this.size > (1<<16)) {
       throw new InvalidRoaringFormat("Size too large");
@@ -599,10 +599,10 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       Container val;
       if (isBitmap[k]) {
         final long[] bitmapArray = new long[BitmapContainer.MAX_CAPACITY / 64];
-        
+
         buffer.asLongBuffer().get(bitmapArray);
         buffer.position(buffer.position() + bitmapArray.length * 8);
-        
+
         val = new BitmapContainer(bitmapArray, cardinalities[k]);
       } else if (bitmapOfRunContainers != null
           && ((bitmapOfRunContainers[k / 8] & (1 << (k % 8))) != 0)) {
@@ -612,15 +612,15 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
 
         buffer.asCharBuffer().get(lengthsAndValues);
         buffer.position(buffer.position() + lengthsAndValues.length * 2);
-        
+
         val = new RunContainer(lengthsAndValues, nbrruns);
       } else {
         final char[] charArray = new char[cardinalities[k]];
-        
+
 
         buffer.asCharBuffer().get(charArray);
         buffer.position(buffer.position() + charArray.length * 2);
-        
+
         val = new ArrayContainer(charArray);
       }
       this.keys[k] = keys[k];
@@ -628,7 +628,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     }
   }
 
-  
+
   @Override
   public boolean equals(Object o) {
     if (o instanceof RoaringArray) {

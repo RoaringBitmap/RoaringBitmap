@@ -71,8 +71,7 @@ public class RoaringBitSet extends BitSet {
 
   @Override
   public BitSet get(int fromIndex, int toIndex) {
-    RoaringBitmap newBitmap = RoaringBitmap.bitmapOfRange(fromIndex, toIndex);
-    newBitmap.and(roaringBitmap);
+    RoaringBitmap newBitmap = roaringBitmap.selectRange(fromIndex, toIndex);
     // shift the bits to start from index 0
     newBitmap = RoaringBitmap.addOffset(newBitmap, -fromIndex);
     return new RoaringBitSet(newBitmap);

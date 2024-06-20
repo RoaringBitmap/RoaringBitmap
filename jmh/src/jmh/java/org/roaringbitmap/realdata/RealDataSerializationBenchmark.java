@@ -40,17 +40,17 @@ import org.roaringbitmap.ZipRealDataRetriever;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 
 /**
- * 
+ *
  * @author Richard Startin
  *
  */
 public class RealDataSerializationBenchmark {
 
-	 public void 
+	 public void
 	    launchBenchmark() throws Exception {
 
 	            Options opt = new OptionsBuilder()
-	                // Specify which benchmarks to run. 
+	                // Specify which benchmarks to run.
 	                // You can be more specific if you'd like to run only one benchmark per test.
 	                .include(this.getClass().getName() + ".*")
 	                // Set the following options as needed
@@ -70,7 +70,7 @@ public class RealDataSerializationBenchmark {
 
 	            new Runner(opt).run();
 	        }
-	 
+
   @State(Scope.Benchmark)
   public static class BenchmarkState {
 

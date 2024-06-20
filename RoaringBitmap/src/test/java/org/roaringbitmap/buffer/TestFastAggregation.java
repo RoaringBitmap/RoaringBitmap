@@ -97,7 +97,7 @@ public class TestFastAggregation {
       BufferFastAggregation.priorityqueue_xor(data1);
     });
   }
-  
+
 
   @Test
   public void testNaiveAndMapped() {
@@ -137,7 +137,7 @@ public class TestFastAggregation {
     data6.add(data1);
     assertEquals(data1, BufferFastAggregation.priorityqueue_or(data6.iterator()));
   }
-  
+
   public void testBigOrMapped() {
     MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
     MutableRoaringBitmap rb2 = new MutableRoaringBitmap();

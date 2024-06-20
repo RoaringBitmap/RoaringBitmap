@@ -1507,10 +1507,10 @@ public class TestRoaring64Bitmap {
     crossRB.and(referenceRB);
     assertEquals(0, crossRB.getIntCardinality());
   }
-  
-  
-  
-  
+
+
+
+
   @Test
   public void testSkips() {
     final Random source = new Random(0xcb000a2b9b5bdfb6l);
@@ -1535,7 +1535,7 @@ public class TestRoaring64Bitmap {
     bitmap.getLongIterator().advanceIfNeeded(-1); // should not crash
     bitmap.getLongIteratorFrom(-1); // should not crash
   }
-  
+
   @Test
   public void testSkipsDense() {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
@@ -1561,11 +1561,11 @@ public class TestRoaring64Bitmap {
       assertEquals(expected, pii.next());
     }
   }
-  
+
   @Test
   public void testSkipsMultipleHighPoints() {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
-    
+
     int n = 100000;
     int numHighPoints = 10;
     for(long h = 0; h < numHighPoints; ++h) {
@@ -1595,7 +1595,7 @@ public class TestRoaring64Bitmap {
       }
     }
   }
-  
+
 
   @Test
   public void testSkipsRun() {
@@ -1616,7 +1616,7 @@ public class TestRoaring64Bitmap {
       assertEquals(i, pii.next());
     }
   }
-  
+
   @Test
   public void testEmptySkips() {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
@@ -1625,8 +1625,8 @@ public class TestRoaring64Bitmap {
 
     bitmap.getLongIteratorFrom(0);
   }
-  
-  
+
+
   @Test
   public void testSkipsReverse() {
     final Random source = new Random(0xcb000a2b9b5bdfb6l);
@@ -1651,7 +1651,7 @@ public class TestRoaring64Bitmap {
     bitmap.getReverseLongIterator().advanceIfNeeded(-1);// should not crash
     bitmap.getReverseLongIteratorFrom(-1);// should not crash
   }
-  
+
   @Test
   public void testSkipsDenseReverse() {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
@@ -1676,11 +1676,11 @@ public class TestRoaring64Bitmap {
       assertEquals(expected, pii.next());
     }
   }
-  
+
   @Test
   public void testSkipsMultipleHighPointsReverse() {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
-    
+
     int n = 100000;
     int numHighPoints = 10;
     for(long h = 0; h < numHighPoints; ++h) {
@@ -1732,7 +1732,7 @@ public class TestRoaring64Bitmap {
       assertEquals(i, pii.next());
     }
   }
-  
+
   @Test
   public void testEmptySkipsReverse() {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();

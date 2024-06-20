@@ -13,7 +13,7 @@ package org.roaringbitmap;
 public interface IntIterator extends Cloneable {
   /**
    * Creates a copy of the iterator.
-   * 
+   *
    * @return a clone of the current iterator
    */
   IntIterator clone();

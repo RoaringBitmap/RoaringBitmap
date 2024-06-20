@@ -20,7 +20,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
         WordStorage<MappeableContainer> {
   /**
    * Create a container initialized with a range of consecutive values
-   * 
+   *
    * @param start first index
    * @param last last index (range is exclusive)
    * @return a new container initialized with the specified values
@@ -47,7 +47,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
 
   /**
    * Add a char to the container. May generate a new container.
-   * 
+   *
    * @param x char to be added
    * @return the new container
    */
@@ -89,7 +89,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
   /**
    * Computes the bitwise AND of this container with another (intersection). This container as well
    * as the provided container are left unaffected.
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -98,7 +98,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
   /**
    * Computes the bitwise AND of this container with another (intersection). This container as well
    * as the provided container are left unaffected.
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -114,7 +114,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
 
   }
 
-  
+
   protected abstract int andCardinality(MappeableArrayContainer x);
 
   protected abstract int andCardinality(MappeableBitmapContainer x);
@@ -153,11 +153,11 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
     }
   }
 
-  
+
   /**
    * Computes the bitwise AND of this container with another (intersection). This container as well
    * as the provided container are left unaffected.
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -168,7 +168,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
   /**
    * Computes the bitwise ANDNOT of this container with another (difference). This container as well
    * as the provided container are left unaffected.
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -177,7 +177,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
   /**
    * Computes the bitwise ANDNOT of this container with another (difference). This container as well
    * as the provided container are left unaffected.
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -196,7 +196,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
   /**
    * Computes the bitwise ANDNOT of this container with another (difference). This container as well
    * as the provided container are left unaffected.
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -244,7 +244,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
 
   /**
    * Checks whether the contain contains the provided value
-   * 
+   *
    * @param x value to check
    * @return whether the value is in the container
    */
@@ -288,13 +288,13 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * @return true if the container contains the range
    */
   public abstract boolean contains(int minimum, int supremum);
-  
+
   /**
    * Fill the least significant 16 bits of the integer array, starting at index index, with the
    * char values from this container. The caller is responsible to allocate enough room. The most
    * significant 16 bits of each integer are given by the most significant bits of the provided
    * mask.
-   * 
+   *
    * @param x provided array
    * @param i starting index
    * @param mask indicates most significant bits
@@ -313,7 +313,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
 
   /**
    * Size of the underlying array
-   * 
+   *
    * @return size in bytes
    */
   protected abstract int getArraySizeInBytes();
@@ -322,14 +322,14 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
   /**
    * Computes the distinct number of char values in the container. Can be expected to run in
    * constant time.
-   * 
+   *
    * @return the cardinality
    */
   public abstract int getCardinality();
 
   /**
    * Get the name of this container.
-   * 
+   *
    * @return name of the container
    */
   public String getContainerName() {
@@ -366,7 +366,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * @return iterator
    */
   public abstract ContainerBatchIterator getBatchIterator();
-  
+
   /**
    * Iterate through the values of this container and pass them
    * along to the IntConsumer, using msb as the 16 most significant bits.
@@ -378,7 +378,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
   /**
    * Computes an estimate of the memory usage of this container. The estimate is not meant to be
    * exact.
-   * 
+   *
    * @return estimated memory usage in bytes
    */
   public abstract int getSizeInBytes();
@@ -396,7 +396,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * Computes the in-place bitwise AND of this container with another (intersection). The current
    * container is generally modified, whereas the provided container (x) is unaffected. May generate
    * a new container.
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -406,7 +406,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * Computes the in-place bitwise AND of this container with another (intersection). The current
    * container is generally modified, whereas the provided container (x) is unaffected. May generate
    * a new container.
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -428,7 +428,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * Computes the in-place bitwise AND of this container with another (intersection). The current
    * container is generally modified, whereas the provided container (x) is unaffected. May generate
    * a new container.
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -439,7 +439,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * Computes the in-place bitwise ANDNOT of this container with another (difference). The current
    * container is generally modified, whereas the provided container (x) is unaffected. May generate
    * a new container.
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -449,7 +449,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * Computes the in-place bitwise ANDNOT of this container with another (difference). The current
    * container is generally modified, whereas the provided container (x) is unaffected. May generate
    * a new container.
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -469,7 +469,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * Computes the in-place bitwise ANDNOT of this container with another (difference). The current
    * container is generally modified, whereas the provided container (x) is unaffected. May generate
    * a new container.
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -481,7 +481,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
   /**
    * Computes the in-place bitwise NOT of this container (complement). Only those bits within the
    * range are affected. The current container is generally modified. May generate a new container.
-   * 
+   *
    * @param rangeStart beginning of range (inclusive); 0 is beginning of this container.
    * @param rangeEnd ending of range (exclusive)
    * @return (partially) completmented container
@@ -532,7 +532,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * Computes the in-place bitwise OR of this container with another (union). The current container
    * is generally modified, whereas the provided container (x) is unaffected. May generate a new
    * container.
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -542,7 +542,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * Computes the in-place bitwise OR of this container with another (union). The current container
    * is generally modified, whereas the provided container (x) is unaffected. May generate a new
    * container.
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -562,7 +562,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * Computes the in-place bitwise OR of this container with another (union). The current container
    * is generally modified, whereas the provided container (x) is unaffected. May generate a new
    * container.
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -585,7 +585,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * Computes the in-place bitwise XOR of this container with another (symmetric difference). The
    * current container is generally modified, whereas the provided container (x) is unaffected. May
    * generate a new container.
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -595,7 +595,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * Computes the in-place bitwise XOR of this container with another (symmetric difference). The
    * current container is generally modified, whereas the provided container (x) is unaffected. May
    * generate a new container.
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -617,7 +617,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * Computes the in-place bitwise XOR of this container with another (symmetric difference). The
    * current container is generally modified, whereas the provided container (x) is unaffected. May
    * generate a new container.
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -666,7 +666,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * provided container are left unaffected. The resulting container may not track its cardinality
    * correctly. This can be fixed as follows: if(c.getCardinality()&lt;0)
    * ((MappeableBitmapContainer)c).computeCardinality();
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -697,7 +697,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
 
   /**
    * Create a new MappeableContainer containing at most maxcardinality integers.
-   * 
+   *
    * @param maxcardinality maximal cardinality
    * @return a new bitmap with cardinality no more than maxcardinality
    */
@@ -706,7 +706,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
   /**
    * Computes the bitwise NOT of this container (complement). Only those bits within the range are
    * affected. The current container is left unaffected.
-   * 
+   *
    * @param rangeStart beginning of range (inclusive); 0 is beginning of this container.
    * @param rangeEnd ending of range (exclusive)
    * @return (partially) completmented container
@@ -718,7 +718,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
   /**
    * Computes the bitwise OR of this container with another (union). This container as well as the
    * provided container are left unaffected.
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -728,7 +728,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
   /**
    * Computes the bitwise OR of this container with another (union). This container as well as the
    * provided container are left unaffected.
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -748,7 +748,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
   /**
    * Computes the bitwise OR of this container with another (union). This container as well as the
    * provided container are left unaffected.
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -758,7 +758,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
   /**
    * Rank returns the number of integers that are smaller or equal to x (Rank(infinity) would be
    * GetCardinality()).
-   * 
+   *
    * @param lowbits upper limit
    *
    * @return the rank
@@ -776,7 +776,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
 
   /**
    * Remove the char from this container. May create a new container.
-   * 
+   *
    * @param x to be removed
    * @return New container
    */
@@ -784,7 +784,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
 
   /**
    * The output of a lazyOR or lazyIOR might be an invalid container, this should be called on it.
-   * 
+   *
    * @return a new valid container
    */
   public abstract MappeableContainer repairAfterLazy();
@@ -792,7 +792,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
   /**
    * Convert to MappeableRunContainers, when the result is smaller. Overridden by
    * MappeableRunContainer to possibly switch from MappeableRunContainer to a smaller alternative.
-   * 
+   *
    * @return the new container
    */
   public abstract MappeableContainer runOptimize();
@@ -800,7 +800,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
 
   /**
    * Return the jth value
-   * 
+   *
    * @param j index of the value
    *
    * @return the value
@@ -819,7 +819,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
 
   /**
    * Convert to a non-mappeable container.
-   * 
+   *
    * @return the non-mappeable container
    */
   public abstract Container toContainer();
@@ -833,7 +833,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
 
   /**
    * Write just the underlying array.
-   * 
+   *
    * @param out output stream
    * @throws IOException in case of failure
    */
@@ -849,7 +849,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
   /**
    * Computes the bitwise XOR of this container with another (symmetric difference). This container
    * as well as the provided container are left unaffected.
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -858,7 +858,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
   /**
    * Computes the bitwise XOR of this container with another (symmetric difference). This container
    * as well as the provided container are left unaffected.
-   * 
+   *
    * @param x other container
    * @return aggregated container
    */
@@ -878,7 +878,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
   /**
    * Computes the bitwise XOR of this container with another (symmetric difference). This container
    * as well as the provided container are left unaffected.
-   * 
+   *
    * @param x other parameter
    * @return aggregated container
    */

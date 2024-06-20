@@ -2974,12 +2974,12 @@ final class ReverseRunContainerCharIterator implements PeekableCharIterator {
     le = maxlength + base - (maxval);
   }
 
-  
+
   @Override
   public char peekNext() {
     return (char) (base + maxlength - le);
   }
-  
+
   @Override
   public void remove() {
     throw new RuntimeException("Not implemented");// TODO

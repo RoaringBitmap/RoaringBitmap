@@ -5519,4 +5519,16 @@ public class TestRoaringBitmap {
         assertEquals(r,  RoaringBitmap.bitmapOf(2, 3, 4, 5));
     }
 
+
+    @Test
+    public void testSelectRange() {
+        RoaringBitmap r = RoaringBitmap.bitmapOfRange(1, 1000000);
+        for(int i = 1; i <= 1000000; i+= 1000) {
+            for(int j = i; j <= 1000000; j+= 1000) {
+                RoaringBitmap rr = r.selectRange(i, j);
+                assertEquals(rr, RoaringBitmap.bitmapOfRange(i, j));
+            }
+        }
+    }
+
 }

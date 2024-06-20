@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
         })
 @State(Scope.Benchmark)
 public class ContainsRange {
-  
+
   @Param({"8", "32", "8192"})
   int keys;
 
@@ -29,7 +29,7 @@ public class ContainsRange {
 
   @Param({"true", "false"})
   boolean match;
-  
+
   public enum Scenario {
     START {
       @Override
@@ -56,13 +56,13 @@ public class ContainsRange {
     abstract long getMin(RoaringBitmap bitmap);
     abstract long getSup(RoaringBitmap bitmap);
   }
-  
+
   private RoaringBitmap bitmap;
-  
+
   private long min;
   private long sup;
 
-  
+
   @Setup(Level.Trial)
   public void init() {
     bitmap = RandomData.randomBitmap(keys, 0.3, 0.2);
@@ -90,6 +90,6 @@ public class ContainsRange {
     int endRank = bitmap.rank((int)(sup - 1));
     return endRank - startRank + 1 == sup - min;
   }
-  
-  
+
+
 }

@@ -13,7 +13,7 @@ public class TestVeryLargeBitmap {
     assertEquals(-2, map.select(-2));
     assertEquals(-1, map.select(-1));
   }
-  
+
   @Test // this should run fine given enough memory
   public void stupidlyLarge() {
     try {

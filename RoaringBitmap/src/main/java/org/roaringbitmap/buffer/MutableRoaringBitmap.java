@@ -73,10 +73,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * negative. Values that would fall outside
    * of the valid 32-bit range are discarded
    * so that the result can have lower cardinality.
-   * 
+   *
    * This method can be relatively expensive when
    * offset is not divisible by 65536. Use sparingly.
-   * 
+   *
    * @param x source bitmap
    * @param offset increment (can be negative)
    * @return a new bitmap
@@ -84,7 +84,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   public static MutableRoaringBitmap addOffset(final ImmutableRoaringBitmap x, long offset) {
     // we need "offset" to be a long because we want to support values
     // between -0xFFFFFFFF up to +-0xFFFFFFFF
-    long container_offset_long = offset < 0 
+    long container_offset_long = offset < 0
         ? (offset - (1<<16) + 1)  / (1<<16) : offset / (1 << 16);
     if((container_offset_long < -(1<<16) ) || (container_offset_long >= (1<<16) )) {
       return new MutableRoaringBitmap(); // it is necessarily going to be empty
@@ -251,7 +251,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         }
         ++pos1;
         ++pos2;
-      } else if (s1 < s2) { 
+      } else if (s1 < s2) {
         pos1 = x1.highLowContainer.advanceUntil(s2, pos1);
       } else { // s1 > s2
         pos2 = x2.highLowContainer.advanceUntil(s1, pos2);
@@ -286,7 +286,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         }
         ++pos1;
         ++pos2;
-      } else if (s1 < s2) { 
+      } else if (s1 < s2) {
         final int nextPos1 = x1.highLowContainer.advanceUntil(s2, pos1);
         answer.getMappeableRoaringArray().appendCopy(x1.highLowContainer, pos1, nextPos1);
         pos1 = nextPos1;
@@ -314,9 +314,9 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
   /**
    * Set the specified values to true, within given boundaries. This can be expected to be slightly
-   * faster than calling "add" repeatedly on the values dat[offset], dat[offset+1],..., 
-   * dat[offset+n-1]. 
-   * The provided integers values don't have to be in sorted order, but it may be preferable 
+   * faster than calling "add" repeatedly on the values dat[offset], dat[offset+1],...,
+   * dat[offset+n-1].
+   * The provided integers values don't have to be in sorted order, but it may be preferable
    * to sort them from a performance point of view.
    *
    * @param dat set values
@@ -611,7 +611,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
           }
           s1 = x1.highLowContainer.getKeyAtIndex(pos1);
           s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-        } else if (s1 < s2) { 
+        } else if (s1 < s2) {
           answer.getMappeableRoaringArray().appendCopy(x1.highLowContainer.getKeyAtIndex(pos1),
               x1.highLowContainer.getContainerAtIndex(pos1));
           pos1++;
@@ -747,7 +747,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
           }
           s1 = x1.highLowContainer.getKeyAtIndex(pos1);
           s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-        } else if (s1 < s2) { 
+        } else if (s1 < s2) {
           answer.getMappeableRoaringArray().appendCopy(x1.highLowContainer.getKeyAtIndex(pos1),
               x1.highLowContainer.getContainerAtIndex(pos1));
           pos1++;
@@ -900,7 +900,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         }
         ++pos1;
         ++pos2;
-      } else if (s1 < s2) { 
+      } else if (s1 < s2) {
         pos1 = highLowContainer.advanceUntil(s2, pos1);
       } else { // s1 > s2
         pos2 = array.highLowContainer.advanceUntil(s1, pos2);
@@ -935,7 +935,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         }
         ++pos1;
         ++pos2;
-      } else if (s1 < s2) { 
+      } else if (s1 < s2) {
         if (pos1 != intersectionSize) {
           final MappeableContainer c1 = highLowContainer.getContainerAtIndex(pos1);
           getMappeableRoaringArray().replaceKeyAndContainerAtIndex(intersectionSize, s1, c1);
@@ -1326,7 +1326,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
           }
           s1 = highLowContainer.getKeyAtIndex(pos1);
           s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-        } else if (s1 < s2) { 
+        } else if (s1 < s2) {
           pos1++;
           if (pos1 == length1) {
             break main;
@@ -1376,7 +1376,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
           }
           s1 = highLowContainer.getKeyAtIndex(pos1);
           s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-        } else if (s1 < s2) { 
+        } else if (s1 < s2) {
           pos1++;
           if (pos1 == length1) {
             break main;
@@ -1428,7 +1428,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
           }
           s1 = highLowContainer.getKeyAtIndex(pos1);
           s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-        } else if (s1 < s2) { 
+        } else if (s1 < s2) {
           pos1++;
           if (pos1 == length1) {
             break main;
@@ -1702,7 +1702,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
           }
           s1 = highLowContainer.getKeyAtIndex(pos1);
           s2 = x2.highLowContainer.getKeyAtIndex(pos2);
-        } else if (s1 < s2) { 
+        } else if (s1 < s2) {
           pos1++;
           if (pos1 == length1) {
             break main;

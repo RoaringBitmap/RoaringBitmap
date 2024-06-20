@@ -1915,7 +1915,7 @@ final class ReverseBitmapContainerCharIterator implements PeekableCharIterator {
   public int nextAsInt() {
     return next();
   }
-  
+
   @Override
   public void advanceIfNeeded(char maxval) {
     if (maxval < (position + 1) * 64) {

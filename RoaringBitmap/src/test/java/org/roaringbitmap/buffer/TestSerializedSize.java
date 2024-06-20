@@ -79,7 +79,7 @@ public class TestSerializedSize {
       for (long step = 1; step < 500; ++step) {
         MutableRoaringBitmap rb = new MutableRoaringBitmap();
         int universe_size = 0;
-        
+
         for (int i = 0; i < step; ++i) {
           final int maxv = i * (1 << 16) + stepsize;
           rb.add(i * (1L << 16), i * (1L << 16) + stepsize);

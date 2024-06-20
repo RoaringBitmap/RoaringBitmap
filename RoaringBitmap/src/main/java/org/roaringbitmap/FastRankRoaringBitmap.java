@@ -5,16 +5,16 @@ import java.util.Arrays;
 /**
  * This extends {@link RoaringBitmap} to provide better performance for .rank and .select
  * operations, at the cost of maintain a cache of cardinalities.
- * 
+ *
  * On {@link RoaringBitmap#select(int)} and {@link RoaringBitmap#rank(int)} operations,
  * {@link RoaringBitmap} needs to iterate along all underlying buckets to cumulate their
  * cardinalities. This may lead to sub-optimal performance for application doing a large amount of
  * .rank/.select over read-only {@link RoaringBitmap}, especially if the {@link RoaringBitmap} holds
  * a large number of underlying buckets.
- * 
+ *
  * This implementation will discard the cache of cardinality on any write operations, and it will
  * memoize the computed cardinalities on any .rank or .select operation
- * 
+ *
  * @author Benoit Lacelle
  *
  */
@@ -264,7 +264,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
 
     return value;
   }
-  
+
   @Override
   public long getLongSizeInBytes() {
     long size = 8;

@@ -7,9 +7,9 @@ package org.roaringbitmap;
 /**
  * Fast iterator minimizing the stress on the garbage collector. You can create one reusable
  * instance of this class and then {@link #wrap(RoaringBitmap)}
- * 
+ *
  * For better performance, consider the {@link RoaringBitmap#forEach} method.
- * 
+ *
  * @author Borislav Ivanov
  **/
 public class IntIteratorFlyweight implements PeekableIntIterator {
@@ -38,7 +38,7 @@ public class IntIteratorFlyweight implements PeekableIntIterator {
 
   /**
    * Creates an instance that is ready for iteration.
-   * 
+   *
    * @param r bitmap to be iterated over
    */
   public IntIteratorFlyweight(RoaringBitmap r) {
@@ -94,7 +94,7 @@ public class IntIteratorFlyweight implements PeekableIntIterator {
 
   /**
    * Prepares a bitmap for iteration
-   * 
+   *
    * @param r bitmap to be iterated over
    */
   public void wrap(RoaringBitmap r) {

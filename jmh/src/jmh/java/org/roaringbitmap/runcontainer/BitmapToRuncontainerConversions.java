@@ -19,27 +19,27 @@ public class BitmapToRuncontainerConversions {
 
   /*
    * These are commented out in BitmapContainer and soon be be deleted
-   * 
+   *
    * @Benchmark public int numberOfRunsData1(BenchmarkState benchmarkState) { return
    * benchmarkState.ac1.numberOfRuns(); }
-   * 
+   *
    * @Benchmark public int numberOfRunsData2(BenchmarkState benchmarkState) { return
    * benchmarkState.ac2.numberOfRuns(); }
-   * 
-   * 
+   *
+   *
    * @Benchmark public int numberOfRunsOld1(BenchmarkState benchmarkState) { return
    * benchmarkState.ac1.numberOfRuns_old(); }
-   * 
+   *
    * @Benchmark public int numberOfRunOld2(BenchmarkState benchmarkState) { return
    * benchmarkState.ac2.numberOfRuns_old(); }
-   * 
+   *
    * @Benchmark public int numberOfRunsLowerBound1(BenchmarkState benchmarkState) { return
    * benchmarkState.ac1.numberOfRunsLowerBound(); }
-   * 
-   * 
+   *
+   *
    * @Benchmark public int numberOfRunsLowerBound2(BenchmarkState benchmarkState) { return
    * benchmarkState.ac2.numberOfRunsLowerBound(); }
-   * 
+   *
    */
   @Benchmark
   public int numberOfRunsLowerBound1281(BenchmarkState benchmarkState) {
@@ -55,11 +55,11 @@ public class BitmapToRuncontainerConversions {
 
   /*
    * soon to be deleted...
-   * 
+   *
    * @Benchmark public int numberOfRunsLowerBound5121(BenchmarkState benchmarkState) { return
    * benchmarkState.ac1.numberOfRunsLowerBound512(10); }
-   * 
-   * 
+   *
+   *
    * @Benchmark public int numberOfRunsLowerBound5122(BenchmarkState benchmarkState) { return
    * benchmarkState.ac2.numberOfRunsLowerBound512(1000); }
    */
@@ -72,19 +72,19 @@ public class BitmapToRuncontainerConversions {
 
   /*
    * soon to be deleted...
-   * 
+   *
    * @Benchmark public int numberOfRunsAdjustmentUnrolled(BenchmarkState benchmarkState) { return
    * benchmarkState.ac2.numberOfRunsAdjustmentUnrolled(); }
-   * 
-   * 
+   *
+   *
    * @Benchmark public int numberOfRunsLowerBoundUnrolled(BenchmarkState benchmarkState) { return
    * benchmarkState.ac2.numberOfRunsLowerBoundUnrolled(); }
-   * 
-   * 
+   *
+   *
    * @Benchmark public int numberOfRunsLowerBoundUnrolled2(BenchmarkState benchmarkState) { return
    * benchmarkState.ac2.numberOfRunsLowerBoundUnrolled2(); }
-   * 
-   * 
+   *
+   *
    * @Benchmark public int numberOfRunsLowerBoundUnrolled2threshold1000(BenchmarkState
    * benchmarkState) { return benchmarkState.ac2.numberOfRunsLowerBoundUnrolled2(1000); }
    */
@@ -104,7 +104,7 @@ public class BitmapToRuncontainerConversions {
   /*
    * @Benchmark public int runOptimizeOld(BenchmarkState benchmarkState) { return
    * benchmarkState.ac2.runOptimize_old() instanceof RunContainer ? 1 : 0; }
-   * 
+   *
    */
 
   @Benchmark
@@ -115,7 +115,7 @@ public class BitmapToRuncontainerConversions {
   /*
    * @Benchmark public int runOptimizeOld1(BenchmarkState benchmarkState) { return
    * benchmarkState.ac1.runOptimize_old() instanceof RunContainer ? 1 : 0; }
-   * 
+   *
    */
 
 

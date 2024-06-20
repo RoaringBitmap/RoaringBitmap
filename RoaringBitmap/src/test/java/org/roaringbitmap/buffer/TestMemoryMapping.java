@@ -414,7 +414,7 @@ public class TestMemoryMapping {
       }
     }
   }
-  
+
 
   @Test
   public void containsTest() throws IOException  {
@@ -426,7 +426,7 @@ public class TestMemoryMapping {
       for(int k = 100000; k < 200000; k+=2)
         rr1.add(k + z);
       for(int k = 400000; k < 500000; k++)
-        rr1.add(k + z);    
+        rr1.add(k + z);
       rr1.runOptimize();
       ByteArrayOutputStream bos = new ByteArrayOutputStream();
       DataOutputStream dos = new DataOutputStream(bos);
@@ -441,7 +441,7 @@ public class TestMemoryMapping {
       }
     }
   }
-  
+
 
   @Test
   public void oneFormat() throws IOException {

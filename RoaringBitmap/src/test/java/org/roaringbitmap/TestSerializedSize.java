@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestSerializedSize {
-  
+
   @Test
   public void testLucaSize() {
     System.out.println("testLucaSize");
@@ -88,7 +88,7 @@ public class TestSerializedSize {
       for (long step = 1; step < 500; ++step) {
         RoaringBitmap rb = new RoaringBitmap();
         int universe_size = 0;
-        
+
         for (int i = 0; i < step; ++i) {
           final int maxv = i * (1 << 16) + stepsize;
           rb.add(i * (1L << 16), i * (1L << 16) + stepsize);
@@ -124,7 +124,7 @@ public class TestSerializedSize {
     }
     return answer;
   }
-  
+
   @Test
   public void testPrimeSerializedSize() {
     System.out.println("[testPrimeSerializedSize]");

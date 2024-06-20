@@ -12,9 +12,9 @@ import java.util.List;
  *    2. high compression ratio for number
  * Given that,we have a table T(c1,c2,c3....Cn). As we know,most database has rowId for each row.
  * then table T is actually  T(rowId,c1,c2,c3,Cn).
- * 1. if column c1 is string, we can encode c1 using dictionary. By bsi, 
+ * 1. if column c1 is string, we can encode c1 using dictionary. By bsi,
  * we can only use 33 bit slice express 2^32 cardinality dim.
- * 2. if column c2 is int32(that is 4Byte), for 1_000_000 rows, the size 
+ * 2. if column c2 is int32(that is 4Byte), for 1_000_000 rows, the size
  * of c2 is more than 3.81MB. however,
  * by bsi, the size might be less than 1MB.
  *

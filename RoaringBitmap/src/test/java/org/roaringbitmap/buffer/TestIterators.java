@@ -199,8 +199,8 @@ public class TestIterators {
     assertEquals(ImmutableList.of(1, 2, 3), intIteratorCopy);
     assertEquals(ImmutableList.of(3, 2, 1), reverseIntIteratorCopy);
   }
-  
-  
+
+
   @Test
   public void testSkips() {
     final Random source = new Random(0xcb000a2b9b5bdfb6l);
@@ -224,7 +224,7 @@ public class TestIterators {
     }
     bitmap.getIntIterator().advanceIfNeeded(-1);
   }
-  
+
   @Test
   public void testSkipsDense() {
     MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
@@ -266,14 +266,14 @@ public class TestIterators {
       assertEquals(pii.next(), i);
     }
   }
-  
+
   @Test
   public void testEmptySkips() {
     MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
     PeekableIntIterator it = bitmap.getIntIterator();
     it.advanceIfNeeded(0);
   }
-  
+
   @Test
   public void testIteratorsOnLargeBitmap() throws IOException {
       MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
@@ -296,7 +296,7 @@ public class TestIterators {
       for (int i : bitmap) {
           j += i;
       }
-      
+
       int jj = 0;
 
       // we can iterate over the immutable bitmap
