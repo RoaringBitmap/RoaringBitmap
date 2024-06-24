@@ -33,7 +33,7 @@ public final class BitmapBatchIterator implements ContainerBatchIterator {
 
   @Override
   public boolean hasNext() {
-    return wordIndex < 1024;
+    return wordIndex < 1024; // there might be more values
   }
 
   @Override

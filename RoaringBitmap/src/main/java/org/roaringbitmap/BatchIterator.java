@@ -12,8 +12,8 @@ public interface BatchIterator extends Cloneable {
   int nextBatch(int[] buffer);
 
   /**
-   * Returns true is there are more values to get.
-   * @return whether the iterator is exhaused or not.
+   * Returns true is there possibly are more values to get.
+   * @return whether the iterator is known to be exhaused.
    */
   boolean hasNext();
 
