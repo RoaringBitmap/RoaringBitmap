@@ -74,8 +74,9 @@ public class ImmutableRoaringBitmap
     implements Iterable<Integer>, Cloneable, ImmutableBitmapDataProvider {
 
   private final class ImmutableRoaringIntIterator implements PeekableIntIterator {
-    private MappeableContainerPointer cp =
-        ImmutableRoaringBitmap.this.highLowContainer.getContainerPointer();
+    private boolean wrap;
+    private MappeableContainerPointer cp;
+    private int iterations = 0;
 
     private int hs = 0;
 
@@ -84,6 +85,27 @@ public class ImmutableRoaringBitmap
     private boolean ok;
 
     public ImmutableRoaringIntIterator() {
+      this(false);
+    }
+
+    public ImmutableRoaringIntIterator(final boolean signedIntSort) {
+      char index = 0;
+      if (signedIntSort) {
+        wrap = true;
+        // skip to starting at negative signed integers
+        final int containerSize = ImmutableRoaringBitmap.this.highLowContainer.size();
+        while (index < containerSize
+            && ImmutableRoaringBitmap.this.highLowContainer.getKeyAtIndex(index) < (1 << 15)) {
+          ++index;
+        }
+        if(index >= containerSize) {
+          index = 0;
+          wrap = false;
+        }
+      } else {
+        wrap = false;
+      }
+      cp = ImmutableRoaringBitmap.this.highLowContainer.getContainerPointer(index);
       nextContainer();
     }
 
@@ -97,6 +119,8 @@ public class ImmutableRoaringBitmap
         if(this.cp != null) {
           x.cp = this.cp.clone();
         }
+        x.wrap = this.wrap;
+        x.iterations = this.iterations;
         return x;
       } catch (CloneNotSupportedException e) {
         return null;// will not happen
@@ -120,10 +144,21 @@ public class ImmutableRoaringBitmap
 
 
     private void nextContainer() {
-      ok = cp.hasContainer();
-      if (ok) {
-        iter = cp.getContainer().getCharIterator();
-        hs = (cp.key()) << 16;
+      final int containerSize = ImmutableRoaringBitmap.this.highLowContainer.size();
+      if(wrap || iterations < containerSize) {
+        ok = cp.hasContainer();
+        if (!ok && wrap && iterations < containerSize) {
+          cp = ImmutableRoaringBitmap.this.highLowContainer.getContainerPointer();
+          wrap = false;
+          ok = cp.hasContainer();
+        }
+        if (ok) {
+          iter = cp.getContainer().getCharIterator();
+          hs = (cp.key()) << 16;
+          ++iterations;
+        }
+      } else {
+        ok = false;
       }
     }
 
@@ -1395,11 +1430,21 @@ public class ImmutableRoaringBitmap
   /**
    * For better performance, consider the Use the {@link #forEach forEach} method.
    *
-   * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
+   * @return a custom iterator over set bits, the bits are traversed in unsigned integer ascending
+   *     sorted order
    */
   @Override
   public PeekableIntIterator getIntIterator() {
-    return new ImmutableRoaringIntIterator();
+    return new ImmutableRoaringIntIterator(false);
+  }
+
+  /**
+   * @return a custom iterator over set bits, the bits are traversed in signed integer ascending
+   *     sorted order
+   */
+  @Override
+  public PeekableIntIterator getSignedIntIterator() {
+    return new ImmutableRoaringIntIterator(true);
   }
 
 

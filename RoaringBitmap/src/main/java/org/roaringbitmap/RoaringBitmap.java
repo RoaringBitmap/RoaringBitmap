@@ -11,7 +11,6 @@ import org.roaringbitmap.buffer.MutableRoaringBitmap;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 import static org.roaringbitmap.RoaringBitmapWriter.writer;
 import static org.roaringbitmap.Util.lowbitsAsInteger;
@@ -52,6 +51,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     ImmutableBitmapDataProvider, BitmapDataProvider, AppendableStorage<Container> {
 
   private final class RoaringIntIterator implements PeekableIntIterator {
+    private char startingContainerIndex;
     private int hs = 0;
 
     private PeekableCharIterator iter;
@@ -59,6 +59,23 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     private int pos = 0;
 
     private RoaringIntIterator() {
+      this(false);
+    }
+
+    private RoaringIntIterator(final boolean signedIntSort) {
+      char index = 0;
+      if (signedIntSort) {
+        // skip to starting at negative signed integers
+        final int containerSize = RoaringBitmap.this.highLowContainer.size();
+        while (index < containerSize
+            && RoaringBitmap.this.highLowContainer.getKeyAtIndex(index) < (1 << 15)) {
+          ++index;
+        }
+        if(index >= containerSize) {
+          index = 0;
+        }
+      }
+      this.startingContainerIndex = index;
       nextContainer();
     }
 
@@ -91,9 +108,11 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     }
 
     private void nextContainer() {
-      if (pos < RoaringBitmap.this.highLowContainer.size()) {
-        iter = RoaringBitmap.this.highLowContainer.getContainerAtIndex(pos).getCharIterator();
-        hs = RoaringBitmap.this.highLowContainer.getKeyAtIndex(pos) << 16;
+      final int containerSize = RoaringBitmap.this.highLowContainer.size();
+      if (pos < containerSize) {
+        final int index = (pos + startingContainerIndex) % containerSize;
+        iter = RoaringBitmap.this.highLowContainer.getContainerAtIndex(index).getCharIterator();
+        hs = RoaringBitmap.this.highLowContainer.getKeyAtIndex(index) << 16;
       }
     }
 
@@ -2111,13 +2130,23 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
   /**
    *
-   * For better performance, consider the Use the {@link #forEach forEach} method.
+   * For better performance, consider using the {@link #forEach forEach} method.
    *
-   * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
+   * @return a custom iterator over set bits, the bits are traversed in unsigned integer ascending
+   *     sorted order
    */
   @Override
   public PeekableIntIterator getIntIterator() {
-    return new RoaringIntIterator();
+    return new RoaringIntIterator(false);
+  }
+
+  /**
+   * @return a custom iterator over set bits, the bits are traversed in signed integer ascending
+   *     sorted order
+   */
+  @Override
+  public PeekableIntIterator getSignedIntIterator() {
+    return new RoaringIntIterator(true);
   }
 
   /**

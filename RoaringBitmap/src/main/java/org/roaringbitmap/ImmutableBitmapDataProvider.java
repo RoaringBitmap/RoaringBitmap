@@ -65,13 +65,21 @@ public interface ImmutableBitmapDataProvider {
   void forEach(IntConsumer ic);
 
   /**
-   * For better performance, consider the Use the {@link #forEach forEach} method.
-   * @return a custom iterator over set bits, the bits are traversed in ascending sorted order
+   * For better performance, consider using the {@link #forEach forEach} method.
+   * @return a custom iterator over set bits, the bits are traversed in unsigned integer ascending
+   *     sorted order
    */
   PeekableIntIterator getIntIterator();
 
   /**
-   * @return a custom iterator over set bits, the bits are traversed in descending sorted order
+   * @return a custom iterator over set bits, the bits are traversed in signed integer ascending
+   *     sorted order
+   */
+  PeekableIntIterator getSignedIntIterator();
+
+  /**
+   * @return a custom iterator over set bits, the bits are traversed in unsigned integer descending
+   *     sorted order
    */
   IntIterator getReverseIntIterator();
 
