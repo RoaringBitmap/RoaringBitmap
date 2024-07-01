@@ -33,7 +33,17 @@ public final class BitmapBatchIterator implements ContainerBatchIterator {
 
   @Override
   public boolean hasNext() {
-    return wordIndex < 1024;
+    if (wordIndex > 1023) {
+      return false;
+    }
+    while (word == 0) {
+      ++wordIndex;
+      if (wordIndex == 1024) { // reached end without a non-empty word
+        return false;
+      }
+      word = bitmap.bitmap.get(wordIndex);
+    }
+    return true; // found some non-empty word, so hasNext
   }
 
   @Override

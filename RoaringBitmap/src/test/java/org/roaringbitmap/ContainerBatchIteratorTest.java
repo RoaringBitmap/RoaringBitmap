@@ -3,6 +3,7 @@ package org.roaringbitmap;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -14,8 +15,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.copyOfRange;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Execution(ExecutionMode.CONCURRENT)
 public class ContainerBatchIteratorTest {
@@ -146,6 +146,13 @@ public class ContainerBatchIteratorTest {
                 "Failure with batch size " + batchSize + " and container type " + container.getContainerName());
         }
         assertEquals(expectedValues.length, cardinality);
+    }
+
+    // https://github.com/RoaringBitmap/RoaringBitmap/issues/730
+    @Test
+    public void testHasNextBitmapIterator() {
+        BitmapContainer container = new BitmapContainer(); // create an empty container
+        assertFalse(container.getBatchIterator().hasNext());
     }
 
     private Container createContainer(int[] expectedValues) {
