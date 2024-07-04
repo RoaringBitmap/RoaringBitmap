@@ -335,6 +335,40 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
   }
 
   /**
+   * Bitwise OR (union) operation. The provided bitmaps are *not* modified. This operation is
+   * thread-safe as long as the provided bitmaps remain unchanged.
+   *
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @return result of the operation
+   */
+  public static Roaring64Bitmap or(final Roaring64Bitmap x1, final Roaring64Bitmap x2) {
+    Roaring64Bitmap result = new Roaring64Bitmap();
+    KeyIterator it1 = x1.highLowContainer.highKeyIterator();
+    while (it1.hasNext()) {
+      byte[] highKey = it1.next();
+      long containerIdx1 = it1.currentContainerIdx();
+      Container container1 = x1.highLowContainer.getContainer(containerIdx1);
+      result.highLowContainer.put(highKey, container1.clone());
+    }
+    KeyIterator it2 = x2.highLowContainer.highKeyIterator();
+    while (it2.hasNext()) {
+      byte[] highKey = it2.next();
+      long containerIdx2 = it2.currentContainerIdx();
+      Container container2 = x2.highLowContainer.getContainer(containerIdx2);
+      ContainerWithIndex containerWithIndex = result.highLowContainer.searchContainer(highKey);
+      if (containerWithIndex == null) {
+        result.highLowContainer.put(highKey, container2.clone());
+      } else {
+        Container orResult = containerWithIndex.getContainer().clone().ior(container2);
+        result.highLowContainer.replaceContainer(containerWithIndex.getContainerIdx(), orResult);
+      }
+    }
+
+    return result;
+  }
+
+  /**
    * In-place bitwise XOR (symmetric difference) operation. The current bitmap is modified.
    *
    * @param x2 other bitmap
@@ -358,6 +392,40 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
         this.highLowContainer.replaceContainer(containerWithIndex.getContainerIdx(), freshOne);
       }
     }
+  }
+
+  /**
+   * Bitwise XOR (symmetric difference) operation. The provided bitmaps are *not* modified. This
+   * operation is thread-safe as long as the provided bitmaps remain unchanged.
+   *
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @return result of the operation
+   */
+  public static Roaring64Bitmap xor(final Roaring64Bitmap x1, final Roaring64Bitmap x2) {
+    Roaring64Bitmap result = new Roaring64Bitmap();
+    KeyIterator it1 = x1.highLowContainer.highKeyIterator();
+    while (it1.hasNext()) {
+      byte[] highKey = it1.next();
+      long containerIdx1 = it1.currentContainerIdx();
+      Container container1 = x1.highLowContainer.getContainer(containerIdx1);
+      result.highLowContainer.put(highKey, container1.clone());
+    }
+    KeyIterator it2 = x2.highLowContainer.highKeyIterator();
+    while (it2.hasNext()) {
+      byte[] highKey = it2.next();
+      long containerIdx2 = it2.currentContainerIdx();
+      Container container2 = x2.highLowContainer.getContainer(containerIdx2);
+      ContainerWithIndex containerWithIndex = result.highLowContainer.searchContainer(highKey);
+      if (containerWithIndex == null) {
+        result.highLowContainer.put(highKey, container2.clone());
+      } else {
+        Container xorResult = containerWithIndex.getContainer().clone().ixor(container2);
+        result.highLowContainer.replaceContainer(containerWithIndex.getContainerIdx(), xorResult);
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -386,6 +454,114 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     }
   }
 
+  public int getCardinality() {
+    return (int) getLongCardinality();
+  }
+
+  /**
+   * Bitwise AND (intersection) operation. The provided bitmaps are *not* modified. This operation
+   * is thread-safe as long as the provided bitmaps remain unchanged.
+   *
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @return result of the operation
+   */
+  public static Roaring64Bitmap and(final Roaring64Bitmap x1, final Roaring64Bitmap x2) {
+    Roaring64Bitmap result = new Roaring64Bitmap();
+    KeyIterator it1 = x1.highLowContainer.highKeyIterator();
+    while (it1.hasNext()) {
+      byte[] highKey = it1.next();
+      long containerIdx1 = it1.currentContainerIdx();
+      ContainerWithIndex containerWithIdx2 = x2.highLowContainer.searchContainer(highKey);
+      if (containerWithIdx2 != null) {
+        Container container1 = x1.highLowContainer.getContainer(containerIdx1);
+        Container container2 = containerWithIdx2.getContainer();
+        Container andResult = container1.clone().iand(container2);
+        if (!andResult.isEmpty()) {
+          result.highLowContainer.put(highKey, andResult);
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Checks whether the two bitmaps intersect. This can be much faster than calling "and" and
+   * checking the cardinality of the result.
+   *
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @return true if they intersect
+   */
+  public static boolean intersects(final Roaring64Bitmap x1, final Roaring64Bitmap x2) {
+    KeyIterator it1 = x1.highLowContainer.highKeyIterator();
+    KeyIterator it2 = x2.highLowContainer.highKeyIterator();
+
+    byte[] highKey1 = it1.hasNext() ? it1.next() : null;
+    byte[] highKey2 = it2.hasNext() ? it2.next() : null;
+
+    while (highKey1 != null && highKey2 != null) {
+      int compare = HighLowContainer.compareUnsigned(highKey1, highKey2);
+      if (compare == 0) {
+        long containerIdx1 = it1.currentContainerIdx();
+        long containerIdx2 = it2.currentContainerIdx();
+        Container container1 = x1.highLowContainer.getContainer(containerIdx1);
+        Container container2 = x2.highLowContainer.getContainer(containerIdx2);
+        if (container1.clone().intersects(container2)) {
+          return true;
+        }
+        highKey1 = it1.hasNext() ? it1.next() : null;
+        highKey2 = it2.hasNext() ? it2.next() : null;
+      } else if (compare < 0) {
+        highKey1 = it1.hasNext() ? it1.next() : null;
+      } else {
+        highKey2 = it2.hasNext() ? it2.next() : null;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Cardinality of Bitwise AND (intersection) operation. The provided bitmaps are *not* modified.
+   * This operation is thread-safe as long as the provided bitmaps remain unchanged.
+   *
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @return as if you did and(x1,x2).getCardinality()
+   */
+  public static int andCardinality(final Roaring64Bitmap x1, final Roaring64Bitmap x2) {
+    int cardinality = 0;
+    KeyIterator it1 = x1.highLowContainer.highKeyIterator();
+    KeyIterator it2 = x2.highLowContainer.highKeyIterator();
+
+    byte[] highKey1 = null, highKey2 = null;
+    if (it1.hasNext()) {
+      highKey1 = it1.next();
+    }
+    if (it2.hasNext()) {
+      highKey2 = it2.next();
+    }
+
+    while (highKey1 != null && highKey2 != null) {
+      int compare = HighLowContainer.compareUnsigned(highKey1, highKey2);
+      if (compare == 0) {
+        long containerIdx1 = it1.currentContainerIdx();
+        long containerIdx2 = it2.currentContainerIdx();
+        Container container1 = x1.highLowContainer.getContainer(containerIdx1);
+        Container container2 = x2.highLowContainer.getContainer(containerIdx2);
+        cardinality += container1.clone().andCardinality(container2);
+        highKey1 = it1.hasNext() ? it1.next() : null;
+        highKey2 = it2.hasNext() ? it2.next() : null;
+      } else if (compare < 0) {
+        highKey1 = it1.hasNext() ? it1.next() : null;
+      } else {
+        highKey2 = it2.hasNext() ? it2.next() : null;
+      }
+    }
+    return cardinality;
+  }
 
   /**
    * In-place bitwise ANDNOT (difference) operation. The current bitmap is modified.
@@ -413,6 +589,35 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
         }
       }
     }
+  }
+
+  /**
+   * Bitwise ANDNOT (difference) operation. The provided bitmaps are *not* modified. This operation
+   * is thread-safe as long as the provided bitmaps remain unchanged.
+   *
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @return result of the operation
+   */
+  public static Roaring64Bitmap andNot(final Roaring64Bitmap x1, final Roaring64Bitmap x2) {
+    Roaring64Bitmap result = new Roaring64Bitmap();
+    KeyIterator it1 = x1.highLowContainer.highKeyIterator();
+    while (it1.hasNext()) {
+      byte[] highKey = it1.next();
+      long containerIdx = it1.currentContainerIdx();
+      ContainerWithIndex containerWithIdx2 = x2.highLowContainer.searchContainer(highKey);
+      Container container1 = x1.highLowContainer.getContainer(containerIdx);
+      if (containerWithIdx2 != null) {
+        Container andNotResult = container1.clone().iandNot(containerWithIdx2.getContainer());
+        if (!andNotResult.isEmpty()) {
+          result.highLowContainer.put(highKey, andNotResult);
+        }
+      } else {
+        result.highLowContainer.put(highKey, container1.clone());
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -738,6 +943,23 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     final Roaring64Bitmap ans = new Roaring64Bitmap();
     ans.add(dat);
     return ans;
+  }
+
+  /**
+   * If present remove the specified integer (effectively, sets its bit value to false)
+   *
+   * @param x integer value representing the index in a bitmap
+   */
+  public void remove(final long x) {
+    byte[] highKey = LongUtils.highPart(x);
+    ContainerWithIndex containerWithIdx = highLowContainer.searchContainer(highKey);
+    if (containerWithIdx != null) {
+      char low = LongUtils.lowPart(x);
+      containerWithIdx.getContainer().remove(low);
+      if (containerWithIdx.getContainer().isEmpty()) {
+        highLowContainer.remove(highKey);
+      }
+    }
   }
 
   /**
