@@ -178,8 +178,9 @@ public class ImmutableRoaringBitmap
     @Override
     char findStartingContainerIndex() {
       // skip to starting at negative signed integers
-      char index = (char) ImmutableRoaringBitmap.this.highLowContainer.advanceUntil((char) (1 << 15), 0);
-      if (index >= ImmutableRoaringBitmap.this.highLowContainer.size()) {
+      char index = (char)
+          ImmutableRoaringBitmap.this.highLowContainer.advanceUntil((char) (1 << 15), -1);
+      if (index == ImmutableRoaringBitmap.this.highLowContainer.size()) {
         index = 0;
       }
       return index;

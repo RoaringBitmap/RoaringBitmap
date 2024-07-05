@@ -135,8 +135,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     @Override
     char findStartingContainerIndex() {
       // skip to starting at negative signed integers
-      char index = (char) RoaringBitmap.this.highLowContainer.advanceUntil((char) (1 << 15), 0);
-      if (index >= RoaringBitmap.this.highLowContainer.size()) {
+      char index = (char) RoaringBitmap.this.highLowContainer.advanceUntil((char) (1 << 15), -1);
+      if (index == RoaringBitmap.this.highLowContainer.size()) {
         index = 0;
       }
       return index;
