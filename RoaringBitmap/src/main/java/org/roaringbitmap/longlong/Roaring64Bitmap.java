@@ -345,26 +345,42 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
   public static Roaring64Bitmap or(final Roaring64Bitmap x1, final Roaring64Bitmap x2) {
     Roaring64Bitmap result = new Roaring64Bitmap();
     KeyIterator it1 = x1.highLowContainer.highKeyIterator();
-    while (it1.hasNext()) {
-      byte[] highKey = it1.next();
-      long containerIdx1 = it1.currentContainerIdx();
-      Container container1 = x1.highLowContainer.getContainer(containerIdx1);
-      result.highLowContainer.put(highKey, container1.clone());
-    }
     KeyIterator it2 = x2.highLowContainer.highKeyIterator();
-    while (it2.hasNext()) {
-      byte[] highKey = it2.next();
-      long containerIdx2 = it2.currentContainerIdx();
-      Container container2 = x2.highLowContainer.getContainer(containerIdx2);
-      ContainerWithIndex containerWithIndex = result.highLowContainer.searchContainer(highKey);
-      if (containerWithIndex == null) {
-        result.highLowContainer.put(highKey, container2.clone());
-      } else {
-        Container orResult = containerWithIndex.getContainer().clone().ior(container2);
-        result.highLowContainer.replaceContainer(containerWithIndex.getContainerIdx(), orResult);
-      }
+
+    byte[] highKey1 = null, highKey2 = null;
+    if (it1.hasNext()) {
+      highKey1 = it1.next();
+    }
+    if (it2.hasNext()) {
+      highKey2 = it2.next();
     }
 
+    while (highKey1 != null || highKey2 != null) {
+      int compare = HighLowContainer.compareUnsigned(highKey1, highKey2);
+      if (compare == 0) {
+        long containerIdx1 = it1.currentContainerIdx();
+        long containerIdx2 = it2.currentContainerIdx();
+        Container container1 = x1.highLowContainer.getContainer(containerIdx1);
+        Container container2 = x2.highLowContainer.getContainer(containerIdx2);
+        Container orResult = container1.or(container2);
+        result.highLowContainer.put(highKey1, orResult);
+
+        highKey1 = it1.hasNext() ? it1.next() : null;
+        highKey2 = it2.hasNext() ? it2.next() : null;
+      } else if (compare < 0) {
+        long containerIdx1 = it1.currentContainerIdx();
+        Container container1 = x1.highLowContainer.getContainer(containerIdx1);
+        result.highLowContainer.put(highKey1, container1.clone());
+
+        highKey1 = it1.hasNext() ? it1.next() : null;
+      } else {
+        long containerIdx2 = it2.currentContainerIdx();
+        Container container2 = x2.highLowContainer.getContainer(containerIdx2);
+        result.highLowContainer.put(highKey2, container2.clone());
+
+        highKey2 = it2.hasNext() ? it2.next() : null;
+      }
+    }
     return result;
   }
 
@@ -405,26 +421,42 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
   public static Roaring64Bitmap xor(final Roaring64Bitmap x1, final Roaring64Bitmap x2) {
     Roaring64Bitmap result = new Roaring64Bitmap();
     KeyIterator it1 = x1.highLowContainer.highKeyIterator();
-    while (it1.hasNext()) {
-      byte[] highKey = it1.next();
-      long containerIdx1 = it1.currentContainerIdx();
-      Container container1 = x1.highLowContainer.getContainer(containerIdx1);
-      result.highLowContainer.put(highKey, container1.clone());
-    }
     KeyIterator it2 = x2.highLowContainer.highKeyIterator();
-    while (it2.hasNext()) {
-      byte[] highKey = it2.next();
-      long containerIdx2 = it2.currentContainerIdx();
-      Container container2 = x2.highLowContainer.getContainer(containerIdx2);
-      ContainerWithIndex containerWithIndex = result.highLowContainer.searchContainer(highKey);
-      if (containerWithIndex == null) {
-        result.highLowContainer.put(highKey, container2.clone());
-      } else {
-        Container xorResult = containerWithIndex.getContainer().clone().ixor(container2);
-        result.highLowContainer.replaceContainer(containerWithIndex.getContainerIdx(), xorResult);
-      }
+
+    byte[] highKey1 = null, highKey2 = null;
+    if (it1.hasNext()) {
+      highKey1 = it1.next();
+    }
+    if (it2.hasNext()) {
+      highKey2 = it2.next();
     }
 
+    while (highKey1 != null || highKey2 != null) {
+      int compare = HighLowContainer.compareUnsigned(highKey1, highKey2);
+      if (compare == 0) {
+        long containerIdx1 = it1.currentContainerIdx();
+        long containerIdx2 = it2.currentContainerIdx();
+        Container container1 = x1.highLowContainer.getContainer(containerIdx1);
+        Container container2 = x2.highLowContainer.getContainer(containerIdx2);
+        Container orResult = container1.xor(container2);
+        result.highLowContainer.put(highKey1, orResult);
+
+        highKey1 = it1.hasNext() ? it1.next() : null;
+        highKey2 = it2.hasNext() ? it2.next() : null;
+      } else if (compare < 0) {
+        long containerIdx1 = it1.currentContainerIdx();
+        Container container1 = x1.highLowContainer.getContainer(containerIdx1);
+        result.highLowContainer.put(highKey1, container1.clone());
+
+        highKey1 = it1.hasNext() ? it1.next() : null;
+      } else {
+        long containerIdx2 = it2.currentContainerIdx();
+        Container container2 = x2.highLowContainer.getContainer(containerIdx2);
+        result.highLowContainer.put(highKey2, container2.clone());
+
+        highKey2 = it2.hasNext() ? it2.next() : null;
+      }
+    }
     return result;
   }
 
@@ -454,10 +486,6 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     }
   }
 
-  public int getCardinality() {
-    return (int) getLongCardinality();
-  }
-
   /**
    * Bitwise AND (intersection) operation. The provided bitmaps are *not* modified. This operation
    * is thread-safe as long as the provided bitmaps remain unchanged.
@@ -476,7 +504,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       if (containerWithIdx2 != null) {
         Container container1 = x1.highLowContainer.getContainer(containerIdx1);
         Container container2 = containerWithIdx2.getContainer();
-        Container andResult = container1.clone().iand(container2);
+        Container andResult = container1.and(container2);
         if (!andResult.isEmpty()) {
           result.highLowContainer.put(highKey, andResult);
         }
@@ -508,7 +536,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
         long containerIdx2 = it2.currentContainerIdx();
         Container container1 = x1.highLowContainer.getContainer(containerIdx1);
         Container container2 = x2.highLowContainer.getContainer(containerIdx2);
-        if (container1.clone().intersects(container2)) {
+        if (container1.intersects(container2)) {
           return true;
         }
         highKey1 = it1.hasNext() ? it1.next() : null;
@@ -531,8 +559,8 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    * @param x2 other bitmap
    * @return as if you did and(x1,x2).getCardinality()
    */
-  public static int andCardinality(final Roaring64Bitmap x1, final Roaring64Bitmap x2) {
-    int cardinality = 0;
+  public static long andCardinality(final Roaring64Bitmap x1, final Roaring64Bitmap x2) {
+    long cardinality = 0;
     KeyIterator it1 = x1.highLowContainer.highKeyIterator();
     KeyIterator it2 = x2.highLowContainer.highKeyIterator();
 
@@ -551,7 +579,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
         long containerIdx2 = it2.currentContainerIdx();
         Container container1 = x1.highLowContainer.getContainer(containerIdx1);
         Container container2 = x2.highLowContainer.getContainer(containerIdx2);
-        cardinality += container1.clone().andCardinality(container2);
+        cardinality += container1.andCardinality(container2);
         highKey1 = it1.hasNext() ? it1.next() : null;
         highKey2 = it2.hasNext() ? it2.next() : null;
       } else if (compare < 0) {
@@ -608,7 +636,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       ContainerWithIndex containerWithIdx2 = x2.highLowContainer.searchContainer(highKey);
       Container container1 = x1.highLowContainer.getContainer(containerIdx);
       if (containerWithIdx2 != null) {
-        Container andNotResult = container1.clone().iandNot(containerWithIdx2.getContainer());
+        Container andNotResult = container1.andNot(containerWithIdx2.getContainer());
         if (!andNotResult.isEmpty()) {
           result.highLowContainer.put(highKey, andNotResult);
         }

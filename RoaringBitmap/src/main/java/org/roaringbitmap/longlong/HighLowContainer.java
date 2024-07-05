@@ -154,6 +154,12 @@ public class HighLowContainer {
    * @return result of comparing
    */
   public static int compareUnsigned(byte[] a, byte[] b) {
+    if (a == null) {
+      return b == null ? 0 : 1;
+    }
+    if (b == null) {
+      return -1;
+    }
     for (int i = 0; i < Math.min(a.length, b.length); i++) {
       int aVal = a[i] & 0xff;
       int bVal = b[i] & 0xff;

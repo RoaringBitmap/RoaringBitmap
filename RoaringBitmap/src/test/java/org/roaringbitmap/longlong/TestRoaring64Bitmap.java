@@ -947,10 +947,10 @@ public class TestRoaring64Bitmap {
     final Roaring64Bitmap rr2 = new Roaring64Bitmap();
     rr2.add(13);
     final Roaring64Bitmap rrand = Roaring64Bitmap.and(rr, rr2);
-    assertEquals(rrand.getCardinality(), Roaring64Bitmap.andCardinality(rr, rr2));
-    assertEquals(rrand.getCardinality(), Roaring64Bitmap.andCardinality(rr2, rr));
+    assertEquals(rrand.getLongCardinality(), Roaring64Bitmap.andCardinality(rr, rr2));
+    assertEquals(rrand.getLongCardinality(), Roaring64Bitmap.andCardinality(rr2, rr));
     rr.and(rr2);
-    assertEquals(rrand.getCardinality(), Roaring64Bitmap.andCardinality(rr2, rr));
+    assertEquals(rrand.getLongCardinality(), Roaring64Bitmap.andCardinality(rr2, rr));
   }
 
   @Test
@@ -1011,9 +1011,9 @@ public class TestRoaring64Bitmap {
     }
 
     final Roaring64Bitmap rrand = Roaring64Bitmap.and(rr, rr2);
-    final int rrandCount = Roaring64Bitmap.andCardinality(rr, rr2);
+    final long rrandCount = Roaring64Bitmap.andCardinality(rr, rr2);
 
-    assertEquals(rrand.getCardinality(), rrandCount);
+    assertEquals(rrand.getLongCardinality(), rrandCount);
   }
 
   @Test
