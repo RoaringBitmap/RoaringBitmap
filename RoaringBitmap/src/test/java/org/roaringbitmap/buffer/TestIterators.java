@@ -61,7 +61,7 @@ public class TestIterators {
   }
 
 
-  private static int[] takeSortedAndDistinct(Random source, int count) {
+  private static int[] takeSortedAndDistinct(Random source, int count, Comparator<Integer> comparator) {
     HashSet<Integer> ints = new HashSet<Integer>(count);
     for (int size = 0; size < count; size++) {
       int next;
@@ -70,7 +70,7 @@ public class TestIterators {
       } while (!ints.add(next));
     }
     ArrayList<Integer> list = new ArrayList<Integer>(ints);
-    list.sort(Integer::compareUnsigned);
+    list.sort(comparator);
     return Ints.toArray(list);
   }
 
@@ -118,7 +118,7 @@ public class TestIterators {
   @Test
   public void testIteration() {
     final Random source = new Random(0xcb000a2b9b5bdfb6l);
-    final int[] data = takeSortedAndDistinct(source, 450000);
+    final int[] data = takeSortedAndDistinct(source, 450000, Integer::compareUnsigned);
     MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(data);
 
     final List<Integer> iteratorCopy = ImmutableList.copyOf(bitmap.iterator());
@@ -140,7 +140,7 @@ public class TestIterators {
   @Test
   public void testIteration1() {
     final Random source = new Random(0xcb000a2b9b5bdfb6l);
-    final int[] data1 = takeSortedAndDistinct(source, 450000);
+    final int[] data1 = takeSortedAndDistinct(source, 450000, Integer::compareUnsigned);
 
     HashSet<Integer> data1Members = new HashSet<Integer>(data1.length);
     for (int i : data1) {
@@ -212,29 +212,56 @@ public class TestIterators {
     assertEquals(ImmutableList.of(-1, 3, 2, 1), reverseIntIteratorCopy);
   }
 
-
   @Test
   public void testSkips() {
-    final Random source = new Random(0xcb000a2b9b5bdfb6l);
-    final int[] data = takeSortedAndDistinct(source, 45000);
+    final Random source = new Random(0xcb000a2b9b5bdfb6L);
+    final int[] data = takeSortedAndDistinct(source, 45000, Integer::compareUnsigned);
     MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(data);
     PeekableIntIterator pii = bitmap.getIntIterator();
-    for(int i = 0; i < data.length; ++i) {
+    for (int i = 0; i < data.length; ++i) {
       pii.advanceIfNeeded(data[i]);
       assertEquals(data[i], pii.peekNext());
     }
     pii = bitmap.getIntIterator();
-    for(int i = 0; i < data.length; ++i) {
+    for (int i = 0; i < data.length; ++i) {
       pii.advanceIfNeeded(data[i]);
       assertEquals(data[i], pii.next());
     }
     pii = bitmap.getIntIterator();
-    for(int i = 1; i < data.length; ++i) {
-      pii.advanceIfNeeded(data[i-1]);
+    for (int i = 1; i < data.length; ++i) {
+      pii.advanceIfNeeded(data[i - 1]);
       pii.next();
-      assertEquals(data[i],pii.peekNext() );
+      assertEquals(data[i], pii.peekNext());
     }
     bitmap.getIntIterator().advanceIfNeeded(-1);
+  }
+
+  @Test
+  public void testSkipsSignedIterator() {
+    final Random source = new Random(0xcb000a2b9b5bdfb6L);
+    final int[] data = takeSortedAndDistinct(source, 45000, Integer::compare);
+    MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(data);
+    PeekableIntIterator pii = bitmap.getSignedIntIterator();
+    for (int i = 0; i < data.length; ++i) {
+      pii.advanceIfNeeded(data[i]);
+      assertEquals(data[i], pii.peekNext());
+    }
+    pii = bitmap.getSignedIntIterator();
+    for (int i = data.length - 1; i >= 0; --i) { // no backward advancing
+      pii.advanceIfNeeded(data[i]);
+      assertEquals(data[data.length - 1], pii.peekNext());
+    }
+    pii = bitmap.getSignedIntIterator();
+    for (int i = 0; i < data.length; ++i) {
+      pii.advanceIfNeeded(data[i]);
+      assertEquals(data[i], pii.next());
+    }
+    pii = bitmap.getSignedIntIterator();
+    for (int i = 1; i < data.length; ++i) {
+      pii.advanceIfNeeded(data[i - 1]);
+      pii.next();
+      assertEquals(data[i], pii.peekNext());
+    }
   }
 
   @Test
@@ -264,7 +291,6 @@ public class TestIterators {
       it.next();
     }
   }
-
 
   @Test
   public void testSkipsRun() {
