@@ -438,8 +438,8 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
         long containerIdx2 = it2.currentContainerIdx();
         Container container1 = x1.highLowContainer.getContainer(containerIdx1);
         Container container2 = x2.highLowContainer.getContainer(containerIdx2);
-        Container orResult = container1.xor(container2);
-        result.highLowContainer.put(highKey1, orResult);
+        Container xorResult = container1.xor(container2);
+        result.highLowContainer.put(highKey1, xorResult);
 
         highKey1 = it1.hasNext() ? it1.next() : null;
         highKey2 = it2.hasNext() ? it2.next() : null;
