@@ -50,7 +50,7 @@ import org.roaringbitmap.longlong.LongUtils;
 public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>, Externalizable,
     ImmutableBitmapDataProvider, BitmapDataProvider, AppendableStorage<Container> {
 
-  private final class RoaringIntIterator implements PeekableIntIterator {
+  private class RoaringIntIterator implements PeekableIntIterator {
     private char startingContainerIndex;
     private int hs = 0;
 
@@ -66,12 +66,8 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       char index = 0;
       if (signedIntSort) {
         // skip to starting at negative signed integers
-        final int containerSize = RoaringBitmap.this.highLowContainer.size();
-        while (index < containerSize
-            && RoaringBitmap.this.highLowContainer.getKeyAtIndex(index) < (1 << 15)) {
-          ++index;
-        }
-        if(index >= containerSize) {
+        index = (char) RoaringBitmap.this.highLowContainer.advanceUntil((char) (1 << 15), 0);
+        if (index >= RoaringBitmap.this.highLowContainer.size()) {
           index = 0;
         }
       }
@@ -135,7 +131,6 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     public int peekNext() {
       return (iter.peekNext()) | hs;
     }
-
 
   }
 

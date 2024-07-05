@@ -93,12 +93,8 @@ public class ImmutableRoaringBitmap
       if (signedIntSort) {
         wrap = true;
         // skip to starting at negative signed integers
-        final int containerSize = ImmutableRoaringBitmap.this.highLowContainer.size();
-        while (index < containerSize
-            && ImmutableRoaringBitmap.this.highLowContainer.getKeyAtIndex(index) < (1 << 15)) {
-          ++index;
-        }
-        if(index >= containerSize) {
+        index = (char) ImmutableRoaringBitmap.this.highLowContainer.advanceUntil((char) (1 << 15), 0);
+        if (index >= ImmutableRoaringBitmap.this.highLowContainer.size()) {
           index = 0;
           wrap = false;
         }
@@ -142,7 +138,6 @@ public class ImmutableRoaringBitmap
       return x;
     }
 
-
     private void nextContainer() {
       final int containerSize = ImmutableRoaringBitmap.this.highLowContainer.size();
       if(wrap || iterations < containerSize) {
@@ -181,7 +176,6 @@ public class ImmutableRoaringBitmap
     public int peekNext() {
       return (iter.peekNext()) | hs;
     }
-
 
   }
 
