@@ -1822,7 +1822,7 @@ public class ImmutableRoaringBitmap
       --containerIndex;
     }
     long prevSetBit = -1L;
-    while (containerIndex != -1 && containerIndex < highLowContainer.size() && prevSetBit == -1L) {
+    while (containerIndex != -1 && prevSetBit == -1L) {
       char containerKey = highLowContainer.getKeyAtIndex(containerIndex);
       MappeableContainer container = highLowContainer.getContainerAtIndex(containerIndex);
       int bit = (containerKey < key
