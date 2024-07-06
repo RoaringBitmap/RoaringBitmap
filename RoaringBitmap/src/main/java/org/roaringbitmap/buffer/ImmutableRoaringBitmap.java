@@ -1815,7 +1815,7 @@ public class ImmutableRoaringBitmap
     char key = highbits(fromValue);
     int containerIndex = highLowContainer.advanceUntil(key, -1);
     if (containerIndex == highLowContainer.size()) {
-      return last();
+      return Util.toUnsignedLong(last());
     }
     if (highLowContainer.getKeyAtIndex(containerIndex) > key) {
       // target absent, key of first container after target too high

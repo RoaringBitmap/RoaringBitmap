@@ -5372,6 +5372,12 @@ public class TestRoaringBitmap {
     }
 
     @Test
+    public void testPreviousValue_LastReturnedAsUnsignedLong() {
+        RoaringBitmap bitmap = RoaringBitmap.bitmapOf(-650002, -650001, -650000);
+        assertEquals(Util.toUnsignedLong(-650000), bitmap.previousValue(-1));
+    }
+
+    @Test
     public void testRangeCardinalityAtBoundary() {
         // See https://github.com/RoaringBitmap/RoaringBitmap/issues/285
         RoaringBitmap r = new RoaringBitmap();
