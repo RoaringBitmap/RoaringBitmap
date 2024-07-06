@@ -1818,7 +1818,8 @@ public class ImmutableRoaringBitmap
       return last();
     }
     if (highLowContainer.getKeyAtIndex(containerIndex) > key) {
-      return -1L;
+      // target absent, key of first container after target too high
+      --containerIndex;
     }
     long prevSetBit = -1L;
     while (containerIndex != -1 && containerIndex < highLowContainer.size() && prevSetBit == -1L) {
