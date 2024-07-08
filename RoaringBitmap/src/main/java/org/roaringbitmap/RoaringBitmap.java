@@ -50,40 +50,28 @@ import org.roaringbitmap.longlong.LongUtils;
 public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>, Externalizable,
     ImmutableBitmapDataProvider, BitmapDataProvider, AppendableStorage<Container> {
 
-  private final class RoaringIntIterator implements PeekableIntIterator {
-    private char startingContainerIndex;
+  private class RoaringIntIterator implements PeekableIntIterator {
+    private final char startingContainerIndex;
     private int hs = 0;
 
     private PeekableCharIterator iter;
 
     private int pos = 0;
 
-    private RoaringIntIterator() {
-      this(false);
+    public RoaringIntIterator() {
+      this.startingContainerIndex = findStartingContainerIndex();
+      nextContainer();
     }
 
-    private RoaringIntIterator(final boolean signedIntSort) {
-      char index = 0;
-      if (signedIntSort) {
-        // skip to starting at negative signed integers
-        final int containerSize = RoaringBitmap.this.highLowContainer.size();
-        while (index < containerSize
-            && RoaringBitmap.this.highLowContainer.getKeyAtIndex(index) < (1 << 15)) {
-          ++index;
-        }
-        if(index >= containerSize) {
-          index = 0;
-        }
-      }
-      this.startingContainerIndex = index;
-      nextContainer();
+    char findStartingContainerIndex() {
+      return 0;
     }
 
     @Override
     public PeekableIntIterator clone() {
       try {
         RoaringIntIterator x = (RoaringIntIterator) super.clone();
-        if(this.iter != null) {
+        if (this.iter != null) {
           x.iter = this.iter.clone();
         }
         return x;
@@ -118,7 +106,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
     @Override
     public void advanceIfNeeded(int minval) {
-      while (hasNext() && ((hs >>> 16) < (minval >>> 16))) {
+      while (hasNext() && shouldAdvanceContainer(hs, minval)) {
         ++pos;
         nextContainer();
       }
@@ -131,11 +119,33 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       }
     }
 
+    boolean shouldAdvanceContainer(final int hs, final int minval) {
+      return (hs >>> 16) < (minval >>> 16);
+    }
+
     @Override
     public int peekNext() {
       return (iter.peekNext()) | hs;
     }
 
+  }
+
+  private final class RoaringSignedIntIterator extends RoaringIntIterator {
+
+    @Override
+    char findStartingContainerIndex() {
+      // skip to starting at negative signed integers
+      char index = (char) RoaringBitmap.this.highLowContainer.advanceUntil((char) (1 << 15), -1);
+      if (index == RoaringBitmap.this.highLowContainer.size()) {
+        index = 0;
+      }
+      return index;
+    }
+
+    @Override
+    boolean shouldAdvanceContainer(final int hs, final int minval) {
+      return (hs >> 16) < (minval >> 16);
+    }
 
   }
 
@@ -2137,7 +2147,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   @Override
   public PeekableIntIterator getIntIterator() {
-    return new RoaringIntIterator(false);
+    return new RoaringIntIterator();
   }
 
   /**
@@ -2146,7 +2156,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    */
   @Override
   public PeekableIntIterator getSignedIntIterator() {
-    return new RoaringIntIterator(true);
+    return new RoaringSignedIntIterator();
   }
 
   /**

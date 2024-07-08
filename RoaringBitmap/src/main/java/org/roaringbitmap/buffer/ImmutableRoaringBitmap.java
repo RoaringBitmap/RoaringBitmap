@@ -73,7 +73,7 @@ import static org.roaringbitmap.buffer.MutableRoaringBitmap.rangeSanityCheck;
 public class ImmutableRoaringBitmap
     implements Iterable<Integer>, Cloneable, ImmutableBitmapDataProvider {
 
-  private final class ImmutableRoaringIntIterator implements PeekableIntIterator {
+  private class ImmutableRoaringIntIterator implements PeekableIntIterator {
     private boolean wrap;
     private MappeableContainerPointer cp;
     private int iterations = 0;
@@ -85,38 +85,24 @@ public class ImmutableRoaringBitmap
     private boolean ok;
 
     public ImmutableRoaringIntIterator() {
-      this(false);
-    }
-
-    public ImmutableRoaringIntIterator(final boolean signedIntSort) {
-      char index = 0;
-      if (signedIntSort) {
-        wrap = true;
-        // skip to starting at negative signed integers
-        final int containerSize = ImmutableRoaringBitmap.this.highLowContainer.size();
-        while (index < containerSize
-            && ImmutableRoaringBitmap.this.highLowContainer.getKeyAtIndex(index) < (1 << 15)) {
-          ++index;
-        }
-        if(index >= containerSize) {
-          index = 0;
-          wrap = false;
-        }
-      } else {
-        wrap = false;
-      }
+      char index = findStartingContainerIndex();
+      wrap = index != 0;
       cp = ImmutableRoaringBitmap.this.highLowContainer.getContainerPointer(index);
       nextContainer();
+    }
+
+    char findStartingContainerIndex() {
+      return 0;
     }
 
     @Override
     public PeekableIntIterator clone() {
       try {
         ImmutableRoaringIntIterator x = (ImmutableRoaringIntIterator) super.clone();
-        if(this.iter != null) {
+        if (this.iter != null) {
           x.iter = this.iter.clone();
         }
-        if(this.cp != null) {
+        if (this.cp != null) {
           x.cp = this.cp.clone();
         }
         x.wrap = this.wrap;
@@ -142,10 +128,9 @@ public class ImmutableRoaringBitmap
       return x;
     }
 
-
     private void nextContainer() {
       final int containerSize = ImmutableRoaringBitmap.this.highLowContainer.size();
-      if(wrap || iterations < containerSize) {
+      if (wrap || iterations < containerSize) {
         ok = cp.hasContainer();
         if (!ok && wrap && iterations < containerSize) {
           cp = ImmutableRoaringBitmap.this.highLowContainer.getContainerPointer();
@@ -164,7 +149,7 @@ public class ImmutableRoaringBitmap
 
     @Override
     public void advanceIfNeeded(int minval) {
-      while (hasNext() && ((hs >>> 16) < (minval >>> 16))) {
+      while (hasNext() && shouldAdvanceContainer(hs, minval)) {
         cp.advance();
         nextContainer();
       }
@@ -177,14 +162,35 @@ public class ImmutableRoaringBitmap
       }
     }
 
+    boolean shouldAdvanceContainer(final int hs, final int minval) {
+      return (hs >>> 16) < (minval >>> 16);
+    }
+
     @Override
     public int peekNext() {
       return (iter.peekNext()) | hs;
     }
 
-
   }
 
+  private class ImmutableRoaringSignedIntIterator extends ImmutableRoaringIntIterator {
+
+    @Override
+    char findStartingContainerIndex() {
+      // skip to starting at negative signed integers
+      char index = (char)
+          ImmutableRoaringBitmap.this.highLowContainer.advanceUntil((char) (1 << 15), -1);
+      if (index == ImmutableRoaringBitmap.this.highLowContainer.size()) {
+        index = 0;
+      }
+      return index;
+    }
+
+    @Override
+    boolean shouldAdvanceContainer(final int hs, final int minval) {
+      return (hs >> 16) < (minval >> 16);
+    }
+  }
 
   private final class ImmutableRoaringReverseIntIterator implements IntIterator {
     private MappeableContainerPointer cp = ImmutableRoaringBitmap.this.highLowContainer
@@ -1435,7 +1441,7 @@ public class ImmutableRoaringBitmap
    */
   @Override
   public PeekableIntIterator getIntIterator() {
-    return new ImmutableRoaringIntIterator(false);
+    return new ImmutableRoaringIntIterator();
   }
 
   /**
@@ -1444,9 +1450,8 @@ public class ImmutableRoaringBitmap
    */
   @Override
   public PeekableIntIterator getSignedIntIterator() {
-    return new ImmutableRoaringIntIterator(true);
+    return new ImmutableRoaringSignedIntIterator();
   }
-
 
   /**
    * @return a custom iterator over set bits, the bits are traversed in descending sorted order
