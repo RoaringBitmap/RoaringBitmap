@@ -8,6 +8,8 @@ package org.roaringbitmap.buffer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.roaringbitmap.*;
 
 import java.io.DataOutputStream;
@@ -1402,6 +1404,34 @@ public class TestImmutableRoaringBitmap {
     bitmap.add(777);
 
     assertEquals(-7, bitmap.last());
+  }
+
+  @Test
+  public void testFirstLastSigned() {
+    MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(1_111_111, 3_333_333);
+
+    assertEquals(1_111_111, bitmap.firstSigned());
+    assertEquals(3_333_333, bitmap.lastSigned());
+
+    bitmap = MutableRoaringBitmap.bitmapOf(-3_333_333, 3_333_333);
+    assertEquals(-3_333_333, bitmap.firstSigned());
+    assertEquals(3_333_333, bitmap.lastSigned());
+
+    bitmap = MutableRoaringBitmap.bitmapOf(-3_333_333, -1_111_111);
+    assertEquals(-3_333_333, bitmap.firstSigned());
+    assertEquals(-1_111_111, bitmap.lastSigned());
+
+    bitmap = MutableRoaringBitmap.bitmapOfRange(0, 1L << 32);
+    assertEquals(Integer.MIN_VALUE, bitmap.firstSigned());
+    assertEquals(Integer.MAX_VALUE, bitmap.lastSigned());
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {Integer.MIN_VALUE, -65_536, 0, 65_536, Integer.MAX_VALUE})
+  public void testFirstLastSigned_SingleValueBitmap(int value) {
+    MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(value);
+    assertEquals(value, bitmap.firstSigned());
+    assertEquals(value, bitmap.lastSigned());
   }
 
   @Test

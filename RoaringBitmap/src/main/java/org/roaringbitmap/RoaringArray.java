@@ -966,8 +966,8 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
   }
 
   /**
-   * Gets the first value in the array
-   * @return the first value in the array
+   * Gets the smallest unsigned (first) integer in the array.
+   * @return the smallest unsigned (first) integer in the array
    * @throws NoSuchElementException if empty
    */
   public int first() {
@@ -978,8 +978,8 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
   }
 
   /**
-   * Gets the last value in the array
-   * @return the last value in the array
+   * Gets the largest unsigned (last) integer in the array.
+   * @return the largest unsigned (last) integer in the array
    * @throws NoSuchElementException if empty
    */
   public int last() {
@@ -989,8 +989,40 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     return lastKey << 16 | container.last();
   }
 
+  /**
+   * Gets the smallest signed integer in the array.
+   * @return the smallest signed integer in the array
+   * @throws NoSuchElementException if empty
+   */
+  public int firstSigned() {
+    assertNonEmpty();
+    int index = advanceUntil((char) (1 << 15), -1);
+    if (index == size) { // no negatives
+      index = 0;
+    }
+    char key = keys[index];
+    Container container = values[index];
+    return key << 16 | container.first();
+  }
+
+  /**
+   * Gets the largest signed integer in the array.
+   * @return the largest signed integer in the array
+   * @throws NoSuchElementException if empty
+   */
+  public int lastSigned() {
+    assertNonEmpty();
+    int index = advanceUntil((char) (1 << 15), -1) - 1;
+    if (index == -1) { // no positives
+      index += size;
+    }
+    char key = keys[index];
+    Container container = values[index];
+    return key << 16 | container.last();
+  }
+
   private void assertNonEmpty() {
-    if(size == 0) {
+    if (size == 0) {
       throw new NoSuchElementException("Empty RoaringArray");
     }
   }

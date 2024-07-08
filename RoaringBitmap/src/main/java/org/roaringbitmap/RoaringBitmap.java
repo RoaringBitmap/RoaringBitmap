@@ -2978,6 +2978,16 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     return highLowContainer.last();
   }
 
+  @Override
+  public int firstSigned() {
+    return highLowContainer.firstSigned();
+  }
+
+  @Override
+  public int lastSigned() {
+    return highLowContainer.lastSigned();
+  }
+
   /**
    * Serialize this bitmap.
    *
