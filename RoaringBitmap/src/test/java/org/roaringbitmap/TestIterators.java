@@ -107,17 +107,17 @@ public class TestIterators {
 
   @Test
   public void testSmallIteration() {
-    RoaringBitmap bitmap = RoaringBitmap.bitmapOf(1, 2, 3, -1);
+    RoaringBitmap bitmap = RoaringBitmap.bitmapOf(0, 1, 2, 3, -1, 2147483647, -2147483648);
 
     final List<Integer> iteratorCopy = ImmutableList.copyOf(bitmap.iterator());
     final List<Integer> intIteratorCopy = asList(bitmap.getIntIterator());
     final List<Integer> signedIntIteratorCopy = asList(bitmap.getSignedIntIterator());
     final List<Integer> reverseIntIteratorCopy = asList(bitmap.getReverseIntIterator());
 
-    assertEquals(ImmutableList.of(1, 2, 3, -1), iteratorCopy);
-    assertEquals(ImmutableList.of(1, 2, 3, -1), intIteratorCopy);
-    assertEquals(ImmutableList.of(-1, 1, 2, 3), signedIntIteratorCopy);
-    assertEquals(ImmutableList.of(-1, 3, 2, 1), reverseIntIteratorCopy);
+    assertEquals(ImmutableList.of(0, 1, 2, 3, 2147483647, -2147483648, -1), iteratorCopy);
+    assertEquals(ImmutableList.of(0, 1, 2, 3, 2147483647, -2147483648, -1), intIteratorCopy);
+    assertEquals(ImmutableList.of(-2147483648, -1, 0, 1, 2, 3, 2147483647), signedIntIteratorCopy);
+    assertEquals(ImmutableList.of(-1, -2147483648, 2147483647, 3, 2, 1, 0), reverseIntIteratorCopy);
   }
 
   @Test
