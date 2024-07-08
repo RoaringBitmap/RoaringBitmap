@@ -5361,6 +5361,23 @@ public class TestRoaringBitmap {
     }
 
     @Test
+    public void testPreviousValue_AbsentTargetContainer() {
+        RoaringBitmap bitmap = RoaringBitmap.bitmapOf(-1, 2, 3, 131072);
+        assertEquals(3, bitmap.previousValue(65536));
+        assertEquals(131072, bitmap.previousValue(Integer.MAX_VALUE));
+        assertEquals(131072, bitmap.previousValue(-131072));
+
+        bitmap = RoaringBitmap.bitmapOf(131072);
+        assertEquals(-1, bitmap.previousValue(65536));
+    }
+
+    @Test
+    public void testPreviousValue_LastReturnedAsUnsignedLong() {
+        RoaringBitmap bitmap = RoaringBitmap.bitmapOf(-650002, -650001, -650000);
+        assertEquals(Util.toUnsignedLong(-650000), bitmap.previousValue(-1));
+    }
+
+    @Test
     public void testRangeCardinalityAtBoundary() {
         // See https://github.com/RoaringBitmap/RoaringBitmap/issues/285
         RoaringBitmap r = new RoaringBitmap();

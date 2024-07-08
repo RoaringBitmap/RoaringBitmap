@@ -1820,13 +1820,14 @@ public class ImmutableRoaringBitmap
     char key = highbits(fromValue);
     int containerIndex = highLowContainer.advanceUntil(key, -1);
     if (containerIndex == highLowContainer.size()) {
-      return last();
+      return Util.toUnsignedLong(last());
     }
     if (highLowContainer.getKeyAtIndex(containerIndex) > key) {
-      return -1L;
+      // target absent, key of first container after target too high
+      --containerIndex;
     }
     long prevSetBit = -1L;
-    while (containerIndex != -1 && containerIndex < highLowContainer.size() && prevSetBit == -1L) {
+    while (containerIndex != -1 && prevSetBit == -1L) {
       char containerKey = highLowContainer.getKeyAtIndex(containerIndex);
       MappeableContainer container = highLowContainer.getContainerAtIndex(containerIndex);
       int bit = (containerKey < key
