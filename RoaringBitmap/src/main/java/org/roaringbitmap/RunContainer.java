@@ -819,13 +819,13 @@ public final class RunContainer extends Container implements Cloneable {
     char ib = 0, ir = 0;
     int start = getValue(ir);
     int stop = start + getLength(ir);
-    while(ib < bitmapContainer.bitmap.length && ir < runCount) {
+    while (ib < bitmapContainer.bitmap.length && ir < runCount) {
       long w = bitmapContainer.bitmap[ib];
       while (w != 0) {
         long r = ib * 64L + Long.numberOfTrailingZeros(w);
         if (r < start) {
           return false;
-        } else if(r > stop) {
+        } else if (r > stop) {
           ++ir;
           if (ir == runCount) {
             break;
@@ -839,15 +839,15 @@ public final class RunContainer extends Container implements Cloneable {
           w &= w - 1;
         }
       }
-      if(w == 0) {
+      if (w == 0) {
         ++ib;
       } else {
         return false;
       }
     }
-    if(ib < bitmapContainer.bitmap.length) {
-      for(; ib < bitmapContainer.bitmap.length ; ib++) {
-        if(bitmapContainer.bitmap[ib] != 0) {
+    if (ib < bitmapContainer.bitmap.length) {
+      for (; ib < bitmapContainer.bitmap.length; ib++) {
+        if (bitmapContainer.bitmap[ib] != 0) {
           return false;
         }
       }

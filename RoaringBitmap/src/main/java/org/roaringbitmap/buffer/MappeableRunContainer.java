@@ -2728,7 +2728,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     char ib = 0, ir = 0;
     int start = getValue(0);
     int stop = start + getLength(0);
-    while(ib < MappeableBitmapContainer.MAX_CAPACITY / 64 && ir < runCount) {
+    while (ib < MappeableBitmapContainer.MAX_CAPACITY / 64 && ir < runCount) {
       long w = bitmapContainer.bitmap.get(ib);
       while (w != 0) {
         long r = ib * 64 + Long.numberOfTrailingZeros(w);
@@ -2749,15 +2749,15 @@ public final class MappeableRunContainer extends MappeableContainer implements C
           w &= w - 1;
         }
       }
-      if(w == 0) {
+      if (w == 0) {
         ++ib;
       } else {
         return false;
       }
     }
-    if(ib < MappeableBitmapContainer.MAX_CAPACITY / 64) {
-      for(; ib < MappeableBitmapContainer.MAX_CAPACITY / 64 ; ib++) {
-        if(bitmapContainer.bitmap.get(ib) != 0) {
+    if (ib < MappeableBitmapContainer.MAX_CAPACITY / 64) {
+      for (; ib < MappeableBitmapContainer.MAX_CAPACITY / 64; ib++) {
+        if (bitmapContainer.bitmap.get(ib) != 0) {
           return false;
         }
       }
