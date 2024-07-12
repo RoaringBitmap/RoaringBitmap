@@ -2730,7 +2730,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     int stop = start + getLength(0);
     while(ib < MappeableBitmapContainer.MAX_CAPACITY / 64 && ir < runCount) {
       long w = bitmapContainer.bitmap.get(ib);
-      while (true) {
+      while (w != 0) {
         long r = ib * 64 + Long.numberOfTrailingZeros(w);
         if (r < start) {
           return false;
@@ -2747,9 +2747,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
           w = bitmapContainer.bitmap.get(ib);
         } else {
           w &= w - 1;
-          if (w == 0) {
-            break;
-          }
         }
       }
       if(w == 0) {

@@ -3386,6 +3386,13 @@ public class TestRunContainer {
   }
 
   @Test
+  public void testContainsBitmapContainer_SkipEmptyWords() {
+    Container rc = new RunContainer().add(128, 512);
+    Container subset = new BitmapContainer().add(256, 320);
+    assertTrue(rc.contains(subset));
+  }
+
+  @Test
   public void testContainsRunContainer_EmptyContainsEmpty() {
     Container rc = new RunContainer();
     Container subset = new RunContainer();

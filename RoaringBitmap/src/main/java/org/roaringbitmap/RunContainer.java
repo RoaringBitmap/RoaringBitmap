@@ -821,7 +821,7 @@ public final class RunContainer extends Container implements Cloneable {
     int stop = start + getLength(ir);
     while(ib < bitmapContainer.bitmap.length && ir < runCount) {
       long w = bitmapContainer.bitmap[ib];
-      while (true) {
+      while (w != 0) {
         long r = ib * 64L + Long.numberOfTrailingZeros(w);
         if (r < start) {
           return false;
@@ -837,9 +837,6 @@ public final class RunContainer extends Container implements Cloneable {
           w = bitmapContainer.bitmap[ib];
         } else {
           w &= w - 1;
-          if (w == 0) {
-            break;
-          }
         }
       }
       if(w == 0) {
