@@ -282,7 +282,7 @@ public class Roaring64BitmapSliceIndex {
    * valueExists tests whether the value exists.
    */
   public boolean valueExist(Long columnId) {
-    return this.ebM.contains(columnId.intValue());
+    return this.ebM.contains(columnId);
   }
 
   /**
@@ -567,5 +567,50 @@ public class Roaring64BitmapSliceIndex {
         .sum();
 
     return Pair.newPair(sum, count);
+  }
+
+  public Roaring64Bitmap topK(Roaring64Bitmap foundSet, long k) {
+    if (null == foundSet || foundSet.isEmpty()) {
+      return new Roaring64Bitmap();
+    }
+    if (k >= foundSet.getLongCardinality()) {
+      return foundSet;
+    }
+    Roaring64Bitmap re = new Roaring64Bitmap();
+    Roaring64Bitmap candidates = foundSet.clone();
+
+    for (int x = this.bitCount() - 1; x >= 0 && !candidates.isEmpty() && k > 0; x--) {
+      long cardinality = Roaring64Bitmap.and(candidates, this.bA[x]).getLongCardinality();
+
+      if (cardinality > k) {
+        candidates.and(this.bA[x]);
+      } else {
+        re.or(Roaring64Bitmap.and(candidates, this.bA[x]));
+        candidates.andNot(this.bA[x]);
+        k -= cardinality;
+      }
+    }
+    return re;
+  }
+
+  public Roaring64Bitmap transpose(Roaring64Bitmap foundSet) {
+    Roaring64Bitmap re = new Roaring64Bitmap();
+    Roaring64Bitmap fixedFoundSet = foundSet == null ? this.ebM : Roaring64Bitmap.and(foundSet, this.ebM);
+    fixedFoundSet.forEach((long x) -> re.add(this.getValue(x).getKey()));
+    return re;
+  }
+
+  public Roaring64BitmapSliceIndex transposeWithCount(Roaring64Bitmap foundSet) {
+    Roaring64BitmapSliceIndex re = new Roaring64BitmapSliceIndex();
+    Roaring64Bitmap fixedFoundSet = foundSet == null ? this.ebM : Roaring64Bitmap.and(foundSet, this.ebM);
+    fixedFoundSet.forEach((long x) -> {
+      long nk = this.getValue(x).getKey();
+      if (re.valueExist(nk)) {
+        re.setValue(nk, re.getValue(nk).getKey() + 1);
+      } else {
+        re.setValue(nk, 1);
+      }
+    });
+    return re;
   }
 }

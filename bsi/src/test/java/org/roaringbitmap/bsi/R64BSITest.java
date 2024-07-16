@@ -327,5 +327,44 @@ public class R64BSITest {
     Assertions.assertEquals(1, result.getLongCardinality());
     Assertions.assertArrayEquals(new long[]{2}, result.toArray());
   }
+
+  @Test
+  public void testTopK() {
+    bsi = new Roaring64BitmapSliceIndex();
+    bsi.setValue(1, 3);
+    bsi.setValue(2, 6);
+    bsi.setValue(3, 4);
+    bsi.setValue(4, 10);
+    bsi.setValue(5, 7);
+    Roaring64Bitmap re = bsi.topK(bsi.getExistenceBitmap(), 2);
+    Assertions.assertEquals(re, Roaring64Bitmap.bitmapOf(4, 5));
+  }
+
+  @Test
+  public void testTranspose() {
+    bsi = new Roaring64BitmapSliceIndex();
+    bsi.setValue(1, 2);
+    bsi.setValue(2, 4);
+    bsi.setValue(3, 4);
+    bsi.setValue(4, 8);
+    bsi.setValue(5, 8);
+    Roaring64Bitmap re = bsi.transpose(null);
+    Assertions.assertEquals(re, Roaring64Bitmap.bitmapOf(2, 4, 8));
+  }
+
+  @Test
+  public void testTransposeWithCount() {
+    bsi = new Roaring64BitmapSliceIndex();
+    bsi.setValue(1, 2);
+    bsi.setValue(2, 4);
+    bsi.setValue(3, 4);
+    bsi.setValue(4, 8);
+    bsi.setValue(5, 8);
+    Roaring64BitmapSliceIndex re = bsi.transposeWithCount(null);
+    Assertions.assertEquals(re.getExistenceBitmap(), Roaring64Bitmap.bitmapOf(2, 4, 8));
+    Assertions.assertEquals(re.getValue(2).getKey(), 1);
+    Assertions.assertEquals(re.getValue(4).getKey(), 2);
+    Assertions.assertEquals(re.getValue(8).getKey(), 2);
+  }
 }
 
