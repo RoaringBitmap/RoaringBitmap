@@ -1770,27 +1770,24 @@ public class ImmutableRoaringBitmap
                + this.getCardinality() + ".");
   }
 
-
-  /**
-   * Get the first (smallest) integer in this RoaringBitmap,
-   * that is, returns the minimum of the set.
-   * @return the first (smallest) integer
-   * @throws NoSuchElementException if empty
-   */
   @Override
   public int first() {
     return highLowContainer.first();
   }
 
-  /**
-   * Get the last (largest) integer in this RoaringBitmap,
-   * that is, returns the maximum of the set.
-   * @return the last (largest) integer
-   * @throws NoSuchElementException if empty
-   */
   @Override
   public int last() {
     return highLowContainer.last();
+  }
+
+  @Override
+  public int firstSigned() {
+    return highLowContainer.firstSigned();
+  }
+
+  @Override
+  public int lastSigned() {
+    return highLowContainer.lastSigned();
   }
 
   @Override
