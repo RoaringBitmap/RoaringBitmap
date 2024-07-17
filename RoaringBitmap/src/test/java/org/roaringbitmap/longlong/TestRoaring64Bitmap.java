@@ -602,12 +602,18 @@ public class TestRoaring64Bitmap {
     left.addLong(123);
     right.addLong(234);
 
+    Roaring64Bitmap orNotInPlace = Roaring64Bitmap.or(left, right);
     left.or(right);
 
     assertEquals(2, left.getLongCardinality());
 
     assertEquals(123, left.select(0));
     assertEquals(234, left.select(1));
+
+    assertEquals(2, orNotInPlace.getLongCardinality());
+
+    assertEquals(123, orNotInPlace.select(0));
+    assertEquals(234, orNotInPlace.select(1));
   }
 
   @Test
@@ -619,6 +625,7 @@ public class TestRoaring64Bitmap {
     left.addLong(Long.MAX_VALUE);
     right.addLong(234);
 
+    Roaring64Bitmap orNotInPlace = Roaring64Bitmap.or(left, right);
     left.or(right);
 
     assertEquals(3, left.getLongCardinality());
@@ -626,6 +633,12 @@ public class TestRoaring64Bitmap {
     assertEquals(123, left.select(0));
     assertEquals(234, left.select(1));
     assertEquals(Long.MAX_VALUE, left.select(2));
+
+    assertEquals(3, orNotInPlace.getLongCardinality());
+
+    assertEquals(123, orNotInPlace.select(0));
+    assertEquals(234, orNotInPlace.select(1));
+    assertEquals(Long.MAX_VALUE, orNotInPlace.select(2));
   }
 
   @Test
@@ -636,12 +649,18 @@ public class TestRoaring64Bitmap {
     left.addLong(123);
     right.addLong(Long.MAX_VALUE / 2);
 
+    Roaring64Bitmap orNotInPlace = Roaring64Bitmap.or(left, right);
     left.or(right);
 
     assertEquals(2, left.getLongCardinality());
 
     assertEquals(123, left.select(0));
     assertEquals(Long.MAX_VALUE / 2, left.select(1));
+
+    assertEquals(2, orNotInPlace.getLongCardinality());
+
+    assertEquals(123, orNotInPlace.select(0));
+    assertEquals(Long.MAX_VALUE / 2, orNotInPlace.select(1));
   }
 
 
@@ -653,12 +672,18 @@ public class TestRoaring64Bitmap {
     left.addLong(123);
     right.addLong(Long.MAX_VALUE);
 
+    Roaring64Bitmap orNotInPlace = Roaring64Bitmap.or(left, right);
     left.or(right);
 
     assertEquals(2, left.getLongCardinality());
 
     assertEquals(123, left.select(0));
     assertEquals(Long.MAX_VALUE, left.select(1));
+
+    assertEquals(2, orNotInPlace.getLongCardinality());
+
+    assertEquals(123, orNotInPlace.select(0));
+    assertEquals(Long.MAX_VALUE, orNotInPlace.select(1));
   }
 
   @Test
@@ -694,11 +719,16 @@ public class TestRoaring64Bitmap {
     right.addLong(345);
 
     // We have 1 shared value: 234
+    Roaring64Bitmap xorNotInPlace = Roaring64Bitmap.xor(left, right);
     left.xor(right);
 
     assertEquals(2, left.getLongCardinality());
     assertEquals(123, left.select(0));
     assertEquals(345, left.select(1));
+
+    assertEquals(2, xorNotInPlace.getLongCardinality());
+    assertEquals(123, xorNotInPlace.select(0));
+    assertEquals(345, xorNotInPlace.select(1));
   }
 
   @Test
@@ -711,11 +741,16 @@ public class TestRoaring64Bitmap {
     right.addLong(234);
     right.addLong(345);
 
+    Roaring64Bitmap xorNotInPlace = Roaring64Bitmap.xor(left, right);
     left.xor(right);
 
     assertEquals(2, left.getLongCardinality());
     assertEquals(123, left.select(0));
     assertEquals(345, left.select(1));
+
+    assertEquals(2, xorNotInPlace.getLongCardinality());
+    assertEquals(123, xorNotInPlace.select(0));
+    assertEquals(345, xorNotInPlace.select(1));
   }
 
   @Test
@@ -727,11 +762,16 @@ public class TestRoaring64Bitmap {
     right.addLong(Long.MAX_VALUE);
 
     // We have 1 shared value: 234
+    Roaring64Bitmap xorNotInPlace = Roaring64Bitmap.xor(left, right);
     left.xor(right);
 
     assertEquals(2, left.getLongCardinality());
     assertEquals(123, left.select(0));
     assertEquals(Long.MAX_VALUE, left.select(1));
+
+    assertEquals(2, xorNotInPlace.getLongCardinality());
+    assertEquals(123, xorNotInPlace.select(0));
+    assertEquals(Long.MAX_VALUE, xorNotInPlace.select(1));
   }
 
   @Test
@@ -744,10 +784,14 @@ public class TestRoaring64Bitmap {
     right.addLong(Long.MAX_VALUE);
 
     // We have 1 shared value: 234
+    Roaring64Bitmap xorNotInPlace = Roaring64Bitmap.xor(left, right);
     left.xor(right);
 
     assertEquals(1, left.getLongCardinality());
     assertEquals(123, left.select(0));
+
+    assertEquals(1, xorNotInPlace.getLongCardinality());
+    assertEquals(123, xorNotInPlace.select(0));
   }
 
 
@@ -762,10 +806,14 @@ public class TestRoaring64Bitmap {
     right.addLong(345);
 
     // We have 1 shared value: 234
+    Roaring64Bitmap andNotInPlace = Roaring64Bitmap.and(left, right);
     left.and(right);
 
     assertEquals(1, left.getLongCardinality());
     assertEquals(234, left.select(0));
+
+    assertEquals(1, andNotInPlace.getLongCardinality());
+    assertEquals(234, andNotInPlace.select(0));
   }
 
   @Test
@@ -777,10 +825,14 @@ public class TestRoaring64Bitmap {
     right.addLong(123);
 
     // We have 1 shared value: 234
+    Roaring64Bitmap andNotInPlace = Roaring64Bitmap.and(left, right);
     left.and(right);
 
     assertEquals(1, left.getLongCardinality());
     assertEquals(123, left.select(0));
+
+    assertEquals(1, andNotInPlace.getLongCardinality());
+    assertEquals(123, andNotInPlace.select(0));
   }
 
   @Test
@@ -792,17 +844,24 @@ public class TestRoaring64Bitmap {
     Roaring64Bitmap left = Roaring64Bitmap.bitmapOf(leftData);
     Roaring64Bitmap right = Roaring64Bitmap.bitmapOf(rightData);
 
+    Roaring64Bitmap andNotInPlace = Roaring64Bitmap.and(left, right);
     left.and(right);
 
     Roaring64Bitmap swapLeft = Roaring64Bitmap.bitmapOf(rightData);
     Roaring64Bitmap swapRight = Roaring64Bitmap.bitmapOf(leftData);
 
+    Roaring64Bitmap swapAndNotInPlace = Roaring64Bitmap.and(left, right);
     swapLeft.and(swapRight);
 
     assertEquals(0, left.getLongCardinality());
     assertEquals(0, swapLeft.getLongCardinality());
     assertThrows(IllegalArgumentException.class, () -> left.select(0));
     assertThrows(IllegalArgumentException.class, () -> swapLeft.select(0));
+
+    assertEquals(0, andNotInPlace.getLongCardinality());
+    assertEquals(0, swapAndNotInPlace.getLongCardinality());
+    assertThrows(IllegalArgumentException.class, () -> andNotInPlace.select(0));
+    assertThrows(IllegalArgumentException.class, () -> swapAndNotInPlace.select(0));
   }
 
   @Test
@@ -813,9 +872,11 @@ public class TestRoaring64Bitmap {
     Roaring64Bitmap bitmap2 = new Roaring64Bitmap();
     bitmap2.addLong(1);
     //bit and
+    Roaring64Bitmap andNotInPlace = Roaring64Bitmap.and(bitmap, bitmap2);
     bitmap.and(bitmap2);
     //to array
     Assertions.assertDoesNotThrow(bitmap::toArray);
+    Assertions.assertDoesNotThrow(andNotInPlace::toArray);
   }
 
   @Test
@@ -842,12 +903,118 @@ public class TestRoaring64Bitmap {
     right.addLong(Long.MAX_VALUE);
 
     // We have 1 shared value: 234
+    Roaring64Bitmap andNotInPlace = Roaring64Bitmap.and(left, right);
     left.and(right);
 
     assertEquals(1, left.getLongCardinality());
     assertEquals(Long.MAX_VALUE, left.select(0));
+
+    assertEquals(1, andNotInPlace.getLongCardinality());
+    assertEquals(Long.MAX_VALUE, andNotInPlace.select(0));
   }
 
+  @Test
+  public void intersecttest() {
+    final Roaring64Bitmap rr1 = new Roaring64Bitmap();
+    final Roaring64Bitmap rr2 = new Roaring64Bitmap();
+    for (int k = 0; k < 40000; ++k) {
+      rr1.add(2 * k);
+      rr2.add(2 * k + 1);
+    }
+    assertFalse(Roaring64Bitmap.intersects(rr1, rr2));
+    rr1.add(2 * 500 + 1);
+    assertTrue(Roaring64Bitmap.intersects(rr1, rr2));
+    final Roaring64Bitmap rr3 = new Roaring64Bitmap();
+    rr3.add(2 * 501 + 1);
+    assertTrue(Roaring64Bitmap.intersects(rr3, rr2));
+    assertFalse(Roaring64Bitmap.intersects(rr3, rr1));
+    for (int k = 0; k < 40000; ++k) {
+      rr1.add(2 * k + 1);
+    }
+    rr1.runOptimize();
+    assertTrue(Roaring64Bitmap.intersects(rr1, rr2));
+  }
+
+  @Test
+  public void andcounttest() {
+    // This is based on andtest
+    final Roaring64Bitmap rr = new Roaring64Bitmap();
+    for (int k = 0; k < 4000; ++k) {
+      rr.add(k);
+    }
+    rr.add(100000);
+    rr.add(110000);
+    final Roaring64Bitmap rr2 = new Roaring64Bitmap();
+    rr2.add(13);
+    final Roaring64Bitmap rrand = Roaring64Bitmap.and(rr, rr2);
+    assertEquals(rrand.getLongCardinality(), Roaring64Bitmap.andCardinality(rr, rr2));
+    assertEquals(rrand.getLongCardinality(), Roaring64Bitmap.andCardinality(rr2, rr));
+    rr.and(rr2);
+    assertEquals(rrand.getLongCardinality(), Roaring64Bitmap.andCardinality(rr2, rr));
+  }
+
+  @Test
+  public void andCounttest3() {
+    // This is based on andtest3
+    final int[] arrayand = new int[11256];
+    int pos = 0;
+    final Roaring64Bitmap rr = new Roaring64Bitmap();
+    for (int k = 4000; k < 4256; ++k) {
+      rr.add(k);
+    }
+    for (int k = 65536; k < 65536 + 4000; ++k) {
+      rr.add(k);
+    }
+    for (int k = 3 * 65536; k < 3 * 65536 + 1000; ++k) {
+      rr.add(k);
+    }
+    for (int k = 3 * 65536 + 1000; k < 3 * 65536 + 7000; ++k) {
+      rr.add(k);
+    }
+    for (int k = 3 * 65536 + 7000; k < 3 * 65536 + 9000; ++k) {
+      rr.add(k);
+    }
+    for (int k = 4 * 65536; k < 4 * 65536 + 7000; ++k) {
+      rr.add(k);
+    }
+    for (int k = 6 * 65536; k < 6 * 65536 + 10000; ++k) {
+      rr.add(k);
+    }
+    for (int k = 8 * 65536; k < 8 * 65536 + 1000; ++k) {
+      rr.add(k);
+    }
+    for (int k = 9 * 65536; k < 9 * 65536 + 30000; ++k) {
+      rr.add(k);
+    }
+    final Roaring64Bitmap rr2 = new Roaring64Bitmap();
+    for (int k = 4000; k < 4256; ++k) {
+      rr2.add(k);
+      arrayand[pos++] = k;
+    }
+    for (int k = 65536; k < 65536 + 4000; ++k) {
+      rr2.add(k);
+      arrayand[pos++] = k;
+    }
+    for (int k = 3 * 65536 + 1000; k < 3 * 65536 + 7000; ++k) {
+      rr2.add(k);
+      arrayand[pos++] = k;
+    }
+    for (int k = 6 * 65536; k < 6 * 65536 + 1000; ++k) {
+      rr2.add(k);
+      arrayand[pos++] = k;
+    }
+    for (int k = 7 * 65536; k < 7 * 65536 + 1000; ++k) {
+      rr2.add(k);
+    }
+    for (int k = 10 * 65536; k < 10 * 65536 + 5000; ++k) {
+      rr2.add(k);
+    }
+
+    final Roaring64Bitmap rrand = Roaring64Bitmap.and(rr, rr2);
+    final long rrandCount = Roaring64Bitmap.andCardinality(rr, rr2);
+
+    assertEquals(rrand.getLongCardinality(), rrandCount);
+  }
 
   @Test
   public void testAndNotSingleBucket() {
@@ -860,10 +1027,14 @@ public class TestRoaring64Bitmap {
     right.addLong(345);
 
     // We have 1 shared value: 234
+    Roaring64Bitmap andNotNotInPlace = Roaring64Bitmap.andNot(left, right);
     left.andNot(right);
 
     assertEquals(1, left.getLongCardinality());
     assertEquals(123, left.select(0));
+
+    assertEquals(1, andNotNotInPlace.getLongCardinality());
+    assertEquals(123, andNotNotInPlace.select(0));
   }
 
   @Test
@@ -875,10 +1046,14 @@ public class TestRoaring64Bitmap {
     right.addLong(234);
 
     // We have 1 shared value: 234
+    Roaring64Bitmap andNotNotInPlace = Roaring64Bitmap.andNot(left, right);
     left.andNot(right);
 
     assertEquals(1, left.getLongCardinality());
     assertEquals(123, left.select(0));
+
+    assertEquals(1, andNotNotInPlace.getLongCardinality());
+    assertEquals(123, andNotNotInPlace.select(0));
   }
 
   @Test
@@ -890,10 +1065,14 @@ public class TestRoaring64Bitmap {
     right.addLong(Long.MAX_VALUE);
 
     // We have 1 shared value: 234
+    Roaring64Bitmap andNotNotInPlace = Roaring64Bitmap.andNot(left, right);
     left.andNot(right);
 
     assertEquals(1, left.getLongCardinality());
     assertEquals(123, left.select(0));
+
+    assertEquals(1, andNotNotInPlace.getLongCardinality());
+    assertEquals(123, andNotNotInPlace.select(0));
   }
 
   @Test
@@ -906,10 +1085,14 @@ public class TestRoaring64Bitmap {
     right.addLong(Long.MAX_VALUE);
 
     // We have 1 shared value: 234
+    Roaring64Bitmap andNotNotInPlace = Roaring64Bitmap.andNot(left, right);
     left.andNot(right);
 
     assertEquals(1, left.getLongCardinality());
     assertEquals(123, left.select(0));
+
+    assertEquals(1, andNotNotInPlace.getLongCardinality());
+    assertEquals(123, andNotNotInPlace.select(0));
   }
 
   @Test
