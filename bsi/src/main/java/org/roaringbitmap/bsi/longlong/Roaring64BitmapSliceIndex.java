@@ -437,9 +437,9 @@ public class Roaring64BitmapSliceIndex {
       case LT:
         return Roaring64Bitmap.and(LT, fixedFoundSet);
       case LE:
-        return Roaring64Bitmap.or(LT, EQ);
+        return Roaring64Bitmap.and(Roaring64Bitmap.or(LT, EQ), fixedFoundSet);
       case GE:
-        return Roaring64Bitmap.or(GT, EQ);
+        return Roaring64Bitmap.and(Roaring64Bitmap.or(GT, EQ), fixedFoundSet);
       default:
         throw new IllegalArgumentException("");
     }
