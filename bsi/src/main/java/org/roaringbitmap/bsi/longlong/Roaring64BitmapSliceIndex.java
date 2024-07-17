@@ -407,7 +407,7 @@ public class Roaring64BitmapSliceIndex {
    * @return columnId set we found in this bsi with giving conditions, using RoaringBitmap to express
    * see https://github.com/lemire/BitSliceIndex/blob/master/src/main/java/org/roaringbitmap/circuits/comparator/BasicComparator.java
    */
-  private Roaring64Bitmap oNeilCompare(BitmapSliceIndex.Operation operation, int predicate, Roaring64Bitmap foundSet) {
+  private Roaring64Bitmap oNeilCompare(BitmapSliceIndex.Operation operation, long predicate, Roaring64Bitmap foundSet) {
     Roaring64Bitmap fixedFoundSet = foundSet == null ? this.ebM : foundSet;
 
     Roaring64Bitmap GT = new Roaring64Bitmap();
@@ -416,7 +416,7 @@ public class Roaring64BitmapSliceIndex {
 
 
     for (int i = this.bitCount() - 1; i >= 0; i--) {
-      int bit = (predicate >> i) & 1;
+      int bit = (int) ((predicate >> i) & 1);
       if (bit == 1) {
         LT = Roaring64Bitmap.or(LT, Roaring64Bitmap.andNot(EQ, this.bA[i]));
         EQ = Roaring64Bitmap.and(EQ, this.bA[i]);
@@ -457,7 +457,7 @@ public class Roaring64BitmapSliceIndex {
    * @param foundSet     columnId set we want compare,using RoaringBitmap to express
    * @return columnId set we found in this bsi with giving conditions, using RoaringBitmap to express
    */
-  public Roaring64Bitmap compare(BitmapSliceIndex.Operation operation, int startOrValue, int end, Roaring64Bitmap foundSet) {
+  public Roaring64Bitmap compare(BitmapSliceIndex.Operation operation, long startOrValue, long end, Roaring64Bitmap foundSet) {
     Roaring64Bitmap result = compareUsingMinMax(operation, startOrValue, end, foundSet);
     if (result != null) {
       return result;
@@ -490,7 +490,7 @@ public class Roaring64BitmapSliceIndex {
     }
   }
 
-  private Roaring64Bitmap compareUsingMinMax(BitmapSliceIndex.Operation operation, int startOrValue, int end, Roaring64Bitmap foundSet) {
+  private Roaring64Bitmap compareUsingMinMax(BitmapSliceIndex.Operation operation, long startOrValue, long end, Roaring64Bitmap foundSet) {
     Roaring64Bitmap all = foundSet == null ? ebM.clone() : Roaring64Bitmap.and(ebM, foundSet);
     Roaring64Bitmap empty = new Roaring64Bitmap();
 
