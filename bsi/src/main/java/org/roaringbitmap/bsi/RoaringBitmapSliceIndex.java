@@ -459,9 +459,9 @@ public class RoaringBitmapSliceIndex implements BitmapSliceIndex {
       case LT:
         return RoaringBitmap.and(LT, fixedFoundSet);
       case LE:
-        return RoaringBitmap.or(LT, EQ);
+        return RoaringBitmap.and(RoaringBitmap.or(LT, EQ), fixedFoundSet);
       case GE:
-        return RoaringBitmap.or(GT, EQ);
+        return RoaringBitmap.and(RoaringBitmap.or(GT, EQ), fixedFoundSet);
       default:
         throw new IllegalArgumentException("");
     }
