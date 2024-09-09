@@ -273,6 +273,10 @@ from the org.roaringbitmap.buffer package. They are incompatible. They serialize
 to the same output however. The performance of the code in org.roaringbitmap package is
 generally superior because there is no overhead due to the use of ByteBuffer instances.
 
+Thread safety
+-----
+
+In general, it is unsafe to access the same bitmaps using different threads--the bitmaps are unsynchronized for performance. Should you want to access a Bitmap from more than one thread, you should provide synchronization. However, you can access an immutable bitmap from multiple threads, as long as you abide by the `ImmutableBitmapDataProvider` interface.
 
 Kryo
 -----
