@@ -3386,6 +3386,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
    *
    * @return the number of containers
    */
+  @Override
   public int getContainerCount() {
     return highLowContainer.size();
   }
