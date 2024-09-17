@@ -319,6 +319,14 @@ public interface ImmutableBitmapDataProvider {
   int[] toArray();
 
   /**
+   * Returns the number of containers in the bitmap.
+   *
+   * @return the number of containers
+   */
+  int getContainerCount();
+
+
+  /**
    * An internal class to help provide streams.
    * Sad but true the interface of IntIterator and PrimitiveIterator.OfInt
    * Does not match. Otherwise it would be easier to just make IntIterator

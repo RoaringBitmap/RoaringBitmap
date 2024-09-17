@@ -1588,4 +1588,14 @@ public class TestImmutableRoaringBitmap {
   public void invalidCookie() {
     assertThrows(InvalidRoaringFormat.class, () -> new ImmutableRoaringBitmap(ByteBuffer.allocate(8)));
   }
+  @Test
+  public void testContainerSizeRoaringBitmapMultiple() {
+    ImmutableRoaringBitmap r = ImmutableRoaringBitmap.bitmapOf(1, 1000000);
+    assertEquals(2, r.getContainerCount());
+  }
+  @Test
+  public void testContainerSizeRoaringBitmapSingle() {
+    ImmutableRoaringBitmap r = ImmutableRoaringBitmap.bitmapOf(1);
+    assertEquals(1, r.getContainerCount());
+  }
 }
