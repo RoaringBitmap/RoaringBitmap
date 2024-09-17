@@ -2038,5 +2038,12 @@ public class ImmutableRoaringBitmap
     answer.append('}');
     return answer.toString();
   }
-
+  /**
+   * Returns the number of containers in the bitmap.
+   *
+   * @return the number of containers
+   */
+  public int getContainerCount() {
+    return highLowContainer.size();
+  }
 }

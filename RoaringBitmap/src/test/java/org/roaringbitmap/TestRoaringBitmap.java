@@ -5577,4 +5577,14 @@ public class TestRoaringBitmap {
         }
     }
 
+    @Test
+    public void testContainerSizeRoaringBitmapMultiple() {
+        RoaringBitmap r = RoaringBitmap.bitmapOfRange(1, 1000000);
+        assertEquals(16, r.getContainerCount());
+    }
+    @Test
+    public void testContainerSizeRoaringBitmapSingle() {
+        RoaringBitmap r = RoaringBitmap.bitmapOfRange(1, 100);
+        assertEquals(1, r.getContainerCount());
+    }
 }
