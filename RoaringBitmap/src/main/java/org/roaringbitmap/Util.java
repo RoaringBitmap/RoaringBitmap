@@ -1233,6 +1233,31 @@ public final class Util {
       System.arraycopy(copy, 0, data, 0, data.length);
     }
   }
+
+  /**
+   * It computes the intersection of the containers' keys between given bitmaps.
+   *
+   * @param words bitmap buffer
+   * @param bitmaps bitmaps
+   * @return keys intersection
+   */
+  static char[] intersectKeys(long[] words, RoaringBitmap[] bitmaps) {
+    RoaringBitmap first = bitmaps[0];
+    for (int i = 0; i < first.highLowContainer.size; ++i) {
+      char key = first.highLowContainer.keys[i];
+      words[key >>> 6] |= 1L << key;
+    }
+    int numContainers = first.highLowContainer.size;
+    for (int i = 1; i < bitmaps.length && numContainers > 0; ++i) {
+      numContainers = Util.intersectArrayIntoBitmap(words,
+          bitmaps[i].highLowContainer.keys, bitmaps[i].highLowContainer.size);
+    }
+    if (numContainers == 0) {
+      return new char[0];
+    }
+    return BitSetUtil.arrayContainerBufferOf(0, words.length, numContainers, words);
+  }
+
   /**
    * Private constructor to prevent instantiation of utility class
    */
