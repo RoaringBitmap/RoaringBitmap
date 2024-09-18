@@ -252,6 +252,19 @@ public class RBBsiTest {
 
         result = bsi.compare(BitmapSliceIndex.Operation.GE, 100, 0, null);
         Assertions.assertTrue(result.isEmpty());
+
+        RoaringBitmap foundSet = RoaringBitmap.bitmapOf(51, 52, 53);
+
+        result = bsi.compare(BitmapSliceIndex.Operation.GE, 50, 0, foundSet);
+        Assertions.assertTrue(result.getLongCardinality() == 3);
+        Assertions.assertArrayEquals(IntStream.range(51, 54).toArray(), result.toArray());
+
+        result = bsi.compare(BitmapSliceIndex.Operation.GE, 0, 0, foundSet);
+        Assertions.assertTrue(result.getLongCardinality() == 3);
+        Assertions.assertArrayEquals(IntStream.range(51, 54).toArray(), result.toArray());
+
+        result = bsi.compare(BitmapSliceIndex.Operation.GE, Integer.MAX_VALUE, 0, foundSet);
+        Assertions.assertTrue(result.isEmpty());
     }
 
     @Test
@@ -280,6 +293,19 @@ public class RBBsiTest {
         Assertions.assertArrayEquals(IntStream.range(1, 100).toArray(), result.toArray());
 
         result = bsi.compare(BitmapSliceIndex.Operation.LE, 0, 0, null);
+        Assertions.assertTrue(result.isEmpty());
+
+        RoaringBitmap foundSet = RoaringBitmap.bitmapOf(1, 2, 3);
+
+        result = bsi.compare(BitmapSliceIndex.Operation.LE, 50, 0, foundSet);
+        Assertions.assertTrue(result.getLongCardinality() == 3);
+        Assertions.assertArrayEquals(IntStream.range(1, 4).toArray(), result.toArray());
+
+        result = bsi.compare(BitmapSliceIndex.Operation.LE, Integer.MAX_VALUE, 0, foundSet);
+        Assertions.assertTrue(result.getLongCardinality() == 3);
+        Assertions.assertArrayEquals(IntStream.range(1, 4).toArray(), result.toArray());
+
+        result = bsi.compare(BitmapSliceIndex.Operation.LE, 0, 0, foundSet);
         Assertions.assertTrue(result.isEmpty());
     }
 
