@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -54,7 +55,7 @@ public class TestIterators {
     });
   }
 
-  private static int[] takeSortedAndDistinct(Random source, int count) {
+  private static int[] takeSortedAndDistinct(Random source, int count, Comparator<Integer> comparator) {
     HashSet<Integer> ints = new HashSet<Integer>(count);
     for (int size = 0; size < count; size++) {
       int next;
@@ -63,7 +64,7 @@ public class TestIterators {
       } while (!ints.add(next));
     }
     ArrayList<Integer> list = new ArrayList<Integer>(ints);
-    list.sort(Integer::compareUnsigned);
+    list.sort(comparator);
     return Ints.toArray(list);
   }
 
@@ -86,7 +87,7 @@ public class TestIterators {
   @Test
   public void testIteration() {
     final Random source = new Random(0xcb000a2b9b5bdfb6l);
-    final int[] data = takeSortedAndDistinct(source, 450000);
+    final int[] data = takeSortedAndDistinct(source, 450000, Integer::compareUnsigned);
     RoaringBitmap bitmap = RoaringBitmap.bitmapOf(data);
 
     final List<Integer> iteratorCopy = ImmutableList.copyOf(bitmap.iterator());
@@ -106,41 +107,70 @@ public class TestIterators {
 
   @Test
   public void testSmallIteration() {
-    RoaringBitmap bitmap = RoaringBitmap.bitmapOf(1, 2, 3, -1);
+    RoaringBitmap bitmap = RoaringBitmap.bitmapOf(0, 1, 2, 3, -1, 2147483647, -2147483648);
 
     final List<Integer> iteratorCopy = ImmutableList.copyOf(bitmap.iterator());
     final List<Integer> intIteratorCopy = asList(bitmap.getIntIterator());
     final List<Integer> signedIntIteratorCopy = asList(bitmap.getSignedIntIterator());
     final List<Integer> reverseIntIteratorCopy = asList(bitmap.getReverseIntIterator());
 
-    assertEquals(ImmutableList.of(1, 2, 3, -1), iteratorCopy);
-    assertEquals(ImmutableList.of(1, 2, 3, -1), intIteratorCopy);
-    assertEquals(ImmutableList.of(-1, 1, 2, 3), signedIntIteratorCopy);
-    assertEquals(ImmutableList.of(-1, 3, 2, 1), reverseIntIteratorCopy);
+    assertEquals(ImmutableList.of(0, 1, 2, 3, 2147483647, -2147483648, -1), iteratorCopy);
+    assertEquals(ImmutableList.of(0, 1, 2, 3, 2147483647, -2147483648, -1), intIteratorCopy);
+    assertEquals(ImmutableList.of(-2147483648, -1, 0, 1, 2, 3, 2147483647), signedIntIteratorCopy);
+    assertEquals(ImmutableList.of(-1, -2147483648, 2147483647, 3, 2, 1, 0), reverseIntIteratorCopy);
   }
 
   @Test
   public void testSkips() {
-    final Random source = new Random(0xcb000a2b9b5bdfb6l);
-    final int[] data = takeSortedAndDistinct(source, 45000);
+    final Random source = new Random(0xcb000a2b9b5bdfb6L);
+    final int[] data = takeSortedAndDistinct(source, 45000, Integer::compareUnsigned);
     RoaringBitmap bitmap = RoaringBitmap.bitmapOf(data);
     PeekableIntIterator pii = bitmap.getIntIterator();
-    for(int i = 0; i < data.length; ++i) {
+    for (int i = 0; i < data.length; ++i) {
       pii.advanceIfNeeded(data[i]);
       assertEquals(data[i], pii.peekNext());
     }
     pii = bitmap.getIntIterator();
-    for(int i = 0; i < data.length; ++i) {
+    for (int i = 0; i < data.length; ++i) {
       pii.advanceIfNeeded(data[i]);
       assertEquals(data[i], pii.next());
     }
     pii = bitmap.getIntIterator();
-    for(int i = 1; i < data.length; ++i) {
-      pii.advanceIfNeeded(data[i-1]);
+    for (int i = 1; i < data.length; ++i) {
+      pii.advanceIfNeeded(data[i - 1]);
       pii.next();
-      assertEquals(data[i],pii.peekNext() );
+      assertEquals(data[i], pii.peekNext());
     }
     bitmap.getIntIterator().advanceIfNeeded(-1);// should not crash
+  }
+
+  @Test
+  public void testSkipsSignedIterator() {
+    final Random source = new Random(0xcb000a2b9b5bdfb6L);
+    int[] data = takeSortedAndDistinct(source, 45000, Integer::compare);
+    RoaringBitmap bitmap = RoaringBitmap.bitmapOf(data);
+
+    PeekableIntIterator pii = bitmap.getSignedIntIterator();
+    for (int i = 0; i < data.length; ++i) {
+      pii.advanceIfNeeded(data[i]);
+      assertEquals(data[i], pii.peekNext());
+    }
+    pii = bitmap.getSignedIntIterator();
+    for (int i = data.length - 1; i >= 0; --i) { // no backward advancing
+      pii.advanceIfNeeded(data[i]);
+      assertEquals(data[data.length - 1], pii.peekNext());
+    }
+    pii = bitmap.getSignedIntIterator();
+    for (int i = 0; i < data.length; ++i) {
+      pii.advanceIfNeeded(data[i]);
+      assertEquals(data[i], pii.next());
+    }
+    pii = bitmap.getSignedIntIterator();
+    for (int i = 1; i < data.length; ++i) {
+      pii.advanceIfNeeded(data[i - 1]);
+      pii.next();
+      assertEquals(data[i], pii.peekNext());
+    }
   }
 
   @Test

@@ -2287,6 +2287,13 @@ public class TestRunContainer {
   }
 
   @Test
+  public void testContainsMappeableBitmapContainer_SkipEmptyWords() {
+    MappeableContainer rc = new MappeableRunContainer().add(128, 512);
+    MappeableContainer subset = new MappeableBitmapContainer().add(256, 320);
+    assertTrue(rc.contains(subset));
+  }
+
+  @Test
   public void testContainsMappeableRunContainer_EmptyContainsEmpty() {
     MappeableContainer rc = new MappeableRunContainer();
     MappeableContainer subset = new MappeableRunContainer();

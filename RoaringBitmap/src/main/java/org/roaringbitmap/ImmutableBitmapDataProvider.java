@@ -197,20 +197,32 @@ public interface ImmutableBitmapDataProvider {
   int select(int j);
 
   /**
-   * Get the first (smallest) integer in this RoaringBitmap,
-   * that is, return the minimum of the set.
-   * @return the first (smallest) integer
+   * Get the smallest unsigned (first) integer in this RoaringBitmap.
+   * @return the smallest unsigned (first) integer
    * @throws NoSuchElementException if empty
    */
   int first();
 
   /**
-   * Get the last (largest) integer in this RoaringBitmap,
-   * that is, return the maximum of the set.
-   * @return the last (largest) integer
+   * Get the largest unsigned (last) integer in this RoaringBitmap.
+   * @return the largest unsigned (last) integer
    * @throws NoSuchElementException if empty
    */
   int last();
+
+  /**
+   * Get the smallest signed integer in this RoaringBitmap.
+   * @return the smallest signed integer
+   * @throws NoSuchElementException if empty
+   */
+  int firstSigned();
+
+  /**
+   * Get the largest signed integer in this RoaringBitmap.
+   * @return the largest signed integer
+   * @throws NoSuchElementException if empty
+   */
+  int lastSigned();
 
   /**
    * Returns the first value equal to or larger than the provided value
@@ -305,6 +317,14 @@ public interface ImmutableBitmapDataProvider {
    * @return array representing the set values.
    */
   int[] toArray();
+
+  /**
+   * Returns the number of containers in the bitmap.
+   *
+   * @return the number of containers
+   */
+  int getContainerCount();
+
 
   /**
    * An internal class to help provide streams.

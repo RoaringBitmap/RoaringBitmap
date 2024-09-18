@@ -119,20 +119,34 @@ public class BitSetUtil {
    */
   public static char[] arrayContainerBufferOf(final int from, final int to, final int cardinality,
                                               final long[] words) {
-    // precondition: cardinality is max 4096
-    final char[] content = new char[cardinality];
-    int index = 0;
-
-    for (int i = from, socket = 0; i < to; ++i, socket += Long.SIZE) {
-      long word = words[i];
-      while (word != 0) {
-        content[index++] = (char) (socket + numberOfTrailingZeros(word));
-        word &= (word - 1);
-      }
-    }
-    return content;
+    return arrayContainerBufferOf(from, to, new char[cardinality], words);
   }
 
+  /**
+   * Creates array container's content char buffer.
+   *
+   * @param from        first value of the range
+   * @param to          last value of the range
+   * @param buffer      new buffer, expected to have size less than 4096 and more than present
+   *                    values in given bitmap
+   * @param words       bitmap
+   * @return array container's content char buffer - the same as {@code buffer}
+   */
+  public static char[] arrayContainerBufferOf(final int from, final int to, final char[] buffer,
+                                              final long[] words) {
+    // precondition: cardinality is max 4096
+    int base = 0;
+    int pos = 0;
+    for (int i = from; i < to; i++) {
+      long word = words[i];
+      while (word != 0L) {
+        buffer[pos++] = (char) (base + numberOfTrailingZeros(word));
+        word &= (word - 1);
+      }
+      base += 64;
+    }
+    return buffer;
+  }
   private static ArrayContainer arrayContainerOf(final int from, final int to,
                                                  final int cardinality, final long[] words) {
     return new ArrayContainer(arrayContainerBufferOf(from, to, cardinality, words));

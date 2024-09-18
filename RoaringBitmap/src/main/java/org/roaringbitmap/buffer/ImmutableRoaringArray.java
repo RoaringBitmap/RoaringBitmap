@@ -493,8 +493,32 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     return lastKey << 16 | container.last();
   }
 
+  @Override
+  public int firstSigned() {
+    assertNonEmpty();
+    int index = advanceUntil((char) (1 << 15), -1);
+    if (index == size) { // no negatives
+      index = 0;
+    }
+    char key = getKeyAtIndex(index);
+    MappeableContainer container = getContainerAtIndex(index);
+    return key << 16 | container.first();
+  }
+
+  @Override
+  public int lastSigned() {
+    assertNonEmpty();
+    int index = advanceUntil((char) (1 << 15), -1) - 1;
+    if (index == -1) { // no positives
+      index += size;
+    }
+    char key = getKeyAtIndex(index);
+    MappeableContainer container = getContainerAtIndex(index);
+    return key << 16 | container.last();
+  }
+
   private void assertNonEmpty() {
-    if(size == 0) {
+    if (size == 0) {
       throw new NoSuchElementException("Empty ImmutableRoaringArray");
     }
   }

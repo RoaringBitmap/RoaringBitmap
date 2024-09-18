@@ -26,6 +26,10 @@ public class KeyIterator implements Iterator<byte[]> {
     return current.getKeyBytes();
   }
 
+  public byte[] peekNext() {
+    return leafNodeIterator.peekNext().getKeyBytes();
+  }
+
   public long nextKey() {
     return current.getKey();
   }
@@ -34,6 +38,7 @@ public class KeyIterator implements Iterator<byte[]> {
     return current.getContainerIdx();
   }
 
+  @Override
   public void remove() {
     leafNodeIterator.remove();
   }

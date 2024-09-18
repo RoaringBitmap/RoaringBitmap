@@ -8,6 +8,8 @@ package org.roaringbitmap.buffer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.roaringbitmap.*;
 
 import java.io.DataOutputStream;
@@ -1405,6 +1407,34 @@ public class TestImmutableRoaringBitmap {
   }
 
   @Test
+  public void testFirstLastSigned() {
+    MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(1_111_111, 3_333_333);
+
+    assertEquals(1_111_111, bitmap.firstSigned());
+    assertEquals(3_333_333, bitmap.lastSigned());
+
+    bitmap = MutableRoaringBitmap.bitmapOf(-3_333_333, 3_333_333);
+    assertEquals(-3_333_333, bitmap.firstSigned());
+    assertEquals(3_333_333, bitmap.lastSigned());
+
+    bitmap = MutableRoaringBitmap.bitmapOf(-3_333_333, -1_111_111);
+    assertEquals(-3_333_333, bitmap.firstSigned());
+    assertEquals(-1_111_111, bitmap.lastSigned());
+
+    bitmap = MutableRoaringBitmap.bitmapOfRange(0, 1L << 32);
+    assertEquals(Integer.MIN_VALUE, bitmap.firstSigned());
+    assertEquals(Integer.MAX_VALUE, bitmap.lastSigned());
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {Integer.MIN_VALUE, -65_536, 0, 65_536, Integer.MAX_VALUE})
+  public void testFirstLastSigned_SingleValueBitmap(int value) {
+    MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(value);
+    assertEquals(value, bitmap.firstSigned());
+    assertEquals(value, bitmap.lastSigned());
+  }
+
+  @Test
   public void testContainsRange_ContiguousBitmap() {
     MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
     bitmap.add(0L, 1_000_000L);
@@ -1498,6 +1528,23 @@ public class TestImmutableRoaringBitmap {
   }
 
   @Test
+  public void testPreviousValue_AbsentTargetContainer() {
+    MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(-1, 2, 3, 131072);
+    assertEquals(3, bitmap.previousValue(65536));
+    assertEquals(131072, bitmap.previousValue(Integer.MAX_VALUE));
+    assertEquals(131072, bitmap.previousValue(-131072));
+
+    bitmap = MutableRoaringBitmap.bitmapOf(131072);
+    assertEquals(-1, bitmap.previousValue(65536));
+  }
+
+  @Test
+  public void testPreviousValue_LastReturnedAsUnsignedLong() {
+    MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(-650002, -650001, -650000);
+    assertEquals(Util.toUnsignedLong(-650000), bitmap.previousValue(-1));
+  }
+
+  @Test
   public void testRangeCardinalityAtBoundary() {
     // See https://github.com/RoaringBitmap/RoaringBitmap/issues/285
     MutableRoaringBitmap r = new MutableRoaringBitmap();
@@ -1540,5 +1587,15 @@ public class TestImmutableRoaringBitmap {
   @Test
   public void invalidCookie() {
     assertThrows(InvalidRoaringFormat.class, () -> new ImmutableRoaringBitmap(ByteBuffer.allocate(8)));
+  }
+  @Test
+  public void testContainerSizeRoaringBitmapMultiple() {
+    ImmutableRoaringBitmap r = ImmutableRoaringBitmap.bitmapOf(1, 1000000);
+    assertEquals(2, r.getContainerCount());
+  }
+  @Test
+  public void testContainerSizeRoaringBitmapSingle() {
+    ImmutableRoaringBitmap r = ImmutableRoaringBitmap.bitmapOf(1);
+    assertEquals(1, r.getContainerCount());
   }
 }
