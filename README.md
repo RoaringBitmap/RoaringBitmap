@@ -37,6 +37,7 @@ This library is used by
 *   [SirixDB](https://sirix.io)
 *   [EvitaDB](https://evitadb.io/)
 *   [Apache Iceberg](https://iceberg.apache.org/)
+*   [Apache Pulsar](https://pulsar.apache.org/)
 
 
 The YouTube SQL Engine, [Google Procella](https://research.google/pubs/pub48388/), uses Roaring bitmaps for indexing. [Apache Lucene](http://lucene.apache.org/) uses  Roaring bitmaps, though they have their own [independent implementation](https://svn.apache.org/viewvc/lucene/dev/branches/branch_5x/lucene/core/src/java/org/apache/lucene/util/RoaringDocIdSet.java?view=markup&pathrev=1629606). Derivatives of Lucene such as Solr and Elastic also use Roaring bitmaps.
