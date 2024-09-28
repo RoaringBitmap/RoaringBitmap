@@ -1185,6 +1185,7 @@ public final class Util {
   public static long toUnsignedLong(int x) {
     return ((long) x) & 0xffffffffL;
   }
+
   /**
    * Sorts the data by the 16 bit prefix using Radix sort.
    * The resulting data will be partially sorted if you just
@@ -1194,6 +1195,21 @@ public final class Util {
    * @param data - the data (sorted in place)
    */
   public static void partialRadixSort(int[] data) {
+    partialRadixSortWithLength(data, data.length);
+  }
+
+  /**
+   * Sorts the data by the 16 bit prefix using Radix sort.
+   * The resulting data will be partially sorted if you just
+   * take into account the most significant 16 bits. The least
+   * significant 16 bits are unsorted. Note that we treat int values
+   * as unsigned integers (from 0 to 2^32).
+   * Note that the length argument passed in is not checked.
+   *
+   * @param data - the data (sorted in place)
+   * @param length - the size of the data that needs to be sorted
+   */
+  public static void partialRadixSortWithLength(int[] data, int length) {
     int[] low = new int[257];
     int[] high = new int[257];
     for (int value : data) {
@@ -1201,12 +1217,12 @@ public final class Util {
       ++high[(value >>> 24) + 1];
     }
     // avoid passes over the data if it's not required
-    boolean sortLow = low[1] < data.length;
-    boolean sortHigh = high[1] < data.length;
+    boolean sortLow = low[1] < length;
+    boolean sortHigh = high[1] < length;
     if (!sortLow && !sortHigh) {
       return;
     }
-    int[] copy = new int[data.length];
+    int[] copy = new int[length];
     if (sortLow) {
       for (int i = 1; i < low.length; ++i) {
         low[i] += low[i - 1];
@@ -1227,10 +1243,10 @@ public final class Util {
         for (int value : data) {
           copy[high[value >>> 24]++] = value;
         }
-        System.arraycopy(copy, 0, data, 0, data.length);
+        System.arraycopy(copy, 0, data, 0, length);
       }
     } else {
-      System.arraycopy(copy, 0, data, 0, data.length);
+      System.arraycopy(copy, 0, data, 0, length);
     }
   }
 
