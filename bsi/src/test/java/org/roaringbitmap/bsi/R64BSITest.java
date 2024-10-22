@@ -370,8 +370,6 @@ public class R64BSITest {
 
   @Test
   public void testIssue743() throws IOException {
-    System.out.println("testIssue743");
-    System.out.println("FUCK");
     Roaring64BitmapSliceIndex bsi = new Roaring64BitmapSliceIndex();
     bsi.setValue(100L, 3L);
     bsi.setValue(1L, 392L);
