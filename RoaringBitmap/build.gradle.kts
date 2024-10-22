@@ -13,13 +13,6 @@ buildscript {
 // files with Java 8 compatibility
 apply(plugin = "org.javamodularity.moduleplugin")
 
-// Work around
-// https://github.com/java9-modularity/gradle-modules-plugin/issues/220
-// by excluding module-info.class from non-executable JARs.
-tasks.named<Jar>("javadocJar") {
-    exclude("module-info.class")
-}
-
 tasks.named<Jar>("sourcesJar") {
     exclude("module-info.class")
 }
