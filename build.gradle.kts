@@ -23,7 +23,19 @@ subprojects {
     }
 
     apply(plugin = "java-library")
-
+    apply(plugin = "maven-publish")
+    publishing {
+        repositories {
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/RoaringBitmap/RoaringBitmap")
+                credentials {
+                    username = System.getenv("GITHUB_ACTOR")
+                    password = System.getenv("GITHUB_TOKEN")
+                }
+            }
+        }
+    }
     repositories {
         mavenCentral()
     }
@@ -91,15 +103,3 @@ release {
     tagTemplate = "\$version"
 }
 	
-publishing {
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/RoaringBitmap/RoaringBitmap")
-            credentials {
-                username = System.getenv("GITHUB_ACTOR")
-                password = System.getenv("GITHUB_TOKEN")
-            }
-        }
-    }
-}
