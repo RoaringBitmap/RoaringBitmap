@@ -17,9 +17,9 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
       - name: Build with Gradle
-        run: ./gradlew build -x test
+        run: ./gradlew build -x test -i
       - name: Publish package
-        run: ./gradlew publish
+        run: ./gradlew publish -i 
         env:
           GITHUB_USER: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
