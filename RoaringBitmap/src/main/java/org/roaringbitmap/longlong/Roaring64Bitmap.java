@@ -878,6 +878,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    */
   @Override
   public void serialize(DataOutput out) throws IOException {
+    System.out.println("Roaring64Bitmap.serialize");
     highLowContainer.serialize(out);
   }
 

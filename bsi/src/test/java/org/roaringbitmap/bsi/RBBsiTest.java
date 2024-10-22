@@ -355,5 +355,21 @@ public class RBBsiTest {
         Assertions.assertTrue(result.getLongCardinality() == 1);
         Assertions.assertArrayEquals(new int[]{2}, result.toArray());
     }
+  @Test
+  public void testIssue743() throws IOException {
+    RoaringBitmapSliceIndex bsi = new RoaringBitmapSliceIndex();
+    bsi.setValue(100, 3);
+    bsi.setValue(1, 392);
+    System.out.println(bsi.getValue(100));
+    System.out.println(bsi.getValue(1));
+
+    ByteBuffer buffer = ByteBuffer.allocate(bsi.serializedSizeInBytes());
+    bsi.serialize(buffer);
+
+    RoaringBitmapSliceIndex de_bsi = new RoaringBitmapSliceIndex();
+    de_bsi.deserialize(ByteBuffer.wrap(buffer.array()));
+    Assertions.assertEquals(de_bsi.getValue(100), bsi.getValue(100));
+    Assertions.assertEquals(de_bsi.getValue(1), bsi.getValue(1));
+  }
 }
 

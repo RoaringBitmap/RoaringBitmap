@@ -257,7 +257,7 @@ public class Roaring64BitmapSliceIndex {
     Roaring64Bitmap ebm = new Roaring64Bitmap();
     ebm.deserialize(buffer);
     this.ebM = ebm;
-    // read ba
+    // read back
     buffer.position(buffer.position() + ebm.getSizeInBytes());
     int bitDepth = buffer.getInt();
     Roaring64Bitmap[] ba = new Roaring64Bitmap[bitDepth];
