@@ -366,5 +366,23 @@ public class R64BSITest {
     Assertions.assertEquals(re.getValue(4).getKey(), 2);
     Assertions.assertEquals(re.getValue(8).getKey(), 2);
   }
+
+
+  @Test
+  public void testIssue743() throws IOException {
+    Roaring64BitmapSliceIndex bsi = new Roaring64BitmapSliceIndex();
+    bsi.setValue(100L, 3L);
+    bsi.setValue(1L, 392L);
+    System.out.println(bsi.getValue(100L));
+    System.out.println(bsi.getValue(1L));
+
+    ByteBuffer buffer = ByteBuffer.allocate(bsi.serializedSizeInBytes());
+    bsi.serialize(buffer);
+
+    Roaring64BitmapSliceIndex de_bsi = new Roaring64BitmapSliceIndex();
+    de_bsi.deserialize(ByteBuffer.wrap(buffer.array()));
+    Assertions.assertEquals(de_bsi.getValue(100L), bsi.getValue(100L));
+    Assertions.assertEquals(de_bsi.getValue(1L), bsi.getValue(1L));
+  }
 }
 
