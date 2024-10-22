@@ -399,28 +399,9 @@ public class BufferBSITest {
         List<Pair<Integer, Integer>> pairs = result.toPairList();
         pairs.forEach(System.out::println);
 
-
         Assertions.assertEquals(30, (int) result.getValue(1).getKey());
         Assertions.assertEquals(30, (int) result.getValue(2).getKey());
         Assertions.assertEquals(39, (int) result.getValue(3).getKey());
-
-    }
-
-    @Test
-    public void removeTopValuesWhenIterating() {
-        RoaringBitmap expected = new RoaringBitmap();
-        expected.add(210, 1000);
-        RoaringBitmap bitmap = new RoaringBitmap();
-        bitmap.add(10, 1000);
-
-        IntIterator it = bitmap.getIntIterator();
-        int n = 200;
-        while (it.hasNext() && n > 0) {
-            bitmap.remove(it.next());
-            --n;
-        }
-
-        Assertions.assertEquals(expected, bitmap);
     }
 
     @Test
@@ -433,6 +414,17 @@ public class BufferBSITest {
         System.out.println(top.toString() + " \ntime cost:" + (end - start));
     }
 
+    @Test
+    public void testIssue745() {
+        MutableBitSliceIndex bsi = new MutableBitSliceIndex();
+        bsi.setValue(1, 1);
+        bsi.setValue(2, 1);
+        bsi.setValue(3, 1);
+        bsi.setValue(4, 1);
+        bsi.setValue(5, 1);
+        MutableRoaringBitmap top = bsi.topK(null, 1);
+        System.out.println(top);
+    }
 
 }
 

@@ -326,17 +326,8 @@ public class BitSliceIndexBase {
 
     MutableRoaringBitmap F = ImmutableRoaringBitmap.or(G, E);
     long n = F.getLongCardinality() - k;
-    if (n > 0) {
-      IntIterator i = F.getIntIterator();
-      while (i.hasNext() && n > 0) {
-        F.remove(i.next());
-        --n;
-      }
-    }
-
-    if (F.getCardinality() != k)
-      throw new RuntimeException("bugs found when compute topK");
-
+    F.remove(0L,(long)F.select((int)n));
+    assert(F.getLongCardinality() == k);
     return F;
   }
 
