@@ -419,24 +419,6 @@ Download
 You can download releases from github:
 https://github.com/RoaringBitmap/RoaringBitmap/releases
 
-Maven repository
-----------------
-If your project depends on roaring, you  can  specify the dependency in the Maven "pom.xml" file:
-
-```xml
-        <dependencies>
-          <dependency>
-            <groupId>org.roaringbitmap</groupId>
-            <artifactId>RoaringBitmap</artifactId>
-            <version>0.9.9</version>
-          </dependency>
-        </dependencies>
-```
-
-where you should replace the version number by the version you require.
-
-[For up-to-date releases, we recommend configuring maven and gradle to depend on the Jitpack repository](https://jitpack.io/#RoaringBitmap/RoaringBitmap).
-
 Usage
 ------
 
