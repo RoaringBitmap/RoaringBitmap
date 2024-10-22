@@ -5,6 +5,20 @@ plugins {
     id("net.researchgate.release") version "2.8.1"
     id("io.github.gradle-nexus.publish-plugin") version "1.0.0"
     id("com.github.ben-manes.versions") version "0.38.0"
+    id("maven-publish")
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/RoaringBitmap/RoaringBitmap")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
 }
 
 // some parts of the Kotlin DSL don't work inside a `subprojects` block yet, so we do them the old way
@@ -149,9 +163,9 @@ subprojects.filter { listOf("RoaringBitmap", "bsi").contains(it.name) }.forEach 
             }
         }
 
-        rootProject.tasks.afterReleaseBuild {
-            dependsOn(provider { project.tasks.named("publishToSonatype") })
-        }
+        //rootProject.tasks.afterReleaseBuild {
+        //    dependsOn(provider { project.tasks.named("publishToSonatype") })
+        //}
     }
 }
 
