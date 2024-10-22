@@ -4,7 +4,7 @@ import java.time.Duration
 plugins {
     id("net.researchgate.release") version "2.8.1"
     id("com.github.ben-manes.versions") version "0.38.0"
-    id("com.vanniktech.maven.publish") version "0.30.0"
+    id("maven-publish")
 }
 
 
@@ -90,17 +90,16 @@ release {
     // instead of just 0.1.0 or v0.1.0.
     tagTemplate = "\$version"
 }
-
+	
 publishing {
     repositories {
         maven {
-            name = "githubPackages"
+            name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/RoaringBitmap/RoaringBitmap")
-            // username and password (a personal Github access token) should be specified as
-            // `githubPackagesUsername` and `githubPackagesPassword` Gradle properties or alternatively
-            // as `ORG_GRADLE_PROJECT_githubPackagesUsername` and `ORG_GRADLE_PROJECT_githubPackagesPassword`
-            // environment variables
-            credentials(PasswordCredentials::class)
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
         }
     }
 }
