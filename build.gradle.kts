@@ -149,10 +149,10 @@ subprojects.filter { listOf("RoaringBitmap", "bsi").contains(it.name) }.forEach 
             }
         }
 
-        // releasing should publish
-        rootProject.tasks.afterReleaseBuild {
-            dependsOn(provider { project.tasks.named("publishToSonatype") })
-        }
+        // releasing should publish (As of Oct 22 2024 this fails. We will rely on GitHub CI for releases.)
+        //rootProject.tasks.afterReleaseBuild {
+        //    dependsOn(provider { project.tasks.named("publishToSonatype") })
+        //}
     }
 }
 
