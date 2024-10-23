@@ -24,6 +24,10 @@ subprojects {
 
     apply(plugin = "java-library")
 
+    repositories {
+        mavenCentral()
+    }
+
     group = "org.roaringbitmap"
 
     tasks {
