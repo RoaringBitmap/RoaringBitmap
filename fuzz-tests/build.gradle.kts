@@ -1,7 +1,7 @@
 val deps: Map<String, String> by extra
 
 dependencies {
-    implementation(project(":RoaringBitmap"))
+    implementation(project(":roaringbitmap"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:${deps["jupiter"]}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${deps["jupiter"]}")
     testImplementation("com.google.guava:guava:${deps["guava"]}")

@@ -30,7 +30,7 @@ dependencies {
 
     // tests and benchmarks both need dependencies: javaEWAH, extendedset, etc.
     listOf(
-            project(":RoaringBitmap"),
+            project(":roaringbitmap"),
             project(":bsi"),
             "com.google.guava:guava:${deps["guava"]}",
             "com.googlecode.javaewah:JavaEWAH:1.0.8",
@@ -67,8 +67,8 @@ tasks.test {
     if (!project.hasProperty("roaringbitmap.jmh")) {
         exclude("**")
     } else {
-        // stop these tests from running before RoaringBitmap
-        shouldRunAfter(project(":RoaringBitmap").tasks.test)
+        // stop these tests from running before roaringbitmap
+        shouldRunAfter(project(":roaringbitmap").tasks.test)
         useJUnitPlatform()
         failFast = true
     }

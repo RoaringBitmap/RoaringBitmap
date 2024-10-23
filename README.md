@@ -508,7 +508,7 @@ You can also run specific benchmarks...
 Mailing list/discussion group
 -----------------------------
 
-https://groups.google.com/forum/#!forum/roaring-bitmaps
+https://groups.google.com/forum/#!forum/roaringbitmaps
 
 Funding
 ----------

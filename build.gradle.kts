@@ -56,7 +56,7 @@ subprojects {
     }
 }
 
-subprojects.filter { listOf("RoaringBitmap", "bsi").contains(it.name) }.forEach { project ->
+subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach { project ->
     project.run {
         apply(plugin = "maven-publish")
         configure<JavaPluginExtension> {
@@ -145,7 +145,7 @@ tasks {
 }
 
 release {
-    // for some odd reason, we used to have our tags be of the form RoaringBitmap-0.1.0
+    // for some odd reason, we used to have our tags be of the form roaringbitmap-0.1.0
     // instead of just 0.1.0 or v0.1.0.
     tagTemplate = "\$version"
 }

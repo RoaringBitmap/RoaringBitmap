@@ -1,5 +1,5 @@
 include(
-        "RoaringBitmap",
+        "roaringbitmap",
         "bsi",
         "fuzz-tests",
         "jmh",
