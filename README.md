@@ -39,6 +39,7 @@ This library is used by
 *   [Apache Iceberg](https://iceberg.apache.org/)
 *   [Apache Pulsar](https://pulsar.apache.org/)
 
+The library is mature and has been used in production for many years.
 
 The YouTube SQL Engine, [Google Procella](https://research.google/pubs/pub48388/), uses Roaring bitmaps for indexing. [Apache Lucene](http://lucene.apache.org/) uses  Roaring bitmaps, though they have their own [independent implementation](https://svn.apache.org/viewvc/lucene/dev/branches/branch_5x/lucene/core/src/java/org/apache/lucene/util/RoaringDocIdSet.java?view=markup&pathrev=1629606). Derivatives of Lucene such as Solr and Elastic also use Roaring bitmaps.
 Other platforms such as [Whoosh](https://pypi.python.org/pypi/Whoosh/), [Microsoft Visual Studio Team Services (VSTS)](https://www.visualstudio.com/team-services/) and [Pilosa](https://github.com/pilosa/pilosa) also use Roaring bitmaps with their own implementations. You find Roaring bitmaps in [InfluxDB](https://www.influxdata.com), [Bleve](http://www.blevesearch.com), [Cloud Torrent](https://github.com/jpillora/cloud-torrent), [Redpanda](https://github.com/redpanda-data/redpanda), and so forth.
@@ -265,7 +266,7 @@ generate a RoaringBitmap which lies in RAM. As the name suggest, the
 ImmutableRoaringBitmap itself cannot be modified.
 
 
-This design was inspired by Druid.
+This design was inspired by Apache Druid.
 
 One can find a complete working example in the test file TestMemoryMapping.java.
 
@@ -410,8 +411,6 @@ Prerequisites
  - Version 0.6.x requires JDK 7 or better
  - Version 0.5.x requires JDK 6 or better
 
-To build the project you need maven (version 3).
-
 
 Download
 ---------
@@ -435,10 +434,10 @@ Usage
 IntelliJ and Eclipse
 --------
 
-If you plan to contribute to RoaringBitmap, you can have load
+If you plan to contribute to RoaringBitmap, you can load
 it up in your favorite IDE.
 - For IntelliJ, in the IDE create a new project, possibly from existing sources, choose import, gradle.
-- For Eclipse: File, Import, Existing Gradle Projects, Select RoaringBitmap on my disk
+- For Eclipse: File, Import, Existing Gradle Projects, Select RoaringBitmap from your disk.
 
 Contributing
 ------------
