@@ -10,6 +10,10 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: main
+      - name: Rename directory
+        run: mv main/RoaringBitmap roaring
       - uses: actions/setup-java@v4
         with:
           java-version: '11'
@@ -18,8 +22,10 @@ jobs:
         uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
       - name: Build with Gradle
         run: ./gradlew build -x test -i
+        working-directory: ./roaring
       - name: Publish package
-        run: ./gradlew publish -i 
+        run: ./gradlew publishSonatypePublicationToGitHubPackagesRepository -i
+        working-directory: ./roaring
         env:
           GITHUB_USER: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
