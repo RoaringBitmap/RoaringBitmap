@@ -86,7 +86,6 @@ tasks.named<Jar>("jar") {
 
 tasks.test {
     systemProperty("kryo.unsafe", "false")
-    mustRunAfter(tasks.checkstyleMain)
     useJUnitPlatform()
     failFast = true
 
