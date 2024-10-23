@@ -428,7 +428,6 @@ Usage
 * ``./gradlew test `` will run the tests
 * ``./gradlew :roaringbitmap:test --tests TestIterators.testIndexIterator4`` runs just the test `TestIterators.testIndexIterator4`; `./gradlew -i :roaringbitmap:test --tests TestRoaringBitmap.issue623` runs just the test `issue623` in the class ` TestRoaringBitmap` while printing out to the console.
 * ``./gradlew  bsi:test --tests BufferBSITest.testEQ``  run just the test `BufferBSITest.testEQ` in the `bsi` submodule
-* ``./gradlew checkstyleMain`` will check that you abide by the code style and that the code compiles. We enforce a strict style so that there is no debate as to the proper way to format the code.
 
 
 IntelliJ and Eclipse
@@ -442,9 +441,8 @@ it up in your favorite IDE.
 Contributing
 ------------
 
-Contributions are invited. We enforce the Google Java style.
-Please run  ``./gradlew checkstyleMain`` on your code before submitting
-a patch.
+Contributions are invited. We use the Google Java style (see `roaring_google_checks.xml`).
+Please do not reformat the code needlessly.
 
 FAQ
 ----

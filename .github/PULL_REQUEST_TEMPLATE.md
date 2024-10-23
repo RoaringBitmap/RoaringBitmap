@@ -6,4 +6,3 @@
 ### Automated Checks
 
 - [ ] I have run `./gradlew test` and made sure that my PR does not break any unit test.
-- [ ] I have run `./gradlew checkstyleMain` or the equivalent and corrected the formatting warnings reported.

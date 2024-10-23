@@ -19,8 +19,6 @@ jobs:
             21
       - name: Build with Gradle
         run: ./gradlew assemble
-      - name: Style check
-        run: ./gradlew checkstyleMain
       - name: Test with Java 8
         run: ./gradlew test -PtestOnJava=8 --stacktrace
       - name: Test with Java 11

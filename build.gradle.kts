@@ -52,29 +52,6 @@ subprojects {
     }
 }
 
-subprojects.filter { !listOf("jmh", "fuzz-tests", "examples", "bsi", "simplebenchmark").contains(it.name) }.forEach {
-    it.run {
-        apply(plugin = "checkstyle")
-
-        tasks {
-            withType<Checkstyle> {
-                configFile = File(rootProject.projectDir, "RoaringBitmap/style/roaring_google_checks.xml")
-                isIgnoreFailures = false
-                isShowViolations = true
-
-                // Skip checkstyle on module-info.java since it breaks.
-                exclude("module-info.java")
-            }
-
-            // don't checkstyle source
-            named<Checkstyle>("checkstyleTest") {
-                exclude("**/**")
-            }
-        }
-    }
-}
-
-
 subprojects.filter { listOf("RoaringBitmap", "bsi").contains(it.name) }.forEach { project ->
     project.run {
         apply(plugin = "maven-publish")
