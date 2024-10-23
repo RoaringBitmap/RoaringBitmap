@@ -180,7 +180,6 @@ public class HighLowContainer {
         : buffer.slice().order(LITTLE_ENDIAN);
     if (art.isEmpty()) {
       byteBuffer.put(EMPTY_TAG);
-      byteBuffer.position();
       buffer.position(buffer.position() + byteBuffer.position());
       return;
     } else {
