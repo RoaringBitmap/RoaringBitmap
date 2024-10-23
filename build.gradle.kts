@@ -23,22 +23,6 @@ subprojects {
     }
 
     apply(plugin = "java-library")
-    apply(plugin = "maven-publish")
-    publishing {
-        repositories {
-            maven {
-                name = "GitHubPackages"
-                url = uri("https://maven.pkg.github.com/RoaringBitmap/RoaringBitmap")
-                credentials {
-                    username = System.getenv("GITHUB_ACTOR")
-                    password = System.getenv("GITHUB_TOKEN")
-                }
-            }
-        }
-    }
-    repositories {
-        mavenCentral()
-    }
 
     group = "org.roaringbitmap"
 
@@ -87,6 +71,88 @@ subprojects.filter { !listOf("jmh", "fuzz-tests", "examples", "bsi", "simplebenc
                 exclude("**/**")
             }
         }
+    }
+}
+
+
+subprojects.filter { listOf("RoaringBitmap", "bsi").contains(it.name) }.forEach { project ->
+    project.run {
+        apply(plugin = "maven-publish")
+        configure<JavaPluginExtension> {
+            withSourcesJar()
+            withJavadocJar()
+        }
+
+        configure<PublishingExtension> {
+            publications {
+                register<MavenPublication>("sonatype") {
+                    groupId = project.group.toString()
+                    artifactId = project.name
+                    version = project.version.toString()
+
+                    from(components["java"])
+
+                    // requirements for maven central
+                    // https://central.sonatype.org/pages/requirements.html
+                    pom {
+                        name.set("${project.group}:${project.name}")
+                        description.set("Roaring bitmaps are compressed bitmaps (also called bitsets) which tend to outperform conventional compressed bitmaps such as WAH or Concise.")
+                        url.set("https://github.com/RoaringBitmap/RoaringBitmap")
+                        issueManagement {
+                            system.set("GitHub Issue Tracking")
+                            url.set("https://github.com/RoaringBitmap/RoaringBitmap/issues")
+                        }
+                        licenses {
+                            license {
+                                name.set("Apache 2")
+                                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                                distribution.set("repo")
+                            }
+                        }
+                        developers {
+                            developer {
+                                id.set("lemire")
+                                name.set("Daniel Lemire")
+                                email.set("lemire@gmail.com")
+                                url.set("http://lemire.me/en/")
+                                roles.addAll("architect", "developer", "maintainer")
+                                timezone.set("-5")
+                                properties.put("picUrl", "http://lemire.me/fr/images/JPG/profile2011B_152.jpg")
+                            }
+                        }
+                        scm {
+                            connection.set("scm:git:https://github.com/RoaringBitmap/RoaringBitmap.git")
+                            developerConnection.set("scm:git:https://github.com/RoaringBitmap/RoaringBitmap.git")
+                            url.set("https://github.com/RoaringBitmap/RoaringBitmap")
+                        }
+                    }
+                }
+            }
+
+             // A safe throw-away place to publish to:
+            // ./gradlew publishSonatypePublicationToLocalDebugRepository -Pversion=foo
+            repositories {
+                maven {
+                    name = "localDebug"
+                    url = project.buildDir.toPath().resolve("repos").resolve("localDebug").toUri()
+                }
+            }
+
+            // ./gradlew publishSonatypePublicationToGitHubPackagesRepository
+            repositories {
+                maven {
+                    name = "GitHubPackages"
+                    url = uri("https://maven.pkg.github.com/RoaringBitmap/RoaringBitmap")
+                    credentials {
+                        username = System.getenv("GITHUB_ACTOR")
+                        password = System.getenv("GITHUB_TOKEN")
+                    }
+                }
+            }
+
+        }
+
+
     }
 }
 
