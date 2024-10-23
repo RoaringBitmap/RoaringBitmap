@@ -11,14 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          path: main
-      - name: Rename directory
-        run: mv main/RoaringBitmap roaring
-      - name: List content
-        run: ls -la
-      - name: List content roaring
-        run: ls -la
-        working-directory: ./roaring
+          path: roaring
       - uses: actions/setup-java@v4
         with:
           java-version: '11'
