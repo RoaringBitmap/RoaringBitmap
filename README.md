@@ -636,11 +636,16 @@ application, you might be better served with a conventional bitset (e.g., Java's
 Benchmark
 -----------
 
-To run JMH benchmarks, use the following command:
+To run JMH benchmarks, use the following commands:
 
-         $ ./gradlew jmhJar
+         $ ./gradlew jmh::shadowJar
+         $ java -jar jmh/build/libs/benchmarks.jar
 
-You can also run specific benchmarks...
+You can also run a specific benchmark:
+
+         $ java -jar jmh/build/libs/benchmarks.jar 'org.roaringbitmap.aggregation.and.identical.*'
+
+If you have a bash shell, you can also run our script which automatically builds and run specific tests...
 
          $ ./jmh/run.sh 'org.roaringbitmap.aggregation.and.identical.*'
 

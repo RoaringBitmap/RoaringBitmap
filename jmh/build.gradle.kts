@@ -74,7 +74,6 @@ tasks.test {
     }
 }
 
-
 // jmhJar task provided by jmh gradle plugin is currently broken
 // https://github.com/melix/jmh-gradle-plugin/issues/97
 // so instead, we configure the shadowJar task to have JMH bits in it
