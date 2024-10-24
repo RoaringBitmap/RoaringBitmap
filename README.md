@@ -217,6 +217,36 @@ https://github.com/RoaringBitmap/RoaringBitmap/releases
 Usage within a Maven project
 ---------
 
+### 1. Using JitPack
+
+
+Add the following dependency to your pom.xml file...
+
+```xml
+	<dependency>
+	    <groupId>com.github.RoaringBitmap.RoaringBitmap</groupId>
+	    <artifactId>roaringbitmap</artifactId>
+	    <version>1.3.15</version>
+	</dependency>
+```
+
+You may adjust the version number.
+
+Then add the repository to your pom.xml file:
+
+```xml
+<repositories>
+		<repository>
+		    <id>jitpack.io</id>
+		    <url>https://jitpack.io</url>
+		</repository>
+</repositories>
+```
+See https://github.com/RoaringBitmap/JitPackRoaringBitmapProject for a complete example.
+
+
+### 2. Using GitHub Packages
+
 Add the following dependency to your `pom.xml` file inside the `<dependencies>` element...
 
 ```xml
@@ -269,8 +299,40 @@ you just generated.
 Usage within a gradle project
 ------------------
 
+### 1. Using JitPack
 
-The approach with gradle is similar. You still need your GitHub credentials. Go
+Then all you need is to edit your `build.gradle` file like so:
+
+
+```groovy
+plugins {
+    id 'java'
+}
+
+group 'org.roaringbitmap' // name of your project
+version '1.0-SNAPSHOT' // version of your project
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://jitpack.io'
+    }
+}
+
+dependencies {
+    implementation 'com.github.RoaringBitmap.RoaringBitmap:roaringbitmap:1.3.15'
+    testImplementation 'junit:junit:3.8.1'
+}
+```
+
+
+See https://github.com/RoaringBitmap/JitPackRoaringBitmapProject for a complete example.
+
+
+### 2. Using GitHub Packages
+
+
+You first need your GitHub credentials. Go
 to 
 
 ```
@@ -296,7 +358,7 @@ githubUser=lemire
 githubPassword=ghp_ieOkN
 ```
 
-Then all you need is the following `build.gradle` file:
+Then all you need is to edit your `build.gradle` file like so:
 
 ```groovy
 plugins {
@@ -322,6 +384,9 @@ dependencies {
     testImplementation 'junit:junit:3.8.1'
 }
 ```
+
+See https://github.com/RoaringBitmap/MavenRoaringBitmapProject for a complete example.
+
 
 
 Scientific Documentation
