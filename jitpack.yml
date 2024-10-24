@@ -1,5 +1,5 @@
 jdk:
-  - openjdk17
+  - openjdk11
 before_install:
-   - sdk install java 17.0.1-open
-   - sdk use java 17.0.1-open
+   - sdk install java 11.0.1-open
+   - sdk use java 11.0.1-open
