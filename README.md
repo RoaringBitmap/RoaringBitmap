@@ -4,6 +4,34 @@ RoaringBitmap
 [![docs-badge][]][docs]
 ![Java 11 CI](https://github.com/RoaringBitmap/RoaringBitmap/workflows/Java%2011%20CI/badge.svg)
 
+- [Introduction](#introduction)
+- [When should you use a bitmap?](#when-should-you-use-a-bitmap)
+- [When should you use compressed bitmaps?](#when-should-you-use-compressed-bitmaps)
+- [How does Roaring compare with the alternatives?](#how-does-roaring-compare-with-the-alternatives)
+- [Code sample](#code-sample)
+- [API docs](#api-docs)
+- [Download](#download)
+- [Usage within a Maven project](#usage-within-a-maven-project)
+- [Usage within a gradle project](#usage-within-a-gradle-project)
+- [Scientific Documentation](#scientific-documentation)
+- [Unsigned integers](#unsigned-integers)
+- [Working with memory-mapped bitmaps](#working-with-memory-mapped-bitmaps)
+- [Thread safety](#thread-safety)
+- [Kryo](#kryo)
+- [64-bit integers (long)](#64-bit-integers-long)
+- [Range Bitmaps](#range-bitmaps)
+- [Prerequisites](#prerequisites)
+- [Usage for RoaringBitmap Developers](#usage-for-roaringbitmap-developers)
+- [IntelliJ and Eclipse](#intellij-and-eclipse)
+- [Contributing](#contributing)
+- [FAQ](#faq)
+- [Benchmark](#benchmark)
+- [Mailing list/discussion group](#mailing-listdiscussion-group)
+- [Funding](#funding)
+
+Introduction
+-------------
+
 Bitsets, also called bitmaps, are commonly used as fast data structures.
 Unfortunately, they can use too much memory. To compensate, we often use
 compressed bitmaps.
@@ -56,7 +84,7 @@ This code is licensed under Apache License, Version 2.0 (AL2.0).
 
 
 When should you use a bitmap?
-===================================
+-------------------------------
 
 
 Sets are a fundamental abstraction in
@@ -89,7 +117,7 @@ you have 1000 random-looking integers, then a simple array might be the best rep
 We refer to this case as the "sparse" scenario.
 
 When should you use compressed bitmaps?
-===================================
+--------------------------
 
 An uncompressed BitSet can use a lot of memory. For example, if you take a BitSet
 and set the bit at position 1,000,000 to true and you have just over 100kB. That is over 100kB
@@ -110,8 +138,7 @@ Keep in mind that random-looking data is usually not compressible. E.g., if you 
 and attempts at compression can be counterproductive.
 
 How does Roaring compare with the alternatives?
-==================================================
-
+------------------------------------------------
 
 Most alternatives to Roaring are part of a larger family of compressed bitmaps that are run-length-encoded
 bitmaps. They identify long runs of 1s or 0s and they represent them with a marker word.
@@ -140,21 +167,6 @@ or a list of runs. Whatever format it uses, they all allow you to check for the 
 formats like WAH, EWAH, Concise... Maybe surprisingly, Roaring also generally offers better compression ratios.
 
 
-
-API docs
----------
-
-http://www.javadoc.io/doc/org.roaringbitmap/RoaringBitmap/
-
-Scientific Documentation
---------------------------
-
-- Daniel Lemire, Owen Kaser, Nathan Kurz, Luca Deri, Chris O'Hara, François Saint-Jacques, Gregory Ssi-Yan-Kai, Roaring Bitmaps: Implementation of an Optimized Software Library, Software: Practice and Experience 48 (4), 2018 [arXiv:1709.07821](https://arxiv.org/abs/1709.07821)
--  Samy Chambi, Daniel Lemire, Owen Kaser, Robert Godin,
-Better bitmap performance with Roaring bitmaps,
-Software: Practice and Experience 46 (5), 2016. [arXiv:1402.6407](http://arxiv.org/abs/1402.6407) This paper used data from http://lemire.me/data/realroaring2014.html
-- Daniel Lemire, Gregory Ssi-Yan-Kai, Owen Kaser, Consistently faster and smaller compressed bitmaps with Roaring, Software: Practice and Experience 46 (11), 2016. [arXiv:1603.06549](http://arxiv.org/abs/1603.06549)
-- Samy Chambi, Daniel Lemire, Robert Godin, Kamel Boukhalfa, Charles Allen, Fangjin Yang, Optimizing Druid with Roaring bitmaps, IDEAS 2016, 2016. http://r-libre.teluq.ca/950/
 
 Code sample
 -------------
@@ -189,6 +201,138 @@ public class Basic {
 ```
 
 Please see the examples folder for more examples, which you can run with `./gradlew :examples:runAll`, or run a specific one with `./gradlew :examples:runExampleBitmap64`, etc.
+
+API docs
+---------
+
+http://www.javadoc.io/doc/org.roaringbitmap/RoaringBitmap/
+
+
+Download
+---------
+
+You can download releases from github:
+https://github.com/RoaringBitmap/RoaringBitmap/releases
+
+Usage within a Maven project
+---------
+
+Add the following dependency to your `pom.xml` file inside the `<dependencies>` element...
+
+```xml
+    <dependency>
+      <groupId>org.roaringbitmap</groupId>
+      <artifactId>roaringbitmap</artifactId>
+      <version>1.3.12</version>
+    </dependency>
+```
+
+Add the GitHub repository inside the `<dependencies>` element (`pom.xml` file)...
+
+```xml
+<repositories>
+    <repository>
+        <id>github</id>
+        <name>Roaring Maven Packages</name>
+        <url>https://maven.pkg.github.com/RoaringBitmap/RoaringBitmap</url>
+        <releases><enabled>true</enabled></releases>
+        <snapshots><enabled>true</enabled></snapshots>
+    </repository>
+</repositories>
+```
+
+See https://github.com/RoaringBitmap/MavenRoaringBitmapProject for a complete example.
+
+The registry access is is protected by an authorisation. So you have to add your GitHub credentials to your global settings.xml: `$HOME\.m2\settings.xml`.
+
+You will need a token which you can generate on GitHub.
+
+```
+GitHub > Settings > Developer Settings > Personal access tokens > Generate new token
+```
+
+The token needs the read:packages permission. The token identifier is a long string such as `ghp_ieOkN`.
+
+Put the following in your `settings.xml` file, within the `<servers>` element.
+
+```xml
+<server>
+  <id>github</id>
+  <username>lemire</username>
+  <password>ghp_ieOkN</password>
+</server>
+```
+
+Replace `lemire` by your GitHub username and `ghp_ieOkN` by the token identifier
+you just generated.
+
+Usage within a gradle project
+------------------
+
+
+The approach with gradle is similar. You still need your GitHub credentials. Go
+to 
+
+```
+GitHub > Settings > Developer Settings > Personal access tokens > Generate new token
+```
+
+And create a token with read:packages permission.
+
+If your GitHub user name is `lemire` and your GitHub personal token `ghp_ieOkN`,
+then you can set them using system variables. Under bash, you can do it like so:
+```
+export GITHUB_USER=lemire
+export GITHUB_PASSWORD=ghp_ieOkN
+```
+
+
+If you prefer you can write your GitHub credentials in your  gradle.properties
+file
+
+```
+# gradle.properties
+githubUser=lemire
+githubPassword=ghp_ieOkN
+```
+
+Then all you need is the following `build.gradle` file:
+
+```groovy
+plugins {
+    id 'java'
+}
+
+group 'org.roaringbitmap' // name of your project
+version '1.0-SNAPSHOT' // version of your project
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://maven.pkg.github.com/RoaringBitmap/RoaringBitmap'
+        credentials {
+            username = System.properties['githubUser'] ?: System.env.GITHUB_USER
+            password = System.properties['githubPassword'] ?: System.env.GITHUB_PASSWORD
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.roaringbitmap:roaringbitmap:1.3.12'
+    testImplementation 'junit:junit:3.8.1'
+}
+```
+
+
+Scientific Documentation
+--------------------------
+
+- Daniel Lemire, Owen Kaser, Nathan Kurz, Luca Deri, Chris O'Hara, François Saint-Jacques, Gregory Ssi-Yan-Kai, Roaring Bitmaps: Implementation of an Optimized Software Library, Software: Practice and Experience 48 (4), 2018 [arXiv:1709.07821](https://arxiv.org/abs/1709.07821)
+-  Samy Chambi, Daniel Lemire, Owen Kaser, Robert Godin,
+Better bitmap performance with Roaring bitmaps,
+Software: Practice and Experience 46 (5), 2016. [arXiv:1402.6407](http://arxiv.org/abs/1402.6407) This paper used data from http://lemire.me/data/realroaring2014.html
+- Daniel Lemire, Gregory Ssi-Yan-Kai, Owen Kaser, Consistently faster and smaller compressed bitmaps with Roaring, Software: Practice and Experience 46 (11), 2016. [arXiv:1603.06549](http://arxiv.org/abs/1603.06549)
+- Samy Chambi, Daniel Lemire, Robert Godin, Kamel Boukhalfa, Charles Allen, Fangjin Yang, Optimizing Druid with Roaring bitmaps, IDEAS 2016, 2016. http://r-libre.teluq.ca/950/
 
 
 Unsigned integers
@@ -412,66 +556,9 @@ Prerequisites
  - Version 0.5.x requires JDK 6 or better
 
 
-Download
----------
-
-You can download releases from github:
-https://github.com/RoaringBitmap/RoaringBitmap/releases
-
-Using from Maven
----------
-
-Add the following dependency to your `pom.xml` file inside the `<dependencies>` element...
-
-```xml
-    <dependency>
-      <groupId>org.roaringbitmap</groupId>
-      <artifactId>roaringbitmap</artifactId>
-      <version>1.3.12</version>
-    </dependency>
-```
-
-Add the GitHub repository inside the `<dependencies>` element (`pom.xml` file)...
-
-```xml
-<repositories>
-    <repository>
-        <id>github</id>
-        <name>Roaring Maven Packages</name>
-        <url>https://maven.pkg.github.com/RoaringBitmap/RoaringBitmap</url>
-        <releases><enabled>true</enabled></releases>
-        <snapshots><enabled>true</enabled></snapshots>
-    </repository>
-</repositories>
-```
-
-See https://github.com/RoaringBitmap/MavenRoaringBitmapProject for a complete example.
-
-The registry access is is protected by an authorisation. So you have to add your GitHub credentials to your global settings.xml: `$HOME\.m2\settings.xml`.
-
-You will need a token which you can generate on GitHub.
-
-```
-GitHub > Settings > Developer Settings > Personal access tokens > Generate new token
-```
-
-The token needs the read:packages permission. The token identifier is a long string such as `ghp_ieOkN`.
-
-Put the following in your `settings.xml` file, within the `<servers>` element.
-
-```xml
-<server>
-  <id>github</id>
-  <username>lemire</username>
-  <password>ghp_ieOkN</password>
-</server>
-```
-
-Replace `lemire` by your GitHub username and `ghp_ieOkN` by the token identifier
-you just generated.
 
 
-Usage
+Usage for RoaringBitmap Developers
 ------
 
 * Get java
