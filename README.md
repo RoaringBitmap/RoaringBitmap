@@ -257,7 +257,7 @@ Add the following dependency to your `pom.xml` file inside the `<dependencies>` 
     </dependency>
 ```
 
-Add the GitHub repository inside the `<dependencies>` element (`pom.xml` file)...
+Add the GitHub repository inside the `<repositories>` element (`pom.xml` file)...
 
 ```xml
 <repositories>
