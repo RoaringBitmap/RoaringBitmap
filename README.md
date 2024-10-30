@@ -223,11 +223,11 @@ Usage within a Maven project
 Add the following dependency to your pom.xml file...
 
 ```xml
-	<dependency>
-	    <groupId>com.github.RoaringBitmap.RoaringBitmap</groupId>
-	    <artifactId>roaringbitmap</artifactId>
-	    <version>1.3.15</version>
-	</dependency>
+<dependency>
+    <groupId>com.github.RoaringBitmap.RoaringBitmap</groupId>
+    <artifactId>roaringbitmap</artifactId>
+    <version>1.3.15</version>
+</dependency>
 ```
 
 You may adjust the version number.
@@ -236,10 +236,10 @@ Then add the repository to your pom.xml file:
 
 ```xml
 <repositories>
-		<repository>
-		    <id>jitpack.io</id>
-		    <url>https://jitpack.io</url>
-		</repository>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
 </repositories>
 ```
 See https://github.com/RoaringBitmap/JitPackRoaringBitmapProject for a complete example.
@@ -250,11 +250,11 @@ See https://github.com/RoaringBitmap/JitPackRoaringBitmapProject for a complete 
 Add the following dependency to your `pom.xml` file inside the `<dependencies>` element...
 
 ```xml
-    <dependency>
-      <groupId>org.roaringbitmap</groupId>
-      <artifactId>roaringbitmap</artifactId>
-      <version>1.3.12</version>
-    </dependency>
+<dependency>
+    <groupId>org.roaringbitmap</groupId>
+    <artifactId>roaringbitmap</artifactId>
+    <version>1.3.12</version>
+</dependency>
 ```
 
 Add the GitHub repository inside the `<repositories>` element (`pom.xml` file)...
