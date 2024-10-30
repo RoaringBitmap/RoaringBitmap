@@ -406,5 +406,16 @@ public class R64BSITest {
     Assertions.assertEquals(bsi.compare(BitmapSliceIndex.Operation.RANGE, -129, -14, null).getLongCardinality(), 0);
     Assertions.assertEquals(bsi.compare(BitmapSliceIndex.Operation.RANGE, 129, 2000, null).getLongCardinality(), 0);
   }
+  
+  @Test
+  public void testIssue755() throws IOException {
+    Roaring64BitmapSliceIndex bsi = new Roaring64BitmapSliceIndex();
+    bsi.setValue(100L, 3L);
+    bsi.setValue(1L, (long)Integer.MAX_VALUE * 2 + 23456);
+    bsi.setValue(2L, (long)Integer.MAX_VALUE + 23456);
+    Assertions.assertEquals(bsi.getValue(100L).getKey(), 3L); // {{3,true}}
+    Assertions.assertEquals(bsi.getValue(1L).getKey(), (long)Integer.MAX_VALUE * 2 + 23456); // {23455,true}
+    Assertions.assertEquals(bsi.getValue(2L).getKey(), (long)Integer.MAX_VALUE + 23456); // {-2147460193,true}
+  }
 }
 
