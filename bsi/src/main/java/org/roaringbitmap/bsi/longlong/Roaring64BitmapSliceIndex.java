@@ -480,6 +480,12 @@ public class Roaring64BitmapSliceIndex {
         return oNeilCompare(BitmapSliceIndex.Operation.LE, startOrValue, foundSet);
 
       case RANGE: {
+        if (startOrValue < minValue) {
+          startOrValue = minValue;
+        }
+        if (end > maxValue) {
+          end = maxValue;
+        }
         Roaring64Bitmap left = oNeilCompare(BitmapSliceIndex.Operation.GE, startOrValue, foundSet);
         Roaring64Bitmap right = oNeilCompare(BitmapSliceIndex.Operation.LE, end, foundSet);
 

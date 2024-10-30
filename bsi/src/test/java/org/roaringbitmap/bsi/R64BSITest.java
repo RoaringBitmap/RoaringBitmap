@@ -384,5 +384,27 @@ public class R64BSITest {
     Assertions.assertEquals(de_bsi.getValue(100L), bsi.getValue(100L));
     Assertions.assertEquals(de_bsi.getValue(1L), bsi.getValue(1L));
   }
+
+  @Test
+  public void testIssue753() throws IOException {
+    bsi = new Roaring64BitmapSliceIndex();
+    LongStream.range(1, 100).forEach(x -> bsi.setValue(x, x));
+    Assertions.assertEquals(bsi.compare(BitmapSliceIndex.Operation.RANGE, -4, 56, null).getLongCardinality(), 56);
+    Assertions.assertEquals(bsi.compare(BitmapSliceIndex.Operation.RANGE, -4, 129, null).getLongCardinality(), 99);
+    Assertions.assertEquals(bsi.compare(BitmapSliceIndex.Operation.RANGE, -4, 200, null).getLongCardinality(), 99);
+    Assertions.assertEquals(bsi.compare(BitmapSliceIndex.Operation.RANGE, -4, 20000, null).getLongCardinality(), 99);
+    Assertions.assertEquals(bsi.compare(BitmapSliceIndex.Operation.RANGE, -4, -129, null).getLongCardinality(), 0);
+    Assertions.assertEquals(bsi.compare(BitmapSliceIndex.Operation.RANGE, -4, -2, null).getLongCardinality(), 0);
+
+    Assertions.assertEquals(bsi.compare(BitmapSliceIndex.Operation.RANGE, 4, 56, null).getLongCardinality(), 53);
+    Assertions.assertEquals(bsi.compare(BitmapSliceIndex.Operation.RANGE, 4, 129, null).getLongCardinality(), 96);
+    Assertions.assertEquals(bsi.compare(BitmapSliceIndex.Operation.RANGE, 4, 200, null).getLongCardinality(), 96);
+    Assertions.assertEquals(bsi.compare(BitmapSliceIndex.Operation.RANGE, 4, 20000, null).getLongCardinality(), 96);
+    Assertions.assertEquals(bsi.compare(BitmapSliceIndex.Operation.RANGE, 4, -129, null).getLongCardinality(), 0);
+    Assertions.assertEquals(bsi.compare(BitmapSliceIndex.Operation.RANGE, 4, 2, null).getLongCardinality(), 0);
+
+    Assertions.assertEquals(bsi.compare(BitmapSliceIndex.Operation.RANGE, -129, -14, null).getLongCardinality(), 0);
+    Assertions.assertEquals(bsi.compare(BitmapSliceIndex.Operation.RANGE, 129, 2000, null).getLongCardinality(), 0);
+  }
 }
 
