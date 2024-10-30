@@ -502,6 +502,12 @@ public class RoaringBitmapSliceIndex implements BitmapSliceIndex {
         return oNeilCompare(BitmapSliceIndex.Operation.LE, startOrValue, foundSet);
 
       case RANGE: {
+        if (startOrValue < minValue) {
+          startOrValue = minValue;
+        }
+        if (end > maxValue) {
+          end = maxValue;
+        }
         RoaringBitmap left = oNeilCompare(Operation.GE, startOrValue, foundSet);
         RoaringBitmap right = oNeilCompare(BitmapSliceIndex.Operation.LE, end, foundSet);
 

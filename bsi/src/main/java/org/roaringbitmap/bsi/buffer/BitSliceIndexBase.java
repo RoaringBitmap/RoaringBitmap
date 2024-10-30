@@ -433,6 +433,12 @@ public class BitSliceIndexBase {
         return oNeilCompare(BitmapSliceIndex.Operation.LE, startOrValue, foundSet);
 
       case RANGE: {
+        if (startOrValue < minValue) {
+          startOrValue = minValue;
+        }
+        if (end > maxValue) {
+          end = maxValue;
+        }
         ImmutableRoaringBitmap left = owenGreatEqual(startOrValue, foundSet);
         ImmutableRoaringBitmap right = oNeilCompare(BitmapSliceIndex.Operation.LE, end, foundSet);
 
