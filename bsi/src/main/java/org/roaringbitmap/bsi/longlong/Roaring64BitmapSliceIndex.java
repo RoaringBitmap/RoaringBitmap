@@ -125,10 +125,10 @@ public class Roaring64BitmapSliceIndex {
   }
 
   private long valueAt(long columnId) {
-    int value = 0;
+    long value = 0;
     for (int i = 0; i < this.bitCount(); i += 1) {
       if (this.bA[i].contains(columnId)) {
-        value |= (1 << i);
+        value |= (1L << i);
       }
     }
 
