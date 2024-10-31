@@ -145,17 +145,16 @@ subprojects {
         java {
             googleJavaFormat("1.17.0").aosp().reflowLongStrings()
             formatAnnotations()
-            removeUnusedImports()
             toggleOffOn()
         }
     }
 }
 
-tasks {
-    register("build") {
+//tasks {
+  //  register("build") {
         // dummy build task to appease release plugin
-    }
-}
+    //}
+//}
 
 release {
     // for some odd reason, we used to have our tags be of the form roaringbitmap-0.1.0
