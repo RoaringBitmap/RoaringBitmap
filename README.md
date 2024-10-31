@@ -226,7 +226,7 @@ Add the following dependency to your pom.xml file...
 <dependency>
     <groupId>com.github.RoaringBitmap.RoaringBitmap</groupId>
     <artifactId>roaringbitmap</artifactId>
-    <version>1.3.15</version>
+    <version>1.3.16</version>
 </dependency>
 ```
 
@@ -253,7 +253,7 @@ Add the following dependency to your `pom.xml` file inside the `<dependencies>` 
 <dependency>
     <groupId>org.roaringbitmap</groupId>
     <artifactId>roaringbitmap</artifactId>
-    <version>1.3.12</version>
+    <version>1.3.16</version>
 </dependency>
 ```
 
@@ -320,7 +320,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.RoaringBitmap.RoaringBitmap:roaringbitmap:1.3.15'
+    implementation 'com.github.RoaringBitmap.RoaringBitmap:roaringbitmap:1.3.16'
     testImplementation 'junit:junit:3.8.1'
 }
 ```
@@ -380,7 +380,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.roaringbitmap:roaringbitmap:1.3.12'
+    implementation 'org.roaringbitmap:roaringbitmap:1.3.16'
     testImplementation 'junit:junit:3.8.1'
 }
 ```
