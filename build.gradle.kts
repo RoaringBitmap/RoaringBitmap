@@ -5,6 +5,7 @@ plugins {
     id("net.researchgate.release") version "2.8.1"
     id("com.github.ben-manes.versions") version "0.38.0"
     id("maven-publish")
+    id("com.diffplug.spotless") version "7.0.0.BETA4"
 }
 
 
@@ -137,6 +138,18 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
     }
 }
 
+
+subprojects {
+    apply(plugin = "com.diffplug.spotless")
+    spotless {
+        java {
+            googleJavaFormat("1.17.0").aosp().reflowLongStrings()
+            formatAnnotations()
+            removeUnusedImports()
+            toggleOffOn()
+        }
+    }
+}
 
 tasks {
     register("build") {
