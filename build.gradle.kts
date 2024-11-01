@@ -58,6 +58,8 @@ subprojects {
 
     apply(plugin = "com.diffplug.spotless")
 
+    // You can format the codebase with `./gradlew spotlessApply`
+    // You check the codebase format with `./gradlew spotlessCheck`
     spotless {
         // Ratchetting from master means we check/apply only files which are changed relatively to master
         // This is especially useful for performance, given the whole codebase has been formatted with Spotless.
