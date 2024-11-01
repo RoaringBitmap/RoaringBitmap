@@ -5,7 +5,7 @@ plugins {
     id("net.researchgate.release") version "2.8.1"
     id("com.github.ben-manes.versions") version "0.38.0"
     id("maven-publish")
-    id("com.diffplug.spotless") version "6.25.0"
+    id("com.diffplug.spotless") version "7.0.0.BETA4"
 }
 
 
@@ -56,6 +56,19 @@ subprojects {
         }
     }
 
+    apply(plugin = "com.diffplug.spotless")
+
+    spotless {
+        // BEWARE We comment ratchetFrom to format the whole codebase
+        // It shall be uncommented before merging into master
+        // ratchetFrom("origin/master")
+
+        java {
+            // Disbale javadoc formatting as most the javacode do not follow HTML syntax.
+            googleJavaFormat().reflowLongStrings().formatJavadoc(false)
+            formatAnnotations()
+        }
+    }
 }
 
 subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach { project ->
@@ -136,12 +149,6 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
         }
 
 
-    }
-}
-
-tasks {
-    register("build") {
-        // dummy build task to appease release plugin
     }
 }
 
